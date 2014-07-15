@@ -28,7 +28,8 @@ http://visjs.org
 - Updated max velocity of nodes to three times it's original value.
 - Made "stabilized" event fire every time the network stabilizes.
 - Fixed drift in dragging nodes while zooming.
-- Fixed recursively constructing of hierarchical layouts.   
+- Fixed recursively constructing of hierarchical layouts.
+- Added borderWidth option for nodes.
 
 
 

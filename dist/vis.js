@@ -81,54 +81,54 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // utils
   exports.util = __webpack_require__(1);
-  exports.DOMutil = __webpack_require__(2);
+  exports.DOMutil = __webpack_require__(8);
 
   // data
-  exports.DataSet = __webpack_require__(3);
-  exports.DataView = __webpack_require__(4);
+  exports.DataSet = __webpack_require__(9);
+  exports.DataView = __webpack_require__(10);
 
   // Graph3d
-  exports.Graph3d = __webpack_require__(5);
+  exports.Graph3d = __webpack_require__(11);
 
   // Timeline
-  exports.Timeline = __webpack_require__(6);
-  exports.Graph2d = __webpack_require__(7);
+  exports.Timeline = __webpack_require__(17);
+  exports.Graph2d = __webpack_require__(31);
   exports.timeline= {
-    DataStep: __webpack_require__(8),
-    Range: __webpack_require__(9),
-    stack: __webpack_require__(10),
-    TimeStep: __webpack_require__(11),
+    DataStep: __webpack_require__(34),
+    Range: __webpack_require__(18),
+    stack: __webpack_require__(26),
+    TimeStep: __webpack_require__(21),
 
     components: {
       items: {
-        Item: __webpack_require__(22),
-        ItemBox: __webpack_require__(23),
-        ItemPoint: __webpack_require__(24),
-        ItemRange: __webpack_require__(25)
+        Item: __webpack_require__(28),
+        ItemBox: __webpack_require__(29),
+        ItemPoint: __webpack_require__(30),
+        ItemRange: __webpack_require__(27)
       },
 
-      Component: __webpack_require__(12),
-      CurrentTime: __webpack_require__(13),
-      CustomTime: __webpack_require__(14),
-      DataAxis: __webpack_require__(15),
-      GraphGroup: __webpack_require__(16),
-      Group: __webpack_require__(17),
-      ItemSet: __webpack_require__(18),
-      Legend: __webpack_require__(19),
-      LineGraph: __webpack_require__(20),
-      TimeAxis: __webpack_require__(21)
+      Component: __webpack_require__(19),
+      CurrentTime: __webpack_require__(22),
+      CustomTime: __webpack_require__(23),
+      DataAxis: __webpack_require__(33),
+      GraphGroup: __webpack_require__(35),
+      Group: __webpack_require__(25),
+      ItemSet: __webpack_require__(24),
+      Legend: __webpack_require__(36),
+      LineGraph: __webpack_require__(32),
+      TimeAxis: __webpack_require__(20)
     }
   };
 
   // Network
-  exports.Network = __webpack_require__(26);
+  exports.Network = __webpack_require__(37);
   exports.network = {
-    Edge: __webpack_require__(27),
-    Groups: __webpack_require__(28),
-    Images: __webpack_require__(29),
-    Node: __webpack_require__(30),
-    Popup: __webpack_require__(31),
-    dotparser: __webpack_require__(32)
+    Edge: __webpack_require__(43),
+    Groups: __webpack_require__(40),
+    Images: __webpack_require__(41),
+    Node: __webpack_require__(42),
+    Popup: __webpack_require__(44),
+    dotparser: __webpack_require__(39)
   };
 
   // Deprecated since v3.0.0
@@ -145,8 +145,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // first check if moment.js is already loaded in the browser window, if so,
   // use this instance. Else, load via commonjs.
-  var Hammer = __webpack_require__(38);
-  var moment = __webpack_require__(39);
+  var Hammer = __webpack_require__(2);
+  var moment = __webpack_require__(4);
 
   /**
    * Test whether given object is a number
@@ -1420,6 +1420,4258 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
+  // Only load hammer.js when in a browser environment
+  // (loading hammer.js in a node.js environment gives errors)
+  if (typeof window !== 'undefined') {
+    module.exports = window['Hammer'] || __webpack_require__(3);
+    // TODO: throw an error when hammerjs is not available?
+  }
+  else {
+    module.exports = function () {
+      throw Error('hammer.js is only available in a browser, not in node.js.');
+    }
+  }
+
+
+/***/ },
+/* 3 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /*! Hammer.JS - v1.0.5 - 2013-04-07
+   * http://eightmedia.github.com/hammer.js
+   *
+   * Copyright (c) 2013 Jorik Tangelder <j.tangelder@gmail.com>;
+   * Licensed under the MIT license */
+
+  (function(window, undefined) {
+      'use strict';
+
+  /**
+   * Hammer
+   * use this to create instances
+   * @param   {HTMLElement}   element
+   * @param   {Object}        options
+   * @returns {Hammer.Instance}
+   * @constructor
+   */
+  var Hammer = function(element, options) {
+      return new Hammer.Instance(element, options || {});
+  };
+
+  // default settings
+  Hammer.defaults = {
+      // add styles and attributes to the element to prevent the browser from doing
+      // its native behavior. this doesnt prevent the scrolling, but cancels
+      // the contextmenu, tap highlighting etc
+      // set to false to disable this
+      stop_browser_behavior: {
+  		// this also triggers onselectstart=false for IE
+          userSelect: 'none',
+  		// this makes the element blocking in IE10 >, you could experiment with the value
+  		// see for more options this issue; https://github.com/EightMedia/hammer.js/issues/241
+          touchAction: 'none',
+  		touchCallout: 'none',
+          contentZooming: 'none',
+          userDrag: 'none',
+          tapHighlightColor: 'rgba(0,0,0,0)'
+      }
+
+      // more settings are defined per gesture at gestures.js
+  };
+
+  // detect touchevents
+  Hammer.HAS_POINTEREVENTS = navigator.pointerEnabled || navigator.msPointerEnabled;
+  Hammer.HAS_TOUCHEVENTS = ('ontouchstart' in window);
+
+  // dont use mouseevents on mobile devices
+  Hammer.MOBILE_REGEX = /mobile|tablet|ip(ad|hone|od)|android/i;
+  Hammer.NO_MOUSEEVENTS = Hammer.HAS_TOUCHEVENTS && navigator.userAgent.match(Hammer.MOBILE_REGEX);
+
+  // eventtypes per touchevent (start, move, end)
+  // are filled by Hammer.event.determineEventTypes on setup
+  Hammer.EVENT_TYPES = {};
+
+  // direction defines
+  Hammer.DIRECTION_DOWN = 'down';
+  Hammer.DIRECTION_LEFT = 'left';
+  Hammer.DIRECTION_UP = 'up';
+  Hammer.DIRECTION_RIGHT = 'right';
+
+  // pointer type
+  Hammer.POINTER_MOUSE = 'mouse';
+  Hammer.POINTER_TOUCH = 'touch';
+  Hammer.POINTER_PEN = 'pen';
+
+  // touch event defines
+  Hammer.EVENT_START = 'start';
+  Hammer.EVENT_MOVE = 'move';
+  Hammer.EVENT_END = 'end';
+
+  // hammer document where the base events are added at
+  Hammer.DOCUMENT = document;
+
+  // plugins namespace
+  Hammer.plugins = {};
+
+  // if the window events are set...
+  Hammer.READY = false;
+
+  /**
+   * setup events to detect gestures on the document
+   */
+  function setup() {
+      if(Hammer.READY) {
+          return;
+      }
+
+      // find what eventtypes we add listeners to
+      Hammer.event.determineEventTypes();
+
+      // Register all gestures inside Hammer.gestures
+      for(var name in Hammer.gestures) {
+          if(Hammer.gestures.hasOwnProperty(name)) {
+              Hammer.detection.register(Hammer.gestures[name]);
+          }
+      }
+
+      // Add touch events on the document
+      Hammer.event.onTouch(Hammer.DOCUMENT, Hammer.EVENT_MOVE, Hammer.detection.detect);
+      Hammer.event.onTouch(Hammer.DOCUMENT, Hammer.EVENT_END, Hammer.detection.detect);
+
+      // Hammer is ready...!
+      Hammer.READY = true;
+  }
+
+  /**
+   * create new hammer instance
+   * all methods should return the instance itself, so it is chainable.
+   * @param   {HTMLElement}       element
+   * @param   {Object}            [options={}]
+   * @returns {Hammer.Instance}
+   * @constructor
+   */
+  Hammer.Instance = function(element, options) {
+      var self = this;
+
+      // setup HammerJS window events and register all gestures
+      // this also sets up the default options
+      setup();
+
+      this.element = element;
+
+      // start/stop detection option
+      this.enabled = true;
+
+      // merge options
+      this.options = Hammer.utils.extend(
+          Hammer.utils.extend({}, Hammer.defaults),
+          options || {});
+
+      // add some css to the element to prevent the browser from doing its native behavoir
+      if(this.options.stop_browser_behavior) {
+          Hammer.utils.stopDefaultBrowserBehavior(this.element, this.options.stop_browser_behavior);
+      }
+
+      // start detection on touchstart
+      Hammer.event.onTouch(element, Hammer.EVENT_START, function(ev) {
+          if(self.enabled) {
+              Hammer.detection.startDetect(self, ev);
+          }
+      });
+
+      // return instance
+      return this;
+  };
+
+
+  Hammer.Instance.prototype = {
+      /**
+       * bind events to the instance
+       * @param   {String}      gesture
+       * @param   {Function}    handler
+       * @returns {Hammer.Instance}
+       */
+      on: function onEvent(gesture, handler){
+          var gestures = gesture.split(' ');
+          for(var t=0; t<gestures.length; t++) {
+              this.element.addEventListener(gestures[t], handler, false);
+          }
+          return this;
+      },
+
+
+      /**
+       * unbind events to the instance
+       * @param   {String}      gesture
+       * @param   {Function}    handler
+       * @returns {Hammer.Instance}
+       */
+      off: function offEvent(gesture, handler){
+          var gestures = gesture.split(' ');
+          for(var t=0; t<gestures.length; t++) {
+              this.element.removeEventListener(gestures[t], handler, false);
+          }
+          return this;
+      },
+
+
+      /**
+       * trigger gesture event
+       * @param   {String}      gesture
+       * @param   {Object}      eventData
+       * @returns {Hammer.Instance}
+       */
+      trigger: function triggerEvent(gesture, eventData){
+          // create DOM event
+          var event = Hammer.DOCUMENT.createEvent('Event');
+  		event.initEvent(gesture, true, true);
+  		event.gesture = eventData;
+
+          // trigger on the target if it is in the instance element,
+          // this is for event delegation tricks
+          var element = this.element;
+          if(Hammer.utils.hasParent(eventData.target, element)) {
+              element = eventData.target;
+          }
+
+          element.dispatchEvent(event);
+          return this;
+      },
+
+
+      /**
+       * enable of disable hammer.js detection
+       * @param   {Boolean}   state
+       * @returns {Hammer.Instance}
+       */
+      enable: function enable(state) {
+          this.enabled = state;
+          return this;
+      }
+  };
+
+  /**
+   * this holds the last move event,
+   * used to fix empty touchend issue
+   * see the onTouch event for an explanation
+   * @type {Object}
+   */
+  var last_move_event = null;
+
+
+  /**
+   * when the mouse is hold down, this is true
+   * @type {Boolean}
+   */
+  var enable_detect = false;
+
+
+  /**
+   * when touch events have been fired, this is true
+   * @type {Boolean}
+   */
+  var touch_triggered = false;
+
+
+  Hammer.event = {
+      /**
+       * simple addEventListener
+       * @param   {HTMLElement}   element
+       * @param   {String}        type
+       * @param   {Function}      handler
+       */
+      bindDom: function(element, type, handler) {
+          var types = type.split(' ');
+          for(var t=0; t<types.length; t++) {
+              element.addEventListener(types[t], handler, false);
+          }
+      },
+
+
+      /**
+       * touch events with mouse fallback
+       * @param   {HTMLElement}   element
+       * @param   {String}        eventType        like Hammer.EVENT_MOVE
+       * @param   {Function}      handler
+       */
+      onTouch: function onTouch(element, eventType, handler) {
+  		var self = this;
+
+          this.bindDom(element, Hammer.EVENT_TYPES[eventType], function bindDomOnTouch(ev) {
+              var sourceEventType = ev.type.toLowerCase();
+
+              // onmouseup, but when touchend has been fired we do nothing.
+              // this is for touchdevices which also fire a mouseup on touchend
+              if(sourceEventType.match(/mouse/) && touch_triggered) {
+                  return;
+              }
+
+              // mousebutton must be down or a touch event
+              else if( sourceEventType.match(/touch/) ||   // touch events are always on screen
+                  sourceEventType.match(/pointerdown/) || // pointerevents touch
+                  (sourceEventType.match(/mouse/) && ev.which === 1)   // mouse is pressed
+              ){
+                  enable_detect = true;
+              }
+
+              // we are in a touch event, set the touch triggered bool to true,
+              // this for the conflicts that may occur on ios and android
+              if(sourceEventType.match(/touch|pointer/)) {
+                  touch_triggered = true;
+              }
+
+              // count the total touches on the screen
+              var count_touches = 0;
+
+              // when touch has been triggered in this detection session
+              // and we are now handling a mouse event, we stop that to prevent conflicts
+              if(enable_detect) {
+                  // update pointerevent
+                  if(Hammer.HAS_POINTEREVENTS && eventType != Hammer.EVENT_END) {
+                      count_touches = Hammer.PointerEvent.updatePointer(eventType, ev);
+                  }
+                  // touch
+                  else if(sourceEventType.match(/touch/)) {
+                      count_touches = ev.touches.length;
+                  }
+                  // mouse
+                  else if(!touch_triggered) {
+                      count_touches = sourceEventType.match(/up/) ? 0 : 1;
+                  }
+
+                  // if we are in a end event, but when we remove one touch and
+                  // we still have enough, set eventType to move
+                  if(count_touches > 0 && eventType == Hammer.EVENT_END) {
+                      eventType = Hammer.EVENT_MOVE;
+                  }
+                  // no touches, force the end event
+                  else if(!count_touches) {
+                      eventType = Hammer.EVENT_END;
+                  }
+
+                  // because touchend has no touches, and we often want to use these in our gestures,
+                  // we send the last move event as our eventData in touchend
+                  if(!count_touches && last_move_event !== null) {
+                      ev = last_move_event;
+                  }
+                  // store the last move event
+                  else {
+                      last_move_event = ev;
+                  }
+
+                  // trigger the handler
+                  handler.call(Hammer.detection, self.collectEventData(element, eventType, ev));
+
+                  // remove pointerevent from list
+                  if(Hammer.HAS_POINTEREVENTS && eventType == Hammer.EVENT_END) {
+                      count_touches = Hammer.PointerEvent.updatePointer(eventType, ev);
+                  }
+              }
+
+              //debug(sourceEventType +" "+ eventType);
+
+              // on the end we reset everything
+              if(!count_touches) {
+                  last_move_event = null;
+                  enable_detect = false;
+                  touch_triggered = false;
+                  Hammer.PointerEvent.reset();
+              }
+          });
+      },
+
+
+      /**
+       * we have different events for each device/browser
+       * determine what we need and set them in the Hammer.EVENT_TYPES constant
+       */
+      determineEventTypes: function determineEventTypes() {
+          // determine the eventtype we want to set
+          var types;
+
+          // pointerEvents magic
+          if(Hammer.HAS_POINTEREVENTS) {
+              types = Hammer.PointerEvent.getEvents();
+          }
+          // on Android, iOS, blackberry, windows mobile we dont want any mouseevents
+          else if(Hammer.NO_MOUSEEVENTS) {
+              types = [
+                  'touchstart',
+                  'touchmove',
+                  'touchend touchcancel'];
+          }
+          // for non pointer events browsers and mixed browsers,
+          // like chrome on windows8 touch laptop
+          else {
+              types = [
+                  'touchstart mousedown',
+                  'touchmove mousemove',
+                  'touchend touchcancel mouseup'];
+          }
+
+          Hammer.EVENT_TYPES[Hammer.EVENT_START]  = types[0];
+          Hammer.EVENT_TYPES[Hammer.EVENT_MOVE]   = types[1];
+          Hammer.EVENT_TYPES[Hammer.EVENT_END]    = types[2];
+      },
+
+
+      /**
+       * create touchlist depending on the event
+       * @param   {Object}    ev
+       * @param   {String}    eventType   used by the fakemultitouch plugin
+       */
+      getTouchList: function getTouchList(ev/*, eventType*/) {
+          // get the fake pointerEvent touchlist
+          if(Hammer.HAS_POINTEREVENTS) {
+              return Hammer.PointerEvent.getTouchList();
+          }
+          // get the touchlist
+          else if(ev.touches) {
+              return ev.touches;
+          }
+          // make fake touchlist from mouse position
+          else {
+              return [{
+                  identifier: 1,
+                  pageX: ev.pageX,
+                  pageY: ev.pageY,
+                  target: ev.target
+              }];
+          }
+      },
+
+
+      /**
+       * collect event data for Hammer js
+       * @param   {HTMLElement}   element
+       * @param   {String}        eventType        like Hammer.EVENT_MOVE
+       * @param   {Object}        eventData
+       */
+      collectEventData: function collectEventData(element, eventType, ev) {
+          var touches = this.getTouchList(ev, eventType);
+
+          // find out pointerType
+          var pointerType = Hammer.POINTER_TOUCH;
+          if(ev.type.match(/mouse/) || Hammer.PointerEvent.matchType(Hammer.POINTER_MOUSE, ev)) {
+              pointerType = Hammer.POINTER_MOUSE;
+          }
+
+          return {
+              center      : Hammer.utils.getCenter(touches),
+              timeStamp   : new Date().getTime(),
+              target      : ev.target,
+              touches     : touches,
+              eventType   : eventType,
+              pointerType : pointerType,
+              srcEvent    : ev,
+
+              /**
+               * prevent the browser default actions
+               * mostly used to disable scrolling of the browser
+               */
+              preventDefault: function() {
+                  if(this.srcEvent.preventManipulation) {
+                      this.srcEvent.preventManipulation();
+                  }
+
+                  if(this.srcEvent.preventDefault) {
+                      this.srcEvent.preventDefault();
+                  }
+              },
+
+              /**
+               * stop bubbling the event up to its parents
+               */
+              stopPropagation: function() {
+                  this.srcEvent.stopPropagation();
+              },
+
+              /**
+               * immediately stop gesture detection
+               * might be useful after a swipe was detected
+               * @return {*}
+               */
+              stopDetect: function() {
+                  return Hammer.detection.stopDetect();
+              }
+          };
+      }
+  };
+
+  Hammer.PointerEvent = {
+      /**
+       * holds all pointers
+       * @type {Object}
+       */
+      pointers: {},
+
+      /**
+       * get a list of pointers
+       * @returns {Array}     touchlist
+       */
+      getTouchList: function() {
+          var self = this;
+          var touchlist = [];
+
+          // we can use forEach since pointerEvents only is in IE10
+          Object.keys(self.pointers).sort().forEach(function(id) {
+              touchlist.push(self.pointers[id]);
+          });
+          return touchlist;
+      },
+
+      /**
+       * update the position of a pointer
+       * @param   {String}   type             Hammer.EVENT_END
+       * @param   {Object}   pointerEvent
+       */
+      updatePointer: function(type, pointerEvent) {
+          if(type == Hammer.EVENT_END) {
+              this.pointers = {};
+          }
+          else {
+              pointerEvent.identifier = pointerEvent.pointerId;
+              this.pointers[pointerEvent.pointerId] = pointerEvent;
+          }
+
+          return Object.keys(this.pointers).length;
+      },
+
+      /**
+       * check if ev matches pointertype
+       * @param   {String}        pointerType     Hammer.POINTER_MOUSE
+       * @param   {PointerEvent}  ev
+       */
+      matchType: function(pointerType, ev) {
+          if(!ev.pointerType) {
+              return false;
+          }
+
+          var types = {};
+          types[Hammer.POINTER_MOUSE] = (ev.pointerType == ev.MSPOINTER_TYPE_MOUSE || ev.pointerType == Hammer.POINTER_MOUSE);
+          types[Hammer.POINTER_TOUCH] = (ev.pointerType == ev.MSPOINTER_TYPE_TOUCH || ev.pointerType == Hammer.POINTER_TOUCH);
+          types[Hammer.POINTER_PEN] = (ev.pointerType == ev.MSPOINTER_TYPE_PEN || ev.pointerType == Hammer.POINTER_PEN);
+          return types[pointerType];
+      },
+
+
+      /**
+       * get events
+       */
+      getEvents: function() {
+          return [
+              'pointerdown MSPointerDown',
+              'pointermove MSPointerMove',
+              'pointerup pointercancel MSPointerUp MSPointerCancel'
+          ];
+      },
+
+      /**
+       * reset the list
+       */
+      reset: function() {
+          this.pointers = {};
+      }
+  };
+
+
+  Hammer.utils = {
+      /**
+       * extend method,
+       * also used for cloning when dest is an empty object
+       * @param   {Object}    dest
+       * @param   {Object}    src
+  	 * @parm	{Boolean}	merge		do a merge
+       * @returns {Object}    dest
+       */
+      extend: function extend(dest, src, merge) {
+          for (var key in src) {
+  			if(dest[key] !== undefined && merge) {
+  				continue;
+  			}
+              dest[key] = src[key];
+          }
+          return dest;
+      },
+
+
+      /**
+       * find if a node is in the given parent
+       * used for event delegation tricks
+       * @param   {HTMLElement}   node
+       * @param   {HTMLElement}   parent
+       * @returns {boolean}       has_parent
+       */
+      hasParent: function(node, parent) {
+          while(node){
+              if(node == parent) {
+                  return true;
+              }
+              node = node.parentNode;
+          }
+          return false;
+      },
+
+
+      /**
+       * get the center of all the touches
+       * @param   {Array}     touches
+       * @returns {Object}    center
+       */
+      getCenter: function getCenter(touches) {
+          var valuesX = [], valuesY = [];
+
+          for(var t= 0,len=touches.length; t<len; t++) {
+              valuesX.push(touches[t].pageX);
+              valuesY.push(touches[t].pageY);
+          }
+
+          return {
+              pageX: ((Math.min.apply(Math, valuesX) + Math.max.apply(Math, valuesX)) / 2),
+              pageY: ((Math.min.apply(Math, valuesY) + Math.max.apply(Math, valuesY)) / 2)
+          };
+      },
+
+
+      /**
+       * calculate the velocity between two points
+       * @param   {Number}    delta_time
+       * @param   {Number}    delta_x
+       * @param   {Number}    delta_y
+       * @returns {Object}    velocity
+       */
+      getVelocity: function getVelocity(delta_time, delta_x, delta_y) {
+          return {
+              x: Math.abs(delta_x / delta_time) || 0,
+              y: Math.abs(delta_y / delta_time) || 0
+          };
+      },
+
+
+      /**
+       * calculate the angle between two coordinates
+       * @param   {Touch}     touch1
+       * @param   {Touch}     touch2
+       * @returns {Number}    angle
+       */
+      getAngle: function getAngle(touch1, touch2) {
+          var y = touch2.pageY - touch1.pageY,
+              x = touch2.pageX - touch1.pageX;
+          return Math.atan2(y, x) * 180 / Math.PI;
+      },
+
+
+      /**
+       * angle to direction define
+       * @param   {Touch}     touch1
+       * @param   {Touch}     touch2
+       * @returns {String}    direction constant, like Hammer.DIRECTION_LEFT
+       */
+      getDirection: function getDirection(touch1, touch2) {
+          var x = Math.abs(touch1.pageX - touch2.pageX),
+              y = Math.abs(touch1.pageY - touch2.pageY);
+
+          if(x >= y) {
+              return touch1.pageX - touch2.pageX > 0 ? Hammer.DIRECTION_LEFT : Hammer.DIRECTION_RIGHT;
+          }
+          else {
+              return touch1.pageY - touch2.pageY > 0 ? Hammer.DIRECTION_UP : Hammer.DIRECTION_DOWN;
+          }
+      },
+
+
+      /**
+       * calculate the distance between two touches
+       * @param   {Touch}     touch1
+       * @param   {Touch}     touch2
+       * @returns {Number}    distance
+       */
+      getDistance: function getDistance(touch1, touch2) {
+          var x = touch2.pageX - touch1.pageX,
+              y = touch2.pageY - touch1.pageY;
+          return Math.sqrt((x*x) + (y*y));
+      },
+
+
+      /**
+       * calculate the scale factor between two touchLists (fingers)
+       * no scale is 1, and goes down to 0 when pinched together, and bigger when pinched out
+       * @param   {Array}     start
+       * @param   {Array}     end
+       * @returns {Number}    scale
+       */
+      getScale: function getScale(start, end) {
+          // need two fingers...
+          if(start.length >= 2 && end.length >= 2) {
+              return this.getDistance(end[0], end[1]) /
+                  this.getDistance(start[0], start[1]);
+          }
+          return 1;
+      },
+
+
+      /**
+       * calculate the rotation degrees between two touchLists (fingers)
+       * @param   {Array}     start
+       * @param   {Array}     end
+       * @returns {Number}    rotation
+       */
+      getRotation: function getRotation(start, end) {
+          // need two fingers
+          if(start.length >= 2 && end.length >= 2) {
+              return this.getAngle(end[1], end[0]) -
+                  this.getAngle(start[1], start[0]);
+          }
+          return 0;
+      },
+
+
+      /**
+       * boolean if the direction is vertical
+       * @param    {String}    direction
+       * @returns  {Boolean}   is_vertical
+       */
+      isVertical: function isVertical(direction) {
+          return (direction == Hammer.DIRECTION_UP || direction == Hammer.DIRECTION_DOWN);
+      },
+
+
+      /**
+       * stop browser default behavior with css props
+       * @param   {HtmlElement}   element
+       * @param   {Object}        css_props
+       */
+      stopDefaultBrowserBehavior: function stopDefaultBrowserBehavior(element, css_props) {
+          var prop,
+              vendors = ['webkit','khtml','moz','ms','o',''];
+
+          if(!css_props || !element.style) {
+              return;
+          }
+
+          // with css properties for modern browsers
+          for(var i = 0; i < vendors.length; i++) {
+              for(var p in css_props) {
+                  if(css_props.hasOwnProperty(p)) {
+                      prop = p;
+
+                      // vender prefix at the property
+                      if(vendors[i]) {
+                          prop = vendors[i] + prop.substring(0, 1).toUpperCase() + prop.substring(1);
+                      }
+
+                      // set the style
+                      element.style[prop] = css_props[p];
+                  }
+              }
+          }
+
+          // also the disable onselectstart
+          if(css_props.userSelect == 'none') {
+              element.onselectstart = function() {
+                  return false;
+              };
+          }
+      }
+  };
+
+  Hammer.detection = {
+      // contains all registred Hammer.gestures in the correct order
+      gestures: [],
+
+      // data of the current Hammer.gesture detection session
+      current: null,
+
+      // the previous Hammer.gesture session data
+      // is a full clone of the previous gesture.current object
+      previous: null,
+
+      // when this becomes true, no gestures are fired
+      stopped: false,
+
+
+      /**
+       * start Hammer.gesture detection
+       * @param   {Hammer.Instance}   inst
+       * @param   {Object}            eventData
+       */
+      startDetect: function startDetect(inst, eventData) {
+          // already busy with a Hammer.gesture detection on an element
+          if(this.current) {
+              return;
+          }
+
+          this.stopped = false;
+
+          this.current = {
+              inst        : inst, // reference to HammerInstance we're working for
+              startEvent  : Hammer.utils.extend({}, eventData), // start eventData for distances, timing etc
+              lastEvent   : false, // last eventData
+              name        : '' // current gesture we're in/detected, can be 'tap', 'hold' etc
+          };
+
+          this.detect(eventData);
+      },
+
+
+      /**
+       * Hammer.gesture detection
+       * @param   {Object}    eventData
+       * @param   {Object}    eventData
+       */
+      detect: function detect(eventData) {
+          if(!this.current || this.stopped) {
+              return;
+          }
+
+          // extend event data with calculations about scale, distance etc
+          eventData = this.extendEventData(eventData);
+
+          // instance options
+          var inst_options = this.current.inst.options;
+
+          // call Hammer.gesture handlers
+          for(var g=0,len=this.gestures.length; g<len; g++) {
+              var gesture = this.gestures[g];
+
+              // only when the instance options have enabled this gesture
+              if(!this.stopped && inst_options[gesture.name] !== false) {
+                  // if a handler returns false, we stop with the detection
+                  if(gesture.handler.call(gesture, eventData, this.current.inst) === false) {
+                      this.stopDetect();
+                      break;
+                  }
+              }
+          }
+
+          // store as previous event event
+          if(this.current) {
+              this.current.lastEvent = eventData;
+          }
+
+          // endevent, but not the last touch, so dont stop
+          if(eventData.eventType == Hammer.EVENT_END && !eventData.touches.length-1) {
+              this.stopDetect();
+          }
+
+          return eventData;
+      },
+
+
+      /**
+       * clear the Hammer.gesture vars
+       * this is called on endDetect, but can also be used when a final Hammer.gesture has been detected
+       * to stop other Hammer.gestures from being fired
+       */
+      stopDetect: function stopDetect() {
+          // clone current data to the store as the previous gesture
+          // used for the double tap gesture, since this is an other gesture detect session
+          this.previous = Hammer.utils.extend({}, this.current);
+
+          // reset the current
+          this.current = null;
+
+          // stopped!
+          this.stopped = true;
+      },
+
+
+      /**
+       * extend eventData for Hammer.gestures
+       * @param   {Object}   ev
+       * @returns {Object}   ev
+       */
+      extendEventData: function extendEventData(ev) {
+          var startEv = this.current.startEvent;
+
+          // if the touches change, set the new touches over the startEvent touches
+          // this because touchevents don't have all the touches on touchstart, or the
+          // user must place his fingers at the EXACT same time on the screen, which is not realistic
+          // but, sometimes it happens that both fingers are touching at the EXACT same time
+          if(startEv && (ev.touches.length != startEv.touches.length || ev.touches === startEv.touches)) {
+              // extend 1 level deep to get the touchlist with the touch objects
+              startEv.touches = [];
+              for(var i=0,len=ev.touches.length; i<len; i++) {
+                  startEv.touches.push(Hammer.utils.extend({}, ev.touches[i]));
+              }
+          }
+
+          var delta_time = ev.timeStamp - startEv.timeStamp,
+              delta_x = ev.center.pageX - startEv.center.pageX,
+              delta_y = ev.center.pageY - startEv.center.pageY,
+              velocity = Hammer.utils.getVelocity(delta_time, delta_x, delta_y);
+
+          Hammer.utils.extend(ev, {
+              deltaTime   : delta_time,
+
+              deltaX      : delta_x,
+              deltaY      : delta_y,
+
+              velocityX   : velocity.x,
+              velocityY   : velocity.y,
+
+              distance    : Hammer.utils.getDistance(startEv.center, ev.center),
+              angle       : Hammer.utils.getAngle(startEv.center, ev.center),
+              direction   : Hammer.utils.getDirection(startEv.center, ev.center),
+
+              scale       : Hammer.utils.getScale(startEv.touches, ev.touches),
+              rotation    : Hammer.utils.getRotation(startEv.touches, ev.touches),
+
+              startEvent  : startEv
+          });
+
+          return ev;
+      },
+
+
+      /**
+       * register new gesture
+       * @param   {Object}    gesture object, see gestures.js for documentation
+       * @returns {Array}     gestures
+       */
+      register: function register(gesture) {
+          // add an enable gesture options if there is no given
+          var options = gesture.defaults || {};
+          if(options[gesture.name] === undefined) {
+              options[gesture.name] = true;
+          }
+
+          // extend Hammer default options with the Hammer.gesture options
+          Hammer.utils.extend(Hammer.defaults, options, true);
+
+          // set its index
+          gesture.index = gesture.index || 1000;
+
+          // add Hammer.gesture to the list
+          this.gestures.push(gesture);
+
+          // sort the list by index
+          this.gestures.sort(function(a, b) {
+              if (a.index < b.index) {
+                  return -1;
+              }
+              if (a.index > b.index) {
+                  return 1;
+              }
+              return 0;
+          });
+
+          return this.gestures;
+      }
+  };
+
+
+  Hammer.gestures = Hammer.gestures || {};
+
+  /**
+   * Custom gestures
+   * ==============================
+   *
+   * Gesture object
+   * --------------------
+   * The object structure of a gesture:
+   *
+   * { name: 'mygesture',
+   *   index: 1337,
+   *   defaults: {
+   *     mygesture_option: true
+   *   }
+   *   handler: function(type, ev, inst) {
+   *     // trigger gesture event
+   *     inst.trigger(this.name, ev);
+   *   }
+   * }
+
+   * @param   {String}    name
+   * this should be the name of the gesture, lowercase
+   * it is also being used to disable/enable the gesture per instance config.
+   *
+   * @param   {Number}    [index=1000]
+   * the index of the gesture, where it is going to be in the stack of gestures detection
+   * like when you build an gesture that depends on the drag gesture, it is a good
+   * idea to place it after the index of the drag gesture.
+   *
+   * @param   {Object}    [defaults={}]
+   * the default settings of the gesture. these are added to the instance settings,
+   * and can be overruled per instance. you can also add the name of the gesture,
+   * but this is also added by default (and set to true).
+   *
+   * @param   {Function}  handler
+   * this handles the gesture detection of your custom gesture and receives the
+   * following arguments:
+   *
+   *      @param  {Object}    eventData
+   *      event data containing the following properties:
+   *          timeStamp   {Number}        time the event occurred
+   *          target      {HTMLElement}   target element
+   *          touches     {Array}         touches (fingers, pointers, mouse) on the screen
+   *          pointerType {String}        kind of pointer that was used. matches Hammer.POINTER_MOUSE|TOUCH
+   *          center      {Object}        center position of the touches. contains pageX and pageY
+   *          deltaTime   {Number}        the total time of the touches in the screen
+   *          deltaX      {Number}        the delta on x axis we haved moved
+   *          deltaY      {Number}        the delta on y axis we haved moved
+   *          velocityX   {Number}        the velocity on the x
+   *          velocityY   {Number}        the velocity on y
+   *          angle       {Number}        the angle we are moving
+   *          direction   {String}        the direction we are moving. matches Hammer.DIRECTION_UP|DOWN|LEFT|RIGHT
+   *          distance    {Number}        the distance we haved moved
+   *          scale       {Number}        scaling of the touches, needs 2 touches
+   *          rotation    {Number}        rotation of the touches, needs 2 touches *
+   *          eventType   {String}        matches Hammer.EVENT_START|MOVE|END
+   *          srcEvent    {Object}        the source event, like TouchStart or MouseDown *
+   *          startEvent  {Object}        contains the same properties as above,
+   *                                      but from the first touch. this is used to calculate
+   *                                      distances, deltaTime, scaling etc
+   *
+   *      @param  {Hammer.Instance}    inst
+   *      the instance we are doing the detection for. you can get the options from
+   *      the inst.options object and trigger the gesture event by calling inst.trigger
+   *
+   *
+   * Handle gestures
+   * --------------------
+   * inside the handler you can get/set Hammer.detection.current. This is the current
+   * detection session. It has the following properties
+   *      @param  {String}    name
+   *      contains the name of the gesture we have detected. it has not a real function,
+   *      only to check in other gestures if something is detected.
+   *      like in the drag gesture we set it to 'drag' and in the swipe gesture we can
+   *      check if the current gesture is 'drag' by accessing Hammer.detection.current.name
+   *
+   *      @readonly
+   *      @param  {Hammer.Instance}    inst
+   *      the instance we do the detection for
+   *
+   *      @readonly
+   *      @param  {Object}    startEvent
+   *      contains the properties of the first gesture detection in this session.
+   *      Used for calculations about timing, distance, etc.
+   *
+   *      @readonly
+   *      @param  {Object}    lastEvent
+   *      contains all the properties of the last gesture detect in this session.
+   *
+   * after the gesture detection session has been completed (user has released the screen)
+   * the Hammer.detection.current object is copied into Hammer.detection.previous,
+   * this is usefull for gestures like doubletap, where you need to know if the
+   * previous gesture was a tap
+   *
+   * options that have been set by the instance can be received by calling inst.options
+   *
+   * You can trigger a gesture event by calling inst.trigger("mygesture", event).
+   * The first param is the name of your gesture, the second the event argument
+   *
+   *
+   * Register gestures
+   * --------------------
+   * When an gesture is added to the Hammer.gestures object, it is auto registered
+   * at the setup of the first Hammer instance. You can also call Hammer.detection.register
+   * manually and pass your gesture object as a param
+   *
+   */
+
+  /**
+   * Hold
+   * Touch stays at the same place for x time
+   * @events  hold
+   */
+  Hammer.gestures.Hold = {
+      name: 'hold',
+      index: 10,
+      defaults: {
+          hold_timeout	: 500,
+          hold_threshold	: 1
+      },
+      timer: null,
+      handler: function holdGesture(ev, inst) {
+          switch(ev.eventType) {
+              case Hammer.EVENT_START:
+                  // clear any running timers
+                  clearTimeout(this.timer);
+
+                  // set the gesture so we can check in the timeout if it still is
+                  Hammer.detection.current.name = this.name;
+
+                  // set timer and if after the timeout it still is hold,
+                  // we trigger the hold event
+                  this.timer = setTimeout(function() {
+                      if(Hammer.detection.current.name == 'hold') {
+                          inst.trigger('hold', ev);
+                      }
+                  }, inst.options.hold_timeout);
+                  break;
+
+              // when you move or end we clear the timer
+              case Hammer.EVENT_MOVE:
+                  if(ev.distance > inst.options.hold_threshold) {
+                      clearTimeout(this.timer);
+                  }
+                  break;
+
+              case Hammer.EVENT_END:
+                  clearTimeout(this.timer);
+                  break;
+          }
+      }
+  };
+
+
+  /**
+   * Tap/DoubleTap
+   * Quick touch at a place or double at the same place
+   * @events  tap, doubletap
+   */
+  Hammer.gestures.Tap = {
+      name: 'tap',
+      index: 100,
+      defaults: {
+          tap_max_touchtime	: 250,
+          tap_max_distance	: 10,
+  		tap_always			: true,
+          doubletap_distance	: 20,
+          doubletap_interval	: 300
+      },
+      handler: function tapGesture(ev, inst) {
+          if(ev.eventType == Hammer.EVENT_END) {
+              // previous gesture, for the double tap since these are two different gesture detections
+              var prev = Hammer.detection.previous,
+  				did_doubletap = false;
+
+              // when the touchtime is higher then the max touch time
+              // or when the moving distance is too much
+              if(ev.deltaTime > inst.options.tap_max_touchtime ||
+                  ev.distance > inst.options.tap_max_distance) {
+                  return;
+              }
+
+              // check if double tap
+              if(prev && prev.name == 'tap' &&
+                  (ev.timeStamp - prev.lastEvent.timeStamp) < inst.options.doubletap_interval &&
+                  ev.distance < inst.options.doubletap_distance) {
+  				inst.trigger('doubletap', ev);
+  				did_doubletap = true;
+              }
+
+  			// do a single tap
+  			if(!did_doubletap || inst.options.tap_always) {
+  				Hammer.detection.current.name = 'tap';
+  				inst.trigger(Hammer.detection.current.name, ev);
+  			}
+          }
+      }
+  };
+
+
+  /**
+   * Swipe
+   * triggers swipe events when the end velocity is above the threshold
+   * @events  swipe, swipeleft, swiperight, swipeup, swipedown
+   */
+  Hammer.gestures.Swipe = {
+      name: 'swipe',
+      index: 40,
+      defaults: {
+          // set 0 for unlimited, but this can conflict with transform
+          swipe_max_touches  : 1,
+          swipe_velocity     : 0.7
+      },
+      handler: function swipeGesture(ev, inst) {
+          if(ev.eventType == Hammer.EVENT_END) {
+              // max touches
+              if(inst.options.swipe_max_touches > 0 &&
+                  ev.touches.length > inst.options.swipe_max_touches) {
+                  return;
+              }
+
+              // when the distance we moved is too small we skip this gesture
+              // or we can be already in dragging
+              if(ev.velocityX > inst.options.swipe_velocity ||
+                  ev.velocityY > inst.options.swipe_velocity) {
+                  // trigger swipe events
+                  inst.trigger(this.name, ev);
+                  inst.trigger(this.name + ev.direction, ev);
+              }
+          }
+      }
+  };
+
+
+  /**
+   * Drag
+   * Move with x fingers (default 1) around on the page. Blocking the scrolling when
+   * moving left and right is a good practice. When all the drag events are blocking
+   * you disable scrolling on that area.
+   * @events  drag, drapleft, dragright, dragup, dragdown
+   */
+  Hammer.gestures.Drag = {
+      name: 'drag',
+      index: 50,
+      defaults: {
+          drag_min_distance : 10,
+          // set 0 for unlimited, but this can conflict with transform
+          drag_max_touches  : 1,
+          // prevent default browser behavior when dragging occurs
+          // be careful with it, it makes the element a blocking element
+          // when you are using the drag gesture, it is a good practice to set this true
+          drag_block_horizontal   : false,
+          drag_block_vertical     : false,
+          // drag_lock_to_axis keeps the drag gesture on the axis that it started on,
+          // It disallows vertical directions if the initial direction was horizontal, and vice versa.
+          drag_lock_to_axis       : false,
+          // drag lock only kicks in when distance > drag_lock_min_distance
+          // This way, locking occurs only when the distance has become large enough to reliably determine the direction
+          drag_lock_min_distance : 25
+      },
+      triggered: false,
+      handler: function dragGesture(ev, inst) {
+          // current gesture isnt drag, but dragged is true
+          // this means an other gesture is busy. now call dragend
+          if(Hammer.detection.current.name != this.name && this.triggered) {
+              inst.trigger(this.name +'end', ev);
+              this.triggered = false;
+              return;
+          }
+
+          // max touches
+          if(inst.options.drag_max_touches > 0 &&
+              ev.touches.length > inst.options.drag_max_touches) {
+              return;
+          }
+
+          switch(ev.eventType) {
+              case Hammer.EVENT_START:
+                  this.triggered = false;
+                  break;
+
+              case Hammer.EVENT_MOVE:
+                  // when the distance we moved is too small we skip this gesture
+                  // or we can be already in dragging
+                  if(ev.distance < inst.options.drag_min_distance &&
+                      Hammer.detection.current.name != this.name) {
+                      return;
+                  }
+
+                  // we are dragging!
+                  Hammer.detection.current.name = this.name;
+
+                  // lock drag to axis?
+                  if(Hammer.detection.current.lastEvent.drag_locked_to_axis || (inst.options.drag_lock_to_axis && inst.options.drag_lock_min_distance<=ev.distance)) {
+                      ev.drag_locked_to_axis = true;
+                  }
+                  var last_direction = Hammer.detection.current.lastEvent.direction;
+                  if(ev.drag_locked_to_axis && last_direction !== ev.direction) {
+                      // keep direction on the axis that the drag gesture started on
+                      if(Hammer.utils.isVertical(last_direction)) {
+                          ev.direction = (ev.deltaY < 0) ? Hammer.DIRECTION_UP : Hammer.DIRECTION_DOWN;
+                      }
+                      else {
+                          ev.direction = (ev.deltaX < 0) ? Hammer.DIRECTION_LEFT : Hammer.DIRECTION_RIGHT;
+                      }
+                  }
+
+                  // first time, trigger dragstart event
+                  if(!this.triggered) {
+                      inst.trigger(this.name +'start', ev);
+                      this.triggered = true;
+                  }
+
+                  // trigger normal event
+                  inst.trigger(this.name, ev);
+
+                  // direction event, like dragdown
+                  inst.trigger(this.name + ev.direction, ev);
+
+                  // block the browser events
+                  if( (inst.options.drag_block_vertical && Hammer.utils.isVertical(ev.direction)) ||
+                      (inst.options.drag_block_horizontal && !Hammer.utils.isVertical(ev.direction))) {
+                      ev.preventDefault();
+                  }
+                  break;
+
+              case Hammer.EVENT_END:
+                  // trigger dragend
+                  if(this.triggered) {
+                      inst.trigger(this.name +'end', ev);
+                  }
+
+                  this.triggered = false;
+                  break;
+          }
+      }
+  };
+
+
+  /**
+   * Transform
+   * User want to scale or rotate with 2 fingers
+   * @events  transform, pinch, pinchin, pinchout, rotate
+   */
+  Hammer.gestures.Transform = {
+      name: 'transform',
+      index: 45,
+      defaults: {
+          // factor, no scale is 1, zoomin is to 0 and zoomout until higher then 1
+          transform_min_scale     : 0.01,
+          // rotation in degrees
+          transform_min_rotation  : 1,
+          // prevent default browser behavior when two touches are on the screen
+          // but it makes the element a blocking element
+          // when you are using the transform gesture, it is a good practice to set this true
+          transform_always_block  : false
+      },
+      triggered: false,
+      handler: function transformGesture(ev, inst) {
+          // current gesture isnt drag, but dragged is true
+          // this means an other gesture is busy. now call dragend
+          if(Hammer.detection.current.name != this.name && this.triggered) {
+              inst.trigger(this.name +'end', ev);
+              this.triggered = false;
+              return;
+          }
+
+          // atleast multitouch
+          if(ev.touches.length < 2) {
+              return;
+          }
+
+          // prevent default when two fingers are on the screen
+          if(inst.options.transform_always_block) {
+              ev.preventDefault();
+          }
+
+          switch(ev.eventType) {
+              case Hammer.EVENT_START:
+                  this.triggered = false;
+                  break;
+
+              case Hammer.EVENT_MOVE:
+                  var scale_threshold = Math.abs(1-ev.scale);
+                  var rotation_threshold = Math.abs(ev.rotation);
+
+                  // when the distance we moved is too small we skip this gesture
+                  // or we can be already in dragging
+                  if(scale_threshold < inst.options.transform_min_scale &&
+                      rotation_threshold < inst.options.transform_min_rotation) {
+                      return;
+                  }
+
+                  // we are transforming!
+                  Hammer.detection.current.name = this.name;
+
+                  // first time, trigger dragstart event
+                  if(!this.triggered) {
+                      inst.trigger(this.name +'start', ev);
+                      this.triggered = true;
+                  }
+
+                  inst.trigger(this.name, ev); // basic transform event
+
+                  // trigger rotate event
+                  if(rotation_threshold > inst.options.transform_min_rotation) {
+                      inst.trigger('rotate', ev);
+                  }
+
+                  // trigger pinch event
+                  if(scale_threshold > inst.options.transform_min_scale) {
+                      inst.trigger('pinch', ev);
+                      inst.trigger('pinch'+ ((ev.scale < 1) ? 'in' : 'out'), ev);
+                  }
+                  break;
+
+              case Hammer.EVENT_END:
+                  // trigger dragend
+                  if(this.triggered) {
+                      inst.trigger(this.name +'end', ev);
+                  }
+
+                  this.triggered = false;
+                  break;
+          }
+      }
+  };
+
+
+  /**
+   * Touch
+   * Called as first, tells the user has touched the screen
+   * @events  touch
+   */
+  Hammer.gestures.Touch = {
+      name: 'touch',
+      index: -Infinity,
+      defaults: {
+          // call preventDefault at touchstart, and makes the element blocking by
+          // disabling the scrolling of the page, but it improves gestures like
+          // transforming and dragging.
+          // be careful with using this, it can be very annoying for users to be stuck
+          // on the page
+          prevent_default: false,
+
+          // disable mouse events, so only touch (or pen!) input triggers events
+          prevent_mouseevents: false
+      },
+      handler: function touchGesture(ev, inst) {
+          if(inst.options.prevent_mouseevents && ev.pointerType == Hammer.POINTER_MOUSE) {
+              ev.stopDetect();
+              return;
+          }
+
+          if(inst.options.prevent_default) {
+              ev.preventDefault();
+          }
+
+          if(ev.eventType ==  Hammer.EVENT_START) {
+              inst.trigger(this.name, ev);
+          }
+      }
+  };
+
+
+  /**
+   * Release
+   * Called as last, tells the user has released the screen
+   * @events  release
+   */
+  Hammer.gestures.Release = {
+      name: 'release',
+      index: Infinity,
+      handler: function releaseGesture(ev, inst) {
+          if(ev.eventType ==  Hammer.EVENT_END) {
+              inst.trigger(this.name, ev);
+          }
+      }
+  };
+
+  // node export
+  if(typeof module === 'object' && typeof module.exports === 'object'){
+      module.exports = Hammer;
+  }
+  // just window export
+  else {
+      window.Hammer = Hammer;
+
+      // requireJS module definition
+      if(typeof window.define === 'function' && window.define.amd) {
+          window.define('hammer', [], function() {
+              return Hammer;
+          });
+      }
+  }
+  })(this);
+
+/***/ },
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
+  // first check if moment.js is already loaded in the browser window, if so,
+  // use this instance. Else, load via commonjs.
+  module.exports = (typeof window !== 'undefined') && window['moment'] || __webpack_require__(5);
+
+
+/***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global, module) {//! moment.js
+  //! version : 2.7.0
+  //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
+  //! license : MIT
+  //! momentjs.com
+
+  (function (undefined) {
+
+      /************************************
+          Constants
+      ************************************/
+
+      var moment,
+          VERSION = "2.7.0",
+          // the global-scope this is NOT the global object in Node.js
+          globalScope = typeof global !== 'undefined' ? global : this,
+          oldGlobalMoment,
+          round = Math.round,
+          i,
+
+          YEAR = 0,
+          MONTH = 1,
+          DATE = 2,
+          HOUR = 3,
+          MINUTE = 4,
+          SECOND = 5,
+          MILLISECOND = 6,
+
+          // internal storage for language config files
+          languages = {},
+
+          // moment internal properties
+          momentProperties = {
+              _isAMomentObject: null,
+              _i : null,
+              _f : null,
+              _l : null,
+              _strict : null,
+              _tzm : null,
+              _isUTC : null,
+              _offset : null,  // optional. Combine with _isUTC
+              _pf : null,
+              _lang : null  // optional
+          },
+
+          // check for nodeJS
+          hasModule = (typeof module !== 'undefined' && module.exports),
+
+          // ASP.NET json date format regex
+          aspNetJsonRegex = /^\/?Date\((\-?\d+)/i,
+          aspNetTimeSpanJsonRegex = /(\-)?(?:(\d*)\.)?(\d+)\:(\d+)(?:\:(\d+)\.?(\d{3})?)?/,
+
+          // from http://docs.closure-library.googlecode.com/git/closure_goog_date_date.js.source.html
+          // somewhat more in line with 4.4.3.2 2004 spec, but allows decimal anywhere
+          isoDurationRegex = /^(-)?P(?:(?:([0-9,.]*)Y)?(?:([0-9,.]*)M)?(?:([0-9,.]*)D)?(?:T(?:([0-9,.]*)H)?(?:([0-9,.]*)M)?(?:([0-9,.]*)S)?)?|([0-9,.]*)W)$/,
+
+          // format tokens
+          formattingTokens = /(\[[^\[]*\])|(\\)?(Mo|MM?M?M?|Do|DDDo|DD?D?D?|ddd?d?|do?|w[o|w]?|W[o|W]?|Q|YYYYYY|YYYYY|YYYY|YY|gg(ggg?)?|GG(GGG?)?|e|E|a|A|hh?|HH?|mm?|ss?|S{1,4}|X|zz?|ZZ?|.)/g,
+          localFormattingTokens = /(\[[^\[]*\])|(\\)?(LT|LL?L?L?|l{1,4})/g,
+
+          // parsing token regexes
+          parseTokenOneOrTwoDigits = /\d\d?/, // 0 - 99
+          parseTokenOneToThreeDigits = /\d{1,3}/, // 0 - 999
+          parseTokenOneToFourDigits = /\d{1,4}/, // 0 - 9999
+          parseTokenOneToSixDigits = /[+\-]?\d{1,6}/, // -999,999 - 999,999
+          parseTokenDigits = /\d+/, // nonzero number of digits
+          parseTokenWord = /[0-9]*['a-z\u00A0-\u05FF\u0700-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+|[\u0600-\u06FF\/]+(\s*?[\u0600-\u06FF]+){1,2}/i, // any word (or two) characters or numbers including two/three word month in arabic.
+          parseTokenTimezone = /Z|[\+\-]\d\d:?\d\d/gi, // +00:00 -00:00 +0000 -0000 or Z
+          parseTokenT = /T/i, // T (ISO separator)
+          parseTokenTimestampMs = /[\+\-]?\d+(\.\d{1,3})?/, // 123456789 123456789.123
+          parseTokenOrdinal = /\d{1,2}/,
+
+          //strict parsing regexes
+          parseTokenOneDigit = /\d/, // 0 - 9
+          parseTokenTwoDigits = /\d\d/, // 00 - 99
+          parseTokenThreeDigits = /\d{3}/, // 000 - 999
+          parseTokenFourDigits = /\d{4}/, // 0000 - 9999
+          parseTokenSixDigits = /[+-]?\d{6}/, // -999,999 - 999,999
+          parseTokenSignedNumber = /[+-]?\d+/, // -inf - inf
+
+          // iso 8601 regex
+          // 0000-00-00 0000-W00 or 0000-W00-0 + T + 00 or 00:00 or 00:00:00 or 00:00:00.000 + +00:00 or +0000 or +00)
+          isoRegex = /^\s*(?:[+-]\d{6}|\d{4})-(?:(\d\d-\d\d)|(W\d\d$)|(W\d\d-\d)|(\d\d\d))((T| )(\d\d(:\d\d(:\d\d(\.\d+)?)?)?)?([\+\-]\d\d(?::?\d\d)?|\s*Z)?)?$/,
+
+          isoFormat = 'YYYY-MM-DDTHH:mm:ssZ',
+
+          isoDates = [
+              ['YYYYYY-MM-DD', /[+-]\d{6}-\d{2}-\d{2}/],
+              ['YYYY-MM-DD', /\d{4}-\d{2}-\d{2}/],
+              ['GGGG-[W]WW-E', /\d{4}-W\d{2}-\d/],
+              ['GGGG-[W]WW', /\d{4}-W\d{2}/],
+              ['YYYY-DDD', /\d{4}-\d{3}/]
+          ],
+
+          // iso time formats and regexes
+          isoTimes = [
+              ['HH:mm:ss.SSSS', /(T| )\d\d:\d\d:\d\d\.\d+/],
+              ['HH:mm:ss', /(T| )\d\d:\d\d:\d\d/],
+              ['HH:mm', /(T| )\d\d:\d\d/],
+              ['HH', /(T| )\d\d/]
+          ],
+
+          // timezone chunker "+10:00" > ["10", "00"] or "-1530" > ["-15", "30"]
+          parseTimezoneChunker = /([\+\-]|\d\d)/gi,
+
+          // getter and setter names
+          proxyGettersAndSetters = 'Date|Hours|Minutes|Seconds|Milliseconds'.split('|'),
+          unitMillisecondFactors = {
+              'Milliseconds' : 1,
+              'Seconds' : 1e3,
+              'Minutes' : 6e4,
+              'Hours' : 36e5,
+              'Days' : 864e5,
+              'Months' : 2592e6,
+              'Years' : 31536e6
+          },
+
+          unitAliases = {
+              ms : 'millisecond',
+              s : 'second',
+              m : 'minute',
+              h : 'hour',
+              d : 'day',
+              D : 'date',
+              w : 'week',
+              W : 'isoWeek',
+              M : 'month',
+              Q : 'quarter',
+              y : 'year',
+              DDD : 'dayOfYear',
+              e : 'weekday',
+              E : 'isoWeekday',
+              gg: 'weekYear',
+              GG: 'isoWeekYear'
+          },
+
+          camelFunctions = {
+              dayofyear : 'dayOfYear',
+              isoweekday : 'isoWeekday',
+              isoweek : 'isoWeek',
+              weekyear : 'weekYear',
+              isoweekyear : 'isoWeekYear'
+          },
+
+          // format function strings
+          formatFunctions = {},
+
+          // default relative time thresholds
+          relativeTimeThresholds = {
+            s: 45,   //seconds to minutes
+            m: 45,   //minutes to hours
+            h: 22,   //hours to days
+            dd: 25,  //days to month (month == 1)
+            dm: 45,  //days to months (months > 1)
+            dy: 345  //days to year
+          },
+
+          // tokens to ordinalize and pad
+          ordinalizeTokens = 'DDD w W M D d'.split(' '),
+          paddedTokens = 'M D H h m s w W'.split(' '),
+
+          formatTokenFunctions = {
+              M    : function () {
+                  return this.month() + 1;
+              },
+              MMM  : function (format) {
+                  return this.lang().monthsShort(this, format);
+              },
+              MMMM : function (format) {
+                  return this.lang().months(this, format);
+              },
+              D    : function () {
+                  return this.date();
+              },
+              DDD  : function () {
+                  return this.dayOfYear();
+              },
+              d    : function () {
+                  return this.day();
+              },
+              dd   : function (format) {
+                  return this.lang().weekdaysMin(this, format);
+              },
+              ddd  : function (format) {
+                  return this.lang().weekdaysShort(this, format);
+              },
+              dddd : function (format) {
+                  return this.lang().weekdays(this, format);
+              },
+              w    : function () {
+                  return this.week();
+              },
+              W    : function () {
+                  return this.isoWeek();
+              },
+              YY   : function () {
+                  return leftZeroFill(this.year() % 100, 2);
+              },
+              YYYY : function () {
+                  return leftZeroFill(this.year(), 4);
+              },
+              YYYYY : function () {
+                  return leftZeroFill(this.year(), 5);
+              },
+              YYYYYY : function () {
+                  var y = this.year(), sign = y >= 0 ? '+' : '-';
+                  return sign + leftZeroFill(Math.abs(y), 6);
+              },
+              gg   : function () {
+                  return leftZeroFill(this.weekYear() % 100, 2);
+              },
+              gggg : function () {
+                  return leftZeroFill(this.weekYear(), 4);
+              },
+              ggggg : function () {
+                  return leftZeroFill(this.weekYear(), 5);
+              },
+              GG   : function () {
+                  return leftZeroFill(this.isoWeekYear() % 100, 2);
+              },
+              GGGG : function () {
+                  return leftZeroFill(this.isoWeekYear(), 4);
+              },
+              GGGGG : function () {
+                  return leftZeroFill(this.isoWeekYear(), 5);
+              },
+              e : function () {
+                  return this.weekday();
+              },
+              E : function () {
+                  return this.isoWeekday();
+              },
+              a    : function () {
+                  return this.lang().meridiem(this.hours(), this.minutes(), true);
+              },
+              A    : function () {
+                  return this.lang().meridiem(this.hours(), this.minutes(), false);
+              },
+              H    : function () {
+                  return this.hours();
+              },
+              h    : function () {
+                  return this.hours() % 12 || 12;
+              },
+              m    : function () {
+                  return this.minutes();
+              },
+              s    : function () {
+                  return this.seconds();
+              },
+              S    : function () {
+                  return toInt(this.milliseconds() / 100);
+              },
+              SS   : function () {
+                  return leftZeroFill(toInt(this.milliseconds() / 10), 2);
+              },
+              SSS  : function () {
+                  return leftZeroFill(this.milliseconds(), 3);
+              },
+              SSSS : function () {
+                  return leftZeroFill(this.milliseconds(), 3);
+              },
+              Z    : function () {
+                  var a = -this.zone(),
+                      b = "+";
+                  if (a < 0) {
+                      a = -a;
+                      b = "-";
+                  }
+                  return b + leftZeroFill(toInt(a / 60), 2) + ":" + leftZeroFill(toInt(a) % 60, 2);
+              },
+              ZZ   : function () {
+                  var a = -this.zone(),
+                      b = "+";
+                  if (a < 0) {
+                      a = -a;
+                      b = "-";
+                  }
+                  return b + leftZeroFill(toInt(a / 60), 2) + leftZeroFill(toInt(a) % 60, 2);
+              },
+              z : function () {
+                  return this.zoneAbbr();
+              },
+              zz : function () {
+                  return this.zoneName();
+              },
+              X    : function () {
+                  return this.unix();
+              },
+              Q : function () {
+                  return this.quarter();
+              }
+          },
+
+          lists = ['months', 'monthsShort', 'weekdays', 'weekdaysShort', 'weekdaysMin'];
+
+      // Pick the first defined of two or three arguments. dfl comes from
+      // default.
+      function dfl(a, b, c) {
+          switch (arguments.length) {
+              case 2: return a != null ? a : b;
+              case 3: return a != null ? a : b != null ? b : c;
+              default: throw new Error("Implement me");
+          }
+      }
+
+      function defaultParsingFlags() {
+          // We need to deep clone this object, and es5 standard is not very
+          // helpful.
+          return {
+              empty : false,
+              unusedTokens : [],
+              unusedInput : [],
+              overflow : -2,
+              charsLeftOver : 0,
+              nullInput : false,
+              invalidMonth : null,
+              invalidFormat : false,
+              userInvalidated : false,
+              iso: false
+          };
+      }
+
+      function deprecate(msg, fn) {
+          var firstTime = true;
+          function printMsg() {
+              if (moment.suppressDeprecationWarnings === false &&
+                      typeof console !== 'undefined' && console.warn) {
+                  console.warn("Deprecation warning: " + msg);
+              }
+          }
+          return extend(function () {
+              if (firstTime) {
+                  printMsg();
+                  firstTime = false;
+              }
+              return fn.apply(this, arguments);
+          }, fn);
+      }
+
+      function padToken(func, count) {
+          return function (a) {
+              return leftZeroFill(func.call(this, a), count);
+          };
+      }
+      function ordinalizeToken(func, period) {
+          return function (a) {
+              return this.lang().ordinal(func.call(this, a), period);
+          };
+      }
+
+      while (ordinalizeTokens.length) {
+          i = ordinalizeTokens.pop();
+          formatTokenFunctions[i + 'o'] = ordinalizeToken(formatTokenFunctions[i], i);
+      }
+      while (paddedTokens.length) {
+          i = paddedTokens.pop();
+          formatTokenFunctions[i + i] = padToken(formatTokenFunctions[i], 2);
+      }
+      formatTokenFunctions.DDDD = padToken(formatTokenFunctions.DDD, 3);
+
+
+      /************************************
+          Constructors
+      ************************************/
+
+      function Language() {
+
+      }
+
+      // Moment prototype object
+      function Moment(config) {
+          checkOverflow(config);
+          extend(this, config);
+      }
+
+      // Duration Constructor
+      function Duration(duration) {
+          var normalizedInput = normalizeObjectUnits(duration),
+              years = normalizedInput.year || 0,
+              quarters = normalizedInput.quarter || 0,
+              months = normalizedInput.month || 0,
+              weeks = normalizedInput.week || 0,
+              days = normalizedInput.day || 0,
+              hours = normalizedInput.hour || 0,
+              minutes = normalizedInput.minute || 0,
+              seconds = normalizedInput.second || 0,
+              milliseconds = normalizedInput.millisecond || 0;
+
+          // representation for dateAddRemove
+          this._milliseconds = +milliseconds +
+              seconds * 1e3 + // 1000
+              minutes * 6e4 + // 1000 * 60
+              hours * 36e5; // 1000 * 60 * 60
+          // Because of dateAddRemove treats 24 hours as different from a
+          // day when working around DST, we need to store them separately
+          this._days = +days +
+              weeks * 7;
+          // It is impossible translate months into days without knowing
+          // which months you are are talking about, so we have to store
+          // it separately.
+          this._months = +months +
+              quarters * 3 +
+              years * 12;
+
+          this._data = {};
+
+          this._bubble();
+      }
+
+      /************************************
+          Helpers
+      ************************************/
+
+
+      function extend(a, b) {
+          for (var i in b) {
+              if (b.hasOwnProperty(i)) {
+                  a[i] = b[i];
+              }
+          }
+
+          if (b.hasOwnProperty("toString")) {
+              a.toString = b.toString;
+          }
+
+          if (b.hasOwnProperty("valueOf")) {
+              a.valueOf = b.valueOf;
+          }
+
+          return a;
+      }
+
+      function cloneMoment(m) {
+          var result = {}, i;
+          for (i in m) {
+              if (m.hasOwnProperty(i) && momentProperties.hasOwnProperty(i)) {
+                  result[i] = m[i];
+              }
+          }
+
+          return result;
+      }
+
+      function absRound(number) {
+          if (number < 0) {
+              return Math.ceil(number);
+          } else {
+              return Math.floor(number);
+          }
+      }
+
+      // left zero fill a number
+      // see http://jsperf.com/left-zero-filling for performance comparison
+      function leftZeroFill(number, targetLength, forceSign) {
+          var output = '' + Math.abs(number),
+              sign = number >= 0;
+
+          while (output.length < targetLength) {
+              output = '0' + output;
+          }
+          return (sign ? (forceSign ? '+' : '') : '-') + output;
+      }
+
+      // helper function for _.addTime and _.subtractTime
+      function addOrSubtractDurationFromMoment(mom, duration, isAdding, updateOffset) {
+          var milliseconds = duration._milliseconds,
+              days = duration._days,
+              months = duration._months;
+          updateOffset = updateOffset == null ? true : updateOffset;
+
+          if (milliseconds) {
+              mom._d.setTime(+mom._d + milliseconds * isAdding);
+          }
+          if (days) {
+              rawSetter(mom, 'Date', rawGetter(mom, 'Date') + days * isAdding);
+          }
+          if (months) {
+              rawMonthSetter(mom, rawGetter(mom, 'Month') + months * isAdding);
+          }
+          if (updateOffset) {
+              moment.updateOffset(mom, days || months);
+          }
+      }
+
+      // check if is an array
+      function isArray(input) {
+          return Object.prototype.toString.call(input) === '[object Array]';
+      }
+
+      function isDate(input) {
+          return  Object.prototype.toString.call(input) === '[object Date]' ||
+                  input instanceof Date;
+      }
+
+      // compare two arrays, return the number of differences
+      function compareArrays(array1, array2, dontConvert) {
+          var len = Math.min(array1.length, array2.length),
+              lengthDiff = Math.abs(array1.length - array2.length),
+              diffs = 0,
+              i;
+          for (i = 0; i < len; i++) {
+              if ((dontConvert && array1[i] !== array2[i]) ||
+                  (!dontConvert && toInt(array1[i]) !== toInt(array2[i]))) {
+                  diffs++;
+              }
+          }
+          return diffs + lengthDiff;
+      }
+
+      function normalizeUnits(units) {
+          if (units) {
+              var lowered = units.toLowerCase().replace(/(.)s$/, '$1');
+              units = unitAliases[units] || camelFunctions[lowered] || lowered;
+          }
+          return units;
+      }
+
+      function normalizeObjectUnits(inputObject) {
+          var normalizedInput = {},
+              normalizedProp,
+              prop;
+
+          for (prop in inputObject) {
+              if (inputObject.hasOwnProperty(prop)) {
+                  normalizedProp = normalizeUnits(prop);
+                  if (normalizedProp) {
+                      normalizedInput[normalizedProp] = inputObject[prop];
+                  }
+              }
+          }
+
+          return normalizedInput;
+      }
+
+      function makeList(field) {
+          var count, setter;
+
+          if (field.indexOf('week') === 0) {
+              count = 7;
+              setter = 'day';
+          }
+          else if (field.indexOf('month') === 0) {
+              count = 12;
+              setter = 'month';
+          }
+          else {
+              return;
+          }
+
+          moment[field] = function (format, index) {
+              var i, getter,
+                  method = moment.fn._lang[field],
+                  results = [];
+
+              if (typeof format === 'number') {
+                  index = format;
+                  format = undefined;
+              }
+
+              getter = function (i) {
+                  var m = moment().utc().set(setter, i);
+                  return method.call(moment.fn._lang, m, format || '');
+              };
+
+              if (index != null) {
+                  return getter(index);
+              }
+              else {
+                  for (i = 0; i < count; i++) {
+                      results.push(getter(i));
+                  }
+                  return results;
+              }
+          };
+      }
+
+      function toInt(argumentForCoercion) {
+          var coercedNumber = +argumentForCoercion,
+              value = 0;
+
+          if (coercedNumber !== 0 && isFinite(coercedNumber)) {
+              if (coercedNumber >= 0) {
+                  value = Math.floor(coercedNumber);
+              } else {
+                  value = Math.ceil(coercedNumber);
+              }
+          }
+
+          return value;
+      }
+
+      function daysInMonth(year, month) {
+          return new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+      }
+
+      function weeksInYear(year, dow, doy) {
+          return weekOfYear(moment([year, 11, 31 + dow - doy]), dow, doy).week;
+      }
+
+      function daysInYear(year) {
+          return isLeapYear(year) ? 366 : 365;
+      }
+
+      function isLeapYear(year) {
+          return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+      }
+
+      function checkOverflow(m) {
+          var overflow;
+          if (m._a && m._pf.overflow === -2) {
+              overflow =
+                  m._a[MONTH] < 0 || m._a[MONTH] > 11 ? MONTH :
+                  m._a[DATE] < 1 || m._a[DATE] > daysInMonth(m._a[YEAR], m._a[MONTH]) ? DATE :
+                  m._a[HOUR] < 0 || m._a[HOUR] > 23 ? HOUR :
+                  m._a[MINUTE] < 0 || m._a[MINUTE] > 59 ? MINUTE :
+                  m._a[SECOND] < 0 || m._a[SECOND] > 59 ? SECOND :
+                  m._a[MILLISECOND] < 0 || m._a[MILLISECOND] > 999 ? MILLISECOND :
+                  -1;
+
+              if (m._pf._overflowDayOfYear && (overflow < YEAR || overflow > DATE)) {
+                  overflow = DATE;
+              }
+
+              m._pf.overflow = overflow;
+          }
+      }
+
+      function isValid(m) {
+          if (m._isValid == null) {
+              m._isValid = !isNaN(m._d.getTime()) &&
+                  m._pf.overflow < 0 &&
+                  !m._pf.empty &&
+                  !m._pf.invalidMonth &&
+                  !m._pf.nullInput &&
+                  !m._pf.invalidFormat &&
+                  !m._pf.userInvalidated;
+
+              if (m._strict) {
+                  m._isValid = m._isValid &&
+                      m._pf.charsLeftOver === 0 &&
+                      m._pf.unusedTokens.length === 0;
+              }
+          }
+          return m._isValid;
+      }
+
+      function normalizeLanguage(key) {
+          return key ? key.toLowerCase().replace('_', '-') : key;
+      }
+
+      // Return a moment from input, that is local/utc/zone equivalent to model.
+      function makeAs(input, model) {
+          return model._isUTC ? moment(input).zone(model._offset || 0) :
+              moment(input).local();
+      }
+
+      /************************************
+          Languages
+      ************************************/
+
+
+      extend(Language.prototype, {
+
+          set : function (config) {
+              var prop, i;
+              for (i in config) {
+                  prop = config[i];
+                  if (typeof prop === 'function') {
+                      this[i] = prop;
+                  } else {
+                      this['_' + i] = prop;
+                  }
+              }
+          },
+
+          _months : "January_February_March_April_May_June_July_August_September_October_November_December".split("_"),
+          months : function (m) {
+              return this._months[m.month()];
+          },
+
+          _monthsShort : "Jan_Feb_Mar_Apr_May_Jun_Jul_Aug_Sep_Oct_Nov_Dec".split("_"),
+          monthsShort : function (m) {
+              return this._monthsShort[m.month()];
+          },
+
+          monthsParse : function (monthName) {
+              var i, mom, regex;
+
+              if (!this._monthsParse) {
+                  this._monthsParse = [];
+              }
+
+              for (i = 0; i < 12; i++) {
+                  // make the regex if we don't have it already
+                  if (!this._monthsParse[i]) {
+                      mom = moment.utc([2000, i]);
+                      regex = '^' + this.months(mom, '') + '|^' + this.monthsShort(mom, '');
+                      this._monthsParse[i] = new RegExp(regex.replace('.', ''), 'i');
+                  }
+                  // test the regex
+                  if (this._monthsParse[i].test(monthName)) {
+                      return i;
+                  }
+              }
+          },
+
+          _weekdays : "Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday".split("_"),
+          weekdays : function (m) {
+              return this._weekdays[m.day()];
+          },
+
+          _weekdaysShort : "Sun_Mon_Tue_Wed_Thu_Fri_Sat".split("_"),
+          weekdaysShort : function (m) {
+              return this._weekdaysShort[m.day()];
+          },
+
+          _weekdaysMin : "Su_Mo_Tu_We_Th_Fr_Sa".split("_"),
+          weekdaysMin : function (m) {
+              return this._weekdaysMin[m.day()];
+          },
+
+          weekdaysParse : function (weekdayName) {
+              var i, mom, regex;
+
+              if (!this._weekdaysParse) {
+                  this._weekdaysParse = [];
+              }
+
+              for (i = 0; i < 7; i++) {
+                  // make the regex if we don't have it already
+                  if (!this._weekdaysParse[i]) {
+                      mom = moment([2000, 1]).day(i);
+                      regex = '^' + this.weekdays(mom, '') + '|^' + this.weekdaysShort(mom, '') + '|^' + this.weekdaysMin(mom, '');
+                      this._weekdaysParse[i] = new RegExp(regex.replace('.', ''), 'i');
+                  }
+                  // test the regex
+                  if (this._weekdaysParse[i].test(weekdayName)) {
+                      return i;
+                  }
+              }
+          },
+
+          _longDateFormat : {
+              LT : "h:mm A",
+              L : "MM/DD/YYYY",
+              LL : "MMMM D YYYY",
+              LLL : "MMMM D YYYY LT",
+              LLLL : "dddd, MMMM D YYYY LT"
+          },
+          longDateFormat : function (key) {
+              var output = this._longDateFormat[key];
+              if (!output && this._longDateFormat[key.toUpperCase()]) {
+                  output = this._longDateFormat[key.toUpperCase()].replace(/MMMM|MM|DD|dddd/g, function (val) {
+                      return val.slice(1);
+                  });
+                  this._longDateFormat[key] = output;
+              }
+              return output;
+          },
+
+          isPM : function (input) {
+              // IE8 Quirks Mode & IE7 Standards Mode do not allow accessing strings like arrays
+              // Using charAt should be more compatible.
+              return ((input + '').toLowerCase().charAt(0) === 'p');
+          },
+
+          _meridiemParse : /[ap]\.?m?\.?/i,
+          meridiem : function (hours, minutes, isLower) {
+              if (hours > 11) {
+                  return isLower ? 'pm' : 'PM';
+              } else {
+                  return isLower ? 'am' : 'AM';
+              }
+          },
+
+          _calendar : {
+              sameDay : '[Today at] LT',
+              nextDay : '[Tomorrow at] LT',
+              nextWeek : 'dddd [at] LT',
+              lastDay : '[Yesterday at] LT',
+              lastWeek : '[Last] dddd [at] LT',
+              sameElse : 'L'
+          },
+          calendar : function (key, mom) {
+              var output = this._calendar[key];
+              return typeof output === 'function' ? output.apply(mom) : output;
+          },
+
+          _relativeTime : {
+              future : "in %s",
+              past : "%s ago",
+              s : "a few seconds",
+              m : "a minute",
+              mm : "%d minutes",
+              h : "an hour",
+              hh : "%d hours",
+              d : "a day",
+              dd : "%d days",
+              M : "a month",
+              MM : "%d months",
+              y : "a year",
+              yy : "%d years"
+          },
+          relativeTime : function (number, withoutSuffix, string, isFuture) {
+              var output = this._relativeTime[string];
+              return (typeof output === 'function') ?
+                  output(number, withoutSuffix, string, isFuture) :
+                  output.replace(/%d/i, number);
+          },
+          pastFuture : function (diff, output) {
+              var format = this._relativeTime[diff > 0 ? 'future' : 'past'];
+              return typeof format === 'function' ? format(output) : format.replace(/%s/i, output);
+          },
+
+          ordinal : function (number) {
+              return this._ordinal.replace("%d", number);
+          },
+          _ordinal : "%d",
+
+          preparse : function (string) {
+              return string;
+          },
+
+          postformat : function (string) {
+              return string;
+          },
+
+          week : function (mom) {
+              return weekOfYear(mom, this._week.dow, this._week.doy).week;
+          },
+
+          _week : {
+              dow : 0, // Sunday is the first day of the week.
+              doy : 6  // The week that contains Jan 1st is the first week of the year.
+          },
+
+          _invalidDate: 'Invalid date',
+          invalidDate: function () {
+              return this._invalidDate;
+          }
+      });
+
+      // Loads a language definition into the `languages` cache.  The function
+      // takes a key and optionally values.  If not in the browser and no values
+      // are provided, it will load the language file module.  As a convenience,
+      // this function also returns the language values.
+      function loadLang(key, values) {
+          values.abbr = key;
+          if (!languages[key]) {
+              languages[key] = new Language();
+          }
+          languages[key].set(values);
+          return languages[key];
+      }
+
+      // Remove a language from the `languages` cache. Mostly useful in tests.
+      function unloadLang(key) {
+          delete languages[key];
+      }
+
+      // Determines which language definition to use and returns it.
+      //
+      // With no parameters, it will return the global language.  If you
+      // pass in a language key, such as 'en', it will return the
+      // definition for 'en', so long as 'en' has already been loaded using
+      // moment.lang.
+      function getLangDefinition(key) {
+          var i = 0, j, lang, next, split,
+              get = function (k) {
+                  if (!languages[k] && hasModule) {
+                      try {
+                          __webpack_require__(6)("./" + k);
+                      } catch (e) { }
+                  }
+                  return languages[k];
+              };
+
+          if (!key) {
+              return moment.fn._lang;
+          }
+
+          if (!isArray(key)) {
+              //short-circuit everything else
+              lang = get(key);
+              if (lang) {
+                  return lang;
+              }
+              key = [key];
+          }
+
+          //pick the language from the array
+          //try ['en-au', 'en-gb'] as 'en-au', 'en-gb', 'en', as in move through the list trying each
+          //substring from most specific to least, but move to the next array item if it's a more specific variant than the current root
+          while (i < key.length) {
+              split = normalizeLanguage(key[i]).split('-');
+              j = split.length;
+              next = normalizeLanguage(key[i + 1]);
+              next = next ? next.split('-') : null;
+              while (j > 0) {
+                  lang = get(split.slice(0, j).join('-'));
+                  if (lang) {
+                      return lang;
+                  }
+                  if (next && next.length >= j && compareArrays(split, next, true) >= j - 1) {
+                      //the next array item is better than a shallower substring of this one
+                      break;
+                  }
+                  j--;
+              }
+              i++;
+          }
+          return moment.fn._lang;
+      }
+
+      /************************************
+          Formatting
+      ************************************/
+
+
+      function removeFormattingTokens(input) {
+          if (input.match(/\[[\s\S]/)) {
+              return input.replace(/^\[|\]$/g, "");
+          }
+          return input.replace(/\\/g, "");
+      }
+
+      function makeFormatFunction(format) {
+          var array = format.match(formattingTokens), i, length;
+
+          for (i = 0, length = array.length; i < length; i++) {
+              if (formatTokenFunctions[array[i]]) {
+                  array[i] = formatTokenFunctions[array[i]];
+              } else {
+                  array[i] = removeFormattingTokens(array[i]);
+              }
+          }
+
+          return function (mom) {
+              var output = "";
+              for (i = 0; i < length; i++) {
+                  output += array[i] instanceof Function ? array[i].call(mom, format) : array[i];
+              }
+              return output;
+          };
+      }
+
+      // format date using native date object
+      function formatMoment(m, format) {
+
+          if (!m.isValid()) {
+              return m.lang().invalidDate();
+          }
+
+          format = expandFormat(format, m.lang());
+
+          if (!formatFunctions[format]) {
+              formatFunctions[format] = makeFormatFunction(format);
+          }
+
+          return formatFunctions[format](m);
+      }
+
+      function expandFormat(format, lang) {
+          var i = 5;
+
+          function replaceLongDateFormatTokens(input) {
+              return lang.longDateFormat(input) || input;
+          }
+
+          localFormattingTokens.lastIndex = 0;
+          while (i >= 0 && localFormattingTokens.test(format)) {
+              format = format.replace(localFormattingTokens, replaceLongDateFormatTokens);
+              localFormattingTokens.lastIndex = 0;
+              i -= 1;
+          }
+
+          return format;
+      }
+
+
+      /************************************
+          Parsing
+      ************************************/
+
+
+      // get the regex to find the next token
+      function getParseRegexForToken(token, config) {
+          var a, strict = config._strict;
+          switch (token) {
+          case 'Q':
+              return parseTokenOneDigit;
+          case 'DDDD':
+              return parseTokenThreeDigits;
+          case 'YYYY':
+          case 'GGGG':
+          case 'gggg':
+              return strict ? parseTokenFourDigits : parseTokenOneToFourDigits;
+          case 'Y':
+          case 'G':
+          case 'g':
+              return parseTokenSignedNumber;
+          case 'YYYYYY':
+          case 'YYYYY':
+          case 'GGGGG':
+          case 'ggggg':
+              return strict ? parseTokenSixDigits : parseTokenOneToSixDigits;
+          case 'S':
+              if (strict) { return parseTokenOneDigit; }
+              /* falls through */
+          case 'SS':
+              if (strict) { return parseTokenTwoDigits; }
+              /* falls through */
+          case 'SSS':
+              if (strict) { return parseTokenThreeDigits; }
+              /* falls through */
+          case 'DDD':
+              return parseTokenOneToThreeDigits;
+          case 'MMM':
+          case 'MMMM':
+          case 'dd':
+          case 'ddd':
+          case 'dddd':
+              return parseTokenWord;
+          case 'a':
+          case 'A':
+              return getLangDefinition(config._l)._meridiemParse;
+          case 'X':
+              return parseTokenTimestampMs;
+          case 'Z':
+          case 'ZZ':
+              return parseTokenTimezone;
+          case 'T':
+              return parseTokenT;
+          case 'SSSS':
+              return parseTokenDigits;
+          case 'MM':
+          case 'DD':
+          case 'YY':
+          case 'GG':
+          case 'gg':
+          case 'HH':
+          case 'hh':
+          case 'mm':
+          case 'ss':
+          case 'ww':
+          case 'WW':
+              return strict ? parseTokenTwoDigits : parseTokenOneOrTwoDigits;
+          case 'M':
+          case 'D':
+          case 'd':
+          case 'H':
+          case 'h':
+          case 'm':
+          case 's':
+          case 'w':
+          case 'W':
+          case 'e':
+          case 'E':
+              return parseTokenOneOrTwoDigits;
+          case 'Do':
+              return parseTokenOrdinal;
+          default :
+              a = new RegExp(regexpEscape(unescapeFormat(token.replace('\\', '')), "i"));
+              return a;
+          }
+      }
+
+      function timezoneMinutesFromString(string) {
+          string = string || "";
+          var possibleTzMatches = (string.match(parseTokenTimezone) || []),
+              tzChunk = possibleTzMatches[possibleTzMatches.length - 1] || [],
+              parts = (tzChunk + '').match(parseTimezoneChunker) || ['-', 0, 0],
+              minutes = +(parts[1] * 60) + toInt(parts[2]);
+
+          return parts[0] === '+' ? -minutes : minutes;
+      }
+
+      // function to convert string input to date
+      function addTimeToArrayFromToken(token, input, config) {
+          var a, datePartArray = config._a;
+
+          switch (token) {
+          // QUARTER
+          case 'Q':
+              if (input != null) {
+                  datePartArray[MONTH] = (toInt(input) - 1) * 3;
+              }
+              break;
+          // MONTH
+          case 'M' : // fall through to MM
+          case 'MM' :
+              if (input != null) {
+                  datePartArray[MONTH] = toInt(input) - 1;
+              }
+              break;
+          case 'MMM' : // fall through to MMMM
+          case 'MMMM' :
+              a = getLangDefinition(config._l).monthsParse(input);
+              // if we didn't find a month name, mark the date as invalid.
+              if (a != null) {
+                  datePartArray[MONTH] = a;
+              } else {
+                  config._pf.invalidMonth = input;
+              }
+              break;
+          // DAY OF MONTH
+          case 'D' : // fall through to DD
+          case 'DD' :
+              if (input != null) {
+                  datePartArray[DATE] = toInt(input);
+              }
+              break;
+          case 'Do' :
+              if (input != null) {
+                  datePartArray[DATE] = toInt(parseInt(input, 10));
+              }
+              break;
+          // DAY OF YEAR
+          case 'DDD' : // fall through to DDDD
+          case 'DDDD' :
+              if (input != null) {
+                  config._dayOfYear = toInt(input);
+              }
+
+              break;
+          // YEAR
+          case 'YY' :
+              datePartArray[YEAR] = moment.parseTwoDigitYear(input);
+              break;
+          case 'YYYY' :
+          case 'YYYYY' :
+          case 'YYYYYY' :
+              datePartArray[YEAR] = toInt(input);
+              break;
+          // AM / PM
+          case 'a' : // fall through to A
+          case 'A' :
+              config._isPm = getLangDefinition(config._l).isPM(input);
+              break;
+          // 24 HOUR
+          case 'H' : // fall through to hh
+          case 'HH' : // fall through to hh
+          case 'h' : // fall through to hh
+          case 'hh' :
+              datePartArray[HOUR] = toInt(input);
+              break;
+          // MINUTE
+          case 'm' : // fall through to mm
+          case 'mm' :
+              datePartArray[MINUTE] = toInt(input);
+              break;
+          // SECOND
+          case 's' : // fall through to ss
+          case 'ss' :
+              datePartArray[SECOND] = toInt(input);
+              break;
+          // MILLISECOND
+          case 'S' :
+          case 'SS' :
+          case 'SSS' :
+          case 'SSSS' :
+              datePartArray[MILLISECOND] = toInt(('0.' + input) * 1000);
+              break;
+          // UNIX TIMESTAMP WITH MS
+          case 'X':
+              config._d = new Date(parseFloat(input) * 1000);
+              break;
+          // TIMEZONE
+          case 'Z' : // fall through to ZZ
+          case 'ZZ' :
+              config._useUTC = true;
+              config._tzm = timezoneMinutesFromString(input);
+              break;
+          // WEEKDAY - human
+          case 'dd':
+          case 'ddd':
+          case 'dddd':
+              a = getLangDefinition(config._l).weekdaysParse(input);
+              // if we didn't get a weekday name, mark the date as invalid
+              if (a != null) {
+                  config._w = config._w || {};
+                  config._w['d'] = a;
+              } else {
+                  config._pf.invalidWeekday = input;
+              }
+              break;
+          // WEEK, WEEK DAY - numeric
+          case 'w':
+          case 'ww':
+          case 'W':
+          case 'WW':
+          case 'd':
+          case 'e':
+          case 'E':
+              token = token.substr(0, 1);
+              /* falls through */
+          case 'gggg':
+          case 'GGGG':
+          case 'GGGGG':
+              token = token.substr(0, 2);
+              if (input) {
+                  config._w = config._w || {};
+                  config._w[token] = toInt(input);
+              }
+              break;
+          case 'gg':
+          case 'GG':
+              config._w = config._w || {};
+              config._w[token] = moment.parseTwoDigitYear(input);
+          }
+      }
+
+      function dayOfYearFromWeekInfo(config) {
+          var w, weekYear, week, weekday, dow, doy, temp, lang;
+
+          w = config._w;
+          if (w.GG != null || w.W != null || w.E != null) {
+              dow = 1;
+              doy = 4;
+
+              // TODO: We need to take the current isoWeekYear, but that depends on
+              // how we interpret now (local, utc, fixed offset). So create
+              // a now version of current config (take local/utc/offset flags, and
+              // create now).
+              weekYear = dfl(w.GG, config._a[YEAR], weekOfYear(moment(), 1, 4).year);
+              week = dfl(w.W, 1);
+              weekday = dfl(w.E, 1);
+          } else {
+              lang = getLangDefinition(config._l);
+              dow = lang._week.dow;
+              doy = lang._week.doy;
+
+              weekYear = dfl(w.gg, config._a[YEAR], weekOfYear(moment(), dow, doy).year);
+              week = dfl(w.w, 1);
+
+              if (w.d != null) {
+                  // weekday -- low day numbers are considered next week
+                  weekday = w.d;
+                  if (weekday < dow) {
+                      ++week;
+                  }
+              } else if (w.e != null) {
+                  // local weekday -- counting starts from begining of week
+                  weekday = w.e + dow;
+              } else {
+                  // default to begining of week
+                  weekday = dow;
+              }
+          }
+          temp = dayOfYearFromWeeks(weekYear, week, weekday, doy, dow);
+
+          config._a[YEAR] = temp.year;
+          config._dayOfYear = temp.dayOfYear;
+      }
+
+      // convert an array to a date.
+      // the array should mirror the parameters below
+      // note: all values past the year are optional and will default to the lowest possible value.
+      // [year, month, day , hour, minute, second, millisecond]
+      function dateFromConfig(config) {
+          var i, date, input = [], currentDate, yearToUse;
+
+          if (config._d) {
+              return;
+          }
+
+          currentDate = currentDateArray(config);
+
+          //compute day of the year from weeks and weekdays
+          if (config._w && config._a[DATE] == null && config._a[MONTH] == null) {
+              dayOfYearFromWeekInfo(config);
+          }
+
+          //if the day of the year is set, figure out what it is
+          if (config._dayOfYear) {
+              yearToUse = dfl(config._a[YEAR], currentDate[YEAR]);
+
+              if (config._dayOfYear > daysInYear(yearToUse)) {
+                  config._pf._overflowDayOfYear = true;
+              }
+
+              date = makeUTCDate(yearToUse, 0, config._dayOfYear);
+              config._a[MONTH] = date.getUTCMonth();
+              config._a[DATE] = date.getUTCDate();
+          }
+
+          // Default to current date.
+          // * if no year, month, day of month are given, default to today
+          // * if day of month is given, default month and year
+          // * if month is given, default only year
+          // * if year is given, don't default anything
+          for (i = 0; i < 3 && config._a[i] == null; ++i) {
+              config._a[i] = input[i] = currentDate[i];
+          }
+
+          // Zero out whatever was not defaulted, including time
+          for (; i < 7; i++) {
+              config._a[i] = input[i] = (config._a[i] == null) ? (i === 2 ? 1 : 0) : config._a[i];
+          }
+
+          config._d = (config._useUTC ? makeUTCDate : makeDate).apply(null, input);
+          // Apply timezone offset from input. The actual zone can be changed
+          // with parseZone.
+          if (config._tzm != null) {
+              config._d.setUTCMinutes(config._d.getUTCMinutes() + config._tzm);
+          }
+      }
+
+      function dateFromObject(config) {
+          var normalizedInput;
+
+          if (config._d) {
+              return;
+          }
+
+          normalizedInput = normalizeObjectUnits(config._i);
+          config._a = [
+              normalizedInput.year,
+              normalizedInput.month,
+              normalizedInput.day,
+              normalizedInput.hour,
+              normalizedInput.minute,
+              normalizedInput.second,
+              normalizedInput.millisecond
+          ];
+
+          dateFromConfig(config);
+      }
+
+      function currentDateArray(config) {
+          var now = new Date();
+          if (config._useUTC) {
+              return [
+                  now.getUTCFullYear(),
+                  now.getUTCMonth(),
+                  now.getUTCDate()
+              ];
+          } else {
+              return [now.getFullYear(), now.getMonth(), now.getDate()];
+          }
+      }
+
+      // date from string and format string
+      function makeDateFromStringAndFormat(config) {
+
+          if (config._f === moment.ISO_8601) {
+              parseISO(config);
+              return;
+          }
+
+          config._a = [];
+          config._pf.empty = true;
+
+          // This array is used to make a Date, either with `new Date` or `Date.UTC`
+          var lang = getLangDefinition(config._l),
+              string = '' + config._i,
+              i, parsedInput, tokens, token, skipped,
+              stringLength = string.length,
+              totalParsedInputLength = 0;
+
+          tokens = expandFormat(config._f, lang).match(formattingTokens) || [];
+
+          for (i = 0; i < tokens.length; i++) {
+              token = tokens[i];
+              parsedInput = (string.match(getParseRegexForToken(token, config)) || [])[0];
+              if (parsedInput) {
+                  skipped = string.substr(0, string.indexOf(parsedInput));
+                  if (skipped.length > 0) {
+                      config._pf.unusedInput.push(skipped);
+                  }
+                  string = string.slice(string.indexOf(parsedInput) + parsedInput.length);
+                  totalParsedInputLength += parsedInput.length;
+              }
+              // don't parse if it's not a known token
+              if (formatTokenFunctions[token]) {
+                  if (parsedInput) {
+                      config._pf.empty = false;
+                  }
+                  else {
+                      config._pf.unusedTokens.push(token);
+                  }
+                  addTimeToArrayFromToken(token, parsedInput, config);
+              }
+              else if (config._strict && !parsedInput) {
+                  config._pf.unusedTokens.push(token);
+              }
+          }
+
+          // add remaining unparsed input length to the string
+          config._pf.charsLeftOver = stringLength - totalParsedInputLength;
+          if (string.length > 0) {
+              config._pf.unusedInput.push(string);
+          }
+
+          // handle am pm
+          if (config._isPm && config._a[HOUR] < 12) {
+              config._a[HOUR] += 12;
+          }
+          // if is 12 am, change hours to 0
+          if (config._isPm === false && config._a[HOUR] === 12) {
+              config._a[HOUR] = 0;
+          }
+
+          dateFromConfig(config);
+          checkOverflow(config);
+      }
+
+      function unescapeFormat(s) {
+          return s.replace(/\\(\[)|\\(\])|\[([^\]\[]*)\]|\\(.)/g, function (matched, p1, p2, p3, p4) {
+              return p1 || p2 || p3 || p4;
+          });
+      }
+
+      // Code from http://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript
+      function regexpEscape(s) {
+          return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      }
+
+      // date from string and array of format strings
+      function makeDateFromStringAndArray(config) {
+          var tempConfig,
+              bestMoment,
+
+              scoreToBeat,
+              i,
+              currentScore;
+
+          if (config._f.length === 0) {
+              config._pf.invalidFormat = true;
+              config._d = new Date(NaN);
+              return;
+          }
+
+          for (i = 0; i < config._f.length; i++) {
+              currentScore = 0;
+              tempConfig = extend({}, config);
+              tempConfig._pf = defaultParsingFlags();
+              tempConfig._f = config._f[i];
+              makeDateFromStringAndFormat(tempConfig);
+
+              if (!isValid(tempConfig)) {
+                  continue;
+              }
+
+              // if there is any input that was not parsed add a penalty for that format
+              currentScore += tempConfig._pf.charsLeftOver;
+
+              //or tokens
+              currentScore += tempConfig._pf.unusedTokens.length * 10;
+
+              tempConfig._pf.score = currentScore;
+
+              if (scoreToBeat == null || currentScore < scoreToBeat) {
+                  scoreToBeat = currentScore;
+                  bestMoment = tempConfig;
+              }
+          }
+
+          extend(config, bestMoment || tempConfig);
+      }
+
+      // date from iso format
+      function parseISO(config) {
+          var i, l,
+              string = config._i,
+              match = isoRegex.exec(string);
+
+          if (match) {
+              config._pf.iso = true;
+              for (i = 0, l = isoDates.length; i < l; i++) {
+                  if (isoDates[i][1].exec(string)) {
+                      // match[5] should be "T" or undefined
+                      config._f = isoDates[i][0] + (match[6] || " ");
+                      break;
+                  }
+              }
+              for (i = 0, l = isoTimes.length; i < l; i++) {
+                  if (isoTimes[i][1].exec(string)) {
+                      config._f += isoTimes[i][0];
+                      break;
+                  }
+              }
+              if (string.match(parseTokenTimezone)) {
+                  config._f += "Z";
+              }
+              makeDateFromStringAndFormat(config);
+          } else {
+              config._isValid = false;
+          }
+      }
+
+      // date from iso format or fallback
+      function makeDateFromString(config) {
+          parseISO(config);
+          if (config._isValid === false) {
+              delete config._isValid;
+              moment.createFromInputFallback(config);
+          }
+      }
+
+      function makeDateFromInput(config) {
+          var input = config._i,
+              matched = aspNetJsonRegex.exec(input);
+
+          if (input === undefined) {
+              config._d = new Date();
+          } else if (matched) {
+              config._d = new Date(+matched[1]);
+          } else if (typeof input === 'string') {
+              makeDateFromString(config);
+          } else if (isArray(input)) {
+              config._a = input.slice(0);
+              dateFromConfig(config);
+          } else if (isDate(input)) {
+              config._d = new Date(+input);
+          } else if (typeof(input) === 'object') {
+              dateFromObject(config);
+          } else if (typeof(input) === 'number') {
+              // from milliseconds
+              config._d = new Date(input);
+          } else {
+              moment.createFromInputFallback(config);
+          }
+      }
+
+      function makeDate(y, m, d, h, M, s, ms) {
+          //can't just apply() to create a date:
+          //http://stackoverflow.com/questions/181348/instantiating-a-javascript-object-by-calling-prototype-constructor-apply
+          var date = new Date(y, m, d, h, M, s, ms);
+
+          //the date constructor doesn't accept years < 1970
+          if (y < 1970) {
+              date.setFullYear(y);
+          }
+          return date;
+      }
+
+      function makeUTCDate(y) {
+          var date = new Date(Date.UTC.apply(null, arguments));
+          if (y < 1970) {
+              date.setUTCFullYear(y);
+          }
+          return date;
+      }
+
+      function parseWeekday(input, language) {
+          if (typeof input === 'string') {
+              if (!isNaN(input)) {
+                  input = parseInt(input, 10);
+              }
+              else {
+                  input = language.weekdaysParse(input);
+                  if (typeof input !== 'number') {
+                      return null;
+                  }
+              }
+          }
+          return input;
+      }
+
+      /************************************
+          Relative Time
+      ************************************/
+
+
+      // helper function for moment.fn.from, moment.fn.fromNow, and moment.duration.fn.humanize
+      function substituteTimeAgo(string, number, withoutSuffix, isFuture, lang) {
+          return lang.relativeTime(number || 1, !!withoutSuffix, string, isFuture);
+      }
+
+      function relativeTime(milliseconds, withoutSuffix, lang) {
+          var seconds = round(Math.abs(milliseconds) / 1000),
+              minutes = round(seconds / 60),
+              hours = round(minutes / 60),
+              days = round(hours / 24),
+              years = round(days / 365),
+              args = seconds < relativeTimeThresholds.s  && ['s', seconds] ||
+                  minutes === 1 && ['m'] ||
+                  minutes < relativeTimeThresholds.m && ['mm', minutes] ||
+                  hours === 1 && ['h'] ||
+                  hours < relativeTimeThresholds.h && ['hh', hours] ||
+                  days === 1 && ['d'] ||
+                  days <= relativeTimeThresholds.dd && ['dd', days] ||
+                  days <= relativeTimeThresholds.dm && ['M'] ||
+                  days < relativeTimeThresholds.dy && ['MM', round(days / 30)] ||
+                  years === 1 && ['y'] || ['yy', years];
+          args[2] = withoutSuffix;
+          args[3] = milliseconds > 0;
+          args[4] = lang;
+          return substituteTimeAgo.apply({}, args);
+      }
+
+
+      /************************************
+          Week of Year
+      ************************************/
+
+
+      // firstDayOfWeek       0 = sun, 6 = sat
+      //                      the day of the week that starts the week
+      //                      (usually sunday or monday)
+      // firstDayOfWeekOfYear 0 = sun, 6 = sat
+      //                      the first week is the week that contains the first
+      //                      of this day of the week
+      //                      (eg. ISO weeks use thursday (4))
+      function weekOfYear(mom, firstDayOfWeek, firstDayOfWeekOfYear) {
+          var end = firstDayOfWeekOfYear - firstDayOfWeek,
+              daysToDayOfWeek = firstDayOfWeekOfYear - mom.day(),
+              adjustedMoment;
+
+
+          if (daysToDayOfWeek > end) {
+              daysToDayOfWeek -= 7;
+          }
+
+          if (daysToDayOfWeek < end - 7) {
+              daysToDayOfWeek += 7;
+          }
+
+          adjustedMoment = moment(mom).add('d', daysToDayOfWeek);
+          return {
+              week: Math.ceil(adjustedMoment.dayOfYear() / 7),
+              year: adjustedMoment.year()
+          };
+      }
+
+      //http://en.wikipedia.org/wiki/ISO_week_date#Calculating_a_date_given_the_year.2C_week_number_and_weekday
+      function dayOfYearFromWeeks(year, week, weekday, firstDayOfWeekOfYear, firstDayOfWeek) {
+          var d = makeUTCDate(year, 0, 1).getUTCDay(), daysToAdd, dayOfYear;
+
+          d = d === 0 ? 7 : d;
+          weekday = weekday != null ? weekday : firstDayOfWeek;
+          daysToAdd = firstDayOfWeek - d + (d > firstDayOfWeekOfYear ? 7 : 0) - (d < firstDayOfWeek ? 7 : 0);
+          dayOfYear = 7 * (week - 1) + (weekday - firstDayOfWeek) + daysToAdd + 1;
+
+          return {
+              year: dayOfYear > 0 ? year : year - 1,
+              dayOfYear: dayOfYear > 0 ?  dayOfYear : daysInYear(year - 1) + dayOfYear
+          };
+      }
+
+      /************************************
+          Top Level Functions
+      ************************************/
+
+      function makeMoment(config) {
+          var input = config._i,
+              format = config._f;
+
+          if (input === null || (format === undefined && input === '')) {
+              return moment.invalid({nullInput: true});
+          }
+
+          if (typeof input === 'string') {
+              config._i = input = getLangDefinition().preparse(input);
+          }
+
+          if (moment.isMoment(input)) {
+              config = cloneMoment(input);
+
+              config._d = new Date(+input._d);
+          } else if (format) {
+              if (isArray(format)) {
+                  makeDateFromStringAndArray(config);
+              } else {
+                  makeDateFromStringAndFormat(config);
+              }
+          } else {
+              makeDateFromInput(config);
+          }
+
+          return new Moment(config);
+      }
+
+      moment = function (input, format, lang, strict) {
+          var c;
+
+          if (typeof(lang) === "boolean") {
+              strict = lang;
+              lang = undefined;
+          }
+          // object construction must be done this way.
+          // https://github.com/moment/moment/issues/1423
+          c = {};
+          c._isAMomentObject = true;
+          c._i = input;
+          c._f = format;
+          c._l = lang;
+          c._strict = strict;
+          c._isUTC = false;
+          c._pf = defaultParsingFlags();
+
+          return makeMoment(c);
+      };
+
+      moment.suppressDeprecationWarnings = false;
+
+      moment.createFromInputFallback = deprecate(
+              "moment construction falls back to js Date. This is " +
+              "discouraged and will be removed in upcoming major " +
+              "release. Please refer to " +
+              "https://github.com/moment/moment/issues/1407 for more info.",
+              function (config) {
+          config._d = new Date(config._i);
+      });
+
+      // Pick a moment m from moments so that m[fn](other) is true for all
+      // other. This relies on the function fn to be transitive.
+      //
+      // moments should either be an array of moment objects or an array, whose
+      // first element is an array of moment objects.
+      function pickBy(fn, moments) {
+          var res, i;
+          if (moments.length === 1 && isArray(moments[0])) {
+              moments = moments[0];
+          }
+          if (!moments.length) {
+              return moment();
+          }
+          res = moments[0];
+          for (i = 1; i < moments.length; ++i) {
+              if (moments[i][fn](res)) {
+                  res = moments[i];
+              }
+          }
+          return res;
+      }
+
+      moment.min = function () {
+          var args = [].slice.call(arguments, 0);
+
+          return pickBy('isBefore', args);
+      };
+
+      moment.max = function () {
+          var args = [].slice.call(arguments, 0);
+
+          return pickBy('isAfter', args);
+      };
+
+      // creating with utc
+      moment.utc = function (input, format, lang, strict) {
+          var c;
+
+          if (typeof(lang) === "boolean") {
+              strict = lang;
+              lang = undefined;
+          }
+          // object construction must be done this way.
+          // https://github.com/moment/moment/issues/1423
+          c = {};
+          c._isAMomentObject = true;
+          c._useUTC = true;
+          c._isUTC = true;
+          c._l = lang;
+          c._i = input;
+          c._f = format;
+          c._strict = strict;
+          c._pf = defaultParsingFlags();
+
+          return makeMoment(c).utc();
+      };
+
+      // creating with unix timestamp (in seconds)
+      moment.unix = function (input) {
+          return moment(input * 1000);
+      };
+
+      // duration
+      moment.duration = function (input, key) {
+          var duration = input,
+              // matching against regexp is expensive, do it on demand
+              match = null,
+              sign,
+              ret,
+              parseIso;
+
+          if (moment.isDuration(input)) {
+              duration = {
+                  ms: input._milliseconds,
+                  d: input._days,
+                  M: input._months
+              };
+          } else if (typeof input === 'number') {
+              duration = {};
+              if (key) {
+                  duration[key] = input;
+              } else {
+                  duration.milliseconds = input;
+              }
+          } else if (!!(match = aspNetTimeSpanJsonRegex.exec(input))) {
+              sign = (match[1] === "-") ? -1 : 1;
+              duration = {
+                  y: 0,
+                  d: toInt(match[DATE]) * sign,
+                  h: toInt(match[HOUR]) * sign,
+                  m: toInt(match[MINUTE]) * sign,
+                  s: toInt(match[SECOND]) * sign,
+                  ms: toInt(match[MILLISECOND]) * sign
+              };
+          } else if (!!(match = isoDurationRegex.exec(input))) {
+              sign = (match[1] === "-") ? -1 : 1;
+              parseIso = function (inp) {
+                  // We'd normally use ~~inp for this, but unfortunately it also
+                  // converts floats to ints.
+                  // inp may be undefined, so careful calling replace on it.
+                  var res = inp && parseFloat(inp.replace(',', '.'));
+                  // apply sign while we're at it
+                  return (isNaN(res) ? 0 : res) * sign;
+              };
+              duration = {
+                  y: parseIso(match[2]),
+                  M: parseIso(match[3]),
+                  d: parseIso(match[4]),
+                  h: parseIso(match[5]),
+                  m: parseIso(match[6]),
+                  s: parseIso(match[7]),
+                  w: parseIso(match[8])
+              };
+          }
+
+          ret = new Duration(duration);
+
+          if (moment.isDuration(input) && input.hasOwnProperty('_lang')) {
+              ret._lang = input._lang;
+          }
+
+          return ret;
+      };
+
+      // version number
+      moment.version = VERSION;
+
+      // default format
+      moment.defaultFormat = isoFormat;
+
+      // constant that refers to the ISO standard
+      moment.ISO_8601 = function () {};
+
+      // Plugins that add properties should also add the key here (null value),
+      // so we can properly clone ourselves.
+      moment.momentProperties = momentProperties;
+
+      // This function will be called whenever a moment is mutated.
+      // It is intended to keep the offset in sync with the timezone.
+      moment.updateOffset = function () {};
+
+      // This function allows you to set a threshold for relative time strings
+      moment.relativeTimeThreshold = function(threshold, limit) {
+        if (relativeTimeThresholds[threshold] === undefined) {
+          return false;
+        }
+        relativeTimeThresholds[threshold] = limit;
+        return true;
+      };
+
+      // This function will load languages and then set the global language.  If
+      // no arguments are passed in, it will simply return the current global
+      // language key.
+      moment.lang = function (key, values) {
+          var r;
+          if (!key) {
+              return moment.fn._lang._abbr;
+          }
+          if (values) {
+              loadLang(normalizeLanguage(key), values);
+          } else if (values === null) {
+              unloadLang(key);
+              key = 'en';
+          } else if (!languages[key]) {
+              getLangDefinition(key);
+          }
+          r = moment.duration.fn._lang = moment.fn._lang = getLangDefinition(key);
+          return r._abbr;
+      };
+
+      // returns language data
+      moment.langData = function (key) {
+          if (key && key._lang && key._lang._abbr) {
+              key = key._lang._abbr;
+          }
+          return getLangDefinition(key);
+      };
+
+      // compare moment object
+      moment.isMoment = function (obj) {
+          return obj instanceof Moment ||
+              (obj != null &&  obj.hasOwnProperty('_isAMomentObject'));
+      };
+
+      // for typechecking Duration objects
+      moment.isDuration = function (obj) {
+          return obj instanceof Duration;
+      };
+
+      for (i = lists.length - 1; i >= 0; --i) {
+          makeList(lists[i]);
+      }
+
+      moment.normalizeUnits = function (units) {
+          return normalizeUnits(units);
+      };
+
+      moment.invalid = function (flags) {
+          var m = moment.utc(NaN);
+          if (flags != null) {
+              extend(m._pf, flags);
+          }
+          else {
+              m._pf.userInvalidated = true;
+          }
+
+          return m;
+      };
+
+      moment.parseZone = function () {
+          return moment.apply(null, arguments).parseZone();
+      };
+
+      moment.parseTwoDigitYear = function (input) {
+          return toInt(input) + (toInt(input) > 68 ? 1900 : 2000);
+      };
+
+      /************************************
+          Moment Prototype
+      ************************************/
+
+
+      extend(moment.fn = Moment.prototype, {
+
+          clone : function () {
+              return moment(this);
+          },
+
+          valueOf : function () {
+              return +this._d + ((this._offset || 0) * 60000);
+          },
+
+          unix : function () {
+              return Math.floor(+this / 1000);
+          },
+
+          toString : function () {
+              return this.clone().lang('en').format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ");
+          },
+
+          toDate : function () {
+              return this._offset ? new Date(+this) : this._d;
+          },
+
+          toISOString : function () {
+              var m = moment(this).utc();
+              if (0 < m.year() && m.year() <= 9999) {
+                  return formatMoment(m, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]');
+              } else {
+                  return formatMoment(m, 'YYYYYY-MM-DD[T]HH:mm:ss.SSS[Z]');
+              }
+          },
+
+          toArray : function () {
+              var m = this;
+              return [
+                  m.year(),
+                  m.month(),
+                  m.date(),
+                  m.hours(),
+                  m.minutes(),
+                  m.seconds(),
+                  m.milliseconds()
+              ];
+          },
+
+          isValid : function () {
+              return isValid(this);
+          },
+
+          isDSTShifted : function () {
+
+              if (this._a) {
+                  return this.isValid() && compareArrays(this._a, (this._isUTC ? moment.utc(this._a) : moment(this._a)).toArray()) > 0;
+              }
+
+              return false;
+          },
+
+          parsingFlags : function () {
+              return extend({}, this._pf);
+          },
+
+          invalidAt: function () {
+              return this._pf.overflow;
+          },
+
+          utc : function () {
+              return this.zone(0);
+          },
+
+          local : function () {
+              this.zone(0);
+              this._isUTC = false;
+              return this;
+          },
+
+          format : function (inputString) {
+              var output = formatMoment(this, inputString || moment.defaultFormat);
+              return this.lang().postformat(output);
+          },
+
+          add : function (input, val) {
+              var dur;
+              // switch args to support add('s', 1) and add(1, 's')
+              if (typeof input === 'string' && typeof val === 'string') {
+                  dur = moment.duration(isNaN(+val) ? +input : +val, isNaN(+val) ? val : input);
+              } else if (typeof input === 'string') {
+                  dur = moment.duration(+val, input);
+              } else {
+                  dur = moment.duration(input, val);
+              }
+              addOrSubtractDurationFromMoment(this, dur, 1);
+              return this;
+          },
+
+          subtract : function (input, val) {
+              var dur;
+              // switch args to support subtract('s', 1) and subtract(1, 's')
+              if (typeof input === 'string' && typeof val === 'string') {
+                  dur = moment.duration(isNaN(+val) ? +input : +val, isNaN(+val) ? val : input);
+              } else if (typeof input === 'string') {
+                  dur = moment.duration(+val, input);
+              } else {
+                  dur = moment.duration(input, val);
+              }
+              addOrSubtractDurationFromMoment(this, dur, -1);
+              return this;
+          },
+
+          diff : function (input, units, asFloat) {
+              var that = makeAs(input, this),
+                  zoneDiff = (this.zone() - that.zone()) * 6e4,
+                  diff, output;
+
+              units = normalizeUnits(units);
+
+              if (units === 'year' || units === 'month') {
+                  // average number of days in the months in the given dates
+                  diff = (this.daysInMonth() + that.daysInMonth()) * 432e5; // 24 * 60 * 60 * 1000 / 2
+                  // difference in months
+                  output = ((this.year() - that.year()) * 12) + (this.month() - that.month());
+                  // adjust by taking difference in days, average number of days
+                  // and dst in the given months.
+                  output += ((this - moment(this).startOf('month')) -
+                          (that - moment(that).startOf('month'))) / diff;
+                  // same as above but with zones, to negate all dst
+                  output -= ((this.zone() - moment(this).startOf('month').zone()) -
+                          (that.zone() - moment(that).startOf('month').zone())) * 6e4 / diff;
+                  if (units === 'year') {
+                      output = output / 12;
+                  }
+              } else {
+                  diff = (this - that);
+                  output = units === 'second' ? diff / 1e3 : // 1000
+                      units === 'minute' ? diff / 6e4 : // 1000 * 60
+                      units === 'hour' ? diff / 36e5 : // 1000 * 60 * 60
+                      units === 'day' ? (diff - zoneDiff) / 864e5 : // 1000 * 60 * 60 * 24, negate dst
+                      units === 'week' ? (diff - zoneDiff) / 6048e5 : // 1000 * 60 * 60 * 24 * 7, negate dst
+                      diff;
+              }
+              return asFloat ? output : absRound(output);
+          },
+
+          from : function (time, withoutSuffix) {
+              return moment.duration(this.diff(time)).lang(this.lang()._abbr).humanize(!withoutSuffix);
+          },
+
+          fromNow : function (withoutSuffix) {
+              return this.from(moment(), withoutSuffix);
+          },
+
+          calendar : function (time) {
+              // We want to compare the start of today, vs this.
+              // Getting start-of-today depends on whether we're zone'd or not.
+              var now = time || moment(),
+                  sod = makeAs(now, this).startOf('day'),
+                  diff = this.diff(sod, 'days', true),
+                  format = diff < -6 ? 'sameElse' :
+                      diff < -1 ? 'lastWeek' :
+                      diff < 0 ? 'lastDay' :
+                      diff < 1 ? 'sameDay' :
+                      diff < 2 ? 'nextDay' :
+                      diff < 7 ? 'nextWeek' : 'sameElse';
+              return this.format(this.lang().calendar(format, this));
+          },
+
+          isLeapYear : function () {
+              return isLeapYear(this.year());
+          },
+
+          isDST : function () {
+              return (this.zone() < this.clone().month(0).zone() ||
+                  this.zone() < this.clone().month(5).zone());
+          },
+
+          day : function (input) {
+              var day = this._isUTC ? this._d.getUTCDay() : this._d.getDay();
+              if (input != null) {
+                  input = parseWeekday(input, this.lang());
+                  return this.add({ d : input - day });
+              } else {
+                  return day;
+              }
+          },
+
+          month : makeAccessor('Month', true),
+
+          startOf: function (units) {
+              units = normalizeUnits(units);
+              // the following switch intentionally omits break keywords
+              // to utilize falling through the cases.
+              switch (units) {
+              case 'year':
+                  this.month(0);
+                  /* falls through */
+              case 'quarter':
+              case 'month':
+                  this.date(1);
+                  /* falls through */
+              case 'week':
+              case 'isoWeek':
+              case 'day':
+                  this.hours(0);
+                  /* falls through */
+              case 'hour':
+                  this.minutes(0);
+                  /* falls through */
+              case 'minute':
+                  this.seconds(0);
+                  /* falls through */
+              case 'second':
+                  this.milliseconds(0);
+                  /* falls through */
+              }
+
+              // weeks are a special case
+              if (units === 'week') {
+                  this.weekday(0);
+              } else if (units === 'isoWeek') {
+                  this.isoWeekday(1);
+              }
+
+              // quarters are also special
+              if (units === 'quarter') {
+                  this.month(Math.floor(this.month() / 3) * 3);
+              }
+
+              return this;
+          },
+
+          endOf: function (units) {
+              units = normalizeUnits(units);
+              return this.startOf(units).add((units === 'isoWeek' ? 'week' : units), 1).subtract('ms', 1);
+          },
+
+          isAfter: function (input, units) {
+              units = typeof units !== 'undefined' ? units : 'millisecond';
+              return +this.clone().startOf(units) > +moment(input).startOf(units);
+          },
+
+          isBefore: function (input, units) {
+              units = typeof units !== 'undefined' ? units : 'millisecond';
+              return +this.clone().startOf(units) < +moment(input).startOf(units);
+          },
+
+          isSame: function (input, units) {
+              units = units || 'ms';
+              return +this.clone().startOf(units) === +makeAs(input, this).startOf(units);
+          },
+
+          min: deprecate(
+                   "moment().min is deprecated, use moment.min instead. https://github.com/moment/moment/issues/1548",
+                   function (other) {
+                       other = moment.apply(null, arguments);
+                       return other < this ? this : other;
+                   }
+           ),
+
+          max: deprecate(
+                  "moment().max is deprecated, use moment.max instead. https://github.com/moment/moment/issues/1548",
+                  function (other) {
+                      other = moment.apply(null, arguments);
+                      return other > this ? this : other;
+                  }
+          ),
+
+          // keepTime = true means only change the timezone, without affecting
+          // the local hour. So 5:31:26 +0300 --[zone(2, true)]--> 5:31:26 +0200
+          // It is possible that 5:31:26 doesn't exist int zone +0200, so we
+          // adjust the time as needed, to be valid.
+          //
+          // Keeping the time actually adds/subtracts (one hour)
+          // from the actual represented time. That is why we call updateOffset
+          // a second time. In case it wants us to change the offset again
+          // _changeInProgress == true case, then we have to adjust, because
+          // there is no such time in the given timezone.
+          zone : function (input, keepTime) {
+              var offset = this._offset || 0;
+              if (input != null) {
+                  if (typeof input === "string") {
+                      input = timezoneMinutesFromString(input);
+                  }
+                  if (Math.abs(input) < 16) {
+                      input = input * 60;
+                  }
+                  this._offset = input;
+                  this._isUTC = true;
+                  if (offset !== input) {
+                      if (!keepTime || this._changeInProgress) {
+                          addOrSubtractDurationFromMoment(this,
+                                  moment.duration(offset - input, 'm'), 1, false);
+                      } else if (!this._changeInProgress) {
+                          this._changeInProgress = true;
+                          moment.updateOffset(this, true);
+                          this._changeInProgress = null;
+                      }
+                  }
+              } else {
+                  return this._isUTC ? offset : this._d.getTimezoneOffset();
+              }
+              return this;
+          },
+
+          zoneAbbr : function () {
+              return this._isUTC ? "UTC" : "";
+          },
+
+          zoneName : function () {
+              return this._isUTC ? "Coordinated Universal Time" : "";
+          },
+
+          parseZone : function () {
+              if (this._tzm) {
+                  this.zone(this._tzm);
+              } else if (typeof this._i === 'string') {
+                  this.zone(this._i);
+              }
+              return this;
+          },
+
+          hasAlignedHourOffset : function (input) {
+              if (!input) {
+                  input = 0;
+              }
+              else {
+                  input = moment(input).zone();
+              }
+
+              return (this.zone() - input) % 60 === 0;
+          },
+
+          daysInMonth : function () {
+              return daysInMonth(this.year(), this.month());
+          },
+
+          dayOfYear : function (input) {
+              var dayOfYear = round((moment(this).startOf('day') - moment(this).startOf('year')) / 864e5) + 1;
+              return input == null ? dayOfYear : this.add("d", (input - dayOfYear));
+          },
+
+          quarter : function (input) {
+              return input == null ? Math.ceil((this.month() + 1) / 3) : this.month((input - 1) * 3 + this.month() % 3);
+          },
+
+          weekYear : function (input) {
+              var year = weekOfYear(this, this.lang()._week.dow, this.lang()._week.doy).year;
+              return input == null ? year : this.add("y", (input - year));
+          },
+
+          isoWeekYear : function (input) {
+              var year = weekOfYear(this, 1, 4).year;
+              return input == null ? year : this.add("y", (input - year));
+          },
+
+          week : function (input) {
+              var week = this.lang().week(this);
+              return input == null ? week : this.add("d", (input - week) * 7);
+          },
+
+          isoWeek : function (input) {
+              var week = weekOfYear(this, 1, 4).week;
+              return input == null ? week : this.add("d", (input - week) * 7);
+          },
+
+          weekday : function (input) {
+              var weekday = (this.day() + 7 - this.lang()._week.dow) % 7;
+              return input == null ? weekday : this.add("d", input - weekday);
+          },
+
+          isoWeekday : function (input) {
+              // behaves the same as moment#day except
+              // as a getter, returns 7 instead of 0 (1-7 range instead of 0-6)
+              // as a setter, sunday should belong to the previous week.
+              return input == null ? this.day() || 7 : this.day(this.day() % 7 ? input : input - 7);
+          },
+
+          isoWeeksInYear : function () {
+              return weeksInYear(this.year(), 1, 4);
+          },
+
+          weeksInYear : function () {
+              var weekInfo = this._lang._week;
+              return weeksInYear(this.year(), weekInfo.dow, weekInfo.doy);
+          },
+
+          get : function (units) {
+              units = normalizeUnits(units);
+              return this[units]();
+          },
+
+          set : function (units, value) {
+              units = normalizeUnits(units);
+              if (typeof this[units] === 'function') {
+                  this[units](value);
+              }
+              return this;
+          },
+
+          // If passed a language key, it will set the language for this
+          // instance.  Otherwise, it will return the language configuration
+          // variables for this instance.
+          lang : function (key) {
+              if (key === undefined) {
+                  return this._lang;
+              } else {
+                  this._lang = getLangDefinition(key);
+                  return this;
+              }
+          }
+      });
+
+      function rawMonthSetter(mom, value) {
+          var dayOfMonth;
+
+          // TODO: Move this out of here!
+          if (typeof value === 'string') {
+              value = mom.lang().monthsParse(value);
+              // TODO: Another silent failure?
+              if (typeof value !== 'number') {
+                  return mom;
+              }
+          }
+
+          dayOfMonth = Math.min(mom.date(),
+                  daysInMonth(mom.year(), value));
+          mom._d['set' + (mom._isUTC ? 'UTC' : '') + 'Month'](value, dayOfMonth);
+          return mom;
+      }
+
+      function rawGetter(mom, unit) {
+          return mom._d['get' + (mom._isUTC ? 'UTC' : '') + unit]();
+      }
+
+      function rawSetter(mom, unit, value) {
+          if (unit === 'Month') {
+              return rawMonthSetter(mom, value);
+          } else {
+              return mom._d['set' + (mom._isUTC ? 'UTC' : '') + unit](value);
+          }
+      }
+
+      function makeAccessor(unit, keepTime) {
+          return function (value) {
+              if (value != null) {
+                  rawSetter(this, unit, value);
+                  moment.updateOffset(this, keepTime);
+                  return this;
+              } else {
+                  return rawGetter(this, unit);
+              }
+          };
+      }
+
+      moment.fn.millisecond = moment.fn.milliseconds = makeAccessor('Milliseconds', false);
+      moment.fn.second = moment.fn.seconds = makeAccessor('Seconds', false);
+      moment.fn.minute = moment.fn.minutes = makeAccessor('Minutes', false);
+      // Setting the hour should keep the time, because the user explicitly
+      // specified which hour he wants. So trying to maintain the same hour (in
+      // a new timezone) makes sense. Adding/subtracting hours does not follow
+      // this rule.
+      moment.fn.hour = moment.fn.hours = makeAccessor('Hours', true);
+      // moment.fn.month is defined separately
+      moment.fn.date = makeAccessor('Date', true);
+      moment.fn.dates = deprecate("dates accessor is deprecated. Use date instead.", makeAccessor('Date', true));
+      moment.fn.year = makeAccessor('FullYear', true);
+      moment.fn.years = deprecate("years accessor is deprecated. Use year instead.", makeAccessor('FullYear', true));
+
+      // add plural methods
+      moment.fn.days = moment.fn.day;
+      moment.fn.months = moment.fn.month;
+      moment.fn.weeks = moment.fn.week;
+      moment.fn.isoWeeks = moment.fn.isoWeek;
+      moment.fn.quarters = moment.fn.quarter;
+
+      // add aliased format methods
+      moment.fn.toJSON = moment.fn.toISOString;
+
+      /************************************
+          Duration Prototype
+      ************************************/
+
+
+      extend(moment.duration.fn = Duration.prototype, {
+
+          _bubble : function () {
+              var milliseconds = this._milliseconds,
+                  days = this._days,
+                  months = this._months,
+                  data = this._data,
+                  seconds, minutes, hours, years;
+
+              // The following code bubbles up values, see the tests for
+              // examples of what that means.
+              data.milliseconds = milliseconds % 1000;
+
+              seconds = absRound(milliseconds / 1000);
+              data.seconds = seconds % 60;
+
+              minutes = absRound(seconds / 60);
+              data.minutes = minutes % 60;
+
+              hours = absRound(minutes / 60);
+              data.hours = hours % 24;
+
+              days += absRound(hours / 24);
+              data.days = days % 30;
+
+              months += absRound(days / 30);
+              data.months = months % 12;
+
+              years = absRound(months / 12);
+              data.years = years;
+          },
+
+          weeks : function () {
+              return absRound(this.days() / 7);
+          },
+
+          valueOf : function () {
+              return this._milliseconds +
+                this._days * 864e5 +
+                (this._months % 12) * 2592e6 +
+                toInt(this._months / 12) * 31536e6;
+          },
+
+          humanize : function (withSuffix) {
+              var difference = +this,
+                  output = relativeTime(difference, !withSuffix, this.lang());
+
+              if (withSuffix) {
+                  output = this.lang().pastFuture(difference, output);
+              }
+
+              return this.lang().postformat(output);
+          },
+
+          add : function (input, val) {
+              // supports only 2.0-style add(1, 's') or add(moment)
+              var dur = moment.duration(input, val);
+
+              this._milliseconds += dur._milliseconds;
+              this._days += dur._days;
+              this._months += dur._months;
+
+              this._bubble();
+
+              return this;
+          },
+
+          subtract : function (input, val) {
+              var dur = moment.duration(input, val);
+
+              this._milliseconds -= dur._milliseconds;
+              this._days -= dur._days;
+              this._months -= dur._months;
+
+              this._bubble();
+
+              return this;
+          },
+
+          get : function (units) {
+              units = normalizeUnits(units);
+              return this[units.toLowerCase() + 's']();
+          },
+
+          as : function (units) {
+              units = normalizeUnits(units);
+              return this['as' + units.charAt(0).toUpperCase() + units.slice(1) + 's']();
+          },
+
+          lang : moment.fn.lang,
+
+          toIsoString : function () {
+              // inspired by https://github.com/dordille/moment-isoduration/blob/master/moment.isoduration.js
+              var years = Math.abs(this.years()),
+                  months = Math.abs(this.months()),
+                  days = Math.abs(this.days()),
+                  hours = Math.abs(this.hours()),
+                  minutes = Math.abs(this.minutes()),
+                  seconds = Math.abs(this.seconds() + this.milliseconds() / 1000);
+
+              if (!this.asSeconds()) {
+                  // this is the same as C#'s (Noda) and python (isodate)...
+                  // but not other JS (goog.date)
+                  return 'P0D';
+              }
+
+              return (this.asSeconds() < 0 ? '-' : '') +
+                  'P' +
+                  (years ? years + 'Y' : '') +
+                  (months ? months + 'M' : '') +
+                  (days ? days + 'D' : '') +
+                  ((hours || minutes || seconds) ? 'T' : '') +
+                  (hours ? hours + 'H' : '') +
+                  (minutes ? minutes + 'M' : '') +
+                  (seconds ? seconds + 'S' : '');
+          }
+      });
+
+      function makeDurationGetter(name) {
+          moment.duration.fn[name] = function () {
+              return this._data[name];
+          };
+      }
+
+      function makeDurationAsGetter(name, factor) {
+          moment.duration.fn['as' + name] = function () {
+              return +this / factor;
+          };
+      }
+
+      for (i in unitMillisecondFactors) {
+          if (unitMillisecondFactors.hasOwnProperty(i)) {
+              makeDurationAsGetter(i, unitMillisecondFactors[i]);
+              makeDurationGetter(i.toLowerCase());
+          }
+      }
+
+      makeDurationAsGetter('Weeks', 6048e5);
+      moment.duration.fn.asMonths = function () {
+          return (+this - this.years() * 31536e6) / 2592e6 + this.years() * 12;
+      };
+
+
+      /************************************
+          Default Lang
+      ************************************/
+
+
+      // Set default language, other languages will inherit from English.
+      moment.lang('en', {
+          ordinal : function (number) {
+              var b = number % 10,
+                  output = (toInt(number % 100 / 10) === 1) ? 'th' :
+                  (b === 1) ? 'st' :
+                  (b === 2) ? 'nd' :
+                  (b === 3) ? 'rd' : 'th';
+              return number + output;
+          }
+      });
+
+      /* EMBED_LANGUAGES */
+
+      /************************************
+          Exposing Moment
+      ************************************/
+
+      function makeGlobal(shouldDeprecate) {
+          /*global ender:false */
+          if (typeof ender !== 'undefined') {
+              return;
+          }
+          oldGlobalMoment = globalScope.moment;
+          if (shouldDeprecate) {
+              globalScope.moment = deprecate(
+                      "Accessing Moment through the global scope is " +
+                      "deprecated, and will be removed in an upcoming " +
+                      "release.",
+                      moment);
+          } else {
+              globalScope.moment = moment;
+          }
+      }
+
+      // CommonJS module is defined
+      if (hasModule) {
+          module.exports = moment;
+      } else if (true) {
+          !(__WEBPACK_AMD_DEFINE_RESULT__ = (function (require, exports, module) {
+              if (module.config && module.config() && module.config().noGlobal === true) {
+                  // release the global variable
+                  globalScope.moment = oldGlobalMoment;
+              }
+
+              return moment;
+          }.call(exports, __webpack_require__, exports, module)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+          makeGlobal(true);
+      } else {
+          makeGlobal();
+      }
+  }).call(this);
+  
+  /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(7)(module)))
+
+/***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var map = {
+  	"./ar": 59,
+  	"./ar-ma": 57,
+  	"./ar-ma.js": 57,
+  	"./ar-sa": 58,
+  	"./ar-sa.js": 58,
+  	"./ar.js": 59,
+  	"./az": 60,
+  	"./az.js": 60,
+  	"./bg": 61,
+  	"./bg.js": 61,
+  	"./bn": 62,
+  	"./bn.js": 62,
+  	"./br": 63,
+  	"./br.js": 63,
+  	"./bs": 64,
+  	"./bs.js": 64,
+  	"./ca": 65,
+  	"./ca.js": 65,
+  	"./cs": 66,
+  	"./cs.js": 66,
+  	"./cv": 67,
+  	"./cv.js": 67,
+  	"./cy": 68,
+  	"./cy.js": 68,
+  	"./da": 69,
+  	"./da.js": 69,
+  	"./de": 71,
+  	"./de-at": 70,
+  	"./de-at.js": 70,
+  	"./de.js": 71,
+  	"./el": 72,
+  	"./el.js": 72,
+  	"./en-au": 73,
+  	"./en-au.js": 73,
+  	"./en-ca": 74,
+  	"./en-ca.js": 74,
+  	"./en-gb": 75,
+  	"./en-gb.js": 75,
+  	"./eo": 76,
+  	"./eo.js": 76,
+  	"./es": 77,
+  	"./es.js": 77,
+  	"./et": 78,
+  	"./et.js": 78,
+  	"./eu": 79,
+  	"./eu.js": 79,
+  	"./fa": 80,
+  	"./fa.js": 80,
+  	"./fi": 81,
+  	"./fi.js": 81,
+  	"./fo": 82,
+  	"./fo.js": 82,
+  	"./fr": 84,
+  	"./fr-ca": 83,
+  	"./fr-ca.js": 83,
+  	"./fr.js": 84,
+  	"./gl": 85,
+  	"./gl.js": 85,
+  	"./he": 86,
+  	"./he.js": 86,
+  	"./hi": 87,
+  	"./hi.js": 87,
+  	"./hr": 88,
+  	"./hr.js": 88,
+  	"./hu": 89,
+  	"./hu.js": 89,
+  	"./hy-am": 90,
+  	"./hy-am.js": 90,
+  	"./id": 91,
+  	"./id.js": 91,
+  	"./is": 92,
+  	"./is.js": 92,
+  	"./it": 93,
+  	"./it.js": 93,
+  	"./ja": 94,
+  	"./ja.js": 94,
+  	"./ka": 95,
+  	"./ka.js": 95,
+  	"./km": 96,
+  	"./km.js": 96,
+  	"./ko": 97,
+  	"./ko.js": 97,
+  	"./lb": 98,
+  	"./lb.js": 98,
+  	"./lt": 99,
+  	"./lt.js": 99,
+  	"./lv": 100,
+  	"./lv.js": 100,
+  	"./mk": 101,
+  	"./mk.js": 101,
+  	"./ml": 102,
+  	"./ml.js": 102,
+  	"./mr": 103,
+  	"./mr.js": 103,
+  	"./ms-my": 104,
+  	"./ms-my.js": 104,
+  	"./nb": 105,
+  	"./nb.js": 105,
+  	"./ne": 106,
+  	"./ne.js": 106,
+  	"./nl": 107,
+  	"./nl.js": 107,
+  	"./nn": 108,
+  	"./nn.js": 108,
+  	"./pl": 109,
+  	"./pl.js": 109,
+  	"./pt": 111,
+  	"./pt-br": 110,
+  	"./pt-br.js": 110,
+  	"./pt.js": 111,
+  	"./ro": 112,
+  	"./ro.js": 112,
+  	"./ru": 113,
+  	"./ru.js": 113,
+  	"./sk": 114,
+  	"./sk.js": 114,
+  	"./sl": 115,
+  	"./sl.js": 115,
+  	"./sq": 116,
+  	"./sq.js": 116,
+  	"./sr": 118,
+  	"./sr-cyrl": 117,
+  	"./sr-cyrl.js": 117,
+  	"./sr.js": 118,
+  	"./sv": 119,
+  	"./sv.js": 119,
+  	"./ta": 120,
+  	"./ta.js": 120,
+  	"./th": 121,
+  	"./th.js": 121,
+  	"./tl-ph": 122,
+  	"./tl-ph.js": 122,
+  	"./tr": 123,
+  	"./tr.js": 123,
+  	"./tzm": 125,
+  	"./tzm-latn": 124,
+  	"./tzm-latn.js": 124,
+  	"./tzm.js": 125,
+  	"./uk": 126,
+  	"./uk.js": 126,
+  	"./uz": 127,
+  	"./uz.js": 127,
+  	"./vi": 128,
+  	"./vi.js": 128,
+  	"./zh-cn": 129,
+  	"./zh-cn.js": 129,
+  	"./zh-tw": 130,
+  	"./zh-tw.js": 130
+  };
+  function webpackContext(req) {
+  	return __webpack_require__(webpackContextResolve(req));
+  };
+  function webpackContextResolve(req) {
+  	return map[req] || (function() { throw new Error("Cannot find module '" + req + "'.") }());
+  };
+  webpackContext.keys = function webpackContextKeys() {
+  	return Object.keys(map);
+  };
+  webpackContext.resolve = webpackContextResolve;
+  module.exports = webpackContext;
+
+
+/***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+  module.exports = function(module) {
+  	if(!module.webpackPolyfill) {
+  		module.deprecate = function() {};
+  		module.paths = [];
+  		// module.parent = undefined by default
+  		module.children = [];
+  		module.webpackPolyfill = 1;
+  	}
+  	return module;
+  }
+
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
   // DOM utility methods
 
   /**
@@ -1581,7 +5833,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 3 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -2525,11 +6777,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 4 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(3);
+  var DataSet = __webpack_require__(9);
 
   /**
    * DataView
@@ -2831,16 +7083,16 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataView;
 
 /***/ },
-/* 5 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(41);
-  var DataSet = __webpack_require__(3);
-  var DataView = __webpack_require__(4);
-  var Point3d = __webpack_require__(33);
-  var Point2d = __webpack_require__(34);
-  var Filter = __webpack_require__(35);
-  var StepNumber = __webpack_require__(36);
+  var Emitter = __webpack_require__(12);
+  var DataSet = __webpack_require__(9);
+  var DataView = __webpack_require__(10);
+  var Point3d = __webpack_require__(13);
+  var Point2d = __webpack_require__(14);
+  var Filter = __webpack_require__(15);
+  var StepNumber = __webpack_require__(16);
 
   /**
    * @constructor Graph3d
@@ -5691,19 +9943,667 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 6 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(41);
-  var Hammer = __webpack_require__(49);
+  
+  /**
+   * Expose `Emitter`.
+   */
+
+  module.exports = Emitter;
+
+  /**
+   * Initialize a new `Emitter`.
+   *
+   * @api public
+   */
+
+  function Emitter(obj) {
+    if (obj) return mixin(obj);
+  };
+
+  /**
+   * Mixin the emitter properties.
+   *
+   * @param {Object} obj
+   * @return {Object}
+   * @api private
+   */
+
+  function mixin(obj) {
+    for (var key in Emitter.prototype) {
+      obj[key] = Emitter.prototype[key];
+    }
+    return obj;
+  }
+
+  /**
+   * Listen on the given `event` with `fn`.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.on =
+  Emitter.prototype.addEventListener = function(event, fn){
+    this._callbacks = this._callbacks || {};
+    (this._callbacks[event] = this._callbacks[event] || [])
+      .push(fn);
+    return this;
+  };
+
+  /**
+   * Adds an `event` listener that will be invoked a single
+   * time then automatically removed.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.once = function(event, fn){
+    var self = this;
+    this._callbacks = this._callbacks || {};
+
+    function on() {
+      self.off(event, on);
+      fn.apply(this, arguments);
+    }
+
+    on.fn = fn;
+    this.on(event, on);
+    return this;
+  };
+
+  /**
+   * Remove the given callback for `event` or all
+   * registered callbacks.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.off =
+  Emitter.prototype.removeListener =
+  Emitter.prototype.removeAllListeners =
+  Emitter.prototype.removeEventListener = function(event, fn){
+    this._callbacks = this._callbacks || {};
+
+    // all
+    if (0 == arguments.length) {
+      this._callbacks = {};
+      return this;
+    }
+
+    // specific event
+    var callbacks = this._callbacks[event];
+    if (!callbacks) return this;
+
+    // remove all handlers
+    if (1 == arguments.length) {
+      delete this._callbacks[event];
+      return this;
+    }
+
+    // remove specific handler
+    var cb;
+    for (var i = 0; i < callbacks.length; i++) {
+      cb = callbacks[i];
+      if (cb === fn || cb.fn === fn) {
+        callbacks.splice(i, 1);
+        break;
+      }
+    }
+    return this;
+  };
+
+  /**
+   * Emit `event` with the given args.
+   *
+   * @param {String} event
+   * @param {Mixed} ...
+   * @return {Emitter}
+   */
+
+  Emitter.prototype.emit = function(event){
+    this._callbacks = this._callbacks || {};
+    var args = [].slice.call(arguments, 1)
+      , callbacks = this._callbacks[event];
+
+    if (callbacks) {
+      callbacks = callbacks.slice(0);
+      for (var i = 0, len = callbacks.length; i < len; ++i) {
+        callbacks[i].apply(this, args);
+      }
+    }
+
+    return this;
+  };
+
+  /**
+   * Return array of callbacks for `event`.
+   *
+   * @param {String} event
+   * @return {Array}
+   * @api public
+   */
+
+  Emitter.prototype.listeners = function(event){
+    this._callbacks = this._callbacks || {};
+    return this._callbacks[event] || [];
+  };
+
+  /**
+   * Check if this emitter has `event` handlers.
+   *
+   * @param {String} event
+   * @return {Boolean}
+   * @api public
+   */
+
+  Emitter.prototype.hasListeners = function(event){
+    return !! this.listeners(event).length;
+  };
+
+
+/***/ },
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * @prototype Point3d
+   * @param {Number} [x]
+   * @param {Number} [y]
+   * @param {Number} [z]
+   */
+  function Point3d(x, y, z) {
+    this.x = x !== undefined ? x : 0;
+    this.y = y !== undefined ? y : 0;
+    this.z = z !== undefined ? z : 0;
+  };
+
+  /**
+   * Subtract the two provided points, returns a-b
+   * @param {Point3d} a
+   * @param {Point3d} b
+   * @return {Point3d} a-b
+   */
+  Point3d.subtract = function(a, b) {
+    var sub = new Point3d();
+    sub.x = a.x - b.x;
+    sub.y = a.y - b.y;
+    sub.z = a.z - b.z;
+    return sub;
+  };
+
+  /**
+   * Add the two provided points, returns a+b
+   * @param {Point3d} a
+   * @param {Point3d} b
+   * @return {Point3d} a+b
+   */
+  Point3d.add = function(a, b) {
+    var sum = new Point3d();
+    sum.x = a.x + b.x;
+    sum.y = a.y + b.y;
+    sum.z = a.z + b.z;
+    return sum;
+  };
+
+  /**
+   * Calculate the average of two 3d points
+   * @param {Point3d} a
+   * @param {Point3d} b
+   * @return {Point3d} The average, (a+b)/2
+   */
+  Point3d.avg = function(a, b) {
+    return new Point3d(
+            (a.x + b.x) / 2,
+            (a.y + b.y) / 2,
+            (a.z + b.z) / 2
+    );
+  };
+
+  /**
+   * Calculate the cross product of the two provided points, returns axb
+   * Documentation: http://en.wikipedia.org/wiki/Cross_product
+   * @param {Point3d} a
+   * @param {Point3d} b
+   * @return {Point3d} cross product axb
+   */
+  Point3d.crossProduct = function(a, b) {
+    var crossproduct = new Point3d();
+
+    crossproduct.x = a.y * b.z - a.z * b.y;
+    crossproduct.y = a.z * b.x - a.x * b.z;
+    crossproduct.z = a.x * b.y - a.y * b.x;
+
+    return crossproduct;
+  };
+
+
+  /**
+   * Rtrieve the length of the vector (or the distance from this point to the origin
+   * @return {Number}  length
+   */
+  Point3d.prototype.length = function() {
+    return Math.sqrt(
+            this.x * this.x +
+            this.y * this.y +
+            this.z * this.z
+    );
+  };
+
+  module.exports = Point3d;
+
+
+/***/ },
+/* 14 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * @prototype Point2d
+   * @param {Number} [x]
+   * @param {Number} [y]
+   */
+  Point2d = function (x, y) {
+    this.x = x !== undefined ? x : 0;
+    this.y = y !== undefined ? y : 0;
+  };
+
+  module.exports = Point2d;
+
+
+/***/ },
+/* 15 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var DataView = __webpack_require__(10);
+
+  /**
+   * @class Filter
+   *
+   * @param {DataSet} data The google data table
+   * @param {Number}  column             The index of the column to be filtered
+   * @param {Graph} graph           The graph
+   */
+  function Filter (data, column, graph) {
+    this.data = data;
+    this.column = column;
+    this.graph = graph; // the parent graph
+
+    this.index = undefined;
+    this.value = undefined;
+
+    // read all distinct values and select the first one
+    this.values = graph.getDistinctValues(data.get(), this.column);
+
+    // sort both numeric and string values correctly
+    this.values.sort(function (a, b) {
+      return a > b ? 1 : a < b ? -1 : 0;
+    });
+
+    if (this.values.length > 0) {
+      this.selectValue(0);
+    }
+
+    // create an array with the filtered datapoints. this will be loaded afterwards
+    this.dataPoints = [];
+
+    this.loaded = false;
+    this.onLoadCallback = undefined;
+
+    if (graph.animationPreload) {
+      this.loaded = false;
+      this.loadInBackground();
+    }
+    else {
+      this.loaded = true;
+    }
+  };
+
+
+  /**
+   * Return the label
+   * @return {string} label
+   */
+  Filter.prototype.isLoaded = function() {
+    return this.loaded;
+  };
+
+
+  /**
+   * Return the loaded progress
+   * @return {Number} percentage between 0 and 100
+   */
+  Filter.prototype.getLoadedProgress = function() {
+    var len = this.values.length;
+
+    var i = 0;
+    while (this.dataPoints[i]) {
+      i++;
+    }
+
+    return Math.round(i / len * 100);
+  };
+
+
+  /**
+   * Return the label
+   * @return {string} label
+   */
+  Filter.prototype.getLabel = function() {
+    return this.graph.filterLabel;
+  };
+
+
+  /**
+   * Return the columnIndex of the filter
+   * @return {Number} columnIndex
+   */
+  Filter.prototype.getColumn = function() {
+    return this.column;
+  };
+
+  /**
+   * Return the currently selected value. Returns undefined if there is no selection
+   * @return {*} value
+   */
+  Filter.prototype.getSelectedValue = function() {
+    if (this.index === undefined)
+      return undefined;
+
+    return this.values[this.index];
+  };
+
+  /**
+   * Retrieve all values of the filter
+   * @return {Array} values
+   */
+  Filter.prototype.getValues = function() {
+    return this.values;
+  };
+
+  /**
+   * Retrieve one value of the filter
+   * @param {Number}  index
+   * @return {*} value
+   */
+  Filter.prototype.getValue = function(index) {
+    if (index >= this.values.length)
+      throw 'Error: index out of range';
+
+    return this.values[index];
+  };
+
+
+  /**
+   * Retrieve the (filtered) dataPoints for the currently selected filter index
+   * @param {Number} [index] (optional)
+   * @return {Array} dataPoints
+   */
+  Filter.prototype._getDataPoints = function(index) {
+    if (index === undefined)
+      index = this.index;
+
+    if (index === undefined)
+      return [];
+
+    var dataPoints;
+    if (this.dataPoints[index]) {
+      dataPoints = this.dataPoints[index];
+    }
+    else {
+      var f = {};
+      f.column = this.column;
+      f.value = this.values[index];
+
+      var dataView = new DataView(this.data,{filter: function (item) {return (item[f.column] == f.value);}}).get();
+      dataPoints = this.graph._getDataPoints(dataView);
+
+      this.dataPoints[index] = dataPoints;
+    }
+
+    return dataPoints;
+  };
+
+
+
+  /**
+   * Set a callback function when the filter is fully loaded.
+   */
+  Filter.prototype.setOnLoadCallback = function(callback) {
+    this.onLoadCallback = callback;
+  };
+
+
+  /**
+   * Add a value to the list with available values for this filter
+   * No double entries will be created.
+   * @param {Number} index
+   */
+  Filter.prototype.selectValue = function(index) {
+    if (index >= this.values.length)
+      throw 'Error: index out of range';
+
+    this.index = index;
+    this.value = this.values[index];
+  };
+
+  /**
+   * Load all filtered rows in the background one by one
+   * Start this method without providing an index!
+   */
+  Filter.prototype.loadInBackground = function(index) {
+    if (index === undefined)
+      index = 0;
+
+    var frame = this.graph.frame;
+
+    if (index < this.values.length) {
+      var dataPointsTemp = this._getDataPoints(index);
+      //this.graph.redrawInfo(); // TODO: not neat
+
+      // create a progress box
+      if (frame.progress === undefined) {
+        frame.progress = document.createElement('DIV');
+        frame.progress.style.position = 'absolute';
+        frame.progress.style.color = 'gray';
+        frame.appendChild(frame.progress);
+      }
+      var progress = this.getLoadedProgress();
+      frame.progress.innerHTML = 'Loading animation... ' + progress + '%';
+      // TODO: this is no nice solution...
+      frame.progress.style.bottom = 60 + 'px'; // TODO: use height of slider
+      frame.progress.style.left = 10 + 'px';
+
+      var me = this;
+      setTimeout(function() {me.loadInBackground(index+1);}, 10);
+      this.loaded = false;
+    }
+    else {
+      this.loaded = true;
+
+      // remove the progress box
+      if (frame.progress !== undefined) {
+        frame.removeChild(frame.progress);
+        frame.progress = undefined;
+      }
+
+      if (this.onLoadCallback)
+        this.onLoadCallback();
+    }
+  };
+
+  module.exports = Filter;
+
+
+/***/ },
+/* 16 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * @prototype StepNumber
+   * The class StepNumber is an iterator for Numbers. You provide a start and end
+   * value, and a best step size. StepNumber itself rounds to fixed values and
+   * a finds the step that best fits the provided step.
+   *
+   * If prettyStep is true, the step size is chosen as close as possible to the
+   * provided step, but being a round value like 1, 2, 5, 10, 20, 50, ....
+   *
+   * Example usage:
+   *   var step = new StepNumber(0, 10, 2.5, true);
+   *   step.start();
+   *   while (!step.end()) {
+   *   alert(step.getCurrent());
+   *   step.next();
+   *   }
+   *
+   * Version: 1.0
+   *
+   * @param {Number} start     The start value
+   * @param {Number} end     The end value
+   * @param {Number} step    Optional. Step size. Must be a positive value.
+   * @param {boolean} prettyStep Optional. If true, the step size is rounded
+   *               To a pretty step size (like 1, 2, 5, 10, 20, 50, ...)
+   */
+  function StepNumber(start, end, step, prettyStep) {
+    // set default values
+    this._start = 0;
+    this._end = 0;
+    this._step = 1;
+    this.prettyStep = true;
+    this.precision = 5;
+
+    this._current = 0;
+    this.setRange(start, end, step, prettyStep);
+  };
+
+  /**
+   * Set a new range: start, end and step.
+   *
+   * @param {Number} start     The start value
+   * @param {Number} end     The end value
+   * @param {Number} step    Optional. Step size. Must be a positive value.
+   * @param {boolean} prettyStep Optional. If true, the step size is rounded
+   *               To a pretty step size (like 1, 2, 5, 10, 20, 50, ...)
+   */
+  StepNumber.prototype.setRange = function(start, end, step, prettyStep) {
+    this._start = start ? start : 0;
+    this._end = end ? end : 0;
+
+    this.setStep(step, prettyStep);
+  };
+
+  /**
+   * Set a new step size
+   * @param {Number} step    New step size. Must be a positive value
+   * @param {boolean} prettyStep Optional. If true, the provided step is rounded
+   *               to a pretty step size (like 1, 2, 5, 10, 20, 50, ...)
+   */
+  StepNumber.prototype.setStep = function(step, prettyStep) {
+    if (step === undefined || step <= 0)
+      return;
+
+    if (prettyStep !== undefined)
+      this.prettyStep = prettyStep;
+
+    if (this.prettyStep === true)
+      this._step = StepNumber.calculatePrettyStep(step);
+    else
+      this._step = step;
+  };
+
+  /**
+   * Calculate a nice step size, closest to the desired step size.
+   * Returns a value in one of the ranges 1*10^n, 2*10^n, or 5*10^n, where n is an
+   * integer Number. For example 1, 2, 5, 10, 20, 50, etc...
+   * @param {Number}  step  Desired step size
+   * @return {Number}     Nice step size
+   */
+  StepNumber.calculatePrettyStep = function (step) {
+    var log10 = function (x) {return Math.log(x) / Math.LN10;};
+
+    // try three steps (multiple of 1, 2, or 5
+    var step1 = Math.pow(10, Math.round(log10(step))),
+        step2 = 2 * Math.pow(10, Math.round(log10(step / 2))),
+        step5 = 5 * Math.pow(10, Math.round(log10(step / 5)));
+
+    // choose the best step (closest to minimum step)
+    var prettyStep = step1;
+    if (Math.abs(step2 - step) <= Math.abs(prettyStep - step)) prettyStep = step2;
+    if (Math.abs(step5 - step) <= Math.abs(prettyStep - step)) prettyStep = step5;
+
+    // for safety
+    if (prettyStep <= 0) {
+      prettyStep = 1;
+    }
+
+    return prettyStep;
+  };
+
+  /**
+   * returns the current value of the step
+   * @return {Number} current value
+   */
+  StepNumber.prototype.getCurrent = function () {
+    return parseFloat(this._current.toPrecision(this.precision));
+  };
+
+  /**
+   * returns the current step size
+   * @return {Number} current step size
+   */
+  StepNumber.prototype.getStep = function () {
+    return this._step;
+  };
+
+  /**
+   * Set the current value to the largest value smaller than start, which
+   * is a multiple of the step size
+   */
+  StepNumber.prototype.start = function() {
+    this._current = this._start - this._start % this._step;
+  };
+
+  /**
+   * Do a step, add the step size to the current value
+   */
+  StepNumber.prototype.next = function () {
+    this._current += this._step;
+  };
+
+  /**
+   * Returns true whether the end is reached
+   * @return {boolean}  True if the current value has passed the end value.
+   */
+  StepNumber.prototype.end = function () {
+    return (this._current > this._end);
+  };
+
+  module.exports = StepNumber;
+
+
+/***/ },
+/* 17 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var Emitter = __webpack_require__(12);
+  var Hammer = __webpack_require__(3);
   var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(3);
-  var DataView = __webpack_require__(4);
-  var Range = __webpack_require__(9);
-  var TimeAxis = __webpack_require__(21);
-  var CurrentTime = __webpack_require__(13);
-  var CustomTime = __webpack_require__(14);
-  var ItemSet = __webpack_require__(18);
+  var DataSet = __webpack_require__(9);
+  var DataView = __webpack_require__(10);
+  var Range = __webpack_require__(18);
+  var TimeAxis = __webpack_require__(20);
+  var CurrentTime = __webpack_require__(22);
+  var CustomTime = __webpack_require__(23);
+  var ItemSet = __webpack_require__(24);
 
   /**
    * Create a timeline visualization
@@ -6606,1123 +11506,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 7 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var Emitter = __webpack_require__(41);
-  var Hammer = __webpack_require__(49);
-  var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(3);
-  var DataView = __webpack_require__(4);
-  var Range = __webpack_require__(9);
-  var TimeAxis = __webpack_require__(21);
-  var CurrentTime = __webpack_require__(13);
-  var CustomTime = __webpack_require__(14);
-  var LineGraph = __webpack_require__(20);
-
-  /**
-   * Create a timeline visualization
-   * @param {HTMLElement} container
-   * @param {vis.DataSet | Array | google.visualization.DataTable} [items]
-   * @param {Object} [options]  See Graph2d.setOptions for the available options.
-   * @constructor
-   */
-  function Graph2d (container, items, options, groups) {
-    var me = this;
-    this.defaultOptions = {
-      start: null,
-      end:   null,
-
-      autoResize: true,
-
-      orientation: 'bottom',
-      width: null,
-      height: null,
-      maxHeight: null,
-      minHeight: null
-    };
-    this.options = util.deepExtend({}, this.defaultOptions);
-
-    // Create the DOM, props, and emitter
-    this._create(container);
-
-    // all components listed here will be repainted automatically
-    this.components = [];
-
-    this.body = {
-      dom: this.dom,
-      domProps: this.props,
-      emitter: {
-        on: this.on.bind(this),
-        off: this.off.bind(this),
-        emit: this.emit.bind(this)
-      },
-      util: {
-        snap: null, // will be specified after TimeAxis is created
-        toScreen: me._toScreen.bind(me),
-        toGlobalScreen: me._toGlobalScreen.bind(me), // this refers to the root.width
-        toTime: me._toTime.bind(me),
-        toGlobalTime : me._toGlobalTime.bind(me)
-      }
-    };
-
-    // range
-    this.range = new Range(this.body);
-    this.components.push(this.range);
-    this.body.range = this.range;
-
-    // time axis
-    this.timeAxis = new TimeAxis(this.body);
-    this.components.push(this.timeAxis);
-    this.body.util.snap = this.timeAxis.snap.bind(this.timeAxis);
-
-    // current time bar
-    this.currentTime = new CurrentTime(this.body);
-    this.components.push(this.currentTime);
-
-    // custom time bar
-    // Note: time bar will be attached in this.setOptions when selected
-    this.customTime = new CustomTime(this.body);
-    this.components.push(this.customTime);
-
-    // item set
-    this.linegraph = new LineGraph(this.body);
-    this.components.push(this.linegraph);
-
-    this.itemsData = null;      // DataSet
-    this.groupsData = null;     // DataSet
-
-    // apply options
-    if (options) {
-      this.setOptions(options);
-    }
-
-    // IMPORTANT: THIS HAPPENS BEFORE SET ITEMS!
-    if (groups) {
-      this.setGroups(groups);
-    }
-
-    // create itemset
-    if (items) {
-      this.setItems(items);
-    }
-    else {
-      this.redraw();
-    }
-  }
-
-  // turn Graph2d into an event emitter
-  Emitter(Graph2d.prototype);
-
-  /**
-   * Create the main DOM for the Graph2d: a root panel containing left, right,
-   * top, bottom, content, and background panel.
-   * @param {Element} container  The container element where the Graph2d will
-   *                             be attached.
-   * @private
-   */
-  Graph2d.prototype._create = function (container) {
-    this.dom = {};
-
-    this.dom.root                 = document.createElement('div');
-    this.dom.background           = document.createElement('div');
-    this.dom.backgroundVertical   = document.createElement('div');
-    this.dom.backgroundHorizontalContainer = document.createElement('div');
-    this.dom.centerContainer      = document.createElement('div');
-    this.dom.leftContainer        = document.createElement('div');
-    this.dom.rightContainer       = document.createElement('div');
-    this.dom.backgroundHorizontal = document.createElement('div');
-    this.dom.center               = document.createElement('div');
-    this.dom.left                 = document.createElement('div');
-    this.dom.right                = document.createElement('div');
-    this.dom.top                  = document.createElement('div');
-    this.dom.bottom               = document.createElement('div');
-    this.dom.shadowTop            = document.createElement('div');
-    this.dom.shadowBottom         = document.createElement('div');
-    this.dom.shadowTopLeft        = document.createElement('div');
-    this.dom.shadowBottomLeft     = document.createElement('div');
-    this.dom.shadowTopRight       = document.createElement('div');
-    this.dom.shadowBottomRight    = document.createElement('div');
-
-    this.dom.background.className           = 'vispanel background';
-    this.dom.backgroundVertical.className   = 'vispanel background vertical';
-    this.dom.backgroundHorizontalContainer.className = 'vispanel background horizontal';
-    this.dom.backgroundHorizontal.className = 'vispanel background horizontal';
-    this.dom.centerContainer.className      = 'vispanel center';
-    this.dom.leftContainer.className        = 'vispanel left';
-    this.dom.rightContainer.className       = 'vispanel right';
-    this.dom.top.className                  = 'vispanel top';
-    this.dom.bottom.className               = 'vispanel bottom';
-    this.dom.left.className                 = 'content';
-    this.dom.center.className               = 'content';
-    this.dom.right.className                = 'content';
-    this.dom.shadowTop.className            = 'shadow top';
-    this.dom.shadowBottom.className         = 'shadow bottom';
-    this.dom.shadowTopLeft.className        = 'shadow top';
-    this.dom.shadowBottomLeft.className     = 'shadow bottom';
-    this.dom.shadowTopRight.className       = 'shadow top';
-    this.dom.shadowBottomRight.className    = 'shadow bottom';
-
-    this.dom.root.appendChild(this.dom.background);
-    this.dom.root.appendChild(this.dom.backgroundVertical);
-    this.dom.root.appendChild(this.dom.backgroundHorizontalContainer);
-    this.dom.root.appendChild(this.dom.centerContainer);
-    this.dom.root.appendChild(this.dom.leftContainer);
-    this.dom.root.appendChild(this.dom.rightContainer);
-    this.dom.root.appendChild(this.dom.top);
-    this.dom.root.appendChild(this.dom.bottom);
-
-    this.dom.backgroundHorizontalContainer.appendChild(this.dom.backgroundHorizontal);
-    this.dom.centerContainer.appendChild(this.dom.center);
-    this.dom.leftContainer.appendChild(this.dom.left);
-    this.dom.rightContainer.appendChild(this.dom.right);
-
-    this.dom.centerContainer.appendChild(this.dom.shadowTop);
-    this.dom.centerContainer.appendChild(this.dom.shadowBottom);
-    this.dom.leftContainer.appendChild(this.dom.shadowTopLeft);
-    this.dom.leftContainer.appendChild(this.dom.shadowBottomLeft);
-    this.dom.rightContainer.appendChild(this.dom.shadowTopRight);
-    this.dom.rightContainer.appendChild(this.dom.shadowBottomRight);
-
-    this.on('rangechange', this.redraw.bind(this));
-    this.on('change', this.redraw.bind(this));
-    this.on('touch', this._onTouch.bind(this));
-    this.on('pinch', this._onPinch.bind(this));
-    this.on('dragstart', this._onDragStart.bind(this));
-    this.on('drag', this._onDrag.bind(this));
-
-    // create event listeners for all interesting events, these events will be
-    // emitted via emitter
-    this.hammer = Hammer(this.dom.root, {
-      prevent_default: true
-    });
-    this.listeners = {};
-
-    var me = this;
-    var events = [
-      'touch', 'pinch',
-      'tap', 'doubletap', 'hold',
-      'dragstart', 'drag', 'dragend',
-      'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is needed for Firefox
-    ];
-    events.forEach(function (event) {
-      var listener = function () {
-        var args = [event].concat(Array.prototype.slice.call(arguments, 0));
-        me.emit.apply(me, args);
-      };
-      me.hammer.on(event, listener);
-      me.listeners[event] = listener;
-    });
-
-    // size properties of each of the panels
-    this.props = {
-      root: {},
-      background: {},
-      centerContainer: {},
-      leftContainer: {},
-      rightContainer: {},
-      center: {},
-      left: {},
-      right: {},
-      top: {},
-      bottom: {},
-      border: {},
-      scrollTop: 0,
-      scrollTopMin: 0
-    };
-    this.touch = {}; // store state information needed for touch events
-
-    // attach the root panel to the provided container
-    if (!container) throw new Error('No container provided');
-    container.appendChild(this.dom.root);
-  };
-
-  /**
-   * Destroy the Graph2d, clean up all DOM elements and event listeners.
-   */
-  Graph2d.prototype.destroy = function () {
-    // unbind datasets
-    this.clear();
-
-    // remove all event listeners
-    this.off();
-
-    // stop checking for changed size
-    this._stopAutoResize();
-
-    // remove from DOM
-    if (this.dom.root.parentNode) {
-      this.dom.root.parentNode.removeChild(this.dom.root);
-    }
-    this.dom = null;
-
-    // cleanup hammer touch events
-    for (var event in this.listeners) {
-      if (this.listeners.hasOwnProperty(event)) {
-        delete this.listeners[event];
-      }
-    }
-    this.listeners = null;
-    this.hammer = null;
-
-    // give all components the opportunity to cleanup
-    this.components.forEach(function (component) {
-      component.destroy();
-    });
-
-    this.body = null;
-  };
-
-  /**
-   * Set options. Options will be passed to all components loaded in the Graph2d.
-   * @param {Object} [options]
-   *                           {String} orientation
-   *                              Vertical orientation for the Graph2d,
-   *                              can be 'bottom' (default) or 'top'.
-   *                           {String | Number} width
-   *                              Width for the timeline, a number in pixels or
-   *                              a css string like '1000px' or '75%'. '100%' by default.
-   *                           {String | Number} height
-   *                              Fixed height for the Graph2d, a number in pixels or
-   *                              a css string like '400px' or '75%'. If undefined,
-   *                              The Graph2d will automatically size such that
-   *                              its contents fit.
-   *                           {String | Number} minHeight
-   *                              Minimum height for the Graph2d, a number in pixels or
-   *                              a css string like '400px' or '75%'.
-   *                           {String | Number} maxHeight
-   *                              Maximum height for the Graph2d, a number in pixels or
-   *                              a css string like '400px' or '75%'.
-   *                           {Number | Date | String} start
-   *                              Start date for the visible window
-   *                           {Number | Date | String} end
-   *                              End date for the visible window
-   */
-  Graph2d.prototype.setOptions = function (options) {
-    if (options) {
-      // copy the known options
-      var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'orientation'];
-      util.selectiveExtend(fields, this.options, options);
-
-      // enable/disable autoResize
-      this._initAutoResize();
-    }
-
-    // propagate options to all components
-    this.components.forEach(function (component) {
-      component.setOptions(options);
-    });
-
-    // TODO: remove deprecation error one day (deprecated since version 0.8.0)
-    if (options && options.order) {
-      throw new Error('Option order is deprecated. There is no replacement for this feature.');
-    }
-
-    // redraw everything
-    this.redraw();
-  };
-
-  /**
-   * Set a custom time bar
-   * @param {Date} time
-   */
-  Graph2d.prototype.setCustomTime = function (time) {
-    if (!this.customTime) {
-      throw new Error('Cannot get custom time: Custom time bar is not enabled');
-    }
-
-    this.customTime.setCustomTime(time);
-  };
-
-  /**
-   * Retrieve the current custom time.
-   * @return {Date} customTime
-   */
-  Graph2d.prototype.getCustomTime = function() {
-    if (!this.customTime) {
-      throw new Error('Cannot get custom time: Custom time bar is not enabled');
-    }
-
-    return this.customTime.getCustomTime();
-  };
-
-  /**
-   * Set items
-   * @param {vis.DataSet | Array | google.visualization.DataTable | null} items
-   */
-  Graph2d.prototype.setItems = function(items) {
-    var initialLoad = (this.itemsData == null);
-
-    // convert to type DataSet when needed
-    var newDataSet;
-    if (!items) {
-      newDataSet = null;
-    }
-    else if (items instanceof DataSet || items instanceof DataView) {
-      newDataSet = items;
-    }
-    else {
-      // turn an array into a dataset
-      newDataSet = new DataSet(items, {
-        type: {
-          start: 'Date',
-          end: 'Date'
-        }
-      });
-    }
-
-    // set items
-    this.itemsData = newDataSet;
-    this.linegraph && this.linegraph.setItems(newDataSet);
-
-    if (initialLoad && ('start' in this.options || 'end' in this.options)) {
-      this.fit();
-
-      var start = ('start' in this.options) ? util.convert(this.options.start, 'Date') : null;
-      var end   = ('end' in this.options)   ? util.convert(this.options.end, 'Date') : null;
-
-      this.setWindow(start, end);
-    }
-  };
-
-  /**
-   * Set groups
-   * @param {vis.DataSet | Array | google.visualization.DataTable} groups
-   */
-  Graph2d.prototype.setGroups = function(groups) {
-    // convert to type DataSet when needed
-    var newDataSet;
-    if (!groups) {
-      newDataSet = null;
-    }
-    else if (groups instanceof DataSet || groups instanceof DataView) {
-      newDataSet = groups;
-    }
-    else {
-      // turn an array into a dataset
-      newDataSet = new DataSet(groups);
-    }
-
-    this.groupsData = newDataSet;
-    this.linegraph.setGroups(newDataSet);
-  };
-
-  /**
-   * Clear the Graph2d. By Default, items, groups and options are cleared.
-   * Example usage:
-   *
-   *     timeline.clear();                // clear items, groups, and options
-   *     timeline.clear({options: true}); // clear options only
-   *
-   * @param {Object} [what]      Optionally specify what to clear. By default:
-   *                             {items: true, groups: true, options: true}
-   */
-  Graph2d.prototype.clear = function(what) {
-    // clear items
-    if (!what || what.items) {
-      this.setItems(null);
-    }
-
-    // clear groups
-    if (!what || what.groups) {
-      this.setGroups(null);
-    }
-
-    // clear options of timeline and of each of the components
-    if (!what || what.options) {
-      this.components.forEach(function (component) {
-        component.setOptions(component.defaultOptions);
-      });
-
-      this.setOptions(this.defaultOptions); // this will also do a redraw
-    }
-  };
-
-  /**
-   * Set Graph2d window such that it fits all items
-   */
-  Graph2d.prototype.fit = function() {
-    // apply the data range as range
-    var dataRange = this.getItemRange();
-
-    // add 5% space on both sides
-    var start = dataRange.min;
-    var end = dataRange.max;
-    if (start != null && end != null) {
-      var interval = (end.valueOf() - start.valueOf());
-      if (interval <= 0) {
-        // prevent an empty interval
-        interval = 24 * 60 * 60 * 1000; // 1 day
-      }
-      start = new Date(start.valueOf() - interval * 0.05);
-      end = new Date(end.valueOf() + interval * 0.05);
-    }
-
-    // skip range set if there is no start and end date
-    if (start === null && end === null) {
-      return;
-    }
-
-    this.range.setRange(start, end);
-  };
-
-  /**
-   * Get the data range of the item set.
-   * @returns {{min: Date, max: Date}} range  A range with a start and end Date.
-   *                                          When no minimum is found, min==null
-   *                                          When no maximum is found, max==null
-   */
-  Graph2d.prototype.getItemRange = function() {
-    // calculate min from start filed
-    var itemsData = this.itemsData,
-      min = null,
-      max = null;
-
-    if (itemsData) {
-      // calculate the minimum value of the field 'start'
-      var minItem = itemsData.min('start');
-      min = minItem ? util.convert(minItem.start, 'Date').valueOf() : null;
-      // Note: we convert first to Date and then to number because else
-      // a conversion from ISODate to Number will fail
-
-      // calculate maximum value of fields 'start' and 'end'
-      var maxStartItem = itemsData.max('start');
-      if (maxStartItem) {
-        max = util.convert(maxStartItem.start, 'Date').valueOf();
-      }
-      var maxEndItem = itemsData.max('end');
-      if (maxEndItem) {
-        if (max == null) {
-          max = util.convert(maxEndItem.end, 'Date').valueOf();
-        }
-        else {
-          max = Math.max(max, util.convert(maxEndItem.end, 'Date').valueOf());
-        }
-      }
-    }
-
-    return {
-      min: (min != null) ? new Date(min) : null,
-      max: (max != null) ? new Date(max) : null
-    };
-  };
-
-  /**
-   * Set the visible window. Both parameters are optional, you can change only
-   * start or only end. Syntax:
-   *
-   *     TimeLine.setWindow(start, end)
-   *     TimeLine.setWindow(range)
-   *
-   * Where start and end can be a Date, number, or string, and range is an
-   * object with properties start and end.
-   *
-   * @param {Date | Number | String | Object} [start] Start date of visible window
-   * @param {Date | Number | String} [end]   End date of visible window
-   */
-  Graph2d.prototype.setWindow = function(start, end) {
-    if (arguments.length == 1) {
-      var range = arguments[0];
-      this.range.setRange(range.start, range.end);
-    }
-    else {
-      this.range.setRange(start, end);
-    }
-  };
-
-  /**
-   * Get the visible window
-   * @return {{start: Date, end: Date}}   Visible range
-   */
-  Graph2d.prototype.getWindow = function() {
-    var range = this.range.getRange();
-    return {
-      start: new Date(range.start),
-      end: new Date(range.end)
-    };
-  };
-
-  /**
-   * Force a redraw of the Graph2d. Can be useful to manually redraw when
-   * option autoResize=false
-   */
-  Graph2d.prototype.redraw = function() {
-    var resized = false,
-      options = this.options,
-      props = this.props,
-      dom = this.dom;
-
-    if (!dom) return; // when destroyed
-
-    // update class names
-    dom.root.className = 'vis timeline root ' + options.orientation;
-
-    // update root width and height options
-    dom.root.style.maxHeight = util.option.asSize(options.maxHeight, '');
-    dom.root.style.minHeight = util.option.asSize(options.minHeight, '');
-    dom.root.style.width = util.option.asSize(options.width, '');
-
-    // calculate border widths
-    props.border.left   = (dom.centerContainer.offsetWidth - dom.centerContainer.clientWidth) / 2;
-    props.border.right  = props.border.left;
-    props.border.top    = (dom.centerContainer.offsetHeight - dom.centerContainer.clientHeight) / 2;
-    props.border.bottom = props.border.top;
-    var borderRootHeight= dom.root.offsetHeight - dom.root.clientHeight;
-    var borderRootWidth = dom.root.offsetWidth - dom.root.clientWidth;
-
-    // calculate the heights. If any of the side panels is empty, we set the height to
-    // minus the border width, such that the border will be invisible
-    props.center.height = dom.center.offsetHeight;
-    props.left.height   = dom.left.offsetHeight;
-    props.right.height  = dom.right.offsetHeight;
-    props.top.height    = dom.top.clientHeight    || -props.border.top;
-    props.bottom.height = dom.bottom.clientHeight || -props.border.bottom;
-
-    // TODO: compensate borders when any of the panels is empty.
-
-    // apply auto height
-    // TODO: only calculate autoHeight when needed (else we cause an extra reflow/repaint of the DOM)
-    var contentHeight = Math.max(props.left.height, props.center.height, props.right.height);
-    var autoHeight = props.top.height + contentHeight + props.bottom.height +
-      borderRootHeight + props.border.top + props.border.bottom;
-    dom.root.style.height = util.option.asSize(options.height, autoHeight + 'px');
-
-    // calculate heights of the content panels
-    props.root.height = dom.root.offsetHeight;
-    props.background.height = props.root.height - borderRootHeight;
-    var containerHeight = props.root.height - props.top.height - props.bottom.height -
-      borderRootHeight;
-    props.centerContainer.height  = containerHeight;
-    props.leftContainer.height    = containerHeight;
-    props.rightContainer.height   = props.leftContainer.height;
-
-    // calculate the widths of the panels
-    props.root.width = dom.root.offsetWidth;
-    props.background.width = props.root.width - borderRootWidth;
-    props.left.width = dom.leftContainer.clientWidth   || -props.border.left;
-    props.leftContainer.width = props.left.width;
-    props.right.width = dom.rightContainer.clientWidth || -props.border.right;
-    props.rightContainer.width = props.right.width;
-    var centerWidth = props.root.width - props.left.width - props.right.width - borderRootWidth;
-    props.center.width          = centerWidth;
-    props.centerContainer.width = centerWidth;
-    props.top.width             = centerWidth;
-    props.bottom.width          = centerWidth;
-
-    // resize the panels
-    dom.background.style.height           = props.background.height + 'px';
-    dom.backgroundVertical.style.height   = props.background.height + 'px';
-    dom.backgroundHorizontalContainer.style.height = props.centerContainer.height + 'px';
-    dom.centerContainer.style.height      = props.centerContainer.height + 'px';
-    dom.leftContainer.style.height        = props.leftContainer.height + 'px';
-    dom.rightContainer.style.height       = props.rightContainer.height + 'px';
-
-    dom.background.style.width            = props.background.width + 'px';
-    dom.backgroundVertical.style.width    = props.centerContainer.width + 'px';
-    dom.backgroundHorizontalContainer.style.width  = props.background.width + 'px';
-    dom.backgroundHorizontal.style.width  = props.background.width + 'px';
-    dom.centerContainer.style.width       = props.center.width + 'px';
-    dom.top.style.width                   = props.top.width + 'px';
-    dom.bottom.style.width                = props.bottom.width + 'px';
-
-    // reposition the panels
-    dom.background.style.left           = '0';
-    dom.background.style.top            = '0';
-    dom.backgroundVertical.style.left   = props.left.width + 'px';
-    dom.backgroundVertical.style.top    = '0';
-    dom.backgroundHorizontalContainer.style.left = '0';
-    dom.backgroundHorizontalContainer.style.top  = props.top.height + 'px';
-    dom.centerContainer.style.left      = props.left.width + 'px';
-    dom.centerContainer.style.top       = props.top.height + 'px';
-    dom.leftContainer.style.left        = '0';
-    dom.leftContainer.style.top         = props.top.height + 'px';
-    dom.rightContainer.style.left       = (props.left.width + props.center.width) + 'px';
-    dom.rightContainer.style.top        = props.top.height + 'px';
-    dom.top.style.left                  = props.left.width + 'px';
-    dom.top.style.top                   = '0';
-    dom.bottom.style.left               = props.left.width + 'px';
-    dom.bottom.style.top                = (props.top.height + props.centerContainer.height) + 'px';
-
-    // update the scrollTop, feasible range for the offset can be changed
-    // when the height of the Graph2d or of the contents of the center changed
-    this._updateScrollTop();
-
-    // reposition the scrollable contents
-    var offset = this.props.scrollTop;
-    if (options.orientation == 'bottom') {
-      offset += Math.max(this.props.centerContainer.height - this.props.center.height -
-          this.props.border.top - this.props.border.bottom, 0);
-    }
-    dom.center.style.left = '0';
-    dom.center.style.top  = offset + 'px';
-    dom.backgroundHorizontal.style.left = '0';
-    dom.backgroundHorizontal.style.top  = offset + 'px';
-    dom.left.style.left   = '0';
-    dom.left.style.top    = offset + 'px';
-    dom.right.style.left  = '0';
-    dom.right.style.top   = offset + 'px';
-
-    // show shadows when vertical scrolling is available
-    var visibilityTop = this.props.scrollTop == 0 ? 'hidden' : '';
-    var visibilityBottom = this.props.scrollTop == this.props.scrollTopMin ? 'hidden' : '';
-    dom.shadowTop.style.visibility          = visibilityTop;
-    dom.shadowBottom.style.visibility       = visibilityBottom;
-    dom.shadowTopLeft.style.visibility      = visibilityTop;
-    dom.shadowBottomLeft.style.visibility   = visibilityBottom;
-    dom.shadowTopRight.style.visibility     = visibilityTop;
-    dom.shadowBottomRight.style.visibility  = visibilityBottom;
-
-    // redraw all components
-    this.components.forEach(function (component) {
-      resized = component.redraw() || resized;
-    });
-    if (resized) {
-      // keep redrawing until all sizes are settled
-      this.redraw();
-    }
-  };
-
-  /**
-   * Convert a position on screen (pixels) to a datetime
-   * @param {int}     x    Position on the screen in pixels
-   * @return {Date}   time The datetime the corresponds with given position x
-   * @private
-   */
-  // TODO: move this function to Range
-  Graph2d.prototype._toTime = function(x) {
-    var conversion = this.range.conversion(this.props.center.width);
-    return new Date(x / conversion.scale + conversion.offset);
-  };
-
-  /**
-   * Convert a datetime (Date object) into a position on the root
-   * This is used to get the pixel density estimate for the screen, not the center panel
-   * @param {Date}   time A date
-   * @return {int}   x    The position on root in pixels which corresponds
-   *                      with the given date.
-   * @private
-   */
-  // TODO: move this function to Range
-  Graph2d.prototype._toGlobalTime = function(x) {
-    var conversion = this.range.conversion(this.props.root.width);
-    return new Date(x / conversion.scale + conversion.offset);
-  };
-
-  /**
-   * Convert a datetime (Date object) into a position on the screen
-   * @param {Date}   time A date
-   * @return {int}   x    The position on the screen in pixels which corresponds
-   *                      with the given date.
-   * @private
-   */
-  // TODO: move this function to Range
-  Graph2d.prototype._toScreen = function(time) {
-    var conversion = this.range.conversion(this.props.center.width);
-    return (time.valueOf() - conversion.offset) * conversion.scale;
-  };
-
-
-  /**
-   * Convert a datetime (Date object) into a position on the root
-   * This is used to get the pixel density estimate for the screen, not the center panel
-   * @param {Date}   time A date
-   * @return {int}   x    The position on root in pixels which corresponds
-   *                      with the given date.
-   * @private
-   */
-  // TODO: move this function to Range
-  Graph2d.prototype._toGlobalScreen = function(time) {
-    var conversion = this.range.conversion(this.props.root.width);
-    return (time.valueOf() - conversion.offset) * conversion.scale;
-  };
-
-  /**
-   * Initialize watching when option autoResize is true
-   * @private
-   */
-  Graph2d.prototype._initAutoResize = function () {
-    if (this.options.autoResize == true) {
-      this._startAutoResize();
-    }
-    else {
-      this._stopAutoResize();
-    }
-  };
-
-  /**
-   * Watch for changes in the size of the container. On resize, the Panel will
-   * automatically redraw itself.
-   * @private
-   */
-  Graph2d.prototype._startAutoResize = function () {
-    var me = this;
-
-    this._stopAutoResize();
-
-    this._onResize = function() {
-      if (me.options.autoResize != true) {
-        // stop watching when the option autoResize is changed to false
-        me._stopAutoResize();
-        return;
-      }
-
-      if (me.dom.root) {
-        // check whether the frame is resized
-        if ((me.dom.root.clientWidth != me.props.lastWidth) ||
-          (me.dom.root.clientHeight != me.props.lastHeight)) {
-          me.props.lastWidth = me.dom.root.clientWidth;
-          me.props.lastHeight = me.dom.root.clientHeight;
-
-          me.emit('change');
-        }
-      }
-    };
-
-    // add event listener to window resize
-    util.addEventListener(window, 'resize', this._onResize);
-
-    this.watchTimer = setInterval(this._onResize, 1000);
-  };
-
-  /**
-   * Stop watching for a resize of the frame.
-   * @private
-   */
-  Graph2d.prototype._stopAutoResize = function () {
-    if (this.watchTimer) {
-      clearInterval(this.watchTimer);
-      this.watchTimer = undefined;
-    }
-
-    // remove event listener on window.resize
-    util.removeEventListener(window, 'resize', this._onResize);
-    this._onResize = null;
-  };
-
-  /**
-   * Start moving the timeline vertically
-   * @param {Event} event
-   * @private
-   */
-  Graph2d.prototype._onTouch = function (event) {
-    this.touch.allowDragging = true;
-  };
-
-  /**
-   * Start moving the timeline vertically
-   * @param {Event} event
-   * @private
-   */
-  Graph2d.prototype._onPinch = function (event) {
-    this.touch.allowDragging = false;
-  };
-
-  /**
-   * Start moving the timeline vertically
-   * @param {Event} event
-   * @private
-   */
-  Graph2d.prototype._onDragStart = function (event) {
-    this.touch.initialScrollTop = this.props.scrollTop;
-  };
-
-  /**
-   * Move the timeline vertically
-   * @param {Event} event
-   * @private
-   */
-  Graph2d.prototype._onDrag = function (event) {
-    // refuse to drag when we where pinching to prevent the timeline make a jump
-    // when releasing the fingers in opposite order from the touch screen
-    if (!this.touch.allowDragging) return;
-
-    var delta = event.gesture.deltaY;
-
-    var oldScrollTop = this._getScrollTop();
-    var newScrollTop = this._setScrollTop(this.touch.initialScrollTop + delta);
-
-    if (newScrollTop != oldScrollTop) {
-      this.redraw(); // TODO: this causes two redraws when dragging, the other is triggered by rangechange already
-    }
-  };
-
-  /**
-   * Apply a scrollTop
-   * @param {Number} scrollTop
-   * @returns {Number} scrollTop  Returns the applied scrollTop
-   * @private
-   */
-  Graph2d.prototype._setScrollTop = function (scrollTop) {
-    this.props.scrollTop = scrollTop;
-    this._updateScrollTop();
-    return this.props.scrollTop;
-  };
-
-  /**
-   * Update the current scrollTop when the height of  the containers has been changed
-   * @returns {Number} scrollTop  Returns the applied scrollTop
-   * @private
-   */
-  Graph2d.prototype._updateScrollTop = function () {
-    // recalculate the scrollTopMin
-    var scrollTopMin = Math.min(this.props.centerContainer.height - this.props.center.height, 0); // is negative or zero
-    if (scrollTopMin != this.props.scrollTopMin) {
-      // in case of bottom orientation, change the scrollTop such that the contents
-      // do not move relative to the time axis at the bottom
-      if (this.options.orientation == 'bottom') {
-        this.props.scrollTop += (scrollTopMin - this.props.scrollTopMin);
-      }
-      this.props.scrollTopMin = scrollTopMin;
-    }
-
-    // limit the scrollTop to the feasible scroll range
-    if (this.props.scrollTop > 0) this.props.scrollTop = 0;
-    if (this.props.scrollTop < scrollTopMin) this.props.scrollTop = scrollTopMin;
-
-    return this.props.scrollTop;
-  };
-
-  /**
-   * Get the current scrollTop
-   * @returns {number} scrollTop
-   * @private
-   */
-  Graph2d.prototype._getScrollTop = function () {
-    return this.props.scrollTop;
-  };
-
-  module.exports = Graph2d;
-
-
-/***/ },
-/* 8 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * @constructor  DataStep
-   * The class DataStep is an iterator for data for the lineGraph. You provide a start data point and an
-   * end data point. The class itself determines the best scale (step size) based on the
-   * provided start Date, end Date, and minimumStep.
-   *
-   * If minimumStep is provided, the step size is chosen as close as possible
-   * to the minimumStep but larger than minimumStep. If minimumStep is not
-   * provided, the scale is set to 1 DAY.
-   * The minimumStep should correspond with the onscreen size of about 6 characters
-   *
-   * Alternatively, you can set a scale by hand.
-   * After creation, you can initialize the class by executing first(). Then you
-   * can iterate from the start date to the end date via next(). You can check if
-   * the end date is reached with the function hasNext(). After each step, you can
-   * retrieve the current date via getCurrent().
-   * The DataStep has scales ranging from milliseconds, seconds, minutes, hours,
-   * days, to years.
-   *
-   * Version: 1.2
-   *
-   * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
-   *                               or new Date(2010, 9, 21, 23, 45, 00)
-   * @param {Date} [end]           The end date
-   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
-   */
-  function DataStep(start, end, minimumStep, containerHeight, forcedStepSize) {
-    // variables
-    this.current = 0;
-
-    this.autoScale = true;
-    this.stepIndex = 0;
-    this.step = 1;
-    this.scale = 1;
-
-    this.marginStart;
-    this.marginEnd;
-
-    this.majorSteps = [1,     2,    5,  10];
-    this.minorSteps = [0.25,  0.5,  1,  2];
-
-    this.setRange(start, end, minimumStep, containerHeight, forcedStepSize);
-  }
-
-
-
-  /**
-   * Set a new range
-   * If minimumStep is provided, the step size is chosen as close as possible
-   * to the minimumStep but larger than minimumStep. If minimumStep is not
-   * provided, the scale is set to 1 DAY.
-   * The minimumStep should correspond with the onscreen size of about 6 characters
-   * @param {Number} [start]      The start date and time.
-   * @param {Number} [end]        The end date and time.
-   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
-   */
-  DataStep.prototype.setRange = function(start, end, minimumStep, containerHeight, forcedStepSize) {
-    this._start = start;
-    this._end = end;
-
-    if (this.autoScale) {
-      this.setMinimumStep(minimumStep, containerHeight, forcedStepSize);
-    }
-    this.setFirst();
-  };
-
-  /**
-   * Automatically determine the scale that bests fits the provided minimum step
-   * @param {Number} [minimumStep]  The minimum step size in milliseconds
-   */
-  DataStep.prototype.setMinimumStep = function(minimumStep, containerHeight) {
-    // round to floor
-    var size = this._end - this._start;
-    var safeSize = size * 1.1;
-    var minimumStepValue = minimumStep * (safeSize / containerHeight);
-    var orderOfMagnitude = Math.round(Math.log(safeSize)/Math.LN10);
-
-    var minorStepIdx = -1;
-    var magnitudefactor = Math.pow(10,orderOfMagnitude);
-
-    var start = 0;
-    if (orderOfMagnitude < 0) {
-      start = orderOfMagnitude;
-    }
-
-    var solutionFound = false;
-    for (var i = start; Math.abs(i) <= Math.abs(orderOfMagnitude); i++) {
-      magnitudefactor = Math.pow(10,i);
-      for (var j = 0; j < this.minorSteps.length; j++) {
-        var stepSize = magnitudefactor * this.minorSteps[j];
-        if (stepSize >= minimumStepValue) {
-          solutionFound = true;
-          minorStepIdx = j;
-          break;
-        }
-      }
-      if (solutionFound == true) {
-        break;
-      }
-    }
-    this.stepIndex = minorStepIdx;
-    this.scale = magnitudefactor;
-    this.step = magnitudefactor * this.minorSteps[minorStepIdx];
-  };
-
-
-  /**
-   * Set the range iterator to the start date.
-   */
-  DataStep.prototype.first = function() {
-    this.setFirst();
-  };
-
-  /**
-   * Round the current date to the first minor date value
-   * This must be executed once when the current date is set to start Date
-   */
-  DataStep.prototype.setFirst = function() {
-    var niceStart = this._start - (this.scale * this.minorSteps[this.stepIndex]);
-    var niceEnd = this._end + (this.scale * this.minorSteps[this.stepIndex]);
-
-    this.marginEnd = this.roundToMinor(niceEnd);
-    this.marginStart = this.roundToMinor(niceStart);
-    this.marginRange = this.marginEnd - this.marginStart;
-
-    this.current = this.marginEnd;
-
-  };
-
-  DataStep.prototype.roundToMinor = function(value) {
-    var rounded = value - (value % (this.scale * this.minorSteps[this.stepIndex]));
-    if (value % (this.scale * this.minorSteps[this.stepIndex]) > 0.5 * (this.scale * this.minorSteps[this.stepIndex])) {
-      return rounded + (this.scale * this.minorSteps[this.stepIndex]);
-    }
-    else {
-      return rounded;
-    }
-  }
-
-
-  /**
-   * Check if the there is a next step
-   * @return {boolean}  true if the current date has not passed the end date
-   */
-  DataStep.prototype.hasNext = function () {
-    return (this.current >= this.marginStart);
-  };
-
-  /**
-   * Do the next step
-   */
-  DataStep.prototype.next = function() {
-    var prev = this.current;
-    this.current -= this.step;
-
-    // safety mechanism: if current time is still unchanged, move to the end
-    if (this.current == prev) {
-      this.current = this._end;
-    }
-  };
-
-  /**
-   * Do the next step
-   */
-  DataStep.prototype.previous = function() {
-    this.current += this.step;
-    this.marginEnd += this.step;
-    this.marginRange = this.marginEnd - this.marginStart;
-  };
-
-
-
-  /**
-   * Get the current datetime
-   * @return {String}  current The current date
-   */
-  DataStep.prototype.getCurrent = function() {
-    var toPrecision = '' + Number(this.current).toPrecision(5);
-    for (var i = toPrecision.length-1; i > 0; i--) {
-      if (toPrecision[i] == "0") {
-        toPrecision = toPrecision.slice(0,i);
-      }
-      else if (toPrecision[i] == "." || toPrecision[i] == ",") {
-        toPrecision = toPrecision.slice(0,i);
-        break;
-      }
-      else{
-        break;
-      }
-    }
-
-    return toPrecision;
-  };
-
-
-
-  /**
-   * Snap a date to a rounded value.
-   * The snap intervals are dependent on the current scale and step.
-   * @param {Date} date   the date to be snapped.
-   * @return {Date} snappedDate
-   */
-  DataStep.prototype.snap = function(date) {
-
-  };
-
-  /**
-   * Check if the current value is a major value (for example when the step
-   * is DAY, a major value is each first day of the MONTH)
-   * @return {boolean} true if current date is major, else false.
-   */
-  DataStep.prototype.isMajor = function() {
-    return (this.current % (this.scale * this.majorSteps[this.stepIndex]) == 0);
-  };
-
-  module.exports = DataStep;
-
-
-/***/ },
-/* 9 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var moment = __webpack_require__(39);
-  var Component = __webpack_require__(12);
+  var moment = __webpack_require__(4);
+  var Component = __webpack_require__(19);
 
   /**
    * @constructor Range
@@ -8256,124 +12045,471 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 10 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
-  // Utility functions for ordering and stacking of items
-  var EPSILON = 0.001; // used when checking collisions, to prevent round-off errors
+  /**
+   * Prototype for visual components
+   * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} [body]
+   * @param {Object} [options]
+   */
+  function Component (body, options) {
+    this.options = null;
+    this.props = null;
+  }
 
   /**
-   * Order items by their start data
-   * @param {Item[]} items
+   * Set options for the component. The new options will be merged into the
+   * current options.
+   * @param {Object} options
    */
-  exports.orderByStart = function(items) {
-    items.sort(function (a, b) {
-      return a.data.start - b.data.start;
-    });
-  };
-
-  /**
-   * Order items by their end date. If they have no end date, their start date
-   * is used.
-   * @param {Item[]} items
-   */
-  exports.orderByEnd = function(items) {
-    items.sort(function (a, b) {
-      var aTime = ('end' in a.data) ? a.data.end : a.data.start,
-          bTime = ('end' in b.data) ? b.data.end : b.data.start;
-
-      return aTime - bTime;
-    });
-  };
-
-  /**
-   * Adjust vertical positions of the items such that they don't overlap each
-   * other.
-   * @param {Item[]} items
-   *            All visible items
-   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
-   *            Margins between items and between items and the axis.
-   * @param {boolean} [force=false]
-   *            If true, all items will be repositioned. If false (default), only
-   *            items having a top===null will be re-stacked
-   */
-  exports.stack = function(items, margin, force) {
-    var i, iMax;
-
-    if (force) {
-      // reset top position of all items
-      for (i = 0, iMax = items.length; i < iMax; i++) {
-        items[i].top = null;
-      }
-    }
-
-    // calculate new, non-overlapping positions
-    for (i = 0, iMax = items.length; i < iMax; i++) {
-      var item = items[i];
-      if (item.top === null) {
-        // initialize top position
-        item.top = margin.axis;
-
-        do {
-          // TODO: optimize checking for overlap. when there is a gap without items,
-          //       you only need to check for items from the next item on, not from zero
-          var collidingItem = null;
-          for (var j = 0, jj = items.length; j < jj; j++) {
-            var other = items[j];
-            if (other.top !== null && other !== item && exports.collision(item, other, margin.item)) {
-              collidingItem = other;
-              break;
-            }
-          }
-
-          if (collidingItem != null) {
-            // There is a collision. Reposition the items above the colliding element
-            item.top = collidingItem.top + collidingItem.height + margin.item.vertical;
-          }
-        } while (collidingItem);
-      }
+  Component.prototype.setOptions = function(options) {
+    if (options) {
+      util.extend(this.options, options);
     }
   };
 
   /**
-   * Adjust vertical positions of the items without stacking them
-   * @param {Item[]} items
-   *            All visible items
-   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
-   *            Margins between items and between items and the axis.
+   * Repaint the component
+   * @return {boolean} Returns true if the component is resized
    */
-  exports.nostack = function(items, margin) {
-    var i, iMax;
-
-    // reset top position of all items
-    for (i = 0, iMax = items.length; i < iMax; i++) {
-      items[i].top = margin.axis;
-    }
+  Component.prototype.redraw = function() {
+    // should be implemented by the component
+    return false;
   };
 
   /**
-   * Test if the two provided items collide
-   * The items must have parameters left, width, top, and height.
-   * @param {Item} a          The first item
-   * @param {Item} b          The second item
-   * @param {{horizontal: number, vertical: number}} margin
-   *                          An object containing a horizontal and vertical
-   *                          minimum required margin.
-   * @return {boolean}        true if a and b collide, else false
+   * Destroy the component. Cleanup DOM and event listeners
    */
-  exports.collision = function(a, b, margin) {
-    return ((a.left - margin.horizontal + EPSILON)       < (b.left + b.width) &&
-        (a.left + a.width + margin.horizontal - EPSILON) > b.left &&
-        (a.top - margin.vertical + EPSILON)              < (b.top + b.height) &&
-        (a.top + a.height + margin.vertical - EPSILON)   > b.top);
+  Component.prototype.destroy = function() {
+    // should be implemented by the component
   };
+
+  /**
+   * Test whether the component is resized since the last time _isResized() was
+   * called.
+   * @return {Boolean} Returns true if the component is resized
+   * @protected
+   */
+  Component.prototype._isResized = function() {
+    var resized = (this.props._previousWidth !== this.props.width ||
+        this.props._previousHeight !== this.props.height);
+
+    this.props._previousWidth = this.props.width;
+    this.props._previousHeight = this.props.height;
+
+    return resized;
+  };
+
+  module.exports = Component;
 
 
 /***/ },
-/* 11 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var moment = __webpack_require__(39);
+  var util = __webpack_require__(1);
+  var Component = __webpack_require__(19);
+  var TimeStep = __webpack_require__(21);
+
+  /**
+   * A horizontal time axis
+   * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} body
+   * @param {Object} [options]        See TimeAxis.setOptions for the available
+   *                                  options.
+   * @constructor TimeAxis
+   * @extends Component
+   */
+  function TimeAxis (body, options) {
+    this.dom = {
+      foreground: null,
+      majorLines: [],
+      majorTexts: [],
+      minorLines: [],
+      minorTexts: [],
+      redundant: {
+        majorLines: [],
+        majorTexts: [],
+        minorLines: [],
+        minorTexts: []
+      }
+    };
+    this.props = {
+      range: {
+        start: 0,
+        end: 0,
+        minimumStep: 0
+      },
+      lineTop: 0
+    };
+
+    this.defaultOptions = {
+      orientation: 'bottom',  // supported: 'top', 'bottom'
+      // TODO: implement timeaxis orientations 'left' and 'right'
+      showMinorLabels: true,
+      showMajorLabels: true
+    };
+    this.options = util.extend({}, this.defaultOptions);
+
+    this.body = body;
+
+    // create the HTML DOM
+    this._create();
+
+    this.setOptions(options);
+  }
+
+  TimeAxis.prototype = new Component();
+
+  /**
+   * Set options for the TimeAxis.
+   * Parameters will be merged in current options.
+   * @param {Object} options  Available options:
+   *                          {string} [orientation]
+   *                          {boolean} [showMinorLabels]
+   *                          {boolean} [showMajorLabels]
+   */
+  TimeAxis.prototype.setOptions = function(options) {
+    if (options) {
+      // copy all options that we know
+      util.selectiveExtend(['orientation', 'showMinorLabels', 'showMajorLabels'], this.options, options);
+    }
+  };
+
+  /**
+   * Create the HTML DOM for the TimeAxis
+   */
+  TimeAxis.prototype._create = function() {
+    this.dom.foreground = document.createElement('div');
+    this.dom.background = document.createElement('div');
+
+    this.dom.foreground.className = 'timeaxis foreground';
+    this.dom.background.className = 'timeaxis background';
+  };
+
+  /**
+   * Destroy the TimeAxis
+   */
+  TimeAxis.prototype.destroy = function() {
+    // remove from DOM
+    if (this.dom.foreground.parentNode) {
+      this.dom.foreground.parentNode.removeChild(this.dom.foreground);
+    }
+    if (this.dom.background.parentNode) {
+      this.dom.background.parentNode.removeChild(this.dom.background);
+    }
+
+    this.body = null;
+  };
+
+  /**
+   * Repaint the component
+   * @return {boolean} Returns true if the component is resized
+   */
+  TimeAxis.prototype.redraw = function () {
+    var options = this.options,
+        props = this.props,
+        foreground = this.dom.foreground,
+        background = this.dom.background;
+
+    // determine the correct parent DOM element (depending on option orientation)
+    var parent = (options.orientation == 'top') ? this.body.dom.top : this.body.dom.bottom;
+    var parentChanged = (foreground.parentNode !== parent);
+
+    // calculate character width and height
+    this._calculateCharSize();
+
+    // TODO: recalculate sizes only needed when parent is resized or options is changed
+    var orientation = this.options.orientation,
+        showMinorLabels = this.options.showMinorLabels,
+        showMajorLabels = this.options.showMajorLabels;
+
+    // determine the width and height of the elemens for the axis
+    props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
+    props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
+    props.height = props.minorLabelHeight + props.majorLabelHeight;
+    props.width = foreground.offsetWidth;
+
+    props.minorLineHeight = this.body.domProps.root.height - props.majorLabelHeight -
+        (options.orientation == 'top' ? this.body.domProps.bottom.height : this.body.domProps.top.height);
+    props.minorLineWidth = 1; // TODO: really calculate width
+    props.majorLineHeight = props.minorLineHeight + props.majorLabelHeight;
+    props.majorLineWidth = 1; // TODO: really calculate width
+
+    //  take foreground and background offline while updating (is almost twice as fast)
+    var foregroundNextSibling = foreground.nextSibling;
+    var backgroundNextSibling = background.nextSibling;
+    foreground.parentNode && foreground.parentNode.removeChild(foreground);
+    background.parentNode && background.parentNode.removeChild(background);
+
+    foreground.style.height = this.props.height + 'px';
+
+    this._repaintLabels();
+
+    // put DOM online again (at the same place)
+    if (foregroundNextSibling) {
+      parent.insertBefore(foreground, foregroundNextSibling);
+    }
+    else {
+      parent.appendChild(foreground)
+    }
+    if (backgroundNextSibling) {
+      this.body.dom.backgroundVertical.insertBefore(background, backgroundNextSibling);
+    }
+    else {
+      this.body.dom.backgroundVertical.appendChild(background)
+    }
+
+    return this._isResized() || parentChanged;
+  };
+
+  /**
+   * Repaint major and minor text labels and vertical grid lines
+   * @private
+   */
+  TimeAxis.prototype._repaintLabels = function () {
+    var orientation = this.options.orientation;
+
+    // calculate range and step (step such that we have space for 7 characters per label)
+    var start = util.convert(this.body.range.start, 'Number'),
+        end = util.convert(this.body.range.end, 'Number'),
+        minimumStep = this.body.util.toTime((this.props.minorCharWidth || 10) * 7).valueOf()
+            -this.body.util.toTime(0).valueOf();
+    var step = new TimeStep(new Date(start), new Date(end), minimumStep);
+    this.step = step;
+
+    // Move all DOM elements to a "redundant" list, where they
+    // can be picked for re-use, and clear the lists with lines and texts.
+    // At the end of the function _repaintLabels, left over elements will be cleaned up
+    var dom = this.dom;
+    dom.redundant.majorLines = dom.majorLines;
+    dom.redundant.majorTexts = dom.majorTexts;
+    dom.redundant.minorLines = dom.minorLines;
+    dom.redundant.minorTexts = dom.minorTexts;
+    dom.majorLines = [];
+    dom.majorTexts = [];
+    dom.minorLines = [];
+    dom.minorTexts = [];
+
+    step.first();
+    var xFirstMajorLabel = undefined;
+    var max = 0;
+    while (step.hasNext() && max < 1000) {
+      max++;
+      var cur = step.getCurrent(),
+          x = this.body.util.toScreen(cur),
+          isMajor = step.isMajor();
+
+      // TODO: lines must have a width, such that we can create css backgrounds
+
+      if (this.options.showMinorLabels) {
+        this._repaintMinorText(x, step.getLabelMinor(), orientation);
+      }
+
+      if (isMajor && this.options.showMajorLabels) {
+        if (x > 0) {
+          if (xFirstMajorLabel == undefined) {
+            xFirstMajorLabel = x;
+          }
+          this._repaintMajorText(x, step.getLabelMajor(), orientation);
+        }
+        this._repaintMajorLine(x, orientation);
+      }
+      else {
+        this._repaintMinorLine(x, orientation);
+      }
+
+      step.next();
+    }
+
+    // create a major label on the left when needed
+    if (this.options.showMajorLabels) {
+      var leftTime = this.body.util.toTime(0),
+          leftText = step.getLabelMajor(leftTime),
+          widthText = leftText.length * (this.props.majorCharWidth || 10) + 10; // upper bound estimation
+
+      if (xFirstMajorLabel == undefined || widthText < xFirstMajorLabel) {
+        this._repaintMajorText(0, leftText, orientation);
+      }
+    }
+
+    // Cleanup leftover DOM elements from the redundant list
+    util.forEach(this.dom.redundant, function (arr) {
+      while (arr.length) {
+        var elem = arr.pop();
+        if (elem && elem.parentNode) {
+          elem.parentNode.removeChild(elem);
+        }
+      }
+    });
+  };
+
+  /**
+   * Create a minor label for the axis at position x
+   * @param {Number} x
+   * @param {String} text
+   * @param {String} orientation   "top" or "bottom" (default)
+   * @private
+   */
+  TimeAxis.prototype._repaintMinorText = function (x, text, orientation) {
+    // reuse redundant label
+    var label = this.dom.redundant.minorTexts.shift();
+
+    if (!label) {
+      // create new label
+      var content = document.createTextNode('');
+      label = document.createElement('div');
+      label.appendChild(content);
+      label.className = 'text minor';
+      this.dom.foreground.appendChild(label);
+    }
+    this.dom.minorTexts.push(label);
+
+    label.childNodes[0].nodeValue = text;
+
+    label.style.top = (orientation == 'top') ? (this.props.majorLabelHeight + 'px') : '0';
+    label.style.left = x + 'px';
+    //label.title = title;  // TODO: this is a heavy operation
+  };
+
+  /**
+   * Create a Major label for the axis at position x
+   * @param {Number} x
+   * @param {String} text
+   * @param {String} orientation   "top" or "bottom" (default)
+   * @private
+   */
+  TimeAxis.prototype._repaintMajorText = function (x, text, orientation) {
+    // reuse redundant label
+    var label = this.dom.redundant.majorTexts.shift();
+
+    if (!label) {
+      // create label
+      var content = document.createTextNode(text);
+      label = document.createElement('div');
+      label.className = 'text major';
+      label.appendChild(content);
+      this.dom.foreground.appendChild(label);
+    }
+    this.dom.majorTexts.push(label);
+
+    label.childNodes[0].nodeValue = text;
+    //label.title = title; // TODO: this is a heavy operation
+
+    label.style.top = (orientation == 'top') ? '0' : (this.props.minorLabelHeight  + 'px');
+    label.style.left = x + 'px';
+  };
+
+  /**
+   * Create a minor line for the axis at position x
+   * @param {Number} x
+   * @param {String} orientation   "top" or "bottom" (default)
+   * @private
+   */
+  TimeAxis.prototype._repaintMinorLine = function (x, orientation) {
+    // reuse redundant line
+    var line = this.dom.redundant.minorLines.shift();
+
+    if (!line) {
+      // create vertical line
+      line = document.createElement('div');
+      line.className = 'grid vertical minor';
+      this.dom.background.appendChild(line);
+    }
+    this.dom.minorLines.push(line);
+
+    var props = this.props;
+    if (orientation == 'top') {
+      line.style.top = props.majorLabelHeight + 'px';
+    }
+    else {
+      line.style.top = this.body.domProps.top.height + 'px';
+    }
+    line.style.height = props.minorLineHeight + 'px';
+    line.style.left = (x - props.minorLineWidth / 2) + 'px';
+  };
+
+  /**
+   * Create a Major line for the axis at position x
+   * @param {Number} x
+   * @param {String} orientation   "top" or "bottom" (default)
+   * @private
+   */
+  TimeAxis.prototype._repaintMajorLine = function (x, orientation) {
+    // reuse redundant line
+    var line = this.dom.redundant.majorLines.shift();
+
+    if (!line) {
+      // create vertical line
+      line = document.createElement('DIV');
+      line.className = 'grid vertical major';
+      this.dom.background.appendChild(line);
+    }
+    this.dom.majorLines.push(line);
+
+    var props = this.props;
+    if (orientation == 'top') {
+      line.style.top = '0';
+    }
+    else {
+      line.style.top = this.body.domProps.top.height + 'px';
+    }
+    line.style.left = (x - props.majorLineWidth / 2) + 'px';
+    line.style.height = props.majorLineHeight + 'px';
+  };
+
+  /**
+   * Determine the size of text on the axis (both major and minor axis).
+   * The size is calculated only once and then cached in this.props.
+   * @private
+   */
+  TimeAxis.prototype._calculateCharSize = function () {
+    // Note: We calculate char size with every redraw. Size may change, for
+    // example when any of the timelines parents had display:none for example.
+
+    // determine the char width and height on the minor axis
+    if (!this.dom.measureCharMinor) {
+      this.dom.measureCharMinor = document.createElement('DIV');
+      this.dom.measureCharMinor.className = 'text minor measure';
+      this.dom.measureCharMinor.style.position = 'absolute';
+
+      this.dom.measureCharMinor.appendChild(document.createTextNode('0'));
+      this.dom.foreground.appendChild(this.dom.measureCharMinor);
+    }
+    this.props.minorCharHeight = this.dom.measureCharMinor.clientHeight;
+    this.props.minorCharWidth = this.dom.measureCharMinor.clientWidth;
+
+    // determine the char width and height on the major axis
+    if (!this.dom.measureCharMajor) {
+      this.dom.measureCharMajor = document.createElement('DIV');
+      this.dom.measureCharMajor.className = 'text minor measure';
+      this.dom.measureCharMajor.style.position = 'absolute';
+
+      this.dom.measureCharMajor.appendChild(document.createTextNode('0'));
+      this.dom.foreground.appendChild(this.dom.measureCharMajor);
+    }
+    this.props.majorCharHeight = this.dom.measureCharMajor.clientHeight;
+    this.props.majorCharWidth = this.dom.measureCharMajor.clientWidth;
+  };
+
+  /**
+   * Snap a date to a rounded value.
+   * The snap intervals are dependent on the current scale and step.
+   * @param {Date} date   the date to be snapped.
+   * @return {Date} snappedDate
+   */
+  TimeAxis.prototype.snap = function(date) {
+    return this.step.snap(date);
+  };
+
+  module.exports = TimeAxis;
+
+
+/***/ },
+/* 21 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var moment = __webpack_require__(4);
 
   /**
    * @constructor  TimeStep
@@ -8846,71 +12982,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 12 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * Prototype for visual components
-   * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} [body]
-   * @param {Object} [options]
-   */
-  function Component (body, options) {
-    this.options = null;
-    this.props = null;
-  }
-
-  /**
-   * Set options for the component. The new options will be merged into the
-   * current options.
-   * @param {Object} options
-   */
-  Component.prototype.setOptions = function(options) {
-    if (options) {
-      util.extend(this.options, options);
-    }
-  };
-
-  /**
-   * Repaint the component
-   * @return {boolean} Returns true if the component is resized
-   */
-  Component.prototype.redraw = function() {
-    // should be implemented by the component
-    return false;
-  };
-
-  /**
-   * Destroy the component. Cleanup DOM and event listeners
-   */
-  Component.prototype.destroy = function() {
-    // should be implemented by the component
-  };
-
-  /**
-   * Test whether the component is resized since the last time _isResized() was
-   * called.
-   * @return {Boolean} Returns true if the component is resized
-   * @protected
-   */
-  Component.prototype._isResized = function() {
-    var resized = (this.props._previousWidth !== this.props.width ||
-        this.props._previousHeight !== this.props.height);
-
-    this.props._previousWidth = this.props.width;
-    this.props._previousHeight = this.props.height;
-
-    return resized;
-  };
-
-  module.exports = Component;
-
-
-/***/ },
-/* 13 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Component = __webpack_require__(12);
+  var Component = __webpack_require__(19);
 
   /**
    * A current time bar
@@ -9044,12 +13120,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 14 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(49);
+  var Hammer = __webpack_require__(3);
   var util = __webpack_require__(1);
-  var Component = __webpack_require__(12);
+  var Component = __webpack_require__(19);
 
   /**
    * A custom time bar
@@ -9238,1056 +13314,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 15 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
+  var Hammer = __webpack_require__(3);
   var util = __webpack_require__(1);
-  var DOMutil = __webpack_require__(2);
-  var Component = __webpack_require__(12);
-  var DataStep = __webpack_require__(8);
-
-  /**
-   * A horizontal time axis
-   * @param {Object} [options]        See DataAxis.setOptions for the available
-   *                                  options.
-   * @constructor DataAxis
-   * @extends Component
-   * @param body
-   */
-  function DataAxis (body, options, svg) {
-    this.id = util.randomUUID();
-    this.body = body;
-
-    this.defaultOptions = {
-      orientation: 'left',  // supported: 'left', 'right'
-      showMinorLabels: true,
-      showMajorLabels: true,
-      icons: true,
-      majorLinesOffset: 7,
-      minorLinesOffset: 4,
-      labelOffsetX: 10,
-      labelOffsetY: 2,
-      iconWidth: 20,
-      width: '40px',
-      visible: true
-    };
-
-    this.linegraphSVG = svg;
-    this.props = {};
-    this.DOMelements = { // dynamic elements
-      lines: {},
-      labels: {}
-    };
-
-    this.dom = {};
-
-    this.range = {start:0, end:0};
-
-    this.options = util.extend({}, this.defaultOptions);
-    this.conversionFactor = 1;
-
-    this.setOptions(options);
-    this.width = Number(('' + this.options.width).replace("px",""));
-    this.minWidth = this.width;
-    this.height = this.linegraphSVG.offsetHeight;
-
-    this.stepPixels = 25;
-    this.stepPixelsForced = 25;
-    this.lineOffset = 0;
-    this.master = true;
-    this.svgElements = {};
-
-
-    this.groups = {};
-    this.amountOfGroups = 0;
-
-    // create the HTML DOM
-    this._create();
-  }
-
-  DataAxis.prototype = new Component();
-
-
-
-  DataAxis.prototype.addGroup = function(label, graphOptions) {
-    if (!this.groups.hasOwnProperty(label)) {
-      this.groups[label] = graphOptions;
-    }
-    this.amountOfGroups += 1;
-  };
-
-  DataAxis.prototype.updateGroup = function(label, graphOptions) {
-    this.groups[label] = graphOptions;
-  };
-
-  DataAxis.prototype.removeGroup = function(label) {
-    if (this.groups.hasOwnProperty(label)) {
-      delete this.groups[label];
-      this.amountOfGroups -= 1;
-    }
-  };
-
-
-  DataAxis.prototype.setOptions = function (options) {
-    if (options) {
-      var redraw = false;
-      if (this.options.orientation != options.orientation && options.orientation !== undefined) {
-        redraw = true;
-      }
-      var fields = [
-        'orientation',
-        'showMinorLabels',
-        'showMajorLabels',
-        'icons',
-        'majorLinesOffset',
-        'minorLinesOffset',
-        'labelOffsetX',
-        'labelOffsetY',
-        'iconWidth',
-        'width',
-        'visible'];
-      util.selectiveExtend(fields, this.options, options);
-
-      this.minWidth = Number(('' + this.options.width).replace("px",""));
-
-      if (redraw == true && this.dom.frame) {
-        this.hide();
-        this.show();
-      }
-    }
-  };
-
-
-  /**
-   * Create the HTML DOM for the DataAxis
-   */
-  DataAxis.prototype._create = function() {
-    this.dom.frame = document.createElement('div');
-    this.dom.frame.style.width = this.options.width;
-    this.dom.frame.style.height = this.height;
-
-    this.dom.lineContainer = document.createElement('div');
-    this.dom.lineContainer.style.width = '100%';
-    this.dom.lineContainer.style.height = this.height;
-
-    // create svg element for graph drawing.
-    this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
-    this.svg.style.position = "absolute";
-    this.svg.style.top = '0px';
-    this.svg.style.height = '100%';
-    this.svg.style.width = '100%';
-    this.svg.style.display = "block";
-    this.dom.frame.appendChild(this.svg);
-  };
-
-  DataAxis.prototype._redrawGroupIcons = function () {
-    DOMutil.prepareElements(this.svgElements);
-
-    var x;
-    var iconWidth = this.options.iconWidth;
-    var iconHeight = 15;
-    var iconOffset = 4;
-    var y = iconOffset + 0.5 * iconHeight;
-
-    if (this.options.orientation == 'left') {
-      x = iconOffset;
-    }
-    else {
-      x = this.width - iconWidth - iconOffset;
-    }
-
-    for (var groupId in this.groups) {
-      if (this.groups.hasOwnProperty(groupId)) {
-        this.groups[groupId].drawIcon(x, y, this.svgElements, this.svg, iconWidth, iconHeight);
-        y += iconHeight + iconOffset;
-      }
-    }
-
-    DOMutil.cleanupElements(this.svgElements);
-  };
-
-  /**
-   * Create the HTML DOM for the DataAxis
-   */
-  DataAxis.prototype.show = function() {
-    if (!this.dom.frame.parentNode) {
-      if (this.options.orientation == 'left') {
-        this.body.dom.left.appendChild(this.dom.frame);
-      }
-      else {
-        this.body.dom.right.appendChild(this.dom.frame);
-      }
-    }
-
-    if (!this.dom.lineContainer.parentNode) {
-      this.body.dom.backgroundHorizontal.appendChild(this.dom.lineContainer);
-    }
-  };
-
-  /**
-   * Create the HTML DOM for the DataAxis
-   */
-  DataAxis.prototype.hide = function() {
-    if (this.dom.frame.parentNode) {
-      this.dom.frame.parentNode.removeChild(this.dom.frame);
-    }
-
-    if (this.dom.lineContainer.parentNode) {
-      this.dom.lineContainer.parentNode.removeChild(this.dom.lineContainer);
-    }
-  };
-
-  /**
-   * Set a range (start and end)
-   * @param end
-   * @param start
-   * @param end
-   */
-  DataAxis.prototype.setRange = function (start, end) {
-    this.range.start = start;
-    this.range.end = end;
-  };
-
-  /**
-   * Repaint the component
-   * @return {boolean} Returns true if the component is resized
-   */
-  DataAxis.prototype.redraw = function () {
-    var changeCalled = false;
-    if (this.amountOfGroups == 0) {
-      this.hide();
-    }
-    else {
-      this.show();
-      this.height = Number(this.linegraphSVG.style.height.replace("px",""));
-      // svg offsetheight did not work in firefox and explorer...
-
-      this.dom.lineContainer.style.height = this.height + 'px';
-      this.width = this.options.visible == true ? Number(('' + this.options.width).replace("px","")) : 0;
-
-      var props = this.props;
-      var frame = this.dom.frame;
-
-      // update classname
-      frame.className = 'dataaxis';
-
-      // calculate character width and height
-      this._calculateCharSize();
-
-      var orientation = this.options.orientation;
-      var showMinorLabels = this.options.showMinorLabels;
-      var showMajorLabels = this.options.showMajorLabels;
-
-      // determine the width and height of the elemens for the axis
-      props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
-      props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
-
-      props.minorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2 * this.options.minorLinesOffset;
-      props.minorLineHeight = 1;
-      props.majorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2 * this.options.majorLinesOffset;
-      props.majorLineHeight = 1;
-
-      //  take frame offline while updating (is almost twice as fast)
-      if (orientation == 'left') {
-        frame.style.top = '0';
-        frame.style.left = '0';
-        frame.style.bottom = '';
-        frame.style.width = this.width + 'px';
-        frame.style.height = this.height + "px";
-      }
-      else { // right
-        frame.style.top = '';
-        frame.style.bottom = '0';
-        frame.style.left = '0';
-        frame.style.width = this.width + 'px';
-        frame.style.height = this.height + "px";
-      }
-      changeCalled = this._redrawLabels();
-      if (this.options.icons == true) {
-        this._redrawGroupIcons();
-      }
-    }
-    return changeCalled;
-  };
-
-  /**
-   * Repaint major and minor text labels and vertical grid lines
-   * @private
-   */
-  DataAxis.prototype._redrawLabels = function () {
-    DOMutil.prepareElements(this.DOMelements);
-
-    var orientation = this.options['orientation'];
-
-    // calculate range and step (step such that we have space for 7 characters per label)
-    var minimumStep = this.master ? this.props.majorCharHeight || 10 : this.stepPixelsForced;
-    var step = new DataStep(this.range.start, this.range.end, minimumStep, this.dom.frame.offsetHeight);
-    this.step = step;
-    step.first();
-
-    // get the distance in pixels for a step
-    var stepPixels = this.dom.frame.offsetHeight / ((step.marginRange / step.step) + 1);
-    this.stepPixels = stepPixels;
-
-    var amountOfSteps = this.height / stepPixels;
-    var stepDifference = 0;
-
-    if (this.master == false) {
-      stepPixels = this.stepPixelsForced;
-      stepDifference = Math.round((this.height / stepPixels) - amountOfSteps);
-      for (var i = 0; i < 0.5 * stepDifference; i++) {
-        step.previous();
-      }
-      amountOfSteps = this.height / stepPixels;
-    }
-
-
-    this.valueAtZero = step.marginEnd;
-    var marginStartPos = 0;
-
-    // do not draw the first label
-    var max = 1;
-    step.next();
-
-    this.maxLabelSize = 0;
-    var y = 0;
-    while (max < Math.round(amountOfSteps)) {
-
-      y = Math.round(max * stepPixels);
-      marginStartPos = max * stepPixels;
-      var isMajor = step.isMajor();
-
-      if (this.options['showMinorLabels'] && isMajor == false || this.master == false && this.options['showMinorLabels'] == true) {
-        this._redrawLabel(y - 2, step.getCurrent(), orientation, 'yAxis minor', this.props.minorCharHeight);
-      }
-
-      if (isMajor && this.options['showMajorLabels'] && this.master == true ||
-          this.options['showMinorLabels'] == false && this.master == false && isMajor == true) {
-
-        if (y >= 0) {
-          this._redrawLabel(y - 2, step.getCurrent(), orientation, 'yAxis major', this.props.majorCharHeight);
-        }
-        this._redrawLine(y, orientation, 'grid horizontal major', this.options.majorLinesOffset, this.props.majorLineWidth);
-      }
-      else {
-        this._redrawLine(y, orientation, 'grid horizontal minor', this.options.minorLinesOffset, this.props.minorLineWidth);
-      }
-
-      step.next();
-      max++;
-    }
-
-    this.conversionFactor = marginStartPos/((amountOfSteps-1) * step.step);
-
-    var offset = this.options.icons == true ? this.options.iconWidth + this.options.labelOffsetX + 15 : this.options.labelOffsetX + 15;
-    // this will resize the yAxis to accomodate the labels.
-    if (this.maxLabelSize > (this.width - offset) && this.options.visible == true) {
-      this.width = this.maxLabelSize + offset;
-      this.options.width = this.width + "px";
-      DOMutil.cleanupElements(this.DOMelements);
-      this.redraw();
-      return true;
-    }
-    // this will resize the yAxis if it is too big for the labels.
-    else if (this.maxLabelSize < (this.width - offset) && this.options.visible == true && this.width > this.minWidth) {
-      this.width = Math.max(this.minWidth,this.maxLabelSize + offset);
-      this.options.width = this.width + "px";
-      DOMutil.cleanupElements(this.DOMelements);
-      this.redraw();
-      return true;
-    }
-    else {
-      DOMutil.cleanupElements(this.DOMelements);
-      return false;
-    }
-  };
-
-  /**
-   * Create a label for the axis at position x
-   * @private
-   * @param y
-   * @param text
-   * @param orientation
-   * @param className
-   * @param characterHeight
-   */
-  DataAxis.prototype._redrawLabel = function (y, text, orientation, className, characterHeight) {
-    // reuse redundant label
-    var label = DOMutil.getDOMElement('div',this.DOMelements, this.dom.frame); //this.dom.redundant.labels.shift();
-    label.className = className;
-    label.innerHTML = text;
-
-    if (orientation == 'left') {
-      label.style.left = '-' + this.options.labelOffsetX + 'px';
-      label.style.textAlign = "right";
-    }
-    else {
-      label.style.right = '-' + this.options.labelOffsetX + 'px';
-      label.style.textAlign = "left";
-    }
-
-    label.style.top = y - 0.5 * characterHeight + this.options.labelOffsetY + 'px';
-
-    text += '';
-
-    var largestWidth = Math.max(this.props.majorCharWidth,this.props.minorCharWidth);
-    if (this.maxLabelSize < text.length * largestWidth) {
-      this.maxLabelSize = text.length * largestWidth;
-    }
-  };
-
-  /**
-   * Create a minor line for the axis at position y
-   * @param y
-   * @param orientation
-   * @param className
-   * @param offset
-   * @param width
-   */
-  DataAxis.prototype._redrawLine = function (y, orientation, className, offset, width) {
-    if (this.master == true) {
-      var line = DOMutil.getDOMElement('div',this.DOMelements, this.dom.lineContainer);//this.dom.redundant.lines.shift();
-      line.className = className;
-      line.innerHTML = '';
-
-      if (orientation == 'left') {
-        line.style.left = (this.width - offset) + 'px';
-      }
-      else {
-        line.style.right = (this.width - offset) + 'px';
-      }
-
-      line.style.width = width + 'px';
-      line.style.top = y + 'px';
-    }
-  };
-
-
-  DataAxis.prototype.convertValue = function (value) {
-    var invertedValue = this.valueAtZero - value;
-    var convertedValue = invertedValue * this.conversionFactor;
-    return convertedValue; // the -2 is to compensate for the borders
-  };
-
-
-  /**
-   * Determine the size of text on the axis (both major and minor axis).
-   * The size is calculated only once and then cached in this.props.
-   * @private
-   */
-  DataAxis.prototype._calculateCharSize = function () {
-    // determine the char width and height on the minor axis
-    if (!('minorCharHeight' in this.props)) {
-
-      var textMinor = document.createTextNode('0');
-      var measureCharMinor = document.createElement('DIV');
-      measureCharMinor.className = 'yAxis minor measure';
-      measureCharMinor.appendChild(textMinor);
-      this.dom.frame.appendChild(measureCharMinor);
-
-      this.props.minorCharHeight = measureCharMinor.clientHeight;
-      this.props.minorCharWidth = measureCharMinor.clientWidth;
-
-      this.dom.frame.removeChild(measureCharMinor);
-    }
-
-    if (!('majorCharHeight' in this.props)) {
-      var textMajor = document.createTextNode('0');
-      var measureCharMajor = document.createElement('DIV');
-      measureCharMajor.className = 'yAxis major measure';
-      measureCharMajor.appendChild(textMajor);
-      this.dom.frame.appendChild(measureCharMajor);
-
-      this.props.majorCharHeight = measureCharMajor.clientHeight;
-      this.props.majorCharWidth = measureCharMajor.clientWidth;
-
-      this.dom.frame.removeChild(measureCharMajor);
-    }
-  };
-
-  /**
-   * Snap a date to a rounded value.
-   * The snap intervals are dependent on the current scale and step.
-   * @param {Date} date   the date to be snapped.
-   * @return {Date} snappedDate
-   */
-  DataAxis.prototype.snap = function(date) {
-    return this.step.snap(date);
-  };
-
-  module.exports = DataAxis;
-
-
-/***/ },
-/* 16 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var util = __webpack_require__(1);
-  var DOMutil = __webpack_require__(2);
-
-  /**
-   * @constructor Group
-   * @param {Number | String} groupId
-   * @param {Object} data
-   * @param {ItemSet} itemSet
-   */
-  function GraphGroup (group, groupId, options, groupsUsingDefaultStyles) {
-    this.id = groupId;
-    var fields = ['sampling','style','sort','yAxisOrientation','barChart','drawPoints','shaded','catmullRom']
-    this.options = util.selectiveBridgeObject(fields,options);
-    this.usingDefaultStyle = group.className === undefined;
-    this.groupsUsingDefaultStyles = groupsUsingDefaultStyles;
-    this.zeroPosition = 0;
-    this.update(group);
-    if (this.usingDefaultStyle == true) {
-      this.groupsUsingDefaultStyles[0] += 1;
-    }
-    this.itemsData = [];
-  }
-
-  GraphGroup.prototype.setItems = function(items) {
-    if (items != null) {
-      this.itemsData = items;
-      if (this.options.sort == true) {
-        this.itemsData.sort(function (a,b) {return a.x - b.x;})
-      }
-    }
-    else {
-      this.itemsData = [];
-    }
-  };
-
-  GraphGroup.prototype.setZeroPosition = function(pos) {
-    this.zeroPosition = pos;
-  };
-
-  GraphGroup.prototype.setOptions = function(options) {
-    if (options !== undefined) {
-      var fields = ['sampling','style','sort','yAxisOrientation','barChart'];
-      util.selectiveDeepExtend(fields, this.options, options);
-
-      util.mergeOptions(this.options, options,'catmullRom');
-      util.mergeOptions(this.options, options,'drawPoints');
-      util.mergeOptions(this.options, options,'shaded');
-
-      if (options.catmullRom) {
-        if (typeof options.catmullRom == 'object') {
-          if (options.catmullRom.parametrization) {
-            if (options.catmullRom.parametrization == 'uniform') {
-              this.options.catmullRom.alpha = 0;
-            }
-            else if (options.catmullRom.parametrization == 'chordal') {
-              this.options.catmullRom.alpha = 1.0;
-            }
-            else {
-              this.options.catmullRom.parametrization = 'centripetal';
-              this.options.catmullRom.alpha = 0.5;
-            }
-          }
-        }
-      }
-    }
-  };
-
-  GraphGroup.prototype.update = function(group) {
-    this.group = group;
-    this.content = group.content || 'graph';
-    this.className = group.className || this.className || "graphGroup" + this.groupsUsingDefaultStyles[0] % 10;
-    this.setOptions(group.options);
-  };
-
-  GraphGroup.prototype.drawIcon = function(x, y, JSONcontainer, SVGcontainer, iconWidth, iconHeight) {
-    var fillHeight = iconHeight * 0.5;
-    var path, fillPath;
-
-    var outline = DOMutil.getSVGElement("rect", JSONcontainer, SVGcontainer);
-    outline.setAttributeNS(null, "x", x);
-    outline.setAttributeNS(null, "y", y - fillHeight);
-    outline.setAttributeNS(null, "width", iconWidth);
-    outline.setAttributeNS(null, "height", 2*fillHeight);
-    outline.setAttributeNS(null, "class", "outline");
-
-    if (this.options.style == 'line') {
-      path = DOMutil.getSVGElement("path", JSONcontainer, SVGcontainer);
-      path.setAttributeNS(null, "class", this.className);
-      path.setAttributeNS(null, "d", "M" + x + ","+y+" L" + (x + iconWidth) + ","+y+"");
-      if (this.options.shaded.enabled == true) {
-        fillPath = DOMutil.getSVGElement("path", JSONcontainer, SVGcontainer);
-        if (this.options.shaded.orientation == 'top') {
-          fillPath.setAttributeNS(null, "d", "M"+x+", " + (y - fillHeight) +
-            "L"+x+","+y+" L"+ (x + iconWidth) + ","+y+" L"+ (x + iconWidth) + "," + (y - fillHeight));
-        }
-        else {
-          fillPath.setAttributeNS(null, "d", "M"+x+","+y+" " +
-            "L"+x+"," + (y + fillHeight) + " " +
-            "L"+ (x + iconWidth) + "," + (y + fillHeight) +
-            "L"+ (x + iconWidth) + ","+y);
-        }
-        fillPath.setAttributeNS(null, "class", this.className + " iconFill");
-      }
-
-      if (this.options.drawPoints.enabled == true) {
-        DOMutil.drawPoint(x + 0.5 * iconWidth,y, this, JSONcontainer, SVGcontainer);
-      }
-    }
-    else {
-      var barWidth = Math.round(0.3 * iconWidth);
-      var bar1Height = Math.round(0.4 * iconHeight);
-      var bar2Height = Math.round(0.75 * iconHeight);
-
-      var offset = Math.round((iconWidth - (2 * barWidth))/3);
-
-      DOMutil.drawBar(x + 0.5*barWidth + offset    , y + fillHeight - bar1Height - 1, barWidth, bar1Height, this.className + ' bar', JSONcontainer, SVGcontainer);
-      DOMutil.drawBar(x + 1.5*barWidth + offset + 2, y + fillHeight - bar2Height - 1, barWidth, bar2Height, this.className + ' bar', JSONcontainer, SVGcontainer);
-    }
-  };
-
-  module.exports = GraphGroup;
-
-
-/***/ },
-/* 17 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var util = __webpack_require__(1);
-  var stack = __webpack_require__(10);
-  var ItemRange = __webpack_require__(25);
-
-  /**
-   * @constructor Group
-   * @param {Number | String} groupId
-   * @param {Object} data
-   * @param {ItemSet} itemSet
-   */
-  function Group (groupId, data, itemSet) {
-    this.groupId = groupId;
-
-    this.itemSet = itemSet;
-
-    this.dom = {};
-    this.props = {
-      label: {
-        width: 0,
-        height: 0
-      }
-    };
-    this.className = null;
-
-    this.items = {};        // items filtered by groupId of this group
-    this.visibleItems = []; // items currently visible in window
-    this.orderedItems = {   // items sorted by start and by end
-      byStart: [],
-      byEnd: []
-    };
-
-    this._create();
-
-    this.setData(data);
-  }
-
-  /**
-   * Create DOM elements for the group
-   * @private
-   */
-  Group.prototype._create = function() {
-    var label = document.createElement('div');
-    label.className = 'vlabel';
-    this.dom.label = label;
-
-    var inner = document.createElement('div');
-    inner.className = 'inner';
-    label.appendChild(inner);
-    this.dom.inner = inner;
-
-    var foreground = document.createElement('div');
-    foreground.className = 'group';
-    foreground['timeline-group'] = this;
-    this.dom.foreground = foreground;
-
-    this.dom.background = document.createElement('div');
-    this.dom.background.className = 'group';
-
-    this.dom.axis = document.createElement('div');
-    this.dom.axis.className = 'group';
-
-    // create a hidden marker to detect when the Timelines container is attached
-    // to the DOM, or the style of a parent of the Timeline is changed from
-    // display:none is changed to visible.
-    this.dom.marker = document.createElement('div');
-    this.dom.marker.style.visibility = 'hidden';
-    this.dom.marker.innerHTML = '?';
-    this.dom.background.appendChild(this.dom.marker);
-  };
-
-  /**
-   * Set the group data for this group
-   * @param {Object} data   Group data, can contain properties content and className
-   */
-  Group.prototype.setData = function(data) {
-    // update contents
-    var content = data && data.content;
-    if (content instanceof Element) {
-      this.dom.inner.appendChild(content);
-    }
-    else if (content != undefined) {
-      this.dom.inner.innerHTML = content;
-    }
-    else {
-      this.dom.inner.innerHTML = this.groupId;
-    }
-
-    // update title
-    this.dom.label.title = data && data.title || '';
-
-    if (!this.dom.inner.firstChild) {
-      util.addClassName(this.dom.inner, 'hidden');
-    }
-    else {
-      util.removeClassName(this.dom.inner, 'hidden');
-    }
-
-    // update className
-    var className = data && data.className || null;
-    if (className != this.className) {
-      if (this.className) {
-        util.removeClassName(this.dom.label, className);
-        util.removeClassName(this.dom.foreground, className);
-        util.removeClassName(this.dom.background, className);
-        util.removeClassName(this.dom.axis, className);
-      }
-      util.addClassName(this.dom.label, className);
-      util.addClassName(this.dom.foreground, className);
-      util.addClassName(this.dom.background, className);
-      util.addClassName(this.dom.axis, className);
-    }
-  };
-
-  /**
-   * Get the width of the group label
-   * @return {number} width
-   */
-  Group.prototype.getLabelWidth = function() {
-    return this.props.label.width;
-  };
-
-
-  /**
-   * Repaint this group
-   * @param {{start: number, end: number}} range
-   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
-   * @param {boolean} [restack=false]  Force restacking of all items
-   * @return {boolean} Returns true if the group is resized
-   */
-  Group.prototype.redraw = function(range, margin, restack) {
-    var resized = false;
-
-    this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
-
-    // force recalculation of the height of the items when the marker height changed
-    // (due to the Timeline being attached to the DOM or changed from display:none to visible)
-    var markerHeight = this.dom.marker.clientHeight;
-    if (markerHeight != this.lastMarkerHeight) {
-      this.lastMarkerHeight = markerHeight;
-
-      util.forEach(this.items, function (item) {
-        item.dirty = true;
-        if (item.displayed) item.redraw();
-      });
-
-      restack = true;
-    }
-
-    // reposition visible items vertically
-    if (this.itemSet.options.stack) { // TODO: ugly way to access options...
-      stack.stack(this.visibleItems, margin, restack);
-    }
-    else { // no stacking
-      stack.nostack(this.visibleItems, margin);
-    }
-
-    // recalculate the height of the group
-    var height;
-    var visibleItems = this.visibleItems;
-    if (visibleItems.length) {
-      var min = visibleItems[0].top;
-      var max = visibleItems[0].top + visibleItems[0].height;
-      util.forEach(visibleItems, function (item) {
-        min = Math.min(min, item.top);
-        max = Math.max(max, (item.top + item.height));
-      });
-      if (min > margin.axis) {
-        // there is an empty gap between the lowest item and the axis
-        var offset = min - margin.axis;
-        max -= offset;
-        util.forEach(visibleItems, function (item) {
-          item.top -= offset;
-        });
-      }
-      height = max + margin.item.vertical / 2;
-    }
-    else {
-      height = margin.axis + margin.item.vertical;
-    }
-    height = Math.max(height, this.props.label.height);
-
-    // calculate actual size and position
-    var foreground = this.dom.foreground;
-    this.top = foreground.offsetTop;
-    this.left = foreground.offsetLeft;
-    this.width = foreground.offsetWidth;
-    resized = util.updateProperty(this, 'height', height) || resized;
-
-    // recalculate size of label
-    resized = util.updateProperty(this.props.label, 'width', this.dom.inner.clientWidth) || resized;
-    resized = util.updateProperty(this.props.label, 'height', this.dom.inner.clientHeight) || resized;
-
-    // apply new height
-    this.dom.background.style.height  = height + 'px';
-    this.dom.foreground.style.height  = height + 'px';
-    this.dom.label.style.height = height + 'px';
-
-    // update vertical position of items after they are re-stacked and the height of the group is calculated
-    for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
-      var item = this.visibleItems[i];
-      item.repositionY();
-    }
-
-    return resized;
-  };
-
-  /**
-   * Show this group: attach to the DOM
-   */
-  Group.prototype.show = function() {
-    if (!this.dom.label.parentNode) {
-      this.itemSet.dom.labelSet.appendChild(this.dom.label);
-    }
-
-    if (!this.dom.foreground.parentNode) {
-      this.itemSet.dom.foreground.appendChild(this.dom.foreground);
-    }
-
-    if (!this.dom.background.parentNode) {
-      this.itemSet.dom.background.appendChild(this.dom.background);
-    }
-
-    if (!this.dom.axis.parentNode) {
-      this.itemSet.dom.axis.appendChild(this.dom.axis);
-    }
-  };
-
-  /**
-   * Hide this group: remove from the DOM
-   */
-  Group.prototype.hide = function() {
-    var label = this.dom.label;
-    if (label.parentNode) {
-      label.parentNode.removeChild(label);
-    }
-
-    var foreground = this.dom.foreground;
-    if (foreground.parentNode) {
-      foreground.parentNode.removeChild(foreground);
-    }
-
-    var background = this.dom.background;
-    if (background.parentNode) {
-      background.parentNode.removeChild(background);
-    }
-
-    var axis = this.dom.axis;
-    if (axis.parentNode) {
-      axis.parentNode.removeChild(axis);
-    }
-  };
-
-  /**
-   * Add an item to the group
-   * @param {Item} item
-   */
-  Group.prototype.add = function(item) {
-    this.items[item.id] = item;
-    item.setParent(this);
-
-    if (item instanceof ItemRange && this.visibleItems.indexOf(item) == -1) {
-      var range = this.itemSet.body.range; // TODO: not nice accessing the range like this
-      this._checkIfVisible(item, this.visibleItems, range);
-    }
-  };
-
-  /**
-   * Remove an item from the group
-   * @param {Item} item
-   */
-  Group.prototype.remove = function(item) {
-    delete this.items[item.id];
-    item.setParent(this.itemSet);
-
-    // remove from visible items
-    var index = this.visibleItems.indexOf(item);
-    if (index != -1) this.visibleItems.splice(index, 1);
-
-    // TODO: also remove from ordered items?
-  };
-
-  /**
-   * Remove an item from the corresponding DataSet
-   * @param {Item} item
-   */
-  Group.prototype.removeFromDataSet = function(item) {
-    this.itemSet.removeItem(item.id);
-  };
-
-  /**
-   * Reorder the items
-   */
-  Group.prototype.order = function() {
-    var array = util.toArray(this.items);
-    this.orderedItems.byStart = array;
-    this.orderedItems.byEnd = this._constructByEndArray(array);
-
-    stack.orderByStart(this.orderedItems.byStart);
-    stack.orderByEnd(this.orderedItems.byEnd);
-  };
-
-  /**
-   * Create an array containing all items being a range (having an end date)
-   * @param {Item[]} array
-   * @returns {ItemRange[]}
-   * @private
-   */
-  Group.prototype._constructByEndArray = function(array) {
-    var endArray = [];
-
-    for (var i = 0; i < array.length; i++) {
-      if (array[i] instanceof ItemRange) {
-        endArray.push(array[i]);
-      }
-    }
-    return endArray;
-  };
-
-  /**
-   * Update the visible items
-   * @param {{byStart: Item[], byEnd: Item[]}} orderedItems   All items ordered by start date and by end date
-   * @param {Item[]} visibleItems                             The previously visible items.
-   * @param {{start: number, end: number}} range              Visible range
-   * @return {Item[]} visibleItems                            The new visible items.
-   * @private
-   */
-  Group.prototype._updateVisibleItems = function(orderedItems, visibleItems, range) {
-    var initialPosByStart,
-        newVisibleItems = [],
-        i;
-
-    // first check if the items that were in view previously are still in view.
-    // this handles the case for the ItemRange that is both before and after the current one.
-    if (visibleItems.length > 0) {
-      for (i = 0; i < visibleItems.length; i++) {
-        this._checkIfVisible(visibleItems[i], newVisibleItems, range);
-      }
-    }
-
-    // If there were no visible items previously, use binarySearch to find a visible ItemPoint or ItemRange (based on startTime)
-    if (newVisibleItems.length == 0) {
-      initialPosByStart = util.binarySearch(orderedItems.byStart, range, 'data','start');
-    }
-    else {
-      initialPosByStart = orderedItems.byStart.indexOf(newVisibleItems[0]);
-    }
-
-    // use visible search to find a visible ItemRange (only based on endTime)
-    var initialPosByEnd = util.binarySearch(orderedItems.byEnd, range, 'data','end');
-
-    // if we found a initial ID to use, trace it up and down until we meet an invisible item.
-    if (initialPosByStart != -1) {
-      for (i = initialPosByStart; i >= 0; i--) {
-        if (this._checkIfInvisible(orderedItems.byStart[i], newVisibleItems, range)) {break;}
-      }
-      for (i = initialPosByStart + 1; i < orderedItems.byStart.length; i++) {
-        if (this._checkIfInvisible(orderedItems.byStart[i], newVisibleItems, range)) {break;}
-      }
-    }
-
-    // if we found a initial ID to use, trace it up and down until we meet an invisible item.
-    if (initialPosByEnd != -1) {
-      for (i = initialPosByEnd; i >= 0; i--) {
-        if (this._checkIfInvisible(orderedItems.byEnd[i], newVisibleItems, range)) {break;}
-      }
-      for (i = initialPosByEnd + 1; i < orderedItems.byEnd.length; i++) {
-        if (this._checkIfInvisible(orderedItems.byEnd[i], newVisibleItems, range)) {break;}
-      }
-    }
-
-    return newVisibleItems;
-  };
-
-
-
-  /**
-   * this function checks if an item is invisible. If it is NOT we make it visible
-   * and add it to the global visible items. If it is, return true.
-   *
-   * @param {Item} item
-   * @param {Item[]} visibleItems
-   * @param {{start:number, end:number}} range
-   * @returns {boolean}
-   * @private
-   */
-  Group.prototype._checkIfInvisible = function(item, visibleItems, range) {
-    if (item.isVisible(range)) {
-      if (!item.displayed) item.show();
-      item.repositionX();
-      if (visibleItems.indexOf(item) == -1) {
-        visibleItems.push(item);
-      }
-      return false;
-    }
-    else {
-      if (item.displayed) item.hide();
-      return true;
-    }
-  };
-
-  /**
-   * this function is very similar to the _checkIfInvisible() but it does not
-   * return booleans, hides the item if it should not be seen and always adds to
-   * the visibleItems.
-   * this one is for brute forcing and hiding.
-   *
-   * @param {Item} item
-   * @param {Array} visibleItems
-   * @param {{start:number, end:number}} range
-   * @private
-   */
-  Group.prototype._checkIfVisible = function(item, visibleItems, range) {
-    if (item.isVisible(range)) {
-      if (!item.displayed) item.show();
-      // reposition item horizontally
-      item.repositionX();
-      visibleItems.push(item);
-    }
-    else {
-      if (item.displayed) item.hide();
-    }
-  };
-
-  module.exports = Group;
-
-
-/***/ },
-/* 18 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var Hammer = __webpack_require__(49);
-  var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(3);
-  var DataView = __webpack_require__(4);
-  var Component = __webpack_require__(12);
-  var Group = __webpack_require__(17);
-  var ItemBox = __webpack_require__(23);
-  var ItemPoint = __webpack_require__(24);
-  var ItemRange = __webpack_require__(25);
+  var DataSet = __webpack_require__(9);
+  var DataView = __webpack_require__(10);
+  var Component = __webpack_require__(19);
+  var Group = __webpack_require__(25);
+  var ItemBox = __webpack_require__(29);
+  var ItemPoint = __webpack_require__(30);
+  var ItemRange = __webpack_require__(27);
 
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
@@ -11664,206 +14702,2348 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 19 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var DOMutil = __webpack_require__(2);
-  var Component = __webpack_require__(12);
+  var stack = __webpack_require__(26);
+  var ItemRange = __webpack_require__(27);
 
   /**
-   * Legend for Graph2d
+   * @constructor Group
+   * @param {Number | String} groupId
+   * @param {Object} data
+   * @param {ItemSet} itemSet
    */
-  function Legend(body, options, side) {
-    this.body = body;
-    this.defaultOptions = {
-      enabled: true,
-      icons: true,
-      iconSize: 20,
-      iconSpacing: 6,
-      left: {
-        visible: true,
-        position: 'top-left' // top/bottom - left,center,right
-      },
-      right: {
-        visible: true,
-        position: 'top-left' // top/bottom - left,center,right
-      }
-    }
-    this.side = side;
-    this.options = util.extend({},this.defaultOptions);
+  function Group (groupId, data, itemSet) {
+    this.groupId = groupId;
 
-    this.svgElements = {};
+    this.itemSet = itemSet;
+
     this.dom = {};
-    this.groups = {};
-    this.amountOfGroups = 0;
+    this.props = {
+      label: {
+        width: 0,
+        height: 0
+      }
+    };
+    this.className = null;
+
+    this.items = {};        // items filtered by groupId of this group
+    this.visibleItems = []; // items currently visible in window
+    this.orderedItems = {   // items sorted by start and by end
+      byStart: [],
+      byEnd: []
+    };
+
     this._create();
 
-    this.setOptions(options);
+    this.setData(data);
   }
 
-  Legend.prototype = new Component();
+  /**
+   * Create DOM elements for the group
+   * @private
+   */
+  Group.prototype._create = function() {
+    var label = document.createElement('div');
+    label.className = 'vlabel';
+    this.dom.label = label;
 
+    var inner = document.createElement('div');
+    inner.className = 'inner';
+    label.appendChild(inner);
+    this.dom.inner = inner;
 
-  Legend.prototype.addGroup = function(label, graphOptions) {
-    if (!this.groups.hasOwnProperty(label)) {
-      this.groups[label] = graphOptions;
-    }
-    this.amountOfGroups += 1;
-  };
+    var foreground = document.createElement('div');
+    foreground.className = 'group';
+    foreground['timeline-group'] = this;
+    this.dom.foreground = foreground;
 
-  Legend.prototype.updateGroup = function(label, graphOptions) {
-    this.groups[label] = graphOptions;
-  };
+    this.dom.background = document.createElement('div');
+    this.dom.background.className = 'group';
 
-  Legend.prototype.removeGroup = function(label) {
-    if (this.groups.hasOwnProperty(label)) {
-      delete this.groups[label];
-      this.amountOfGroups -= 1;
-    }
-  };
+    this.dom.axis = document.createElement('div');
+    this.dom.axis.className = 'group';
 
-  Legend.prototype._create = function() {
-    this.dom.frame = document.createElement('div');
-    this.dom.frame.className = 'legend';
-    this.dom.frame.style.position = "absolute";
-    this.dom.frame.style.top = "10px";
-    this.dom.frame.style.display = "block";
-
-    this.dom.textArea = document.createElement('div');
-    this.dom.textArea.className = 'legendText';
-    this.dom.textArea.style.position = "relative";
-    this.dom.textArea.style.top = "0px";
-
-    this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
-    this.svg.style.position = 'absolute';
-    this.svg.style.top = 0 +'px';
-    this.svg.style.width = this.options.iconSize + 5 + 'px';
-
-    this.dom.frame.appendChild(this.svg);
-    this.dom.frame.appendChild(this.dom.textArea);
+    // create a hidden marker to detect when the Timelines container is attached
+    // to the DOM, or the style of a parent of the Timeline is changed from
+    // display:none is changed to visible.
+    this.dom.marker = document.createElement('div');
+    this.dom.marker.style.visibility = 'hidden';
+    this.dom.marker.innerHTML = '?';
+    this.dom.background.appendChild(this.dom.marker);
   };
 
   /**
-   * Hide the component from the DOM
+   * Set the group data for this group
+   * @param {Object} data   Group data, can contain properties content and className
    */
-  Legend.prototype.hide = function() {
-    // remove the frame containing the items
-    if (this.dom.frame.parentNode) {
-      this.dom.frame.parentNode.removeChild(this.dom.frame);
+  Group.prototype.setData = function(data) {
+    // update contents
+    var content = data && data.content;
+    if (content instanceof Element) {
+      this.dom.inner.appendChild(content);
     }
-  };
-
-  /**
-   * Show the component in the DOM (when not already visible).
-   * @return {Boolean} changed
-   */
-  Legend.prototype.show = function() {
-    // show frame containing the items
-    if (!this.dom.frame.parentNode) {
-      this.body.dom.center.appendChild(this.dom.frame);
-    }
-  };
-
-  Legend.prototype.setOptions = function(options) {
-    var fields = ['enabled','orientation','icons','left','right'];
-    util.selectiveDeepExtend(fields, this.options, options);
-  };
-
-  Legend.prototype.redraw = function() {
-    if (this.options[this.side].visible == false || this.amountOfGroups == 0 || this.options.enabled == false) {
-      this.hide();
+    else if (content != undefined) {
+      this.dom.inner.innerHTML = content;
     }
     else {
-      this.show();
-      if (this.options[this.side].position == 'top-left' || this.options[this.side].position == 'bottom-left') {
-        this.dom.frame.style.left = '4px';
-        this.dom.frame.style.textAlign = "left";
-        this.dom.textArea.style.textAlign = "left";
-        this.dom.textArea.style.left = (this.options.iconSize + 15) + 'px';
-        this.dom.textArea.style.right = '';
-        this.svg.style.left = 0 +'px';
-        this.svg.style.right = '';
-      }
-      else {
-        this.dom.frame.style.right = '4px';
-        this.dom.frame.style.textAlign = "right";
-        this.dom.textArea.style.textAlign = "right";
-        this.dom.textArea.style.right = (this.options.iconSize + 15) + 'px';
-        this.dom.textArea.style.left = '';
-        this.svg.style.right = 0 +'px';
-        this.svg.style.left = '';
-      }
+      this.dom.inner.innerHTML = this.groupId;
+    }
 
-      if (this.options[this.side].position == 'top-left' || this.options[this.side].position == 'top-right') {
-        this.dom.frame.style.top = 4 - Number(this.body.dom.center.style.top.replace("px","")) + 'px';
-        this.dom.frame.style.bottom = '';
-      }
-      else {
-        this.dom.frame.style.bottom = 4 - Number(this.body.dom.center.style.top.replace("px","")) + 'px';
-        this.dom.frame.style.top = '';
-      }
+    // update title
+    this.dom.label.title = data && data.title || '';
 
-      if (this.options.icons == false) {
-        this.dom.frame.style.width = this.dom.textArea.offsetWidth + 10 + 'px';
-        this.dom.textArea.style.right = '';
-        this.dom.textArea.style.left = '';
-        this.svg.style.width = '0px';
-      }
-      else {
-        this.dom.frame.style.width = this.options.iconSize + 15 + this.dom.textArea.offsetWidth + 10 + 'px'
-        this.drawLegendIcons();
-      }
+    if (!this.dom.inner.firstChild) {
+      util.addClassName(this.dom.inner, 'hidden');
+    }
+    else {
+      util.removeClassName(this.dom.inner, 'hidden');
+    }
 
-      var content = '';
-      for (var groupId in this.groups) {
-        if (this.groups.hasOwnProperty(groupId)) {
-          content += this.groups[groupId].content + '<br />';
-        }
+    // update className
+    var className = data && data.className || null;
+    if (className != this.className) {
+      if (this.className) {
+        util.removeClassName(this.dom.label, className);
+        util.removeClassName(this.dom.foreground, className);
+        util.removeClassName(this.dom.background, className);
+        util.removeClassName(this.dom.axis, className);
       }
-      this.dom.textArea.innerHTML = content;
-      this.dom.textArea.style.lineHeight = ((0.75 * this.options.iconSize) + this.options.iconSpacing) + 'px';
+      util.addClassName(this.dom.label, className);
+      util.addClassName(this.dom.foreground, className);
+      util.addClassName(this.dom.background, className);
+      util.addClassName(this.dom.axis, className);
     }
   };
 
-  Legend.prototype.drawLegendIcons = function() {
-    if (this.dom.frame.parentNode) {
-      DOMutil.prepareElements(this.svgElements);
-      var padding = window.getComputedStyle(this.dom.frame).paddingTop;
-      var iconOffset = Number(padding.replace('px',''));
-      var x = iconOffset;
-      var iconWidth = this.options.iconSize;
-      var iconHeight = 0.75 * this.options.iconSize;
-      var y = iconOffset + 0.5 * iconHeight + 3;
+  /**
+   * Get the width of the group label
+   * @return {number} width
+   */
+  Group.prototype.getLabelWidth = function() {
+    return this.props.label.width;
+  };
 
-      this.svg.style.width = iconWidth + 5 + iconOffset + 'px';
 
-      for (var groupId in this.groups) {
-        if (this.groups.hasOwnProperty(groupId)) {
-          this.groups[groupId].drawIcon(x, y, this.svgElements, this.svg, iconWidth, iconHeight);
-          y += iconHeight + this.options.iconSpacing;
-        }
+  /**
+   * Repaint this group
+   * @param {{start: number, end: number}} range
+   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
+   * @param {boolean} [restack=false]  Force restacking of all items
+   * @return {boolean} Returns true if the group is resized
+   */
+  Group.prototype.redraw = function(range, margin, restack) {
+    var resized = false;
+
+    this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
+
+    // force recalculation of the height of the items when the marker height changed
+    // (due to the Timeline being attached to the DOM or changed from display:none to visible)
+    var markerHeight = this.dom.marker.clientHeight;
+    if (markerHeight != this.lastMarkerHeight) {
+      this.lastMarkerHeight = markerHeight;
+
+      util.forEach(this.items, function (item) {
+        item.dirty = true;
+        if (item.displayed) item.redraw();
+      });
+
+      restack = true;
+    }
+
+    // reposition visible items vertically
+    if (this.itemSet.options.stack) { // TODO: ugly way to access options...
+      stack.stack(this.visibleItems, margin, restack);
+    }
+    else { // no stacking
+      stack.nostack(this.visibleItems, margin);
+    }
+
+    // recalculate the height of the group
+    var height;
+    var visibleItems = this.visibleItems;
+    if (visibleItems.length) {
+      var min = visibleItems[0].top;
+      var max = visibleItems[0].top + visibleItems[0].height;
+      util.forEach(visibleItems, function (item) {
+        min = Math.min(min, item.top);
+        max = Math.max(max, (item.top + item.height));
+      });
+      if (min > margin.axis) {
+        // there is an empty gap between the lowest item and the axis
+        var offset = min - margin.axis;
+        max -= offset;
+        util.forEach(visibleItems, function (item) {
+          item.top -= offset;
+        });
       }
+      height = max + margin.item.vertical / 2;
+    }
+    else {
+      height = margin.axis + margin.item.vertical;
+    }
+    height = Math.max(height, this.props.label.height);
 
-      DOMutil.cleanupElements(this.svgElements);
+    // calculate actual size and position
+    var foreground = this.dom.foreground;
+    this.top = foreground.offsetTop;
+    this.left = foreground.offsetLeft;
+    this.width = foreground.offsetWidth;
+    resized = util.updateProperty(this, 'height', height) || resized;
+
+    // recalculate size of label
+    resized = util.updateProperty(this.props.label, 'width', this.dom.inner.clientWidth) || resized;
+    resized = util.updateProperty(this.props.label, 'height', this.dom.inner.clientHeight) || resized;
+
+    // apply new height
+    this.dom.background.style.height  = height + 'px';
+    this.dom.foreground.style.height  = height + 'px';
+    this.dom.label.style.height = height + 'px';
+
+    // update vertical position of items after they are re-stacked and the height of the group is calculated
+    for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
+      var item = this.visibleItems[i];
+      item.repositionY();
+    }
+
+    return resized;
+  };
+
+  /**
+   * Show this group: attach to the DOM
+   */
+  Group.prototype.show = function() {
+    if (!this.dom.label.parentNode) {
+      this.itemSet.dom.labelSet.appendChild(this.dom.label);
+    }
+
+    if (!this.dom.foreground.parentNode) {
+      this.itemSet.dom.foreground.appendChild(this.dom.foreground);
+    }
+
+    if (!this.dom.background.parentNode) {
+      this.itemSet.dom.background.appendChild(this.dom.background);
+    }
+
+    if (!this.dom.axis.parentNode) {
+      this.itemSet.dom.axis.appendChild(this.dom.axis);
     }
   };
 
-  module.exports = Legend;
+  /**
+   * Hide this group: remove from the DOM
+   */
+  Group.prototype.hide = function() {
+    var label = this.dom.label;
+    if (label.parentNode) {
+      label.parentNode.removeChild(label);
+    }
+
+    var foreground = this.dom.foreground;
+    if (foreground.parentNode) {
+      foreground.parentNode.removeChild(foreground);
+    }
+
+    var background = this.dom.background;
+    if (background.parentNode) {
+      background.parentNode.removeChild(background);
+    }
+
+    var axis = this.dom.axis;
+    if (axis.parentNode) {
+      axis.parentNode.removeChild(axis);
+    }
+  };
+
+  /**
+   * Add an item to the group
+   * @param {Item} item
+   */
+  Group.prototype.add = function(item) {
+    this.items[item.id] = item;
+    item.setParent(this);
+
+    if (item instanceof ItemRange && this.visibleItems.indexOf(item) == -1) {
+      var range = this.itemSet.body.range; // TODO: not nice accessing the range like this
+      this._checkIfVisible(item, this.visibleItems, range);
+    }
+  };
+
+  /**
+   * Remove an item from the group
+   * @param {Item} item
+   */
+  Group.prototype.remove = function(item) {
+    delete this.items[item.id];
+    item.setParent(this.itemSet);
+
+    // remove from visible items
+    var index = this.visibleItems.indexOf(item);
+    if (index != -1) this.visibleItems.splice(index, 1);
+
+    // TODO: also remove from ordered items?
+  };
+
+  /**
+   * Remove an item from the corresponding DataSet
+   * @param {Item} item
+   */
+  Group.prototype.removeFromDataSet = function(item) {
+    this.itemSet.removeItem(item.id);
+  };
+
+  /**
+   * Reorder the items
+   */
+  Group.prototype.order = function() {
+    var array = util.toArray(this.items);
+    this.orderedItems.byStart = array;
+    this.orderedItems.byEnd = this._constructByEndArray(array);
+
+    stack.orderByStart(this.orderedItems.byStart);
+    stack.orderByEnd(this.orderedItems.byEnd);
+  };
+
+  /**
+   * Create an array containing all items being a range (having an end date)
+   * @param {Item[]} array
+   * @returns {ItemRange[]}
+   * @private
+   */
+  Group.prototype._constructByEndArray = function(array) {
+    var endArray = [];
+
+    for (var i = 0; i < array.length; i++) {
+      if (array[i] instanceof ItemRange) {
+        endArray.push(array[i]);
+      }
+    }
+    return endArray;
+  };
+
+  /**
+   * Update the visible items
+   * @param {{byStart: Item[], byEnd: Item[]}} orderedItems   All items ordered by start date and by end date
+   * @param {Item[]} visibleItems                             The previously visible items.
+   * @param {{start: number, end: number}} range              Visible range
+   * @return {Item[]} visibleItems                            The new visible items.
+   * @private
+   */
+  Group.prototype._updateVisibleItems = function(orderedItems, visibleItems, range) {
+    var initialPosByStart,
+        newVisibleItems = [],
+        i;
+
+    // first check if the items that were in view previously are still in view.
+    // this handles the case for the ItemRange that is both before and after the current one.
+    if (visibleItems.length > 0) {
+      for (i = 0; i < visibleItems.length; i++) {
+        this._checkIfVisible(visibleItems[i], newVisibleItems, range);
+      }
+    }
+
+    // If there were no visible items previously, use binarySearch to find a visible ItemPoint or ItemRange (based on startTime)
+    if (newVisibleItems.length == 0) {
+      initialPosByStart = util.binarySearch(orderedItems.byStart, range, 'data','start');
+    }
+    else {
+      initialPosByStart = orderedItems.byStart.indexOf(newVisibleItems[0]);
+    }
+
+    // use visible search to find a visible ItemRange (only based on endTime)
+    var initialPosByEnd = util.binarySearch(orderedItems.byEnd, range, 'data','end');
+
+    // if we found a initial ID to use, trace it up and down until we meet an invisible item.
+    if (initialPosByStart != -1) {
+      for (i = initialPosByStart; i >= 0; i--) {
+        if (this._checkIfInvisible(orderedItems.byStart[i], newVisibleItems, range)) {break;}
+      }
+      for (i = initialPosByStart + 1; i < orderedItems.byStart.length; i++) {
+        if (this._checkIfInvisible(orderedItems.byStart[i], newVisibleItems, range)) {break;}
+      }
+    }
+
+    // if we found a initial ID to use, trace it up and down until we meet an invisible item.
+    if (initialPosByEnd != -1) {
+      for (i = initialPosByEnd; i >= 0; i--) {
+        if (this._checkIfInvisible(orderedItems.byEnd[i], newVisibleItems, range)) {break;}
+      }
+      for (i = initialPosByEnd + 1; i < orderedItems.byEnd.length; i++) {
+        if (this._checkIfInvisible(orderedItems.byEnd[i], newVisibleItems, range)) {break;}
+      }
+    }
+
+    return newVisibleItems;
+  };
+
+
+
+  /**
+   * this function checks if an item is invisible. If it is NOT we make it visible
+   * and add it to the global visible items. If it is, return true.
+   *
+   * @param {Item} item
+   * @param {Item[]} visibleItems
+   * @param {{start:number, end:number}} range
+   * @returns {boolean}
+   * @private
+   */
+  Group.prototype._checkIfInvisible = function(item, visibleItems, range) {
+    if (item.isVisible(range)) {
+      if (!item.displayed) item.show();
+      item.repositionX();
+      if (visibleItems.indexOf(item) == -1) {
+        visibleItems.push(item);
+      }
+      return false;
+    }
+    else {
+      if (item.displayed) item.hide();
+      return true;
+    }
+  };
+
+  /**
+   * this function is very similar to the _checkIfInvisible() but it does not
+   * return booleans, hides the item if it should not be seen and always adds to
+   * the visibleItems.
+   * this one is for brute forcing and hiding.
+   *
+   * @param {Item} item
+   * @param {Array} visibleItems
+   * @param {{start:number, end:number}} range
+   * @private
+   */
+  Group.prototype._checkIfVisible = function(item, visibleItems, range) {
+    if (item.isVisible(range)) {
+      if (!item.displayed) item.show();
+      // reposition item horizontally
+      item.repositionX();
+      visibleItems.push(item);
+    }
+    else {
+      if (item.displayed) item.hide();
+    }
+  };
+
+  module.exports = Group;
 
 
 /***/ },
-/* 20 */
+/* 26 */
+/***/ function(module, exports, __webpack_require__) {
+
+  // Utility functions for ordering and stacking of items
+  var EPSILON = 0.001; // used when checking collisions, to prevent round-off errors
+
+  /**
+   * Order items by their start data
+   * @param {Item[]} items
+   */
+  exports.orderByStart = function(items) {
+    items.sort(function (a, b) {
+      return a.data.start - b.data.start;
+    });
+  };
+
+  /**
+   * Order items by their end date. If they have no end date, their start date
+   * is used.
+   * @param {Item[]} items
+   */
+  exports.orderByEnd = function(items) {
+    items.sort(function (a, b) {
+      var aTime = ('end' in a.data) ? a.data.end : a.data.start,
+          bTime = ('end' in b.data) ? b.data.end : b.data.start;
+
+      return aTime - bTime;
+    });
+  };
+
+  /**
+   * Adjust vertical positions of the items such that they don't overlap each
+   * other.
+   * @param {Item[]} items
+   *            All visible items
+   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
+   *            Margins between items and between items and the axis.
+   * @param {boolean} [force=false]
+   *            If true, all items will be repositioned. If false (default), only
+   *            items having a top===null will be re-stacked
+   */
+  exports.stack = function(items, margin, force) {
+    var i, iMax;
+
+    if (force) {
+      // reset top position of all items
+      for (i = 0, iMax = items.length; i < iMax; i++) {
+        items[i].top = null;
+      }
+    }
+
+    // calculate new, non-overlapping positions
+    for (i = 0, iMax = items.length; i < iMax; i++) {
+      var item = items[i];
+      if (item.top === null) {
+        // initialize top position
+        item.top = margin.axis;
+
+        do {
+          // TODO: optimize checking for overlap. when there is a gap without items,
+          //       you only need to check for items from the next item on, not from zero
+          var collidingItem = null;
+          for (var j = 0, jj = items.length; j < jj; j++) {
+            var other = items[j];
+            if (other.top !== null && other !== item && exports.collision(item, other, margin.item)) {
+              collidingItem = other;
+              break;
+            }
+          }
+
+          if (collidingItem != null) {
+            // There is a collision. Reposition the items above the colliding element
+            item.top = collidingItem.top + collidingItem.height + margin.item.vertical;
+          }
+        } while (collidingItem);
+      }
+    }
+  };
+
+  /**
+   * Adjust vertical positions of the items without stacking them
+   * @param {Item[]} items
+   *            All visible items
+   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
+   *            Margins between items and between items and the axis.
+   */
+  exports.nostack = function(items, margin) {
+    var i, iMax;
+
+    // reset top position of all items
+    for (i = 0, iMax = items.length; i < iMax; i++) {
+      items[i].top = margin.axis;
+    }
+  };
+
+  /**
+   * Test if the two provided items collide
+   * The items must have parameters left, width, top, and height.
+   * @param {Item} a          The first item
+   * @param {Item} b          The second item
+   * @param {{horizontal: number, vertical: number}} margin
+   *                          An object containing a horizontal and vertical
+   *                          minimum required margin.
+   * @return {boolean}        true if a and b collide, else false
+   */
+  exports.collision = function(a, b, margin) {
+    return ((a.left - margin.horizontal + EPSILON)       < (b.left + b.width) &&
+        (a.left + a.width + margin.horizontal - EPSILON) > b.left &&
+        (a.top - margin.vertical + EPSILON)              < (b.top + b.height) &&
+        (a.top + a.height + margin.vertical - EPSILON)   > b.top);
+  };
+
+
+/***/ },
+/* 27 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var Hammer = __webpack_require__(3);
+  var Item = __webpack_require__(28);
+
+  /**
+   * @constructor ItemRange
+   * @extends Item
+   * @param {Object} data             Object containing parameters start, end
+   *                                  content, className.
+   * @param {{toScreen: function, toTime: function}} conversion
+   *                                  Conversion functions from time to screen and vice versa
+   * @param {Object} [options]        Configuration options
+   *                                  // TODO: describe options
+   */
+  function ItemRange (data, conversion, options) {
+    this.props = {
+      content: {
+        width: 0
+      }
+    };
+    this.overflow = false; // if contents can overflow (css styling), this flag is set to true
+
+    // validate data
+    if (data) {
+      if (data.start == undefined) {
+        throw new Error('Property "start" missing in item ' + data.id);
+      }
+      if (data.end == undefined) {
+        throw new Error('Property "end" missing in item ' + data.id);
+      }
+    }
+
+    Item.call(this, data, conversion, options);
+  }
+
+  ItemRange.prototype = new Item (null, null, null);
+
+  ItemRange.prototype.baseClassName = 'item range';
+
+  /**
+   * Check whether this item is visible inside given range
+   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+   * @returns {boolean} True if visible
+   */
+  ItemRange.prototype.isVisible = function(range) {
+    // determine visibility
+    return (this.data.start < range.end) && (this.data.end > range.start);
+  };
+
+  /**
+   * Repaint the item
+   */
+  ItemRange.prototype.redraw = function() {
+    var dom = this.dom;
+    if (!dom) {
+      // create DOM
+      this.dom = {};
+      dom = this.dom;
+
+        // background box
+      dom.box = document.createElement('div');
+      // className is updated in redraw()
+
+      // contents box
+      dom.content = document.createElement('div');
+      dom.content.className = 'content';
+      dom.box.appendChild(dom.content);
+
+      // attach this item as attribute
+      dom.box['timeline-item'] = this;
+    }
+
+    // append DOM to parent DOM
+    if (!this.parent) {
+      throw new Error('Cannot redraw item: no parent attached');
+    }
+    if (!dom.box.parentNode) {
+      var foreground = this.parent.dom.foreground;
+      if (!foreground) {
+        throw new Error('Cannot redraw time axis: parent has no foreground container element');
+      }
+      foreground.appendChild(dom.box);
+    }
+    this.displayed = true;
+
+    // update contents
+    if (this.data.content != this.content) {
+      this.content = this.data.content;
+      if (this.content instanceof Element) {
+        dom.content.innerHTML = '';
+        dom.content.appendChild(this.content);
+      }
+      else if (this.data.content != undefined) {
+        dom.content.innerHTML = this.content;
+      }
+      else {
+        throw new Error('Property "content" missing in item ' + this.data.id);
+      }
+
+      this.dirty = true;
+    }
+
+    // update title
+    if (this.data.title != this.title) {
+      dom.box.title = this.data.title;
+      this.title = this.data.title;
+    }
+
+    // update class
+    var className = (this.data.className ? (' ' + this.data.className) : '') +
+        (this.selected ? ' selected' : '');
+    if (this.className != className) {
+      this.className = className;
+      dom.box.className = this.baseClassName + className;
+
+      this.dirty = true;
+    }
+
+    // recalculate size
+    if (this.dirty) {
+      // determine from css whether this box has overflow
+      this.overflow = window.getComputedStyle(dom.content).overflow !== 'hidden';
+
+      this.props.content.width = this.dom.content.offsetWidth;
+      this.height = this.dom.box.offsetHeight;
+
+      this.dirty = false;
+    }
+
+    this._repaintDeleteButton(dom.box);
+    this._repaintDragLeft();
+    this._repaintDragRight();
+  };
+
+  /**
+   * Show the item in the DOM (when not already visible). The items DOM will
+   * be created when needed.
+   */
+  ItemRange.prototype.show = function() {
+    if (!this.displayed) {
+      this.redraw();
+    }
+  };
+
+  /**
+   * Hide the item from the DOM (when visible)
+   * @return {Boolean} changed
+   */
+  ItemRange.prototype.hide = function() {
+    if (this.displayed) {
+      var box = this.dom.box;
+
+      if (box.parentNode) {
+        box.parentNode.removeChild(box);
+      }
+
+      this.top = null;
+      this.left = null;
+
+      this.displayed = false;
+    }
+  };
+
+  /**
+   * Reposition the item horizontally
+   * @Override
+   */
+  // TODO: delete the old function
+  ItemRange.prototype.repositionX = function() {
+    var props = this.props,
+        parentWidth = this.parent.width,
+        start = this.conversion.toScreen(this.data.start),
+        end = this.conversion.toScreen(this.data.end),
+        padding = this.options.padding,
+        contentLeft;
+
+    // limit the width of the this, as browsers cannot draw very wide divs
+    if (start < -parentWidth) {
+      start = -parentWidth;
+    }
+    if (end > 2 * parentWidth) {
+      end = 2 * parentWidth;
+    }
+    var boxWidth = Math.max(end - start, 1);
+
+    if (this.overflow) {
+      // when range exceeds left of the window, position the contents at the left of the visible area
+      contentLeft = Math.max(-start, 0);
+
+      this.left = start;
+      this.width = boxWidth + this.props.content.width;
+      // Note: The calculation of width is an optimistic calculation, giving
+      //       a width which will not change when moving the Timeline
+      //       So no restacking needed, which is nicer for the eye;
+    }
+    else { // no overflow
+      // when range exceeds left of the window, position the contents at the left of the visible area
+      if (start < 0) {
+        contentLeft = Math.min(-start,
+            (end - start - props.content.width - 2 * padding));
+        // TODO: remove the need for options.padding. it's terrible.
+      }
+      else {
+        contentLeft = 0;
+      }
+
+      this.left = start;
+      this.width = boxWidth;
+    }
+
+    this.dom.box.style.left = this.left + 'px';
+    this.dom.box.style.width = boxWidth + 'px';
+    this.dom.content.style.left = contentLeft + 'px';
+  };
+
+  /**
+   * Reposition the item vertically
+   * @Override
+   */
+  ItemRange.prototype.repositionY = function() {
+    var orientation = this.options.orientation,
+        box = this.dom.box;
+
+    if (orientation == 'top') {
+      box.style.top = this.top + 'px';
+    }
+    else {
+      box.style.top = (this.parent.height - this.top - this.height) + 'px';
+    }
+  };
+
+  /**
+   * Repaint a drag area on the left side of the range when the range is selected
+   * @protected
+   */
+  ItemRange.prototype._repaintDragLeft = function () {
+    if (this.selected && this.options.editable.updateTime && !this.dom.dragLeft) {
+      // create and show drag area
+      var dragLeft = document.createElement('div');
+      dragLeft.className = 'drag-left';
+      dragLeft.dragLeftItem = this;
+
+      // TODO: this should be redundant?
+      Hammer(dragLeft, {
+        preventDefault: true
+      }).on('drag', function () {
+            //console.log('drag left')
+          });
+
+      this.dom.box.appendChild(dragLeft);
+      this.dom.dragLeft = dragLeft;
+    }
+    else if (!this.selected && this.dom.dragLeft) {
+      // delete drag area
+      if (this.dom.dragLeft.parentNode) {
+        this.dom.dragLeft.parentNode.removeChild(this.dom.dragLeft);
+      }
+      this.dom.dragLeft = null;
+    }
+  };
+
+  /**
+   * Repaint a drag area on the right side of the range when the range is selected
+   * @protected
+   */
+  ItemRange.prototype._repaintDragRight = function () {
+    if (this.selected && this.options.editable.updateTime && !this.dom.dragRight) {
+      // create and show drag area
+      var dragRight = document.createElement('div');
+      dragRight.className = 'drag-right';
+      dragRight.dragRightItem = this;
+
+      // TODO: this should be redundant?
+      Hammer(dragRight, {
+        preventDefault: true
+      }).on('drag', function () {
+        //console.log('drag right')
+      });
+
+      this.dom.box.appendChild(dragRight);
+      this.dom.dragRight = dragRight;
+    }
+    else if (!this.selected && this.dom.dragRight) {
+      // delete drag area
+      if (this.dom.dragRight.parentNode) {
+        this.dom.dragRight.parentNode.removeChild(this.dom.dragRight);
+      }
+      this.dom.dragRight = null;
+    }
+  };
+
+  module.exports = ItemRange;
+
+
+/***/ },
+/* 28 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var Hammer = __webpack_require__(3);
+
+  /**
+   * @constructor Item
+   * @param {Object} data             Object containing (optional) parameters type,
+   *                                  start, end, content, group, className.
+   * @param {{toScreen: function, toTime: function}} conversion
+   *                                  Conversion functions from time to screen and vice versa
+   * @param {Object} options          Configuration options
+   *                                  // TODO: describe available options
+   */
+  function Item (data, conversion, options) {
+    this.id = null;
+    this.parent = null;
+    this.data = data;
+    this.dom = null;
+    this.conversion = conversion || {};
+    this.options = options || {};
+
+    this.selected = false;
+    this.displayed = false;
+    this.dirty = true;
+
+    this.top = null;
+    this.left = null;
+    this.width = null;
+    this.height = null;
+  }
+
+  /**
+   * Select current item
+   */
+  Item.prototype.select = function() {
+    this.selected = true;
+    if (this.displayed) this.redraw();
+  };
+
+  /**
+   * Unselect current item
+   */
+  Item.prototype.unselect = function() {
+    this.selected = false;
+    if (this.displayed) this.redraw();
+  };
+
+  /**
+   * Set a parent for the item
+   * @param {ItemSet | Group} parent
+   */
+  Item.prototype.setParent = function(parent) {
+    if (this.displayed) {
+      this.hide();
+      this.parent = parent;
+      if (this.parent) {
+        this.show();
+      }
+    }
+    else {
+      this.parent = parent;
+    }
+  };
+
+  /**
+   * Check whether this item is visible inside given range
+   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+   * @returns {boolean} True if visible
+   */
+  Item.prototype.isVisible = function(range) {
+    // Should be implemented by Item implementations
+    return false;
+  };
+
+  /**
+   * Show the Item in the DOM (when not already visible)
+   * @return {Boolean} changed
+   */
+  Item.prototype.show = function() {
+    return false;
+  };
+
+  /**
+   * Hide the Item from the DOM (when visible)
+   * @return {Boolean} changed
+   */
+  Item.prototype.hide = function() {
+    return false;
+  };
+
+  /**
+   * Repaint the item
+   */
+  Item.prototype.redraw = function() {
+    // should be implemented by the item
+  };
+
+  /**
+   * Reposition the Item horizontally
+   */
+  Item.prototype.repositionX = function() {
+    // should be implemented by the item
+  };
+
+  /**
+   * Reposition the Item vertically
+   */
+  Item.prototype.repositionY = function() {
+    // should be implemented by the item
+  };
+
+  /**
+   * Repaint a delete button on the top right of the item when the item is selected
+   * @param {HTMLElement} anchor
+   * @protected
+   */
+  Item.prototype._repaintDeleteButton = function (anchor) {
+    if (this.selected && this.options.editable.remove && !this.dom.deleteButton) {
+      // create and show button
+      var me = this;
+
+      var deleteButton = document.createElement('div');
+      deleteButton.className = 'delete';
+      deleteButton.title = 'Delete this item';
+
+      Hammer(deleteButton, {
+        preventDefault: true
+      }).on('tap', function (event) {
+        me.parent.removeFromDataSet(me);
+        event.stopPropagation();
+      });
+
+      anchor.appendChild(deleteButton);
+      this.dom.deleteButton = deleteButton;
+    }
+    else if (!this.selected && this.dom.deleteButton) {
+      // remove button
+      if (this.dom.deleteButton.parentNode) {
+        this.dom.deleteButton.parentNode.removeChild(this.dom.deleteButton);
+      }
+      this.dom.deleteButton = null;
+    }
+  };
+
+  module.exports = Item;
+
+
+/***/ },
+/* 29 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var Item = __webpack_require__(28);
+
+  /**
+   * @constructor ItemBox
+   * @extends Item
+   * @param {Object} data             Object containing parameters start
+   *                                  content, className.
+   * @param {{toScreen: function, toTime: function}} conversion
+   *                                  Conversion functions from time to screen and vice versa
+   * @param {Object} [options]        Configuration options
+   *                                  // TODO: describe available options
+   */
+  function ItemBox (data, conversion, options) {
+    this.props = {
+      dot: {
+        width: 0,
+        height: 0
+      },
+      line: {
+        width: 0,
+        height: 0
+      }
+    };
+
+    // validate data
+    if (data) {
+      if (data.start == undefined) {
+        throw new Error('Property "start" missing in item ' + data);
+      }
+    }
+
+    Item.call(this, data, conversion, options);
+  }
+
+  ItemBox.prototype = new Item (null, null, null);
+
+  /**
+   * Check whether this item is visible inside given range
+   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+   * @returns {boolean} True if visible
+   */
+  ItemBox.prototype.isVisible = function(range) {
+    // determine visibility
+    // TODO: account for the real width of the item. Right now we just add 1/4 to the window
+    var interval = (range.end - range.start) / 4;
+    return (this.data.start > range.start - interval) && (this.data.start < range.end + interval);
+  };
+
+  /**
+   * Repaint the item
+   */
+  ItemBox.prototype.redraw = function() {
+    var dom = this.dom;
+    if (!dom) {
+      // create DOM
+      this.dom = {};
+      dom = this.dom;
+
+      // create main box
+      dom.box = document.createElement('DIV');
+
+      // contents box (inside the background box). used for making margins
+      dom.content = document.createElement('DIV');
+      dom.content.className = 'content';
+      dom.box.appendChild(dom.content);
+
+      // line to axis
+      dom.line = document.createElement('DIV');
+      dom.line.className = 'line';
+
+      // dot on axis
+      dom.dot = document.createElement('DIV');
+      dom.dot.className = 'dot';
+
+      // attach this item as attribute
+      dom.box['timeline-item'] = this;
+    }
+
+    // append DOM to parent DOM
+    if (!this.parent) {
+      throw new Error('Cannot redraw item: no parent attached');
+    }
+    if (!dom.box.parentNode) {
+      var foreground = this.parent.dom.foreground;
+      if (!foreground) throw new Error('Cannot redraw time axis: parent has no foreground container element');
+      foreground.appendChild(dom.box);
+    }
+    if (!dom.line.parentNode) {
+      var background = this.parent.dom.background;
+      if (!background) throw new Error('Cannot redraw time axis: parent has no background container element');
+      background.appendChild(dom.line);
+    }
+    if (!dom.dot.parentNode) {
+      var axis = this.parent.dom.axis;
+      if (!background) throw new Error('Cannot redraw time axis: parent has no axis container element');
+      axis.appendChild(dom.dot);
+    }
+    this.displayed = true;
+
+    // update contents
+    if (this.data.content != this.content) {
+      this.content = this.data.content;
+      if (this.content instanceof Element) {
+        dom.content.innerHTML = '';
+        dom.content.appendChild(this.content);
+      }
+      else if (this.data.content != undefined) {
+        dom.content.innerHTML = this.content;
+      }
+      else {
+        throw new Error('Property "content" missing in item ' + this.data.id);
+      }
+
+      this.dirty = true;
+    }
+
+    // update title
+    if (this.data.title != this.title) {
+      dom.box.title = this.data.title;
+      this.title = this.data.title;
+    }
+
+    // update class
+    var className = (this.data.className? ' ' + this.data.className : '') +
+        (this.selected ? ' selected' : '');
+    if (this.className != className) {
+      this.className = className;
+      dom.box.className = 'item box' + className;
+      dom.line.className = 'item line' + className;
+      dom.dot.className  = 'item dot' + className;
+
+      this.dirty = true;
+    }
+
+    // recalculate size
+    if (this.dirty) {
+      this.props.dot.height = dom.dot.offsetHeight;
+      this.props.dot.width = dom.dot.offsetWidth;
+      this.props.line.width = dom.line.offsetWidth;
+      this.width = dom.box.offsetWidth;
+      this.height = dom.box.offsetHeight;
+
+      this.dirty = false;
+    }
+
+    this._repaintDeleteButton(dom.box);
+  };
+
+  /**
+   * Show the item in the DOM (when not already displayed). The items DOM will
+   * be created when needed.
+   */
+  ItemBox.prototype.show = function() {
+    if (!this.displayed) {
+      this.redraw();
+    }
+  };
+
+  /**
+   * Hide the item from the DOM (when visible)
+   */
+  ItemBox.prototype.hide = function() {
+    if (this.displayed) {
+      var dom = this.dom;
+
+      if (dom.box.parentNode)   dom.box.parentNode.removeChild(dom.box);
+      if (dom.line.parentNode)  dom.line.parentNode.removeChild(dom.line);
+      if (dom.dot.parentNode)   dom.dot.parentNode.removeChild(dom.dot);
+
+      this.top = null;
+      this.left = null;
+
+      this.displayed = false;
+    }
+  };
+
+  /**
+   * Reposition the item horizontally
+   * @Override
+   */
+  ItemBox.prototype.repositionX = function() {
+    var start = this.conversion.toScreen(this.data.start),
+        align = this.options.align,
+        left,
+        box = this.dom.box,
+        line = this.dom.line,
+        dot = this.dom.dot;
+
+    // calculate left position of the box
+    if (align == 'right') {
+      this.left = start - this.width;
+    }
+    else if (align == 'left') {
+      this.left = start;
+    }
+    else {
+      // default or 'center'
+      this.left = start - this.width / 2;
+    }
+
+    // reposition box
+    box.style.left = this.left + 'px';
+
+    // reposition line
+    line.style.left = (start - this.props.line.width / 2) + 'px';
+
+    // reposition dot
+    dot.style.left = (start - this.props.dot.width / 2) + 'px';
+  };
+
+  /**
+   * Reposition the item vertically
+   * @Override
+   */
+  ItemBox.prototype.repositionY = function() {
+    var orientation = this.options.orientation,
+        box = this.dom.box,
+        line = this.dom.line,
+        dot = this.dom.dot;
+
+    if (orientation == 'top') {
+      box.style.top     = (this.top || 0) + 'px';
+
+      line.style.top    = '0';
+      line.style.height = (this.parent.top + this.top + 1) + 'px';
+      line.style.bottom = '';
+    }
+    else { // orientation 'bottom'
+      var itemSetHeight = this.parent.itemSet.props.height; // TODO: this is nasty
+      var lineHeight = itemSetHeight - this.parent.top - this.parent.height + this.top;
+
+      box.style.top     = (this.parent.height - this.top - this.height || 0) + 'px';
+      line.style.top    = (itemSetHeight - lineHeight) + 'px';
+      line.style.bottom = '0';
+    }
+
+    dot.style.top = (-this.props.dot.height / 2) + 'px';
+  };
+
+  module.exports = ItemBox;
+
+
+/***/ },
+/* 30 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var Item = __webpack_require__(28);
+
+  /**
+   * @constructor ItemPoint
+   * @extends Item
+   * @param {Object} data             Object containing parameters start
+   *                                  content, className.
+   * @param {{toScreen: function, toTime: function}} conversion
+   *                                  Conversion functions from time to screen and vice versa
+   * @param {Object} [options]        Configuration options
+   *                                  // TODO: describe available options
+   */
+  function ItemPoint (data, conversion, options) {
+    this.props = {
+      dot: {
+        top: 0,
+        width: 0,
+        height: 0
+      },
+      content: {
+        height: 0,
+        marginLeft: 0
+      }
+    };
+
+    // validate data
+    if (data) {
+      if (data.start == undefined) {
+        throw new Error('Property "start" missing in item ' + data);
+      }
+    }
+
+    Item.call(this, data, conversion, options);
+  }
+
+  ItemPoint.prototype = new Item (null, null, null);
+
+  /**
+   * Check whether this item is visible inside given range
+   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+   * @returns {boolean} True if visible
+   */
+  ItemPoint.prototype.isVisible = function(range) {
+    // determine visibility
+    // TODO: account for the real width of the item. Right now we just add 1/4 to the window
+    var interval = (range.end - range.start) / 4;
+    return (this.data.start > range.start - interval) && (this.data.start < range.end + interval);
+  };
+
+  /**
+   * Repaint the item
+   */
+  ItemPoint.prototype.redraw = function() {
+    var dom = this.dom;
+    if (!dom) {
+      // create DOM
+      this.dom = {};
+      dom = this.dom;
+
+      // background box
+      dom.point = document.createElement('div');
+      // className is updated in redraw()
+
+      // contents box, right from the dot
+      dom.content = document.createElement('div');
+      dom.content.className = 'content';
+      dom.point.appendChild(dom.content);
+
+      // dot at start
+      dom.dot = document.createElement('div');
+      dom.point.appendChild(dom.dot);
+
+      // attach this item as attribute
+      dom.point['timeline-item'] = this;
+    }
+
+    // append DOM to parent DOM
+    if (!this.parent) {
+      throw new Error('Cannot redraw item: no parent attached');
+    }
+    if (!dom.point.parentNode) {
+      var foreground = this.parent.dom.foreground;
+      if (!foreground) {
+        throw new Error('Cannot redraw time axis: parent has no foreground container element');
+      }
+      foreground.appendChild(dom.point);
+    }
+    this.displayed = true;
+
+    // update contents
+    if (this.data.content != this.content) {
+      this.content = this.data.content;
+      if (this.content instanceof Element) {
+        dom.content.innerHTML = '';
+        dom.content.appendChild(this.content);
+      }
+      else if (this.data.content != undefined) {
+        dom.content.innerHTML = this.content;
+      }
+      else {
+        throw new Error('Property "content" missing in item ' + this.data.id);
+      }
+
+      this.dirty = true;
+    }
+
+    // update title
+    if (this.data.title != this.title) {
+      dom.point.title = this.data.title;
+      this.title = this.data.title;
+    }
+
+    // update class
+    var className = (this.data.className? ' ' + this.data.className : '') +
+        (this.selected ? ' selected' : '');
+    if (this.className != className) {
+      this.className = className;
+      dom.point.className  = 'item point' + className;
+      dom.dot.className  = 'item dot' + className;
+
+      this.dirty = true;
+    }
+
+    // recalculate size
+    if (this.dirty) {
+      this.width = dom.point.offsetWidth;
+      this.height = dom.point.offsetHeight;
+      this.props.dot.width = dom.dot.offsetWidth;
+      this.props.dot.height = dom.dot.offsetHeight;
+      this.props.content.height = dom.content.offsetHeight;
+
+      // resize contents
+      dom.content.style.marginLeft = 2 * this.props.dot.width + 'px';
+      //dom.content.style.marginRight = ... + 'px'; // TODO: margin right
+
+      dom.dot.style.top = ((this.height - this.props.dot.height) / 2) + 'px';
+      dom.dot.style.left = (this.props.dot.width / 2) + 'px';
+
+      this.dirty = false;
+    }
+
+    this._repaintDeleteButton(dom.point);
+  };
+
+  /**
+   * Show the item in the DOM (when not already visible). The items DOM will
+   * be created when needed.
+   */
+  ItemPoint.prototype.show = function() {
+    if (!this.displayed) {
+      this.redraw();
+    }
+  };
+
+  /**
+   * Hide the item from the DOM (when visible)
+   */
+  ItemPoint.prototype.hide = function() {
+    if (this.displayed) {
+      if (this.dom.point.parentNode) {
+        this.dom.point.parentNode.removeChild(this.dom.point);
+      }
+
+      this.top = null;
+      this.left = null;
+
+      this.displayed = false;
+    }
+  };
+
+  /**
+   * Reposition the item horizontally
+   * @Override
+   */
+  ItemPoint.prototype.repositionX = function() {
+    var start = this.conversion.toScreen(this.data.start);
+
+    this.left = start - this.props.dot.width;
+
+    // reposition point
+    this.dom.point.style.left = this.left + 'px';
+  };
+
+  /**
+   * Reposition the item vertically
+   * @Override
+   */
+  ItemPoint.prototype.repositionY = function() {
+    var orientation = this.options.orientation,
+        point = this.dom.point;
+
+    if (orientation == 'top') {
+      point.style.top = this.top + 'px';
+    }
+    else {
+      point.style.top = (this.parent.height - this.top - this.height) + 'px';
+    }
+  };
+
+  module.exports = ItemPoint;
+
+
+/***/ },
+/* 31 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var Emitter = __webpack_require__(12);
+  var Hammer = __webpack_require__(3);
+  var util = __webpack_require__(1);
+  var DataSet = __webpack_require__(9);
+  var DataView = __webpack_require__(10);
+  var Range = __webpack_require__(18);
+  var TimeAxis = __webpack_require__(20);
+  var CurrentTime = __webpack_require__(22);
+  var CustomTime = __webpack_require__(23);
+  var LineGraph = __webpack_require__(32);
+
+  /**
+   * Create a timeline visualization
+   * @param {HTMLElement} container
+   * @param {vis.DataSet | Array | google.visualization.DataTable} [items]
+   * @param {Object} [options]  See Graph2d.setOptions for the available options.
+   * @constructor
+   */
+  function Graph2d (container, items, options, groups) {
+    var me = this;
+    this.defaultOptions = {
+      start: null,
+      end:   null,
+
+      autoResize: true,
+
+      orientation: 'bottom',
+      width: null,
+      height: null,
+      maxHeight: null,
+      minHeight: null
+    };
+    this.options = util.deepExtend({}, this.defaultOptions);
+
+    // Create the DOM, props, and emitter
+    this._create(container);
+
+    // all components listed here will be repainted automatically
+    this.components = [];
+
+    this.body = {
+      dom: this.dom,
+      domProps: this.props,
+      emitter: {
+        on: this.on.bind(this),
+        off: this.off.bind(this),
+        emit: this.emit.bind(this)
+      },
+      util: {
+        snap: null, // will be specified after TimeAxis is created
+        toScreen: me._toScreen.bind(me),
+        toGlobalScreen: me._toGlobalScreen.bind(me), // this refers to the root.width
+        toTime: me._toTime.bind(me),
+        toGlobalTime : me._toGlobalTime.bind(me)
+      }
+    };
+
+    // range
+    this.range = new Range(this.body);
+    this.components.push(this.range);
+    this.body.range = this.range;
+
+    // time axis
+    this.timeAxis = new TimeAxis(this.body);
+    this.components.push(this.timeAxis);
+    this.body.util.snap = this.timeAxis.snap.bind(this.timeAxis);
+
+    // current time bar
+    this.currentTime = new CurrentTime(this.body);
+    this.components.push(this.currentTime);
+
+    // custom time bar
+    // Note: time bar will be attached in this.setOptions when selected
+    this.customTime = new CustomTime(this.body);
+    this.components.push(this.customTime);
+
+    // item set
+    this.linegraph = new LineGraph(this.body);
+    this.components.push(this.linegraph);
+
+    this.itemsData = null;      // DataSet
+    this.groupsData = null;     // DataSet
+
+    // apply options
+    if (options) {
+      this.setOptions(options);
+    }
+
+    // IMPORTANT: THIS HAPPENS BEFORE SET ITEMS!
+    if (groups) {
+      this.setGroups(groups);
+    }
+
+    // create itemset
+    if (items) {
+      this.setItems(items);
+    }
+    else {
+      this.redraw();
+    }
+  }
+
+  // turn Graph2d into an event emitter
+  Emitter(Graph2d.prototype);
+
+  /**
+   * Create the main DOM for the Graph2d: a root panel containing left, right,
+   * top, bottom, content, and background panel.
+   * @param {Element} container  The container element where the Graph2d will
+   *                             be attached.
+   * @private
+   */
+  Graph2d.prototype._create = function (container) {
+    this.dom = {};
+
+    this.dom.root                 = document.createElement('div');
+    this.dom.background           = document.createElement('div');
+    this.dom.backgroundVertical   = document.createElement('div');
+    this.dom.backgroundHorizontalContainer = document.createElement('div');
+    this.dom.centerContainer      = document.createElement('div');
+    this.dom.leftContainer        = document.createElement('div');
+    this.dom.rightContainer       = document.createElement('div');
+    this.dom.backgroundHorizontal = document.createElement('div');
+    this.dom.center               = document.createElement('div');
+    this.dom.left                 = document.createElement('div');
+    this.dom.right                = document.createElement('div');
+    this.dom.top                  = document.createElement('div');
+    this.dom.bottom               = document.createElement('div');
+    this.dom.shadowTop            = document.createElement('div');
+    this.dom.shadowBottom         = document.createElement('div');
+    this.dom.shadowTopLeft        = document.createElement('div');
+    this.dom.shadowBottomLeft     = document.createElement('div');
+    this.dom.shadowTopRight       = document.createElement('div');
+    this.dom.shadowBottomRight    = document.createElement('div');
+
+    this.dom.background.className           = 'vispanel background';
+    this.dom.backgroundVertical.className   = 'vispanel background vertical';
+    this.dom.backgroundHorizontalContainer.className = 'vispanel background horizontal';
+    this.dom.backgroundHorizontal.className = 'vispanel background horizontal';
+    this.dom.centerContainer.className      = 'vispanel center';
+    this.dom.leftContainer.className        = 'vispanel left';
+    this.dom.rightContainer.className       = 'vispanel right';
+    this.dom.top.className                  = 'vispanel top';
+    this.dom.bottom.className               = 'vispanel bottom';
+    this.dom.left.className                 = 'content';
+    this.dom.center.className               = 'content';
+    this.dom.right.className                = 'content';
+    this.dom.shadowTop.className            = 'shadow top';
+    this.dom.shadowBottom.className         = 'shadow bottom';
+    this.dom.shadowTopLeft.className        = 'shadow top';
+    this.dom.shadowBottomLeft.className     = 'shadow bottom';
+    this.dom.shadowTopRight.className       = 'shadow top';
+    this.dom.shadowBottomRight.className    = 'shadow bottom';
+
+    this.dom.root.appendChild(this.dom.background);
+    this.dom.root.appendChild(this.dom.backgroundVertical);
+    this.dom.root.appendChild(this.dom.backgroundHorizontalContainer);
+    this.dom.root.appendChild(this.dom.centerContainer);
+    this.dom.root.appendChild(this.dom.leftContainer);
+    this.dom.root.appendChild(this.dom.rightContainer);
+    this.dom.root.appendChild(this.dom.top);
+    this.dom.root.appendChild(this.dom.bottom);
+
+    this.dom.backgroundHorizontalContainer.appendChild(this.dom.backgroundHorizontal);
+    this.dom.centerContainer.appendChild(this.dom.center);
+    this.dom.leftContainer.appendChild(this.dom.left);
+    this.dom.rightContainer.appendChild(this.dom.right);
+
+    this.dom.centerContainer.appendChild(this.dom.shadowTop);
+    this.dom.centerContainer.appendChild(this.dom.shadowBottom);
+    this.dom.leftContainer.appendChild(this.dom.shadowTopLeft);
+    this.dom.leftContainer.appendChild(this.dom.shadowBottomLeft);
+    this.dom.rightContainer.appendChild(this.dom.shadowTopRight);
+    this.dom.rightContainer.appendChild(this.dom.shadowBottomRight);
+
+    this.on('rangechange', this.redraw.bind(this));
+    this.on('change', this.redraw.bind(this));
+    this.on('touch', this._onTouch.bind(this));
+    this.on('pinch', this._onPinch.bind(this));
+    this.on('dragstart', this._onDragStart.bind(this));
+    this.on('drag', this._onDrag.bind(this));
+
+    // create event listeners for all interesting events, these events will be
+    // emitted via emitter
+    this.hammer = Hammer(this.dom.root, {
+      prevent_default: true
+    });
+    this.listeners = {};
+
+    var me = this;
+    var events = [
+      'touch', 'pinch',
+      'tap', 'doubletap', 'hold',
+      'dragstart', 'drag', 'dragend',
+      'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is needed for Firefox
+    ];
+    events.forEach(function (event) {
+      var listener = function () {
+        var args = [event].concat(Array.prototype.slice.call(arguments, 0));
+        me.emit.apply(me, args);
+      };
+      me.hammer.on(event, listener);
+      me.listeners[event] = listener;
+    });
+
+    // size properties of each of the panels
+    this.props = {
+      root: {},
+      background: {},
+      centerContainer: {},
+      leftContainer: {},
+      rightContainer: {},
+      center: {},
+      left: {},
+      right: {},
+      top: {},
+      bottom: {},
+      border: {},
+      scrollTop: 0,
+      scrollTopMin: 0
+    };
+    this.touch = {}; // store state information needed for touch events
+
+    // attach the root panel to the provided container
+    if (!container) throw new Error('No container provided');
+    container.appendChild(this.dom.root);
+  };
+
+  /**
+   * Destroy the Graph2d, clean up all DOM elements and event listeners.
+   */
+  Graph2d.prototype.destroy = function () {
+    // unbind datasets
+    this.clear();
+
+    // remove all event listeners
+    this.off();
+
+    // stop checking for changed size
+    this._stopAutoResize();
+
+    // remove from DOM
+    if (this.dom.root.parentNode) {
+      this.dom.root.parentNode.removeChild(this.dom.root);
+    }
+    this.dom = null;
+
+    // cleanup hammer touch events
+    for (var event in this.listeners) {
+      if (this.listeners.hasOwnProperty(event)) {
+        delete this.listeners[event];
+      }
+    }
+    this.listeners = null;
+    this.hammer = null;
+
+    // give all components the opportunity to cleanup
+    this.components.forEach(function (component) {
+      component.destroy();
+    });
+
+    this.body = null;
+  };
+
+  /**
+   * Set options. Options will be passed to all components loaded in the Graph2d.
+   * @param {Object} [options]
+   *                           {String} orientation
+   *                              Vertical orientation for the Graph2d,
+   *                              can be 'bottom' (default) or 'top'.
+   *                           {String | Number} width
+   *                              Width for the timeline, a number in pixels or
+   *                              a css string like '1000px' or '75%'. '100%' by default.
+   *                           {String | Number} height
+   *                              Fixed height for the Graph2d, a number in pixels or
+   *                              a css string like '400px' or '75%'. If undefined,
+   *                              The Graph2d will automatically size such that
+   *                              its contents fit.
+   *                           {String | Number} minHeight
+   *                              Minimum height for the Graph2d, a number in pixels or
+   *                              a css string like '400px' or '75%'.
+   *                           {String | Number} maxHeight
+   *                              Maximum height for the Graph2d, a number in pixels or
+   *                              a css string like '400px' or '75%'.
+   *                           {Number | Date | String} start
+   *                              Start date for the visible window
+   *                           {Number | Date | String} end
+   *                              End date for the visible window
+   */
+  Graph2d.prototype.setOptions = function (options) {
+    if (options) {
+      // copy the known options
+      var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'orientation'];
+      util.selectiveExtend(fields, this.options, options);
+
+      // enable/disable autoResize
+      this._initAutoResize();
+    }
+
+    // propagate options to all components
+    this.components.forEach(function (component) {
+      component.setOptions(options);
+    });
+
+    // TODO: remove deprecation error one day (deprecated since version 0.8.0)
+    if (options && options.order) {
+      throw new Error('Option order is deprecated. There is no replacement for this feature.');
+    }
+
+    // redraw everything
+    this.redraw();
+  };
+
+  /**
+   * Set a custom time bar
+   * @param {Date} time
+   */
+  Graph2d.prototype.setCustomTime = function (time) {
+    if (!this.customTime) {
+      throw new Error('Cannot get custom time: Custom time bar is not enabled');
+    }
+
+    this.customTime.setCustomTime(time);
+  };
+
+  /**
+   * Retrieve the current custom time.
+   * @return {Date} customTime
+   */
+  Graph2d.prototype.getCustomTime = function() {
+    if (!this.customTime) {
+      throw new Error('Cannot get custom time: Custom time bar is not enabled');
+    }
+
+    return this.customTime.getCustomTime();
+  };
+
+  /**
+   * Set items
+   * @param {vis.DataSet | Array | google.visualization.DataTable | null} items
+   */
+  Graph2d.prototype.setItems = function(items) {
+    var initialLoad = (this.itemsData == null);
+
+    // convert to type DataSet when needed
+    var newDataSet;
+    if (!items) {
+      newDataSet = null;
+    }
+    else if (items instanceof DataSet || items instanceof DataView) {
+      newDataSet = items;
+    }
+    else {
+      // turn an array into a dataset
+      newDataSet = new DataSet(items, {
+        type: {
+          start: 'Date',
+          end: 'Date'
+        }
+      });
+    }
+
+    // set items
+    this.itemsData = newDataSet;
+    this.linegraph && this.linegraph.setItems(newDataSet);
+
+    if (initialLoad && ('start' in this.options || 'end' in this.options)) {
+      this.fit();
+
+      var start = ('start' in this.options) ? util.convert(this.options.start, 'Date') : null;
+      var end   = ('end' in this.options)   ? util.convert(this.options.end, 'Date') : null;
+
+      this.setWindow(start, end);
+    }
+  };
+
+  /**
+   * Set groups
+   * @param {vis.DataSet | Array | google.visualization.DataTable} groups
+   */
+  Graph2d.prototype.setGroups = function(groups) {
+    // convert to type DataSet when needed
+    var newDataSet;
+    if (!groups) {
+      newDataSet = null;
+    }
+    else if (groups instanceof DataSet || groups instanceof DataView) {
+      newDataSet = groups;
+    }
+    else {
+      // turn an array into a dataset
+      newDataSet = new DataSet(groups);
+    }
+
+    this.groupsData = newDataSet;
+    this.linegraph.setGroups(newDataSet);
+  };
+
+  /**
+   * Clear the Graph2d. By Default, items, groups and options are cleared.
+   * Example usage:
+   *
+   *     timeline.clear();                // clear items, groups, and options
+   *     timeline.clear({options: true}); // clear options only
+   *
+   * @param {Object} [what]      Optionally specify what to clear. By default:
+   *                             {items: true, groups: true, options: true}
+   */
+  Graph2d.prototype.clear = function(what) {
+    // clear items
+    if (!what || what.items) {
+      this.setItems(null);
+    }
+
+    // clear groups
+    if (!what || what.groups) {
+      this.setGroups(null);
+    }
+
+    // clear options of timeline and of each of the components
+    if (!what || what.options) {
+      this.components.forEach(function (component) {
+        component.setOptions(component.defaultOptions);
+      });
+
+      this.setOptions(this.defaultOptions); // this will also do a redraw
+    }
+  };
+
+  /**
+   * Set Graph2d window such that it fits all items
+   */
+  Graph2d.prototype.fit = function() {
+    // apply the data range as range
+    var dataRange = this.getItemRange();
+
+    // add 5% space on both sides
+    var start = dataRange.min;
+    var end = dataRange.max;
+    if (start != null && end != null) {
+      var interval = (end.valueOf() - start.valueOf());
+      if (interval <= 0) {
+        // prevent an empty interval
+        interval = 24 * 60 * 60 * 1000; // 1 day
+      }
+      start = new Date(start.valueOf() - interval * 0.05);
+      end = new Date(end.valueOf() + interval * 0.05);
+    }
+
+    // skip range set if there is no start and end date
+    if (start === null && end === null) {
+      return;
+    }
+
+    this.range.setRange(start, end);
+  };
+
+  /**
+   * Get the data range of the item set.
+   * @returns {{min: Date, max: Date}} range  A range with a start and end Date.
+   *                                          When no minimum is found, min==null
+   *                                          When no maximum is found, max==null
+   */
+  Graph2d.prototype.getItemRange = function() {
+    // calculate min from start filed
+    var itemsData = this.itemsData,
+      min = null,
+      max = null;
+
+    if (itemsData) {
+      // calculate the minimum value of the field 'start'
+      var minItem = itemsData.min('start');
+      min = minItem ? util.convert(minItem.start, 'Date').valueOf() : null;
+      // Note: we convert first to Date and then to number because else
+      // a conversion from ISODate to Number will fail
+
+      // calculate maximum value of fields 'start' and 'end'
+      var maxStartItem = itemsData.max('start');
+      if (maxStartItem) {
+        max = util.convert(maxStartItem.start, 'Date').valueOf();
+      }
+      var maxEndItem = itemsData.max('end');
+      if (maxEndItem) {
+        if (max == null) {
+          max = util.convert(maxEndItem.end, 'Date').valueOf();
+        }
+        else {
+          max = Math.max(max, util.convert(maxEndItem.end, 'Date').valueOf());
+        }
+      }
+    }
+
+    return {
+      min: (min != null) ? new Date(min) : null,
+      max: (max != null) ? new Date(max) : null
+    };
+  };
+
+  /**
+   * Set the visible window. Both parameters are optional, you can change only
+   * start or only end. Syntax:
+   *
+   *     TimeLine.setWindow(start, end)
+   *     TimeLine.setWindow(range)
+   *
+   * Where start and end can be a Date, number, or string, and range is an
+   * object with properties start and end.
+   *
+   * @param {Date | Number | String | Object} [start] Start date of visible window
+   * @param {Date | Number | String} [end]   End date of visible window
+   */
+  Graph2d.prototype.setWindow = function(start, end) {
+    if (arguments.length == 1) {
+      var range = arguments[0];
+      this.range.setRange(range.start, range.end);
+    }
+    else {
+      this.range.setRange(start, end);
+    }
+  };
+
+  /**
+   * Get the visible window
+   * @return {{start: Date, end: Date}}   Visible range
+   */
+  Graph2d.prototype.getWindow = function() {
+    var range = this.range.getRange();
+    return {
+      start: new Date(range.start),
+      end: new Date(range.end)
+    };
+  };
+
+  /**
+   * Force a redraw of the Graph2d. Can be useful to manually redraw when
+   * option autoResize=false
+   */
+  Graph2d.prototype.redraw = function() {
+    var resized = false,
+      options = this.options,
+      props = this.props,
+      dom = this.dom;
+
+    if (!dom) return; // when destroyed
+
+    // update class names
+    dom.root.className = 'vis timeline root ' + options.orientation;
+
+    // update root width and height options
+    dom.root.style.maxHeight = util.option.asSize(options.maxHeight, '');
+    dom.root.style.minHeight = util.option.asSize(options.minHeight, '');
+    dom.root.style.width = util.option.asSize(options.width, '');
+
+    // calculate border widths
+    props.border.left   = (dom.centerContainer.offsetWidth - dom.centerContainer.clientWidth) / 2;
+    props.border.right  = props.border.left;
+    props.border.top    = (dom.centerContainer.offsetHeight - dom.centerContainer.clientHeight) / 2;
+    props.border.bottom = props.border.top;
+    var borderRootHeight= dom.root.offsetHeight - dom.root.clientHeight;
+    var borderRootWidth = dom.root.offsetWidth - dom.root.clientWidth;
+
+    // calculate the heights. If any of the side panels is empty, we set the height to
+    // minus the border width, such that the border will be invisible
+    props.center.height = dom.center.offsetHeight;
+    props.left.height   = dom.left.offsetHeight;
+    props.right.height  = dom.right.offsetHeight;
+    props.top.height    = dom.top.clientHeight    || -props.border.top;
+    props.bottom.height = dom.bottom.clientHeight || -props.border.bottom;
+
+    // TODO: compensate borders when any of the panels is empty.
+
+    // apply auto height
+    // TODO: only calculate autoHeight when needed (else we cause an extra reflow/repaint of the DOM)
+    var contentHeight = Math.max(props.left.height, props.center.height, props.right.height);
+    var autoHeight = props.top.height + contentHeight + props.bottom.height +
+      borderRootHeight + props.border.top + props.border.bottom;
+    dom.root.style.height = util.option.asSize(options.height, autoHeight + 'px');
+
+    // calculate heights of the content panels
+    props.root.height = dom.root.offsetHeight;
+    props.background.height = props.root.height - borderRootHeight;
+    var containerHeight = props.root.height - props.top.height - props.bottom.height -
+      borderRootHeight;
+    props.centerContainer.height  = containerHeight;
+    props.leftContainer.height    = containerHeight;
+    props.rightContainer.height   = props.leftContainer.height;
+
+    // calculate the widths of the panels
+    props.root.width = dom.root.offsetWidth;
+    props.background.width = props.root.width - borderRootWidth;
+    props.left.width = dom.leftContainer.clientWidth   || -props.border.left;
+    props.leftContainer.width = props.left.width;
+    props.right.width = dom.rightContainer.clientWidth || -props.border.right;
+    props.rightContainer.width = props.right.width;
+    var centerWidth = props.root.width - props.left.width - props.right.width - borderRootWidth;
+    props.center.width          = centerWidth;
+    props.centerContainer.width = centerWidth;
+    props.top.width             = centerWidth;
+    props.bottom.width          = centerWidth;
+
+    // resize the panels
+    dom.background.style.height           = props.background.height + 'px';
+    dom.backgroundVertical.style.height   = props.background.height + 'px';
+    dom.backgroundHorizontalContainer.style.height = props.centerContainer.height + 'px';
+    dom.centerContainer.style.height      = props.centerContainer.height + 'px';
+    dom.leftContainer.style.height        = props.leftContainer.height + 'px';
+    dom.rightContainer.style.height       = props.rightContainer.height + 'px';
+
+    dom.background.style.width            = props.background.width + 'px';
+    dom.backgroundVertical.style.width    = props.centerContainer.width + 'px';
+    dom.backgroundHorizontalContainer.style.width  = props.background.width + 'px';
+    dom.backgroundHorizontal.style.width  = props.background.width + 'px';
+    dom.centerContainer.style.width       = props.center.width + 'px';
+    dom.top.style.width                   = props.top.width + 'px';
+    dom.bottom.style.width                = props.bottom.width + 'px';
+
+    // reposition the panels
+    dom.background.style.left           = '0';
+    dom.background.style.top            = '0';
+    dom.backgroundVertical.style.left   = props.left.width + 'px';
+    dom.backgroundVertical.style.top    = '0';
+    dom.backgroundHorizontalContainer.style.left = '0';
+    dom.backgroundHorizontalContainer.style.top  = props.top.height + 'px';
+    dom.centerContainer.style.left      = props.left.width + 'px';
+    dom.centerContainer.style.top       = props.top.height + 'px';
+    dom.leftContainer.style.left        = '0';
+    dom.leftContainer.style.top         = props.top.height + 'px';
+    dom.rightContainer.style.left       = (props.left.width + props.center.width) + 'px';
+    dom.rightContainer.style.top        = props.top.height + 'px';
+    dom.top.style.left                  = props.left.width + 'px';
+    dom.top.style.top                   = '0';
+    dom.bottom.style.left               = props.left.width + 'px';
+    dom.bottom.style.top                = (props.top.height + props.centerContainer.height) + 'px';
+
+    // update the scrollTop, feasible range for the offset can be changed
+    // when the height of the Graph2d or of the contents of the center changed
+    this._updateScrollTop();
+
+    // reposition the scrollable contents
+    var offset = this.props.scrollTop;
+    if (options.orientation == 'bottom') {
+      offset += Math.max(this.props.centerContainer.height - this.props.center.height -
+          this.props.border.top - this.props.border.bottom, 0);
+    }
+    dom.center.style.left = '0';
+    dom.center.style.top  = offset + 'px';
+    dom.backgroundHorizontal.style.left = '0';
+    dom.backgroundHorizontal.style.top  = offset + 'px';
+    dom.left.style.left   = '0';
+    dom.left.style.top    = offset + 'px';
+    dom.right.style.left  = '0';
+    dom.right.style.top   = offset + 'px';
+
+    // show shadows when vertical scrolling is available
+    var visibilityTop = this.props.scrollTop == 0 ? 'hidden' : '';
+    var visibilityBottom = this.props.scrollTop == this.props.scrollTopMin ? 'hidden' : '';
+    dom.shadowTop.style.visibility          = visibilityTop;
+    dom.shadowBottom.style.visibility       = visibilityBottom;
+    dom.shadowTopLeft.style.visibility      = visibilityTop;
+    dom.shadowBottomLeft.style.visibility   = visibilityBottom;
+    dom.shadowTopRight.style.visibility     = visibilityTop;
+    dom.shadowBottomRight.style.visibility  = visibilityBottom;
+
+    // redraw all components
+    this.components.forEach(function (component) {
+      resized = component.redraw() || resized;
+    });
+    if (resized) {
+      // keep redrawing until all sizes are settled
+      this.redraw();
+    }
+  };
+
+  /**
+   * Convert a position on screen (pixels) to a datetime
+   * @param {int}     x    Position on the screen in pixels
+   * @return {Date}   time The datetime the corresponds with given position x
+   * @private
+   */
+  // TODO: move this function to Range
+  Graph2d.prototype._toTime = function(x) {
+    var conversion = this.range.conversion(this.props.center.width);
+    return new Date(x / conversion.scale + conversion.offset);
+  };
+
+  /**
+   * Convert a datetime (Date object) into a position on the root
+   * This is used to get the pixel density estimate for the screen, not the center panel
+   * @param {Date}   time A date
+   * @return {int}   x    The position on root in pixels which corresponds
+   *                      with the given date.
+   * @private
+   */
+  // TODO: move this function to Range
+  Graph2d.prototype._toGlobalTime = function(x) {
+    var conversion = this.range.conversion(this.props.root.width);
+    return new Date(x / conversion.scale + conversion.offset);
+  };
+
+  /**
+   * Convert a datetime (Date object) into a position on the screen
+   * @param {Date}   time A date
+   * @return {int}   x    The position on the screen in pixels which corresponds
+   *                      with the given date.
+   * @private
+   */
+  // TODO: move this function to Range
+  Graph2d.prototype._toScreen = function(time) {
+    var conversion = this.range.conversion(this.props.center.width);
+    return (time.valueOf() - conversion.offset) * conversion.scale;
+  };
+
+
+  /**
+   * Convert a datetime (Date object) into a position on the root
+   * This is used to get the pixel density estimate for the screen, not the center panel
+   * @param {Date}   time A date
+   * @return {int}   x    The position on root in pixels which corresponds
+   *                      with the given date.
+   * @private
+   */
+  // TODO: move this function to Range
+  Graph2d.prototype._toGlobalScreen = function(time) {
+    var conversion = this.range.conversion(this.props.root.width);
+    return (time.valueOf() - conversion.offset) * conversion.scale;
+  };
+
+  /**
+   * Initialize watching when option autoResize is true
+   * @private
+   */
+  Graph2d.prototype._initAutoResize = function () {
+    if (this.options.autoResize == true) {
+      this._startAutoResize();
+    }
+    else {
+      this._stopAutoResize();
+    }
+  };
+
+  /**
+   * Watch for changes in the size of the container. On resize, the Panel will
+   * automatically redraw itself.
+   * @private
+   */
+  Graph2d.prototype._startAutoResize = function () {
+    var me = this;
+
+    this._stopAutoResize();
+
+    this._onResize = function() {
+      if (me.options.autoResize != true) {
+        // stop watching when the option autoResize is changed to false
+        me._stopAutoResize();
+        return;
+      }
+
+      if (me.dom.root) {
+        // check whether the frame is resized
+        if ((me.dom.root.clientWidth != me.props.lastWidth) ||
+          (me.dom.root.clientHeight != me.props.lastHeight)) {
+          me.props.lastWidth = me.dom.root.clientWidth;
+          me.props.lastHeight = me.dom.root.clientHeight;
+
+          me.emit('change');
+        }
+      }
+    };
+
+    // add event listener to window resize
+    util.addEventListener(window, 'resize', this._onResize);
+
+    this.watchTimer = setInterval(this._onResize, 1000);
+  };
+
+  /**
+   * Stop watching for a resize of the frame.
+   * @private
+   */
+  Graph2d.prototype._stopAutoResize = function () {
+    if (this.watchTimer) {
+      clearInterval(this.watchTimer);
+      this.watchTimer = undefined;
+    }
+
+    // remove event listener on window.resize
+    util.removeEventListener(window, 'resize', this._onResize);
+    this._onResize = null;
+  };
+
+  /**
+   * Start moving the timeline vertically
+   * @param {Event} event
+   * @private
+   */
+  Graph2d.prototype._onTouch = function (event) {
+    this.touch.allowDragging = true;
+  };
+
+  /**
+   * Start moving the timeline vertically
+   * @param {Event} event
+   * @private
+   */
+  Graph2d.prototype._onPinch = function (event) {
+    this.touch.allowDragging = false;
+  };
+
+  /**
+   * Start moving the timeline vertically
+   * @param {Event} event
+   * @private
+   */
+  Graph2d.prototype._onDragStart = function (event) {
+    this.touch.initialScrollTop = this.props.scrollTop;
+  };
+
+  /**
+   * Move the timeline vertically
+   * @param {Event} event
+   * @private
+   */
+  Graph2d.prototype._onDrag = function (event) {
+    // refuse to drag when we where pinching to prevent the timeline make a jump
+    // when releasing the fingers in opposite order from the touch screen
+    if (!this.touch.allowDragging) return;
+
+    var delta = event.gesture.deltaY;
+
+    var oldScrollTop = this._getScrollTop();
+    var newScrollTop = this._setScrollTop(this.touch.initialScrollTop + delta);
+
+    if (newScrollTop != oldScrollTop) {
+      this.redraw(); // TODO: this causes two redraws when dragging, the other is triggered by rangechange already
+    }
+  };
+
+  /**
+   * Apply a scrollTop
+   * @param {Number} scrollTop
+   * @returns {Number} scrollTop  Returns the applied scrollTop
+   * @private
+   */
+  Graph2d.prototype._setScrollTop = function (scrollTop) {
+    this.props.scrollTop = scrollTop;
+    this._updateScrollTop();
+    return this.props.scrollTop;
+  };
+
+  /**
+   * Update the current scrollTop when the height of  the containers has been changed
+   * @returns {Number} scrollTop  Returns the applied scrollTop
+   * @private
+   */
+  Graph2d.prototype._updateScrollTop = function () {
+    // recalculate the scrollTopMin
+    var scrollTopMin = Math.min(this.props.centerContainer.height - this.props.center.height, 0); // is negative or zero
+    if (scrollTopMin != this.props.scrollTopMin) {
+      // in case of bottom orientation, change the scrollTop such that the contents
+      // do not move relative to the time axis at the bottom
+      if (this.options.orientation == 'bottom') {
+        this.props.scrollTop += (scrollTopMin - this.props.scrollTopMin);
+      }
+      this.props.scrollTopMin = scrollTopMin;
+    }
+
+    // limit the scrollTop to the feasible scroll range
+    if (this.props.scrollTop > 0) this.props.scrollTop = 0;
+    if (this.props.scrollTop < scrollTopMin) this.props.scrollTop = scrollTopMin;
+
+    return this.props.scrollTop;
+  };
+
+  /**
+   * Get the current scrollTop
+   * @returns {number} scrollTop
+   * @private
+   */
+  Graph2d.prototype._getScrollTop = function () {
+    return this.props.scrollTop;
+  };
+
+  module.exports = Graph2d;
+
+
+/***/ },
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var DOMutil = __webpack_require__(2);
-  var DataSet = __webpack_require__(3);
-  var DataView = __webpack_require__(4);
-  var Component = __webpack_require__(12);
-  var DataAxis = __webpack_require__(15);
-  var GraphGroup = __webpack_require__(16);
-  var Legend = __webpack_require__(19);
+  var DOMutil = __webpack_require__(8);
+  var DataSet = __webpack_require__(9);
+  var DataView = __webpack_require__(10);
+  var Component = __webpack_require__(19);
+  var DataAxis = __webpack_require__(33);
+  var GraphGroup = __webpack_require__(35);
+  var Legend = __webpack_require__(36);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -12930,391 +18110,471 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 21 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Component = __webpack_require__(12);
-  var TimeStep = __webpack_require__(11);
+  var DOMutil = __webpack_require__(8);
+  var Component = __webpack_require__(19);
+  var DataStep = __webpack_require__(34);
 
   /**
    * A horizontal time axis
-   * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} body
-   * @param {Object} [options]        See TimeAxis.setOptions for the available
+   * @param {Object} [options]        See DataAxis.setOptions for the available
    *                                  options.
-   * @constructor TimeAxis
+   * @constructor DataAxis
    * @extends Component
+   * @param body
    */
-  function TimeAxis (body, options) {
-    this.dom = {
-      foreground: null,
-      majorLines: [],
-      majorTexts: [],
-      minorLines: [],
-      minorTexts: [],
-      redundant: {
-        majorLines: [],
-        majorTexts: [],
-        minorLines: [],
-        minorTexts: []
-      }
-    };
-    this.props = {
-      range: {
-        start: 0,
-        end: 0,
-        minimumStep: 0
-      },
-      lineTop: 0
-    };
+  function DataAxis (body, options, svg) {
+    this.id = util.randomUUID();
+    this.body = body;
 
     this.defaultOptions = {
-      orientation: 'bottom',  // supported: 'top', 'bottom'
-      // TODO: implement timeaxis orientations 'left' and 'right'
+      orientation: 'left',  // supported: 'left', 'right'
       showMinorLabels: true,
-      showMajorLabels: true
+      showMajorLabels: true,
+      icons: true,
+      majorLinesOffset: 7,
+      minorLinesOffset: 4,
+      labelOffsetX: 10,
+      labelOffsetY: 2,
+      iconWidth: 20,
+      width: '40px',
+      visible: true
     };
-    this.options = util.extend({}, this.defaultOptions);
 
-    this.body = body;
+    this.linegraphSVG = svg;
+    this.props = {};
+    this.DOMelements = { // dynamic elements
+      lines: {},
+      labels: {}
+    };
+
+    this.dom = {};
+
+    this.range = {start:0, end:0};
+
+    this.options = util.extend({}, this.defaultOptions);
+    this.conversionFactor = 1;
+
+    this.setOptions(options);
+    this.width = Number(('' + this.options.width).replace("px",""));
+    this.minWidth = this.width;
+    this.height = this.linegraphSVG.offsetHeight;
+
+    this.stepPixels = 25;
+    this.stepPixelsForced = 25;
+    this.lineOffset = 0;
+    this.master = true;
+    this.svgElements = {};
+
+
+    this.groups = {};
+    this.amountOfGroups = 0;
 
     // create the HTML DOM
     this._create();
-
-    this.setOptions(options);
   }
 
-  TimeAxis.prototype = new Component();
+  DataAxis.prototype = new Component();
 
-  /**
-   * Set options for the TimeAxis.
-   * Parameters will be merged in current options.
-   * @param {Object} options  Available options:
-   *                          {string} [orientation]
-   *                          {boolean} [showMinorLabels]
-   *                          {boolean} [showMajorLabels]
-   */
-  TimeAxis.prototype.setOptions = function(options) {
+
+
+  DataAxis.prototype.addGroup = function(label, graphOptions) {
+    if (!this.groups.hasOwnProperty(label)) {
+      this.groups[label] = graphOptions;
+    }
+    this.amountOfGroups += 1;
+  };
+
+  DataAxis.prototype.updateGroup = function(label, graphOptions) {
+    this.groups[label] = graphOptions;
+  };
+
+  DataAxis.prototype.removeGroup = function(label) {
+    if (this.groups.hasOwnProperty(label)) {
+      delete this.groups[label];
+      this.amountOfGroups -= 1;
+    }
+  };
+
+
+  DataAxis.prototype.setOptions = function (options) {
     if (options) {
-      // copy all options that we know
-      util.selectiveExtend(['orientation', 'showMinorLabels', 'showMajorLabels'], this.options, options);
+      var redraw = false;
+      if (this.options.orientation != options.orientation && options.orientation !== undefined) {
+        redraw = true;
+      }
+      var fields = [
+        'orientation',
+        'showMinorLabels',
+        'showMajorLabels',
+        'icons',
+        'majorLinesOffset',
+        'minorLinesOffset',
+        'labelOffsetX',
+        'labelOffsetY',
+        'iconWidth',
+        'width',
+        'visible'];
+      util.selectiveExtend(fields, this.options, options);
+
+      this.minWidth = Number(('' + this.options.width).replace("px",""));
+
+      if (redraw == true && this.dom.frame) {
+        this.hide();
+        this.show();
+      }
+    }
+  };
+
+
+  /**
+   * Create the HTML DOM for the DataAxis
+   */
+  DataAxis.prototype._create = function() {
+    this.dom.frame = document.createElement('div');
+    this.dom.frame.style.width = this.options.width;
+    this.dom.frame.style.height = this.height;
+
+    this.dom.lineContainer = document.createElement('div');
+    this.dom.lineContainer.style.width = '100%';
+    this.dom.lineContainer.style.height = this.height;
+
+    // create svg element for graph drawing.
+    this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
+    this.svg.style.position = "absolute";
+    this.svg.style.top = '0px';
+    this.svg.style.height = '100%';
+    this.svg.style.width = '100%';
+    this.svg.style.display = "block";
+    this.dom.frame.appendChild(this.svg);
+  };
+
+  DataAxis.prototype._redrawGroupIcons = function () {
+    DOMutil.prepareElements(this.svgElements);
+
+    var x;
+    var iconWidth = this.options.iconWidth;
+    var iconHeight = 15;
+    var iconOffset = 4;
+    var y = iconOffset + 0.5 * iconHeight;
+
+    if (this.options.orientation == 'left') {
+      x = iconOffset;
+    }
+    else {
+      x = this.width - iconWidth - iconOffset;
+    }
+
+    for (var groupId in this.groups) {
+      if (this.groups.hasOwnProperty(groupId)) {
+        this.groups[groupId].drawIcon(x, y, this.svgElements, this.svg, iconWidth, iconHeight);
+        y += iconHeight + iconOffset;
+      }
+    }
+
+    DOMutil.cleanupElements(this.svgElements);
+  };
+
+  /**
+   * Create the HTML DOM for the DataAxis
+   */
+  DataAxis.prototype.show = function() {
+    if (!this.dom.frame.parentNode) {
+      if (this.options.orientation == 'left') {
+        this.body.dom.left.appendChild(this.dom.frame);
+      }
+      else {
+        this.body.dom.right.appendChild(this.dom.frame);
+      }
+    }
+
+    if (!this.dom.lineContainer.parentNode) {
+      this.body.dom.backgroundHorizontal.appendChild(this.dom.lineContainer);
     }
   };
 
   /**
-   * Create the HTML DOM for the TimeAxis
+   * Create the HTML DOM for the DataAxis
    */
-  TimeAxis.prototype._create = function() {
-    this.dom.foreground = document.createElement('div');
-    this.dom.background = document.createElement('div');
+  DataAxis.prototype.hide = function() {
+    if (this.dom.frame.parentNode) {
+      this.dom.frame.parentNode.removeChild(this.dom.frame);
+    }
 
-    this.dom.foreground.className = 'timeaxis foreground';
-    this.dom.background.className = 'timeaxis background';
+    if (this.dom.lineContainer.parentNode) {
+      this.dom.lineContainer.parentNode.removeChild(this.dom.lineContainer);
+    }
   };
 
   /**
-   * Destroy the TimeAxis
+   * Set a range (start and end)
+   * @param end
+   * @param start
+   * @param end
    */
-  TimeAxis.prototype.destroy = function() {
-    // remove from DOM
-    if (this.dom.foreground.parentNode) {
-      this.dom.foreground.parentNode.removeChild(this.dom.foreground);
-    }
-    if (this.dom.background.parentNode) {
-      this.dom.background.parentNode.removeChild(this.dom.background);
-    }
-
-    this.body = null;
+  DataAxis.prototype.setRange = function (start, end) {
+    this.range.start = start;
+    this.range.end = end;
   };
 
   /**
    * Repaint the component
    * @return {boolean} Returns true if the component is resized
    */
-  TimeAxis.prototype.redraw = function () {
-    var options = this.options,
-        props = this.props,
-        foreground = this.dom.foreground,
-        background = this.dom.background;
-
-    // determine the correct parent DOM element (depending on option orientation)
-    var parent = (options.orientation == 'top') ? this.body.dom.top : this.body.dom.bottom;
-    var parentChanged = (foreground.parentNode !== parent);
-
-    // calculate character width and height
-    this._calculateCharSize();
-
-    // TODO: recalculate sizes only needed when parent is resized or options is changed
-    var orientation = this.options.orientation,
-        showMinorLabels = this.options.showMinorLabels,
-        showMajorLabels = this.options.showMajorLabels;
-
-    // determine the width and height of the elemens for the axis
-    props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
-    props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
-    props.height = props.minorLabelHeight + props.majorLabelHeight;
-    props.width = foreground.offsetWidth;
-
-    props.minorLineHeight = this.body.domProps.root.height - props.majorLabelHeight -
-        (options.orientation == 'top' ? this.body.domProps.bottom.height : this.body.domProps.top.height);
-    props.minorLineWidth = 1; // TODO: really calculate width
-    props.majorLineHeight = props.minorLineHeight + props.majorLabelHeight;
-    props.majorLineWidth = 1; // TODO: really calculate width
-
-    //  take foreground and background offline while updating (is almost twice as fast)
-    var foregroundNextSibling = foreground.nextSibling;
-    var backgroundNextSibling = background.nextSibling;
-    foreground.parentNode && foreground.parentNode.removeChild(foreground);
-    background.parentNode && background.parentNode.removeChild(background);
-
-    foreground.style.height = this.props.height + 'px';
-
-    this._repaintLabels();
-
-    // put DOM online again (at the same place)
-    if (foregroundNextSibling) {
-      parent.insertBefore(foreground, foregroundNextSibling);
+  DataAxis.prototype.redraw = function () {
+    var changeCalled = false;
+    if (this.amountOfGroups == 0) {
+      this.hide();
     }
     else {
-      parent.appendChild(foreground)
-    }
-    if (backgroundNextSibling) {
-      this.body.dom.backgroundVertical.insertBefore(background, backgroundNextSibling);
-    }
-    else {
-      this.body.dom.backgroundVertical.appendChild(background)
-    }
+      this.show();
+      this.height = Number(this.linegraphSVG.style.height.replace("px",""));
+      // svg offsetheight did not work in firefox and explorer...
 
-    return this._isResized() || parentChanged;
+      this.dom.lineContainer.style.height = this.height + 'px';
+      this.width = this.options.visible == true ? Number(('' + this.options.width).replace("px","")) : 0;
+
+      var props = this.props;
+      var frame = this.dom.frame;
+
+      // update classname
+      frame.className = 'dataaxis';
+
+      // calculate character width and height
+      this._calculateCharSize();
+
+      var orientation = this.options.orientation;
+      var showMinorLabels = this.options.showMinorLabels;
+      var showMajorLabels = this.options.showMajorLabels;
+
+      // determine the width and height of the elemens for the axis
+      props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
+      props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
+
+      props.minorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2 * this.options.minorLinesOffset;
+      props.minorLineHeight = 1;
+      props.majorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2 * this.options.majorLinesOffset;
+      props.majorLineHeight = 1;
+
+      //  take frame offline while updating (is almost twice as fast)
+      if (orientation == 'left') {
+        frame.style.top = '0';
+        frame.style.left = '0';
+        frame.style.bottom = '';
+        frame.style.width = this.width + 'px';
+        frame.style.height = this.height + "px";
+      }
+      else { // right
+        frame.style.top = '';
+        frame.style.bottom = '0';
+        frame.style.left = '0';
+        frame.style.width = this.width + 'px';
+        frame.style.height = this.height + "px";
+      }
+      changeCalled = this._redrawLabels();
+      if (this.options.icons == true) {
+        this._redrawGroupIcons();
+      }
+    }
+    return changeCalled;
   };
 
   /**
    * Repaint major and minor text labels and vertical grid lines
    * @private
    */
-  TimeAxis.prototype._repaintLabels = function () {
-    var orientation = this.options.orientation;
+  DataAxis.prototype._redrawLabels = function () {
+    DOMutil.prepareElements(this.DOMelements);
+
+    var orientation = this.options['orientation'];
 
     // calculate range and step (step such that we have space for 7 characters per label)
-    var start = util.convert(this.body.range.start, 'Number'),
-        end = util.convert(this.body.range.end, 'Number'),
-        minimumStep = this.body.util.toTime((this.props.minorCharWidth || 10) * 7).valueOf()
-            -this.body.util.toTime(0).valueOf();
-    var step = new TimeStep(new Date(start), new Date(end), minimumStep);
+    var minimumStep = this.master ? this.props.majorCharHeight || 10 : this.stepPixelsForced;
+    var step = new DataStep(this.range.start, this.range.end, minimumStep, this.dom.frame.offsetHeight);
     this.step = step;
-
-    // Move all DOM elements to a "redundant" list, where they
-    // can be picked for re-use, and clear the lists with lines and texts.
-    // At the end of the function _repaintLabels, left over elements will be cleaned up
-    var dom = this.dom;
-    dom.redundant.majorLines = dom.majorLines;
-    dom.redundant.majorTexts = dom.majorTexts;
-    dom.redundant.minorLines = dom.minorLines;
-    dom.redundant.minorTexts = dom.minorTexts;
-    dom.majorLines = [];
-    dom.majorTexts = [];
-    dom.minorLines = [];
-    dom.minorTexts = [];
-
     step.first();
-    var xFirstMajorLabel = undefined;
-    var max = 0;
-    while (step.hasNext() && max < 1000) {
-      max++;
-      var cur = step.getCurrent(),
-          x = this.body.util.toScreen(cur),
-          isMajor = step.isMajor();
 
-      // TODO: lines must have a width, such that we can create css backgrounds
+    // get the distance in pixels for a step
+    var stepPixels = this.dom.frame.offsetHeight / ((step.marginRange / step.step) + 1);
+    this.stepPixels = stepPixels;
 
-      if (this.options.showMinorLabels) {
-        this._repaintMinorText(x, step.getLabelMinor(), orientation);
+    var amountOfSteps = this.height / stepPixels;
+    var stepDifference = 0;
+
+    if (this.master == false) {
+      stepPixels = this.stepPixelsForced;
+      stepDifference = Math.round((this.height / stepPixels) - amountOfSteps);
+      for (var i = 0; i < 0.5 * stepDifference; i++) {
+        step.previous();
+      }
+      amountOfSteps = this.height / stepPixels;
+    }
+
+
+    this.valueAtZero = step.marginEnd;
+    var marginStartPos = 0;
+
+    // do not draw the first label
+    var max = 1;
+    step.next();
+
+    this.maxLabelSize = 0;
+    var y = 0;
+    while (max < Math.round(amountOfSteps)) {
+
+      y = Math.round(max * stepPixels);
+      marginStartPos = max * stepPixels;
+      var isMajor = step.isMajor();
+
+      if (this.options['showMinorLabels'] && isMajor == false || this.master == false && this.options['showMinorLabels'] == true) {
+        this._redrawLabel(y - 2, step.getCurrent(), orientation, 'yAxis minor', this.props.minorCharHeight);
       }
 
-      if (isMajor && this.options.showMajorLabels) {
-        if (x > 0) {
-          if (xFirstMajorLabel == undefined) {
-            xFirstMajorLabel = x;
-          }
-          this._repaintMajorText(x, step.getLabelMajor(), orientation);
+      if (isMajor && this.options['showMajorLabels'] && this.master == true ||
+          this.options['showMinorLabels'] == false && this.master == false && isMajor == true) {
+
+        if (y >= 0) {
+          this._redrawLabel(y - 2, step.getCurrent(), orientation, 'yAxis major', this.props.majorCharHeight);
         }
-        this._repaintMajorLine(x, orientation);
+        this._redrawLine(y, orientation, 'grid horizontal major', this.options.majorLinesOffset, this.props.majorLineWidth);
       }
       else {
-        this._repaintMinorLine(x, orientation);
+        this._redrawLine(y, orientation, 'grid horizontal minor', this.options.minorLinesOffset, this.props.minorLineWidth);
       }
 
       step.next();
+      max++;
     }
 
-    // create a major label on the left when needed
-    if (this.options.showMajorLabels) {
-      var leftTime = this.body.util.toTime(0),
-          leftText = step.getLabelMajor(leftTime),
-          widthText = leftText.length * (this.props.majorCharWidth || 10) + 10; // upper bound estimation
+    this.conversionFactor = marginStartPos/((amountOfSteps-1) * step.step);
 
-      if (xFirstMajorLabel == undefined || widthText < xFirstMajorLabel) {
-        this._repaintMajorText(0, leftText, orientation);
-      }
+    var offset = this.options.icons == true ? this.options.iconWidth + this.options.labelOffsetX + 15 : this.options.labelOffsetX + 15;
+    // this will resize the yAxis to accomodate the labels.
+    if (this.maxLabelSize > (this.width - offset) && this.options.visible == true) {
+      this.width = this.maxLabelSize + offset;
+      this.options.width = this.width + "px";
+      DOMutil.cleanupElements(this.DOMelements);
+      this.redraw();
+      return true;
     }
-
-    // Cleanup leftover DOM elements from the redundant list
-    util.forEach(this.dom.redundant, function (arr) {
-      while (arr.length) {
-        var elem = arr.pop();
-        if (elem && elem.parentNode) {
-          elem.parentNode.removeChild(elem);
-        }
-      }
-    });
-  };
-
-  /**
-   * Create a minor label for the axis at position x
-   * @param {Number} x
-   * @param {String} text
-   * @param {String} orientation   "top" or "bottom" (default)
-   * @private
-   */
-  TimeAxis.prototype._repaintMinorText = function (x, text, orientation) {
-    // reuse redundant label
-    var label = this.dom.redundant.minorTexts.shift();
-
-    if (!label) {
-      // create new label
-      var content = document.createTextNode('');
-      label = document.createElement('div');
-      label.appendChild(content);
-      label.className = 'text minor';
-      this.dom.foreground.appendChild(label);
-    }
-    this.dom.minorTexts.push(label);
-
-    label.childNodes[0].nodeValue = text;
-
-    label.style.top = (orientation == 'top') ? (this.props.majorLabelHeight + 'px') : '0';
-    label.style.left = x + 'px';
-    //label.title = title;  // TODO: this is a heavy operation
-  };
-
-  /**
-   * Create a Major label for the axis at position x
-   * @param {Number} x
-   * @param {String} text
-   * @param {String} orientation   "top" or "bottom" (default)
-   * @private
-   */
-  TimeAxis.prototype._repaintMajorText = function (x, text, orientation) {
-    // reuse redundant label
-    var label = this.dom.redundant.majorTexts.shift();
-
-    if (!label) {
-      // create label
-      var content = document.createTextNode(text);
-      label = document.createElement('div');
-      label.className = 'text major';
-      label.appendChild(content);
-      this.dom.foreground.appendChild(label);
-    }
-    this.dom.majorTexts.push(label);
-
-    label.childNodes[0].nodeValue = text;
-    //label.title = title; // TODO: this is a heavy operation
-
-    label.style.top = (orientation == 'top') ? '0' : (this.props.minorLabelHeight  + 'px');
-    label.style.left = x + 'px';
-  };
-
-  /**
-   * Create a minor line for the axis at position x
-   * @param {Number} x
-   * @param {String} orientation   "top" or "bottom" (default)
-   * @private
-   */
-  TimeAxis.prototype._repaintMinorLine = function (x, orientation) {
-    // reuse redundant line
-    var line = this.dom.redundant.minorLines.shift();
-
-    if (!line) {
-      // create vertical line
-      line = document.createElement('div');
-      line.className = 'grid vertical minor';
-      this.dom.background.appendChild(line);
-    }
-    this.dom.minorLines.push(line);
-
-    var props = this.props;
-    if (orientation == 'top') {
-      line.style.top = props.majorLabelHeight + 'px';
+    // this will resize the yAxis if it is too big for the labels.
+    else if (this.maxLabelSize < (this.width - offset) && this.options.visible == true && this.width > this.minWidth) {
+      this.width = Math.max(this.minWidth,this.maxLabelSize + offset);
+      this.options.width = this.width + "px";
+      DOMutil.cleanupElements(this.DOMelements);
+      this.redraw();
+      return true;
     }
     else {
-      line.style.top = this.body.domProps.top.height + 'px';
+      DOMutil.cleanupElements(this.DOMelements);
+      return false;
     }
-    line.style.height = props.minorLineHeight + 'px';
-    line.style.left = (x - props.minorLineWidth / 2) + 'px';
   };
 
   /**
-   * Create a Major line for the axis at position x
-   * @param {Number} x
-   * @param {String} orientation   "top" or "bottom" (default)
+   * Create a label for the axis at position x
    * @private
+   * @param y
+   * @param text
+   * @param orientation
+   * @param className
+   * @param characterHeight
    */
-  TimeAxis.prototype._repaintMajorLine = function (x, orientation) {
-    // reuse redundant line
-    var line = this.dom.redundant.majorLines.shift();
+  DataAxis.prototype._redrawLabel = function (y, text, orientation, className, characterHeight) {
+    // reuse redundant label
+    var label = DOMutil.getDOMElement('div',this.DOMelements, this.dom.frame); //this.dom.redundant.labels.shift();
+    label.className = className;
+    label.innerHTML = text;
 
-    if (!line) {
-      // create vertical line
-      line = document.createElement('DIV');
-      line.className = 'grid vertical major';
-      this.dom.background.appendChild(line);
-    }
-    this.dom.majorLines.push(line);
-
-    var props = this.props;
-    if (orientation == 'top') {
-      line.style.top = '0';
+    if (orientation == 'left') {
+      label.style.left = '-' + this.options.labelOffsetX + 'px';
+      label.style.textAlign = "right";
     }
     else {
-      line.style.top = this.body.domProps.top.height + 'px';
+      label.style.right = '-' + this.options.labelOffsetX + 'px';
+      label.style.textAlign = "left";
     }
-    line.style.left = (x - props.majorLineWidth / 2) + 'px';
-    line.style.height = props.majorLineHeight + 'px';
+
+    label.style.top = y - 0.5 * characterHeight + this.options.labelOffsetY + 'px';
+
+    text += '';
+
+    var largestWidth = Math.max(this.props.majorCharWidth,this.props.minorCharWidth);
+    if (this.maxLabelSize < text.length * largestWidth) {
+      this.maxLabelSize = text.length * largestWidth;
+    }
   };
+
+  /**
+   * Create a minor line for the axis at position y
+   * @param y
+   * @param orientation
+   * @param className
+   * @param offset
+   * @param width
+   */
+  DataAxis.prototype._redrawLine = function (y, orientation, className, offset, width) {
+    if (this.master == true) {
+      var line = DOMutil.getDOMElement('div',this.DOMelements, this.dom.lineContainer);//this.dom.redundant.lines.shift();
+      line.className = className;
+      line.innerHTML = '';
+
+      if (orientation == 'left') {
+        line.style.left = (this.width - offset) + 'px';
+      }
+      else {
+        line.style.right = (this.width - offset) + 'px';
+      }
+
+      line.style.width = width + 'px';
+      line.style.top = y + 'px';
+    }
+  };
+
+
+  DataAxis.prototype.convertValue = function (value) {
+    var invertedValue = this.valueAtZero - value;
+    var convertedValue = invertedValue * this.conversionFactor;
+    return convertedValue; // the -2 is to compensate for the borders
+  };
+
 
   /**
    * Determine the size of text on the axis (both major and minor axis).
    * The size is calculated only once and then cached in this.props.
    * @private
    */
-  TimeAxis.prototype._calculateCharSize = function () {
-    // Note: We calculate char size with every redraw. Size may change, for
-    // example when any of the timelines parents had display:none for example.
-
+  DataAxis.prototype._calculateCharSize = function () {
     // determine the char width and height on the minor axis
-    if (!this.dom.measureCharMinor) {
-      this.dom.measureCharMinor = document.createElement('DIV');
-      this.dom.measureCharMinor.className = 'text minor measure';
-      this.dom.measureCharMinor.style.position = 'absolute';
+    if (!('minorCharHeight' in this.props)) {
 
-      this.dom.measureCharMinor.appendChild(document.createTextNode('0'));
-      this.dom.foreground.appendChild(this.dom.measureCharMinor);
+      var textMinor = document.createTextNode('0');
+      var measureCharMinor = document.createElement('DIV');
+      measureCharMinor.className = 'yAxis minor measure';
+      measureCharMinor.appendChild(textMinor);
+      this.dom.frame.appendChild(measureCharMinor);
+
+      this.props.minorCharHeight = measureCharMinor.clientHeight;
+      this.props.minorCharWidth = measureCharMinor.clientWidth;
+
+      this.dom.frame.removeChild(measureCharMinor);
     }
-    this.props.minorCharHeight = this.dom.measureCharMinor.clientHeight;
-    this.props.minorCharWidth = this.dom.measureCharMinor.clientWidth;
 
-    // determine the char width and height on the major axis
-    if (!this.dom.measureCharMajor) {
-      this.dom.measureCharMajor = document.createElement('DIV');
-      this.dom.measureCharMajor.className = 'text minor measure';
-      this.dom.measureCharMajor.style.position = 'absolute';
+    if (!('majorCharHeight' in this.props)) {
+      var textMajor = document.createTextNode('0');
+      var measureCharMajor = document.createElement('DIV');
+      measureCharMajor.className = 'yAxis major measure';
+      measureCharMajor.appendChild(textMajor);
+      this.dom.frame.appendChild(measureCharMajor);
 
-      this.dom.measureCharMajor.appendChild(document.createTextNode('0'));
-      this.dom.foreground.appendChild(this.dom.measureCharMajor);
+      this.props.majorCharHeight = measureCharMajor.clientHeight;
+      this.props.majorCharWidth = measureCharMajor.clientWidth;
+
+      this.dom.frame.removeChild(measureCharMajor);
     }
-    this.props.majorCharHeight = this.dom.measureCharMajor.clientHeight;
-    this.props.majorCharWidth = this.dom.measureCharMajor.clientWidth;
   };
 
   /**
@@ -13323,931 +18583,571 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {Date} date   the date to be snapped.
    * @return {Date} snappedDate
    */
-  TimeAxis.prototype.snap = function(date) {
+  DataAxis.prototype.snap = function(date) {
     return this.step.snap(date);
   };
 
-  module.exports = TimeAxis;
+  module.exports = DataAxis;
 
 
 /***/ },
-/* 22 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(49);
-
   /**
-   * @constructor Item
-   * @param {Object} data             Object containing (optional) parameters type,
-   *                                  start, end, content, group, className.
-   * @param {{toScreen: function, toTime: function}} conversion
-   *                                  Conversion functions from time to screen and vice versa
-   * @param {Object} options          Configuration options
-   *                                  // TODO: describe available options
+   * @constructor  DataStep
+   * The class DataStep is an iterator for data for the lineGraph. You provide a start data point and an
+   * end data point. The class itself determines the best scale (step size) based on the
+   * provided start Date, end Date, and minimumStep.
+   *
+   * If minimumStep is provided, the step size is chosen as close as possible
+   * to the minimumStep but larger than minimumStep. If minimumStep is not
+   * provided, the scale is set to 1 DAY.
+   * The minimumStep should correspond with the onscreen size of about 6 characters
+   *
+   * Alternatively, you can set a scale by hand.
+   * After creation, you can initialize the class by executing first(). Then you
+   * can iterate from the start date to the end date via next(). You can check if
+   * the end date is reached with the function hasNext(). After each step, you can
+   * retrieve the current date via getCurrent().
+   * The DataStep has scales ranging from milliseconds, seconds, minutes, hours,
+   * days, to years.
+   *
+   * Version: 1.2
+   *
+   * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
+   *                               or new Date(2010, 9, 21, 23, 45, 00)
+   * @param {Date} [end]           The end date
+   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
    */
-  function Item (data, conversion, options) {
-    this.id = null;
-    this.parent = null;
-    this.data = data;
-    this.dom = null;
-    this.conversion = conversion || {};
-    this.options = options || {};
+  function DataStep(start, end, minimumStep, containerHeight, forcedStepSize) {
+    // variables
+    this.current = 0;
 
-    this.selected = false;
-    this.displayed = false;
-    this.dirty = true;
+    this.autoScale = true;
+    this.stepIndex = 0;
+    this.step = 1;
+    this.scale = 1;
 
-    this.top = null;
-    this.left = null;
-    this.width = null;
-    this.height = null;
+    this.marginStart;
+    this.marginEnd;
+
+    this.majorSteps = [1,     2,    5,  10];
+    this.minorSteps = [0.25,  0.5,  1,  2];
+
+    this.setRange(start, end, minimumStep, containerHeight, forcedStepSize);
   }
 
+
+
   /**
-   * Select current item
+   * Set a new range
+   * If minimumStep is provided, the step size is chosen as close as possible
+   * to the minimumStep but larger than minimumStep. If minimumStep is not
+   * provided, the scale is set to 1 DAY.
+   * The minimumStep should correspond with the onscreen size of about 6 characters
+   * @param {Number} [start]      The start date and time.
+   * @param {Number} [end]        The end date and time.
+   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
    */
-  Item.prototype.select = function() {
-    this.selected = true;
-    if (this.displayed) this.redraw();
+  DataStep.prototype.setRange = function(start, end, minimumStep, containerHeight, forcedStepSize) {
+    this._start = start;
+    this._end = end;
+
+    if (this.autoScale) {
+      this.setMinimumStep(minimumStep, containerHeight, forcedStepSize);
+    }
+    this.setFirst();
   };
 
   /**
-   * Unselect current item
+   * Automatically determine the scale that bests fits the provided minimum step
+   * @param {Number} [minimumStep]  The minimum step size in milliseconds
    */
-  Item.prototype.unselect = function() {
-    this.selected = false;
-    if (this.displayed) this.redraw();
-  };
+  DataStep.prototype.setMinimumStep = function(minimumStep, containerHeight) {
+    // round to floor
+    var size = this._end - this._start;
+    var safeSize = size * 1.1;
+    var minimumStepValue = minimumStep * (safeSize / containerHeight);
+    var orderOfMagnitude = Math.round(Math.log(safeSize)/Math.LN10);
 
-  /**
-   * Set a parent for the item
-   * @param {ItemSet | Group} parent
-   */
-  Item.prototype.setParent = function(parent) {
-    if (this.displayed) {
-      this.hide();
-      this.parent = parent;
-      if (this.parent) {
-        this.show();
+    var minorStepIdx = -1;
+    var magnitudefactor = Math.pow(10,orderOfMagnitude);
+
+    var start = 0;
+    if (orderOfMagnitude < 0) {
+      start = orderOfMagnitude;
+    }
+
+    var solutionFound = false;
+    for (var i = start; Math.abs(i) <= Math.abs(orderOfMagnitude); i++) {
+      magnitudefactor = Math.pow(10,i);
+      for (var j = 0; j < this.minorSteps.length; j++) {
+        var stepSize = magnitudefactor * this.minorSteps[j];
+        if (stepSize >= minimumStepValue) {
+          solutionFound = true;
+          minorStepIdx = j;
+          break;
+        }
       }
+      if (solutionFound == true) {
+        break;
+      }
+    }
+    this.stepIndex = minorStepIdx;
+    this.scale = magnitudefactor;
+    this.step = magnitudefactor * this.minorSteps[minorStepIdx];
+  };
+
+
+  /**
+   * Set the range iterator to the start date.
+   */
+  DataStep.prototype.first = function() {
+    this.setFirst();
+  };
+
+  /**
+   * Round the current date to the first minor date value
+   * This must be executed once when the current date is set to start Date
+   */
+  DataStep.prototype.setFirst = function() {
+    var niceStart = this._start - (this.scale * this.minorSteps[this.stepIndex]);
+    var niceEnd = this._end + (this.scale * this.minorSteps[this.stepIndex]);
+
+    this.marginEnd = this.roundToMinor(niceEnd);
+    this.marginStart = this.roundToMinor(niceStart);
+    this.marginRange = this.marginEnd - this.marginStart;
+
+    this.current = this.marginEnd;
+
+  };
+
+  DataStep.prototype.roundToMinor = function(value) {
+    var rounded = value - (value % (this.scale * this.minorSteps[this.stepIndex]));
+    if (value % (this.scale * this.minorSteps[this.stepIndex]) > 0.5 * (this.scale * this.minorSteps[this.stepIndex])) {
+      return rounded + (this.scale * this.minorSteps[this.stepIndex]);
     }
     else {
-      this.parent = parent;
+      return rounded;
     }
-  };
-
-  /**
-   * Check whether this item is visible inside given range
-   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
-   * @returns {boolean} True if visible
-   */
-  Item.prototype.isVisible = function(range) {
-    // Should be implemented by Item implementations
-    return false;
-  };
-
-  /**
-   * Show the Item in the DOM (when not already visible)
-   * @return {Boolean} changed
-   */
-  Item.prototype.show = function() {
-    return false;
-  };
-
-  /**
-   * Hide the Item from the DOM (when visible)
-   * @return {Boolean} changed
-   */
-  Item.prototype.hide = function() {
-    return false;
-  };
-
-  /**
-   * Repaint the item
-   */
-  Item.prototype.redraw = function() {
-    // should be implemented by the item
-  };
-
-  /**
-   * Reposition the Item horizontally
-   */
-  Item.prototype.repositionX = function() {
-    // should be implemented by the item
-  };
-
-  /**
-   * Reposition the Item vertically
-   */
-  Item.prototype.repositionY = function() {
-    // should be implemented by the item
-  };
-
-  /**
-   * Repaint a delete button on the top right of the item when the item is selected
-   * @param {HTMLElement} anchor
-   * @protected
-   */
-  Item.prototype._repaintDeleteButton = function (anchor) {
-    if (this.selected && this.options.editable.remove && !this.dom.deleteButton) {
-      // create and show button
-      var me = this;
-
-      var deleteButton = document.createElement('div');
-      deleteButton.className = 'delete';
-      deleteButton.title = 'Delete this item';
-
-      Hammer(deleteButton, {
-        preventDefault: true
-      }).on('tap', function (event) {
-        me.parent.removeFromDataSet(me);
-        event.stopPropagation();
-      });
-
-      anchor.appendChild(deleteButton);
-      this.dom.deleteButton = deleteButton;
-    }
-    else if (!this.selected && this.dom.deleteButton) {
-      // remove button
-      if (this.dom.deleteButton.parentNode) {
-        this.dom.deleteButton.parentNode.removeChild(this.dom.deleteButton);
-      }
-      this.dom.deleteButton = null;
-    }
-  };
-
-  module.exports = Item;
-
-
-/***/ },
-/* 23 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var Item = __webpack_require__(22);
-
-  /**
-   * @constructor ItemBox
-   * @extends Item
-   * @param {Object} data             Object containing parameters start
-   *                                  content, className.
-   * @param {{toScreen: function, toTime: function}} conversion
-   *                                  Conversion functions from time to screen and vice versa
-   * @param {Object} [options]        Configuration options
-   *                                  // TODO: describe available options
-   */
-  function ItemBox (data, conversion, options) {
-    this.props = {
-      dot: {
-        width: 0,
-        height: 0
-      },
-      line: {
-        width: 0,
-        height: 0
-      }
-    };
-
-    // validate data
-    if (data) {
-      if (data.start == undefined) {
-        throw new Error('Property "start" missing in item ' + data);
-      }
-    }
-
-    Item.call(this, data, conversion, options);
   }
 
-  ItemBox.prototype = new Item (null, null, null);
 
   /**
-   * Check whether this item is visible inside given range
-   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
-   * @returns {boolean} True if visible
+   * Check if the there is a next step
+   * @return {boolean}  true if the current date has not passed the end date
    */
-  ItemBox.prototype.isVisible = function(range) {
-    // determine visibility
-    // TODO: account for the real width of the item. Right now we just add 1/4 to the window
-    var interval = (range.end - range.start) / 4;
-    return (this.data.start > range.start - interval) && (this.data.start < range.end + interval);
+  DataStep.prototype.hasNext = function () {
+    return (this.current >= this.marginStart);
   };
 
   /**
-   * Repaint the item
+   * Do the next step
    */
-  ItemBox.prototype.redraw = function() {
-    var dom = this.dom;
-    if (!dom) {
-      // create DOM
-      this.dom = {};
-      dom = this.dom;
+  DataStep.prototype.next = function() {
+    var prev = this.current;
+    this.current -= this.step;
 
-      // create main box
-      dom.box = document.createElement('DIV');
-
-      // contents box (inside the background box). used for making margins
-      dom.content = document.createElement('DIV');
-      dom.content.className = 'content';
-      dom.box.appendChild(dom.content);
-
-      // line to axis
-      dom.line = document.createElement('DIV');
-      dom.line.className = 'line';
-
-      // dot on axis
-      dom.dot = document.createElement('DIV');
-      dom.dot.className = 'dot';
-
-      // attach this item as attribute
-      dom.box['timeline-item'] = this;
+    // safety mechanism: if current time is still unchanged, move to the end
+    if (this.current == prev) {
+      this.current = this._end;
     }
+  };
 
-    // append DOM to parent DOM
-    if (!this.parent) {
-      throw new Error('Cannot redraw item: no parent attached');
-    }
-    if (!dom.box.parentNode) {
-      var foreground = this.parent.dom.foreground;
-      if (!foreground) throw new Error('Cannot redraw time axis: parent has no foreground container element');
-      foreground.appendChild(dom.box);
-    }
-    if (!dom.line.parentNode) {
-      var background = this.parent.dom.background;
-      if (!background) throw new Error('Cannot redraw time axis: parent has no background container element');
-      background.appendChild(dom.line);
-    }
-    if (!dom.dot.parentNode) {
-      var axis = this.parent.dom.axis;
-      if (!background) throw new Error('Cannot redraw time axis: parent has no axis container element');
-      axis.appendChild(dom.dot);
-    }
-    this.displayed = true;
+  /**
+   * Do the next step
+   */
+  DataStep.prototype.previous = function() {
+    this.current += this.step;
+    this.marginEnd += this.step;
+    this.marginRange = this.marginEnd - this.marginStart;
+  };
 
-    // update contents
-    if (this.data.content != this.content) {
-      this.content = this.data.content;
-      if (this.content instanceof Element) {
-        dom.content.innerHTML = '';
-        dom.content.appendChild(this.content);
+
+
+  /**
+   * Get the current datetime
+   * @return {String}  current The current date
+   */
+  DataStep.prototype.getCurrent = function() {
+    var toPrecision = '' + Number(this.current).toPrecision(5);
+    for (var i = toPrecision.length-1; i > 0; i--) {
+      if (toPrecision[i] == "0") {
+        toPrecision = toPrecision.slice(0,i);
       }
-      else if (this.data.content != undefined) {
-        dom.content.innerHTML = this.content;
+      else if (toPrecision[i] == "." || toPrecision[i] == ",") {
+        toPrecision = toPrecision.slice(0,i);
+        break;
       }
-      else {
-        throw new Error('Property "content" missing in item ' + this.data.id);
+      else{
+        break;
       }
-
-      this.dirty = true;
     }
 
-    // update title
-    if (this.data.title != this.title) {
-      dom.box.title = this.data.title;
-      this.title = this.data.title;
-    }
+    return toPrecision;
+  };
 
-    // update class
-    var className = (this.data.className? ' ' + this.data.className : '') +
-        (this.selected ? ' selected' : '');
-    if (this.className != className) {
-      this.className = className;
-      dom.box.className = 'item box' + className;
-      dom.line.className = 'item line' + className;
-      dom.dot.className  = 'item dot' + className;
 
-      this.dirty = true;
-    }
 
-    // recalculate size
-    if (this.dirty) {
-      this.props.dot.height = dom.dot.offsetHeight;
-      this.props.dot.width = dom.dot.offsetWidth;
-      this.props.line.width = dom.line.offsetWidth;
-      this.width = dom.box.offsetWidth;
-      this.height = dom.box.offsetHeight;
+  /**
+   * Snap a date to a rounded value.
+   * The snap intervals are dependent on the current scale and step.
+   * @param {Date} date   the date to be snapped.
+   * @return {Date} snappedDate
+   */
+  DataStep.prototype.snap = function(date) {
 
-      this.dirty = false;
-    }
-
-    this._repaintDeleteButton(dom.box);
   };
 
   /**
-   * Show the item in the DOM (when not already displayed). The items DOM will
-   * be created when needed.
+   * Check if the current value is a major value (for example when the step
+   * is DAY, a major value is each first day of the MONTH)
+   * @return {boolean} true if current date is major, else false.
    */
-  ItemBox.prototype.show = function() {
-    if (!this.displayed) {
-      this.redraw();
-    }
+  DataStep.prototype.isMajor = function() {
+    return (this.current % (this.scale * this.majorSteps[this.stepIndex]) == 0);
   };
 
-  /**
-   * Hide the item from the DOM (when visible)
-   */
-  ItemBox.prototype.hide = function() {
-    if (this.displayed) {
-      var dom = this.dom;
-
-      if (dom.box.parentNode)   dom.box.parentNode.removeChild(dom.box);
-      if (dom.line.parentNode)  dom.line.parentNode.removeChild(dom.line);
-      if (dom.dot.parentNode)   dom.dot.parentNode.removeChild(dom.dot);
-
-      this.top = null;
-      this.left = null;
-
-      this.displayed = false;
-    }
-  };
-
-  /**
-   * Reposition the item horizontally
-   * @Override
-   */
-  ItemBox.prototype.repositionX = function() {
-    var start = this.conversion.toScreen(this.data.start),
-        align = this.options.align,
-        left,
-        box = this.dom.box,
-        line = this.dom.line,
-        dot = this.dom.dot;
-
-    // calculate left position of the box
-    if (align == 'right') {
-      this.left = start - this.width;
-    }
-    else if (align == 'left') {
-      this.left = start;
-    }
-    else {
-      // default or 'center'
-      this.left = start - this.width / 2;
-    }
-
-    // reposition box
-    box.style.left = this.left + 'px';
-
-    // reposition line
-    line.style.left = (start - this.props.line.width / 2) + 'px';
-
-    // reposition dot
-    dot.style.left = (start - this.props.dot.width / 2) + 'px';
-  };
-
-  /**
-   * Reposition the item vertically
-   * @Override
-   */
-  ItemBox.prototype.repositionY = function() {
-    var orientation = this.options.orientation,
-        box = this.dom.box,
-        line = this.dom.line,
-        dot = this.dom.dot;
-
-    if (orientation == 'top') {
-      box.style.top     = (this.top || 0) + 'px';
-
-      line.style.top    = '0';
-      line.style.height = (this.parent.top + this.top + 1) + 'px';
-      line.style.bottom = '';
-    }
-    else { // orientation 'bottom'
-      var itemSetHeight = this.parent.itemSet.props.height; // TODO: this is nasty
-      var lineHeight = itemSetHeight - this.parent.top - this.parent.height + this.top;
-
-      box.style.top     = (this.parent.height - this.top - this.height || 0) + 'px';
-      line.style.top    = (itemSetHeight - lineHeight) + 'px';
-      line.style.bottom = '0';
-    }
-
-    dot.style.top = (-this.props.dot.height / 2) + 'px';
-  };
-
-  module.exports = ItemBox;
+  module.exports = DataStep;
 
 
 /***/ },
-/* 24 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Item = __webpack_require__(22);
-
-  /**
-   * @constructor ItemPoint
-   * @extends Item
-   * @param {Object} data             Object containing parameters start
-   *                                  content, className.
-   * @param {{toScreen: function, toTime: function}} conversion
-   *                                  Conversion functions from time to screen and vice versa
-   * @param {Object} [options]        Configuration options
-   *                                  // TODO: describe available options
-   */
-  function ItemPoint (data, conversion, options) {
-    this.props = {
-      dot: {
-        top: 0,
-        width: 0,
-        height: 0
-      },
-      content: {
-        height: 0,
-        marginLeft: 0
-      }
-    };
-
-    // validate data
-    if (data) {
-      if (data.start == undefined) {
-        throw new Error('Property "start" missing in item ' + data);
-      }
-    }
-
-    Item.call(this, data, conversion, options);
-  }
-
-  ItemPoint.prototype = new Item (null, null, null);
-
-  /**
-   * Check whether this item is visible inside given range
-   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
-   * @returns {boolean} True if visible
-   */
-  ItemPoint.prototype.isVisible = function(range) {
-    // determine visibility
-    // TODO: account for the real width of the item. Right now we just add 1/4 to the window
-    var interval = (range.end - range.start) / 4;
-    return (this.data.start > range.start - interval) && (this.data.start < range.end + interval);
-  };
-
-  /**
-   * Repaint the item
-   */
-  ItemPoint.prototype.redraw = function() {
-    var dom = this.dom;
-    if (!dom) {
-      // create DOM
-      this.dom = {};
-      dom = this.dom;
-
-      // background box
-      dom.point = document.createElement('div');
-      // className is updated in redraw()
-
-      // contents box, right from the dot
-      dom.content = document.createElement('div');
-      dom.content.className = 'content';
-      dom.point.appendChild(dom.content);
-
-      // dot at start
-      dom.dot = document.createElement('div');
-      dom.point.appendChild(dom.dot);
-
-      // attach this item as attribute
-      dom.point['timeline-item'] = this;
-    }
-
-    // append DOM to parent DOM
-    if (!this.parent) {
-      throw new Error('Cannot redraw item: no parent attached');
-    }
-    if (!dom.point.parentNode) {
-      var foreground = this.parent.dom.foreground;
-      if (!foreground) {
-        throw new Error('Cannot redraw time axis: parent has no foreground container element');
-      }
-      foreground.appendChild(dom.point);
-    }
-    this.displayed = true;
-
-    // update contents
-    if (this.data.content != this.content) {
-      this.content = this.data.content;
-      if (this.content instanceof Element) {
-        dom.content.innerHTML = '';
-        dom.content.appendChild(this.content);
-      }
-      else if (this.data.content != undefined) {
-        dom.content.innerHTML = this.content;
-      }
-      else {
-        throw new Error('Property "content" missing in item ' + this.data.id);
-      }
-
-      this.dirty = true;
-    }
-
-    // update title
-    if (this.data.title != this.title) {
-      dom.point.title = this.data.title;
-      this.title = this.data.title;
-    }
-
-    // update class
-    var className = (this.data.className? ' ' + this.data.className : '') +
-        (this.selected ? ' selected' : '');
-    if (this.className != className) {
-      this.className = className;
-      dom.point.className  = 'item point' + className;
-      dom.dot.className  = 'item dot' + className;
-
-      this.dirty = true;
-    }
-
-    // recalculate size
-    if (this.dirty) {
-      this.width = dom.point.offsetWidth;
-      this.height = dom.point.offsetHeight;
-      this.props.dot.width = dom.dot.offsetWidth;
-      this.props.dot.height = dom.dot.offsetHeight;
-      this.props.content.height = dom.content.offsetHeight;
-
-      // resize contents
-      dom.content.style.marginLeft = 2 * this.props.dot.width + 'px';
-      //dom.content.style.marginRight = ... + 'px'; // TODO: margin right
-
-      dom.dot.style.top = ((this.height - this.props.dot.height) / 2) + 'px';
-      dom.dot.style.left = (this.props.dot.width / 2) + 'px';
-
-      this.dirty = false;
-    }
-
-    this._repaintDeleteButton(dom.point);
-  };
-
-  /**
-   * Show the item in the DOM (when not already visible). The items DOM will
-   * be created when needed.
-   */
-  ItemPoint.prototype.show = function() {
-    if (!this.displayed) {
-      this.redraw();
-    }
-  };
-
-  /**
-   * Hide the item from the DOM (when visible)
-   */
-  ItemPoint.prototype.hide = function() {
-    if (this.displayed) {
-      if (this.dom.point.parentNode) {
-        this.dom.point.parentNode.removeChild(this.dom.point);
-      }
-
-      this.top = null;
-      this.left = null;
-
-      this.displayed = false;
-    }
-  };
-
-  /**
-   * Reposition the item horizontally
-   * @Override
-   */
-  ItemPoint.prototype.repositionX = function() {
-    var start = this.conversion.toScreen(this.data.start);
-
-    this.left = start - this.props.dot.width;
-
-    // reposition point
-    this.dom.point.style.left = this.left + 'px';
-  };
-
-  /**
-   * Reposition the item vertically
-   * @Override
-   */
-  ItemPoint.prototype.repositionY = function() {
-    var orientation = this.options.orientation,
-        point = this.dom.point;
-
-    if (orientation == 'top') {
-      point.style.top = this.top + 'px';
-    }
-    else {
-      point.style.top = (this.parent.height - this.top - this.height) + 'px';
-    }
-  };
-
-  module.exports = ItemPoint;
-
-
-/***/ },
-/* 25 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var Hammer = __webpack_require__(49);
-  var Item = __webpack_require__(22);
-
-  /**
-   * @constructor ItemRange
-   * @extends Item
-   * @param {Object} data             Object containing parameters start, end
-   *                                  content, className.
-   * @param {{toScreen: function, toTime: function}} conversion
-   *                                  Conversion functions from time to screen and vice versa
-   * @param {Object} [options]        Configuration options
-   *                                  // TODO: describe options
-   */
-  function ItemRange (data, conversion, options) {
-    this.props = {
-      content: {
-        width: 0
-      }
-    };
-    this.overflow = false; // if contents can overflow (css styling), this flag is set to true
-
-    // validate data
-    if (data) {
-      if (data.start == undefined) {
-        throw new Error('Property "start" missing in item ' + data.id);
-      }
-      if (data.end == undefined) {
-        throw new Error('Property "end" missing in item ' + data.id);
-      }
-    }
-
-    Item.call(this, data, conversion, options);
-  }
-
-  ItemRange.prototype = new Item (null, null, null);
-
-  ItemRange.prototype.baseClassName = 'item range';
-
-  /**
-   * Check whether this item is visible inside given range
-   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
-   * @returns {boolean} True if visible
-   */
-  ItemRange.prototype.isVisible = function(range) {
-    // determine visibility
-    return (this.data.start < range.end) && (this.data.end > range.start);
-  };
-
-  /**
-   * Repaint the item
-   */
-  ItemRange.prototype.redraw = function() {
-    var dom = this.dom;
-    if (!dom) {
-      // create DOM
-      this.dom = {};
-      dom = this.dom;
-
-        // background box
-      dom.box = document.createElement('div');
-      // className is updated in redraw()
-
-      // contents box
-      dom.content = document.createElement('div');
-      dom.content.className = 'content';
-      dom.box.appendChild(dom.content);
-
-      // attach this item as attribute
-      dom.box['timeline-item'] = this;
-    }
-
-    // append DOM to parent DOM
-    if (!this.parent) {
-      throw new Error('Cannot redraw item: no parent attached');
-    }
-    if (!dom.box.parentNode) {
-      var foreground = this.parent.dom.foreground;
-      if (!foreground) {
-        throw new Error('Cannot redraw time axis: parent has no foreground container element');
-      }
-      foreground.appendChild(dom.box);
-    }
-    this.displayed = true;
-
-    // update contents
-    if (this.data.content != this.content) {
-      this.content = this.data.content;
-      if (this.content instanceof Element) {
-        dom.content.innerHTML = '';
-        dom.content.appendChild(this.content);
-      }
-      else if (this.data.content != undefined) {
-        dom.content.innerHTML = this.content;
-      }
-      else {
-        throw new Error('Property "content" missing in item ' + this.data.id);
-      }
-
-      this.dirty = true;
-    }
-
-    // update title
-    if (this.data.title != this.title) {
-      dom.box.title = this.data.title;
-      this.title = this.data.title;
-    }
-
-    // update class
-    var className = (this.data.className ? (' ' + this.data.className) : '') +
-        (this.selected ? ' selected' : '');
-    if (this.className != className) {
-      this.className = className;
-      dom.box.className = this.baseClassName + className;
-
-      this.dirty = true;
-    }
-
-    // recalculate size
-    if (this.dirty) {
-      // determine from css whether this box has overflow
-      this.overflow = window.getComputedStyle(dom.content).overflow !== 'hidden';
-
-      this.props.content.width = this.dom.content.offsetWidth;
-      this.height = this.dom.box.offsetHeight;
-
-      this.dirty = false;
-    }
-
-    this._repaintDeleteButton(dom.box);
-    this._repaintDragLeft();
-    this._repaintDragRight();
-  };
-
-  /**
-   * Show the item in the DOM (when not already visible). The items DOM will
-   * be created when needed.
-   */
-  ItemRange.prototype.show = function() {
-    if (!this.displayed) {
-      this.redraw();
-    }
-  };
-
-  /**
-   * Hide the item from the DOM (when visible)
-   * @return {Boolean} changed
-   */
-  ItemRange.prototype.hide = function() {
-    if (this.displayed) {
-      var box = this.dom.box;
-
-      if (box.parentNode) {
-        box.parentNode.removeChild(box);
-      }
-
-      this.top = null;
-      this.left = null;
-
-      this.displayed = false;
-    }
-  };
-
-  /**
-   * Reposition the item horizontally
-   * @Override
-   */
-  // TODO: delete the old function
-  ItemRange.prototype.repositionX = function() {
-    var props = this.props,
-        parentWidth = this.parent.width,
-        start = this.conversion.toScreen(this.data.start),
-        end = this.conversion.toScreen(this.data.end),
-        padding = this.options.padding,
-        contentLeft;
-
-    // limit the width of the this, as browsers cannot draw very wide divs
-    if (start < -parentWidth) {
-      start = -parentWidth;
-    }
-    if (end > 2 * parentWidth) {
-      end = 2 * parentWidth;
-    }
-    var boxWidth = Math.max(end - start, 1);
-
-    if (this.overflow) {
-      // when range exceeds left of the window, position the contents at the left of the visible area
-      contentLeft = Math.max(-start, 0);
-
-      this.left = start;
-      this.width = boxWidth + this.props.content.width;
-      // Note: The calculation of width is an optimistic calculation, giving
-      //       a width which will not change when moving the Timeline
-      //       So no restacking needed, which is nicer for the eye;
-    }
-    else { // no overflow
-      // when range exceeds left of the window, position the contents at the left of the visible area
-      if (start < 0) {
-        contentLeft = Math.min(-start,
-            (end - start - props.content.width - 2 * padding));
-        // TODO: remove the need for options.padding. it's terrible.
-      }
-      else {
-        contentLeft = 0;
-      }
-
-      this.left = start;
-      this.width = boxWidth;
-    }
-
-    this.dom.box.style.left = this.left + 'px';
-    this.dom.box.style.width = boxWidth + 'px';
-    this.dom.content.style.left = contentLeft + 'px';
-  };
-
-  /**
-   * Reposition the item vertically
-   * @Override
-   */
-  ItemRange.prototype.repositionY = function() {
-    var orientation = this.options.orientation,
-        box = this.dom.box;
-
-    if (orientation == 'top') {
-      box.style.top = this.top + 'px';
-    }
-    else {
-      box.style.top = (this.parent.height - this.top - this.height) + 'px';
-    }
-  };
-
-  /**
-   * Repaint a drag area on the left side of the range when the range is selected
-   * @protected
-   */
-  ItemRange.prototype._repaintDragLeft = function () {
-    if (this.selected && this.options.editable.updateTime && !this.dom.dragLeft) {
-      // create and show drag area
-      var dragLeft = document.createElement('div');
-      dragLeft.className = 'drag-left';
-      dragLeft.dragLeftItem = this;
-
-      // TODO: this should be redundant?
-      Hammer(dragLeft, {
-        preventDefault: true
-      }).on('drag', function () {
-            //console.log('drag left')
-          });
-
-      this.dom.box.appendChild(dragLeft);
-      this.dom.dragLeft = dragLeft;
-    }
-    else if (!this.selected && this.dom.dragLeft) {
-      // delete drag area
-      if (this.dom.dragLeft.parentNode) {
-        this.dom.dragLeft.parentNode.removeChild(this.dom.dragLeft);
-      }
-      this.dom.dragLeft = null;
-    }
-  };
-
-  /**
-   * Repaint a drag area on the right side of the range when the range is selected
-   * @protected
-   */
-  ItemRange.prototype._repaintDragRight = function () {
-    if (this.selected && this.options.editable.updateTime && !this.dom.dragRight) {
-      // create and show drag area
-      var dragRight = document.createElement('div');
-      dragRight.className = 'drag-right';
-      dragRight.dragRightItem = this;
-
-      // TODO: this should be redundant?
-      Hammer(dragRight, {
-        preventDefault: true
-      }).on('drag', function () {
-        //console.log('drag right')
-      });
-
-      this.dom.box.appendChild(dragRight);
-      this.dom.dragRight = dragRight;
-    }
-    else if (!this.selected && this.dom.dragRight) {
-      // delete drag area
-      if (this.dom.dragRight.parentNode) {
-        this.dom.dragRight.parentNode.removeChild(this.dom.dragRight);
-      }
-      this.dom.dragRight = null;
-    }
-  };
-
-  module.exports = ItemRange;
-
-
-/***/ },
-/* 26 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var Emitter = __webpack_require__(41);
-  var Hammer = __webpack_require__(49);
-  var mousetrap = __webpack_require__(42);
   var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(3);
-  var DataView = __webpack_require__(4);
-  var dotparser = __webpack_require__(32);
-  var Groups = __webpack_require__(28);
-  var Images = __webpack_require__(29);
-  var Node = __webpack_require__(30);
-  var Edge = __webpack_require__(27);
-  var Popup = __webpack_require__(31);
-  var MixinLoader = __webpack_require__(40);
+  var DOMutil = __webpack_require__(8);
+
+  /**
+   * @constructor Group
+   * @param {Number | String} groupId
+   * @param {Object} data
+   * @param {ItemSet} itemSet
+   */
+  function GraphGroup (group, groupId, options, groupsUsingDefaultStyles) {
+    this.id = groupId;
+    var fields = ['sampling','style','sort','yAxisOrientation','barChart','drawPoints','shaded','catmullRom']
+    this.options = util.selectiveBridgeObject(fields,options);
+    this.usingDefaultStyle = group.className === undefined;
+    this.groupsUsingDefaultStyles = groupsUsingDefaultStyles;
+    this.zeroPosition = 0;
+    this.update(group);
+    if (this.usingDefaultStyle == true) {
+      this.groupsUsingDefaultStyles[0] += 1;
+    }
+    this.itemsData = [];
+  }
+
+  GraphGroup.prototype.setItems = function(items) {
+    if (items != null) {
+      this.itemsData = items;
+      if (this.options.sort == true) {
+        this.itemsData.sort(function (a,b) {return a.x - b.x;})
+      }
+    }
+    else {
+      this.itemsData = [];
+    }
+  };
+
+  GraphGroup.prototype.setZeroPosition = function(pos) {
+    this.zeroPosition = pos;
+  };
+
+  GraphGroup.prototype.setOptions = function(options) {
+    if (options !== undefined) {
+      var fields = ['sampling','style','sort','yAxisOrientation','barChart'];
+      util.selectiveDeepExtend(fields, this.options, options);
+
+      util.mergeOptions(this.options, options,'catmullRom');
+      util.mergeOptions(this.options, options,'drawPoints');
+      util.mergeOptions(this.options, options,'shaded');
+
+      if (options.catmullRom) {
+        if (typeof options.catmullRom == 'object') {
+          if (options.catmullRom.parametrization) {
+            if (options.catmullRom.parametrization == 'uniform') {
+              this.options.catmullRom.alpha = 0;
+            }
+            else if (options.catmullRom.parametrization == 'chordal') {
+              this.options.catmullRom.alpha = 1.0;
+            }
+            else {
+              this.options.catmullRom.parametrization = 'centripetal';
+              this.options.catmullRom.alpha = 0.5;
+            }
+          }
+        }
+      }
+    }
+  };
+
+  GraphGroup.prototype.update = function(group) {
+    this.group = group;
+    this.content = group.content || 'graph';
+    this.className = group.className || this.className || "graphGroup" + this.groupsUsingDefaultStyles[0] % 10;
+    this.setOptions(group.options);
+  };
+
+  GraphGroup.prototype.drawIcon = function(x, y, JSONcontainer, SVGcontainer, iconWidth, iconHeight) {
+    var fillHeight = iconHeight * 0.5;
+    var path, fillPath;
+
+    var outline = DOMutil.getSVGElement("rect", JSONcontainer, SVGcontainer);
+    outline.setAttributeNS(null, "x", x);
+    outline.setAttributeNS(null, "y", y - fillHeight);
+    outline.setAttributeNS(null, "width", iconWidth);
+    outline.setAttributeNS(null, "height", 2*fillHeight);
+    outline.setAttributeNS(null, "class", "outline");
+
+    if (this.options.style == 'line') {
+      path = DOMutil.getSVGElement("path", JSONcontainer, SVGcontainer);
+      path.setAttributeNS(null, "class", this.className);
+      path.setAttributeNS(null, "d", "M" + x + ","+y+" L" + (x + iconWidth) + ","+y+"");
+      if (this.options.shaded.enabled == true) {
+        fillPath = DOMutil.getSVGElement("path", JSONcontainer, SVGcontainer);
+        if (this.options.shaded.orientation == 'top') {
+          fillPath.setAttributeNS(null, "d", "M"+x+", " + (y - fillHeight) +
+            "L"+x+","+y+" L"+ (x + iconWidth) + ","+y+" L"+ (x + iconWidth) + "," + (y - fillHeight));
+        }
+        else {
+          fillPath.setAttributeNS(null, "d", "M"+x+","+y+" " +
+            "L"+x+"," + (y + fillHeight) + " " +
+            "L"+ (x + iconWidth) + "," + (y + fillHeight) +
+            "L"+ (x + iconWidth) + ","+y);
+        }
+        fillPath.setAttributeNS(null, "class", this.className + " iconFill");
+      }
+
+      if (this.options.drawPoints.enabled == true) {
+        DOMutil.drawPoint(x + 0.5 * iconWidth,y, this, JSONcontainer, SVGcontainer);
+      }
+    }
+    else {
+      var barWidth = Math.round(0.3 * iconWidth);
+      var bar1Height = Math.round(0.4 * iconHeight);
+      var bar2Height = Math.round(0.75 * iconHeight);
+
+      var offset = Math.round((iconWidth - (2 * barWidth))/3);
+
+      DOMutil.drawBar(x + 0.5*barWidth + offset    , y + fillHeight - bar1Height - 1, barWidth, bar1Height, this.className + ' bar', JSONcontainer, SVGcontainer);
+      DOMutil.drawBar(x + 1.5*barWidth + offset + 2, y + fillHeight - bar2Height - 1, barWidth, bar2Height, this.className + ' bar', JSONcontainer, SVGcontainer);
+    }
+  };
+
+  module.exports = GraphGroup;
+
+
+/***/ },
+/* 36 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var util = __webpack_require__(1);
+  var DOMutil = __webpack_require__(8);
+  var Component = __webpack_require__(19);
+
+  /**
+   * Legend for Graph2d
+   */
+  function Legend(body, options, side) {
+    this.body = body;
+    this.defaultOptions = {
+      enabled: true,
+      icons: true,
+      iconSize: 20,
+      iconSpacing: 6,
+      left: {
+        visible: true,
+        position: 'top-left' // top/bottom - left,center,right
+      },
+      right: {
+        visible: true,
+        position: 'top-left' // top/bottom - left,center,right
+      }
+    }
+    this.side = side;
+    this.options = util.extend({},this.defaultOptions);
+
+    this.svgElements = {};
+    this.dom = {};
+    this.groups = {};
+    this.amountOfGroups = 0;
+    this._create();
+
+    this.setOptions(options);
+  }
+
+  Legend.prototype = new Component();
+
+
+  Legend.prototype.addGroup = function(label, graphOptions) {
+    if (!this.groups.hasOwnProperty(label)) {
+      this.groups[label] = graphOptions;
+    }
+    this.amountOfGroups += 1;
+  };
+
+  Legend.prototype.updateGroup = function(label, graphOptions) {
+    this.groups[label] = graphOptions;
+  };
+
+  Legend.prototype.removeGroup = function(label) {
+    if (this.groups.hasOwnProperty(label)) {
+      delete this.groups[label];
+      this.amountOfGroups -= 1;
+    }
+  };
+
+  Legend.prototype._create = function() {
+    this.dom.frame = document.createElement('div');
+    this.dom.frame.className = 'legend';
+    this.dom.frame.style.position = "absolute";
+    this.dom.frame.style.top = "10px";
+    this.dom.frame.style.display = "block";
+
+    this.dom.textArea = document.createElement('div');
+    this.dom.textArea.className = 'legendText';
+    this.dom.textArea.style.position = "relative";
+    this.dom.textArea.style.top = "0px";
+
+    this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
+    this.svg.style.position = 'absolute';
+    this.svg.style.top = 0 +'px';
+    this.svg.style.width = this.options.iconSize + 5 + 'px';
+
+    this.dom.frame.appendChild(this.svg);
+    this.dom.frame.appendChild(this.dom.textArea);
+  };
+
+  /**
+   * Hide the component from the DOM
+   */
+  Legend.prototype.hide = function() {
+    // remove the frame containing the items
+    if (this.dom.frame.parentNode) {
+      this.dom.frame.parentNode.removeChild(this.dom.frame);
+    }
+  };
+
+  /**
+   * Show the component in the DOM (when not already visible).
+   * @return {Boolean} changed
+   */
+  Legend.prototype.show = function() {
+    // show frame containing the items
+    if (!this.dom.frame.parentNode) {
+      this.body.dom.center.appendChild(this.dom.frame);
+    }
+  };
+
+  Legend.prototype.setOptions = function(options) {
+    var fields = ['enabled','orientation','icons','left','right'];
+    util.selectiveDeepExtend(fields, this.options, options);
+  };
+
+  Legend.prototype.redraw = function() {
+    if (this.options[this.side].visible == false || this.amountOfGroups == 0 || this.options.enabled == false) {
+      this.hide();
+    }
+    else {
+      this.show();
+      if (this.options[this.side].position == 'top-left' || this.options[this.side].position == 'bottom-left') {
+        this.dom.frame.style.left = '4px';
+        this.dom.frame.style.textAlign = "left";
+        this.dom.textArea.style.textAlign = "left";
+        this.dom.textArea.style.left = (this.options.iconSize + 15) + 'px';
+        this.dom.textArea.style.right = '';
+        this.svg.style.left = 0 +'px';
+        this.svg.style.right = '';
+      }
+      else {
+        this.dom.frame.style.right = '4px';
+        this.dom.frame.style.textAlign = "right";
+        this.dom.textArea.style.textAlign = "right";
+        this.dom.textArea.style.right = (this.options.iconSize + 15) + 'px';
+        this.dom.textArea.style.left = '';
+        this.svg.style.right = 0 +'px';
+        this.svg.style.left = '';
+      }
+
+      if (this.options[this.side].position == 'top-left' || this.options[this.side].position == 'top-right') {
+        this.dom.frame.style.top = 4 - Number(this.body.dom.center.style.top.replace("px","")) + 'px';
+        this.dom.frame.style.bottom = '';
+      }
+      else {
+        this.dom.frame.style.bottom = 4 - Number(this.body.dom.center.style.top.replace("px","")) + 'px';
+        this.dom.frame.style.top = '';
+      }
+
+      if (this.options.icons == false) {
+        this.dom.frame.style.width = this.dom.textArea.offsetWidth + 10 + 'px';
+        this.dom.textArea.style.right = '';
+        this.dom.textArea.style.left = '';
+        this.svg.style.width = '0px';
+      }
+      else {
+        this.dom.frame.style.width = this.options.iconSize + 15 + this.dom.textArea.offsetWidth + 10 + 'px'
+        this.drawLegendIcons();
+      }
+
+      var content = '';
+      for (var groupId in this.groups) {
+        if (this.groups.hasOwnProperty(groupId)) {
+          content += this.groups[groupId].content + '<br />';
+        }
+      }
+      this.dom.textArea.innerHTML = content;
+      this.dom.textArea.style.lineHeight = ((0.75 * this.options.iconSize) + this.options.iconSpacing) + 'px';
+    }
+  };
+
+  Legend.prototype.drawLegendIcons = function() {
+    if (this.dom.frame.parentNode) {
+      DOMutil.prepareElements(this.svgElements);
+      var padding = window.getComputedStyle(this.dom.frame).paddingTop;
+      var iconOffset = Number(padding.replace('px',''));
+      var x = iconOffset;
+      var iconWidth = this.options.iconSize;
+      var iconHeight = 0.75 * this.options.iconSize;
+      var y = iconOffset + 0.5 * iconHeight + 3;
+
+      this.svg.style.width = iconWidth + 5 + iconOffset + 'px';
+
+      for (var groupId in this.groups) {
+        if (this.groups.hasOwnProperty(groupId)) {
+          this.groups[groupId].drawIcon(x, y, this.svgElements, this.svg, iconWidth, iconHeight);
+          y += iconHeight + this.options.iconSpacing;
+        }
+      }
+
+      DOMutil.cleanupElements(this.svgElements);
+    }
+  };
+
+  module.exports = Legend;
+
+
+/***/ },
+/* 37 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var Emitter = __webpack_require__(12);
+  var Hammer = __webpack_require__(3);
+  var mousetrap = __webpack_require__(38);
+  var util = __webpack_require__(1);
+  var DataSet = __webpack_require__(9);
+  var DataView = __webpack_require__(10);
+  var dotparser = __webpack_require__(39);
+  var Groups = __webpack_require__(40);
+  var Images = __webpack_require__(41);
+  var Node = __webpack_require__(42);
+  var Edge = __webpack_require__(43);
+  var Popup = __webpack_require__(44);
+  var MixinLoader = __webpack_require__(45);
 
   // Load custom shapes into CanvasRenderingContext2D
-  __webpack_require__(37);
+  __webpack_require__(56);
 
   /**
    * @constructor Network
@@ -14317,7 +19217,8 @@ return /******/ (function(modules) { // webpackBootstrap
         borderColor: '#2B7CE9',
         backgroundColor: '#97C2FC',
         highlightColor: '#D2E5FF',
-        group: undefined
+        group: undefined,
+        borderWidth: 1
       },
       edges: {
         widthMin: 1,
@@ -16610,11 +21511,2775 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 27 */
+/* 38 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Copyright 2012 Craig Campbell
+   *
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   * http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   *
+   * Mousetrap is a simple keyboard shortcut library for Javascript with
+   * no external dependencies
+   *
+   * @version 1.1.2
+   * @url craig.is/killing/mice
+   */
+
+    /**
+     * mapping of special keycodes to their corresponding keys
+     *
+     * everything in this dictionary cannot use keypress events
+     * so it has to be here to map to the correct keycodes for
+     * keyup/keydown events
+     *
+     * @type {Object}
+     */
+    var _MAP = {
+            8: 'backspace',
+            9: 'tab',
+            13: 'enter',
+            16: 'shift',
+            17: 'ctrl',
+            18: 'alt',
+            20: 'capslock',
+            27: 'esc',
+            32: 'space',
+            33: 'pageup',
+            34: 'pagedown',
+            35: 'end',
+            36: 'home',
+            37: 'left',
+            38: 'up',
+            39: 'right',
+            40: 'down',
+            45: 'ins',
+            46: 'del',
+            91: 'meta',
+            93: 'meta',
+            224: 'meta'
+        },
+
+        /**
+         * mapping for special characters so they can support
+         *
+         * this dictionary is only used incase you want to bind a
+         * keyup or keydown event to one of these keys
+         *
+         * @type {Object}
+         */
+        _KEYCODE_MAP = {
+            106: '*',
+            107: '+',
+            109: '-',
+            110: '.',
+            111 : '/',
+            186: ';',
+            187: '=',
+            188: ',',
+            189: '-',
+            190: '.',
+            191: '/',
+            192: '`',
+            219: '[',
+            220: '\\',
+            221: ']',
+            222: '\''
+        },
+
+        /**
+         * this is a mapping of keys that require shift on a US keypad
+         * back to the non shift equivelents
+         *
+         * this is so you can use keyup events with these keys
+         *
+         * note that this will only work reliably on US keyboards
+         *
+         * @type {Object}
+         */
+        _SHIFT_MAP = {
+            '~': '`',
+            '!': '1',
+            '@': '2',
+            '#': '3',
+            '$': '4',
+            '%': '5',
+            '^': '6',
+            '&': '7',
+            '*': '8',
+            '(': '9',
+            ')': '0',
+            '_': '-',
+            '+': '=',
+            ':': ';',
+            '\"': '\'',
+            '<': ',',
+            '>': '.',
+            '?': '/',
+            '|': '\\'
+        },
+
+        /**
+         * this is a list of special strings you can use to map
+         * to modifier keys when you specify your keyboard shortcuts
+         *
+         * @type {Object}
+         */
+        _SPECIAL_ALIASES = {
+            'option': 'alt',
+            'command': 'meta',
+            'return': 'enter',
+            'escape': 'esc'
+        },
+
+        /**
+         * variable to store the flipped version of _MAP from above
+         * needed to check if we should use keypress or not when no action
+         * is specified
+         *
+         * @type {Object|undefined}
+         */
+        _REVERSE_MAP,
+
+        /**
+         * a list of all the callbacks setup via Mousetrap.bind()
+         *
+         * @type {Object}
+         */
+        _callbacks = {},
+
+        /**
+         * direct map of string combinations to callbacks used for trigger()
+         *
+         * @type {Object}
+         */
+        _direct_map = {},
+
+        /**
+         * keeps track of what level each sequence is at since multiple
+         * sequences can start out with the same sequence
+         *
+         * @type {Object}
+         */
+        _sequence_levels = {},
+
+        /**
+         * variable to store the setTimeout call
+         *
+         * @type {null|number}
+         */
+        _reset_timer,
+
+        /**
+         * temporary state where we will ignore the next keyup
+         *
+         * @type {boolean|string}
+         */
+        _ignore_next_keyup = false,
+
+        /**
+         * are we currently inside of a sequence?
+         * type of action ("keyup" or "keydown" or "keypress") or false
+         *
+         * @type {boolean|string}
+         */
+        _inside_sequence = false;
+
+    /**
+     * loop through the f keys, f1 to f19 and add them to the map
+     * programatically
+     */
+    for (var i = 1; i < 20; ++i) {
+        _MAP[111 + i] = 'f' + i;
+    }
+
+    /**
+     * loop through to map numbers on the numeric keypad
+     */
+    for (i = 0; i <= 9; ++i) {
+        _MAP[i + 96] = i;
+    }
+
+    /**
+     * cross browser add event method
+     *
+     * @param {Element|HTMLDocument} object
+     * @param {string} type
+     * @param {Function} callback
+     * @returns void
+     */
+    function _addEvent(object, type, callback) {
+        if (object.addEventListener) {
+            return object.addEventListener(type, callback, false);
+        }
+
+        object.attachEvent('on' + type, callback);
+    }
+
+    /**
+     * takes the event and returns the key character
+     *
+     * @param {Event} e
+     * @return {string}
+     */
+    function _characterFromEvent(e) {
+
+        // for keypress events we should return the character as is
+        if (e.type == 'keypress') {
+            return String.fromCharCode(e.which);
+        }
+
+        // for non keypress events the special maps are needed
+        if (_MAP[e.which]) {
+            return _MAP[e.which];
+        }
+
+        if (_KEYCODE_MAP[e.which]) {
+            return _KEYCODE_MAP[e.which];
+        }
+
+        // if it is not in the special map
+        return String.fromCharCode(e.which).toLowerCase();
+    }
+
+    /**
+     * should we stop this event before firing off callbacks
+     *
+     * @param {Event} e
+     * @return {boolean}
+     */
+    function _stop(e) {
+        var element = e.target || e.srcElement,
+            tag_name = element.tagName;
+
+        // if the element has the class "mousetrap" then no need to stop
+        if ((' ' + element.className + ' ').indexOf(' mousetrap ') > -1) {
+            return false;
+        }
+
+        // stop for input, select, and textarea
+        return tag_name == 'INPUT' || tag_name == 'SELECT' || tag_name == 'TEXTAREA' || (element.contentEditable && element.contentEditable == 'true');
+    }
+
+    /**
+     * checks if two arrays are equal
+     *
+     * @param {Array} modifiers1
+     * @param {Array} modifiers2
+     * @returns {boolean}
+     */
+    function _modifiersMatch(modifiers1, modifiers2) {
+        return modifiers1.sort().join(',') === modifiers2.sort().join(',');
+    }
+
+    /**
+     * resets all sequence counters except for the ones passed in
+     *
+     * @param {Object} do_not_reset
+     * @returns void
+     */
+    function _resetSequences(do_not_reset) {
+        do_not_reset = do_not_reset || {};
+
+        var active_sequences = false,
+            key;
+
+        for (key in _sequence_levels) {
+            if (do_not_reset[key]) {
+                active_sequences = true;
+                continue;
+            }
+            _sequence_levels[key] = 0;
+        }
+
+        if (!active_sequences) {
+            _inside_sequence = false;
+        }
+    }
+
+    /**
+     * finds all callbacks that match based on the keycode, modifiers,
+     * and action
+     *
+     * @param {string} character
+     * @param {Array} modifiers
+     * @param {string} action
+     * @param {boolean=} remove - should we remove any matches
+     * @param {string=} combination
+     * @returns {Array}
+     */
+    function _getMatches(character, modifiers, action, remove, combination) {
+        var i,
+            callback,
+            matches = [];
+
+        // if there are no events related to this keycode
+        if (!_callbacks[character]) {
+            return [];
+        }
+
+        // if a modifier key is coming up on its own we should allow it
+        if (action == 'keyup' && _isModifier(character)) {
+            modifiers = [character];
+        }
+
+        // loop through all callbacks for the key that was pressed
+        // and see if any of them match
+        for (i = 0; i < _callbacks[character].length; ++i) {
+            callback = _callbacks[character][i];
+
+            // if this is a sequence but it is not at the right level
+            // then move onto the next match
+            if (callback.seq && _sequence_levels[callback.seq] != callback.level) {
+                continue;
+            }
+
+            // if the action we are looking for doesn't match the action we got
+            // then we should keep going
+            if (action != callback.action) {
+                continue;
+            }
+
+            // if this is a keypress event that means that we need to only
+            // look at the character, otherwise check the modifiers as
+            // well
+            if (action == 'keypress' || _modifiersMatch(modifiers, callback.modifiers)) {
+
+                // remove is used so if you change your mind and call bind a
+                // second time with a new function the first one is overwritten
+                if (remove && callback.combo == combination) {
+                    _callbacks[character].splice(i, 1);
+                }
+
+                matches.push(callback);
+            }
+        }
+
+        return matches;
+    }
+
+    /**
+     * takes a key event and figures out what the modifiers are
+     *
+     * @param {Event} e
+     * @returns {Array}
+     */
+    function _eventModifiers(e) {
+        var modifiers = [];
+
+        if (e.shiftKey) {
+            modifiers.push('shift');
+        }
+
+        if (e.altKey) {
+            modifiers.push('alt');
+        }
+
+        if (e.ctrlKey) {
+            modifiers.push('ctrl');
+        }
+
+        if (e.metaKey) {
+            modifiers.push('meta');
+        }
+
+        return modifiers;
+    }
+
+    /**
+     * actually calls the callback function
+     *
+     * if your callback function returns false this will use the jquery
+     * convention - prevent default and stop propogation on the event
+     *
+     * @param {Function} callback
+     * @param {Event} e
+     * @returns void
+     */
+    function _fireCallback(callback, e) {
+        if (callback(e) === false) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+
+            e.returnValue = false;
+            e.cancelBubble = true;
+        }
+    }
+
+    /**
+     * handles a character key event
+     *
+     * @param {string} character
+     * @param {Event} e
+     * @returns void
+     */
+    function _handleCharacter(character, e) {
+
+        // if this event should not happen stop here
+        if (_stop(e)) {
+            return;
+        }
+
+        var callbacks = _getMatches(character, _eventModifiers(e), e.type),
+            i,
+            do_not_reset = {},
+            processed_sequence_callback = false;
+
+        // loop through matching callbacks for this key event
+        for (i = 0; i < callbacks.length; ++i) {
+
+            // fire for all sequence callbacks
+            // this is because if for example you have multiple sequences
+            // bound such as "g i" and "g t" they both need to fire the
+            // callback for matching g cause otherwise you can only ever
+            // match the first one
+            if (callbacks[i].seq) {
+                processed_sequence_callback = true;
+
+                // keep a list of which sequences were matches for later
+                do_not_reset[callbacks[i].seq] = 1;
+                _fireCallback(callbacks[i].callback, e);
+                continue;
+            }
+
+            // if there were no sequence matches but we are still here
+            // that means this is a regular match so we should fire that
+            if (!processed_sequence_callback && !_inside_sequence) {
+                _fireCallback(callbacks[i].callback, e);
+            }
+        }
+
+        // if you are inside of a sequence and the key you are pressing
+        // is not a modifier key then we should reset all sequences
+        // that were not matched by this key event
+        if (e.type == _inside_sequence && !_isModifier(character)) {
+            _resetSequences(do_not_reset);
+        }
+    }
+
+    /**
+     * handles a keydown event
+     *
+     * @param {Event} e
+     * @returns void
+     */
+    function _handleKey(e) {
+
+        // normalize e.which for key events
+        // @see http://stackoverflow.com/questions/4285627/javascript-keycode-vs-charcode-utter-confusion
+        e.which = typeof e.which == "number" ? e.which : e.keyCode;
+
+        var character = _characterFromEvent(e);
+
+        // no character found then stop
+        if (!character) {
+            return;
+        }
+
+        if (e.type == 'keyup' && _ignore_next_keyup == character) {
+            _ignore_next_keyup = false;
+            return;
+        }
+
+        _handleCharacter(character, e);
+    }
+
+    /**
+     * determines if the keycode specified is a modifier key or not
+     *
+     * @param {string} key
+     * @returns {boolean}
+     */
+    function _isModifier(key) {
+        return key == 'shift' || key == 'ctrl' || key == 'alt' || key == 'meta';
+    }
+
+    /**
+     * called to set a 1 second timeout on the specified sequence
+     *
+     * this is so after each key press in the sequence you have 1 second
+     * to press the next key before you have to start over
+     *
+     * @returns void
+     */
+    function _resetSequenceTimer() {
+        clearTimeout(_reset_timer);
+        _reset_timer = setTimeout(_resetSequences, 1000);
+    }
+
+    /**
+     * reverses the map lookup so that we can look for specific keys
+     * to see what can and can't use keypress
+     *
+     * @return {Object}
+     */
+    function _getReverseMap() {
+        if (!_REVERSE_MAP) {
+            _REVERSE_MAP = {};
+            for (var key in _MAP) {
+
+                // pull out the numeric keypad from here cause keypress should
+                // be able to detect the keys from the character
+                if (key > 95 && key < 112) {
+                    continue;
+                }
+
+                if (_MAP.hasOwnProperty(key)) {
+                    _REVERSE_MAP[_MAP[key]] = key;
+                }
+            }
+        }
+        return _REVERSE_MAP;
+    }
+
+    /**
+     * picks the best action based on the key combination
+     *
+     * @param {string} key - character for key
+     * @param {Array} modifiers
+     * @param {string=} action passed in
+     */
+    function _pickBestAction(key, modifiers, action) {
+
+        // if no action was picked in we should try to pick the one
+        // that we think would work best for this key
+        if (!action) {
+            action = _getReverseMap()[key] ? 'keydown' : 'keypress';
+        }
+
+        // modifier keys don't work as expected with keypress,
+        // switch to keydown
+        if (action == 'keypress' && modifiers.length) {
+            action = 'keydown';
+        }
+
+        return action;
+    }
+
+    /**
+     * binds a key sequence to an event
+     *
+     * @param {string} combo - combo specified in bind call
+     * @param {Array} keys
+     * @param {Function} callback
+     * @param {string=} action
+     * @returns void
+     */
+    function _bindSequence(combo, keys, callback, action) {
+
+        // start off by adding a sequence level record for this combination
+        // and setting the level to 0
+        _sequence_levels[combo] = 0;
+
+        // if there is no action pick the best one for the first key
+        // in the sequence
+        if (!action) {
+            action = _pickBestAction(keys[0], []);
+        }
+
+        /**
+         * callback to increase the sequence level for this sequence and reset
+         * all other sequences that were active
+         *
+         * @param {Event} e
+         * @returns void
+         */
+        var _increaseSequence = function(e) {
+                _inside_sequence = action;
+                ++_sequence_levels[combo];
+                _resetSequenceTimer();
+            },
+
+            /**
+             * wraps the specified callback inside of another function in order
+             * to reset all sequence counters as soon as this sequence is done
+             *
+             * @param {Event} e
+             * @returns void
+             */
+            _callbackAndReset = function(e) {
+                _fireCallback(callback, e);
+
+                // we should ignore the next key up if the action is key down
+                // or keypress.  this is so if you finish a sequence and
+                // release the key the final key will not trigger a keyup
+                if (action !== 'keyup') {
+                    _ignore_next_keyup = _characterFromEvent(e);
+                }
+
+                // weird race condition if a sequence ends with the key
+                // another sequence begins with
+                setTimeout(_resetSequences, 10);
+            },
+            i;
+
+        // loop through keys one at a time and bind the appropriate callback
+        // function.  for any key leading up to the final one it should
+        // increase the sequence. after the final, it should reset all sequences
+        for (i = 0; i < keys.length; ++i) {
+            _bindSingle(keys[i], i < keys.length - 1 ? _increaseSequence : _callbackAndReset, action, combo, i);
+        }
+    }
+
+    /**
+     * binds a single keyboard combination
+     *
+     * @param {string} combination
+     * @param {Function} callback
+     * @param {string=} action
+     * @param {string=} sequence_name - name of sequence if part of sequence
+     * @param {number=} level - what part of the sequence the command is
+     * @returns void
+     */
+    function _bindSingle(combination, callback, action, sequence_name, level) {
+
+        // make sure multiple spaces in a row become a single space
+        combination = combination.replace(/\s+/g, ' ');
+
+        var sequence = combination.split(' '),
+            i,
+            key,
+            keys,
+            modifiers = [];
+
+        // if this pattern is a sequence of keys then run through this method
+        // to reprocess each pattern one key at a time
+        if (sequence.length > 1) {
+            return _bindSequence(combination, sequence, callback, action);
+        }
+
+        // take the keys from this pattern and figure out what the actual
+        // pattern is all about
+        keys = combination === '+' ? ['+'] : combination.split('+');
+
+        for (i = 0; i < keys.length; ++i) {
+            key = keys[i];
+
+            // normalize key names
+            if (_SPECIAL_ALIASES[key]) {
+                key = _SPECIAL_ALIASES[key];
+            }
+
+            // if this is not a keypress event then we should
+            // be smart about using shift keys
+            // this will only work for US keyboards however
+            if (action && action != 'keypress' && _SHIFT_MAP[key]) {
+                key = _SHIFT_MAP[key];
+                modifiers.push('shift');
+            }
+
+            // if this key is a modifier then add it to the list of modifiers
+            if (_isModifier(key)) {
+                modifiers.push(key);
+            }
+        }
+
+        // depending on what the key combination is
+        // we will try to pick the best event for it
+        action = _pickBestAction(key, modifiers, action);
+
+        // make sure to initialize array if this is the first time
+        // a callback is added for this key
+        if (!_callbacks[key]) {
+            _callbacks[key] = [];
+        }
+
+        // remove an existing match if there is one
+        _getMatches(key, modifiers, action, !sequence_name, combination);
+
+        // add this call back to the array
+        // if it is a sequence put it at the beginning
+        // if not put it at the end
+        //
+        // this is important because the way these are processed expects
+        // the sequence ones to come first
+        _callbacks[key][sequence_name ? 'unshift' : 'push']({
+            callback: callback,
+            modifiers: modifiers,
+            action: action,
+            seq: sequence_name,
+            level: level,
+            combo: combination
+        });
+    }
+
+    /**
+     * binds multiple combinations to the same callback
+     *
+     * @param {Array} combinations
+     * @param {Function} callback
+     * @param {string|undefined} action
+     * @returns void
+     */
+    function _bindMultiple(combinations, callback, action) {
+        for (var i = 0; i < combinations.length; ++i) {
+            _bindSingle(combinations[i], callback, action);
+        }
+    }
+
+    // start!
+    _addEvent(document, 'keypress', _handleKey);
+    _addEvent(document, 'keydown', _handleKey);
+    _addEvent(document, 'keyup', _handleKey);
+
+    var mousetrap = {
+
+        /**
+         * binds an event to mousetrap
+         *
+         * can be a single key, a combination of keys separated with +,
+         * a comma separated list of keys, an array of keys, or
+         * a sequence of keys separated by spaces
+         *
+         * be sure to list the modifier keys first to make sure that the
+         * correct key ends up getting bound (the last key in the pattern)
+         *
+         * @param {string|Array} keys
+         * @param {Function} callback
+         * @param {string=} action - 'keypress', 'keydown', or 'keyup'
+         * @returns void
+         */
+        bind: function(keys, callback, action) {
+            _bindMultiple(keys instanceof Array ? keys : [keys], callback, action);
+            _direct_map[keys + ':' + action] = callback;
+            return this;
+        },
+
+        /**
+         * unbinds an event to mousetrap
+         *
+         * the unbinding sets the callback function of the specified key combo
+         * to an empty function and deletes the corresponding key in the
+         * _direct_map dict.
+         *
+         * the keycombo+action has to be exactly the same as
+         * it was defined in the bind method
+         *
+         * TODO: actually remove this from the _callbacks dictionary instead
+         * of binding an empty function
+         *
+         * @param {string|Array} keys
+         * @param {string} action
+         * @returns void
+         */
+        unbind: function(keys, action) {
+            if (_direct_map[keys + ':' + action]) {
+                delete _direct_map[keys + ':' + action];
+                this.bind(keys, function() {}, action);
+            }
+            return this;
+        },
+
+        /**
+         * triggers an event that has already been bound
+         *
+         * @param {string} keys
+         * @param {string=} action
+         * @returns void
+         */
+        trigger: function(keys, action) {
+            _direct_map[keys + ':' + action]();
+            return this;
+        },
+
+        /**
+         * resets the library back to its initial state.  this is useful
+         * if you want to clear out the current keyboard shortcuts and bind
+         * new ones - for example if you switch to another page
+         *
+         * @returns void
+         */
+        reset: function() {
+            _callbacks = {};
+            _direct_map = {};
+            return this;
+        }
+    };
+
+  module.exports = mousetrap;
+
+
+
+/***/ },
+/* 39 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Parse a text source containing data in DOT language into a JSON object.
+   * The object contains two lists: one with nodes and one with edges.
+   *
+   * DOT language reference: http://www.graphviz.org/doc/info/lang.html
+   *
+   * @param {String} data     Text containing a graph in DOT-notation
+   * @return {Object} graph   An object containing two parameters:
+   *                          {Object[]} nodes
+   *                          {Object[]} edges
+   */
+  function parseDOT (data) {
+    dot = data;
+    return parseGraph();
+  }
+
+  // token types enumeration
+  var TOKENTYPE = {
+    NULL : 0,
+    DELIMITER : 1,
+    IDENTIFIER: 2,
+    UNKNOWN : 3
+  };
+
+  // map with all delimiters
+  var DELIMITERS = {
+    '{': true,
+    '}': true,
+    '[': true,
+    ']': true,
+    ';': true,
+    '=': true,
+    ',': true,
+
+    '->': true,
+    '--': true
+  };
+
+  var dot = '';                   // current dot file
+  var index = 0;                  // current index in dot file
+  var c = '';                     // current token character in expr
+  var token = '';                 // current token
+  var tokenType = TOKENTYPE.NULL; // type of the token
+
+  /**
+   * Get the first character from the dot file.
+   * The character is stored into the char c. If the end of the dot file is
+   * reached, the function puts an empty string in c.
+   */
+  function first() {
+    index = 0;
+    c = dot.charAt(0);
+  }
+
+  /**
+   * Get the next character from the dot file.
+   * The character is stored into the char c. If the end of the dot file is
+   * reached, the function puts an empty string in c.
+   */
+  function next() {
+    index++;
+    c = dot.charAt(index);
+  }
+
+  /**
+   * Preview the next character from the dot file.
+   * @return {String} cNext
+   */
+  function nextPreview() {
+    return dot.charAt(index + 1);
+  }
+
+  /**
+   * Test whether given character is alphabetic or numeric
+   * @param {String} c
+   * @return {Boolean} isAlphaNumeric
+   */
+  var regexAlphaNumeric = /[a-zA-Z_0-9.:#]/;
+  function isAlphaNumeric(c) {
+    return regexAlphaNumeric.test(c);
+  }
+
+  /**
+   * Merge all properties of object b into object b
+   * @param {Object} a
+   * @param {Object} b
+   * @return {Object} a
+   */
+  function merge (a, b) {
+    if (!a) {
+      a = {};
+    }
+
+    if (b) {
+      for (var name in b) {
+        if (b.hasOwnProperty(name)) {
+          a[name] = b[name];
+        }
+      }
+    }
+    return a;
+  }
+
+  /**
+   * Set a value in an object, where the provided parameter name can be a
+   * path with nested parameters. For example:
+   *
+   *     var obj = {a: 2};
+   *     setValue(obj, 'b.c', 3);     // obj = {a: 2, b: {c: 3}}
+   *
+   * @param {Object} obj
+   * @param {String} path  A parameter name or dot-separated parameter path,
+   *                      like "color.highlight.border".
+   * @param {*} value
+   */
+  function setValue(obj, path, value) {
+    var keys = path.split('.');
+    var o = obj;
+    while (keys.length) {
+      var key = keys.shift();
+      if (keys.length) {
+        // this isn't the end point
+        if (!o[key]) {
+          o[key] = {};
+        }
+        o = o[key];
+      }
+      else {
+        // this is the end point
+        o[key] = value;
+      }
+    }
+  }
+
+  /**
+   * Add a node to a graph object. If there is already a node with
+   * the same id, their attributes will be merged.
+   * @param {Object} graph
+   * @param {Object} node
+   */
+  function addNode(graph, node) {
+    var i, len;
+    var current = null;
+
+    // find root graph (in case of subgraph)
+    var graphs = [graph]; // list with all graphs from current graph to root graph
+    var root = graph;
+    while (root.parent) {
+      graphs.push(root.parent);
+      root = root.parent;
+    }
+
+    // find existing node (at root level) by its id
+    if (root.nodes) {
+      for (i = 0, len = root.nodes.length; i < len; i++) {
+        if (node.id === root.nodes[i].id) {
+          current = root.nodes[i];
+          break;
+        }
+      }
+    }
+
+    if (!current) {
+      // this is a new node
+      current = {
+        id: node.id
+      };
+      if (graph.node) {
+        // clone default attributes
+        current.attr = merge(current.attr, graph.node);
+      }
+    }
+
+    // add node to this (sub)graph and all its parent graphs
+    for (i = graphs.length - 1; i >= 0; i--) {
+      var g = graphs[i];
+
+      if (!g.nodes) {
+        g.nodes = [];
+      }
+      if (g.nodes.indexOf(current) == -1) {
+        g.nodes.push(current);
+      }
+    }
+
+    // merge attributes
+    if (node.attr) {
+      current.attr = merge(current.attr, node.attr);
+    }
+  }
+
+  /**
+   * Add an edge to a graph object
+   * @param {Object} graph
+   * @param {Object} edge
+   */
+  function addEdge(graph, edge) {
+    if (!graph.edges) {
+      graph.edges = [];
+    }
+    graph.edges.push(edge);
+    if (graph.edge) {
+      var attr = merge({}, graph.edge);     // clone default attributes
+      edge.attr = merge(attr, edge.attr); // merge attributes
+    }
+  }
+
+  /**
+   * Create an edge to a graph object
+   * @param {Object} graph
+   * @param {String | Number | Object} from
+   * @param {String | Number | Object} to
+   * @param {String} type
+   * @param {Object | null} attr
+   * @return {Object} edge
+   */
+  function createEdge(graph, from, to, type, attr) {
+    var edge = {
+      from: from,
+      to: to,
+      type: type
+    };
+
+    if (graph.edge) {
+      edge.attr = merge({}, graph.edge);  // clone default attributes
+    }
+    edge.attr = merge(edge.attr || {}, attr); // merge attributes
+
+    return edge;
+  }
+
+  /**
+   * Get next token in the current dot file.
+   * The token and token type are available as token and tokenType
+   */
+  function getToken() {
+    tokenType = TOKENTYPE.NULL;
+    token = '';
+
+    // skip over whitespaces
+    while (c == ' ' || c == '\t' || c == '\n' || c == '\r') {  // space, tab, enter
+      next();
+    }
+
+    do {
+      var isComment = false;
+
+      // skip comment
+      if (c == '#') {
+        // find the previous non-space character
+        var i = index - 1;
+        while (dot.charAt(i) == ' ' || dot.charAt(i) == '\t') {
+          i--;
+        }
+        if (dot.charAt(i) == '\n' || dot.charAt(i) == '') {
+          // the # is at the start of a line, this is indeed a line comment
+          while (c != '' && c != '\n') {
+            next();
+          }
+          isComment = true;
+        }
+      }
+      if (c == '/' && nextPreview() == '/') {
+        // skip line comment
+        while (c != '' && c != '\n') {
+          next();
+        }
+        isComment = true;
+      }
+      if (c == '/' && nextPreview() == '*') {
+        // skip block comment
+        while (c != '') {
+          if (c == '*' && nextPreview() == '/') {
+            // end of block comment found. skip these last two characters
+            next();
+            next();
+            break;
+          }
+          else {
+            next();
+          }
+        }
+        isComment = true;
+      }
+
+      // skip over whitespaces
+      while (c == ' ' || c == '\t' || c == '\n' || c == '\r') {  // space, tab, enter
+        next();
+      }
+    }
+    while (isComment);
+
+    // check for end of dot file
+    if (c == '') {
+      // token is still empty
+      tokenType = TOKENTYPE.DELIMITER;
+      return;
+    }
+
+    // check for delimiters consisting of 2 characters
+    var c2 = c + nextPreview();
+    if (DELIMITERS[c2]) {
+      tokenType = TOKENTYPE.DELIMITER;
+      token = c2;
+      next();
+      next();
+      return;
+    }
+
+    // check for delimiters consisting of 1 character
+    if (DELIMITERS[c]) {
+      tokenType = TOKENTYPE.DELIMITER;
+      token = c;
+      next();
+      return;
+    }
+
+    // check for an identifier (number or string)
+    // TODO: more precise parsing of numbers/strings (and the port separator ':')
+    if (isAlphaNumeric(c) || c == '-') {
+      token += c;
+      next();
+
+      while (isAlphaNumeric(c)) {
+        token += c;
+        next();
+      }
+      if (token == 'false') {
+        token = false;   // convert to boolean
+      }
+      else if (token == 'true') {
+        token = true;   // convert to boolean
+      }
+      else if (!isNaN(Number(token))) {
+        token = Number(token); // convert to number
+      }
+      tokenType = TOKENTYPE.IDENTIFIER;
+      return;
+    }
+
+    // check for a string enclosed by double quotes
+    if (c == '"') {
+      next();
+      while (c != '' && (c != '"' || (c == '"' && nextPreview() == '"'))) {
+        token += c;
+        if (c == '"') { // skip the escape character
+          next();
+        }
+        next();
+      }
+      if (c != '"') {
+        throw newSyntaxError('End of string " expected');
+      }
+      next();
+      tokenType = TOKENTYPE.IDENTIFIER;
+      return;
+    }
+
+    // something unknown is found, wrong characters, a syntax error
+    tokenType = TOKENTYPE.UNKNOWN;
+    while (c != '') {
+      token += c;
+      next();
+    }
+    throw new SyntaxError('Syntax error in part "' + chop(token, 30) + '"');
+  }
+
+  /**
+   * Parse a graph.
+   * @returns {Object} graph
+   */
+  function parseGraph() {
+    var graph = {};
+
+    first();
+    getToken();
+
+    // optional strict keyword
+    if (token == 'strict') {
+      graph.strict = true;
+      getToken();
+    }
+
+    // graph or digraph keyword
+    if (token == 'graph' || token == 'digraph') {
+      graph.type = token;
+      getToken();
+    }
+
+    // optional graph id
+    if (tokenType == TOKENTYPE.IDENTIFIER) {
+      graph.id = token;
+      getToken();
+    }
+
+    // open angle bracket
+    if (token != '{') {
+      throw newSyntaxError('Angle bracket { expected');
+    }
+    getToken();
+
+    // statements
+    parseStatements(graph);
+
+    // close angle bracket
+    if (token != '}') {
+      throw newSyntaxError('Angle bracket } expected');
+    }
+    getToken();
+
+    // end of file
+    if (token !== '') {
+      throw newSyntaxError('End of file expected');
+    }
+    getToken();
+
+    // remove temporary default properties
+    delete graph.node;
+    delete graph.edge;
+    delete graph.graph;
+
+    return graph;
+  }
+
+  /**
+   * Parse a list with statements.
+   * @param {Object} graph
+   */
+  function parseStatements (graph) {
+    while (token !== '' && token != '}') {
+      parseStatement(graph);
+      if (token == ';') {
+        getToken();
+      }
+    }
+  }
+
+  /**
+   * Parse a single statement. Can be a an attribute statement, node
+   * statement, a series of node statements and edge statements, or a
+   * parameter.
+   * @param {Object} graph
+   */
+  function parseStatement(graph) {
+    // parse subgraph
+    var subgraph = parseSubgraph(graph);
+    if (subgraph) {
+      // edge statements
+      parseEdge(graph, subgraph);
+
+      return;
+    }
+
+    // parse an attribute statement
+    var attr = parseAttributeStatement(graph);
+    if (attr) {
+      return;
+    }
+
+    // parse node
+    if (tokenType != TOKENTYPE.IDENTIFIER) {
+      throw newSyntaxError('Identifier expected');
+    }
+    var id = token; // id can be a string or a number
+    getToken();
+
+    if (token == '=') {
+      // id statement
+      getToken();
+      if (tokenType != TOKENTYPE.IDENTIFIER) {
+        throw newSyntaxError('Identifier expected');
+      }
+      graph[id] = token;
+      getToken();
+      // TODO: implement comma separated list with "a_list: ID=ID [','] [a_list] "
+    }
+    else {
+      parseNodeStatement(graph, id);
+    }
+  }
+
+  /**
+   * Parse a subgraph
+   * @param {Object} graph    parent graph object
+   * @return {Object | null} subgraph
+   */
+  function parseSubgraph (graph) {
+    var subgraph = null;
+
+    // optional subgraph keyword
+    if (token == 'subgraph') {
+      subgraph = {};
+      subgraph.type = 'subgraph';
+      getToken();
+
+      // optional graph id
+      if (tokenType == TOKENTYPE.IDENTIFIER) {
+        subgraph.id = token;
+        getToken();
+      }
+    }
+
+    // open angle bracket
+    if (token == '{') {
+      getToken();
+
+      if (!subgraph) {
+        subgraph = {};
+      }
+      subgraph.parent = graph;
+      subgraph.node = graph.node;
+      subgraph.edge = graph.edge;
+      subgraph.graph = graph.graph;
+
+      // statements
+      parseStatements(subgraph);
+
+      // close angle bracket
+      if (token != '}') {
+        throw newSyntaxError('Angle bracket } expected');
+      }
+      getToken();
+
+      // remove temporary default properties
+      delete subgraph.node;
+      delete subgraph.edge;
+      delete subgraph.graph;
+      delete subgraph.parent;
+
+      // register at the parent graph
+      if (!graph.subgraphs) {
+        graph.subgraphs = [];
+      }
+      graph.subgraphs.push(subgraph);
+    }
+
+    return subgraph;
+  }
+
+  /**
+   * parse an attribute statement like "node [shape=circle fontSize=16]".
+   * Available keywords are 'node', 'edge', 'graph'.
+   * The previous list with default attributes will be replaced
+   * @param {Object} graph
+   * @returns {String | null} keyword Returns the name of the parsed attribute
+   *                                  (node, edge, graph), or null if nothing
+   *                                  is parsed.
+   */
+  function parseAttributeStatement (graph) {
+    // attribute statements
+    if (token == 'node') {
+      getToken();
+
+      // node attributes
+      graph.node = parseAttributeList();
+      return 'node';
+    }
+    else if (token == 'edge') {
+      getToken();
+
+      // edge attributes
+      graph.edge = parseAttributeList();
+      return 'edge';
+    }
+    else if (token == 'graph') {
+      getToken();
+
+      // graph attributes
+      graph.graph = parseAttributeList();
+      return 'graph';
+    }
+
+    return null;
+  }
+
+  /**
+   * parse a node statement
+   * @param {Object} graph
+   * @param {String | Number} id
+   */
+  function parseNodeStatement(graph, id) {
+    // node statement
+    var node = {
+      id: id
+    };
+    var attr = parseAttributeList();
+    if (attr) {
+      node.attr = attr;
+    }
+    addNode(graph, node);
+
+    // edge statements
+    parseEdge(graph, id);
+  }
+
+  /**
+   * Parse an edge or a series of edges
+   * @param {Object} graph
+   * @param {String | Number} from        Id of the from node
+   */
+  function parseEdge(graph, from) {
+    while (token == '->' || token == '--') {
+      var to;
+      var type = token;
+      getToken();
+
+      var subgraph = parseSubgraph(graph);
+      if (subgraph) {
+        to = subgraph;
+      }
+      else {
+        if (tokenType != TOKENTYPE.IDENTIFIER) {
+          throw newSyntaxError('Identifier or subgraph expected');
+        }
+        to = token;
+        addNode(graph, {
+          id: to
+        });
+        getToken();
+      }
+
+      // parse edge attributes
+      var attr = parseAttributeList();
+
+      // create edge
+      var edge = createEdge(graph, from, to, type, attr);
+      addEdge(graph, edge);
+
+      from = to;
+    }
+  }
+
+  /**
+   * Parse a set with attributes,
+   * for example [label="1.000", shape=solid]
+   * @return {Object | null} attr
+   */
+  function parseAttributeList() {
+    var attr = null;
+
+    while (token == '[') {
+      getToken();
+      attr = {};
+      while (token !== '' && token != ']') {
+        if (tokenType != TOKENTYPE.IDENTIFIER) {
+          throw newSyntaxError('Attribute name expected');
+        }
+        var name = token;
+
+        getToken();
+        if (token != '=') {
+          throw newSyntaxError('Equal sign = expected');
+        }
+        getToken();
+
+        if (tokenType != TOKENTYPE.IDENTIFIER) {
+          throw newSyntaxError('Attribute value expected');
+        }
+        var value = token;
+        setValue(attr, name, value); // name can be a path
+
+        getToken();
+        if (token ==',') {
+          getToken();
+        }
+      }
+
+      if (token != ']') {
+        throw newSyntaxError('Bracket ] expected');
+      }
+      getToken();
+    }
+
+    return attr;
+  }
+
+  /**
+   * Create a syntax error with extra information on current token and index.
+   * @param {String} message
+   * @returns {SyntaxError} err
+   */
+  function newSyntaxError(message) {
+    return new SyntaxError(message + ', got "' + chop(token, 30) + '" (char ' + index + ')');
+  }
+
+  /**
+   * Chop off text after a maximum length
+   * @param {String} text
+   * @param {Number} maxLength
+   * @returns {String}
+   */
+  function chop (text, maxLength) {
+    return (text.length <= maxLength) ? text : (text.substr(0, 27) + '...');
+  }
+
+  /**
+   * Execute a function fn for each pair of elements in two arrays
+   * @param {Array | *} array1
+   * @param {Array | *} array2
+   * @param {function} fn
+   */
+  function forEach2(array1, array2, fn) {
+    if (array1 instanceof Array) {
+      array1.forEach(function (elem1) {
+        if (array2 instanceof Array) {
+          array2.forEach(function (elem2)  {
+            fn(elem1, elem2);
+          });
+        }
+        else {
+          fn(elem1, array2);
+        }
+      });
+    }
+    else {
+      if (array2 instanceof Array) {
+        array2.forEach(function (elem2)  {
+          fn(array1, elem2);
+        });
+      }
+      else {
+        fn(array1, array2);
+      }
+    }
+  }
+
+  /**
+   * Convert a string containing a graph in DOT language into a map containing
+   * with nodes and edges in the format of graph.
+   * @param {String} data         Text containing a graph in DOT-notation
+   * @return {Object} graphData
+   */
+  function DOTToGraph (data) {
+    // parse the DOT file
+    var dotData = parseDOT(data);
+    var graphData = {
+      nodes: [],
+      edges: [],
+      options: {}
+    };
+
+    // copy the nodes
+    if (dotData.nodes) {
+      dotData.nodes.forEach(function (dotNode) {
+        var graphNode = {
+          id: dotNode.id,
+          label: String(dotNode.label || dotNode.id)
+        };
+        merge(graphNode, dotNode.attr);
+        if (graphNode.image) {
+          graphNode.shape = 'image';
+        }
+        graphData.nodes.push(graphNode);
+      });
+    }
+
+    // copy the edges
+    if (dotData.edges) {
+      /**
+       * Convert an edge in DOT format to an edge with VisGraph format
+       * @param {Object} dotEdge
+       * @returns {Object} graphEdge
+       */
+      function convertEdge(dotEdge) {
+        var graphEdge = {
+          from: dotEdge.from,
+          to: dotEdge.to
+        };
+        merge(graphEdge, dotEdge.attr);
+        graphEdge.style = (dotEdge.type == '->') ? 'arrow' : 'line';
+        return graphEdge;
+      }
+
+      dotData.edges.forEach(function (dotEdge) {
+        var from, to;
+        if (dotEdge.from instanceof Object) {
+          from = dotEdge.from.nodes;
+        }
+        else {
+          from = {
+            id: dotEdge.from
+          }
+        }
+
+        if (dotEdge.to instanceof Object) {
+          to = dotEdge.to.nodes;
+        }
+        else {
+          to = {
+            id: dotEdge.to
+          }
+        }
+
+        if (dotEdge.from instanceof Object && dotEdge.from.edges) {
+          dotEdge.from.edges.forEach(function (subEdge) {
+            var graphEdge = convertEdge(subEdge);
+            graphData.edges.push(graphEdge);
+          });
+        }
+
+        forEach2(from, to, function (from, to) {
+          var subEdge = createEdge(graphData, from.id, to.id, dotEdge.type, dotEdge.attr);
+          var graphEdge = convertEdge(subEdge);
+          graphData.edges.push(graphEdge);
+        });
+
+        if (dotEdge.to instanceof Object && dotEdge.to.edges) {
+          dotEdge.to.edges.forEach(function (subEdge) {
+            var graphEdge = convertEdge(subEdge);
+            graphData.edges.push(graphEdge);
+          });
+        }
+      });
+    }
+
+    // copy the options
+    if (dotData.attr) {
+      graphData.options = dotData.attr;
+    }
+
+    return graphData;
+  }
+
+  // exports
+  exports.parseDOT = parseDOT;
+  exports.DOTToGraph = DOTToGraph;
+
+
+/***/ },
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Node = __webpack_require__(30);
+
+  /**
+   * @class Groups
+   * This class can store groups and properties specific for groups.
+   */
+  function Groups() {
+    this.clear();
+    this.defaultIndex = 0;
+  }
+
+
+  /**
+   * default constants for group colors
+   */
+  Groups.DEFAULT = [
+    {border: "#2B7CE9", background: "#97C2FC", highlight: {border: "#2B7CE9", background: "#D2E5FF"}, hover: {border: "#2B7CE9", background: "#D2E5FF"}}, // blue
+    {border: "#FFA500", background: "#FFFF00", highlight: {border: "#FFA500", background: "#FFFFA3"}, hover: {border: "#FFA500", background: "#FFFFA3"}}, // yellow
+    {border: "#FA0A10", background: "#FB7E81", highlight: {border: "#FA0A10", background: "#FFAFB1"}, hover: {border: "#FA0A10", background: "#FFAFB1"}}, // red
+    {border: "#41A906", background: "#7BE141", highlight: {border: "#41A906", background: "#A1EC76"}, hover: {border: "#41A906", background: "#A1EC76"}}, // green
+    {border: "#E129F0", background: "#EB7DF4", highlight: {border: "#E129F0", background: "#F0B3F5"}, hover: {border: "#E129F0", background: "#F0B3F5"}}, // magenta
+    {border: "#7C29F0", background: "#AD85E4", highlight: {border: "#7C29F0", background: "#D3BDF0"}, hover: {border: "#7C29F0", background: "#D3BDF0"}}, // purple
+    {border: "#C37F00", background: "#FFA807", highlight: {border: "#C37F00", background: "#FFCA66"}, hover: {border: "#C37F00", background: "#FFCA66"}}, // orange
+    {border: "#4220FB", background: "#6E6EFD", highlight: {border: "#4220FB", background: "#9B9BFD"}, hover: {border: "#4220FB", background: "#9B9BFD"}}, // darkblue
+    {border: "#FD5A77", background: "#FFC0CB", highlight: {border: "#FD5A77", background: "#FFD1D9"}, hover: {border: "#FD5A77", background: "#FFD1D9"}}, // pink
+    {border: "#4AD63A", background: "#C2FABC", highlight: {border: "#4AD63A", background: "#E6FFE3"}, hover: {border: "#4AD63A", background: "#E6FFE3"}}  // mint
+  ];
+
+
+  /**
+   * Clear all groups
+   */
+  Groups.prototype.clear = function () {
+    this.groups = {};
+    this.groups.length = function()
+    {
+      var i = 0;
+      for ( var p in this ) {
+        if (this.hasOwnProperty(p)) {
+          i++;
+        }
+      }
+      return i;
+    }
+  };
+
+
+  /**
+   * get group properties of a groupname. If groupname is not found, a new group
+   * is added.
+   * @param {*} groupname        Can be a number, string, Date, etc.
+   * @return {Object} group      The created group, containing all group properties
+   */
+  Groups.prototype.get = function (groupname) {
+    var group = this.groups[groupname];
+
+    if (group == undefined) {
+      // create new group
+      var index = this.defaultIndex % Groups.DEFAULT.length;
+      this.defaultIndex++;
+      group = {};
+      group.color = Groups.DEFAULT[index];
+      this.groups[groupname] = group;
+    }
+
+    return group;
+  };
+
+  /**
+   * Add a custom group style
+   * @param {String} groupname
+   * @param {Object} style       An object containing borderColor,
+   *                             backgroundColor, etc.
+   * @return {Object} group      The created group object
+   */
+  Groups.prototype.add = function (groupname, style) {
+    this.groups[groupname] = style;
+    if (style.color) {
+      style.color = util.parseColor(style.color);
+    }
+    return style;
+  };
+
+  module.exports = Groups;
+
+
+/***/ },
+/* 41 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * @class Images
+   * This class loads images and keeps them stored.
+   */
+  function Images() {
+    this.images = {};
+
+    this.callback = undefined;
+  }
+
+  /**
+   * Set an onload callback function. This will be called each time an image
+   * is loaded
+   * @param {function} callback
+   */
+  Images.prototype.setOnloadCallback = function(callback) {
+    this.callback = callback;
+  };
+
+  /**
+   *
+   * @param {string} url          Url of the image
+   * @return {Image} img          The image object
+   */
+  Images.prototype.load = function(url) {
+    var img = this.images[url];
+    if (img == undefined) {
+      // create the image
+      var images = this;
+      img = new Image();
+      this.images[url] = img;
+      img.onload = function() {
+        if (images.callback) {
+          images.callback(this);
+        }
+      };
+      img.src = url;
+    }
+
+    return img;
+  };
+
+  module.exports = Images;
+
+
+/***/ },
+/* 42 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var util = __webpack_require__(1);
+
+  /**
+   * @class Node
+   * A node. A node can be connected to other nodes via one or multiple edges.
+   * @param {object} properties An object containing properties for the node. All
+   *                            properties are optional, except for the id.
+   *                              {number} id     Id of the node. Required
+   *                              {string} label  Text label for the node
+   *                              {number} x      Horizontal position of the node
+   *                              {number} y      Vertical position of the node
+   *                              {string} shape  Node shape, available:
+   *                                              "database", "circle", "ellipse",
+   *                                              "box", "image", "text", "dot",
+   *                                              "star", "triangle", "triangleDown",
+   *                                              "square"
+   *                              {string} image  An image url
+   *                              {string} title  An title text, can be HTML
+   *                              {anytype} group A group name or number
+   * @param {Network.Images} imagelist    A list with images. Only needed
+   *                                            when the node has an image
+   * @param {Network.Groups} grouplist    A list with groups. Needed for
+   *                                            retrieving group properties
+   * @param {Object}               constants    An object with default values for
+   *                                            example for the color
+   *
+   */
+  function Node(properties, imagelist, grouplist, constants) {
+    this.selected = false;
+    this.hover = false;
+
+    this.edges = []; // all edges connected to this node
+    this.dynamicEdges = [];
+    this.reroutedEdges = {};
+
+    this.group = constants.nodes.group;
+    this.fontSize = Number(constants.nodes.fontSize);
+    this.fontFace = constants.nodes.fontFace;
+    this.fontColor = constants.nodes.fontColor;
+    this.fontDrawThreshold = 3;
+
+    this.color = constants.nodes.color;
+
+    // set defaults for the properties
+    this.id = undefined;
+    this.shape = constants.nodes.shape;
+    this.image = constants.nodes.image;
+    this.x = null;
+    this.y = null;
+    this.xFixed = false;
+    this.yFixed = false;
+    this.horizontalAlignLeft = true; // these are for the navigation controls
+    this.verticalAlignTop    = true; // these are for the navigation controls
+    this.radius = constants.nodes.radius;
+    this.baseRadiusValue = constants.nodes.radius;
+    this.radiusFixed = false;
+    this.radiusMin = constants.nodes.radiusMin;
+    this.radiusMax = constants.nodes.radiusMax;
+    this.level = -1;
+    this.preassignedLevel = false;
+    this.borderWidth = constants.nodes.borderWidth;
+    this.borderWidthSelected = constants.nodes.borderWidthSelected;
+
+
+    this.imagelist = imagelist;
+    this.grouplist = grouplist;
+
+    // physics properties
+    this.fx = 0.0;  // external force x
+    this.fy = 0.0;  // external force y
+    this.vx = 0.0;  // velocity x
+    this.vy = 0.0;  // velocity y
+    this.minForce = constants.minForce;
+    this.damping = constants.physics.damping;
+    this.mass = 1;  // kg
+    this.fixedData = {x:null,y:null};
+
+
+    console.log(properties)
+    this.setProperties(properties, constants);
+
+    // creating the variables for clustering
+    this.resetCluster();
+    this.dynamicEdgesLength = 0;
+    this.clusterSession = 0;
+    this.clusterSizeWidthFactor  = constants.clustering.nodeScaling.width;
+    this.clusterSizeHeightFactor = constants.clustering.nodeScaling.height;
+    this.clusterSizeRadiusFactor = constants.clustering.nodeScaling.radius;
+    this.maxNodeSizeIncrements = constants.clustering.maxNodeSizeIncrements;
+    this.growthIndicator = 0;
+
+    // variables to tell the node about the network.
+    this.networkScaleInv = 1;
+    this.networkScale = 1;
+    this.canvasTopLeft = {"x": -300, "y": -300};
+    this.canvasBottomRight = {"x":  300, "y":  300};
+    this.parentEdgeId = null;
+  }
+
+  /**
+   * (re)setting the clustering variables and objects
+   */
+  Node.prototype.resetCluster = function() {
+    // clustering variables
+    this.formationScale = undefined; // this is used to determine when to open the cluster
+    this.clusterSize = 1;            // this signifies the total amount of nodes in this cluster
+    this.containedNodes = {};
+    this.containedEdges = {};
+    this.clusterSessions = [];
+  };
+
+  /**
+   * Attach a edge to the node
+   * @param {Edge} edge
+   */
+  Node.prototype.attachEdge = function(edge) {
+    if (this.edges.indexOf(edge) == -1) {
+      this.edges.push(edge);
+    }
+    if (this.dynamicEdges.indexOf(edge) == -1) {
+      this.dynamicEdges.push(edge);
+    }
+    this.dynamicEdgesLength = this.dynamicEdges.length;
+  };
+
+  /**
+   * Detach a edge from the node
+   * @param {Edge} edge
+   */
+  Node.prototype.detachEdge = function(edge) {
+    var index = this.edges.indexOf(edge);
+    if (index != -1) {
+      this.edges.splice(index, 1);
+      this.dynamicEdges.splice(index, 1);
+    }
+    this.dynamicEdgesLength = this.dynamicEdges.length;
+  };
+
+
+  /**
+   * Set or overwrite properties for the node
+   * @param {Object} properties an object with properties
+   * @param {Object} constants  and object with default, global properties
+   */
+  Node.prototype.setProperties = function(properties, constants) {
+    if (!properties) {
+      return;
+    }
+    this.originalLabel = undefined;
+    // basic properties
+    if (properties.id !== undefined)        {this.id = properties.id;}
+    if (properties.label !== undefined)     {this.label = properties.label; this.originalLabel = properties.label;}
+    if (properties.title !== undefined)     {this.title = properties.title;}
+    if (properties.group !== undefined)     {this.group = properties.group;}
+    if (properties.x !== undefined)         {this.x = properties.x;}
+    if (properties.y !== undefined)         {this.y = properties.y;}
+    if (properties.value !== undefined)     {this.value = properties.value;}
+    if (properties.level !== undefined)     {this.level = properties.level; this.preassignedLevel = true;}
+    if (properties.borderWidth !== undefined)                 {this.borderWidth = properties.borderWidth;}
+    if (properties.borderWidthSelected !== undefined)         {this.borderWidthSelected = properties.borderWidthSelected;}
+
+    // physics
+    if (properties.mass !== undefined)                {this.mass = properties.mass;}
+
+    // navigation controls properties
+    if (properties.horizontalAlignLeft !== undefined) {this.horizontalAlignLeft = properties.horizontalAlignLeft;}
+    if (properties.verticalAlignTop    !== undefined) {this.verticalAlignTop    = properties.verticalAlignTop;}
+    if (properties.triggerFunction     !== undefined) {this.triggerFunction     = properties.triggerFunction;}
+
+    if (this.id === undefined) {
+      throw "Node must have an id";
+    }
+
+    // copy group properties
+    if (this.group) {
+      var groupObj = this.grouplist.get(this.group);
+      for (var prop in groupObj) {
+        if (groupObj.hasOwnProperty(prop)) {
+          this[prop] = groupObj[prop];
+        }
+      }
+    }
+
+    // individual shape properties
+    if (properties.shape !== undefined)          {this.shape = properties.shape;}
+    if (properties.image !== undefined)          {this.image = properties.image;}
+    if (properties.radius !== undefined)         {this.radius = properties.radius; this.baseRadiusValue = this.radius;}
+    if (properties.color !== undefined)          {this.color = util.parseColor(properties.color);}
+
+    if (properties.fontColor !== undefined)      {this.fontColor = properties.fontColor;}
+    if (properties.fontSize !== undefined)       {this.fontSize = properties.fontSize;}
+    if (properties.fontFace !== undefined)       {this.fontFace = properties.fontFace;}
+
+    if (this.image !== undefined && this.image != "") {
+      if (this.imagelist) {
+        this.imageObj = this.imagelist.load(this.image);
+      }
+      else {
+        throw "No imagelist provided";
+      }
+    }
+
+    this.xFixed = this.xFixed || (properties.x !== undefined && !properties.allowedToMoveX);
+    this.yFixed = this.yFixed || (properties.y !== undefined && !properties.allowedToMoveY);
+    this.radiusFixed = this.radiusFixed || (properties.radius !== undefined);
+
+    if (this.shape == 'image') {
+      this.radiusMin = constants.nodes.widthMin;
+      this.radiusMax = constants.nodes.widthMax;
+    }
+
+    // choose draw method depending on the shape
+    switch (this.shape) {
+      case 'database':      this.draw = this._drawDatabase; this.resize = this._resizeDatabase; break;
+      case 'box':           this.draw = this._drawBox; this.resize = this._resizeBox; break;
+      case 'circle':        this.draw = this._drawCircle; this.resize = this._resizeCircle; break;
+      case 'ellipse':       this.draw = this._drawEllipse; this.resize = this._resizeEllipse; break;
+      // TODO: add diamond shape
+      case 'image':         this.draw = this._drawImage; this.resize = this._resizeImage; break;
+      case 'text':          this.draw = this._drawText; this.resize = this._resizeText; break;
+      case 'dot':           this.draw = this._drawDot; this.resize = this._resizeShape; break;
+      case 'square':        this.draw = this._drawSquare; this.resize = this._resizeShape; break;
+      case 'triangle':      this.draw = this._drawTriangle; this.resize = this._resizeShape; break;
+      case 'triangleDown':  this.draw = this._drawTriangleDown; this.resize = this._resizeShape; break;
+      case 'star':          this.draw = this._drawStar; this.resize = this._resizeShape; break;
+      default:              this.draw = this._drawEllipse; this.resize = this._resizeEllipse; break;
+    }
+    // reset the size of the node, this can be changed
+    this._reset();
+  };
+
+  /**
+   * select this node
+   */
+  Node.prototype.select = function() {
+    this.selected = true;
+    this._reset();
+  };
+
+  /**
+   * unselect this node
+   */
+  Node.prototype.unselect = function() {
+    this.selected = false;
+    this._reset();
+  };
+
+
+  /**
+   * Reset the calculated size of the node, forces it to recalculate its size
+   */
+  Node.prototype.clearSizeCache = function() {
+    this._reset();
+  };
+
+  /**
+   * Reset the calculated size of the node, forces it to recalculate its size
+   * @private
+   */
+  Node.prototype._reset = function() {
+    this.width = undefined;
+    this.height = undefined;
+  };
+
+  /**
+   * get the title of this node.
+   * @return {string} title    The title of the node, or undefined when no title
+   *                           has been set.
+   */
+  Node.prototype.getTitle = function() {
+    return typeof this.title === "function" ? this.title() : this.title;
+  };
+
+  /**
+   * Calculate the distance to the border of the Node
+   * @param {CanvasRenderingContext2D}   ctx
+   * @param {Number} angle        Angle in radians
+   * @returns {number} distance   Distance to the border in pixels
+   */
+  Node.prototype.distanceToBorder = function (ctx, angle) {
+    var borderWidth = 1;
+
+    if (!this.width) {
+      this.resize(ctx);
+    }
+
+    switch (this.shape) {
+      case 'circle':
+      case 'dot':
+        return this.radius + borderWidth;
+
+      case 'ellipse':
+        var a = this.width / 2;
+        var b = this.height / 2;
+        var w = (Math.sin(angle) * a);
+        var h = (Math.cos(angle) * b);
+        return a * b / Math.sqrt(w * w + h * h);
+
+      // TODO: implement distanceToBorder for database
+      // TODO: implement distanceToBorder for triangle
+      // TODO: implement distanceToBorder for triangleDown
+
+      case 'box':
+      case 'image':
+      case 'text':
+      default:
+        if (this.width) {
+          return Math.min(
+              Math.abs(this.width / 2 / Math.cos(angle)),
+              Math.abs(this.height / 2 / Math.sin(angle))) + borderWidth;
+          // TODO: reckon with border radius too in case of box
+        }
+        else {
+          return 0;
+        }
+
+    }
+    // TODO: implement calculation of distance to border for all shapes
+  };
+
+  /**
+   * Set forces acting on the node
+   * @param {number} fx   Force in horizontal direction
+   * @param {number} fy   Force in vertical direction
+   */
+  Node.prototype._setForce = function(fx, fy) {
+    this.fx = fx;
+    this.fy = fy;
+  };
+
+  /**
+   * Add forces acting on the node
+   * @param {number} fx   Force in horizontal direction
+   * @param {number} fy   Force in vertical direction
+   * @private
+   */
+  Node.prototype._addForce = function(fx, fy) {
+    this.fx += fx;
+    this.fy += fy;
+  };
+
+  /**
+   * Perform one discrete step for the node
+   * @param {number} interval    Time interval in seconds
+   */
+  Node.prototype.discreteStep = function(interval) {
+    if (!this.xFixed) {
+      var dx   = this.damping * this.vx;     // damping force
+      var ax   = (this.fx - dx) / this.mass;  // acceleration
+      this.vx += ax * interval;               // velocity
+      this.x  += this.vx * interval;          // position
+    }
+
+    if (!this.yFixed) {
+      var dy   = this.damping * this.vy;     // damping force
+      var ay   = (this.fy - dy) / this.mass;  // acceleration
+      this.vy += ay * interval;               // velocity
+      this.y  += this.vy * interval;          // position
+    }
+  };
+
+
+
+  /**
+   * Perform one discrete step for the node
+   * @param {number} interval    Time interval in seconds
+   * @param {number} maxVelocity The speed limit imposed on the velocity
+   */
+  Node.prototype.discreteStepLimited = function(interval, maxVelocity) {
+    if (!this.xFixed) {
+      var dx   = this.damping * this.vx;     // damping force
+      var ax   = (this.fx - dx) / this.mass;  // acceleration
+      this.vx += ax * interval;               // velocity
+      this.vx = (Math.abs(this.vx) > maxVelocity) ? ((this.vx > 0) ? maxVelocity : -maxVelocity) : this.vx;
+      this.x  += this.vx * interval;          // position
+    }
+    else {
+      this.fx = 0;
+    }
+
+    if (!this.yFixed) {
+      var dy   = this.damping * this.vy;     // damping force
+      var ay   = (this.fy - dy) / this.mass;  // acceleration
+      this.vy += ay * interval;               // velocity
+      this.vy = (Math.abs(this.vy) > maxVelocity) ? ((this.vy > 0) ? maxVelocity : -maxVelocity) : this.vy;
+      this.y  += this.vy * interval;          // position
+    }
+    else {
+      this.fy = 0;
+    }
+  };
+
+  /**
+   * Check if this node has a fixed x and y position
+   * @return {boolean}      true if fixed, false if not
+   */
+  Node.prototype.isFixed = function() {
+    return (this.xFixed && this.yFixed);
+  };
+
+  /**
+   * Check if this node is moving
+   * @param {number} vmin   the minimum velocity considered as "moving"
+   * @return {boolean}      true if moving, false if it has no velocity
+   */
+  // TODO: replace this method with calculating the kinetic energy
+  Node.prototype.isMoving = function(vmin) {
+    return (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin);
+  };
+
+  /**
+   * check if this node is selecte
+   * @return {boolean} selected   True if node is selected, else false
+   */
+  Node.prototype.isSelected = function() {
+    return this.selected;
+  };
+
+  /**
+   * Retrieve the value of the node. Can be undefined
+   * @return {Number} value
+   */
+  Node.prototype.getValue = function() {
+    return this.value;
+  };
+
+  /**
+   * Calculate the distance from the nodes location to the given location (x,y)
+   * @param {Number} x
+   * @param {Number} y
+   * @return {Number} value
+   */
+  Node.prototype.getDistance = function(x, y) {
+    var dx = this.x - x,
+        dy = this.y - y;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
+
+  /**
+   * Adjust the value range of the node. The node will adjust it's radius
+   * based on its value.
+   * @param {Number} min
+   * @param {Number} max
+   */
+  Node.prototype.setValueRange = function(min, max) {
+    if (!this.radiusFixed && this.value !== undefined) {
+      if (max == min) {
+        this.radius = (this.radiusMin + this.radiusMax) / 2;
+      }
+      else {
+        var scale = (this.radiusMax - this.radiusMin) / (max - min);
+        this.radius = (this.value - min) * scale + this.radiusMin;
+      }
+    }
+    this.baseRadiusValue = this.radius;
+  };
+
+  /**
+   * Draw this node in the given canvas
+   * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+   * @param {CanvasRenderingContext2D}   ctx
+   */
+  Node.prototype.draw = function(ctx) {
+    throw "Draw method not initialized for node";
+  };
+
+  /**
+   * Recalculate the size of this node in the given canvas
+   * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+   * @param {CanvasRenderingContext2D}   ctx
+   */
+  Node.prototype.resize = function(ctx) {
+    throw "Resize method not initialized for node";
+  };
+
+  /**
+   * Check if this object is overlapping with the provided object
+   * @param {Object} obj   an object with parameters left, top, right, bottom
+   * @return {boolean}     True if location is located on node
+   */
+  Node.prototype.isOverlappingWith = function(obj) {
+    return (this.left              < obj.right  &&
+            this.left + this.width > obj.left   &&
+            this.top               < obj.bottom &&
+            this.top + this.height > obj.top);
+  };
+
+  Node.prototype._resizeImage = function (ctx) {
+    // TODO: pre calculate the image size
+
+    if (!this.width || !this.height) {  // undefined or 0
+      var width, height;
+      if (this.value) {
+        this.radius = this.baseRadiusValue;
+        var scale = this.imageObj.height / this.imageObj.width;
+        if (scale !== undefined) {
+          width = this.radius || this.imageObj.width;
+          height = this.radius * scale || this.imageObj.height;
+        }
+        else {
+          width = 0;
+          height = 0;
+        }
+      }
+      else {
+        width = this.imageObj.width;
+        height = this.imageObj.height;
+      }
+      this.width  = width;
+      this.height = height;
+
+      this.growthIndicator = 0;
+      if (this.width > 0 && this.height > 0) {
+        this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements)  * this.clusterSizeWidthFactor;
+        this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
+        this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
+        this.growthIndicator = this.width - width;
+      }
+    }
+
+  };
+
+  Node.prototype._drawImage = function (ctx) {
+    this._resizeImage(ctx);
+
+    this.left   = this.x - this.width / 2;
+    this.top    = this.y - this.height / 2;
+
+    var yLabel;
+    if (this.imageObj.width != 0 ) {
+      // draw the shade
+      if (this.clusterSize > 1) {
+        var lineWidth = ((this.clusterSize > 1) ? 10 : 0.0);
+        lineWidth *= this.networkScaleInv;
+        lineWidth = Math.min(0.2 * this.width,lineWidth);
+
+        ctx.globalAlpha = 0.5;
+        ctx.drawImage(this.imageObj, this.left - lineWidth, this.top - lineWidth, this.width + 2*lineWidth, this.height + 2*lineWidth);
+      }
+
+      // draw the image
+      ctx.globalAlpha = 1.0;
+      ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
+      yLabel = this.y + this.height / 2;
+    }
+    else {
+      // image still loading... just draw the label for now
+      yLabel = this.y;
+    }
+
+    this._label(ctx, this.label, this.x, yLabel, undefined, "top");
+  };
+
+
+  Node.prototype._resizeBox = function (ctx) {
+    if (!this.width) {
+      var margin = 5;
+      var textSize = this.getTextSize(ctx);
+      this.width = textSize.width + 2 * margin;
+      this.height = textSize.height + 2 * margin;
+
+      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeWidthFactor;
+      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeHeightFactor;
+      this.growthIndicator = this.width - (textSize.width + 2 * margin);
+  //    this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeRadiusFactor;
+
+    }
+  };
+
+  Node.prototype._drawBox = function (ctx) {
+    this._resizeBox(ctx);
+
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    var clusterLineWidth = 2.5;
+    var borderWidth = this.borderWidth;
+    var selectionLineWidth = this.borderWidthSelected || 2 * this.borderWidth;
+
+    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.hover ? this.color.hover.border : this.color.border;
+
+    // draw the outer border
+    if (this.clusterSize > 1) {
+      ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+      ctx.lineWidth *= this.networkScaleInv;
+      ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+      ctx.roundRect(this.left-2*ctx.lineWidth, this.top-2*ctx.lineWidth, this.width+4*ctx.lineWidth, this.height+4*ctx.lineWidth, this.radius);
+      ctx.stroke();
+    }
+    ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.networkScaleInv;
+    ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
+
+    ctx.roundRect(this.left, this.top, this.width, this.height, this.radius);
+    ctx.fill();
+    ctx.stroke();
+
+    this._label(ctx, this.label, this.x, this.y);
+  };
+
+
+  Node.prototype._resizeDatabase = function (ctx) {
+    if (!this.width) {
+      var margin = 5;
+      var textSize = this.getTextSize(ctx);
+      var size = textSize.width + 2 * margin;
+      this.width = size;
+      this.height = size;
+
+      // scaling used for clustering
+      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
+      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
+      this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
+      this.growthIndicator = this.width - size;
+    }
+  };
+
+  Node.prototype._drawDatabase = function (ctx) {
+    this._resizeDatabase(ctx);
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    var clusterLineWidth = 2.5;
+    var borderWidth = this.borderWidth;
+    var selectionLineWidth = this.borderWidthSelected || 2 * this.borderWidth;
+
+    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.hover ? this.color.hover.border : this.color.border;
+
+    // draw the outer border
+    if (this.clusterSize > 1) {
+      ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+      ctx.lineWidth *= this.networkScaleInv;
+      ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+      ctx.database(this.x - this.width/2 - 2*ctx.lineWidth, this.y - this.height*0.5 - 2*ctx.lineWidth, this.width + 4*ctx.lineWidth, this.height + 4*ctx.lineWidth);
+      ctx.stroke();
+    }
+    ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.networkScaleInv;
+    ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+    ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
+    ctx.database(this.x - this.width/2, this.y - this.height*0.5, this.width, this.height);
+    ctx.fill();
+    ctx.stroke();
+
+    this._label(ctx, this.label, this.x, this.y);
+  };
+
+
+  Node.prototype._resizeCircle = function (ctx) {
+    if (!this.width) {
+      var margin = 5;
+      var textSize = this.getTextSize(ctx);
+      var diameter = Math.max(textSize.width, textSize.height) + 2 * margin;
+      this.radius = diameter / 2;
+
+      this.width = diameter;
+      this.height = diameter;
+
+      // scaling used for clustering
+  //    this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeWidthFactor;
+  //    this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeHeightFactor;
+      this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeRadiusFactor;
+      this.growthIndicator = this.radius - 0.5*diameter;
+    }
+  };
+
+  Node.prototype._drawCircle = function (ctx) {
+    this._resizeCircle(ctx);
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    var clusterLineWidth = 2.5;
+    var borderWidth = this.borderWidth;
+    var selectionLineWidth = this.borderWidthSelected || 2 * this.borderWidth;
+
+    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.hover ? this.color.hover.border : this.color.border;
+
+    // draw the outer border
+    if (this.clusterSize > 1) {
+      ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+      ctx.lineWidth *= this.networkScaleInv;
+      ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+      ctx.circle(this.x, this.y, this.radius+2*ctx.lineWidth);
+      ctx.stroke();
+    }
+    ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.networkScaleInv;
+    ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+    ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
+    ctx.circle(this.x, this.y, this.radius);
+    ctx.fill();
+    ctx.stroke();
+
+    this._label(ctx, this.label, this.x, this.y);
+  };
+
+  Node.prototype._resizeEllipse = function (ctx) {
+    if (!this.width) {
+      var textSize = this.getTextSize(ctx);
+
+      this.width = textSize.width * 1.5;
+      this.height = textSize.height * 2;
+      if (this.width < this.height) {
+        this.width = this.height;
+      }
+      var defaultSize = this.width;
+
+        // scaling used for clustering
+      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
+      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
+      this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
+      this.growthIndicator = this.width - defaultSize;
+    }
+  };
+
+  Node.prototype._drawEllipse = function (ctx) {
+    this._resizeEllipse(ctx);
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    var clusterLineWidth = 2.5;
+    var borderWidth = this.borderWidth;
+    var selectionLineWidth = this.borderWidthSelected || 2 * this.borderWidth;
+
+    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.hover ? this.color.hover.border : this.color.border;
+
+    // draw the outer border
+    if (this.clusterSize > 1) {
+      ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+      ctx.lineWidth *= this.networkScaleInv;
+      ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+      ctx.ellipse(this.left-2*ctx.lineWidth, this.top-2*ctx.lineWidth, this.width+4*ctx.lineWidth, this.height+4*ctx.lineWidth);
+      ctx.stroke();
+    }
+    ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.networkScaleInv;
+    ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+    ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
+
+    ctx.ellipse(this.left, this.top, this.width, this.height);
+    ctx.fill();
+    ctx.stroke();
+    this._label(ctx, this.label, this.x, this.y);
+  };
+
+  Node.prototype._drawDot = function (ctx) {
+    this._drawShape(ctx, 'circle');
+  };
+
+  Node.prototype._drawTriangle = function (ctx) {
+    this._drawShape(ctx, 'triangle');
+  };
+
+  Node.prototype._drawTriangleDown = function (ctx) {
+    this._drawShape(ctx, 'triangleDown');
+  };
+
+  Node.prototype._drawSquare = function (ctx) {
+    this._drawShape(ctx, 'square');
+  };
+
+  Node.prototype._drawStar = function (ctx) {
+    this._drawShape(ctx, 'star');
+  };
+
+  Node.prototype._resizeShape = function (ctx) {
+    if (!this.width) {
+      this.radius = this.baseRadiusValue;
+      var size = 2 * this.radius;
+      this.width = size;
+      this.height = size;
+
+      // scaling used for clustering
+      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
+      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
+      this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeRadiusFactor;
+      this.growthIndicator = this.width - size;
+    }
+  };
+
+  Node.prototype._drawShape = function (ctx, shape) {
+    this._resizeShape(ctx);
+
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    var clusterLineWidth = 2.5;
+    var borderWidth = this.borderWidth;
+    var selectionLineWidth = this.borderWidthSelected || 2 * this.borderWidth;
+    var radiusMultiplier = 2;
+
+    // choose draw method depending on the shape
+    switch (shape) {
+      case 'dot':           radiusMultiplier = 2; break;
+      case 'square':        radiusMultiplier = 2; break;
+      case 'triangle':      radiusMultiplier = 3; break;
+      case 'triangleDown':  radiusMultiplier = 3; break;
+      case 'star':          radiusMultiplier = 4; break;
+    }
+
+    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.hover ? this.color.hover.border : this.color.border;
+
+    // draw the outer border
+    if (this.clusterSize > 1) {
+      ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+      ctx.lineWidth *= this.networkScaleInv;
+      ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+      ctx[shape](this.x, this.y, this.radius + radiusMultiplier * ctx.lineWidth);
+      ctx.stroke();
+    }
+    ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.networkScaleInv;
+    ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+    ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
+    ctx[shape](this.x, this.y, this.radius);
+    ctx.fill();
+    ctx.stroke();
+
+    if (this.label) {
+      this._label(ctx, this.label, this.x, this.y + this.height / 2, undefined, 'top',true);
+    }
+  };
+
+  Node.prototype._resizeText = function (ctx) {
+    if (!this.width) {
+      var margin = 5;
+      var textSize = this.getTextSize(ctx);
+      this.width = textSize.width + 2 * margin;
+      this.height = textSize.height + 2 * margin;
+
+      // scaling used for clustering
+      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
+      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
+      this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
+      this.growthIndicator = this.width - (textSize.width + 2 * margin);
+    }
+  };
+
+  Node.prototype._drawText = function (ctx) {
+    this._resizeText(ctx);
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    this._label(ctx, this.label, this.x, this.y);
+  };
+
+
+  Node.prototype._label = function (ctx, text, x, y, align, baseline, labelUnderNode) {
+    if (text && this.fontSize * this.networkScale > this.fontDrawThreshold) {
+      ctx.font = (this.selected ? "bold " : "") + this.fontSize + "px " + this.fontFace;
+      ctx.fillStyle = this.fontColor || "black";
+      ctx.textAlign = align || "center";
+      ctx.textBaseline = baseline || "middle";
+
+      var lines = text.split('\n');
+      var lineCount = lines.length;
+      var fontSize = (this.fontSize + 4);
+      var yLine = y + (1 - lineCount) / 2 * fontSize;
+      if (labelUnderNode == true) {
+        yLine = y + (1 - lineCount) / (2 * fontSize);
+      }
+
+      for (var i = 0; i < lineCount; i++) {
+        ctx.fillText(lines[i], x, yLine);
+        yLine += fontSize;
+      }
+    }
+  };
+
+
+  Node.prototype.getTextSize = function(ctx) {
+    if (this.label !== undefined) {
+      ctx.font = (this.selected ? "bold " : "") + this.fontSize + "px " + this.fontFace;
+
+      var lines = this.label.split('\n'),
+          height = (this.fontSize + 4) * lines.length,
+          width = 0;
+
+      for (var i = 0, iMax = lines.length; i < iMax; i++) {
+        width = Math.max(width, ctx.measureText(lines[i]).width);
+      }
+
+      return {"width": width, "height": height};
+    }
+    else {
+      return {"width": 0, "height": 0};
+    }
+  };
+
+  /**
+   * this is used to determine if a node is visible at all. this is used to determine when it needs to be drawn.
+   * there is a safety margin of 0.3 * width;
+   *
+   * @returns {boolean}
+   */
+  Node.prototype.inArea = function() {
+    if (this.width !== undefined) {
+    return (this.x + this.width *this.networkScaleInv  >= this.canvasTopLeft.x     &&
+            this.x - this.width *this.networkScaleInv  <  this.canvasBottomRight.x &&
+            this.y + this.height*this.networkScaleInv  >= this.canvasTopLeft.y     &&
+            this.y - this.height*this.networkScaleInv  <  this.canvasBottomRight.y);
+    }
+    else {
+      return true;
+    }
+  };
+
+  /**
+   * checks if the core of the node is in the display area, this is used for opening clusters around zoom
+   * @returns {boolean}
+   */
+  Node.prototype.inView = function() {
+    return (this.x >= this.canvasTopLeft.x    &&
+            this.x < this.canvasBottomRight.x &&
+            this.y >= this.canvasTopLeft.y    &&
+            this.y < this.canvasBottomRight.y);
+  };
+
+  /**
+   * This allows the zoom level of the network to influence the rendering
+   * We store the inverted scale and the coordinates of the top left, and bottom right points of the canvas
+   *
+   * @param scale
+   * @param canvasTopLeft
+   * @param canvasBottomRight
+   */
+  Node.prototype.setScaleAndPos = function(scale,canvasTopLeft,canvasBottomRight) {
+    this.networkScaleInv = 1.0/scale;
+    this.networkScale = scale;
+    this.canvasTopLeft = canvasTopLeft;
+    this.canvasBottomRight = canvasBottomRight;
+  };
+
+
+  /**
+   * This allows the zoom level of the network to influence the rendering
+   *
+   * @param scale
+   */
+  Node.prototype.setScale = function(scale) {
+    this.networkScaleInv = 1.0/scale;
+    this.networkScale = scale;
+  };
+
+
+
+  /**
+   * set the velocity at 0. Is called when this node is contained in another during clustering
+   */
+  Node.prototype.clearVelocity = function() {
+    this.vx = 0;
+    this.vy = 0;
+  };
+
+
+  /**
+   * Basic preservation of (kinectic) energy
+   *
+   * @param massBeforeClustering
+   */
+  Node.prototype.updateVelocity = function(massBeforeClustering) {
+    var energyBefore = this.vx * this.vx * massBeforeClustering;
+    //this.vx = (this.vx < 0) ? -Math.sqrt(energyBefore/this.mass) : Math.sqrt(energyBefore/this.mass);
+    this.vx = Math.sqrt(energyBefore/this.mass);
+    energyBefore = this.vy * this.vy * massBeforeClustering;
+    //this.vy = (this.vy < 0) ? -Math.sqrt(energyBefore/this.mass) : Math.sqrt(energyBefore/this.mass);
+    this.vy = Math.sqrt(energyBefore/this.mass);
+  };
+
+  module.exports = Node;
+
+
+/***/ },
+/* 43 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var util = __webpack_require__(1);
+  var Node = __webpack_require__(42);
 
   /**
    * @class Edge
@@ -17814,1124 +25479,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Edge;
 
 /***/ },
-/* 28 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var util = __webpack_require__(1);
-
-  /**
-   * @class Groups
-   * This class can store groups and properties specific for groups.
-   */
-  function Groups() {
-    this.clear();
-    this.defaultIndex = 0;
-  }
-
-
-  /**
-   * default constants for group colors
-   */
-  Groups.DEFAULT = [
-    {border: "#2B7CE9", background: "#97C2FC", highlight: {border: "#2B7CE9", background: "#D2E5FF"}, hover: {border: "#2B7CE9", background: "#D2E5FF"}}, // blue
-    {border: "#FFA500", background: "#FFFF00", highlight: {border: "#FFA500", background: "#FFFFA3"}, hover: {border: "#FFA500", background: "#FFFFA3"}}, // yellow
-    {border: "#FA0A10", background: "#FB7E81", highlight: {border: "#FA0A10", background: "#FFAFB1"}, hover: {border: "#FA0A10", background: "#FFAFB1"}}, // red
-    {border: "#41A906", background: "#7BE141", highlight: {border: "#41A906", background: "#A1EC76"}, hover: {border: "#41A906", background: "#A1EC76"}}, // green
-    {border: "#E129F0", background: "#EB7DF4", highlight: {border: "#E129F0", background: "#F0B3F5"}, hover: {border: "#E129F0", background: "#F0B3F5"}}, // magenta
-    {border: "#7C29F0", background: "#AD85E4", highlight: {border: "#7C29F0", background: "#D3BDF0"}, hover: {border: "#7C29F0", background: "#D3BDF0"}}, // purple
-    {border: "#C37F00", background: "#FFA807", highlight: {border: "#C37F00", background: "#FFCA66"}, hover: {border: "#C37F00", background: "#FFCA66"}}, // orange
-    {border: "#4220FB", background: "#6E6EFD", highlight: {border: "#4220FB", background: "#9B9BFD"}, hover: {border: "#4220FB", background: "#9B9BFD"}}, // darkblue
-    {border: "#FD5A77", background: "#FFC0CB", highlight: {border: "#FD5A77", background: "#FFD1D9"}, hover: {border: "#FD5A77", background: "#FFD1D9"}}, // pink
-    {border: "#4AD63A", background: "#C2FABC", highlight: {border: "#4AD63A", background: "#E6FFE3"}, hover: {border: "#4AD63A", background: "#E6FFE3"}}  // mint
-  ];
-
-
-  /**
-   * Clear all groups
-   */
-  Groups.prototype.clear = function () {
-    this.groups = {};
-    this.groups.length = function()
-    {
-      var i = 0;
-      for ( var p in this ) {
-        if (this.hasOwnProperty(p)) {
-          i++;
-        }
-      }
-      return i;
-    }
-  };
-
-
-  /**
-   * get group properties of a groupname. If groupname is not found, a new group
-   * is added.
-   * @param {*} groupname        Can be a number, string, Date, etc.
-   * @return {Object} group      The created group, containing all group properties
-   */
-  Groups.prototype.get = function (groupname) {
-    var group = this.groups[groupname];
-
-    if (group == undefined) {
-      // create new group
-      var index = this.defaultIndex % Groups.DEFAULT.length;
-      this.defaultIndex++;
-      group = {};
-      group.color = Groups.DEFAULT[index];
-      this.groups[groupname] = group;
-    }
-
-    return group;
-  };
-
-  /**
-   * Add a custom group style
-   * @param {String} groupname
-   * @param {Object} style       An object containing borderColor,
-   *                             backgroundColor, etc.
-   * @return {Object} group      The created group object
-   */
-  Groups.prototype.add = function (groupname, style) {
-    this.groups[groupname] = style;
-    if (style.color) {
-      style.color = util.parseColor(style.color);
-    }
-    return style;
-  };
-
-  module.exports = Groups;
-
-
-/***/ },
-/* 29 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * @class Images
-   * This class loads images and keeps them stored.
-   */
-  function Images() {
-    this.images = {};
-
-    this.callback = undefined;
-  }
-
-  /**
-   * Set an onload callback function. This will be called each time an image
-   * is loaded
-   * @param {function} callback
-   */
-  Images.prototype.setOnloadCallback = function(callback) {
-    this.callback = callback;
-  };
-
-  /**
-   *
-   * @param {string} url          Url of the image
-   * @return {Image} img          The image object
-   */
-  Images.prototype.load = function(url) {
-    var img = this.images[url];
-    if (img == undefined) {
-      // create the image
-      var images = this;
-      img = new Image();
-      this.images[url] = img;
-      img.onload = function() {
-        if (images.callback) {
-          images.callback(this);
-        }
-      };
-      img.src = url;
-    }
-
-    return img;
-  };
-
-  module.exports = Images;
-
-
-/***/ },
-/* 30 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var util = __webpack_require__(1);
-
-  /**
-   * @class Node
-   * A node. A node can be connected to other nodes via one or multiple edges.
-   * @param {object} properties An object containing properties for the node. All
-   *                            properties are optional, except for the id.
-   *                              {number} id     Id of the node. Required
-   *                              {string} label  Text label for the node
-   *                              {number} x      Horizontal position of the node
-   *                              {number} y      Vertical position of the node
-   *                              {string} shape  Node shape, available:
-   *                                              "database", "circle", "ellipse",
-   *                                              "box", "image", "text", "dot",
-   *                                              "star", "triangle", "triangleDown",
-   *                                              "square"
-   *                              {string} image  An image url
-   *                              {string} title  An title text, can be HTML
-   *                              {anytype} group A group name or number
-   * @param {Network.Images} imagelist    A list with images. Only needed
-   *                                            when the node has an image
-   * @param {Network.Groups} grouplist    A list with groups. Needed for
-   *                                            retrieving group properties
-   * @param {Object}               constants    An object with default values for
-   *                                            example for the color
-   *
-   */
-  function Node(properties, imagelist, grouplist, constants) {
-    this.selected = false;
-    this.hover = false;
-
-    this.edges = []; // all edges connected to this node
-    this.dynamicEdges = [];
-    this.reroutedEdges = {};
-
-    this.group = constants.nodes.group;
-    this.fontSize = Number(constants.nodes.fontSize);
-    this.fontFace = constants.nodes.fontFace;
-    this.fontColor = constants.nodes.fontColor;
-    this.fontDrawThreshold = 3;
-
-    this.color = constants.nodes.color;
-
-    // set defaults for the properties
-    this.id = undefined;
-    this.shape = constants.nodes.shape;
-    this.image = constants.nodes.image;
-    this.x = null;
-    this.y = null;
-    this.xFixed = false;
-    this.yFixed = false;
-    this.horizontalAlignLeft = true; // these are for the navigation controls
-    this.verticalAlignTop    = true; // these are for the navigation controls
-    this.radius = constants.nodes.radius;
-    this.baseRadiusValue = constants.nodes.radius;
-    this.radiusFixed = false;
-    this.radiusMin = constants.nodes.radiusMin;
-    this.radiusMax = constants.nodes.radiusMax;
-    this.level = -1;
-    this.preassignedLevel = false;
-
-
-    this.imagelist = imagelist;
-    this.grouplist = grouplist;
-
-    // physics properties
-    this.fx = 0.0;  // external force x
-    this.fy = 0.0;  // external force y
-    this.vx = 0.0;  // velocity x
-    this.vy = 0.0;  // velocity y
-    this.minForce = constants.minForce;
-    this.damping = constants.physics.damping;
-    this.mass = 1;  // kg
-    this.fixedData = {x:null,y:null};
-
-    this.setProperties(properties, constants);
-
-    // creating the variables for clustering
-    this.resetCluster();
-    this.dynamicEdgesLength = 0;
-    this.clusterSession = 0;
-    this.clusterSizeWidthFactor  = constants.clustering.nodeScaling.width;
-    this.clusterSizeHeightFactor = constants.clustering.nodeScaling.height;
-    this.clusterSizeRadiusFactor = constants.clustering.nodeScaling.radius;
-    this.maxNodeSizeIncrements = constants.clustering.maxNodeSizeIncrements;
-    this.growthIndicator = 0;
-
-    // variables to tell the node about the network.
-    this.networkScaleInv = 1;
-    this.networkScale = 1;
-    this.canvasTopLeft = {"x": -300, "y": -300};
-    this.canvasBottomRight = {"x":  300, "y":  300};
-    this.parentEdgeId = null;
-  }
-
-  /**
-   * (re)setting the clustering variables and objects
-   */
-  Node.prototype.resetCluster = function() {
-    // clustering variables
-    this.formationScale = undefined; // this is used to determine when to open the cluster
-    this.clusterSize = 1;            // this signifies the total amount of nodes in this cluster
-    this.containedNodes = {};
-    this.containedEdges = {};
-    this.clusterSessions = [];
-  };
-
-  /**
-   * Attach a edge to the node
-   * @param {Edge} edge
-   */
-  Node.prototype.attachEdge = function(edge) {
-    if (this.edges.indexOf(edge) == -1) {
-      this.edges.push(edge);
-    }
-    if (this.dynamicEdges.indexOf(edge) == -1) {
-      this.dynamicEdges.push(edge);
-    }
-    this.dynamicEdgesLength = this.dynamicEdges.length;
-  };
-
-  /**
-   * Detach a edge from the node
-   * @param {Edge} edge
-   */
-  Node.prototype.detachEdge = function(edge) {
-    var index = this.edges.indexOf(edge);
-    if (index != -1) {
-      this.edges.splice(index, 1);
-      this.dynamicEdges.splice(index, 1);
-    }
-    this.dynamicEdgesLength = this.dynamicEdges.length;
-  };
-
-
-  /**
-   * Set or overwrite properties for the node
-   * @param {Object} properties an object with properties
-   * @param {Object} constants  and object with default, global properties
-   */
-  Node.prototype.setProperties = function(properties, constants) {
-    if (!properties) {
-      return;
-    }
-    this.originalLabel = undefined;
-    // basic properties
-    if (properties.id !== undefined)        {this.id = properties.id;}
-    if (properties.label !== undefined)     {this.label = properties.label; this.originalLabel = properties.label;}
-    if (properties.title !== undefined)     {this.title = properties.title;}
-    if (properties.group !== undefined)     {this.group = properties.group;}
-    if (properties.x !== undefined)         {this.x = properties.x;}
-    if (properties.y !== undefined)         {this.y = properties.y;}
-    if (properties.value !== undefined)     {this.value = properties.value;}
-    if (properties.level !== undefined)     {this.level = properties.level; this.preassignedLevel = true;}
-
-
-    // physics
-    if (properties.mass !== undefined)                {this.mass = properties.mass;}
-
-    // navigation controls properties
-    if (properties.horizontalAlignLeft !== undefined) {this.horizontalAlignLeft = properties.horizontalAlignLeft;}
-    if (properties.verticalAlignTop    !== undefined) {this.verticalAlignTop    = properties.verticalAlignTop;}
-    if (properties.triggerFunction     !== undefined) {this.triggerFunction     = properties.triggerFunction;}
-
-    if (this.id === undefined) {
-      throw "Node must have an id";
-    }
-
-    // copy group properties
-    if (this.group) {
-      var groupObj = this.grouplist.get(this.group);
-      for (var prop in groupObj) {
-        if (groupObj.hasOwnProperty(prop)) {
-          this[prop] = groupObj[prop];
-        }
-      }
-    }
-
-    // individual shape properties
-    if (properties.shape !== undefined)          {this.shape = properties.shape;}
-    if (properties.image !== undefined)          {this.image = properties.image;}
-    if (properties.radius !== undefined)         {this.radius = properties.radius; this.baseRadiusValue = this.radius;}
-    if (properties.color !== undefined)          {this.color = util.parseColor(properties.color);}
-
-    if (properties.fontColor !== undefined)      {this.fontColor = properties.fontColor;}
-    if (properties.fontSize !== undefined)       {this.fontSize = properties.fontSize;}
-    if (properties.fontFace !== undefined)       {this.fontFace = properties.fontFace;}
-
-    if (this.image !== undefined && this.image != "") {
-      if (this.imagelist) {
-        this.imageObj = this.imagelist.load(this.image);
-      }
-      else {
-        throw "No imagelist provided";
-      }
-    }
-
-    this.xFixed = this.xFixed || (properties.x !== undefined && !properties.allowedToMoveX);
-    this.yFixed = this.yFixed || (properties.y !== undefined && !properties.allowedToMoveY);
-    this.radiusFixed = this.radiusFixed || (properties.radius !== undefined);
-
-    if (this.shape == 'image') {
-      this.radiusMin = constants.nodes.widthMin;
-      this.radiusMax = constants.nodes.widthMax;
-    }
-
-    // choose draw method depending on the shape
-    switch (this.shape) {
-      case 'database':      this.draw = this._drawDatabase; this.resize = this._resizeDatabase; break;
-      case 'box':           this.draw = this._drawBox; this.resize = this._resizeBox; break;
-      case 'circle':        this.draw = this._drawCircle; this.resize = this._resizeCircle; break;
-      case 'ellipse':       this.draw = this._drawEllipse; this.resize = this._resizeEllipse; break;
-      // TODO: add diamond shape
-      case 'image':         this.draw = this._drawImage; this.resize = this._resizeImage; break;
-      case 'text':          this.draw = this._drawText; this.resize = this._resizeText; break;
-      case 'dot':           this.draw = this._drawDot; this.resize = this._resizeShape; break;
-      case 'square':        this.draw = this._drawSquare; this.resize = this._resizeShape; break;
-      case 'triangle':      this.draw = this._drawTriangle; this.resize = this._resizeShape; break;
-      case 'triangleDown':  this.draw = this._drawTriangleDown; this.resize = this._resizeShape; break;
-      case 'star':          this.draw = this._drawStar; this.resize = this._resizeShape; break;
-      default:              this.draw = this._drawEllipse; this.resize = this._resizeEllipse; break;
-    }
-    // reset the size of the node, this can be changed
-    this._reset();
-  };
-
-  /**
-   * select this node
-   */
-  Node.prototype.select = function() {
-    this.selected = true;
-    this._reset();
-  };
-
-  /**
-   * unselect this node
-   */
-  Node.prototype.unselect = function() {
-    this.selected = false;
-    this._reset();
-  };
-
-
-  /**
-   * Reset the calculated size of the node, forces it to recalculate its size
-   */
-  Node.prototype.clearSizeCache = function() {
-    this._reset();
-  };
-
-  /**
-   * Reset the calculated size of the node, forces it to recalculate its size
-   * @private
-   */
-  Node.prototype._reset = function() {
-    this.width = undefined;
-    this.height = undefined;
-  };
-
-  /**
-   * get the title of this node.
-   * @return {string} title    The title of the node, or undefined when no title
-   *                           has been set.
-   */
-  Node.prototype.getTitle = function() {
-    return typeof this.title === "function" ? this.title() : this.title;
-  };
-
-  /**
-   * Calculate the distance to the border of the Node
-   * @param {CanvasRenderingContext2D}   ctx
-   * @param {Number} angle        Angle in radians
-   * @returns {number} distance   Distance to the border in pixels
-   */
-  Node.prototype.distanceToBorder = function (ctx, angle) {
-    var borderWidth = 1;
-
-    if (!this.width) {
-      this.resize(ctx);
-    }
-
-    switch (this.shape) {
-      case 'circle':
-      case 'dot':
-        return this.radius + borderWidth;
-
-      case 'ellipse':
-        var a = this.width / 2;
-        var b = this.height / 2;
-        var w = (Math.sin(angle) * a);
-        var h = (Math.cos(angle) * b);
-        return a * b / Math.sqrt(w * w + h * h);
-
-      // TODO: implement distanceToBorder for database
-      // TODO: implement distanceToBorder for triangle
-      // TODO: implement distanceToBorder for triangleDown
-
-      case 'box':
-      case 'image':
-      case 'text':
-      default:
-        if (this.width) {
-          return Math.min(
-              Math.abs(this.width / 2 / Math.cos(angle)),
-              Math.abs(this.height / 2 / Math.sin(angle))) + borderWidth;
-          // TODO: reckon with border radius too in case of box
-        }
-        else {
-          return 0;
-        }
-
-    }
-    // TODO: implement calculation of distance to border for all shapes
-  };
-
-  /**
-   * Set forces acting on the node
-   * @param {number} fx   Force in horizontal direction
-   * @param {number} fy   Force in vertical direction
-   */
-  Node.prototype._setForce = function(fx, fy) {
-    this.fx = fx;
-    this.fy = fy;
-  };
-
-  /**
-   * Add forces acting on the node
-   * @param {number} fx   Force in horizontal direction
-   * @param {number} fy   Force in vertical direction
-   * @private
-   */
-  Node.prototype._addForce = function(fx, fy) {
-    this.fx += fx;
-    this.fy += fy;
-  };
-
-  /**
-   * Perform one discrete step for the node
-   * @param {number} interval    Time interval in seconds
-   */
-  Node.prototype.discreteStep = function(interval) {
-    if (!this.xFixed) {
-      var dx   = this.damping * this.vx;     // damping force
-      var ax   = (this.fx - dx) / this.mass;  // acceleration
-      this.vx += ax * interval;               // velocity
-      this.x  += this.vx * interval;          // position
-    }
-
-    if (!this.yFixed) {
-      var dy   = this.damping * this.vy;     // damping force
-      var ay   = (this.fy - dy) / this.mass;  // acceleration
-      this.vy += ay * interval;               // velocity
-      this.y  += this.vy * interval;          // position
-    }
-  };
-
-
-
-  /**
-   * Perform one discrete step for the node
-   * @param {number} interval    Time interval in seconds
-   * @param {number} maxVelocity The speed limit imposed on the velocity
-   */
-  Node.prototype.discreteStepLimited = function(interval, maxVelocity) {
-    if (!this.xFixed) {
-      var dx   = this.damping * this.vx;     // damping force
-      var ax   = (this.fx - dx) / this.mass;  // acceleration
-      this.vx += ax * interval;               // velocity
-      this.vx = (Math.abs(this.vx) > maxVelocity) ? ((this.vx > 0) ? maxVelocity : -maxVelocity) : this.vx;
-      this.x  += this.vx * interval;          // position
-    }
-    else {
-      this.fx = 0;
-    }
-
-    if (!this.yFixed) {
-      var dy   = this.damping * this.vy;     // damping force
-      var ay   = (this.fy - dy) / this.mass;  // acceleration
-      this.vy += ay * interval;               // velocity
-      this.vy = (Math.abs(this.vy) > maxVelocity) ? ((this.vy > 0) ? maxVelocity : -maxVelocity) : this.vy;
-      this.y  += this.vy * interval;          // position
-    }
-    else {
-      this.fy = 0;
-    }
-  };
-
-  /**
-   * Check if this node has a fixed x and y position
-   * @return {boolean}      true if fixed, false if not
-   */
-  Node.prototype.isFixed = function() {
-    return (this.xFixed && this.yFixed);
-  };
-
-  /**
-   * Check if this node is moving
-   * @param {number} vmin   the minimum velocity considered as "moving"
-   * @return {boolean}      true if moving, false if it has no velocity
-   */
-  // TODO: replace this method with calculating the kinetic energy
-  Node.prototype.isMoving = function(vmin) {
-    return (Math.abs(this.vx) > vmin || Math.abs(this.vy) > vmin);
-  };
-
-  /**
-   * check if this node is selecte
-   * @return {boolean} selected   True if node is selected, else false
-   */
-  Node.prototype.isSelected = function() {
-    return this.selected;
-  };
-
-  /**
-   * Retrieve the value of the node. Can be undefined
-   * @return {Number} value
-   */
-  Node.prototype.getValue = function() {
-    return this.value;
-  };
-
-  /**
-   * Calculate the distance from the nodes location to the given location (x,y)
-   * @param {Number} x
-   * @param {Number} y
-   * @return {Number} value
-   */
-  Node.prototype.getDistance = function(x, y) {
-    var dx = this.x - x,
-        dy = this.y - y;
-    return Math.sqrt(dx * dx + dy * dy);
-  };
-
-
-  /**
-   * Adjust the value range of the node. The node will adjust it's radius
-   * based on its value.
-   * @param {Number} min
-   * @param {Number} max
-   */
-  Node.prototype.setValueRange = function(min, max) {
-    if (!this.radiusFixed && this.value !== undefined) {
-      if (max == min) {
-        this.radius = (this.radiusMin + this.radiusMax) / 2;
-      }
-      else {
-        var scale = (this.radiusMax - this.radiusMin) / (max - min);
-        this.radius = (this.value - min) * scale + this.radiusMin;
-      }
-    }
-    this.baseRadiusValue = this.radius;
-  };
-
-  /**
-   * Draw this node in the given canvas
-   * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-   * @param {CanvasRenderingContext2D}   ctx
-   */
-  Node.prototype.draw = function(ctx) {
-    throw "Draw method not initialized for node";
-  };
-
-  /**
-   * Recalculate the size of this node in the given canvas
-   * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-   * @param {CanvasRenderingContext2D}   ctx
-   */
-  Node.prototype.resize = function(ctx) {
-    throw "Resize method not initialized for node";
-  };
-
-  /**
-   * Check if this object is overlapping with the provided object
-   * @param {Object} obj   an object with parameters left, top, right, bottom
-   * @return {boolean}     True if location is located on node
-   */
-  Node.prototype.isOverlappingWith = function(obj) {
-    return (this.left              < obj.right  &&
-            this.left + this.width > obj.left   &&
-            this.top               < obj.bottom &&
-            this.top + this.height > obj.top);
-  };
-
-  Node.prototype._resizeImage = function (ctx) {
-    // TODO: pre calculate the image size
-
-    if (!this.width || !this.height) {  // undefined or 0
-      var width, height;
-      if (this.value) {
-        this.radius = this.baseRadiusValue;
-        var scale = this.imageObj.height / this.imageObj.width;
-        if (scale !== undefined) {
-          width = this.radius || this.imageObj.width;
-          height = this.radius * scale || this.imageObj.height;
-        }
-        else {
-          width = 0;
-          height = 0;
-        }
-      }
-      else {
-        width = this.imageObj.width;
-        height = this.imageObj.height;
-      }
-      this.width  = width;
-      this.height = height;
-
-      this.growthIndicator = 0;
-      if (this.width > 0 && this.height > 0) {
-        this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements)  * this.clusterSizeWidthFactor;
-        this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
-        this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
-        this.growthIndicator = this.width - width;
-      }
-    }
-
-  };
-
-  Node.prototype._drawImage = function (ctx) {
-    this._resizeImage(ctx);
-
-    this.left   = this.x - this.width / 2;
-    this.top    = this.y - this.height / 2;
-
-    var yLabel;
-    if (this.imageObj.width != 0 ) {
-      // draw the shade
-      if (this.clusterSize > 1) {
-        var lineWidth = ((this.clusterSize > 1) ? 10 : 0.0);
-        lineWidth *= this.networkScaleInv;
-        lineWidth = Math.min(0.2 * this.width,lineWidth);
-
-        ctx.globalAlpha = 0.5;
-        ctx.drawImage(this.imageObj, this.left - lineWidth, this.top - lineWidth, this.width + 2*lineWidth, this.height + 2*lineWidth);
-      }
-
-      // draw the image
-      ctx.globalAlpha = 1.0;
-      ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
-      yLabel = this.y + this.height / 2;
-    }
-    else {
-      // image still loading... just draw the label for now
-      yLabel = this.y;
-    }
-
-    this._label(ctx, this.label, this.x, yLabel, undefined, "top");
-  };
-
-
-  Node.prototype._resizeBox = function (ctx) {
-    if (!this.width) {
-      var margin = 5;
-      var textSize = this.getTextSize(ctx);
-      this.width = textSize.width + 2 * margin;
-      this.height = textSize.height + 2 * margin;
-
-      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeWidthFactor;
-      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeHeightFactor;
-      this.growthIndicator = this.width - (textSize.width + 2 * margin);
-  //    this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeRadiusFactor;
-
-    }
-  };
-
-  Node.prototype._drawBox = function (ctx) {
-    this._resizeBox(ctx);
-
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    var clusterLineWidth = 2.5;
-    var selectionLineWidth = 2;
-
-    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.hover ? this.color.hover.border : this.color.border;
-
-    // draw the outer border
-    if (this.clusterSize > 1) {
-      ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-      ctx.lineWidth *= this.networkScaleInv;
-      ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
-
-      ctx.roundRect(this.left-2*ctx.lineWidth, this.top-2*ctx.lineWidth, this.width+4*ctx.lineWidth, this.height+4*ctx.lineWidth, this.radius);
-      ctx.stroke();
-    }
-    ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.networkScaleInv;
-    ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
-
-    ctx.fillStyle = this.selected ? this.color.highlight.background : this.color.background;
-
-    ctx.roundRect(this.left, this.top, this.width, this.height, this.radius);
-    ctx.fill();
-    ctx.stroke();
-
-    this._label(ctx, this.label, this.x, this.y);
-  };
-
-
-  Node.prototype._resizeDatabase = function (ctx) {
-    if (!this.width) {
-      var margin = 5;
-      var textSize = this.getTextSize(ctx);
-      var size = textSize.width + 2 * margin;
-      this.width = size;
-      this.height = size;
-
-      // scaling used for clustering
-      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
-      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
-      this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
-      this.growthIndicator = this.width - size;
-    }
-  };
-
-  Node.prototype._drawDatabase = function (ctx) {
-    this._resizeDatabase(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    var clusterLineWidth = 2.5;
-    var selectionLineWidth = 2;
-
-    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.hover ? this.color.hover.border : this.color.border;
-
-    // draw the outer border
-    if (this.clusterSize > 1) {
-      ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-      ctx.lineWidth *= this.networkScaleInv;
-      ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
-
-      ctx.database(this.x - this.width/2 - 2*ctx.lineWidth, this.y - this.height*0.5 - 2*ctx.lineWidth, this.width + 4*ctx.lineWidth, this.height + 4*ctx.lineWidth);
-      ctx.stroke();
-    }
-    ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.networkScaleInv;
-    ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
-
-    ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
-    ctx.database(this.x - this.width/2, this.y - this.height*0.5, this.width, this.height);
-    ctx.fill();
-    ctx.stroke();
-
-    this._label(ctx, this.label, this.x, this.y);
-  };
-
-
-  Node.prototype._resizeCircle = function (ctx) {
-    if (!this.width) {
-      var margin = 5;
-      var textSize = this.getTextSize(ctx);
-      var diameter = Math.max(textSize.width, textSize.height) + 2 * margin;
-      this.radius = diameter / 2;
-
-      this.width = diameter;
-      this.height = diameter;
-
-      // scaling used for clustering
-  //    this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeWidthFactor;
-  //    this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeHeightFactor;
-      this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeRadiusFactor;
-      this.growthIndicator = this.radius - 0.5*diameter;
-    }
-  };
-
-  Node.prototype._drawCircle = function (ctx) {
-    this._resizeCircle(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    var clusterLineWidth = 2.5;
-    var selectionLineWidth = 2;
-
-    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.hover ? this.color.hover.border : this.color.border;
-
-    // draw the outer border
-    if (this.clusterSize > 1) {
-      ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-      ctx.lineWidth *= this.networkScaleInv;
-      ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
-
-      ctx.circle(this.x, this.y, this.radius+2*ctx.lineWidth);
-      ctx.stroke();
-    }
-    ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.networkScaleInv;
-    ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
-
-    ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
-    ctx.circle(this.x, this.y, this.radius);
-    ctx.fill();
-    ctx.stroke();
-
-    this._label(ctx, this.label, this.x, this.y);
-  };
-
-  Node.prototype._resizeEllipse = function (ctx) {
-    if (!this.width) {
-      var textSize = this.getTextSize(ctx);
-
-      this.width = textSize.width * 1.5;
-      this.height = textSize.height * 2;
-      if (this.width < this.height) {
-        this.width = this.height;
-      }
-      var defaultSize = this.width;
-
-        // scaling used for clustering
-      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
-      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
-      this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
-      this.growthIndicator = this.width - defaultSize;
-    }
-  };
-
-  Node.prototype._drawEllipse = function (ctx) {
-    this._resizeEllipse(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    var clusterLineWidth = 2.5;
-    var selectionLineWidth = 2;
-
-    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.hover ? this.color.hover.border : this.color.border;
-
-    // draw the outer border
-    if (this.clusterSize > 1) {
-      ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-      ctx.lineWidth *= this.networkScaleInv;
-      ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
-
-      ctx.ellipse(this.left-2*ctx.lineWidth, this.top-2*ctx.lineWidth, this.width+4*ctx.lineWidth, this.height+4*ctx.lineWidth);
-      ctx.stroke();
-    }
-    ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.networkScaleInv;
-    ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
-
-    ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
-
-    ctx.ellipse(this.left, this.top, this.width, this.height);
-    ctx.fill();
-    ctx.stroke();
-    this._label(ctx, this.label, this.x, this.y);
-  };
-
-  Node.prototype._drawDot = function (ctx) {
-    this._drawShape(ctx, 'circle');
-  };
-
-  Node.prototype._drawTriangle = function (ctx) {
-    this._drawShape(ctx, 'triangle');
-  };
-
-  Node.prototype._drawTriangleDown = function (ctx) {
-    this._drawShape(ctx, 'triangleDown');
-  };
-
-  Node.prototype._drawSquare = function (ctx) {
-    this._drawShape(ctx, 'square');
-  };
-
-  Node.prototype._drawStar = function (ctx) {
-    this._drawShape(ctx, 'star');
-  };
-
-  Node.prototype._resizeShape = function (ctx) {
-    if (!this.width) {
-      this.radius = this.baseRadiusValue;
-      var size = 2 * this.radius;
-      this.width = size;
-      this.height = size;
-
-      // scaling used for clustering
-      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
-      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
-      this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeRadiusFactor;
-      this.growthIndicator = this.width - size;
-    }
-  };
-
-  Node.prototype._drawShape = function (ctx, shape) {
-    this._resizeShape(ctx);
-
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    var clusterLineWidth = 2.5;
-    var selectionLineWidth = 2;
-    var radiusMultiplier = 2;
-
-    // choose draw method depending on the shape
-    switch (shape) {
-      case 'dot':           radiusMultiplier = 2; break;
-      case 'square':        radiusMultiplier = 2; break;
-      case 'triangle':      radiusMultiplier = 3; break;
-      case 'triangleDown':  radiusMultiplier = 3; break;
-      case 'star':          radiusMultiplier = 4; break;
-    }
-
-    ctx.strokeStyle = this.selected ? this.color.highlight.border : this.hover ? this.color.hover.border : this.color.border;
-
-    // draw the outer border
-    if (this.clusterSize > 1) {
-      ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-      ctx.lineWidth *= this.networkScaleInv;
-      ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
-
-      ctx[shape](this.x, this.y, this.radius + radiusMultiplier * ctx.lineWidth);
-      ctx.stroke();
-    }
-    ctx.lineWidth = (this.selected ? selectionLineWidth : 1.0) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.networkScaleInv;
-    ctx.lineWidth = Math.min(0.1 * this.width,ctx.lineWidth);
-
-    ctx.fillStyle = this.selected ? this.color.highlight.background : this.hover ? this.color.hover.background : this.color.background;
-    ctx[shape](this.x, this.y, this.radius);
-    ctx.fill();
-    ctx.stroke();
-
-    if (this.label) {
-      this._label(ctx, this.label, this.x, this.y + this.height / 2, undefined, 'top',true);
-    }
-  };
-
-  Node.prototype._resizeText = function (ctx) {
-    if (!this.width) {
-      var margin = 5;
-      var textSize = this.getTextSize(ctx);
-      this.width = textSize.width + 2 * margin;
-      this.height = textSize.height + 2 * margin;
-
-      // scaling used for clustering
-      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
-      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
-      this.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
-      this.growthIndicator = this.width - (textSize.width + 2 * margin);
-    }
-  };
-
-  Node.prototype._drawText = function (ctx) {
-    this._resizeText(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    this._label(ctx, this.label, this.x, this.y);
-  };
-
-
-  Node.prototype._label = function (ctx, text, x, y, align, baseline, labelUnderNode) {
-    if (text && this.fontSize * this.networkScale > this.fontDrawThreshold) {
-      ctx.font = (this.selected ? "bold " : "") + this.fontSize + "px " + this.fontFace;
-      ctx.fillStyle = this.fontColor || "black";
-      ctx.textAlign = align || "center";
-      ctx.textBaseline = baseline || "middle";
-
-      var lines = text.split('\n');
-      var lineCount = lines.length;
-      var fontSize = (this.fontSize + 4);
-      var yLine = y + (1 - lineCount) / 2 * fontSize;
-      if (labelUnderNode == true) {
-        yLine = y + (1 - lineCount) / (2 * fontSize);
-      }
-
-      for (var i = 0; i < lineCount; i++) {
-        ctx.fillText(lines[i], x, yLine);
-        yLine += fontSize;
-      }
-    }
-  };
-
-
-  Node.prototype.getTextSize = function(ctx) {
-    if (this.label !== undefined) {
-      ctx.font = (this.selected ? "bold " : "") + this.fontSize + "px " + this.fontFace;
-
-      var lines = this.label.split('\n'),
-          height = (this.fontSize + 4) * lines.length,
-          width = 0;
-
-      for (var i = 0, iMax = lines.length; i < iMax; i++) {
-        width = Math.max(width, ctx.measureText(lines[i]).width);
-      }
-
-      return {"width": width, "height": height};
-    }
-    else {
-      return {"width": 0, "height": 0};
-    }
-  };
-
-  /**
-   * this is used to determine if a node is visible at all. this is used to determine when it needs to be drawn.
-   * there is a safety margin of 0.3 * width;
-   *
-   * @returns {boolean}
-   */
-  Node.prototype.inArea = function() {
-    if (this.width !== undefined) {
-    return (this.x + this.width *this.networkScaleInv  >= this.canvasTopLeft.x     &&
-            this.x - this.width *this.networkScaleInv  <  this.canvasBottomRight.x &&
-            this.y + this.height*this.networkScaleInv  >= this.canvasTopLeft.y     &&
-            this.y - this.height*this.networkScaleInv  <  this.canvasBottomRight.y);
-    }
-    else {
-      return true;
-    }
-  };
-
-  /**
-   * checks if the core of the node is in the display area, this is used for opening clusters around zoom
-   * @returns {boolean}
-   */
-  Node.prototype.inView = function() {
-    return (this.x >= this.canvasTopLeft.x    &&
-            this.x < this.canvasBottomRight.x &&
-            this.y >= this.canvasTopLeft.y    &&
-            this.y < this.canvasBottomRight.y);
-  };
-
-  /**
-   * This allows the zoom level of the network to influence the rendering
-   * We store the inverted scale and the coordinates of the top left, and bottom right points of the canvas
-   *
-   * @param scale
-   * @param canvasTopLeft
-   * @param canvasBottomRight
-   */
-  Node.prototype.setScaleAndPos = function(scale,canvasTopLeft,canvasBottomRight) {
-    this.networkScaleInv = 1.0/scale;
-    this.networkScale = scale;
-    this.canvasTopLeft = canvasTopLeft;
-    this.canvasBottomRight = canvasBottomRight;
-  };
-
-
-  /**
-   * This allows the zoom level of the network to influence the rendering
-   *
-   * @param scale
-   */
-  Node.prototype.setScale = function(scale) {
-    this.networkScaleInv = 1.0/scale;
-    this.networkScale = scale;
-  };
-
-
-
-  /**
-   * set the velocity at 0. Is called when this node is contained in another during clustering
-   */
-  Node.prototype.clearVelocity = function() {
-    this.vx = 0;
-    this.vy = 0;
-  };
-
-
-  /**
-   * Basic preservation of (kinectic) energy
-   *
-   * @param massBeforeClustering
-   */
-  Node.prototype.updateVelocity = function(massBeforeClustering) {
-    var energyBefore = this.vx * this.vx * massBeforeClustering;
-    //this.vx = (this.vx < 0) ? -Math.sqrt(energyBefore/this.mass) : Math.sqrt(energyBefore/this.mass);
-    this.vx = Math.sqrt(energyBefore/this.mass);
-    energyBefore = this.vy * this.vy * massBeforeClustering;
-    //this.vy = (this.vy < 0) ? -Math.sqrt(energyBefore/this.mass) : Math.sqrt(energyBefore/this.mass);
-    this.vy = Math.sqrt(energyBefore/this.mass);
-  };
-
-  module.exports = Node;
-
-
-/***/ },
-/* 31 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -19071,1583 +25619,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 32 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
-  /**
-   * Parse a text source containing data in DOT language into a JSON object.
-   * The object contains two lists: one with nodes and one with edges.
-   *
-   * DOT language reference: http://www.graphviz.org/doc/info/lang.html
-   *
-   * @param {String} data     Text containing a graph in DOT-notation
-   * @return {Object} graph   An object containing two parameters:
-   *                          {Object[]} nodes
-   *                          {Object[]} edges
-   */
-  function parseDOT (data) {
-    dot = data;
-    return parseGraph();
-  }
-
-  // token types enumeration
-  var TOKENTYPE = {
-    NULL : 0,
-    DELIMITER : 1,
-    IDENTIFIER: 2,
-    UNKNOWN : 3
-  };
-
-  // map with all delimiters
-  var DELIMITERS = {
-    '{': true,
-    '}': true,
-    '[': true,
-    ']': true,
-    ';': true,
-    '=': true,
-    ',': true,
-
-    '->': true,
-    '--': true
-  };
-
-  var dot = '';                   // current dot file
-  var index = 0;                  // current index in dot file
-  var c = '';                     // current token character in expr
-  var token = '';                 // current token
-  var tokenType = TOKENTYPE.NULL; // type of the token
-
-  /**
-   * Get the first character from the dot file.
-   * The character is stored into the char c. If the end of the dot file is
-   * reached, the function puts an empty string in c.
-   */
-  function first() {
-    index = 0;
-    c = dot.charAt(0);
-  }
-
-  /**
-   * Get the next character from the dot file.
-   * The character is stored into the char c. If the end of the dot file is
-   * reached, the function puts an empty string in c.
-   */
-  function next() {
-    index++;
-    c = dot.charAt(index);
-  }
-
-  /**
-   * Preview the next character from the dot file.
-   * @return {String} cNext
-   */
-  function nextPreview() {
-    return dot.charAt(index + 1);
-  }
-
-  /**
-   * Test whether given character is alphabetic or numeric
-   * @param {String} c
-   * @return {Boolean} isAlphaNumeric
-   */
-  var regexAlphaNumeric = /[a-zA-Z_0-9.:#]/;
-  function isAlphaNumeric(c) {
-    return regexAlphaNumeric.test(c);
-  }
-
-  /**
-   * Merge all properties of object b into object b
-   * @param {Object} a
-   * @param {Object} b
-   * @return {Object} a
-   */
-  function merge (a, b) {
-    if (!a) {
-      a = {};
-    }
-
-    if (b) {
-      for (var name in b) {
-        if (b.hasOwnProperty(name)) {
-          a[name] = b[name];
-        }
-      }
-    }
-    return a;
-  }
-
-  /**
-   * Set a value in an object, where the provided parameter name can be a
-   * path with nested parameters. For example:
-   *
-   *     var obj = {a: 2};
-   *     setValue(obj, 'b.c', 3);     // obj = {a: 2, b: {c: 3}}
-   *
-   * @param {Object} obj
-   * @param {String} path  A parameter name or dot-separated parameter path,
-   *                      like "color.highlight.border".
-   * @param {*} value
-   */
-  function setValue(obj, path, value) {
-    var keys = path.split('.');
-    var o = obj;
-    while (keys.length) {
-      var key = keys.shift();
-      if (keys.length) {
-        // this isn't the end point
-        if (!o[key]) {
-          o[key] = {};
-        }
-        o = o[key];
-      }
-      else {
-        // this is the end point
-        o[key] = value;
-      }
-    }
-  }
-
-  /**
-   * Add a node to a graph object. If there is already a node with
-   * the same id, their attributes will be merged.
-   * @param {Object} graph
-   * @param {Object} node
-   */
-  function addNode(graph, node) {
-    var i, len;
-    var current = null;
-
-    // find root graph (in case of subgraph)
-    var graphs = [graph]; // list with all graphs from current graph to root graph
-    var root = graph;
-    while (root.parent) {
-      graphs.push(root.parent);
-      root = root.parent;
-    }
-
-    // find existing node (at root level) by its id
-    if (root.nodes) {
-      for (i = 0, len = root.nodes.length; i < len; i++) {
-        if (node.id === root.nodes[i].id) {
-          current = root.nodes[i];
-          break;
-        }
-      }
-    }
-
-    if (!current) {
-      // this is a new node
-      current = {
-        id: node.id
-      };
-      if (graph.node) {
-        // clone default attributes
-        current.attr = merge(current.attr, graph.node);
-      }
-    }
-
-    // add node to this (sub)graph and all its parent graphs
-    for (i = graphs.length - 1; i >= 0; i--) {
-      var g = graphs[i];
-
-      if (!g.nodes) {
-        g.nodes = [];
-      }
-      if (g.nodes.indexOf(current) == -1) {
-        g.nodes.push(current);
-      }
-    }
-
-    // merge attributes
-    if (node.attr) {
-      current.attr = merge(current.attr, node.attr);
-    }
-  }
-
-  /**
-   * Add an edge to a graph object
-   * @param {Object} graph
-   * @param {Object} edge
-   */
-  function addEdge(graph, edge) {
-    if (!graph.edges) {
-      graph.edges = [];
-    }
-    graph.edges.push(edge);
-    if (graph.edge) {
-      var attr = merge({}, graph.edge);     // clone default attributes
-      edge.attr = merge(attr, edge.attr); // merge attributes
-    }
-  }
-
-  /**
-   * Create an edge to a graph object
-   * @param {Object} graph
-   * @param {String | Number | Object} from
-   * @param {String | Number | Object} to
-   * @param {String} type
-   * @param {Object | null} attr
-   * @return {Object} edge
-   */
-  function createEdge(graph, from, to, type, attr) {
-    var edge = {
-      from: from,
-      to: to,
-      type: type
-    };
-
-    if (graph.edge) {
-      edge.attr = merge({}, graph.edge);  // clone default attributes
-    }
-    edge.attr = merge(edge.attr || {}, attr); // merge attributes
-
-    return edge;
-  }
-
-  /**
-   * Get next token in the current dot file.
-   * The token and token type are available as token and tokenType
-   */
-  function getToken() {
-    tokenType = TOKENTYPE.NULL;
-    token = '';
-
-    // skip over whitespaces
-    while (c == ' ' || c == '\t' || c == '\n' || c == '\r') {  // space, tab, enter
-      next();
-    }
-
-    do {
-      var isComment = false;
-
-      // skip comment
-      if (c == '#') {
-        // find the previous non-space character
-        var i = index - 1;
-        while (dot.charAt(i) == ' ' || dot.charAt(i) == '\t') {
-          i--;
-        }
-        if (dot.charAt(i) == '\n' || dot.charAt(i) == '') {
-          // the # is at the start of a line, this is indeed a line comment
-          while (c != '' && c != '\n') {
-            next();
-          }
-          isComment = true;
-        }
-      }
-      if (c == '/' && nextPreview() == '/') {
-        // skip line comment
-        while (c != '' && c != '\n') {
-          next();
-        }
-        isComment = true;
-      }
-      if (c == '/' && nextPreview() == '*') {
-        // skip block comment
-        while (c != '') {
-          if (c == '*' && nextPreview() == '/') {
-            // end of block comment found. skip these last two characters
-            next();
-            next();
-            break;
-          }
-          else {
-            next();
-          }
-        }
-        isComment = true;
-      }
-
-      // skip over whitespaces
-      while (c == ' ' || c == '\t' || c == '\n' || c == '\r') {  // space, tab, enter
-        next();
-      }
-    }
-    while (isComment);
-
-    // check for end of dot file
-    if (c == '') {
-      // token is still empty
-      tokenType = TOKENTYPE.DELIMITER;
-      return;
-    }
-
-    // check for delimiters consisting of 2 characters
-    var c2 = c + nextPreview();
-    if (DELIMITERS[c2]) {
-      tokenType = TOKENTYPE.DELIMITER;
-      token = c2;
-      next();
-      next();
-      return;
-    }
-
-    // check for delimiters consisting of 1 character
-    if (DELIMITERS[c]) {
-      tokenType = TOKENTYPE.DELIMITER;
-      token = c;
-      next();
-      return;
-    }
-
-    // check for an identifier (number or string)
-    // TODO: more precise parsing of numbers/strings (and the port separator ':')
-    if (isAlphaNumeric(c) || c == '-') {
-      token += c;
-      next();
-
-      while (isAlphaNumeric(c)) {
-        token += c;
-        next();
-      }
-      if (token == 'false') {
-        token = false;   // convert to boolean
-      }
-      else if (token == 'true') {
-        token = true;   // convert to boolean
-      }
-      else if (!isNaN(Number(token))) {
-        token = Number(token); // convert to number
-      }
-      tokenType = TOKENTYPE.IDENTIFIER;
-      return;
-    }
-
-    // check for a string enclosed by double quotes
-    if (c == '"') {
-      next();
-      while (c != '' && (c != '"' || (c == '"' && nextPreview() == '"'))) {
-        token += c;
-        if (c == '"') { // skip the escape character
-          next();
-        }
-        next();
-      }
-      if (c != '"') {
-        throw newSyntaxError('End of string " expected');
-      }
-      next();
-      tokenType = TOKENTYPE.IDENTIFIER;
-      return;
-    }
-
-    // something unknown is found, wrong characters, a syntax error
-    tokenType = TOKENTYPE.UNKNOWN;
-    while (c != '') {
-      token += c;
-      next();
-    }
-    throw new SyntaxError('Syntax error in part "' + chop(token, 30) + '"');
-  }
-
-  /**
-   * Parse a graph.
-   * @returns {Object} graph
-   */
-  function parseGraph() {
-    var graph = {};
-
-    first();
-    getToken();
-
-    // optional strict keyword
-    if (token == 'strict') {
-      graph.strict = true;
-      getToken();
-    }
-
-    // graph or digraph keyword
-    if (token == 'graph' || token == 'digraph') {
-      graph.type = token;
-      getToken();
-    }
-
-    // optional graph id
-    if (tokenType == TOKENTYPE.IDENTIFIER) {
-      graph.id = token;
-      getToken();
-    }
-
-    // open angle bracket
-    if (token != '{') {
-      throw newSyntaxError('Angle bracket { expected');
-    }
-    getToken();
-
-    // statements
-    parseStatements(graph);
-
-    // close angle bracket
-    if (token != '}') {
-      throw newSyntaxError('Angle bracket } expected');
-    }
-    getToken();
-
-    // end of file
-    if (token !== '') {
-      throw newSyntaxError('End of file expected');
-    }
-    getToken();
-
-    // remove temporary default properties
-    delete graph.node;
-    delete graph.edge;
-    delete graph.graph;
-
-    return graph;
-  }
-
-  /**
-   * Parse a list with statements.
-   * @param {Object} graph
-   */
-  function parseStatements (graph) {
-    while (token !== '' && token != '}') {
-      parseStatement(graph);
-      if (token == ';') {
-        getToken();
-      }
-    }
-  }
-
-  /**
-   * Parse a single statement. Can be a an attribute statement, node
-   * statement, a series of node statements and edge statements, or a
-   * parameter.
-   * @param {Object} graph
-   */
-  function parseStatement(graph) {
-    // parse subgraph
-    var subgraph = parseSubgraph(graph);
-    if (subgraph) {
-      // edge statements
-      parseEdge(graph, subgraph);
-
-      return;
-    }
-
-    // parse an attribute statement
-    var attr = parseAttributeStatement(graph);
-    if (attr) {
-      return;
-    }
-
-    // parse node
-    if (tokenType != TOKENTYPE.IDENTIFIER) {
-      throw newSyntaxError('Identifier expected');
-    }
-    var id = token; // id can be a string or a number
-    getToken();
-
-    if (token == '=') {
-      // id statement
-      getToken();
-      if (tokenType != TOKENTYPE.IDENTIFIER) {
-        throw newSyntaxError('Identifier expected');
-      }
-      graph[id] = token;
-      getToken();
-      // TODO: implement comma separated list with "a_list: ID=ID [','] [a_list] "
-    }
-    else {
-      parseNodeStatement(graph, id);
-    }
-  }
-
-  /**
-   * Parse a subgraph
-   * @param {Object} graph    parent graph object
-   * @return {Object | null} subgraph
-   */
-  function parseSubgraph (graph) {
-    var subgraph = null;
-
-    // optional subgraph keyword
-    if (token == 'subgraph') {
-      subgraph = {};
-      subgraph.type = 'subgraph';
-      getToken();
-
-      // optional graph id
-      if (tokenType == TOKENTYPE.IDENTIFIER) {
-        subgraph.id = token;
-        getToken();
-      }
-    }
-
-    // open angle bracket
-    if (token == '{') {
-      getToken();
-
-      if (!subgraph) {
-        subgraph = {};
-      }
-      subgraph.parent = graph;
-      subgraph.node = graph.node;
-      subgraph.edge = graph.edge;
-      subgraph.graph = graph.graph;
-
-      // statements
-      parseStatements(subgraph);
-
-      // close angle bracket
-      if (token != '}') {
-        throw newSyntaxError('Angle bracket } expected');
-      }
-      getToken();
-
-      // remove temporary default properties
-      delete subgraph.node;
-      delete subgraph.edge;
-      delete subgraph.graph;
-      delete subgraph.parent;
-
-      // register at the parent graph
-      if (!graph.subgraphs) {
-        graph.subgraphs = [];
-      }
-      graph.subgraphs.push(subgraph);
-    }
-
-    return subgraph;
-  }
-
-  /**
-   * parse an attribute statement like "node [shape=circle fontSize=16]".
-   * Available keywords are 'node', 'edge', 'graph'.
-   * The previous list with default attributes will be replaced
-   * @param {Object} graph
-   * @returns {String | null} keyword Returns the name of the parsed attribute
-   *                                  (node, edge, graph), or null if nothing
-   *                                  is parsed.
-   */
-  function parseAttributeStatement (graph) {
-    // attribute statements
-    if (token == 'node') {
-      getToken();
-
-      // node attributes
-      graph.node = parseAttributeList();
-      return 'node';
-    }
-    else if (token == 'edge') {
-      getToken();
-
-      // edge attributes
-      graph.edge = parseAttributeList();
-      return 'edge';
-    }
-    else if (token == 'graph') {
-      getToken();
-
-      // graph attributes
-      graph.graph = parseAttributeList();
-      return 'graph';
-    }
-
-    return null;
-  }
-
-  /**
-   * parse a node statement
-   * @param {Object} graph
-   * @param {String | Number} id
-   */
-  function parseNodeStatement(graph, id) {
-    // node statement
-    var node = {
-      id: id
-    };
-    var attr = parseAttributeList();
-    if (attr) {
-      node.attr = attr;
-    }
-    addNode(graph, node);
-
-    // edge statements
-    parseEdge(graph, id);
-  }
-
-  /**
-   * Parse an edge or a series of edges
-   * @param {Object} graph
-   * @param {String | Number} from        Id of the from node
-   */
-  function parseEdge(graph, from) {
-    while (token == '->' || token == '--') {
-      var to;
-      var type = token;
-      getToken();
-
-      var subgraph = parseSubgraph(graph);
-      if (subgraph) {
-        to = subgraph;
-      }
-      else {
-        if (tokenType != TOKENTYPE.IDENTIFIER) {
-          throw newSyntaxError('Identifier or subgraph expected');
-        }
-        to = token;
-        addNode(graph, {
-          id: to
-        });
-        getToken();
-      }
-
-      // parse edge attributes
-      var attr = parseAttributeList();
-
-      // create edge
-      var edge = createEdge(graph, from, to, type, attr);
-      addEdge(graph, edge);
-
-      from = to;
-    }
-  }
-
-  /**
-   * Parse a set with attributes,
-   * for example [label="1.000", shape=solid]
-   * @return {Object | null} attr
-   */
-  function parseAttributeList() {
-    var attr = null;
-
-    while (token == '[') {
-      getToken();
-      attr = {};
-      while (token !== '' && token != ']') {
-        if (tokenType != TOKENTYPE.IDENTIFIER) {
-          throw newSyntaxError('Attribute name expected');
-        }
-        var name = token;
-
-        getToken();
-        if (token != '=') {
-          throw newSyntaxError('Equal sign = expected');
-        }
-        getToken();
-
-        if (tokenType != TOKENTYPE.IDENTIFIER) {
-          throw newSyntaxError('Attribute value expected');
-        }
-        var value = token;
-        setValue(attr, name, value); // name can be a path
-
-        getToken();
-        if (token ==',') {
-          getToken();
-        }
-      }
-
-      if (token != ']') {
-        throw newSyntaxError('Bracket ] expected');
-      }
-      getToken();
-    }
-
-    return attr;
-  }
-
-  /**
-   * Create a syntax error with extra information on current token and index.
-   * @param {String} message
-   * @returns {SyntaxError} err
-   */
-  function newSyntaxError(message) {
-    return new SyntaxError(message + ', got "' + chop(token, 30) + '" (char ' + index + ')');
-  }
-
-  /**
-   * Chop off text after a maximum length
-   * @param {String} text
-   * @param {Number} maxLength
-   * @returns {String}
-   */
-  function chop (text, maxLength) {
-    return (text.length <= maxLength) ? text : (text.substr(0, 27) + '...');
-  }
-
-  /**
-   * Execute a function fn for each pair of elements in two arrays
-   * @param {Array | *} array1
-   * @param {Array | *} array2
-   * @param {function} fn
-   */
-  function forEach2(array1, array2, fn) {
-    if (array1 instanceof Array) {
-      array1.forEach(function (elem1) {
-        if (array2 instanceof Array) {
-          array2.forEach(function (elem2)  {
-            fn(elem1, elem2);
-          });
-        }
-        else {
-          fn(elem1, array2);
-        }
-      });
-    }
-    else {
-      if (array2 instanceof Array) {
-        array2.forEach(function (elem2)  {
-          fn(array1, elem2);
-        });
-      }
-      else {
-        fn(array1, array2);
-      }
-    }
-  }
-
-  /**
-   * Convert a string containing a graph in DOT language into a map containing
-   * with nodes and edges in the format of graph.
-   * @param {String} data         Text containing a graph in DOT-notation
-   * @return {Object} graphData
-   */
-  function DOTToGraph (data) {
-    // parse the DOT file
-    var dotData = parseDOT(data);
-    var graphData = {
-      nodes: [],
-      edges: [],
-      options: {}
-    };
-
-    // copy the nodes
-    if (dotData.nodes) {
-      dotData.nodes.forEach(function (dotNode) {
-        var graphNode = {
-          id: dotNode.id,
-          label: String(dotNode.label || dotNode.id)
-        };
-        merge(graphNode, dotNode.attr);
-        if (graphNode.image) {
-          graphNode.shape = 'image';
-        }
-        graphData.nodes.push(graphNode);
-      });
-    }
-
-    // copy the edges
-    if (dotData.edges) {
-      /**
-       * Convert an edge in DOT format to an edge with VisGraph format
-       * @param {Object} dotEdge
-       * @returns {Object} graphEdge
-       */
-      function convertEdge(dotEdge) {
-        var graphEdge = {
-          from: dotEdge.from,
-          to: dotEdge.to
-        };
-        merge(graphEdge, dotEdge.attr);
-        graphEdge.style = (dotEdge.type == '->') ? 'arrow' : 'line';
-        return graphEdge;
-      }
-
-      dotData.edges.forEach(function (dotEdge) {
-        var from, to;
-        if (dotEdge.from instanceof Object) {
-          from = dotEdge.from.nodes;
-        }
-        else {
-          from = {
-            id: dotEdge.from
-          }
-        }
-
-        if (dotEdge.to instanceof Object) {
-          to = dotEdge.to.nodes;
-        }
-        else {
-          to = {
-            id: dotEdge.to
-          }
-        }
-
-        if (dotEdge.from instanceof Object && dotEdge.from.edges) {
-          dotEdge.from.edges.forEach(function (subEdge) {
-            var graphEdge = convertEdge(subEdge);
-            graphData.edges.push(graphEdge);
-          });
-        }
-
-        forEach2(from, to, function (from, to) {
-          var subEdge = createEdge(graphData, from.id, to.id, dotEdge.type, dotEdge.attr);
-          var graphEdge = convertEdge(subEdge);
-          graphData.edges.push(graphEdge);
-        });
-
-        if (dotEdge.to instanceof Object && dotEdge.to.edges) {
-          dotEdge.to.edges.forEach(function (subEdge) {
-            var graphEdge = convertEdge(subEdge);
-            graphData.edges.push(graphEdge);
-          });
-        }
-      });
-    }
-
-    // copy the options
-    if (dotData.attr) {
-      graphData.options = dotData.attr;
-    }
-
-    return graphData;
-  }
-
-  // exports
-  exports.parseDOT = parseDOT;
-  exports.DOTToGraph = DOTToGraph;
-
-
-/***/ },
-/* 33 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * @prototype Point3d
-   * @param {Number} [x]
-   * @param {Number} [y]
-   * @param {Number} [z]
-   */
-  function Point3d(x, y, z) {
-    this.x = x !== undefined ? x : 0;
-    this.y = y !== undefined ? y : 0;
-    this.z = z !== undefined ? z : 0;
-  };
-
-  /**
-   * Subtract the two provided points, returns a-b
-   * @param {Point3d} a
-   * @param {Point3d} b
-   * @return {Point3d} a-b
-   */
-  Point3d.subtract = function(a, b) {
-    var sub = new Point3d();
-    sub.x = a.x - b.x;
-    sub.y = a.y - b.y;
-    sub.z = a.z - b.z;
-    return sub;
-  };
-
-  /**
-   * Add the two provided points, returns a+b
-   * @param {Point3d} a
-   * @param {Point3d} b
-   * @return {Point3d} a+b
-   */
-  Point3d.add = function(a, b) {
-    var sum = new Point3d();
-    sum.x = a.x + b.x;
-    sum.y = a.y + b.y;
-    sum.z = a.z + b.z;
-    return sum;
-  };
-
-  /**
-   * Calculate the average of two 3d points
-   * @param {Point3d} a
-   * @param {Point3d} b
-   * @return {Point3d} The average, (a+b)/2
-   */
-  Point3d.avg = function(a, b) {
-    return new Point3d(
-            (a.x + b.x) / 2,
-            (a.y + b.y) / 2,
-            (a.z + b.z) / 2
-    );
-  };
-
-  /**
-   * Calculate the cross product of the two provided points, returns axb
-   * Documentation: http://en.wikipedia.org/wiki/Cross_product
-   * @param {Point3d} a
-   * @param {Point3d} b
-   * @return {Point3d} cross product axb
-   */
-  Point3d.crossProduct = function(a, b) {
-    var crossproduct = new Point3d();
-
-    crossproduct.x = a.y * b.z - a.z * b.y;
-    crossproduct.y = a.z * b.x - a.x * b.z;
-    crossproduct.z = a.x * b.y - a.y * b.x;
-
-    return crossproduct;
-  };
-
-
-  /**
-   * Rtrieve the length of the vector (or the distance from this point to the origin
-   * @return {Number}  length
-   */
-  Point3d.prototype.length = function() {
-    return Math.sqrt(
-            this.x * this.x +
-            this.y * this.y +
-            this.z * this.z
-    );
-  };
-
-  module.exports = Point3d;
-
-
-/***/ },
-/* 34 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * @prototype Point2d
-   * @param {Number} [x]
-   * @param {Number} [y]
-   */
-  Point2d = function (x, y) {
-    this.x = x !== undefined ? x : 0;
-    this.y = y !== undefined ? y : 0;
-  };
-
-  module.exports = Point2d;
-
-
-/***/ },
-/* 35 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var DataView = __webpack_require__(4);
-
-  /**
-   * @class Filter
-   *
-   * @param {DataSet} data The google data table
-   * @param {Number}  column             The index of the column to be filtered
-   * @param {Graph} graph           The graph
-   */
-  function Filter (data, column, graph) {
-    this.data = data;
-    this.column = column;
-    this.graph = graph; // the parent graph
-
-    this.index = undefined;
-    this.value = undefined;
-
-    // read all distinct values and select the first one
-    this.values = graph.getDistinctValues(data.get(), this.column);
-
-    // sort both numeric and string values correctly
-    this.values.sort(function (a, b) {
-      return a > b ? 1 : a < b ? -1 : 0;
-    });
-
-    if (this.values.length > 0) {
-      this.selectValue(0);
-    }
-
-    // create an array with the filtered datapoints. this will be loaded afterwards
-    this.dataPoints = [];
-
-    this.loaded = false;
-    this.onLoadCallback = undefined;
-
-    if (graph.animationPreload) {
-      this.loaded = false;
-      this.loadInBackground();
-    }
-    else {
-      this.loaded = true;
-    }
-  };
-
-
-  /**
-   * Return the label
-   * @return {string} label
-   */
-  Filter.prototype.isLoaded = function() {
-    return this.loaded;
-  };
-
-
-  /**
-   * Return the loaded progress
-   * @return {Number} percentage between 0 and 100
-   */
-  Filter.prototype.getLoadedProgress = function() {
-    var len = this.values.length;
-
-    var i = 0;
-    while (this.dataPoints[i]) {
-      i++;
-    }
-
-    return Math.round(i / len * 100);
-  };
-
-
-  /**
-   * Return the label
-   * @return {string} label
-   */
-  Filter.prototype.getLabel = function() {
-    return this.graph.filterLabel;
-  };
-
-
-  /**
-   * Return the columnIndex of the filter
-   * @return {Number} columnIndex
-   */
-  Filter.prototype.getColumn = function() {
-    return this.column;
-  };
-
-  /**
-   * Return the currently selected value. Returns undefined if there is no selection
-   * @return {*} value
-   */
-  Filter.prototype.getSelectedValue = function() {
-    if (this.index === undefined)
-      return undefined;
-
-    return this.values[this.index];
-  };
-
-  /**
-   * Retrieve all values of the filter
-   * @return {Array} values
-   */
-  Filter.prototype.getValues = function() {
-    return this.values;
-  };
-
-  /**
-   * Retrieve one value of the filter
-   * @param {Number}  index
-   * @return {*} value
-   */
-  Filter.prototype.getValue = function(index) {
-    if (index >= this.values.length)
-      throw 'Error: index out of range';
-
-    return this.values[index];
-  };
-
-
-  /**
-   * Retrieve the (filtered) dataPoints for the currently selected filter index
-   * @param {Number} [index] (optional)
-   * @return {Array} dataPoints
-   */
-  Filter.prototype._getDataPoints = function(index) {
-    if (index === undefined)
-      index = this.index;
-
-    if (index === undefined)
-      return [];
-
-    var dataPoints;
-    if (this.dataPoints[index]) {
-      dataPoints = this.dataPoints[index];
-    }
-    else {
-      var f = {};
-      f.column = this.column;
-      f.value = this.values[index];
-
-      var dataView = new DataView(this.data,{filter: function (item) {return (item[f.column] == f.value);}}).get();
-      dataPoints = this.graph._getDataPoints(dataView);
-
-      this.dataPoints[index] = dataPoints;
-    }
-
-    return dataPoints;
-  };
-
-
-
-  /**
-   * Set a callback function when the filter is fully loaded.
-   */
-  Filter.prototype.setOnLoadCallback = function(callback) {
-    this.onLoadCallback = callback;
-  };
-
-
-  /**
-   * Add a value to the list with available values for this filter
-   * No double entries will be created.
-   * @param {Number} index
-   */
-  Filter.prototype.selectValue = function(index) {
-    if (index >= this.values.length)
-      throw 'Error: index out of range';
-
-    this.index = index;
-    this.value = this.values[index];
-  };
-
-  /**
-   * Load all filtered rows in the background one by one
-   * Start this method without providing an index!
-   */
-  Filter.prototype.loadInBackground = function(index) {
-    if (index === undefined)
-      index = 0;
-
-    var frame = this.graph.frame;
-
-    if (index < this.values.length) {
-      var dataPointsTemp = this._getDataPoints(index);
-      //this.graph.redrawInfo(); // TODO: not neat
-
-      // create a progress box
-      if (frame.progress === undefined) {
-        frame.progress = document.createElement('DIV');
-        frame.progress.style.position = 'absolute';
-        frame.progress.style.color = 'gray';
-        frame.appendChild(frame.progress);
-      }
-      var progress = this.getLoadedProgress();
-      frame.progress.innerHTML = 'Loading animation... ' + progress + '%';
-      // TODO: this is no nice solution...
-      frame.progress.style.bottom = 60 + 'px'; // TODO: use height of slider
-      frame.progress.style.left = 10 + 'px';
-
-      var me = this;
-      setTimeout(function() {me.loadInBackground(index+1);}, 10);
-      this.loaded = false;
-    }
-    else {
-      this.loaded = true;
-
-      // remove the progress box
-      if (frame.progress !== undefined) {
-        frame.removeChild(frame.progress);
-        frame.progress = undefined;
-      }
-
-      if (this.onLoadCallback)
-        this.onLoadCallback();
-    }
-  };
-
-  module.exports = Filter;
-
-
-/***/ },
-/* 36 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * @prototype StepNumber
-   * The class StepNumber is an iterator for Numbers. You provide a start and end
-   * value, and a best step size. StepNumber itself rounds to fixed values and
-   * a finds the step that best fits the provided step.
-   *
-   * If prettyStep is true, the step size is chosen as close as possible to the
-   * provided step, but being a round value like 1, 2, 5, 10, 20, 50, ....
-   *
-   * Example usage:
-   *   var step = new StepNumber(0, 10, 2.5, true);
-   *   step.start();
-   *   while (!step.end()) {
-   *   alert(step.getCurrent());
-   *   step.next();
-   *   }
-   *
-   * Version: 1.0
-   *
-   * @param {Number} start     The start value
-   * @param {Number} end     The end value
-   * @param {Number} step    Optional. Step size. Must be a positive value.
-   * @param {boolean} prettyStep Optional. If true, the step size is rounded
-   *               To a pretty step size (like 1, 2, 5, 10, 20, 50, ...)
-   */
-  function StepNumber(start, end, step, prettyStep) {
-    // set default values
-    this._start = 0;
-    this._end = 0;
-    this._step = 1;
-    this.prettyStep = true;
-    this.precision = 5;
-
-    this._current = 0;
-    this.setRange(start, end, step, prettyStep);
-  };
-
-  /**
-   * Set a new range: start, end and step.
-   *
-   * @param {Number} start     The start value
-   * @param {Number} end     The end value
-   * @param {Number} step    Optional. Step size. Must be a positive value.
-   * @param {boolean} prettyStep Optional. If true, the step size is rounded
-   *               To a pretty step size (like 1, 2, 5, 10, 20, 50, ...)
-   */
-  StepNumber.prototype.setRange = function(start, end, step, prettyStep) {
-    this._start = start ? start : 0;
-    this._end = end ? end : 0;
-
-    this.setStep(step, prettyStep);
-  };
-
-  /**
-   * Set a new step size
-   * @param {Number} step    New step size. Must be a positive value
-   * @param {boolean} prettyStep Optional. If true, the provided step is rounded
-   *               to a pretty step size (like 1, 2, 5, 10, 20, 50, ...)
-   */
-  StepNumber.prototype.setStep = function(step, prettyStep) {
-    if (step === undefined || step <= 0)
-      return;
-
-    if (prettyStep !== undefined)
-      this.prettyStep = prettyStep;
-
-    if (this.prettyStep === true)
-      this._step = StepNumber.calculatePrettyStep(step);
-    else
-      this._step = step;
-  };
-
-  /**
-   * Calculate a nice step size, closest to the desired step size.
-   * Returns a value in one of the ranges 1*10^n, 2*10^n, or 5*10^n, where n is an
-   * integer Number. For example 1, 2, 5, 10, 20, 50, etc...
-   * @param {Number}  step  Desired step size
-   * @return {Number}     Nice step size
-   */
-  StepNumber.calculatePrettyStep = function (step) {
-    var log10 = function (x) {return Math.log(x) / Math.LN10;};
-
-    // try three steps (multiple of 1, 2, or 5
-    var step1 = Math.pow(10, Math.round(log10(step))),
-        step2 = 2 * Math.pow(10, Math.round(log10(step / 2))),
-        step5 = 5 * Math.pow(10, Math.round(log10(step / 5)));
-
-    // choose the best step (closest to minimum step)
-    var prettyStep = step1;
-    if (Math.abs(step2 - step) <= Math.abs(prettyStep - step)) prettyStep = step2;
-    if (Math.abs(step5 - step) <= Math.abs(prettyStep - step)) prettyStep = step5;
-
-    // for safety
-    if (prettyStep <= 0) {
-      prettyStep = 1;
-    }
-
-    return prettyStep;
-  };
-
-  /**
-   * returns the current value of the step
-   * @return {Number} current value
-   */
-  StepNumber.prototype.getCurrent = function () {
-    return parseFloat(this._current.toPrecision(this.precision));
-  };
-
-  /**
-   * returns the current step size
-   * @return {Number} current step size
-   */
-  StepNumber.prototype.getStep = function () {
-    return this._step;
-  };
-
-  /**
-   * Set the current value to the largest value smaller than start, which
-   * is a multiple of the step size
-   */
-  StepNumber.prototype.start = function() {
-    this._current = this._start - this._start % this._step;
-  };
-
-  /**
-   * Do a step, add the step size to the current value
-   */
-  StepNumber.prototype.next = function () {
-    this._current += this._step;
-  };
-
-  /**
-   * Returns true whether the end is reached
-   * @return {boolean}  True if the current value has passed the end value.
-   */
-  StepNumber.prototype.end = function () {
-    return (this._current > this._end);
-  };
-
-  module.exports = StepNumber;
-
-
-/***/ },
-/* 37 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * Canvas shapes used by Network
-   */
-  if (typeof CanvasRenderingContext2D !== 'undefined') {
-
-    /**
-     * Draw a circle shape
-     */
-    CanvasRenderingContext2D.prototype.circle = function(x, y, r) {
-      this.beginPath();
-      this.arc(x, y, r, 0, 2*Math.PI, false);
-    };
-
-    /**
-     * Draw a square shape
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r   size, width and height of the square
-     */
-    CanvasRenderingContext2D.prototype.square = function(x, y, r) {
-      this.beginPath();
-      this.rect(x - r, y - r, r * 2, r * 2);
-    };
-
-    /**
-     * Draw a triangle shape
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r   radius, half the length of the sides of the triangle
-     */
-    CanvasRenderingContext2D.prototype.triangle = function(x, y, r) {
-      // http://en.wikipedia.org/wiki/Equilateral_triangle
-      this.beginPath();
-
-      var s = r * 2;
-      var s2 = s / 2;
-      var ir = Math.sqrt(3) / 6 * s;      // radius of inner circle
-      var h = Math.sqrt(s * s - s2 * s2); // height
-
-      this.moveTo(x, y - (h - ir));
-      this.lineTo(x + s2, y + ir);
-      this.lineTo(x - s2, y + ir);
-      this.lineTo(x, y - (h - ir));
-      this.closePath();
-    };
-
-    /**
-     * Draw a triangle shape in downward orientation
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r radius
-     */
-    CanvasRenderingContext2D.prototype.triangleDown = function(x, y, r) {
-      // http://en.wikipedia.org/wiki/Equilateral_triangle
-      this.beginPath();
-
-      var s = r * 2;
-      var s2 = s / 2;
-      var ir = Math.sqrt(3) / 6 * s;      // radius of inner circle
-      var h = Math.sqrt(s * s - s2 * s2); // height
-
-      this.moveTo(x, y + (h - ir));
-      this.lineTo(x + s2, y - ir);
-      this.lineTo(x - s2, y - ir);
-      this.lineTo(x, y + (h - ir));
-      this.closePath();
-    };
-
-    /**
-     * Draw a star shape, a star with 5 points
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r   radius, half the length of the sides of the triangle
-     */
-    CanvasRenderingContext2D.prototype.star = function(x, y, r) {
-      // http://www.html5canvastutorials.com/labs/html5-canvas-star-spinner/
-      this.beginPath();
-
-      for (var n = 0; n < 10; n++) {
-        var radius = (n % 2 === 0) ? r * 1.3 : r * 0.5;
-        this.lineTo(
-            x + radius * Math.sin(n * 2 * Math.PI / 10),
-            y - radius * Math.cos(n * 2 * Math.PI / 10)
-        );
-      }
-
-      this.closePath();
-    };
-
-    /**
-     * http://stackoverflow.com/questions/1255512/how-to-draw-a-rounded-rectangle-on-html-canvas
-     */
-    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
-      var r2d = Math.PI/180;
-      if( w - ( 2 * r ) < 0 ) { r = ( w / 2 ); } //ensure that the radius isn't too large for x
-      if( h - ( 2 * r ) < 0 ) { r = ( h / 2 ); } //ensure that the radius isn't too large for y
-      this.beginPath();
-      this.moveTo(x+r,y);
-      this.lineTo(x+w-r,y);
-      this.arc(x+w-r,y+r,r,r2d*270,r2d*360,false);
-      this.lineTo(x+w,y+h-r);
-      this.arc(x+w-r,y+h-r,r,0,r2d*90,false);
-      this.lineTo(x+r,y+h);
-      this.arc(x+r,y+h-r,r,r2d*90,r2d*180,false);
-      this.lineTo(x,y+r);
-      this.arc(x+r,y+r,r,r2d*180,r2d*270,false);
-    };
-
-    /**
-     * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
-     */
-    CanvasRenderingContext2D.prototype.ellipse = function(x, y, w, h) {
-      var kappa = .5522848,
-          ox = (w / 2) * kappa, // control point offset horizontal
-          oy = (h / 2) * kappa, // control point offset vertical
-          xe = x + w,           // x-end
-          ye = y + h,           // y-end
-          xm = x + w / 2,       // x-middle
-          ym = y + h / 2;       // y-middle
-
-      this.beginPath();
-      this.moveTo(x, ym);
-      this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
-      this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
-      this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
-      this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
-    };
-
-
-
-    /**
-     * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
-     */
-    CanvasRenderingContext2D.prototype.database = function(x, y, w, h) {
-      var f = 1/3;
-      var wEllipse = w;
-      var hEllipse = h * f;
-
-      var kappa = .5522848,
-          ox = (wEllipse / 2) * kappa, // control point offset horizontal
-          oy = (hEllipse / 2) * kappa, // control point offset vertical
-          xe = x + wEllipse,           // x-end
-          ye = y + hEllipse,           // y-end
-          xm = x + wEllipse / 2,       // x-middle
-          ym = y + hEllipse / 2,       // y-middle
-          ymb = y + (h - hEllipse/2),  // y-midlle, bottom ellipse
-          yeb = y + h;                 // y-end, bottom ellipse
-
-      this.beginPath();
-      this.moveTo(xe, ym);
-
-      this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
-      this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
-
-      this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
-      this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
-
-      this.lineTo(xe, ymb);
-
-      this.bezierCurveTo(xe, ymb + oy, xm + ox, yeb, xm, yeb);
-      this.bezierCurveTo(xm - ox, yeb, x, ymb + oy, x, ymb);
-
-      this.lineTo(x, ym);
-    };
-
-
-    /**
-     * Draw an arrow point (no line)
-     */
-    CanvasRenderingContext2D.prototype.arrow = function(x, y, angle, length) {
-      // tail
-      var xt = x - length * Math.cos(angle);
-      var yt = y - length * Math.sin(angle);
-
-      // inner tail
-      // TODO: allow to customize different shapes
-      var xi = x - length * 0.9 * Math.cos(angle);
-      var yi = y - length * 0.9 * Math.sin(angle);
-
-      // left
-      var xl = xt + length / 3 * Math.cos(angle + 0.5 * Math.PI);
-      var yl = yt + length / 3 * Math.sin(angle + 0.5 * Math.PI);
-
-      // right
-      var xr = xt + length / 3 * Math.cos(angle - 0.5 * Math.PI);
-      var yr = yt + length / 3 * Math.sin(angle - 0.5 * Math.PI);
-
-      this.beginPath();
-      this.moveTo(x, y);
-      this.lineTo(xl, yl);
-      this.lineTo(xi, yi);
-      this.lineTo(xr, yr);
-      this.closePath();
-    };
-
-    /**
-     * Sets up the dashedLine functionality for drawing
-     * Original code came from http://stackoverflow.com/questions/4576724/dotted-stroke-in-canvas
-     * @author David Jordan
-     * @date 2012-08-08
-     */
-    CanvasRenderingContext2D.prototype.dashedLine = function(x,y,x2,y2,dashArray){
-      if (!dashArray) dashArray=[10,5];
-      if (dashLength==0) dashLength = 0.001; // Hack for Safari
-      var dashCount = dashArray.length;
-      this.moveTo(x, y);
-      var dx = (x2-x), dy = (y2-y);
-      var slope = dy/dx;
-      var distRemaining = Math.sqrt( dx*dx + dy*dy );
-      var dashIndex=0, draw=true;
-      while (distRemaining>=0.1){
-        var dashLength = dashArray[dashIndex++%dashCount];
-        if (dashLength > distRemaining) dashLength = distRemaining;
-        var xStep = Math.sqrt( dashLength*dashLength / (1 + slope*slope) );
-        if (dx<0) xStep = -xStep;
-        x += xStep;
-        y += slope*xStep;
-        this[draw ? 'lineTo' : 'moveTo'](x,y);
-        distRemaining -= dashLength;
-        draw = !draw;
-      }
-    };
-
-    // TODO: add diamond shape
-  }
-
-
-/***/ },
-/* 38 */
-/***/ function(module, exports, __webpack_require__) {
-
-  // Only load hammer.js when in a browser environment
-  // (loading hammer.js in a node.js environment gives errors)
-  if (typeof window !== 'undefined') {
-    module.exports = window['Hammer'] || __webpack_require__(49);
-    // TODO: throw an error when hammerjs is not available?
-  }
-  else {
-    module.exports = function () {
-      throw Error('hammer.js is only available in a browser, not in node.js.');
-    }
-  }
-
-
-/***/ },
-/* 39 */
-/***/ function(module, exports, __webpack_require__) {
-
-  // first check if moment.js is already loaded in the browser window, if so,
-  // use this instance. Else, load via commonjs.
-  module.exports = (typeof window !== 'undefined') && window['moment'] || __webpack_require__(51);
-
-
-/***/ },
-/* 40 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var PhysicsMixin = __webpack_require__(50);
-  var ClusterMixin = __webpack_require__(43);
-  var SectorsMixin = __webpack_require__(44);
-  var SelectionMixin = __webpack_require__(45);
-  var ManipulationMixin = __webpack_require__(46);
-  var NavigationMixin = __webpack_require__(47);
-  var HierarchicalLayoutMixin = __webpack_require__(48);
+  var PhysicsMixin = __webpack_require__(46);
+  var ClusterMixin = __webpack_require__(50);
+  var SectorsMixin = __webpack_require__(51);
+  var SelectionMixin = __webpack_require__(52);
+  var ManipulationMixin = __webpack_require__(53);
+  var NavigationMixin = __webpack_require__(54);
+  var HierarchicalLayoutMixin = __webpack_require__(55);
 
   /**
    * Load a mixin into the network object
@@ -20842,982 +25823,1309 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 41 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
-  
-  /**
-   * Expose `Emitter`.
-   */
-
-  module.exports = Emitter;
+  var util = __webpack_require__(1);
+  var RepulsionMixin = __webpack_require__(47);
+  var HierarchialRepulsionMixin = __webpack_require__(48);
+  var BarnesHutMixin = __webpack_require__(49);
 
   /**
-   * Initialize a new `Emitter`.
+   * Toggling barnes Hut calculation on and off.
    *
-   * @api public
+   * @private
    */
+  exports._toggleBarnesHut = function () {
+    this.constants.physics.barnesHut.enabled = !this.constants.physics.barnesHut.enabled;
+    this._loadSelectedForceSolver();
+    this.moving = true;
+    this.start();
+  };
 
-  function Emitter(obj) {
-    if (obj) return mixin(obj);
+
+  /**
+   * This loads the node force solver based on the barnes hut or repulsion algorithm
+   *
+   * @private
+   */
+  exports._loadSelectedForceSolver = function () {
+    // this overloads the this._calculateNodeForces
+    if (this.constants.physics.barnesHut.enabled == true) {
+      this._clearMixin(RepulsionMixin);
+      this._clearMixin(HierarchialRepulsionMixin);
+
+      this.constants.physics.centralGravity = this.constants.physics.barnesHut.centralGravity;
+      this.constants.physics.springLength = this.constants.physics.barnesHut.springLength;
+      this.constants.physics.springConstant = this.constants.physics.barnesHut.springConstant;
+      this.constants.physics.damping = this.constants.physics.barnesHut.damping;
+
+      this._loadMixin(BarnesHutMixin);
+    }
+    else if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
+      this._clearMixin(BarnesHutMixin);
+      this._clearMixin(RepulsionMixin);
+
+      this.constants.physics.centralGravity = this.constants.physics.hierarchicalRepulsion.centralGravity;
+      this.constants.physics.springLength = this.constants.physics.hierarchicalRepulsion.springLength;
+      this.constants.physics.springConstant = this.constants.physics.hierarchicalRepulsion.springConstant;
+      this.constants.physics.damping = this.constants.physics.hierarchicalRepulsion.damping;
+
+      this._loadMixin(HierarchialRepulsionMixin);
+    }
+    else {
+      this._clearMixin(BarnesHutMixin);
+      this._clearMixin(HierarchialRepulsionMixin);
+      this.barnesHutTree = undefined;
+
+      this.constants.physics.centralGravity = this.constants.physics.repulsion.centralGravity;
+      this.constants.physics.springLength = this.constants.physics.repulsion.springLength;
+      this.constants.physics.springConstant = this.constants.physics.repulsion.springConstant;
+      this.constants.physics.damping = this.constants.physics.repulsion.damping;
+
+      this._loadMixin(RepulsionMixin);
+    }
   };
 
   /**
-   * Mixin the emitter properties.
+   * Before calculating the forces, we check if we need to cluster to keep up performance and we check
+   * if there is more than one node. If it is just one node, we dont calculate anything.
    *
-   * @param {Object} obj
-   * @return {Object}
-   * @api private
+   * @private
    */
-
-  function mixin(obj) {
-    for (var key in Emitter.prototype) {
-      obj[key] = Emitter.prototype[key];
+  exports._initializeForceCalculation = function () {
+    // stop calculation if there is only one node
+    if (this.nodeIndices.length == 1) {
+      this.nodes[this.nodeIndices[0]]._setForce(0, 0);
     }
-    return obj;
+    else {
+      // if there are too many nodes on screen, we cluster without repositioning
+      if (this.nodeIndices.length > this.constants.clustering.clusterThreshold && this.constants.clustering.enabled == true) {
+        this.clusterToFit(this.constants.clustering.reduceToNodes, false);
+      }
+
+      // we now start the force calculation
+      this._calculateForces();
+    }
+  };
+
+
+  /**
+   * Calculate the external forces acting on the nodes
+   * Forces are caused by: edges, repulsing forces between nodes, gravity
+   * @private
+   */
+  exports._calculateForces = function () {
+    // Gravity is required to keep separated groups from floating off
+    // the forces are reset to zero in this loop by using _setForce instead
+    // of _addForce
+
+    this._calculateGravitationalForces();
+    this._calculateNodeForces();
+
+    if (this.constants.physics.springConstant > 0) {
+      if (this.constants.smoothCurves.enabled == true && this.constants.smoothCurves.dynamic == true) {
+        this._calculateSpringForcesWithSupport();
+      }
+      else {
+        if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
+          this._calculateHierarchicalSpringForces();
+        }
+        else {
+          this._calculateSpringForces();
+        }
+      }
+    }
+  };
+
+
+  /**
+   * Smooth curves are created by adding invisible nodes in the center of the edges. These nodes are also
+   * handled in the calculateForces function. We then use a quadratic curve with the center node as control.
+   * This function joins the datanodes and invisible (called support) nodes into one object.
+   * We do this so we do not contaminate this.nodes with the support nodes.
+   *
+   * @private
+   */
+  exports._updateCalculationNodes = function () {
+    if (this.constants.smoothCurves.enabled == true && this.constants.smoothCurves.dynamic == true) {
+      this.calculationNodes = {};
+      this.calculationNodeIndices = [];
+
+      for (var nodeId in this.nodes) {
+        if (this.nodes.hasOwnProperty(nodeId)) {
+          this.calculationNodes[nodeId] = this.nodes[nodeId];
+        }
+      }
+      var supportNodes = this.sectors['support']['nodes'];
+      for (var supportNodeId in supportNodes) {
+        if (supportNodes.hasOwnProperty(supportNodeId)) {
+          if (this.edges.hasOwnProperty(supportNodes[supportNodeId].parentEdgeId)) {
+            this.calculationNodes[supportNodeId] = supportNodes[supportNodeId];
+          }
+          else {
+            supportNodes[supportNodeId]._setForce(0, 0);
+          }
+        }
+      }
+
+      for (var idx in this.calculationNodes) {
+        if (this.calculationNodes.hasOwnProperty(idx)) {
+          this.calculationNodeIndices.push(idx);
+        }
+      }
+    }
+    else {
+      this.calculationNodes = this.nodes;
+      this.calculationNodeIndices = this.nodeIndices;
+    }
+  };
+
+
+  /**
+   * this function applies the central gravity effect to keep groups from floating off
+   *
+   * @private
+   */
+  exports._calculateGravitationalForces = function () {
+    var dx, dy, distance, node, i;
+    var nodes = this.calculationNodes;
+    var gravity = this.constants.physics.centralGravity;
+    var gravityForce = 0;
+
+    for (i = 0; i < this.calculationNodeIndices.length; i++) {
+      node = nodes[this.calculationNodeIndices[i]];
+      node.damping = this.constants.physics.damping; // possibly add function to alter damping properties of clusters.
+      // gravity does not apply when we are in a pocket sector
+      if (this._sector() == "default" && gravity != 0) {
+        dx = -node.x;
+        dy = -node.y;
+        distance = Math.sqrt(dx * dx + dy * dy);
+
+        gravityForce = (distance == 0) ? 0 : (gravity / distance);
+        node.fx = dx * gravityForce;
+        node.fy = dy * gravityForce;
+      }
+      else {
+        node.fx = 0;
+        node.fy = 0;
+      }
+    }
+  };
+
+
+
+
+  /**
+   * this function calculates the effects of the springs in the case of unsmooth curves.
+   *
+   * @private
+   */
+  exports._calculateSpringForces = function () {
+    var edgeLength, edge, edgeId;
+    var dx, dy, fx, fy, springForce, distance;
+    var edges = this.edges;
+
+    // forces caused by the edges, modelled as springs
+    for (edgeId in edges) {
+      if (edges.hasOwnProperty(edgeId)) {
+        edge = edges[edgeId];
+        if (edge.connected) {
+          // only calculate forces if nodes are in the same sector
+          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
+            edgeLength = edge.customLength ? edge.length : this.constants.physics.springLength;
+            // this implies that the edges between big clusters are longer
+            edgeLength += (edge.to.clusterSize + edge.from.clusterSize - 2) * this.constants.clustering.edgeGrowth;
+
+            dx = (edge.from.x - edge.to.x);
+            dy = (edge.from.y - edge.to.y);
+            distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance == 0) {
+              distance = 0.01;
+            }
+
+            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+            springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
+
+            fx = dx * springForce;
+            fy = dy * springForce;
+
+            edge.from.fx += fx;
+            edge.from.fy += fy;
+            edge.to.fx -= fx;
+            edge.to.fy -= fy;
+          }
+        }
+      }
+    }
+  };
+
+
+
+
+  /**
+   * This function calculates the springforces on the nodes, accounting for the support nodes.
+   *
+   * @private
+   */
+  exports._calculateSpringForcesWithSupport = function () {
+    var edgeLength, edge, edgeId, combinedClusterSize;
+    var edges = this.edges;
+
+    // forces caused by the edges, modelled as springs
+    for (edgeId in edges) {
+      if (edges.hasOwnProperty(edgeId)) {
+        edge = edges[edgeId];
+        if (edge.connected) {
+          // only calculate forces if nodes are in the same sector
+          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
+            if (edge.via != null) {
+              var node1 = edge.to;
+              var node2 = edge.via;
+              var node3 = edge.from;
+
+              edgeLength = edge.customLength ? edge.length : this.constants.physics.springLength;
+
+              combinedClusterSize = node1.clusterSize + node3.clusterSize - 2;
+
+              // this implies that the edges between big clusters are longer
+              edgeLength += combinedClusterSize * this.constants.clustering.edgeGrowth;
+              this._calculateSpringForce(node1, node2, 0.5 * edgeLength);
+              this._calculateSpringForce(node2, node3, 0.5 * edgeLength);
+            }
+          }
+        }
+      }
+    }
+  };
+
+
+  /**
+   * This is the code actually performing the calculation for the function above. It is split out to avoid repetition.
+   *
+   * @param node1
+   * @param node2
+   * @param edgeLength
+   * @private
+   */
+  exports._calculateSpringForce = function (node1, node2, edgeLength) {
+    var dx, dy, fx, fy, springForce, distance;
+
+    dx = (node1.x - node2.x);
+    dy = (node1.y - node2.y);
+    distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance == 0) {
+      distance = 0.01;
+    }
+
+    // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+    springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
+
+    fx = dx * springForce;
+    fy = dy * springForce;
+
+    node1.fx += fx;
+    node1.fy += fy;
+    node2.fx -= fx;
+    node2.fy -= fy;
+  };
+
+
+  /**
+   * Load the HTML for the physics config and bind it
+   * @private
+   */
+  exports._loadPhysicsConfiguration = function () {
+    if (this.physicsConfiguration === undefined) {
+      this.backupConstants = {};
+      util.deepExtend(this.backupConstants,this.constants);
+
+      var hierarchicalLayoutDirections = ["LR", "RL", "UD", "DU"];
+      this.physicsConfiguration = document.createElement('div');
+      this.physicsConfiguration.className = "PhysicsConfiguration";
+      this.physicsConfiguration.innerHTML = '' +
+        '<table><tr><td><b>Simulation Mode:</b></td></tr>' +
+        '<tr>' +
+        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod1" value="BH" checked="checked">Barnes Hut</td>' +
+        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod2" value="R">Repulsion</td>' +
+        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod3" value="H">Hierarchical</td>' +
+        '</tr>' +
+        '</table>' +
+        '<table id="graph_BH_table" style="display:none">' +
+        '<tr><td><b>Barnes Hut</b></td></tr>' +
+        '<tr>' +
+        '<td width="150px">gravitationalConstant</td><td>0</td><td><input type="range" min="0" max="20000" value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" step="25" style="width:300px" id="graph_BH_gc"></td><td  width="50px">-20000</td><td><input value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" id="graph_BH_gc_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.barnesHut.centralGravity + '" step="0.05"  style="width:300px" id="graph_BH_cg"></td><td>3</td><td><input value="' + this.constants.physics.barnesHut.centralGravity + '" id="graph_BH_cg_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.barnesHut.springLength + '" step="1" style="width:300px" id="graph_BH_sl"></td><td>500</td><td><input value="' + this.constants.physics.barnesHut.springLength + '" id="graph_BH_sl_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.barnesHut.springConstant + '" step="0.001" style="width:300px" id="graph_BH_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.barnesHut.springConstant + '" id="graph_BH_sc_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.barnesHut.damping + '" step="0.005" style="width:300px" id="graph_BH_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.barnesHut.damping + '" id="graph_BH_damp_value" style="width:60px"></td>' +
+        '</tr>' +
+        '</table>' +
+        '<table id="graph_R_table" style="display:none">' +
+        '<tr><td><b>Repulsion</b></td></tr>' +
+        '<tr>' +
+        '<td width="150px">nodeDistance</td><td>0</td><td><input type="range" min="0" max="300" value="' + this.constants.physics.repulsion.nodeDistance + '" step="1" style="width:300px" id="graph_R_nd"></td><td width="50px">300</td><td><input value="' + this.constants.physics.repulsion.nodeDistance + '" id="graph_R_nd_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.repulsion.centralGravity + '" step="0.05"  style="width:300px" id="graph_R_cg"></td><td>3</td><td><input value="' + this.constants.physics.repulsion.centralGravity + '" id="graph_R_cg_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.repulsion.springLength + '" step="1" style="width:300px" id="graph_R_sl"></td><td>500</td><td><input value="' + this.constants.physics.repulsion.springLength + '" id="graph_R_sl_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.repulsion.springConstant + '" step="0.001" style="width:300px" id="graph_R_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.repulsion.springConstant + '" id="graph_R_sc_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.repulsion.damping + '" step="0.005" style="width:300px" id="graph_R_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.repulsion.damping + '" id="graph_R_damp_value" style="width:60px"></td>' +
+        '</tr>' +
+        '</table>' +
+        '<table id="graph_H_table" style="display:none">' +
+        '<tr><td width="150"><b>Hierarchical</b></td></tr>' +
+        '<tr>' +
+        '<td width="150px">nodeDistance</td><td>0</td><td><input type="range" min="0" max="300" value="' + this.constants.physics.hierarchicalRepulsion.nodeDistance + '" step="1" style="width:300px" id="graph_H_nd"></td><td width="50px">300</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.nodeDistance + '" id="graph_H_nd_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.hierarchicalRepulsion.centralGravity + '" step="0.05"  style="width:300px" id="graph_H_cg"></td><td>3</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.centralGravity + '" id="graph_H_cg_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.hierarchicalRepulsion.springLength + '" step="1" style="width:300px" id="graph_H_sl"></td><td>500</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.springLength + '" id="graph_H_sl_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.hierarchicalRepulsion.springConstant + '" step="0.001" style="width:300px" id="graph_H_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.springConstant + '" id="graph_H_sc_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.hierarchicalRepulsion.damping + '" step="0.005" style="width:300px" id="graph_H_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.damping + '" id="graph_H_damp_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">direction</td><td>1</td><td><input type="range" min="0" max="3" value="' + hierarchicalLayoutDirections.indexOf(this.constants.hierarchicalLayout.direction) + '" step="1" style="width:300px" id="graph_H_direction"></td><td>4</td><td><input value="' + this.constants.hierarchicalLayout.direction + '" id="graph_H_direction_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">levelSeparation</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.levelSeparation + '" step="1" style="width:300px" id="graph_H_levsep"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.levelSeparation + '" id="graph_H_levsep_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">nodeSpacing</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.nodeSpacing + '" step="1" style="width:300px" id="graph_H_nspac"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.nodeSpacing + '" id="graph_H_nspac_value" style="width:60px"></td>' +
+        '</tr>' +
+        '</table>' +
+        '<table><tr><td><b>Options:</b></td></tr>' +
+        '<tr>' +
+        '<td width="180px"><input type="button" id="graph_toggleSmooth" value="Toggle smoothCurves" style="width:150px"></td>' +
+        '<td width="180px"><input type="button" id="graph_repositionNodes" value="Reinitialize" style="width:150px"></td>' +
+        '<td width="180px"><input type="button" id="graph_generateOptions" value="Generate Options" style="width:150px"></td>' +
+        '</tr>' +
+        '</table>'
+      this.containerElement.parentElement.insertBefore(this.physicsConfiguration, this.containerElement);
+      this.optionsDiv = document.createElement("div");
+      this.optionsDiv.style.fontSize = "14px";
+      this.optionsDiv.style.fontFamily = "verdana";
+      this.containerElement.parentElement.insertBefore(this.optionsDiv, this.containerElement);
+
+      var rangeElement;
+      rangeElement = document.getElementById('graph_BH_gc');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_gc', -1, "physics_barnesHut_gravitationalConstant");
+      rangeElement = document.getElementById('graph_BH_cg');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_cg', 1, "physics_centralGravity");
+      rangeElement = document.getElementById('graph_BH_sc');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_sc', 1, "physics_springConstant");
+      rangeElement = document.getElementById('graph_BH_sl');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_sl', 1, "physics_springLength");
+      rangeElement = document.getElementById('graph_BH_damp');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_damp', 1, "physics_damping");
+
+      rangeElement = document.getElementById('graph_R_nd');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_nd', 1, "physics_repulsion_nodeDistance");
+      rangeElement = document.getElementById('graph_R_cg');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_cg', 1, "physics_centralGravity");
+      rangeElement = document.getElementById('graph_R_sc');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_sc', 1, "physics_springConstant");
+      rangeElement = document.getElementById('graph_R_sl');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_sl', 1, "physics_springLength");
+      rangeElement = document.getElementById('graph_R_damp');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_damp', 1, "physics_damping");
+
+      rangeElement = document.getElementById('graph_H_nd');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_nd', 1, "physics_hierarchicalRepulsion_nodeDistance");
+      rangeElement = document.getElementById('graph_H_cg');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_cg', 1, "physics_centralGravity");
+      rangeElement = document.getElementById('graph_H_sc');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_sc', 1, "physics_springConstant");
+      rangeElement = document.getElementById('graph_H_sl');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_sl', 1, "physics_springLength");
+      rangeElement = document.getElementById('graph_H_damp');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_damp', 1, "physics_damping");
+      rangeElement = document.getElementById('graph_H_direction');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_direction', hierarchicalLayoutDirections, "hierarchicalLayout_direction");
+      rangeElement = document.getElementById('graph_H_levsep');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_levsep', 1, "hierarchicalLayout_levelSeparation");
+      rangeElement = document.getElementById('graph_H_nspac');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_nspac', 1, "hierarchicalLayout_nodeSpacing");
+
+      var radioButton1 = document.getElementById("graph_physicsMethod1");
+      var radioButton2 = document.getElementById("graph_physicsMethod2");
+      var radioButton3 = document.getElementById("graph_physicsMethod3");
+      radioButton2.checked = true;
+      if (this.constants.physics.barnesHut.enabled) {
+        radioButton1.checked = true;
+      }
+      if (this.constants.hierarchicalLayout.enabled) {
+        radioButton3.checked = true;
+      }
+
+      var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
+      var graph_repositionNodes = document.getElementById("graph_repositionNodes");
+      var graph_generateOptions = document.getElementById("graph_generateOptions");
+
+      graph_toggleSmooth.onclick = graphToggleSmoothCurves.bind(this);
+      graph_repositionNodes.onclick = graphRepositionNodes.bind(this);
+      graph_generateOptions.onclick = graphGenerateOptions.bind(this);
+      if (this.constants.smoothCurves == true && this.constants.dynamicSmoothCurves == false) {
+        graph_toggleSmooth.style.background = "#A4FF56";
+      }
+      else {
+        graph_toggleSmooth.style.background = "#FF8532";
+      }
+
+
+      switchConfigurations.apply(this);
+
+      radioButton1.onchange = switchConfigurations.bind(this);
+      radioButton2.onchange = switchConfigurations.bind(this);
+      radioButton3.onchange = switchConfigurations.bind(this);
+    }
+  };
+
+  /**
+   * This overwrites the this.constants.
+   *
+   * @param constantsVariableName
+   * @param value
+   * @private
+   */
+  exports._overWriteGraphConstants = function (constantsVariableName, value) {
+    var nameArray = constantsVariableName.split("_");
+    if (nameArray.length == 1) {
+      this.constants[nameArray[0]] = value;
+    }
+    else if (nameArray.length == 2) {
+      this.constants[nameArray[0]][nameArray[1]] = value;
+    }
+    else if (nameArray.length == 3) {
+      this.constants[nameArray[0]][nameArray[1]][nameArray[2]] = value;
+    }
+  };
+
+
+  /**
+   * this function is bound to the toggle smooth curves button. That is also why it is not in the prototype.
+   */
+  function graphToggleSmoothCurves () {
+    this.constants.smoothCurves.enabled = !this.constants.smoothCurves.enabled;
+    var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
+    if (this.constants.smoothCurves.enabled == true) {graph_toggleSmooth.style.background = "#A4FF56";}
+    else                                     {graph_toggleSmooth.style.background = "#FF8532";}
+
+    this._configureSmoothCurves(false);
   }
 
   /**
-   * Listen on the given `event` with `fn`.
+   * this function is used to scramble the nodes
    *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
    */
-
-  Emitter.prototype.on =
-  Emitter.prototype.addEventListener = function(event, fn){
-    this._callbacks = this._callbacks || {};
-    (this._callbacks[event] = this._callbacks[event] || [])
-      .push(fn);
-    return this;
-  };
-
-  /**
-   * Adds an `event` listener that will be invoked a single
-   * time then automatically removed.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.once = function(event, fn){
-    var self = this;
-    this._callbacks = this._callbacks || {};
-
-    function on() {
-      self.off(event, on);
-      fn.apply(this, arguments);
-    }
-
-    on.fn = fn;
-    this.on(event, on);
-    return this;
-  };
-
-  /**
-   * Remove the given callback for `event` or all
-   * registered callbacks.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.off =
-  Emitter.prototype.removeListener =
-  Emitter.prototype.removeAllListeners =
-  Emitter.prototype.removeEventListener = function(event, fn){
-    this._callbacks = this._callbacks || {};
-
-    // all
-    if (0 == arguments.length) {
-      this._callbacks = {};
-      return this;
-    }
-
-    // specific event
-    var callbacks = this._callbacks[event];
-    if (!callbacks) return this;
-
-    // remove all handlers
-    if (1 == arguments.length) {
-      delete this._callbacks[event];
-      return this;
-    }
-
-    // remove specific handler
-    var cb;
-    for (var i = 0; i < callbacks.length; i++) {
-      cb = callbacks[i];
-      if (cb === fn || cb.fn === fn) {
-        callbacks.splice(i, 1);
-        break;
+  function graphRepositionNodes () {
+    for (var nodeId in this.calculationNodes) {
+      if (this.calculationNodes.hasOwnProperty(nodeId)) {
+        this.calculationNodes[nodeId].vx = 0;  this.calculationNodes[nodeId].vy = 0;
+        this.calculationNodes[nodeId].fx = 0;  this.calculationNodes[nodeId].fy = 0;
       }
     }
-    return this;
-  };
+    if (this.constants.hierarchicalLayout.enabled == true) {
+      this._setupHierarchicalLayout();
+    }
+    else {
+      this.repositionNodes();
+    }
+    this.moving = true;
+    this.start();
+  }
 
   /**
-   * Emit `event` with the given args.
-   *
-   * @param {String} event
-   * @param {Mixed} ...
-   * @return {Emitter}
+   *  this is used to generate an options file from the playing with physics system.
    */
-
-  Emitter.prototype.emit = function(event){
-    this._callbacks = this._callbacks || {};
-    var args = [].slice.call(arguments, 1)
-      , callbacks = this._callbacks[event];
-
-    if (callbacks) {
-      callbacks = callbacks.slice(0);
-      for (var i = 0, len = callbacks.length; i < len; ++i) {
-        callbacks[i].apply(this, args);
+  function graphGenerateOptions () {
+    var options = "No options are required, default values used.";
+    var optionsSpecific = [];
+    var radioButton1 = document.getElementById("graph_physicsMethod1");
+    var radioButton2 = document.getElementById("graph_physicsMethod2");
+    if (radioButton1.checked == true) {
+      if (this.constants.physics.barnesHut.gravitationalConstant != this.backupConstants.physics.barnesHut.gravitationalConstant) {optionsSpecific.push("gravitationalConstant: " + this.constants.physics.barnesHut.gravitationalConstant);}
+      if (this.constants.physics.centralGravity != this.backupConstants.physics.barnesHut.centralGravity)                         {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
+      if (this.constants.physics.springLength != this.backupConstants.physics.barnesHut.springLength)                             {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
+      if (this.constants.physics.springConstant != this.backupConstants.physics.barnesHut.springConstant)                         {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
+      if (this.constants.physics.damping != this.backupConstants.physics.barnesHut.damping)                                       {optionsSpecific.push("damping: " + this.constants.physics.damping);}
+      if (optionsSpecific.length != 0) {
+        options = "var options = {";
+        options += "physics: {barnesHut: {";
+        for (var i = 0; i < optionsSpecific.length; i++) {
+          options += optionsSpecific[i];
+          if (i < optionsSpecific.length - 1) {
+            options += ", "
+          }
+        }
+        options += '}}'
+      }
+      if (this.constants.smoothCurves.enabled != this.backupConstants.smoothCurves.enabled) {
+        if (optionsSpecific.length == 0) {options = "var options = {";}
+        else {options += ", "}
+        options += "smoothCurves: " + this.constants.smoothCurves.enabled;
+      }
+      if (options != "No options are required, default values used.") {
+        options += '};'
       }
     }
+    else if (radioButton2.checked == true) {
+      options = "var options = {";
+      options += "physics: {barnesHut: {enabled: false}";
+      if (this.constants.physics.repulsion.nodeDistance != this.backupConstants.physics.repulsion.nodeDistance)  {optionsSpecific.push("nodeDistance: " + this.constants.physics.repulsion.nodeDistance);}
+      if (this.constants.physics.centralGravity != this.backupConstants.physics.repulsion.centralGravity)        {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
+      if (this.constants.physics.springLength != this.backupConstants.physics.repulsion.springLength)            {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
+      if (this.constants.physics.springConstant != this.backupConstants.physics.repulsion.springConstant)        {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
+      if (this.constants.physics.damping != this.backupConstants.physics.repulsion.damping)                      {optionsSpecific.push("damping: " + this.constants.physics.damping);}
+      if (optionsSpecific.length != 0) {
+        options += ", repulsion: {";
+        for (var i = 0; i < optionsSpecific.length; i++) {
+          options += optionsSpecific[i];
+          if (i < optionsSpecific.length - 1) {
+            options += ", "
+          }
+        }
+        options += '}}'
+      }
+      if (optionsSpecific.length == 0) {options += "}"}
+      if (this.constants.smoothCurves != this.backupConstants.smoothCurves) {
+        options += ", smoothCurves: " + this.constants.smoothCurves;
+      }
+      options += '};'
+    }
+    else {
+      options = "var options = {";
+      if (this.constants.physics.hierarchicalRepulsion.nodeDistance != this.backupConstants.physics.hierarchicalRepulsion.nodeDistance)  {optionsSpecific.push("nodeDistance: " + this.constants.physics.hierarchicalRepulsion.nodeDistance);}
+      if (this.constants.physics.centralGravity != this.backupConstants.physics.hierarchicalRepulsion.centralGravity)        {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
+      if (this.constants.physics.springLength != this.backupConstants.physics.hierarchicalRepulsion.springLength)            {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
+      if (this.constants.physics.springConstant != this.backupConstants.physics.hierarchicalRepulsion.springConstant)        {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
+      if (this.constants.physics.damping != this.backupConstants.physics.hierarchicalRepulsion.damping)                      {optionsSpecific.push("damping: " + this.constants.physics.damping);}
+      if (optionsSpecific.length != 0) {
+        options += "physics: {hierarchicalRepulsion: {";
+        for (var i = 0; i < optionsSpecific.length; i++) {
+          options += optionsSpecific[i];
+          if (i < optionsSpecific.length - 1) {
+            options += ", ";
+          }
+        }
+        options += '}},';
+      }
+      options += 'hierarchicalLayout: {';
+      optionsSpecific = [];
+      if (this.constants.hierarchicalLayout.direction != this.backupConstants.hierarchicalLayout.direction)                       {optionsSpecific.push("direction: " + this.constants.hierarchicalLayout.direction);}
+      if (Math.abs(this.constants.hierarchicalLayout.levelSeparation) != this.backupConstants.hierarchicalLayout.levelSeparation) {optionsSpecific.push("levelSeparation: " + this.constants.hierarchicalLayout.levelSeparation);}
+      if (this.constants.hierarchicalLayout.nodeSpacing != this.backupConstants.hierarchicalLayout.nodeSpacing)                   {optionsSpecific.push("nodeSpacing: " + this.constants.hierarchicalLayout.nodeSpacing);}
+      if (optionsSpecific.length != 0) {
+        for (var i = 0; i < optionsSpecific.length; i++) {
+          options += optionsSpecific[i];
+          if (i < optionsSpecific.length - 1) {
+            options += ", "
+          }
+        }
+        options += '}'
+      }
+      else {
+        options += "enabled:true}";
+      }
+      options += '};'
+    }
 
-    return this;
-  };
+
+    this.optionsDiv.innerHTML = options;
+  }
 
   /**
-   * Return array of callbacks for `event`.
+   * this is used to switch between barnesHut, repulsion and hierarchical.
    *
-   * @param {String} event
-   * @return {Array}
-   * @api public
    */
+  function switchConfigurations () {
+    var ids = ["graph_BH_table", "graph_R_table", "graph_H_table"];
+    var radioButton = document.querySelector('input[name="graph_physicsMethod"]:checked').value;
+    var tableId = "graph_" + radioButton + "_table";
+    var table = document.getElementById(tableId);
+    table.style.display = "block";
+    for (var i = 0; i < ids.length; i++) {
+      if (ids[i] != tableId) {
+        table = document.getElementById(ids[i]);
+        table.style.display = "none";
+      }
+    }
+    this._restoreNodes();
+    if (radioButton == "R") {
+      this.constants.hierarchicalLayout.enabled = false;
+      this.constants.physics.hierarchicalRepulsion.enabled = false;
+      this.constants.physics.barnesHut.enabled = false;
+    }
+    else if (radioButton == "H") {
+      if (this.constants.hierarchicalLayout.enabled == false) {
+        this.constants.hierarchicalLayout.enabled = true;
+        this.constants.physics.hierarchicalRepulsion.enabled = true;
+        this.constants.physics.barnesHut.enabled = false;
+        this.constants.smoothCurves.enabled = false;
+        this._setupHierarchicalLayout();
+      }
+    }
+    else {
+      this.constants.hierarchicalLayout.enabled = false;
+      this.constants.physics.hierarchicalRepulsion.enabled = false;
+      this.constants.physics.barnesHut.enabled = true;
+    }
+    this._loadSelectedForceSolver();
+    var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
+    if (this.constants.smoothCurves.enabled == true) {graph_toggleSmooth.style.background = "#A4FF56";}
+    else                                     {graph_toggleSmooth.style.background = "#FF8532";}
+    this.moving = true;
+    this.start();
+  }
 
-  Emitter.prototype.listeners = function(event){
-    this._callbacks = this._callbacks || {};
-    return this._callbacks[event] || [];
-  };
 
   /**
-   * Check if this emitter has `event` handlers.
+   * this generates the ranges depending on the iniital values.
    *
-   * @param {String} event
-   * @return {Boolean}
-   * @api public
+   * @param id
+   * @param map
+   * @param constantsVariableName
    */
+  function showValueOfRange (id,map,constantsVariableName) {
+    var valueId = id + "_value";
+    var rangeValue = document.getElementById(id).value;
 
-  Emitter.prototype.hasListeners = function(event){
-    return !! this.listeners(event).length;
-  };
+    if (map instanceof Array) {
+      document.getElementById(valueId).value = map[parseInt(rangeValue)];
+      this._overWriteGraphConstants(constantsVariableName,map[parseInt(rangeValue)]);
+    }
+    else {
+      document.getElementById(valueId).value = parseInt(map) * parseFloat(rangeValue);
+      this._overWriteGraphConstants(constantsVariableName, parseInt(map) * parseFloat(rangeValue));
+    }
+
+    if (constantsVariableName == "hierarchicalLayout_direction" ||
+      constantsVariableName == "hierarchicalLayout_levelSeparation" ||
+      constantsVariableName == "hierarchicalLayout_nodeSpacing") {
+      this._setupHierarchicalLayout();
+    }
+    this.moving = true;
+    this.start();
+  }
 
 
 /***/ },
-/* 42 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
-   * Copyright 2012 Craig Campbell
+   * Calculate the forces the nodes apply on each other based on a repulsion field.
+   * This field is linearly approximated.
    *
-   * Licensed under the Apache License, Version 2.0 (the "License");
-   * you may not use this file except in compliance with the License.
-   * You may obtain a copy of the License at
-   *
-   * http://www.apache.org/licenses/LICENSE-2.0
-   *
-   * Unless required by applicable law or agreed to in writing, software
-   * distributed under the License is distributed on an "AS IS" BASIS,
-   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   * See the License for the specific language governing permissions and
-   * limitations under the License.
-   *
-   * Mousetrap is a simple keyboard shortcut library for Javascript with
-   * no external dependencies
-   *
-   * @version 1.1.2
-   * @url craig.is/killing/mice
+   * @private
    */
+  exports._calculateNodeForces = function () {
+    var dx, dy, angle, distance, fx, fy, combinedClusterSize,
+      repulsingForce, node1, node2, i, j;
 
-    /**
-     * mapping of special keycodes to their corresponding keys
-     *
-     * everything in this dictionary cannot use keypress events
-     * so it has to be here to map to the correct keycodes for
-     * keyup/keydown events
-     *
-     * @type {Object}
-     */
-    var _MAP = {
-            8: 'backspace',
-            9: 'tab',
-            13: 'enter',
-            16: 'shift',
-            17: 'ctrl',
-            18: 'alt',
-            20: 'capslock',
-            27: 'esc',
-            32: 'space',
-            33: 'pageup',
-            34: 'pagedown',
-            35: 'end',
-            36: 'home',
-            37: 'left',
-            38: 'up',
-            39: 'right',
-            40: 'down',
-            45: 'ins',
-            46: 'del',
-            91: 'meta',
-            93: 'meta',
-            224: 'meta'
-        },
+    var nodes = this.calculationNodes;
+    var nodeIndices = this.calculationNodeIndices;
 
-        /**
-         * mapping for special characters so they can support
-         *
-         * this dictionary is only used incase you want to bind a
-         * keyup or keydown event to one of these keys
-         *
-         * @type {Object}
-         */
-        _KEYCODE_MAP = {
-            106: '*',
-            107: '+',
-            109: '-',
-            110: '.',
-            111 : '/',
-            186: ';',
-            187: '=',
-            188: ',',
-            189: '-',
-            190: '.',
-            191: '/',
-            192: '`',
-            219: '[',
-            220: '\\',
-            221: ']',
-            222: '\''
-        },
+    // approximation constants
+    var a_base = -2 / 3;
+    var b = 4 / 3;
 
-        /**
-         * this is a mapping of keys that require shift on a US keypad
-         * back to the non shift equivelents
-         *
-         * this is so you can use keyup events with these keys
-         *
-         * note that this will only work reliably on US keyboards
-         *
-         * @type {Object}
-         */
-        _SHIFT_MAP = {
-            '~': '`',
-            '!': '1',
-            '@': '2',
-            '#': '3',
-            '$': '4',
-            '%': '5',
-            '^': '6',
-            '&': '7',
-            '*': '8',
-            '(': '9',
-            ')': '0',
-            '_': '-',
-            '+': '=',
-            ':': ';',
-            '\"': '\'',
-            '<': ',',
-            '>': '.',
-            '?': '/',
-            '|': '\\'
-        },
+    // repulsing forces between nodes
+    var nodeDistance = this.constants.physics.repulsion.nodeDistance;
+    var minimumDistance = nodeDistance;
 
-        /**
-         * this is a list of special strings you can use to map
-         * to modifier keys when you specify your keyboard shortcuts
-         *
-         * @type {Object}
-         */
-        _SPECIAL_ALIASES = {
-            'option': 'alt',
-            'command': 'meta',
-            'return': 'enter',
-            'escape': 'esc'
-        },
+    // we loop from i over all but the last entree in the array
+    // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
+    for (i = 0; i < nodeIndices.length - 1; i++) {
+      node1 = nodes[nodeIndices[i]];
+      for (j = i + 1; j < nodeIndices.length; j++) {
+        node2 = nodes[nodeIndices[j]];
+        combinedClusterSize = node1.clusterSize + node2.clusterSize - 2;
 
-        /**
-         * variable to store the flipped version of _MAP from above
-         * needed to check if we should use keypress or not when no action
-         * is specified
-         *
-         * @type {Object|undefined}
-         */
-        _REVERSE_MAP,
+        dx = node2.x - node1.x;
+        dy = node2.y - node1.y;
+        distance = Math.sqrt(dx * dx + dy * dy);
 
-        /**
-         * a list of all the callbacks setup via Mousetrap.bind()
-         *
-         * @type {Object}
-         */
-        _callbacks = {},
+        minimumDistance = (combinedClusterSize == 0) ? nodeDistance : (nodeDistance * (1 + combinedClusterSize * this.constants.clustering.distanceAmplification));
+        var a = a_base / minimumDistance;
+        if (distance < 2 * minimumDistance) {
+          if (distance < 0.5 * minimumDistance) {
+            repulsingForce = 1.0;
+          }
+          else {
+            repulsingForce = a * distance + b; // linear approx of  1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness))
+          }
 
-        /**
-         * direct map of string combinations to callbacks used for trigger()
-         *
-         * @type {Object}
-         */
-        _direct_map = {},
+          // amplify the repulsion for clusters.
+          repulsingForce *= (combinedClusterSize == 0) ? 1 : 1 + combinedClusterSize * this.constants.clustering.forceAmplification;
+          repulsingForce = repulsingForce / distance;
 
-        /**
-         * keeps track of what level each sequence is at since multiple
-         * sequences can start out with the same sequence
-         *
-         * @type {Object}
-         */
-        _sequence_levels = {},
+          fx = dx * repulsingForce;
+          fy = dy * repulsingForce;
 
-        /**
-         * variable to store the setTimeout call
-         *
-         * @type {null|number}
-         */
-        _reset_timer,
-
-        /**
-         * temporary state where we will ignore the next keyup
-         *
-         * @type {boolean|string}
-         */
-        _ignore_next_keyup = false,
-
-        /**
-         * are we currently inside of a sequence?
-         * type of action ("keyup" or "keydown" or "keypress") or false
-         *
-         * @type {boolean|string}
-         */
-        _inside_sequence = false;
-
-    /**
-     * loop through the f keys, f1 to f19 and add them to the map
-     * programatically
-     */
-    for (var i = 1; i < 20; ++i) {
-        _MAP[111 + i] = 'f' + i;
+          node1.fx -= fx;
+          node1.fy -= fy;
+          node2.fx += fx;
+          node2.fy += fy;
+        }
+      }
     }
-
-    /**
-     * loop through to map numbers on the numeric keypad
-     */
-    for (i = 0; i <= 9; ++i) {
-        _MAP[i + 96] = i;
-    }
-
-    /**
-     * cross browser add event method
-     *
-     * @param {Element|HTMLDocument} object
-     * @param {string} type
-     * @param {Function} callback
-     * @returns void
-     */
-    function _addEvent(object, type, callback) {
-        if (object.addEventListener) {
-            return object.addEventListener(type, callback, false);
-        }
-
-        object.attachEvent('on' + type, callback);
-    }
-
-    /**
-     * takes the event and returns the key character
-     *
-     * @param {Event} e
-     * @return {string}
-     */
-    function _characterFromEvent(e) {
-
-        // for keypress events we should return the character as is
-        if (e.type == 'keypress') {
-            return String.fromCharCode(e.which);
-        }
-
-        // for non keypress events the special maps are needed
-        if (_MAP[e.which]) {
-            return _MAP[e.which];
-        }
-
-        if (_KEYCODE_MAP[e.which]) {
-            return _KEYCODE_MAP[e.which];
-        }
-
-        // if it is not in the special map
-        return String.fromCharCode(e.which).toLowerCase();
-    }
-
-    /**
-     * should we stop this event before firing off callbacks
-     *
-     * @param {Event} e
-     * @return {boolean}
-     */
-    function _stop(e) {
-        var element = e.target || e.srcElement,
-            tag_name = element.tagName;
-
-        // if the element has the class "mousetrap" then no need to stop
-        if ((' ' + element.className + ' ').indexOf(' mousetrap ') > -1) {
-            return false;
-        }
-
-        // stop for input, select, and textarea
-        return tag_name == 'INPUT' || tag_name == 'SELECT' || tag_name == 'TEXTAREA' || (element.contentEditable && element.contentEditable == 'true');
-    }
-
-    /**
-     * checks if two arrays are equal
-     *
-     * @param {Array} modifiers1
-     * @param {Array} modifiers2
-     * @returns {boolean}
-     */
-    function _modifiersMatch(modifiers1, modifiers2) {
-        return modifiers1.sort().join(',') === modifiers2.sort().join(',');
-    }
-
-    /**
-     * resets all sequence counters except for the ones passed in
-     *
-     * @param {Object} do_not_reset
-     * @returns void
-     */
-    function _resetSequences(do_not_reset) {
-        do_not_reset = do_not_reset || {};
-
-        var active_sequences = false,
-            key;
-
-        for (key in _sequence_levels) {
-            if (do_not_reset[key]) {
-                active_sequences = true;
-                continue;
-            }
-            _sequence_levels[key] = 0;
-        }
-
-        if (!active_sequences) {
-            _inside_sequence = false;
-        }
-    }
-
-    /**
-     * finds all callbacks that match based on the keycode, modifiers,
-     * and action
-     *
-     * @param {string} character
-     * @param {Array} modifiers
-     * @param {string} action
-     * @param {boolean=} remove - should we remove any matches
-     * @param {string=} combination
-     * @returns {Array}
-     */
-    function _getMatches(character, modifiers, action, remove, combination) {
-        var i,
-            callback,
-            matches = [];
-
-        // if there are no events related to this keycode
-        if (!_callbacks[character]) {
-            return [];
-        }
-
-        // if a modifier key is coming up on its own we should allow it
-        if (action == 'keyup' && _isModifier(character)) {
-            modifiers = [character];
-        }
-
-        // loop through all callbacks for the key that was pressed
-        // and see if any of them match
-        for (i = 0; i < _callbacks[character].length; ++i) {
-            callback = _callbacks[character][i];
-
-            // if this is a sequence but it is not at the right level
-            // then move onto the next match
-            if (callback.seq && _sequence_levels[callback.seq] != callback.level) {
-                continue;
-            }
-
-            // if the action we are looking for doesn't match the action we got
-            // then we should keep going
-            if (action != callback.action) {
-                continue;
-            }
-
-            // if this is a keypress event that means that we need to only
-            // look at the character, otherwise check the modifiers as
-            // well
-            if (action == 'keypress' || _modifiersMatch(modifiers, callback.modifiers)) {
-
-                // remove is used so if you change your mind and call bind a
-                // second time with a new function the first one is overwritten
-                if (remove && callback.combo == combination) {
-                    _callbacks[character].splice(i, 1);
-                }
-
-                matches.push(callback);
-            }
-        }
-
-        return matches;
-    }
-
-    /**
-     * takes a key event and figures out what the modifiers are
-     *
-     * @param {Event} e
-     * @returns {Array}
-     */
-    function _eventModifiers(e) {
-        var modifiers = [];
-
-        if (e.shiftKey) {
-            modifiers.push('shift');
-        }
-
-        if (e.altKey) {
-            modifiers.push('alt');
-        }
-
-        if (e.ctrlKey) {
-            modifiers.push('ctrl');
-        }
-
-        if (e.metaKey) {
-            modifiers.push('meta');
-        }
-
-        return modifiers;
-    }
-
-    /**
-     * actually calls the callback function
-     *
-     * if your callback function returns false this will use the jquery
-     * convention - prevent default and stop propogation on the event
-     *
-     * @param {Function} callback
-     * @param {Event} e
-     * @returns void
-     */
-    function _fireCallback(callback, e) {
-        if (callback(e) === false) {
-            if (e.preventDefault) {
-                e.preventDefault();
-            }
-
-            if (e.stopPropagation) {
-                e.stopPropagation();
-            }
-
-            e.returnValue = false;
-            e.cancelBubble = true;
-        }
-    }
-
-    /**
-     * handles a character key event
-     *
-     * @param {string} character
-     * @param {Event} e
-     * @returns void
-     */
-    function _handleCharacter(character, e) {
-
-        // if this event should not happen stop here
-        if (_stop(e)) {
-            return;
-        }
-
-        var callbacks = _getMatches(character, _eventModifiers(e), e.type),
-            i,
-            do_not_reset = {},
-            processed_sequence_callback = false;
-
-        // loop through matching callbacks for this key event
-        for (i = 0; i < callbacks.length; ++i) {
-
-            // fire for all sequence callbacks
-            // this is because if for example you have multiple sequences
-            // bound such as "g i" and "g t" they both need to fire the
-            // callback for matching g cause otherwise you can only ever
-            // match the first one
-            if (callbacks[i].seq) {
-                processed_sequence_callback = true;
-
-                // keep a list of which sequences were matches for later
-                do_not_reset[callbacks[i].seq] = 1;
-                _fireCallback(callbacks[i].callback, e);
-                continue;
-            }
-
-            // if there were no sequence matches but we are still here
-            // that means this is a regular match so we should fire that
-            if (!processed_sequence_callback && !_inside_sequence) {
-                _fireCallback(callbacks[i].callback, e);
-            }
-        }
-
-        // if you are inside of a sequence and the key you are pressing
-        // is not a modifier key then we should reset all sequences
-        // that were not matched by this key event
-        if (e.type == _inside_sequence && !_isModifier(character)) {
-            _resetSequences(do_not_reset);
-        }
-    }
-
-    /**
-     * handles a keydown event
-     *
-     * @param {Event} e
-     * @returns void
-     */
-    function _handleKey(e) {
-
-        // normalize e.which for key events
-        // @see http://stackoverflow.com/questions/4285627/javascript-keycode-vs-charcode-utter-confusion
-        e.which = typeof e.which == "number" ? e.which : e.keyCode;
-
-        var character = _characterFromEvent(e);
-
-        // no character found then stop
-        if (!character) {
-            return;
-        }
-
-        if (e.type == 'keyup' && _ignore_next_keyup == character) {
-            _ignore_next_keyup = false;
-            return;
-        }
-
-        _handleCharacter(character, e);
-    }
-
-    /**
-     * determines if the keycode specified is a modifier key or not
-     *
-     * @param {string} key
-     * @returns {boolean}
-     */
-    function _isModifier(key) {
-        return key == 'shift' || key == 'ctrl' || key == 'alt' || key == 'meta';
-    }
-
-    /**
-     * called to set a 1 second timeout on the specified sequence
-     *
-     * this is so after each key press in the sequence you have 1 second
-     * to press the next key before you have to start over
-     *
-     * @returns void
-     */
-    function _resetSequenceTimer() {
-        clearTimeout(_reset_timer);
-        _reset_timer = setTimeout(_resetSequences, 1000);
-    }
-
-    /**
-     * reverses the map lookup so that we can look for specific keys
-     * to see what can and can't use keypress
-     *
-     * @return {Object}
-     */
-    function _getReverseMap() {
-        if (!_REVERSE_MAP) {
-            _REVERSE_MAP = {};
-            for (var key in _MAP) {
-
-                // pull out the numeric keypad from here cause keypress should
-                // be able to detect the keys from the character
-                if (key > 95 && key < 112) {
-                    continue;
-                }
-
-                if (_MAP.hasOwnProperty(key)) {
-                    _REVERSE_MAP[_MAP[key]] = key;
-                }
-            }
-        }
-        return _REVERSE_MAP;
-    }
-
-    /**
-     * picks the best action based on the key combination
-     *
-     * @param {string} key - character for key
-     * @param {Array} modifiers
-     * @param {string=} action passed in
-     */
-    function _pickBestAction(key, modifiers, action) {
-
-        // if no action was picked in we should try to pick the one
-        // that we think would work best for this key
-        if (!action) {
-            action = _getReverseMap()[key] ? 'keydown' : 'keypress';
-        }
-
-        // modifier keys don't work as expected with keypress,
-        // switch to keydown
-        if (action == 'keypress' && modifiers.length) {
-            action = 'keydown';
-        }
-
-        return action;
-    }
-
-    /**
-     * binds a key sequence to an event
-     *
-     * @param {string} combo - combo specified in bind call
-     * @param {Array} keys
-     * @param {Function} callback
-     * @param {string=} action
-     * @returns void
-     */
-    function _bindSequence(combo, keys, callback, action) {
-
-        // start off by adding a sequence level record for this combination
-        // and setting the level to 0
-        _sequence_levels[combo] = 0;
-
-        // if there is no action pick the best one for the first key
-        // in the sequence
-        if (!action) {
-            action = _pickBestAction(keys[0], []);
-        }
-
-        /**
-         * callback to increase the sequence level for this sequence and reset
-         * all other sequences that were active
-         *
-         * @param {Event} e
-         * @returns void
-         */
-        var _increaseSequence = function(e) {
-                _inside_sequence = action;
-                ++_sequence_levels[combo];
-                _resetSequenceTimer();
-            },
-
-            /**
-             * wraps the specified callback inside of another function in order
-             * to reset all sequence counters as soon as this sequence is done
-             *
-             * @param {Event} e
-             * @returns void
-             */
-            _callbackAndReset = function(e) {
-                _fireCallback(callback, e);
-
-                // we should ignore the next key up if the action is key down
-                // or keypress.  this is so if you finish a sequence and
-                // release the key the final key will not trigger a keyup
-                if (action !== 'keyup') {
-                    _ignore_next_keyup = _characterFromEvent(e);
-                }
-
-                // weird race condition if a sequence ends with the key
-                // another sequence begins with
-                setTimeout(_resetSequences, 10);
-            },
-            i;
-
-        // loop through keys one at a time and bind the appropriate callback
-        // function.  for any key leading up to the final one it should
-        // increase the sequence. after the final, it should reset all sequences
-        for (i = 0; i < keys.length; ++i) {
-            _bindSingle(keys[i], i < keys.length - 1 ? _increaseSequence : _callbackAndReset, action, combo, i);
-        }
-    }
-
-    /**
-     * binds a single keyboard combination
-     *
-     * @param {string} combination
-     * @param {Function} callback
-     * @param {string=} action
-     * @param {string=} sequence_name - name of sequence if part of sequence
-     * @param {number=} level - what part of the sequence the command is
-     * @returns void
-     */
-    function _bindSingle(combination, callback, action, sequence_name, level) {
-
-        // make sure multiple spaces in a row become a single space
-        combination = combination.replace(/\s+/g, ' ');
-
-        var sequence = combination.split(' '),
-            i,
-            key,
-            keys,
-            modifiers = [];
-
-        // if this pattern is a sequence of keys then run through this method
-        // to reprocess each pattern one key at a time
-        if (sequence.length > 1) {
-            return _bindSequence(combination, sequence, callback, action);
-        }
-
-        // take the keys from this pattern and figure out what the actual
-        // pattern is all about
-        keys = combination === '+' ? ['+'] : combination.split('+');
-
-        for (i = 0; i < keys.length; ++i) {
-            key = keys[i];
-
-            // normalize key names
-            if (_SPECIAL_ALIASES[key]) {
-                key = _SPECIAL_ALIASES[key];
-            }
-
-            // if this is not a keypress event then we should
-            // be smart about using shift keys
-            // this will only work for US keyboards however
-            if (action && action != 'keypress' && _SHIFT_MAP[key]) {
-                key = _SHIFT_MAP[key];
-                modifiers.push('shift');
-            }
-
-            // if this key is a modifier then add it to the list of modifiers
-            if (_isModifier(key)) {
-                modifiers.push(key);
-            }
-        }
-
-        // depending on what the key combination is
-        // we will try to pick the best event for it
-        action = _pickBestAction(key, modifiers, action);
-
-        // make sure to initialize array if this is the first time
-        // a callback is added for this key
-        if (!_callbacks[key]) {
-            _callbacks[key] = [];
-        }
-
-        // remove an existing match if there is one
-        _getMatches(key, modifiers, action, !sequence_name, combination);
-
-        // add this call back to the array
-        // if it is a sequence put it at the beginning
-        // if not put it at the end
-        //
-        // this is important because the way these are processed expects
-        // the sequence ones to come first
-        _callbacks[key][sequence_name ? 'unshift' : 'push']({
-            callback: callback,
-            modifiers: modifiers,
-            action: action,
-            seq: sequence_name,
-            level: level,
-            combo: combination
-        });
-    }
-
-    /**
-     * binds multiple combinations to the same callback
-     *
-     * @param {Array} combinations
-     * @param {Function} callback
-     * @param {string|undefined} action
-     * @returns void
-     */
-    function _bindMultiple(combinations, callback, action) {
-        for (var i = 0; i < combinations.length; ++i) {
-            _bindSingle(combinations[i], callback, action);
-        }
-    }
-
-    // start!
-    _addEvent(document, 'keypress', _handleKey);
-    _addEvent(document, 'keydown', _handleKey);
-    _addEvent(document, 'keyup', _handleKey);
-
-    var mousetrap = {
-
-        /**
-         * binds an event to mousetrap
-         *
-         * can be a single key, a combination of keys separated with +,
-         * a comma separated list of keys, an array of keys, or
-         * a sequence of keys separated by spaces
-         *
-         * be sure to list the modifier keys first to make sure that the
-         * correct key ends up getting bound (the last key in the pattern)
-         *
-         * @param {string|Array} keys
-         * @param {Function} callback
-         * @param {string=} action - 'keypress', 'keydown', or 'keyup'
-         * @returns void
-         */
-        bind: function(keys, callback, action) {
-            _bindMultiple(keys instanceof Array ? keys : [keys], callback, action);
-            _direct_map[keys + ':' + action] = callback;
-            return this;
-        },
-
-        /**
-         * unbinds an event to mousetrap
-         *
-         * the unbinding sets the callback function of the specified key combo
-         * to an empty function and deletes the corresponding key in the
-         * _direct_map dict.
-         *
-         * the keycombo+action has to be exactly the same as
-         * it was defined in the bind method
-         *
-         * TODO: actually remove this from the _callbacks dictionary instead
-         * of binding an empty function
-         *
-         * @param {string|Array} keys
-         * @param {string} action
-         * @returns void
-         */
-        unbind: function(keys, action) {
-            if (_direct_map[keys + ':' + action]) {
-                delete _direct_map[keys + ':' + action];
-                this.bind(keys, function() {}, action);
-            }
-            return this;
-        },
-
-        /**
-         * triggers an event that has already been bound
-         *
-         * @param {string} keys
-         * @param {string=} action
-         * @returns void
-         */
-        trigger: function(keys, action) {
-            _direct_map[keys + ':' + action]();
-            return this;
-        },
-
-        /**
-         * resets the library back to its initial state.  this is useful
-         * if you want to clear out the current keyboard shortcuts and bind
-         * new ones - for example if you switch to another page
-         *
-         * @returns void
-         */
-        reset: function() {
-            _callbacks = {};
-            _direct_map = {};
-            return this;
-        }
-    };
-
-  module.exports = mousetrap;
-
+  };
 
 
 /***/ },
-/* 43 */
+/* 48 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Calculate the forces the nodes apply on eachother based on a repulsion field.
+   * This field is linearly approximated.
+   *
+   * @private
+   */
+  exports._calculateNodeForces = function () {
+    var dx, dy, distance, fx, fy, combinedClusterSize,
+      repulsingForce, node1, node2, i, j;
+
+    var nodes = this.calculationNodes;
+    var nodeIndices = this.calculationNodeIndices;
+
+    // approximation constants
+    var b = 5;
+    var a_base = 0.5 * -b;
+
+
+    // repulsing forces between nodes
+    var nodeDistance = this.constants.physics.hierarchicalRepulsion.nodeDistance;
+    var minimumDistance = nodeDistance;
+    var a = a_base / minimumDistance;
+
+    // we loop from i over all but the last entree in the array
+    // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
+    for (i = 0; i < nodeIndices.length - 1; i++) {
+
+      node1 = nodes[nodeIndices[i]];
+      for (j = i + 1; j < nodeIndices.length; j++) {
+        node2 = nodes[nodeIndices[j]];
+        if (node1.level == node2.level) {
+
+          dx = node2.x - node1.x;
+          dy = node2.y - node1.y;
+          distance = Math.sqrt(dx * dx + dy * dy);
+
+
+          if (distance < 2 * minimumDistance) {
+            repulsingForce = a * distance + b;
+            var c = 0.05;
+            var d = 2 * minimumDistance * 2 * c;
+            repulsingForce = c * Math.pow(distance,2) - d * distance + d*d/(4*c);
+
+            // normalize force with
+            if (distance == 0) {
+              distance = 0.01;
+            }
+            else {
+              repulsingForce = repulsingForce / distance;
+            }
+            fx = dx * repulsingForce;
+            fy = dy * repulsingForce;
+
+            node1.fx -= fx;
+            node1.fy -= fy;
+            node2.fx += fx;
+            node2.fy += fy;
+          }
+        }
+      }
+    }
+  };
+
+
+  /**
+   * this function calculates the effects of the springs in the case of unsmooth curves.
+   *
+   * @private
+   */
+  exports._calculateHierarchicalSpringForces = function () {
+    var edgeLength, edge, edgeId;
+    var dx, dy, fx, fy, springForce, distance;
+    var edges = this.edges;
+
+    // forces caused by the edges, modelled as springs
+    for (edgeId in edges) {
+      if (edges.hasOwnProperty(edgeId)) {
+        edge = edges[edgeId];
+        if (edge.connected) {
+          // only calculate forces if nodes are in the same sector
+          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
+            edgeLength = edge.customLength ? edge.length : this.constants.physics.springLength;
+            // this implies that the edges between big clusters are longer
+            edgeLength += (edge.to.clusterSize + edge.from.clusterSize - 2) * this.constants.clustering.edgeGrowth;
+
+            dx = (edge.from.x - edge.to.x);
+            dy = (edge.from.y - edge.to.y);
+            distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance == 0) {
+              distance = 0.01;
+            }
+
+            distance = Math.max(0.8*edgeLength,Math.min(5*edgeLength, distance));
+
+            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+            springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
+
+            fx = dx * springForce;
+            fy = dy * springForce;
+
+            edge.to.fx -= fx;
+            edge.to.fy -= fy;
+            edge.from.fx += fx;
+            edge.from.fy += fy;
+
+
+            var factor = 5;
+            if (distance > edgeLength) {
+              factor = 25;
+            }
+
+            if (edge.from.level > edge.to.level) {
+              edge.to.fx -= factor*fx;
+              edge.to.fy -= factor*fy;
+            }
+            else if (edge.from.level < edge.to.level) {
+              edge.from.fx += factor*fx;
+              edge.from.fy += factor*fy;
+            }
+          }
+        }
+      }
+    }
+  };
+
+/***/ },
+/* 49 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * This function calculates the forces the nodes apply on eachother based on a gravitational model.
+   * The Barnes Hut method is used to speed up this N-body simulation.
+   *
+   * @private
+   */
+  exports._calculateNodeForces = function() {
+    if (this.constants.physics.barnesHut.gravitationalConstant != 0) {
+      var node;
+      var nodes = this.calculationNodes;
+      var nodeIndices = this.calculationNodeIndices;
+      var nodeCount = nodeIndices.length;
+
+      this._formBarnesHutTree(nodes,nodeIndices);
+
+      var barnesHutTree = this.barnesHutTree;
+
+      // place the nodes one by one recursively
+      for (var i = 0; i < nodeCount; i++) {
+        node = nodes[nodeIndices[i]];
+        // starting with root is irrelevant, it never passes the BarnesHut condition
+        this._getForceContribution(barnesHutTree.root.children.NW,node);
+        this._getForceContribution(barnesHutTree.root.children.NE,node);
+        this._getForceContribution(barnesHutTree.root.children.SW,node);
+        this._getForceContribution(barnesHutTree.root.children.SE,node);
+      }
+    }
+  };
+
+
+  /**
+   * This function traverses the barnesHutTree. It checks when it can approximate distant nodes with their center of mass.
+   * If a region contains a single node, we check if it is not itself, then we apply the force.
+   *
+   * @param parentBranch
+   * @param node
+   * @private
+   */
+  exports._getForceContribution = function(parentBranch,node) {
+    // we get no force contribution from an empty region
+    if (parentBranch.childrenCount > 0) {
+      var dx,dy,distance;
+
+      // get the distance from the center of mass to the node.
+      dx = parentBranch.centerOfMass.x - node.x;
+      dy = parentBranch.centerOfMass.y - node.y;
+      distance = Math.sqrt(dx * dx + dy * dy);
+
+      // BarnesHut condition
+      // original condition : s/d < theta = passed  ===  d/s > 1/theta = passed
+      // calcSize = 1/s --> d * 1/s > 1/theta = passed
+      if (distance * parentBranch.calcSize > this.constants.physics.barnesHut.theta) {
+        // duplicate code to reduce function calls to speed up program
+        if (distance == 0) {
+          distance = 0.1*Math.random();
+          dx = distance;
+        }
+        var gravityForce = this.constants.physics.barnesHut.gravitationalConstant * parentBranch.mass * node.mass / (distance * distance * distance);
+        var fx = dx * gravityForce;
+        var fy = dy * gravityForce;
+        node.fx += fx;
+        node.fy += fy;
+      }
+      else {
+        // Did not pass the condition, go into children if available
+        if (parentBranch.childrenCount == 4) {
+          this._getForceContribution(parentBranch.children.NW,node);
+          this._getForceContribution(parentBranch.children.NE,node);
+          this._getForceContribution(parentBranch.children.SW,node);
+          this._getForceContribution(parentBranch.children.SE,node);
+        }
+        else { // parentBranch must have only one node, if it was empty we wouldnt be here
+          if (parentBranch.children.data.id != node.id) { // if it is not self
+            // duplicate code to reduce function calls to speed up program
+            if (distance == 0) {
+              distance = 0.5*Math.random();
+              dx = distance;
+            }
+            var gravityForce = this.constants.physics.barnesHut.gravitationalConstant * parentBranch.mass * node.mass / (distance * distance * distance);
+            var fx = dx * gravityForce;
+            var fy = dy * gravityForce;
+            node.fx += fx;
+            node.fy += fy;
+          }
+        }
+      }
+    }
+  };
+
+  /**
+   * This function constructs the barnesHut tree recursively. It creates the root, splits it and starts placing the nodes.
+   *
+   * @param nodes
+   * @param nodeIndices
+   * @private
+   */
+  exports._formBarnesHutTree = function(nodes,nodeIndices) {
+    var node;
+    var nodeCount = nodeIndices.length;
+
+    var minX = Number.MAX_VALUE,
+      minY = Number.MAX_VALUE,
+      maxX =-Number.MAX_VALUE,
+      maxY =-Number.MAX_VALUE;
+
+    // get the range of the nodes
+    for (var i = 0; i < nodeCount; i++) {
+      var x = nodes[nodeIndices[i]].x;
+      var y = nodes[nodeIndices[i]].y;
+      if (x < minX) { minX = x; }
+      if (x > maxX) { maxX = x; }
+      if (y < minY) { minY = y; }
+      if (y > maxY) { maxY = y; }
+    }
+    // make the range a square
+    var sizeDiff = Math.abs(maxX - minX) - Math.abs(maxY - minY); // difference between X and Y
+    if (sizeDiff > 0) {minY -= 0.5 * sizeDiff; maxY += 0.5 * sizeDiff;} // xSize > ySize
+    else              {minX += 0.5 * sizeDiff; maxX -= 0.5 * sizeDiff;} // xSize < ySize
+
+
+    var minimumTreeSize = 1e-5;
+    var rootSize = Math.max(minimumTreeSize,Math.abs(maxX - minX));
+    var halfRootSize = 0.5 * rootSize;
+    var centerX = 0.5 * (minX + maxX), centerY = 0.5 * (minY + maxY);
+
+    // construct the barnesHutTree
+    var barnesHutTree = {
+      root:{
+        centerOfMass: {x:0, y:0},
+        mass:0,
+        range: {
+          minX: centerX-halfRootSize,maxX:centerX+halfRootSize,
+          minY: centerY-halfRootSize,maxY:centerY+halfRootSize
+        },
+        size: rootSize,
+        calcSize: 1 / rootSize,
+        children: { data:null},
+        maxWidth: 0,
+        level: 0,
+        childrenCount: 4
+      }
+    };
+    this._splitBranch(barnesHutTree.root);
+
+    // place the nodes one by one recursively
+    for (i = 0; i < nodeCount; i++) {
+      node = nodes[nodeIndices[i]];
+      this._placeInTree(barnesHutTree.root,node);
+    }
+
+    // make global
+    this.barnesHutTree = barnesHutTree
+  };
+
+
+  /**
+   * this updates the mass of a branch. this is increased by adding a node.
+   *
+   * @param parentBranch
+   * @param node
+   * @private
+   */
+  exports._updateBranchMass = function(parentBranch, node) {
+    var totalMass = parentBranch.mass + node.mass;
+    var totalMassInv = 1/totalMass;
+
+    parentBranch.centerOfMass.x = parentBranch.centerOfMass.x * parentBranch.mass + node.x * node.mass;
+    parentBranch.centerOfMass.x *= totalMassInv;
+
+    parentBranch.centerOfMass.y = parentBranch.centerOfMass.y * parentBranch.mass + node.y * node.mass;
+    parentBranch.centerOfMass.y *= totalMassInv;
+
+    parentBranch.mass = totalMass;
+    var biggestSize = Math.max(Math.max(node.height,node.radius),node.width);
+    parentBranch.maxWidth = (parentBranch.maxWidth < biggestSize) ? biggestSize : parentBranch.maxWidth;
+
+  };
+
+
+  /**
+   * determine in which branch the node will be placed.
+   *
+   * @param parentBranch
+   * @param node
+   * @param skipMassUpdate
+   * @private
+   */
+  exports._placeInTree = function(parentBranch,node,skipMassUpdate) {
+    if (skipMassUpdate != true || skipMassUpdate === undefined) {
+      // update the mass of the branch.
+      this._updateBranchMass(parentBranch,node);
+    }
+
+    if (parentBranch.children.NW.range.maxX > node.x) { // in NW or SW
+      if (parentBranch.children.NW.range.maxY > node.y) { // in NW
+        this._placeInRegion(parentBranch,node,"NW");
+      }
+      else { // in SW
+        this._placeInRegion(parentBranch,node,"SW");
+      }
+    }
+    else { // in NE or SE
+      if (parentBranch.children.NW.range.maxY > node.y) { // in NE
+        this._placeInRegion(parentBranch,node,"NE");
+      }
+      else { // in SE
+        this._placeInRegion(parentBranch,node,"SE");
+      }
+    }
+  };
+
+
+  /**
+   * actually place the node in a region (or branch)
+   *
+   * @param parentBranch
+   * @param node
+   * @param region
+   * @private
+   */
+  exports._placeInRegion = function(parentBranch,node,region) {
+    switch (parentBranch.children[region].childrenCount) {
+      case 0: // place node here
+        parentBranch.children[region].children.data = node;
+        parentBranch.children[region].childrenCount = 1;
+        this._updateBranchMass(parentBranch.children[region],node);
+        break;
+      case 1: // convert into children
+        // if there are two nodes exactly overlapping (on init, on opening of cluster etc.)
+        // we move one node a pixel and we do not put it in the tree.
+        if (parentBranch.children[region].children.data.x == node.x &&
+            parentBranch.children[region].children.data.y == node.y) {
+          node.x += Math.random();
+          node.y += Math.random();
+        }
+        else {
+          this._splitBranch(parentBranch.children[region]);
+          this._placeInTree(parentBranch.children[region],node);
+        }
+        break;
+      case 4: // place in branch
+        this._placeInTree(parentBranch.children[region],node);
+        break;
+    }
+  };
+
+
+  /**
+   * this function splits a branch into 4 sub branches. If the branch contained a node, we place it in the subbranch
+   * after the split is complete.
+   *
+   * @param parentBranch
+   * @private
+   */
+  exports._splitBranch = function(parentBranch) {
+    // if the branch is shaded with a node, replace the node in the new subset.
+    var containedNode = null;
+    if (parentBranch.childrenCount == 1) {
+      containedNode = parentBranch.children.data;
+      parentBranch.mass = 0; parentBranch.centerOfMass.x = 0; parentBranch.centerOfMass.y = 0;
+    }
+    parentBranch.childrenCount = 4;
+    parentBranch.children.data = null;
+    this._insertRegion(parentBranch,"NW");
+    this._insertRegion(parentBranch,"NE");
+    this._insertRegion(parentBranch,"SW");
+    this._insertRegion(parentBranch,"SE");
+
+    if (containedNode != null) {
+      this._placeInTree(parentBranch,containedNode);
+    }
+  };
+
+
+  /**
+   * This function subdivides the region into four new segments.
+   * Specifically, this inserts a single new segment.
+   * It fills the children section of the parentBranch
+   *
+   * @param parentBranch
+   * @param region
+   * @param parentRange
+   * @private
+   */
+  exports._insertRegion = function(parentBranch, region) {
+    var minX,maxX,minY,maxY;
+    var childSize = 0.5 * parentBranch.size;
+    switch (region) {
+      case "NW":
+        minX = parentBranch.range.minX;
+        maxX = parentBranch.range.minX + childSize;
+        minY = parentBranch.range.minY;
+        maxY = parentBranch.range.minY + childSize;
+        break;
+      case "NE":
+        minX = parentBranch.range.minX + childSize;
+        maxX = parentBranch.range.maxX;
+        minY = parentBranch.range.minY;
+        maxY = parentBranch.range.minY + childSize;
+        break;
+      case "SW":
+        minX = parentBranch.range.minX;
+        maxX = parentBranch.range.minX + childSize;
+        minY = parentBranch.range.minY + childSize;
+        maxY = parentBranch.range.maxY;
+        break;
+      case "SE":
+        minX = parentBranch.range.minX + childSize;
+        maxX = parentBranch.range.maxX;
+        minY = parentBranch.range.minY + childSize;
+        maxY = parentBranch.range.maxY;
+        break;
+    }
+
+
+    parentBranch.children[region] = {
+      centerOfMass:{x:0,y:0},
+      mass:0,
+      range:{minX:minX,maxX:maxX,minY:minY,maxY:maxY},
+      size: 0.5 * parentBranch.size,
+      calcSize: 2 * parentBranch.calcSize,
+      children: {data:null},
+      maxWidth: 0,
+      level: parentBranch.level+1,
+      childrenCount: 0
+    };
+  };
+
+
+  /**
+   * This function is for debugging purposed, it draws the tree.
+   *
+   * @param ctx
+   * @param color
+   * @private
+   */
+  exports._drawTree = function(ctx,color) {
+    if (this.barnesHutTree !== undefined) {
+
+      ctx.lineWidth = 1;
+
+      this._drawBranch(this.barnesHutTree.root,ctx,color);
+    }
+  };
+
+
+  /**
+   * This function is for debugging purposes. It draws the branches recursively.
+   *
+   * @param branch
+   * @param ctx
+   * @param color
+   * @private
+   */
+  exports._drawBranch = function(branch,ctx,color) {
+    if (color === undefined) {
+      color = "#FF0000";
+    }
+
+    if (branch.childrenCount == 4) {
+      this._drawBranch(branch.children.NW,ctx);
+      this._drawBranch(branch.children.NE,ctx);
+      this._drawBranch(branch.children.SE,ctx);
+      this._drawBranch(branch.children.SW,ctx);
+    }
+    ctx.strokeStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(branch.range.minX,branch.range.minY);
+    ctx.lineTo(branch.range.maxX,branch.range.minY);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(branch.range.maxX,branch.range.minY);
+    ctx.lineTo(branch.range.maxX,branch.range.maxY);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(branch.range.maxX,branch.range.maxY);
+    ctx.lineTo(branch.range.minX,branch.range.maxY);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(branch.range.minX,branch.range.maxY);
+    ctx.lineTo(branch.range.minX,branch.range.minY);
+    ctx.stroke();
+
+    /*
+     if (branch.mass > 0) {
+     ctx.circle(branch.centerOfMass.x, branch.centerOfMass.y, 3*branch.mass);
+     ctx.stroke();
+     }
+     */
+  };
+
+
+/***/ },
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -22960,7 +28268,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 44 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -23514,10 +28822,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 45 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Node = __webpack_require__(30);
+  var Node = __webpack_require__(42);
 
   /**
    * This function can be called from the _doInAllSectors function
@@ -24225,12 +29533,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 46 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Node = __webpack_require__(30);
-  var Edge = __webpack_require__(27);
+  var Node = __webpack_require__(42);
+  var Edge = __webpack_require__(43);
 
   /**
    * clears the toolbar div element of children
@@ -24807,7 +30115,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 47 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
   exports._cleanNavigation = function() {
@@ -25009,7 +30317,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 48 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
   exports._resetLevels = function() {
@@ -25337,5519 +30645,238 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 49 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /*! Hammer.JS - v1.0.5 - 2013-04-07
-   * http://eightmedia.github.com/hammer.js
-   *
-   * Copyright (c) 2013 Jorik Tangelder <j.tangelder@gmail.com>;
-   * Licensed under the MIT license */
-
-  (function(window, undefined) {
-      'use strict';
-
-  /**
-   * Hammer
-   * use this to create instances
-   * @param   {HTMLElement}   element
-   * @param   {Object}        options
-   * @returns {Hammer.Instance}
-   * @constructor
-   */
-  var Hammer = function(element, options) {
-      return new Hammer.Instance(element, options || {});
-  };
-
-  // default settings
-  Hammer.defaults = {
-      // add styles and attributes to the element to prevent the browser from doing
-      // its native behavior. this doesnt prevent the scrolling, but cancels
-      // the contextmenu, tap highlighting etc
-      // set to false to disable this
-      stop_browser_behavior: {
-  		// this also triggers onselectstart=false for IE
-          userSelect: 'none',
-  		// this makes the element blocking in IE10 >, you could experiment with the value
-  		// see for more options this issue; https://github.com/EightMedia/hammer.js/issues/241
-          touchAction: 'none',
-  		touchCallout: 'none',
-          contentZooming: 'none',
-          userDrag: 'none',
-          tapHighlightColor: 'rgba(0,0,0,0)'
-      }
-
-      // more settings are defined per gesture at gestures.js
-  };
-
-  // detect touchevents
-  Hammer.HAS_POINTEREVENTS = navigator.pointerEnabled || navigator.msPointerEnabled;
-  Hammer.HAS_TOUCHEVENTS = ('ontouchstart' in window);
-
-  // dont use mouseevents on mobile devices
-  Hammer.MOBILE_REGEX = /mobile|tablet|ip(ad|hone|od)|android/i;
-  Hammer.NO_MOUSEEVENTS = Hammer.HAS_TOUCHEVENTS && navigator.userAgent.match(Hammer.MOBILE_REGEX);
-
-  // eventtypes per touchevent (start, move, end)
-  // are filled by Hammer.event.determineEventTypes on setup
-  Hammer.EVENT_TYPES = {};
-
-  // direction defines
-  Hammer.DIRECTION_DOWN = 'down';
-  Hammer.DIRECTION_LEFT = 'left';
-  Hammer.DIRECTION_UP = 'up';
-  Hammer.DIRECTION_RIGHT = 'right';
-
-  // pointer type
-  Hammer.POINTER_MOUSE = 'mouse';
-  Hammer.POINTER_TOUCH = 'touch';
-  Hammer.POINTER_PEN = 'pen';
-
-  // touch event defines
-  Hammer.EVENT_START = 'start';
-  Hammer.EVENT_MOVE = 'move';
-  Hammer.EVENT_END = 'end';
-
-  // hammer document where the base events are added at
-  Hammer.DOCUMENT = document;
-
-  // plugins namespace
-  Hammer.plugins = {};
-
-  // if the window events are set...
-  Hammer.READY = false;
-
-  /**
-   * setup events to detect gestures on the document
-   */
-  function setup() {
-      if(Hammer.READY) {
-          return;
-      }
-
-      // find what eventtypes we add listeners to
-      Hammer.event.determineEventTypes();
-
-      // Register all gestures inside Hammer.gestures
-      for(var name in Hammer.gestures) {
-          if(Hammer.gestures.hasOwnProperty(name)) {
-              Hammer.detection.register(Hammer.gestures[name]);
-          }
-      }
-
-      // Add touch events on the document
-      Hammer.event.onTouch(Hammer.DOCUMENT, Hammer.EVENT_MOVE, Hammer.detection.detect);
-      Hammer.event.onTouch(Hammer.DOCUMENT, Hammer.EVENT_END, Hammer.detection.detect);
-
-      // Hammer is ready...!
-      Hammer.READY = true;
-  }
-
-  /**
-   * create new hammer instance
-   * all methods should return the instance itself, so it is chainable.
-   * @param   {HTMLElement}       element
-   * @param   {Object}            [options={}]
-   * @returns {Hammer.Instance}
-   * @constructor
-   */
-  Hammer.Instance = function(element, options) {
-      var self = this;
-
-      // setup HammerJS window events and register all gestures
-      // this also sets up the default options
-      setup();
-
-      this.element = element;
-
-      // start/stop detection option
-      this.enabled = true;
-
-      // merge options
-      this.options = Hammer.utils.extend(
-          Hammer.utils.extend({}, Hammer.defaults),
-          options || {});
-
-      // add some css to the element to prevent the browser from doing its native behavoir
-      if(this.options.stop_browser_behavior) {
-          Hammer.utils.stopDefaultBrowserBehavior(this.element, this.options.stop_browser_behavior);
-      }
-
-      // start detection on touchstart
-      Hammer.event.onTouch(element, Hammer.EVENT_START, function(ev) {
-          if(self.enabled) {
-              Hammer.detection.startDetect(self, ev);
-          }
-      });
-
-      // return instance
-      return this;
-  };
-
-
-  Hammer.Instance.prototype = {
-      /**
-       * bind events to the instance
-       * @param   {String}      gesture
-       * @param   {Function}    handler
-       * @returns {Hammer.Instance}
-       */
-      on: function onEvent(gesture, handler){
-          var gestures = gesture.split(' ');
-          for(var t=0; t<gestures.length; t++) {
-              this.element.addEventListener(gestures[t], handler, false);
-          }
-          return this;
-      },
-
-
-      /**
-       * unbind events to the instance
-       * @param   {String}      gesture
-       * @param   {Function}    handler
-       * @returns {Hammer.Instance}
-       */
-      off: function offEvent(gesture, handler){
-          var gestures = gesture.split(' ');
-          for(var t=0; t<gestures.length; t++) {
-              this.element.removeEventListener(gestures[t], handler, false);
-          }
-          return this;
-      },
-
-
-      /**
-       * trigger gesture event
-       * @param   {String}      gesture
-       * @param   {Object}      eventData
-       * @returns {Hammer.Instance}
-       */
-      trigger: function triggerEvent(gesture, eventData){
-          // create DOM event
-          var event = Hammer.DOCUMENT.createEvent('Event');
-  		event.initEvent(gesture, true, true);
-  		event.gesture = eventData;
-
-          // trigger on the target if it is in the instance element,
-          // this is for event delegation tricks
-          var element = this.element;
-          if(Hammer.utils.hasParent(eventData.target, element)) {
-              element = eventData.target;
-          }
-
-          element.dispatchEvent(event);
-          return this;
-      },
-
-
-      /**
-       * enable of disable hammer.js detection
-       * @param   {Boolean}   state
-       * @returns {Hammer.Instance}
-       */
-      enable: function enable(state) {
-          this.enabled = state;
-          return this;
-      }
-  };
-
-  /**
-   * this holds the last move event,
-   * used to fix empty touchend issue
-   * see the onTouch event for an explanation
-   * @type {Object}
-   */
-  var last_move_event = null;
-
-
-  /**
-   * when the mouse is hold down, this is true
-   * @type {Boolean}
-   */
-  var enable_detect = false;
-
-
-  /**
-   * when touch events have been fired, this is true
-   * @type {Boolean}
-   */
-  var touch_triggered = false;
-
-
-  Hammer.event = {
-      /**
-       * simple addEventListener
-       * @param   {HTMLElement}   element
-       * @param   {String}        type
-       * @param   {Function}      handler
-       */
-      bindDom: function(element, type, handler) {
-          var types = type.split(' ');
-          for(var t=0; t<types.length; t++) {
-              element.addEventListener(types[t], handler, false);
-          }
-      },
-
-
-      /**
-       * touch events with mouse fallback
-       * @param   {HTMLElement}   element
-       * @param   {String}        eventType        like Hammer.EVENT_MOVE
-       * @param   {Function}      handler
-       */
-      onTouch: function onTouch(element, eventType, handler) {
-  		var self = this;
-
-          this.bindDom(element, Hammer.EVENT_TYPES[eventType], function bindDomOnTouch(ev) {
-              var sourceEventType = ev.type.toLowerCase();
-
-              // onmouseup, but when touchend has been fired we do nothing.
-              // this is for touchdevices which also fire a mouseup on touchend
-              if(sourceEventType.match(/mouse/) && touch_triggered) {
-                  return;
-              }
-
-              // mousebutton must be down or a touch event
-              else if( sourceEventType.match(/touch/) ||   // touch events are always on screen
-                  sourceEventType.match(/pointerdown/) || // pointerevents touch
-                  (sourceEventType.match(/mouse/) && ev.which === 1)   // mouse is pressed
-              ){
-                  enable_detect = true;
-              }
-
-              // we are in a touch event, set the touch triggered bool to true,
-              // this for the conflicts that may occur on ios and android
-              if(sourceEventType.match(/touch|pointer/)) {
-                  touch_triggered = true;
-              }
-
-              // count the total touches on the screen
-              var count_touches = 0;
-
-              // when touch has been triggered in this detection session
-              // and we are now handling a mouse event, we stop that to prevent conflicts
-              if(enable_detect) {
-                  // update pointerevent
-                  if(Hammer.HAS_POINTEREVENTS && eventType != Hammer.EVENT_END) {
-                      count_touches = Hammer.PointerEvent.updatePointer(eventType, ev);
-                  }
-                  // touch
-                  else if(sourceEventType.match(/touch/)) {
-                      count_touches = ev.touches.length;
-                  }
-                  // mouse
-                  else if(!touch_triggered) {
-                      count_touches = sourceEventType.match(/up/) ? 0 : 1;
-                  }
-
-                  // if we are in a end event, but when we remove one touch and
-                  // we still have enough, set eventType to move
-                  if(count_touches > 0 && eventType == Hammer.EVENT_END) {
-                      eventType = Hammer.EVENT_MOVE;
-                  }
-                  // no touches, force the end event
-                  else if(!count_touches) {
-                      eventType = Hammer.EVENT_END;
-                  }
-
-                  // because touchend has no touches, and we often want to use these in our gestures,
-                  // we send the last move event as our eventData in touchend
-                  if(!count_touches && last_move_event !== null) {
-                      ev = last_move_event;
-                  }
-                  // store the last move event
-                  else {
-                      last_move_event = ev;
-                  }
-
-                  // trigger the handler
-                  handler.call(Hammer.detection, self.collectEventData(element, eventType, ev));
-
-                  // remove pointerevent from list
-                  if(Hammer.HAS_POINTEREVENTS && eventType == Hammer.EVENT_END) {
-                      count_touches = Hammer.PointerEvent.updatePointer(eventType, ev);
-                  }
-              }
-
-              //debug(sourceEventType +" "+ eventType);
-
-              // on the end we reset everything
-              if(!count_touches) {
-                  last_move_event = null;
-                  enable_detect = false;
-                  touch_triggered = false;
-                  Hammer.PointerEvent.reset();
-              }
-          });
-      },
-
-
-      /**
-       * we have different events for each device/browser
-       * determine what we need and set them in the Hammer.EVENT_TYPES constant
-       */
-      determineEventTypes: function determineEventTypes() {
-          // determine the eventtype we want to set
-          var types;
-
-          // pointerEvents magic
-          if(Hammer.HAS_POINTEREVENTS) {
-              types = Hammer.PointerEvent.getEvents();
-          }
-          // on Android, iOS, blackberry, windows mobile we dont want any mouseevents
-          else if(Hammer.NO_MOUSEEVENTS) {
-              types = [
-                  'touchstart',
-                  'touchmove',
-                  'touchend touchcancel'];
-          }
-          // for non pointer events browsers and mixed browsers,
-          // like chrome on windows8 touch laptop
-          else {
-              types = [
-                  'touchstart mousedown',
-                  'touchmove mousemove',
-                  'touchend touchcancel mouseup'];
-          }
-
-          Hammer.EVENT_TYPES[Hammer.EVENT_START]  = types[0];
-          Hammer.EVENT_TYPES[Hammer.EVENT_MOVE]   = types[1];
-          Hammer.EVENT_TYPES[Hammer.EVENT_END]    = types[2];
-      },
-
-
-      /**
-       * create touchlist depending on the event
-       * @param   {Object}    ev
-       * @param   {String}    eventType   used by the fakemultitouch plugin
-       */
-      getTouchList: function getTouchList(ev/*, eventType*/) {
-          // get the fake pointerEvent touchlist
-          if(Hammer.HAS_POINTEREVENTS) {
-              return Hammer.PointerEvent.getTouchList();
-          }
-          // get the touchlist
-          else if(ev.touches) {
-              return ev.touches;
-          }
-          // make fake touchlist from mouse position
-          else {
-              return [{
-                  identifier: 1,
-                  pageX: ev.pageX,
-                  pageY: ev.pageY,
-                  target: ev.target
-              }];
-          }
-      },
-
-
-      /**
-       * collect event data for Hammer js
-       * @param   {HTMLElement}   element
-       * @param   {String}        eventType        like Hammer.EVENT_MOVE
-       * @param   {Object}        eventData
-       */
-      collectEventData: function collectEventData(element, eventType, ev) {
-          var touches = this.getTouchList(ev, eventType);
-
-          // find out pointerType
-          var pointerType = Hammer.POINTER_TOUCH;
-          if(ev.type.match(/mouse/) || Hammer.PointerEvent.matchType(Hammer.POINTER_MOUSE, ev)) {
-              pointerType = Hammer.POINTER_MOUSE;
-          }
-
-          return {
-              center      : Hammer.utils.getCenter(touches),
-              timeStamp   : new Date().getTime(),
-              target      : ev.target,
-              touches     : touches,
-              eventType   : eventType,
-              pointerType : pointerType,
-              srcEvent    : ev,
-
-              /**
-               * prevent the browser default actions
-               * mostly used to disable scrolling of the browser
-               */
-              preventDefault: function() {
-                  if(this.srcEvent.preventManipulation) {
-                      this.srcEvent.preventManipulation();
-                  }
-
-                  if(this.srcEvent.preventDefault) {
-                      this.srcEvent.preventDefault();
-                  }
-              },
-
-              /**
-               * stop bubbling the event up to its parents
-               */
-              stopPropagation: function() {
-                  this.srcEvent.stopPropagation();
-              },
-
-              /**
-               * immediately stop gesture detection
-               * might be useful after a swipe was detected
-               * @return {*}
-               */
-              stopDetect: function() {
-                  return Hammer.detection.stopDetect();
-              }
-          };
-      }
-  };
-
-  Hammer.PointerEvent = {
-      /**
-       * holds all pointers
-       * @type {Object}
-       */
-      pointers: {},
-
-      /**
-       * get a list of pointers
-       * @returns {Array}     touchlist
-       */
-      getTouchList: function() {
-          var self = this;
-          var touchlist = [];
-
-          // we can use forEach since pointerEvents only is in IE10
-          Object.keys(self.pointers).sort().forEach(function(id) {
-              touchlist.push(self.pointers[id]);
-          });
-          return touchlist;
-      },
-
-      /**
-       * update the position of a pointer
-       * @param   {String}   type             Hammer.EVENT_END
-       * @param   {Object}   pointerEvent
-       */
-      updatePointer: function(type, pointerEvent) {
-          if(type == Hammer.EVENT_END) {
-              this.pointers = {};
-          }
-          else {
-              pointerEvent.identifier = pointerEvent.pointerId;
-              this.pointers[pointerEvent.pointerId] = pointerEvent;
-          }
-
-          return Object.keys(this.pointers).length;
-      },
-
-      /**
-       * check if ev matches pointertype
-       * @param   {String}        pointerType     Hammer.POINTER_MOUSE
-       * @param   {PointerEvent}  ev
-       */
-      matchType: function(pointerType, ev) {
-          if(!ev.pointerType) {
-              return false;
-          }
-
-          var types = {};
-          types[Hammer.POINTER_MOUSE] = (ev.pointerType == ev.MSPOINTER_TYPE_MOUSE || ev.pointerType == Hammer.POINTER_MOUSE);
-          types[Hammer.POINTER_TOUCH] = (ev.pointerType == ev.MSPOINTER_TYPE_TOUCH || ev.pointerType == Hammer.POINTER_TOUCH);
-          types[Hammer.POINTER_PEN] = (ev.pointerType == ev.MSPOINTER_TYPE_PEN || ev.pointerType == Hammer.POINTER_PEN);
-          return types[pointerType];
-      },
-
-
-      /**
-       * get events
-       */
-      getEvents: function() {
-          return [
-              'pointerdown MSPointerDown',
-              'pointermove MSPointerMove',
-              'pointerup pointercancel MSPointerUp MSPointerCancel'
-          ];
-      },
-
-      /**
-       * reset the list
-       */
-      reset: function() {
-          this.pointers = {};
-      }
-  };
-
-
-  Hammer.utils = {
-      /**
-       * extend method,
-       * also used for cloning when dest is an empty object
-       * @param   {Object}    dest
-       * @param   {Object}    src
-  	 * @parm	{Boolean}	merge		do a merge
-       * @returns {Object}    dest
-       */
-      extend: function extend(dest, src, merge) {
-          for (var key in src) {
-  			if(dest[key] !== undefined && merge) {
-  				continue;
-  			}
-              dest[key] = src[key];
-          }
-          return dest;
-      },
-
-
-      /**
-       * find if a node is in the given parent
-       * used for event delegation tricks
-       * @param   {HTMLElement}   node
-       * @param   {HTMLElement}   parent
-       * @returns {boolean}       has_parent
-       */
-      hasParent: function(node, parent) {
-          while(node){
-              if(node == parent) {
-                  return true;
-              }
-              node = node.parentNode;
-          }
-          return false;
-      },
-
-
-      /**
-       * get the center of all the touches
-       * @param   {Array}     touches
-       * @returns {Object}    center
-       */
-      getCenter: function getCenter(touches) {
-          var valuesX = [], valuesY = [];
-
-          for(var t= 0,len=touches.length; t<len; t++) {
-              valuesX.push(touches[t].pageX);
-              valuesY.push(touches[t].pageY);
-          }
-
-          return {
-              pageX: ((Math.min.apply(Math, valuesX) + Math.max.apply(Math, valuesX)) / 2),
-              pageY: ((Math.min.apply(Math, valuesY) + Math.max.apply(Math, valuesY)) / 2)
-          };
-      },
-
-
-      /**
-       * calculate the velocity between two points
-       * @param   {Number}    delta_time
-       * @param   {Number}    delta_x
-       * @param   {Number}    delta_y
-       * @returns {Object}    velocity
-       */
-      getVelocity: function getVelocity(delta_time, delta_x, delta_y) {
-          return {
-              x: Math.abs(delta_x / delta_time) || 0,
-              y: Math.abs(delta_y / delta_time) || 0
-          };
-      },
-
-
-      /**
-       * calculate the angle between two coordinates
-       * @param   {Touch}     touch1
-       * @param   {Touch}     touch2
-       * @returns {Number}    angle
-       */
-      getAngle: function getAngle(touch1, touch2) {
-          var y = touch2.pageY - touch1.pageY,
-              x = touch2.pageX - touch1.pageX;
-          return Math.atan2(y, x) * 180 / Math.PI;
-      },
-
-
-      /**
-       * angle to direction define
-       * @param   {Touch}     touch1
-       * @param   {Touch}     touch2
-       * @returns {String}    direction constant, like Hammer.DIRECTION_LEFT
-       */
-      getDirection: function getDirection(touch1, touch2) {
-          var x = Math.abs(touch1.pageX - touch2.pageX),
-              y = Math.abs(touch1.pageY - touch2.pageY);
-
-          if(x >= y) {
-              return touch1.pageX - touch2.pageX > 0 ? Hammer.DIRECTION_LEFT : Hammer.DIRECTION_RIGHT;
-          }
-          else {
-              return touch1.pageY - touch2.pageY > 0 ? Hammer.DIRECTION_UP : Hammer.DIRECTION_DOWN;
-          }
-      },
-
-
-      /**
-       * calculate the distance between two touches
-       * @param   {Touch}     touch1
-       * @param   {Touch}     touch2
-       * @returns {Number}    distance
-       */
-      getDistance: function getDistance(touch1, touch2) {
-          var x = touch2.pageX - touch1.pageX,
-              y = touch2.pageY - touch1.pageY;
-          return Math.sqrt((x*x) + (y*y));
-      },
-
-
-      /**
-       * calculate the scale factor between two touchLists (fingers)
-       * no scale is 1, and goes down to 0 when pinched together, and bigger when pinched out
-       * @param   {Array}     start
-       * @param   {Array}     end
-       * @returns {Number}    scale
-       */
-      getScale: function getScale(start, end) {
-          // need two fingers...
-          if(start.length >= 2 && end.length >= 2) {
-              return this.getDistance(end[0], end[1]) /
-                  this.getDistance(start[0], start[1]);
-          }
-          return 1;
-      },
-
-
-      /**
-       * calculate the rotation degrees between two touchLists (fingers)
-       * @param   {Array}     start
-       * @param   {Array}     end
-       * @returns {Number}    rotation
-       */
-      getRotation: function getRotation(start, end) {
-          // need two fingers
-          if(start.length >= 2 && end.length >= 2) {
-              return this.getAngle(end[1], end[0]) -
-                  this.getAngle(start[1], start[0]);
-          }
-          return 0;
-      },
-
-
-      /**
-       * boolean if the direction is vertical
-       * @param    {String}    direction
-       * @returns  {Boolean}   is_vertical
-       */
-      isVertical: function isVertical(direction) {
-          return (direction == Hammer.DIRECTION_UP || direction == Hammer.DIRECTION_DOWN);
-      },
-
-
-      /**
-       * stop browser default behavior with css props
-       * @param   {HtmlElement}   element
-       * @param   {Object}        css_props
-       */
-      stopDefaultBrowserBehavior: function stopDefaultBrowserBehavior(element, css_props) {
-          var prop,
-              vendors = ['webkit','khtml','moz','ms','o',''];
-
-          if(!css_props || !element.style) {
-              return;
-          }
-
-          // with css properties for modern browsers
-          for(var i = 0; i < vendors.length; i++) {
-              for(var p in css_props) {
-                  if(css_props.hasOwnProperty(p)) {
-                      prop = p;
-
-                      // vender prefix at the property
-                      if(vendors[i]) {
-                          prop = vendors[i] + prop.substring(0, 1).toUpperCase() + prop.substring(1);
-                      }
-
-                      // set the style
-                      element.style[prop] = css_props[p];
-                  }
-              }
-          }
-
-          // also the disable onselectstart
-          if(css_props.userSelect == 'none') {
-              element.onselectstart = function() {
-                  return false;
-              };
-          }
-      }
-  };
-
-  Hammer.detection = {
-      // contains all registred Hammer.gestures in the correct order
-      gestures: [],
-
-      // data of the current Hammer.gesture detection session
-      current: null,
-
-      // the previous Hammer.gesture session data
-      // is a full clone of the previous gesture.current object
-      previous: null,
-
-      // when this becomes true, no gestures are fired
-      stopped: false,
-
-
-      /**
-       * start Hammer.gesture detection
-       * @param   {Hammer.Instance}   inst
-       * @param   {Object}            eventData
-       */
-      startDetect: function startDetect(inst, eventData) {
-          // already busy with a Hammer.gesture detection on an element
-          if(this.current) {
-              return;
-          }
-
-          this.stopped = false;
-
-          this.current = {
-              inst        : inst, // reference to HammerInstance we're working for
-              startEvent  : Hammer.utils.extend({}, eventData), // start eventData for distances, timing etc
-              lastEvent   : false, // last eventData
-              name        : '' // current gesture we're in/detected, can be 'tap', 'hold' etc
-          };
-
-          this.detect(eventData);
-      },
-
-
-      /**
-       * Hammer.gesture detection
-       * @param   {Object}    eventData
-       * @param   {Object}    eventData
-       */
-      detect: function detect(eventData) {
-          if(!this.current || this.stopped) {
-              return;
-          }
-
-          // extend event data with calculations about scale, distance etc
-          eventData = this.extendEventData(eventData);
-
-          // instance options
-          var inst_options = this.current.inst.options;
-
-          // call Hammer.gesture handlers
-          for(var g=0,len=this.gestures.length; g<len; g++) {
-              var gesture = this.gestures[g];
-
-              // only when the instance options have enabled this gesture
-              if(!this.stopped && inst_options[gesture.name] !== false) {
-                  // if a handler returns false, we stop with the detection
-                  if(gesture.handler.call(gesture, eventData, this.current.inst) === false) {
-                      this.stopDetect();
-                      break;
-                  }
-              }
-          }
-
-          // store as previous event event
-          if(this.current) {
-              this.current.lastEvent = eventData;
-          }
-
-          // endevent, but not the last touch, so dont stop
-          if(eventData.eventType == Hammer.EVENT_END && !eventData.touches.length-1) {
-              this.stopDetect();
-          }
-
-          return eventData;
-      },
-
-
-      /**
-       * clear the Hammer.gesture vars
-       * this is called on endDetect, but can also be used when a final Hammer.gesture has been detected
-       * to stop other Hammer.gestures from being fired
-       */
-      stopDetect: function stopDetect() {
-          // clone current data to the store as the previous gesture
-          // used for the double tap gesture, since this is an other gesture detect session
-          this.previous = Hammer.utils.extend({}, this.current);
-
-          // reset the current
-          this.current = null;
-
-          // stopped!
-          this.stopped = true;
-      },
-
-
-      /**
-       * extend eventData for Hammer.gestures
-       * @param   {Object}   ev
-       * @returns {Object}   ev
-       */
-      extendEventData: function extendEventData(ev) {
-          var startEv = this.current.startEvent;
-
-          // if the touches change, set the new touches over the startEvent touches
-          // this because touchevents don't have all the touches on touchstart, or the
-          // user must place his fingers at the EXACT same time on the screen, which is not realistic
-          // but, sometimes it happens that both fingers are touching at the EXACT same time
-          if(startEv && (ev.touches.length != startEv.touches.length || ev.touches === startEv.touches)) {
-              // extend 1 level deep to get the touchlist with the touch objects
-              startEv.touches = [];
-              for(var i=0,len=ev.touches.length; i<len; i++) {
-                  startEv.touches.push(Hammer.utils.extend({}, ev.touches[i]));
-              }
-          }
-
-          var delta_time = ev.timeStamp - startEv.timeStamp,
-              delta_x = ev.center.pageX - startEv.center.pageX,
-              delta_y = ev.center.pageY - startEv.center.pageY,
-              velocity = Hammer.utils.getVelocity(delta_time, delta_x, delta_y);
-
-          Hammer.utils.extend(ev, {
-              deltaTime   : delta_time,
-
-              deltaX      : delta_x,
-              deltaY      : delta_y,
-
-              velocityX   : velocity.x,
-              velocityY   : velocity.y,
-
-              distance    : Hammer.utils.getDistance(startEv.center, ev.center),
-              angle       : Hammer.utils.getAngle(startEv.center, ev.center),
-              direction   : Hammer.utils.getDirection(startEv.center, ev.center),
-
-              scale       : Hammer.utils.getScale(startEv.touches, ev.touches),
-              rotation    : Hammer.utils.getRotation(startEv.touches, ev.touches),
-
-              startEvent  : startEv
-          });
-
-          return ev;
-      },
-
-
-      /**
-       * register new gesture
-       * @param   {Object}    gesture object, see gestures.js for documentation
-       * @returns {Array}     gestures
-       */
-      register: function register(gesture) {
-          // add an enable gesture options if there is no given
-          var options = gesture.defaults || {};
-          if(options[gesture.name] === undefined) {
-              options[gesture.name] = true;
-          }
-
-          // extend Hammer default options with the Hammer.gesture options
-          Hammer.utils.extend(Hammer.defaults, options, true);
-
-          // set its index
-          gesture.index = gesture.index || 1000;
-
-          // add Hammer.gesture to the list
-          this.gestures.push(gesture);
-
-          // sort the list by index
-          this.gestures.sort(function(a, b) {
-              if (a.index < b.index) {
-                  return -1;
-              }
-              if (a.index > b.index) {
-                  return 1;
-              }
-              return 0;
-          });
-
-          return this.gestures;
-      }
-  };
-
-
-  Hammer.gestures = Hammer.gestures || {};
-
-  /**
-   * Custom gestures
-   * ==============================
-   *
-   * Gesture object
-   * --------------------
-   * The object structure of a gesture:
-   *
-   * { name: 'mygesture',
-   *   index: 1337,
-   *   defaults: {
-   *     mygesture_option: true
-   *   }
-   *   handler: function(type, ev, inst) {
-   *     // trigger gesture event
-   *     inst.trigger(this.name, ev);
-   *   }
-   * }
-
-   * @param   {String}    name
-   * this should be the name of the gesture, lowercase
-   * it is also being used to disable/enable the gesture per instance config.
-   *
-   * @param   {Number}    [index=1000]
-   * the index of the gesture, where it is going to be in the stack of gestures detection
-   * like when you build an gesture that depends on the drag gesture, it is a good
-   * idea to place it after the index of the drag gesture.
-   *
-   * @param   {Object}    [defaults={}]
-   * the default settings of the gesture. these are added to the instance settings,
-   * and can be overruled per instance. you can also add the name of the gesture,
-   * but this is also added by default (and set to true).
-   *
-   * @param   {Function}  handler
-   * this handles the gesture detection of your custom gesture and receives the
-   * following arguments:
-   *
-   *      @param  {Object}    eventData
-   *      event data containing the following properties:
-   *          timeStamp   {Number}        time the event occurred
-   *          target      {HTMLElement}   target element
-   *          touches     {Array}         touches (fingers, pointers, mouse) on the screen
-   *          pointerType {String}        kind of pointer that was used. matches Hammer.POINTER_MOUSE|TOUCH
-   *          center      {Object}        center position of the touches. contains pageX and pageY
-   *          deltaTime   {Number}        the total time of the touches in the screen
-   *          deltaX      {Number}        the delta on x axis we haved moved
-   *          deltaY      {Number}        the delta on y axis we haved moved
-   *          velocityX   {Number}        the velocity on the x
-   *          velocityY   {Number}        the velocity on y
-   *          angle       {Number}        the angle we are moving
-   *          direction   {String}        the direction we are moving. matches Hammer.DIRECTION_UP|DOWN|LEFT|RIGHT
-   *          distance    {Number}        the distance we haved moved
-   *          scale       {Number}        scaling of the touches, needs 2 touches
-   *          rotation    {Number}        rotation of the touches, needs 2 touches *
-   *          eventType   {String}        matches Hammer.EVENT_START|MOVE|END
-   *          srcEvent    {Object}        the source event, like TouchStart or MouseDown *
-   *          startEvent  {Object}        contains the same properties as above,
-   *                                      but from the first touch. this is used to calculate
-   *                                      distances, deltaTime, scaling etc
-   *
-   *      @param  {Hammer.Instance}    inst
-   *      the instance we are doing the detection for. you can get the options from
-   *      the inst.options object and trigger the gesture event by calling inst.trigger
-   *
-   *
-   * Handle gestures
-   * --------------------
-   * inside the handler you can get/set Hammer.detection.current. This is the current
-   * detection session. It has the following properties
-   *      @param  {String}    name
-   *      contains the name of the gesture we have detected. it has not a real function,
-   *      only to check in other gestures if something is detected.
-   *      like in the drag gesture we set it to 'drag' and in the swipe gesture we can
-   *      check if the current gesture is 'drag' by accessing Hammer.detection.current.name
-   *
-   *      @readonly
-   *      @param  {Hammer.Instance}    inst
-   *      the instance we do the detection for
-   *
-   *      @readonly
-   *      @param  {Object}    startEvent
-   *      contains the properties of the first gesture detection in this session.
-   *      Used for calculations about timing, distance, etc.
-   *
-   *      @readonly
-   *      @param  {Object}    lastEvent
-   *      contains all the properties of the last gesture detect in this session.
-   *
-   * after the gesture detection session has been completed (user has released the screen)
-   * the Hammer.detection.current object is copied into Hammer.detection.previous,
-   * this is usefull for gestures like doubletap, where you need to know if the
-   * previous gesture was a tap
-   *
-   * options that have been set by the instance can be received by calling inst.options
-   *
-   * You can trigger a gesture event by calling inst.trigger("mygesture", event).
-   * The first param is the name of your gesture, the second the event argument
-   *
-   *
-   * Register gestures
-   * --------------------
-   * When an gesture is added to the Hammer.gestures object, it is auto registered
-   * at the setup of the first Hammer instance. You can also call Hammer.detection.register
-   * manually and pass your gesture object as a param
-   *
-   */
-
-  /**
-   * Hold
-   * Touch stays at the same place for x time
-   * @events  hold
-   */
-  Hammer.gestures.Hold = {
-      name: 'hold',
-      index: 10,
-      defaults: {
-          hold_timeout	: 500,
-          hold_threshold	: 1
-      },
-      timer: null,
-      handler: function holdGesture(ev, inst) {
-          switch(ev.eventType) {
-              case Hammer.EVENT_START:
-                  // clear any running timers
-                  clearTimeout(this.timer);
-
-                  // set the gesture so we can check in the timeout if it still is
-                  Hammer.detection.current.name = this.name;
-
-                  // set timer and if after the timeout it still is hold,
-                  // we trigger the hold event
-                  this.timer = setTimeout(function() {
-                      if(Hammer.detection.current.name == 'hold') {
-                          inst.trigger('hold', ev);
-                      }
-                  }, inst.options.hold_timeout);
-                  break;
-
-              // when you move or end we clear the timer
-              case Hammer.EVENT_MOVE:
-                  if(ev.distance > inst.options.hold_threshold) {
-                      clearTimeout(this.timer);
-                  }
-                  break;
-
-              case Hammer.EVENT_END:
-                  clearTimeout(this.timer);
-                  break;
-          }
-      }
-  };
-
-
-  /**
-   * Tap/DoubleTap
-   * Quick touch at a place or double at the same place
-   * @events  tap, doubletap
-   */
-  Hammer.gestures.Tap = {
-      name: 'tap',
-      index: 100,
-      defaults: {
-          tap_max_touchtime	: 250,
-          tap_max_distance	: 10,
-  		tap_always			: true,
-          doubletap_distance	: 20,
-          doubletap_interval	: 300
-      },
-      handler: function tapGesture(ev, inst) {
-          if(ev.eventType == Hammer.EVENT_END) {
-              // previous gesture, for the double tap since these are two different gesture detections
-              var prev = Hammer.detection.previous,
-  				did_doubletap = false;
-
-              // when the touchtime is higher then the max touch time
-              // or when the moving distance is too much
-              if(ev.deltaTime > inst.options.tap_max_touchtime ||
-                  ev.distance > inst.options.tap_max_distance) {
-                  return;
-              }
-
-              // check if double tap
-              if(prev && prev.name == 'tap' &&
-                  (ev.timeStamp - prev.lastEvent.timeStamp) < inst.options.doubletap_interval &&
-                  ev.distance < inst.options.doubletap_distance) {
-  				inst.trigger('doubletap', ev);
-  				did_doubletap = true;
-              }
-
-  			// do a single tap
-  			if(!did_doubletap || inst.options.tap_always) {
-  				Hammer.detection.current.name = 'tap';
-  				inst.trigger(Hammer.detection.current.name, ev);
-  			}
-          }
-      }
-  };
-
-
-  /**
-   * Swipe
-   * triggers swipe events when the end velocity is above the threshold
-   * @events  swipe, swipeleft, swiperight, swipeup, swipedown
-   */
-  Hammer.gestures.Swipe = {
-      name: 'swipe',
-      index: 40,
-      defaults: {
-          // set 0 for unlimited, but this can conflict with transform
-          swipe_max_touches  : 1,
-          swipe_velocity     : 0.7
-      },
-      handler: function swipeGesture(ev, inst) {
-          if(ev.eventType == Hammer.EVENT_END) {
-              // max touches
-              if(inst.options.swipe_max_touches > 0 &&
-                  ev.touches.length > inst.options.swipe_max_touches) {
-                  return;
-              }
-
-              // when the distance we moved is too small we skip this gesture
-              // or we can be already in dragging
-              if(ev.velocityX > inst.options.swipe_velocity ||
-                  ev.velocityY > inst.options.swipe_velocity) {
-                  // trigger swipe events
-                  inst.trigger(this.name, ev);
-                  inst.trigger(this.name + ev.direction, ev);
-              }
-          }
-      }
-  };
-
-
-  /**
-   * Drag
-   * Move with x fingers (default 1) around on the page. Blocking the scrolling when
-   * moving left and right is a good practice. When all the drag events are blocking
-   * you disable scrolling on that area.
-   * @events  drag, drapleft, dragright, dragup, dragdown
-   */
-  Hammer.gestures.Drag = {
-      name: 'drag',
-      index: 50,
-      defaults: {
-          drag_min_distance : 10,
-          // set 0 for unlimited, but this can conflict with transform
-          drag_max_touches  : 1,
-          // prevent default browser behavior when dragging occurs
-          // be careful with it, it makes the element a blocking element
-          // when you are using the drag gesture, it is a good practice to set this true
-          drag_block_horizontal   : false,
-          drag_block_vertical     : false,
-          // drag_lock_to_axis keeps the drag gesture on the axis that it started on,
-          // It disallows vertical directions if the initial direction was horizontal, and vice versa.
-          drag_lock_to_axis       : false,
-          // drag lock only kicks in when distance > drag_lock_min_distance
-          // This way, locking occurs only when the distance has become large enough to reliably determine the direction
-          drag_lock_min_distance : 25
-      },
-      triggered: false,
-      handler: function dragGesture(ev, inst) {
-          // current gesture isnt drag, but dragged is true
-          // this means an other gesture is busy. now call dragend
-          if(Hammer.detection.current.name != this.name && this.triggered) {
-              inst.trigger(this.name +'end', ev);
-              this.triggered = false;
-              return;
-          }
-
-          // max touches
-          if(inst.options.drag_max_touches > 0 &&
-              ev.touches.length > inst.options.drag_max_touches) {
-              return;
-          }
-
-          switch(ev.eventType) {
-              case Hammer.EVENT_START:
-                  this.triggered = false;
-                  break;
-
-              case Hammer.EVENT_MOVE:
-                  // when the distance we moved is too small we skip this gesture
-                  // or we can be already in dragging
-                  if(ev.distance < inst.options.drag_min_distance &&
-                      Hammer.detection.current.name != this.name) {
-                      return;
-                  }
-
-                  // we are dragging!
-                  Hammer.detection.current.name = this.name;
-
-                  // lock drag to axis?
-                  if(Hammer.detection.current.lastEvent.drag_locked_to_axis || (inst.options.drag_lock_to_axis && inst.options.drag_lock_min_distance<=ev.distance)) {
-                      ev.drag_locked_to_axis = true;
-                  }
-                  var last_direction = Hammer.detection.current.lastEvent.direction;
-                  if(ev.drag_locked_to_axis && last_direction !== ev.direction) {
-                      // keep direction on the axis that the drag gesture started on
-                      if(Hammer.utils.isVertical(last_direction)) {
-                          ev.direction = (ev.deltaY < 0) ? Hammer.DIRECTION_UP : Hammer.DIRECTION_DOWN;
-                      }
-                      else {
-                          ev.direction = (ev.deltaX < 0) ? Hammer.DIRECTION_LEFT : Hammer.DIRECTION_RIGHT;
-                      }
-                  }
-
-                  // first time, trigger dragstart event
-                  if(!this.triggered) {
-                      inst.trigger(this.name +'start', ev);
-                      this.triggered = true;
-                  }
-
-                  // trigger normal event
-                  inst.trigger(this.name, ev);
-
-                  // direction event, like dragdown
-                  inst.trigger(this.name + ev.direction, ev);
-
-                  // block the browser events
-                  if( (inst.options.drag_block_vertical && Hammer.utils.isVertical(ev.direction)) ||
-                      (inst.options.drag_block_horizontal && !Hammer.utils.isVertical(ev.direction))) {
-                      ev.preventDefault();
-                  }
-                  break;
-
-              case Hammer.EVENT_END:
-                  // trigger dragend
-                  if(this.triggered) {
-                      inst.trigger(this.name +'end', ev);
-                  }
-
-                  this.triggered = false;
-                  break;
-          }
-      }
-  };
-
-
-  /**
-   * Transform
-   * User want to scale or rotate with 2 fingers
-   * @events  transform, pinch, pinchin, pinchout, rotate
-   */
-  Hammer.gestures.Transform = {
-      name: 'transform',
-      index: 45,
-      defaults: {
-          // factor, no scale is 1, zoomin is to 0 and zoomout until higher then 1
-          transform_min_scale     : 0.01,
-          // rotation in degrees
-          transform_min_rotation  : 1,
-          // prevent default browser behavior when two touches are on the screen
-          // but it makes the element a blocking element
-          // when you are using the transform gesture, it is a good practice to set this true
-          transform_always_block  : false
-      },
-      triggered: false,
-      handler: function transformGesture(ev, inst) {
-          // current gesture isnt drag, but dragged is true
-          // this means an other gesture is busy. now call dragend
-          if(Hammer.detection.current.name != this.name && this.triggered) {
-              inst.trigger(this.name +'end', ev);
-              this.triggered = false;
-              return;
-          }
-
-          // atleast multitouch
-          if(ev.touches.length < 2) {
-              return;
-          }
-
-          // prevent default when two fingers are on the screen
-          if(inst.options.transform_always_block) {
-              ev.preventDefault();
-          }
-
-          switch(ev.eventType) {
-              case Hammer.EVENT_START:
-                  this.triggered = false;
-                  break;
-
-              case Hammer.EVENT_MOVE:
-                  var scale_threshold = Math.abs(1-ev.scale);
-                  var rotation_threshold = Math.abs(ev.rotation);
-
-                  // when the distance we moved is too small we skip this gesture
-                  // or we can be already in dragging
-                  if(scale_threshold < inst.options.transform_min_scale &&
-                      rotation_threshold < inst.options.transform_min_rotation) {
-                      return;
-                  }
-
-                  // we are transforming!
-                  Hammer.detection.current.name = this.name;
-
-                  // first time, trigger dragstart event
-                  if(!this.triggered) {
-                      inst.trigger(this.name +'start', ev);
-                      this.triggered = true;
-                  }
-
-                  inst.trigger(this.name, ev); // basic transform event
-
-                  // trigger rotate event
-                  if(rotation_threshold > inst.options.transform_min_rotation) {
-                      inst.trigger('rotate', ev);
-                  }
-
-                  // trigger pinch event
-                  if(scale_threshold > inst.options.transform_min_scale) {
-                      inst.trigger('pinch', ev);
-                      inst.trigger('pinch'+ ((ev.scale < 1) ? 'in' : 'out'), ev);
-                  }
-                  break;
-
-              case Hammer.EVENT_END:
-                  // trigger dragend
-                  if(this.triggered) {
-                      inst.trigger(this.name +'end', ev);
-                  }
-
-                  this.triggered = false;
-                  break;
-          }
-      }
-  };
-
-
-  /**
-   * Touch
-   * Called as first, tells the user has touched the screen
-   * @events  touch
-   */
-  Hammer.gestures.Touch = {
-      name: 'touch',
-      index: -Infinity,
-      defaults: {
-          // call preventDefault at touchstart, and makes the element blocking by
-          // disabling the scrolling of the page, but it improves gestures like
-          // transforming and dragging.
-          // be careful with using this, it can be very annoying for users to be stuck
-          // on the page
-          prevent_default: false,
-
-          // disable mouse events, so only touch (or pen!) input triggers events
-          prevent_mouseevents: false
-      },
-      handler: function touchGesture(ev, inst) {
-          if(inst.options.prevent_mouseevents && ev.pointerType == Hammer.POINTER_MOUSE) {
-              ev.stopDetect();
-              return;
-          }
-
-          if(inst.options.prevent_default) {
-              ev.preventDefault();
-          }
-
-          if(ev.eventType ==  Hammer.EVENT_START) {
-              inst.trigger(this.name, ev);
-          }
-      }
-  };
-
-
-  /**
-   * Release
-   * Called as last, tells the user has released the screen
-   * @events  release
-   */
-  Hammer.gestures.Release = {
-      name: 'release',
-      index: Infinity,
-      handler: function releaseGesture(ev, inst) {
-          if(ev.eventType ==  Hammer.EVENT_END) {
-              inst.trigger(this.name, ev);
-          }
-      }
-  };
-
-  // node export
-  if(typeof module === 'object' && typeof module.exports === 'object'){
-      module.exports = Hammer;
-  }
-  // just window export
-  else {
-      window.Hammer = Hammer;
-
-      // requireJS module definition
-      if(typeof window.define === 'function' && window.define.amd) {
-          window.define('hammer', [], function() {
-              return Hammer;
-          });
-      }
-  }
-  })(this);
-
-/***/ },
-/* 50 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var util = __webpack_require__(1);
-  var RepulsionMixin = __webpack_require__(52);
-  var HierarchialRepulsionMixin = __webpack_require__(54);
-  var BarnesHutMixin = __webpack_require__(53);
-
-  /**
-   * Toggling barnes Hut calculation on and off.
-   *
-   * @private
-   */
-  exports._toggleBarnesHut = function () {
-    this.constants.physics.barnesHut.enabled = !this.constants.physics.barnesHut.enabled;
-    this._loadSelectedForceSolver();
-    this.moving = true;
-    this.start();
-  };
-
-
-  /**
-   * This loads the node force solver based on the barnes hut or repulsion algorithm
-   *
-   * @private
-   */
-  exports._loadSelectedForceSolver = function () {
-    // this overloads the this._calculateNodeForces
-    if (this.constants.physics.barnesHut.enabled == true) {
-      this._clearMixin(RepulsionMixin);
-      this._clearMixin(HierarchialRepulsionMixin);
-
-      this.constants.physics.centralGravity = this.constants.physics.barnesHut.centralGravity;
-      this.constants.physics.springLength = this.constants.physics.barnesHut.springLength;
-      this.constants.physics.springConstant = this.constants.physics.barnesHut.springConstant;
-      this.constants.physics.damping = this.constants.physics.barnesHut.damping;
-
-      this._loadMixin(BarnesHutMixin);
-    }
-    else if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
-      this._clearMixin(BarnesHutMixin);
-      this._clearMixin(RepulsionMixin);
-
-      this.constants.physics.centralGravity = this.constants.physics.hierarchicalRepulsion.centralGravity;
-      this.constants.physics.springLength = this.constants.physics.hierarchicalRepulsion.springLength;
-      this.constants.physics.springConstant = this.constants.physics.hierarchicalRepulsion.springConstant;
-      this.constants.physics.damping = this.constants.physics.hierarchicalRepulsion.damping;
-
-      this._loadMixin(HierarchialRepulsionMixin);
-    }
-    else {
-      this._clearMixin(BarnesHutMixin);
-      this._clearMixin(HierarchialRepulsionMixin);
-      this.barnesHutTree = undefined;
-
-      this.constants.physics.centralGravity = this.constants.physics.repulsion.centralGravity;
-      this.constants.physics.springLength = this.constants.physics.repulsion.springLength;
-      this.constants.physics.springConstant = this.constants.physics.repulsion.springConstant;
-      this.constants.physics.damping = this.constants.physics.repulsion.damping;
-
-      this._loadMixin(RepulsionMixin);
-    }
-  };
-
-  /**
-   * Before calculating the forces, we check if we need to cluster to keep up performance and we check
-   * if there is more than one node. If it is just one node, we dont calculate anything.
-   *
-   * @private
-   */
-  exports._initializeForceCalculation = function () {
-    // stop calculation if there is only one node
-    if (this.nodeIndices.length == 1) {
-      this.nodes[this.nodeIndices[0]]._setForce(0, 0);
-    }
-    else {
-      // if there are too many nodes on screen, we cluster without repositioning
-      if (this.nodeIndices.length > this.constants.clustering.clusterThreshold && this.constants.clustering.enabled == true) {
-        this.clusterToFit(this.constants.clustering.reduceToNodes, false);
-      }
-
-      // we now start the force calculation
-      this._calculateForces();
-    }
-  };
-
-
-  /**
-   * Calculate the external forces acting on the nodes
-   * Forces are caused by: edges, repulsing forces between nodes, gravity
-   * @private
-   */
-  exports._calculateForces = function () {
-    // Gravity is required to keep separated groups from floating off
-    // the forces are reset to zero in this loop by using _setForce instead
-    // of _addForce
-
-    this._calculateGravitationalForces();
-    this._calculateNodeForces();
-
-    if (this.constants.physics.springConstant > 0) {
-      if (this.constants.smoothCurves.enabled == true && this.constants.smoothCurves.dynamic == true) {
-        this._calculateSpringForcesWithSupport();
-      }
-      else {
-        if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
-          this._calculateHierarchicalSpringForces();
-        }
-        else {
-          this._calculateSpringForces();
-        }
-      }
-    }
-  };
-
-
-  /**
-   * Smooth curves are created by adding invisible nodes in the center of the edges. These nodes are also
-   * handled in the calculateForces function. We then use a quadratic curve with the center node as control.
-   * This function joins the datanodes and invisible (called support) nodes into one object.
-   * We do this so we do not contaminate this.nodes with the support nodes.
-   *
-   * @private
-   */
-  exports._updateCalculationNodes = function () {
-    if (this.constants.smoothCurves.enabled == true && this.constants.smoothCurves.dynamic == true) {
-      this.calculationNodes = {};
-      this.calculationNodeIndices = [];
-
-      for (var nodeId in this.nodes) {
-        if (this.nodes.hasOwnProperty(nodeId)) {
-          this.calculationNodes[nodeId] = this.nodes[nodeId];
-        }
-      }
-      var supportNodes = this.sectors['support']['nodes'];
-      for (var supportNodeId in supportNodes) {
-        if (supportNodes.hasOwnProperty(supportNodeId)) {
-          if (this.edges.hasOwnProperty(supportNodes[supportNodeId].parentEdgeId)) {
-            this.calculationNodes[supportNodeId] = supportNodes[supportNodeId];
-          }
-          else {
-            supportNodes[supportNodeId]._setForce(0, 0);
-          }
-        }
-      }
-
-      for (var idx in this.calculationNodes) {
-        if (this.calculationNodes.hasOwnProperty(idx)) {
-          this.calculationNodeIndices.push(idx);
-        }
-      }
-    }
-    else {
-      this.calculationNodes = this.nodes;
-      this.calculationNodeIndices = this.nodeIndices;
-    }
-  };
-
-
-  /**
-   * this function applies the central gravity effect to keep groups from floating off
-   *
-   * @private
-   */
-  exports._calculateGravitationalForces = function () {
-    var dx, dy, distance, node, i;
-    var nodes = this.calculationNodes;
-    var gravity = this.constants.physics.centralGravity;
-    var gravityForce = 0;
-
-    for (i = 0; i < this.calculationNodeIndices.length; i++) {
-      node = nodes[this.calculationNodeIndices[i]];
-      node.damping = this.constants.physics.damping; // possibly add function to alter damping properties of clusters.
-      // gravity does not apply when we are in a pocket sector
-      if (this._sector() == "default" && gravity != 0) {
-        dx = -node.x;
-        dy = -node.y;
-        distance = Math.sqrt(dx * dx + dy * dy);
-
-        gravityForce = (distance == 0) ? 0 : (gravity / distance);
-        node.fx = dx * gravityForce;
-        node.fy = dy * gravityForce;
-      }
-      else {
-        node.fx = 0;
-        node.fy = 0;
-      }
-    }
-  };
-
-
-
-
-  /**
-   * this function calculates the effects of the springs in the case of unsmooth curves.
-   *
-   * @private
-   */
-  exports._calculateSpringForces = function () {
-    var edgeLength, edge, edgeId;
-    var dx, dy, fx, fy, springForce, distance;
-    var edges = this.edges;
-
-    // forces caused by the edges, modelled as springs
-    for (edgeId in edges) {
-      if (edges.hasOwnProperty(edgeId)) {
-        edge = edges[edgeId];
-        if (edge.connected) {
-          // only calculate forces if nodes are in the same sector
-          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
-            edgeLength = edge.customLength ? edge.length : this.constants.physics.springLength;
-            // this implies that the edges between big clusters are longer
-            edgeLength += (edge.to.clusterSize + edge.from.clusterSize - 2) * this.constants.clustering.edgeGrowth;
-
-            dx = (edge.from.x - edge.to.x);
-            dy = (edge.from.y - edge.to.y);
-            distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance == 0) {
-              distance = 0.01;
-            }
-
-            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
-            springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
-
-            fx = dx * springForce;
-            fy = dy * springForce;
-
-            edge.from.fx += fx;
-            edge.from.fy += fy;
-            edge.to.fx -= fx;
-            edge.to.fy -= fy;
-          }
-        }
-      }
-    }
-  };
-
-
-
-
-  /**
-   * This function calculates the springforces on the nodes, accounting for the support nodes.
-   *
-   * @private
-   */
-  exports._calculateSpringForcesWithSupport = function () {
-    var edgeLength, edge, edgeId, combinedClusterSize;
-    var edges = this.edges;
-
-    // forces caused by the edges, modelled as springs
-    for (edgeId in edges) {
-      if (edges.hasOwnProperty(edgeId)) {
-        edge = edges[edgeId];
-        if (edge.connected) {
-          // only calculate forces if nodes are in the same sector
-          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
-            if (edge.via != null) {
-              var node1 = edge.to;
-              var node2 = edge.via;
-              var node3 = edge.from;
-
-              edgeLength = edge.customLength ? edge.length : this.constants.physics.springLength;
-
-              combinedClusterSize = node1.clusterSize + node3.clusterSize - 2;
-
-              // this implies that the edges between big clusters are longer
-              edgeLength += combinedClusterSize * this.constants.clustering.edgeGrowth;
-              this._calculateSpringForce(node1, node2, 0.5 * edgeLength);
-              this._calculateSpringForce(node2, node3, 0.5 * edgeLength);
-            }
-          }
-        }
-      }
-    }
-  };
-
-
-  /**
-   * This is the code actually performing the calculation for the function above. It is split out to avoid repetition.
-   *
-   * @param node1
-   * @param node2
-   * @param edgeLength
-   * @private
-   */
-  exports._calculateSpringForce = function (node1, node2, edgeLength) {
-    var dx, dy, fx, fy, springForce, distance;
-
-    dx = (node1.x - node2.x);
-    dy = (node1.y - node2.y);
-    distance = Math.sqrt(dx * dx + dy * dy);
-
-    if (distance == 0) {
-      distance = 0.01;
-    }
-
-    // the 1/distance is so the fx and fy can be calculated without sine or cosine.
-    springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
-
-    fx = dx * springForce;
-    fy = dy * springForce;
-
-    node1.fx += fx;
-    node1.fy += fy;
-    node2.fx -= fx;
-    node2.fy -= fy;
-  };
-
-
-  /**
-   * Load the HTML for the physics config and bind it
-   * @private
-   */
-  exports._loadPhysicsConfiguration = function () {
-    if (this.physicsConfiguration === undefined) {
-      this.backupConstants = {};
-      util.deepExtend(this.backupConstants,this.constants);
-
-      var hierarchicalLayoutDirections = ["LR", "RL", "UD", "DU"];
-      this.physicsConfiguration = document.createElement('div');
-      this.physicsConfiguration.className = "PhysicsConfiguration";
-      this.physicsConfiguration.innerHTML = '' +
-        '<table><tr><td><b>Simulation Mode:</b></td></tr>' +
-        '<tr>' +
-        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod1" value="BH" checked="checked">Barnes Hut</td>' +
-        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod2" value="R">Repulsion</td>' +
-        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod3" value="H">Hierarchical</td>' +
-        '</tr>' +
-        '</table>' +
-        '<table id="graph_BH_table" style="display:none">' +
-        '<tr><td><b>Barnes Hut</b></td></tr>' +
-        '<tr>' +
-        '<td width="150px">gravitationalConstant</td><td>0</td><td><input type="range" min="0" max="20000" value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" step="25" style="width:300px" id="graph_BH_gc"></td><td  width="50px">-20000</td><td><input value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" id="graph_BH_gc_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.barnesHut.centralGravity + '" step="0.05"  style="width:300px" id="graph_BH_cg"></td><td>3</td><td><input value="' + this.constants.physics.barnesHut.centralGravity + '" id="graph_BH_cg_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.barnesHut.springLength + '" step="1" style="width:300px" id="graph_BH_sl"></td><td>500</td><td><input value="' + this.constants.physics.barnesHut.springLength + '" id="graph_BH_sl_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.barnesHut.springConstant + '" step="0.001" style="width:300px" id="graph_BH_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.barnesHut.springConstant + '" id="graph_BH_sc_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.barnesHut.damping + '" step="0.005" style="width:300px" id="graph_BH_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.barnesHut.damping + '" id="graph_BH_damp_value" style="width:60px"></td>' +
-        '</tr>' +
-        '</table>' +
-        '<table id="graph_R_table" style="display:none">' +
-        '<tr><td><b>Repulsion</b></td></tr>' +
-        '<tr>' +
-        '<td width="150px">nodeDistance</td><td>0</td><td><input type="range" min="0" max="300" value="' + this.constants.physics.repulsion.nodeDistance + '" step="1" style="width:300px" id="graph_R_nd"></td><td width="50px">300</td><td><input value="' + this.constants.physics.repulsion.nodeDistance + '" id="graph_R_nd_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.repulsion.centralGravity + '" step="0.05"  style="width:300px" id="graph_R_cg"></td><td>3</td><td><input value="' + this.constants.physics.repulsion.centralGravity + '" id="graph_R_cg_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.repulsion.springLength + '" step="1" style="width:300px" id="graph_R_sl"></td><td>500</td><td><input value="' + this.constants.physics.repulsion.springLength + '" id="graph_R_sl_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.repulsion.springConstant + '" step="0.001" style="width:300px" id="graph_R_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.repulsion.springConstant + '" id="graph_R_sc_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.repulsion.damping + '" step="0.005" style="width:300px" id="graph_R_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.repulsion.damping + '" id="graph_R_damp_value" style="width:60px"></td>' +
-        '</tr>' +
-        '</table>' +
-        '<table id="graph_H_table" style="display:none">' +
-        '<tr><td width="150"><b>Hierarchical</b></td></tr>' +
-        '<tr>' +
-        '<td width="150px">nodeDistance</td><td>0</td><td><input type="range" min="0" max="300" value="' + this.constants.physics.hierarchicalRepulsion.nodeDistance + '" step="1" style="width:300px" id="graph_H_nd"></td><td width="50px">300</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.nodeDistance + '" id="graph_H_nd_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.hierarchicalRepulsion.centralGravity + '" step="0.05"  style="width:300px" id="graph_H_cg"></td><td>3</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.centralGravity + '" id="graph_H_cg_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.hierarchicalRepulsion.springLength + '" step="1" style="width:300px" id="graph_H_sl"></td><td>500</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.springLength + '" id="graph_H_sl_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.hierarchicalRepulsion.springConstant + '" step="0.001" style="width:300px" id="graph_H_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.springConstant + '" id="graph_H_sc_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.hierarchicalRepulsion.damping + '" step="0.005" style="width:300px" id="graph_H_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.damping + '" id="graph_H_damp_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">direction</td><td>1</td><td><input type="range" min="0" max="3" value="' + hierarchicalLayoutDirections.indexOf(this.constants.hierarchicalLayout.direction) + '" step="1" style="width:300px" id="graph_H_direction"></td><td>4</td><td><input value="' + this.constants.hierarchicalLayout.direction + '" id="graph_H_direction_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">levelSeparation</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.levelSeparation + '" step="1" style="width:300px" id="graph_H_levsep"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.levelSeparation + '" id="graph_H_levsep_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">nodeSpacing</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.nodeSpacing + '" step="1" style="width:300px" id="graph_H_nspac"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.nodeSpacing + '" id="graph_H_nspac_value" style="width:60px"></td>' +
-        '</tr>' +
-        '</table>' +
-        '<table><tr><td><b>Options:</b></td></tr>' +
-        '<tr>' +
-        '<td width="180px"><input type="button" id="graph_toggleSmooth" value="Toggle smoothCurves" style="width:150px"></td>' +
-        '<td width="180px"><input type="button" id="graph_repositionNodes" value="Reinitialize" style="width:150px"></td>' +
-        '<td width="180px"><input type="button" id="graph_generateOptions" value="Generate Options" style="width:150px"></td>' +
-        '</tr>' +
-        '</table>'
-      this.containerElement.parentElement.insertBefore(this.physicsConfiguration, this.containerElement);
-      this.optionsDiv = document.createElement("div");
-      this.optionsDiv.style.fontSize = "14px";
-      this.optionsDiv.style.fontFamily = "verdana";
-      this.containerElement.parentElement.insertBefore(this.optionsDiv, this.containerElement);
-
-      var rangeElement;
-      rangeElement = document.getElementById('graph_BH_gc');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_gc', -1, "physics_barnesHut_gravitationalConstant");
-      rangeElement = document.getElementById('graph_BH_cg');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_cg', 1, "physics_centralGravity");
-      rangeElement = document.getElementById('graph_BH_sc');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_sc', 1, "physics_springConstant");
-      rangeElement = document.getElementById('graph_BH_sl');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_sl', 1, "physics_springLength");
-      rangeElement = document.getElementById('graph_BH_damp');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_damp', 1, "physics_damping");
-
-      rangeElement = document.getElementById('graph_R_nd');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_nd', 1, "physics_repulsion_nodeDistance");
-      rangeElement = document.getElementById('graph_R_cg');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_cg', 1, "physics_centralGravity");
-      rangeElement = document.getElementById('graph_R_sc');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_sc', 1, "physics_springConstant");
-      rangeElement = document.getElementById('graph_R_sl');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_sl', 1, "physics_springLength");
-      rangeElement = document.getElementById('graph_R_damp');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_damp', 1, "physics_damping");
-
-      rangeElement = document.getElementById('graph_H_nd');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_nd', 1, "physics_hierarchicalRepulsion_nodeDistance");
-      rangeElement = document.getElementById('graph_H_cg');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_cg', 1, "physics_centralGravity");
-      rangeElement = document.getElementById('graph_H_sc');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_sc', 1, "physics_springConstant");
-      rangeElement = document.getElementById('graph_H_sl');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_sl', 1, "physics_springLength");
-      rangeElement = document.getElementById('graph_H_damp');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_damp', 1, "physics_damping");
-      rangeElement = document.getElementById('graph_H_direction');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_direction', hierarchicalLayoutDirections, "hierarchicalLayout_direction");
-      rangeElement = document.getElementById('graph_H_levsep');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_levsep', 1, "hierarchicalLayout_levelSeparation");
-      rangeElement = document.getElementById('graph_H_nspac');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_nspac', 1, "hierarchicalLayout_nodeSpacing");
-
-      var radioButton1 = document.getElementById("graph_physicsMethod1");
-      var radioButton2 = document.getElementById("graph_physicsMethod2");
-      var radioButton3 = document.getElementById("graph_physicsMethod3");
-      radioButton2.checked = true;
-      if (this.constants.physics.barnesHut.enabled) {
-        radioButton1.checked = true;
-      }
-      if (this.constants.hierarchicalLayout.enabled) {
-        radioButton3.checked = true;
-      }
-
-      var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
-      var graph_repositionNodes = document.getElementById("graph_repositionNodes");
-      var graph_generateOptions = document.getElementById("graph_generateOptions");
-
-      graph_toggleSmooth.onclick = graphToggleSmoothCurves.bind(this);
-      graph_repositionNodes.onclick = graphRepositionNodes.bind(this);
-      graph_generateOptions.onclick = graphGenerateOptions.bind(this);
-      if (this.constants.smoothCurves == true && this.constants.dynamicSmoothCurves == false) {
-        graph_toggleSmooth.style.background = "#A4FF56";
-      }
-      else {
-        graph_toggleSmooth.style.background = "#FF8532";
-      }
-
-
-      switchConfigurations.apply(this);
-
-      radioButton1.onchange = switchConfigurations.bind(this);
-      radioButton2.onchange = switchConfigurations.bind(this);
-      radioButton3.onchange = switchConfigurations.bind(this);
-    }
-  };
-
-  /**
-   * This overwrites the this.constants.
-   *
-   * @param constantsVariableName
-   * @param value
-   * @private
-   */
-  exports._overWriteGraphConstants = function (constantsVariableName, value) {
-    var nameArray = constantsVariableName.split("_");
-    if (nameArray.length == 1) {
-      this.constants[nameArray[0]] = value;
-    }
-    else if (nameArray.length == 2) {
-      this.constants[nameArray[0]][nameArray[1]] = value;
-    }
-    else if (nameArray.length == 3) {
-      this.constants[nameArray[0]][nameArray[1]][nameArray[2]] = value;
-    }
-  };
-
-
-  /**
-   * this function is bound to the toggle smooth curves button. That is also why it is not in the prototype.
-   */
-  function graphToggleSmoothCurves () {
-    this.constants.smoothCurves.enabled = !this.constants.smoothCurves.enabled;
-    var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
-    if (this.constants.smoothCurves.enabled == true) {graph_toggleSmooth.style.background = "#A4FF56";}
-    else                                     {graph_toggleSmooth.style.background = "#FF8532";}
-
-    this._configureSmoothCurves(false);
-  }
-
-  /**
-   * this function is used to scramble the nodes
-   *
-   */
-  function graphRepositionNodes () {
-    for (var nodeId in this.calculationNodes) {
-      if (this.calculationNodes.hasOwnProperty(nodeId)) {
-        this.calculationNodes[nodeId].vx = 0;  this.calculationNodes[nodeId].vy = 0;
-        this.calculationNodes[nodeId].fx = 0;  this.calculationNodes[nodeId].fy = 0;
-      }
-    }
-    if (this.constants.hierarchicalLayout.enabled == true) {
-      this._setupHierarchicalLayout();
-    }
-    else {
-      this.repositionNodes();
-    }
-    this.moving = true;
-    this.start();
-  }
-
-  /**
-   *  this is used to generate an options file from the playing with physics system.
-   */
-  function graphGenerateOptions () {
-    var options = "No options are required, default values used.";
-    var optionsSpecific = [];
-    var radioButton1 = document.getElementById("graph_physicsMethod1");
-    var radioButton2 = document.getElementById("graph_physicsMethod2");
-    if (radioButton1.checked == true) {
-      if (this.constants.physics.barnesHut.gravitationalConstant != this.backupConstants.physics.barnesHut.gravitationalConstant) {optionsSpecific.push("gravitationalConstant: " + this.constants.physics.barnesHut.gravitationalConstant);}
-      if (this.constants.physics.centralGravity != this.backupConstants.physics.barnesHut.centralGravity)                         {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
-      if (this.constants.physics.springLength != this.backupConstants.physics.barnesHut.springLength)                             {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
-      if (this.constants.physics.springConstant != this.backupConstants.physics.barnesHut.springConstant)                         {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
-      if (this.constants.physics.damping != this.backupConstants.physics.barnesHut.damping)                                       {optionsSpecific.push("damping: " + this.constants.physics.damping);}
-      if (optionsSpecific.length != 0) {
-        options = "var options = {";
-        options += "physics: {barnesHut: {";
-        for (var i = 0; i < optionsSpecific.length; i++) {
-          options += optionsSpecific[i];
-          if (i < optionsSpecific.length - 1) {
-            options += ", "
-          }
-        }
-        options += '}}'
-      }
-      if (this.constants.smoothCurves.enabled != this.backupConstants.smoothCurves.enabled) {
-        if (optionsSpecific.length == 0) {options = "var options = {";}
-        else {options += ", "}
-        options += "smoothCurves: " + this.constants.smoothCurves.enabled;
-      }
-      if (options != "No options are required, default values used.") {
-        options += '};'
-      }
-    }
-    else if (radioButton2.checked == true) {
-      options = "var options = {";
-      options += "physics: {barnesHut: {enabled: false}";
-      if (this.constants.physics.repulsion.nodeDistance != this.backupConstants.physics.repulsion.nodeDistance)  {optionsSpecific.push("nodeDistance: " + this.constants.physics.repulsion.nodeDistance);}
-      if (this.constants.physics.centralGravity != this.backupConstants.physics.repulsion.centralGravity)        {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
-      if (this.constants.physics.springLength != this.backupConstants.physics.repulsion.springLength)            {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
-      if (this.constants.physics.springConstant != this.backupConstants.physics.repulsion.springConstant)        {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
-      if (this.constants.physics.damping != this.backupConstants.physics.repulsion.damping)                      {optionsSpecific.push("damping: " + this.constants.physics.damping);}
-      if (optionsSpecific.length != 0) {
-        options += ", repulsion: {";
-        for (var i = 0; i < optionsSpecific.length; i++) {
-          options += optionsSpecific[i];
-          if (i < optionsSpecific.length - 1) {
-            options += ", "
-          }
-        }
-        options += '}}'
-      }
-      if (optionsSpecific.length == 0) {options += "}"}
-      if (this.constants.smoothCurves != this.backupConstants.smoothCurves) {
-        options += ", smoothCurves: " + this.constants.smoothCurves;
-      }
-      options += '};'
-    }
-    else {
-      options = "var options = {";
-      if (this.constants.physics.hierarchicalRepulsion.nodeDistance != this.backupConstants.physics.hierarchicalRepulsion.nodeDistance)  {optionsSpecific.push("nodeDistance: " + this.constants.physics.hierarchicalRepulsion.nodeDistance);}
-      if (this.constants.physics.centralGravity != this.backupConstants.physics.hierarchicalRepulsion.centralGravity)        {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
-      if (this.constants.physics.springLength != this.backupConstants.physics.hierarchicalRepulsion.springLength)            {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
-      if (this.constants.physics.springConstant != this.backupConstants.physics.hierarchicalRepulsion.springConstant)        {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
-      if (this.constants.physics.damping != this.backupConstants.physics.hierarchicalRepulsion.damping)                      {optionsSpecific.push("damping: " + this.constants.physics.damping);}
-      if (optionsSpecific.length != 0) {
-        options += "physics: {hierarchicalRepulsion: {";
-        for (var i = 0; i < optionsSpecific.length; i++) {
-          options += optionsSpecific[i];
-          if (i < optionsSpecific.length - 1) {
-            options += ", ";
-          }
-        }
-        options += '}},';
-      }
-      options += 'hierarchicalLayout: {';
-      optionsSpecific = [];
-      if (this.constants.hierarchicalLayout.direction != this.backupConstants.hierarchicalLayout.direction)                       {optionsSpecific.push("direction: " + this.constants.hierarchicalLayout.direction);}
-      if (Math.abs(this.constants.hierarchicalLayout.levelSeparation) != this.backupConstants.hierarchicalLayout.levelSeparation) {optionsSpecific.push("levelSeparation: " + this.constants.hierarchicalLayout.levelSeparation);}
-      if (this.constants.hierarchicalLayout.nodeSpacing != this.backupConstants.hierarchicalLayout.nodeSpacing)                   {optionsSpecific.push("nodeSpacing: " + this.constants.hierarchicalLayout.nodeSpacing);}
-      if (optionsSpecific.length != 0) {
-        for (var i = 0; i < optionsSpecific.length; i++) {
-          options += optionsSpecific[i];
-          if (i < optionsSpecific.length - 1) {
-            options += ", "
-          }
-        }
-        options += '}'
-      }
-      else {
-        options += "enabled:true}";
-      }
-      options += '};'
-    }
-
-
-    this.optionsDiv.innerHTML = options;
-  }
-
-  /**
-   * this is used to switch between barnesHut, repulsion and hierarchical.
-   *
-   */
-  function switchConfigurations () {
-    var ids = ["graph_BH_table", "graph_R_table", "graph_H_table"];
-    var radioButton = document.querySelector('input[name="graph_physicsMethod"]:checked').value;
-    var tableId = "graph_" + radioButton + "_table";
-    var table = document.getElementById(tableId);
-    table.style.display = "block";
-    for (var i = 0; i < ids.length; i++) {
-      if (ids[i] != tableId) {
-        table = document.getElementById(ids[i]);
-        table.style.display = "none";
-      }
-    }
-    this._restoreNodes();
-    if (radioButton == "R") {
-      this.constants.hierarchicalLayout.enabled = false;
-      this.constants.physics.hierarchicalRepulsion.enabled = false;
-      this.constants.physics.barnesHut.enabled = false;
-    }
-    else if (radioButton == "H") {
-      if (this.constants.hierarchicalLayout.enabled == false) {
-        this.constants.hierarchicalLayout.enabled = true;
-        this.constants.physics.hierarchicalRepulsion.enabled = true;
-        this.constants.physics.barnesHut.enabled = false;
-        this.constants.smoothCurves.enabled = false;
-        this._setupHierarchicalLayout();
-      }
-    }
-    else {
-      this.constants.hierarchicalLayout.enabled = false;
-      this.constants.physics.hierarchicalRepulsion.enabled = false;
-      this.constants.physics.barnesHut.enabled = true;
-    }
-    this._loadSelectedForceSolver();
-    var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
-    if (this.constants.smoothCurves.enabled == true) {graph_toggleSmooth.style.background = "#A4FF56";}
-    else                                     {graph_toggleSmooth.style.background = "#FF8532";}
-    this.moving = true;
-    this.start();
-  }
-
-
-  /**
-   * this generates the ranges depending on the iniital values.
-   *
-   * @param id
-   * @param map
-   * @param constantsVariableName
-   */
-  function showValueOfRange (id,map,constantsVariableName) {
-    var valueId = id + "_value";
-    var rangeValue = document.getElementById(id).value;
-
-    if (map instanceof Array) {
-      document.getElementById(valueId).value = map[parseInt(rangeValue)];
-      this._overWriteGraphConstants(constantsVariableName,map[parseInt(rangeValue)]);
-    }
-    else {
-      document.getElementById(valueId).value = parseInt(map) * parseFloat(rangeValue);
-      this._overWriteGraphConstants(constantsVariableName, parseInt(map) * parseFloat(rangeValue));
-    }
-
-    if (constantsVariableName == "hierarchicalLayout_direction" ||
-      constantsVariableName == "hierarchicalLayout_levelSeparation" ||
-      constantsVariableName == "hierarchicalLayout_nodeSpacing") {
-      this._setupHierarchicalLayout();
-    }
-    this.moving = true;
-    this.start();
-  }
-
-
-/***/ },
-/* 51 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global, module) {//! moment.js
-  //! version : 2.7.0
-  //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
-  //! license : MIT
-  //! momentjs.com
-
-  (function (undefined) {
-
-      /************************************
-          Constants
-      ************************************/
-
-      var moment,
-          VERSION = "2.7.0",
-          // the global-scope this is NOT the global object in Node.js
-          globalScope = typeof global !== 'undefined' ? global : this,
-          oldGlobalMoment,
-          round = Math.round,
-          i,
-
-          YEAR = 0,
-          MONTH = 1,
-          DATE = 2,
-          HOUR = 3,
-          MINUTE = 4,
-          SECOND = 5,
-          MILLISECOND = 6,
-
-          // internal storage for language config files
-          languages = {},
-
-          // moment internal properties
-          momentProperties = {
-              _isAMomentObject: null,
-              _i : null,
-              _f : null,
-              _l : null,
-              _strict : null,
-              _tzm : null,
-              _isUTC : null,
-              _offset : null,  // optional. Combine with _isUTC
-              _pf : null,
-              _lang : null  // optional
-          },
-
-          // check for nodeJS
-          hasModule = (typeof module !== 'undefined' && module.exports),
-
-          // ASP.NET json date format regex
-          aspNetJsonRegex = /^\/?Date\((\-?\d+)/i,
-          aspNetTimeSpanJsonRegex = /(\-)?(?:(\d*)\.)?(\d+)\:(\d+)(?:\:(\d+)\.?(\d{3})?)?/,
-
-          // from http://docs.closure-library.googlecode.com/git/closure_goog_date_date.js.source.html
-          // somewhat more in line with 4.4.3.2 2004 spec, but allows decimal anywhere
-          isoDurationRegex = /^(-)?P(?:(?:([0-9,.]*)Y)?(?:([0-9,.]*)M)?(?:([0-9,.]*)D)?(?:T(?:([0-9,.]*)H)?(?:([0-9,.]*)M)?(?:([0-9,.]*)S)?)?|([0-9,.]*)W)$/,
-
-          // format tokens
-          formattingTokens = /(\[[^\[]*\])|(\\)?(Mo|MM?M?M?|Do|DDDo|DD?D?D?|ddd?d?|do?|w[o|w]?|W[o|W]?|Q|YYYYYY|YYYYY|YYYY|YY|gg(ggg?)?|GG(GGG?)?|e|E|a|A|hh?|HH?|mm?|ss?|S{1,4}|X|zz?|ZZ?|.)/g,
-          localFormattingTokens = /(\[[^\[]*\])|(\\)?(LT|LL?L?L?|l{1,4})/g,
-
-          // parsing token regexes
-          parseTokenOneOrTwoDigits = /\d\d?/, // 0 - 99
-          parseTokenOneToThreeDigits = /\d{1,3}/, // 0 - 999
-          parseTokenOneToFourDigits = /\d{1,4}/, // 0 - 9999
-          parseTokenOneToSixDigits = /[+\-]?\d{1,6}/, // -999,999 - 999,999
-          parseTokenDigits = /\d+/, // nonzero number of digits
-          parseTokenWord = /[0-9]*['a-z\u00A0-\u05FF\u0700-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+|[\u0600-\u06FF\/]+(\s*?[\u0600-\u06FF]+){1,2}/i, // any word (or two) characters or numbers including two/three word month in arabic.
-          parseTokenTimezone = /Z|[\+\-]\d\d:?\d\d/gi, // +00:00 -00:00 +0000 -0000 or Z
-          parseTokenT = /T/i, // T (ISO separator)
-          parseTokenTimestampMs = /[\+\-]?\d+(\.\d{1,3})?/, // 123456789 123456789.123
-          parseTokenOrdinal = /\d{1,2}/,
-
-          //strict parsing regexes
-          parseTokenOneDigit = /\d/, // 0 - 9
-          parseTokenTwoDigits = /\d\d/, // 00 - 99
-          parseTokenThreeDigits = /\d{3}/, // 000 - 999
-          parseTokenFourDigits = /\d{4}/, // 0000 - 9999
-          parseTokenSixDigits = /[+-]?\d{6}/, // -999,999 - 999,999
-          parseTokenSignedNumber = /[+-]?\d+/, // -inf - inf
-
-          // iso 8601 regex
-          // 0000-00-00 0000-W00 or 0000-W00-0 + T + 00 or 00:00 or 00:00:00 or 00:00:00.000 + +00:00 or +0000 or +00)
-          isoRegex = /^\s*(?:[+-]\d{6}|\d{4})-(?:(\d\d-\d\d)|(W\d\d$)|(W\d\d-\d)|(\d\d\d))((T| )(\d\d(:\d\d(:\d\d(\.\d+)?)?)?)?([\+\-]\d\d(?::?\d\d)?|\s*Z)?)?$/,
-
-          isoFormat = 'YYYY-MM-DDTHH:mm:ssZ',
-
-          isoDates = [
-              ['YYYYYY-MM-DD', /[+-]\d{6}-\d{2}-\d{2}/],
-              ['YYYY-MM-DD', /\d{4}-\d{2}-\d{2}/],
-              ['GGGG-[W]WW-E', /\d{4}-W\d{2}-\d/],
-              ['GGGG-[W]WW', /\d{4}-W\d{2}/],
-              ['YYYY-DDD', /\d{4}-\d{3}/]
-          ],
-
-          // iso time formats and regexes
-          isoTimes = [
-              ['HH:mm:ss.SSSS', /(T| )\d\d:\d\d:\d\d\.\d+/],
-              ['HH:mm:ss', /(T| )\d\d:\d\d:\d\d/],
-              ['HH:mm', /(T| )\d\d:\d\d/],
-              ['HH', /(T| )\d\d/]
-          ],
-
-          // timezone chunker "+10:00" > ["10", "00"] or "-1530" > ["-15", "30"]
-          parseTimezoneChunker = /([\+\-]|\d\d)/gi,
-
-          // getter and setter names
-          proxyGettersAndSetters = 'Date|Hours|Minutes|Seconds|Milliseconds'.split('|'),
-          unitMillisecondFactors = {
-              'Milliseconds' : 1,
-              'Seconds' : 1e3,
-              'Minutes' : 6e4,
-              'Hours' : 36e5,
-              'Days' : 864e5,
-              'Months' : 2592e6,
-              'Years' : 31536e6
-          },
-
-          unitAliases = {
-              ms : 'millisecond',
-              s : 'second',
-              m : 'minute',
-              h : 'hour',
-              d : 'day',
-              D : 'date',
-              w : 'week',
-              W : 'isoWeek',
-              M : 'month',
-              Q : 'quarter',
-              y : 'year',
-              DDD : 'dayOfYear',
-              e : 'weekday',
-              E : 'isoWeekday',
-              gg: 'weekYear',
-              GG: 'isoWeekYear'
-          },
-
-          camelFunctions = {
-              dayofyear : 'dayOfYear',
-              isoweekday : 'isoWeekday',
-              isoweek : 'isoWeek',
-              weekyear : 'weekYear',
-              isoweekyear : 'isoWeekYear'
-          },
-
-          // format function strings
-          formatFunctions = {},
-
-          // default relative time thresholds
-          relativeTimeThresholds = {
-            s: 45,   //seconds to minutes
-            m: 45,   //minutes to hours
-            h: 22,   //hours to days
-            dd: 25,  //days to month (month == 1)
-            dm: 45,  //days to months (months > 1)
-            dy: 345  //days to year
-          },
-
-          // tokens to ordinalize and pad
-          ordinalizeTokens = 'DDD w W M D d'.split(' '),
-          paddedTokens = 'M D H h m s w W'.split(' '),
-
-          formatTokenFunctions = {
-              M    : function () {
-                  return this.month() + 1;
-              },
-              MMM  : function (format) {
-                  return this.lang().monthsShort(this, format);
-              },
-              MMMM : function (format) {
-                  return this.lang().months(this, format);
-              },
-              D    : function () {
-                  return this.date();
-              },
-              DDD  : function () {
-                  return this.dayOfYear();
-              },
-              d    : function () {
-                  return this.day();
-              },
-              dd   : function (format) {
-                  return this.lang().weekdaysMin(this, format);
-              },
-              ddd  : function (format) {
-                  return this.lang().weekdaysShort(this, format);
-              },
-              dddd : function (format) {
-                  return this.lang().weekdays(this, format);
-              },
-              w    : function () {
-                  return this.week();
-              },
-              W    : function () {
-                  return this.isoWeek();
-              },
-              YY   : function () {
-                  return leftZeroFill(this.year() % 100, 2);
-              },
-              YYYY : function () {
-                  return leftZeroFill(this.year(), 4);
-              },
-              YYYYY : function () {
-                  return leftZeroFill(this.year(), 5);
-              },
-              YYYYYY : function () {
-                  var y = this.year(), sign = y >= 0 ? '+' : '-';
-                  return sign + leftZeroFill(Math.abs(y), 6);
-              },
-              gg   : function () {
-                  return leftZeroFill(this.weekYear() % 100, 2);
-              },
-              gggg : function () {
-                  return leftZeroFill(this.weekYear(), 4);
-              },
-              ggggg : function () {
-                  return leftZeroFill(this.weekYear(), 5);
-              },
-              GG   : function () {
-                  return leftZeroFill(this.isoWeekYear() % 100, 2);
-              },
-              GGGG : function () {
-                  return leftZeroFill(this.isoWeekYear(), 4);
-              },
-              GGGGG : function () {
-                  return leftZeroFill(this.isoWeekYear(), 5);
-              },
-              e : function () {
-                  return this.weekday();
-              },
-              E : function () {
-                  return this.isoWeekday();
-              },
-              a    : function () {
-                  return this.lang().meridiem(this.hours(), this.minutes(), true);
-              },
-              A    : function () {
-                  return this.lang().meridiem(this.hours(), this.minutes(), false);
-              },
-              H    : function () {
-                  return this.hours();
-              },
-              h    : function () {
-                  return this.hours() % 12 || 12;
-              },
-              m    : function () {
-                  return this.minutes();
-              },
-              s    : function () {
-                  return this.seconds();
-              },
-              S    : function () {
-                  return toInt(this.milliseconds() / 100);
-              },
-              SS   : function () {
-                  return leftZeroFill(toInt(this.milliseconds() / 10), 2);
-              },
-              SSS  : function () {
-                  return leftZeroFill(this.milliseconds(), 3);
-              },
-              SSSS : function () {
-                  return leftZeroFill(this.milliseconds(), 3);
-              },
-              Z    : function () {
-                  var a = -this.zone(),
-                      b = "+";
-                  if (a < 0) {
-                      a = -a;
-                      b = "-";
-                  }
-                  return b + leftZeroFill(toInt(a / 60), 2) + ":" + leftZeroFill(toInt(a) % 60, 2);
-              },
-              ZZ   : function () {
-                  var a = -this.zone(),
-                      b = "+";
-                  if (a < 0) {
-                      a = -a;
-                      b = "-";
-                  }
-                  return b + leftZeroFill(toInt(a / 60), 2) + leftZeroFill(toInt(a) % 60, 2);
-              },
-              z : function () {
-                  return this.zoneAbbr();
-              },
-              zz : function () {
-                  return this.zoneName();
-              },
-              X    : function () {
-                  return this.unix();
-              },
-              Q : function () {
-                  return this.quarter();
-              }
-          },
-
-          lists = ['months', 'monthsShort', 'weekdays', 'weekdaysShort', 'weekdaysMin'];
-
-      // Pick the first defined of two or three arguments. dfl comes from
-      // default.
-      function dfl(a, b, c) {
-          switch (arguments.length) {
-              case 2: return a != null ? a : b;
-              case 3: return a != null ? a : b != null ? b : c;
-              default: throw new Error("Implement me");
-          }
-      }
-
-      function defaultParsingFlags() {
-          // We need to deep clone this object, and es5 standard is not very
-          // helpful.
-          return {
-              empty : false,
-              unusedTokens : [],
-              unusedInput : [],
-              overflow : -2,
-              charsLeftOver : 0,
-              nullInput : false,
-              invalidMonth : null,
-              invalidFormat : false,
-              userInvalidated : false,
-              iso: false
-          };
-      }
-
-      function deprecate(msg, fn) {
-          var firstTime = true;
-          function printMsg() {
-              if (moment.suppressDeprecationWarnings === false &&
-                      typeof console !== 'undefined' && console.warn) {
-                  console.warn("Deprecation warning: " + msg);
-              }
-          }
-          return extend(function () {
-              if (firstTime) {
-                  printMsg();
-                  firstTime = false;
-              }
-              return fn.apply(this, arguments);
-          }, fn);
-      }
-
-      function padToken(func, count) {
-          return function (a) {
-              return leftZeroFill(func.call(this, a), count);
-          };
-      }
-      function ordinalizeToken(func, period) {
-          return function (a) {
-              return this.lang().ordinal(func.call(this, a), period);
-          };
-      }
-
-      while (ordinalizeTokens.length) {
-          i = ordinalizeTokens.pop();
-          formatTokenFunctions[i + 'o'] = ordinalizeToken(formatTokenFunctions[i], i);
-      }
-      while (paddedTokens.length) {
-          i = paddedTokens.pop();
-          formatTokenFunctions[i + i] = padToken(formatTokenFunctions[i], 2);
-      }
-      formatTokenFunctions.DDDD = padToken(formatTokenFunctions.DDD, 3);
-
-
-      /************************************
-          Constructors
-      ************************************/
-
-      function Language() {
-
-      }
-
-      // Moment prototype object
-      function Moment(config) {
-          checkOverflow(config);
-          extend(this, config);
-      }
-
-      // Duration Constructor
-      function Duration(duration) {
-          var normalizedInput = normalizeObjectUnits(duration),
-              years = normalizedInput.year || 0,
-              quarters = normalizedInput.quarter || 0,
-              months = normalizedInput.month || 0,
-              weeks = normalizedInput.week || 0,
-              days = normalizedInput.day || 0,
-              hours = normalizedInput.hour || 0,
-              minutes = normalizedInput.minute || 0,
-              seconds = normalizedInput.second || 0,
-              milliseconds = normalizedInput.millisecond || 0;
-
-          // representation for dateAddRemove
-          this._milliseconds = +milliseconds +
-              seconds * 1e3 + // 1000
-              minutes * 6e4 + // 1000 * 60
-              hours * 36e5; // 1000 * 60 * 60
-          // Because of dateAddRemove treats 24 hours as different from a
-          // day when working around DST, we need to store them separately
-          this._days = +days +
-              weeks * 7;
-          // It is impossible translate months into days without knowing
-          // which months you are are talking about, so we have to store
-          // it separately.
-          this._months = +months +
-              quarters * 3 +
-              years * 12;
-
-          this._data = {};
-
-          this._bubble();
-      }
-
-      /************************************
-          Helpers
-      ************************************/
-
-
-      function extend(a, b) {
-          for (var i in b) {
-              if (b.hasOwnProperty(i)) {
-                  a[i] = b[i];
-              }
-          }
-
-          if (b.hasOwnProperty("toString")) {
-              a.toString = b.toString;
-          }
-
-          if (b.hasOwnProperty("valueOf")) {
-              a.valueOf = b.valueOf;
-          }
-
-          return a;
-      }
-
-      function cloneMoment(m) {
-          var result = {}, i;
-          for (i in m) {
-              if (m.hasOwnProperty(i) && momentProperties.hasOwnProperty(i)) {
-                  result[i] = m[i];
-              }
-          }
-
-          return result;
-      }
-
-      function absRound(number) {
-          if (number < 0) {
-              return Math.ceil(number);
-          } else {
-              return Math.floor(number);
-          }
-      }
-
-      // left zero fill a number
-      // see http://jsperf.com/left-zero-filling for performance comparison
-      function leftZeroFill(number, targetLength, forceSign) {
-          var output = '' + Math.abs(number),
-              sign = number >= 0;
-
-          while (output.length < targetLength) {
-              output = '0' + output;
-          }
-          return (sign ? (forceSign ? '+' : '') : '-') + output;
-      }
-
-      // helper function for _.addTime and _.subtractTime
-      function addOrSubtractDurationFromMoment(mom, duration, isAdding, updateOffset) {
-          var milliseconds = duration._milliseconds,
-              days = duration._days,
-              months = duration._months;
-          updateOffset = updateOffset == null ? true : updateOffset;
-
-          if (milliseconds) {
-              mom._d.setTime(+mom._d + milliseconds * isAdding);
-          }
-          if (days) {
-              rawSetter(mom, 'Date', rawGetter(mom, 'Date') + days * isAdding);
-          }
-          if (months) {
-              rawMonthSetter(mom, rawGetter(mom, 'Month') + months * isAdding);
-          }
-          if (updateOffset) {
-              moment.updateOffset(mom, days || months);
-          }
-      }
-
-      // check if is an array
-      function isArray(input) {
-          return Object.prototype.toString.call(input) === '[object Array]';
-      }
-
-      function isDate(input) {
-          return  Object.prototype.toString.call(input) === '[object Date]' ||
-                  input instanceof Date;
-      }
-
-      // compare two arrays, return the number of differences
-      function compareArrays(array1, array2, dontConvert) {
-          var len = Math.min(array1.length, array2.length),
-              lengthDiff = Math.abs(array1.length - array2.length),
-              diffs = 0,
-              i;
-          for (i = 0; i < len; i++) {
-              if ((dontConvert && array1[i] !== array2[i]) ||
-                  (!dontConvert && toInt(array1[i]) !== toInt(array2[i]))) {
-                  diffs++;
-              }
-          }
-          return diffs + lengthDiff;
-      }
-
-      function normalizeUnits(units) {
-          if (units) {
-              var lowered = units.toLowerCase().replace(/(.)s$/, '$1');
-              units = unitAliases[units] || camelFunctions[lowered] || lowered;
-          }
-          return units;
-      }
-
-      function normalizeObjectUnits(inputObject) {
-          var normalizedInput = {},
-              normalizedProp,
-              prop;
-
-          for (prop in inputObject) {
-              if (inputObject.hasOwnProperty(prop)) {
-                  normalizedProp = normalizeUnits(prop);
-                  if (normalizedProp) {
-                      normalizedInput[normalizedProp] = inputObject[prop];
-                  }
-              }
-          }
-
-          return normalizedInput;
-      }
-
-      function makeList(field) {
-          var count, setter;
-
-          if (field.indexOf('week') === 0) {
-              count = 7;
-              setter = 'day';
-          }
-          else if (field.indexOf('month') === 0) {
-              count = 12;
-              setter = 'month';
-          }
-          else {
-              return;
-          }
-
-          moment[field] = function (format, index) {
-              var i, getter,
-                  method = moment.fn._lang[field],
-                  results = [];
-
-              if (typeof format === 'number') {
-                  index = format;
-                  format = undefined;
-              }
-
-              getter = function (i) {
-                  var m = moment().utc().set(setter, i);
-                  return method.call(moment.fn._lang, m, format || '');
-              };
-
-              if (index != null) {
-                  return getter(index);
-              }
-              else {
-                  for (i = 0; i < count; i++) {
-                      results.push(getter(i));
-                  }
-                  return results;
-              }
-          };
-      }
-
-      function toInt(argumentForCoercion) {
-          var coercedNumber = +argumentForCoercion,
-              value = 0;
-
-          if (coercedNumber !== 0 && isFinite(coercedNumber)) {
-              if (coercedNumber >= 0) {
-                  value = Math.floor(coercedNumber);
-              } else {
-                  value = Math.ceil(coercedNumber);
-              }
-          }
-
-          return value;
-      }
-
-      function daysInMonth(year, month) {
-          return new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
-      }
-
-      function weeksInYear(year, dow, doy) {
-          return weekOfYear(moment([year, 11, 31 + dow - doy]), dow, doy).week;
-      }
-
-      function daysInYear(year) {
-          return isLeapYear(year) ? 366 : 365;
-      }
-
-      function isLeapYear(year) {
-          return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
-      }
-
-      function checkOverflow(m) {
-          var overflow;
-          if (m._a && m._pf.overflow === -2) {
-              overflow =
-                  m._a[MONTH] < 0 || m._a[MONTH] > 11 ? MONTH :
-                  m._a[DATE] < 1 || m._a[DATE] > daysInMonth(m._a[YEAR], m._a[MONTH]) ? DATE :
-                  m._a[HOUR] < 0 || m._a[HOUR] > 23 ? HOUR :
-                  m._a[MINUTE] < 0 || m._a[MINUTE] > 59 ? MINUTE :
-                  m._a[SECOND] < 0 || m._a[SECOND] > 59 ? SECOND :
-                  m._a[MILLISECOND] < 0 || m._a[MILLISECOND] > 999 ? MILLISECOND :
-                  -1;
-
-              if (m._pf._overflowDayOfYear && (overflow < YEAR || overflow > DATE)) {
-                  overflow = DATE;
-              }
-
-              m._pf.overflow = overflow;
-          }
-      }
-
-      function isValid(m) {
-          if (m._isValid == null) {
-              m._isValid = !isNaN(m._d.getTime()) &&
-                  m._pf.overflow < 0 &&
-                  !m._pf.empty &&
-                  !m._pf.invalidMonth &&
-                  !m._pf.nullInput &&
-                  !m._pf.invalidFormat &&
-                  !m._pf.userInvalidated;
-
-              if (m._strict) {
-                  m._isValid = m._isValid &&
-                      m._pf.charsLeftOver === 0 &&
-                      m._pf.unusedTokens.length === 0;
-              }
-          }
-          return m._isValid;
-      }
-
-      function normalizeLanguage(key) {
-          return key ? key.toLowerCase().replace('_', '-') : key;
-      }
-
-      // Return a moment from input, that is local/utc/zone equivalent to model.
-      function makeAs(input, model) {
-          return model._isUTC ? moment(input).zone(model._offset || 0) :
-              moment(input).local();
-      }
-
-      /************************************
-          Languages
-      ************************************/
-
-
-      extend(Language.prototype, {
-
-          set : function (config) {
-              var prop, i;
-              for (i in config) {
-                  prop = config[i];
-                  if (typeof prop === 'function') {
-                      this[i] = prop;
-                  } else {
-                      this['_' + i] = prop;
-                  }
-              }
-          },
-
-          _months : "January_February_March_April_May_June_July_August_September_October_November_December".split("_"),
-          months : function (m) {
-              return this._months[m.month()];
-          },
-
-          _monthsShort : "Jan_Feb_Mar_Apr_May_Jun_Jul_Aug_Sep_Oct_Nov_Dec".split("_"),
-          monthsShort : function (m) {
-              return this._monthsShort[m.month()];
-          },
-
-          monthsParse : function (monthName) {
-              var i, mom, regex;
-
-              if (!this._monthsParse) {
-                  this._monthsParse = [];
-              }
-
-              for (i = 0; i < 12; i++) {
-                  // make the regex if we don't have it already
-                  if (!this._monthsParse[i]) {
-                      mom = moment.utc([2000, i]);
-                      regex = '^' + this.months(mom, '') + '|^' + this.monthsShort(mom, '');
-                      this._monthsParse[i] = new RegExp(regex.replace('.', ''), 'i');
-                  }
-                  // test the regex
-                  if (this._monthsParse[i].test(monthName)) {
-                      return i;
-                  }
-              }
-          },
-
-          _weekdays : "Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday".split("_"),
-          weekdays : function (m) {
-              return this._weekdays[m.day()];
-          },
-
-          _weekdaysShort : "Sun_Mon_Tue_Wed_Thu_Fri_Sat".split("_"),
-          weekdaysShort : function (m) {
-              return this._weekdaysShort[m.day()];
-          },
-
-          _weekdaysMin : "Su_Mo_Tu_We_Th_Fr_Sa".split("_"),
-          weekdaysMin : function (m) {
-              return this._weekdaysMin[m.day()];
-          },
-
-          weekdaysParse : function (weekdayName) {
-              var i, mom, regex;
-
-              if (!this._weekdaysParse) {
-                  this._weekdaysParse = [];
-              }
-
-              for (i = 0; i < 7; i++) {
-                  // make the regex if we don't have it already
-                  if (!this._weekdaysParse[i]) {
-                      mom = moment([2000, 1]).day(i);
-                      regex = '^' + this.weekdays(mom, '') + '|^' + this.weekdaysShort(mom, '') + '|^' + this.weekdaysMin(mom, '');
-                      this._weekdaysParse[i] = new RegExp(regex.replace('.', ''), 'i');
-                  }
-                  // test the regex
-                  if (this._weekdaysParse[i].test(weekdayName)) {
-                      return i;
-                  }
-              }
-          },
-
-          _longDateFormat : {
-              LT : "h:mm A",
-              L : "MM/DD/YYYY",
-              LL : "MMMM D YYYY",
-              LLL : "MMMM D YYYY LT",
-              LLLL : "dddd, MMMM D YYYY LT"
-          },
-          longDateFormat : function (key) {
-              var output = this._longDateFormat[key];
-              if (!output && this._longDateFormat[key.toUpperCase()]) {
-                  output = this._longDateFormat[key.toUpperCase()].replace(/MMMM|MM|DD|dddd/g, function (val) {
-                      return val.slice(1);
-                  });
-                  this._longDateFormat[key] = output;
-              }
-              return output;
-          },
-
-          isPM : function (input) {
-              // IE8 Quirks Mode & IE7 Standards Mode do not allow accessing strings like arrays
-              // Using charAt should be more compatible.
-              return ((input + '').toLowerCase().charAt(0) === 'p');
-          },
-
-          _meridiemParse : /[ap]\.?m?\.?/i,
-          meridiem : function (hours, minutes, isLower) {
-              if (hours > 11) {
-                  return isLower ? 'pm' : 'PM';
-              } else {
-                  return isLower ? 'am' : 'AM';
-              }
-          },
-
-          _calendar : {
-              sameDay : '[Today at] LT',
-              nextDay : '[Tomorrow at] LT',
-              nextWeek : 'dddd [at] LT',
-              lastDay : '[Yesterday at] LT',
-              lastWeek : '[Last] dddd [at] LT',
-              sameElse : 'L'
-          },
-          calendar : function (key, mom) {
-              var output = this._calendar[key];
-              return typeof output === 'function' ? output.apply(mom) : output;
-          },
-
-          _relativeTime : {
-              future : "in %s",
-              past : "%s ago",
-              s : "a few seconds",
-              m : "a minute",
-              mm : "%d minutes",
-              h : "an hour",
-              hh : "%d hours",
-              d : "a day",
-              dd : "%d days",
-              M : "a month",
-              MM : "%d months",
-              y : "a year",
-              yy : "%d years"
-          },
-          relativeTime : function (number, withoutSuffix, string, isFuture) {
-              var output = this._relativeTime[string];
-              return (typeof output === 'function') ?
-                  output(number, withoutSuffix, string, isFuture) :
-                  output.replace(/%d/i, number);
-          },
-          pastFuture : function (diff, output) {
-              var format = this._relativeTime[diff > 0 ? 'future' : 'past'];
-              return typeof format === 'function' ? format(output) : format.replace(/%s/i, output);
-          },
-
-          ordinal : function (number) {
-              return this._ordinal.replace("%d", number);
-          },
-          _ordinal : "%d",
-
-          preparse : function (string) {
-              return string;
-          },
-
-          postformat : function (string) {
-              return string;
-          },
-
-          week : function (mom) {
-              return weekOfYear(mom, this._week.dow, this._week.doy).week;
-          },
-
-          _week : {
-              dow : 0, // Sunday is the first day of the week.
-              doy : 6  // The week that contains Jan 1st is the first week of the year.
-          },
-
-          _invalidDate: 'Invalid date',
-          invalidDate: function () {
-              return this._invalidDate;
-          }
-      });
-
-      // Loads a language definition into the `languages` cache.  The function
-      // takes a key and optionally values.  If not in the browser and no values
-      // are provided, it will load the language file module.  As a convenience,
-      // this function also returns the language values.
-      function loadLang(key, values) {
-          values.abbr = key;
-          if (!languages[key]) {
-              languages[key] = new Language();
-          }
-          languages[key].set(values);
-          return languages[key];
-      }
-
-      // Remove a language from the `languages` cache. Mostly useful in tests.
-      function unloadLang(key) {
-          delete languages[key];
-      }
-
-      // Determines which language definition to use and returns it.
-      //
-      // With no parameters, it will return the global language.  If you
-      // pass in a language key, such as 'en', it will return the
-      // definition for 'en', so long as 'en' has already been loaded using
-      // moment.lang.
-      function getLangDefinition(key) {
-          var i = 0, j, lang, next, split,
-              get = function (k) {
-                  if (!languages[k] && hasModule) {
-                      try {
-                          __webpack_require__(55)("./" + k);
-                      } catch (e) { }
-                  }
-                  return languages[k];
-              };
-
-          if (!key) {
-              return moment.fn._lang;
-          }
-
-          if (!isArray(key)) {
-              //short-circuit everything else
-              lang = get(key);
-              if (lang) {
-                  return lang;
-              }
-              key = [key];
-          }
-
-          //pick the language from the array
-          //try ['en-au', 'en-gb'] as 'en-au', 'en-gb', 'en', as in move through the list trying each
-          //substring from most specific to least, but move to the next array item if it's a more specific variant than the current root
-          while (i < key.length) {
-              split = normalizeLanguage(key[i]).split('-');
-              j = split.length;
-              next = normalizeLanguage(key[i + 1]);
-              next = next ? next.split('-') : null;
-              while (j > 0) {
-                  lang = get(split.slice(0, j).join('-'));
-                  if (lang) {
-                      return lang;
-                  }
-                  if (next && next.length >= j && compareArrays(split, next, true) >= j - 1) {
-                      //the next array item is better than a shallower substring of this one
-                      break;
-                  }
-                  j--;
-              }
-              i++;
-          }
-          return moment.fn._lang;
-      }
-
-      /************************************
-          Formatting
-      ************************************/
-
-
-      function removeFormattingTokens(input) {
-          if (input.match(/\[[\s\S]/)) {
-              return input.replace(/^\[|\]$/g, "");
-          }
-          return input.replace(/\\/g, "");
-      }
-
-      function makeFormatFunction(format) {
-          var array = format.match(formattingTokens), i, length;
-
-          for (i = 0, length = array.length; i < length; i++) {
-              if (formatTokenFunctions[array[i]]) {
-                  array[i] = formatTokenFunctions[array[i]];
-              } else {
-                  array[i] = removeFormattingTokens(array[i]);
-              }
-          }
-
-          return function (mom) {
-              var output = "";
-              for (i = 0; i < length; i++) {
-                  output += array[i] instanceof Function ? array[i].call(mom, format) : array[i];
-              }
-              return output;
-          };
-      }
-
-      // format date using native date object
-      function formatMoment(m, format) {
-
-          if (!m.isValid()) {
-              return m.lang().invalidDate();
-          }
-
-          format = expandFormat(format, m.lang());
-
-          if (!formatFunctions[format]) {
-              formatFunctions[format] = makeFormatFunction(format);
-          }
-
-          return formatFunctions[format](m);
-      }
-
-      function expandFormat(format, lang) {
-          var i = 5;
-
-          function replaceLongDateFormatTokens(input) {
-              return lang.longDateFormat(input) || input;
-          }
-
-          localFormattingTokens.lastIndex = 0;
-          while (i >= 0 && localFormattingTokens.test(format)) {
-              format = format.replace(localFormattingTokens, replaceLongDateFormatTokens);
-              localFormattingTokens.lastIndex = 0;
-              i -= 1;
-          }
-
-          return format;
-      }
-
-
-      /************************************
-          Parsing
-      ************************************/
-
-
-      // get the regex to find the next token
-      function getParseRegexForToken(token, config) {
-          var a, strict = config._strict;
-          switch (token) {
-          case 'Q':
-              return parseTokenOneDigit;
-          case 'DDDD':
-              return parseTokenThreeDigits;
-          case 'YYYY':
-          case 'GGGG':
-          case 'gggg':
-              return strict ? parseTokenFourDigits : parseTokenOneToFourDigits;
-          case 'Y':
-          case 'G':
-          case 'g':
-              return parseTokenSignedNumber;
-          case 'YYYYYY':
-          case 'YYYYY':
-          case 'GGGGG':
-          case 'ggggg':
-              return strict ? parseTokenSixDigits : parseTokenOneToSixDigits;
-          case 'S':
-              if (strict) { return parseTokenOneDigit; }
-              /* falls through */
-          case 'SS':
-              if (strict) { return parseTokenTwoDigits; }
-              /* falls through */
-          case 'SSS':
-              if (strict) { return parseTokenThreeDigits; }
-              /* falls through */
-          case 'DDD':
-              return parseTokenOneToThreeDigits;
-          case 'MMM':
-          case 'MMMM':
-          case 'dd':
-          case 'ddd':
-          case 'dddd':
-              return parseTokenWord;
-          case 'a':
-          case 'A':
-              return getLangDefinition(config._l)._meridiemParse;
-          case 'X':
-              return parseTokenTimestampMs;
-          case 'Z':
-          case 'ZZ':
-              return parseTokenTimezone;
-          case 'T':
-              return parseTokenT;
-          case 'SSSS':
-              return parseTokenDigits;
-          case 'MM':
-          case 'DD':
-          case 'YY':
-          case 'GG':
-          case 'gg':
-          case 'HH':
-          case 'hh':
-          case 'mm':
-          case 'ss':
-          case 'ww':
-          case 'WW':
-              return strict ? parseTokenTwoDigits : parseTokenOneOrTwoDigits;
-          case 'M':
-          case 'D':
-          case 'd':
-          case 'H':
-          case 'h':
-          case 'm':
-          case 's':
-          case 'w':
-          case 'W':
-          case 'e':
-          case 'E':
-              return parseTokenOneOrTwoDigits;
-          case 'Do':
-              return parseTokenOrdinal;
-          default :
-              a = new RegExp(regexpEscape(unescapeFormat(token.replace('\\', '')), "i"));
-              return a;
-          }
-      }
-
-      function timezoneMinutesFromString(string) {
-          string = string || "";
-          var possibleTzMatches = (string.match(parseTokenTimezone) || []),
-              tzChunk = possibleTzMatches[possibleTzMatches.length - 1] || [],
-              parts = (tzChunk + '').match(parseTimezoneChunker) || ['-', 0, 0],
-              minutes = +(parts[1] * 60) + toInt(parts[2]);
-
-          return parts[0] === '+' ? -minutes : minutes;
-      }
-
-      // function to convert string input to date
-      function addTimeToArrayFromToken(token, input, config) {
-          var a, datePartArray = config._a;
-
-          switch (token) {
-          // QUARTER
-          case 'Q':
-              if (input != null) {
-                  datePartArray[MONTH] = (toInt(input) - 1) * 3;
-              }
-              break;
-          // MONTH
-          case 'M' : // fall through to MM
-          case 'MM' :
-              if (input != null) {
-                  datePartArray[MONTH] = toInt(input) - 1;
-              }
-              break;
-          case 'MMM' : // fall through to MMMM
-          case 'MMMM' :
-              a = getLangDefinition(config._l).monthsParse(input);
-              // if we didn't find a month name, mark the date as invalid.
-              if (a != null) {
-                  datePartArray[MONTH] = a;
-              } else {
-                  config._pf.invalidMonth = input;
-              }
-              break;
-          // DAY OF MONTH
-          case 'D' : // fall through to DD
-          case 'DD' :
-              if (input != null) {
-                  datePartArray[DATE] = toInt(input);
-              }
-              break;
-          case 'Do' :
-              if (input != null) {
-                  datePartArray[DATE] = toInt(parseInt(input, 10));
-              }
-              break;
-          // DAY OF YEAR
-          case 'DDD' : // fall through to DDDD
-          case 'DDDD' :
-              if (input != null) {
-                  config._dayOfYear = toInt(input);
-              }
-
-              break;
-          // YEAR
-          case 'YY' :
-              datePartArray[YEAR] = moment.parseTwoDigitYear(input);
-              break;
-          case 'YYYY' :
-          case 'YYYYY' :
-          case 'YYYYYY' :
-              datePartArray[YEAR] = toInt(input);
-              break;
-          // AM / PM
-          case 'a' : // fall through to A
-          case 'A' :
-              config._isPm = getLangDefinition(config._l).isPM(input);
-              break;
-          // 24 HOUR
-          case 'H' : // fall through to hh
-          case 'HH' : // fall through to hh
-          case 'h' : // fall through to hh
-          case 'hh' :
-              datePartArray[HOUR] = toInt(input);
-              break;
-          // MINUTE
-          case 'm' : // fall through to mm
-          case 'mm' :
-              datePartArray[MINUTE] = toInt(input);
-              break;
-          // SECOND
-          case 's' : // fall through to ss
-          case 'ss' :
-              datePartArray[SECOND] = toInt(input);
-              break;
-          // MILLISECOND
-          case 'S' :
-          case 'SS' :
-          case 'SSS' :
-          case 'SSSS' :
-              datePartArray[MILLISECOND] = toInt(('0.' + input) * 1000);
-              break;
-          // UNIX TIMESTAMP WITH MS
-          case 'X':
-              config._d = new Date(parseFloat(input) * 1000);
-              break;
-          // TIMEZONE
-          case 'Z' : // fall through to ZZ
-          case 'ZZ' :
-              config._useUTC = true;
-              config._tzm = timezoneMinutesFromString(input);
-              break;
-          // WEEKDAY - human
-          case 'dd':
-          case 'ddd':
-          case 'dddd':
-              a = getLangDefinition(config._l).weekdaysParse(input);
-              // if we didn't get a weekday name, mark the date as invalid
-              if (a != null) {
-                  config._w = config._w || {};
-                  config._w['d'] = a;
-              } else {
-                  config._pf.invalidWeekday = input;
-              }
-              break;
-          // WEEK, WEEK DAY - numeric
-          case 'w':
-          case 'ww':
-          case 'W':
-          case 'WW':
-          case 'd':
-          case 'e':
-          case 'E':
-              token = token.substr(0, 1);
-              /* falls through */
-          case 'gggg':
-          case 'GGGG':
-          case 'GGGGG':
-              token = token.substr(0, 2);
-              if (input) {
-                  config._w = config._w || {};
-                  config._w[token] = toInt(input);
-              }
-              break;
-          case 'gg':
-          case 'GG':
-              config._w = config._w || {};
-              config._w[token] = moment.parseTwoDigitYear(input);
-          }
-      }
-
-      function dayOfYearFromWeekInfo(config) {
-          var w, weekYear, week, weekday, dow, doy, temp, lang;
-
-          w = config._w;
-          if (w.GG != null || w.W != null || w.E != null) {
-              dow = 1;
-              doy = 4;
-
-              // TODO: We need to take the current isoWeekYear, but that depends on
-              // how we interpret now (local, utc, fixed offset). So create
-              // a now version of current config (take local/utc/offset flags, and
-              // create now).
-              weekYear = dfl(w.GG, config._a[YEAR], weekOfYear(moment(), 1, 4).year);
-              week = dfl(w.W, 1);
-              weekday = dfl(w.E, 1);
-          } else {
-              lang = getLangDefinition(config._l);
-              dow = lang._week.dow;
-              doy = lang._week.doy;
-
-              weekYear = dfl(w.gg, config._a[YEAR], weekOfYear(moment(), dow, doy).year);
-              week = dfl(w.w, 1);
-
-              if (w.d != null) {
-                  // weekday -- low day numbers are considered next week
-                  weekday = w.d;
-                  if (weekday < dow) {
-                      ++week;
-                  }
-              } else if (w.e != null) {
-                  // local weekday -- counting starts from begining of week
-                  weekday = w.e + dow;
-              } else {
-                  // default to begining of week
-                  weekday = dow;
-              }
-          }
-          temp = dayOfYearFromWeeks(weekYear, week, weekday, doy, dow);
-
-          config._a[YEAR] = temp.year;
-          config._dayOfYear = temp.dayOfYear;
-      }
-
-      // convert an array to a date.
-      // the array should mirror the parameters below
-      // note: all values past the year are optional and will default to the lowest possible value.
-      // [year, month, day , hour, minute, second, millisecond]
-      function dateFromConfig(config) {
-          var i, date, input = [], currentDate, yearToUse;
-
-          if (config._d) {
-              return;
-          }
-
-          currentDate = currentDateArray(config);
-
-          //compute day of the year from weeks and weekdays
-          if (config._w && config._a[DATE] == null && config._a[MONTH] == null) {
-              dayOfYearFromWeekInfo(config);
-          }
-
-          //if the day of the year is set, figure out what it is
-          if (config._dayOfYear) {
-              yearToUse = dfl(config._a[YEAR], currentDate[YEAR]);
-
-              if (config._dayOfYear > daysInYear(yearToUse)) {
-                  config._pf._overflowDayOfYear = true;
-              }
-
-              date = makeUTCDate(yearToUse, 0, config._dayOfYear);
-              config._a[MONTH] = date.getUTCMonth();
-              config._a[DATE] = date.getUTCDate();
-          }
-
-          // Default to current date.
-          // * if no year, month, day of month are given, default to today
-          // * if day of month is given, default month and year
-          // * if month is given, default only year
-          // * if year is given, don't default anything
-          for (i = 0; i < 3 && config._a[i] == null; ++i) {
-              config._a[i] = input[i] = currentDate[i];
-          }
-
-          // Zero out whatever was not defaulted, including time
-          for (; i < 7; i++) {
-              config._a[i] = input[i] = (config._a[i] == null) ? (i === 2 ? 1 : 0) : config._a[i];
-          }
-
-          config._d = (config._useUTC ? makeUTCDate : makeDate).apply(null, input);
-          // Apply timezone offset from input. The actual zone can be changed
-          // with parseZone.
-          if (config._tzm != null) {
-              config._d.setUTCMinutes(config._d.getUTCMinutes() + config._tzm);
-          }
-      }
-
-      function dateFromObject(config) {
-          var normalizedInput;
-
-          if (config._d) {
-              return;
-          }
-
-          normalizedInput = normalizeObjectUnits(config._i);
-          config._a = [
-              normalizedInput.year,
-              normalizedInput.month,
-              normalizedInput.day,
-              normalizedInput.hour,
-              normalizedInput.minute,
-              normalizedInput.second,
-              normalizedInput.millisecond
-          ];
-
-          dateFromConfig(config);
-      }
-
-      function currentDateArray(config) {
-          var now = new Date();
-          if (config._useUTC) {
-              return [
-                  now.getUTCFullYear(),
-                  now.getUTCMonth(),
-                  now.getUTCDate()
-              ];
-          } else {
-              return [now.getFullYear(), now.getMonth(), now.getDate()];
-          }
-      }
-
-      // date from string and format string
-      function makeDateFromStringAndFormat(config) {
-
-          if (config._f === moment.ISO_8601) {
-              parseISO(config);
-              return;
-          }
-
-          config._a = [];
-          config._pf.empty = true;
-
-          // This array is used to make a Date, either with `new Date` or `Date.UTC`
-          var lang = getLangDefinition(config._l),
-              string = '' + config._i,
-              i, parsedInput, tokens, token, skipped,
-              stringLength = string.length,
-              totalParsedInputLength = 0;
-
-          tokens = expandFormat(config._f, lang).match(formattingTokens) || [];
-
-          for (i = 0; i < tokens.length; i++) {
-              token = tokens[i];
-              parsedInput = (string.match(getParseRegexForToken(token, config)) || [])[0];
-              if (parsedInput) {
-                  skipped = string.substr(0, string.indexOf(parsedInput));
-                  if (skipped.length > 0) {
-                      config._pf.unusedInput.push(skipped);
-                  }
-                  string = string.slice(string.indexOf(parsedInput) + parsedInput.length);
-                  totalParsedInputLength += parsedInput.length;
-              }
-              // don't parse if it's not a known token
-              if (formatTokenFunctions[token]) {
-                  if (parsedInput) {
-                      config._pf.empty = false;
-                  }
-                  else {
-                      config._pf.unusedTokens.push(token);
-                  }
-                  addTimeToArrayFromToken(token, parsedInput, config);
-              }
-              else if (config._strict && !parsedInput) {
-                  config._pf.unusedTokens.push(token);
-              }
-          }
-
-          // add remaining unparsed input length to the string
-          config._pf.charsLeftOver = stringLength - totalParsedInputLength;
-          if (string.length > 0) {
-              config._pf.unusedInput.push(string);
-          }
-
-          // handle am pm
-          if (config._isPm && config._a[HOUR] < 12) {
-              config._a[HOUR] += 12;
-          }
-          // if is 12 am, change hours to 0
-          if (config._isPm === false && config._a[HOUR] === 12) {
-              config._a[HOUR] = 0;
-          }
-
-          dateFromConfig(config);
-          checkOverflow(config);
-      }
-
-      function unescapeFormat(s) {
-          return s.replace(/\\(\[)|\\(\])|\[([^\]\[]*)\]|\\(.)/g, function (matched, p1, p2, p3, p4) {
-              return p1 || p2 || p3 || p4;
-          });
-      }
-
-      // Code from http://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript
-      function regexpEscape(s) {
-          return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-      }
-
-      // date from string and array of format strings
-      function makeDateFromStringAndArray(config) {
-          var tempConfig,
-              bestMoment,
-
-              scoreToBeat,
-              i,
-              currentScore;
-
-          if (config._f.length === 0) {
-              config._pf.invalidFormat = true;
-              config._d = new Date(NaN);
-              return;
-          }
-
-          for (i = 0; i < config._f.length; i++) {
-              currentScore = 0;
-              tempConfig = extend({}, config);
-              tempConfig._pf = defaultParsingFlags();
-              tempConfig._f = config._f[i];
-              makeDateFromStringAndFormat(tempConfig);
-
-              if (!isValid(tempConfig)) {
-                  continue;
-              }
-
-              // if there is any input that was not parsed add a penalty for that format
-              currentScore += tempConfig._pf.charsLeftOver;
-
-              //or tokens
-              currentScore += tempConfig._pf.unusedTokens.length * 10;
-
-              tempConfig._pf.score = currentScore;
-
-              if (scoreToBeat == null || currentScore < scoreToBeat) {
-                  scoreToBeat = currentScore;
-                  bestMoment = tempConfig;
-              }
-          }
-
-          extend(config, bestMoment || tempConfig);
-      }
-
-      // date from iso format
-      function parseISO(config) {
-          var i, l,
-              string = config._i,
-              match = isoRegex.exec(string);
-
-          if (match) {
-              config._pf.iso = true;
-              for (i = 0, l = isoDates.length; i < l; i++) {
-                  if (isoDates[i][1].exec(string)) {
-                      // match[5] should be "T" or undefined
-                      config._f = isoDates[i][0] + (match[6] || " ");
-                      break;
-                  }
-              }
-              for (i = 0, l = isoTimes.length; i < l; i++) {
-                  if (isoTimes[i][1].exec(string)) {
-                      config._f += isoTimes[i][0];
-                      break;
-                  }
-              }
-              if (string.match(parseTokenTimezone)) {
-                  config._f += "Z";
-              }
-              makeDateFromStringAndFormat(config);
-          } else {
-              config._isValid = false;
-          }
-      }
-
-      // date from iso format or fallback
-      function makeDateFromString(config) {
-          parseISO(config);
-          if (config._isValid === false) {
-              delete config._isValid;
-              moment.createFromInputFallback(config);
-          }
-      }
-
-      function makeDateFromInput(config) {
-          var input = config._i,
-              matched = aspNetJsonRegex.exec(input);
-
-          if (input === undefined) {
-              config._d = new Date();
-          } else if (matched) {
-              config._d = new Date(+matched[1]);
-          } else if (typeof input === 'string') {
-              makeDateFromString(config);
-          } else if (isArray(input)) {
-              config._a = input.slice(0);
-              dateFromConfig(config);
-          } else if (isDate(input)) {
-              config._d = new Date(+input);
-          } else if (typeof(input) === 'object') {
-              dateFromObject(config);
-          } else if (typeof(input) === 'number') {
-              // from milliseconds
-              config._d = new Date(input);
-          } else {
-              moment.createFromInputFallback(config);
-          }
-      }
-
-      function makeDate(y, m, d, h, M, s, ms) {
-          //can't just apply() to create a date:
-          //http://stackoverflow.com/questions/181348/instantiating-a-javascript-object-by-calling-prototype-constructor-apply
-          var date = new Date(y, m, d, h, M, s, ms);
-
-          //the date constructor doesn't accept years < 1970
-          if (y < 1970) {
-              date.setFullYear(y);
-          }
-          return date;
-      }
-
-      function makeUTCDate(y) {
-          var date = new Date(Date.UTC.apply(null, arguments));
-          if (y < 1970) {
-              date.setUTCFullYear(y);
-          }
-          return date;
-      }
-
-      function parseWeekday(input, language) {
-          if (typeof input === 'string') {
-              if (!isNaN(input)) {
-                  input = parseInt(input, 10);
-              }
-              else {
-                  input = language.weekdaysParse(input);
-                  if (typeof input !== 'number') {
-                      return null;
-                  }
-              }
-          }
-          return input;
-      }
-
-      /************************************
-          Relative Time
-      ************************************/
-
-
-      // helper function for moment.fn.from, moment.fn.fromNow, and moment.duration.fn.humanize
-      function substituteTimeAgo(string, number, withoutSuffix, isFuture, lang) {
-          return lang.relativeTime(number || 1, !!withoutSuffix, string, isFuture);
-      }
-
-      function relativeTime(milliseconds, withoutSuffix, lang) {
-          var seconds = round(Math.abs(milliseconds) / 1000),
-              minutes = round(seconds / 60),
-              hours = round(minutes / 60),
-              days = round(hours / 24),
-              years = round(days / 365),
-              args = seconds < relativeTimeThresholds.s  && ['s', seconds] ||
-                  minutes === 1 && ['m'] ||
-                  minutes < relativeTimeThresholds.m && ['mm', minutes] ||
-                  hours === 1 && ['h'] ||
-                  hours < relativeTimeThresholds.h && ['hh', hours] ||
-                  days === 1 && ['d'] ||
-                  days <= relativeTimeThresholds.dd && ['dd', days] ||
-                  days <= relativeTimeThresholds.dm && ['M'] ||
-                  days < relativeTimeThresholds.dy && ['MM', round(days / 30)] ||
-                  years === 1 && ['y'] || ['yy', years];
-          args[2] = withoutSuffix;
-          args[3] = milliseconds > 0;
-          args[4] = lang;
-          return substituteTimeAgo.apply({}, args);
-      }
-
-
-      /************************************
-          Week of Year
-      ************************************/
-
-
-      // firstDayOfWeek       0 = sun, 6 = sat
-      //                      the day of the week that starts the week
-      //                      (usually sunday or monday)
-      // firstDayOfWeekOfYear 0 = sun, 6 = sat
-      //                      the first week is the week that contains the first
-      //                      of this day of the week
-      //                      (eg. ISO weeks use thursday (4))
-      function weekOfYear(mom, firstDayOfWeek, firstDayOfWeekOfYear) {
-          var end = firstDayOfWeekOfYear - firstDayOfWeek,
-              daysToDayOfWeek = firstDayOfWeekOfYear - mom.day(),
-              adjustedMoment;
-
-
-          if (daysToDayOfWeek > end) {
-              daysToDayOfWeek -= 7;
-          }
-
-          if (daysToDayOfWeek < end - 7) {
-              daysToDayOfWeek += 7;
-          }
-
-          adjustedMoment = moment(mom).add('d', daysToDayOfWeek);
-          return {
-              week: Math.ceil(adjustedMoment.dayOfYear() / 7),
-              year: adjustedMoment.year()
-          };
-      }
-
-      //http://en.wikipedia.org/wiki/ISO_week_date#Calculating_a_date_given_the_year.2C_week_number_and_weekday
-      function dayOfYearFromWeeks(year, week, weekday, firstDayOfWeekOfYear, firstDayOfWeek) {
-          var d = makeUTCDate(year, 0, 1).getUTCDay(), daysToAdd, dayOfYear;
-
-          d = d === 0 ? 7 : d;
-          weekday = weekday != null ? weekday : firstDayOfWeek;
-          daysToAdd = firstDayOfWeek - d + (d > firstDayOfWeekOfYear ? 7 : 0) - (d < firstDayOfWeek ? 7 : 0);
-          dayOfYear = 7 * (week - 1) + (weekday - firstDayOfWeek) + daysToAdd + 1;
-
-          return {
-              year: dayOfYear > 0 ? year : year - 1,
-              dayOfYear: dayOfYear > 0 ?  dayOfYear : daysInYear(year - 1) + dayOfYear
-          };
-      }
-
-      /************************************
-          Top Level Functions
-      ************************************/
-
-      function makeMoment(config) {
-          var input = config._i,
-              format = config._f;
-
-          if (input === null || (format === undefined && input === '')) {
-              return moment.invalid({nullInput: true});
-          }
-
-          if (typeof input === 'string') {
-              config._i = input = getLangDefinition().preparse(input);
-          }
-
-          if (moment.isMoment(input)) {
-              config = cloneMoment(input);
-
-              config._d = new Date(+input._d);
-          } else if (format) {
-              if (isArray(format)) {
-                  makeDateFromStringAndArray(config);
-              } else {
-                  makeDateFromStringAndFormat(config);
-              }
-          } else {
-              makeDateFromInput(config);
-          }
-
-          return new Moment(config);
-      }
-
-      moment = function (input, format, lang, strict) {
-          var c;
-
-          if (typeof(lang) === "boolean") {
-              strict = lang;
-              lang = undefined;
-          }
-          // object construction must be done this way.
-          // https://github.com/moment/moment/issues/1423
-          c = {};
-          c._isAMomentObject = true;
-          c._i = input;
-          c._f = format;
-          c._l = lang;
-          c._strict = strict;
-          c._isUTC = false;
-          c._pf = defaultParsingFlags();
-
-          return makeMoment(c);
-      };
-
-      moment.suppressDeprecationWarnings = false;
-
-      moment.createFromInputFallback = deprecate(
-              "moment construction falls back to js Date. This is " +
-              "discouraged and will be removed in upcoming major " +
-              "release. Please refer to " +
-              "https://github.com/moment/moment/issues/1407 for more info.",
-              function (config) {
-          config._d = new Date(config._i);
-      });
-
-      // Pick a moment m from moments so that m[fn](other) is true for all
-      // other. This relies on the function fn to be transitive.
-      //
-      // moments should either be an array of moment objects or an array, whose
-      // first element is an array of moment objects.
-      function pickBy(fn, moments) {
-          var res, i;
-          if (moments.length === 1 && isArray(moments[0])) {
-              moments = moments[0];
-          }
-          if (!moments.length) {
-              return moment();
-          }
-          res = moments[0];
-          for (i = 1; i < moments.length; ++i) {
-              if (moments[i][fn](res)) {
-                  res = moments[i];
-              }
-          }
-          return res;
-      }
-
-      moment.min = function () {
-          var args = [].slice.call(arguments, 0);
-
-          return pickBy('isBefore', args);
-      };
-
-      moment.max = function () {
-          var args = [].slice.call(arguments, 0);
-
-          return pickBy('isAfter', args);
-      };
-
-      // creating with utc
-      moment.utc = function (input, format, lang, strict) {
-          var c;
-
-          if (typeof(lang) === "boolean") {
-              strict = lang;
-              lang = undefined;
-          }
-          // object construction must be done this way.
-          // https://github.com/moment/moment/issues/1423
-          c = {};
-          c._isAMomentObject = true;
-          c._useUTC = true;
-          c._isUTC = true;
-          c._l = lang;
-          c._i = input;
-          c._f = format;
-          c._strict = strict;
-          c._pf = defaultParsingFlags();
-
-          return makeMoment(c).utc();
-      };
-
-      // creating with unix timestamp (in seconds)
-      moment.unix = function (input) {
-          return moment(input * 1000);
-      };
-
-      // duration
-      moment.duration = function (input, key) {
-          var duration = input,
-              // matching against regexp is expensive, do it on demand
-              match = null,
-              sign,
-              ret,
-              parseIso;
-
-          if (moment.isDuration(input)) {
-              duration = {
-                  ms: input._milliseconds,
-                  d: input._days,
-                  M: input._months
-              };
-          } else if (typeof input === 'number') {
-              duration = {};
-              if (key) {
-                  duration[key] = input;
-              } else {
-                  duration.milliseconds = input;
-              }
-          } else if (!!(match = aspNetTimeSpanJsonRegex.exec(input))) {
-              sign = (match[1] === "-") ? -1 : 1;
-              duration = {
-                  y: 0,
-                  d: toInt(match[DATE]) * sign,
-                  h: toInt(match[HOUR]) * sign,
-                  m: toInt(match[MINUTE]) * sign,
-                  s: toInt(match[SECOND]) * sign,
-                  ms: toInt(match[MILLISECOND]) * sign
-              };
-          } else if (!!(match = isoDurationRegex.exec(input))) {
-              sign = (match[1] === "-") ? -1 : 1;
-              parseIso = function (inp) {
-                  // We'd normally use ~~inp for this, but unfortunately it also
-                  // converts floats to ints.
-                  // inp may be undefined, so careful calling replace on it.
-                  var res = inp && parseFloat(inp.replace(',', '.'));
-                  // apply sign while we're at it
-                  return (isNaN(res) ? 0 : res) * sign;
-              };
-              duration = {
-                  y: parseIso(match[2]),
-                  M: parseIso(match[3]),
-                  d: parseIso(match[4]),
-                  h: parseIso(match[5]),
-                  m: parseIso(match[6]),
-                  s: parseIso(match[7]),
-                  w: parseIso(match[8])
-              };
-          }
-
-          ret = new Duration(duration);
-
-          if (moment.isDuration(input) && input.hasOwnProperty('_lang')) {
-              ret._lang = input._lang;
-          }
-
-          return ret;
-      };
-
-      // version number
-      moment.version = VERSION;
-
-      // default format
-      moment.defaultFormat = isoFormat;
-
-      // constant that refers to the ISO standard
-      moment.ISO_8601 = function () {};
-
-      // Plugins that add properties should also add the key here (null value),
-      // so we can properly clone ourselves.
-      moment.momentProperties = momentProperties;
-
-      // This function will be called whenever a moment is mutated.
-      // It is intended to keep the offset in sync with the timezone.
-      moment.updateOffset = function () {};
-
-      // This function allows you to set a threshold for relative time strings
-      moment.relativeTimeThreshold = function(threshold, limit) {
-        if (relativeTimeThresholds[threshold] === undefined) {
-          return false;
-        }
-        relativeTimeThresholds[threshold] = limit;
-        return true;
-      };
-
-      // This function will load languages and then set the global language.  If
-      // no arguments are passed in, it will simply return the current global
-      // language key.
-      moment.lang = function (key, values) {
-          var r;
-          if (!key) {
-              return moment.fn._lang._abbr;
-          }
-          if (values) {
-              loadLang(normalizeLanguage(key), values);
-          } else if (values === null) {
-              unloadLang(key);
-              key = 'en';
-          } else if (!languages[key]) {
-              getLangDefinition(key);
-          }
-          r = moment.duration.fn._lang = moment.fn._lang = getLangDefinition(key);
-          return r._abbr;
-      };
-
-      // returns language data
-      moment.langData = function (key) {
-          if (key && key._lang && key._lang._abbr) {
-              key = key._lang._abbr;
-          }
-          return getLangDefinition(key);
-      };
-
-      // compare moment object
-      moment.isMoment = function (obj) {
-          return obj instanceof Moment ||
-              (obj != null &&  obj.hasOwnProperty('_isAMomentObject'));
-      };
-
-      // for typechecking Duration objects
-      moment.isDuration = function (obj) {
-          return obj instanceof Duration;
-      };
-
-      for (i = lists.length - 1; i >= 0; --i) {
-          makeList(lists[i]);
-      }
-
-      moment.normalizeUnits = function (units) {
-          return normalizeUnits(units);
-      };
-
-      moment.invalid = function (flags) {
-          var m = moment.utc(NaN);
-          if (flags != null) {
-              extend(m._pf, flags);
-          }
-          else {
-              m._pf.userInvalidated = true;
-          }
-
-          return m;
-      };
-
-      moment.parseZone = function () {
-          return moment.apply(null, arguments).parseZone();
-      };
-
-      moment.parseTwoDigitYear = function (input) {
-          return toInt(input) + (toInt(input) > 68 ? 1900 : 2000);
-      };
-
-      /************************************
-          Moment Prototype
-      ************************************/
-
-
-      extend(moment.fn = Moment.prototype, {
-
-          clone : function () {
-              return moment(this);
-          },
-
-          valueOf : function () {
-              return +this._d + ((this._offset || 0) * 60000);
-          },
-
-          unix : function () {
-              return Math.floor(+this / 1000);
-          },
-
-          toString : function () {
-              return this.clone().lang('en').format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ");
-          },
-
-          toDate : function () {
-              return this._offset ? new Date(+this) : this._d;
-          },
-
-          toISOString : function () {
-              var m = moment(this).utc();
-              if (0 < m.year() && m.year() <= 9999) {
-                  return formatMoment(m, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]');
-              } else {
-                  return formatMoment(m, 'YYYYYY-MM-DD[T]HH:mm:ss.SSS[Z]');
-              }
-          },
-
-          toArray : function () {
-              var m = this;
-              return [
-                  m.year(),
-                  m.month(),
-                  m.date(),
-                  m.hours(),
-                  m.minutes(),
-                  m.seconds(),
-                  m.milliseconds()
-              ];
-          },
-
-          isValid : function () {
-              return isValid(this);
-          },
-
-          isDSTShifted : function () {
-
-              if (this._a) {
-                  return this.isValid() && compareArrays(this._a, (this._isUTC ? moment.utc(this._a) : moment(this._a)).toArray()) > 0;
-              }
-
-              return false;
-          },
-
-          parsingFlags : function () {
-              return extend({}, this._pf);
-          },
-
-          invalidAt: function () {
-              return this._pf.overflow;
-          },
-
-          utc : function () {
-              return this.zone(0);
-          },
-
-          local : function () {
-              this.zone(0);
-              this._isUTC = false;
-              return this;
-          },
-
-          format : function (inputString) {
-              var output = formatMoment(this, inputString || moment.defaultFormat);
-              return this.lang().postformat(output);
-          },
-
-          add : function (input, val) {
-              var dur;
-              // switch args to support add('s', 1) and add(1, 's')
-              if (typeof input === 'string' && typeof val === 'string') {
-                  dur = moment.duration(isNaN(+val) ? +input : +val, isNaN(+val) ? val : input);
-              } else if (typeof input === 'string') {
-                  dur = moment.duration(+val, input);
-              } else {
-                  dur = moment.duration(input, val);
-              }
-              addOrSubtractDurationFromMoment(this, dur, 1);
-              return this;
-          },
-
-          subtract : function (input, val) {
-              var dur;
-              // switch args to support subtract('s', 1) and subtract(1, 's')
-              if (typeof input === 'string' && typeof val === 'string') {
-                  dur = moment.duration(isNaN(+val) ? +input : +val, isNaN(+val) ? val : input);
-              } else if (typeof input === 'string') {
-                  dur = moment.duration(+val, input);
-              } else {
-                  dur = moment.duration(input, val);
-              }
-              addOrSubtractDurationFromMoment(this, dur, -1);
-              return this;
-          },
-
-          diff : function (input, units, asFloat) {
-              var that = makeAs(input, this),
-                  zoneDiff = (this.zone() - that.zone()) * 6e4,
-                  diff, output;
-
-              units = normalizeUnits(units);
-
-              if (units === 'year' || units === 'month') {
-                  // average number of days in the months in the given dates
-                  diff = (this.daysInMonth() + that.daysInMonth()) * 432e5; // 24 * 60 * 60 * 1000 / 2
-                  // difference in months
-                  output = ((this.year() - that.year()) * 12) + (this.month() - that.month());
-                  // adjust by taking difference in days, average number of days
-                  // and dst in the given months.
-                  output += ((this - moment(this).startOf('month')) -
-                          (that - moment(that).startOf('month'))) / diff;
-                  // same as above but with zones, to negate all dst
-                  output -= ((this.zone() - moment(this).startOf('month').zone()) -
-                          (that.zone() - moment(that).startOf('month').zone())) * 6e4 / diff;
-                  if (units === 'year') {
-                      output = output / 12;
-                  }
-              } else {
-                  diff = (this - that);
-                  output = units === 'second' ? diff / 1e3 : // 1000
-                      units === 'minute' ? diff / 6e4 : // 1000 * 60
-                      units === 'hour' ? diff / 36e5 : // 1000 * 60 * 60
-                      units === 'day' ? (diff - zoneDiff) / 864e5 : // 1000 * 60 * 60 * 24, negate dst
-                      units === 'week' ? (diff - zoneDiff) / 6048e5 : // 1000 * 60 * 60 * 24 * 7, negate dst
-                      diff;
-              }
-              return asFloat ? output : absRound(output);
-          },
-
-          from : function (time, withoutSuffix) {
-              return moment.duration(this.diff(time)).lang(this.lang()._abbr).humanize(!withoutSuffix);
-          },
-
-          fromNow : function (withoutSuffix) {
-              return this.from(moment(), withoutSuffix);
-          },
-
-          calendar : function (time) {
-              // We want to compare the start of today, vs this.
-              // Getting start-of-today depends on whether we're zone'd or not.
-              var now = time || moment(),
-                  sod = makeAs(now, this).startOf('day'),
-                  diff = this.diff(sod, 'days', true),
-                  format = diff < -6 ? 'sameElse' :
-                      diff < -1 ? 'lastWeek' :
-                      diff < 0 ? 'lastDay' :
-                      diff < 1 ? 'sameDay' :
-                      diff < 2 ? 'nextDay' :
-                      diff < 7 ? 'nextWeek' : 'sameElse';
-              return this.format(this.lang().calendar(format, this));
-          },
-
-          isLeapYear : function () {
-              return isLeapYear(this.year());
-          },
-
-          isDST : function () {
-              return (this.zone() < this.clone().month(0).zone() ||
-                  this.zone() < this.clone().month(5).zone());
-          },
-
-          day : function (input) {
-              var day = this._isUTC ? this._d.getUTCDay() : this._d.getDay();
-              if (input != null) {
-                  input = parseWeekday(input, this.lang());
-                  return this.add({ d : input - day });
-              } else {
-                  return day;
-              }
-          },
-
-          month : makeAccessor('Month', true),
-
-          startOf: function (units) {
-              units = normalizeUnits(units);
-              // the following switch intentionally omits break keywords
-              // to utilize falling through the cases.
-              switch (units) {
-              case 'year':
-                  this.month(0);
-                  /* falls through */
-              case 'quarter':
-              case 'month':
-                  this.date(1);
-                  /* falls through */
-              case 'week':
-              case 'isoWeek':
-              case 'day':
-                  this.hours(0);
-                  /* falls through */
-              case 'hour':
-                  this.minutes(0);
-                  /* falls through */
-              case 'minute':
-                  this.seconds(0);
-                  /* falls through */
-              case 'second':
-                  this.milliseconds(0);
-                  /* falls through */
-              }
-
-              // weeks are a special case
-              if (units === 'week') {
-                  this.weekday(0);
-              } else if (units === 'isoWeek') {
-                  this.isoWeekday(1);
-              }
-
-              // quarters are also special
-              if (units === 'quarter') {
-                  this.month(Math.floor(this.month() / 3) * 3);
-              }
-
-              return this;
-          },
-
-          endOf: function (units) {
-              units = normalizeUnits(units);
-              return this.startOf(units).add((units === 'isoWeek' ? 'week' : units), 1).subtract('ms', 1);
-          },
-
-          isAfter: function (input, units) {
-              units = typeof units !== 'undefined' ? units : 'millisecond';
-              return +this.clone().startOf(units) > +moment(input).startOf(units);
-          },
-
-          isBefore: function (input, units) {
-              units = typeof units !== 'undefined' ? units : 'millisecond';
-              return +this.clone().startOf(units) < +moment(input).startOf(units);
-          },
-
-          isSame: function (input, units) {
-              units = units || 'ms';
-              return +this.clone().startOf(units) === +makeAs(input, this).startOf(units);
-          },
-
-          min: deprecate(
-                   "moment().min is deprecated, use moment.min instead. https://github.com/moment/moment/issues/1548",
-                   function (other) {
-                       other = moment.apply(null, arguments);
-                       return other < this ? this : other;
-                   }
-           ),
-
-          max: deprecate(
-                  "moment().max is deprecated, use moment.max instead. https://github.com/moment/moment/issues/1548",
-                  function (other) {
-                      other = moment.apply(null, arguments);
-                      return other > this ? this : other;
-                  }
-          ),
-
-          // keepTime = true means only change the timezone, without affecting
-          // the local hour. So 5:31:26 +0300 --[zone(2, true)]--> 5:31:26 +0200
-          // It is possible that 5:31:26 doesn't exist int zone +0200, so we
-          // adjust the time as needed, to be valid.
-          //
-          // Keeping the time actually adds/subtracts (one hour)
-          // from the actual represented time. That is why we call updateOffset
-          // a second time. In case it wants us to change the offset again
-          // _changeInProgress == true case, then we have to adjust, because
-          // there is no such time in the given timezone.
-          zone : function (input, keepTime) {
-              var offset = this._offset || 0;
-              if (input != null) {
-                  if (typeof input === "string") {
-                      input = timezoneMinutesFromString(input);
-                  }
-                  if (Math.abs(input) < 16) {
-                      input = input * 60;
-                  }
-                  this._offset = input;
-                  this._isUTC = true;
-                  if (offset !== input) {
-                      if (!keepTime || this._changeInProgress) {
-                          addOrSubtractDurationFromMoment(this,
-                                  moment.duration(offset - input, 'm'), 1, false);
-                      } else if (!this._changeInProgress) {
-                          this._changeInProgress = true;
-                          moment.updateOffset(this, true);
-                          this._changeInProgress = null;
-                      }
-                  }
-              } else {
-                  return this._isUTC ? offset : this._d.getTimezoneOffset();
-              }
-              return this;
-          },
-
-          zoneAbbr : function () {
-              return this._isUTC ? "UTC" : "";
-          },
-
-          zoneName : function () {
-              return this._isUTC ? "Coordinated Universal Time" : "";
-          },
-
-          parseZone : function () {
-              if (this._tzm) {
-                  this.zone(this._tzm);
-              } else if (typeof this._i === 'string') {
-                  this.zone(this._i);
-              }
-              return this;
-          },
-
-          hasAlignedHourOffset : function (input) {
-              if (!input) {
-                  input = 0;
-              }
-              else {
-                  input = moment(input).zone();
-              }
-
-              return (this.zone() - input) % 60 === 0;
-          },
-
-          daysInMonth : function () {
-              return daysInMonth(this.year(), this.month());
-          },
-
-          dayOfYear : function (input) {
-              var dayOfYear = round((moment(this).startOf('day') - moment(this).startOf('year')) / 864e5) + 1;
-              return input == null ? dayOfYear : this.add("d", (input - dayOfYear));
-          },
-
-          quarter : function (input) {
-              return input == null ? Math.ceil((this.month() + 1) / 3) : this.month((input - 1) * 3 + this.month() % 3);
-          },
-
-          weekYear : function (input) {
-              var year = weekOfYear(this, this.lang()._week.dow, this.lang()._week.doy).year;
-              return input == null ? year : this.add("y", (input - year));
-          },
-
-          isoWeekYear : function (input) {
-              var year = weekOfYear(this, 1, 4).year;
-              return input == null ? year : this.add("y", (input - year));
-          },
-
-          week : function (input) {
-              var week = this.lang().week(this);
-              return input == null ? week : this.add("d", (input - week) * 7);
-          },
-
-          isoWeek : function (input) {
-              var week = weekOfYear(this, 1, 4).week;
-              return input == null ? week : this.add("d", (input - week) * 7);
-          },
-
-          weekday : function (input) {
-              var weekday = (this.day() + 7 - this.lang()._week.dow) % 7;
-              return input == null ? weekday : this.add("d", input - weekday);
-          },
-
-          isoWeekday : function (input) {
-              // behaves the same as moment#day except
-              // as a getter, returns 7 instead of 0 (1-7 range instead of 0-6)
-              // as a setter, sunday should belong to the previous week.
-              return input == null ? this.day() || 7 : this.day(this.day() % 7 ? input : input - 7);
-          },
-
-          isoWeeksInYear : function () {
-              return weeksInYear(this.year(), 1, 4);
-          },
-
-          weeksInYear : function () {
-              var weekInfo = this._lang._week;
-              return weeksInYear(this.year(), weekInfo.dow, weekInfo.doy);
-          },
-
-          get : function (units) {
-              units = normalizeUnits(units);
-              return this[units]();
-          },
-
-          set : function (units, value) {
-              units = normalizeUnits(units);
-              if (typeof this[units] === 'function') {
-                  this[units](value);
-              }
-              return this;
-          },
-
-          // If passed a language key, it will set the language for this
-          // instance.  Otherwise, it will return the language configuration
-          // variables for this instance.
-          lang : function (key) {
-              if (key === undefined) {
-                  return this._lang;
-              } else {
-                  this._lang = getLangDefinition(key);
-                  return this;
-              }
-          }
-      });
-
-      function rawMonthSetter(mom, value) {
-          var dayOfMonth;
-
-          // TODO: Move this out of here!
-          if (typeof value === 'string') {
-              value = mom.lang().monthsParse(value);
-              // TODO: Another silent failure?
-              if (typeof value !== 'number') {
-                  return mom;
-              }
-          }
-
-          dayOfMonth = Math.min(mom.date(),
-                  daysInMonth(mom.year(), value));
-          mom._d['set' + (mom._isUTC ? 'UTC' : '') + 'Month'](value, dayOfMonth);
-          return mom;
-      }
-
-      function rawGetter(mom, unit) {
-          return mom._d['get' + (mom._isUTC ? 'UTC' : '') + unit]();
-      }
-
-      function rawSetter(mom, unit, value) {
-          if (unit === 'Month') {
-              return rawMonthSetter(mom, value);
-          } else {
-              return mom._d['set' + (mom._isUTC ? 'UTC' : '') + unit](value);
-          }
-      }
-
-      function makeAccessor(unit, keepTime) {
-          return function (value) {
-              if (value != null) {
-                  rawSetter(this, unit, value);
-                  moment.updateOffset(this, keepTime);
-                  return this;
-              } else {
-                  return rawGetter(this, unit);
-              }
-          };
-      }
-
-      moment.fn.millisecond = moment.fn.milliseconds = makeAccessor('Milliseconds', false);
-      moment.fn.second = moment.fn.seconds = makeAccessor('Seconds', false);
-      moment.fn.minute = moment.fn.minutes = makeAccessor('Minutes', false);
-      // Setting the hour should keep the time, because the user explicitly
-      // specified which hour he wants. So trying to maintain the same hour (in
-      // a new timezone) makes sense. Adding/subtracting hours does not follow
-      // this rule.
-      moment.fn.hour = moment.fn.hours = makeAccessor('Hours', true);
-      // moment.fn.month is defined separately
-      moment.fn.date = makeAccessor('Date', true);
-      moment.fn.dates = deprecate("dates accessor is deprecated. Use date instead.", makeAccessor('Date', true));
-      moment.fn.year = makeAccessor('FullYear', true);
-      moment.fn.years = deprecate("years accessor is deprecated. Use year instead.", makeAccessor('FullYear', true));
-
-      // add plural methods
-      moment.fn.days = moment.fn.day;
-      moment.fn.months = moment.fn.month;
-      moment.fn.weeks = moment.fn.week;
-      moment.fn.isoWeeks = moment.fn.isoWeek;
-      moment.fn.quarters = moment.fn.quarter;
-
-      // add aliased format methods
-      moment.fn.toJSON = moment.fn.toISOString;
-
-      /************************************
-          Duration Prototype
-      ************************************/
-
-
-      extend(moment.duration.fn = Duration.prototype, {
-
-          _bubble : function () {
-              var milliseconds = this._milliseconds,
-                  days = this._days,
-                  months = this._months,
-                  data = this._data,
-                  seconds, minutes, hours, years;
-
-              // The following code bubbles up values, see the tests for
-              // examples of what that means.
-              data.milliseconds = milliseconds % 1000;
-
-              seconds = absRound(milliseconds / 1000);
-              data.seconds = seconds % 60;
-
-              minutes = absRound(seconds / 60);
-              data.minutes = minutes % 60;
-
-              hours = absRound(minutes / 60);
-              data.hours = hours % 24;
-
-              days += absRound(hours / 24);
-              data.days = days % 30;
-
-              months += absRound(days / 30);
-              data.months = months % 12;
-
-              years = absRound(months / 12);
-              data.years = years;
-          },
-
-          weeks : function () {
-              return absRound(this.days() / 7);
-          },
-
-          valueOf : function () {
-              return this._milliseconds +
-                this._days * 864e5 +
-                (this._months % 12) * 2592e6 +
-                toInt(this._months / 12) * 31536e6;
-          },
-
-          humanize : function (withSuffix) {
-              var difference = +this,
-                  output = relativeTime(difference, !withSuffix, this.lang());
-
-              if (withSuffix) {
-                  output = this.lang().pastFuture(difference, output);
-              }
-
-              return this.lang().postformat(output);
-          },
-
-          add : function (input, val) {
-              // supports only 2.0-style add(1, 's') or add(moment)
-              var dur = moment.duration(input, val);
-
-              this._milliseconds += dur._milliseconds;
-              this._days += dur._days;
-              this._months += dur._months;
-
-              this._bubble();
-
-              return this;
-          },
-
-          subtract : function (input, val) {
-              var dur = moment.duration(input, val);
-
-              this._milliseconds -= dur._milliseconds;
-              this._days -= dur._days;
-              this._months -= dur._months;
-
-              this._bubble();
-
-              return this;
-          },
-
-          get : function (units) {
-              units = normalizeUnits(units);
-              return this[units.toLowerCase() + 's']();
-          },
-
-          as : function (units) {
-              units = normalizeUnits(units);
-              return this['as' + units.charAt(0).toUpperCase() + units.slice(1) + 's']();
-          },
-
-          lang : moment.fn.lang,
-
-          toIsoString : function () {
-              // inspired by https://github.com/dordille/moment-isoduration/blob/master/moment.isoduration.js
-              var years = Math.abs(this.years()),
-                  months = Math.abs(this.months()),
-                  days = Math.abs(this.days()),
-                  hours = Math.abs(this.hours()),
-                  minutes = Math.abs(this.minutes()),
-                  seconds = Math.abs(this.seconds() + this.milliseconds() / 1000);
-
-              if (!this.asSeconds()) {
-                  // this is the same as C#'s (Noda) and python (isodate)...
-                  // but not other JS (goog.date)
-                  return 'P0D';
-              }
-
-              return (this.asSeconds() < 0 ? '-' : '') +
-                  'P' +
-                  (years ? years + 'Y' : '') +
-                  (months ? months + 'M' : '') +
-                  (days ? days + 'D' : '') +
-                  ((hours || minutes || seconds) ? 'T' : '') +
-                  (hours ? hours + 'H' : '') +
-                  (minutes ? minutes + 'M' : '') +
-                  (seconds ? seconds + 'S' : '');
-          }
-      });
-
-      function makeDurationGetter(name) {
-          moment.duration.fn[name] = function () {
-              return this._data[name];
-          };
-      }
-
-      function makeDurationAsGetter(name, factor) {
-          moment.duration.fn['as' + name] = function () {
-              return +this / factor;
-          };
-      }
-
-      for (i in unitMillisecondFactors) {
-          if (unitMillisecondFactors.hasOwnProperty(i)) {
-              makeDurationAsGetter(i, unitMillisecondFactors[i]);
-              makeDurationGetter(i.toLowerCase());
-          }
-      }
-
-      makeDurationAsGetter('Weeks', 6048e5);
-      moment.duration.fn.asMonths = function () {
-          return (+this - this.years() * 31536e6) / 2592e6 + this.years() * 12;
-      };
-
-
-      /************************************
-          Default Lang
-      ************************************/
-
-
-      // Set default language, other languages will inherit from English.
-      moment.lang('en', {
-          ordinal : function (number) {
-              var b = number % 10,
-                  output = (toInt(number % 100 / 10) === 1) ? 'th' :
-                  (b === 1) ? 'st' :
-                  (b === 2) ? 'nd' :
-                  (b === 3) ? 'rd' : 'th';
-              return number + output;
-          }
-      });
-
-      /* EMBED_LANGUAGES */
-
-      /************************************
-          Exposing Moment
-      ************************************/
-
-      function makeGlobal(shouldDeprecate) {
-          /*global ender:false */
-          if (typeof ender !== 'undefined') {
-              return;
-          }
-          oldGlobalMoment = globalScope.moment;
-          if (shouldDeprecate) {
-              globalScope.moment = deprecate(
-                      "Accessing Moment through the global scope is " +
-                      "deprecated, and will be removed in an upcoming " +
-                      "release.",
-                      moment);
-          } else {
-              globalScope.moment = moment;
-          }
-      }
-
-      // CommonJS module is defined
-      if (hasModule) {
-          module.exports = moment;
-      } else if (true) {
-          !(__WEBPACK_AMD_DEFINE_RESULT__ = (function (require, exports, module) {
-              if (module.config && module.config() && module.config().noGlobal === true) {
-                  // release the global variable
-                  globalScope.moment = oldGlobalMoment;
-              }
-
-              return moment;
-          }.call(exports, __webpack_require__, exports, module)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-          makeGlobal(true);
-      } else {
-          makeGlobal();
-      }
-  }).call(this);
-  
-  /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(130)(module)))
-
-/***/ },
-/* 52 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * Calculate the forces the nodes apply on each other based on a repulsion field.
-   * This field is linearly approximated.
-   *
-   * @private
-   */
-  exports._calculateNodeForces = function () {
-    var dx, dy, angle, distance, fx, fy, combinedClusterSize,
-      repulsingForce, node1, node2, i, j;
-
-    var nodes = this.calculationNodes;
-    var nodeIndices = this.calculationNodeIndices;
-
-    // approximation constants
-    var a_base = -2 / 3;
-    var b = 4 / 3;
-
-    // repulsing forces between nodes
-    var nodeDistance = this.constants.physics.repulsion.nodeDistance;
-    var minimumDistance = nodeDistance;
-
-    // we loop from i over all but the last entree in the array
-    // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
-    for (i = 0; i < nodeIndices.length - 1; i++) {
-      node1 = nodes[nodeIndices[i]];
-      for (j = i + 1; j < nodeIndices.length; j++) {
-        node2 = nodes[nodeIndices[j]];
-        combinedClusterSize = node1.clusterSize + node2.clusterSize - 2;
-
-        dx = node2.x - node1.x;
-        dy = node2.y - node1.y;
-        distance = Math.sqrt(dx * dx + dy * dy);
-
-        minimumDistance = (combinedClusterSize == 0) ? nodeDistance : (nodeDistance * (1 + combinedClusterSize * this.constants.clustering.distanceAmplification));
-        var a = a_base / minimumDistance;
-        if (distance < 2 * minimumDistance) {
-          if (distance < 0.5 * minimumDistance) {
-            repulsingForce = 1.0;
-          }
-          else {
-            repulsingForce = a * distance + b; // linear approx of  1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness))
-          }
-
-          // amplify the repulsion for clusters.
-          repulsingForce *= (combinedClusterSize == 0) ? 1 : 1 + combinedClusterSize * this.constants.clustering.forceAmplification;
-          repulsingForce = repulsingForce / distance;
-
-          fx = dx * repulsingForce;
-          fy = dy * repulsingForce;
-
-          node1.fx -= fx;
-          node1.fy -= fy;
-          node2.fx += fx;
-          node2.fy += fy;
-        }
-      }
-    }
-  };
-
-
-/***/ },
-/* 53 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * This function calculates the forces the nodes apply on eachother based on a gravitational model.
-   * The Barnes Hut method is used to speed up this N-body simulation.
-   *
-   * @private
-   */
-  exports._calculateNodeForces = function() {
-    if (this.constants.physics.barnesHut.gravitationalConstant != 0) {
-      var node;
-      var nodes = this.calculationNodes;
-      var nodeIndices = this.calculationNodeIndices;
-      var nodeCount = nodeIndices.length;
-
-      this._formBarnesHutTree(nodes,nodeIndices);
-
-      var barnesHutTree = this.barnesHutTree;
-
-      // place the nodes one by one recursively
-      for (var i = 0; i < nodeCount; i++) {
-        node = nodes[nodeIndices[i]];
-        // starting with root is irrelevant, it never passes the BarnesHut condition
-        this._getForceContribution(barnesHutTree.root.children.NW,node);
-        this._getForceContribution(barnesHutTree.root.children.NE,node);
-        this._getForceContribution(barnesHutTree.root.children.SW,node);
-        this._getForceContribution(barnesHutTree.root.children.SE,node);
-      }
-    }
-  };
-
-
-  /**
-   * This function traverses the barnesHutTree. It checks when it can approximate distant nodes with their center of mass.
-   * If a region contains a single node, we check if it is not itself, then we apply the force.
-   *
-   * @param parentBranch
-   * @param node
-   * @private
-   */
-  exports._getForceContribution = function(parentBranch,node) {
-    // we get no force contribution from an empty region
-    if (parentBranch.childrenCount > 0) {
-      var dx,dy,distance;
-
-      // get the distance from the center of mass to the node.
-      dx = parentBranch.centerOfMass.x - node.x;
-      dy = parentBranch.centerOfMass.y - node.y;
-      distance = Math.sqrt(dx * dx + dy * dy);
-
-      // BarnesHut condition
-      // original condition : s/d < theta = passed  ===  d/s > 1/theta = passed
-      // calcSize = 1/s --> d * 1/s > 1/theta = passed
-      if (distance * parentBranch.calcSize > this.constants.physics.barnesHut.theta) {
-        // duplicate code to reduce function calls to speed up program
-        if (distance == 0) {
-          distance = 0.1*Math.random();
-          dx = distance;
-        }
-        var gravityForce = this.constants.physics.barnesHut.gravitationalConstant * parentBranch.mass * node.mass / (distance * distance * distance);
-        var fx = dx * gravityForce;
-        var fy = dy * gravityForce;
-        node.fx += fx;
-        node.fy += fy;
-      }
-      else {
-        // Did not pass the condition, go into children if available
-        if (parentBranch.childrenCount == 4) {
-          this._getForceContribution(parentBranch.children.NW,node);
-          this._getForceContribution(parentBranch.children.NE,node);
-          this._getForceContribution(parentBranch.children.SW,node);
-          this._getForceContribution(parentBranch.children.SE,node);
-        }
-        else { // parentBranch must have only one node, if it was empty we wouldnt be here
-          if (parentBranch.children.data.id != node.id) { // if it is not self
-            // duplicate code to reduce function calls to speed up program
-            if (distance == 0) {
-              distance = 0.5*Math.random();
-              dx = distance;
-            }
-            var gravityForce = this.constants.physics.barnesHut.gravitationalConstant * parentBranch.mass * node.mass / (distance * distance * distance);
-            var fx = dx * gravityForce;
-            var fy = dy * gravityForce;
-            node.fx += fx;
-            node.fy += fy;
-          }
-        }
-      }
-    }
-  };
-
-  /**
-   * This function constructs the barnesHut tree recursively. It creates the root, splits it and starts placing the nodes.
-   *
-   * @param nodes
-   * @param nodeIndices
-   * @private
-   */
-  exports._formBarnesHutTree = function(nodes,nodeIndices) {
-    var node;
-    var nodeCount = nodeIndices.length;
-
-    var minX = Number.MAX_VALUE,
-      minY = Number.MAX_VALUE,
-      maxX =-Number.MAX_VALUE,
-      maxY =-Number.MAX_VALUE;
-
-    // get the range of the nodes
-    for (var i = 0; i < nodeCount; i++) {
-      var x = nodes[nodeIndices[i]].x;
-      var y = nodes[nodeIndices[i]].y;
-      if (x < minX) { minX = x; }
-      if (x > maxX) { maxX = x; }
-      if (y < minY) { minY = y; }
-      if (y > maxY) { maxY = y; }
-    }
-    // make the range a square
-    var sizeDiff = Math.abs(maxX - minX) - Math.abs(maxY - minY); // difference between X and Y
-    if (sizeDiff > 0) {minY -= 0.5 * sizeDiff; maxY += 0.5 * sizeDiff;} // xSize > ySize
-    else              {minX += 0.5 * sizeDiff; maxX -= 0.5 * sizeDiff;} // xSize < ySize
-
-
-    var minimumTreeSize = 1e-5;
-    var rootSize = Math.max(minimumTreeSize,Math.abs(maxX - minX));
-    var halfRootSize = 0.5 * rootSize;
-    var centerX = 0.5 * (minX + maxX), centerY = 0.5 * (minY + maxY);
-
-    // construct the barnesHutTree
-    var barnesHutTree = {
-      root:{
-        centerOfMass: {x:0, y:0},
-        mass:0,
-        range: {
-          minX: centerX-halfRootSize,maxX:centerX+halfRootSize,
-          minY: centerY-halfRootSize,maxY:centerY+halfRootSize
-        },
-        size: rootSize,
-        calcSize: 1 / rootSize,
-        children: { data:null},
-        maxWidth: 0,
-        level: 0,
-        childrenCount: 4
-      }
-    };
-    this._splitBranch(barnesHutTree.root);
-
-    // place the nodes one by one recursively
-    for (i = 0; i < nodeCount; i++) {
-      node = nodes[nodeIndices[i]];
-      this._placeInTree(barnesHutTree.root,node);
-    }
-
-    // make global
-    this.barnesHutTree = barnesHutTree
-  };
-
-
-  /**
-   * this updates the mass of a branch. this is increased by adding a node.
-   *
-   * @param parentBranch
-   * @param node
-   * @private
-   */
-  exports._updateBranchMass = function(parentBranch, node) {
-    var totalMass = parentBranch.mass + node.mass;
-    var totalMassInv = 1/totalMass;
-
-    parentBranch.centerOfMass.x = parentBranch.centerOfMass.x * parentBranch.mass + node.x * node.mass;
-    parentBranch.centerOfMass.x *= totalMassInv;
-
-    parentBranch.centerOfMass.y = parentBranch.centerOfMass.y * parentBranch.mass + node.y * node.mass;
-    parentBranch.centerOfMass.y *= totalMassInv;
-
-    parentBranch.mass = totalMass;
-    var biggestSize = Math.max(Math.max(node.height,node.radius),node.width);
-    parentBranch.maxWidth = (parentBranch.maxWidth < biggestSize) ? biggestSize : parentBranch.maxWidth;
-
-  };
-
-
-  /**
-   * determine in which branch the node will be placed.
-   *
-   * @param parentBranch
-   * @param node
-   * @param skipMassUpdate
-   * @private
-   */
-  exports._placeInTree = function(parentBranch,node,skipMassUpdate) {
-    if (skipMassUpdate != true || skipMassUpdate === undefined) {
-      // update the mass of the branch.
-      this._updateBranchMass(parentBranch,node);
-    }
-
-    if (parentBranch.children.NW.range.maxX > node.x) { // in NW or SW
-      if (parentBranch.children.NW.range.maxY > node.y) { // in NW
-        this._placeInRegion(parentBranch,node,"NW");
-      }
-      else { // in SW
-        this._placeInRegion(parentBranch,node,"SW");
-      }
-    }
-    else { // in NE or SE
-      if (parentBranch.children.NW.range.maxY > node.y) { // in NE
-        this._placeInRegion(parentBranch,node,"NE");
-      }
-      else { // in SE
-        this._placeInRegion(parentBranch,node,"SE");
-      }
-    }
-  };
-
-
-  /**
-   * actually place the node in a region (or branch)
-   *
-   * @param parentBranch
-   * @param node
-   * @param region
-   * @private
-   */
-  exports._placeInRegion = function(parentBranch,node,region) {
-    switch (parentBranch.children[region].childrenCount) {
-      case 0: // place node here
-        parentBranch.children[region].children.data = node;
-        parentBranch.children[region].childrenCount = 1;
-        this._updateBranchMass(parentBranch.children[region],node);
-        break;
-      case 1: // convert into children
-        // if there are two nodes exactly overlapping (on init, on opening of cluster etc.)
-        // we move one node a pixel and we do not put it in the tree.
-        if (parentBranch.children[region].children.data.x == node.x &&
-            parentBranch.children[region].children.data.y == node.y) {
-          node.x += Math.random();
-          node.y += Math.random();
-        }
-        else {
-          this._splitBranch(parentBranch.children[region]);
-          this._placeInTree(parentBranch.children[region],node);
-        }
-        break;
-      case 4: // place in branch
-        this._placeInTree(parentBranch.children[region],node);
-        break;
-    }
-  };
-
-
-  /**
-   * this function splits a branch into 4 sub branches. If the branch contained a node, we place it in the subbranch
-   * after the split is complete.
-   *
-   * @param parentBranch
-   * @private
-   */
-  exports._splitBranch = function(parentBranch) {
-    // if the branch is shaded with a node, replace the node in the new subset.
-    var containedNode = null;
-    if (parentBranch.childrenCount == 1) {
-      containedNode = parentBranch.children.data;
-      parentBranch.mass = 0; parentBranch.centerOfMass.x = 0; parentBranch.centerOfMass.y = 0;
-    }
-    parentBranch.childrenCount = 4;
-    parentBranch.children.data = null;
-    this._insertRegion(parentBranch,"NW");
-    this._insertRegion(parentBranch,"NE");
-    this._insertRegion(parentBranch,"SW");
-    this._insertRegion(parentBranch,"SE");
-
-    if (containedNode != null) {
-      this._placeInTree(parentBranch,containedNode);
-    }
-  };
-
-
-  /**
-   * This function subdivides the region into four new segments.
-   * Specifically, this inserts a single new segment.
-   * It fills the children section of the parentBranch
-   *
-   * @param parentBranch
-   * @param region
-   * @param parentRange
-   * @private
-   */
-  exports._insertRegion = function(parentBranch, region) {
-    var minX,maxX,minY,maxY;
-    var childSize = 0.5 * parentBranch.size;
-    switch (region) {
-      case "NW":
-        minX = parentBranch.range.minX;
-        maxX = parentBranch.range.minX + childSize;
-        minY = parentBranch.range.minY;
-        maxY = parentBranch.range.minY + childSize;
-        break;
-      case "NE":
-        minX = parentBranch.range.minX + childSize;
-        maxX = parentBranch.range.maxX;
-        minY = parentBranch.range.minY;
-        maxY = parentBranch.range.minY + childSize;
-        break;
-      case "SW":
-        minX = parentBranch.range.minX;
-        maxX = parentBranch.range.minX + childSize;
-        minY = parentBranch.range.minY + childSize;
-        maxY = parentBranch.range.maxY;
-        break;
-      case "SE":
-        minX = parentBranch.range.minX + childSize;
-        maxX = parentBranch.range.maxX;
-        minY = parentBranch.range.minY + childSize;
-        maxY = parentBranch.range.maxY;
-        break;
-    }
-
-
-    parentBranch.children[region] = {
-      centerOfMass:{x:0,y:0},
-      mass:0,
-      range:{minX:minX,maxX:maxX,minY:minY,maxY:maxY},
-      size: 0.5 * parentBranch.size,
-      calcSize: 2 * parentBranch.calcSize,
-      children: {data:null},
-      maxWidth: 0,
-      level: parentBranch.level+1,
-      childrenCount: 0
-    };
-  };
-
-
-  /**
-   * This function is for debugging purposed, it draws the tree.
-   *
-   * @param ctx
-   * @param color
-   * @private
-   */
-  exports._drawTree = function(ctx,color) {
-    if (this.barnesHutTree !== undefined) {
-
-      ctx.lineWidth = 1;
-
-      this._drawBranch(this.barnesHutTree.root,ctx,color);
-    }
-  };
-
-
-  /**
-   * This function is for debugging purposes. It draws the branches recursively.
-   *
-   * @param branch
-   * @param ctx
-   * @param color
-   * @private
-   */
-  exports._drawBranch = function(branch,ctx,color) {
-    if (color === undefined) {
-      color = "#FF0000";
-    }
-
-    if (branch.childrenCount == 4) {
-      this._drawBranch(branch.children.NW,ctx);
-      this._drawBranch(branch.children.NE,ctx);
-      this._drawBranch(branch.children.SE,ctx);
-      this._drawBranch(branch.children.SW,ctx);
-    }
-    ctx.strokeStyle = color;
-    ctx.beginPath();
-    ctx.moveTo(branch.range.minX,branch.range.minY);
-    ctx.lineTo(branch.range.maxX,branch.range.minY);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(branch.range.maxX,branch.range.minY);
-    ctx.lineTo(branch.range.maxX,branch.range.maxY);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(branch.range.maxX,branch.range.maxY);
-    ctx.lineTo(branch.range.minX,branch.range.maxY);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(branch.range.minX,branch.range.maxY);
-    ctx.lineTo(branch.range.minX,branch.range.minY);
-    ctx.stroke();
-
-    /*
-     if (branch.mass > 0) {
-     ctx.circle(branch.centerOfMass.x, branch.centerOfMass.y, 3*branch.mass);
-     ctx.stroke();
-     }
-     */
-  };
-
-
-/***/ },
-/* 54 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * Calculate the forces the nodes apply on eachother based on a repulsion field.
-   * This field is linearly approximated.
-   *
-   * @private
-   */
-  exports._calculateNodeForces = function () {
-    var dx, dy, distance, fx, fy, combinedClusterSize,
-      repulsingForce, node1, node2, i, j;
-
-    var nodes = this.calculationNodes;
-    var nodeIndices = this.calculationNodeIndices;
-
-    // approximation constants
-    var b = 5;
-    var a_base = 0.5 * -b;
-
-
-    // repulsing forces between nodes
-    var nodeDistance = this.constants.physics.hierarchicalRepulsion.nodeDistance;
-    var minimumDistance = nodeDistance;
-    var a = a_base / minimumDistance;
-
-    // we loop from i over all but the last entree in the array
-    // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
-    for (i = 0; i < nodeIndices.length - 1; i++) {
-
-      node1 = nodes[nodeIndices[i]];
-      for (j = i + 1; j < nodeIndices.length; j++) {
-        node2 = nodes[nodeIndices[j]];
-        if (node1.level == node2.level) {
-
-          dx = node2.x - node1.x;
-          dy = node2.y - node1.y;
-          distance = Math.sqrt(dx * dx + dy * dy);
-
-
-          if (distance < 2 * minimumDistance) {
-            repulsingForce = a * distance + b;
-            var c = 0.05;
-            var d = 2 * minimumDistance * 2 * c;
-            repulsingForce = c * Math.pow(distance,2) - d * distance + d*d/(4*c);
-
-            // normalize force with
-            if (distance == 0) {
-              distance = 0.01;
-            }
-            else {
-              repulsingForce = repulsingForce / distance;
-            }
-            fx = dx * repulsingForce;
-            fy = dy * repulsingForce;
-
-            node1.fx -= fx;
-            node1.fy -= fy;
-            node2.fx += fx;
-            node2.fy += fy;
-          }
-        }
-      }
-    }
-  };
-
-
-  /**
-   * this function calculates the effects of the springs in the case of unsmooth curves.
-   *
-   * @private
-   */
-  exports._calculateHierarchicalSpringForces = function () {
-    var edgeLength, edge, edgeId;
-    var dx, dy, fx, fy, springForce, distance;
-    var edges = this.edges;
-
-    // forces caused by the edges, modelled as springs
-    for (edgeId in edges) {
-      if (edges.hasOwnProperty(edgeId)) {
-        edge = edges[edgeId];
-        if (edge.connected) {
-          // only calculate forces if nodes are in the same sector
-          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
-            edgeLength = edge.customLength ? edge.length : this.constants.physics.springLength;
-            // this implies that the edges between big clusters are longer
-            edgeLength += (edge.to.clusterSize + edge.from.clusterSize - 2) * this.constants.clustering.edgeGrowth;
-
-            dx = (edge.from.x - edge.to.x);
-            dy = (edge.from.y - edge.to.y);
-            distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance == 0) {
-              distance = 0.01;
-            }
-
-            distance = Math.max(0.8*edgeLength,Math.min(5*edgeLength, distance));
-
-            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
-            springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
-
-            fx = dx * springForce;
-            fy = dy * springForce;
-
-            edge.to.fx -= fx;
-            edge.to.fy -= fy;
-            edge.from.fx += fx;
-            edge.from.fy += fy;
-
-
-            var factor = 5;
-            if (distance > edgeLength) {
-              factor = 25;
-            }
-
-            if (edge.from.level > edge.to.level) {
-              edge.to.fx -= factor*fx;
-              edge.to.fy -= factor*fy;
-            }
-            else if (edge.from.level < edge.to.level) {
-              edge.from.fx += factor*fx;
-              edge.from.fy += factor*fy;
-            }
-          }
-        }
-      }
-    }
-  };
-
-/***/ },
-/* 55 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var map = {
-  	"./ar": 58,
-  	"./ar-ma": 56,
-  	"./ar-ma.js": 56,
-  	"./ar-sa": 57,
-  	"./ar-sa.js": 57,
-  	"./ar.js": 58,
-  	"./az": 59,
-  	"./az.js": 59,
-  	"./bg": 60,
-  	"./bg.js": 60,
-  	"./bn": 61,
-  	"./bn.js": 61,
-  	"./br": 62,
-  	"./br.js": 62,
-  	"./bs": 63,
-  	"./bs.js": 63,
-  	"./ca": 64,
-  	"./ca.js": 64,
-  	"./cs": 65,
-  	"./cs.js": 65,
-  	"./cv": 66,
-  	"./cv.js": 66,
-  	"./cy": 67,
-  	"./cy.js": 67,
-  	"./da": 68,
-  	"./da.js": 68,
-  	"./de": 70,
-  	"./de-at": 69,
-  	"./de-at.js": 69,
-  	"./de.js": 70,
-  	"./el": 71,
-  	"./el.js": 71,
-  	"./en-au": 72,
-  	"./en-au.js": 72,
-  	"./en-ca": 73,
-  	"./en-ca.js": 73,
-  	"./en-gb": 74,
-  	"./en-gb.js": 74,
-  	"./eo": 75,
-  	"./eo.js": 75,
-  	"./es": 76,
-  	"./es.js": 76,
-  	"./et": 77,
-  	"./et.js": 77,
-  	"./eu": 78,
-  	"./eu.js": 78,
-  	"./fa": 79,
-  	"./fa.js": 79,
-  	"./fi": 80,
-  	"./fi.js": 80,
-  	"./fo": 81,
-  	"./fo.js": 81,
-  	"./fr": 83,
-  	"./fr-ca": 82,
-  	"./fr-ca.js": 82,
-  	"./fr.js": 83,
-  	"./gl": 84,
-  	"./gl.js": 84,
-  	"./he": 85,
-  	"./he.js": 85,
-  	"./hi": 86,
-  	"./hi.js": 86,
-  	"./hr": 87,
-  	"./hr.js": 87,
-  	"./hu": 88,
-  	"./hu.js": 88,
-  	"./hy-am": 89,
-  	"./hy-am.js": 89,
-  	"./id": 90,
-  	"./id.js": 90,
-  	"./is": 91,
-  	"./is.js": 91,
-  	"./it": 92,
-  	"./it.js": 92,
-  	"./ja": 93,
-  	"./ja.js": 93,
-  	"./ka": 94,
-  	"./ka.js": 94,
-  	"./km": 95,
-  	"./km.js": 95,
-  	"./ko": 96,
-  	"./ko.js": 96,
-  	"./lb": 97,
-  	"./lb.js": 97,
-  	"./lt": 98,
-  	"./lt.js": 98,
-  	"./lv": 99,
-  	"./lv.js": 99,
-  	"./mk": 100,
-  	"./mk.js": 100,
-  	"./ml": 101,
-  	"./ml.js": 101,
-  	"./mr": 102,
-  	"./mr.js": 102,
-  	"./ms-my": 103,
-  	"./ms-my.js": 103,
-  	"./nb": 104,
-  	"./nb.js": 104,
-  	"./ne": 105,
-  	"./ne.js": 105,
-  	"./nl": 106,
-  	"./nl.js": 106,
-  	"./nn": 107,
-  	"./nn.js": 107,
-  	"./pl": 108,
-  	"./pl.js": 108,
-  	"./pt": 110,
-  	"./pt-br": 109,
-  	"./pt-br.js": 109,
-  	"./pt.js": 110,
-  	"./ro": 111,
-  	"./ro.js": 111,
-  	"./ru": 112,
-  	"./ru.js": 112,
-  	"./sk": 113,
-  	"./sk.js": 113,
-  	"./sl": 114,
-  	"./sl.js": 114,
-  	"./sq": 115,
-  	"./sq.js": 115,
-  	"./sr": 117,
-  	"./sr-cyrl": 116,
-  	"./sr-cyrl.js": 116,
-  	"./sr.js": 117,
-  	"./sv": 118,
-  	"./sv.js": 118,
-  	"./ta": 119,
-  	"./ta.js": 119,
-  	"./th": 120,
-  	"./th.js": 120,
-  	"./tl-ph": 121,
-  	"./tl-ph.js": 121,
-  	"./tr": 122,
-  	"./tr.js": 122,
-  	"./tzm": 124,
-  	"./tzm-latn": 123,
-  	"./tzm-latn.js": 123,
-  	"./tzm.js": 124,
-  	"./uk": 125,
-  	"./uk.js": 125,
-  	"./uz": 126,
-  	"./uz.js": 126,
-  	"./vi": 127,
-  	"./vi.js": 127,
-  	"./zh-cn": 128,
-  	"./zh-cn.js": 128,
-  	"./zh-tw": 129,
-  	"./zh-tw.js": 129
-  };
-  function webpackContext(req) {
-  	return __webpack_require__(webpackContextResolve(req));
-  };
-  function webpackContextResolve(req) {
-  	return map[req] || (function() { throw new Error("Cannot find module '" + req + "'.") }());
-  };
-  webpackContext.keys = function webpackContextKeys() {
-  	return Object.keys(map);
-  };
-  webpackContext.resolve = webpackContextResolve;
-  module.exports = webpackContext;
-
-
-/***/ },
 /* 56 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Canvas shapes used by Network
+   */
+  if (typeof CanvasRenderingContext2D !== 'undefined') {
+
+    /**
+     * Draw a circle shape
+     */
+    CanvasRenderingContext2D.prototype.circle = function(x, y, r) {
+      this.beginPath();
+      this.arc(x, y, r, 0, 2*Math.PI, false);
+    };
+
+    /**
+     * Draw a square shape
+     * @param {Number} x horizontal center
+     * @param {Number} y vertical center
+     * @param {Number} r   size, width and height of the square
+     */
+    CanvasRenderingContext2D.prototype.square = function(x, y, r) {
+      this.beginPath();
+      this.rect(x - r, y - r, r * 2, r * 2);
+    };
+
+    /**
+     * Draw a triangle shape
+     * @param {Number} x horizontal center
+     * @param {Number} y vertical center
+     * @param {Number} r   radius, half the length of the sides of the triangle
+     */
+    CanvasRenderingContext2D.prototype.triangle = function(x, y, r) {
+      // http://en.wikipedia.org/wiki/Equilateral_triangle
+      this.beginPath();
+
+      var s = r * 2;
+      var s2 = s / 2;
+      var ir = Math.sqrt(3) / 6 * s;      // radius of inner circle
+      var h = Math.sqrt(s * s - s2 * s2); // height
+
+      this.moveTo(x, y - (h - ir));
+      this.lineTo(x + s2, y + ir);
+      this.lineTo(x - s2, y + ir);
+      this.lineTo(x, y - (h - ir));
+      this.closePath();
+    };
+
+    /**
+     * Draw a triangle shape in downward orientation
+     * @param {Number} x horizontal center
+     * @param {Number} y vertical center
+     * @param {Number} r radius
+     */
+    CanvasRenderingContext2D.prototype.triangleDown = function(x, y, r) {
+      // http://en.wikipedia.org/wiki/Equilateral_triangle
+      this.beginPath();
+
+      var s = r * 2;
+      var s2 = s / 2;
+      var ir = Math.sqrt(3) / 6 * s;      // radius of inner circle
+      var h = Math.sqrt(s * s - s2 * s2); // height
+
+      this.moveTo(x, y + (h - ir));
+      this.lineTo(x + s2, y - ir);
+      this.lineTo(x - s2, y - ir);
+      this.lineTo(x, y + (h - ir));
+      this.closePath();
+    };
+
+    /**
+     * Draw a star shape, a star with 5 points
+     * @param {Number} x horizontal center
+     * @param {Number} y vertical center
+     * @param {Number} r   radius, half the length of the sides of the triangle
+     */
+    CanvasRenderingContext2D.prototype.star = function(x, y, r) {
+      // http://www.html5canvastutorials.com/labs/html5-canvas-star-spinner/
+      this.beginPath();
+
+      for (var n = 0; n < 10; n++) {
+        var radius = (n % 2 === 0) ? r * 1.3 : r * 0.5;
+        this.lineTo(
+            x + radius * Math.sin(n * 2 * Math.PI / 10),
+            y - radius * Math.cos(n * 2 * Math.PI / 10)
+        );
+      }
+
+      this.closePath();
+    };
+
+    /**
+     * http://stackoverflow.com/questions/1255512/how-to-draw-a-rounded-rectangle-on-html-canvas
+     */
+    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+      var r2d = Math.PI/180;
+      if( w - ( 2 * r ) < 0 ) { r = ( w / 2 ); } //ensure that the radius isn't too large for x
+      if( h - ( 2 * r ) < 0 ) { r = ( h / 2 ); } //ensure that the radius isn't too large for y
+      this.beginPath();
+      this.moveTo(x+r,y);
+      this.lineTo(x+w-r,y);
+      this.arc(x+w-r,y+r,r,r2d*270,r2d*360,false);
+      this.lineTo(x+w,y+h-r);
+      this.arc(x+w-r,y+h-r,r,0,r2d*90,false);
+      this.lineTo(x+r,y+h);
+      this.arc(x+r,y+h-r,r,r2d*90,r2d*180,false);
+      this.lineTo(x,y+r);
+      this.arc(x+r,y+r,r,r2d*180,r2d*270,false);
+    };
+
+    /**
+     * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
+     */
+    CanvasRenderingContext2D.prototype.ellipse = function(x, y, w, h) {
+      var kappa = .5522848,
+          ox = (w / 2) * kappa, // control point offset horizontal
+          oy = (h / 2) * kappa, // control point offset vertical
+          xe = x + w,           // x-end
+          ye = y + h,           // y-end
+          xm = x + w / 2,       // x-middle
+          ym = y + h / 2;       // y-middle
+
+      this.beginPath();
+      this.moveTo(x, ym);
+      this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
+      this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
+      this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
+      this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
+    };
+
+
+
+    /**
+     * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
+     */
+    CanvasRenderingContext2D.prototype.database = function(x, y, w, h) {
+      var f = 1/3;
+      var wEllipse = w;
+      var hEllipse = h * f;
+
+      var kappa = .5522848,
+          ox = (wEllipse / 2) * kappa, // control point offset horizontal
+          oy = (hEllipse / 2) * kappa, // control point offset vertical
+          xe = x + wEllipse,           // x-end
+          ye = y + hEllipse,           // y-end
+          xm = x + wEllipse / 2,       // x-middle
+          ym = y + hEllipse / 2,       // y-middle
+          ymb = y + (h - hEllipse/2),  // y-midlle, bottom ellipse
+          yeb = y + h;                 // y-end, bottom ellipse
+
+      this.beginPath();
+      this.moveTo(xe, ym);
+
+      this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
+      this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
+
+      this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
+      this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
+
+      this.lineTo(xe, ymb);
+
+      this.bezierCurveTo(xe, ymb + oy, xm + ox, yeb, xm, yeb);
+      this.bezierCurveTo(xm - ox, yeb, x, ymb + oy, x, ymb);
+
+      this.lineTo(x, ym);
+    };
+
+
+    /**
+     * Draw an arrow point (no line)
+     */
+    CanvasRenderingContext2D.prototype.arrow = function(x, y, angle, length) {
+      // tail
+      var xt = x - length * Math.cos(angle);
+      var yt = y - length * Math.sin(angle);
+
+      // inner tail
+      // TODO: allow to customize different shapes
+      var xi = x - length * 0.9 * Math.cos(angle);
+      var yi = y - length * 0.9 * Math.sin(angle);
+
+      // left
+      var xl = xt + length / 3 * Math.cos(angle + 0.5 * Math.PI);
+      var yl = yt + length / 3 * Math.sin(angle + 0.5 * Math.PI);
+
+      // right
+      var xr = xt + length / 3 * Math.cos(angle - 0.5 * Math.PI);
+      var yr = yt + length / 3 * Math.sin(angle - 0.5 * Math.PI);
+
+      this.beginPath();
+      this.moveTo(x, y);
+      this.lineTo(xl, yl);
+      this.lineTo(xi, yi);
+      this.lineTo(xr, yr);
+      this.closePath();
+    };
+
+    /**
+     * Sets up the dashedLine functionality for drawing
+     * Original code came from http://stackoverflow.com/questions/4576724/dotted-stroke-in-canvas
+     * @author David Jordan
+     * @date 2012-08-08
+     */
+    CanvasRenderingContext2D.prototype.dashedLine = function(x,y,x2,y2,dashArray){
+      if (!dashArray) dashArray=[10,5];
+      if (dashLength==0) dashLength = 0.001; // Hack for Safari
+      var dashCount = dashArray.length;
+      this.moveTo(x, y);
+      var dx = (x2-x), dy = (y2-y);
+      var slope = dy/dx;
+      var distRemaining = Math.sqrt( dx*dx + dy*dy );
+      var dashIndex=0, draw=true;
+      while (distRemaining>=0.1){
+        var dashLength = dashArray[dashIndex++%dashCount];
+        if (dashLength > distRemaining) dashLength = distRemaining;
+        var xStep = Math.sqrt( dashLength*dashLength / (1 + slope*slope) );
+        if (dx<0) xStep = -xStep;
+        x += xStep;
+        y += slope*xStep;
+        this[draw ? 'lineTo' : 'moveTo'](x,y);
+        distRemaining -= dashLength;
+        draw = !draw;
+      }
+    };
+
+    // TODO: add diamond shape
+  }
+
+
+/***/ },
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -30859,7 +30886,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -30911,7 +30938,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 57 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -30920,7 +30947,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31013,7 +31040,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 58 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31023,7 +31050,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31116,7 +31143,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 59 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31125,7 +31152,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31224,7 +31251,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 60 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31233,7 +31260,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31316,7 +31343,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 61 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31325,7 +31352,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31428,7 +31455,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 62 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31437,7 +31464,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31541,7 +31568,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 63 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31551,7 +31578,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31686,7 +31713,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 64 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31695,7 +31722,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31758,7 +31785,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 65 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31767,7 +31794,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31919,7 +31946,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 66 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31928,7 +31955,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31984,7 +32011,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 67 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31993,7 +32020,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32067,7 +32094,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 68 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32076,7 +32103,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32129,7 +32156,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 69 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32140,7 +32167,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32207,7 +32234,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 70 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32217,7 +32244,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32284,7 +32311,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 71 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32293,7 +32320,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32380,7 +32407,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 72 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32388,7 +32415,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32448,7 +32475,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 73 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32457,7 +32484,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32513,7 +32540,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 74 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32522,7 +32549,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32582,7 +32609,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 75 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32593,7 +32620,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32653,7 +32680,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 76 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32662,7 +32689,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32734,7 +32761,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 77 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32744,7 +32771,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32816,7 +32843,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 78 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32825,7 +32852,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32882,7 +32909,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 79 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32891,7 +32918,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32985,7 +33012,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 80 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32994,7 +33021,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33094,7 +33121,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 81 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33103,7 +33130,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33156,7 +33183,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 82 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33165,7 +33192,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33216,7 +33243,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 83 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33225,7 +33252,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33280,7 +33307,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 84 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33289,7 +33316,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33357,7 +33384,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 85 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33368,7 +33395,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33440,7 +33467,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 86 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33449,7 +33476,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33551,7 +33578,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 87 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33562,7 +33589,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33697,7 +33724,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 88 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33706,7 +33733,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33808,7 +33835,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 89 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33817,7 +33844,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33927,7 +33954,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 90 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33937,7 +33964,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34000,7 +34027,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 91 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34009,7 +34036,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34130,7 +34157,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 92 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34140,7 +34167,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34195,7 +34222,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 93 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34204,7 +34231,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34259,7 +34286,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 94 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34268,7 +34295,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34373,7 +34400,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 95 */
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34382,7 +34409,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34434,7 +34461,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 96 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34446,7 +34473,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // - Jeeeyul Lee <jeeeyul@gmail.com>
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34503,7 +34530,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 97 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34516,7 +34543,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34669,7 +34696,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 98 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34678,7 +34705,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34793,7 +34820,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 99 */
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34802,7 +34829,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34876,7 +34903,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 100 */
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34885,7 +34912,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34968,7 +34995,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 101 */
+/* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34977,7 +35004,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35038,7 +35065,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 102 */
+/* 103 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35047,7 +35074,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35148,7 +35175,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 103 */
+/* 104 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35157,7 +35184,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35220,7 +35247,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 104 */
+/* 105 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35230,7 +35257,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35283,7 +35310,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 105 */
+/* 106 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35292,7 +35319,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35394,7 +35421,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 106 */
+/* 107 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35403,7 +35430,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35467,7 +35494,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 107 */
+/* 108 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35476,7 +35503,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35529,7 +35556,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 108 */
+/* 109 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35538,7 +35565,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35633,7 +35660,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 109 */
+/* 110 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35642,7 +35669,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35695,7 +35722,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 110 */
+/* 111 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35704,7 +35731,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35761,7 +35788,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 111 */
+/* 112 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35771,7 +35798,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35839,7 +35866,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 112 */
+/* 113 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35849,7 +35876,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36011,7 +36038,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 113 */
+/* 114 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36021,7 +36048,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36173,7 +36200,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 114 */
+/* 115 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36182,7 +36209,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36323,7 +36350,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 115 */
+/* 116 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36334,7 +36361,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36390,7 +36417,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 116 */
+/* 117 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36399,7 +36426,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36502,7 +36529,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 117 */
+/* 118 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36511,7 +36538,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36614,7 +36641,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 118 */
+/* 119 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36623,7 +36650,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36683,7 +36710,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 119 */
+/* 120 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36692,7 +36719,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36801,7 +36828,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 120 */
+/* 121 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36810,7 +36837,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36865,7 +36892,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 121 */
+/* 122 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36874,7 +36901,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36929,7 +36956,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 122 */
+/* 123 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36939,7 +36966,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -37028,7 +37055,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 123 */
+/* 124 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -37037,7 +37064,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -37089,7 +37116,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 124 */
+/* 125 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -37098,7 +37125,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -37150,7 +37177,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 125 */
+/* 126 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -37160,7 +37187,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -37313,7 +37340,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 126 */
+/* 127 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -37322,7 +37349,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -37374,7 +37401,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 127 */
+/* 128 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -37383,7 +37410,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -37442,7 +37469,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 128 */
+/* 129 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -37452,7 +37479,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -37556,7 +37583,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 129 */
+/* 130 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -37565,7 +37592,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(51)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -37643,22 +37670,6 @@ return /******/ (function(modules) { // webpackBootstrap
           }
       });
   }));
-
-
-/***/ },
-/* 130 */
-/***/ function(module, exports, __webpack_require__) {
-
-  module.exports = function(module) {
-  	if(!module.webpackPolyfill) {
-  		module.deprecate = function() {};
-  		module.paths = [];
-  		// module.parent = undefined by default
-  		module.children = [];
-  		module.webpackPolyfill = 1;
-  	}
-  	return module;
-  }
 
 
 /***/ }
