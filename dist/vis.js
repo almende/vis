@@ -20105,13 +20105,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
     var pointer = this._getPointer(event.gesture.center);
 
-    var me = this,
-      drag = this.drag,
-      selection = drag.selection;
+    var me = this;
+    var drag = this.drag;
+    var selection = drag.selection;
     if (selection && selection.length && this.constants.dragNodes == true) {
       // calculate delta's and new location
-      var deltaX = pointer.x - drag.pointer.x,
-        deltaY = pointer.y - drag.pointer.y;
+      var deltaX = pointer.x - drag.pointer.x;
+      var deltaY = pointer.y - drag.pointer.y;
 
       // update position of all selected nodes
       selection.forEach(function (s) {
@@ -20125,6 +20125,7 @@ return /******/ (function(modules) { // webpackBootstrap
           node.y = me._YconvertDOMtoCanvas(me._YconvertCanvasToDOM(s.y) + deltaY);
         }
       });
+
 
       // start _animationStep if not yet running
       if (!this.moving) {
@@ -20242,6 +20243,13 @@ return /******/ (function(modules) { // webpackBootstrap
       if (scale > 10) {
         scale = 10;
       }
+
+      var preScaleDragPointer = null;
+      if (this.drag !== undefined) {
+        if (this.drag.dragging == true) {
+          preScaleDragPointer = this.DOMtoCanvas(this.drag.pointer);
+        }
+      }
     // + this.frame.canvas.clientHeight / 2
       var translation = this._getTranslation();
 
@@ -20255,6 +20263,13 @@ return /******/ (function(modules) { // webpackBootstrap
       this._setScale(scale);
       this._setTranslation(tx, ty);
       this.updateClustersDefault();
+
+      if (preScaleDragPointer != null) {
+        var postScaleDragPointer = this.canvasToDOM(preScaleDragPointer);
+        this.drag.pointer.x = postScaleDragPointer.x;
+        this.drag.pointer.y = postScaleDragPointer.y;
+      }
+
       this._redraw();
 
       if (scaleOld < scale) {
