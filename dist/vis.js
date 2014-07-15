@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.0.1-SNAPSHOT
- * @date    2014-07-11
+ * @date    2014-07-15
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -88,16 +88,16 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.DataView = __webpack_require__(4);
 
   // Graph3d
-  exports.Graph3d = __webpack_require__(11);
+  exports.Graph3d = __webpack_require__(5);
 
   // Timeline
-  exports.Timeline = __webpack_require__(5);
+  exports.Timeline = __webpack_require__(6);
   exports.Graph2d = __webpack_require__(7);
   exports.timeline= {
-    DataStep: __webpack_require__(6),
-    Range: __webpack_require__(8),
-    stack: __webpack_require__(9),
-    TimeStep: __webpack_require__(10),
+    DataStep: __webpack_require__(8),
+    Range: __webpack_require__(9),
+    stack: __webpack_require__(10),
+    TimeStep: __webpack_require__(11),
 
     components: {
       items: {
@@ -2832,3154 +2832,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 5 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var Emitter = __webpack_require__(41);
-  var Hammer = __webpack_require__(50);
-  var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(3);
-  var DataView = __webpack_require__(4);
-  var Range = __webpack_require__(8);
-  var TimeAxis = __webpack_require__(21);
-  var CurrentTime = __webpack_require__(13);
-  var CustomTime = __webpack_require__(14);
-  var ItemSet = __webpack_require__(18);
-
-  /**
-   * Create a timeline visualization
-   * @param {HTMLElement} container
-   * @param {vis.DataSet | Array | google.visualization.DataTable} [items]
-   * @param {Object} [options]  See Timeline.setOptions for the available options.
-   * @constructor
-   */
-  function Timeline (container, items, options) {
-    if (!(this instanceof Timeline)) {
-      throw new SyntaxError('Constructor must be called with the new operator');
-    }
-
-    var me = this;
-    this.defaultOptions = {
-      start: null,
-      end:   null,
-
-      autoResize: true,
-
-      orientation: 'bottom',
-      width: null,
-      height: null,
-      maxHeight: null,
-      minHeight: null
-    };
-    this.options = util.deepExtend({}, this.defaultOptions);
-
-    // Create the DOM, props, and emitter
-    this._create(container);
-
-    // all components listed here will be repainted automatically
-    this.components = [];
-
-    this.body = {
-      dom: this.dom,
-      domProps: this.props,
-      emitter: {
-        on: this.on.bind(this),
-        off: this.off.bind(this),
-        emit: this.emit.bind(this)
-      },
-      util: {
-        snap: null, // will be specified after TimeAxis is created
-        toScreen: me._toScreen.bind(me),
-        toGlobalScreen: me._toGlobalScreen.bind(me), // this refers to the root.width
-        toTime: me._toTime.bind(me),
-        toGlobalTime : me._toGlobalTime.bind(me)
-      }
-    };
-
-    // range
-    this.range = new Range(this.body);
-    this.components.push(this.range);
-    this.body.range = this.range;
-
-    // time axis
-    this.timeAxis = new TimeAxis(this.body);
-    this.components.push(this.timeAxis);
-    this.body.util.snap = this.timeAxis.snap.bind(this.timeAxis);
-
-    // current time bar
-    this.currentTime = new CurrentTime(this.body);
-    this.components.push(this.currentTime);
-
-    // custom time bar
-    // Note: time bar will be attached in this.setOptions when selected
-    this.customTime = new CustomTime(this.body);
-    this.components.push(this.customTime);
-
-    // item set
-    this.itemSet = new ItemSet(this.body);
-    this.components.push(this.itemSet);
-
-    this.itemsData = null;      // DataSet
-    this.groupsData = null;     // DataSet
-
-    // apply options
-    if (options) {
-      this.setOptions(options);
-    }
-
-    // create itemset
-    if (items) {
-      this.setItems(items);
-    }
-    else {
-      this.redraw();
-    }
-  }
-
-  // turn Timeline into an event emitter
-  Emitter(Timeline.prototype);
-
-  /**
-   * Create the main DOM for the Timeline: a root panel containing left, right,
-   * top, bottom, content, and background panel.
-   * @param {Element} container  The container element where the Timeline will
-   *                             be attached.
-   * @private
-   */
-  Timeline.prototype._create = function (container) {
-    this.dom = {};
-
-    this.dom.root                 = document.createElement('div');
-    this.dom.background           = document.createElement('div');
-    this.dom.backgroundVertical   = document.createElement('div');
-    this.dom.backgroundHorizontal = document.createElement('div');
-    this.dom.centerContainer      = document.createElement('div');
-    this.dom.leftContainer        = document.createElement('div');
-    this.dom.rightContainer       = document.createElement('div');
-    this.dom.center               = document.createElement('div');
-    this.dom.left                 = document.createElement('div');
-    this.dom.right                = document.createElement('div');
-    this.dom.top                  = document.createElement('div');
-    this.dom.bottom               = document.createElement('div');
-    this.dom.shadowTop            = document.createElement('div');
-    this.dom.shadowBottom         = document.createElement('div');
-    this.dom.shadowTopLeft        = document.createElement('div');
-    this.dom.shadowBottomLeft     = document.createElement('div');
-    this.dom.shadowTopRight       = document.createElement('div');
-    this.dom.shadowBottomRight    = document.createElement('div');
-
-    this.dom.background.className           = 'vispanel background';
-    this.dom.backgroundVertical.className   = 'vispanel background vertical';
-    this.dom.backgroundHorizontal.className = 'vispanel background horizontal';
-    this.dom.centerContainer.className      = 'vispanel center';
-    this.dom.leftContainer.className        = 'vispanel left';
-    this.dom.rightContainer.className       = 'vispanel right';
-    this.dom.top.className                  = 'vispanel top';
-    this.dom.bottom.className               = 'vispanel bottom';
-    this.dom.left.className                 = 'content';
-    this.dom.center.className               = 'content';
-    this.dom.right.className                = 'content';
-    this.dom.shadowTop.className            = 'shadow top';
-    this.dom.shadowBottom.className         = 'shadow bottom';
-    this.dom.shadowTopLeft.className        = 'shadow top';
-    this.dom.shadowBottomLeft.className     = 'shadow bottom';
-    this.dom.shadowTopRight.className       = 'shadow top';
-    this.dom.shadowBottomRight.className    = 'shadow bottom';
-
-    this.dom.root.appendChild(this.dom.background);
-    this.dom.root.appendChild(this.dom.backgroundVertical);
-    this.dom.root.appendChild(this.dom.backgroundHorizontal);
-    this.dom.root.appendChild(this.dom.centerContainer);
-    this.dom.root.appendChild(this.dom.leftContainer);
-    this.dom.root.appendChild(this.dom.rightContainer);
-    this.dom.root.appendChild(this.dom.top);
-    this.dom.root.appendChild(this.dom.bottom);
-
-    this.dom.centerContainer.appendChild(this.dom.center);
-    this.dom.leftContainer.appendChild(this.dom.left);
-    this.dom.rightContainer.appendChild(this.dom.right);
-
-    this.dom.centerContainer.appendChild(this.dom.shadowTop);
-    this.dom.centerContainer.appendChild(this.dom.shadowBottom);
-    this.dom.leftContainer.appendChild(this.dom.shadowTopLeft);
-    this.dom.leftContainer.appendChild(this.dom.shadowBottomLeft);
-    this.dom.rightContainer.appendChild(this.dom.shadowTopRight);
-    this.dom.rightContainer.appendChild(this.dom.shadowBottomRight);
-
-    this.on('rangechange', this.redraw.bind(this));
-    this.on('change', this.redraw.bind(this));
-    this.on('touch', this._onTouch.bind(this));
-    this.on('pinch', this._onPinch.bind(this));
-    this.on('dragstart', this._onDragStart.bind(this));
-    this.on('drag', this._onDrag.bind(this));
-
-    // create event listeners for all interesting events, these events will be
-    // emitted via emitter
-    this.hammer = Hammer(this.dom.root, {
-      prevent_default: true
-    });
-    this.listeners = {};
-
-    var me = this;
-    var events = [
-      'touch', 'pinch',
-      'tap', 'doubletap', 'hold',
-      'dragstart', 'drag', 'dragend',
-      'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is needed for Firefox
-    ];
-    events.forEach(function (event) {
-      var listener = function () {
-        var args = [event].concat(Array.prototype.slice.call(arguments, 0));
-        me.emit.apply(me, args);
-      };
-      me.hammer.on(event, listener);
-      me.listeners[event] = listener;
-    });
-
-    // size properties of each of the panels
-    this.props = {
-      root: {},
-      background: {},
-      centerContainer: {},
-      leftContainer: {},
-      rightContainer: {},
-      center: {},
-      left: {},
-      right: {},
-      top: {},
-      bottom: {},
-      border: {},
-      scrollTop: 0,
-      scrollTopMin: 0
-    };
-    this.touch = {}; // store state information needed for touch events
-
-    // attach the root panel to the provided container
-    if (!container) throw new Error('No container provided');
-    container.appendChild(this.dom.root);
-  };
-
-  /**
-   * Destroy the Timeline, clean up all DOM elements and event listeners.
-   */
-  Timeline.prototype.destroy = function () {
-    // unbind datasets
-    this.clear();
-
-    // remove all event listeners
-    this.off();
-
-    // stop checking for changed size
-    this._stopAutoResize();
-
-    // remove from DOM
-    if (this.dom.root.parentNode) {
-      this.dom.root.parentNode.removeChild(this.dom.root);
-    }
-    this.dom = null;
-
-    // cleanup hammer touch events
-    for (var event in this.listeners) {
-      if (this.listeners.hasOwnProperty(event)) {
-        delete this.listeners[event];
-      }
-    }
-    this.listeners = null;
-    this.hammer = null;
-
-    // give all components the opportunity to cleanup
-    this.components.forEach(function (component) {
-      component.destroy();
-    });
-
-    this.body = null;
-  };
-
-  /**
-   * Set options. Options will be passed to all components loaded in the Timeline.
-   * @param {Object} [options]
-   *                           {String} orientation
-   *                              Vertical orientation for the Timeline,
-   *                              can be 'bottom' (default) or 'top'.
-   *                           {String | Number} width
-   *                              Width for the timeline, a number in pixels or
-   *                              a css string like '1000px' or '75%'. '100%' by default.
-   *                           {String | Number} height
-   *                              Fixed height for the Timeline, a number in pixels or
-   *                              a css string like '400px' or '75%'. If undefined,
-   *                              The Timeline will automatically size such that
-   *                              its contents fit.
-   *                           {String | Number} minHeight
-   *                              Minimum height for the Timeline, a number in pixels or
-   *                              a css string like '400px' or '75%'.
-   *                           {String | Number} maxHeight
-   *                              Maximum height for the Timeline, a number in pixels or
-   *                              a css string like '400px' or '75%'.
-   *                           {Number | Date | String} start
-   *                              Start date for the visible window
-   *                           {Number | Date | String} end
-   *                              End date for the visible window
-   */
-  Timeline.prototype.setOptions = function (options) {
-    if (options) {
-      // copy the known options
-      var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'orientation'];
-      util.selectiveExtend(fields, this.options, options);
-
-      // enable/disable autoResize
-      this._initAutoResize();
-    }
-
-    // propagate options to all components
-    this.components.forEach(function (component) {
-      component.setOptions(options);
-    });
-
-    // TODO: remove deprecation error one day (deprecated since version 0.8.0)
-    if (options && options.order) {
-      throw new Error('Option order is deprecated. There is no replacement for this feature.');
-    }
-
-    // redraw everything
-    this.redraw();
-  };
-
-  /**
-   * Set a custom time bar
-   * @param {Date} time
-   */
-  Timeline.prototype.setCustomTime = function (time) {
-    if (!this.customTime) {
-      throw new Error('Cannot get custom time: Custom time bar is not enabled');
-    }
-
-    this.customTime.setCustomTime(time);
-  };
-
-  /**
-   * Retrieve the current custom time.
-   * @return {Date} customTime
-   */
-  Timeline.prototype.getCustomTime = function() {
-    if (!this.customTime) {
-      throw new Error('Cannot get custom time: Custom time bar is not enabled');
-    }
-
-    return this.customTime.getCustomTime();
-  };
-
-  /**
-   * Set items
-   * @param {vis.DataSet | Array | google.visualization.DataTable | null} items
-   */
-  Timeline.prototype.setItems = function(items) {
-    var initialLoad = (this.itemsData == null);
-
-    // convert to type DataSet when needed
-    var newDataSet;
-    if (!items) {
-      newDataSet = null;
-    }
-    else if (items instanceof DataSet || items instanceof DataView) {
-      newDataSet = items;
-    }
-    else {
-      // turn an array into a dataset
-      newDataSet = new DataSet(items, {
-        type: {
-          start: 'Date',
-          end: 'Date'
-        }
-      });
-    }
-
-    // set items
-    this.itemsData = newDataSet;
-    this.itemSet && this.itemSet.setItems(newDataSet);
-
-    if (initialLoad && ('start' in this.options || 'end' in this.options)) {
-      this.fit();
-
-      var start = ('start' in this.options) ? util.convert(this.options.start, 'Date') : null;
-      var end   = ('end' in this.options)   ? util.convert(this.options.end, 'Date') : null;
-
-      this.setWindow(start, end);
-    }
-  };
-
-  /**
-   * Set groups
-   * @param {vis.DataSet | Array | google.visualization.DataTable} groups
-   */
-  Timeline.prototype.setGroups = function(groups) {
-    // convert to type DataSet when needed
-    var newDataSet;
-    if (!groups) {
-      newDataSet = null;
-    }
-    else if (groups instanceof DataSet || groups instanceof DataView) {
-      newDataSet = groups;
-    }
-    else {
-      // turn an array into a dataset
-      newDataSet = new DataSet(groups);
-    }
-
-    this.groupsData = newDataSet;
-    this.itemSet.setGroups(newDataSet);
-  };
-
-  /**
-   * Clear the Timeline. By Default, items, groups and options are cleared.
-   * Example usage:
-   *
-   *     timeline.clear();                // clear items, groups, and options
-   *     timeline.clear({options: true}); // clear options only
-   *
-   * @param {Object} [what]      Optionally specify what to clear. By default:
-   *                             {items: true, groups: true, options: true}
-   */
-  Timeline.prototype.clear = function(what) {
-    // clear items
-    if (!what || what.items) {
-      this.setItems(null);
-    }
-
-    // clear groups
-    if (!what || what.groups) {
-      this.setGroups(null);
-    }
-
-    // clear options of timeline and of each of the components
-    if (!what || what.options) {
-      this.components.forEach(function (component) {
-        component.setOptions(component.defaultOptions);
-      });
-
-      this.setOptions(this.defaultOptions); // this will also do a redraw
-    }
-  };
-
-  /**
-   * Set Timeline window such that it fits all items
-   */
-  Timeline.prototype.fit = function() {
-    // apply the data range as range
-    var dataRange = this.getItemRange();
-
-    // add 5% space on both sides
-    var start = dataRange.min;
-    var end = dataRange.max;
-    if (start != null && end != null) {
-      var interval = (end.valueOf() - start.valueOf());
-      if (interval <= 0) {
-        // prevent an empty interval
-        interval = 24 * 60 * 60 * 1000; // 1 day
-      }
-      start = new Date(start.valueOf() - interval * 0.05);
-      end = new Date(end.valueOf() + interval * 0.05);
-    }
-
-    // skip range set if there is no start and end date
-    if (start === null && end === null) {
-      return;
-    }
-
-    this.range.setRange(start, end);
-  };
-
-  /**
-   * Get the data range of the item set.
-   * @returns {{min: Date, max: Date}} range  A range with a start and end Date.
-   *                                          When no minimum is found, min==null
-   *                                          When no maximum is found, max==null
-   */
-  Timeline.prototype.getItemRange = function() {
-    // calculate min from start filed
-    var dataset = this.itemsData.getDataSet(),
-        min = null,
-        max = null;
-
-    if (dataset) {
-      // calculate the minimum value of the field 'start'
-      var minItem = dataset.min('start');
-      min = minItem ? util.convert(minItem.start, 'Date').valueOf() : null;
-      // Note: we convert first to Date and then to number because else
-      // a conversion from ISODate to Number will fail
-
-      // calculate maximum value of fields 'start' and 'end'
-      var maxStartItem = dataset.max('start');
-      if (maxStartItem) {
-        max = util.convert(maxStartItem.start, 'Date').valueOf();
-      }
-      var maxEndItem = dataset.max('end');
-      if (maxEndItem) {
-        if (max == null) {
-          max = util.convert(maxEndItem.end, 'Date').valueOf();
-        }
-        else {
-          max = Math.max(max, util.convert(maxEndItem.end, 'Date').valueOf());
-        }
-      }
-    }
-
-    return {
-      min: (min != null) ? new Date(min) : null,
-      max: (max != null) ? new Date(max) : null
-    };
-  };
-
-  /**
-   * Set selected items by their id. Replaces the current selection
-   * Unknown id's are silently ignored.
-   * @param {Array} [ids] An array with zero or more id's of the items to be
-   *                      selected. If ids is an empty array, all items will be
-   *                      unselected.
-   */
-  Timeline.prototype.setSelection = function(ids) {
-    this.itemSet && this.itemSet.setSelection(ids);
-  };
-
-  /**
-   * Get the selected items by their id
-   * @return {Array} ids  The ids of the selected items
-   */
-  Timeline.prototype.getSelection = function() {
-    return this.itemSet && this.itemSet.getSelection() || [];
-  };
-
-  /**
-   * Set the visible window. Both parameters are optional, you can change only
-   * start or only end. Syntax:
-   *
-   *     TimeLine.setWindow(start, end)
-   *     TimeLine.setWindow(range)
-   *
-   * Where start and end can be a Date, number, or string, and range is an
-   * object with properties start and end.
-   *
-   * @param {Date | Number | String | Object} [start] Start date of visible window
-   * @param {Date | Number | String} [end]   End date of visible window
-   */
-  Timeline.prototype.setWindow = function(start, end) {
-    if (arguments.length == 1) {
-      var range = arguments[0];
-      this.range.setRange(range.start, range.end);
-    }
-    else {
-      this.range.setRange(start, end);
-    }
-  };
-
-  /**
-   * Get the visible window
-   * @return {{start: Date, end: Date}}   Visible range
-   */
-  Timeline.prototype.getWindow = function() {
-    var range = this.range.getRange();
-    return {
-      start: new Date(range.start),
-      end: new Date(range.end)
-    };
-  };
-
-  /**
-   * Force a redraw of the Timeline. Can be useful to manually redraw when
-   * option autoResize=false
-   */
-  Timeline.prototype.redraw = function() {
-    var resized = false,
-        options = this.options,
-        props = this.props,
-        dom = this.dom;
-
-    if (!dom) return; // when destroyed
-
-    // update class names
-    dom.root.className = 'vis timeline root ' + options.orientation;
-
-    // update root width and height options
-    dom.root.style.maxHeight = util.option.asSize(options.maxHeight, '');
-    dom.root.style.minHeight = util.option.asSize(options.minHeight, '');
-    dom.root.style.width = util.option.asSize(options.width, '');
-
-    // calculate border widths
-    props.border.left   = (dom.centerContainer.offsetWidth - dom.centerContainer.clientWidth) / 2;
-    props.border.right  = props.border.left;
-    props.border.top    = (dom.centerContainer.offsetHeight - dom.centerContainer.clientHeight) / 2;
-    props.border.bottom = props.border.top;
-    var borderRootHeight= dom.root.offsetHeight - dom.root.clientHeight;
-    var borderRootWidth = dom.root.offsetWidth - dom.root.clientWidth;
-
-    // calculate the heights. If any of the side panels is empty, we set the height to
-    // minus the border width, such that the border will be invisible
-    props.center.height = dom.center.offsetHeight;
-    props.left.height   = dom.left.offsetHeight;
-    props.right.height  = dom.right.offsetHeight;
-    props.top.height    = dom.top.clientHeight    || -props.border.top;
-    props.bottom.height = dom.bottom.clientHeight || -props.border.bottom;
-
-    // TODO: compensate borders when any of the panels is empty.
-
-    // apply auto height
-    // TODO: only calculate autoHeight when needed (else we cause an extra reflow/repaint of the DOM)
-    var contentHeight = Math.max(props.left.height, props.center.height, props.right.height);
-    var autoHeight = props.top.height + contentHeight + props.bottom.height +
-        borderRootHeight + props.border.top + props.border.bottom;
-    dom.root.style.height = util.option.asSize(options.height, autoHeight + 'px');
-
-    // calculate heights of the content panels
-    props.root.height = dom.root.offsetHeight;
-    props.background.height = props.root.height - borderRootHeight;
-    var containerHeight = props.root.height - props.top.height - props.bottom.height -
-        borderRootHeight;
-    props.centerContainer.height  = containerHeight;
-    props.leftContainer.height    = containerHeight;
-    props.rightContainer.height   = props.leftContainer.height;
-
-    // calculate the widths of the panels
-    props.root.width = dom.root.offsetWidth;
-    props.background.width = props.root.width - borderRootWidth;
-    props.left.width = dom.leftContainer.clientWidth   || -props.border.left;
-    props.leftContainer.width = props.left.width;
-    props.right.width = dom.rightContainer.clientWidth || -props.border.right;
-    props.rightContainer.width = props.right.width;
-    var centerWidth = props.root.width - props.left.width - props.right.width - borderRootWidth;
-    props.center.width          = centerWidth;
-    props.centerContainer.width = centerWidth;
-    props.top.width             = centerWidth;
-    props.bottom.width          = centerWidth;
-
-    // resize the panels
-    dom.background.style.height           = props.background.height + 'px';
-    dom.backgroundVertical.style.height   = props.background.height + 'px';
-    dom.backgroundHorizontal.style.height = props.centerContainer.height + 'px';
-    dom.centerContainer.style.height      = props.centerContainer.height + 'px';
-    dom.leftContainer.style.height        = props.leftContainer.height + 'px';
-    dom.rightContainer.style.height       = props.rightContainer.height + 'px';
-
-    dom.background.style.width            = props.background.width + 'px';
-    dom.backgroundVertical.style.width    = props.centerContainer.width + 'px';
-    dom.backgroundHorizontal.style.width  = props.background.width + 'px';
-    dom.centerContainer.style.width       = props.center.width + 'px';
-    dom.top.style.width                   = props.top.width + 'px';
-    dom.bottom.style.width                = props.bottom.width + 'px';
-
-    // reposition the panels
-    dom.background.style.left           = '0';
-    dom.background.style.top            = '0';
-    dom.backgroundVertical.style.left   = props.left.width + 'px';
-    dom.backgroundVertical.style.top    = '0';
-    dom.backgroundHorizontal.style.left = '0';
-    dom.backgroundHorizontal.style.top  = props.top.height + 'px';
-    dom.centerContainer.style.left      = props.left.width + 'px';
-    dom.centerContainer.style.top       = props.top.height + 'px';
-    dom.leftContainer.style.left        = '0';
-    dom.leftContainer.style.top         = props.top.height + 'px';
-    dom.rightContainer.style.left       = (props.left.width + props.center.width) + 'px';
-    dom.rightContainer.style.top        = props.top.height + 'px';
-    dom.top.style.left                  = props.left.width + 'px';
-    dom.top.style.top                   = '0';
-    dom.bottom.style.left               = props.left.width + 'px';
-    dom.bottom.style.top                = (props.top.height + props.centerContainer.height) + 'px';
-
-    // update the scrollTop, feasible range for the offset can be changed
-    // when the height of the Timeline or of the contents of the center changed
-    this._updateScrollTop();
-
-    // reposition the scrollable contents
-    var offset = this.props.scrollTop;
-    if (options.orientation == 'bottom') {
-      offset += Math.max(this.props.centerContainer.height - this.props.center.height -
-          this.props.border.top - this.props.border.bottom, 0);
-    }
-    dom.center.style.left = '0';
-    dom.center.style.top  = offset + 'px';
-    dom.left.style.left   = '0';
-    dom.left.style.top    = offset + 'px';
-    dom.right.style.left  = '0';
-    dom.right.style.top   = offset + 'px';
-
-    // show shadows when vertical scrolling is available
-    var visibilityTop = this.props.scrollTop == 0 ? 'hidden' : '';
-    var visibilityBottom = this.props.scrollTop == this.props.scrollTopMin ? 'hidden' : '';
-    dom.shadowTop.style.visibility          = visibilityTop;
-    dom.shadowBottom.style.visibility       = visibilityBottom;
-    dom.shadowTopLeft.style.visibility      = visibilityTop;
-    dom.shadowBottomLeft.style.visibility   = visibilityBottom;
-    dom.shadowTopRight.style.visibility     = visibilityTop;
-    dom.shadowBottomRight.style.visibility  = visibilityBottom;
-
-    // redraw all components
-    this.components.forEach(function (component) {
-      resized = component.redraw() || resized;
-    });
-    if (resized) {
-      // keep repainting until all sizes are settled
-      this.redraw();
-    }
-  };
-
-  // TODO: deprecated since version 1.1.0, remove some day
-  Timeline.prototype.repaint = function () {
-      throw new Error('Function repaint is deprecated. Use redraw instead.');
-  };
-
-  /**
-   * Convert a position on screen (pixels) to a datetime
-   * @param {int}     x    Position on the screen in pixels
-   * @return {Date}   time The datetime the corresponds with given position x
-   * @private
-   */
-  // TODO: move this function to Range
-  Timeline.prototype._toTime = function(x) {
-    var conversion = this.range.conversion(this.props.center.width);
-    return new Date(x / conversion.scale + conversion.offset);
-  };
-
-
-  /**
-   * Convert a position on the global screen (pixels) to a datetime
-   * @param {int}     x    Position on the screen in pixels
-   * @return {Date}   time The datetime the corresponds with given position x
-   * @private
-   */
-  // TODO: move this function to Range
-  Timeline.prototype._toGlobalTime = function(x) {
-    var conversion = this.range.conversion(this.props.root.width);
-    return new Date(x / conversion.scale + conversion.offset);
-  };
-
-  /**
-   * Convert a datetime (Date object) into a position on the screen
-   * @param {Date}   time A date
-   * @return {int}   x    The position on the screen in pixels which corresponds
-   *                      with the given date.
-   * @private
-   */
-  // TODO: move this function to Range
-  Timeline.prototype._toScreen = function(time) {
-    var conversion = this.range.conversion(this.props.center.width);
-    return (time.valueOf() - conversion.offset) * conversion.scale;
-  };
-
-
-  /**
-   * Convert a datetime (Date object) into a position on the root
-   * This is used to get the pixel density estimate for the screen, not the center panel
-   * @param {Date}   time A date
-   * @return {int}   x    The position on root in pixels which corresponds
-   *                      with the given date.
-   * @private
-   */
-  // TODO: move this function to Range
-  Timeline.prototype._toGlobalScreen = function(time) {
-    var conversion = this.range.conversion(this.props.root.width);
-    return (time.valueOf() - conversion.offset) * conversion.scale;
-  };
-
-
-  /**
-   * Initialize watching when option autoResize is true
-   * @private
-   */
-  Timeline.prototype._initAutoResize = function () {
-    if (this.options.autoResize == true) {
-      this._startAutoResize();
-    }
-    else {
-      this._stopAutoResize();
-    }
-  };
-
-  /**
-   * Watch for changes in the size of the container. On resize, the Panel will
-   * automatically redraw itself.
-   * @private
-   */
-  Timeline.prototype._startAutoResize = function () {
-    var me = this;
-
-    this._stopAutoResize();
-
-    this._onResize = function() {
-      if (me.options.autoResize != true) {
-        // stop watching when the option autoResize is changed to false
-        me._stopAutoResize();
-        return;
-      }
-
-      if (me.dom.root) {
-        // check whether the frame is resized
-        if ((me.dom.root.clientWidth != me.props.lastWidth) ||
-            (me.dom.root.clientHeight != me.props.lastHeight)) {
-          me.props.lastWidth = me.dom.root.clientWidth;
-          me.props.lastHeight = me.dom.root.clientHeight;
-
-          me.emit('change');
-        }
-      }
-    };
-
-    // add event listener to window resize
-    util.addEventListener(window, 'resize', this._onResize);
-
-    this.watchTimer = setInterval(this._onResize, 1000);
-  };
-
-  /**
-   * Stop watching for a resize of the frame.
-   * @private
-   */
-  Timeline.prototype._stopAutoResize = function () {
-    if (this.watchTimer) {
-      clearInterval(this.watchTimer);
-      this.watchTimer = undefined;
-    }
-
-    // remove event listener on window.resize
-    util.removeEventListener(window, 'resize', this._onResize);
-    this._onResize = null;
-  };
-
-  /**
-   * Start moving the timeline vertically
-   * @param {Event} event
-   * @private
-   */
-  Timeline.prototype._onTouch = function (event) {
-    this.touch.allowDragging = true;
-  };
-
-  /**
-   * Start moving the timeline vertically
-   * @param {Event} event
-   * @private
-   */
-  Timeline.prototype._onPinch = function (event) {
-    this.touch.allowDragging = false;
-  };
-
-  /**
-   * Start moving the timeline vertically
-   * @param {Event} event
-   * @private
-   */
-  Timeline.prototype._onDragStart = function (event) {
-    this.touch.initialScrollTop = this.props.scrollTop;
-  };
-
-  /**
-   * Move the timeline vertically
-   * @param {Event} event
-   * @private
-   */
-  Timeline.prototype._onDrag = function (event) {
-    // refuse to drag when we where pinching to prevent the timeline make a jump
-    // when releasing the fingers in opposite order from the touch screen
-    if (!this.touch.allowDragging) return;
-
-    var delta = event.gesture.deltaY;
-
-    var oldScrollTop = this._getScrollTop();
-    var newScrollTop = this._setScrollTop(this.touch.initialScrollTop + delta);
-
-    if (newScrollTop != oldScrollTop) {
-      this.redraw(); // TODO: this causes two redraws when dragging, the other is triggered by rangechange already
-    }
-  };
-
-  /**
-   * Apply a scrollTop
-   * @param {Number} scrollTop
-   * @returns {Number} scrollTop  Returns the applied scrollTop
-   * @private
-   */
-  Timeline.prototype._setScrollTop = function (scrollTop) {
-    this.props.scrollTop = scrollTop;
-    this._updateScrollTop();
-    return this.props.scrollTop;
-  };
-
-  /**
-   * Update the current scrollTop when the height of  the containers has been changed
-   * @returns {Number} scrollTop  Returns the applied scrollTop
-   * @private
-   */
-  Timeline.prototype._updateScrollTop = function () {
-    // recalculate the scrollTopMin
-    var scrollTopMin = Math.min(this.props.centerContainer.height - this.props.center.height, 0); // is negative or zero
-    if (scrollTopMin != this.props.scrollTopMin) {
-      // in case of bottom orientation, change the scrollTop such that the contents
-      // do not move relative to the time axis at the bottom
-      if (this.options.orientation == 'bottom') {
-        this.props.scrollTop += (scrollTopMin - this.props.scrollTopMin);
-      }
-      this.props.scrollTopMin = scrollTopMin;
-    }
-
-    // limit the scrollTop to the feasible scroll range
-    if (this.props.scrollTop > 0) this.props.scrollTop = 0;
-    if (this.props.scrollTop < scrollTopMin) this.props.scrollTop = scrollTopMin;
-
-    return this.props.scrollTop;
-  };
-
-  /**
-   * Get the current scrollTop
-   * @returns {number} scrollTop
-   * @private
-   */
-  Timeline.prototype._getScrollTop = function () {
-    return this.props.scrollTop;
-  };
-
-  module.exports = Timeline;
-
-
-/***/ },
-/* 6 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * @constructor  DataStep
-   * The class DataStep is an iterator for data for the lineGraph. You provide a start data point and an
-   * end data point. The class itself determines the best scale (step size) based on the
-   * provided start Date, end Date, and minimumStep.
-   *
-   * If minimumStep is provided, the step size is chosen as close as possible
-   * to the minimumStep but larger than minimumStep. If minimumStep is not
-   * provided, the scale is set to 1 DAY.
-   * The minimumStep should correspond with the onscreen size of about 6 characters
-   *
-   * Alternatively, you can set a scale by hand.
-   * After creation, you can initialize the class by executing first(). Then you
-   * can iterate from the start date to the end date via next(). You can check if
-   * the end date is reached with the function hasNext(). After each step, you can
-   * retrieve the current date via getCurrent().
-   * The DataStep has scales ranging from milliseconds, seconds, minutes, hours,
-   * days, to years.
-   *
-   * Version: 1.2
-   *
-   * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
-   *                               or new Date(2010, 9, 21, 23, 45, 00)
-   * @param {Date} [end]           The end date
-   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
-   */
-  function DataStep(start, end, minimumStep, containerHeight, forcedStepSize) {
-    // variables
-    this.current = 0;
-
-    this.autoScale = true;
-    this.stepIndex = 0;
-    this.step = 1;
-    this.scale = 1;
-
-    this.marginStart;
-    this.marginEnd;
-
-    this.majorSteps = [1,     2,    5,  10];
-    this.minorSteps = [0.25,  0.5,  1,  2];
-
-    this.setRange(start, end, minimumStep, containerHeight, forcedStepSize);
-  }
-
-
-
-  /**
-   * Set a new range
-   * If minimumStep is provided, the step size is chosen as close as possible
-   * to the minimumStep but larger than minimumStep. If minimumStep is not
-   * provided, the scale is set to 1 DAY.
-   * The minimumStep should correspond with the onscreen size of about 6 characters
-   * @param {Number} [start]      The start date and time.
-   * @param {Number} [end]        The end date and time.
-   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
-   */
-  DataStep.prototype.setRange = function(start, end, minimumStep, containerHeight, forcedStepSize) {
-    this._start = start;
-    this._end = end;
-
-    if (this.autoScale) {
-      this.setMinimumStep(minimumStep, containerHeight, forcedStepSize);
-    }
-    this.setFirst();
-  };
-
-  /**
-   * Automatically determine the scale that bests fits the provided minimum step
-   * @param {Number} [minimumStep]  The minimum step size in milliseconds
-   */
-  DataStep.prototype.setMinimumStep = function(minimumStep, containerHeight) {
-    // round to floor
-    var size = this._end - this._start;
-    var safeSize = size * 1.1;
-    var minimumStepValue = minimumStep * (safeSize / containerHeight);
-    var orderOfMagnitude = Math.round(Math.log(safeSize)/Math.LN10);
-
-    var minorStepIdx = -1;
-    var magnitudefactor = Math.pow(10,orderOfMagnitude);
-
-    var start = 0;
-    if (orderOfMagnitude < 0) {
-      start = orderOfMagnitude;
-    }
-
-    var solutionFound = false;
-    for (var i = start; Math.abs(i) <= Math.abs(orderOfMagnitude); i++) {
-      magnitudefactor = Math.pow(10,i);
-      for (var j = 0; j < this.minorSteps.length; j++) {
-        var stepSize = magnitudefactor * this.minorSteps[j];
-        if (stepSize >= minimumStepValue) {
-          solutionFound = true;
-          minorStepIdx = j;
-          break;
-        }
-      }
-      if (solutionFound == true) {
-        break;
-      }
-    }
-    this.stepIndex = minorStepIdx;
-    this.scale = magnitudefactor;
-    this.step = magnitudefactor * this.minorSteps[minorStepIdx];
-  };
-
-
-  /**
-   * Set the range iterator to the start date.
-   */
-  DataStep.prototype.first = function() {
-    this.setFirst();
-  };
-
-  /**
-   * Round the current date to the first minor date value
-   * This must be executed once when the current date is set to start Date
-   */
-  DataStep.prototype.setFirst = function() {
-    var niceStart = this._start - (this.scale * this.minorSteps[this.stepIndex]);
-    var niceEnd = this._end + (this.scale * this.minorSteps[this.stepIndex]);
-
-    this.marginEnd = this.roundToMinor(niceEnd);
-    this.marginStart = this.roundToMinor(niceStart);
-    this.marginRange = this.marginEnd - this.marginStart;
-
-    this.current = this.marginEnd;
-
-  };
-
-  DataStep.prototype.roundToMinor = function(value) {
-    var rounded = value - (value % (this.scale * this.minorSteps[this.stepIndex]));
-    if (value % (this.scale * this.minorSteps[this.stepIndex]) > 0.5 * (this.scale * this.minorSteps[this.stepIndex])) {
-      return rounded + (this.scale * this.minorSteps[this.stepIndex]);
-    }
-    else {
-      return rounded;
-    }
-  }
-
-
-  /**
-   * Check if the there is a next step
-   * @return {boolean}  true if the current date has not passed the end date
-   */
-  DataStep.prototype.hasNext = function () {
-    return (this.current >= this.marginStart);
-  };
-
-  /**
-   * Do the next step
-   */
-  DataStep.prototype.next = function() {
-    var prev = this.current;
-    this.current -= this.step;
-
-    // safety mechanism: if current time is still unchanged, move to the end
-    if (this.current == prev) {
-      this.current = this._end;
-    }
-  };
-
-  /**
-   * Do the next step
-   */
-  DataStep.prototype.previous = function() {
-    this.current += this.step;
-    this.marginEnd += this.step;
-    this.marginRange = this.marginEnd - this.marginStart;
-  };
-
-
-
-  /**
-   * Get the current datetime
-   * @return {String}  current The current date
-   */
-  DataStep.prototype.getCurrent = function() {
-    var toPrecision = '' + Number(this.current).toPrecision(5);
-    for (var i = toPrecision.length-1; i > 0; i--) {
-      if (toPrecision[i] == "0") {
-        toPrecision = toPrecision.slice(0,i);
-      }
-      else if (toPrecision[i] == "." || toPrecision[i] == ",") {
-        toPrecision = toPrecision.slice(0,i);
-        break;
-      }
-      else{
-        break;
-      }
-    }
-
-    return toPrecision;
-  };
-
-
-
-  /**
-   * Snap a date to a rounded value.
-   * The snap intervals are dependent on the current scale and step.
-   * @param {Date} date   the date to be snapped.
-   * @return {Date} snappedDate
-   */
-  DataStep.prototype.snap = function(date) {
-
-  };
-
-  /**
-   * Check if the current value is a major value (for example when the step
-   * is DAY, a major value is each first day of the MONTH)
-   * @return {boolean} true if current date is major, else false.
-   */
-  DataStep.prototype.isMajor = function() {
-    return (this.current % (this.scale * this.majorSteps[this.stepIndex]) == 0);
-  };
-
-  module.exports = DataStep;
-
-
-/***/ },
-/* 7 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var Emitter = __webpack_require__(41);
-  var Hammer = __webpack_require__(50);
-  var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(3);
-  var DataView = __webpack_require__(4);
-  var Range = __webpack_require__(8);
-  var TimeAxis = __webpack_require__(21);
-  var CurrentTime = __webpack_require__(13);
-  var CustomTime = __webpack_require__(14);
-  var LineGraph = __webpack_require__(20);
-
-  /**
-   * Create a timeline visualization
-   * @param {HTMLElement} container
-   * @param {vis.DataSet | Array | google.visualization.DataTable} [items]
-   * @param {Object} [options]  See Graph2d.setOptions for the available options.
-   * @constructor
-   */
-  function Graph2d (container, items, options, groups) {
-    var me = this;
-    this.defaultOptions = {
-      start: null,
-      end:   null,
-
-      autoResize: true,
-
-      orientation: 'bottom',
-      width: null,
-      height: null,
-      maxHeight: null,
-      minHeight: null
-    };
-    this.options = util.deepExtend({}, this.defaultOptions);
-
-    // Create the DOM, props, and emitter
-    this._create(container);
-
-    // all components listed here will be repainted automatically
-    this.components = [];
-
-    this.body = {
-      dom: this.dom,
-      domProps: this.props,
-      emitter: {
-        on: this.on.bind(this),
-        off: this.off.bind(this),
-        emit: this.emit.bind(this)
-      },
-      util: {
-        snap: null, // will be specified after TimeAxis is created
-        toScreen: me._toScreen.bind(me),
-        toGlobalScreen: me._toGlobalScreen.bind(me), // this refers to the root.width
-        toTime: me._toTime.bind(me),
-        toGlobalTime : me._toGlobalTime.bind(me)
-      }
-    };
-
-    // range
-    this.range = new Range(this.body);
-    this.components.push(this.range);
-    this.body.range = this.range;
-
-    // time axis
-    this.timeAxis = new TimeAxis(this.body);
-    this.components.push(this.timeAxis);
-    this.body.util.snap = this.timeAxis.snap.bind(this.timeAxis);
-
-    // current time bar
-    this.currentTime = new CurrentTime(this.body);
-    this.components.push(this.currentTime);
-
-    // custom time bar
-    // Note: time bar will be attached in this.setOptions when selected
-    this.customTime = new CustomTime(this.body);
-    this.components.push(this.customTime);
-
-    // item set
-    this.linegraph = new LineGraph(this.body);
-    this.components.push(this.linegraph);
-
-    this.itemsData = null;      // DataSet
-    this.groupsData = null;     // DataSet
-
-    // apply options
-    if (options) {
-      this.setOptions(options);
-    }
-
-    // IMPORTANT: THIS HAPPENS BEFORE SET ITEMS!
-    if (groups) {
-      this.setGroups(groups);
-    }
-
-    // create itemset
-    if (items) {
-      this.setItems(items);
-    }
-    else {
-      this.redraw();
-    }
-  }
-
-  // turn Graph2d into an event emitter
-  Emitter(Graph2d.prototype);
-
-  /**
-   * Create the main DOM for the Graph2d: a root panel containing left, right,
-   * top, bottom, content, and background panel.
-   * @param {Element} container  The container element where the Graph2d will
-   *                             be attached.
-   * @private
-   */
-  Graph2d.prototype._create = function (container) {
-    this.dom = {};
-
-    this.dom.root                 = document.createElement('div');
-    this.dom.background           = document.createElement('div');
-    this.dom.backgroundVertical   = document.createElement('div');
-    this.dom.backgroundHorizontalContainer = document.createElement('div');
-    this.dom.centerContainer      = document.createElement('div');
-    this.dom.leftContainer        = document.createElement('div');
-    this.dom.rightContainer       = document.createElement('div');
-    this.dom.backgroundHorizontal = document.createElement('div');
-    this.dom.center               = document.createElement('div');
-    this.dom.left                 = document.createElement('div');
-    this.dom.right                = document.createElement('div');
-    this.dom.top                  = document.createElement('div');
-    this.dom.bottom               = document.createElement('div');
-    this.dom.shadowTop            = document.createElement('div');
-    this.dom.shadowBottom         = document.createElement('div');
-    this.dom.shadowTopLeft        = document.createElement('div');
-    this.dom.shadowBottomLeft     = document.createElement('div');
-    this.dom.shadowTopRight       = document.createElement('div');
-    this.dom.shadowBottomRight    = document.createElement('div');
-
-    this.dom.background.className           = 'vispanel background';
-    this.dom.backgroundVertical.className   = 'vispanel background vertical';
-    this.dom.backgroundHorizontalContainer.className = 'vispanel background horizontal';
-    this.dom.backgroundHorizontal.className = 'vispanel background horizontal';
-    this.dom.centerContainer.className      = 'vispanel center';
-    this.dom.leftContainer.className        = 'vispanel left';
-    this.dom.rightContainer.className       = 'vispanel right';
-    this.dom.top.className                  = 'vispanel top';
-    this.dom.bottom.className               = 'vispanel bottom';
-    this.dom.left.className                 = 'content';
-    this.dom.center.className               = 'content';
-    this.dom.right.className                = 'content';
-    this.dom.shadowTop.className            = 'shadow top';
-    this.dom.shadowBottom.className         = 'shadow bottom';
-    this.dom.shadowTopLeft.className        = 'shadow top';
-    this.dom.shadowBottomLeft.className     = 'shadow bottom';
-    this.dom.shadowTopRight.className       = 'shadow top';
-    this.dom.shadowBottomRight.className    = 'shadow bottom';
-
-    this.dom.root.appendChild(this.dom.background);
-    this.dom.root.appendChild(this.dom.backgroundVertical);
-    this.dom.root.appendChild(this.dom.backgroundHorizontalContainer);
-    this.dom.root.appendChild(this.dom.centerContainer);
-    this.dom.root.appendChild(this.dom.leftContainer);
-    this.dom.root.appendChild(this.dom.rightContainer);
-    this.dom.root.appendChild(this.dom.top);
-    this.dom.root.appendChild(this.dom.bottom);
-
-    this.dom.backgroundHorizontalContainer.appendChild(this.dom.backgroundHorizontal);
-    this.dom.centerContainer.appendChild(this.dom.center);
-    this.dom.leftContainer.appendChild(this.dom.left);
-    this.dom.rightContainer.appendChild(this.dom.right);
-
-    this.dom.centerContainer.appendChild(this.dom.shadowTop);
-    this.dom.centerContainer.appendChild(this.dom.shadowBottom);
-    this.dom.leftContainer.appendChild(this.dom.shadowTopLeft);
-    this.dom.leftContainer.appendChild(this.dom.shadowBottomLeft);
-    this.dom.rightContainer.appendChild(this.dom.shadowTopRight);
-    this.dom.rightContainer.appendChild(this.dom.shadowBottomRight);
-
-    this.on('rangechange', this.redraw.bind(this));
-    this.on('change', this.redraw.bind(this));
-    this.on('touch', this._onTouch.bind(this));
-    this.on('pinch', this._onPinch.bind(this));
-    this.on('dragstart', this._onDragStart.bind(this));
-    this.on('drag', this._onDrag.bind(this));
-
-    // create event listeners for all interesting events, these events will be
-    // emitted via emitter
-    this.hammer = Hammer(this.dom.root, {
-      prevent_default: true
-    });
-    this.listeners = {};
-
-    var me = this;
-    var events = [
-      'touch', 'pinch',
-      'tap', 'doubletap', 'hold',
-      'dragstart', 'drag', 'dragend',
-      'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is needed for Firefox
-    ];
-    events.forEach(function (event) {
-      var listener = function () {
-        var args = [event].concat(Array.prototype.slice.call(arguments, 0));
-        me.emit.apply(me, args);
-      };
-      me.hammer.on(event, listener);
-      me.listeners[event] = listener;
-    });
-
-    // size properties of each of the panels
-    this.props = {
-      root: {},
-      background: {},
-      centerContainer: {},
-      leftContainer: {},
-      rightContainer: {},
-      center: {},
-      left: {},
-      right: {},
-      top: {},
-      bottom: {},
-      border: {},
-      scrollTop: 0,
-      scrollTopMin: 0
-    };
-    this.touch = {}; // store state information needed for touch events
-
-    // attach the root panel to the provided container
-    if (!container) throw new Error('No container provided');
-    container.appendChild(this.dom.root);
-  };
-
-  /**
-   * Destroy the Graph2d, clean up all DOM elements and event listeners.
-   */
-  Graph2d.prototype.destroy = function () {
-    // unbind datasets
-    this.clear();
-
-    // remove all event listeners
-    this.off();
-
-    // stop checking for changed size
-    this._stopAutoResize();
-
-    // remove from DOM
-    if (this.dom.root.parentNode) {
-      this.dom.root.parentNode.removeChild(this.dom.root);
-    }
-    this.dom = null;
-
-    // cleanup hammer touch events
-    for (var event in this.listeners) {
-      if (this.listeners.hasOwnProperty(event)) {
-        delete this.listeners[event];
-      }
-    }
-    this.listeners = null;
-    this.hammer = null;
-
-    // give all components the opportunity to cleanup
-    this.components.forEach(function (component) {
-      component.destroy();
-    });
-
-    this.body = null;
-  };
-
-  /**
-   * Set options. Options will be passed to all components loaded in the Graph2d.
-   * @param {Object} [options]
-   *                           {String} orientation
-   *                              Vertical orientation for the Graph2d,
-   *                              can be 'bottom' (default) or 'top'.
-   *                           {String | Number} width
-   *                              Width for the timeline, a number in pixels or
-   *                              a css string like '1000px' or '75%'. '100%' by default.
-   *                           {String | Number} height
-   *                              Fixed height for the Graph2d, a number in pixels or
-   *                              a css string like '400px' or '75%'. If undefined,
-   *                              The Graph2d will automatically size such that
-   *                              its contents fit.
-   *                           {String | Number} minHeight
-   *                              Minimum height for the Graph2d, a number in pixels or
-   *                              a css string like '400px' or '75%'.
-   *                           {String | Number} maxHeight
-   *                              Maximum height for the Graph2d, a number in pixels or
-   *                              a css string like '400px' or '75%'.
-   *                           {Number | Date | String} start
-   *                              Start date for the visible window
-   *                           {Number | Date | String} end
-   *                              End date for the visible window
-   */
-  Graph2d.prototype.setOptions = function (options) {
-    if (options) {
-      // copy the known options
-      var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'orientation'];
-      util.selectiveExtend(fields, this.options, options);
-
-      // enable/disable autoResize
-      this._initAutoResize();
-    }
-
-    // propagate options to all components
-    this.components.forEach(function (component) {
-      component.setOptions(options);
-    });
-
-    // TODO: remove deprecation error one day (deprecated since version 0.8.0)
-    if (options && options.order) {
-      throw new Error('Option order is deprecated. There is no replacement for this feature.');
-    }
-
-    // redraw everything
-    this.redraw();
-  };
-
-  /**
-   * Set a custom time bar
-   * @param {Date} time
-   */
-  Graph2d.prototype.setCustomTime = function (time) {
-    if (!this.customTime) {
-      throw new Error('Cannot get custom time: Custom time bar is not enabled');
-    }
-
-    this.customTime.setCustomTime(time);
-  };
-
-  /**
-   * Retrieve the current custom time.
-   * @return {Date} customTime
-   */
-  Graph2d.prototype.getCustomTime = function() {
-    if (!this.customTime) {
-      throw new Error('Cannot get custom time: Custom time bar is not enabled');
-    }
-
-    return this.customTime.getCustomTime();
-  };
-
-  /**
-   * Set items
-   * @param {vis.DataSet | Array | google.visualization.DataTable | null} items
-   */
-  Graph2d.prototype.setItems = function(items) {
-    var initialLoad = (this.itemsData == null);
-
-    // convert to type DataSet when needed
-    var newDataSet;
-    if (!items) {
-      newDataSet = null;
-    }
-    else if (items instanceof DataSet || items instanceof DataView) {
-      newDataSet = items;
-    }
-    else {
-      // turn an array into a dataset
-      newDataSet = new DataSet(items, {
-        type: {
-          start: 'Date',
-          end: 'Date'
-        }
-      });
-    }
-
-    // set items
-    this.itemsData = newDataSet;
-    this.linegraph && this.linegraph.setItems(newDataSet);
-
-    if (initialLoad && ('start' in this.options || 'end' in this.options)) {
-      this.fit();
-
-      var start = ('start' in this.options) ? util.convert(this.options.start, 'Date') : null;
-      var end   = ('end' in this.options)   ? util.convert(this.options.end, 'Date') : null;
-
-      this.setWindow(start, end);
-    }
-  };
-
-  /**
-   * Set groups
-   * @param {vis.DataSet | Array | google.visualization.DataTable} groups
-   */
-  Graph2d.prototype.setGroups = function(groups) {
-    // convert to type DataSet when needed
-    var newDataSet;
-    if (!groups) {
-      newDataSet = null;
-    }
-    else if (groups instanceof DataSet || groups instanceof DataView) {
-      newDataSet = groups;
-    }
-    else {
-      // turn an array into a dataset
-      newDataSet = new DataSet(groups);
-    }
-
-    this.groupsData = newDataSet;
-    this.linegraph.setGroups(newDataSet);
-  };
-
-  /**
-   * Clear the Graph2d. By Default, items, groups and options are cleared.
-   * Example usage:
-   *
-   *     timeline.clear();                // clear items, groups, and options
-   *     timeline.clear({options: true}); // clear options only
-   *
-   * @param {Object} [what]      Optionally specify what to clear. By default:
-   *                             {items: true, groups: true, options: true}
-   */
-  Graph2d.prototype.clear = function(what) {
-    // clear items
-    if (!what || what.items) {
-      this.setItems(null);
-    }
-
-    // clear groups
-    if (!what || what.groups) {
-      this.setGroups(null);
-    }
-
-    // clear options of timeline and of each of the components
-    if (!what || what.options) {
-      this.components.forEach(function (component) {
-        component.setOptions(component.defaultOptions);
-      });
-
-      this.setOptions(this.defaultOptions); // this will also do a redraw
-    }
-  };
-
-  /**
-   * Set Graph2d window such that it fits all items
-   */
-  Graph2d.prototype.fit = function() {
-    // apply the data range as range
-    var dataRange = this.getItemRange();
-
-    // add 5% space on both sides
-    var start = dataRange.min;
-    var end = dataRange.max;
-    if (start != null && end != null) {
-      var interval = (end.valueOf() - start.valueOf());
-      if (interval <= 0) {
-        // prevent an empty interval
-        interval = 24 * 60 * 60 * 1000; // 1 day
-      }
-      start = new Date(start.valueOf() - interval * 0.05);
-      end = new Date(end.valueOf() + interval * 0.05);
-    }
-
-    // skip range set if there is no start and end date
-    if (start === null && end === null) {
-      return;
-    }
-
-    this.range.setRange(start, end);
-  };
-
-  /**
-   * Get the data range of the item set.
-   * @returns {{min: Date, max: Date}} range  A range with a start and end Date.
-   *                                          When no minimum is found, min==null
-   *                                          When no maximum is found, max==null
-   */
-  Graph2d.prototype.getItemRange = function() {
-    // calculate min from start filed
-    var itemsData = this.itemsData,
-      min = null,
-      max = null;
-
-    if (itemsData) {
-      // calculate the minimum value of the field 'start'
-      var minItem = itemsData.min('start');
-      min = minItem ? util.convert(minItem.start, 'Date').valueOf() : null;
-      // Note: we convert first to Date and then to number because else
-      // a conversion from ISODate to Number will fail
-
-      // calculate maximum value of fields 'start' and 'end'
-      var maxStartItem = itemsData.max('start');
-      if (maxStartItem) {
-        max = util.convert(maxStartItem.start, 'Date').valueOf();
-      }
-      var maxEndItem = itemsData.max('end');
-      if (maxEndItem) {
-        if (max == null) {
-          max = util.convert(maxEndItem.end, 'Date').valueOf();
-        }
-        else {
-          max = Math.max(max, util.convert(maxEndItem.end, 'Date').valueOf());
-        }
-      }
-    }
-
-    return {
-      min: (min != null) ? new Date(min) : null,
-      max: (max != null) ? new Date(max) : null
-    };
-  };
-
-  /**
-   * Set the visible window. Both parameters are optional, you can change only
-   * start or only end. Syntax:
-   *
-   *     TimeLine.setWindow(start, end)
-   *     TimeLine.setWindow(range)
-   *
-   * Where start and end can be a Date, number, or string, and range is an
-   * object with properties start and end.
-   *
-   * @param {Date | Number | String | Object} [start] Start date of visible window
-   * @param {Date | Number | String} [end]   End date of visible window
-   */
-  Graph2d.prototype.setWindow = function(start, end) {
-    if (arguments.length == 1) {
-      var range = arguments[0];
-      this.range.setRange(range.start, range.end);
-    }
-    else {
-      this.range.setRange(start, end);
-    }
-  };
-
-  /**
-   * Get the visible window
-   * @return {{start: Date, end: Date}}   Visible range
-   */
-  Graph2d.prototype.getWindow = function() {
-    var range = this.range.getRange();
-    return {
-      start: new Date(range.start),
-      end: new Date(range.end)
-    };
-  };
-
-  /**
-   * Force a redraw of the Graph2d. Can be useful to manually redraw when
-   * option autoResize=false
-   */
-  Graph2d.prototype.redraw = function() {
-    var resized = false,
-      options = this.options,
-      props = this.props,
-      dom = this.dom;
-
-    if (!dom) return; // when destroyed
-
-    // update class names
-    dom.root.className = 'vis timeline root ' + options.orientation;
-
-    // update root width and height options
-    dom.root.style.maxHeight = util.option.asSize(options.maxHeight, '');
-    dom.root.style.minHeight = util.option.asSize(options.minHeight, '');
-    dom.root.style.width = util.option.asSize(options.width, '');
-
-    // calculate border widths
-    props.border.left   = (dom.centerContainer.offsetWidth - dom.centerContainer.clientWidth) / 2;
-    props.border.right  = props.border.left;
-    props.border.top    = (dom.centerContainer.offsetHeight - dom.centerContainer.clientHeight) / 2;
-    props.border.bottom = props.border.top;
-    var borderRootHeight= dom.root.offsetHeight - dom.root.clientHeight;
-    var borderRootWidth = dom.root.offsetWidth - dom.root.clientWidth;
-
-    // calculate the heights. If any of the side panels is empty, we set the height to
-    // minus the border width, such that the border will be invisible
-    props.center.height = dom.center.offsetHeight;
-    props.left.height   = dom.left.offsetHeight;
-    props.right.height  = dom.right.offsetHeight;
-    props.top.height    = dom.top.clientHeight    || -props.border.top;
-    props.bottom.height = dom.bottom.clientHeight || -props.border.bottom;
-
-    // TODO: compensate borders when any of the panels is empty.
-
-    // apply auto height
-    // TODO: only calculate autoHeight when needed (else we cause an extra reflow/repaint of the DOM)
-    var contentHeight = Math.max(props.left.height, props.center.height, props.right.height);
-    var autoHeight = props.top.height + contentHeight + props.bottom.height +
-      borderRootHeight + props.border.top + props.border.bottom;
-    dom.root.style.height = util.option.asSize(options.height, autoHeight + 'px');
-
-    // calculate heights of the content panels
-    props.root.height = dom.root.offsetHeight;
-    props.background.height = props.root.height - borderRootHeight;
-    var containerHeight = props.root.height - props.top.height - props.bottom.height -
-      borderRootHeight;
-    props.centerContainer.height  = containerHeight;
-    props.leftContainer.height    = containerHeight;
-    props.rightContainer.height   = props.leftContainer.height;
-
-    // calculate the widths of the panels
-    props.root.width = dom.root.offsetWidth;
-    props.background.width = props.root.width - borderRootWidth;
-    props.left.width = dom.leftContainer.clientWidth   || -props.border.left;
-    props.leftContainer.width = props.left.width;
-    props.right.width = dom.rightContainer.clientWidth || -props.border.right;
-    props.rightContainer.width = props.right.width;
-    var centerWidth = props.root.width - props.left.width - props.right.width - borderRootWidth;
-    props.center.width          = centerWidth;
-    props.centerContainer.width = centerWidth;
-    props.top.width             = centerWidth;
-    props.bottom.width          = centerWidth;
-
-    // resize the panels
-    dom.background.style.height           = props.background.height + 'px';
-    dom.backgroundVertical.style.height   = props.background.height + 'px';
-    dom.backgroundHorizontalContainer.style.height = props.centerContainer.height + 'px';
-    dom.centerContainer.style.height      = props.centerContainer.height + 'px';
-    dom.leftContainer.style.height        = props.leftContainer.height + 'px';
-    dom.rightContainer.style.height       = props.rightContainer.height + 'px';
-
-    dom.background.style.width            = props.background.width + 'px';
-    dom.backgroundVertical.style.width    = props.centerContainer.width + 'px';
-    dom.backgroundHorizontalContainer.style.width  = props.background.width + 'px';
-    dom.backgroundHorizontal.style.width  = props.background.width + 'px';
-    dom.centerContainer.style.width       = props.center.width + 'px';
-    dom.top.style.width                   = props.top.width + 'px';
-    dom.bottom.style.width                = props.bottom.width + 'px';
-
-    // reposition the panels
-    dom.background.style.left           = '0';
-    dom.background.style.top            = '0';
-    dom.backgroundVertical.style.left   = props.left.width + 'px';
-    dom.backgroundVertical.style.top    = '0';
-    dom.backgroundHorizontalContainer.style.left = '0';
-    dom.backgroundHorizontalContainer.style.top  = props.top.height + 'px';
-    dom.centerContainer.style.left      = props.left.width + 'px';
-    dom.centerContainer.style.top       = props.top.height + 'px';
-    dom.leftContainer.style.left        = '0';
-    dom.leftContainer.style.top         = props.top.height + 'px';
-    dom.rightContainer.style.left       = (props.left.width + props.center.width) + 'px';
-    dom.rightContainer.style.top        = props.top.height + 'px';
-    dom.top.style.left                  = props.left.width + 'px';
-    dom.top.style.top                   = '0';
-    dom.bottom.style.left               = props.left.width + 'px';
-    dom.bottom.style.top                = (props.top.height + props.centerContainer.height) + 'px';
-
-    // update the scrollTop, feasible range for the offset can be changed
-    // when the height of the Graph2d or of the contents of the center changed
-    this._updateScrollTop();
-
-    // reposition the scrollable contents
-    var offset = this.props.scrollTop;
-    if (options.orientation == 'bottom') {
-      offset += Math.max(this.props.centerContainer.height - this.props.center.height -
-          this.props.border.top - this.props.border.bottom, 0);
-    }
-    dom.center.style.left = '0';
-    dom.center.style.top  = offset + 'px';
-    dom.backgroundHorizontal.style.left = '0';
-    dom.backgroundHorizontal.style.top  = offset + 'px';
-    dom.left.style.left   = '0';
-    dom.left.style.top    = offset + 'px';
-    dom.right.style.left  = '0';
-    dom.right.style.top   = offset + 'px';
-
-    // show shadows when vertical scrolling is available
-    var visibilityTop = this.props.scrollTop == 0 ? 'hidden' : '';
-    var visibilityBottom = this.props.scrollTop == this.props.scrollTopMin ? 'hidden' : '';
-    dom.shadowTop.style.visibility          = visibilityTop;
-    dom.shadowBottom.style.visibility       = visibilityBottom;
-    dom.shadowTopLeft.style.visibility      = visibilityTop;
-    dom.shadowBottomLeft.style.visibility   = visibilityBottom;
-    dom.shadowTopRight.style.visibility     = visibilityTop;
-    dom.shadowBottomRight.style.visibility  = visibilityBottom;
-
-    // redraw all components
-    this.components.forEach(function (component) {
-      resized = component.redraw() || resized;
-    });
-    if (resized) {
-      // keep redrawing until all sizes are settled
-      this.redraw();
-    }
-  };
-
-  /**
-   * Convert a position on screen (pixels) to a datetime
-   * @param {int}     x    Position on the screen in pixels
-   * @return {Date}   time The datetime the corresponds with given position x
-   * @private
-   */
-  // TODO: move this function to Range
-  Graph2d.prototype._toTime = function(x) {
-    var conversion = this.range.conversion(this.props.center.width);
-    return new Date(x / conversion.scale + conversion.offset);
-  };
-
-  /**
-   * Convert a datetime (Date object) into a position on the root
-   * This is used to get the pixel density estimate for the screen, not the center panel
-   * @param {Date}   time A date
-   * @return {int}   x    The position on root in pixels which corresponds
-   *                      with the given date.
-   * @private
-   */
-  // TODO: move this function to Range
-  Graph2d.prototype._toGlobalTime = function(x) {
-    var conversion = this.range.conversion(this.props.root.width);
-    return new Date(x / conversion.scale + conversion.offset);
-  };
-
-  /**
-   * Convert a datetime (Date object) into a position on the screen
-   * @param {Date}   time A date
-   * @return {int}   x    The position on the screen in pixels which corresponds
-   *                      with the given date.
-   * @private
-   */
-  // TODO: move this function to Range
-  Graph2d.prototype._toScreen = function(time) {
-    var conversion = this.range.conversion(this.props.center.width);
-    return (time.valueOf() - conversion.offset) * conversion.scale;
-  };
-
-
-  /**
-   * Convert a datetime (Date object) into a position on the root
-   * This is used to get the pixel density estimate for the screen, not the center panel
-   * @param {Date}   time A date
-   * @return {int}   x    The position on root in pixels which corresponds
-   *                      with the given date.
-   * @private
-   */
-  // TODO: move this function to Range
-  Graph2d.prototype._toGlobalScreen = function(time) {
-    var conversion = this.range.conversion(this.props.root.width);
-    return (time.valueOf() - conversion.offset) * conversion.scale;
-  };
-
-  /**
-   * Initialize watching when option autoResize is true
-   * @private
-   */
-  Graph2d.prototype._initAutoResize = function () {
-    if (this.options.autoResize == true) {
-      this._startAutoResize();
-    }
-    else {
-      this._stopAutoResize();
-    }
-  };
-
-  /**
-   * Watch for changes in the size of the container. On resize, the Panel will
-   * automatically redraw itself.
-   * @private
-   */
-  Graph2d.prototype._startAutoResize = function () {
-    var me = this;
-
-    this._stopAutoResize();
-
-    this._onResize = function() {
-      if (me.options.autoResize != true) {
-        // stop watching when the option autoResize is changed to false
-        me._stopAutoResize();
-        return;
-      }
-
-      if (me.dom.root) {
-        // check whether the frame is resized
-        if ((me.dom.root.clientWidth != me.props.lastWidth) ||
-          (me.dom.root.clientHeight != me.props.lastHeight)) {
-          me.props.lastWidth = me.dom.root.clientWidth;
-          me.props.lastHeight = me.dom.root.clientHeight;
-
-          me.emit('change');
-        }
-      }
-    };
-
-    // add event listener to window resize
-    util.addEventListener(window, 'resize', this._onResize);
-
-    this.watchTimer = setInterval(this._onResize, 1000);
-  };
-
-  /**
-   * Stop watching for a resize of the frame.
-   * @private
-   */
-  Graph2d.prototype._stopAutoResize = function () {
-    if (this.watchTimer) {
-      clearInterval(this.watchTimer);
-      this.watchTimer = undefined;
-    }
-
-    // remove event listener on window.resize
-    util.removeEventListener(window, 'resize', this._onResize);
-    this._onResize = null;
-  };
-
-  /**
-   * Start moving the timeline vertically
-   * @param {Event} event
-   * @private
-   */
-  Graph2d.prototype._onTouch = function (event) {
-    this.touch.allowDragging = true;
-  };
-
-  /**
-   * Start moving the timeline vertically
-   * @param {Event} event
-   * @private
-   */
-  Graph2d.prototype._onPinch = function (event) {
-    this.touch.allowDragging = false;
-  };
-
-  /**
-   * Start moving the timeline vertically
-   * @param {Event} event
-   * @private
-   */
-  Graph2d.prototype._onDragStart = function (event) {
-    this.touch.initialScrollTop = this.props.scrollTop;
-  };
-
-  /**
-   * Move the timeline vertically
-   * @param {Event} event
-   * @private
-   */
-  Graph2d.prototype._onDrag = function (event) {
-    // refuse to drag when we where pinching to prevent the timeline make a jump
-    // when releasing the fingers in opposite order from the touch screen
-    if (!this.touch.allowDragging) return;
-
-    var delta = event.gesture.deltaY;
-
-    var oldScrollTop = this._getScrollTop();
-    var newScrollTop = this._setScrollTop(this.touch.initialScrollTop + delta);
-
-    if (newScrollTop != oldScrollTop) {
-      this.redraw(); // TODO: this causes two redraws when dragging, the other is triggered by rangechange already
-    }
-  };
-
-  /**
-   * Apply a scrollTop
-   * @param {Number} scrollTop
-   * @returns {Number} scrollTop  Returns the applied scrollTop
-   * @private
-   */
-  Graph2d.prototype._setScrollTop = function (scrollTop) {
-    this.props.scrollTop = scrollTop;
-    this._updateScrollTop();
-    return this.props.scrollTop;
-  };
-
-  /**
-   * Update the current scrollTop when the height of  the containers has been changed
-   * @returns {Number} scrollTop  Returns the applied scrollTop
-   * @private
-   */
-  Graph2d.prototype._updateScrollTop = function () {
-    // recalculate the scrollTopMin
-    var scrollTopMin = Math.min(this.props.centerContainer.height - this.props.center.height, 0); // is negative or zero
-    if (scrollTopMin != this.props.scrollTopMin) {
-      // in case of bottom orientation, change the scrollTop such that the contents
-      // do not move relative to the time axis at the bottom
-      if (this.options.orientation == 'bottom') {
-        this.props.scrollTop += (scrollTopMin - this.props.scrollTopMin);
-      }
-      this.props.scrollTopMin = scrollTopMin;
-    }
-
-    // limit the scrollTop to the feasible scroll range
-    if (this.props.scrollTop > 0) this.props.scrollTop = 0;
-    if (this.props.scrollTop < scrollTopMin) this.props.scrollTop = scrollTopMin;
-
-    return this.props.scrollTop;
-  };
-
-  /**
-   * Get the current scrollTop
-   * @returns {number} scrollTop
-   * @private
-   */
-  Graph2d.prototype._getScrollTop = function () {
-    return this.props.scrollTop;
-  };
-
-  module.exports = Graph2d;
-
-
-/***/ },
-/* 8 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var util = __webpack_require__(1);
-  var moment = __webpack_require__(39);
-  var Component = __webpack_require__(12);
-
-  /**
-   * @constructor Range
-   * A Range controls a numeric range with a start and end value.
-   * The Range adjusts the range based on mouse events or programmatic changes,
-   * and triggers events when the range is changing or has been changed.
-   * @param {{dom: Object, domProps: Object, emitter: Emitter}} body
-   * @param {Object} [options]    See description at Range.setOptions
-   */
-  function Range(body, options) {
-    var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
-    this.start = now.clone().add('days', -3).valueOf(); // Number
-    this.end = now.clone().add('days', 4).valueOf();   // Number
-
-    this.body = body;
-
-    // default options
-    this.defaultOptions = {
-      start: null,
-      end: null,
-      direction: 'horizontal', // 'horizontal' or 'vertical'
-      moveable: true,
-      zoomable: true,
-      min: null,
-      max: null,
-      zoomMin: 10,                                // milliseconds
-      zoomMax: 1000 * 60 * 60 * 24 * 365 * 10000  // milliseconds
-    };
-    this.options = util.extend({}, this.defaultOptions);
-
-    this.props = {
-      touch: {}
-    };
-
-    // drag listeners for dragging
-    this.body.emitter.on('dragstart', this._onDragStart.bind(this));
-    this.body.emitter.on('drag',      this._onDrag.bind(this));
-    this.body.emitter.on('dragend',   this._onDragEnd.bind(this));
-
-    // ignore dragging when holding
-    this.body.emitter.on('hold', this._onHold.bind(this));
-
-    // mouse wheel for zooming
-    this.body.emitter.on('mousewheel',      this._onMouseWheel.bind(this));
-    this.body.emitter.on('DOMMouseScroll',  this._onMouseWheel.bind(this)); // For FF
-
-    // pinch to zoom
-    this.body.emitter.on('touch', this._onTouch.bind(this));
-    this.body.emitter.on('pinch', this._onPinch.bind(this));
-
-    this.setOptions(options);
-  }
-
-  Range.prototype = new Component();
-
-  /**
-   * Set options for the range controller
-   * @param {Object} options      Available options:
-   *                              {Number | Date | String} start  Start date for the range
-   *                              {Number | Date | String} end    End date for the range
-   *                              {Number} min    Minimum value for start
-   *                              {Number} max    Maximum value for end
-   *                              {Number} zoomMin    Set a minimum value for
-   *                                                  (end - start).
-   *                              {Number} zoomMax    Set a maximum value for
-   *                                                  (end - start).
-   *                              {Boolean} moveable Enable moving of the range
-   *                                                 by dragging. True by default
-   *                              {Boolean} zoomable Enable zooming of the range
-   *                                                 by pinching/scrolling. True by default
-   */
-  Range.prototype.setOptions = function (options) {
-    if (options) {
-      // copy the options that we know
-      var fields = ['direction', 'min', 'max', 'zoomMin', 'zoomMax', 'moveable', 'zoomable'];
-      util.selectiveExtend(fields, this.options, options);
-
-      if ('start' in options || 'end' in options) {
-        // apply a new range. both start and end are optional
-        this.setRange(options.start, options.end);
-      }
-    }
-  };
-
-  /**
-   * Test whether direction has a valid value
-   * @param {String} direction    'horizontal' or 'vertical'
-   */
-  function validateDirection (direction) {
-    if (direction != 'horizontal' && direction != 'vertical') {
-      throw new TypeError('Unknown direction "' + direction + '". ' +
-          'Choose "horizontal" or "vertical".');
-    }
-  }
-
-  /**
-   * Set a new start and end range
-   * @param {Number} [start]
-   * @param {Number} [end]
-   */
-  Range.prototype.setRange = function(start, end) {
-    var changed = this._applyRange(start, end);
-    if (changed) {
-      var params = {
-        start: new Date(this.start),
-        end: new Date(this.end)
-      };
-      this.body.emitter.emit('rangechange', params);
-      this.body.emitter.emit('rangechanged', params);
-    }
-  };
-
-  /**
-   * Set a new start and end range. This method is the same as setRange, but
-   * does not trigger a range change and range changed event, and it returns
-   * true when the range is changed
-   * @param {Number} [start]
-   * @param {Number} [end]
-   * @return {Boolean} changed
-   * @private
-   */
-  Range.prototype._applyRange = function(start, end) {
-    var newStart = (start != null) ? util.convert(start, 'Date').valueOf() : this.start,
-        newEnd   = (end != null)   ? util.convert(end, 'Date').valueOf()   : this.end,
-        max = (this.options.max != null) ? util.convert(this.options.max, 'Date').valueOf() : null,
-        min = (this.options.min != null) ? util.convert(this.options.min, 'Date').valueOf() : null,
-        diff;
-
-    // check for valid number
-    if (isNaN(newStart) || newStart === null) {
-      throw new Error('Invalid start "' + start + '"');
-    }
-    if (isNaN(newEnd) || newEnd === null) {
-      throw new Error('Invalid end "' + end + '"');
-    }
-
-    // prevent start < end
-    if (newEnd < newStart) {
-      newEnd = newStart;
-    }
-
-    // prevent start < min
-    if (min !== null) {
-      if (newStart < min) {
-        diff = (min - newStart);
-        newStart += diff;
-        newEnd += diff;
-
-        // prevent end > max
-        if (max != null) {
-          if (newEnd > max) {
-            newEnd = max;
-          }
-        }
-      }
-    }
-
-    // prevent end > max
-    if (max !== null) {
-      if (newEnd > max) {
-        diff = (newEnd - max);
-        newStart -= diff;
-        newEnd -= diff;
-
-        // prevent start < min
-        if (min != null) {
-          if (newStart < min) {
-            newStart = min;
-          }
-        }
-      }
-    }
-
-    // prevent (end-start) < zoomMin
-    if (this.options.zoomMin !== null) {
-      var zoomMin = parseFloat(this.options.zoomMin);
-      if (zoomMin < 0) {
-        zoomMin = 0;
-      }
-      if ((newEnd - newStart) < zoomMin) {
-        if ((this.end - this.start) === zoomMin) {
-          // ignore this action, we are already zoomed to the minimum
-          newStart = this.start;
-          newEnd = this.end;
-        }
-        else {
-          // zoom to the minimum
-          diff = (zoomMin - (newEnd - newStart));
-          newStart -= diff / 2;
-          newEnd += diff / 2;
-        }
-      }
-    }
-
-    // prevent (end-start) > zoomMax
-    if (this.options.zoomMax !== null) {
-      var zoomMax = parseFloat(this.options.zoomMax);
-      if (zoomMax < 0) {
-        zoomMax = 0;
-      }
-      if ((newEnd - newStart) > zoomMax) {
-        if ((this.end - this.start) === zoomMax) {
-          // ignore this action, we are already zoomed to the maximum
-          newStart = this.start;
-          newEnd = this.end;
-        }
-        else {
-          // zoom to the maximum
-          diff = ((newEnd - newStart) - zoomMax);
-          newStart += diff / 2;
-          newEnd -= diff / 2;
-        }
-      }
-    }
-
-    var changed = (this.start != newStart || this.end != newEnd);
-
-    this.start = newStart;
-    this.end = newEnd;
-
-    return changed;
-  };
-
-  /**
-   * Retrieve the current range.
-   * @return {Object} An object with start and end properties
-   */
-  Range.prototype.getRange = function() {
-    return {
-      start: this.start,
-      end: this.end
-    };
-  };
-
-  /**
-   * Calculate the conversion offset and scale for current range, based on
-   * the provided width
-   * @param {Number} width
-   * @returns {{offset: number, scale: number}} conversion
-   */
-  Range.prototype.conversion = function (width) {
-    return Range.conversion(this.start, this.end, width);
-  };
-
-  /**
-   * Static method to calculate the conversion offset and scale for a range,
-   * based on the provided start, end, and width
-   * @param {Number} start
-   * @param {Number} end
-   * @param {Number} width
-   * @returns {{offset: number, scale: number}} conversion
-   */
-  Range.conversion = function (start, end, width) {
-    if (width != 0 && (end - start != 0)) {
-      return {
-        offset: start,
-        scale: width / (end - start)
-      }
-    }
-    else {
-      return {
-        offset: 0,
-        scale: 1
-      };
-    }
-  };
-
-  /**
-   * Start dragging horizontally or vertically
-   * @param {Event} event
-   * @private
-   */
-  Range.prototype._onDragStart = function(event) {
-    // only allow dragging when configured as movable
-    if (!this.options.moveable) return;
-
-    // refuse to drag when we where pinching to prevent the timeline make a jump
-    // when releasing the fingers in opposite order from the touch screen
-    if (!this.props.touch.allowDragging) return;
-
-    this.props.touch.start = this.start;
-    this.props.touch.end = this.end;
-
-    if (this.body.dom.root) {
-      this.body.dom.root.style.cursor = 'move';
-    }
-  };
-
-  /**
-   * Perform dragging operation
-   * @param {Event} event
-   * @private
-   */
-  Range.prototype._onDrag = function (event) {
-    // only allow dragging when configured as movable
-    if (!this.options.moveable) return;
-    var direction = this.options.direction;
-    validateDirection(direction);
-    // refuse to drag when we where pinching to prevent the timeline make a jump
-    // when releasing the fingers in opposite order from the touch screen
-    if (!this.props.touch.allowDragging) return;
-    var delta = (direction == 'horizontal') ? event.gesture.deltaX : event.gesture.deltaY,
-        interval = (this.props.touch.end - this.props.touch.start),
-        width = (direction == 'horizontal') ? this.body.domProps.center.width : this.body.domProps.center.height,
-        diffRange = -delta / width * interval;
-    this._applyRange(this.props.touch.start + diffRange, this.props.touch.end + diffRange);
-    this.body.emitter.emit('rangechange', {
-      start: new Date(this.start),
-      end:   new Date(this.end)
-    });
-  };
-
-  /**
-   * Stop dragging operation
-   * @param {event} event
-   * @private
-   */
-  Range.prototype._onDragEnd = function (event) {
-    // only allow dragging when configured as movable
-    if (!this.options.moveable) return;
-
-    // refuse to drag when we where pinching to prevent the timeline make a jump
-    // when releasing the fingers in opposite order from the touch screen
-    if (!this.props.touch.allowDragging) return;
-
-    if (this.body.dom.root) {
-      this.body.dom.root.style.cursor = 'auto';
-    }
-
-    // fire a rangechanged event
-    this.body.emitter.emit('rangechanged', {
-      start: new Date(this.start),
-      end:   new Date(this.end)
-    });
-  };
-
-  /**
-   * Event handler for mouse wheel event, used to zoom
-   * Code from http://adomas.org/javascript-mouse-wheel/
-   * @param {Event} event
-   * @private
-   */
-  Range.prototype._onMouseWheel = function(event) {
-    // only allow zooming when configured as zoomable and moveable
-    if (!(this.options.zoomable && this.options.moveable)) return;
-
-    // retrieve delta
-    var delta = 0;
-    if (event.wheelDelta) { /* IE/Opera. */
-      delta = event.wheelDelta / 120;
-    } else if (event.detail) { /* Mozilla case. */
-      // In Mozilla, sign of delta is different than in IE.
-      // Also, delta is multiple of 3.
-      delta = -event.detail / 3;
-    }
-
-    // If delta is nonzero, handle it.
-    // Basically, delta is now positive if wheel was scrolled up,
-    // and negative, if wheel was scrolled down.
-    if (delta) {
-      // perform the zoom action. Delta is normally 1 or -1
-
-      // adjust a negative delta such that zooming in with delta 0.1
-      // equals zooming out with a delta -0.1
-      var scale;
-      if (delta < 0) {
-        scale = 1 - (delta / 5);
-      }
-      else {
-        scale = 1 / (1 + (delta / 5)) ;
-      }
-
-      // calculate center, the date to zoom around
-      var gesture = util.fakeGesture(this, event),
-          pointer = getPointer(gesture.center, this.body.dom.center),
-          pointerDate = this._pointerToDate(pointer);
-
-      this.zoom(scale, pointerDate);
-    }
-
-    // Prevent default actions caused by mouse wheel
-    // (else the page and timeline both zoom and scroll)
-    event.preventDefault();
-  };
-
-  /**
-   * Start of a touch gesture
-   * @private
-   */
-  Range.prototype._onTouch = function (event) {
-    this.props.touch.start = this.start;
-    this.props.touch.end = this.end;
-    this.props.touch.allowDragging = true;
-    this.props.touch.center = null;
-  };
-
-  /**
-   * On start of a hold gesture
-   * @private
-   */
-  Range.prototype._onHold = function () {
-    this.props.touch.allowDragging = false;
-  };
-
-  /**
-   * Handle pinch event
-   * @param {Event} event
-   * @private
-   */
-  Range.prototype._onPinch = function (event) {
-    // only allow zooming when configured as zoomable and moveable
-    if (!(this.options.zoomable && this.options.moveable)) return;
-
-    this.props.touch.allowDragging = false;
-
-    if (event.gesture.touches.length > 1) {
-      if (!this.props.touch.center) {
-        this.props.touch.center = getPointer(event.gesture.center, this.body.dom.center);
-      }
-
-      var scale = 1 / event.gesture.scale,
-          initDate = this._pointerToDate(this.props.touch.center);
-
-      // calculate new start and end
-      var newStart = parseInt(initDate + (this.props.touch.start - initDate) * scale);
-      var newEnd = parseInt(initDate + (this.props.touch.end - initDate) * scale);
-
-      // apply new range
-      this.setRange(newStart, newEnd);
-    }
-  };
-
-  /**
-   * Helper function to calculate the center date for zooming
-   * @param {{x: Number, y: Number}} pointer
-   * @return {number} date
-   * @private
-   */
-  Range.prototype._pointerToDate = function (pointer) {
-    var conversion;
-    var direction = this.options.direction;
-
-    validateDirection(direction);
-
-    if (direction == 'horizontal') {
-      var width = this.body.domProps.center.width;
-      conversion = this.conversion(width);
-      return pointer.x / conversion.scale + conversion.offset;
-    }
-    else {
-      var height = this.body.domProps.center.height;
-      conversion = this.conversion(height);
-      return pointer.y / conversion.scale + conversion.offset;
-    }
-  };
-
-  /**
-   * Get the pointer location relative to the location of the dom element
-   * @param {{pageX: Number, pageY: Number}} touch
-   * @param {Element} element   HTML DOM element
-   * @return {{x: Number, y: Number}} pointer
-   * @private
-   */
-  function getPointer (touch, element) {
-    return {
-      x: touch.pageX - util.getAbsoluteLeft(element),
-      y: touch.pageY - util.getAbsoluteTop(element)
-    };
-  }
-
-  /**
-   * Zoom the range the given scale in or out. Start and end date will
-   * be adjusted, and the timeline will be redrawn. You can optionally give a
-   * date around which to zoom.
-   * For example, try scale = 0.9 or 1.1
-   * @param {Number} scale      Scaling factor. Values above 1 will zoom out,
-   *                            values below 1 will zoom in.
-   * @param {Number} [center]   Value representing a date around which will
-   *                            be zoomed.
-   */
-  Range.prototype.zoom = function(scale, center) {
-    // if centerDate is not provided, take it half between start Date and end Date
-    if (center == null) {
-      center = (this.start + this.end) / 2;
-    }
-
-    // calculate new start and end
-    var newStart = center + (this.start - center) * scale;
-    var newEnd = center + (this.end - center) * scale;
-
-    this.setRange(newStart, newEnd);
-  };
-
-  /**
-   * Move the range with a given delta to the left or right. Start and end
-   * value will be adjusted. For example, try delta = 0.1 or -0.1
-   * @param {Number}  delta     Moving amount. Positive value will move right,
-   *                            negative value will move left
-   */
-  Range.prototype.move = function(delta) {
-    // zoom start Date and end Date relative to the centerDate
-    var diff = (this.end - this.start);
-
-    // apply new values
-    var newStart = this.start + diff * delta;
-    var newEnd = this.end + diff * delta;
-
-    // TODO: reckon with min and max range
-
-    this.start = newStart;
-    this.end = newEnd;
-  };
-
-  /**
-   * Move the range to a new center point
-   * @param {Number} moveTo      New center point of the range
-   */
-  Range.prototype.moveTo = function(moveTo) {
-    var center = (this.start + this.end) / 2;
-
-    var diff = center - moveTo;
-
-    // calculate new start and end
-    var newStart = this.start - diff;
-    var newEnd = this.end - diff;
-
-    this.setRange(newStart, newEnd);
-  };
-
-  module.exports = Range;
-
-
-/***/ },
-/* 9 */
-/***/ function(module, exports, __webpack_require__) {
-
-  // Utility functions for ordering and stacking of items
-  var EPSILON = 0.001; // used when checking collisions, to prevent round-off errors
-
-  /**
-   * Order items by their start data
-   * @param {Item[]} items
-   */
-  exports.orderByStart = function(items) {
-    items.sort(function (a, b) {
-      return a.data.start - b.data.start;
-    });
-  };
-
-  /**
-   * Order items by their end date. If they have no end date, their start date
-   * is used.
-   * @param {Item[]} items
-   */
-  exports.orderByEnd = function(items) {
-    items.sort(function (a, b) {
-      var aTime = ('end' in a.data) ? a.data.end : a.data.start,
-          bTime = ('end' in b.data) ? b.data.end : b.data.start;
-
-      return aTime - bTime;
-    });
-  };
-
-  /**
-   * Adjust vertical positions of the items such that they don't overlap each
-   * other.
-   * @param {Item[]} items
-   *            All visible items
-   * @param {{item: number, axis: number}} margin
-   *            Margins between items and between items and the axis.
-   * @param {boolean} [force=false]
-   *            If true, all items will be repositioned. If false (default), only
-   *            items having a top===null will be re-stacked
-   */
-  exports.stack = function(items, margin, force) {
-    var i, iMax;
-
-    if (force) {
-      // reset top position of all items
-      for (i = 0, iMax = items.length; i < iMax; i++) {
-        items[i].top = null;
-      }
-    }
-
-    // calculate new, non-overlapping positions
-    for (i = 0, iMax = items.length; i < iMax; i++) {
-      var item = items[i];
-      if (item.top === null) {
-        // initialize top position
-        item.top = margin.axis;
-
-        do {
-          // TODO: optimize checking for overlap. when there is a gap without items,
-          //       you only need to check for items from the next item on, not from zero
-          var collidingItem = null;
-          for (var j = 0, jj = items.length; j < jj; j++) {
-            var other = items[j];
-            if (other.top !== null && other !== item && exports.collision(item, other, margin.item)) {
-              collidingItem = other;
-              break;
-            }
-          }
-
-          if (collidingItem != null) {
-            // There is a collision. Reposition the items above the colliding element
-            item.top = collidingItem.top + collidingItem.height + margin.item;
-          }
-        } while (collidingItem);
-      }
-    }
-  };
-
-  /**
-   * Adjust vertical positions of the items without stacking them
-   * @param {Item[]} items
-   *            All visible items
-   * @param {{item: number, axis: number}} margin
-   *            Margins between items and between items and the axis.
-   */
-  exports.nostack = function(items, margin) {
-    var i, iMax;
-
-    // reset top position of all items
-    for (i = 0, iMax = items.length; i < iMax; i++) {
-      items[i].top = margin.axis;
-    }
-  };
-
-  /**
-   * Test if the two provided items collide
-   * The items must have parameters left, width, top, and height.
-   * @param {Item} a          The first item
-   * @param {Item} b          The second item
-   * @param {Number} margin   A minimum required margin.
-   *                          If margin is provided, the two items will be
-   *                          marked colliding when they overlap or
-   *                          when the margin between the two is smaller than
-   *                          the requested margin.
-   * @return {boolean}        true if a and b collide, else false
-   */
-  exports.collision = function(a, b, margin) {
-    return ((a.left - margin + EPSILON)       < (b.left + b.width) &&
-        (a.left + a.width + margin - EPSILON) > b.left &&
-        (a.top - margin + EPSILON)            < (b.top + b.height) &&
-        (a.top + a.height + margin - EPSILON) > b.top);
-  };
-
-
-/***/ },
-/* 10 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var moment = __webpack_require__(39);
-
-  /**
-   * @constructor  TimeStep
-   * The class TimeStep is an iterator for dates. You provide a start date and an
-   * end date. The class itself determines the best scale (step size) based on the
-   * provided start Date, end Date, and minimumStep.
-   *
-   * If minimumStep is provided, the step size is chosen as close as possible
-   * to the minimumStep but larger than minimumStep. If minimumStep is not
-   * provided, the scale is set to 1 DAY.
-   * The minimumStep should correspond with the onscreen size of about 6 characters
-   *
-   * Alternatively, you can set a scale by hand.
-   * After creation, you can initialize the class by executing first(). Then you
-   * can iterate from the start date to the end date via next(). You can check if
-   * the end date is reached with the function hasNext(). After each step, you can
-   * retrieve the current date via getCurrent().
-   * The TimeStep has scales ranging from milliseconds, seconds, minutes, hours,
-   * days, to years.
-   *
-   * Version: 1.2
-   *
-   * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
-   *                               or new Date(2010, 9, 21, 23, 45, 00)
-   * @param {Date} [end]           The end date
-   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
-   */
-  function TimeStep(start, end, minimumStep) {
-    // variables
-    this.current = new Date();
-    this._start = new Date();
-    this._end = new Date();
-
-    this.autoScale  = true;
-    this.scale = TimeStep.SCALE.DAY;
-    this.step = 1;
-
-    // initialize the range
-    this.setRange(start, end, minimumStep);
-  }
-
-  /// enum scale
-  TimeStep.SCALE = {
-    MILLISECOND: 1,
-    SECOND: 2,
-    MINUTE: 3,
-    HOUR: 4,
-    DAY: 5,
-    WEEKDAY: 6,
-    MONTH: 7,
-    YEAR: 8
-  };
-
-
-  /**
-   * Set a new range
-   * If minimumStep is provided, the step size is chosen as close as possible
-   * to the minimumStep but larger than minimumStep. If minimumStep is not
-   * provided, the scale is set to 1 DAY.
-   * The minimumStep should correspond with the onscreen size of about 6 characters
-   * @param {Date} [start]      The start date and time.
-   * @param {Date} [end]        The end date and time.
-   * @param {int} [minimumStep] Optional. Minimum step size in milliseconds
-   */
-  TimeStep.prototype.setRange = function(start, end, minimumStep) {
-    if (!(start instanceof Date) || !(end instanceof Date)) {
-      throw  "No legal start or end date in method setRange";
-    }
-
-    this._start = (start != undefined) ? new Date(start.valueOf()) : new Date();
-    this._end = (end != undefined) ? new Date(end.valueOf()) : new Date();
-
-    if (this.autoScale) {
-      this.setMinimumStep(minimumStep);
-    }
-  };
-
-  /**
-   * Set the range iterator to the start date.
-   */
-  TimeStep.prototype.first = function() {
-    this.current = new Date(this._start.valueOf());
-    this.roundToMinor();
-  };
-
-  /**
-   * Round the current date to the first minor date value
-   * This must be executed once when the current date is set to start Date
-   */
-  TimeStep.prototype.roundToMinor = function() {
-    // round to floor
-    // IMPORTANT: we have no breaks in this switch! (this is no bug)
-    //noinspection FallthroughInSwitchStatementJS
-    switch (this.scale) {
-      case TimeStep.SCALE.YEAR:
-        this.current.setFullYear(this.step * Math.floor(this.current.getFullYear() / this.step));
-        this.current.setMonth(0);
-      case TimeStep.SCALE.MONTH:        this.current.setDate(1);
-      case TimeStep.SCALE.DAY:          // intentional fall through
-      case TimeStep.SCALE.WEEKDAY:      this.current.setHours(0);
-      case TimeStep.SCALE.HOUR:         this.current.setMinutes(0);
-      case TimeStep.SCALE.MINUTE:       this.current.setSeconds(0);
-      case TimeStep.SCALE.SECOND:       this.current.setMilliseconds(0);
-      //case TimeStep.SCALE.MILLISECOND: // nothing to do for milliseconds
-    }
-
-    if (this.step != 1) {
-      // round down to the first minor value that is a multiple of the current step size
-      switch (this.scale) {
-        case TimeStep.SCALE.MILLISECOND:  this.current.setMilliseconds(this.current.getMilliseconds() - this.current.getMilliseconds() % this.step);  break;
-        case TimeStep.SCALE.SECOND:       this.current.setSeconds(this.current.getSeconds() - this.current.getSeconds() % this.step); break;
-        case TimeStep.SCALE.MINUTE:       this.current.setMinutes(this.current.getMinutes() - this.current.getMinutes() % this.step); break;
-        case TimeStep.SCALE.HOUR:         this.current.setHours(this.current.getHours() - this.current.getHours() % this.step); break;
-        case TimeStep.SCALE.WEEKDAY:      // intentional fall through
-        case TimeStep.SCALE.DAY:          this.current.setDate((this.current.getDate()-1) - (this.current.getDate()-1) % this.step + 1); break;
-        case TimeStep.SCALE.MONTH:        this.current.setMonth(this.current.getMonth() - this.current.getMonth() % this.step);  break;
-        case TimeStep.SCALE.YEAR:         this.current.setFullYear(this.current.getFullYear() - this.current.getFullYear() % this.step); break;
-        default: break;
-      }
-    }
-  };
-
-  /**
-   * Check if the there is a next step
-   * @return {boolean}  true if the current date has not passed the end date
-   */
-  TimeStep.prototype.hasNext = function () {
-    return (this.current.valueOf() <= this._end.valueOf());
-  };
-
-  /**
-   * Do the next step
-   */
-  TimeStep.prototype.next = function() {
-    var prev = this.current.valueOf();
-
-    // Two cases, needed to prevent issues with switching daylight savings
-    // (end of March and end of October)
-    if (this.current.getMonth() < 6)   {
-      switch (this.scale) {
-        case TimeStep.SCALE.MILLISECOND:
-
-          this.current = new Date(this.current.valueOf() + this.step); break;
-        case TimeStep.SCALE.SECOND:       this.current = new Date(this.current.valueOf() + this.step * 1000); break;
-        case TimeStep.SCALE.MINUTE:       this.current = new Date(this.current.valueOf() + this.step * 1000 * 60); break;
-        case TimeStep.SCALE.HOUR:
-          this.current = new Date(this.current.valueOf() + this.step * 1000 * 60 * 60);
-          // in case of skipping an hour for daylight savings, adjust the hour again (else you get: 0h 5h 9h ... instead of 0h 4h 8h ...)
-          var h = this.current.getHours();
-          this.current.setHours(h - (h % this.step));
-          break;
-        case TimeStep.SCALE.WEEKDAY:      // intentional fall through
-        case TimeStep.SCALE.DAY:          this.current.setDate(this.current.getDate() + this.step); break;
-        case TimeStep.SCALE.MONTH:        this.current.setMonth(this.current.getMonth() + this.step); break;
-        case TimeStep.SCALE.YEAR:         this.current.setFullYear(this.current.getFullYear() + this.step); break;
-        default:                      break;
-      }
-    }
-    else {
-      switch (this.scale) {
-        case TimeStep.SCALE.MILLISECOND:  this.current = new Date(this.current.valueOf() + this.step); break;
-        case TimeStep.SCALE.SECOND:       this.current.setSeconds(this.current.getSeconds() + this.step); break;
-        case TimeStep.SCALE.MINUTE:       this.current.setMinutes(this.current.getMinutes() + this.step); break;
-        case TimeStep.SCALE.HOUR:         this.current.setHours(this.current.getHours() + this.step); break;
-        case TimeStep.SCALE.WEEKDAY:      // intentional fall through
-        case TimeStep.SCALE.DAY:          this.current.setDate(this.current.getDate() + this.step); break;
-        case TimeStep.SCALE.MONTH:        this.current.setMonth(this.current.getMonth() + this.step); break;
-        case TimeStep.SCALE.YEAR:         this.current.setFullYear(this.current.getFullYear() + this.step); break;
-        default:                      break;
-      }
-    }
-
-    if (this.step != 1) {
-      // round down to the correct major value
-      switch (this.scale) {
-        case TimeStep.SCALE.MILLISECOND:  if(this.current.getMilliseconds() < this.step) this.current.setMilliseconds(0);  break;
-        case TimeStep.SCALE.SECOND:       if(this.current.getSeconds() < this.step) this.current.setSeconds(0);  break;
-        case TimeStep.SCALE.MINUTE:       if(this.current.getMinutes() < this.step) this.current.setMinutes(0);  break;
-        case TimeStep.SCALE.HOUR:         if(this.current.getHours() < this.step) this.current.setHours(0);  break;
-        case TimeStep.SCALE.WEEKDAY:      // intentional fall through
-        case TimeStep.SCALE.DAY:          if(this.current.getDate() < this.step+1) this.current.setDate(1); break;
-        case TimeStep.SCALE.MONTH:        if(this.current.getMonth() < this.step) this.current.setMonth(0);  break;
-        case TimeStep.SCALE.YEAR:         break; // nothing to do for year
-        default:                break;
-      }
-    }
-
-    // safety mechanism: if current time is still unchanged, move to the end
-    if (this.current.valueOf() == prev) {
-      this.current = new Date(this._end.valueOf());
-    }
-  };
-
-
-  /**
-   * Get the current datetime
-   * @return {Date}  current The current date
-   */
-  TimeStep.prototype.getCurrent = function() {
-    return this.current;
-  };
-
-  /**
-   * Set a custom scale. Autoscaling will be disabled.
-   * For example setScale(SCALE.MINUTES, 5) will result
-   * in minor steps of 5 minutes, and major steps of an hour.
-   *
-   * @param {TimeStep.SCALE} newScale
-   *                               A scale. Choose from SCALE.MILLISECOND,
-   *                               SCALE.SECOND, SCALE.MINUTE, SCALE.HOUR,
-   *                               SCALE.WEEKDAY, SCALE.DAY, SCALE.MONTH,
-   *                               SCALE.YEAR.
-   * @param {Number}     newStep   A step size, by default 1. Choose for
-   *                               example 1, 2, 5, or 10.
-   */
-  TimeStep.prototype.setScale = function(newScale, newStep) {
-    this.scale = newScale;
-
-    if (newStep > 0) {
-      this.step = newStep;
-    }
-
-    this.autoScale = false;
-  };
-
-  /**
-   * Enable or disable autoscaling
-   * @param {boolean} enable  If true, autoascaling is set true
-   */
-  TimeStep.prototype.setAutoScale = function (enable) {
-    this.autoScale = enable;
-  };
-
-
-  /**
-   * Automatically determine the scale that bests fits the provided minimum step
-   * @param {Number} [minimumStep]  The minimum step size in milliseconds
-   */
-  TimeStep.prototype.setMinimumStep = function(minimumStep) {
-    if (minimumStep == undefined) {
-      return;
-    }
-
-    var stepYear       = (1000 * 60 * 60 * 24 * 30 * 12);
-    var stepMonth      = (1000 * 60 * 60 * 24 * 30);
-    var stepDay        = (1000 * 60 * 60 * 24);
-    var stepHour       = (1000 * 60 * 60);
-    var stepMinute     = (1000 * 60);
-    var stepSecond     = (1000);
-    var stepMillisecond= (1);
-
-    // find the smallest step that is larger than the provided minimumStep
-    if (stepYear*1000 > minimumStep)        {this.scale = TimeStep.SCALE.YEAR;        this.step = 1000;}
-    if (stepYear*500 > minimumStep)         {this.scale = TimeStep.SCALE.YEAR;        this.step = 500;}
-    if (stepYear*100 > minimumStep)         {this.scale = TimeStep.SCALE.YEAR;        this.step = 100;}
-    if (stepYear*50 > minimumStep)          {this.scale = TimeStep.SCALE.YEAR;        this.step = 50;}
-    if (stepYear*10 > minimumStep)          {this.scale = TimeStep.SCALE.YEAR;        this.step = 10;}
-    if (stepYear*5 > minimumStep)           {this.scale = TimeStep.SCALE.YEAR;        this.step = 5;}
-    if (stepYear > minimumStep)             {this.scale = TimeStep.SCALE.YEAR;        this.step = 1;}
-    if (stepMonth*3 > minimumStep)          {this.scale = TimeStep.SCALE.MONTH;       this.step = 3;}
-    if (stepMonth > minimumStep)            {this.scale = TimeStep.SCALE.MONTH;       this.step = 1;}
-    if (stepDay*5 > minimumStep)            {this.scale = TimeStep.SCALE.DAY;         this.step = 5;}
-    if (stepDay*2 > minimumStep)            {this.scale = TimeStep.SCALE.DAY;         this.step = 2;}
-    if (stepDay > minimumStep)              {this.scale = TimeStep.SCALE.DAY;         this.step = 1;}
-    if (stepDay/2 > minimumStep)            {this.scale = TimeStep.SCALE.WEEKDAY;     this.step = 1;}
-    if (stepHour*4 > minimumStep)           {this.scale = TimeStep.SCALE.HOUR;        this.step = 4;}
-    if (stepHour > minimumStep)             {this.scale = TimeStep.SCALE.HOUR;        this.step = 1;}
-    if (stepMinute*15 > minimumStep)        {this.scale = TimeStep.SCALE.MINUTE;      this.step = 15;}
-    if (stepMinute*10 > minimumStep)        {this.scale = TimeStep.SCALE.MINUTE;      this.step = 10;}
-    if (stepMinute*5 > minimumStep)         {this.scale = TimeStep.SCALE.MINUTE;      this.step = 5;}
-    if (stepMinute > minimumStep)           {this.scale = TimeStep.SCALE.MINUTE;      this.step = 1;}
-    if (stepSecond*15 > minimumStep)        {this.scale = TimeStep.SCALE.SECOND;      this.step = 15;}
-    if (stepSecond*10 > minimumStep)        {this.scale = TimeStep.SCALE.SECOND;      this.step = 10;}
-    if (stepSecond*5 > minimumStep)         {this.scale = TimeStep.SCALE.SECOND;      this.step = 5;}
-    if (stepSecond > minimumStep)           {this.scale = TimeStep.SCALE.SECOND;      this.step = 1;}
-    if (stepMillisecond*200 > minimumStep)  {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 200;}
-    if (stepMillisecond*100 > minimumStep)  {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 100;}
-    if (stepMillisecond*50 > minimumStep)   {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 50;}
-    if (stepMillisecond*10 > minimumStep)   {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 10;}
-    if (stepMillisecond*5 > minimumStep)    {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 5;}
-    if (stepMillisecond > minimumStep)      {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 1;}
-  };
-
-  /**
-   * Snap a date to a rounded value.
-   * The snap intervals are dependent on the current scale and step.
-   * @param {Date} date   the date to be snapped.
-   * @return {Date} snappedDate
-   */
-  TimeStep.prototype.snap = function(date) {
-    var clone = new Date(date.valueOf());
-
-    if (this.scale == TimeStep.SCALE.YEAR) {
-      var year = clone.getFullYear() + Math.round(clone.getMonth() / 12);
-      clone.setFullYear(Math.round(year / this.step) * this.step);
-      clone.setMonth(0);
-      clone.setDate(0);
-      clone.setHours(0);
-      clone.setMinutes(0);
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
-    }
-    else if (this.scale == TimeStep.SCALE.MONTH) {
-      if (clone.getDate() > 15) {
-        clone.setDate(1);
-        clone.setMonth(clone.getMonth() + 1);
-        // important: first set Date to 1, after that change the month.
-      }
-      else {
-        clone.setDate(1);
-      }
-
-      clone.setHours(0);
-      clone.setMinutes(0);
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
-    }
-    else if (this.scale == TimeStep.SCALE.DAY) {
-      //noinspection FallthroughInSwitchStatementJS
-      switch (this.step) {
-        case 5:
-        case 2:
-          clone.setHours(Math.round(clone.getHours() / 24) * 24); break;
-        default:
-          clone.setHours(Math.round(clone.getHours() / 12) * 12); break;
-      }
-      clone.setMinutes(0);
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
-    }
-    else if (this.scale == TimeStep.SCALE.WEEKDAY) {
-      //noinspection FallthroughInSwitchStatementJS
-      switch (this.step) {
-        case 5:
-        case 2:
-          clone.setHours(Math.round(clone.getHours() / 12) * 12); break;
-        default:
-          clone.setHours(Math.round(clone.getHours() / 6) * 6); break;
-      }
-      clone.setMinutes(0);
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
-    }
-    else if (this.scale == TimeStep.SCALE.HOUR) {
-      switch (this.step) {
-        case 4:
-          clone.setMinutes(Math.round(clone.getMinutes() / 60) * 60); break;
-        default:
-          clone.setMinutes(Math.round(clone.getMinutes() / 30) * 30); break;
-      }
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
-    } else if (this.scale == TimeStep.SCALE.MINUTE) {
-      //noinspection FallthroughInSwitchStatementJS
-      switch (this.step) {
-        case 15:
-        case 10:
-          clone.setMinutes(Math.round(clone.getMinutes() / 5) * 5);
-          clone.setSeconds(0);
-          break;
-        case 5:
-          clone.setSeconds(Math.round(clone.getSeconds() / 60) * 60); break;
-        default:
-          clone.setSeconds(Math.round(clone.getSeconds() / 30) * 30); break;
-      }
-      clone.setMilliseconds(0);
-    }
-    else if (this.scale == TimeStep.SCALE.SECOND) {
-      //noinspection FallthroughInSwitchStatementJS
-      switch (this.step) {
-        case 15:
-        case 10:
-          clone.setSeconds(Math.round(clone.getSeconds() / 5) * 5);
-          clone.setMilliseconds(0);
-          break;
-        case 5:
-          clone.setMilliseconds(Math.round(clone.getMilliseconds() / 1000) * 1000); break;
-        default:
-          clone.setMilliseconds(Math.round(clone.getMilliseconds() / 500) * 500); break;
-      }
-    }
-    else if (this.scale == TimeStep.SCALE.MILLISECOND) {
-      var step = this.step > 5 ? this.step / 2 : 1;
-      clone.setMilliseconds(Math.round(clone.getMilliseconds() / step) * step);
-    }
-    
-    return clone;
-  };
-
-  /**
-   * Check if the current value is a major value (for example when the step
-   * is DAY, a major value is each first day of the MONTH)
-   * @return {boolean} true if current date is major, else false.
-   */
-  TimeStep.prototype.isMajor = function() {
-    switch (this.scale) {
-      case TimeStep.SCALE.MILLISECOND:
-        return (this.current.getMilliseconds() == 0);
-      case TimeStep.SCALE.SECOND:
-        return (this.current.getSeconds() == 0);
-      case TimeStep.SCALE.MINUTE:
-        return (this.current.getHours() == 0) && (this.current.getMinutes() == 0);
-      // Note: this is no bug. Major label is equal for both minute and hour scale
-      case TimeStep.SCALE.HOUR:
-        return (this.current.getHours() == 0);
-      case TimeStep.SCALE.WEEKDAY: // intentional fall through
-      case TimeStep.SCALE.DAY:
-        return (this.current.getDate() == 1);
-      case TimeStep.SCALE.MONTH:
-        return (this.current.getMonth() == 0);
-      case TimeStep.SCALE.YEAR:
-        return false;
-      default:
-        return false;
-    }
-  };
-
-
-  /**
-   * Returns formatted text for the minor axislabel, depending on the current
-   * date and the scale. For example when scale is MINUTE, the current time is
-   * formatted as "hh:mm".
-   * @param {Date} [date] custom date. if not provided, current date is taken
-   */
-  TimeStep.prototype.getLabelMinor = function(date) {
-    if (date == undefined) {
-      date = this.current;
-    }
-
-    switch (this.scale) {
-      case TimeStep.SCALE.MILLISECOND:  return moment(date).format('SSS');
-      case TimeStep.SCALE.SECOND:       return moment(date).format('s');
-      case TimeStep.SCALE.MINUTE:       return moment(date).format('HH:mm');
-      case TimeStep.SCALE.HOUR:         return moment(date).format('HH:mm');
-      case TimeStep.SCALE.WEEKDAY:      return moment(date).format('ddd D');
-      case TimeStep.SCALE.DAY:          return moment(date).format('D');
-      case TimeStep.SCALE.MONTH:        return moment(date).format('MMM');
-      case TimeStep.SCALE.YEAR:         return moment(date).format('YYYY');
-      default:                          return '';
-    }
-  };
-
-
-  /**
-   * Returns formatted text for the major axis label, depending on the current
-   * date and the scale. For example when scale is MINUTE, the major scale is
-   * hours, and the hour will be formatted as "hh".
-   * @param {Date} [date] custom date. if not provided, current date is taken
-   */
-  TimeStep.prototype.getLabelMajor = function(date) {
-    if (date == undefined) {
-      date = this.current;
-    }
-
-    //noinspection FallthroughInSwitchStatementJS
-    switch (this.scale) {
-      case TimeStep.SCALE.MILLISECOND:return moment(date).format('HH:mm:ss');
-      case TimeStep.SCALE.SECOND:     return moment(date).format('D MMMM HH:mm');
-      case TimeStep.SCALE.MINUTE:
-      case TimeStep.SCALE.HOUR:       return moment(date).format('ddd D MMMM');
-      case TimeStep.SCALE.WEEKDAY:
-      case TimeStep.SCALE.DAY:        return moment(date).format('MMMM YYYY');
-      case TimeStep.SCALE.MONTH:      return moment(date).format('YYYY');
-      case TimeStep.SCALE.YEAR:       return '';
-      default:                        return '';
-    }
-  };
-
-  module.exports = TimeStep;
-
-
-/***/ },
-/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Emitter = __webpack_require__(41);
@@ -8839,6 +5691,3152 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var Emitter = __webpack_require__(41);
+  var Hammer = __webpack_require__(49);
+  var util = __webpack_require__(1);
+  var DataSet = __webpack_require__(3);
+  var DataView = __webpack_require__(4);
+  var Range = __webpack_require__(9);
+  var TimeAxis = __webpack_require__(21);
+  var CurrentTime = __webpack_require__(13);
+  var CustomTime = __webpack_require__(14);
+  var ItemSet = __webpack_require__(18);
+
+  /**
+   * Create a timeline visualization
+   * @param {HTMLElement} container
+   * @param {vis.DataSet | Array | google.visualization.DataTable} [items]
+   * @param {Object} [options]  See Timeline.setOptions for the available options.
+   * @constructor
+   */
+  function Timeline (container, items, options) {
+    if (!(this instanceof Timeline)) {
+      throw new SyntaxError('Constructor must be called with the new operator');
+    }
+
+    var me = this;
+    this.defaultOptions = {
+      start: null,
+      end:   null,
+
+      autoResize: true,
+
+      orientation: 'bottom',
+      width: null,
+      height: null,
+      maxHeight: null,
+      minHeight: null
+    };
+    this.options = util.deepExtend({}, this.defaultOptions);
+
+    // Create the DOM, props, and emitter
+    this._create(container);
+
+    // all components listed here will be repainted automatically
+    this.components = [];
+
+    this.body = {
+      dom: this.dom,
+      domProps: this.props,
+      emitter: {
+        on: this.on.bind(this),
+        off: this.off.bind(this),
+        emit: this.emit.bind(this)
+      },
+      util: {
+        snap: null, // will be specified after TimeAxis is created
+        toScreen: me._toScreen.bind(me),
+        toGlobalScreen: me._toGlobalScreen.bind(me), // this refers to the root.width
+        toTime: me._toTime.bind(me),
+        toGlobalTime : me._toGlobalTime.bind(me)
+      }
+    };
+
+    // range
+    this.range = new Range(this.body);
+    this.components.push(this.range);
+    this.body.range = this.range;
+
+    // time axis
+    this.timeAxis = new TimeAxis(this.body);
+    this.components.push(this.timeAxis);
+    this.body.util.snap = this.timeAxis.snap.bind(this.timeAxis);
+
+    // current time bar
+    this.currentTime = new CurrentTime(this.body);
+    this.components.push(this.currentTime);
+
+    // custom time bar
+    // Note: time bar will be attached in this.setOptions when selected
+    this.customTime = new CustomTime(this.body);
+    this.components.push(this.customTime);
+
+    // item set
+    this.itemSet = new ItemSet(this.body);
+    this.components.push(this.itemSet);
+
+    this.itemsData = null;      // DataSet
+    this.groupsData = null;     // DataSet
+
+    // apply options
+    if (options) {
+      this.setOptions(options);
+    }
+
+    // create itemset
+    if (items) {
+      this.setItems(items);
+    }
+    else {
+      this.redraw();
+    }
+  }
+
+  // turn Timeline into an event emitter
+  Emitter(Timeline.prototype);
+
+  /**
+   * Create the main DOM for the Timeline: a root panel containing left, right,
+   * top, bottom, content, and background panel.
+   * @param {Element} container  The container element where the Timeline will
+   *                             be attached.
+   * @private
+   */
+  Timeline.prototype._create = function (container) {
+    this.dom = {};
+
+    this.dom.root                 = document.createElement('div');
+    this.dom.background           = document.createElement('div');
+    this.dom.backgroundVertical   = document.createElement('div');
+    this.dom.backgroundHorizontal = document.createElement('div');
+    this.dom.centerContainer      = document.createElement('div');
+    this.dom.leftContainer        = document.createElement('div');
+    this.dom.rightContainer       = document.createElement('div');
+    this.dom.center               = document.createElement('div');
+    this.dom.left                 = document.createElement('div');
+    this.dom.right                = document.createElement('div');
+    this.dom.top                  = document.createElement('div');
+    this.dom.bottom               = document.createElement('div');
+    this.dom.shadowTop            = document.createElement('div');
+    this.dom.shadowBottom         = document.createElement('div');
+    this.dom.shadowTopLeft        = document.createElement('div');
+    this.dom.shadowBottomLeft     = document.createElement('div');
+    this.dom.shadowTopRight       = document.createElement('div');
+    this.dom.shadowBottomRight    = document.createElement('div');
+
+    this.dom.background.className           = 'vispanel background';
+    this.dom.backgroundVertical.className   = 'vispanel background vertical';
+    this.dom.backgroundHorizontal.className = 'vispanel background horizontal';
+    this.dom.centerContainer.className      = 'vispanel center';
+    this.dom.leftContainer.className        = 'vispanel left';
+    this.dom.rightContainer.className       = 'vispanel right';
+    this.dom.top.className                  = 'vispanel top';
+    this.dom.bottom.className               = 'vispanel bottom';
+    this.dom.left.className                 = 'content';
+    this.dom.center.className               = 'content';
+    this.dom.right.className                = 'content';
+    this.dom.shadowTop.className            = 'shadow top';
+    this.dom.shadowBottom.className         = 'shadow bottom';
+    this.dom.shadowTopLeft.className        = 'shadow top';
+    this.dom.shadowBottomLeft.className     = 'shadow bottom';
+    this.dom.shadowTopRight.className       = 'shadow top';
+    this.dom.shadowBottomRight.className    = 'shadow bottom';
+
+    this.dom.root.appendChild(this.dom.background);
+    this.dom.root.appendChild(this.dom.backgroundVertical);
+    this.dom.root.appendChild(this.dom.backgroundHorizontal);
+    this.dom.root.appendChild(this.dom.centerContainer);
+    this.dom.root.appendChild(this.dom.leftContainer);
+    this.dom.root.appendChild(this.dom.rightContainer);
+    this.dom.root.appendChild(this.dom.top);
+    this.dom.root.appendChild(this.dom.bottom);
+
+    this.dom.centerContainer.appendChild(this.dom.center);
+    this.dom.leftContainer.appendChild(this.dom.left);
+    this.dom.rightContainer.appendChild(this.dom.right);
+
+    this.dom.centerContainer.appendChild(this.dom.shadowTop);
+    this.dom.centerContainer.appendChild(this.dom.shadowBottom);
+    this.dom.leftContainer.appendChild(this.dom.shadowTopLeft);
+    this.dom.leftContainer.appendChild(this.dom.shadowBottomLeft);
+    this.dom.rightContainer.appendChild(this.dom.shadowTopRight);
+    this.dom.rightContainer.appendChild(this.dom.shadowBottomRight);
+
+    this.on('rangechange', this.redraw.bind(this));
+    this.on('change', this.redraw.bind(this));
+    this.on('touch', this._onTouch.bind(this));
+    this.on('pinch', this._onPinch.bind(this));
+    this.on('dragstart', this._onDragStart.bind(this));
+    this.on('drag', this._onDrag.bind(this));
+
+    // create event listeners for all interesting events, these events will be
+    // emitted via emitter
+    this.hammer = Hammer(this.dom.root, {
+      prevent_default: true
+    });
+    this.listeners = {};
+
+    var me = this;
+    var events = [
+      'touch', 'pinch',
+      'tap', 'doubletap', 'hold',
+      'dragstart', 'drag', 'dragend',
+      'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is needed for Firefox
+    ];
+    events.forEach(function (event) {
+      var listener = function () {
+        var args = [event].concat(Array.prototype.slice.call(arguments, 0));
+        me.emit.apply(me, args);
+      };
+      me.hammer.on(event, listener);
+      me.listeners[event] = listener;
+    });
+
+    // size properties of each of the panels
+    this.props = {
+      root: {},
+      background: {},
+      centerContainer: {},
+      leftContainer: {},
+      rightContainer: {},
+      center: {},
+      left: {},
+      right: {},
+      top: {},
+      bottom: {},
+      border: {},
+      scrollTop: 0,
+      scrollTopMin: 0
+    };
+    this.touch = {}; // store state information needed for touch events
+
+    // attach the root panel to the provided container
+    if (!container) throw new Error('No container provided');
+    container.appendChild(this.dom.root);
+  };
+
+  /**
+   * Destroy the Timeline, clean up all DOM elements and event listeners.
+   */
+  Timeline.prototype.destroy = function () {
+    // unbind datasets
+    this.clear();
+
+    // remove all event listeners
+    this.off();
+
+    // stop checking for changed size
+    this._stopAutoResize();
+
+    // remove from DOM
+    if (this.dom.root.parentNode) {
+      this.dom.root.parentNode.removeChild(this.dom.root);
+    }
+    this.dom = null;
+
+    // cleanup hammer touch events
+    for (var event in this.listeners) {
+      if (this.listeners.hasOwnProperty(event)) {
+        delete this.listeners[event];
+      }
+    }
+    this.listeners = null;
+    this.hammer = null;
+
+    // give all components the opportunity to cleanup
+    this.components.forEach(function (component) {
+      component.destroy();
+    });
+
+    this.body = null;
+  };
+
+  /**
+   * Set options. Options will be passed to all components loaded in the Timeline.
+   * @param {Object} [options]
+   *                           {String} orientation
+   *                              Vertical orientation for the Timeline,
+   *                              can be 'bottom' (default) or 'top'.
+   *                           {String | Number} width
+   *                              Width for the timeline, a number in pixels or
+   *                              a css string like '1000px' or '75%'. '100%' by default.
+   *                           {String | Number} height
+   *                              Fixed height for the Timeline, a number in pixels or
+   *                              a css string like '400px' or '75%'. If undefined,
+   *                              The Timeline will automatically size such that
+   *                              its contents fit.
+   *                           {String | Number} minHeight
+   *                              Minimum height for the Timeline, a number in pixels or
+   *                              a css string like '400px' or '75%'.
+   *                           {String | Number} maxHeight
+   *                              Maximum height for the Timeline, a number in pixels or
+   *                              a css string like '400px' or '75%'.
+   *                           {Number | Date | String} start
+   *                              Start date for the visible window
+   *                           {Number | Date | String} end
+   *                              End date for the visible window
+   */
+  Timeline.prototype.setOptions = function (options) {
+    if (options) {
+      // copy the known options
+      var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'orientation'];
+      util.selectiveExtend(fields, this.options, options);
+
+      // enable/disable autoResize
+      this._initAutoResize();
+    }
+
+    // propagate options to all components
+    this.components.forEach(function (component) {
+      component.setOptions(options);
+    });
+
+    // TODO: remove deprecation error one day (deprecated since version 0.8.0)
+    if (options && options.order) {
+      throw new Error('Option order is deprecated. There is no replacement for this feature.');
+    }
+
+    // redraw everything
+    this.redraw();
+  };
+
+  /**
+   * Set a custom time bar
+   * @param {Date} time
+   */
+  Timeline.prototype.setCustomTime = function (time) {
+    if (!this.customTime) {
+      throw new Error('Cannot get custom time: Custom time bar is not enabled');
+    }
+
+    this.customTime.setCustomTime(time);
+  };
+
+  /**
+   * Retrieve the current custom time.
+   * @return {Date} customTime
+   */
+  Timeline.prototype.getCustomTime = function() {
+    if (!this.customTime) {
+      throw new Error('Cannot get custom time: Custom time bar is not enabled');
+    }
+
+    return this.customTime.getCustomTime();
+  };
+
+  /**
+   * Set items
+   * @param {vis.DataSet | Array | google.visualization.DataTable | null} items
+   */
+  Timeline.prototype.setItems = function(items) {
+    var initialLoad = (this.itemsData == null);
+
+    // convert to type DataSet when needed
+    var newDataSet;
+    if (!items) {
+      newDataSet = null;
+    }
+    else if (items instanceof DataSet || items instanceof DataView) {
+      newDataSet = items;
+    }
+    else {
+      // turn an array into a dataset
+      newDataSet = new DataSet(items, {
+        type: {
+          start: 'Date',
+          end: 'Date'
+        }
+      });
+    }
+
+    // set items
+    this.itemsData = newDataSet;
+    this.itemSet && this.itemSet.setItems(newDataSet);
+
+    if (initialLoad && ('start' in this.options || 'end' in this.options)) {
+      this.fit();
+
+      var start = ('start' in this.options) ? util.convert(this.options.start, 'Date') : null;
+      var end   = ('end' in this.options)   ? util.convert(this.options.end, 'Date') : null;
+
+      this.setWindow(start, end);
+    }
+  };
+
+  /**
+   * Set groups
+   * @param {vis.DataSet | Array | google.visualization.DataTable} groups
+   */
+  Timeline.prototype.setGroups = function(groups) {
+    // convert to type DataSet when needed
+    var newDataSet;
+    if (!groups) {
+      newDataSet = null;
+    }
+    else if (groups instanceof DataSet || groups instanceof DataView) {
+      newDataSet = groups;
+    }
+    else {
+      // turn an array into a dataset
+      newDataSet = new DataSet(groups);
+    }
+
+    this.groupsData = newDataSet;
+    this.itemSet.setGroups(newDataSet);
+  };
+
+  /**
+   * Clear the Timeline. By Default, items, groups and options are cleared.
+   * Example usage:
+   *
+   *     timeline.clear();                // clear items, groups, and options
+   *     timeline.clear({options: true}); // clear options only
+   *
+   * @param {Object} [what]      Optionally specify what to clear. By default:
+   *                             {items: true, groups: true, options: true}
+   */
+  Timeline.prototype.clear = function(what) {
+    // clear items
+    if (!what || what.items) {
+      this.setItems(null);
+    }
+
+    // clear groups
+    if (!what || what.groups) {
+      this.setGroups(null);
+    }
+
+    // clear options of timeline and of each of the components
+    if (!what || what.options) {
+      this.components.forEach(function (component) {
+        component.setOptions(component.defaultOptions);
+      });
+
+      this.setOptions(this.defaultOptions); // this will also do a redraw
+    }
+  };
+
+  /**
+   * Set Timeline window such that it fits all items
+   */
+  Timeline.prototype.fit = function() {
+    // apply the data range as range
+    var dataRange = this.getItemRange();
+
+    // add 5% space on both sides
+    var start = dataRange.min;
+    var end = dataRange.max;
+    if (start != null && end != null) {
+      var interval = (end.valueOf() - start.valueOf());
+      if (interval <= 0) {
+        // prevent an empty interval
+        interval = 24 * 60 * 60 * 1000; // 1 day
+      }
+      start = new Date(start.valueOf() - interval * 0.05);
+      end = new Date(end.valueOf() + interval * 0.05);
+    }
+
+    // skip range set if there is no start and end date
+    if (start === null && end === null) {
+      return;
+    }
+
+    this.range.setRange(start, end);
+  };
+
+  /**
+   * Get the data range of the item set.
+   * @returns {{min: Date, max: Date}} range  A range with a start and end Date.
+   *                                          When no minimum is found, min==null
+   *                                          When no maximum is found, max==null
+   */
+  Timeline.prototype.getItemRange = function() {
+    // calculate min from start filed
+    var dataset = this.itemsData.getDataSet(),
+        min = null,
+        max = null;
+
+    if (dataset) {
+      // calculate the minimum value of the field 'start'
+      var minItem = dataset.min('start');
+      min = minItem ? util.convert(minItem.start, 'Date').valueOf() : null;
+      // Note: we convert first to Date and then to number because else
+      // a conversion from ISODate to Number will fail
+
+      // calculate maximum value of fields 'start' and 'end'
+      var maxStartItem = dataset.max('start');
+      if (maxStartItem) {
+        max = util.convert(maxStartItem.start, 'Date').valueOf();
+      }
+      var maxEndItem = dataset.max('end');
+      if (maxEndItem) {
+        if (max == null) {
+          max = util.convert(maxEndItem.end, 'Date').valueOf();
+        }
+        else {
+          max = Math.max(max, util.convert(maxEndItem.end, 'Date').valueOf());
+        }
+      }
+    }
+
+    return {
+      min: (min != null) ? new Date(min) : null,
+      max: (max != null) ? new Date(max) : null
+    };
+  };
+
+  /**
+   * Set selected items by their id. Replaces the current selection
+   * Unknown id's are silently ignored.
+   * @param {Array} [ids] An array with zero or more id's of the items to be
+   *                      selected. If ids is an empty array, all items will be
+   *                      unselected.
+   */
+  Timeline.prototype.setSelection = function(ids) {
+    this.itemSet && this.itemSet.setSelection(ids);
+  };
+
+  /**
+   * Get the selected items by their id
+   * @return {Array} ids  The ids of the selected items
+   */
+  Timeline.prototype.getSelection = function() {
+    return this.itemSet && this.itemSet.getSelection() || [];
+  };
+
+  /**
+   * Set the visible window. Both parameters are optional, you can change only
+   * start or only end. Syntax:
+   *
+   *     TimeLine.setWindow(start, end)
+   *     TimeLine.setWindow(range)
+   *
+   * Where start and end can be a Date, number, or string, and range is an
+   * object with properties start and end.
+   *
+   * @param {Date | Number | String | Object} [start] Start date of visible window
+   * @param {Date | Number | String} [end]   End date of visible window
+   */
+  Timeline.prototype.setWindow = function(start, end) {
+    if (arguments.length == 1) {
+      var range = arguments[0];
+      this.range.setRange(range.start, range.end);
+    }
+    else {
+      this.range.setRange(start, end);
+    }
+  };
+
+  /**
+   * Get the visible window
+   * @return {{start: Date, end: Date}}   Visible range
+   */
+  Timeline.prototype.getWindow = function() {
+    var range = this.range.getRange();
+    return {
+      start: new Date(range.start),
+      end: new Date(range.end)
+    };
+  };
+
+  /**
+   * Force a redraw of the Timeline. Can be useful to manually redraw when
+   * option autoResize=false
+   */
+  Timeline.prototype.redraw = function() {
+    var resized = false,
+        options = this.options,
+        props = this.props,
+        dom = this.dom;
+
+    if (!dom) return; // when destroyed
+
+    // update class names
+    dom.root.className = 'vis timeline root ' + options.orientation;
+
+    // update root width and height options
+    dom.root.style.maxHeight = util.option.asSize(options.maxHeight, '');
+    dom.root.style.minHeight = util.option.asSize(options.minHeight, '');
+    dom.root.style.width = util.option.asSize(options.width, '');
+
+    // calculate border widths
+    props.border.left   = (dom.centerContainer.offsetWidth - dom.centerContainer.clientWidth) / 2;
+    props.border.right  = props.border.left;
+    props.border.top    = (dom.centerContainer.offsetHeight - dom.centerContainer.clientHeight) / 2;
+    props.border.bottom = props.border.top;
+    var borderRootHeight= dom.root.offsetHeight - dom.root.clientHeight;
+    var borderRootWidth = dom.root.offsetWidth - dom.root.clientWidth;
+
+    // calculate the heights. If any of the side panels is empty, we set the height to
+    // minus the border width, such that the border will be invisible
+    props.center.height = dom.center.offsetHeight;
+    props.left.height   = dom.left.offsetHeight;
+    props.right.height  = dom.right.offsetHeight;
+    props.top.height    = dom.top.clientHeight    || -props.border.top;
+    props.bottom.height = dom.bottom.clientHeight || -props.border.bottom;
+
+    // TODO: compensate borders when any of the panels is empty.
+
+    // apply auto height
+    // TODO: only calculate autoHeight when needed (else we cause an extra reflow/repaint of the DOM)
+    var contentHeight = Math.max(props.left.height, props.center.height, props.right.height);
+    var autoHeight = props.top.height + contentHeight + props.bottom.height +
+        borderRootHeight + props.border.top + props.border.bottom;
+    dom.root.style.height = util.option.asSize(options.height, autoHeight + 'px');
+
+    // calculate heights of the content panels
+    props.root.height = dom.root.offsetHeight;
+    props.background.height = props.root.height - borderRootHeight;
+    var containerHeight = props.root.height - props.top.height - props.bottom.height -
+        borderRootHeight;
+    props.centerContainer.height  = containerHeight;
+    props.leftContainer.height    = containerHeight;
+    props.rightContainer.height   = props.leftContainer.height;
+
+    // calculate the widths of the panels
+    props.root.width = dom.root.offsetWidth;
+    props.background.width = props.root.width - borderRootWidth;
+    props.left.width = dom.leftContainer.clientWidth   || -props.border.left;
+    props.leftContainer.width = props.left.width;
+    props.right.width = dom.rightContainer.clientWidth || -props.border.right;
+    props.rightContainer.width = props.right.width;
+    var centerWidth = props.root.width - props.left.width - props.right.width - borderRootWidth;
+    props.center.width          = centerWidth;
+    props.centerContainer.width = centerWidth;
+    props.top.width             = centerWidth;
+    props.bottom.width          = centerWidth;
+
+    // resize the panels
+    dom.background.style.height           = props.background.height + 'px';
+    dom.backgroundVertical.style.height   = props.background.height + 'px';
+    dom.backgroundHorizontal.style.height = props.centerContainer.height + 'px';
+    dom.centerContainer.style.height      = props.centerContainer.height + 'px';
+    dom.leftContainer.style.height        = props.leftContainer.height + 'px';
+    dom.rightContainer.style.height       = props.rightContainer.height + 'px';
+
+    dom.background.style.width            = props.background.width + 'px';
+    dom.backgroundVertical.style.width    = props.centerContainer.width + 'px';
+    dom.backgroundHorizontal.style.width  = props.background.width + 'px';
+    dom.centerContainer.style.width       = props.center.width + 'px';
+    dom.top.style.width                   = props.top.width + 'px';
+    dom.bottom.style.width                = props.bottom.width + 'px';
+
+    // reposition the panels
+    dom.background.style.left           = '0';
+    dom.background.style.top            = '0';
+    dom.backgroundVertical.style.left   = props.left.width + 'px';
+    dom.backgroundVertical.style.top    = '0';
+    dom.backgroundHorizontal.style.left = '0';
+    dom.backgroundHorizontal.style.top  = props.top.height + 'px';
+    dom.centerContainer.style.left      = props.left.width + 'px';
+    dom.centerContainer.style.top       = props.top.height + 'px';
+    dom.leftContainer.style.left        = '0';
+    dom.leftContainer.style.top         = props.top.height + 'px';
+    dom.rightContainer.style.left       = (props.left.width + props.center.width) + 'px';
+    dom.rightContainer.style.top        = props.top.height + 'px';
+    dom.top.style.left                  = props.left.width + 'px';
+    dom.top.style.top                   = '0';
+    dom.bottom.style.left               = props.left.width + 'px';
+    dom.bottom.style.top                = (props.top.height + props.centerContainer.height) + 'px';
+
+    // update the scrollTop, feasible range for the offset can be changed
+    // when the height of the Timeline or of the contents of the center changed
+    this._updateScrollTop();
+
+    // reposition the scrollable contents
+    var offset = this.props.scrollTop;
+    if (options.orientation == 'bottom') {
+      offset += Math.max(this.props.centerContainer.height - this.props.center.height -
+          this.props.border.top - this.props.border.bottom, 0);
+    }
+    dom.center.style.left = '0';
+    dom.center.style.top  = offset + 'px';
+    dom.left.style.left   = '0';
+    dom.left.style.top    = offset + 'px';
+    dom.right.style.left  = '0';
+    dom.right.style.top   = offset + 'px';
+
+    // show shadows when vertical scrolling is available
+    var visibilityTop = this.props.scrollTop == 0 ? 'hidden' : '';
+    var visibilityBottom = this.props.scrollTop == this.props.scrollTopMin ? 'hidden' : '';
+    dom.shadowTop.style.visibility          = visibilityTop;
+    dom.shadowBottom.style.visibility       = visibilityBottom;
+    dom.shadowTopLeft.style.visibility      = visibilityTop;
+    dom.shadowBottomLeft.style.visibility   = visibilityBottom;
+    dom.shadowTopRight.style.visibility     = visibilityTop;
+    dom.shadowBottomRight.style.visibility  = visibilityBottom;
+
+    // redraw all components
+    this.components.forEach(function (component) {
+      resized = component.redraw() || resized;
+    });
+    if (resized) {
+      // keep repainting until all sizes are settled
+      this.redraw();
+    }
+  };
+
+  // TODO: deprecated since version 1.1.0, remove some day
+  Timeline.prototype.repaint = function () {
+      throw new Error('Function repaint is deprecated. Use redraw instead.');
+  };
+
+  /**
+   * Convert a position on screen (pixels) to a datetime
+   * @param {int}     x    Position on the screen in pixels
+   * @return {Date}   time The datetime the corresponds with given position x
+   * @private
+   */
+  // TODO: move this function to Range
+  Timeline.prototype._toTime = function(x) {
+    var conversion = this.range.conversion(this.props.center.width);
+    return new Date(x / conversion.scale + conversion.offset);
+  };
+
+
+  /**
+   * Convert a position on the global screen (pixels) to a datetime
+   * @param {int}     x    Position on the screen in pixels
+   * @return {Date}   time The datetime the corresponds with given position x
+   * @private
+   */
+  // TODO: move this function to Range
+  Timeline.prototype._toGlobalTime = function(x) {
+    var conversion = this.range.conversion(this.props.root.width);
+    return new Date(x / conversion.scale + conversion.offset);
+  };
+
+  /**
+   * Convert a datetime (Date object) into a position on the screen
+   * @param {Date}   time A date
+   * @return {int}   x    The position on the screen in pixels which corresponds
+   *                      with the given date.
+   * @private
+   */
+  // TODO: move this function to Range
+  Timeline.prototype._toScreen = function(time) {
+    var conversion = this.range.conversion(this.props.center.width);
+    return (time.valueOf() - conversion.offset) * conversion.scale;
+  };
+
+
+  /**
+   * Convert a datetime (Date object) into a position on the root
+   * This is used to get the pixel density estimate for the screen, not the center panel
+   * @param {Date}   time A date
+   * @return {int}   x    The position on root in pixels which corresponds
+   *                      with the given date.
+   * @private
+   */
+  // TODO: move this function to Range
+  Timeline.prototype._toGlobalScreen = function(time) {
+    var conversion = this.range.conversion(this.props.root.width);
+    return (time.valueOf() - conversion.offset) * conversion.scale;
+  };
+
+
+  /**
+   * Initialize watching when option autoResize is true
+   * @private
+   */
+  Timeline.prototype._initAutoResize = function () {
+    if (this.options.autoResize == true) {
+      this._startAutoResize();
+    }
+    else {
+      this._stopAutoResize();
+    }
+  };
+
+  /**
+   * Watch for changes in the size of the container. On resize, the Panel will
+   * automatically redraw itself.
+   * @private
+   */
+  Timeline.prototype._startAutoResize = function () {
+    var me = this;
+
+    this._stopAutoResize();
+
+    this._onResize = function() {
+      if (me.options.autoResize != true) {
+        // stop watching when the option autoResize is changed to false
+        me._stopAutoResize();
+        return;
+      }
+
+      if (me.dom.root) {
+        // check whether the frame is resized
+        if ((me.dom.root.clientWidth != me.props.lastWidth) ||
+            (me.dom.root.clientHeight != me.props.lastHeight)) {
+          me.props.lastWidth = me.dom.root.clientWidth;
+          me.props.lastHeight = me.dom.root.clientHeight;
+
+          me.emit('change');
+        }
+      }
+    };
+
+    // add event listener to window resize
+    util.addEventListener(window, 'resize', this._onResize);
+
+    this.watchTimer = setInterval(this._onResize, 1000);
+  };
+
+  /**
+   * Stop watching for a resize of the frame.
+   * @private
+   */
+  Timeline.prototype._stopAutoResize = function () {
+    if (this.watchTimer) {
+      clearInterval(this.watchTimer);
+      this.watchTimer = undefined;
+    }
+
+    // remove event listener on window.resize
+    util.removeEventListener(window, 'resize', this._onResize);
+    this._onResize = null;
+  };
+
+  /**
+   * Start moving the timeline vertically
+   * @param {Event} event
+   * @private
+   */
+  Timeline.prototype._onTouch = function (event) {
+    this.touch.allowDragging = true;
+  };
+
+  /**
+   * Start moving the timeline vertically
+   * @param {Event} event
+   * @private
+   */
+  Timeline.prototype._onPinch = function (event) {
+    this.touch.allowDragging = false;
+  };
+
+  /**
+   * Start moving the timeline vertically
+   * @param {Event} event
+   * @private
+   */
+  Timeline.prototype._onDragStart = function (event) {
+    this.touch.initialScrollTop = this.props.scrollTop;
+  };
+
+  /**
+   * Move the timeline vertically
+   * @param {Event} event
+   * @private
+   */
+  Timeline.prototype._onDrag = function (event) {
+    // refuse to drag when we where pinching to prevent the timeline make a jump
+    // when releasing the fingers in opposite order from the touch screen
+    if (!this.touch.allowDragging) return;
+
+    var delta = event.gesture.deltaY;
+
+    var oldScrollTop = this._getScrollTop();
+    var newScrollTop = this._setScrollTop(this.touch.initialScrollTop + delta);
+
+    if (newScrollTop != oldScrollTop) {
+      this.redraw(); // TODO: this causes two redraws when dragging, the other is triggered by rangechange already
+    }
+  };
+
+  /**
+   * Apply a scrollTop
+   * @param {Number} scrollTop
+   * @returns {Number} scrollTop  Returns the applied scrollTop
+   * @private
+   */
+  Timeline.prototype._setScrollTop = function (scrollTop) {
+    this.props.scrollTop = scrollTop;
+    this._updateScrollTop();
+    return this.props.scrollTop;
+  };
+
+  /**
+   * Update the current scrollTop when the height of  the containers has been changed
+   * @returns {Number} scrollTop  Returns the applied scrollTop
+   * @private
+   */
+  Timeline.prototype._updateScrollTop = function () {
+    // recalculate the scrollTopMin
+    var scrollTopMin = Math.min(this.props.centerContainer.height - this.props.center.height, 0); // is negative or zero
+    if (scrollTopMin != this.props.scrollTopMin) {
+      // in case of bottom orientation, change the scrollTop such that the contents
+      // do not move relative to the time axis at the bottom
+      if (this.options.orientation == 'bottom') {
+        this.props.scrollTop += (scrollTopMin - this.props.scrollTopMin);
+      }
+      this.props.scrollTopMin = scrollTopMin;
+    }
+
+    // limit the scrollTop to the feasible scroll range
+    if (this.props.scrollTop > 0) this.props.scrollTop = 0;
+    if (this.props.scrollTop < scrollTopMin) this.props.scrollTop = scrollTopMin;
+
+    return this.props.scrollTop;
+  };
+
+  /**
+   * Get the current scrollTop
+   * @returns {number} scrollTop
+   * @private
+   */
+  Timeline.prototype._getScrollTop = function () {
+    return this.props.scrollTop;
+  };
+
+  module.exports = Timeline;
+
+
+/***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var Emitter = __webpack_require__(41);
+  var Hammer = __webpack_require__(49);
+  var util = __webpack_require__(1);
+  var DataSet = __webpack_require__(3);
+  var DataView = __webpack_require__(4);
+  var Range = __webpack_require__(9);
+  var TimeAxis = __webpack_require__(21);
+  var CurrentTime = __webpack_require__(13);
+  var CustomTime = __webpack_require__(14);
+  var LineGraph = __webpack_require__(20);
+
+  /**
+   * Create a timeline visualization
+   * @param {HTMLElement} container
+   * @param {vis.DataSet | Array | google.visualization.DataTable} [items]
+   * @param {Object} [options]  See Graph2d.setOptions for the available options.
+   * @constructor
+   */
+  function Graph2d (container, items, options, groups) {
+    var me = this;
+    this.defaultOptions = {
+      start: null,
+      end:   null,
+
+      autoResize: true,
+
+      orientation: 'bottom',
+      width: null,
+      height: null,
+      maxHeight: null,
+      minHeight: null
+    };
+    this.options = util.deepExtend({}, this.defaultOptions);
+
+    // Create the DOM, props, and emitter
+    this._create(container);
+
+    // all components listed here will be repainted automatically
+    this.components = [];
+
+    this.body = {
+      dom: this.dom,
+      domProps: this.props,
+      emitter: {
+        on: this.on.bind(this),
+        off: this.off.bind(this),
+        emit: this.emit.bind(this)
+      },
+      util: {
+        snap: null, // will be specified after TimeAxis is created
+        toScreen: me._toScreen.bind(me),
+        toGlobalScreen: me._toGlobalScreen.bind(me), // this refers to the root.width
+        toTime: me._toTime.bind(me),
+        toGlobalTime : me._toGlobalTime.bind(me)
+      }
+    };
+
+    // range
+    this.range = new Range(this.body);
+    this.components.push(this.range);
+    this.body.range = this.range;
+
+    // time axis
+    this.timeAxis = new TimeAxis(this.body);
+    this.components.push(this.timeAxis);
+    this.body.util.snap = this.timeAxis.snap.bind(this.timeAxis);
+
+    // current time bar
+    this.currentTime = new CurrentTime(this.body);
+    this.components.push(this.currentTime);
+
+    // custom time bar
+    // Note: time bar will be attached in this.setOptions when selected
+    this.customTime = new CustomTime(this.body);
+    this.components.push(this.customTime);
+
+    // item set
+    this.linegraph = new LineGraph(this.body);
+    this.components.push(this.linegraph);
+
+    this.itemsData = null;      // DataSet
+    this.groupsData = null;     // DataSet
+
+    // apply options
+    if (options) {
+      this.setOptions(options);
+    }
+
+    // IMPORTANT: THIS HAPPENS BEFORE SET ITEMS!
+    if (groups) {
+      this.setGroups(groups);
+    }
+
+    // create itemset
+    if (items) {
+      this.setItems(items);
+    }
+    else {
+      this.redraw();
+    }
+  }
+
+  // turn Graph2d into an event emitter
+  Emitter(Graph2d.prototype);
+
+  /**
+   * Create the main DOM for the Graph2d: a root panel containing left, right,
+   * top, bottom, content, and background panel.
+   * @param {Element} container  The container element where the Graph2d will
+   *                             be attached.
+   * @private
+   */
+  Graph2d.prototype._create = function (container) {
+    this.dom = {};
+
+    this.dom.root                 = document.createElement('div');
+    this.dom.background           = document.createElement('div');
+    this.dom.backgroundVertical   = document.createElement('div');
+    this.dom.backgroundHorizontalContainer = document.createElement('div');
+    this.dom.centerContainer      = document.createElement('div');
+    this.dom.leftContainer        = document.createElement('div');
+    this.dom.rightContainer       = document.createElement('div');
+    this.dom.backgroundHorizontal = document.createElement('div');
+    this.dom.center               = document.createElement('div');
+    this.dom.left                 = document.createElement('div');
+    this.dom.right                = document.createElement('div');
+    this.dom.top                  = document.createElement('div');
+    this.dom.bottom               = document.createElement('div');
+    this.dom.shadowTop            = document.createElement('div');
+    this.dom.shadowBottom         = document.createElement('div');
+    this.dom.shadowTopLeft        = document.createElement('div');
+    this.dom.shadowBottomLeft     = document.createElement('div');
+    this.dom.shadowTopRight       = document.createElement('div');
+    this.dom.shadowBottomRight    = document.createElement('div');
+
+    this.dom.background.className           = 'vispanel background';
+    this.dom.backgroundVertical.className   = 'vispanel background vertical';
+    this.dom.backgroundHorizontalContainer.className = 'vispanel background horizontal';
+    this.dom.backgroundHorizontal.className = 'vispanel background horizontal';
+    this.dom.centerContainer.className      = 'vispanel center';
+    this.dom.leftContainer.className        = 'vispanel left';
+    this.dom.rightContainer.className       = 'vispanel right';
+    this.dom.top.className                  = 'vispanel top';
+    this.dom.bottom.className               = 'vispanel bottom';
+    this.dom.left.className                 = 'content';
+    this.dom.center.className               = 'content';
+    this.dom.right.className                = 'content';
+    this.dom.shadowTop.className            = 'shadow top';
+    this.dom.shadowBottom.className         = 'shadow bottom';
+    this.dom.shadowTopLeft.className        = 'shadow top';
+    this.dom.shadowBottomLeft.className     = 'shadow bottom';
+    this.dom.shadowTopRight.className       = 'shadow top';
+    this.dom.shadowBottomRight.className    = 'shadow bottom';
+
+    this.dom.root.appendChild(this.dom.background);
+    this.dom.root.appendChild(this.dom.backgroundVertical);
+    this.dom.root.appendChild(this.dom.backgroundHorizontalContainer);
+    this.dom.root.appendChild(this.dom.centerContainer);
+    this.dom.root.appendChild(this.dom.leftContainer);
+    this.dom.root.appendChild(this.dom.rightContainer);
+    this.dom.root.appendChild(this.dom.top);
+    this.dom.root.appendChild(this.dom.bottom);
+
+    this.dom.backgroundHorizontalContainer.appendChild(this.dom.backgroundHorizontal);
+    this.dom.centerContainer.appendChild(this.dom.center);
+    this.dom.leftContainer.appendChild(this.dom.left);
+    this.dom.rightContainer.appendChild(this.dom.right);
+
+    this.dom.centerContainer.appendChild(this.dom.shadowTop);
+    this.dom.centerContainer.appendChild(this.dom.shadowBottom);
+    this.dom.leftContainer.appendChild(this.dom.shadowTopLeft);
+    this.dom.leftContainer.appendChild(this.dom.shadowBottomLeft);
+    this.dom.rightContainer.appendChild(this.dom.shadowTopRight);
+    this.dom.rightContainer.appendChild(this.dom.shadowBottomRight);
+
+    this.on('rangechange', this.redraw.bind(this));
+    this.on('change', this.redraw.bind(this));
+    this.on('touch', this._onTouch.bind(this));
+    this.on('pinch', this._onPinch.bind(this));
+    this.on('dragstart', this._onDragStart.bind(this));
+    this.on('drag', this._onDrag.bind(this));
+
+    // create event listeners for all interesting events, these events will be
+    // emitted via emitter
+    this.hammer = Hammer(this.dom.root, {
+      prevent_default: true
+    });
+    this.listeners = {};
+
+    var me = this;
+    var events = [
+      'touch', 'pinch',
+      'tap', 'doubletap', 'hold',
+      'dragstart', 'drag', 'dragend',
+      'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is needed for Firefox
+    ];
+    events.forEach(function (event) {
+      var listener = function () {
+        var args = [event].concat(Array.prototype.slice.call(arguments, 0));
+        me.emit.apply(me, args);
+      };
+      me.hammer.on(event, listener);
+      me.listeners[event] = listener;
+    });
+
+    // size properties of each of the panels
+    this.props = {
+      root: {},
+      background: {},
+      centerContainer: {},
+      leftContainer: {},
+      rightContainer: {},
+      center: {},
+      left: {},
+      right: {},
+      top: {},
+      bottom: {},
+      border: {},
+      scrollTop: 0,
+      scrollTopMin: 0
+    };
+    this.touch = {}; // store state information needed for touch events
+
+    // attach the root panel to the provided container
+    if (!container) throw new Error('No container provided');
+    container.appendChild(this.dom.root);
+  };
+
+  /**
+   * Destroy the Graph2d, clean up all DOM elements and event listeners.
+   */
+  Graph2d.prototype.destroy = function () {
+    // unbind datasets
+    this.clear();
+
+    // remove all event listeners
+    this.off();
+
+    // stop checking for changed size
+    this._stopAutoResize();
+
+    // remove from DOM
+    if (this.dom.root.parentNode) {
+      this.dom.root.parentNode.removeChild(this.dom.root);
+    }
+    this.dom = null;
+
+    // cleanup hammer touch events
+    for (var event in this.listeners) {
+      if (this.listeners.hasOwnProperty(event)) {
+        delete this.listeners[event];
+      }
+    }
+    this.listeners = null;
+    this.hammer = null;
+
+    // give all components the opportunity to cleanup
+    this.components.forEach(function (component) {
+      component.destroy();
+    });
+
+    this.body = null;
+  };
+
+  /**
+   * Set options. Options will be passed to all components loaded in the Graph2d.
+   * @param {Object} [options]
+   *                           {String} orientation
+   *                              Vertical orientation for the Graph2d,
+   *                              can be 'bottom' (default) or 'top'.
+   *                           {String | Number} width
+   *                              Width for the timeline, a number in pixels or
+   *                              a css string like '1000px' or '75%'. '100%' by default.
+   *                           {String | Number} height
+   *                              Fixed height for the Graph2d, a number in pixels or
+   *                              a css string like '400px' or '75%'. If undefined,
+   *                              The Graph2d will automatically size such that
+   *                              its contents fit.
+   *                           {String | Number} minHeight
+   *                              Minimum height for the Graph2d, a number in pixels or
+   *                              a css string like '400px' or '75%'.
+   *                           {String | Number} maxHeight
+   *                              Maximum height for the Graph2d, a number in pixels or
+   *                              a css string like '400px' or '75%'.
+   *                           {Number | Date | String} start
+   *                              Start date for the visible window
+   *                           {Number | Date | String} end
+   *                              End date for the visible window
+   */
+  Graph2d.prototype.setOptions = function (options) {
+    if (options) {
+      // copy the known options
+      var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'orientation'];
+      util.selectiveExtend(fields, this.options, options);
+
+      // enable/disable autoResize
+      this._initAutoResize();
+    }
+
+    // propagate options to all components
+    this.components.forEach(function (component) {
+      component.setOptions(options);
+    });
+
+    // TODO: remove deprecation error one day (deprecated since version 0.8.0)
+    if (options && options.order) {
+      throw new Error('Option order is deprecated. There is no replacement for this feature.');
+    }
+
+    // redraw everything
+    this.redraw();
+  };
+
+  /**
+   * Set a custom time bar
+   * @param {Date} time
+   */
+  Graph2d.prototype.setCustomTime = function (time) {
+    if (!this.customTime) {
+      throw new Error('Cannot get custom time: Custom time bar is not enabled');
+    }
+
+    this.customTime.setCustomTime(time);
+  };
+
+  /**
+   * Retrieve the current custom time.
+   * @return {Date} customTime
+   */
+  Graph2d.prototype.getCustomTime = function() {
+    if (!this.customTime) {
+      throw new Error('Cannot get custom time: Custom time bar is not enabled');
+    }
+
+    return this.customTime.getCustomTime();
+  };
+
+  /**
+   * Set items
+   * @param {vis.DataSet | Array | google.visualization.DataTable | null} items
+   */
+  Graph2d.prototype.setItems = function(items) {
+    var initialLoad = (this.itemsData == null);
+
+    // convert to type DataSet when needed
+    var newDataSet;
+    if (!items) {
+      newDataSet = null;
+    }
+    else if (items instanceof DataSet || items instanceof DataView) {
+      newDataSet = items;
+    }
+    else {
+      // turn an array into a dataset
+      newDataSet = new DataSet(items, {
+        type: {
+          start: 'Date',
+          end: 'Date'
+        }
+      });
+    }
+
+    // set items
+    this.itemsData = newDataSet;
+    this.linegraph && this.linegraph.setItems(newDataSet);
+
+    if (initialLoad && ('start' in this.options || 'end' in this.options)) {
+      this.fit();
+
+      var start = ('start' in this.options) ? util.convert(this.options.start, 'Date') : null;
+      var end   = ('end' in this.options)   ? util.convert(this.options.end, 'Date') : null;
+
+      this.setWindow(start, end);
+    }
+  };
+
+  /**
+   * Set groups
+   * @param {vis.DataSet | Array | google.visualization.DataTable} groups
+   */
+  Graph2d.prototype.setGroups = function(groups) {
+    // convert to type DataSet when needed
+    var newDataSet;
+    if (!groups) {
+      newDataSet = null;
+    }
+    else if (groups instanceof DataSet || groups instanceof DataView) {
+      newDataSet = groups;
+    }
+    else {
+      // turn an array into a dataset
+      newDataSet = new DataSet(groups);
+    }
+
+    this.groupsData = newDataSet;
+    this.linegraph.setGroups(newDataSet);
+  };
+
+  /**
+   * Clear the Graph2d. By Default, items, groups and options are cleared.
+   * Example usage:
+   *
+   *     timeline.clear();                // clear items, groups, and options
+   *     timeline.clear({options: true}); // clear options only
+   *
+   * @param {Object} [what]      Optionally specify what to clear. By default:
+   *                             {items: true, groups: true, options: true}
+   */
+  Graph2d.prototype.clear = function(what) {
+    // clear items
+    if (!what || what.items) {
+      this.setItems(null);
+    }
+
+    // clear groups
+    if (!what || what.groups) {
+      this.setGroups(null);
+    }
+
+    // clear options of timeline and of each of the components
+    if (!what || what.options) {
+      this.components.forEach(function (component) {
+        component.setOptions(component.defaultOptions);
+      });
+
+      this.setOptions(this.defaultOptions); // this will also do a redraw
+    }
+  };
+
+  /**
+   * Set Graph2d window such that it fits all items
+   */
+  Graph2d.prototype.fit = function() {
+    // apply the data range as range
+    var dataRange = this.getItemRange();
+
+    // add 5% space on both sides
+    var start = dataRange.min;
+    var end = dataRange.max;
+    if (start != null && end != null) {
+      var interval = (end.valueOf() - start.valueOf());
+      if (interval <= 0) {
+        // prevent an empty interval
+        interval = 24 * 60 * 60 * 1000; // 1 day
+      }
+      start = new Date(start.valueOf() - interval * 0.05);
+      end = new Date(end.valueOf() + interval * 0.05);
+    }
+
+    // skip range set if there is no start and end date
+    if (start === null && end === null) {
+      return;
+    }
+
+    this.range.setRange(start, end);
+  };
+
+  /**
+   * Get the data range of the item set.
+   * @returns {{min: Date, max: Date}} range  A range with a start and end Date.
+   *                                          When no minimum is found, min==null
+   *                                          When no maximum is found, max==null
+   */
+  Graph2d.prototype.getItemRange = function() {
+    // calculate min from start filed
+    var itemsData = this.itemsData,
+      min = null,
+      max = null;
+
+    if (itemsData) {
+      // calculate the minimum value of the field 'start'
+      var minItem = itemsData.min('start');
+      min = minItem ? util.convert(minItem.start, 'Date').valueOf() : null;
+      // Note: we convert first to Date and then to number because else
+      // a conversion from ISODate to Number will fail
+
+      // calculate maximum value of fields 'start' and 'end'
+      var maxStartItem = itemsData.max('start');
+      if (maxStartItem) {
+        max = util.convert(maxStartItem.start, 'Date').valueOf();
+      }
+      var maxEndItem = itemsData.max('end');
+      if (maxEndItem) {
+        if (max == null) {
+          max = util.convert(maxEndItem.end, 'Date').valueOf();
+        }
+        else {
+          max = Math.max(max, util.convert(maxEndItem.end, 'Date').valueOf());
+        }
+      }
+    }
+
+    return {
+      min: (min != null) ? new Date(min) : null,
+      max: (max != null) ? new Date(max) : null
+    };
+  };
+
+  /**
+   * Set the visible window. Both parameters are optional, you can change only
+   * start or only end. Syntax:
+   *
+   *     TimeLine.setWindow(start, end)
+   *     TimeLine.setWindow(range)
+   *
+   * Where start and end can be a Date, number, or string, and range is an
+   * object with properties start and end.
+   *
+   * @param {Date | Number | String | Object} [start] Start date of visible window
+   * @param {Date | Number | String} [end]   End date of visible window
+   */
+  Graph2d.prototype.setWindow = function(start, end) {
+    if (arguments.length == 1) {
+      var range = arguments[0];
+      this.range.setRange(range.start, range.end);
+    }
+    else {
+      this.range.setRange(start, end);
+    }
+  };
+
+  /**
+   * Get the visible window
+   * @return {{start: Date, end: Date}}   Visible range
+   */
+  Graph2d.prototype.getWindow = function() {
+    var range = this.range.getRange();
+    return {
+      start: new Date(range.start),
+      end: new Date(range.end)
+    };
+  };
+
+  /**
+   * Force a redraw of the Graph2d. Can be useful to manually redraw when
+   * option autoResize=false
+   */
+  Graph2d.prototype.redraw = function() {
+    var resized = false,
+      options = this.options,
+      props = this.props,
+      dom = this.dom;
+
+    if (!dom) return; // when destroyed
+
+    // update class names
+    dom.root.className = 'vis timeline root ' + options.orientation;
+
+    // update root width and height options
+    dom.root.style.maxHeight = util.option.asSize(options.maxHeight, '');
+    dom.root.style.minHeight = util.option.asSize(options.minHeight, '');
+    dom.root.style.width = util.option.asSize(options.width, '');
+
+    // calculate border widths
+    props.border.left   = (dom.centerContainer.offsetWidth - dom.centerContainer.clientWidth) / 2;
+    props.border.right  = props.border.left;
+    props.border.top    = (dom.centerContainer.offsetHeight - dom.centerContainer.clientHeight) / 2;
+    props.border.bottom = props.border.top;
+    var borderRootHeight= dom.root.offsetHeight - dom.root.clientHeight;
+    var borderRootWidth = dom.root.offsetWidth - dom.root.clientWidth;
+
+    // calculate the heights. If any of the side panels is empty, we set the height to
+    // minus the border width, such that the border will be invisible
+    props.center.height = dom.center.offsetHeight;
+    props.left.height   = dom.left.offsetHeight;
+    props.right.height  = dom.right.offsetHeight;
+    props.top.height    = dom.top.clientHeight    || -props.border.top;
+    props.bottom.height = dom.bottom.clientHeight || -props.border.bottom;
+
+    // TODO: compensate borders when any of the panels is empty.
+
+    // apply auto height
+    // TODO: only calculate autoHeight when needed (else we cause an extra reflow/repaint of the DOM)
+    var contentHeight = Math.max(props.left.height, props.center.height, props.right.height);
+    var autoHeight = props.top.height + contentHeight + props.bottom.height +
+      borderRootHeight + props.border.top + props.border.bottom;
+    dom.root.style.height = util.option.asSize(options.height, autoHeight + 'px');
+
+    // calculate heights of the content panels
+    props.root.height = dom.root.offsetHeight;
+    props.background.height = props.root.height - borderRootHeight;
+    var containerHeight = props.root.height - props.top.height - props.bottom.height -
+      borderRootHeight;
+    props.centerContainer.height  = containerHeight;
+    props.leftContainer.height    = containerHeight;
+    props.rightContainer.height   = props.leftContainer.height;
+
+    // calculate the widths of the panels
+    props.root.width = dom.root.offsetWidth;
+    props.background.width = props.root.width - borderRootWidth;
+    props.left.width = dom.leftContainer.clientWidth   || -props.border.left;
+    props.leftContainer.width = props.left.width;
+    props.right.width = dom.rightContainer.clientWidth || -props.border.right;
+    props.rightContainer.width = props.right.width;
+    var centerWidth = props.root.width - props.left.width - props.right.width - borderRootWidth;
+    props.center.width          = centerWidth;
+    props.centerContainer.width = centerWidth;
+    props.top.width             = centerWidth;
+    props.bottom.width          = centerWidth;
+
+    // resize the panels
+    dom.background.style.height           = props.background.height + 'px';
+    dom.backgroundVertical.style.height   = props.background.height + 'px';
+    dom.backgroundHorizontalContainer.style.height = props.centerContainer.height + 'px';
+    dom.centerContainer.style.height      = props.centerContainer.height + 'px';
+    dom.leftContainer.style.height        = props.leftContainer.height + 'px';
+    dom.rightContainer.style.height       = props.rightContainer.height + 'px';
+
+    dom.background.style.width            = props.background.width + 'px';
+    dom.backgroundVertical.style.width    = props.centerContainer.width + 'px';
+    dom.backgroundHorizontalContainer.style.width  = props.background.width + 'px';
+    dom.backgroundHorizontal.style.width  = props.background.width + 'px';
+    dom.centerContainer.style.width       = props.center.width + 'px';
+    dom.top.style.width                   = props.top.width + 'px';
+    dom.bottom.style.width                = props.bottom.width + 'px';
+
+    // reposition the panels
+    dom.background.style.left           = '0';
+    dom.background.style.top            = '0';
+    dom.backgroundVertical.style.left   = props.left.width + 'px';
+    dom.backgroundVertical.style.top    = '0';
+    dom.backgroundHorizontalContainer.style.left = '0';
+    dom.backgroundHorizontalContainer.style.top  = props.top.height + 'px';
+    dom.centerContainer.style.left      = props.left.width + 'px';
+    dom.centerContainer.style.top       = props.top.height + 'px';
+    dom.leftContainer.style.left        = '0';
+    dom.leftContainer.style.top         = props.top.height + 'px';
+    dom.rightContainer.style.left       = (props.left.width + props.center.width) + 'px';
+    dom.rightContainer.style.top        = props.top.height + 'px';
+    dom.top.style.left                  = props.left.width + 'px';
+    dom.top.style.top                   = '0';
+    dom.bottom.style.left               = props.left.width + 'px';
+    dom.bottom.style.top                = (props.top.height + props.centerContainer.height) + 'px';
+
+    // update the scrollTop, feasible range for the offset can be changed
+    // when the height of the Graph2d or of the contents of the center changed
+    this._updateScrollTop();
+
+    // reposition the scrollable contents
+    var offset = this.props.scrollTop;
+    if (options.orientation == 'bottom') {
+      offset += Math.max(this.props.centerContainer.height - this.props.center.height -
+          this.props.border.top - this.props.border.bottom, 0);
+    }
+    dom.center.style.left = '0';
+    dom.center.style.top  = offset + 'px';
+    dom.backgroundHorizontal.style.left = '0';
+    dom.backgroundHorizontal.style.top  = offset + 'px';
+    dom.left.style.left   = '0';
+    dom.left.style.top    = offset + 'px';
+    dom.right.style.left  = '0';
+    dom.right.style.top   = offset + 'px';
+
+    // show shadows when vertical scrolling is available
+    var visibilityTop = this.props.scrollTop == 0 ? 'hidden' : '';
+    var visibilityBottom = this.props.scrollTop == this.props.scrollTopMin ? 'hidden' : '';
+    dom.shadowTop.style.visibility          = visibilityTop;
+    dom.shadowBottom.style.visibility       = visibilityBottom;
+    dom.shadowTopLeft.style.visibility      = visibilityTop;
+    dom.shadowBottomLeft.style.visibility   = visibilityBottom;
+    dom.shadowTopRight.style.visibility     = visibilityTop;
+    dom.shadowBottomRight.style.visibility  = visibilityBottom;
+
+    // redraw all components
+    this.components.forEach(function (component) {
+      resized = component.redraw() || resized;
+    });
+    if (resized) {
+      // keep redrawing until all sizes are settled
+      this.redraw();
+    }
+  };
+
+  /**
+   * Convert a position on screen (pixels) to a datetime
+   * @param {int}     x    Position on the screen in pixels
+   * @return {Date}   time The datetime the corresponds with given position x
+   * @private
+   */
+  // TODO: move this function to Range
+  Graph2d.prototype._toTime = function(x) {
+    var conversion = this.range.conversion(this.props.center.width);
+    return new Date(x / conversion.scale + conversion.offset);
+  };
+
+  /**
+   * Convert a datetime (Date object) into a position on the root
+   * This is used to get the pixel density estimate for the screen, not the center panel
+   * @param {Date}   time A date
+   * @return {int}   x    The position on root in pixels which corresponds
+   *                      with the given date.
+   * @private
+   */
+  // TODO: move this function to Range
+  Graph2d.prototype._toGlobalTime = function(x) {
+    var conversion = this.range.conversion(this.props.root.width);
+    return new Date(x / conversion.scale + conversion.offset);
+  };
+
+  /**
+   * Convert a datetime (Date object) into a position on the screen
+   * @param {Date}   time A date
+   * @return {int}   x    The position on the screen in pixels which corresponds
+   *                      with the given date.
+   * @private
+   */
+  // TODO: move this function to Range
+  Graph2d.prototype._toScreen = function(time) {
+    var conversion = this.range.conversion(this.props.center.width);
+    return (time.valueOf() - conversion.offset) * conversion.scale;
+  };
+
+
+  /**
+   * Convert a datetime (Date object) into a position on the root
+   * This is used to get the pixel density estimate for the screen, not the center panel
+   * @param {Date}   time A date
+   * @return {int}   x    The position on root in pixels which corresponds
+   *                      with the given date.
+   * @private
+   */
+  // TODO: move this function to Range
+  Graph2d.prototype._toGlobalScreen = function(time) {
+    var conversion = this.range.conversion(this.props.root.width);
+    return (time.valueOf() - conversion.offset) * conversion.scale;
+  };
+
+  /**
+   * Initialize watching when option autoResize is true
+   * @private
+   */
+  Graph2d.prototype._initAutoResize = function () {
+    if (this.options.autoResize == true) {
+      this._startAutoResize();
+    }
+    else {
+      this._stopAutoResize();
+    }
+  };
+
+  /**
+   * Watch for changes in the size of the container. On resize, the Panel will
+   * automatically redraw itself.
+   * @private
+   */
+  Graph2d.prototype._startAutoResize = function () {
+    var me = this;
+
+    this._stopAutoResize();
+
+    this._onResize = function() {
+      if (me.options.autoResize != true) {
+        // stop watching when the option autoResize is changed to false
+        me._stopAutoResize();
+        return;
+      }
+
+      if (me.dom.root) {
+        // check whether the frame is resized
+        if ((me.dom.root.clientWidth != me.props.lastWidth) ||
+          (me.dom.root.clientHeight != me.props.lastHeight)) {
+          me.props.lastWidth = me.dom.root.clientWidth;
+          me.props.lastHeight = me.dom.root.clientHeight;
+
+          me.emit('change');
+        }
+      }
+    };
+
+    // add event listener to window resize
+    util.addEventListener(window, 'resize', this._onResize);
+
+    this.watchTimer = setInterval(this._onResize, 1000);
+  };
+
+  /**
+   * Stop watching for a resize of the frame.
+   * @private
+   */
+  Graph2d.prototype._stopAutoResize = function () {
+    if (this.watchTimer) {
+      clearInterval(this.watchTimer);
+      this.watchTimer = undefined;
+    }
+
+    // remove event listener on window.resize
+    util.removeEventListener(window, 'resize', this._onResize);
+    this._onResize = null;
+  };
+
+  /**
+   * Start moving the timeline vertically
+   * @param {Event} event
+   * @private
+   */
+  Graph2d.prototype._onTouch = function (event) {
+    this.touch.allowDragging = true;
+  };
+
+  /**
+   * Start moving the timeline vertically
+   * @param {Event} event
+   * @private
+   */
+  Graph2d.prototype._onPinch = function (event) {
+    this.touch.allowDragging = false;
+  };
+
+  /**
+   * Start moving the timeline vertically
+   * @param {Event} event
+   * @private
+   */
+  Graph2d.prototype._onDragStart = function (event) {
+    this.touch.initialScrollTop = this.props.scrollTop;
+  };
+
+  /**
+   * Move the timeline vertically
+   * @param {Event} event
+   * @private
+   */
+  Graph2d.prototype._onDrag = function (event) {
+    // refuse to drag when we where pinching to prevent the timeline make a jump
+    // when releasing the fingers in opposite order from the touch screen
+    if (!this.touch.allowDragging) return;
+
+    var delta = event.gesture.deltaY;
+
+    var oldScrollTop = this._getScrollTop();
+    var newScrollTop = this._setScrollTop(this.touch.initialScrollTop + delta);
+
+    if (newScrollTop != oldScrollTop) {
+      this.redraw(); // TODO: this causes two redraws when dragging, the other is triggered by rangechange already
+    }
+  };
+
+  /**
+   * Apply a scrollTop
+   * @param {Number} scrollTop
+   * @returns {Number} scrollTop  Returns the applied scrollTop
+   * @private
+   */
+  Graph2d.prototype._setScrollTop = function (scrollTop) {
+    this.props.scrollTop = scrollTop;
+    this._updateScrollTop();
+    return this.props.scrollTop;
+  };
+
+  /**
+   * Update the current scrollTop when the height of  the containers has been changed
+   * @returns {Number} scrollTop  Returns the applied scrollTop
+   * @private
+   */
+  Graph2d.prototype._updateScrollTop = function () {
+    // recalculate the scrollTopMin
+    var scrollTopMin = Math.min(this.props.centerContainer.height - this.props.center.height, 0); // is negative or zero
+    if (scrollTopMin != this.props.scrollTopMin) {
+      // in case of bottom orientation, change the scrollTop such that the contents
+      // do not move relative to the time axis at the bottom
+      if (this.options.orientation == 'bottom') {
+        this.props.scrollTop += (scrollTopMin - this.props.scrollTopMin);
+      }
+      this.props.scrollTopMin = scrollTopMin;
+    }
+
+    // limit the scrollTop to the feasible scroll range
+    if (this.props.scrollTop > 0) this.props.scrollTop = 0;
+    if (this.props.scrollTop < scrollTopMin) this.props.scrollTop = scrollTopMin;
+
+    return this.props.scrollTop;
+  };
+
+  /**
+   * Get the current scrollTop
+   * @returns {number} scrollTop
+   * @private
+   */
+  Graph2d.prototype._getScrollTop = function () {
+    return this.props.scrollTop;
+  };
+
+  module.exports = Graph2d;
+
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * @constructor  DataStep
+   * The class DataStep is an iterator for data for the lineGraph. You provide a start data point and an
+   * end data point. The class itself determines the best scale (step size) based on the
+   * provided start Date, end Date, and minimumStep.
+   *
+   * If minimumStep is provided, the step size is chosen as close as possible
+   * to the minimumStep but larger than minimumStep. If minimumStep is not
+   * provided, the scale is set to 1 DAY.
+   * The minimumStep should correspond with the onscreen size of about 6 characters
+   *
+   * Alternatively, you can set a scale by hand.
+   * After creation, you can initialize the class by executing first(). Then you
+   * can iterate from the start date to the end date via next(). You can check if
+   * the end date is reached with the function hasNext(). After each step, you can
+   * retrieve the current date via getCurrent().
+   * The DataStep has scales ranging from milliseconds, seconds, minutes, hours,
+   * days, to years.
+   *
+   * Version: 1.2
+   *
+   * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
+   *                               or new Date(2010, 9, 21, 23, 45, 00)
+   * @param {Date} [end]           The end date
+   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
+   */
+  function DataStep(start, end, minimumStep, containerHeight, forcedStepSize) {
+    // variables
+    this.current = 0;
+
+    this.autoScale = true;
+    this.stepIndex = 0;
+    this.step = 1;
+    this.scale = 1;
+
+    this.marginStart;
+    this.marginEnd;
+
+    this.majorSteps = [1,     2,    5,  10];
+    this.minorSteps = [0.25,  0.5,  1,  2];
+
+    this.setRange(start, end, minimumStep, containerHeight, forcedStepSize);
+  }
+
+
+
+  /**
+   * Set a new range
+   * If minimumStep is provided, the step size is chosen as close as possible
+   * to the minimumStep but larger than minimumStep. If minimumStep is not
+   * provided, the scale is set to 1 DAY.
+   * The minimumStep should correspond with the onscreen size of about 6 characters
+   * @param {Number} [start]      The start date and time.
+   * @param {Number} [end]        The end date and time.
+   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
+   */
+  DataStep.prototype.setRange = function(start, end, minimumStep, containerHeight, forcedStepSize) {
+    this._start = start;
+    this._end = end;
+
+    if (this.autoScale) {
+      this.setMinimumStep(minimumStep, containerHeight, forcedStepSize);
+    }
+    this.setFirst();
+  };
+
+  /**
+   * Automatically determine the scale that bests fits the provided minimum step
+   * @param {Number} [minimumStep]  The minimum step size in milliseconds
+   */
+  DataStep.prototype.setMinimumStep = function(minimumStep, containerHeight) {
+    // round to floor
+    var size = this._end - this._start;
+    var safeSize = size * 1.1;
+    var minimumStepValue = minimumStep * (safeSize / containerHeight);
+    var orderOfMagnitude = Math.round(Math.log(safeSize)/Math.LN10);
+
+    var minorStepIdx = -1;
+    var magnitudefactor = Math.pow(10,orderOfMagnitude);
+
+    var start = 0;
+    if (orderOfMagnitude < 0) {
+      start = orderOfMagnitude;
+    }
+
+    var solutionFound = false;
+    for (var i = start; Math.abs(i) <= Math.abs(orderOfMagnitude); i++) {
+      magnitudefactor = Math.pow(10,i);
+      for (var j = 0; j < this.minorSteps.length; j++) {
+        var stepSize = magnitudefactor * this.minorSteps[j];
+        if (stepSize >= minimumStepValue) {
+          solutionFound = true;
+          minorStepIdx = j;
+          break;
+        }
+      }
+      if (solutionFound == true) {
+        break;
+      }
+    }
+    this.stepIndex = minorStepIdx;
+    this.scale = magnitudefactor;
+    this.step = magnitudefactor * this.minorSteps[minorStepIdx];
+  };
+
+
+  /**
+   * Set the range iterator to the start date.
+   */
+  DataStep.prototype.first = function() {
+    this.setFirst();
+  };
+
+  /**
+   * Round the current date to the first minor date value
+   * This must be executed once when the current date is set to start Date
+   */
+  DataStep.prototype.setFirst = function() {
+    var niceStart = this._start - (this.scale * this.minorSteps[this.stepIndex]);
+    var niceEnd = this._end + (this.scale * this.minorSteps[this.stepIndex]);
+
+    this.marginEnd = this.roundToMinor(niceEnd);
+    this.marginStart = this.roundToMinor(niceStart);
+    this.marginRange = this.marginEnd - this.marginStart;
+
+    this.current = this.marginEnd;
+
+  };
+
+  DataStep.prototype.roundToMinor = function(value) {
+    var rounded = value - (value % (this.scale * this.minorSteps[this.stepIndex]));
+    if (value % (this.scale * this.minorSteps[this.stepIndex]) > 0.5 * (this.scale * this.minorSteps[this.stepIndex])) {
+      return rounded + (this.scale * this.minorSteps[this.stepIndex]);
+    }
+    else {
+      return rounded;
+    }
+  }
+
+
+  /**
+   * Check if the there is a next step
+   * @return {boolean}  true if the current date has not passed the end date
+   */
+  DataStep.prototype.hasNext = function () {
+    return (this.current >= this.marginStart);
+  };
+
+  /**
+   * Do the next step
+   */
+  DataStep.prototype.next = function() {
+    var prev = this.current;
+    this.current -= this.step;
+
+    // safety mechanism: if current time is still unchanged, move to the end
+    if (this.current == prev) {
+      this.current = this._end;
+    }
+  };
+
+  /**
+   * Do the next step
+   */
+  DataStep.prototype.previous = function() {
+    this.current += this.step;
+    this.marginEnd += this.step;
+    this.marginRange = this.marginEnd - this.marginStart;
+  };
+
+
+
+  /**
+   * Get the current datetime
+   * @return {String}  current The current date
+   */
+  DataStep.prototype.getCurrent = function() {
+    var toPrecision = '' + Number(this.current).toPrecision(5);
+    for (var i = toPrecision.length-1; i > 0; i--) {
+      if (toPrecision[i] == "0") {
+        toPrecision = toPrecision.slice(0,i);
+      }
+      else if (toPrecision[i] == "." || toPrecision[i] == ",") {
+        toPrecision = toPrecision.slice(0,i);
+        break;
+      }
+      else{
+        break;
+      }
+    }
+
+    return toPrecision;
+  };
+
+
+
+  /**
+   * Snap a date to a rounded value.
+   * The snap intervals are dependent on the current scale and step.
+   * @param {Date} date   the date to be snapped.
+   * @return {Date} snappedDate
+   */
+  DataStep.prototype.snap = function(date) {
+
+  };
+
+  /**
+   * Check if the current value is a major value (for example when the step
+   * is DAY, a major value is each first day of the MONTH)
+   * @return {boolean} true if current date is major, else false.
+   */
+  DataStep.prototype.isMajor = function() {
+    return (this.current % (this.scale * this.majorSteps[this.stepIndex]) == 0);
+  };
+
+  module.exports = DataStep;
+
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var util = __webpack_require__(1);
+  var moment = __webpack_require__(39);
+  var Component = __webpack_require__(12);
+
+  /**
+   * @constructor Range
+   * A Range controls a numeric range with a start and end value.
+   * The Range adjusts the range based on mouse events or programmatic changes,
+   * and triggers events when the range is changing or has been changed.
+   * @param {{dom: Object, domProps: Object, emitter: Emitter}} body
+   * @param {Object} [options]    See description at Range.setOptions
+   */
+  function Range(body, options) {
+    var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
+    this.start = now.clone().add('days', -3).valueOf(); // Number
+    this.end = now.clone().add('days', 4).valueOf();   // Number
+
+    this.body = body;
+
+    // default options
+    this.defaultOptions = {
+      start: null,
+      end: null,
+      direction: 'horizontal', // 'horizontal' or 'vertical'
+      moveable: true,
+      zoomable: true,
+      min: null,
+      max: null,
+      zoomMin: 10,                                // milliseconds
+      zoomMax: 1000 * 60 * 60 * 24 * 365 * 10000  // milliseconds
+    };
+    this.options = util.extend({}, this.defaultOptions);
+
+    this.props = {
+      touch: {}
+    };
+
+    // drag listeners for dragging
+    this.body.emitter.on('dragstart', this._onDragStart.bind(this));
+    this.body.emitter.on('drag',      this._onDrag.bind(this));
+    this.body.emitter.on('dragend',   this._onDragEnd.bind(this));
+
+    // ignore dragging when holding
+    this.body.emitter.on('hold', this._onHold.bind(this));
+
+    // mouse wheel for zooming
+    this.body.emitter.on('mousewheel',      this._onMouseWheel.bind(this));
+    this.body.emitter.on('DOMMouseScroll',  this._onMouseWheel.bind(this)); // For FF
+
+    // pinch to zoom
+    this.body.emitter.on('touch', this._onTouch.bind(this));
+    this.body.emitter.on('pinch', this._onPinch.bind(this));
+
+    this.setOptions(options);
+  }
+
+  Range.prototype = new Component();
+
+  /**
+   * Set options for the range controller
+   * @param {Object} options      Available options:
+   *                              {Number | Date | String} start  Start date for the range
+   *                              {Number | Date | String} end    End date for the range
+   *                              {Number} min    Minimum value for start
+   *                              {Number} max    Maximum value for end
+   *                              {Number} zoomMin    Set a minimum value for
+   *                                                  (end - start).
+   *                              {Number} zoomMax    Set a maximum value for
+   *                                                  (end - start).
+   *                              {Boolean} moveable Enable moving of the range
+   *                                                 by dragging. True by default
+   *                              {Boolean} zoomable Enable zooming of the range
+   *                                                 by pinching/scrolling. True by default
+   */
+  Range.prototype.setOptions = function (options) {
+    if (options) {
+      // copy the options that we know
+      var fields = ['direction', 'min', 'max', 'zoomMin', 'zoomMax', 'moveable', 'zoomable'];
+      util.selectiveExtend(fields, this.options, options);
+
+      if ('start' in options || 'end' in options) {
+        // apply a new range. both start and end are optional
+        this.setRange(options.start, options.end);
+      }
+    }
+  };
+
+  /**
+   * Test whether direction has a valid value
+   * @param {String} direction    'horizontal' or 'vertical'
+   */
+  function validateDirection (direction) {
+    if (direction != 'horizontal' && direction != 'vertical') {
+      throw new TypeError('Unknown direction "' + direction + '". ' +
+          'Choose "horizontal" or "vertical".');
+    }
+  }
+
+  /**
+   * Set a new start and end range
+   * @param {Number} [start]
+   * @param {Number} [end]
+   */
+  Range.prototype.setRange = function(start, end) {
+    var changed = this._applyRange(start, end);
+    if (changed) {
+      var params = {
+        start: new Date(this.start),
+        end: new Date(this.end)
+      };
+      this.body.emitter.emit('rangechange', params);
+      this.body.emitter.emit('rangechanged', params);
+    }
+  };
+
+  /**
+   * Set a new start and end range. This method is the same as setRange, but
+   * does not trigger a range change and range changed event, and it returns
+   * true when the range is changed
+   * @param {Number} [start]
+   * @param {Number} [end]
+   * @return {Boolean} changed
+   * @private
+   */
+  Range.prototype._applyRange = function(start, end) {
+    var newStart = (start != null) ? util.convert(start, 'Date').valueOf() : this.start,
+        newEnd   = (end != null)   ? util.convert(end, 'Date').valueOf()   : this.end,
+        max = (this.options.max != null) ? util.convert(this.options.max, 'Date').valueOf() : null,
+        min = (this.options.min != null) ? util.convert(this.options.min, 'Date').valueOf() : null,
+        diff;
+
+    // check for valid number
+    if (isNaN(newStart) || newStart === null) {
+      throw new Error('Invalid start "' + start + '"');
+    }
+    if (isNaN(newEnd) || newEnd === null) {
+      throw new Error('Invalid end "' + end + '"');
+    }
+
+    // prevent start < end
+    if (newEnd < newStart) {
+      newEnd = newStart;
+    }
+
+    // prevent start < min
+    if (min !== null) {
+      if (newStart < min) {
+        diff = (min - newStart);
+        newStart += diff;
+        newEnd += diff;
+
+        // prevent end > max
+        if (max != null) {
+          if (newEnd > max) {
+            newEnd = max;
+          }
+        }
+      }
+    }
+
+    // prevent end > max
+    if (max !== null) {
+      if (newEnd > max) {
+        diff = (newEnd - max);
+        newStart -= diff;
+        newEnd -= diff;
+
+        // prevent start < min
+        if (min != null) {
+          if (newStart < min) {
+            newStart = min;
+          }
+        }
+      }
+    }
+
+    // prevent (end-start) < zoomMin
+    if (this.options.zoomMin !== null) {
+      var zoomMin = parseFloat(this.options.zoomMin);
+      if (zoomMin < 0) {
+        zoomMin = 0;
+      }
+      if ((newEnd - newStart) < zoomMin) {
+        if ((this.end - this.start) === zoomMin) {
+          // ignore this action, we are already zoomed to the minimum
+          newStart = this.start;
+          newEnd = this.end;
+        }
+        else {
+          // zoom to the minimum
+          diff = (zoomMin - (newEnd - newStart));
+          newStart -= diff / 2;
+          newEnd += diff / 2;
+        }
+      }
+    }
+
+    // prevent (end-start) > zoomMax
+    if (this.options.zoomMax !== null) {
+      var zoomMax = parseFloat(this.options.zoomMax);
+      if (zoomMax < 0) {
+        zoomMax = 0;
+      }
+      if ((newEnd - newStart) > zoomMax) {
+        if ((this.end - this.start) === zoomMax) {
+          // ignore this action, we are already zoomed to the maximum
+          newStart = this.start;
+          newEnd = this.end;
+        }
+        else {
+          // zoom to the maximum
+          diff = ((newEnd - newStart) - zoomMax);
+          newStart += diff / 2;
+          newEnd -= diff / 2;
+        }
+      }
+    }
+
+    var changed = (this.start != newStart || this.end != newEnd);
+
+    this.start = newStart;
+    this.end = newEnd;
+
+    return changed;
+  };
+
+  /**
+   * Retrieve the current range.
+   * @return {Object} An object with start and end properties
+   */
+  Range.prototype.getRange = function() {
+    return {
+      start: this.start,
+      end: this.end
+    };
+  };
+
+  /**
+   * Calculate the conversion offset and scale for current range, based on
+   * the provided width
+   * @param {Number} width
+   * @returns {{offset: number, scale: number}} conversion
+   */
+  Range.prototype.conversion = function (width) {
+    return Range.conversion(this.start, this.end, width);
+  };
+
+  /**
+   * Static method to calculate the conversion offset and scale for a range,
+   * based on the provided start, end, and width
+   * @param {Number} start
+   * @param {Number} end
+   * @param {Number} width
+   * @returns {{offset: number, scale: number}} conversion
+   */
+  Range.conversion = function (start, end, width) {
+    if (width != 0 && (end - start != 0)) {
+      return {
+        offset: start,
+        scale: width / (end - start)
+      }
+    }
+    else {
+      return {
+        offset: 0,
+        scale: 1
+      };
+    }
+  };
+
+  /**
+   * Start dragging horizontally or vertically
+   * @param {Event} event
+   * @private
+   */
+  Range.prototype._onDragStart = function(event) {
+    // only allow dragging when configured as movable
+    if (!this.options.moveable) return;
+
+    // refuse to drag when we where pinching to prevent the timeline make a jump
+    // when releasing the fingers in opposite order from the touch screen
+    if (!this.props.touch.allowDragging) return;
+
+    this.props.touch.start = this.start;
+    this.props.touch.end = this.end;
+
+    if (this.body.dom.root) {
+      this.body.dom.root.style.cursor = 'move';
+    }
+  };
+
+  /**
+   * Perform dragging operation
+   * @param {Event} event
+   * @private
+   */
+  Range.prototype._onDrag = function (event) {
+    // only allow dragging when configured as movable
+    if (!this.options.moveable) return;
+    var direction = this.options.direction;
+    validateDirection(direction);
+    // refuse to drag when we where pinching to prevent the timeline make a jump
+    // when releasing the fingers in opposite order from the touch screen
+    if (!this.props.touch.allowDragging) return;
+    var delta = (direction == 'horizontal') ? event.gesture.deltaX : event.gesture.deltaY,
+        interval = (this.props.touch.end - this.props.touch.start),
+        width = (direction == 'horizontal') ? this.body.domProps.center.width : this.body.domProps.center.height,
+        diffRange = -delta / width * interval;
+    this._applyRange(this.props.touch.start + diffRange, this.props.touch.end + diffRange);
+    this.body.emitter.emit('rangechange', {
+      start: new Date(this.start),
+      end:   new Date(this.end)
+    });
+  };
+
+  /**
+   * Stop dragging operation
+   * @param {event} event
+   * @private
+   */
+  Range.prototype._onDragEnd = function (event) {
+    // only allow dragging when configured as movable
+    if (!this.options.moveable) return;
+
+    // refuse to drag when we where pinching to prevent the timeline make a jump
+    // when releasing the fingers in opposite order from the touch screen
+    if (!this.props.touch.allowDragging) return;
+
+    if (this.body.dom.root) {
+      this.body.dom.root.style.cursor = 'auto';
+    }
+
+    // fire a rangechanged event
+    this.body.emitter.emit('rangechanged', {
+      start: new Date(this.start),
+      end:   new Date(this.end)
+    });
+  };
+
+  /**
+   * Event handler for mouse wheel event, used to zoom
+   * Code from http://adomas.org/javascript-mouse-wheel/
+   * @param {Event} event
+   * @private
+   */
+  Range.prototype._onMouseWheel = function(event) {
+    // only allow zooming when configured as zoomable and moveable
+    if (!(this.options.zoomable && this.options.moveable)) return;
+
+    // retrieve delta
+    var delta = 0;
+    if (event.wheelDelta) { /* IE/Opera. */
+      delta = event.wheelDelta / 120;
+    } else if (event.detail) { /* Mozilla case. */
+      // In Mozilla, sign of delta is different than in IE.
+      // Also, delta is multiple of 3.
+      delta = -event.detail / 3;
+    }
+
+    // If delta is nonzero, handle it.
+    // Basically, delta is now positive if wheel was scrolled up,
+    // and negative, if wheel was scrolled down.
+    if (delta) {
+      // perform the zoom action. Delta is normally 1 or -1
+
+      // adjust a negative delta such that zooming in with delta 0.1
+      // equals zooming out with a delta -0.1
+      var scale;
+      if (delta < 0) {
+        scale = 1 - (delta / 5);
+      }
+      else {
+        scale = 1 / (1 + (delta / 5)) ;
+      }
+
+      // calculate center, the date to zoom around
+      var gesture = util.fakeGesture(this, event),
+          pointer = getPointer(gesture.center, this.body.dom.center),
+          pointerDate = this._pointerToDate(pointer);
+
+      this.zoom(scale, pointerDate);
+    }
+
+    // Prevent default actions caused by mouse wheel
+    // (else the page and timeline both zoom and scroll)
+    event.preventDefault();
+  };
+
+  /**
+   * Start of a touch gesture
+   * @private
+   */
+  Range.prototype._onTouch = function (event) {
+    this.props.touch.start = this.start;
+    this.props.touch.end = this.end;
+    this.props.touch.allowDragging = true;
+    this.props.touch.center = null;
+  };
+
+  /**
+   * On start of a hold gesture
+   * @private
+   */
+  Range.prototype._onHold = function () {
+    this.props.touch.allowDragging = false;
+  };
+
+  /**
+   * Handle pinch event
+   * @param {Event} event
+   * @private
+   */
+  Range.prototype._onPinch = function (event) {
+    // only allow zooming when configured as zoomable and moveable
+    if (!(this.options.zoomable && this.options.moveable)) return;
+
+    this.props.touch.allowDragging = false;
+
+    if (event.gesture.touches.length > 1) {
+      if (!this.props.touch.center) {
+        this.props.touch.center = getPointer(event.gesture.center, this.body.dom.center);
+      }
+
+      var scale = 1 / event.gesture.scale,
+          initDate = this._pointerToDate(this.props.touch.center);
+
+      // calculate new start and end
+      var newStart = parseInt(initDate + (this.props.touch.start - initDate) * scale);
+      var newEnd = parseInt(initDate + (this.props.touch.end - initDate) * scale);
+
+      // apply new range
+      this.setRange(newStart, newEnd);
+    }
+  };
+
+  /**
+   * Helper function to calculate the center date for zooming
+   * @param {{x: Number, y: Number}} pointer
+   * @return {number} date
+   * @private
+   */
+  Range.prototype._pointerToDate = function (pointer) {
+    var conversion;
+    var direction = this.options.direction;
+
+    validateDirection(direction);
+
+    if (direction == 'horizontal') {
+      var width = this.body.domProps.center.width;
+      conversion = this.conversion(width);
+      return pointer.x / conversion.scale + conversion.offset;
+    }
+    else {
+      var height = this.body.domProps.center.height;
+      conversion = this.conversion(height);
+      return pointer.y / conversion.scale + conversion.offset;
+    }
+  };
+
+  /**
+   * Get the pointer location relative to the location of the dom element
+   * @param {{pageX: Number, pageY: Number}} touch
+   * @param {Element} element   HTML DOM element
+   * @return {{x: Number, y: Number}} pointer
+   * @private
+   */
+  function getPointer (touch, element) {
+    return {
+      x: touch.pageX - util.getAbsoluteLeft(element),
+      y: touch.pageY - util.getAbsoluteTop(element)
+    };
+  }
+
+  /**
+   * Zoom the range the given scale in or out. Start and end date will
+   * be adjusted, and the timeline will be redrawn. You can optionally give a
+   * date around which to zoom.
+   * For example, try scale = 0.9 or 1.1
+   * @param {Number} scale      Scaling factor. Values above 1 will zoom out,
+   *                            values below 1 will zoom in.
+   * @param {Number} [center]   Value representing a date around which will
+   *                            be zoomed.
+   */
+  Range.prototype.zoom = function(scale, center) {
+    // if centerDate is not provided, take it half between start Date and end Date
+    if (center == null) {
+      center = (this.start + this.end) / 2;
+    }
+
+    // calculate new start and end
+    var newStart = center + (this.start - center) * scale;
+    var newEnd = center + (this.end - center) * scale;
+
+    this.setRange(newStart, newEnd);
+  };
+
+  /**
+   * Move the range with a given delta to the left or right. Start and end
+   * value will be adjusted. For example, try delta = 0.1 or -0.1
+   * @param {Number}  delta     Moving amount. Positive value will move right,
+   *                            negative value will move left
+   */
+  Range.prototype.move = function(delta) {
+    // zoom start Date and end Date relative to the centerDate
+    var diff = (this.end - this.start);
+
+    // apply new values
+    var newStart = this.start + diff * delta;
+    var newEnd = this.end + diff * delta;
+
+    // TODO: reckon with min and max range
+
+    this.start = newStart;
+    this.end = newEnd;
+  };
+
+  /**
+   * Move the range to a new center point
+   * @param {Number} moveTo      New center point of the range
+   */
+  Range.prototype.moveTo = function(moveTo) {
+    var center = (this.start + this.end) / 2;
+
+    var diff = center - moveTo;
+
+    // calculate new start and end
+    var newStart = this.start - diff;
+    var newEnd = this.end - diff;
+
+    this.setRange(newStart, newEnd);
+  };
+
+  module.exports = Range;
+
+
+/***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+  // Utility functions for ordering and stacking of items
+  var EPSILON = 0.001; // used when checking collisions, to prevent round-off errors
+
+  /**
+   * Order items by their start data
+   * @param {Item[]} items
+   */
+  exports.orderByStart = function(items) {
+    items.sort(function (a, b) {
+      return a.data.start - b.data.start;
+    });
+  };
+
+  /**
+   * Order items by their end date. If they have no end date, their start date
+   * is used.
+   * @param {Item[]} items
+   */
+  exports.orderByEnd = function(items) {
+    items.sort(function (a, b) {
+      var aTime = ('end' in a.data) ? a.data.end : a.data.start,
+          bTime = ('end' in b.data) ? b.data.end : b.data.start;
+
+      return aTime - bTime;
+    });
+  };
+
+  /**
+   * Adjust vertical positions of the items such that they don't overlap each
+   * other.
+   * @param {Item[]} items
+   *            All visible items
+   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
+   *            Margins between items and between items and the axis.
+   * @param {boolean} [force=false]
+   *            If true, all items will be repositioned. If false (default), only
+   *            items having a top===null will be re-stacked
+   */
+  exports.stack = function(items, margin, force) {
+    var i, iMax;
+
+    if (force) {
+      // reset top position of all items
+      for (i = 0, iMax = items.length; i < iMax; i++) {
+        items[i].top = null;
+      }
+    }
+
+    // calculate new, non-overlapping positions
+    for (i = 0, iMax = items.length; i < iMax; i++) {
+      var item = items[i];
+      if (item.top === null) {
+        // initialize top position
+        item.top = margin.axis;
+
+        do {
+          // TODO: optimize checking for overlap. when there is a gap without items,
+          //       you only need to check for items from the next item on, not from zero
+          var collidingItem = null;
+          for (var j = 0, jj = items.length; j < jj; j++) {
+            var other = items[j];
+            if (other.top !== null && other !== item && exports.collision(item, other, margin.item)) {
+              collidingItem = other;
+              break;
+            }
+          }
+
+          if (collidingItem != null) {
+            // There is a collision. Reposition the items above the colliding element
+            item.top = collidingItem.top + collidingItem.height + margin.item.vertical;
+          }
+        } while (collidingItem);
+      }
+    }
+  };
+
+  /**
+   * Adjust vertical positions of the items without stacking them
+   * @param {Item[]} items
+   *            All visible items
+   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
+   *            Margins between items and between items and the axis.
+   */
+  exports.nostack = function(items, margin) {
+    var i, iMax;
+
+    // reset top position of all items
+    for (i = 0, iMax = items.length; i < iMax; i++) {
+      items[i].top = margin.axis;
+    }
+  };
+
+  /**
+   * Test if the two provided items collide
+   * The items must have parameters left, width, top, and height.
+   * @param {Item} a          The first item
+   * @param {Item} b          The second item
+   * @param {{horizontal: number, vertical: number}} margin
+   *                          An object containing a horizontal and vertical
+   *                          minimum required margin.
+   * @return {boolean}        true if a and b collide, else false
+   */
+  exports.collision = function(a, b, margin) {
+    return ((a.left - margin.horizontal + EPSILON)       < (b.left + b.width) &&
+        (a.left + a.width + margin.horizontal - EPSILON) > b.left &&
+        (a.top - margin.vertical + EPSILON)              < (b.top + b.height) &&
+        (a.top + a.height + margin.vertical - EPSILON)   > b.top);
+  };
+
+
+/***/ },
+/* 11 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var moment = __webpack_require__(39);
+
+  /**
+   * @constructor  TimeStep
+   * The class TimeStep is an iterator for dates. You provide a start date and an
+   * end date. The class itself determines the best scale (step size) based on the
+   * provided start Date, end Date, and minimumStep.
+   *
+   * If minimumStep is provided, the step size is chosen as close as possible
+   * to the minimumStep but larger than minimumStep. If minimumStep is not
+   * provided, the scale is set to 1 DAY.
+   * The minimumStep should correspond with the onscreen size of about 6 characters
+   *
+   * Alternatively, you can set a scale by hand.
+   * After creation, you can initialize the class by executing first(). Then you
+   * can iterate from the start date to the end date via next(). You can check if
+   * the end date is reached with the function hasNext(). After each step, you can
+   * retrieve the current date via getCurrent().
+   * The TimeStep has scales ranging from milliseconds, seconds, minutes, hours,
+   * days, to years.
+   *
+   * Version: 1.2
+   *
+   * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
+   *                               or new Date(2010, 9, 21, 23, 45, 00)
+   * @param {Date} [end]           The end date
+   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
+   */
+  function TimeStep(start, end, minimumStep) {
+    // variables
+    this.current = new Date();
+    this._start = new Date();
+    this._end = new Date();
+
+    this.autoScale  = true;
+    this.scale = TimeStep.SCALE.DAY;
+    this.step = 1;
+
+    // initialize the range
+    this.setRange(start, end, minimumStep);
+  }
+
+  /// enum scale
+  TimeStep.SCALE = {
+    MILLISECOND: 1,
+    SECOND: 2,
+    MINUTE: 3,
+    HOUR: 4,
+    DAY: 5,
+    WEEKDAY: 6,
+    MONTH: 7,
+    YEAR: 8
+  };
+
+
+  /**
+   * Set a new range
+   * If minimumStep is provided, the step size is chosen as close as possible
+   * to the minimumStep but larger than minimumStep. If minimumStep is not
+   * provided, the scale is set to 1 DAY.
+   * The minimumStep should correspond with the onscreen size of about 6 characters
+   * @param {Date} [start]      The start date and time.
+   * @param {Date} [end]        The end date and time.
+   * @param {int} [minimumStep] Optional. Minimum step size in milliseconds
+   */
+  TimeStep.prototype.setRange = function(start, end, minimumStep) {
+    if (!(start instanceof Date) || !(end instanceof Date)) {
+      throw  "No legal start or end date in method setRange";
+    }
+
+    this._start = (start != undefined) ? new Date(start.valueOf()) : new Date();
+    this._end = (end != undefined) ? new Date(end.valueOf()) : new Date();
+
+    if (this.autoScale) {
+      this.setMinimumStep(minimumStep);
+    }
+  };
+
+  /**
+   * Set the range iterator to the start date.
+   */
+  TimeStep.prototype.first = function() {
+    this.current = new Date(this._start.valueOf());
+    this.roundToMinor();
+  };
+
+  /**
+   * Round the current date to the first minor date value
+   * This must be executed once when the current date is set to start Date
+   */
+  TimeStep.prototype.roundToMinor = function() {
+    // round to floor
+    // IMPORTANT: we have no breaks in this switch! (this is no bug)
+    //noinspection FallthroughInSwitchStatementJS
+    switch (this.scale) {
+      case TimeStep.SCALE.YEAR:
+        this.current.setFullYear(this.step * Math.floor(this.current.getFullYear() / this.step));
+        this.current.setMonth(0);
+      case TimeStep.SCALE.MONTH:        this.current.setDate(1);
+      case TimeStep.SCALE.DAY:          // intentional fall through
+      case TimeStep.SCALE.WEEKDAY:      this.current.setHours(0);
+      case TimeStep.SCALE.HOUR:         this.current.setMinutes(0);
+      case TimeStep.SCALE.MINUTE:       this.current.setSeconds(0);
+      case TimeStep.SCALE.SECOND:       this.current.setMilliseconds(0);
+      //case TimeStep.SCALE.MILLISECOND: // nothing to do for milliseconds
+    }
+
+    if (this.step != 1) {
+      // round down to the first minor value that is a multiple of the current step size
+      switch (this.scale) {
+        case TimeStep.SCALE.MILLISECOND:  this.current.setMilliseconds(this.current.getMilliseconds() - this.current.getMilliseconds() % this.step);  break;
+        case TimeStep.SCALE.SECOND:       this.current.setSeconds(this.current.getSeconds() - this.current.getSeconds() % this.step); break;
+        case TimeStep.SCALE.MINUTE:       this.current.setMinutes(this.current.getMinutes() - this.current.getMinutes() % this.step); break;
+        case TimeStep.SCALE.HOUR:         this.current.setHours(this.current.getHours() - this.current.getHours() % this.step); break;
+        case TimeStep.SCALE.WEEKDAY:      // intentional fall through
+        case TimeStep.SCALE.DAY:          this.current.setDate((this.current.getDate()-1) - (this.current.getDate()-1) % this.step + 1); break;
+        case TimeStep.SCALE.MONTH:        this.current.setMonth(this.current.getMonth() - this.current.getMonth() % this.step);  break;
+        case TimeStep.SCALE.YEAR:         this.current.setFullYear(this.current.getFullYear() - this.current.getFullYear() % this.step); break;
+        default: break;
+      }
+    }
+  };
+
+  /**
+   * Check if the there is a next step
+   * @return {boolean}  true if the current date has not passed the end date
+   */
+  TimeStep.prototype.hasNext = function () {
+    return (this.current.valueOf() <= this._end.valueOf());
+  };
+
+  /**
+   * Do the next step
+   */
+  TimeStep.prototype.next = function() {
+    var prev = this.current.valueOf();
+
+    // Two cases, needed to prevent issues with switching daylight savings
+    // (end of March and end of October)
+    if (this.current.getMonth() < 6)   {
+      switch (this.scale) {
+        case TimeStep.SCALE.MILLISECOND:
+
+          this.current = new Date(this.current.valueOf() + this.step); break;
+        case TimeStep.SCALE.SECOND:       this.current = new Date(this.current.valueOf() + this.step * 1000); break;
+        case TimeStep.SCALE.MINUTE:       this.current = new Date(this.current.valueOf() + this.step * 1000 * 60); break;
+        case TimeStep.SCALE.HOUR:
+          this.current = new Date(this.current.valueOf() + this.step * 1000 * 60 * 60);
+          // in case of skipping an hour for daylight savings, adjust the hour again (else you get: 0h 5h 9h ... instead of 0h 4h 8h ...)
+          var h = this.current.getHours();
+          this.current.setHours(h - (h % this.step));
+          break;
+        case TimeStep.SCALE.WEEKDAY:      // intentional fall through
+        case TimeStep.SCALE.DAY:          this.current.setDate(this.current.getDate() + this.step); break;
+        case TimeStep.SCALE.MONTH:        this.current.setMonth(this.current.getMonth() + this.step); break;
+        case TimeStep.SCALE.YEAR:         this.current.setFullYear(this.current.getFullYear() + this.step); break;
+        default:                      break;
+      }
+    }
+    else {
+      switch (this.scale) {
+        case TimeStep.SCALE.MILLISECOND:  this.current = new Date(this.current.valueOf() + this.step); break;
+        case TimeStep.SCALE.SECOND:       this.current.setSeconds(this.current.getSeconds() + this.step); break;
+        case TimeStep.SCALE.MINUTE:       this.current.setMinutes(this.current.getMinutes() + this.step); break;
+        case TimeStep.SCALE.HOUR:         this.current.setHours(this.current.getHours() + this.step); break;
+        case TimeStep.SCALE.WEEKDAY:      // intentional fall through
+        case TimeStep.SCALE.DAY:          this.current.setDate(this.current.getDate() + this.step); break;
+        case TimeStep.SCALE.MONTH:        this.current.setMonth(this.current.getMonth() + this.step); break;
+        case TimeStep.SCALE.YEAR:         this.current.setFullYear(this.current.getFullYear() + this.step); break;
+        default:                      break;
+      }
+    }
+
+    if (this.step != 1) {
+      // round down to the correct major value
+      switch (this.scale) {
+        case TimeStep.SCALE.MILLISECOND:  if(this.current.getMilliseconds() < this.step) this.current.setMilliseconds(0);  break;
+        case TimeStep.SCALE.SECOND:       if(this.current.getSeconds() < this.step) this.current.setSeconds(0);  break;
+        case TimeStep.SCALE.MINUTE:       if(this.current.getMinutes() < this.step) this.current.setMinutes(0);  break;
+        case TimeStep.SCALE.HOUR:         if(this.current.getHours() < this.step) this.current.setHours(0);  break;
+        case TimeStep.SCALE.WEEKDAY:      // intentional fall through
+        case TimeStep.SCALE.DAY:          if(this.current.getDate() < this.step+1) this.current.setDate(1); break;
+        case TimeStep.SCALE.MONTH:        if(this.current.getMonth() < this.step) this.current.setMonth(0);  break;
+        case TimeStep.SCALE.YEAR:         break; // nothing to do for year
+        default:                break;
+      }
+    }
+
+    // safety mechanism: if current time is still unchanged, move to the end
+    if (this.current.valueOf() == prev) {
+      this.current = new Date(this._end.valueOf());
+    }
+  };
+
+
+  /**
+   * Get the current datetime
+   * @return {Date}  current The current date
+   */
+  TimeStep.prototype.getCurrent = function() {
+    return this.current;
+  };
+
+  /**
+   * Set a custom scale. Autoscaling will be disabled.
+   * For example setScale(SCALE.MINUTES, 5) will result
+   * in minor steps of 5 minutes, and major steps of an hour.
+   *
+   * @param {TimeStep.SCALE} newScale
+   *                               A scale. Choose from SCALE.MILLISECOND,
+   *                               SCALE.SECOND, SCALE.MINUTE, SCALE.HOUR,
+   *                               SCALE.WEEKDAY, SCALE.DAY, SCALE.MONTH,
+   *                               SCALE.YEAR.
+   * @param {Number}     newStep   A step size, by default 1. Choose for
+   *                               example 1, 2, 5, or 10.
+   */
+  TimeStep.prototype.setScale = function(newScale, newStep) {
+    this.scale = newScale;
+
+    if (newStep > 0) {
+      this.step = newStep;
+    }
+
+    this.autoScale = false;
+  };
+
+  /**
+   * Enable or disable autoscaling
+   * @param {boolean} enable  If true, autoascaling is set true
+   */
+  TimeStep.prototype.setAutoScale = function (enable) {
+    this.autoScale = enable;
+  };
+
+
+  /**
+   * Automatically determine the scale that bests fits the provided minimum step
+   * @param {Number} [minimumStep]  The minimum step size in milliseconds
+   */
+  TimeStep.prototype.setMinimumStep = function(minimumStep) {
+    if (minimumStep == undefined) {
+      return;
+    }
+
+    var stepYear       = (1000 * 60 * 60 * 24 * 30 * 12);
+    var stepMonth      = (1000 * 60 * 60 * 24 * 30);
+    var stepDay        = (1000 * 60 * 60 * 24);
+    var stepHour       = (1000 * 60 * 60);
+    var stepMinute     = (1000 * 60);
+    var stepSecond     = (1000);
+    var stepMillisecond= (1);
+
+    // find the smallest step that is larger than the provided minimumStep
+    if (stepYear*1000 > minimumStep)        {this.scale = TimeStep.SCALE.YEAR;        this.step = 1000;}
+    if (stepYear*500 > minimumStep)         {this.scale = TimeStep.SCALE.YEAR;        this.step = 500;}
+    if (stepYear*100 > minimumStep)         {this.scale = TimeStep.SCALE.YEAR;        this.step = 100;}
+    if (stepYear*50 > minimumStep)          {this.scale = TimeStep.SCALE.YEAR;        this.step = 50;}
+    if (stepYear*10 > minimumStep)          {this.scale = TimeStep.SCALE.YEAR;        this.step = 10;}
+    if (stepYear*5 > minimumStep)           {this.scale = TimeStep.SCALE.YEAR;        this.step = 5;}
+    if (stepYear > minimumStep)             {this.scale = TimeStep.SCALE.YEAR;        this.step = 1;}
+    if (stepMonth*3 > minimumStep)          {this.scale = TimeStep.SCALE.MONTH;       this.step = 3;}
+    if (stepMonth > minimumStep)            {this.scale = TimeStep.SCALE.MONTH;       this.step = 1;}
+    if (stepDay*5 > minimumStep)            {this.scale = TimeStep.SCALE.DAY;         this.step = 5;}
+    if (stepDay*2 > minimumStep)            {this.scale = TimeStep.SCALE.DAY;         this.step = 2;}
+    if (stepDay > minimumStep)              {this.scale = TimeStep.SCALE.DAY;         this.step = 1;}
+    if (stepDay/2 > minimumStep)            {this.scale = TimeStep.SCALE.WEEKDAY;     this.step = 1;}
+    if (stepHour*4 > minimumStep)           {this.scale = TimeStep.SCALE.HOUR;        this.step = 4;}
+    if (stepHour > minimumStep)             {this.scale = TimeStep.SCALE.HOUR;        this.step = 1;}
+    if (stepMinute*15 > minimumStep)        {this.scale = TimeStep.SCALE.MINUTE;      this.step = 15;}
+    if (stepMinute*10 > minimumStep)        {this.scale = TimeStep.SCALE.MINUTE;      this.step = 10;}
+    if (stepMinute*5 > minimumStep)         {this.scale = TimeStep.SCALE.MINUTE;      this.step = 5;}
+    if (stepMinute > minimumStep)           {this.scale = TimeStep.SCALE.MINUTE;      this.step = 1;}
+    if (stepSecond*15 > minimumStep)        {this.scale = TimeStep.SCALE.SECOND;      this.step = 15;}
+    if (stepSecond*10 > minimumStep)        {this.scale = TimeStep.SCALE.SECOND;      this.step = 10;}
+    if (stepSecond*5 > minimumStep)         {this.scale = TimeStep.SCALE.SECOND;      this.step = 5;}
+    if (stepSecond > minimumStep)           {this.scale = TimeStep.SCALE.SECOND;      this.step = 1;}
+    if (stepMillisecond*200 > minimumStep)  {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 200;}
+    if (stepMillisecond*100 > minimumStep)  {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 100;}
+    if (stepMillisecond*50 > minimumStep)   {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 50;}
+    if (stepMillisecond*10 > minimumStep)   {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 10;}
+    if (stepMillisecond*5 > minimumStep)    {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 5;}
+    if (stepMillisecond > minimumStep)      {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 1;}
+  };
+
+  /**
+   * Snap a date to a rounded value.
+   * The snap intervals are dependent on the current scale and step.
+   * @param {Date} date   the date to be snapped.
+   * @return {Date} snappedDate
+   */
+  TimeStep.prototype.snap = function(date) {
+    var clone = new Date(date.valueOf());
+
+    if (this.scale == TimeStep.SCALE.YEAR) {
+      var year = clone.getFullYear() + Math.round(clone.getMonth() / 12);
+      clone.setFullYear(Math.round(year / this.step) * this.step);
+      clone.setMonth(0);
+      clone.setDate(0);
+      clone.setHours(0);
+      clone.setMinutes(0);
+      clone.setSeconds(0);
+      clone.setMilliseconds(0);
+    }
+    else if (this.scale == TimeStep.SCALE.MONTH) {
+      if (clone.getDate() > 15) {
+        clone.setDate(1);
+        clone.setMonth(clone.getMonth() + 1);
+        // important: first set Date to 1, after that change the month.
+      }
+      else {
+        clone.setDate(1);
+      }
+
+      clone.setHours(0);
+      clone.setMinutes(0);
+      clone.setSeconds(0);
+      clone.setMilliseconds(0);
+    }
+    else if (this.scale == TimeStep.SCALE.DAY) {
+      //noinspection FallthroughInSwitchStatementJS
+      switch (this.step) {
+        case 5:
+        case 2:
+          clone.setHours(Math.round(clone.getHours() / 24) * 24); break;
+        default:
+          clone.setHours(Math.round(clone.getHours() / 12) * 12); break;
+      }
+      clone.setMinutes(0);
+      clone.setSeconds(0);
+      clone.setMilliseconds(0);
+    }
+    else if (this.scale == TimeStep.SCALE.WEEKDAY) {
+      //noinspection FallthroughInSwitchStatementJS
+      switch (this.step) {
+        case 5:
+        case 2:
+          clone.setHours(Math.round(clone.getHours() / 12) * 12); break;
+        default:
+          clone.setHours(Math.round(clone.getHours() / 6) * 6); break;
+      }
+      clone.setMinutes(0);
+      clone.setSeconds(0);
+      clone.setMilliseconds(0);
+    }
+    else if (this.scale == TimeStep.SCALE.HOUR) {
+      switch (this.step) {
+        case 4:
+          clone.setMinutes(Math.round(clone.getMinutes() / 60) * 60); break;
+        default:
+          clone.setMinutes(Math.round(clone.getMinutes() / 30) * 30); break;
+      }
+      clone.setSeconds(0);
+      clone.setMilliseconds(0);
+    } else if (this.scale == TimeStep.SCALE.MINUTE) {
+      //noinspection FallthroughInSwitchStatementJS
+      switch (this.step) {
+        case 15:
+        case 10:
+          clone.setMinutes(Math.round(clone.getMinutes() / 5) * 5);
+          clone.setSeconds(0);
+          break;
+        case 5:
+          clone.setSeconds(Math.round(clone.getSeconds() / 60) * 60); break;
+        default:
+          clone.setSeconds(Math.round(clone.getSeconds() / 30) * 30); break;
+      }
+      clone.setMilliseconds(0);
+    }
+    else if (this.scale == TimeStep.SCALE.SECOND) {
+      //noinspection FallthroughInSwitchStatementJS
+      switch (this.step) {
+        case 15:
+        case 10:
+          clone.setSeconds(Math.round(clone.getSeconds() / 5) * 5);
+          clone.setMilliseconds(0);
+          break;
+        case 5:
+          clone.setMilliseconds(Math.round(clone.getMilliseconds() / 1000) * 1000); break;
+        default:
+          clone.setMilliseconds(Math.round(clone.getMilliseconds() / 500) * 500); break;
+      }
+    }
+    else if (this.scale == TimeStep.SCALE.MILLISECOND) {
+      var step = this.step > 5 ? this.step / 2 : 1;
+      clone.setMilliseconds(Math.round(clone.getMilliseconds() / step) * step);
+    }
+    
+    return clone;
+  };
+
+  /**
+   * Check if the current value is a major value (for example when the step
+   * is DAY, a major value is each first day of the MONTH)
+   * @return {boolean} true if current date is major, else false.
+   */
+  TimeStep.prototype.isMajor = function() {
+    switch (this.scale) {
+      case TimeStep.SCALE.MILLISECOND:
+        return (this.current.getMilliseconds() == 0);
+      case TimeStep.SCALE.SECOND:
+        return (this.current.getSeconds() == 0);
+      case TimeStep.SCALE.MINUTE:
+        return (this.current.getHours() == 0) && (this.current.getMinutes() == 0);
+      // Note: this is no bug. Major label is equal for both minute and hour scale
+      case TimeStep.SCALE.HOUR:
+        return (this.current.getHours() == 0);
+      case TimeStep.SCALE.WEEKDAY: // intentional fall through
+      case TimeStep.SCALE.DAY:
+        return (this.current.getDate() == 1);
+      case TimeStep.SCALE.MONTH:
+        return (this.current.getMonth() == 0);
+      case TimeStep.SCALE.YEAR:
+        return false;
+      default:
+        return false;
+    }
+  };
+
+
+  /**
+   * Returns formatted text for the minor axislabel, depending on the current
+   * date and the scale. For example when scale is MINUTE, the current time is
+   * formatted as "hh:mm".
+   * @param {Date} [date] custom date. if not provided, current date is taken
+   */
+  TimeStep.prototype.getLabelMinor = function(date) {
+    if (date == undefined) {
+      date = this.current;
+    }
+
+    switch (this.scale) {
+      case TimeStep.SCALE.MILLISECOND:  return moment(date).format('SSS');
+      case TimeStep.SCALE.SECOND:       return moment(date).format('s');
+      case TimeStep.SCALE.MINUTE:       return moment(date).format('HH:mm');
+      case TimeStep.SCALE.HOUR:         return moment(date).format('HH:mm');
+      case TimeStep.SCALE.WEEKDAY:      return moment(date).format('ddd D');
+      case TimeStep.SCALE.DAY:          return moment(date).format('D');
+      case TimeStep.SCALE.MONTH:        return moment(date).format('MMM');
+      case TimeStep.SCALE.YEAR:         return moment(date).format('YYYY');
+      default:                          return '';
+    }
+  };
+
+
+  /**
+   * Returns formatted text for the major axis label, depending on the current
+   * date and the scale. For example when scale is MINUTE, the major scale is
+   * hours, and the hour will be formatted as "hh".
+   * @param {Date} [date] custom date. if not provided, current date is taken
+   */
+  TimeStep.prototype.getLabelMajor = function(date) {
+    if (date == undefined) {
+      date = this.current;
+    }
+
+    //noinspection FallthroughInSwitchStatementJS
+    switch (this.scale) {
+      case TimeStep.SCALE.MILLISECOND:return moment(date).format('HH:mm:ss');
+      case TimeStep.SCALE.SECOND:     return moment(date).format('D MMMM HH:mm');
+      case TimeStep.SCALE.MINUTE:
+      case TimeStep.SCALE.HOUR:       return moment(date).format('ddd D MMMM');
+      case TimeStep.SCALE.WEEKDAY:
+      case TimeStep.SCALE.DAY:        return moment(date).format('MMMM YYYY');
+      case TimeStep.SCALE.MONTH:      return moment(date).format('YYYY');
+      case TimeStep.SCALE.YEAR:       return '';
+      default:                        return '';
+    }
+  };
+
+  module.exports = TimeStep;
+
+
+/***/ },
 /* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -9040,7 +9038,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(50);
+  var Hammer = __webpack_require__(49);
   var util = __webpack_require__(1);
   var Component = __webpack_require__(12);
 
@@ -9237,7 +9235,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(2);
   var Component = __webpack_require__(12);
-  var DataStep = __webpack_require__(6);
+  var DataStep = __webpack_require__(8);
 
   /**
    * A horizontal time axis
@@ -9843,7 +9841,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var stack = __webpack_require__(9);
+  var stack = __webpack_require__(10);
   var ItemRange = __webpack_require__(25);
 
   /**
@@ -9967,7 +9965,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Repaint this group
    * @param {{start: number, end: number}} range
-   * @param {{item: number, axis: number}} margin
+   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
    * @param {boolean} [restack=false]  Force restacking of all items
    * @return {boolean} Returns true if the group is resized
    */
@@ -10016,10 +10014,10 @@ return /******/ (function(modules) { // webpackBootstrap
           item.top -= offset;
         });
       }
-      height = max + margin.item / 2;
+      height = max + margin.item.vertical / 2;
     }
     else {
-      height = margin.axis + margin.item;
+      height = margin.axis + margin.item.vertical;
     }
     height = Math.max(height, this.props.label.height);
 
@@ -10272,7 +10270,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(50);
+  var Hammer = __webpack_require__(49);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
@@ -10326,7 +10324,10 @@ return /******/ (function(modules) { // webpackBootstrap
       },
 
       margin: {
-        item: 10,
+        item: {
+          horizontal: 10,
+          vertical: 10
+        },
         axis: 20
       },
       padding: 5
@@ -10485,8 +10486,15 @@ return /******/ (function(modules) { // webpackBootstrap
    *                           {Number} margin.axis
    *                              Margin between the axis and the items in pixels.
    *                              Default is 20.
+   *                           {Number} margin.item.horizontal
+   *                              Horizontal margin between items in pixels.
+   *                              Default is 10.
+   *                           {Number} margin.item.vertical
+   *                              Vertical Margin between items in pixels.
+   *                              Default is 10.
    *                           {Number} margin.item
-   *                              Margin between items in pixels. Default is 10.
+   *                              Margin between items in pixels in both horizontal
+   *                              and vertical direction. Default is 10.
    *                           {Number} margin
    *                              Set margin for both axis and items in pixels.
    *                           {Number} padding
@@ -10528,10 +10536,20 @@ return /******/ (function(modules) { // webpackBootstrap
       if ('margin' in options) {
         if (typeof options.margin === 'number') {
           this.options.margin.axis = options.margin;
-          this.options.margin.item = options.margin;
+          this.options.margin.item.horizontal = options.margin;
+          this.options.margin.item.vertical = options.margin;
         }
-        else if (typeof options.margin === 'object'){
-          util.selectiveExtend(['axis', 'item'], this.options.margin, options.margin);
+        else if (typeof options.margin === 'object') {
+          util.selectiveExtend(['axis'], this.options.margin, options.margin);
+          if ('item' in options.margin) {
+            if (typeof options.margin.item === 'number') {
+              this.options.margin.item.horizontal = options.margin.item;
+              this.options.margin.item.vertical = options.margin.item;
+            }
+            else if (typeof options.margin.item === 'object') {
+              util.selectiveExtend(['horizontal', 'vertical'], this.options.margin.item, options.margin.item);
+            }
+          }
         }
       }
 
@@ -10722,10 +10740,10 @@ return /******/ (function(modules) { // webpackBootstrap
         },
         nonFirstMargin = {
           item: margin.item,
-          axis: margin.item / 2
+          axis: margin.item.vertical / 2
         },
         height = 0,
-        minHeight = margin.axis + margin.item;
+        minHeight = margin.axis + margin.item.vertical;
     util.forEach(this.groups, function (group) {
       var groupMargin = (group == firstGroup) ? firstMargin : nonFirstMargin;
       var groupResized = group.redraw(range, groupMargin, restack);
@@ -12878,7 +12896,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var Component = __webpack_require__(12);
-  var TimeStep = __webpack_require__(10);
+  var TimeStep = __webpack_require__(11);
 
   /**
    * A horizontal time axis
@@ -13277,7 +13295,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(50);
+  var Hammer = __webpack_require__(49);
 
   /**
    * @constructor Item
@@ -13878,7 +13896,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(50);
+  var Hammer = __webpack_require__(49);
   var Item = __webpack_require__(22);
 
   /**
@@ -14176,8 +14194,8 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var Emitter = __webpack_require__(41);
-  var Hammer = __webpack_require__(50);
-  var mousetrap = __webpack_require__(48);
+  var Hammer = __webpack_require__(49);
+  var mousetrap = __webpack_require__(42);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
@@ -20508,7 +20526,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // Only load hammer.js when in a browser environment
   // (loading hammer.js in a node.js environment gives errors)
   if (typeof window !== 'undefined') {
-    module.exports = window['Hammer'] || __webpack_require__(50);
+    module.exports = window['Hammer'] || __webpack_require__(49);
     // TODO: throw an error when hammerjs is not available?
   }
   else {
@@ -20531,13 +20549,13 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var PhysicsMixin = __webpack_require__(49);
-  var ClusterMixin = __webpack_require__(42);
-  var SectorsMixin = __webpack_require__(43);
-  var SelectionMixin = __webpack_require__(44);
-  var ManipulationMixin = __webpack_require__(45);
-  var NavigationMixin = __webpack_require__(46);
-  var HierarchicalLayoutMixin = __webpack_require__(47);
+  var PhysicsMixin = __webpack_require__(50);
+  var ClusterMixin = __webpack_require__(43);
+  var SectorsMixin = __webpack_require__(44);
+  var SelectionMixin = __webpack_require__(45);
+  var ManipulationMixin = __webpack_require__(46);
+  var NavigationMixin = __webpack_require__(47);
+  var HierarchicalLayoutMixin = __webpack_require__(48);
 
   /**
    * Load a mixin into the network object
@@ -20903,6 +20921,811 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 42 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Copyright 2012 Craig Campbell
+   *
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   * http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   *
+   * Mousetrap is a simple keyboard shortcut library for Javascript with
+   * no external dependencies
+   *
+   * @version 1.1.2
+   * @url craig.is/killing/mice
+   */
+
+    /**
+     * mapping of special keycodes to their corresponding keys
+     *
+     * everything in this dictionary cannot use keypress events
+     * so it has to be here to map to the correct keycodes for
+     * keyup/keydown events
+     *
+     * @type {Object}
+     */
+    var _MAP = {
+            8: 'backspace',
+            9: 'tab',
+            13: 'enter',
+            16: 'shift',
+            17: 'ctrl',
+            18: 'alt',
+            20: 'capslock',
+            27: 'esc',
+            32: 'space',
+            33: 'pageup',
+            34: 'pagedown',
+            35: 'end',
+            36: 'home',
+            37: 'left',
+            38: 'up',
+            39: 'right',
+            40: 'down',
+            45: 'ins',
+            46: 'del',
+            91: 'meta',
+            93: 'meta',
+            224: 'meta'
+        },
+
+        /**
+         * mapping for special characters so they can support
+         *
+         * this dictionary is only used incase you want to bind a
+         * keyup or keydown event to one of these keys
+         *
+         * @type {Object}
+         */
+        _KEYCODE_MAP = {
+            106: '*',
+            107: '+',
+            109: '-',
+            110: '.',
+            111 : '/',
+            186: ';',
+            187: '=',
+            188: ',',
+            189: '-',
+            190: '.',
+            191: '/',
+            192: '`',
+            219: '[',
+            220: '\\',
+            221: ']',
+            222: '\''
+        },
+
+        /**
+         * this is a mapping of keys that require shift on a US keypad
+         * back to the non shift equivelents
+         *
+         * this is so you can use keyup events with these keys
+         *
+         * note that this will only work reliably on US keyboards
+         *
+         * @type {Object}
+         */
+        _SHIFT_MAP = {
+            '~': '`',
+            '!': '1',
+            '@': '2',
+            '#': '3',
+            '$': '4',
+            '%': '5',
+            '^': '6',
+            '&': '7',
+            '*': '8',
+            '(': '9',
+            ')': '0',
+            '_': '-',
+            '+': '=',
+            ':': ';',
+            '\"': '\'',
+            '<': ',',
+            '>': '.',
+            '?': '/',
+            '|': '\\'
+        },
+
+        /**
+         * this is a list of special strings you can use to map
+         * to modifier keys when you specify your keyboard shortcuts
+         *
+         * @type {Object}
+         */
+        _SPECIAL_ALIASES = {
+            'option': 'alt',
+            'command': 'meta',
+            'return': 'enter',
+            'escape': 'esc'
+        },
+
+        /**
+         * variable to store the flipped version of _MAP from above
+         * needed to check if we should use keypress or not when no action
+         * is specified
+         *
+         * @type {Object|undefined}
+         */
+        _REVERSE_MAP,
+
+        /**
+         * a list of all the callbacks setup via Mousetrap.bind()
+         *
+         * @type {Object}
+         */
+        _callbacks = {},
+
+        /**
+         * direct map of string combinations to callbacks used for trigger()
+         *
+         * @type {Object}
+         */
+        _direct_map = {},
+
+        /**
+         * keeps track of what level each sequence is at since multiple
+         * sequences can start out with the same sequence
+         *
+         * @type {Object}
+         */
+        _sequence_levels = {},
+
+        /**
+         * variable to store the setTimeout call
+         *
+         * @type {null|number}
+         */
+        _reset_timer,
+
+        /**
+         * temporary state where we will ignore the next keyup
+         *
+         * @type {boolean|string}
+         */
+        _ignore_next_keyup = false,
+
+        /**
+         * are we currently inside of a sequence?
+         * type of action ("keyup" or "keydown" or "keypress") or false
+         *
+         * @type {boolean|string}
+         */
+        _inside_sequence = false;
+
+    /**
+     * loop through the f keys, f1 to f19 and add them to the map
+     * programatically
+     */
+    for (var i = 1; i < 20; ++i) {
+        _MAP[111 + i] = 'f' + i;
+    }
+
+    /**
+     * loop through to map numbers on the numeric keypad
+     */
+    for (i = 0; i <= 9; ++i) {
+        _MAP[i + 96] = i;
+    }
+
+    /**
+     * cross browser add event method
+     *
+     * @param {Element|HTMLDocument} object
+     * @param {string} type
+     * @param {Function} callback
+     * @returns void
+     */
+    function _addEvent(object, type, callback) {
+        if (object.addEventListener) {
+            return object.addEventListener(type, callback, false);
+        }
+
+        object.attachEvent('on' + type, callback);
+    }
+
+    /**
+     * takes the event and returns the key character
+     *
+     * @param {Event} e
+     * @return {string}
+     */
+    function _characterFromEvent(e) {
+
+        // for keypress events we should return the character as is
+        if (e.type == 'keypress') {
+            return String.fromCharCode(e.which);
+        }
+
+        // for non keypress events the special maps are needed
+        if (_MAP[e.which]) {
+            return _MAP[e.which];
+        }
+
+        if (_KEYCODE_MAP[e.which]) {
+            return _KEYCODE_MAP[e.which];
+        }
+
+        // if it is not in the special map
+        return String.fromCharCode(e.which).toLowerCase();
+    }
+
+    /**
+     * should we stop this event before firing off callbacks
+     *
+     * @param {Event} e
+     * @return {boolean}
+     */
+    function _stop(e) {
+        var element = e.target || e.srcElement,
+            tag_name = element.tagName;
+
+        // if the element has the class "mousetrap" then no need to stop
+        if ((' ' + element.className + ' ').indexOf(' mousetrap ') > -1) {
+            return false;
+        }
+
+        // stop for input, select, and textarea
+        return tag_name == 'INPUT' || tag_name == 'SELECT' || tag_name == 'TEXTAREA' || (element.contentEditable && element.contentEditable == 'true');
+    }
+
+    /**
+     * checks if two arrays are equal
+     *
+     * @param {Array} modifiers1
+     * @param {Array} modifiers2
+     * @returns {boolean}
+     */
+    function _modifiersMatch(modifiers1, modifiers2) {
+        return modifiers1.sort().join(',') === modifiers2.sort().join(',');
+    }
+
+    /**
+     * resets all sequence counters except for the ones passed in
+     *
+     * @param {Object} do_not_reset
+     * @returns void
+     */
+    function _resetSequences(do_not_reset) {
+        do_not_reset = do_not_reset || {};
+
+        var active_sequences = false,
+            key;
+
+        for (key in _sequence_levels) {
+            if (do_not_reset[key]) {
+                active_sequences = true;
+                continue;
+            }
+            _sequence_levels[key] = 0;
+        }
+
+        if (!active_sequences) {
+            _inside_sequence = false;
+        }
+    }
+
+    /**
+     * finds all callbacks that match based on the keycode, modifiers,
+     * and action
+     *
+     * @param {string} character
+     * @param {Array} modifiers
+     * @param {string} action
+     * @param {boolean=} remove - should we remove any matches
+     * @param {string=} combination
+     * @returns {Array}
+     */
+    function _getMatches(character, modifiers, action, remove, combination) {
+        var i,
+            callback,
+            matches = [];
+
+        // if there are no events related to this keycode
+        if (!_callbacks[character]) {
+            return [];
+        }
+
+        // if a modifier key is coming up on its own we should allow it
+        if (action == 'keyup' && _isModifier(character)) {
+            modifiers = [character];
+        }
+
+        // loop through all callbacks for the key that was pressed
+        // and see if any of them match
+        for (i = 0; i < _callbacks[character].length; ++i) {
+            callback = _callbacks[character][i];
+
+            // if this is a sequence but it is not at the right level
+            // then move onto the next match
+            if (callback.seq && _sequence_levels[callback.seq] != callback.level) {
+                continue;
+            }
+
+            // if the action we are looking for doesn't match the action we got
+            // then we should keep going
+            if (action != callback.action) {
+                continue;
+            }
+
+            // if this is a keypress event that means that we need to only
+            // look at the character, otherwise check the modifiers as
+            // well
+            if (action == 'keypress' || _modifiersMatch(modifiers, callback.modifiers)) {
+
+                // remove is used so if you change your mind and call bind a
+                // second time with a new function the first one is overwritten
+                if (remove && callback.combo == combination) {
+                    _callbacks[character].splice(i, 1);
+                }
+
+                matches.push(callback);
+            }
+        }
+
+        return matches;
+    }
+
+    /**
+     * takes a key event and figures out what the modifiers are
+     *
+     * @param {Event} e
+     * @returns {Array}
+     */
+    function _eventModifiers(e) {
+        var modifiers = [];
+
+        if (e.shiftKey) {
+            modifiers.push('shift');
+        }
+
+        if (e.altKey) {
+            modifiers.push('alt');
+        }
+
+        if (e.ctrlKey) {
+            modifiers.push('ctrl');
+        }
+
+        if (e.metaKey) {
+            modifiers.push('meta');
+        }
+
+        return modifiers;
+    }
+
+    /**
+     * actually calls the callback function
+     *
+     * if your callback function returns false this will use the jquery
+     * convention - prevent default and stop propogation on the event
+     *
+     * @param {Function} callback
+     * @param {Event} e
+     * @returns void
+     */
+    function _fireCallback(callback, e) {
+        if (callback(e) === false) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+
+            e.returnValue = false;
+            e.cancelBubble = true;
+        }
+    }
+
+    /**
+     * handles a character key event
+     *
+     * @param {string} character
+     * @param {Event} e
+     * @returns void
+     */
+    function _handleCharacter(character, e) {
+
+        // if this event should not happen stop here
+        if (_stop(e)) {
+            return;
+        }
+
+        var callbacks = _getMatches(character, _eventModifiers(e), e.type),
+            i,
+            do_not_reset = {},
+            processed_sequence_callback = false;
+
+        // loop through matching callbacks for this key event
+        for (i = 0; i < callbacks.length; ++i) {
+
+            // fire for all sequence callbacks
+            // this is because if for example you have multiple sequences
+            // bound such as "g i" and "g t" they both need to fire the
+            // callback for matching g cause otherwise you can only ever
+            // match the first one
+            if (callbacks[i].seq) {
+                processed_sequence_callback = true;
+
+                // keep a list of which sequences were matches for later
+                do_not_reset[callbacks[i].seq] = 1;
+                _fireCallback(callbacks[i].callback, e);
+                continue;
+            }
+
+            // if there were no sequence matches but we are still here
+            // that means this is a regular match so we should fire that
+            if (!processed_sequence_callback && !_inside_sequence) {
+                _fireCallback(callbacks[i].callback, e);
+            }
+        }
+
+        // if you are inside of a sequence and the key you are pressing
+        // is not a modifier key then we should reset all sequences
+        // that were not matched by this key event
+        if (e.type == _inside_sequence && !_isModifier(character)) {
+            _resetSequences(do_not_reset);
+        }
+    }
+
+    /**
+     * handles a keydown event
+     *
+     * @param {Event} e
+     * @returns void
+     */
+    function _handleKey(e) {
+
+        // normalize e.which for key events
+        // @see http://stackoverflow.com/questions/4285627/javascript-keycode-vs-charcode-utter-confusion
+        e.which = typeof e.which == "number" ? e.which : e.keyCode;
+
+        var character = _characterFromEvent(e);
+
+        // no character found then stop
+        if (!character) {
+            return;
+        }
+
+        if (e.type == 'keyup' && _ignore_next_keyup == character) {
+            _ignore_next_keyup = false;
+            return;
+        }
+
+        _handleCharacter(character, e);
+    }
+
+    /**
+     * determines if the keycode specified is a modifier key or not
+     *
+     * @param {string} key
+     * @returns {boolean}
+     */
+    function _isModifier(key) {
+        return key == 'shift' || key == 'ctrl' || key == 'alt' || key == 'meta';
+    }
+
+    /**
+     * called to set a 1 second timeout on the specified sequence
+     *
+     * this is so after each key press in the sequence you have 1 second
+     * to press the next key before you have to start over
+     *
+     * @returns void
+     */
+    function _resetSequenceTimer() {
+        clearTimeout(_reset_timer);
+        _reset_timer = setTimeout(_resetSequences, 1000);
+    }
+
+    /**
+     * reverses the map lookup so that we can look for specific keys
+     * to see what can and can't use keypress
+     *
+     * @return {Object}
+     */
+    function _getReverseMap() {
+        if (!_REVERSE_MAP) {
+            _REVERSE_MAP = {};
+            for (var key in _MAP) {
+
+                // pull out the numeric keypad from here cause keypress should
+                // be able to detect the keys from the character
+                if (key > 95 && key < 112) {
+                    continue;
+                }
+
+                if (_MAP.hasOwnProperty(key)) {
+                    _REVERSE_MAP[_MAP[key]] = key;
+                }
+            }
+        }
+        return _REVERSE_MAP;
+    }
+
+    /**
+     * picks the best action based on the key combination
+     *
+     * @param {string} key - character for key
+     * @param {Array} modifiers
+     * @param {string=} action passed in
+     */
+    function _pickBestAction(key, modifiers, action) {
+
+        // if no action was picked in we should try to pick the one
+        // that we think would work best for this key
+        if (!action) {
+            action = _getReverseMap()[key] ? 'keydown' : 'keypress';
+        }
+
+        // modifier keys don't work as expected with keypress,
+        // switch to keydown
+        if (action == 'keypress' && modifiers.length) {
+            action = 'keydown';
+        }
+
+        return action;
+    }
+
+    /**
+     * binds a key sequence to an event
+     *
+     * @param {string} combo - combo specified in bind call
+     * @param {Array} keys
+     * @param {Function} callback
+     * @param {string=} action
+     * @returns void
+     */
+    function _bindSequence(combo, keys, callback, action) {
+
+        // start off by adding a sequence level record for this combination
+        // and setting the level to 0
+        _sequence_levels[combo] = 0;
+
+        // if there is no action pick the best one for the first key
+        // in the sequence
+        if (!action) {
+            action = _pickBestAction(keys[0], []);
+        }
+
+        /**
+         * callback to increase the sequence level for this sequence and reset
+         * all other sequences that were active
+         *
+         * @param {Event} e
+         * @returns void
+         */
+        var _increaseSequence = function(e) {
+                _inside_sequence = action;
+                ++_sequence_levels[combo];
+                _resetSequenceTimer();
+            },
+
+            /**
+             * wraps the specified callback inside of another function in order
+             * to reset all sequence counters as soon as this sequence is done
+             *
+             * @param {Event} e
+             * @returns void
+             */
+            _callbackAndReset = function(e) {
+                _fireCallback(callback, e);
+
+                // we should ignore the next key up if the action is key down
+                // or keypress.  this is so if you finish a sequence and
+                // release the key the final key will not trigger a keyup
+                if (action !== 'keyup') {
+                    _ignore_next_keyup = _characterFromEvent(e);
+                }
+
+                // weird race condition if a sequence ends with the key
+                // another sequence begins with
+                setTimeout(_resetSequences, 10);
+            },
+            i;
+
+        // loop through keys one at a time and bind the appropriate callback
+        // function.  for any key leading up to the final one it should
+        // increase the sequence. after the final, it should reset all sequences
+        for (i = 0; i < keys.length; ++i) {
+            _bindSingle(keys[i], i < keys.length - 1 ? _increaseSequence : _callbackAndReset, action, combo, i);
+        }
+    }
+
+    /**
+     * binds a single keyboard combination
+     *
+     * @param {string} combination
+     * @param {Function} callback
+     * @param {string=} action
+     * @param {string=} sequence_name - name of sequence if part of sequence
+     * @param {number=} level - what part of the sequence the command is
+     * @returns void
+     */
+    function _bindSingle(combination, callback, action, sequence_name, level) {
+
+        // make sure multiple spaces in a row become a single space
+        combination = combination.replace(/\s+/g, ' ');
+
+        var sequence = combination.split(' '),
+            i,
+            key,
+            keys,
+            modifiers = [];
+
+        // if this pattern is a sequence of keys then run through this method
+        // to reprocess each pattern one key at a time
+        if (sequence.length > 1) {
+            return _bindSequence(combination, sequence, callback, action);
+        }
+
+        // take the keys from this pattern and figure out what the actual
+        // pattern is all about
+        keys = combination === '+' ? ['+'] : combination.split('+');
+
+        for (i = 0; i < keys.length; ++i) {
+            key = keys[i];
+
+            // normalize key names
+            if (_SPECIAL_ALIASES[key]) {
+                key = _SPECIAL_ALIASES[key];
+            }
+
+            // if this is not a keypress event then we should
+            // be smart about using shift keys
+            // this will only work for US keyboards however
+            if (action && action != 'keypress' && _SHIFT_MAP[key]) {
+                key = _SHIFT_MAP[key];
+                modifiers.push('shift');
+            }
+
+            // if this key is a modifier then add it to the list of modifiers
+            if (_isModifier(key)) {
+                modifiers.push(key);
+            }
+        }
+
+        // depending on what the key combination is
+        // we will try to pick the best event for it
+        action = _pickBestAction(key, modifiers, action);
+
+        // make sure to initialize array if this is the first time
+        // a callback is added for this key
+        if (!_callbacks[key]) {
+            _callbacks[key] = [];
+        }
+
+        // remove an existing match if there is one
+        _getMatches(key, modifiers, action, !sequence_name, combination);
+
+        // add this call back to the array
+        // if it is a sequence put it at the beginning
+        // if not put it at the end
+        //
+        // this is important because the way these are processed expects
+        // the sequence ones to come first
+        _callbacks[key][sequence_name ? 'unshift' : 'push']({
+            callback: callback,
+            modifiers: modifiers,
+            action: action,
+            seq: sequence_name,
+            level: level,
+            combo: combination
+        });
+    }
+
+    /**
+     * binds multiple combinations to the same callback
+     *
+     * @param {Array} combinations
+     * @param {Function} callback
+     * @param {string|undefined} action
+     * @returns void
+     */
+    function _bindMultiple(combinations, callback, action) {
+        for (var i = 0; i < combinations.length; ++i) {
+            _bindSingle(combinations[i], callback, action);
+        }
+    }
+
+    // start!
+    _addEvent(document, 'keypress', _handleKey);
+    _addEvent(document, 'keydown', _handleKey);
+    _addEvent(document, 'keyup', _handleKey);
+
+    var mousetrap = {
+
+        /**
+         * binds an event to mousetrap
+         *
+         * can be a single key, a combination of keys separated with +,
+         * a comma separated list of keys, an array of keys, or
+         * a sequence of keys separated by spaces
+         *
+         * be sure to list the modifier keys first to make sure that the
+         * correct key ends up getting bound (the last key in the pattern)
+         *
+         * @param {string|Array} keys
+         * @param {Function} callback
+         * @param {string=} action - 'keypress', 'keydown', or 'keyup'
+         * @returns void
+         */
+        bind: function(keys, callback, action) {
+            _bindMultiple(keys instanceof Array ? keys : [keys], callback, action);
+            _direct_map[keys + ':' + action] = callback;
+            return this;
+        },
+
+        /**
+         * unbinds an event to mousetrap
+         *
+         * the unbinding sets the callback function of the specified key combo
+         * to an empty function and deletes the corresponding key in the
+         * _direct_map dict.
+         *
+         * the keycombo+action has to be exactly the same as
+         * it was defined in the bind method
+         *
+         * TODO: actually remove this from the _callbacks dictionary instead
+         * of binding an empty function
+         *
+         * @param {string|Array} keys
+         * @param {string} action
+         * @returns void
+         */
+        unbind: function(keys, action) {
+            if (_direct_map[keys + ':' + action]) {
+                delete _direct_map[keys + ':' + action];
+                this.bind(keys, function() {}, action);
+            }
+            return this;
+        },
+
+        /**
+         * triggers an event that has already been bound
+         *
+         * @param {string} keys
+         * @param {string=} action
+         * @returns void
+         */
+        trigger: function(keys, action) {
+            _direct_map[keys + ':' + action]();
+            return this;
+        },
+
+        /**
+         * resets the library back to its initial state.  this is useful
+         * if you want to clear out the current keyboard shortcuts and bind
+         * new ones - for example if you switch to another page
+         *
+         * @returns void
+         */
+        reset: function() {
+            _callbacks = {};
+            _direct_map = {};
+            return this;
+        }
+    };
+
+  module.exports = mousetrap;
+
+
+
+/***/ },
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -22045,7 +22868,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 43 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -22599,7 +23422,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 44 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Node = __webpack_require__(30);
@@ -23310,7 +24133,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 45 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -23892,7 +24715,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 46 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
   exports._cleanNavigation = function() {
@@ -24094,7 +24917,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 47 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
   exports._resetLevels = function() {
@@ -24417,1521 +25240,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 48 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * Copyright 2012 Craig Campbell
-   *
-   * Licensed under the Apache License, Version 2.0 (the "License");
-   * you may not use this file except in compliance with the License.
-   * You may obtain a copy of the License at
-   *
-   * http://www.apache.org/licenses/LICENSE-2.0
-   *
-   * Unless required by applicable law or agreed to in writing, software
-   * distributed under the License is distributed on an "AS IS" BASIS,
-   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   * See the License for the specific language governing permissions and
-   * limitations under the License.
-   *
-   * Mousetrap is a simple keyboard shortcut library for Javascript with
-   * no external dependencies
-   *
-   * @version 1.1.2
-   * @url craig.is/killing/mice
-   */
-
-    /**
-     * mapping of special keycodes to their corresponding keys
-     *
-     * everything in this dictionary cannot use keypress events
-     * so it has to be here to map to the correct keycodes for
-     * keyup/keydown events
-     *
-     * @type {Object}
-     */
-    var _MAP = {
-            8: 'backspace',
-            9: 'tab',
-            13: 'enter',
-            16: 'shift',
-            17: 'ctrl',
-            18: 'alt',
-            20: 'capslock',
-            27: 'esc',
-            32: 'space',
-            33: 'pageup',
-            34: 'pagedown',
-            35: 'end',
-            36: 'home',
-            37: 'left',
-            38: 'up',
-            39: 'right',
-            40: 'down',
-            45: 'ins',
-            46: 'del',
-            91: 'meta',
-            93: 'meta',
-            224: 'meta'
-        },
-
-        /**
-         * mapping for special characters so they can support
-         *
-         * this dictionary is only used incase you want to bind a
-         * keyup or keydown event to one of these keys
-         *
-         * @type {Object}
-         */
-        _KEYCODE_MAP = {
-            106: '*',
-            107: '+',
-            109: '-',
-            110: '.',
-            111 : '/',
-            186: ';',
-            187: '=',
-            188: ',',
-            189: '-',
-            190: '.',
-            191: '/',
-            192: '`',
-            219: '[',
-            220: '\\',
-            221: ']',
-            222: '\''
-        },
-
-        /**
-         * this is a mapping of keys that require shift on a US keypad
-         * back to the non shift equivelents
-         *
-         * this is so you can use keyup events with these keys
-         *
-         * note that this will only work reliably on US keyboards
-         *
-         * @type {Object}
-         */
-        _SHIFT_MAP = {
-            '~': '`',
-            '!': '1',
-            '@': '2',
-            '#': '3',
-            '$': '4',
-            '%': '5',
-            '^': '6',
-            '&': '7',
-            '*': '8',
-            '(': '9',
-            ')': '0',
-            '_': '-',
-            '+': '=',
-            ':': ';',
-            '\"': '\'',
-            '<': ',',
-            '>': '.',
-            '?': '/',
-            '|': '\\'
-        },
-
-        /**
-         * this is a list of special strings you can use to map
-         * to modifier keys when you specify your keyboard shortcuts
-         *
-         * @type {Object}
-         */
-        _SPECIAL_ALIASES = {
-            'option': 'alt',
-            'command': 'meta',
-            'return': 'enter',
-            'escape': 'esc'
-        },
-
-        /**
-         * variable to store the flipped version of _MAP from above
-         * needed to check if we should use keypress or not when no action
-         * is specified
-         *
-         * @type {Object|undefined}
-         */
-        _REVERSE_MAP,
-
-        /**
-         * a list of all the callbacks setup via Mousetrap.bind()
-         *
-         * @type {Object}
-         */
-        _callbacks = {},
-
-        /**
-         * direct map of string combinations to callbacks used for trigger()
-         *
-         * @type {Object}
-         */
-        _direct_map = {},
-
-        /**
-         * keeps track of what level each sequence is at since multiple
-         * sequences can start out with the same sequence
-         *
-         * @type {Object}
-         */
-        _sequence_levels = {},
-
-        /**
-         * variable to store the setTimeout call
-         *
-         * @type {null|number}
-         */
-        _reset_timer,
-
-        /**
-         * temporary state where we will ignore the next keyup
-         *
-         * @type {boolean|string}
-         */
-        _ignore_next_keyup = false,
-
-        /**
-         * are we currently inside of a sequence?
-         * type of action ("keyup" or "keydown" or "keypress") or false
-         *
-         * @type {boolean|string}
-         */
-        _inside_sequence = false;
-
-    /**
-     * loop through the f keys, f1 to f19 and add them to the map
-     * programatically
-     */
-    for (var i = 1; i < 20; ++i) {
-        _MAP[111 + i] = 'f' + i;
-    }
-
-    /**
-     * loop through to map numbers on the numeric keypad
-     */
-    for (i = 0; i <= 9; ++i) {
-        _MAP[i + 96] = i;
-    }
-
-    /**
-     * cross browser add event method
-     *
-     * @param {Element|HTMLDocument} object
-     * @param {string} type
-     * @param {Function} callback
-     * @returns void
-     */
-    function _addEvent(object, type, callback) {
-        if (object.addEventListener) {
-            return object.addEventListener(type, callback, false);
-        }
-
-        object.attachEvent('on' + type, callback);
-    }
-
-    /**
-     * takes the event and returns the key character
-     *
-     * @param {Event} e
-     * @return {string}
-     */
-    function _characterFromEvent(e) {
-
-        // for keypress events we should return the character as is
-        if (e.type == 'keypress') {
-            return String.fromCharCode(e.which);
-        }
-
-        // for non keypress events the special maps are needed
-        if (_MAP[e.which]) {
-            return _MAP[e.which];
-        }
-
-        if (_KEYCODE_MAP[e.which]) {
-            return _KEYCODE_MAP[e.which];
-        }
-
-        // if it is not in the special map
-        return String.fromCharCode(e.which).toLowerCase();
-    }
-
-    /**
-     * should we stop this event before firing off callbacks
-     *
-     * @param {Event} e
-     * @return {boolean}
-     */
-    function _stop(e) {
-        var element = e.target || e.srcElement,
-            tag_name = element.tagName;
-
-        // if the element has the class "mousetrap" then no need to stop
-        if ((' ' + element.className + ' ').indexOf(' mousetrap ') > -1) {
-            return false;
-        }
-
-        // stop for input, select, and textarea
-        return tag_name == 'INPUT' || tag_name == 'SELECT' || tag_name == 'TEXTAREA' || (element.contentEditable && element.contentEditable == 'true');
-    }
-
-    /**
-     * checks if two arrays are equal
-     *
-     * @param {Array} modifiers1
-     * @param {Array} modifiers2
-     * @returns {boolean}
-     */
-    function _modifiersMatch(modifiers1, modifiers2) {
-        return modifiers1.sort().join(',') === modifiers2.sort().join(',');
-    }
-
-    /**
-     * resets all sequence counters except for the ones passed in
-     *
-     * @param {Object} do_not_reset
-     * @returns void
-     */
-    function _resetSequences(do_not_reset) {
-        do_not_reset = do_not_reset || {};
-
-        var active_sequences = false,
-            key;
-
-        for (key in _sequence_levels) {
-            if (do_not_reset[key]) {
-                active_sequences = true;
-                continue;
-            }
-            _sequence_levels[key] = 0;
-        }
-
-        if (!active_sequences) {
-            _inside_sequence = false;
-        }
-    }
-
-    /**
-     * finds all callbacks that match based on the keycode, modifiers,
-     * and action
-     *
-     * @param {string} character
-     * @param {Array} modifiers
-     * @param {string} action
-     * @param {boolean=} remove - should we remove any matches
-     * @param {string=} combination
-     * @returns {Array}
-     */
-    function _getMatches(character, modifiers, action, remove, combination) {
-        var i,
-            callback,
-            matches = [];
-
-        // if there are no events related to this keycode
-        if (!_callbacks[character]) {
-            return [];
-        }
-
-        // if a modifier key is coming up on its own we should allow it
-        if (action == 'keyup' && _isModifier(character)) {
-            modifiers = [character];
-        }
-
-        // loop through all callbacks for the key that was pressed
-        // and see if any of them match
-        for (i = 0; i < _callbacks[character].length; ++i) {
-            callback = _callbacks[character][i];
-
-            // if this is a sequence but it is not at the right level
-            // then move onto the next match
-            if (callback.seq && _sequence_levels[callback.seq] != callback.level) {
-                continue;
-            }
-
-            // if the action we are looking for doesn't match the action we got
-            // then we should keep going
-            if (action != callback.action) {
-                continue;
-            }
-
-            // if this is a keypress event that means that we need to only
-            // look at the character, otherwise check the modifiers as
-            // well
-            if (action == 'keypress' || _modifiersMatch(modifiers, callback.modifiers)) {
-
-                // remove is used so if you change your mind and call bind a
-                // second time with a new function the first one is overwritten
-                if (remove && callback.combo == combination) {
-                    _callbacks[character].splice(i, 1);
-                }
-
-                matches.push(callback);
-            }
-        }
-
-        return matches;
-    }
-
-    /**
-     * takes a key event and figures out what the modifiers are
-     *
-     * @param {Event} e
-     * @returns {Array}
-     */
-    function _eventModifiers(e) {
-        var modifiers = [];
-
-        if (e.shiftKey) {
-            modifiers.push('shift');
-        }
-
-        if (e.altKey) {
-            modifiers.push('alt');
-        }
-
-        if (e.ctrlKey) {
-            modifiers.push('ctrl');
-        }
-
-        if (e.metaKey) {
-            modifiers.push('meta');
-        }
-
-        return modifiers;
-    }
-
-    /**
-     * actually calls the callback function
-     *
-     * if your callback function returns false this will use the jquery
-     * convention - prevent default and stop propogation on the event
-     *
-     * @param {Function} callback
-     * @param {Event} e
-     * @returns void
-     */
-    function _fireCallback(callback, e) {
-        if (callback(e) === false) {
-            if (e.preventDefault) {
-                e.preventDefault();
-            }
-
-            if (e.stopPropagation) {
-                e.stopPropagation();
-            }
-
-            e.returnValue = false;
-            e.cancelBubble = true;
-        }
-    }
-
-    /**
-     * handles a character key event
-     *
-     * @param {string} character
-     * @param {Event} e
-     * @returns void
-     */
-    function _handleCharacter(character, e) {
-
-        // if this event should not happen stop here
-        if (_stop(e)) {
-            return;
-        }
-
-        var callbacks = _getMatches(character, _eventModifiers(e), e.type),
-            i,
-            do_not_reset = {},
-            processed_sequence_callback = false;
-
-        // loop through matching callbacks for this key event
-        for (i = 0; i < callbacks.length; ++i) {
-
-            // fire for all sequence callbacks
-            // this is because if for example you have multiple sequences
-            // bound such as "g i" and "g t" they both need to fire the
-            // callback for matching g cause otherwise you can only ever
-            // match the first one
-            if (callbacks[i].seq) {
-                processed_sequence_callback = true;
-
-                // keep a list of which sequences were matches for later
-                do_not_reset[callbacks[i].seq] = 1;
-                _fireCallback(callbacks[i].callback, e);
-                continue;
-            }
-
-            // if there were no sequence matches but we are still here
-            // that means this is a regular match so we should fire that
-            if (!processed_sequence_callback && !_inside_sequence) {
-                _fireCallback(callbacks[i].callback, e);
-            }
-        }
-
-        // if you are inside of a sequence and the key you are pressing
-        // is not a modifier key then we should reset all sequences
-        // that were not matched by this key event
-        if (e.type == _inside_sequence && !_isModifier(character)) {
-            _resetSequences(do_not_reset);
-        }
-    }
-
-    /**
-     * handles a keydown event
-     *
-     * @param {Event} e
-     * @returns void
-     */
-    function _handleKey(e) {
-
-        // normalize e.which for key events
-        // @see http://stackoverflow.com/questions/4285627/javascript-keycode-vs-charcode-utter-confusion
-        e.which = typeof e.which == "number" ? e.which : e.keyCode;
-
-        var character = _characterFromEvent(e);
-
-        // no character found then stop
-        if (!character) {
-            return;
-        }
-
-        if (e.type == 'keyup' && _ignore_next_keyup == character) {
-            _ignore_next_keyup = false;
-            return;
-        }
-
-        _handleCharacter(character, e);
-    }
-
-    /**
-     * determines if the keycode specified is a modifier key or not
-     *
-     * @param {string} key
-     * @returns {boolean}
-     */
-    function _isModifier(key) {
-        return key == 'shift' || key == 'ctrl' || key == 'alt' || key == 'meta';
-    }
-
-    /**
-     * called to set a 1 second timeout on the specified sequence
-     *
-     * this is so after each key press in the sequence you have 1 second
-     * to press the next key before you have to start over
-     *
-     * @returns void
-     */
-    function _resetSequenceTimer() {
-        clearTimeout(_reset_timer);
-        _reset_timer = setTimeout(_resetSequences, 1000);
-    }
-
-    /**
-     * reverses the map lookup so that we can look for specific keys
-     * to see what can and can't use keypress
-     *
-     * @return {Object}
-     */
-    function _getReverseMap() {
-        if (!_REVERSE_MAP) {
-            _REVERSE_MAP = {};
-            for (var key in _MAP) {
-
-                // pull out the numeric keypad from here cause keypress should
-                // be able to detect the keys from the character
-                if (key > 95 && key < 112) {
-                    continue;
-                }
-
-                if (_MAP.hasOwnProperty(key)) {
-                    _REVERSE_MAP[_MAP[key]] = key;
-                }
-            }
-        }
-        return _REVERSE_MAP;
-    }
-
-    /**
-     * picks the best action based on the key combination
-     *
-     * @param {string} key - character for key
-     * @param {Array} modifiers
-     * @param {string=} action passed in
-     */
-    function _pickBestAction(key, modifiers, action) {
-
-        // if no action was picked in we should try to pick the one
-        // that we think would work best for this key
-        if (!action) {
-            action = _getReverseMap()[key] ? 'keydown' : 'keypress';
-        }
-
-        // modifier keys don't work as expected with keypress,
-        // switch to keydown
-        if (action == 'keypress' && modifiers.length) {
-            action = 'keydown';
-        }
-
-        return action;
-    }
-
-    /**
-     * binds a key sequence to an event
-     *
-     * @param {string} combo - combo specified in bind call
-     * @param {Array} keys
-     * @param {Function} callback
-     * @param {string=} action
-     * @returns void
-     */
-    function _bindSequence(combo, keys, callback, action) {
-
-        // start off by adding a sequence level record for this combination
-        // and setting the level to 0
-        _sequence_levels[combo] = 0;
-
-        // if there is no action pick the best one for the first key
-        // in the sequence
-        if (!action) {
-            action = _pickBestAction(keys[0], []);
-        }
-
-        /**
-         * callback to increase the sequence level for this sequence and reset
-         * all other sequences that were active
-         *
-         * @param {Event} e
-         * @returns void
-         */
-        var _increaseSequence = function(e) {
-                _inside_sequence = action;
-                ++_sequence_levels[combo];
-                _resetSequenceTimer();
-            },
-
-            /**
-             * wraps the specified callback inside of another function in order
-             * to reset all sequence counters as soon as this sequence is done
-             *
-             * @param {Event} e
-             * @returns void
-             */
-            _callbackAndReset = function(e) {
-                _fireCallback(callback, e);
-
-                // we should ignore the next key up if the action is key down
-                // or keypress.  this is so if you finish a sequence and
-                // release the key the final key will not trigger a keyup
-                if (action !== 'keyup') {
-                    _ignore_next_keyup = _characterFromEvent(e);
-                }
-
-                // weird race condition if a sequence ends with the key
-                // another sequence begins with
-                setTimeout(_resetSequences, 10);
-            },
-            i;
-
-        // loop through keys one at a time and bind the appropriate callback
-        // function.  for any key leading up to the final one it should
-        // increase the sequence. after the final, it should reset all sequences
-        for (i = 0; i < keys.length; ++i) {
-            _bindSingle(keys[i], i < keys.length - 1 ? _increaseSequence : _callbackAndReset, action, combo, i);
-        }
-    }
-
-    /**
-     * binds a single keyboard combination
-     *
-     * @param {string} combination
-     * @param {Function} callback
-     * @param {string=} action
-     * @param {string=} sequence_name - name of sequence if part of sequence
-     * @param {number=} level - what part of the sequence the command is
-     * @returns void
-     */
-    function _bindSingle(combination, callback, action, sequence_name, level) {
-
-        // make sure multiple spaces in a row become a single space
-        combination = combination.replace(/\s+/g, ' ');
-
-        var sequence = combination.split(' '),
-            i,
-            key,
-            keys,
-            modifiers = [];
-
-        // if this pattern is a sequence of keys then run through this method
-        // to reprocess each pattern one key at a time
-        if (sequence.length > 1) {
-            return _bindSequence(combination, sequence, callback, action);
-        }
-
-        // take the keys from this pattern and figure out what the actual
-        // pattern is all about
-        keys = combination === '+' ? ['+'] : combination.split('+');
-
-        for (i = 0; i < keys.length; ++i) {
-            key = keys[i];
-
-            // normalize key names
-            if (_SPECIAL_ALIASES[key]) {
-                key = _SPECIAL_ALIASES[key];
-            }
-
-            // if this is not a keypress event then we should
-            // be smart about using shift keys
-            // this will only work for US keyboards however
-            if (action && action != 'keypress' && _SHIFT_MAP[key]) {
-                key = _SHIFT_MAP[key];
-                modifiers.push('shift');
-            }
-
-            // if this key is a modifier then add it to the list of modifiers
-            if (_isModifier(key)) {
-                modifiers.push(key);
-            }
-        }
-
-        // depending on what the key combination is
-        // we will try to pick the best event for it
-        action = _pickBestAction(key, modifiers, action);
-
-        // make sure to initialize array if this is the first time
-        // a callback is added for this key
-        if (!_callbacks[key]) {
-            _callbacks[key] = [];
-        }
-
-        // remove an existing match if there is one
-        _getMatches(key, modifiers, action, !sequence_name, combination);
-
-        // add this call back to the array
-        // if it is a sequence put it at the beginning
-        // if not put it at the end
-        //
-        // this is important because the way these are processed expects
-        // the sequence ones to come first
-        _callbacks[key][sequence_name ? 'unshift' : 'push']({
-            callback: callback,
-            modifiers: modifiers,
-            action: action,
-            seq: sequence_name,
-            level: level,
-            combo: combination
-        });
-    }
-
-    /**
-     * binds multiple combinations to the same callback
-     *
-     * @param {Array} combinations
-     * @param {Function} callback
-     * @param {string|undefined} action
-     * @returns void
-     */
-    function _bindMultiple(combinations, callback, action) {
-        for (var i = 0; i < combinations.length; ++i) {
-            _bindSingle(combinations[i], callback, action);
-        }
-    }
-
-    // start!
-    _addEvent(document, 'keypress', _handleKey);
-    _addEvent(document, 'keydown', _handleKey);
-    _addEvent(document, 'keyup', _handleKey);
-
-    var mousetrap = {
-
-        /**
-         * binds an event to mousetrap
-         *
-         * can be a single key, a combination of keys separated with +,
-         * a comma separated list of keys, an array of keys, or
-         * a sequence of keys separated by spaces
-         *
-         * be sure to list the modifier keys first to make sure that the
-         * correct key ends up getting bound (the last key in the pattern)
-         *
-         * @param {string|Array} keys
-         * @param {Function} callback
-         * @param {string=} action - 'keypress', 'keydown', or 'keyup'
-         * @returns void
-         */
-        bind: function(keys, callback, action) {
-            _bindMultiple(keys instanceof Array ? keys : [keys], callback, action);
-            _direct_map[keys + ':' + action] = callback;
-            return this;
-        },
-
-        /**
-         * unbinds an event to mousetrap
-         *
-         * the unbinding sets the callback function of the specified key combo
-         * to an empty function and deletes the corresponding key in the
-         * _direct_map dict.
-         *
-         * the keycombo+action has to be exactly the same as
-         * it was defined in the bind method
-         *
-         * TODO: actually remove this from the _callbacks dictionary instead
-         * of binding an empty function
-         *
-         * @param {string|Array} keys
-         * @param {string} action
-         * @returns void
-         */
-        unbind: function(keys, action) {
-            if (_direct_map[keys + ':' + action]) {
-                delete _direct_map[keys + ':' + action];
-                this.bind(keys, function() {}, action);
-            }
-            return this;
-        },
-
-        /**
-         * triggers an event that has already been bound
-         *
-         * @param {string} keys
-         * @param {string=} action
-         * @returns void
-         */
-        trigger: function(keys, action) {
-            _direct_map[keys + ':' + action]();
-            return this;
-        },
-
-        /**
-         * resets the library back to its initial state.  this is useful
-         * if you want to clear out the current keyboard shortcuts and bind
-         * new ones - for example if you switch to another page
-         *
-         * @returns void
-         */
-        reset: function() {
-            _callbacks = {};
-            _direct_map = {};
-            return this;
-        }
-    };
-
-  module.exports = mousetrap;
-
-
-
-/***/ },
 /* 49 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var util = __webpack_require__(1);
-  var RepulsionMixin = __webpack_require__(52);
-  var HierarchialRepulsionMixin = __webpack_require__(53);
-  var BarnesHutMixin = __webpack_require__(54);
-
-  /**
-   * Toggling barnes Hut calculation on and off.
-   *
-   * @private
-   */
-  exports._toggleBarnesHut = function () {
-    this.constants.physics.barnesHut.enabled = !this.constants.physics.barnesHut.enabled;
-    this._loadSelectedForceSolver();
-    this.moving = true;
-    this.start();
-  };
-
-
-  /**
-   * This loads the node force solver based on the barnes hut or repulsion algorithm
-   *
-   * @private
-   */
-  exports._loadSelectedForceSolver = function () {
-    // this overloads the this._calculateNodeForces
-    if (this.constants.physics.barnesHut.enabled == true) {
-      this._clearMixin(RepulsionMixin);
-      this._clearMixin(HierarchialRepulsionMixin);
-
-      this.constants.physics.centralGravity = this.constants.physics.barnesHut.centralGravity;
-      this.constants.physics.springLength = this.constants.physics.barnesHut.springLength;
-      this.constants.physics.springConstant = this.constants.physics.barnesHut.springConstant;
-      this.constants.physics.damping = this.constants.physics.barnesHut.damping;
-
-      this._loadMixin(BarnesHutMixin);
-    }
-    else if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
-      this._clearMixin(BarnesHutMixin);
-      this._clearMixin(RepulsionMixin);
-
-      this.constants.physics.centralGravity = this.constants.physics.hierarchicalRepulsion.centralGravity;
-      this.constants.physics.springLength = this.constants.physics.hierarchicalRepulsion.springLength;
-      this.constants.physics.springConstant = this.constants.physics.hierarchicalRepulsion.springConstant;
-      this.constants.physics.damping = this.constants.physics.hierarchicalRepulsion.damping;
-
-      this._loadMixin(HierarchialRepulsionMixin);
-    }
-    else {
-      this._clearMixin(BarnesHutMixin);
-      this._clearMixin(HierarchialRepulsionMixin);
-      this.barnesHutTree = undefined;
-
-      this.constants.physics.centralGravity = this.constants.physics.repulsion.centralGravity;
-      this.constants.physics.springLength = this.constants.physics.repulsion.springLength;
-      this.constants.physics.springConstant = this.constants.physics.repulsion.springConstant;
-      this.constants.physics.damping = this.constants.physics.repulsion.damping;
-
-      this._loadMixin(RepulsionMixin);
-    }
-  };
-
-  /**
-   * Before calculating the forces, we check if we need to cluster to keep up performance and we check
-   * if there is more than one node. If it is just one node, we dont calculate anything.
-   *
-   * @private
-   */
-  exports._initializeForceCalculation = function () {
-    // stop calculation if there is only one node
-    if (this.nodeIndices.length == 1) {
-      this.nodes[this.nodeIndices[0]]._setForce(0, 0);
-    }
-    else {
-      // if there are too many nodes on screen, we cluster without repositioning
-      if (this.nodeIndices.length > this.constants.clustering.clusterThreshold && this.constants.clustering.enabled == true) {
-        this.clusterToFit(this.constants.clustering.reduceToNodes, false);
-      }
-
-      // we now start the force calculation
-      this._calculateForces();
-    }
-  };
-
-
-  /**
-   * Calculate the external forces acting on the nodes
-   * Forces are caused by: edges, repulsing forces between nodes, gravity
-   * @private
-   */
-  exports._calculateForces = function () {
-    // Gravity is required to keep separated groups from floating off
-    // the forces are reset to zero in this loop by using _setForce instead
-    // of _addForce
-
-    this._calculateGravitationalForces();
-    this._calculateNodeForces();
-
-    if (this.constants.springConstant > 0) {
-      if (this.constants.smoothCurves.enabled == true && this.constants.smoothCurves.dynamic == true) {
-        this._calculateSpringForcesWithSupport();
-      }
-      else {
-        if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
-          this._calculateHierarchicalSpringForces();
-        }
-        else {
-          this._calculateSpringForces();
-        }
-      }
-    }
-  };
-
-
-  /**
-   * Smooth curves are created by adding invisible nodes in the center of the edges. These nodes are also
-   * handled in the calculateForces function. We then use a quadratic curve with the center node as control.
-   * This function joins the datanodes and invisible (called support) nodes into one object.
-   * We do this so we do not contaminate this.nodes with the support nodes.
-   *
-   * @private
-   */
-  exports._updateCalculationNodes = function () {
-    if (this.constants.smoothCurves.enabled == true && this.constants.smoothCurves.dynamic == true) {
-      this.calculationNodes = {};
-      this.calculationNodeIndices = [];
-
-      for (var nodeId in this.nodes) {
-        if (this.nodes.hasOwnProperty(nodeId)) {
-          this.calculationNodes[nodeId] = this.nodes[nodeId];
-        }
-      }
-      var supportNodes = this.sectors['support']['nodes'];
-      for (var supportNodeId in supportNodes) {
-        if (supportNodes.hasOwnProperty(supportNodeId)) {
-          if (this.edges.hasOwnProperty(supportNodes[supportNodeId].parentEdgeId)) {
-            this.calculationNodes[supportNodeId] = supportNodes[supportNodeId];
-          }
-          else {
-            supportNodes[supportNodeId]._setForce(0, 0);
-          }
-        }
-      }
-
-      for (var idx in this.calculationNodes) {
-        if (this.calculationNodes.hasOwnProperty(idx)) {
-          this.calculationNodeIndices.push(idx);
-        }
-      }
-    }
-    else {
-      this.calculationNodes = this.nodes;
-      this.calculationNodeIndices = this.nodeIndices;
-    }
-  };
-
-
-  /**
-   * this function applies the central gravity effect to keep groups from floating off
-   *
-   * @private
-   */
-  exports._calculateGravitationalForces = function () {
-    var dx, dy, distance, node, i;
-    var nodes = this.calculationNodes;
-    var gravity = this.constants.physics.centralGravity;
-    var gravityForce = 0;
-
-    for (i = 0; i < this.calculationNodeIndices.length; i++) {
-      node = nodes[this.calculationNodeIndices[i]];
-      node.damping = this.constants.physics.damping; // possibly add function to alter damping properties of clusters.
-      // gravity does not apply when we are in a pocket sector
-      if (this._sector() == "default" && gravity != 0) {
-        dx = -node.x;
-        dy = -node.y;
-        distance = Math.sqrt(dx * dx + dy * dy);
-
-        gravityForce = (distance == 0) ? 0 : (gravity / distance);
-        node.fx = dx * gravityForce;
-        node.fy = dy * gravityForce;
-      }
-      else {
-        node.fx = 0;
-        node.fy = 0;
-      }
-    }
-  };
-
-
-
-
-  /**
-   * this function calculates the effects of the springs in the case of unsmooth curves.
-   *
-   * @private
-   */
-  exports._calculateSpringForces = function () {
-    var edgeLength, edge, edgeId;
-    var dx, dy, fx, fy, springForce, distance;
-    var edges = this.edges;
-
-    // forces caused by the edges, modelled as springs
-    for (edgeId in edges) {
-      if (edges.hasOwnProperty(edgeId)) {
-        edge = edges[edgeId];
-        if (edge.connected) {
-          // only calculate forces if nodes are in the same sector
-          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
-            edgeLength = edge.customLength ? edge.length : this.constants.physics.springLength;
-            // this implies that the edges between big clusters are longer
-            edgeLength += (edge.to.clusterSize + edge.from.clusterSize - 2) * this.constants.clustering.edgeGrowth;
-
-            dx = (edge.from.x - edge.to.x);
-            dy = (edge.from.y - edge.to.y);
-            distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance == 0) {
-              distance = 0.01;
-            }
-
-            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
-            springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
-
-            fx = dx * springForce;
-            fy = dy * springForce;
-
-            edge.from.fx += fx;
-            edge.from.fy += fy;
-            edge.to.fx -= fx;
-            edge.to.fy -= fy;
-          }
-        }
-      }
-    }
-  };
-
-
-
-
-  /**
-   * This function calculates the springforces on the nodes, accounting for the support nodes.
-   *
-   * @private
-   */
-  exports._calculateSpringForcesWithSupport = function () {
-    var edgeLength, edge, edgeId, combinedClusterSize;
-    var edges = this.edges;
-
-    // forces caused by the edges, modelled as springs
-    for (edgeId in edges) {
-      if (edges.hasOwnProperty(edgeId)) {
-        edge = edges[edgeId];
-        if (edge.connected) {
-          // only calculate forces if nodes are in the same sector
-          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
-            if (edge.via != null) {
-              var node1 = edge.to;
-              var node2 = edge.via;
-              var node3 = edge.from;
-
-              edgeLength = edge.customLength ? edge.length : this.constants.physics.springLength;
-
-              combinedClusterSize = node1.clusterSize + node3.clusterSize - 2;
-
-              // this implies that the edges between big clusters are longer
-              edgeLength += combinedClusterSize * this.constants.clustering.edgeGrowth;
-              this._calculateSpringForce(node1, node2, 0.5 * edgeLength);
-              this._calculateSpringForce(node2, node3, 0.5 * edgeLength);
-            }
-          }
-        }
-      }
-    }
-  };
-
-
-  /**
-   * This is the code actually performing the calculation for the function above. It is split out to avoid repetition.
-   *
-   * @param node1
-   * @param node2
-   * @param edgeLength
-   * @private
-   */
-  exports._calculateSpringForce = function (node1, node2, edgeLength) {
-    var dx, dy, fx, fy, springForce, distance;
-
-    dx = (node1.x - node2.x);
-    dy = (node1.y - node2.y);
-    distance = Math.sqrt(dx * dx + dy * dy);
-
-    if (distance == 0) {
-      distance = 0.01;
-    }
-
-    // the 1/distance is so the fx and fy can be calculated without sine or cosine.
-    springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
-
-    fx = dx * springForce;
-    fy = dy * springForce;
-
-    node1.fx += fx;
-    node1.fy += fy;
-    node2.fx -= fx;
-    node2.fy -= fy;
-  };
-
-
-  /**
-   * Load the HTML for the physics config and bind it
-   * @private
-   */
-  exports._loadPhysicsConfiguration = function () {
-    if (this.physicsConfiguration === undefined) {
-      this.backupConstants = {};
-      util.deepExtend(this.backupConstants,this.constants);
-
-      var hierarchicalLayoutDirections = ["LR", "RL", "UD", "DU"];
-      this.physicsConfiguration = document.createElement('div');
-      this.physicsConfiguration.className = "PhysicsConfiguration";
-      this.physicsConfiguration.innerHTML = '' +
-        '<table><tr><td><b>Simulation Mode:</b></td></tr>' +
-        '<tr>' +
-        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod1" value="BH" checked="checked">Barnes Hut</td>' +
-        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod2" value="R">Repulsion</td>' +
-        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod3" value="H">Hierarchical</td>' +
-        '</tr>' +
-        '</table>' +
-        '<table id="graph_BH_table" style="display:none">' +
-        '<tr><td><b>Barnes Hut</b></td></tr>' +
-        '<tr>' +
-        '<td width="150px">gravitationalConstant</td><td>0</td><td><input type="range" min="0" max="20000" value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" step="25" style="width:300px" id="graph_BH_gc"></td><td  width="50px">-20000</td><td><input value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" id="graph_BH_gc_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.barnesHut.centralGravity + '" step="0.05"  style="width:300px" id="graph_BH_cg"></td><td>3</td><td><input value="' + this.constants.physics.barnesHut.centralGravity + '" id="graph_BH_cg_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.barnesHut.springLength + '" step="1" style="width:300px" id="graph_BH_sl"></td><td>500</td><td><input value="' + this.constants.physics.barnesHut.springLength + '" id="graph_BH_sl_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.barnesHut.springConstant + '" step="0.001" style="width:300px" id="graph_BH_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.barnesHut.springConstant + '" id="graph_BH_sc_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.barnesHut.damping + '" step="0.005" style="width:300px" id="graph_BH_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.barnesHut.damping + '" id="graph_BH_damp_value" style="width:60px"></td>' +
-        '</tr>' +
-        '</table>' +
-        '<table id="graph_R_table" style="display:none">' +
-        '<tr><td><b>Repulsion</b></td></tr>' +
-        '<tr>' +
-        '<td width="150px">nodeDistance</td><td>0</td><td><input type="range" min="0" max="300" value="' + this.constants.physics.repulsion.nodeDistance + '" step="1" style="width:300px" id="graph_R_nd"></td><td width="50px">300</td><td><input value="' + this.constants.physics.repulsion.nodeDistance + '" id="graph_R_nd_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.repulsion.centralGravity + '" step="0.05"  style="width:300px" id="graph_R_cg"></td><td>3</td><td><input value="' + this.constants.physics.repulsion.centralGravity + '" id="graph_R_cg_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.repulsion.springLength + '" step="1" style="width:300px" id="graph_R_sl"></td><td>500</td><td><input value="' + this.constants.physics.repulsion.springLength + '" id="graph_R_sl_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.repulsion.springConstant + '" step="0.001" style="width:300px" id="graph_R_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.repulsion.springConstant + '" id="graph_R_sc_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.repulsion.damping + '" step="0.005" style="width:300px" id="graph_R_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.repulsion.damping + '" id="graph_R_damp_value" style="width:60px"></td>' +
-        '</tr>' +
-        '</table>' +
-        '<table id="graph_H_table" style="display:none">' +
-        '<tr><td width="150"><b>Hierarchical</b></td></tr>' +
-        '<tr>' +
-        '<td width="150px">nodeDistance</td><td>0</td><td><input type="range" min="0" max="300" value="' + this.constants.physics.hierarchicalRepulsion.nodeDistance + '" step="1" style="width:300px" id="graph_H_nd"></td><td width="50px">300</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.nodeDistance + '" id="graph_H_nd_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.hierarchicalRepulsion.centralGravity + '" step="0.05"  style="width:300px" id="graph_H_cg"></td><td>3</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.centralGravity + '" id="graph_H_cg_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.hierarchicalRepulsion.springLength + '" step="1" style="width:300px" id="graph_H_sl"></td><td>500</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.springLength + '" id="graph_H_sl_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.hierarchicalRepulsion.springConstant + '" step="0.001" style="width:300px" id="graph_H_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.springConstant + '" id="graph_H_sc_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.hierarchicalRepulsion.damping + '" step="0.005" style="width:300px" id="graph_H_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.damping + '" id="graph_H_damp_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">direction</td><td>1</td><td><input type="range" min="0" max="3" value="' + hierarchicalLayoutDirections.indexOf(this.constants.hierarchicalLayout.direction) + '" step="1" style="width:300px" id="graph_H_direction"></td><td>4</td><td><input value="' + this.constants.hierarchicalLayout.direction + '" id="graph_H_direction_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">levelSeparation</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.levelSeparation + '" step="1" style="width:300px" id="graph_H_levsep"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.levelSeparation + '" id="graph_H_levsep_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">nodeSpacing</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.nodeSpacing + '" step="1" style="width:300px" id="graph_H_nspac"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.nodeSpacing + '" id="graph_H_nspac_value" style="width:60px"></td>' +
-        '</tr>' +
-        '</table>' +
-        '<table><tr><td><b>Options:</b></td></tr>' +
-        '<tr>' +
-        '<td width="180px"><input type="button" id="graph_toggleSmooth" value="Toggle smoothCurves" style="width:150px"></td>' +
-        '<td width="180px"><input type="button" id="graph_repositionNodes" value="Reinitialize" style="width:150px"></td>' +
-        '<td width="180px"><input type="button" id="graph_generateOptions" value="Generate Options" style="width:150px"></td>' +
-        '</tr>' +
-        '</table>'
-      this.containerElement.parentElement.insertBefore(this.physicsConfiguration, this.containerElement);
-      this.optionsDiv = document.createElement("div");
-      this.optionsDiv.style.fontSize = "14px";
-      this.optionsDiv.style.fontFamily = "verdana";
-      this.containerElement.parentElement.insertBefore(this.optionsDiv, this.containerElement);
-
-      var rangeElement;
-      rangeElement = document.getElementById('graph_BH_gc');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_gc', -1, "physics_barnesHut_gravitationalConstant");
-      rangeElement = document.getElementById('graph_BH_cg');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_cg', 1, "physics_centralGravity");
-      rangeElement = document.getElementById('graph_BH_sc');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_sc', 1, "physics_springConstant");
-      rangeElement = document.getElementById('graph_BH_sl');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_sl', 1, "physics_springLength");
-      rangeElement = document.getElementById('graph_BH_damp');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_damp', 1, "physics_damping");
-
-      rangeElement = document.getElementById('graph_R_nd');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_nd', 1, "physics_repulsion_nodeDistance");
-      rangeElement = document.getElementById('graph_R_cg');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_cg', 1, "physics_centralGravity");
-      rangeElement = document.getElementById('graph_R_sc');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_sc', 1, "physics_springConstant");
-      rangeElement = document.getElementById('graph_R_sl');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_sl', 1, "physics_springLength");
-      rangeElement = document.getElementById('graph_R_damp');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_damp', 1, "physics_damping");
-
-      rangeElement = document.getElementById('graph_H_nd');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_nd', 1, "physics_hierarchicalRepulsion_nodeDistance");
-      rangeElement = document.getElementById('graph_H_cg');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_cg', 1, "physics_centralGravity");
-      rangeElement = document.getElementById('graph_H_sc');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_sc', 1, "physics_springConstant");
-      rangeElement = document.getElementById('graph_H_sl');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_sl', 1, "physics_springLength");
-      rangeElement = document.getElementById('graph_H_damp');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_damp', 1, "physics_damping");
-      rangeElement = document.getElementById('graph_H_direction');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_direction', hierarchicalLayoutDirections, "hierarchicalLayout_direction");
-      rangeElement = document.getElementById('graph_H_levsep');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_levsep', 1, "hierarchicalLayout_levelSeparation");
-      rangeElement = document.getElementById('graph_H_nspac');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_nspac', 1, "hierarchicalLayout_nodeSpacing");
-
-      var radioButton1 = document.getElementById("graph_physicsMethod1");
-      var radioButton2 = document.getElementById("graph_physicsMethod2");
-      var radioButton3 = document.getElementById("graph_physicsMethod3");
-      radioButton2.checked = true;
-      if (this.constants.physics.barnesHut.enabled) {
-        radioButton1.checked = true;
-      }
-      if (this.constants.hierarchicalLayout.enabled) {
-        radioButton3.checked = true;
-      }
-
-      var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
-      var graph_repositionNodes = document.getElementById("graph_repositionNodes");
-      var graph_generateOptions = document.getElementById("graph_generateOptions");
-
-      graph_toggleSmooth.onclick = graphToggleSmoothCurves.bind(this);
-      graph_repositionNodes.onclick = graphRepositionNodes.bind(this);
-      graph_generateOptions.onclick = graphGenerateOptions.bind(this);
-      if (this.constants.smoothCurves == true && this.constants.dynamicSmoothCurves == false) {
-        graph_toggleSmooth.style.background = "#A4FF56";
-      }
-      else {
-        graph_toggleSmooth.style.background = "#FF8532";
-      }
-
-
-      switchConfigurations.apply(this);
-
-      radioButton1.onchange = switchConfigurations.bind(this);
-      radioButton2.onchange = switchConfigurations.bind(this);
-      radioButton3.onchange = switchConfigurations.bind(this);
-    }
-  };
-
-  /**
-   * This overwrites the this.constants.
-   *
-   * @param constantsVariableName
-   * @param value
-   * @private
-   */
-  exports._overWriteGraphConstants = function (constantsVariableName, value) {
-    var nameArray = constantsVariableName.split("_");
-    if (nameArray.length == 1) {
-      this.constants[nameArray[0]] = value;
-    }
-    else if (nameArray.length == 2) {
-      this.constants[nameArray[0]][nameArray[1]] = value;
-    }
-    else if (nameArray.length == 3) {
-      this.constants[nameArray[0]][nameArray[1]][nameArray[2]] = value;
-    }
-  };
-
-
-  /**
-   * this function is bound to the toggle smooth curves button. That is also why it is not in the prototype.
-   */
-  function graphToggleSmoothCurves () {
-    this.constants.smoothCurves.enabled = !this.constants.smoothCurves.enabled;
-    var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
-    if (this.constants.smoothCurves.enabled == true) {graph_toggleSmooth.style.background = "#A4FF56";}
-    else                                     {graph_toggleSmooth.style.background = "#FF8532";}
-
-    this._configureSmoothCurves(false);
-  }
-
-  /**
-   * this function is used to scramble the nodes
-   *
-   */
-  function graphRepositionNodes () {
-    for (var nodeId in this.calculationNodes) {
-      if (this.calculationNodes.hasOwnProperty(nodeId)) {
-        this.calculationNodes[nodeId].vx = 0;  this.calculationNodes[nodeId].vy = 0;
-        this.calculationNodes[nodeId].fx = 0;  this.calculationNodes[nodeId].fy = 0;
-      }
-    }
-    if (this.constants.hierarchicalLayout.enabled == true) {
-      this._setupHierarchicalLayout();
-    }
-    else {
-      this.repositionNodes();
-    }
-    this.moving = true;
-    this.start();
-  }
-
-  /**
-   *  this is used to generate an options file from the playing with physics system.
-   */
-  function graphGenerateOptions () {
-    var options = "No options are required, default values used.";
-    var optionsSpecific = [];
-    var radioButton1 = document.getElementById("graph_physicsMethod1");
-    var radioButton2 = document.getElementById("graph_physicsMethod2");
-    if (radioButton1.checked == true) {
-      if (this.constants.physics.barnesHut.gravitationalConstant != this.backupConstants.physics.barnesHut.gravitationalConstant) {optionsSpecific.push("gravitationalConstant: " + this.constants.physics.barnesHut.gravitationalConstant);}
-      if (this.constants.physics.centralGravity != this.backupConstants.physics.barnesHut.centralGravity)                         {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
-      if (this.constants.physics.springLength != this.backupConstants.physics.barnesHut.springLength)                             {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
-      if (this.constants.physics.springConstant != this.backupConstants.physics.barnesHut.springConstant)                         {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
-      if (this.constants.physics.damping != this.backupConstants.physics.barnesHut.damping)                                       {optionsSpecific.push("damping: " + this.constants.physics.damping);}
-      if (optionsSpecific.length != 0) {
-        options = "var options = {";
-        options += "physics: {barnesHut: {";
-        for (var i = 0; i < optionsSpecific.length; i++) {
-          options += optionsSpecific[i];
-          if (i < optionsSpecific.length - 1) {
-            options += ", "
-          }
-        }
-        options += '}}'
-      }
-      if (this.constants.smoothCurves.enabled != this.backupConstants.smoothCurves.enabled) {
-        if (optionsSpecific.length == 0) {options = "var options = {";}
-        else {options += ", "}
-        options += "smoothCurves: " + this.constants.smoothCurves.enabled;
-      }
-      if (options != "No options are required, default values used.") {
-        options += '};'
-      }
-    }
-    else if (radioButton2.checked == true) {
-      options = "var options = {";
-      options += "physics: {barnesHut: {enabled: false}";
-      if (this.constants.physics.repulsion.nodeDistance != this.backupConstants.physics.repulsion.nodeDistance)  {optionsSpecific.push("nodeDistance: " + this.constants.physics.repulsion.nodeDistance);}
-      if (this.constants.physics.centralGravity != this.backupConstants.physics.repulsion.centralGravity)        {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
-      if (this.constants.physics.springLength != this.backupConstants.physics.repulsion.springLength)            {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
-      if (this.constants.physics.springConstant != this.backupConstants.physics.repulsion.springConstant)        {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
-      if (this.constants.physics.damping != this.backupConstants.physics.repulsion.damping)                      {optionsSpecific.push("damping: " + this.constants.physics.damping);}
-      if (optionsSpecific.length != 0) {
-        options += ", repulsion: {";
-        for (var i = 0; i < optionsSpecific.length; i++) {
-          options += optionsSpecific[i];
-          if (i < optionsSpecific.length - 1) {
-            options += ", "
-          }
-        }
-        options += '}}'
-      }
-      if (optionsSpecific.length == 0) {options += "}"}
-      if (this.constants.smoothCurves != this.backupConstants.smoothCurves) {
-        options += ", smoothCurves: " + this.constants.smoothCurves;
-      }
-      options += '};'
-    }
-    else {
-      options = "var options = {";
-      if (this.constants.physics.hierarchicalRepulsion.nodeDistance != this.backupConstants.physics.hierarchicalRepulsion.nodeDistance)  {optionsSpecific.push("nodeDistance: " + this.constants.physics.hierarchicalRepulsion.nodeDistance);}
-      if (this.constants.physics.centralGravity != this.backupConstants.physics.hierarchicalRepulsion.centralGravity)        {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
-      if (this.constants.physics.springLength != this.backupConstants.physics.hierarchicalRepulsion.springLength)            {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
-      if (this.constants.physics.springConstant != this.backupConstants.physics.hierarchicalRepulsion.springConstant)        {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
-      if (this.constants.physics.damping != this.backupConstants.physics.hierarchicalRepulsion.damping)                      {optionsSpecific.push("damping: " + this.constants.physics.damping);}
-      if (optionsSpecific.length != 0) {
-        options += "physics: {hierarchicalRepulsion: {";
-        for (var i = 0; i < optionsSpecific.length; i++) {
-          options += optionsSpecific[i];
-          if (i < optionsSpecific.length - 1) {
-            options += ", ";
-          }
-        }
-        options += '}},';
-      }
-      options += 'hierarchicalLayout: {';
-      optionsSpecific = [];
-      if (this.constants.hierarchicalLayout.direction != this.backupConstants.hierarchicalLayout.direction)                       {optionsSpecific.push("direction: " + this.constants.hierarchicalLayout.direction);}
-      if (Math.abs(this.constants.hierarchicalLayout.levelSeparation) != this.backupConstants.hierarchicalLayout.levelSeparation) {optionsSpecific.push("levelSeparation: " + this.constants.hierarchicalLayout.levelSeparation);}
-      if (this.constants.hierarchicalLayout.nodeSpacing != this.backupConstants.hierarchicalLayout.nodeSpacing)                   {optionsSpecific.push("nodeSpacing: " + this.constants.hierarchicalLayout.nodeSpacing);}
-      if (optionsSpecific.length != 0) {
-        for (var i = 0; i < optionsSpecific.length; i++) {
-          options += optionsSpecific[i];
-          if (i < optionsSpecific.length - 1) {
-            options += ", "
-          }
-        }
-        options += '}'
-      }
-      else {
-        options += "enabled:true}";
-      }
-      options += '};'
-    }
-
-
-    this.optionsDiv.innerHTML = options;
-  }
-
-  /**
-   * this is used to switch between barnesHut, repulsion and hierarchical.
-   *
-   */
-  function switchConfigurations () {
-    var ids = ["graph_BH_table", "graph_R_table", "graph_H_table"];
-    var radioButton = document.querySelector('input[name="graph_physicsMethod"]:checked').value;
-    var tableId = "graph_" + radioButton + "_table";
-    var table = document.getElementById(tableId);
-    table.style.display = "block";
-    for (var i = 0; i < ids.length; i++) {
-      if (ids[i] != tableId) {
-        table = document.getElementById(ids[i]);
-        table.style.display = "none";
-      }
-    }
-    this._restoreNodes();
-    if (radioButton == "R") {
-      this.constants.hierarchicalLayout.enabled = false;
-      this.constants.physics.hierarchicalRepulsion.enabled = false;
-      this.constants.physics.barnesHut.enabled = false;
-    }
-    else if (radioButton == "H") {
-      if (this.constants.hierarchicalLayout.enabled == false) {
-        this.constants.hierarchicalLayout.enabled = true;
-        this.constants.physics.hierarchicalRepulsion.enabled = true;
-        this.constants.physics.barnesHut.enabled = false;
-        this.constants.smoothCurves.enabled = false;
-        this._setupHierarchicalLayout();
-      }
-    }
-    else {
-      this.constants.hierarchicalLayout.enabled = false;
-      this.constants.physics.hierarchicalRepulsion.enabled = false;
-      this.constants.physics.barnesHut.enabled = true;
-    }
-    this._loadSelectedForceSolver();
-    var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
-    if (this.constants.smoothCurves.enabled == true) {graph_toggleSmooth.style.background = "#A4FF56";}
-    else                                     {graph_toggleSmooth.style.background = "#FF8532";}
-    this.moving = true;
-    this.start();
-  }
-
-
-  /**
-   * this generates the ranges depending on the iniital values.
-   *
-   * @param id
-   * @param map
-   * @param constantsVariableName
-   */
-  function showValueOfRange (id,map,constantsVariableName) {
-    var valueId = id + "_value";
-    var rangeValue = document.getElementById(id).value;
-
-    if (map instanceof Array) {
-      document.getElementById(valueId).value = map[parseInt(rangeValue)];
-      this._overWriteGraphConstants(constantsVariableName,map[parseInt(rangeValue)]);
-    }
-    else {
-      document.getElementById(valueId).value = parseInt(map) * parseFloat(rangeValue);
-      this._overWriteGraphConstants(constantsVariableName, parseInt(map) * parseFloat(rangeValue));
-    }
-
-    if (constantsVariableName == "hierarchicalLayout_direction" ||
-      constantsVariableName == "hierarchicalLayout_levelSeparation" ||
-      constantsVariableName == "hierarchicalLayout_nodeSpacing") {
-      this._setupHierarchicalLayout();
-    }
-    this.moving = true;
-    this.start();
-  }
-
-
-/***/ },
-/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   /*! Hammer.JS - v1.0.5 - 2013-04-07
@@ -27355,6 +26664,715 @@ return /******/ (function(modules) { // webpackBootstrap
       }
   }
   })(this);
+
+/***/ },
+/* 50 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var util = __webpack_require__(1);
+  var RepulsionMixin = __webpack_require__(52);
+  var HierarchialRepulsionMixin = __webpack_require__(53);
+  var BarnesHutMixin = __webpack_require__(54);
+
+  /**
+   * Toggling barnes Hut calculation on and off.
+   *
+   * @private
+   */
+  exports._toggleBarnesHut = function () {
+    this.constants.physics.barnesHut.enabled = !this.constants.physics.barnesHut.enabled;
+    this._loadSelectedForceSolver();
+    this.moving = true;
+    this.start();
+  };
+
+
+  /**
+   * This loads the node force solver based on the barnes hut or repulsion algorithm
+   *
+   * @private
+   */
+  exports._loadSelectedForceSolver = function () {
+    // this overloads the this._calculateNodeForces
+    if (this.constants.physics.barnesHut.enabled == true) {
+      this._clearMixin(RepulsionMixin);
+      this._clearMixin(HierarchialRepulsionMixin);
+
+      this.constants.physics.centralGravity = this.constants.physics.barnesHut.centralGravity;
+      this.constants.physics.springLength = this.constants.physics.barnesHut.springLength;
+      this.constants.physics.springConstant = this.constants.physics.barnesHut.springConstant;
+      this.constants.physics.damping = this.constants.physics.barnesHut.damping;
+
+      this._loadMixin(BarnesHutMixin);
+    }
+    else if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
+      this._clearMixin(BarnesHutMixin);
+      this._clearMixin(RepulsionMixin);
+
+      this.constants.physics.centralGravity = this.constants.physics.hierarchicalRepulsion.centralGravity;
+      this.constants.physics.springLength = this.constants.physics.hierarchicalRepulsion.springLength;
+      this.constants.physics.springConstant = this.constants.physics.hierarchicalRepulsion.springConstant;
+      this.constants.physics.damping = this.constants.physics.hierarchicalRepulsion.damping;
+
+      this._loadMixin(HierarchialRepulsionMixin);
+    }
+    else {
+      this._clearMixin(BarnesHutMixin);
+      this._clearMixin(HierarchialRepulsionMixin);
+      this.barnesHutTree = undefined;
+
+      this.constants.physics.centralGravity = this.constants.physics.repulsion.centralGravity;
+      this.constants.physics.springLength = this.constants.physics.repulsion.springLength;
+      this.constants.physics.springConstant = this.constants.physics.repulsion.springConstant;
+      this.constants.physics.damping = this.constants.physics.repulsion.damping;
+
+      this._loadMixin(RepulsionMixin);
+    }
+  };
+
+  /**
+   * Before calculating the forces, we check if we need to cluster to keep up performance and we check
+   * if there is more than one node. If it is just one node, we dont calculate anything.
+   *
+   * @private
+   */
+  exports._initializeForceCalculation = function () {
+    // stop calculation if there is only one node
+    if (this.nodeIndices.length == 1) {
+      this.nodes[this.nodeIndices[0]]._setForce(0, 0);
+    }
+    else {
+      // if there are too many nodes on screen, we cluster without repositioning
+      if (this.nodeIndices.length > this.constants.clustering.clusterThreshold && this.constants.clustering.enabled == true) {
+        this.clusterToFit(this.constants.clustering.reduceToNodes, false);
+      }
+
+      // we now start the force calculation
+      this._calculateForces();
+    }
+  };
+
+
+  /**
+   * Calculate the external forces acting on the nodes
+   * Forces are caused by: edges, repulsing forces between nodes, gravity
+   * @private
+   */
+  exports._calculateForces = function () {
+    // Gravity is required to keep separated groups from floating off
+    // the forces are reset to zero in this loop by using _setForce instead
+    // of _addForce
+
+    this._calculateGravitationalForces();
+    this._calculateNodeForces();
+
+    if (this.constants.springConstant > 0) {
+      if (this.constants.smoothCurves.enabled == true && this.constants.smoothCurves.dynamic == true) {
+        this._calculateSpringForcesWithSupport();
+      }
+      else {
+        if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
+          this._calculateHierarchicalSpringForces();
+        }
+        else {
+          this._calculateSpringForces();
+        }
+      }
+    }
+  };
+
+
+  /**
+   * Smooth curves are created by adding invisible nodes in the center of the edges. These nodes are also
+   * handled in the calculateForces function. We then use a quadratic curve with the center node as control.
+   * This function joins the datanodes and invisible (called support) nodes into one object.
+   * We do this so we do not contaminate this.nodes with the support nodes.
+   *
+   * @private
+   */
+  exports._updateCalculationNodes = function () {
+    if (this.constants.smoothCurves.enabled == true && this.constants.smoothCurves.dynamic == true) {
+      this.calculationNodes = {};
+      this.calculationNodeIndices = [];
+
+      for (var nodeId in this.nodes) {
+        if (this.nodes.hasOwnProperty(nodeId)) {
+          this.calculationNodes[nodeId] = this.nodes[nodeId];
+        }
+      }
+      var supportNodes = this.sectors['support']['nodes'];
+      for (var supportNodeId in supportNodes) {
+        if (supportNodes.hasOwnProperty(supportNodeId)) {
+          if (this.edges.hasOwnProperty(supportNodes[supportNodeId].parentEdgeId)) {
+            this.calculationNodes[supportNodeId] = supportNodes[supportNodeId];
+          }
+          else {
+            supportNodes[supportNodeId]._setForce(0, 0);
+          }
+        }
+      }
+
+      for (var idx in this.calculationNodes) {
+        if (this.calculationNodes.hasOwnProperty(idx)) {
+          this.calculationNodeIndices.push(idx);
+        }
+      }
+    }
+    else {
+      this.calculationNodes = this.nodes;
+      this.calculationNodeIndices = this.nodeIndices;
+    }
+  };
+
+
+  /**
+   * this function applies the central gravity effect to keep groups from floating off
+   *
+   * @private
+   */
+  exports._calculateGravitationalForces = function () {
+    var dx, dy, distance, node, i;
+    var nodes = this.calculationNodes;
+    var gravity = this.constants.physics.centralGravity;
+    var gravityForce = 0;
+
+    for (i = 0; i < this.calculationNodeIndices.length; i++) {
+      node = nodes[this.calculationNodeIndices[i]];
+      node.damping = this.constants.physics.damping; // possibly add function to alter damping properties of clusters.
+      // gravity does not apply when we are in a pocket sector
+      if (this._sector() == "default" && gravity != 0) {
+        dx = -node.x;
+        dy = -node.y;
+        distance = Math.sqrt(dx * dx + dy * dy);
+
+        gravityForce = (distance == 0) ? 0 : (gravity / distance);
+        node.fx = dx * gravityForce;
+        node.fy = dy * gravityForce;
+      }
+      else {
+        node.fx = 0;
+        node.fy = 0;
+      }
+    }
+  };
+
+
+
+
+  /**
+   * this function calculates the effects of the springs in the case of unsmooth curves.
+   *
+   * @private
+   */
+  exports._calculateSpringForces = function () {
+    var edgeLength, edge, edgeId;
+    var dx, dy, fx, fy, springForce, distance;
+    var edges = this.edges;
+
+    // forces caused by the edges, modelled as springs
+    for (edgeId in edges) {
+      if (edges.hasOwnProperty(edgeId)) {
+        edge = edges[edgeId];
+        if (edge.connected) {
+          // only calculate forces if nodes are in the same sector
+          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
+            edgeLength = edge.customLength ? edge.length : this.constants.physics.springLength;
+            // this implies that the edges between big clusters are longer
+            edgeLength += (edge.to.clusterSize + edge.from.clusterSize - 2) * this.constants.clustering.edgeGrowth;
+
+            dx = (edge.from.x - edge.to.x);
+            dy = (edge.from.y - edge.to.y);
+            distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance == 0) {
+              distance = 0.01;
+            }
+
+            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+            springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
+
+            fx = dx * springForce;
+            fy = dy * springForce;
+
+            edge.from.fx += fx;
+            edge.from.fy += fy;
+            edge.to.fx -= fx;
+            edge.to.fy -= fy;
+          }
+        }
+      }
+    }
+  };
+
+
+
+
+  /**
+   * This function calculates the springforces on the nodes, accounting for the support nodes.
+   *
+   * @private
+   */
+  exports._calculateSpringForcesWithSupport = function () {
+    var edgeLength, edge, edgeId, combinedClusterSize;
+    var edges = this.edges;
+
+    // forces caused by the edges, modelled as springs
+    for (edgeId in edges) {
+      if (edges.hasOwnProperty(edgeId)) {
+        edge = edges[edgeId];
+        if (edge.connected) {
+          // only calculate forces if nodes are in the same sector
+          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
+            if (edge.via != null) {
+              var node1 = edge.to;
+              var node2 = edge.via;
+              var node3 = edge.from;
+
+              edgeLength = edge.customLength ? edge.length : this.constants.physics.springLength;
+
+              combinedClusterSize = node1.clusterSize + node3.clusterSize - 2;
+
+              // this implies that the edges between big clusters are longer
+              edgeLength += combinedClusterSize * this.constants.clustering.edgeGrowth;
+              this._calculateSpringForce(node1, node2, 0.5 * edgeLength);
+              this._calculateSpringForce(node2, node3, 0.5 * edgeLength);
+            }
+          }
+        }
+      }
+    }
+  };
+
+
+  /**
+   * This is the code actually performing the calculation for the function above. It is split out to avoid repetition.
+   *
+   * @param node1
+   * @param node2
+   * @param edgeLength
+   * @private
+   */
+  exports._calculateSpringForce = function (node1, node2, edgeLength) {
+    var dx, dy, fx, fy, springForce, distance;
+
+    dx = (node1.x - node2.x);
+    dy = (node1.y - node2.y);
+    distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance == 0) {
+      distance = 0.01;
+    }
+
+    // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+    springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
+
+    fx = dx * springForce;
+    fy = dy * springForce;
+
+    node1.fx += fx;
+    node1.fy += fy;
+    node2.fx -= fx;
+    node2.fy -= fy;
+  };
+
+
+  /**
+   * Load the HTML for the physics config and bind it
+   * @private
+   */
+  exports._loadPhysicsConfiguration = function () {
+    if (this.physicsConfiguration === undefined) {
+      this.backupConstants = {};
+      util.deepExtend(this.backupConstants,this.constants);
+
+      var hierarchicalLayoutDirections = ["LR", "RL", "UD", "DU"];
+      this.physicsConfiguration = document.createElement('div');
+      this.physicsConfiguration.className = "PhysicsConfiguration";
+      this.physicsConfiguration.innerHTML = '' +
+        '<table><tr><td><b>Simulation Mode:</b></td></tr>' +
+        '<tr>' +
+        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod1" value="BH" checked="checked">Barnes Hut</td>' +
+        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod2" value="R">Repulsion</td>' +
+        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod3" value="H">Hierarchical</td>' +
+        '</tr>' +
+        '</table>' +
+        '<table id="graph_BH_table" style="display:none">' +
+        '<tr><td><b>Barnes Hut</b></td></tr>' +
+        '<tr>' +
+        '<td width="150px">gravitationalConstant</td><td>0</td><td><input type="range" min="0" max="20000" value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" step="25" style="width:300px" id="graph_BH_gc"></td><td  width="50px">-20000</td><td><input value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" id="graph_BH_gc_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.barnesHut.centralGravity + '" step="0.05"  style="width:300px" id="graph_BH_cg"></td><td>3</td><td><input value="' + this.constants.physics.barnesHut.centralGravity + '" id="graph_BH_cg_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.barnesHut.springLength + '" step="1" style="width:300px" id="graph_BH_sl"></td><td>500</td><td><input value="' + this.constants.physics.barnesHut.springLength + '" id="graph_BH_sl_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.barnesHut.springConstant + '" step="0.001" style="width:300px" id="graph_BH_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.barnesHut.springConstant + '" id="graph_BH_sc_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.barnesHut.damping + '" step="0.005" style="width:300px" id="graph_BH_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.barnesHut.damping + '" id="graph_BH_damp_value" style="width:60px"></td>' +
+        '</tr>' +
+        '</table>' +
+        '<table id="graph_R_table" style="display:none">' +
+        '<tr><td><b>Repulsion</b></td></tr>' +
+        '<tr>' +
+        '<td width="150px">nodeDistance</td><td>0</td><td><input type="range" min="0" max="300" value="' + this.constants.physics.repulsion.nodeDistance + '" step="1" style="width:300px" id="graph_R_nd"></td><td width="50px">300</td><td><input value="' + this.constants.physics.repulsion.nodeDistance + '" id="graph_R_nd_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.repulsion.centralGravity + '" step="0.05"  style="width:300px" id="graph_R_cg"></td><td>3</td><td><input value="' + this.constants.physics.repulsion.centralGravity + '" id="graph_R_cg_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.repulsion.springLength + '" step="1" style="width:300px" id="graph_R_sl"></td><td>500</td><td><input value="' + this.constants.physics.repulsion.springLength + '" id="graph_R_sl_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.repulsion.springConstant + '" step="0.001" style="width:300px" id="graph_R_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.repulsion.springConstant + '" id="graph_R_sc_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.repulsion.damping + '" step="0.005" style="width:300px" id="graph_R_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.repulsion.damping + '" id="graph_R_damp_value" style="width:60px"></td>' +
+        '</tr>' +
+        '</table>' +
+        '<table id="graph_H_table" style="display:none">' +
+        '<tr><td width="150"><b>Hierarchical</b></td></tr>' +
+        '<tr>' +
+        '<td width="150px">nodeDistance</td><td>0</td><td><input type="range" min="0" max="300" value="' + this.constants.physics.hierarchicalRepulsion.nodeDistance + '" step="1" style="width:300px" id="graph_H_nd"></td><td width="50px">300</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.nodeDistance + '" id="graph_H_nd_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.hierarchicalRepulsion.centralGravity + '" step="0.05"  style="width:300px" id="graph_H_cg"></td><td>3</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.centralGravity + '" id="graph_H_cg_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.hierarchicalRepulsion.springLength + '" step="1" style="width:300px" id="graph_H_sl"></td><td>500</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.springLength + '" id="graph_H_sl_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.hierarchicalRepulsion.springConstant + '" step="0.001" style="width:300px" id="graph_H_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.springConstant + '" id="graph_H_sc_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.hierarchicalRepulsion.damping + '" step="0.005" style="width:300px" id="graph_H_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.damping + '" id="graph_H_damp_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">direction</td><td>1</td><td><input type="range" min="0" max="3" value="' + hierarchicalLayoutDirections.indexOf(this.constants.hierarchicalLayout.direction) + '" step="1" style="width:300px" id="graph_H_direction"></td><td>4</td><td><input value="' + this.constants.hierarchicalLayout.direction + '" id="graph_H_direction_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">levelSeparation</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.levelSeparation + '" step="1" style="width:300px" id="graph_H_levsep"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.levelSeparation + '" id="graph_H_levsep_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">nodeSpacing</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.nodeSpacing + '" step="1" style="width:300px" id="graph_H_nspac"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.nodeSpacing + '" id="graph_H_nspac_value" style="width:60px"></td>' +
+        '</tr>' +
+        '</table>' +
+        '<table><tr><td><b>Options:</b></td></tr>' +
+        '<tr>' +
+        '<td width="180px"><input type="button" id="graph_toggleSmooth" value="Toggle smoothCurves" style="width:150px"></td>' +
+        '<td width="180px"><input type="button" id="graph_repositionNodes" value="Reinitialize" style="width:150px"></td>' +
+        '<td width="180px"><input type="button" id="graph_generateOptions" value="Generate Options" style="width:150px"></td>' +
+        '</tr>' +
+        '</table>'
+      this.containerElement.parentElement.insertBefore(this.physicsConfiguration, this.containerElement);
+      this.optionsDiv = document.createElement("div");
+      this.optionsDiv.style.fontSize = "14px";
+      this.optionsDiv.style.fontFamily = "verdana";
+      this.containerElement.parentElement.insertBefore(this.optionsDiv, this.containerElement);
+
+      var rangeElement;
+      rangeElement = document.getElementById('graph_BH_gc');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_gc', -1, "physics_barnesHut_gravitationalConstant");
+      rangeElement = document.getElementById('graph_BH_cg');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_cg', 1, "physics_centralGravity");
+      rangeElement = document.getElementById('graph_BH_sc');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_sc', 1, "physics_springConstant");
+      rangeElement = document.getElementById('graph_BH_sl');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_sl', 1, "physics_springLength");
+      rangeElement = document.getElementById('graph_BH_damp');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_damp', 1, "physics_damping");
+
+      rangeElement = document.getElementById('graph_R_nd');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_nd', 1, "physics_repulsion_nodeDistance");
+      rangeElement = document.getElementById('graph_R_cg');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_cg', 1, "physics_centralGravity");
+      rangeElement = document.getElementById('graph_R_sc');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_sc', 1, "physics_springConstant");
+      rangeElement = document.getElementById('graph_R_sl');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_sl', 1, "physics_springLength");
+      rangeElement = document.getElementById('graph_R_damp');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_damp', 1, "physics_damping");
+
+      rangeElement = document.getElementById('graph_H_nd');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_nd', 1, "physics_hierarchicalRepulsion_nodeDistance");
+      rangeElement = document.getElementById('graph_H_cg');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_cg', 1, "physics_centralGravity");
+      rangeElement = document.getElementById('graph_H_sc');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_sc', 1, "physics_springConstant");
+      rangeElement = document.getElementById('graph_H_sl');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_sl', 1, "physics_springLength");
+      rangeElement = document.getElementById('graph_H_damp');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_damp', 1, "physics_damping");
+      rangeElement = document.getElementById('graph_H_direction');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_direction', hierarchicalLayoutDirections, "hierarchicalLayout_direction");
+      rangeElement = document.getElementById('graph_H_levsep');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_levsep', 1, "hierarchicalLayout_levelSeparation");
+      rangeElement = document.getElementById('graph_H_nspac');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_nspac', 1, "hierarchicalLayout_nodeSpacing");
+
+      var radioButton1 = document.getElementById("graph_physicsMethod1");
+      var radioButton2 = document.getElementById("graph_physicsMethod2");
+      var radioButton3 = document.getElementById("graph_physicsMethod3");
+      radioButton2.checked = true;
+      if (this.constants.physics.barnesHut.enabled) {
+        radioButton1.checked = true;
+      }
+      if (this.constants.hierarchicalLayout.enabled) {
+        radioButton3.checked = true;
+      }
+
+      var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
+      var graph_repositionNodes = document.getElementById("graph_repositionNodes");
+      var graph_generateOptions = document.getElementById("graph_generateOptions");
+
+      graph_toggleSmooth.onclick = graphToggleSmoothCurves.bind(this);
+      graph_repositionNodes.onclick = graphRepositionNodes.bind(this);
+      graph_generateOptions.onclick = graphGenerateOptions.bind(this);
+      if (this.constants.smoothCurves == true && this.constants.dynamicSmoothCurves == false) {
+        graph_toggleSmooth.style.background = "#A4FF56";
+      }
+      else {
+        graph_toggleSmooth.style.background = "#FF8532";
+      }
+
+
+      switchConfigurations.apply(this);
+
+      radioButton1.onchange = switchConfigurations.bind(this);
+      radioButton2.onchange = switchConfigurations.bind(this);
+      radioButton3.onchange = switchConfigurations.bind(this);
+    }
+  };
+
+  /**
+   * This overwrites the this.constants.
+   *
+   * @param constantsVariableName
+   * @param value
+   * @private
+   */
+  exports._overWriteGraphConstants = function (constantsVariableName, value) {
+    var nameArray = constantsVariableName.split("_");
+    if (nameArray.length == 1) {
+      this.constants[nameArray[0]] = value;
+    }
+    else if (nameArray.length == 2) {
+      this.constants[nameArray[0]][nameArray[1]] = value;
+    }
+    else if (nameArray.length == 3) {
+      this.constants[nameArray[0]][nameArray[1]][nameArray[2]] = value;
+    }
+  };
+
+
+  /**
+   * this function is bound to the toggle smooth curves button. That is also why it is not in the prototype.
+   */
+  function graphToggleSmoothCurves () {
+    this.constants.smoothCurves.enabled = !this.constants.smoothCurves.enabled;
+    var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
+    if (this.constants.smoothCurves.enabled == true) {graph_toggleSmooth.style.background = "#A4FF56";}
+    else                                     {graph_toggleSmooth.style.background = "#FF8532";}
+
+    this._configureSmoothCurves(false);
+  }
+
+  /**
+   * this function is used to scramble the nodes
+   *
+   */
+  function graphRepositionNodes () {
+    for (var nodeId in this.calculationNodes) {
+      if (this.calculationNodes.hasOwnProperty(nodeId)) {
+        this.calculationNodes[nodeId].vx = 0;  this.calculationNodes[nodeId].vy = 0;
+        this.calculationNodes[nodeId].fx = 0;  this.calculationNodes[nodeId].fy = 0;
+      }
+    }
+    if (this.constants.hierarchicalLayout.enabled == true) {
+      this._setupHierarchicalLayout();
+    }
+    else {
+      this.repositionNodes();
+    }
+    this.moving = true;
+    this.start();
+  }
+
+  /**
+   *  this is used to generate an options file from the playing with physics system.
+   */
+  function graphGenerateOptions () {
+    var options = "No options are required, default values used.";
+    var optionsSpecific = [];
+    var radioButton1 = document.getElementById("graph_physicsMethod1");
+    var radioButton2 = document.getElementById("graph_physicsMethod2");
+    if (radioButton1.checked == true) {
+      if (this.constants.physics.barnesHut.gravitationalConstant != this.backupConstants.physics.barnesHut.gravitationalConstant) {optionsSpecific.push("gravitationalConstant: " + this.constants.physics.barnesHut.gravitationalConstant);}
+      if (this.constants.physics.centralGravity != this.backupConstants.physics.barnesHut.centralGravity)                         {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
+      if (this.constants.physics.springLength != this.backupConstants.physics.barnesHut.springLength)                             {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
+      if (this.constants.physics.springConstant != this.backupConstants.physics.barnesHut.springConstant)                         {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
+      if (this.constants.physics.damping != this.backupConstants.physics.barnesHut.damping)                                       {optionsSpecific.push("damping: " + this.constants.physics.damping);}
+      if (optionsSpecific.length != 0) {
+        options = "var options = {";
+        options += "physics: {barnesHut: {";
+        for (var i = 0; i < optionsSpecific.length; i++) {
+          options += optionsSpecific[i];
+          if (i < optionsSpecific.length - 1) {
+            options += ", "
+          }
+        }
+        options += '}}'
+      }
+      if (this.constants.smoothCurves.enabled != this.backupConstants.smoothCurves.enabled) {
+        if (optionsSpecific.length == 0) {options = "var options = {";}
+        else {options += ", "}
+        options += "smoothCurves: " + this.constants.smoothCurves.enabled;
+      }
+      if (options != "No options are required, default values used.") {
+        options += '};'
+      }
+    }
+    else if (radioButton2.checked == true) {
+      options = "var options = {";
+      options += "physics: {barnesHut: {enabled: false}";
+      if (this.constants.physics.repulsion.nodeDistance != this.backupConstants.physics.repulsion.nodeDistance)  {optionsSpecific.push("nodeDistance: " + this.constants.physics.repulsion.nodeDistance);}
+      if (this.constants.physics.centralGravity != this.backupConstants.physics.repulsion.centralGravity)        {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
+      if (this.constants.physics.springLength != this.backupConstants.physics.repulsion.springLength)            {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
+      if (this.constants.physics.springConstant != this.backupConstants.physics.repulsion.springConstant)        {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
+      if (this.constants.physics.damping != this.backupConstants.physics.repulsion.damping)                      {optionsSpecific.push("damping: " + this.constants.physics.damping);}
+      if (optionsSpecific.length != 0) {
+        options += ", repulsion: {";
+        for (var i = 0; i < optionsSpecific.length; i++) {
+          options += optionsSpecific[i];
+          if (i < optionsSpecific.length - 1) {
+            options += ", "
+          }
+        }
+        options += '}}'
+      }
+      if (optionsSpecific.length == 0) {options += "}"}
+      if (this.constants.smoothCurves != this.backupConstants.smoothCurves) {
+        options += ", smoothCurves: " + this.constants.smoothCurves;
+      }
+      options += '};'
+    }
+    else {
+      options = "var options = {";
+      if (this.constants.physics.hierarchicalRepulsion.nodeDistance != this.backupConstants.physics.hierarchicalRepulsion.nodeDistance)  {optionsSpecific.push("nodeDistance: " + this.constants.physics.hierarchicalRepulsion.nodeDistance);}
+      if (this.constants.physics.centralGravity != this.backupConstants.physics.hierarchicalRepulsion.centralGravity)        {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
+      if (this.constants.physics.springLength != this.backupConstants.physics.hierarchicalRepulsion.springLength)            {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
+      if (this.constants.physics.springConstant != this.backupConstants.physics.hierarchicalRepulsion.springConstant)        {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
+      if (this.constants.physics.damping != this.backupConstants.physics.hierarchicalRepulsion.damping)                      {optionsSpecific.push("damping: " + this.constants.physics.damping);}
+      if (optionsSpecific.length != 0) {
+        options += "physics: {hierarchicalRepulsion: {";
+        for (var i = 0; i < optionsSpecific.length; i++) {
+          options += optionsSpecific[i];
+          if (i < optionsSpecific.length - 1) {
+            options += ", ";
+          }
+        }
+        options += '}},';
+      }
+      options += 'hierarchicalLayout: {';
+      optionsSpecific = [];
+      if (this.constants.hierarchicalLayout.direction != this.backupConstants.hierarchicalLayout.direction)                       {optionsSpecific.push("direction: " + this.constants.hierarchicalLayout.direction);}
+      if (Math.abs(this.constants.hierarchicalLayout.levelSeparation) != this.backupConstants.hierarchicalLayout.levelSeparation) {optionsSpecific.push("levelSeparation: " + this.constants.hierarchicalLayout.levelSeparation);}
+      if (this.constants.hierarchicalLayout.nodeSpacing != this.backupConstants.hierarchicalLayout.nodeSpacing)                   {optionsSpecific.push("nodeSpacing: " + this.constants.hierarchicalLayout.nodeSpacing);}
+      if (optionsSpecific.length != 0) {
+        for (var i = 0; i < optionsSpecific.length; i++) {
+          options += optionsSpecific[i];
+          if (i < optionsSpecific.length - 1) {
+            options += ", "
+          }
+        }
+        options += '}'
+      }
+      else {
+        options += "enabled:true}";
+      }
+      options += '};'
+    }
+
+
+    this.optionsDiv.innerHTML = options;
+  }
+
+  /**
+   * this is used to switch between barnesHut, repulsion and hierarchical.
+   *
+   */
+  function switchConfigurations () {
+    var ids = ["graph_BH_table", "graph_R_table", "graph_H_table"];
+    var radioButton = document.querySelector('input[name="graph_physicsMethod"]:checked').value;
+    var tableId = "graph_" + radioButton + "_table";
+    var table = document.getElementById(tableId);
+    table.style.display = "block";
+    for (var i = 0; i < ids.length; i++) {
+      if (ids[i] != tableId) {
+        table = document.getElementById(ids[i]);
+        table.style.display = "none";
+      }
+    }
+    this._restoreNodes();
+    if (radioButton == "R") {
+      this.constants.hierarchicalLayout.enabled = false;
+      this.constants.physics.hierarchicalRepulsion.enabled = false;
+      this.constants.physics.barnesHut.enabled = false;
+    }
+    else if (radioButton == "H") {
+      if (this.constants.hierarchicalLayout.enabled == false) {
+        this.constants.hierarchicalLayout.enabled = true;
+        this.constants.physics.hierarchicalRepulsion.enabled = true;
+        this.constants.physics.barnesHut.enabled = false;
+        this.constants.smoothCurves.enabled = false;
+        this._setupHierarchicalLayout();
+      }
+    }
+    else {
+      this.constants.hierarchicalLayout.enabled = false;
+      this.constants.physics.hierarchicalRepulsion.enabled = false;
+      this.constants.physics.barnesHut.enabled = true;
+    }
+    this._loadSelectedForceSolver();
+    var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
+    if (this.constants.smoothCurves.enabled == true) {graph_toggleSmooth.style.background = "#A4FF56";}
+    else                                     {graph_toggleSmooth.style.background = "#FF8532";}
+    this.moving = true;
+    this.start();
+  }
+
+
+  /**
+   * this generates the ranges depending on the iniital values.
+   *
+   * @param id
+   * @param map
+   * @param constantsVariableName
+   */
+  function showValueOfRange (id,map,constantsVariableName) {
+    var valueId = id + "_value";
+    var rangeValue = document.getElementById(id).value;
+
+    if (map instanceof Array) {
+      document.getElementById(valueId).value = map[parseInt(rangeValue)];
+      this._overWriteGraphConstants(constantsVariableName,map[parseInt(rangeValue)]);
+    }
+    else {
+      document.getElementById(valueId).value = parseInt(map) * parseFloat(rangeValue);
+      this._overWriteGraphConstants(constantsVariableName, parseInt(map) * parseFloat(rangeValue));
+    }
+
+    if (constantsVariableName == "hierarchicalLayout_direction" ||
+      constantsVariableName == "hierarchicalLayout_levelSeparation" ||
+      constantsVariableName == "hierarchicalLayout_nodeSpacing") {
+      this._setupHierarchicalLayout();
+    }
+    this.moving = true;
+    this.start();
+  }
+
 
 /***/ },
 /* 51 */

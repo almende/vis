@@ -6,6 +6,8 @@ http://visjs.org
 
 ### Timeline
 
+- Added options `margin.item.horizontal` and  `margin.item.vertical`, which
+  allows to specify different margins horizontally/vertically.
 - Removed check for number of arguments in callbacks `onAdd`, `onUpdate`, 
   `onRemove`, and `onMove`.
 - Fixed items in groups sometimes being displayed but not positioned correctly.
@@ -18,6 +20,7 @@ http://visjs.org
 - Added multiple types of smoothCurve drawing for greatly improved performance.
 - Option for inherited edge colors from connected nodes.
 - Option to disable the drawing of nodes or edges on drag.
+
 
 ## 2014-07-07, version 3.0.0
 
