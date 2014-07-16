@@ -30,6 +30,7 @@ http://visjs.org
 - Fixed drift in dragging nodes while zooming.
 - Fixed recursively constructing of hierarchical layouts.
 - Added borderWidth option for nodes.
+- Implemented new Hierarchical view solver.
 
 
 
