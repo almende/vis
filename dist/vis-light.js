@@ -32,7 +32,7 @@
 		exports["vis"] = factory(require("moment"), require("hammerjs"));
 	else
 		root["vis"] = factory(root["moment"], root["hammerjs"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_44__, __WEBPACK_EXTERNAL_MODULE_45__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_41__, __WEBPACK_EXTERNAL_MODULE_42__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -144,6 +144,10 @@ return /******/ (function(modules) { // webpackBootstrap
     throw new Error('Graph is renamed to Network. Please create a graph as new vis.Network(...)');
   };
 
+  // bundled external libraries
+  exports.moment = __webpack_require__(39);
+  exports.hammer = __webpack_require__(40);
+
 
 /***/ },
 /* 1 */
@@ -153,7 +157,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // first check if moment.js is already loaded in the browser window, if so,
   // use this instance. Else, load via commonjs.
-  var moment = __webpack_require__(41);
+  var moment = __webpack_require__(39);
 
   /**
    * Test whether given object is a number
@@ -6021,7 +6025,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var Emitter = __webpack_require__(46);
-  var Hammer = __webpack_require__(42);
+  var Hammer = __webpack_require__(40);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
@@ -6936,7 +6940,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var Emitter = __webpack_require__(46);
-  var Hammer = __webpack_require__(42);
+  var Hammer = __webpack_require__(40);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
@@ -8052,8 +8056,8 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(39);
-  var moment = __webpack_require__(41);
+  var hammerUtil = __webpack_require__(43);
+  var moment = __webpack_require__(39);
   var Component = __webpack_require__(18);
 
   /**
@@ -8705,7 +8709,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var moment = __webpack_require__(41);
+  var moment = __webpack_require__(39);
 
   /**
    * @constructor  TimeStep
@@ -9379,7 +9383,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(42);
+  var Hammer = __webpack_require__(40);
   var util = __webpack_require__(1);
   var Component = __webpack_require__(18);
 
@@ -10611,7 +10615,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(42);
+  var Hammer = __webpack_require__(40);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
@@ -13666,7 +13670,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(42);
+  var Hammer = __webpack_require__(40);
 
   /**
    * @constructor Item
@@ -14267,7 +14271,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(42);
+  var Hammer = __webpack_require__(40);
   var Item = __webpack_require__(28);
 
   /**
@@ -14565,10 +14569,10 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var Emitter = __webpack_require__(46);
-  var Hammer = __webpack_require__(42);
+  var Hammer = __webpack_require__(40);
   var mousetrap = __webpack_require__(47);
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(39);
+  var hammerUtil = __webpack_require__(43);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var dotparser = __webpack_require__(38);
@@ -14577,10 +14581,10 @@ return /******/ (function(modules) { // webpackBootstrap
   var Node = __webpack_require__(36);
   var Edge = __webpack_require__(33);
   var Popup = __webpack_require__(37);
-  var MixinLoader = __webpack_require__(43);
+  var MixinLoader = __webpack_require__(45);
 
   // Load custom shapes into CanvasRenderingContext2D
-  __webpack_require__(40);
+  __webpack_require__(44);
 
   /**
    * @constructor Network
@@ -20249,7 +20253,44 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(42);
+  // first check if moment.js is already loaded in the browser window, if so,
+  // use this instance. Else, load via commonjs.
+  module.exports = (typeof window !== 'undefined') && window['moment'] || __webpack_require__(41);
+
+
+/***/ },
+/* 40 */
+/***/ function(module, exports, __webpack_require__) {
+
+  // Only load hammer.js when in a browser environment
+  // (loading hammer.js in a node.js environment gives errors)
+  if (typeof window !== 'undefined') {
+    module.exports = window['Hammer'] || __webpack_require__(42);
+  }
+  else {
+    module.exports = function () {
+      throw Error('hammer.js is only available in a browser, not in node.js.');
+    }
+  }
+
+
+/***/ },
+/* 41 */
+/***/ function(module, exports, __webpack_require__) {
+
+  module.exports = __WEBPACK_EXTERNAL_MODULE_41__;
+
+/***/ },
+/* 42 */
+/***/ function(module, exports, __webpack_require__) {
+
+  module.exports = __WEBPACK_EXTERNAL_MODULE_42__;
+
+/***/ },
+/* 43 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var Hammer = __webpack_require__(40);
 
   /**
    * Fake a hammer.js gesture. Event can be a ScrollEvent or MouseMoveEvent
@@ -20280,7 +20321,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 40 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -20511,32 +20552,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 41 */
-/***/ function(module, exports, __webpack_require__) {
-
-  // first check if moment.js is already loaded in the browser window, if so,
-  // use this instance. Else, load via commonjs.
-  module.exports = (typeof window !== 'undefined') && window['moment'] || __webpack_require__(44);
-
-
-/***/ },
-/* 42 */
-/***/ function(module, exports, __webpack_require__) {
-
-  // Only load hammer.js when in a browser environment
-  // (loading hammer.js in a node.js environment gives errors)
-  if (typeof window !== 'undefined') {
-    module.exports = window['Hammer'] || __webpack_require__(45);
-  }
-  else {
-    module.exports = function () {
-      throw Error('hammer.js is only available in a browser, not in node.js.');
-    }
-  }
-
-
-/***/ },
-/* 43 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
   var PhysicsMixin = __webpack_require__(54);
@@ -20738,18 +20754,6 @@ return /******/ (function(modules) { // webpackBootstrap
     this._loadMixin(HierarchicalLayoutMixin);
   };
 
-
-/***/ },
-/* 44 */
-/***/ function(module, exports, __webpack_require__) {
-
-  module.exports = __WEBPACK_EXTERNAL_MODULE_44__;
-
-/***/ },
-/* 45 */
-/***/ function(module, exports, __webpack_require__) {
-
-  module.exports = __WEBPACK_EXTERNAL_MODULE_45__;
 
 /***/ },
 /* 46 */

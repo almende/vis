@@ -144,6 +144,10 @@ return /******/ (function(modules) { // webpackBootstrap
     throw new Error('Graph is renamed to Network. Please create a graph as new vis.Network(...)');
   };
 
+  // bundled external libraries
+  exports.moment = __webpack_require__(39);
+  exports.hammer = __webpack_require__(40);
+
 
 /***/ },
 /* 1 */
@@ -153,7 +157,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // first check if moment.js is already loaded in the browser window, if so,
   // use this instance. Else, load via commonjs.
-  var moment = __webpack_require__(41);
+  var moment = __webpack_require__(39);
 
   /**
    * Test whether given object is a number
@@ -6021,7 +6025,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var Emitter = __webpack_require__(44);
-  var Hammer = __webpack_require__(42);
+  var Hammer = __webpack_require__(40);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
@@ -6936,7 +6940,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var Emitter = __webpack_require__(44);
-  var Hammer = __webpack_require__(42);
+  var Hammer = __webpack_require__(40);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
@@ -8052,8 +8056,8 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(39);
-  var moment = __webpack_require__(41);
+  var hammerUtil = __webpack_require__(41);
+  var moment = __webpack_require__(39);
   var Component = __webpack_require__(18);
 
   /**
@@ -8705,7 +8709,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var moment = __webpack_require__(41);
+  var moment = __webpack_require__(39);
 
   /**
    * @constructor  TimeStep
@@ -9379,7 +9383,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(42);
+  var Hammer = __webpack_require__(40);
   var util = __webpack_require__(1);
   var Component = __webpack_require__(18);
 
@@ -10611,7 +10615,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(42);
+  var Hammer = __webpack_require__(40);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
@@ -13666,7 +13670,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(42);
+  var Hammer = __webpack_require__(40);
 
   /**
    * @constructor Item
@@ -14267,7 +14271,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(42);
+  var Hammer = __webpack_require__(40);
   var Item = __webpack_require__(28);
 
   /**
@@ -14565,10 +14569,10 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var Emitter = __webpack_require__(44);
-  var Hammer = __webpack_require__(42);
+  var Hammer = __webpack_require__(40);
   var mousetrap = __webpack_require__(45);
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(39);
+  var hammerUtil = __webpack_require__(41);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var dotparser = __webpack_require__(38);
@@ -14580,7 +14584,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var MixinLoader = __webpack_require__(43);
 
   // Load custom shapes into CanvasRenderingContext2D
-  __webpack_require__(40);
+  __webpack_require__(42);
 
   /**
    * @constructor Network
@@ -20249,7 +20253,32 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(42);
+  // first check if moment.js is already loaded in the browser window, if so,
+  // use this instance. Else, load via commonjs.
+  module.exports = (typeof window !== 'undefined') && window['moment'] || __webpack_require__(46);
+
+
+/***/ },
+/* 40 */
+/***/ function(module, exports, __webpack_require__) {
+
+  // Only load hammer.js when in a browser environment
+  // (loading hammer.js in a node.js environment gives errors)
+  if (typeof window !== 'undefined') {
+    module.exports = window['Hammer'] || __webpack_require__(47);
+  }
+  else {
+    module.exports = function () {
+      throw Error('hammer.js is only available in a browser, not in node.js.');
+    }
+  }
+
+
+/***/ },
+/* 41 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var Hammer = __webpack_require__(40);
 
   /**
    * Fake a hammer.js gesture. Event can be a ScrollEvent or MouseMoveEvent
@@ -20280,7 +20309,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 40 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -20511,41 +20540,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 41 */
-/***/ function(module, exports, __webpack_require__) {
-
-  // first check if moment.js is already loaded in the browser window, if so,
-  // use this instance. Else, load via commonjs.
-  module.exports = (typeof window !== 'undefined') && window['moment'] || __webpack_require__(53);
-
-
-/***/ },
-/* 42 */
-/***/ function(module, exports, __webpack_require__) {
-
-  // Only load hammer.js when in a browser environment
-  // (loading hammer.js in a node.js environment gives errors)
-  if (typeof window !== 'undefined') {
-    module.exports = window['Hammer'] || __webpack_require__(54);
-  }
-  else {
-    module.exports = function () {
-      throw Error('hammer.js is only available in a browser, not in node.js.');
-    }
-  }
-
-
-/***/ },
 /* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var PhysicsMixin = __webpack_require__(52);
-  var ClusterMixin = __webpack_require__(46);
-  var SectorsMixin = __webpack_require__(47);
-  var SelectionMixin = __webpack_require__(48);
-  var ManipulationMixin = __webpack_require__(49);
-  var NavigationMixin = __webpack_require__(50);
-  var HierarchicalLayoutMixin = __webpack_require__(51);
+  var PhysicsMixin = __webpack_require__(54);
+  var ClusterMixin = __webpack_require__(48);
+  var SectorsMixin = __webpack_require__(49);
+  var SelectionMixin = __webpack_require__(50);
+  var ManipulationMixin = __webpack_require__(51);
+  var NavigationMixin = __webpack_require__(52);
+  var HierarchicalLayoutMixin = __webpack_require__(53);
 
   /**
    * Load a mixin into the network object
@@ -21718,4225 +21722,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
-  /**
-   * Creation of the ClusterMixin var.
-   *
-   * This contains all the functions the Network object can use to employ clustering
-   */
-
-  /**
-  * This is only called in the constructor of the network object
-  *
-  */
-  exports.startWithClustering = function() {
-   // cluster if the data set is big
-   this.clusterToFit(this.constants.clustering.initialMaxNodes, true);
-
-   // updates the lables after clustering
-   this.updateLabels();
-
-   // this is called here because if clusterin is disabled, the start and stabilize are called in
-   // the setData function.
-   if (this.stabilize) {
-     this._stabilize();
-   }
-   this.start();
-  };
-
-  /**
-   * This function clusters until the initialMaxNodes has been reached
-   *
-   * @param {Number}  maxNumberOfNodes
-   * @param {Boolean} reposition
-   */
-  exports.clusterToFit = function(maxNumberOfNodes, reposition) {
-    var numberOfNodes = this.nodeIndices.length;
-
-    var maxLevels = 50;
-    var level = 0;
-
-    // we first cluster the hubs, then we pull in the outliers, repeat
-    while (numberOfNodes > maxNumberOfNodes && level < maxLevels) {
-      if (level % 3 == 0) {
-        this.forceAggregateHubs(true);
-        this.normalizeClusterLevels();
-      }
-      else {
-        this.increaseClusterLevel(); // this also includes a cluster normalization
-      }
-
-      numberOfNodes = this.nodeIndices.length;
-      level += 1;
-    }
-
-    // after the clustering we reposition the nodes to reduce the initial chaos
-    if (level > 0 && reposition == true) {
-      this.repositionNodes();
-    }
-    this._updateCalculationNodes();
-  };
-
-  /**
-   * This function can be called to open up a specific cluster. It is only called by
-   * It will unpack the cluster back one level.
-   *
-   * @param node    | Node object: cluster to open.
-   */
-  exports.openCluster = function(node) {
-    var isMovingBeforeClustering = this.moving;
-    if (node.clusterSize > this.constants.clustering.sectorThreshold && this._nodeInActiveArea(node) &&
-      !(this._sector() == "default" && this.nodeIndices.length == 1)) {
-      // this loads a new sector, loads the nodes and edges and nodeIndices of it.
-      this._addSector(node);
-      var level = 0;
-
-      // we decluster until we reach a decent number of nodes
-      while ((this.nodeIndices.length < this.constants.clustering.initialMaxNodes) && (level < 10)) {
-        this.decreaseClusterLevel();
-        level += 1;
-      }
-
-    }
-    else {
-      this._expandClusterNode(node,false,true);
-
-      // update the index list, dynamic edges and labels
-      this._updateNodeIndexList();
-      this._updateDynamicEdges();
-      this._updateCalculationNodes();
-      this.updateLabels();
-    }
-
-    // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
-    if (this.moving != isMovingBeforeClustering) {
-      this.start();
-    }
-  };
-
-
-  /**
-   * This calls the updateClustes with default arguments
-   */
-  exports.updateClustersDefault = function() {
-    if (this.constants.clustering.enabled == true) {
-      this.updateClusters(0,false,false);
-    }
-  };
-
-
-  /**
-   * This function can be called to increase the cluster level. This means that the nodes with only one edge connection will
-   * be clustered with their connected node. This can be repeated as many times as needed.
-   * This can be called externally (by a keybind for instance) to reduce the complexity of big datasets.
-   */
-  exports.increaseClusterLevel = function() {
-    this.updateClusters(-1,false,true);
-  };
-
-
-  /**
-   * This function can be called to decrease the cluster level. This means that the nodes with only one edge connection will
-   * be unpacked if they are a cluster. This can be repeated as many times as needed.
-   * This can be called externally (by a key-bind for instance) to look into clusters without zooming.
-   */
-  exports.decreaseClusterLevel = function() {
-    this.updateClusters(1,false,true);
-  };
-
-
-  /**
-   * This is the main clustering function. It clusters and declusters on zoom or forced
-   * This function clusters on zoom, it can be called with a predefined zoom direction
-   * If out, check if we can form clusters, if in, check if we can open clusters.
-   * This function is only called from _zoom()
-   *
-   * @param {Number} zoomDirection  | -1 / 0 / +1   for  zoomOut / determineByZoom / zoomIn
-   * @param {Boolean} recursive     | enabled or disable recursive calling of the opening of clusters
-   * @param {Boolean} force         | enabled or disable forcing
-   * @param {Boolean} doNotStart    | if true do not call start
-   *
-   */
-  exports.updateClusters = function(zoomDirection,recursive,force,doNotStart) {
-    var isMovingBeforeClustering = this.moving;
-    var amountOfNodes = this.nodeIndices.length;
-
-    // on zoom out collapse the sector if the scale is at the level the sector was made
-    if (this.previousScale > this.scale && zoomDirection == 0) {
-      this._collapseSector();
-    }
-
-    // check if we zoom in or out
-    if (this.previousScale > this.scale || zoomDirection == -1) { // zoom out
-      // forming clusters when forced pulls outliers in. When not forced, the edge length of the
-      // outer nodes determines if it is being clustered
-      this._formClusters(force);
-    }
-    else if (this.previousScale < this.scale || zoomDirection == 1) { // zoom in
-      if (force == true) {
-        // _openClusters checks for each node if the formationScale of the cluster is smaller than
-        // the current scale and if so, declusters. When forced, all clusters are reduced by one step
-        this._openClusters(recursive,force);
-      }
-      else {
-        // if a cluster takes up a set percentage of the active window
-        this._openClustersBySize();
-      }
-    }
-    this._updateNodeIndexList();
-
-    // if a cluster was NOT formed and the user zoomed out, we try clustering by hubs
-    if (this.nodeIndices.length == amountOfNodes && (this.previousScale > this.scale || zoomDirection == -1))  {
-      this._aggregateHubs(force);
-      this._updateNodeIndexList();
-    }
-
-    // we now reduce chains.
-    if (this.previousScale > this.scale || zoomDirection == -1) { // zoom out
-      this.handleChains();
-      this._updateNodeIndexList();
-    }
-
-    this.previousScale = this.scale;
-
-    // rest of the update the index list, dynamic edges and labels
-    this._updateDynamicEdges();
-    this.updateLabels();
-
-    // if a cluster was formed, we increase the clusterSession
-    if (this.nodeIndices.length < amountOfNodes) { // this means a clustering operation has taken place
-      this.clusterSession += 1;
-      // if clusters have been made, we normalize the cluster level
-      this.normalizeClusterLevels();
-    }
-
-    if (doNotStart == false || doNotStart === undefined) {
-      // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
-      if (this.moving != isMovingBeforeClustering) {
-        this.start();
-      }
-    }
-
-    this._updateCalculationNodes();
-  };
-
-  /**
-   * This function handles the chains. It is called on every updateClusters().
-   */
-  exports.handleChains = function() {
-    // after clustering we check how many chains there are
-    var chainPercentage = this._getChainFraction();
-    if (chainPercentage > this.constants.clustering.chainThreshold) {
-      this._reduceAmountOfChains(1 - this.constants.clustering.chainThreshold / chainPercentage)
-
-    }
-  };
-
-  /**
-   * this functions starts clustering by hubs
-   * The minimum hub threshold is set globally
-   *
-   * @private
-   */
-  exports._aggregateHubs = function(force) {
-    this._getHubSize();
-    this._formClustersByHub(force,false);
-  };
-
-
-  /**
-   * This function is fired by keypress. It forces hubs to form.
-   *
-   */
-  exports.forceAggregateHubs = function(doNotStart) {
-    var isMovingBeforeClustering = this.moving;
-    var amountOfNodes = this.nodeIndices.length;
-
-    this._aggregateHubs(true);
-
-    // update the index list, dynamic edges and labels
-    this._updateNodeIndexList();
-    this._updateDynamicEdges();
-    this.updateLabels();
-
-    // if a cluster was formed, we increase the clusterSession
-    if (this.nodeIndices.length != amountOfNodes) {
-      this.clusterSession += 1;
-    }
-
-    if (doNotStart == false || doNotStart === undefined) {
-      // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
-      if (this.moving != isMovingBeforeClustering) {
-        this.start();
-      }
-    }
-  };
-
-  /**
-   * If a cluster takes up more than a set percentage of the screen, open the cluster
-   *
-   * @private
-   */
-  exports._openClustersBySize = function() {
-    for (var nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        var node = this.nodes[nodeId];
-        if (node.inView() == true) {
-          if ((node.width*this.scale > this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientWidth) ||
-              (node.height*this.scale > this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientHeight)) {
-            this.openCluster(node);
-          }
-        }
-      }
-    }
-  };
-
-
-  /**
-   * This function loops over all nodes in the nodeIndices list. For each node it checks if it is a cluster and if it
-   * has to be opened based on the current zoom level.
-   *
-   * @private
-   */
-  exports._openClusters = function(recursive,force) {
-    for (var i = 0; i < this.nodeIndices.length; i++) {
-      var node = this.nodes[this.nodeIndices[i]];
-      this._expandClusterNode(node,recursive,force);
-      this._updateCalculationNodes();
-    }
-  };
-
-  /**
-   * This function checks if a node has to be opened. This is done by checking the zoom level.
-   * If the node contains child nodes, this function is recursively called on the child nodes as well.
-   * This recursive behaviour is optional and can be set by the recursive argument.
-   *
-   * @param {Node}    parentNode    | to check for cluster and expand
-   * @param {Boolean} recursive     | enabled or disable recursive calling
-   * @param {Boolean} force         | enabled or disable forcing
-   * @param {Boolean} [openAll]     | This will recursively force all nodes in the parent to be released
-   * @private
-   */
-  exports._expandClusterNode = function(parentNode, recursive, force, openAll) {
-    // first check if node is a cluster
-    if (parentNode.clusterSize > 1) {
-      // this means that on a double tap event or a zoom event, the cluster fully unpacks if it is smaller than 20
-      if (parentNode.clusterSize < this.constants.clustering.sectorThreshold) {
-        openAll = true;
-      }
-      recursive = openAll ? true : recursive;
-
-      // if the last child has been added on a smaller scale than current scale decluster
-      if (parentNode.formationScale < this.scale || force == true) {
-        // we will check if any of the contained child nodes should be removed from the cluster
-        for (var containedNodeId in parentNode.containedNodes) {
-          if (parentNode.containedNodes.hasOwnProperty(containedNodeId)) {
-            var childNode = parentNode.containedNodes[containedNodeId];
-
-            // force expand will expand the largest cluster size clusters. Since we cluster from outside in, we assume that
-            // the largest cluster is the one that comes from outside
-            if (force == true) {
-              if (childNode.clusterSession == parentNode.clusterSessions[parentNode.clusterSessions.length-1]
-                  || openAll) {
-                this._expelChildFromParent(parentNode,containedNodeId,recursive,force,openAll);
-              }
-            }
-            else {
-              if (this._nodeInActiveArea(parentNode)) {
-                this._expelChildFromParent(parentNode,containedNodeId,recursive,force,openAll);
-              }
-            }
-          }
-        }
-      }
-    }
-  };
-
-  /**
-   * ONLY CALLED FROM _expandClusterNode
-   *
-   * This function will expel a child_node from a parent_node. This is to de-cluster the node. This function will remove
-   * the child node from the parent contained_node object and put it back into the global nodes object.
-   * The same holds for the edge that was connected to the child node. It is moved back into the global edges object.
-   *
-   * @param {Node}    parentNode        | the parent node
-   * @param {String}  containedNodeId   | child_node id as it is contained in the containedNodes object of the parent node
-   * @param {Boolean} recursive         | This will also check if the child needs to be expanded.
-   *                                      With force and recursive both true, the entire cluster is unpacked
-   * @param {Boolean} force             | This will disregard the zoom level and will expel this child from the parent
-   * @param {Boolean} openAll           | This will recursively force all nodes in the parent to be released
-   * @private
-   */
-  exports._expelChildFromParent = function(parentNode, containedNodeId, recursive, force, openAll) {
-    var childNode = parentNode.containedNodes[containedNodeId];
-
-    // if child node has been added on smaller scale than current, kick out
-    if (childNode.formationScale < this.scale || force == true) {
-      // unselect all selected items
-      this._unselectAll();
-
-      // put the child node back in the global nodes object
-      this.nodes[containedNodeId] = childNode;
-
-      // release the contained edges from this childNode back into the global edges
-      this._releaseContainedEdges(parentNode,childNode);
-
-      // reconnect rerouted edges to the childNode
-      this._connectEdgeBackToChild(parentNode,childNode);
-
-      // validate all edges in dynamicEdges
-      this._validateEdges(parentNode);
-
-      // undo the changes from the clustering operation on the parent node
-      parentNode.mass -= childNode.mass;
-      parentNode.clusterSize -= childNode.clusterSize;
-      parentNode.fontSize = Math.min(this.constants.clustering.maxFontSize, this.constants.nodes.fontSize + this.constants.clustering.fontSizeMultiplier*parentNode.clusterSize);
-      parentNode.dynamicEdgesLength = parentNode.dynamicEdges.length;
-
-      // place the child node near the parent, not at the exact same location to avoid chaos in the system
-      childNode.x = parentNode.x + parentNode.growthIndicator * (0.5 - Math.random());
-      childNode.y = parentNode.y + parentNode.growthIndicator * (0.5 - Math.random());
-
-      // remove node from the list
-      delete parentNode.containedNodes[containedNodeId];
-
-      // check if there are other childs with this clusterSession in the parent.
-      var othersPresent = false;
-      for (var childNodeId in parentNode.containedNodes) {
-        if (parentNode.containedNodes.hasOwnProperty(childNodeId)) {
-          if (parentNode.containedNodes[childNodeId].clusterSession == childNode.clusterSession) {
-            othersPresent = true;
-            break;
-          }
-        }
-      }
-      // if there are no others, remove the cluster session from the list
-      if (othersPresent == false) {
-        parentNode.clusterSessions.pop();
-      }
-
-      this._repositionBezierNodes(childNode);
-  //      this._repositionBezierNodes(parentNode);
-
-      // remove the clusterSession from the child node
-      childNode.clusterSession = 0;
-
-      // recalculate the size of the node on the next time the node is rendered
-      parentNode.clearSizeCache();
-
-      // restart the simulation to reorganise all nodes
-      this.moving = true;
-    }
-
-    // check if a further expansion step is possible if recursivity is enabled
-    if (recursive == true) {
-      this._expandClusterNode(childNode,recursive,force,openAll);
-    }
-  };
-
-
-  /**
-   * position the bezier nodes at the center of the edges
-   *
-   * @param node
-   * @private
-   */
-  exports._repositionBezierNodes = function(node) {
-    for (var i = 0; i < node.dynamicEdges.length; i++) {
-      node.dynamicEdges[i].positionBezierNode();
-    }
-  };
-
-
-  /**
-   * This function checks if any nodes at the end of their trees have edges below a threshold length
-   * This function is called only from updateClusters()
-   * forceLevelCollapse ignores the length of the edge and collapses one level
-   * This means that a node with only one edge will be clustered with its connected node
-   *
-   * @private
-   * @param {Boolean} force
-   */
-  exports._formClusters = function(force) {
-    if (force == false) {
-      this._formClustersByZoom();
-    }
-    else {
-      this._forceClustersByZoom();
-    }
-  };
-
-
-  /**
-   * This function handles the clustering by zooming out, this is based on a minimum edge distance
-   *
-   * @private
-   */
-  exports._formClustersByZoom = function() {
-    var dx,dy,length,
-        minLength = this.constants.clustering.clusterEdgeThreshold/this.scale;
-
-    // check if any edges are shorter than minLength and start the clustering
-    // the clustering favours the node with the larger mass
-    for (var edgeId in this.edges) {
-      if (this.edges.hasOwnProperty(edgeId)) {
-        var edge = this.edges[edgeId];
-        if (edge.connected) {
-          if (edge.toId != edge.fromId) {
-            dx = (edge.to.x - edge.from.x);
-            dy = (edge.to.y - edge.from.y);
-            length = Math.sqrt(dx * dx + dy * dy);
-
-
-            if (length < minLength) {
-              // first check which node is larger
-              var parentNode = edge.from;
-              var childNode = edge.to;
-              if (edge.to.mass > edge.from.mass) {
-                parentNode = edge.to;
-                childNode = edge.from;
-              }
-
-              if (childNode.dynamicEdgesLength == 1) {
-                this._addToCluster(parentNode,childNode,false);
-              }
-              else if (parentNode.dynamicEdgesLength == 1) {
-                this._addToCluster(childNode,parentNode,false);
-              }
-            }
-          }
-        }
-      }
-    }
-  };
-
-  /**
-   * This function forces the network to cluster all nodes with only one connecting edge to their
-   * connected node.
-   *
-   * @private
-   */
-  exports._forceClustersByZoom = function() {
-    for (var nodeId in this.nodes) {
-      // another node could have absorbed this child.
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        var childNode = this.nodes[nodeId];
-
-        // the edges can be swallowed by another decrease
-        if (childNode.dynamicEdgesLength == 1 && childNode.dynamicEdges.length != 0) {
-          var edge = childNode.dynamicEdges[0];
-          var parentNode = (edge.toId == childNode.id) ? this.nodes[edge.fromId] : this.nodes[edge.toId];
-
-          // group to the largest node
-          if (childNode.id != parentNode.id) {
-            if (parentNode.mass > childNode.mass) {
-              this._addToCluster(parentNode,childNode,true);
-            }
-            else {
-              this._addToCluster(childNode,parentNode,true);
-            }
-          }
-        }
-      }
-    }
-  };
-
-
-  /**
-   * To keep the nodes of roughly equal size we normalize the cluster levels.
-   * This function clusters a node to its smallest connected neighbour.
-   *
-   * @param node
-   * @private
-   */
-  exports._clusterToSmallestNeighbour = function(node) {
-    var smallestNeighbour = -1;
-    var smallestNeighbourNode = null;
-    for (var i = 0; i < node.dynamicEdges.length; i++) {
-      if (node.dynamicEdges[i] !== undefined) {
-        var neighbour = null;
-        if (node.dynamicEdges[i].fromId != node.id) {
-          neighbour = node.dynamicEdges[i].from;
-        }
-        else if (node.dynamicEdges[i].toId != node.id) {
-          neighbour = node.dynamicEdges[i].to;
-        }
-
-
-        if (neighbour != null && smallestNeighbour > neighbour.clusterSessions.length) {
-          smallestNeighbour = neighbour.clusterSessions.length;
-          smallestNeighbourNode = neighbour;
-        }
-      }
-    }
-
-    if (neighbour != null && this.nodes[neighbour.id] !== undefined) {
-      this._addToCluster(neighbour, node, true);
-    }
-  };
-
-
-  /**
-   * This function forms clusters from hubs, it loops over all nodes
-   *
-   * @param {Boolean} force         |   Disregard zoom level
-   * @param {Boolean} onlyEqual     |   This only clusters a hub with a specific number of edges
-   * @private
-   */
-  exports._formClustersByHub = function(force, onlyEqual) {
-    // we loop over all nodes in the list
-    for (var nodeId in this.nodes) {
-      // we check if it is still available since it can be used by the clustering in this loop
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        this._formClusterFromHub(this.nodes[nodeId],force,onlyEqual);
-      }
-    }
-  };
-
-  /**
-   * This function forms a cluster from a specific preselected hub node
-   *
-   * @param {Node}    hubNode       |   the node we will cluster as a hub
-   * @param {Boolean} force         |   Disregard zoom level
-   * @param {Boolean} onlyEqual     |   This only clusters a hub with a specific number of edges
-   * @param {Number} [absorptionSizeOffset] |
-   * @private
-   */
-  exports._formClusterFromHub = function(hubNode, force, onlyEqual, absorptionSizeOffset) {
-    if (absorptionSizeOffset === undefined) {
-      absorptionSizeOffset = 0;
-    }
-    // we decide if the node is a hub
-    if ((hubNode.dynamicEdgesLength >= this.hubThreshold && onlyEqual == false) ||
-      (hubNode.dynamicEdgesLength == this.hubThreshold && onlyEqual == true)) {
-      // initialize variables
-      var dx,dy,length;
-      var minLength = this.constants.clustering.clusterEdgeThreshold/this.scale;
-      var allowCluster = false;
-
-      // we create a list of edges because the dynamicEdges change over the course of this loop
-      var edgesIdarray = [];
-      var amountOfInitialEdges = hubNode.dynamicEdges.length;
-      for (var j = 0; j < amountOfInitialEdges; j++) {
-        edgesIdarray.push(hubNode.dynamicEdges[j].id);
-      }
-
-      // if the hub clustering is not forces, we check if one of the edges connected
-      // to a cluster is small enough based on the constants.clustering.clusterEdgeThreshold
-      if (force == false) {
-        allowCluster = false;
-        for (j = 0; j < amountOfInitialEdges; j++) {
-          var edge = this.edges[edgesIdarray[j]];
-          if (edge !== undefined) {
-            if (edge.connected) {
-              if (edge.toId != edge.fromId) {
-                dx = (edge.to.x - edge.from.x);
-                dy = (edge.to.y - edge.from.y);
-                length = Math.sqrt(dx * dx + dy * dy);
-
-                if (length < minLength) {
-                  allowCluster = true;
-                  break;
-                }
-              }
-            }
-          }
-        }
-      }
-
-      // start the clustering if allowed
-      if ((!force && allowCluster) || force) {
-        // we loop over all edges INITIALLY connected to this hub
-        for (j = 0; j < amountOfInitialEdges; j++) {
-          edge = this.edges[edgesIdarray[j]];
-          // the edge can be clustered by this function in a previous loop
-          if (edge !== undefined) {
-            var childNode = this.nodes[(edge.fromId == hubNode.id) ? edge.toId : edge.fromId];
-            // we do not want hubs to merge with other hubs nor do we want to cluster itself.
-            if ((childNode.dynamicEdges.length <= (this.hubThreshold + absorptionSizeOffset)) &&
-                (childNode.id != hubNode.id)) {
-              this._addToCluster(hubNode,childNode,force);
-            }
-          }
-        }
-      }
-    }
-  };
-
-
-
-  /**
-   * This function adds the child node to the parent node, creating a cluster if it is not already.
-   *
-   * @param {Node} parentNode           | this is the node that will house the child node
-   * @param {Node} childNode            | this node will be deleted from the global this.nodes and stored in the parent node
-   * @param {Boolean} force             | true will only update the remainingEdges at the very end of the clustering, ensuring single level collapse
-   * @private
-   */
-  exports._addToCluster = function(parentNode, childNode, force) {
-    // join child node in the parent node
-    parentNode.containedNodes[childNode.id] = childNode;
-
-    // manage all the edges connected to the child and parent nodes
-    for (var i = 0; i < childNode.dynamicEdges.length; i++) {
-      var edge = childNode.dynamicEdges[i];
-      if (edge.toId == parentNode.id || edge.fromId == parentNode.id) { // edge connected to parentNode
-        this._addToContainedEdges(parentNode,childNode,edge);
-      }
-      else {
-        this._connectEdgeToCluster(parentNode,childNode,edge);
-      }
-    }
-    // a contained node has no dynamic edges.
-    childNode.dynamicEdges = [];
-
-    // remove circular edges from clusters
-    this._containCircularEdgesFromNode(parentNode,childNode);
-
-
-    // remove the childNode from the global nodes object
-    delete this.nodes[childNode.id];
-
-    // update the properties of the child and parent
-    var massBefore = parentNode.mass;
-    childNode.clusterSession = this.clusterSession;
-    parentNode.mass += childNode.mass;
-    parentNode.clusterSize += childNode.clusterSize;
-    parentNode.fontSize = Math.min(this.constants.clustering.maxFontSize, this.constants.nodes.fontSize + this.constants.clustering.fontSizeMultiplier*parentNode.clusterSize);
-
-    // keep track of the clustersessions so we can open the cluster up as it has been formed.
-    if (parentNode.clusterSessions[parentNode.clusterSessions.length - 1] != this.clusterSession) {
-      parentNode.clusterSessions.push(this.clusterSession);
-    }
-
-    // forced clusters only open from screen size and double tap
-    if (force == true) {
-      // parentNode.formationScale = Math.pow(1 - (1.0/11.0),this.clusterSession+3);
-      parentNode.formationScale = 0;
-    }
-    else {
-      parentNode.formationScale = this.scale; // The latest child has been added on this scale
-    }
-
-    // recalculate the size of the node on the next time the node is rendered
-    parentNode.clearSizeCache();
-
-    // set the pop-out scale for the childnode
-    parentNode.containedNodes[childNode.id].formationScale = parentNode.formationScale;
-
-    // nullify the movement velocity of the child, this is to avoid hectic behaviour
-    childNode.clearVelocity();
-
-    // the mass has altered, preservation of energy dictates the velocity to be updated
-    parentNode.updateVelocity(massBefore);
-
-    // restart the simulation to reorganise all nodes
-    this.moving = true;
-  };
-
-
-  /**
-   * This function will apply the changes made to the remainingEdges during the formation of the clusters.
-   * This is a seperate function to allow for level-wise collapsing of the node barnesHutTree.
-   * It has to be called if a level is collapsed. It is called by _formClusters().
-   * @private
-   */
-  exports._updateDynamicEdges = function() {
-    for (var i = 0; i < this.nodeIndices.length; i++) {
-      var node = this.nodes[this.nodeIndices[i]];
-      node.dynamicEdgesLength = node.dynamicEdges.length;
-
-      // this corrects for multiple edges pointing at the same other node
-      var correction = 0;
-      if (node.dynamicEdgesLength > 1) {
-        for (var j = 0; j < node.dynamicEdgesLength - 1; j++) {
-          var edgeToId = node.dynamicEdges[j].toId;
-          var edgeFromId = node.dynamicEdges[j].fromId;
-          for (var k = j+1; k < node.dynamicEdgesLength; k++) {
-            if ((node.dynamicEdges[k].toId == edgeToId && node.dynamicEdges[k].fromId == edgeFromId) ||
-                (node.dynamicEdges[k].fromId == edgeToId && node.dynamicEdges[k].toId == edgeFromId)) {
-              correction += 1;
-            }
-          }
-        }
-      }
-      node.dynamicEdgesLength -= correction;
-    }
-  };
-
-
-  /**
-   * This adds an edge from the childNode to the contained edges of the parent node
-   *
-   * @param parentNode    | Node object
-   * @param childNode     | Node object
-   * @param edge          | Edge object
-   * @private
-   */
-  exports._addToContainedEdges = function(parentNode, childNode, edge) {
-    // create an array object if it does not yet exist for this childNode
-    if (!(parentNode.containedEdges.hasOwnProperty(childNode.id))) {
-      parentNode.containedEdges[childNode.id] = []
-    }
-    // add this edge to the list
-    parentNode.containedEdges[childNode.id].push(edge);
-
-    // remove the edge from the global edges object
-    delete this.edges[edge.id];
-
-    // remove the edge from the parent object
-    for (var i = 0; i < parentNode.dynamicEdges.length; i++) {
-      if (parentNode.dynamicEdges[i].id == edge.id) {
-        parentNode.dynamicEdges.splice(i,1);
-        break;
-      }
-    }
-  };
-
-  /**
-   * This function connects an edge that was connected to a child node to the parent node.
-   * It keeps track of which nodes it has been connected to with the originalId array.
-   *
-   * @param {Node} parentNode    | Node object
-   * @param {Node} childNode     | Node object
-   * @param {Edge} edge          | Edge object
-   * @private
-   */
-  exports._connectEdgeToCluster = function(parentNode, childNode, edge) {
-    // handle circular edges
-    if (edge.toId == edge.fromId) {
-      this._addToContainedEdges(parentNode, childNode, edge);
-    }
-    else {
-      if (edge.toId == childNode.id) {    // edge connected to other node on the "to" side
-        edge.originalToId.push(childNode.id);
-        edge.to = parentNode;
-        edge.toId = parentNode.id;
-      }
-      else {          // edge connected to other node with the "from" side
-
-        edge.originalFromId.push(childNode.id);
-        edge.from = parentNode;
-        edge.fromId = parentNode.id;
-      }
-
-      this._addToReroutedEdges(parentNode,childNode,edge);
-    }
-  };
-
-
-  /**
-   * If a node is connected to itself, a circular edge is drawn. When clustering we want to contain
-   * these edges inside of the cluster.
-   *
-   * @param parentNode
-   * @param childNode
-   * @private
-   */
-  exports._containCircularEdgesFromNode = function(parentNode, childNode) {
-    // manage all the edges connected to the child and parent nodes
-    for (var i = 0; i < parentNode.dynamicEdges.length; i++) {
-      var edge = parentNode.dynamicEdges[i];
-      // handle circular edges
-      if (edge.toId == edge.fromId) {
-        this._addToContainedEdges(parentNode, childNode, edge);
-      }
-    }
-  };
-
-
-  /**
-   * This adds an edge from the childNode to the rerouted edges of the parent node
-   *
-   * @param parentNode    | Node object
-   * @param childNode     | Node object
-   * @param edge          | Edge object
-   * @private
-   */
-  exports._addToReroutedEdges = function(parentNode, childNode, edge) {
-    // create an array object if it does not yet exist for this childNode
-    // we store the edge in the rerouted edges so we can restore it when the cluster pops open
-    if (!(parentNode.reroutedEdges.hasOwnProperty(childNode.id))) {
-      parentNode.reroutedEdges[childNode.id] = [];
-    }
-    parentNode.reroutedEdges[childNode.id].push(edge);
-
-    // this edge becomes part of the dynamicEdges of the cluster node
-    parentNode.dynamicEdges.push(edge);
-   };
-
-
-
-  /**
-   * This function connects an edge that was connected to a cluster node back to the child node.
-   *
-   * @param parentNode    | Node object
-   * @param childNode     | Node object
-   * @private
-   */
-  exports._connectEdgeBackToChild = function(parentNode, childNode) {
-    if (parentNode.reroutedEdges.hasOwnProperty(childNode.id)) {
-      for (var i = 0; i < parentNode.reroutedEdges[childNode.id].length; i++) {
-        var edge = parentNode.reroutedEdges[childNode.id][i];
-        if (edge.originalFromId[edge.originalFromId.length-1] == childNode.id) {
-          edge.originalFromId.pop();
-          edge.fromId = childNode.id;
-          edge.from = childNode;
-        }
-        else {
-          edge.originalToId.pop();
-          edge.toId = childNode.id;
-          edge.to = childNode;
-        }
-
-        // append this edge to the list of edges connecting to the childnode
-        childNode.dynamicEdges.push(edge);
-
-        // remove the edge from the parent object
-        for (var j = 0; j < parentNode.dynamicEdges.length; j++) {
-          if (parentNode.dynamicEdges[j].id == edge.id) {
-            parentNode.dynamicEdges.splice(j,1);
-            break;
-          }
-        }
-      }
-      // remove the entry from the rerouted edges
-      delete parentNode.reroutedEdges[childNode.id];
-    }
-  };
-
-
-  /**
-   * When loops are clustered, an edge can be both in the rerouted array and the contained array.
-   * This function is called last to verify that all edges in dynamicEdges are in fact connected to the
-   * parentNode
-   *
-   * @param parentNode    | Node object
-   * @private
-   */
-  exports._validateEdges = function(parentNode) {
-    for (var i = 0; i < parentNode.dynamicEdges.length; i++) {
-      var edge = parentNode.dynamicEdges[i];
-      if (parentNode.id != edge.toId && parentNode.id != edge.fromId) {
-        parentNode.dynamicEdges.splice(i,1);
-      }
-    }
-  };
-
-
-  /**
-   * This function released the contained edges back into the global domain and puts them back into the
-   * dynamic edges of both parent and child.
-   *
-   * @param {Node} parentNode    |
-   * @param {Node} childNode     |
-   * @private
-   */
-  exports._releaseContainedEdges = function(parentNode, childNode) {
-    for (var i = 0; i < parentNode.containedEdges[childNode.id].length; i++) {
-      var edge = parentNode.containedEdges[childNode.id][i];
-
-      // put the edge back in the global edges object
-      this.edges[edge.id] = edge;
-
-      // put the edge back in the dynamic edges of the child and parent
-      childNode.dynamicEdges.push(edge);
-      parentNode.dynamicEdges.push(edge);
-    }
-    // remove the entry from the contained edges
-    delete parentNode.containedEdges[childNode.id];
-
-  };
-
-
-
-
-  // ------------------- UTILITY FUNCTIONS ---------------------------- //
-
-
-  /**
-   * This updates the node labels for all nodes (for debugging purposes)
-   */
-  exports.updateLabels = function() {
-    var nodeId;
-    // update node labels
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        var node = this.nodes[nodeId];
-        if (node.clusterSize > 1) {
-          node.label = "[".concat(String(node.clusterSize),"]");
-        }
-      }
-    }
-
-    // update node labels
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        node = this.nodes[nodeId];
-        if (node.clusterSize == 1) {
-          if (node.originalLabel !== undefined) {
-            node.label = node.originalLabel;
-          }
-          else {
-            node.label = String(node.id);
-          }
-        }
-      }
-    }
-
-  //    /* Debug Override */
-  //    for (nodeId in this.nodes) {
-  //      if (this.nodes.hasOwnProperty(nodeId)) {
-  //        node = this.nodes[nodeId];
-  //        node.label = String(node.level);
-  //      }
-  //    }
-
-  };
-
-
-  /**
-   * We want to keep the cluster level distribution rather small. This means we do not want unclustered nodes
-   * if the rest of the nodes are already a few cluster levels in.
-   * To fix this we use this function. It determines the min and max cluster level and sends nodes that have not
-   * clustered enough to the clusterToSmallestNeighbours function.
-   */
-  exports.normalizeClusterLevels = function() {
-    var maxLevel = 0;
-    var minLevel = 1e9;
-    var clusterLevel = 0;
-    var nodeId;
-
-    // we loop over all nodes in the list
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        clusterLevel = this.nodes[nodeId].clusterSessions.length;
-        if (maxLevel < clusterLevel) {maxLevel = clusterLevel;}
-        if (minLevel > clusterLevel) {minLevel = clusterLevel;}
-      }
-    }
-
-    if (maxLevel - minLevel > this.constants.clustering.clusterLevelDifference) {
-      var amountOfNodes = this.nodeIndices.length;
-      var targetLevel = maxLevel - this.constants.clustering.clusterLevelDifference;
-      // we loop over all nodes in the list
-      for (nodeId in this.nodes) {
-        if (this.nodes.hasOwnProperty(nodeId)) {
-          if (this.nodes[nodeId].clusterSessions.length < targetLevel) {
-            this._clusterToSmallestNeighbour(this.nodes[nodeId]);
-          }
-        }
-      }
-      this._updateNodeIndexList();
-      this._updateDynamicEdges();
-      // if a cluster was formed, we increase the clusterSession
-      if (this.nodeIndices.length != amountOfNodes) {
-        this.clusterSession += 1;
-      }
-    }
-  };
-
-
-
-  /**
-   * This function determines if the cluster we want to decluster is in the active area
-   * this means around the zoom center
-   *
-   * @param {Node} node
-   * @returns {boolean}
-   * @private
-   */
-  exports._nodeInActiveArea = function(node) {
-    return (
-      Math.abs(node.x - this.areaCenter.x) <= this.constants.clustering.activeAreaBoxSize/this.scale
-        &&
-      Math.abs(node.y - this.areaCenter.y) <= this.constants.clustering.activeAreaBoxSize/this.scale
-      )
-  };
-
-
-  /**
-   * This is an adaptation of the original repositioning function. This is called if the system is clustered initially
-   * It puts large clusters away from the center and randomizes the order.
-   *
-   */
-  exports.repositionNodes = function() {
-    for (var i = 0; i < this.nodeIndices.length; i++) {
-      var node = this.nodes[this.nodeIndices[i]];
-      if ((node.xFixed == false || node.yFixed == false)) {
-        var radius = 10 * 0.1*this.nodeIndices.length * Math.min(100,node.mass);
-        var angle = 2 * Math.PI * Math.random();
-        if (node.xFixed == false) {node.x = radius * Math.cos(angle);}
-        if (node.yFixed == false) {node.y = radius * Math.sin(angle);}
-        this._repositionBezierNodes(node);
-      }
-    }
-  };
-
-
-  /**
-   * We determine how many connections denote an important hub.
-   * We take the mean + 2*std as the important hub size. (Assuming a normal distribution of data, ~2.2%)
-   *
-   * @private
-   */
-  exports._getHubSize = function() {
-    var average = 0;
-    var averageSquared = 0;
-    var hubCounter = 0;
-    var largestHub = 0;
-
-    for (var i = 0; i < this.nodeIndices.length; i++) {
-
-      var node = this.nodes[this.nodeIndices[i]];
-      if (node.dynamicEdgesLength > largestHub) {
-        largestHub = node.dynamicEdgesLength;
-      }
-      average += node.dynamicEdgesLength;
-      averageSquared += Math.pow(node.dynamicEdgesLength,2);
-      hubCounter += 1;
-    }
-    average = average / hubCounter;
-    averageSquared = averageSquared / hubCounter;
-
-    var variance = averageSquared - Math.pow(average,2);
-
-    var standardDeviation = Math.sqrt(variance);
-
-    this.hubThreshold = Math.floor(average + 2*standardDeviation);
-
-    // always have at least one to cluster
-    if (this.hubThreshold > largestHub) {
-      this.hubThreshold = largestHub;
-    }
-
-  //  console.log("average",average,"averageSQ",averageSquared,"var",variance,"std",standardDeviation);
-  //  console.log("hubThreshold:",this.hubThreshold);
-  };
-
-
-  /**
-   * We reduce the amount of "extension nodes" or chains. These are not quickly clustered with the outliers and hubs methods
-   * with this amount we can cluster specifically on these chains.
-   *
-   * @param   {Number} fraction     | between 0 and 1, the percentage of chains to reduce
-   * @private
-   */
-  exports._reduceAmountOfChains = function(fraction) {
-    this.hubThreshold = 2;
-    var reduceAmount = Math.floor(this.nodeIndices.length * fraction);
-    for (var nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        if (this.nodes[nodeId].dynamicEdgesLength == 2 && this.nodes[nodeId].dynamicEdges.length >= 2) {
-          if (reduceAmount > 0) {
-            this._formClusterFromHub(this.nodes[nodeId],true,true,1);
-            reduceAmount -= 1;
-          }
-        }
-      }
-    }
-  };
-
-  /**
-   * We get the amount of "extension nodes" or chains. These are not quickly clustered with the outliers and hubs methods
-   * with this amount we can cluster specifically on these chains.
-   *
-   * @private
-   */
-  exports._getChainFraction = function() {
-    var chains = 0;
-    var total = 0;
-    for (var nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        if (this.nodes[nodeId].dynamicEdgesLength == 2 && this.nodes[nodeId].dynamicEdges.length >= 2) {
-          chains += 1;
-        }
-        total += 1;
-      }
-    }
-    return chains/total;
-  };
-
-
-/***/ },
-/* 47 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var util = __webpack_require__(1);
-
-  /**
-   * Creation of the SectorMixin var.
-   *
-   * This contains all the functions the Network object can use to employ the sector system.
-   * The sector system is always used by Network, though the benefits only apply to the use of clustering.
-   * If clustering is not used, there is no overhead except for a duplicate object with references to nodes and edges.
-   */
-
-  /**
-   * This function is only called by the setData function of the Network object.
-   * This loads the global references into the active sector. This initializes the sector.
-   *
-   * @private
-   */
-  exports._putDataInSector = function() {
-    this.sectors["active"][this._sector()].nodes = this.nodes;
-    this.sectors["active"][this._sector()].edges = this.edges;
-    this.sectors["active"][this._sector()].nodeIndices = this.nodeIndices;
-  };
-
-
-  /**
-   *  /**
-   * This function sets the global references to nodes, edges and nodeIndices back to
-   * those of the supplied (active) sector. If a type is defined, do the specific type
-   *
-   * @param {String} sectorId
-   * @param {String} [sectorType] | "active" or "frozen"
-   * @private
-   */
-  exports._switchToSector = function(sectorId, sectorType) {
-    if (sectorType === undefined || sectorType == "active") {
-      this._switchToActiveSector(sectorId);
-    }
-    else {
-      this._switchToFrozenSector(sectorId);
-    }
-  };
-
-
-  /**
-   * This function sets the global references to nodes, edges and nodeIndices back to
-   * those of the supplied active sector.
-   *
-   * @param sectorId
-   * @private
-   */
-  exports._switchToActiveSector = function(sectorId) {
-    this.nodeIndices = this.sectors["active"][sectorId]["nodeIndices"];
-    this.nodes       = this.sectors["active"][sectorId]["nodes"];
-    this.edges       = this.sectors["active"][sectorId]["edges"];
-  };
-
-
-  /**
-   * This function sets the global references to nodes, edges and nodeIndices back to
-   * those of the supplied active sector.
-   *
-   * @private
-   */
-  exports._switchToSupportSector = function() {
-    this.nodeIndices = this.sectors["support"]["nodeIndices"];
-    this.nodes       = this.sectors["support"]["nodes"];
-    this.edges       = this.sectors["support"]["edges"];
-  };
-
-
-  /**
-   * This function sets the global references to nodes, edges and nodeIndices back to
-   * those of the supplied frozen sector.
-   *
-   * @param sectorId
-   * @private
-   */
-  exports._switchToFrozenSector = function(sectorId) {
-    this.nodeIndices = this.sectors["frozen"][sectorId]["nodeIndices"];
-    this.nodes       = this.sectors["frozen"][sectorId]["nodes"];
-    this.edges       = this.sectors["frozen"][sectorId]["edges"];
-  };
-
-
-  /**
-   * This function sets the global references to nodes, edges and nodeIndices back to
-   * those of the currently active sector.
-   *
-   * @private
-   */
-  exports._loadLatestSector = function() {
-    this._switchToSector(this._sector());
-  };
-
-
-  /**
-   * This function returns the currently active sector Id
-   *
-   * @returns {String}
-   * @private
-   */
-  exports._sector = function() {
-    return this.activeSector[this.activeSector.length-1];
-  };
-
-
-  /**
-   * This function returns the previously active sector Id
-   *
-   * @returns {String}
-   * @private
-   */
-  exports._previousSector = function() {
-    if (this.activeSector.length > 1) {
-      return this.activeSector[this.activeSector.length-2];
-    }
-    else {
-      throw new TypeError('there are not enough sectors in the this.activeSector array.');
-    }
-  };
-
-
-  /**
-   * We add the active sector at the end of the this.activeSector array
-   * This ensures it is the currently active sector returned by _sector() and it reaches the top
-   * of the activeSector stack. When we reverse our steps we move from the end to the beginning of this stack.
-   *
-   * @param newId
-   * @private
-   */
-  exports._setActiveSector = function(newId) {
-    this.activeSector.push(newId);
-  };
-
-
-  /**
-   * We remove the currently active sector id from the active sector stack. This happens when
-   * we reactivate the previously active sector
-   *
-   * @private
-   */
-  exports._forgetLastSector = function() {
-    this.activeSector.pop();
-  };
-
-
-  /**
-   * This function creates a new active sector with the supplied newId. This newId
-   * is the expanding node id.
-   *
-   * @param {String} newId   | Id of the new active sector
-   * @private
-   */
-  exports._createNewSector = function(newId) {
-    // create the new sector
-    this.sectors["active"][newId] = {"nodes":{},
-                                     "edges":{},
-                                     "nodeIndices":[],
-                                     "formationScale": this.scale,
-                                     "drawingNode": undefined};
-
-    // create the new sector render node. This gives visual feedback that you are in a new sector.
-    this.sectors["active"][newId]['drawingNode'] = new Node(
-        {id:newId,
-          color: {
-            background: "#eaefef",
-            border: "495c5e"
-          }
-        },{},{},this.constants);
-    this.sectors["active"][newId]['drawingNode'].clusterSize = 2;
-  };
-
-
-  /**
-   * This function removes the currently active sector. This is called when we create a new
-   * active sector.
-   *
-   * @param {String} sectorId   | Id of the active sector that will be removed
-   * @private
-   */
-  exports._deleteActiveSector = function(sectorId) {
-    delete this.sectors["active"][sectorId];
-  };
-
-
-  /**
-   * This function removes the currently active sector. This is called when we reactivate
-   * the previously active sector.
-   *
-   * @param {String} sectorId   | Id of the active sector that will be removed
-   * @private
-   */
-  exports._deleteFrozenSector = function(sectorId) {
-    delete this.sectors["frozen"][sectorId];
-  };
-
-
-  /**
-   * Freezing an active sector means moving it from the "active" object to the "frozen" object.
-   * We copy the references, then delete the active entree.
-   *
-   * @param sectorId
-   * @private
-   */
-  exports._freezeSector = function(sectorId) {
-    // we move the set references from the active to the frozen stack.
-    this.sectors["frozen"][sectorId] = this.sectors["active"][sectorId];
-
-    // we have moved the sector data into the frozen set, we now remove it from the active set
-    this._deleteActiveSector(sectorId);
-  };
-
-
-  /**
-   * This is the reverse operation of _freezeSector. Activating means moving the sector from the "frozen"
-   * object to the "active" object.
-   *
-   * @param sectorId
-   * @private
-   */
-  exports._activateSector = function(sectorId) {
-    // we move the set references from the frozen to the active stack.
-    this.sectors["active"][sectorId] = this.sectors["frozen"][sectorId];
-
-    // we have moved the sector data into the active set, we now remove it from the frozen stack
-    this._deleteFrozenSector(sectorId);
-  };
-
-
-  /**
-   * This function merges the data from the currently active sector with a frozen sector. This is used
-   * in the process of reverting back to the previously active sector.
-   * The data that is placed in the frozen (the previously active) sector is the node that has been removed from it
-   * upon the creation of a new active sector.
-   *
-   * @param sectorId
-   * @private
-   */
-  exports._mergeThisWithFrozen = function(sectorId) {
-    // copy all nodes
-    for (var nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        this.sectors["frozen"][sectorId]["nodes"][nodeId] = this.nodes[nodeId];
-      }
-    }
-
-    // copy all edges (if not fully clustered, else there are no edges)
-    for (var edgeId in this.edges) {
-      if (this.edges.hasOwnProperty(edgeId)) {
-        this.sectors["frozen"][sectorId]["edges"][edgeId] = this.edges[edgeId];
-      }
-    }
-
-    // merge the nodeIndices
-    for (var i = 0; i < this.nodeIndices.length; i++) {
-      this.sectors["frozen"][sectorId]["nodeIndices"].push(this.nodeIndices[i]);
-    }
-  };
-
-
-  /**
-   * This clusters the sector to one cluster. It was a single cluster before this process started so
-   * we revert to that state. The clusterToFit function with a maximum size of 1 node does this.
-   *
-   * @private
-   */
-  exports._collapseThisToSingleCluster = function() {
-    this.clusterToFit(1,false);
-  };
-
-
-  /**
-   * We create a new active sector from the node that we want to open.
-   *
-   * @param node
-   * @private
-   */
-  exports._addSector = function(node) {
-    // this is the currently active sector
-    var sector = this._sector();
-
-  //    // this should allow me to select nodes from a frozen set.
-  //    if (this.sectors['active'][sector]["nodes"].hasOwnProperty(node.id)) {
-  //      console.log("the node is part of the active sector");
-  //    }
-  //    else {
-  //      console.log("I dont know what the fuck happened!!");
-  //    }
-
-    // when we switch to a new sector, we remove the node that will be expanded from the current nodes list.
-    delete this.nodes[node.id];
-
-    var unqiueIdentifier = util.randomUUID();
-
-    // we fully freeze the currently active sector
-    this._freezeSector(sector);
-
-    // we create a new active sector. This sector has the Id of the node to ensure uniqueness
-    this._createNewSector(unqiueIdentifier);
-
-    // we add the active sector to the sectors array to be able to revert these steps later on
-    this._setActiveSector(unqiueIdentifier);
-
-    // we redirect the global references to the new sector's references. this._sector() now returns unqiueIdentifier
-    this._switchToSector(this._sector());
-
-    // finally we add the node we removed from our previous active sector to the new active sector
-    this.nodes[node.id] = node;
-  };
-
-
-  /**
-   * We close the sector that is currently open and revert back to the one before.
-   * If the active sector is the "default" sector, nothing happens.
-   *
-   * @private
-   */
-  exports._collapseSector = function() {
-    // the currently active sector
-    var sector = this._sector();
-
-    // we cannot collapse the default sector
-    if (sector != "default") {
-      if ((this.nodeIndices.length == 1) ||
-       (this.sectors["active"][sector]["drawingNode"].width*this.scale < this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientWidth) ||
-       (this.sectors["active"][sector]["drawingNode"].height*this.scale < this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientHeight)) {
-        var previousSector = this._previousSector();
-
-        // we collapse the sector back to a single cluster
-        this._collapseThisToSingleCluster();
-
-        // we move the remaining nodes, edges and nodeIndices to the previous sector.
-        // This previous sector is the one we will reactivate
-        this._mergeThisWithFrozen(previousSector);
-
-        // the previously active (frozen) sector now has all the data from the currently active sector.
-        // we can now delete the active sector.
-        this._deleteActiveSector(sector);
-
-        // we activate the previously active (and currently frozen) sector.
-        this._activateSector(previousSector);
-
-        // we load the references from the newly active sector into the global references
-        this._switchToSector(previousSector);
-
-        // we forget the previously active sector because we reverted to the one before
-        this._forgetLastSector();
-
-        // finally, we update the node index list.
-        this._updateNodeIndexList();
-
-        // we refresh the list with calulation nodes and calculation node indices.
-        this._updateCalculationNodes();
-      }
-    }
-  };
-
-
-  /**
-   * This runs a function in all active sectors. This is used in _redraw() and the _initializeForceCalculation().
-   *
-   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
-   *                              |   we dont pass the function itself because then the "this" is the window object
-   *                              |   instead of the Network object
-   * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
-   * @private
-   */
-  exports._doInAllActiveSectors = function(runFunction,argument) {
-    if (argument === undefined) {
-      for (var sector in this.sectors["active"]) {
-        if (this.sectors["active"].hasOwnProperty(sector)) {
-          // switch the global references to those of this sector
-          this._switchToActiveSector(sector);
-          this[runFunction]();
-        }
-      }
-    }
-    else {
-      for (var sector in this.sectors["active"]) {
-        if (this.sectors["active"].hasOwnProperty(sector)) {
-          // switch the global references to those of this sector
-          this._switchToActiveSector(sector);
-          var args = Array.prototype.splice.call(arguments, 1);
-          if (args.length > 1) {
-            this[runFunction](args[0],args[1]);
-          }
-          else {
-            this[runFunction](argument);
-          }
-        }
-      }
-    }
-    // we revert the global references back to our active sector
-    this._loadLatestSector();
-  };
-
-
-  /**
-   * This runs a function in all active sectors. This is used in _redraw() and the _initializeForceCalculation().
-   *
-   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
-   *                              |   we dont pass the function itself because then the "this" is the window object
-   *                              |   instead of the Network object
-   * @param {*} [argument]        |   Optional: arguments to pass to the runFunction
-   * @private
-   */
-  exports._doInSupportSector = function(runFunction,argument) {
-    if (argument === undefined) {
-      this._switchToSupportSector();
-      this[runFunction]();
-    }
-    else {
-      this._switchToSupportSector();
-      var args = Array.prototype.splice.call(arguments, 1);
-      if (args.length > 1) {
-        this[runFunction](args[0],args[1]);
-      }
-      else {
-        this[runFunction](argument);
-      }
-    }
-    // we revert the global references back to our active sector
-    this._loadLatestSector();
-  };
-
-
-  /**
-   * This runs a function in all frozen sectors. This is used in the _redraw().
-   *
-   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
-   *                              |   we don't pass the function itself because then the "this" is the window object
-   *                              |   instead of the Network object
-   * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
-   * @private
-   */
-  exports._doInAllFrozenSectors = function(runFunction,argument) {
-    if (argument === undefined) {
-      for (var sector in this.sectors["frozen"]) {
-        if (this.sectors["frozen"].hasOwnProperty(sector)) {
-          // switch the global references to those of this sector
-          this._switchToFrozenSector(sector);
-          this[runFunction]();
-        }
-      }
-    }
-    else {
-      for (var sector in this.sectors["frozen"]) {
-        if (this.sectors["frozen"].hasOwnProperty(sector)) {
-          // switch the global references to those of this sector
-          this._switchToFrozenSector(sector);
-          var args = Array.prototype.splice.call(arguments, 1);
-          if (args.length > 1) {
-            this[runFunction](args[0],args[1]);
-          }
-          else {
-            this[runFunction](argument);
-          }
-        }
-      }
-    }
-    this._loadLatestSector();
-  };
-
-
-  /**
-   * This runs a function in all sectors. This is used in the _redraw().
-   *
-   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
-   *                              |   we don't pass the function itself because then the "this" is the window object
-   *                              |   instead of the Network object
-   * @param {*} [argument]        |   Optional: arguments to pass to the runFunction
-   * @private
-   */
-  exports._doInAllSectors = function(runFunction,argument) {
-    var args = Array.prototype.splice.call(arguments, 1);
-    if (argument === undefined) {
-      this._doInAllActiveSectors(runFunction);
-      this._doInAllFrozenSectors(runFunction);
-    }
-    else {
-      if (args.length > 1) {
-        this._doInAllActiveSectors(runFunction,args[0],args[1]);
-        this._doInAllFrozenSectors(runFunction,args[0],args[1]);
-      }
-      else {
-        this._doInAllActiveSectors(runFunction,argument);
-        this._doInAllFrozenSectors(runFunction,argument);
-      }
-    }
-  };
-
-
-  /**
-   * This clears the nodeIndices list. We cannot use this.nodeIndices = [] because we would break the link with the
-   * active sector. Thus we clear the nodeIndices in the active sector, then reconnect the this.nodeIndices to it.
-   *
-   * @private
-   */
-  exports._clearNodeIndexList = function() {
-    var sector = this._sector();
-    this.sectors["active"][sector]["nodeIndices"] = [];
-    this.nodeIndices = this.sectors["active"][sector]["nodeIndices"];
-  };
-
-
-  /**
-   * Draw the encompassing sector node
-   *
-   * @param ctx
-   * @param sectorType
-   * @private
-   */
-  exports._drawSectorNodes = function(ctx,sectorType) {
-    var minY = 1e9, maxY = -1e9, minX = 1e9, maxX = -1e9, node;
-    for (var sector in this.sectors[sectorType]) {
-      if (this.sectors[sectorType].hasOwnProperty(sector)) {
-        if (this.sectors[sectorType][sector]["drawingNode"] !== undefined) {
-
-          this._switchToSector(sector,sectorType);
-
-          minY = 1e9; maxY = -1e9; minX = 1e9; maxX = -1e9;
-          for (var nodeId in this.nodes) {
-            if (this.nodes.hasOwnProperty(nodeId)) {
-              node = this.nodes[nodeId];
-              node.resize(ctx);
-              if (minX > node.x - 0.5 * node.width) {minX = node.x - 0.5 * node.width;}
-              if (maxX < node.x + 0.5 * node.width) {maxX = node.x + 0.5 * node.width;}
-              if (minY > node.y - 0.5 * node.height) {minY = node.y - 0.5 * node.height;}
-              if (maxY < node.y + 0.5 * node.height) {maxY = node.y + 0.5 * node.height;}
-            }
-          }
-          node = this.sectors[sectorType][sector]["drawingNode"];
-          node.x = 0.5 * (maxX + minX);
-          node.y = 0.5 * (maxY + minY);
-          node.width = 2 * (node.x - minX);
-          node.height = 2 * (node.y - minY);
-          node.radius = Math.sqrt(Math.pow(0.5*node.width,2) + Math.pow(0.5*node.height,2));
-          node.setScale(this.scale);
-          node._drawCircle(ctx);
-        }
-      }
-    }
-  };
-
-  exports._drawAllSectorNodes = function(ctx) {
-    this._drawSectorNodes(ctx,"frozen");
-    this._drawSectorNodes(ctx,"active");
-    this._loadLatestSector();
-  };
-
-
-/***/ },
-/* 48 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var Node = __webpack_require__(36);
-
-  /**
-   * This function can be called from the _doInAllSectors function
-   *
-   * @param object
-   * @param overlappingNodes
-   * @private
-   */
-  exports._getNodesOverlappingWith = function(object, overlappingNodes) {
-    var nodes = this.nodes;
-    for (var nodeId in nodes) {
-      if (nodes.hasOwnProperty(nodeId)) {
-        if (nodes[nodeId].isOverlappingWith(object)) {
-          overlappingNodes.push(nodeId);
-        }
-      }
-    }
-  };
-
-  /**
-   * retrieve all nodes overlapping with given object
-   * @param {Object} object  An object with parameters left, top, right, bottom
-   * @return {Number[]}   An array with id's of the overlapping nodes
-   * @private
-   */
-  exports._getAllNodesOverlappingWith = function (object) {
-    var overlappingNodes = [];
-    this._doInAllActiveSectors("_getNodesOverlappingWith",object,overlappingNodes);
-    return overlappingNodes;
-  };
-
-
-  /**
-   * Return a position object in canvasspace from a single point in screenspace
-   *
-   * @param pointer
-   * @returns {{left: number, top: number, right: number, bottom: number}}
-   * @private
-   */
-  exports._pointerToPositionObject = function(pointer) {
-    var x = this._XconvertDOMtoCanvas(pointer.x);
-    var y = this._YconvertDOMtoCanvas(pointer.y);
-
-    return {
-      left:   x,
-      top:    y,
-      right:  x,
-      bottom: y
-    };
-  };
-
-
-  /**
-   * Get the top node at the a specific point (like a click)
-   *
-   * @param {{x: Number, y: Number}} pointer
-   * @return {Node | null} node
-   * @private
-   */
-  exports._getNodeAt = function (pointer) {
-    // we first check if this is an navigation controls element
-    var positionObject = this._pointerToPositionObject(pointer);
-    var overlappingNodes = this._getAllNodesOverlappingWith(positionObject);
-
-    // if there are overlapping nodes, select the last one, this is the
-    // one which is drawn on top of the others
-    if (overlappingNodes.length > 0) {
-       return this.nodes[overlappingNodes[overlappingNodes.length - 1]];
-    }
-    else {
-      return null;
-    }
-  };
-
-
-  /**
-   * retrieve all edges overlapping with given object, selector is around center
-   * @param {Object} object  An object with parameters left, top, right, bottom
-   * @return {Number[]}   An array with id's of the overlapping nodes
-   * @private
-   */
-  exports._getEdgesOverlappingWith = function (object, overlappingEdges) {
-    var edges = this.edges;
-    for (var edgeId in edges) {
-      if (edges.hasOwnProperty(edgeId)) {
-        if (edges[edgeId].isOverlappingWith(object)) {
-          overlappingEdges.push(edgeId);
-        }
-      }
-    }
-  };
-
-
-  /**
-   * retrieve all nodes overlapping with given object
-   * @param {Object} object  An object with parameters left, top, right, bottom
-   * @return {Number[]}   An array with id's of the overlapping nodes
-   * @private
-   */
-  exports._getAllEdgesOverlappingWith = function (object) {
-    var overlappingEdges = [];
-    this._doInAllActiveSectors("_getEdgesOverlappingWith",object,overlappingEdges);
-    return overlappingEdges;
-  };
-
-  /**
-   * Place holder. To implement change the _getNodeAt to a _getObjectAt. Have the _getObjectAt call
-   * _getNodeAt and _getEdgesAt, then priortize the selection to user preferences.
-   *
-   * @param pointer
-   * @returns {null}
-   * @private
-   */
-  exports._getEdgeAt = function(pointer) {
-    var positionObject = this._pointerToPositionObject(pointer);
-    var overlappingEdges = this._getAllEdgesOverlappingWith(positionObject);
-
-    if (overlappingEdges.length > 0) {
-      return this.edges[overlappingEdges[overlappingEdges.length - 1]];
-    }
-    else {
-      return null;
-    }
-  };
-
-
-  /**
-   * Add object to the selection array.
-   *
-   * @param obj
-   * @private
-   */
-  exports._addToSelection = function(obj) {
-    if (obj instanceof Node) {
-      this.selectionObj.nodes[obj.id] = obj;
-    }
-    else {
-      this.selectionObj.edges[obj.id] = obj;
-    }
-  };
-
-  /**
-   * Add object to the selection array.
-   *
-   * @param obj
-   * @private
-   */
-  exports._addToHover = function(obj) {
-    if (obj instanceof Node) {
-      this.hoverObj.nodes[obj.id] = obj;
-    }
-    else {
-      this.hoverObj.edges[obj.id] = obj;
-    }
-  };
-
-
-  /**
-   * Remove a single option from selection.
-   *
-   * @param {Object} obj
-   * @private
-   */
-  exports._removeFromSelection = function(obj) {
-    if (obj instanceof Node) {
-      delete this.selectionObj.nodes[obj.id];
-    }
-    else {
-      delete this.selectionObj.edges[obj.id];
-    }
-  };
-
-  /**
-   * Unselect all. The selectionObj is useful for this.
-   *
-   * @param {Boolean} [doNotTrigger] | ignore trigger
-   * @private
-   */
-  exports._unselectAll = function(doNotTrigger) {
-    if (doNotTrigger === undefined) {
-      doNotTrigger = false;
-    }
-    for(var nodeId in this.selectionObj.nodes) {
-      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-        this.selectionObj.nodes[nodeId].unselect();
-      }
-    }
-    for(var edgeId in this.selectionObj.edges) {
-      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
-        this.selectionObj.edges[edgeId].unselect();
-      }
-    }
-
-    this.selectionObj = {nodes:{},edges:{}};
-
-    if (doNotTrigger == false) {
-      this.emit('select', this.getSelection());
-    }
-  };
-
-  /**
-   * Unselect all clusters. The selectionObj is useful for this.
-   *
-   * @param {Boolean} [doNotTrigger] | ignore trigger
-   * @private
-   */
-  exports._unselectClusters = function(doNotTrigger) {
-    if (doNotTrigger === undefined) {
-      doNotTrigger = false;
-    }
-
-    for (var nodeId in this.selectionObj.nodes) {
-      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-        if (this.selectionObj.nodes[nodeId].clusterSize > 1) {
-          this.selectionObj.nodes[nodeId].unselect();
-          this._removeFromSelection(this.selectionObj.nodes[nodeId]);
-        }
-      }
-    }
-
-    if (doNotTrigger == false) {
-      this.emit('select', this.getSelection());
-    }
-  };
-
-
-  /**
-   * return the number of selected nodes
-   *
-   * @returns {number}
-   * @private
-   */
-  exports._getSelectedNodeCount = function() {
-    var count = 0;
-    for (var nodeId in this.selectionObj.nodes) {
-      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-        count += 1;
-      }
-    }
-    return count;
-  };
-
-  /**
-   * return the selected node
-   *
-   * @returns {number}
-   * @private
-   */
-  exports._getSelectedNode = function() {
-    for (var nodeId in this.selectionObj.nodes) {
-      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-        return this.selectionObj.nodes[nodeId];
-      }
-    }
-    return null;
-  };
-
-  /**
-   * return the selected edge
-   *
-   * @returns {number}
-   * @private
-   */
-  exports._getSelectedEdge = function() {
-    for (var edgeId in this.selectionObj.edges) {
-      if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
-        return this.selectionObj.edges[edgeId];
-      }
-    }
-    return null;
-  };
-
-
-  /**
-   * return the number of selected edges
-   *
-   * @returns {number}
-   * @private
-   */
-  exports._getSelectedEdgeCount = function() {
-    var count = 0;
-    for (var edgeId in this.selectionObj.edges) {
-      if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
-        count += 1;
-      }
-    }
-    return count;
-  };
-
-
-  /**
-   * return the number of selected objects.
-   *
-   * @returns {number}
-   * @private
-   */
-  exports._getSelectedObjectCount = function() {
-    var count = 0;
-    for(var nodeId in this.selectionObj.nodes) {
-      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-        count += 1;
-      }
-    }
-    for(var edgeId in this.selectionObj.edges) {
-      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
-        count += 1;
-      }
-    }
-    return count;
-  };
-
-  /**
-   * Check if anything is selected
-   *
-   * @returns {boolean}
-   * @private
-   */
-  exports._selectionIsEmpty = function() {
-    for(var nodeId in this.selectionObj.nodes) {
-      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-        return false;
-      }
-    }
-    for(var edgeId in this.selectionObj.edges) {
-      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
-        return false;
-      }
-    }
-    return true;
-  };
-
-
-  /**
-   * check if one of the selected nodes is a cluster.
-   *
-   * @returns {boolean}
-   * @private
-   */
-  exports._clusterInSelection = function() {
-    for(var nodeId in this.selectionObj.nodes) {
-      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-        if (this.selectionObj.nodes[nodeId].clusterSize > 1) {
-          return true;
-        }
-      }
-    }
-    return false;
-  };
-
-  /**
-   * select the edges connected to the node that is being selected
-   *
-   * @param {Node} node
-   * @private
-   */
-  exports._selectConnectedEdges = function(node) {
-    for (var i = 0; i < node.dynamicEdges.length; i++) {
-      var edge = node.dynamicEdges[i];
-      edge.select();
-      this._addToSelection(edge);
-    }
-  };
-
-  /**
-   * select the edges connected to the node that is being selected
-   *
-   * @param {Node} node
-   * @private
-   */
-  exports._hoverConnectedEdges = function(node) {
-    for (var i = 0; i < node.dynamicEdges.length; i++) {
-      var edge = node.dynamicEdges[i];
-      edge.hover = true;
-      this._addToHover(edge);
-    }
-  };
-
-
-  /**
-   * unselect the edges connected to the node that is being selected
-   *
-   * @param {Node} node
-   * @private
-   */
-  exports._unselectConnectedEdges = function(node) {
-    for (var i = 0; i < node.dynamicEdges.length; i++) {
-      var edge = node.dynamicEdges[i];
-      edge.unselect();
-      this._removeFromSelection(edge);
-    }
-  };
-
-
-
-
-  /**
-   * This is called when someone clicks on a node. either select or deselect it.
-   * If there is an existing selection and we don't want to append to it, clear the existing selection
-   *
-   * @param {Node || Edge} object
-   * @param {Boolean} append
-   * @param {Boolean} [doNotTrigger] | ignore trigger
-   * @private
-   */
-  exports._selectObject = function(object, append, doNotTrigger, highlightEdges) {
-    if (doNotTrigger === undefined) {
-      doNotTrigger = false;
-    }
-    if (highlightEdges === undefined) {
-      highlightEdges = true;
-    }
-
-    if (this._selectionIsEmpty() == false && append == false && this.forceAppendSelection == false) {
-      this._unselectAll(true);
-    }
-
-    if (object.selected == false) {
-      object.select();
-      this._addToSelection(object);
-      if (object instanceof Node && this.blockConnectingEdgeSelection == false && highlightEdges == true) {
-        this._selectConnectedEdges(object);
-      }
-    }
-    else {
-      object.unselect();
-      this._removeFromSelection(object);
-    }
-
-    if (doNotTrigger == false) {
-      this.emit('select', this.getSelection());
-    }
-  };
-
-
-  /**
-   * This is called when someone clicks on a node. either select or deselect it.
-   * If there is an existing selection and we don't want to append to it, clear the existing selection
-   *
-   * @param {Node || Edge} object
-   * @private
-   */
-  exports._blurObject = function(object) {
-    if (object.hover == true) {
-      object.hover = false;
-      this.emit("blurNode",{node:object.id});
-    }
-  };
-
-  /**
-   * This is called when someone clicks on a node. either select or deselect it.
-   * If there is an existing selection and we don't want to append to it, clear the existing selection
-   *
-   * @param {Node || Edge} object
-   * @private
-   */
-  exports._hoverObject = function(object) {
-    if (object.hover == false) {
-      object.hover = true;
-      this._addToHover(object);
-      if (object instanceof Node) {
-        this.emit("hoverNode",{node:object.id});
-      }
-    }
-    if (object instanceof Node) {
-      this._hoverConnectedEdges(object);
-    }
-  };
-
-
-  /**
-   * handles the selection part of the touch, only for navigation controls elements;
-   * Touch is triggered before tap, also before hold. Hold triggers after a while.
-   * This is the most responsive solution
-   *
-   * @param {Object} pointer
-   * @private
-   */
-  exports._handleTouch = function(pointer) {
-  };
-
-
-  /**
-   * handles the selection part of the tap;
-   *
-   * @param {Object} pointer
-   * @private
-   */
-  exports._handleTap = function(pointer) {
-    var node = this._getNodeAt(pointer);
-    if (node != null) {
-      this._selectObject(node,false);
-    }
-    else {
-      var edge = this._getEdgeAt(pointer);
-      if (edge != null) {
-        this._selectObject(edge,false);
-      }
-      else {
-        this._unselectAll();
-      }
-    }
-    this.emit("click", this.getSelection());
-    this._redraw();
-  };
-
-
-  /**
-   * handles the selection part of the double tap and opens a cluster if needed
-   *
-   * @param {Object} pointer
-   * @private
-   */
-  exports._handleDoubleTap = function(pointer) {
-    var node = this._getNodeAt(pointer);
-    if (node != null && node !== undefined) {
-      // we reset the areaCenter here so the opening of the node will occur
-      this.areaCenter =  {"x" : this._XconvertDOMtoCanvas(pointer.x),
-                          "y" : this._YconvertDOMtoCanvas(pointer.y)};
-      this.openCluster(node);
-    }
-    this.emit("doubleClick", this.getSelection());
-  };
-
-
-  /**
-   * Handle the onHold selection part
-   *
-   * @param pointer
-   * @private
-   */
-  exports._handleOnHold = function(pointer) {
-    var node = this._getNodeAt(pointer);
-    if (node != null) {
-      this._selectObject(node,true);
-    }
-    else {
-      var edge = this._getEdgeAt(pointer);
-      if (edge != null) {
-        this._selectObject(edge,true);
-      }
-    }
-    this._redraw();
-  };
-
-
-  /**
-   * handle the onRelease event. These functions are here for the navigation controls module.
-   *
-    * @private
-   */
-  exports._handleOnRelease = function(pointer) {
-
-  };
-
-
-
-  /**
-   *
-   * retrieve the currently selected objects
-   * @return {{nodes: Array.<String>, edges: Array.<String>}} selection
-   */
-  exports.getSelection = function() {
-    var nodeIds = this.getSelectedNodes();
-    var edgeIds = this.getSelectedEdges();
-    return {nodes:nodeIds, edges:edgeIds};
-  };
-
-  /**
-   *
-   * retrieve the currently selected nodes
-   * @return {String[]} selection    An array with the ids of the
-   *                                            selected nodes.
-   */
-  exports.getSelectedNodes = function() {
-    var idArray = [];
-    for(var nodeId in this.selectionObj.nodes) {
-      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-        idArray.push(nodeId);
-      }
-    }
-    return idArray
-  };
-
-  /**
-   *
-   * retrieve the currently selected edges
-   * @return {Array} selection    An array with the ids of the
-   *                                            selected nodes.
-   */
-  exports.getSelectedEdges = function() {
-    var idArray = [];
-    for(var edgeId in this.selectionObj.edges) {
-      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
-        idArray.push(edgeId);
-      }
-    }
-    return idArray;
-  };
-
-
-  /**
-   * select zero or more nodes
-   * @param {Number[] | String[]} selection     An array with the ids of the
-   *                                            selected nodes.
-   */
-  exports.setSelection = function(selection) {
-    var i, iMax, id;
-
-    if (!selection || (selection.length == undefined))
-      throw 'Selection must be an array with ids';
-
-    // first unselect any selected node
-    this._unselectAll(true);
-
-    for (i = 0, iMax = selection.length; i < iMax; i++) {
-      id = selection[i];
-
-      var node = this.nodes[id];
-      if (!node) {
-        throw new RangeError('Node with id "' + id + '" not found');
-      }
-      this._selectObject(node,true,true);
-    }
-
-    console.log("setSelection is deprecated. Please use selectNodes instead.")
-
-    this.redraw();
-  };
-
-
-  /**
-   * select zero or more nodes with the option to highlight edges
-   * @param {Number[] | String[]} selection     An array with the ids of the
-   *                                            selected nodes.
-   * @param {boolean} [highlightEdges]
-   */
-  exports.selectNodes = function(selection, highlightEdges) {
-    var i, iMax, id;
-
-    if (!selection || (selection.length == undefined))
-      throw 'Selection must be an array with ids';
-
-    // first unselect any selected node
-    this._unselectAll(true);
-
-    for (i = 0, iMax = selection.length; i < iMax; i++) {
-      id = selection[i];
-
-      var node = this.nodes[id];
-      if (!node) {
-        throw new RangeError('Node with id "' + id + '" not found');
-      }
-      this._selectObject(node,true,true,highlightEdges);
-    }
-    this.redraw();
-  };
-
-
-  /**
-   * select zero or more edges
-   * @param {Number[] | String[]} selection     An array with the ids of the
-   *                                            selected nodes.
-   */
-  exports.selectEdges = function(selection) {
-    var i, iMax, id;
-
-    if (!selection || (selection.length == undefined))
-      throw 'Selection must be an array with ids';
-
-    // first unselect any selected node
-    this._unselectAll(true);
-
-    for (i = 0, iMax = selection.length; i < iMax; i++) {
-      id = selection[i];
-
-      var edge = this.edges[id];
-      if (!edge) {
-        throw new RangeError('Edge with id "' + id + '" not found');
-      }
-      this._selectObject(edge,true,true,highlightEdges);
-    }
-    this.redraw();
-  };
-
-  /**
-   * Validate the selection: remove ids of nodes which no longer exist
-   * @private
-   */
-  exports._updateSelection = function () {
-    for(var nodeId in this.selectionObj.nodes) {
-      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-        if (!this.nodes.hasOwnProperty(nodeId)) {
-          delete this.selectionObj.nodes[nodeId];
-        }
-      }
-    }
-    for(var edgeId in this.selectionObj.edges) {
-      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
-        if (!this.edges.hasOwnProperty(edgeId)) {
-          delete this.selectionObj.edges[edgeId];
-        }
-      }
-    }
-  };
-
-
-/***/ },
-/* 49 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var util = __webpack_require__(1);
-  var Node = __webpack_require__(36);
-  var Edge = __webpack_require__(33);
-
-  /**
-   * clears the toolbar div element of children
-   *
-   * @private
-   */
-  exports._clearManipulatorBar = function() {
-    while (this.manipulationDiv.hasChildNodes()) {
-      this.manipulationDiv.removeChild(this.manipulationDiv.firstChild);
-    }
-  };
-
-  /**
-   * Manipulation UI temporarily overloads certain functions to extend or replace them. To be able to restore
-   * these functions to their original functionality, we saved them in this.cachedFunctions.
-   * This function restores these functions to their original function.
-   *
-   * @private
-   */
-  exports._restoreOverloadedFunctions = function() {
-    for (var functionName in this.cachedFunctions) {
-      if (this.cachedFunctions.hasOwnProperty(functionName)) {
-        this[functionName] = this.cachedFunctions[functionName];
-      }
-    }
-  };
-
-  /**
-   * Enable or disable edit-mode.
-   *
-   * @private
-   */
-  exports._toggleEditMode = function() {
-    this.editMode = !this.editMode;
-    var toolbar = document.getElementById("network-manipulationDiv");
-    var closeDiv = document.getElementById("network-manipulation-closeDiv");
-    var editModeDiv = document.getElementById("network-manipulation-editMode");
-    if (this.editMode == true) {
-      toolbar.style.display="block";
-      closeDiv.style.display="block";
-      editModeDiv.style.display="none";
-      closeDiv.onclick = this._toggleEditMode.bind(this);
-    }
-    else {
-      toolbar.style.display="none";
-      closeDiv.style.display="none";
-      editModeDiv.style.display="block";
-      closeDiv.onclick = null;
-    }
-    this._createManipulatorBar()
-  };
-
-  /**
-   * main function, creates the main toolbar. Removes functions bound to the select event. Binds all the buttons of the toolbar.
-   *
-   * @private
-   */
-  exports._createManipulatorBar = function() {
-    // remove bound functions
-    if (this.boundFunction) {
-      this.off('select', this.boundFunction);
-    }
-
-    if (this.edgeBeingEdited !== undefined) {
-      this.edgeBeingEdited._disableControlNodes();
-      this.edgeBeingEdited = undefined;
-      this.selectedControlNode = null;
-      this.controlNodesActive = false;
-    }
-
-    // restore overloaded functions
-    this._restoreOverloadedFunctions();
-
-    // resume calculation
-    this.freezeSimulation = false;
-
-    // reset global variables
-    this.blockConnectingEdgeSelection = false;
-    this.forceAppendSelection = false;
-
-    if (this.editMode == true) {
-      while (this.manipulationDiv.hasChildNodes()) {
-        this.manipulationDiv.removeChild(this.manipulationDiv.firstChild);
-      }
-      // add the icons to the manipulator div
-      this.manipulationDiv.innerHTML = "" +
-        "<span class='network-manipulationUI add' id='network-manipulate-addNode'>" +
-          "<span class='network-manipulationLabel'>"+this.constants.labels['add'] +"</span></span>" +
-        "<div class='network-seperatorLine'></div>" +
-        "<span class='network-manipulationUI connect' id='network-manipulate-connectNode'>" +
-          "<span class='network-manipulationLabel'>"+this.constants.labels['link'] +"</span></span>";
-      if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
-        this.manipulationDiv.innerHTML += "" +
-          "<div class='network-seperatorLine'></div>" +
-          "<span class='network-manipulationUI edit' id='network-manipulate-editNode'>" +
-            "<span class='network-manipulationLabel'>"+this.constants.labels['editNode'] +"</span></span>";
-      }
-      else if (this._getSelectedEdgeCount() == 1 && this._getSelectedNodeCount() == 0) {
-        this.manipulationDiv.innerHTML += "" +
-          "<div class='network-seperatorLine'></div>" +
-          "<span class='network-manipulationUI edit' id='network-manipulate-editEdge'>" +
-          "<span class='network-manipulationLabel'>"+this.constants.labels['editEdge'] +"</span></span>";
-      }
-      if (this._selectionIsEmpty() == false) {
-        this.manipulationDiv.innerHTML += "" +
-          "<div class='network-seperatorLine'></div>" +
-          "<span class='network-manipulationUI delete' id='network-manipulate-delete'>" +
-            "<span class='network-manipulationLabel'>"+this.constants.labels['del'] +"</span></span>";
-      }
-
-
-      // bind the icons
-      var addNodeButton = document.getElementById("network-manipulate-addNode");
-      addNodeButton.onclick = this._createAddNodeToolbar.bind(this);
-      var addEdgeButton = document.getElementById("network-manipulate-connectNode");
-      addEdgeButton.onclick = this._createAddEdgeToolbar.bind(this);
-      if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
-        var editButton = document.getElementById("network-manipulate-editNode");
-        editButton.onclick = this._editNode.bind(this);
-      }
-      else if (this._getSelectedEdgeCount() == 1 && this._getSelectedNodeCount() == 0) {
-        var editButton = document.getElementById("network-manipulate-editEdge");
-        editButton.onclick = this._createEditEdgeToolbar.bind(this);
-      }
-      if (this._selectionIsEmpty() == false) {
-        var deleteButton = document.getElementById("network-manipulate-delete");
-        deleteButton.onclick = this._deleteSelected.bind(this);
-      }
-      var closeDiv = document.getElementById("network-manipulation-closeDiv");
-      closeDiv.onclick = this._toggleEditMode.bind(this);
-
-      this.boundFunction = this._createManipulatorBar.bind(this);
-      this.on('select', this.boundFunction);
-    }
-    else {
-      this.editModeDiv.innerHTML = "" +
-        "<span class='network-manipulationUI edit editmode' id='network-manipulate-editModeButton'>" +
-        "<span class='network-manipulationLabel'>" + this.constants.labels['edit'] + "</span></span>";
-      var editModeButton = document.getElementById("network-manipulate-editModeButton");
-      editModeButton.onclick = this._toggleEditMode.bind(this);
-    }
-  };
-
-
-
-  /**
-   * Create the toolbar for adding Nodes
-   *
-   * @private
-   */
-  exports._createAddNodeToolbar = function() {
-    // clear the toolbar
-    this._clearManipulatorBar();
-    if (this.boundFunction) {
-      this.off('select', this.boundFunction);
-    }
-
-    // create the toolbar contents
-    this.manipulationDiv.innerHTML = "" +
-      "<span class='network-manipulationUI back' id='network-manipulate-back'>" +
-      "<span class='network-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
-      "<div class='network-seperatorLine'></div>" +
-      "<span class='network-manipulationUI none' id='network-manipulate-back'>" +
-      "<span id='network-manipulatorLabel' class='network-manipulationLabel'>" + this.constants.labels['addDescription'] + "</span></span>";
-
-    // bind the icon
-    var backButton = document.getElementById("network-manipulate-back");
-    backButton.onclick = this._createManipulatorBar.bind(this);
-
-    // we use the boundFunction so we can reference it when we unbind it from the "select" event.
-    this.boundFunction = this._addNode.bind(this);
-    this.on('select', this.boundFunction);
-  };
-
-
-  /**
-   * create the toolbar to connect nodes
-   *
-   * @private
-   */
-  exports._createAddEdgeToolbar = function() {
-    // clear the toolbar
-    this._clearManipulatorBar();
-    this._unselectAll(true);
-    this.freezeSimulation = true;
-
-    if (this.boundFunction) {
-      this.off('select', this.boundFunction);
-    }
-
-    this._unselectAll();
-    this.forceAppendSelection = false;
-    this.blockConnectingEdgeSelection = true;
-
-    this.manipulationDiv.innerHTML = "" +
-      "<span class='network-manipulationUI back' id='network-manipulate-back'>" +
-        "<span class='network-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
-      "<div class='network-seperatorLine'></div>" +
-      "<span class='network-manipulationUI none' id='network-manipulate-back'>" +
-        "<span id='network-manipulatorLabel' class='network-manipulationLabel'>" + this.constants.labels['linkDescription'] + "</span></span>";
-
-    // bind the icon
-    var backButton = document.getElementById("network-manipulate-back");
-    backButton.onclick = this._createManipulatorBar.bind(this);
-
-    // we use the boundFunction so we can reference it when we unbind it from the "select" event.
-    this.boundFunction = this._handleConnect.bind(this);
-    this.on('select', this.boundFunction);
-
-    // temporarily overload functions
-    this.cachedFunctions["_handleTouch"] = this._handleTouch;
-    this.cachedFunctions["_handleOnRelease"] = this._handleOnRelease;
-    this._handleTouch = this._handleConnect;
-    this._handleOnRelease = this._finishConnect;
-
-    // redraw to show the unselect
-    this._redraw();
-  };
-
-  /**
-   * create the toolbar to edit edges
-   *
-   * @private
-   */
-  exports._createEditEdgeToolbar = function() {
-    // clear the toolbar
-    this._clearManipulatorBar();
-    this.controlNodesActive = true;
-
-    if (this.boundFunction) {
-      this.off('select', this.boundFunction);
-    }
-
-    this.edgeBeingEdited = this._getSelectedEdge();
-    this.edgeBeingEdited._enableControlNodes();
-
-    this.manipulationDiv.innerHTML = "" +
-      "<span class='network-manipulationUI back' id='network-manipulate-back'>" +
-      "<span class='network-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
-      "<div class='network-seperatorLine'></div>" +
-      "<span class='network-manipulationUI none' id='network-manipulate-back'>" +
-      "<span id='network-manipulatorLabel' class='network-manipulationLabel'>" + this.constants.labels['editEdgeDescription'] + "</span></span>";
-
-    // bind the icon
-    var backButton = document.getElementById("network-manipulate-back");
-    backButton.onclick = this._createManipulatorBar.bind(this);
-
-    // temporarily overload functions
-    this.cachedFunctions["_handleTouch"]      = this._handleTouch;
-    this.cachedFunctions["_handleOnRelease"]  = this._handleOnRelease;
-    this.cachedFunctions["_handleTap"]        = this._handleTap;
-    this.cachedFunctions["_handleDragStart"]  = this._handleDragStart;
-    this.cachedFunctions["_handleOnDrag"]     = this._handleOnDrag;
-    this._handleTouch     = this._selectControlNode;
-    this._handleTap       = function () {};
-    this._handleOnDrag    = this._controlNodeDrag;
-    this._handleDragStart = function () {}
-    this._handleOnRelease = this._releaseControlNode;
-
-    // redraw to show the unselect
-    this._redraw();
-  };
-
-
-
-
-
-  /**
-   * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
-   * to walk the user through the process.
-   *
-   * @private
-   */
-  exports._selectControlNode = function(pointer) {
-    this.edgeBeingEdited.controlNodes.from.unselect();
-    this.edgeBeingEdited.controlNodes.to.unselect();
-    this.selectedControlNode = this.edgeBeingEdited._getSelectedControlNode(this._XconvertDOMtoCanvas(pointer.x),this._YconvertDOMtoCanvas(pointer.y));
-    if (this.selectedControlNode !== null) {
-      this.selectedControlNode.select();
-      this.freezeSimulation = true;
-    }
-    this._redraw();
-  };
-
-  /**
-   * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
-   * to walk the user through the process.
-   *
-   * @private
-   */
-  exports._controlNodeDrag = function(event) {
-    var pointer = this._getPointer(event.gesture.center);
-    if (this.selectedControlNode !== null && this.selectedControlNode !== undefined) {
-      this.selectedControlNode.x = this._XconvertDOMtoCanvas(pointer.x);
-      this.selectedControlNode.y = this._YconvertDOMtoCanvas(pointer.y);
-    }
-    this._redraw();
-  };
-
-  exports._releaseControlNode = function(pointer) {
-    var newNode = this._getNodeAt(pointer);
-    if (newNode != null) {
-      if (this.edgeBeingEdited.controlNodes.from.selected == true) {
-        this._editEdge(newNode.id, this.edgeBeingEdited.to.id);
-        this.edgeBeingEdited.controlNodes.from.unselect();
-      }
-      if (this.edgeBeingEdited.controlNodes.to.selected == true) {
-        this._editEdge(this.edgeBeingEdited.from.id, newNode.id);
-        this.edgeBeingEdited.controlNodes.to.unselect();
-      }
-    }
-    else {
-      this.edgeBeingEdited._restoreControlNodes();
-    }
-    this.freezeSimulation = false;
-    this._redraw();
-  };
-
-  /**
-   * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
-   * to walk the user through the process.
-   *
-   * @private
-   */
-  exports._handleConnect = function(pointer) {
-    if (this._getSelectedNodeCount() == 0) {
-      var node = this._getNodeAt(pointer);
-      if (node != null) {
-        if (node.clusterSize > 1) {
-          alert("Cannot create edges to a cluster.")
-        }
-        else {
-          this._selectObject(node,false);
-          // create a node the temporary line can look at
-          this.sectors['support']['nodes']['targetNode'] = new Node({id:'targetNode'},{},{},this.constants);
-          this.sectors['support']['nodes']['targetNode'].x = node.x;
-          this.sectors['support']['nodes']['targetNode'].y = node.y;
-          this.sectors['support']['nodes']['targetViaNode'] = new Node({id:'targetViaNode'},{},{},this.constants);
-          this.sectors['support']['nodes']['targetViaNode'].x = node.x;
-          this.sectors['support']['nodes']['targetViaNode'].y = node.y;
-          this.sectors['support']['nodes']['targetViaNode'].parentEdgeId = "connectionEdge";
-
-          // create a temporary edge
-          this.edges['connectionEdge'] = new Edge({id:"connectionEdge",from:node.id,to:this.sectors['support']['nodes']['targetNode'].id}, this, this.constants);
-          this.edges['connectionEdge'].from = node;
-          this.edges['connectionEdge'].connected = true;
-          this.edges['connectionEdge'].smooth = true;
-          this.edges['connectionEdge'].selected = true;
-          this.edges['connectionEdge'].to = this.sectors['support']['nodes']['targetNode'];
-          this.edges['connectionEdge'].via = this.sectors['support']['nodes']['targetViaNode'];
-
-          this.cachedFunctions["_handleOnDrag"] = this._handleOnDrag;
-          this._handleOnDrag = function(event) {
-            var pointer = this._getPointer(event.gesture.center);
-            this.sectors['support']['nodes']['targetNode'].x = this._XconvertDOMtoCanvas(pointer.x);
-            this.sectors['support']['nodes']['targetNode'].y = this._YconvertDOMtoCanvas(pointer.y);
-            this.sectors['support']['nodes']['targetViaNode'].x = 0.5 * (this._XconvertDOMtoCanvas(pointer.x) + this.edges['connectionEdge'].from.x);
-            this.sectors['support']['nodes']['targetViaNode'].y = this._YconvertDOMtoCanvas(pointer.y);
-          };
-
-          this.moving = true;
-          this.start();
-        }
-      }
-    }
-  };
-
-  exports._finishConnect = function(pointer) {
-    if (this._getSelectedNodeCount() == 1) {
-
-      // restore the drag function
-      this._handleOnDrag = this.cachedFunctions["_handleOnDrag"];
-      delete this.cachedFunctions["_handleOnDrag"];
-
-      // remember the edge id
-      var connectFromId = this.edges['connectionEdge'].fromId;
-
-      // remove the temporary nodes and edge
-      delete this.edges['connectionEdge'];
-      delete this.sectors['support']['nodes']['targetNode'];
-      delete this.sectors['support']['nodes']['targetViaNode'];
-
-      var node = this._getNodeAt(pointer);
-      if (node != null) {
-        if (node.clusterSize > 1) {
-          alert("Cannot create edges to a cluster.")
-        }
-        else {
-          this._createEdge(connectFromId,node.id);
-          this._createManipulatorBar();
-        }
-      }
-      this._unselectAll();
-    }
-  };
-
-
-  /**
-   * Adds a node on the specified location
-   */
-  exports._addNode = function() {
-    if (this._selectionIsEmpty() && this.editMode == true) {
-      var positionObject = this._pointerToPositionObject(this.pointerPosition);
-      var defaultData = {id:util.randomUUID(),x:positionObject.left,y:positionObject.top,label:"new",allowedToMoveX:true,allowedToMoveY:true};
-      if (this.triggerFunctions.add) {
-        if (this.triggerFunctions.add.length == 2) {
-          var me = this;
-          this.triggerFunctions.add(defaultData, function(finalizedData) {
-            me.nodesData.add(finalizedData);
-            me._createManipulatorBar();
-            me.moving = true;
-            me.start();
-          });
-        }
-        else {
-          alert(this.constants.labels['addError']);
-          this._createManipulatorBar();
-          this.moving = true;
-          this.start();
-        }
-      }
-      else {
-        this.nodesData.add(defaultData);
-        this._createManipulatorBar();
-        this.moving = true;
-        this.start();
-      }
-    }
-  };
-
-
-  /**
-   * connect two nodes with a new edge.
-   *
-   * @private
-   */
-  exports._createEdge = function(sourceNodeId,targetNodeId) {
-    if (this.editMode == true) {
-      var defaultData = {from:sourceNodeId, to:targetNodeId};
-      if (this.triggerFunctions.connect) {
-        if (this.triggerFunctions.connect.length == 2) {
-          var me = this;
-          this.triggerFunctions.connect(defaultData, function(finalizedData) {
-            me.edgesData.add(finalizedData);
-            me.moving = true;
-            me.start();
-          });
-        }
-        else {
-          alert(this.constants.labels["linkError"]);
-          this.moving = true;
-          this.start();
-        }
-      }
-      else {
-        this.edgesData.add(defaultData);
-        this.moving = true;
-        this.start();
-      }
-    }
-  };
-
-  /**
-   * connect two nodes with a new edge.
-   *
-   * @private
-   */
-  exports._editEdge = function(sourceNodeId,targetNodeId) {
-    if (this.editMode == true) {
-      var defaultData = {id: this.edgeBeingEdited.id, from:sourceNodeId, to:targetNodeId};
-      if (this.triggerFunctions.editEdge) {
-        if (this.triggerFunctions.editEdge.length == 2) {
-          var me = this;
-          this.triggerFunctions.editEdge(defaultData, function(finalizedData) {
-            me.edgesData.update(finalizedData);
-            me.moving = true;
-            me.start();
-          });
-        }
-        else {
-          alert(this.constants.labels["linkError"]);
-          this.moving = true;
-          this.start();
-        }
-      }
-      else {
-        this.edgesData.update(defaultData);
-        this.moving = true;
-        this.start();
-      }
-    }
-  };
-
-  /**
-   * Create the toolbar to edit the selected node. The label and the color can be changed. Other colors are derived from the chosen color.
-   *
-   * @private
-   */
-  exports._editNode = function() {
-    if (this.triggerFunctions.edit && this.editMode == true) {
-      var node = this._getSelectedNode();
-      var data = {id:node.id,
-        label: node.label,
-        group: node.group,
-        shape: node.shape,
-        color: {
-          background:node.color.background,
-          border:node.color.border,
-          highlight: {
-            background:node.color.highlight.background,
-            border:node.color.highlight.border
-          }
-        }};
-      if (this.triggerFunctions.edit.length == 2) {
-        var me = this;
-        this.triggerFunctions.edit(data, function (finalizedData) {
-          me.nodesData.update(finalizedData);
-          me._createManipulatorBar();
-          me.moving = true;
-          me.start();
-        });
-      }
-      else {
-        alert(this.constants.labels["editError"]);
-      }
-    }
-    else {
-      alert(this.constants.labels["editBoundError"]);
-    }
-  };
-
-
-
-
-  /**
-   * delete everything in the selection
-   *
-   * @private
-   */
-  exports._deleteSelected = function() {
-    if (!this._selectionIsEmpty() && this.editMode == true) {
-      if (!this._clusterInSelection()) {
-        var selectedNodes = this.getSelectedNodes();
-        var selectedEdges = this.getSelectedEdges();
-        if (this.triggerFunctions.del) {
-          var me = this;
-          var data = {nodes: selectedNodes, edges: selectedEdges};
-          if (this.triggerFunctions.del.length = 2) {
-            this.triggerFunctions.del(data, function (finalizedData) {
-              me.edgesData.remove(finalizedData.edges);
-              me.nodesData.remove(finalizedData.nodes);
-              me._unselectAll();
-              me.moving = true;
-              me.start();
-            });
-          }
-          else {
-            alert(this.constants.labels["deleteError"])
-          }
-        }
-        else {
-          this.edgesData.remove(selectedEdges);
-          this.nodesData.remove(selectedNodes);
-          this._unselectAll();
-          this.moving = true;
-          this.start();
-        }
-      }
-      else {
-        alert(this.constants.labels["deleteClusterError"]);
-      }
-    }
-  };
-
-
-/***/ },
-/* 50 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var util = __webpack_require__(1);
-
-  exports._cleanNavigation = function() {
-    // clean up previous navigation items
-    var wrapper = document.getElementById('network-navigation_wrapper');
-    if (wrapper != null) {
-      this.containerElement.removeChild(wrapper);
-    }
-    document.onmouseup = null;
-  };
-
-  /**
-   * Creation of the navigation controls nodes. They are drawn over the rest of the nodes and are not affected by scale and translation
-   * they have a triggerFunction which is called on click. If the position of the navigation controls is dependent
-   * on this.frame.canvas.clientWidth or this.frame.canvas.clientHeight, we flag horizontalAlignLeft and verticalAlignTop false.
-   * This means that the location will be corrected by the _relocateNavigation function on a size change of the canvas.
-   *
-   * @private
-   */
-  exports._loadNavigationElements = function() {
-    this._cleanNavigation();
-
-    this.navigationDivs = {};
-    var navigationDivs = ['up','down','left','right','zoomIn','zoomOut','zoomExtends'];
-    var navigationDivActions = ['_moveUp','_moveDown','_moveLeft','_moveRight','_zoomIn','_zoomOut','zoomExtent'];
-
-    this.navigationDivs['wrapper'] = document.createElement('div');
-    this.navigationDivs['wrapper'].id = "network-navigation_wrapper";
-    this.navigationDivs['wrapper'].style.position = "absolute";
-    this.navigationDivs['wrapper'].style.width = this.frame.canvas.clientWidth + "px";
-    this.navigationDivs['wrapper'].style.height = this.frame.canvas.clientHeight + "px";
-    this.containerElement.insertBefore(this.navigationDivs['wrapper'],this.frame);
-
-    for (var i = 0; i < navigationDivs.length; i++) {
-      this.navigationDivs[navigationDivs[i]] = document.createElement('div');
-      this.navigationDivs[navigationDivs[i]].id = "network-navigation_" + navigationDivs[i];
-      this.navigationDivs[navigationDivs[i]].className = "network-navigation " + navigationDivs[i];
-      this.navigationDivs['wrapper'].appendChild(this.navigationDivs[navigationDivs[i]]);
-      this.navigationDivs[navigationDivs[i]].onmousedown = this[navigationDivActions[i]].bind(this);
-    }
-
-    document.onmouseup = this._stopMovement.bind(this);
-  };
-
-  /**
-   * this stops all movement induced by the navigation buttons
-   *
-   * @private
-   */
-  exports._stopMovement = function() {
-    this._xStopMoving();
-    this._yStopMoving();
-    this._stopZoom();
-  };
-
-
-  /**
-   * move the screen up
-   * By using the increments, instead of adding a fixed number to the translation, we keep fluent and
-   * instant movement. The onKeypress event triggers immediately, then pauses, then triggers frequently
-   * To avoid this behaviour, we do the translation in the start loop.
-   *
-   * @private
-   */
-  exports._moveUp = function(event) {
-    this.yIncrement = this.constants.keyboard.speed.y;
-    this.start(); // if there is no node movement, the calculation wont be done
-    util.preventDefault(event);
-    if (this.navigationDivs) {
-      this.navigationDivs['up'].className += " active";
-    }
-  };
-
-
-  /**
-   * move the screen down
-   * @private
-   */
-  exports._moveDown = function(event) {
-    this.yIncrement = -this.constants.keyboard.speed.y;
-    this.start(); // if there is no node movement, the calculation wont be done
-    util.preventDefault(event);
-    if (this.navigationDivs) {
-      this.navigationDivs['down'].className += " active";
-    }
-  };
-
-
-  /**
-   * move the screen left
-   * @private
-   */
-  exports._moveLeft = function(event) {
-    this.xIncrement = this.constants.keyboard.speed.x;
-    this.start(); // if there is no node movement, the calculation wont be done
-    util.preventDefault(event);
-    if (this.navigationDivs) {
-      this.navigationDivs['left'].className += " active";
-    }
-  };
-
-
-  /**
-   * move the screen right
-   * @private
-   */
-  exports._moveRight = function(event) {
-    this.xIncrement = -this.constants.keyboard.speed.y;
-    this.start(); // if there is no node movement, the calculation wont be done
-    util.preventDefault(event);
-    if (this.navigationDivs) {
-      this.navigationDivs['right'].className += " active";
-    }
-  };
-
-
-  /**
-   * Zoom in, using the same method as the movement.
-   * @private
-   */
-  exports._zoomIn = function(event) {
-    this.zoomIncrement = this.constants.keyboard.speed.zoom;
-    this.start(); // if there is no node movement, the calculation wont be done
-    util.preventDefault(event);
-    if (this.navigationDivs) {
-      this.navigationDivs['zoomIn'].className += " active";
-    }
-  };
-
-
-  /**
-   * Zoom out
-   * @private
-   */
-  exports._zoomOut = function() {
-    this.zoomIncrement = -this.constants.keyboard.speed.zoom;
-    this.start(); // if there is no node movement, the calculation wont be done
-    util.preventDefault(event);
-    if (this.navigationDivs) {
-      this.navigationDivs['zoomOut'].className += " active";
-    }
-  };
-
-
-  /**
-   * Stop zooming and unhighlight the zoom controls
-   * @private
-   */
-  exports._stopZoom = function() {
-    this.zoomIncrement = 0;
-    if (this.navigationDivs) {
-      this.navigationDivs['zoomIn'].className = this.navigationDivs['zoomIn'].className.replace(" active","");
-      this.navigationDivs['zoomOut'].className = this.navigationDivs['zoomOut'].className.replace(" active","");
-    }
-  };
-
-
-  /**
-   * Stop moving in the Y direction and unHighlight the up and down
-   * @private
-   */
-  exports._yStopMoving = function() {
-    this.yIncrement = 0;
-    if (this.navigationDivs) {
-      this.navigationDivs['up'].className = this.navigationDivs['up'].className.replace(" active","");
-      this.navigationDivs['down'].className = this.navigationDivs['down'].className.replace(" active","");
-    }
-  };
-
-
-  /**
-   * Stop moving in the X direction and unHighlight left and right.
-   * @private
-   */
-  exports._xStopMoving = function() {
-    this.xIncrement = 0;
-    if (this.navigationDivs) {
-      this.navigationDivs['left'].className = this.navigationDivs['left'].className.replace(" active","");
-      this.navigationDivs['right'].className = this.navigationDivs['right'].className.replace(" active","");
-    }
-  };
-
-
-/***/ },
-/* 51 */
-/***/ function(module, exports, __webpack_require__) {
-
-  exports._resetLevels = function() {
-    for (var nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        var node = this.nodes[nodeId];
-        if (node.preassignedLevel == false) {
-          node.level = -1;
-        }
-      }
-    }
-  };
-
-  /**
-   * This is the main function to layout the nodes in a hierarchical way.
-   * It checks if the node details are supplied correctly
-   *
-   * @private
-   */
-  exports._setupHierarchicalLayout = function() {
-    if (this.constants.hierarchicalLayout.enabled == true && this.nodeIndices.length > 0) {
-      if (this.constants.hierarchicalLayout.direction == "RL" || this.constants.hierarchicalLayout.direction == "DU") {
-        this.constants.hierarchicalLayout.levelSeparation *= -1;
-      }
-      else {
-        this.constants.hierarchicalLayout.levelSeparation = Math.abs(this.constants.hierarchicalLayout.levelSeparation);
-      }
-
-      if (this.constants.hierarchicalLayout.direction == "RL" || this.constants.hierarchicalLayout.direction == "LR") {
-        if (this.constants.smoothCurves.enabled == true) {
-          this.constants.smoothCurves.type = "vertical";
-        }
-      }
-      else {
-        if (this.constants.smoothCurves.enabled == true) {
-          this.constants.smoothCurves.type = "horizontal";
-        }
-      }
-      // get the size of the largest hubs and check if the user has defined a level for a node.
-      var hubsize = 0;
-      var node, nodeId;
-      var definedLevel = false;
-      var undefinedLevel = false;
-
-      for (nodeId in this.nodes) {
-        if (this.nodes.hasOwnProperty(nodeId)) {
-          node = this.nodes[nodeId];
-          if (node.level != -1) {
-            definedLevel = true;
-          }
-          else {
-            undefinedLevel = true;
-          }
-          if (hubsize < node.edges.length) {
-            hubsize = node.edges.length;
-          }
-        }
-      }
-
-      // if the user defined some levels but not all, alert and run without hierarchical layout
-      if (undefinedLevel == true && definedLevel == true) {
-        alert("To use the hierarchical layout, nodes require either no predefined levels or levels have to be defined for all nodes.");
-        this.zoomExtent(true,this.constants.clustering.enabled);
-        if (!this.constants.clustering.enabled) {
-          this.start();
-        }
-      }
-      else {
-        // setup the system to use hierarchical method.
-        this._changeConstants();
-
-        // define levels if undefined by the users. Based on hubsize
-        if (undefinedLevel == true) {
-          this._determineLevels(hubsize);
-        }
-        // check the distribution of the nodes per level.
-        var distribution = this._getDistribution();
-
-        // place the nodes on the canvas. This also stablilizes the system.
-        this._placeNodesByHierarchy(distribution);
-
-        // start the simulation.
-        this.start();
-      }
-    }
-  };
-
-
-  /**
-   * This function places the nodes on the canvas based on the hierarchial distribution.
-   *
-   * @param {Object} distribution | obtained by the function this._getDistribution()
-   * @private
-   */
-  exports._placeNodesByHierarchy = function(distribution) {
-    var nodeId, node;
-
-    // start placing all the level 0 nodes first. Then recursively position their branches.
-    for (var level in distribution) {
-      if (distribution.hasOwnProperty(level)) {
-
-        for (nodeId in distribution[level].nodes) {
-          if (distribution[level].nodes.hasOwnProperty(nodeId)) {
-            node = distribution[level].nodes[nodeId];
-            if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
-              if (node.xFixed) {
-                node.x = distribution[level].minPos;
-                node.xFixed = false;
-
-                distribution[level].minPos += distribution[level].nodeSpacing;
-              }
-            }
-            else {
-              if (node.yFixed) {
-                node.y = distribution[level].minPos;
-                node.yFixed = false;
-
-                distribution[level].minPos += distribution[level].nodeSpacing;
-              }
-            }
-            this._placeBranchNodes(node.edges,node.id,distribution,node.level);
-          }
-        }
-      }
-    }
-
-    // stabilize the system after positioning. This function calls zoomExtent.
-    this._stabilize();
-  };
-
-
-  /**
-   * This function get the distribution of levels based on hubsize
-   *
-   * @returns {Object}
-   * @private
-   */
-  exports._getDistribution = function() {
-    var distribution = {};
-    var nodeId, node, level;
-
-    // we fix Y because the hierarchy is vertical, we fix X so we do not give a node an x position for a second time.
-    // the fix of X is removed after the x value has been set.
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        node = this.nodes[nodeId];
-        node.xFixed = true;
-        node.yFixed = true;
-        if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
-          node.y = this.constants.hierarchicalLayout.levelSeparation*node.level;
-        }
-        else {
-          node.x = this.constants.hierarchicalLayout.levelSeparation*node.level;
-        }
-        if (distribution[node.level] === undefined) {
-          distribution[node.level] = {amount: 0, nodes: {}, minPos:0, nodeSpacing:0};
-        }
-        distribution[node.level].amount += 1;
-        distribution[node.level].nodes[nodeId] = node;
-      }
-    }
-
-    // determine the largest amount of nodes of all levels
-    var maxCount = 0;
-    for (level in distribution) {
-      if (distribution.hasOwnProperty(level)) {
-        if (maxCount < distribution[level].amount) {
-          maxCount = distribution[level].amount;
-        }
-      }
-    }
-
-    // set the initial position and spacing of each nodes accordingly
-    for (level in distribution) {
-      if (distribution.hasOwnProperty(level)) {
-        distribution[level].nodeSpacing = (maxCount + 1) * this.constants.hierarchicalLayout.nodeSpacing;
-        distribution[level].nodeSpacing /= (distribution[level].amount + 1);
-        distribution[level].minPos = distribution[level].nodeSpacing - (0.5 * (distribution[level].amount + 1) * distribution[level].nodeSpacing);
-      }
-    }
-
-    return distribution;
-  };
-
-
-  /**
-   * this function allocates nodes in levels based on the recursive branching from the largest hubs.
-   *
-   * @param hubsize
-   * @private
-   */
-  exports._determineLevels = function(hubsize) {
-    var nodeId, node;
-
-    // determine hubs
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        node = this.nodes[nodeId];
-        if (node.edges.length == hubsize) {
-          node.level = 0;
-        }
-      }
-    }
-
-    // branch from hubs
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        node = this.nodes[nodeId];
-        if (node.level == 0) {
-          this._setLevel(1,node.edges,node.id);
-        }
-      }
-    }
-  };
-
-
-  /**
-   * Since hierarchical layout does not support:
-   *    - smooth curves (based on the physics),
-   *    - clustering (based on dynamic node counts)
-   *
-   * We disable both features so there will be no problems.
-   *
-   * @private
-   */
-  exports._changeConstants = function() {
-    this.constants.clustering.enabled = false;
-    this.constants.physics.barnesHut.enabled = false;
-    this.constants.physics.hierarchicalRepulsion.enabled = true;
-    this._loadSelectedForceSolver();
-    if (this.constants.smoothCurves.enabled == true) {
-      this.constants.smoothCurves.dynamic = false;
-    }
-    this._configureSmoothCurves();
-  };
-
-
-  /**
-   * This is a recursively called function to enumerate the branches from the largest hubs and place the nodes
-   * on a X position that ensures there will be no overlap.
-   *
-   * @param edges
-   * @param parentId
-   * @param distribution
-   * @param parentLevel
-   * @private
-   */
-  exports._placeBranchNodes = function(edges, parentId, distribution, parentLevel) {
-    for (var i = 0; i < edges.length; i++) {
-      var childNode = null;
-      if (edges[i].toId == parentId) {
-        childNode = edges[i].from;
-      }
-      else {
-        childNode = edges[i].to;
-      }
-
-      // if a node is conneceted to another node on the same level (or higher (means lower level))!, this is not handled here.
-      var nodeMoved = false;
-      if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
-        if (childNode.xFixed && childNode.level > parentLevel) {
-          childNode.xFixed = false;
-          childNode.x = distribution[childNode.level].minPos;
-          nodeMoved = true;
-        }
-      }
-      else {
-        if (childNode.yFixed && childNode.level > parentLevel) {
-          childNode.yFixed = false;
-          childNode.y = distribution[childNode.level].minPos;
-          nodeMoved = true;
-        }
-      }
-
-      if (nodeMoved == true) {
-        distribution[childNode.level].minPos += distribution[childNode.level].nodeSpacing;
-        if (childNode.edges.length > 1) {
-          this._placeBranchNodes(childNode.edges,childNode.id,distribution,childNode.level);
-        }
-      }
-    }
-  };
-
-
-  /**
-   * this function is called recursively to enumerate the barnches of the largest hubs and give each node a level.
-   *
-   * @param level
-   * @param edges
-   * @param parentId
-   * @private
-   */
-  exports._setLevel = function(level, edges, parentId) {
-    for (var i = 0; i < edges.length; i++) {
-      var childNode = null;
-      if (edges[i].toId == parentId) {
-        childNode = edges[i].from;
-      }
-      else {
-        childNode = edges[i].to;
-      }
-      if (childNode.level == -1 || childNode.level > level) {
-        childNode.level = level;
-        if (edges.length > 1) {
-          this._setLevel(level+1, childNode.edges, childNode.id);
-        }
-      }
-    }
-  };
-
-
-  /**
-   * Unfix nodes
-   *
-   * @private
-   */
-  exports._restoreNodes = function() {
-    for (var nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        this.nodes[nodeId].xFixed = false;
-        this.nodes[nodeId].yFixed = false;
-      }
-    }
-  };
-
-
-/***/ },
-/* 52 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var util = __webpack_require__(1);
-  var RepulsionMixin = __webpack_require__(55);
-  var HierarchialRepulsionMixin = __webpack_require__(56);
-  var BarnesHutMixin = __webpack_require__(57);
-
-  /**
-   * Toggling barnes Hut calculation on and off.
-   *
-   * @private
-   */
-  exports._toggleBarnesHut = function () {
-    this.constants.physics.barnesHut.enabled = !this.constants.physics.barnesHut.enabled;
-    this._loadSelectedForceSolver();
-    this.moving = true;
-    this.start();
-  };
-
-
-  /**
-   * This loads the node force solver based on the barnes hut or repulsion algorithm
-   *
-   * @private
-   */
-  exports._loadSelectedForceSolver = function () {
-    // this overloads the this._calculateNodeForces
-    if (this.constants.physics.barnesHut.enabled == true) {
-      this._clearMixin(RepulsionMixin);
-      this._clearMixin(HierarchialRepulsionMixin);
-
-      this.constants.physics.centralGravity = this.constants.physics.barnesHut.centralGravity;
-      this.constants.physics.springLength = this.constants.physics.barnesHut.springLength;
-      this.constants.physics.springConstant = this.constants.physics.barnesHut.springConstant;
-      this.constants.physics.damping = this.constants.physics.barnesHut.damping;
-
-      this._loadMixin(BarnesHutMixin);
-    }
-    else if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
-      this._clearMixin(BarnesHutMixin);
-      this._clearMixin(RepulsionMixin);
-
-      this.constants.physics.centralGravity = this.constants.physics.hierarchicalRepulsion.centralGravity;
-      this.constants.physics.springLength = this.constants.physics.hierarchicalRepulsion.springLength;
-      this.constants.physics.springConstant = this.constants.physics.hierarchicalRepulsion.springConstant;
-      this.constants.physics.damping = this.constants.physics.hierarchicalRepulsion.damping;
-
-      this._loadMixin(HierarchialRepulsionMixin);
-    }
-    else {
-      this._clearMixin(BarnesHutMixin);
-      this._clearMixin(HierarchialRepulsionMixin);
-      this.barnesHutTree = undefined;
-
-      this.constants.physics.centralGravity = this.constants.physics.repulsion.centralGravity;
-      this.constants.physics.springLength = this.constants.physics.repulsion.springLength;
-      this.constants.physics.springConstant = this.constants.physics.repulsion.springConstant;
-      this.constants.physics.damping = this.constants.physics.repulsion.damping;
-
-      this._loadMixin(RepulsionMixin);
-    }
-  };
-
-  /**
-   * Before calculating the forces, we check if we need to cluster to keep up performance and we check
-   * if there is more than one node. If it is just one node, we dont calculate anything.
-   *
-   * @private
-   */
-  exports._initializeForceCalculation = function () {
-    // stop calculation if there is only one node
-    if (this.nodeIndices.length == 1) {
-      this.nodes[this.nodeIndices[0]]._setForce(0, 0);
-    }
-    else {
-      // if there are too many nodes on screen, we cluster without repositioning
-      if (this.nodeIndices.length > this.constants.clustering.clusterThreshold && this.constants.clustering.enabled == true) {
-        this.clusterToFit(this.constants.clustering.reduceToNodes, false);
-      }
-
-      // we now start the force calculation
-      this._calculateForces();
-    }
-  };
-
-
-  /**
-   * Calculate the external forces acting on the nodes
-   * Forces are caused by: edges, repulsing forces between nodes, gravity
-   * @private
-   */
-  exports._calculateForces = function () {
-    // Gravity is required to keep separated groups from floating off
-    // the forces are reset to zero in this loop by using _setForce instead
-    // of _addForce
-
-    this._calculateGravitationalForces();
-    this._calculateNodeForces();
-
-    if (this.constants.physics.springConstant > 0) {
-      if (this.constants.smoothCurves.enabled == true && this.constants.smoothCurves.dynamic == true) {
-        this._calculateSpringForcesWithSupport();
-      }
-      else {
-        if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
-          this._calculateHierarchicalSpringForces();
-        }
-        else {
-          this._calculateSpringForces();
-        }
-      }
-    }
-  };
-
-
-  /**
-   * Smooth curves are created by adding invisible nodes in the center of the edges. These nodes are also
-   * handled in the calculateForces function. We then use a quadratic curve with the center node as control.
-   * This function joins the datanodes and invisible (called support) nodes into one object.
-   * We do this so we do not contaminate this.nodes with the support nodes.
-   *
-   * @private
-   */
-  exports._updateCalculationNodes = function () {
-    if (this.constants.smoothCurves.enabled == true && this.constants.smoothCurves.dynamic == true) {
-      this.calculationNodes = {};
-      this.calculationNodeIndices = [];
-
-      for (var nodeId in this.nodes) {
-        if (this.nodes.hasOwnProperty(nodeId)) {
-          this.calculationNodes[nodeId] = this.nodes[nodeId];
-        }
-      }
-      var supportNodes = this.sectors['support']['nodes'];
-      for (var supportNodeId in supportNodes) {
-        if (supportNodes.hasOwnProperty(supportNodeId)) {
-          if (this.edges.hasOwnProperty(supportNodes[supportNodeId].parentEdgeId)) {
-            this.calculationNodes[supportNodeId] = supportNodes[supportNodeId];
-          }
-          else {
-            supportNodes[supportNodeId]._setForce(0, 0);
-          }
-        }
-      }
-
-      for (var idx in this.calculationNodes) {
-        if (this.calculationNodes.hasOwnProperty(idx)) {
-          this.calculationNodeIndices.push(idx);
-        }
-      }
-    }
-    else {
-      this.calculationNodes = this.nodes;
-      this.calculationNodeIndices = this.nodeIndices;
-    }
-  };
-
-
-  /**
-   * this function applies the central gravity effect to keep groups from floating off
-   *
-   * @private
-   */
-  exports._calculateGravitationalForces = function () {
-    var dx, dy, distance, node, i;
-    var nodes = this.calculationNodes;
-    var gravity = this.constants.physics.centralGravity;
-    var gravityForce = 0;
-
-    for (i = 0; i < this.calculationNodeIndices.length; i++) {
-      node = nodes[this.calculationNodeIndices[i]];
-      node.damping = this.constants.physics.damping; // possibly add function to alter damping properties of clusters.
-      // gravity does not apply when we are in a pocket sector
-      if (this._sector() == "default" && gravity != 0) {
-        dx = -node.x;
-        dy = -node.y;
-        distance = Math.sqrt(dx * dx + dy * dy);
-
-        gravityForce = (distance == 0) ? 0 : (gravity / distance);
-        node.fx = dx * gravityForce;
-        node.fy = dy * gravityForce;
-      }
-      else {
-        node.fx = 0;
-        node.fy = 0;
-      }
-    }
-  };
-
-
-
-
-  /**
-   * this function calculates the effects of the springs in the case of unsmooth curves.
-   *
-   * @private
-   */
-  exports._calculateSpringForces = function () {
-    var edgeLength, edge, edgeId;
-    var dx, dy, fx, fy, springForce, distance;
-    var edges = this.edges;
-
-    // forces caused by the edges, modelled as springs
-    for (edgeId in edges) {
-      if (edges.hasOwnProperty(edgeId)) {
-        edge = edges[edgeId];
-        if (edge.connected) {
-          // only calculate forces if nodes are in the same sector
-          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
-            edgeLength = edge.customLength ? edge.length : this.constants.physics.springLength;
-            // this implies that the edges between big clusters are longer
-            edgeLength += (edge.to.clusterSize + edge.from.clusterSize - 2) * this.constants.clustering.edgeGrowth;
-
-            dx = (edge.from.x - edge.to.x);
-            dy = (edge.from.y - edge.to.y);
-            distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance == 0) {
-              distance = 0.01;
-            }
-
-            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
-            springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
-
-            fx = dx * springForce;
-            fy = dy * springForce;
-
-            edge.from.fx += fx;
-            edge.from.fy += fy;
-            edge.to.fx -= fx;
-            edge.to.fy -= fy;
-          }
-        }
-      }
-    }
-  };
-
-
-
-
-  /**
-   * This function calculates the springforces on the nodes, accounting for the support nodes.
-   *
-   * @private
-   */
-  exports._calculateSpringForcesWithSupport = function () {
-    var edgeLength, edge, edgeId, combinedClusterSize;
-    var edges = this.edges;
-
-    // forces caused by the edges, modelled as springs
-    for (edgeId in edges) {
-      if (edges.hasOwnProperty(edgeId)) {
-        edge = edges[edgeId];
-        if (edge.connected) {
-          // only calculate forces if nodes are in the same sector
-          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
-            if (edge.via != null) {
-              var node1 = edge.to;
-              var node2 = edge.via;
-              var node3 = edge.from;
-
-              edgeLength = edge.customLength ? edge.length : this.constants.physics.springLength;
-
-              combinedClusterSize = node1.clusterSize + node3.clusterSize - 2;
-
-              // this implies that the edges between big clusters are longer
-              edgeLength += combinedClusterSize * this.constants.clustering.edgeGrowth;
-              this._calculateSpringForce(node1, node2, 0.5 * edgeLength);
-              this._calculateSpringForce(node2, node3, 0.5 * edgeLength);
-            }
-          }
-        }
-      }
-    }
-  };
-
-
-  /**
-   * This is the code actually performing the calculation for the function above. It is split out to avoid repetition.
-   *
-   * @param node1
-   * @param node2
-   * @param edgeLength
-   * @private
-   */
-  exports._calculateSpringForce = function (node1, node2, edgeLength) {
-    var dx, dy, fx, fy, springForce, distance;
-
-    dx = (node1.x - node2.x);
-    dy = (node1.y - node2.y);
-    distance = Math.sqrt(dx * dx + dy * dy);
-
-    if (distance == 0) {
-      distance = 0.01;
-    }
-
-    // the 1/distance is so the fx and fy can be calculated without sine or cosine.
-    springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
-
-    fx = dx * springForce;
-    fy = dy * springForce;
-
-    node1.fx += fx;
-    node1.fy += fy;
-    node2.fx -= fx;
-    node2.fy -= fy;
-  };
-
-
-  /**
-   * Load the HTML for the physics config and bind it
-   * @private
-   */
-  exports._loadPhysicsConfiguration = function () {
-    if (this.physicsConfiguration === undefined) {
-      this.backupConstants = {};
-      util.deepExtend(this.backupConstants,this.constants);
-
-      var hierarchicalLayoutDirections = ["LR", "RL", "UD", "DU"];
-      this.physicsConfiguration = document.createElement('div');
-      this.physicsConfiguration.className = "PhysicsConfiguration";
-      this.physicsConfiguration.innerHTML = '' +
-        '<table><tr><td><b>Simulation Mode:</b></td></tr>' +
-        '<tr>' +
-        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod1" value="BH" checked="checked">Barnes Hut</td>' +
-        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod2" value="R">Repulsion</td>' +
-        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod3" value="H">Hierarchical</td>' +
-        '</tr>' +
-        '</table>' +
-        '<table id="graph_BH_table" style="display:none">' +
-        '<tr><td><b>Barnes Hut</b></td></tr>' +
-        '<tr>' +
-        '<td width="150px">gravitationalConstant</td><td>0</td><td><input type="range" min="0" max="20000" value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" step="25" style="width:300px" id="graph_BH_gc"></td><td  width="50px">-20000</td><td><input value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" id="graph_BH_gc_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.barnesHut.centralGravity + '" step="0.05"  style="width:300px" id="graph_BH_cg"></td><td>3</td><td><input value="' + this.constants.physics.barnesHut.centralGravity + '" id="graph_BH_cg_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.barnesHut.springLength + '" step="1" style="width:300px" id="graph_BH_sl"></td><td>500</td><td><input value="' + this.constants.physics.barnesHut.springLength + '" id="graph_BH_sl_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.barnesHut.springConstant + '" step="0.001" style="width:300px" id="graph_BH_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.barnesHut.springConstant + '" id="graph_BH_sc_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.barnesHut.damping + '" step="0.005" style="width:300px" id="graph_BH_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.barnesHut.damping + '" id="graph_BH_damp_value" style="width:60px"></td>' +
-        '</tr>' +
-        '</table>' +
-        '<table id="graph_R_table" style="display:none">' +
-        '<tr><td><b>Repulsion</b></td></tr>' +
-        '<tr>' +
-        '<td width="150px">nodeDistance</td><td>0</td><td><input type="range" min="0" max="300" value="' + this.constants.physics.repulsion.nodeDistance + '" step="1" style="width:300px" id="graph_R_nd"></td><td width="50px">300</td><td><input value="' + this.constants.physics.repulsion.nodeDistance + '" id="graph_R_nd_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.repulsion.centralGravity + '" step="0.05"  style="width:300px" id="graph_R_cg"></td><td>3</td><td><input value="' + this.constants.physics.repulsion.centralGravity + '" id="graph_R_cg_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.repulsion.springLength + '" step="1" style="width:300px" id="graph_R_sl"></td><td>500</td><td><input value="' + this.constants.physics.repulsion.springLength + '" id="graph_R_sl_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.repulsion.springConstant + '" step="0.001" style="width:300px" id="graph_R_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.repulsion.springConstant + '" id="graph_R_sc_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.repulsion.damping + '" step="0.005" style="width:300px" id="graph_R_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.repulsion.damping + '" id="graph_R_damp_value" style="width:60px"></td>' +
-        '</tr>' +
-        '</table>' +
-        '<table id="graph_H_table" style="display:none">' +
-        '<tr><td width="150"><b>Hierarchical</b></td></tr>' +
-        '<tr>' +
-        '<td width="150px">nodeDistance</td><td>0</td><td><input type="range" min="0" max="300" value="' + this.constants.physics.hierarchicalRepulsion.nodeDistance + '" step="1" style="width:300px" id="graph_H_nd"></td><td width="50px">300</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.nodeDistance + '" id="graph_H_nd_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.hierarchicalRepulsion.centralGravity + '" step="0.05"  style="width:300px" id="graph_H_cg"></td><td>3</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.centralGravity + '" id="graph_H_cg_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.hierarchicalRepulsion.springLength + '" step="1" style="width:300px" id="graph_H_sl"></td><td>500</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.springLength + '" id="graph_H_sl_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.hierarchicalRepulsion.springConstant + '" step="0.001" style="width:300px" id="graph_H_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.springConstant + '" id="graph_H_sc_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.hierarchicalRepulsion.damping + '" step="0.005" style="width:300px" id="graph_H_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.damping + '" id="graph_H_damp_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">direction</td><td>1</td><td><input type="range" min="0" max="3" value="' + hierarchicalLayoutDirections.indexOf(this.constants.hierarchicalLayout.direction) + '" step="1" style="width:300px" id="graph_H_direction"></td><td>4</td><td><input value="' + this.constants.hierarchicalLayout.direction + '" id="graph_H_direction_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">levelSeparation</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.levelSeparation + '" step="1" style="width:300px" id="graph_H_levsep"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.levelSeparation + '" id="graph_H_levsep_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">nodeSpacing</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.nodeSpacing + '" step="1" style="width:300px" id="graph_H_nspac"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.nodeSpacing + '" id="graph_H_nspac_value" style="width:60px"></td>' +
-        '</tr>' +
-        '</table>' +
-        '<table><tr><td><b>Options:</b></td></tr>' +
-        '<tr>' +
-        '<td width="180px"><input type="button" id="graph_toggleSmooth" value="Toggle smoothCurves" style="width:150px"></td>' +
-        '<td width="180px"><input type="button" id="graph_repositionNodes" value="Reinitialize" style="width:150px"></td>' +
-        '<td width="180px"><input type="button" id="graph_generateOptions" value="Generate Options" style="width:150px"></td>' +
-        '</tr>' +
-        '</table>'
-      this.containerElement.parentElement.insertBefore(this.physicsConfiguration, this.containerElement);
-      this.optionsDiv = document.createElement("div");
-      this.optionsDiv.style.fontSize = "14px";
-      this.optionsDiv.style.fontFamily = "verdana";
-      this.containerElement.parentElement.insertBefore(this.optionsDiv, this.containerElement);
-
-      var rangeElement;
-      rangeElement = document.getElementById('graph_BH_gc');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_gc', -1, "physics_barnesHut_gravitationalConstant");
-      rangeElement = document.getElementById('graph_BH_cg');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_cg', 1, "physics_centralGravity");
-      rangeElement = document.getElementById('graph_BH_sc');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_sc', 1, "physics_springConstant");
-      rangeElement = document.getElementById('graph_BH_sl');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_sl', 1, "physics_springLength");
-      rangeElement = document.getElementById('graph_BH_damp');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_damp', 1, "physics_damping");
-
-      rangeElement = document.getElementById('graph_R_nd');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_nd', 1, "physics_repulsion_nodeDistance");
-      rangeElement = document.getElementById('graph_R_cg');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_cg', 1, "physics_centralGravity");
-      rangeElement = document.getElementById('graph_R_sc');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_sc', 1, "physics_springConstant");
-      rangeElement = document.getElementById('graph_R_sl');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_sl', 1, "physics_springLength");
-      rangeElement = document.getElementById('graph_R_damp');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_damp', 1, "physics_damping");
-
-      rangeElement = document.getElementById('graph_H_nd');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_nd', 1, "physics_hierarchicalRepulsion_nodeDistance");
-      rangeElement = document.getElementById('graph_H_cg');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_cg', 1, "physics_centralGravity");
-      rangeElement = document.getElementById('graph_H_sc');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_sc', 1, "physics_springConstant");
-      rangeElement = document.getElementById('graph_H_sl');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_sl', 1, "physics_springLength");
-      rangeElement = document.getElementById('graph_H_damp');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_damp', 1, "physics_damping");
-      rangeElement = document.getElementById('graph_H_direction');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_direction', hierarchicalLayoutDirections, "hierarchicalLayout_direction");
-      rangeElement = document.getElementById('graph_H_levsep');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_levsep', 1, "hierarchicalLayout_levelSeparation");
-      rangeElement = document.getElementById('graph_H_nspac');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_nspac', 1, "hierarchicalLayout_nodeSpacing");
-
-      var radioButton1 = document.getElementById("graph_physicsMethod1");
-      var radioButton2 = document.getElementById("graph_physicsMethod2");
-      var radioButton3 = document.getElementById("graph_physicsMethod3");
-      radioButton2.checked = true;
-      if (this.constants.physics.barnesHut.enabled) {
-        radioButton1.checked = true;
-      }
-      if (this.constants.hierarchicalLayout.enabled) {
-        radioButton3.checked = true;
-      }
-
-      var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
-      var graph_repositionNodes = document.getElementById("graph_repositionNodes");
-      var graph_generateOptions = document.getElementById("graph_generateOptions");
-
-      graph_toggleSmooth.onclick = graphToggleSmoothCurves.bind(this);
-      graph_repositionNodes.onclick = graphRepositionNodes.bind(this);
-      graph_generateOptions.onclick = graphGenerateOptions.bind(this);
-      if (this.constants.smoothCurves == true && this.constants.dynamicSmoothCurves == false) {
-        graph_toggleSmooth.style.background = "#A4FF56";
-      }
-      else {
-        graph_toggleSmooth.style.background = "#FF8532";
-      }
-
-
-      switchConfigurations.apply(this);
-
-      radioButton1.onchange = switchConfigurations.bind(this);
-      radioButton2.onchange = switchConfigurations.bind(this);
-      radioButton3.onchange = switchConfigurations.bind(this);
-    }
-  };
-
-  /**
-   * This overwrites the this.constants.
-   *
-   * @param constantsVariableName
-   * @param value
-   * @private
-   */
-  exports._overWriteGraphConstants = function (constantsVariableName, value) {
-    var nameArray = constantsVariableName.split("_");
-    if (nameArray.length == 1) {
-      this.constants[nameArray[0]] = value;
-    }
-    else if (nameArray.length == 2) {
-      this.constants[nameArray[0]][nameArray[1]] = value;
-    }
-    else if (nameArray.length == 3) {
-      this.constants[nameArray[0]][nameArray[1]][nameArray[2]] = value;
-    }
-  };
-
-
-  /**
-   * this function is bound to the toggle smooth curves button. That is also why it is not in the prototype.
-   */
-  function graphToggleSmoothCurves () {
-    this.constants.smoothCurves.enabled = !this.constants.smoothCurves.enabled;
-    var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
-    if (this.constants.smoothCurves.enabled == true) {graph_toggleSmooth.style.background = "#A4FF56";}
-    else                                     {graph_toggleSmooth.style.background = "#FF8532";}
-
-    this._configureSmoothCurves(false);
-  }
-
-  /**
-   * this function is used to scramble the nodes
-   *
-   */
-  function graphRepositionNodes () {
-    for (var nodeId in this.calculationNodes) {
-      if (this.calculationNodes.hasOwnProperty(nodeId)) {
-        this.calculationNodes[nodeId].vx = 0;  this.calculationNodes[nodeId].vy = 0;
-        this.calculationNodes[nodeId].fx = 0;  this.calculationNodes[nodeId].fy = 0;
-      }
-    }
-    if (this.constants.hierarchicalLayout.enabled == true) {
-      this._setupHierarchicalLayout();
-      showValueOfRange.call(this, 'graph_H_nd', 1, "physics_hierarchicalRepulsion_nodeDistance");
-      showValueOfRange.call(this, 'graph_H_cg', 1, "physics_centralGravity");
-      showValueOfRange.call(this, 'graph_H_sc', 1, "physics_springConstant");
-      showValueOfRange.call(this, 'graph_H_sl', 1, "physics_springLength");
-      showValueOfRange.call(this, 'graph_H_damp', 1, "physics_damping");
-    }
-    else {
-      this.repositionNodes();
-    }
-    this.moving = true;
-    this.start();
-  }
-
-  /**
-   *  this is used to generate an options file from the playing with physics system.
-   */
-  function graphGenerateOptions () {
-    var options = "No options are required, default values used.";
-    var optionsSpecific = [];
-    var radioButton1 = document.getElementById("graph_physicsMethod1");
-    var radioButton2 = document.getElementById("graph_physicsMethod2");
-    if (radioButton1.checked == true) {
-      if (this.constants.physics.barnesHut.gravitationalConstant != this.backupConstants.physics.barnesHut.gravitationalConstant) {optionsSpecific.push("gravitationalConstant: " + this.constants.physics.barnesHut.gravitationalConstant);}
-      if (this.constants.physics.centralGravity != this.backupConstants.physics.barnesHut.centralGravity)                         {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
-      if (this.constants.physics.springLength != this.backupConstants.physics.barnesHut.springLength)                             {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
-      if (this.constants.physics.springConstant != this.backupConstants.physics.barnesHut.springConstant)                         {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
-      if (this.constants.physics.damping != this.backupConstants.physics.barnesHut.damping)                                       {optionsSpecific.push("damping: " + this.constants.physics.damping);}
-      if (optionsSpecific.length != 0) {
-        options = "var options = {";
-        options += "physics: {barnesHut: {";
-        for (var i = 0; i < optionsSpecific.length; i++) {
-          options += optionsSpecific[i];
-          if (i < optionsSpecific.length - 1) {
-            options += ", "
-          }
-        }
-        options += '}}'
-      }
-      if (this.constants.smoothCurves.enabled != this.backupConstants.smoothCurves.enabled) {
-        if (optionsSpecific.length == 0) {options = "var options = {";}
-        else {options += ", "}
-        options += "smoothCurves: " + this.constants.smoothCurves.enabled;
-      }
-      if (options != "No options are required, default values used.") {
-        options += '};'
-      }
-    }
-    else if (radioButton2.checked == true) {
-      options = "var options = {";
-      options += "physics: {barnesHut: {enabled: false}";
-      if (this.constants.physics.repulsion.nodeDistance != this.backupConstants.physics.repulsion.nodeDistance)  {optionsSpecific.push("nodeDistance: " + this.constants.physics.repulsion.nodeDistance);}
-      if (this.constants.physics.centralGravity != this.backupConstants.physics.repulsion.centralGravity)        {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
-      if (this.constants.physics.springLength != this.backupConstants.physics.repulsion.springLength)            {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
-      if (this.constants.physics.springConstant != this.backupConstants.physics.repulsion.springConstant)        {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
-      if (this.constants.physics.damping != this.backupConstants.physics.repulsion.damping)                      {optionsSpecific.push("damping: " + this.constants.physics.damping);}
-      if (optionsSpecific.length != 0) {
-        options += ", repulsion: {";
-        for (var i = 0; i < optionsSpecific.length; i++) {
-          options += optionsSpecific[i];
-          if (i < optionsSpecific.length - 1) {
-            options += ", "
-          }
-        }
-        options += '}}'
-      }
-      if (optionsSpecific.length == 0) {options += "}"}
-      if (this.constants.smoothCurves != this.backupConstants.smoothCurves) {
-        options += ", smoothCurves: " + this.constants.smoothCurves;
-      }
-      options += '};'
-    }
-    else {
-      options = "var options = {";
-      if (this.constants.physics.hierarchicalRepulsion.nodeDistance != this.backupConstants.physics.hierarchicalRepulsion.nodeDistance)  {optionsSpecific.push("nodeDistance: " + this.constants.physics.hierarchicalRepulsion.nodeDistance);}
-      if (this.constants.physics.centralGravity != this.backupConstants.physics.hierarchicalRepulsion.centralGravity)        {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
-      if (this.constants.physics.springLength != this.backupConstants.physics.hierarchicalRepulsion.springLength)            {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
-      if (this.constants.physics.springConstant != this.backupConstants.physics.hierarchicalRepulsion.springConstant)        {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
-      if (this.constants.physics.damping != this.backupConstants.physics.hierarchicalRepulsion.damping)                      {optionsSpecific.push("damping: " + this.constants.physics.damping);}
-      if (optionsSpecific.length != 0) {
-        options += "physics: {hierarchicalRepulsion: {";
-        for (var i = 0; i < optionsSpecific.length; i++) {
-          options += optionsSpecific[i];
-          if (i < optionsSpecific.length - 1) {
-            options += ", ";
-          }
-        }
-        options += '}},';
-      }
-      options += 'hierarchicalLayout: {';
-      optionsSpecific = [];
-      if (this.constants.hierarchicalLayout.direction != this.backupConstants.hierarchicalLayout.direction)                       {optionsSpecific.push("direction: " + this.constants.hierarchicalLayout.direction);}
-      if (Math.abs(this.constants.hierarchicalLayout.levelSeparation) != this.backupConstants.hierarchicalLayout.levelSeparation) {optionsSpecific.push("levelSeparation: " + this.constants.hierarchicalLayout.levelSeparation);}
-      if (this.constants.hierarchicalLayout.nodeSpacing != this.backupConstants.hierarchicalLayout.nodeSpacing)                   {optionsSpecific.push("nodeSpacing: " + this.constants.hierarchicalLayout.nodeSpacing);}
-      if (optionsSpecific.length != 0) {
-        for (var i = 0; i < optionsSpecific.length; i++) {
-          options += optionsSpecific[i];
-          if (i < optionsSpecific.length - 1) {
-            options += ", "
-          }
-        }
-        options += '}'
-      }
-      else {
-        options += "enabled:true}";
-      }
-      options += '};'
-    }
-
-
-    this.optionsDiv.innerHTML = options;
-  }
-
-  /**
-   * this is used to switch between barnesHut, repulsion and hierarchical.
-   *
-   */
-  function switchConfigurations () {
-    var ids = ["graph_BH_table", "graph_R_table", "graph_H_table"];
-    var radioButton = document.querySelector('input[name="graph_physicsMethod"]:checked').value;
-    var tableId = "graph_" + radioButton + "_table";
-    var table = document.getElementById(tableId);
-    table.style.display = "block";
-    for (var i = 0; i < ids.length; i++) {
-      if (ids[i] != tableId) {
-        table = document.getElementById(ids[i]);
-        table.style.display = "none";
-      }
-    }
-    this._restoreNodes();
-    if (radioButton == "R") {
-      this.constants.hierarchicalLayout.enabled = false;
-      this.constants.physics.hierarchicalRepulsion.enabled = false;
-      this.constants.physics.barnesHut.enabled = false;
-    }
-    else if (radioButton == "H") {
-      if (this.constants.hierarchicalLayout.enabled == false) {
-        this.constants.hierarchicalLayout.enabled = true;
-        this.constants.physics.hierarchicalRepulsion.enabled = true;
-        this.constants.physics.barnesHut.enabled = false;
-        this.constants.smoothCurves.enabled = false;
-        this._setupHierarchicalLayout();
-      }
-    }
-    else {
-      this.constants.hierarchicalLayout.enabled = false;
-      this.constants.physics.hierarchicalRepulsion.enabled = false;
-      this.constants.physics.barnesHut.enabled = true;
-    }
-    this._loadSelectedForceSolver();
-    var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
-    if (this.constants.smoothCurves.enabled == true) {graph_toggleSmooth.style.background = "#A4FF56";}
-    else                                     {graph_toggleSmooth.style.background = "#FF8532";}
-    this.moving = true;
-    this.start();
-  }
-
-
-  /**
-   * this generates the ranges depending on the iniital values.
-   *
-   * @param id
-   * @param map
-   * @param constantsVariableName
-   */
-  function showValueOfRange (id,map,constantsVariableName) {
-    var valueId = id + "_value";
-    var rangeValue = document.getElementById(id).value;
-
-    if (map instanceof Array) {
-      document.getElementById(valueId).value = map[parseInt(rangeValue)];
-      this._overWriteGraphConstants(constantsVariableName,map[parseInt(rangeValue)]);
-    }
-    else {
-      document.getElementById(valueId).value = parseInt(map) * parseFloat(rangeValue);
-      this._overWriteGraphConstants(constantsVariableName, parseInt(map) * parseFloat(rangeValue));
-    }
-
-    if (constantsVariableName == "hierarchicalLayout_direction" ||
-      constantsVariableName == "hierarchicalLayout_levelSeparation" ||
-      constantsVariableName == "hierarchicalLayout_nodeSpacing") {
-      this._setupHierarchicalLayout();
-    }
-    this.moving = true;
-    this.start();
-  }
-
-
-/***/ },
-/* 53 */
-/***/ function(module, exports, __webpack_require__) {
-
   var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global, module) {//! moment.js
   //! version : 2.7.0
   //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
@@ -26809,7 +22594,7 @@ return /******/ (function(modules) { // webpackBootstrap
               get = function (k) {
                   if (!languages[k] && hasModule) {
                       try {
-                          __webpack_require__(58)("./" + k);
+                          __webpack_require__(55)("./" + k);
                       } catch (e) { }
                   }
                   return languages[k];
@@ -28548,10 +24333,10 @@ return /******/ (function(modules) { // webpackBootstrap
       }
   }).call(this);
   
-  /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(133)(module)))
+  /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(59)(module)))
 
 /***/ },
-/* 54 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v1.1.3 - 2014-05-20
@@ -30718,7 +26503,4244 @@ return /******/ (function(modules) { // webpackBootstrap
   })(window);
 
 /***/ },
+/* 48 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Creation of the ClusterMixin var.
+   *
+   * This contains all the functions the Network object can use to employ clustering
+   */
+
+  /**
+  * This is only called in the constructor of the network object
+  *
+  */
+  exports.startWithClustering = function() {
+   // cluster if the data set is big
+   this.clusterToFit(this.constants.clustering.initialMaxNodes, true);
+
+   // updates the lables after clustering
+   this.updateLabels();
+
+   // this is called here because if clusterin is disabled, the start and stabilize are called in
+   // the setData function.
+   if (this.stabilize) {
+     this._stabilize();
+   }
+   this.start();
+  };
+
+  /**
+   * This function clusters until the initialMaxNodes has been reached
+   *
+   * @param {Number}  maxNumberOfNodes
+   * @param {Boolean} reposition
+   */
+  exports.clusterToFit = function(maxNumberOfNodes, reposition) {
+    var numberOfNodes = this.nodeIndices.length;
+
+    var maxLevels = 50;
+    var level = 0;
+
+    // we first cluster the hubs, then we pull in the outliers, repeat
+    while (numberOfNodes > maxNumberOfNodes && level < maxLevels) {
+      if (level % 3 == 0) {
+        this.forceAggregateHubs(true);
+        this.normalizeClusterLevels();
+      }
+      else {
+        this.increaseClusterLevel(); // this also includes a cluster normalization
+      }
+
+      numberOfNodes = this.nodeIndices.length;
+      level += 1;
+    }
+
+    // after the clustering we reposition the nodes to reduce the initial chaos
+    if (level > 0 && reposition == true) {
+      this.repositionNodes();
+    }
+    this._updateCalculationNodes();
+  };
+
+  /**
+   * This function can be called to open up a specific cluster. It is only called by
+   * It will unpack the cluster back one level.
+   *
+   * @param node    | Node object: cluster to open.
+   */
+  exports.openCluster = function(node) {
+    var isMovingBeforeClustering = this.moving;
+    if (node.clusterSize > this.constants.clustering.sectorThreshold && this._nodeInActiveArea(node) &&
+      !(this._sector() == "default" && this.nodeIndices.length == 1)) {
+      // this loads a new sector, loads the nodes and edges and nodeIndices of it.
+      this._addSector(node);
+      var level = 0;
+
+      // we decluster until we reach a decent number of nodes
+      while ((this.nodeIndices.length < this.constants.clustering.initialMaxNodes) && (level < 10)) {
+        this.decreaseClusterLevel();
+        level += 1;
+      }
+
+    }
+    else {
+      this._expandClusterNode(node,false,true);
+
+      // update the index list, dynamic edges and labels
+      this._updateNodeIndexList();
+      this._updateDynamicEdges();
+      this._updateCalculationNodes();
+      this.updateLabels();
+    }
+
+    // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
+    if (this.moving != isMovingBeforeClustering) {
+      this.start();
+    }
+  };
+
+
+  /**
+   * This calls the updateClustes with default arguments
+   */
+  exports.updateClustersDefault = function() {
+    if (this.constants.clustering.enabled == true) {
+      this.updateClusters(0,false,false);
+    }
+  };
+
+
+  /**
+   * This function can be called to increase the cluster level. This means that the nodes with only one edge connection will
+   * be clustered with their connected node. This can be repeated as many times as needed.
+   * This can be called externally (by a keybind for instance) to reduce the complexity of big datasets.
+   */
+  exports.increaseClusterLevel = function() {
+    this.updateClusters(-1,false,true);
+  };
+
+
+  /**
+   * This function can be called to decrease the cluster level. This means that the nodes with only one edge connection will
+   * be unpacked if they are a cluster. This can be repeated as many times as needed.
+   * This can be called externally (by a key-bind for instance) to look into clusters without zooming.
+   */
+  exports.decreaseClusterLevel = function() {
+    this.updateClusters(1,false,true);
+  };
+
+
+  /**
+   * This is the main clustering function. It clusters and declusters on zoom or forced
+   * This function clusters on zoom, it can be called with a predefined zoom direction
+   * If out, check if we can form clusters, if in, check if we can open clusters.
+   * This function is only called from _zoom()
+   *
+   * @param {Number} zoomDirection  | -1 / 0 / +1   for  zoomOut / determineByZoom / zoomIn
+   * @param {Boolean} recursive     | enabled or disable recursive calling of the opening of clusters
+   * @param {Boolean} force         | enabled or disable forcing
+   * @param {Boolean} doNotStart    | if true do not call start
+   *
+   */
+  exports.updateClusters = function(zoomDirection,recursive,force,doNotStart) {
+    var isMovingBeforeClustering = this.moving;
+    var amountOfNodes = this.nodeIndices.length;
+
+    // on zoom out collapse the sector if the scale is at the level the sector was made
+    if (this.previousScale > this.scale && zoomDirection == 0) {
+      this._collapseSector();
+    }
+
+    // check if we zoom in or out
+    if (this.previousScale > this.scale || zoomDirection == -1) { // zoom out
+      // forming clusters when forced pulls outliers in. When not forced, the edge length of the
+      // outer nodes determines if it is being clustered
+      this._formClusters(force);
+    }
+    else if (this.previousScale < this.scale || zoomDirection == 1) { // zoom in
+      if (force == true) {
+        // _openClusters checks for each node if the formationScale of the cluster is smaller than
+        // the current scale and if so, declusters. When forced, all clusters are reduced by one step
+        this._openClusters(recursive,force);
+      }
+      else {
+        // if a cluster takes up a set percentage of the active window
+        this._openClustersBySize();
+      }
+    }
+    this._updateNodeIndexList();
+
+    // if a cluster was NOT formed and the user zoomed out, we try clustering by hubs
+    if (this.nodeIndices.length == amountOfNodes && (this.previousScale > this.scale || zoomDirection == -1))  {
+      this._aggregateHubs(force);
+      this._updateNodeIndexList();
+    }
+
+    // we now reduce chains.
+    if (this.previousScale > this.scale || zoomDirection == -1) { // zoom out
+      this.handleChains();
+      this._updateNodeIndexList();
+    }
+
+    this.previousScale = this.scale;
+
+    // rest of the update the index list, dynamic edges and labels
+    this._updateDynamicEdges();
+    this.updateLabels();
+
+    // if a cluster was formed, we increase the clusterSession
+    if (this.nodeIndices.length < amountOfNodes) { // this means a clustering operation has taken place
+      this.clusterSession += 1;
+      // if clusters have been made, we normalize the cluster level
+      this.normalizeClusterLevels();
+    }
+
+    if (doNotStart == false || doNotStart === undefined) {
+      // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
+      if (this.moving != isMovingBeforeClustering) {
+        this.start();
+      }
+    }
+
+    this._updateCalculationNodes();
+  };
+
+  /**
+   * This function handles the chains. It is called on every updateClusters().
+   */
+  exports.handleChains = function() {
+    // after clustering we check how many chains there are
+    var chainPercentage = this._getChainFraction();
+    if (chainPercentage > this.constants.clustering.chainThreshold) {
+      this._reduceAmountOfChains(1 - this.constants.clustering.chainThreshold / chainPercentage)
+
+    }
+  };
+
+  /**
+   * this functions starts clustering by hubs
+   * The minimum hub threshold is set globally
+   *
+   * @private
+   */
+  exports._aggregateHubs = function(force) {
+    this._getHubSize();
+    this._formClustersByHub(force,false);
+  };
+
+
+  /**
+   * This function is fired by keypress. It forces hubs to form.
+   *
+   */
+  exports.forceAggregateHubs = function(doNotStart) {
+    var isMovingBeforeClustering = this.moving;
+    var amountOfNodes = this.nodeIndices.length;
+
+    this._aggregateHubs(true);
+
+    // update the index list, dynamic edges and labels
+    this._updateNodeIndexList();
+    this._updateDynamicEdges();
+    this.updateLabels();
+
+    // if a cluster was formed, we increase the clusterSession
+    if (this.nodeIndices.length != amountOfNodes) {
+      this.clusterSession += 1;
+    }
+
+    if (doNotStart == false || doNotStart === undefined) {
+      // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
+      if (this.moving != isMovingBeforeClustering) {
+        this.start();
+      }
+    }
+  };
+
+  /**
+   * If a cluster takes up more than a set percentage of the screen, open the cluster
+   *
+   * @private
+   */
+  exports._openClustersBySize = function() {
+    for (var nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        var node = this.nodes[nodeId];
+        if (node.inView() == true) {
+          if ((node.width*this.scale > this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientWidth) ||
+              (node.height*this.scale > this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientHeight)) {
+            this.openCluster(node);
+          }
+        }
+      }
+    }
+  };
+
+
+  /**
+   * This function loops over all nodes in the nodeIndices list. For each node it checks if it is a cluster and if it
+   * has to be opened based on the current zoom level.
+   *
+   * @private
+   */
+  exports._openClusters = function(recursive,force) {
+    for (var i = 0; i < this.nodeIndices.length; i++) {
+      var node = this.nodes[this.nodeIndices[i]];
+      this._expandClusterNode(node,recursive,force);
+      this._updateCalculationNodes();
+    }
+  };
+
+  /**
+   * This function checks if a node has to be opened. This is done by checking the zoom level.
+   * If the node contains child nodes, this function is recursively called on the child nodes as well.
+   * This recursive behaviour is optional and can be set by the recursive argument.
+   *
+   * @param {Node}    parentNode    | to check for cluster and expand
+   * @param {Boolean} recursive     | enabled or disable recursive calling
+   * @param {Boolean} force         | enabled or disable forcing
+   * @param {Boolean} [openAll]     | This will recursively force all nodes in the parent to be released
+   * @private
+   */
+  exports._expandClusterNode = function(parentNode, recursive, force, openAll) {
+    // first check if node is a cluster
+    if (parentNode.clusterSize > 1) {
+      // this means that on a double tap event or a zoom event, the cluster fully unpacks if it is smaller than 20
+      if (parentNode.clusterSize < this.constants.clustering.sectorThreshold) {
+        openAll = true;
+      }
+      recursive = openAll ? true : recursive;
+
+      // if the last child has been added on a smaller scale than current scale decluster
+      if (parentNode.formationScale < this.scale || force == true) {
+        // we will check if any of the contained child nodes should be removed from the cluster
+        for (var containedNodeId in parentNode.containedNodes) {
+          if (parentNode.containedNodes.hasOwnProperty(containedNodeId)) {
+            var childNode = parentNode.containedNodes[containedNodeId];
+
+            // force expand will expand the largest cluster size clusters. Since we cluster from outside in, we assume that
+            // the largest cluster is the one that comes from outside
+            if (force == true) {
+              if (childNode.clusterSession == parentNode.clusterSessions[parentNode.clusterSessions.length-1]
+                  || openAll) {
+                this._expelChildFromParent(parentNode,containedNodeId,recursive,force,openAll);
+              }
+            }
+            else {
+              if (this._nodeInActiveArea(parentNode)) {
+                this._expelChildFromParent(parentNode,containedNodeId,recursive,force,openAll);
+              }
+            }
+          }
+        }
+      }
+    }
+  };
+
+  /**
+   * ONLY CALLED FROM _expandClusterNode
+   *
+   * This function will expel a child_node from a parent_node. This is to de-cluster the node. This function will remove
+   * the child node from the parent contained_node object and put it back into the global nodes object.
+   * The same holds for the edge that was connected to the child node. It is moved back into the global edges object.
+   *
+   * @param {Node}    parentNode        | the parent node
+   * @param {String}  containedNodeId   | child_node id as it is contained in the containedNodes object of the parent node
+   * @param {Boolean} recursive         | This will also check if the child needs to be expanded.
+   *                                      With force and recursive both true, the entire cluster is unpacked
+   * @param {Boolean} force             | This will disregard the zoom level and will expel this child from the parent
+   * @param {Boolean} openAll           | This will recursively force all nodes in the parent to be released
+   * @private
+   */
+  exports._expelChildFromParent = function(parentNode, containedNodeId, recursive, force, openAll) {
+    var childNode = parentNode.containedNodes[containedNodeId];
+
+    // if child node has been added on smaller scale than current, kick out
+    if (childNode.formationScale < this.scale || force == true) {
+      // unselect all selected items
+      this._unselectAll();
+
+      // put the child node back in the global nodes object
+      this.nodes[containedNodeId] = childNode;
+
+      // release the contained edges from this childNode back into the global edges
+      this._releaseContainedEdges(parentNode,childNode);
+
+      // reconnect rerouted edges to the childNode
+      this._connectEdgeBackToChild(parentNode,childNode);
+
+      // validate all edges in dynamicEdges
+      this._validateEdges(parentNode);
+
+      // undo the changes from the clustering operation on the parent node
+      parentNode.mass -= childNode.mass;
+      parentNode.clusterSize -= childNode.clusterSize;
+      parentNode.fontSize = Math.min(this.constants.clustering.maxFontSize, this.constants.nodes.fontSize + this.constants.clustering.fontSizeMultiplier*parentNode.clusterSize);
+      parentNode.dynamicEdgesLength = parentNode.dynamicEdges.length;
+
+      // place the child node near the parent, not at the exact same location to avoid chaos in the system
+      childNode.x = parentNode.x + parentNode.growthIndicator * (0.5 - Math.random());
+      childNode.y = parentNode.y + parentNode.growthIndicator * (0.5 - Math.random());
+
+      // remove node from the list
+      delete parentNode.containedNodes[containedNodeId];
+
+      // check if there are other childs with this clusterSession in the parent.
+      var othersPresent = false;
+      for (var childNodeId in parentNode.containedNodes) {
+        if (parentNode.containedNodes.hasOwnProperty(childNodeId)) {
+          if (parentNode.containedNodes[childNodeId].clusterSession == childNode.clusterSession) {
+            othersPresent = true;
+            break;
+          }
+        }
+      }
+      // if there are no others, remove the cluster session from the list
+      if (othersPresent == false) {
+        parentNode.clusterSessions.pop();
+      }
+
+      this._repositionBezierNodes(childNode);
+  //      this._repositionBezierNodes(parentNode);
+
+      // remove the clusterSession from the child node
+      childNode.clusterSession = 0;
+
+      // recalculate the size of the node on the next time the node is rendered
+      parentNode.clearSizeCache();
+
+      // restart the simulation to reorganise all nodes
+      this.moving = true;
+    }
+
+    // check if a further expansion step is possible if recursivity is enabled
+    if (recursive == true) {
+      this._expandClusterNode(childNode,recursive,force,openAll);
+    }
+  };
+
+
+  /**
+   * position the bezier nodes at the center of the edges
+   *
+   * @param node
+   * @private
+   */
+  exports._repositionBezierNodes = function(node) {
+    for (var i = 0; i < node.dynamicEdges.length; i++) {
+      node.dynamicEdges[i].positionBezierNode();
+    }
+  };
+
+
+  /**
+   * This function checks if any nodes at the end of their trees have edges below a threshold length
+   * This function is called only from updateClusters()
+   * forceLevelCollapse ignores the length of the edge and collapses one level
+   * This means that a node with only one edge will be clustered with its connected node
+   *
+   * @private
+   * @param {Boolean} force
+   */
+  exports._formClusters = function(force) {
+    if (force == false) {
+      this._formClustersByZoom();
+    }
+    else {
+      this._forceClustersByZoom();
+    }
+  };
+
+
+  /**
+   * This function handles the clustering by zooming out, this is based on a minimum edge distance
+   *
+   * @private
+   */
+  exports._formClustersByZoom = function() {
+    var dx,dy,length,
+        minLength = this.constants.clustering.clusterEdgeThreshold/this.scale;
+
+    // check if any edges are shorter than minLength and start the clustering
+    // the clustering favours the node with the larger mass
+    for (var edgeId in this.edges) {
+      if (this.edges.hasOwnProperty(edgeId)) {
+        var edge = this.edges[edgeId];
+        if (edge.connected) {
+          if (edge.toId != edge.fromId) {
+            dx = (edge.to.x - edge.from.x);
+            dy = (edge.to.y - edge.from.y);
+            length = Math.sqrt(dx * dx + dy * dy);
+
+
+            if (length < minLength) {
+              // first check which node is larger
+              var parentNode = edge.from;
+              var childNode = edge.to;
+              if (edge.to.mass > edge.from.mass) {
+                parentNode = edge.to;
+                childNode = edge.from;
+              }
+
+              if (childNode.dynamicEdgesLength == 1) {
+                this._addToCluster(parentNode,childNode,false);
+              }
+              else if (parentNode.dynamicEdgesLength == 1) {
+                this._addToCluster(childNode,parentNode,false);
+              }
+            }
+          }
+        }
+      }
+    }
+  };
+
+  /**
+   * This function forces the network to cluster all nodes with only one connecting edge to their
+   * connected node.
+   *
+   * @private
+   */
+  exports._forceClustersByZoom = function() {
+    for (var nodeId in this.nodes) {
+      // another node could have absorbed this child.
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        var childNode = this.nodes[nodeId];
+
+        // the edges can be swallowed by another decrease
+        if (childNode.dynamicEdgesLength == 1 && childNode.dynamicEdges.length != 0) {
+          var edge = childNode.dynamicEdges[0];
+          var parentNode = (edge.toId == childNode.id) ? this.nodes[edge.fromId] : this.nodes[edge.toId];
+
+          // group to the largest node
+          if (childNode.id != parentNode.id) {
+            if (parentNode.mass > childNode.mass) {
+              this._addToCluster(parentNode,childNode,true);
+            }
+            else {
+              this._addToCluster(childNode,parentNode,true);
+            }
+          }
+        }
+      }
+    }
+  };
+
+
+  /**
+   * To keep the nodes of roughly equal size we normalize the cluster levels.
+   * This function clusters a node to its smallest connected neighbour.
+   *
+   * @param node
+   * @private
+   */
+  exports._clusterToSmallestNeighbour = function(node) {
+    var smallestNeighbour = -1;
+    var smallestNeighbourNode = null;
+    for (var i = 0; i < node.dynamicEdges.length; i++) {
+      if (node.dynamicEdges[i] !== undefined) {
+        var neighbour = null;
+        if (node.dynamicEdges[i].fromId != node.id) {
+          neighbour = node.dynamicEdges[i].from;
+        }
+        else if (node.dynamicEdges[i].toId != node.id) {
+          neighbour = node.dynamicEdges[i].to;
+        }
+
+
+        if (neighbour != null && smallestNeighbour > neighbour.clusterSessions.length) {
+          smallestNeighbour = neighbour.clusterSessions.length;
+          smallestNeighbourNode = neighbour;
+        }
+      }
+    }
+
+    if (neighbour != null && this.nodes[neighbour.id] !== undefined) {
+      this._addToCluster(neighbour, node, true);
+    }
+  };
+
+
+  /**
+   * This function forms clusters from hubs, it loops over all nodes
+   *
+   * @param {Boolean} force         |   Disregard zoom level
+   * @param {Boolean} onlyEqual     |   This only clusters a hub with a specific number of edges
+   * @private
+   */
+  exports._formClustersByHub = function(force, onlyEqual) {
+    // we loop over all nodes in the list
+    for (var nodeId in this.nodes) {
+      // we check if it is still available since it can be used by the clustering in this loop
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        this._formClusterFromHub(this.nodes[nodeId],force,onlyEqual);
+      }
+    }
+  };
+
+  /**
+   * This function forms a cluster from a specific preselected hub node
+   *
+   * @param {Node}    hubNode       |   the node we will cluster as a hub
+   * @param {Boolean} force         |   Disregard zoom level
+   * @param {Boolean} onlyEqual     |   This only clusters a hub with a specific number of edges
+   * @param {Number} [absorptionSizeOffset] |
+   * @private
+   */
+  exports._formClusterFromHub = function(hubNode, force, onlyEqual, absorptionSizeOffset) {
+    if (absorptionSizeOffset === undefined) {
+      absorptionSizeOffset = 0;
+    }
+    // we decide if the node is a hub
+    if ((hubNode.dynamicEdgesLength >= this.hubThreshold && onlyEqual == false) ||
+      (hubNode.dynamicEdgesLength == this.hubThreshold && onlyEqual == true)) {
+      // initialize variables
+      var dx,dy,length;
+      var minLength = this.constants.clustering.clusterEdgeThreshold/this.scale;
+      var allowCluster = false;
+
+      // we create a list of edges because the dynamicEdges change over the course of this loop
+      var edgesIdarray = [];
+      var amountOfInitialEdges = hubNode.dynamicEdges.length;
+      for (var j = 0; j < amountOfInitialEdges; j++) {
+        edgesIdarray.push(hubNode.dynamicEdges[j].id);
+      }
+
+      // if the hub clustering is not forces, we check if one of the edges connected
+      // to a cluster is small enough based on the constants.clustering.clusterEdgeThreshold
+      if (force == false) {
+        allowCluster = false;
+        for (j = 0; j < amountOfInitialEdges; j++) {
+          var edge = this.edges[edgesIdarray[j]];
+          if (edge !== undefined) {
+            if (edge.connected) {
+              if (edge.toId != edge.fromId) {
+                dx = (edge.to.x - edge.from.x);
+                dy = (edge.to.y - edge.from.y);
+                length = Math.sqrt(dx * dx + dy * dy);
+
+                if (length < minLength) {
+                  allowCluster = true;
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // start the clustering if allowed
+      if ((!force && allowCluster) || force) {
+        // we loop over all edges INITIALLY connected to this hub
+        for (j = 0; j < amountOfInitialEdges; j++) {
+          edge = this.edges[edgesIdarray[j]];
+          // the edge can be clustered by this function in a previous loop
+          if (edge !== undefined) {
+            var childNode = this.nodes[(edge.fromId == hubNode.id) ? edge.toId : edge.fromId];
+            // we do not want hubs to merge with other hubs nor do we want to cluster itself.
+            if ((childNode.dynamicEdges.length <= (this.hubThreshold + absorptionSizeOffset)) &&
+                (childNode.id != hubNode.id)) {
+              this._addToCluster(hubNode,childNode,force);
+            }
+          }
+        }
+      }
+    }
+  };
+
+
+
+  /**
+   * This function adds the child node to the parent node, creating a cluster if it is not already.
+   *
+   * @param {Node} parentNode           | this is the node that will house the child node
+   * @param {Node} childNode            | this node will be deleted from the global this.nodes and stored in the parent node
+   * @param {Boolean} force             | true will only update the remainingEdges at the very end of the clustering, ensuring single level collapse
+   * @private
+   */
+  exports._addToCluster = function(parentNode, childNode, force) {
+    // join child node in the parent node
+    parentNode.containedNodes[childNode.id] = childNode;
+
+    // manage all the edges connected to the child and parent nodes
+    for (var i = 0; i < childNode.dynamicEdges.length; i++) {
+      var edge = childNode.dynamicEdges[i];
+      if (edge.toId == parentNode.id || edge.fromId == parentNode.id) { // edge connected to parentNode
+        this._addToContainedEdges(parentNode,childNode,edge);
+      }
+      else {
+        this._connectEdgeToCluster(parentNode,childNode,edge);
+      }
+    }
+    // a contained node has no dynamic edges.
+    childNode.dynamicEdges = [];
+
+    // remove circular edges from clusters
+    this._containCircularEdgesFromNode(parentNode,childNode);
+
+
+    // remove the childNode from the global nodes object
+    delete this.nodes[childNode.id];
+
+    // update the properties of the child and parent
+    var massBefore = parentNode.mass;
+    childNode.clusterSession = this.clusterSession;
+    parentNode.mass += childNode.mass;
+    parentNode.clusterSize += childNode.clusterSize;
+    parentNode.fontSize = Math.min(this.constants.clustering.maxFontSize, this.constants.nodes.fontSize + this.constants.clustering.fontSizeMultiplier*parentNode.clusterSize);
+
+    // keep track of the clustersessions so we can open the cluster up as it has been formed.
+    if (parentNode.clusterSessions[parentNode.clusterSessions.length - 1] != this.clusterSession) {
+      parentNode.clusterSessions.push(this.clusterSession);
+    }
+
+    // forced clusters only open from screen size and double tap
+    if (force == true) {
+      // parentNode.formationScale = Math.pow(1 - (1.0/11.0),this.clusterSession+3);
+      parentNode.formationScale = 0;
+    }
+    else {
+      parentNode.formationScale = this.scale; // The latest child has been added on this scale
+    }
+
+    // recalculate the size of the node on the next time the node is rendered
+    parentNode.clearSizeCache();
+
+    // set the pop-out scale for the childnode
+    parentNode.containedNodes[childNode.id].formationScale = parentNode.formationScale;
+
+    // nullify the movement velocity of the child, this is to avoid hectic behaviour
+    childNode.clearVelocity();
+
+    // the mass has altered, preservation of energy dictates the velocity to be updated
+    parentNode.updateVelocity(massBefore);
+
+    // restart the simulation to reorganise all nodes
+    this.moving = true;
+  };
+
+
+  /**
+   * This function will apply the changes made to the remainingEdges during the formation of the clusters.
+   * This is a seperate function to allow for level-wise collapsing of the node barnesHutTree.
+   * It has to be called if a level is collapsed. It is called by _formClusters().
+   * @private
+   */
+  exports._updateDynamicEdges = function() {
+    for (var i = 0; i < this.nodeIndices.length; i++) {
+      var node = this.nodes[this.nodeIndices[i]];
+      node.dynamicEdgesLength = node.dynamicEdges.length;
+
+      // this corrects for multiple edges pointing at the same other node
+      var correction = 0;
+      if (node.dynamicEdgesLength > 1) {
+        for (var j = 0; j < node.dynamicEdgesLength - 1; j++) {
+          var edgeToId = node.dynamicEdges[j].toId;
+          var edgeFromId = node.dynamicEdges[j].fromId;
+          for (var k = j+1; k < node.dynamicEdgesLength; k++) {
+            if ((node.dynamicEdges[k].toId == edgeToId && node.dynamicEdges[k].fromId == edgeFromId) ||
+                (node.dynamicEdges[k].fromId == edgeToId && node.dynamicEdges[k].toId == edgeFromId)) {
+              correction += 1;
+            }
+          }
+        }
+      }
+      node.dynamicEdgesLength -= correction;
+    }
+  };
+
+
+  /**
+   * This adds an edge from the childNode to the contained edges of the parent node
+   *
+   * @param parentNode    | Node object
+   * @param childNode     | Node object
+   * @param edge          | Edge object
+   * @private
+   */
+  exports._addToContainedEdges = function(parentNode, childNode, edge) {
+    // create an array object if it does not yet exist for this childNode
+    if (!(parentNode.containedEdges.hasOwnProperty(childNode.id))) {
+      parentNode.containedEdges[childNode.id] = []
+    }
+    // add this edge to the list
+    parentNode.containedEdges[childNode.id].push(edge);
+
+    // remove the edge from the global edges object
+    delete this.edges[edge.id];
+
+    // remove the edge from the parent object
+    for (var i = 0; i < parentNode.dynamicEdges.length; i++) {
+      if (parentNode.dynamicEdges[i].id == edge.id) {
+        parentNode.dynamicEdges.splice(i,1);
+        break;
+      }
+    }
+  };
+
+  /**
+   * This function connects an edge that was connected to a child node to the parent node.
+   * It keeps track of which nodes it has been connected to with the originalId array.
+   *
+   * @param {Node} parentNode    | Node object
+   * @param {Node} childNode     | Node object
+   * @param {Edge} edge          | Edge object
+   * @private
+   */
+  exports._connectEdgeToCluster = function(parentNode, childNode, edge) {
+    // handle circular edges
+    if (edge.toId == edge.fromId) {
+      this._addToContainedEdges(parentNode, childNode, edge);
+    }
+    else {
+      if (edge.toId == childNode.id) {    // edge connected to other node on the "to" side
+        edge.originalToId.push(childNode.id);
+        edge.to = parentNode;
+        edge.toId = parentNode.id;
+      }
+      else {          // edge connected to other node with the "from" side
+
+        edge.originalFromId.push(childNode.id);
+        edge.from = parentNode;
+        edge.fromId = parentNode.id;
+      }
+
+      this._addToReroutedEdges(parentNode,childNode,edge);
+    }
+  };
+
+
+  /**
+   * If a node is connected to itself, a circular edge is drawn. When clustering we want to contain
+   * these edges inside of the cluster.
+   *
+   * @param parentNode
+   * @param childNode
+   * @private
+   */
+  exports._containCircularEdgesFromNode = function(parentNode, childNode) {
+    // manage all the edges connected to the child and parent nodes
+    for (var i = 0; i < parentNode.dynamicEdges.length; i++) {
+      var edge = parentNode.dynamicEdges[i];
+      // handle circular edges
+      if (edge.toId == edge.fromId) {
+        this._addToContainedEdges(parentNode, childNode, edge);
+      }
+    }
+  };
+
+
+  /**
+   * This adds an edge from the childNode to the rerouted edges of the parent node
+   *
+   * @param parentNode    | Node object
+   * @param childNode     | Node object
+   * @param edge          | Edge object
+   * @private
+   */
+  exports._addToReroutedEdges = function(parentNode, childNode, edge) {
+    // create an array object if it does not yet exist for this childNode
+    // we store the edge in the rerouted edges so we can restore it when the cluster pops open
+    if (!(parentNode.reroutedEdges.hasOwnProperty(childNode.id))) {
+      parentNode.reroutedEdges[childNode.id] = [];
+    }
+    parentNode.reroutedEdges[childNode.id].push(edge);
+
+    // this edge becomes part of the dynamicEdges of the cluster node
+    parentNode.dynamicEdges.push(edge);
+   };
+
+
+
+  /**
+   * This function connects an edge that was connected to a cluster node back to the child node.
+   *
+   * @param parentNode    | Node object
+   * @param childNode     | Node object
+   * @private
+   */
+  exports._connectEdgeBackToChild = function(parentNode, childNode) {
+    if (parentNode.reroutedEdges.hasOwnProperty(childNode.id)) {
+      for (var i = 0; i < parentNode.reroutedEdges[childNode.id].length; i++) {
+        var edge = parentNode.reroutedEdges[childNode.id][i];
+        if (edge.originalFromId[edge.originalFromId.length-1] == childNode.id) {
+          edge.originalFromId.pop();
+          edge.fromId = childNode.id;
+          edge.from = childNode;
+        }
+        else {
+          edge.originalToId.pop();
+          edge.toId = childNode.id;
+          edge.to = childNode;
+        }
+
+        // append this edge to the list of edges connecting to the childnode
+        childNode.dynamicEdges.push(edge);
+
+        // remove the edge from the parent object
+        for (var j = 0; j < parentNode.dynamicEdges.length; j++) {
+          if (parentNode.dynamicEdges[j].id == edge.id) {
+            parentNode.dynamicEdges.splice(j,1);
+            break;
+          }
+        }
+      }
+      // remove the entry from the rerouted edges
+      delete parentNode.reroutedEdges[childNode.id];
+    }
+  };
+
+
+  /**
+   * When loops are clustered, an edge can be both in the rerouted array and the contained array.
+   * This function is called last to verify that all edges in dynamicEdges are in fact connected to the
+   * parentNode
+   *
+   * @param parentNode    | Node object
+   * @private
+   */
+  exports._validateEdges = function(parentNode) {
+    for (var i = 0; i < parentNode.dynamicEdges.length; i++) {
+      var edge = parentNode.dynamicEdges[i];
+      if (parentNode.id != edge.toId && parentNode.id != edge.fromId) {
+        parentNode.dynamicEdges.splice(i,1);
+      }
+    }
+  };
+
+
+  /**
+   * This function released the contained edges back into the global domain and puts them back into the
+   * dynamic edges of both parent and child.
+   *
+   * @param {Node} parentNode    |
+   * @param {Node} childNode     |
+   * @private
+   */
+  exports._releaseContainedEdges = function(parentNode, childNode) {
+    for (var i = 0; i < parentNode.containedEdges[childNode.id].length; i++) {
+      var edge = parentNode.containedEdges[childNode.id][i];
+
+      // put the edge back in the global edges object
+      this.edges[edge.id] = edge;
+
+      // put the edge back in the dynamic edges of the child and parent
+      childNode.dynamicEdges.push(edge);
+      parentNode.dynamicEdges.push(edge);
+    }
+    // remove the entry from the contained edges
+    delete parentNode.containedEdges[childNode.id];
+
+  };
+
+
+
+
+  // ------------------- UTILITY FUNCTIONS ---------------------------- //
+
+
+  /**
+   * This updates the node labels for all nodes (for debugging purposes)
+   */
+  exports.updateLabels = function() {
+    var nodeId;
+    // update node labels
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        var node = this.nodes[nodeId];
+        if (node.clusterSize > 1) {
+          node.label = "[".concat(String(node.clusterSize),"]");
+        }
+      }
+    }
+
+    // update node labels
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        node = this.nodes[nodeId];
+        if (node.clusterSize == 1) {
+          if (node.originalLabel !== undefined) {
+            node.label = node.originalLabel;
+          }
+          else {
+            node.label = String(node.id);
+          }
+        }
+      }
+    }
+
+  //    /* Debug Override */
+  //    for (nodeId in this.nodes) {
+  //      if (this.nodes.hasOwnProperty(nodeId)) {
+  //        node = this.nodes[nodeId];
+  //        node.label = String(node.level);
+  //      }
+  //    }
+
+  };
+
+
+  /**
+   * We want to keep the cluster level distribution rather small. This means we do not want unclustered nodes
+   * if the rest of the nodes are already a few cluster levels in.
+   * To fix this we use this function. It determines the min and max cluster level and sends nodes that have not
+   * clustered enough to the clusterToSmallestNeighbours function.
+   */
+  exports.normalizeClusterLevels = function() {
+    var maxLevel = 0;
+    var minLevel = 1e9;
+    var clusterLevel = 0;
+    var nodeId;
+
+    // we loop over all nodes in the list
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        clusterLevel = this.nodes[nodeId].clusterSessions.length;
+        if (maxLevel < clusterLevel) {maxLevel = clusterLevel;}
+        if (minLevel > clusterLevel) {minLevel = clusterLevel;}
+      }
+    }
+
+    if (maxLevel - minLevel > this.constants.clustering.clusterLevelDifference) {
+      var amountOfNodes = this.nodeIndices.length;
+      var targetLevel = maxLevel - this.constants.clustering.clusterLevelDifference;
+      // we loop over all nodes in the list
+      for (nodeId in this.nodes) {
+        if (this.nodes.hasOwnProperty(nodeId)) {
+          if (this.nodes[nodeId].clusterSessions.length < targetLevel) {
+            this._clusterToSmallestNeighbour(this.nodes[nodeId]);
+          }
+        }
+      }
+      this._updateNodeIndexList();
+      this._updateDynamicEdges();
+      // if a cluster was formed, we increase the clusterSession
+      if (this.nodeIndices.length != amountOfNodes) {
+        this.clusterSession += 1;
+      }
+    }
+  };
+
+
+
+  /**
+   * This function determines if the cluster we want to decluster is in the active area
+   * this means around the zoom center
+   *
+   * @param {Node} node
+   * @returns {boolean}
+   * @private
+   */
+  exports._nodeInActiveArea = function(node) {
+    return (
+      Math.abs(node.x - this.areaCenter.x) <= this.constants.clustering.activeAreaBoxSize/this.scale
+        &&
+      Math.abs(node.y - this.areaCenter.y) <= this.constants.clustering.activeAreaBoxSize/this.scale
+      )
+  };
+
+
+  /**
+   * This is an adaptation of the original repositioning function. This is called if the system is clustered initially
+   * It puts large clusters away from the center and randomizes the order.
+   *
+   */
+  exports.repositionNodes = function() {
+    for (var i = 0; i < this.nodeIndices.length; i++) {
+      var node = this.nodes[this.nodeIndices[i]];
+      if ((node.xFixed == false || node.yFixed == false)) {
+        var radius = 10 * 0.1*this.nodeIndices.length * Math.min(100,node.mass);
+        var angle = 2 * Math.PI * Math.random();
+        if (node.xFixed == false) {node.x = radius * Math.cos(angle);}
+        if (node.yFixed == false) {node.y = radius * Math.sin(angle);}
+        this._repositionBezierNodes(node);
+      }
+    }
+  };
+
+
+  /**
+   * We determine how many connections denote an important hub.
+   * We take the mean + 2*std as the important hub size. (Assuming a normal distribution of data, ~2.2%)
+   *
+   * @private
+   */
+  exports._getHubSize = function() {
+    var average = 0;
+    var averageSquared = 0;
+    var hubCounter = 0;
+    var largestHub = 0;
+
+    for (var i = 0; i < this.nodeIndices.length; i++) {
+
+      var node = this.nodes[this.nodeIndices[i]];
+      if (node.dynamicEdgesLength > largestHub) {
+        largestHub = node.dynamicEdgesLength;
+      }
+      average += node.dynamicEdgesLength;
+      averageSquared += Math.pow(node.dynamicEdgesLength,2);
+      hubCounter += 1;
+    }
+    average = average / hubCounter;
+    averageSquared = averageSquared / hubCounter;
+
+    var variance = averageSquared - Math.pow(average,2);
+
+    var standardDeviation = Math.sqrt(variance);
+
+    this.hubThreshold = Math.floor(average + 2*standardDeviation);
+
+    // always have at least one to cluster
+    if (this.hubThreshold > largestHub) {
+      this.hubThreshold = largestHub;
+    }
+
+  //  console.log("average",average,"averageSQ",averageSquared,"var",variance,"std",standardDeviation);
+  //  console.log("hubThreshold:",this.hubThreshold);
+  };
+
+
+  /**
+   * We reduce the amount of "extension nodes" or chains. These are not quickly clustered with the outliers and hubs methods
+   * with this amount we can cluster specifically on these chains.
+   *
+   * @param   {Number} fraction     | between 0 and 1, the percentage of chains to reduce
+   * @private
+   */
+  exports._reduceAmountOfChains = function(fraction) {
+    this.hubThreshold = 2;
+    var reduceAmount = Math.floor(this.nodeIndices.length * fraction);
+    for (var nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        if (this.nodes[nodeId].dynamicEdgesLength == 2 && this.nodes[nodeId].dynamicEdges.length >= 2) {
+          if (reduceAmount > 0) {
+            this._formClusterFromHub(this.nodes[nodeId],true,true,1);
+            reduceAmount -= 1;
+          }
+        }
+      }
+    }
+  };
+
+  /**
+   * We get the amount of "extension nodes" or chains. These are not quickly clustered with the outliers and hubs methods
+   * with this amount we can cluster specifically on these chains.
+   *
+   * @private
+   */
+  exports._getChainFraction = function() {
+    var chains = 0;
+    var total = 0;
+    for (var nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        if (this.nodes[nodeId].dynamicEdgesLength == 2 && this.nodes[nodeId].dynamicEdges.length >= 2) {
+          chains += 1;
+        }
+        total += 1;
+      }
+    }
+    return chains/total;
+  };
+
+
+/***/ },
+/* 49 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var util = __webpack_require__(1);
+
+  /**
+   * Creation of the SectorMixin var.
+   *
+   * This contains all the functions the Network object can use to employ the sector system.
+   * The sector system is always used by Network, though the benefits only apply to the use of clustering.
+   * If clustering is not used, there is no overhead except for a duplicate object with references to nodes and edges.
+   */
+
+  /**
+   * This function is only called by the setData function of the Network object.
+   * This loads the global references into the active sector. This initializes the sector.
+   *
+   * @private
+   */
+  exports._putDataInSector = function() {
+    this.sectors["active"][this._sector()].nodes = this.nodes;
+    this.sectors["active"][this._sector()].edges = this.edges;
+    this.sectors["active"][this._sector()].nodeIndices = this.nodeIndices;
+  };
+
+
+  /**
+   *  /**
+   * This function sets the global references to nodes, edges and nodeIndices back to
+   * those of the supplied (active) sector. If a type is defined, do the specific type
+   *
+   * @param {String} sectorId
+   * @param {String} [sectorType] | "active" or "frozen"
+   * @private
+   */
+  exports._switchToSector = function(sectorId, sectorType) {
+    if (sectorType === undefined || sectorType == "active") {
+      this._switchToActiveSector(sectorId);
+    }
+    else {
+      this._switchToFrozenSector(sectorId);
+    }
+  };
+
+
+  /**
+   * This function sets the global references to nodes, edges and nodeIndices back to
+   * those of the supplied active sector.
+   *
+   * @param sectorId
+   * @private
+   */
+  exports._switchToActiveSector = function(sectorId) {
+    this.nodeIndices = this.sectors["active"][sectorId]["nodeIndices"];
+    this.nodes       = this.sectors["active"][sectorId]["nodes"];
+    this.edges       = this.sectors["active"][sectorId]["edges"];
+  };
+
+
+  /**
+   * This function sets the global references to nodes, edges and nodeIndices back to
+   * those of the supplied active sector.
+   *
+   * @private
+   */
+  exports._switchToSupportSector = function() {
+    this.nodeIndices = this.sectors["support"]["nodeIndices"];
+    this.nodes       = this.sectors["support"]["nodes"];
+    this.edges       = this.sectors["support"]["edges"];
+  };
+
+
+  /**
+   * This function sets the global references to nodes, edges and nodeIndices back to
+   * those of the supplied frozen sector.
+   *
+   * @param sectorId
+   * @private
+   */
+  exports._switchToFrozenSector = function(sectorId) {
+    this.nodeIndices = this.sectors["frozen"][sectorId]["nodeIndices"];
+    this.nodes       = this.sectors["frozen"][sectorId]["nodes"];
+    this.edges       = this.sectors["frozen"][sectorId]["edges"];
+  };
+
+
+  /**
+   * This function sets the global references to nodes, edges and nodeIndices back to
+   * those of the currently active sector.
+   *
+   * @private
+   */
+  exports._loadLatestSector = function() {
+    this._switchToSector(this._sector());
+  };
+
+
+  /**
+   * This function returns the currently active sector Id
+   *
+   * @returns {String}
+   * @private
+   */
+  exports._sector = function() {
+    return this.activeSector[this.activeSector.length-1];
+  };
+
+
+  /**
+   * This function returns the previously active sector Id
+   *
+   * @returns {String}
+   * @private
+   */
+  exports._previousSector = function() {
+    if (this.activeSector.length > 1) {
+      return this.activeSector[this.activeSector.length-2];
+    }
+    else {
+      throw new TypeError('there are not enough sectors in the this.activeSector array.');
+    }
+  };
+
+
+  /**
+   * We add the active sector at the end of the this.activeSector array
+   * This ensures it is the currently active sector returned by _sector() and it reaches the top
+   * of the activeSector stack. When we reverse our steps we move from the end to the beginning of this stack.
+   *
+   * @param newId
+   * @private
+   */
+  exports._setActiveSector = function(newId) {
+    this.activeSector.push(newId);
+  };
+
+
+  /**
+   * We remove the currently active sector id from the active sector stack. This happens when
+   * we reactivate the previously active sector
+   *
+   * @private
+   */
+  exports._forgetLastSector = function() {
+    this.activeSector.pop();
+  };
+
+
+  /**
+   * This function creates a new active sector with the supplied newId. This newId
+   * is the expanding node id.
+   *
+   * @param {String} newId   | Id of the new active sector
+   * @private
+   */
+  exports._createNewSector = function(newId) {
+    // create the new sector
+    this.sectors["active"][newId] = {"nodes":{},
+                                     "edges":{},
+                                     "nodeIndices":[],
+                                     "formationScale": this.scale,
+                                     "drawingNode": undefined};
+
+    // create the new sector render node. This gives visual feedback that you are in a new sector.
+    this.sectors["active"][newId]['drawingNode'] = new Node(
+        {id:newId,
+          color: {
+            background: "#eaefef",
+            border: "495c5e"
+          }
+        },{},{},this.constants);
+    this.sectors["active"][newId]['drawingNode'].clusterSize = 2;
+  };
+
+
+  /**
+   * This function removes the currently active sector. This is called when we create a new
+   * active sector.
+   *
+   * @param {String} sectorId   | Id of the active sector that will be removed
+   * @private
+   */
+  exports._deleteActiveSector = function(sectorId) {
+    delete this.sectors["active"][sectorId];
+  };
+
+
+  /**
+   * This function removes the currently active sector. This is called when we reactivate
+   * the previously active sector.
+   *
+   * @param {String} sectorId   | Id of the active sector that will be removed
+   * @private
+   */
+  exports._deleteFrozenSector = function(sectorId) {
+    delete this.sectors["frozen"][sectorId];
+  };
+
+
+  /**
+   * Freezing an active sector means moving it from the "active" object to the "frozen" object.
+   * We copy the references, then delete the active entree.
+   *
+   * @param sectorId
+   * @private
+   */
+  exports._freezeSector = function(sectorId) {
+    // we move the set references from the active to the frozen stack.
+    this.sectors["frozen"][sectorId] = this.sectors["active"][sectorId];
+
+    // we have moved the sector data into the frozen set, we now remove it from the active set
+    this._deleteActiveSector(sectorId);
+  };
+
+
+  /**
+   * This is the reverse operation of _freezeSector. Activating means moving the sector from the "frozen"
+   * object to the "active" object.
+   *
+   * @param sectorId
+   * @private
+   */
+  exports._activateSector = function(sectorId) {
+    // we move the set references from the frozen to the active stack.
+    this.sectors["active"][sectorId] = this.sectors["frozen"][sectorId];
+
+    // we have moved the sector data into the active set, we now remove it from the frozen stack
+    this._deleteFrozenSector(sectorId);
+  };
+
+
+  /**
+   * This function merges the data from the currently active sector with a frozen sector. This is used
+   * in the process of reverting back to the previously active sector.
+   * The data that is placed in the frozen (the previously active) sector is the node that has been removed from it
+   * upon the creation of a new active sector.
+   *
+   * @param sectorId
+   * @private
+   */
+  exports._mergeThisWithFrozen = function(sectorId) {
+    // copy all nodes
+    for (var nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        this.sectors["frozen"][sectorId]["nodes"][nodeId] = this.nodes[nodeId];
+      }
+    }
+
+    // copy all edges (if not fully clustered, else there are no edges)
+    for (var edgeId in this.edges) {
+      if (this.edges.hasOwnProperty(edgeId)) {
+        this.sectors["frozen"][sectorId]["edges"][edgeId] = this.edges[edgeId];
+      }
+    }
+
+    // merge the nodeIndices
+    for (var i = 0; i < this.nodeIndices.length; i++) {
+      this.sectors["frozen"][sectorId]["nodeIndices"].push(this.nodeIndices[i]);
+    }
+  };
+
+
+  /**
+   * This clusters the sector to one cluster. It was a single cluster before this process started so
+   * we revert to that state. The clusterToFit function with a maximum size of 1 node does this.
+   *
+   * @private
+   */
+  exports._collapseThisToSingleCluster = function() {
+    this.clusterToFit(1,false);
+  };
+
+
+  /**
+   * We create a new active sector from the node that we want to open.
+   *
+   * @param node
+   * @private
+   */
+  exports._addSector = function(node) {
+    // this is the currently active sector
+    var sector = this._sector();
+
+  //    // this should allow me to select nodes from a frozen set.
+  //    if (this.sectors['active'][sector]["nodes"].hasOwnProperty(node.id)) {
+  //      console.log("the node is part of the active sector");
+  //    }
+  //    else {
+  //      console.log("I dont know what the fuck happened!!");
+  //    }
+
+    // when we switch to a new sector, we remove the node that will be expanded from the current nodes list.
+    delete this.nodes[node.id];
+
+    var unqiueIdentifier = util.randomUUID();
+
+    // we fully freeze the currently active sector
+    this._freezeSector(sector);
+
+    // we create a new active sector. This sector has the Id of the node to ensure uniqueness
+    this._createNewSector(unqiueIdentifier);
+
+    // we add the active sector to the sectors array to be able to revert these steps later on
+    this._setActiveSector(unqiueIdentifier);
+
+    // we redirect the global references to the new sector's references. this._sector() now returns unqiueIdentifier
+    this._switchToSector(this._sector());
+
+    // finally we add the node we removed from our previous active sector to the new active sector
+    this.nodes[node.id] = node;
+  };
+
+
+  /**
+   * We close the sector that is currently open and revert back to the one before.
+   * If the active sector is the "default" sector, nothing happens.
+   *
+   * @private
+   */
+  exports._collapseSector = function() {
+    // the currently active sector
+    var sector = this._sector();
+
+    // we cannot collapse the default sector
+    if (sector != "default") {
+      if ((this.nodeIndices.length == 1) ||
+       (this.sectors["active"][sector]["drawingNode"].width*this.scale < this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientWidth) ||
+       (this.sectors["active"][sector]["drawingNode"].height*this.scale < this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientHeight)) {
+        var previousSector = this._previousSector();
+
+        // we collapse the sector back to a single cluster
+        this._collapseThisToSingleCluster();
+
+        // we move the remaining nodes, edges and nodeIndices to the previous sector.
+        // This previous sector is the one we will reactivate
+        this._mergeThisWithFrozen(previousSector);
+
+        // the previously active (frozen) sector now has all the data from the currently active sector.
+        // we can now delete the active sector.
+        this._deleteActiveSector(sector);
+
+        // we activate the previously active (and currently frozen) sector.
+        this._activateSector(previousSector);
+
+        // we load the references from the newly active sector into the global references
+        this._switchToSector(previousSector);
+
+        // we forget the previously active sector because we reverted to the one before
+        this._forgetLastSector();
+
+        // finally, we update the node index list.
+        this._updateNodeIndexList();
+
+        // we refresh the list with calulation nodes and calculation node indices.
+        this._updateCalculationNodes();
+      }
+    }
+  };
+
+
+  /**
+   * This runs a function in all active sectors. This is used in _redraw() and the _initializeForceCalculation().
+   *
+   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
+   *                              |   we dont pass the function itself because then the "this" is the window object
+   *                              |   instead of the Network object
+   * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
+   * @private
+   */
+  exports._doInAllActiveSectors = function(runFunction,argument) {
+    if (argument === undefined) {
+      for (var sector in this.sectors["active"]) {
+        if (this.sectors["active"].hasOwnProperty(sector)) {
+          // switch the global references to those of this sector
+          this._switchToActiveSector(sector);
+          this[runFunction]();
+        }
+      }
+    }
+    else {
+      for (var sector in this.sectors["active"]) {
+        if (this.sectors["active"].hasOwnProperty(sector)) {
+          // switch the global references to those of this sector
+          this._switchToActiveSector(sector);
+          var args = Array.prototype.splice.call(arguments, 1);
+          if (args.length > 1) {
+            this[runFunction](args[0],args[1]);
+          }
+          else {
+            this[runFunction](argument);
+          }
+        }
+      }
+    }
+    // we revert the global references back to our active sector
+    this._loadLatestSector();
+  };
+
+
+  /**
+   * This runs a function in all active sectors. This is used in _redraw() and the _initializeForceCalculation().
+   *
+   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
+   *                              |   we dont pass the function itself because then the "this" is the window object
+   *                              |   instead of the Network object
+   * @param {*} [argument]        |   Optional: arguments to pass to the runFunction
+   * @private
+   */
+  exports._doInSupportSector = function(runFunction,argument) {
+    if (argument === undefined) {
+      this._switchToSupportSector();
+      this[runFunction]();
+    }
+    else {
+      this._switchToSupportSector();
+      var args = Array.prototype.splice.call(arguments, 1);
+      if (args.length > 1) {
+        this[runFunction](args[0],args[1]);
+      }
+      else {
+        this[runFunction](argument);
+      }
+    }
+    // we revert the global references back to our active sector
+    this._loadLatestSector();
+  };
+
+
+  /**
+   * This runs a function in all frozen sectors. This is used in the _redraw().
+   *
+   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
+   *                              |   we don't pass the function itself because then the "this" is the window object
+   *                              |   instead of the Network object
+   * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
+   * @private
+   */
+  exports._doInAllFrozenSectors = function(runFunction,argument) {
+    if (argument === undefined) {
+      for (var sector in this.sectors["frozen"]) {
+        if (this.sectors["frozen"].hasOwnProperty(sector)) {
+          // switch the global references to those of this sector
+          this._switchToFrozenSector(sector);
+          this[runFunction]();
+        }
+      }
+    }
+    else {
+      for (var sector in this.sectors["frozen"]) {
+        if (this.sectors["frozen"].hasOwnProperty(sector)) {
+          // switch the global references to those of this sector
+          this._switchToFrozenSector(sector);
+          var args = Array.prototype.splice.call(arguments, 1);
+          if (args.length > 1) {
+            this[runFunction](args[0],args[1]);
+          }
+          else {
+            this[runFunction](argument);
+          }
+        }
+      }
+    }
+    this._loadLatestSector();
+  };
+
+
+  /**
+   * This runs a function in all sectors. This is used in the _redraw().
+   *
+   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
+   *                              |   we don't pass the function itself because then the "this" is the window object
+   *                              |   instead of the Network object
+   * @param {*} [argument]        |   Optional: arguments to pass to the runFunction
+   * @private
+   */
+  exports._doInAllSectors = function(runFunction,argument) {
+    var args = Array.prototype.splice.call(arguments, 1);
+    if (argument === undefined) {
+      this._doInAllActiveSectors(runFunction);
+      this._doInAllFrozenSectors(runFunction);
+    }
+    else {
+      if (args.length > 1) {
+        this._doInAllActiveSectors(runFunction,args[0],args[1]);
+        this._doInAllFrozenSectors(runFunction,args[0],args[1]);
+      }
+      else {
+        this._doInAllActiveSectors(runFunction,argument);
+        this._doInAllFrozenSectors(runFunction,argument);
+      }
+    }
+  };
+
+
+  /**
+   * This clears the nodeIndices list. We cannot use this.nodeIndices = [] because we would break the link with the
+   * active sector. Thus we clear the nodeIndices in the active sector, then reconnect the this.nodeIndices to it.
+   *
+   * @private
+   */
+  exports._clearNodeIndexList = function() {
+    var sector = this._sector();
+    this.sectors["active"][sector]["nodeIndices"] = [];
+    this.nodeIndices = this.sectors["active"][sector]["nodeIndices"];
+  };
+
+
+  /**
+   * Draw the encompassing sector node
+   *
+   * @param ctx
+   * @param sectorType
+   * @private
+   */
+  exports._drawSectorNodes = function(ctx,sectorType) {
+    var minY = 1e9, maxY = -1e9, minX = 1e9, maxX = -1e9, node;
+    for (var sector in this.sectors[sectorType]) {
+      if (this.sectors[sectorType].hasOwnProperty(sector)) {
+        if (this.sectors[sectorType][sector]["drawingNode"] !== undefined) {
+
+          this._switchToSector(sector,sectorType);
+
+          minY = 1e9; maxY = -1e9; minX = 1e9; maxX = -1e9;
+          for (var nodeId in this.nodes) {
+            if (this.nodes.hasOwnProperty(nodeId)) {
+              node = this.nodes[nodeId];
+              node.resize(ctx);
+              if (minX > node.x - 0.5 * node.width) {minX = node.x - 0.5 * node.width;}
+              if (maxX < node.x + 0.5 * node.width) {maxX = node.x + 0.5 * node.width;}
+              if (minY > node.y - 0.5 * node.height) {minY = node.y - 0.5 * node.height;}
+              if (maxY < node.y + 0.5 * node.height) {maxY = node.y + 0.5 * node.height;}
+            }
+          }
+          node = this.sectors[sectorType][sector]["drawingNode"];
+          node.x = 0.5 * (maxX + minX);
+          node.y = 0.5 * (maxY + minY);
+          node.width = 2 * (node.x - minX);
+          node.height = 2 * (node.y - minY);
+          node.radius = Math.sqrt(Math.pow(0.5*node.width,2) + Math.pow(0.5*node.height,2));
+          node.setScale(this.scale);
+          node._drawCircle(ctx);
+        }
+      }
+    }
+  };
+
+  exports._drawAllSectorNodes = function(ctx) {
+    this._drawSectorNodes(ctx,"frozen");
+    this._drawSectorNodes(ctx,"active");
+    this._loadLatestSector();
+  };
+
+
+/***/ },
+/* 50 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var Node = __webpack_require__(36);
+
+  /**
+   * This function can be called from the _doInAllSectors function
+   *
+   * @param object
+   * @param overlappingNodes
+   * @private
+   */
+  exports._getNodesOverlappingWith = function(object, overlappingNodes) {
+    var nodes = this.nodes;
+    for (var nodeId in nodes) {
+      if (nodes.hasOwnProperty(nodeId)) {
+        if (nodes[nodeId].isOverlappingWith(object)) {
+          overlappingNodes.push(nodeId);
+        }
+      }
+    }
+  };
+
+  /**
+   * retrieve all nodes overlapping with given object
+   * @param {Object} object  An object with parameters left, top, right, bottom
+   * @return {Number[]}   An array with id's of the overlapping nodes
+   * @private
+   */
+  exports._getAllNodesOverlappingWith = function (object) {
+    var overlappingNodes = [];
+    this._doInAllActiveSectors("_getNodesOverlappingWith",object,overlappingNodes);
+    return overlappingNodes;
+  };
+
+
+  /**
+   * Return a position object in canvasspace from a single point in screenspace
+   *
+   * @param pointer
+   * @returns {{left: number, top: number, right: number, bottom: number}}
+   * @private
+   */
+  exports._pointerToPositionObject = function(pointer) {
+    var x = this._XconvertDOMtoCanvas(pointer.x);
+    var y = this._YconvertDOMtoCanvas(pointer.y);
+
+    return {
+      left:   x,
+      top:    y,
+      right:  x,
+      bottom: y
+    };
+  };
+
+
+  /**
+   * Get the top node at the a specific point (like a click)
+   *
+   * @param {{x: Number, y: Number}} pointer
+   * @return {Node | null} node
+   * @private
+   */
+  exports._getNodeAt = function (pointer) {
+    // we first check if this is an navigation controls element
+    var positionObject = this._pointerToPositionObject(pointer);
+    var overlappingNodes = this._getAllNodesOverlappingWith(positionObject);
+
+    // if there are overlapping nodes, select the last one, this is the
+    // one which is drawn on top of the others
+    if (overlappingNodes.length > 0) {
+       return this.nodes[overlappingNodes[overlappingNodes.length - 1]];
+    }
+    else {
+      return null;
+    }
+  };
+
+
+  /**
+   * retrieve all edges overlapping with given object, selector is around center
+   * @param {Object} object  An object with parameters left, top, right, bottom
+   * @return {Number[]}   An array with id's of the overlapping nodes
+   * @private
+   */
+  exports._getEdgesOverlappingWith = function (object, overlappingEdges) {
+    var edges = this.edges;
+    for (var edgeId in edges) {
+      if (edges.hasOwnProperty(edgeId)) {
+        if (edges[edgeId].isOverlappingWith(object)) {
+          overlappingEdges.push(edgeId);
+        }
+      }
+    }
+  };
+
+
+  /**
+   * retrieve all nodes overlapping with given object
+   * @param {Object} object  An object with parameters left, top, right, bottom
+   * @return {Number[]}   An array with id's of the overlapping nodes
+   * @private
+   */
+  exports._getAllEdgesOverlappingWith = function (object) {
+    var overlappingEdges = [];
+    this._doInAllActiveSectors("_getEdgesOverlappingWith",object,overlappingEdges);
+    return overlappingEdges;
+  };
+
+  /**
+   * Place holder. To implement change the _getNodeAt to a _getObjectAt. Have the _getObjectAt call
+   * _getNodeAt and _getEdgesAt, then priortize the selection to user preferences.
+   *
+   * @param pointer
+   * @returns {null}
+   * @private
+   */
+  exports._getEdgeAt = function(pointer) {
+    var positionObject = this._pointerToPositionObject(pointer);
+    var overlappingEdges = this._getAllEdgesOverlappingWith(positionObject);
+
+    if (overlappingEdges.length > 0) {
+      return this.edges[overlappingEdges[overlappingEdges.length - 1]];
+    }
+    else {
+      return null;
+    }
+  };
+
+
+  /**
+   * Add object to the selection array.
+   *
+   * @param obj
+   * @private
+   */
+  exports._addToSelection = function(obj) {
+    if (obj instanceof Node) {
+      this.selectionObj.nodes[obj.id] = obj;
+    }
+    else {
+      this.selectionObj.edges[obj.id] = obj;
+    }
+  };
+
+  /**
+   * Add object to the selection array.
+   *
+   * @param obj
+   * @private
+   */
+  exports._addToHover = function(obj) {
+    if (obj instanceof Node) {
+      this.hoverObj.nodes[obj.id] = obj;
+    }
+    else {
+      this.hoverObj.edges[obj.id] = obj;
+    }
+  };
+
+
+  /**
+   * Remove a single option from selection.
+   *
+   * @param {Object} obj
+   * @private
+   */
+  exports._removeFromSelection = function(obj) {
+    if (obj instanceof Node) {
+      delete this.selectionObj.nodes[obj.id];
+    }
+    else {
+      delete this.selectionObj.edges[obj.id];
+    }
+  };
+
+  /**
+   * Unselect all. The selectionObj is useful for this.
+   *
+   * @param {Boolean} [doNotTrigger] | ignore trigger
+   * @private
+   */
+  exports._unselectAll = function(doNotTrigger) {
+    if (doNotTrigger === undefined) {
+      doNotTrigger = false;
+    }
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        this.selectionObj.nodes[nodeId].unselect();
+      }
+    }
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        this.selectionObj.edges[edgeId].unselect();
+      }
+    }
+
+    this.selectionObj = {nodes:{},edges:{}};
+
+    if (doNotTrigger == false) {
+      this.emit('select', this.getSelection());
+    }
+  };
+
+  /**
+   * Unselect all clusters. The selectionObj is useful for this.
+   *
+   * @param {Boolean} [doNotTrigger] | ignore trigger
+   * @private
+   */
+  exports._unselectClusters = function(doNotTrigger) {
+    if (doNotTrigger === undefined) {
+      doNotTrigger = false;
+    }
+
+    for (var nodeId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        if (this.selectionObj.nodes[nodeId].clusterSize > 1) {
+          this.selectionObj.nodes[nodeId].unselect();
+          this._removeFromSelection(this.selectionObj.nodes[nodeId]);
+        }
+      }
+    }
+
+    if (doNotTrigger == false) {
+      this.emit('select', this.getSelection());
+    }
+  };
+
+
+  /**
+   * return the number of selected nodes
+   *
+   * @returns {number}
+   * @private
+   */
+  exports._getSelectedNodeCount = function() {
+    var count = 0;
+    for (var nodeId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        count += 1;
+      }
+    }
+    return count;
+  };
+
+  /**
+   * return the selected node
+   *
+   * @returns {number}
+   * @private
+   */
+  exports._getSelectedNode = function() {
+    for (var nodeId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        return this.selectionObj.nodes[nodeId];
+      }
+    }
+    return null;
+  };
+
+  /**
+   * return the selected edge
+   *
+   * @returns {number}
+   * @private
+   */
+  exports._getSelectedEdge = function() {
+    for (var edgeId in this.selectionObj.edges) {
+      if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        return this.selectionObj.edges[edgeId];
+      }
+    }
+    return null;
+  };
+
+
+  /**
+   * return the number of selected edges
+   *
+   * @returns {number}
+   * @private
+   */
+  exports._getSelectedEdgeCount = function() {
+    var count = 0;
+    for (var edgeId in this.selectionObj.edges) {
+      if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        count += 1;
+      }
+    }
+    return count;
+  };
+
+
+  /**
+   * return the number of selected objects.
+   *
+   * @returns {number}
+   * @private
+   */
+  exports._getSelectedObjectCount = function() {
+    var count = 0;
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        count += 1;
+      }
+    }
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        count += 1;
+      }
+    }
+    return count;
+  };
+
+  /**
+   * Check if anything is selected
+   *
+   * @returns {boolean}
+   * @private
+   */
+  exports._selectionIsEmpty = function() {
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        return false;
+      }
+    }
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+
+  /**
+   * check if one of the selected nodes is a cluster.
+   *
+   * @returns {boolean}
+   * @private
+   */
+  exports._clusterInSelection = function() {
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        if (this.selectionObj.nodes[nodeId].clusterSize > 1) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
+  /**
+   * select the edges connected to the node that is being selected
+   *
+   * @param {Node} node
+   * @private
+   */
+  exports._selectConnectedEdges = function(node) {
+    for (var i = 0; i < node.dynamicEdges.length; i++) {
+      var edge = node.dynamicEdges[i];
+      edge.select();
+      this._addToSelection(edge);
+    }
+  };
+
+  /**
+   * select the edges connected to the node that is being selected
+   *
+   * @param {Node} node
+   * @private
+   */
+  exports._hoverConnectedEdges = function(node) {
+    for (var i = 0; i < node.dynamicEdges.length; i++) {
+      var edge = node.dynamicEdges[i];
+      edge.hover = true;
+      this._addToHover(edge);
+    }
+  };
+
+
+  /**
+   * unselect the edges connected to the node that is being selected
+   *
+   * @param {Node} node
+   * @private
+   */
+  exports._unselectConnectedEdges = function(node) {
+    for (var i = 0; i < node.dynamicEdges.length; i++) {
+      var edge = node.dynamicEdges[i];
+      edge.unselect();
+      this._removeFromSelection(edge);
+    }
+  };
+
+
+
+
+  /**
+   * This is called when someone clicks on a node. either select or deselect it.
+   * If there is an existing selection and we don't want to append to it, clear the existing selection
+   *
+   * @param {Node || Edge} object
+   * @param {Boolean} append
+   * @param {Boolean} [doNotTrigger] | ignore trigger
+   * @private
+   */
+  exports._selectObject = function(object, append, doNotTrigger, highlightEdges) {
+    if (doNotTrigger === undefined) {
+      doNotTrigger = false;
+    }
+    if (highlightEdges === undefined) {
+      highlightEdges = true;
+    }
+
+    if (this._selectionIsEmpty() == false && append == false && this.forceAppendSelection == false) {
+      this._unselectAll(true);
+    }
+
+    if (object.selected == false) {
+      object.select();
+      this._addToSelection(object);
+      if (object instanceof Node && this.blockConnectingEdgeSelection == false && highlightEdges == true) {
+        this._selectConnectedEdges(object);
+      }
+    }
+    else {
+      object.unselect();
+      this._removeFromSelection(object);
+    }
+
+    if (doNotTrigger == false) {
+      this.emit('select', this.getSelection());
+    }
+  };
+
+
+  /**
+   * This is called when someone clicks on a node. either select or deselect it.
+   * If there is an existing selection and we don't want to append to it, clear the existing selection
+   *
+   * @param {Node || Edge} object
+   * @private
+   */
+  exports._blurObject = function(object) {
+    if (object.hover == true) {
+      object.hover = false;
+      this.emit("blurNode",{node:object.id});
+    }
+  };
+
+  /**
+   * This is called when someone clicks on a node. either select or deselect it.
+   * If there is an existing selection and we don't want to append to it, clear the existing selection
+   *
+   * @param {Node || Edge} object
+   * @private
+   */
+  exports._hoverObject = function(object) {
+    if (object.hover == false) {
+      object.hover = true;
+      this._addToHover(object);
+      if (object instanceof Node) {
+        this.emit("hoverNode",{node:object.id});
+      }
+    }
+    if (object instanceof Node) {
+      this._hoverConnectedEdges(object);
+    }
+  };
+
+
+  /**
+   * handles the selection part of the touch, only for navigation controls elements;
+   * Touch is triggered before tap, also before hold. Hold triggers after a while.
+   * This is the most responsive solution
+   *
+   * @param {Object} pointer
+   * @private
+   */
+  exports._handleTouch = function(pointer) {
+  };
+
+
+  /**
+   * handles the selection part of the tap;
+   *
+   * @param {Object} pointer
+   * @private
+   */
+  exports._handleTap = function(pointer) {
+    var node = this._getNodeAt(pointer);
+    if (node != null) {
+      this._selectObject(node,false);
+    }
+    else {
+      var edge = this._getEdgeAt(pointer);
+      if (edge != null) {
+        this._selectObject(edge,false);
+      }
+      else {
+        this._unselectAll();
+      }
+    }
+    this.emit("click", this.getSelection());
+    this._redraw();
+  };
+
+
+  /**
+   * handles the selection part of the double tap and opens a cluster if needed
+   *
+   * @param {Object} pointer
+   * @private
+   */
+  exports._handleDoubleTap = function(pointer) {
+    var node = this._getNodeAt(pointer);
+    if (node != null && node !== undefined) {
+      // we reset the areaCenter here so the opening of the node will occur
+      this.areaCenter =  {"x" : this._XconvertDOMtoCanvas(pointer.x),
+                          "y" : this._YconvertDOMtoCanvas(pointer.y)};
+      this.openCluster(node);
+    }
+    this.emit("doubleClick", this.getSelection());
+  };
+
+
+  /**
+   * Handle the onHold selection part
+   *
+   * @param pointer
+   * @private
+   */
+  exports._handleOnHold = function(pointer) {
+    var node = this._getNodeAt(pointer);
+    if (node != null) {
+      this._selectObject(node,true);
+    }
+    else {
+      var edge = this._getEdgeAt(pointer);
+      if (edge != null) {
+        this._selectObject(edge,true);
+      }
+    }
+    this._redraw();
+  };
+
+
+  /**
+   * handle the onRelease event. These functions are here for the navigation controls module.
+   *
+    * @private
+   */
+  exports._handleOnRelease = function(pointer) {
+
+  };
+
+
+
+  /**
+   *
+   * retrieve the currently selected objects
+   * @return {{nodes: Array.<String>, edges: Array.<String>}} selection
+   */
+  exports.getSelection = function() {
+    var nodeIds = this.getSelectedNodes();
+    var edgeIds = this.getSelectedEdges();
+    return {nodes:nodeIds, edges:edgeIds};
+  };
+
+  /**
+   *
+   * retrieve the currently selected nodes
+   * @return {String[]} selection    An array with the ids of the
+   *                                            selected nodes.
+   */
+  exports.getSelectedNodes = function() {
+    var idArray = [];
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        idArray.push(nodeId);
+      }
+    }
+    return idArray
+  };
+
+  /**
+   *
+   * retrieve the currently selected edges
+   * @return {Array} selection    An array with the ids of the
+   *                                            selected nodes.
+   */
+  exports.getSelectedEdges = function() {
+    var idArray = [];
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        idArray.push(edgeId);
+      }
+    }
+    return idArray;
+  };
+
+
+  /**
+   * select zero or more nodes
+   * @param {Number[] | String[]} selection     An array with the ids of the
+   *                                            selected nodes.
+   */
+  exports.setSelection = function(selection) {
+    var i, iMax, id;
+
+    if (!selection || (selection.length == undefined))
+      throw 'Selection must be an array with ids';
+
+    // first unselect any selected node
+    this._unselectAll(true);
+
+    for (i = 0, iMax = selection.length; i < iMax; i++) {
+      id = selection[i];
+
+      var node = this.nodes[id];
+      if (!node) {
+        throw new RangeError('Node with id "' + id + '" not found');
+      }
+      this._selectObject(node,true,true);
+    }
+
+    console.log("setSelection is deprecated. Please use selectNodes instead.")
+
+    this.redraw();
+  };
+
+
+  /**
+   * select zero or more nodes with the option to highlight edges
+   * @param {Number[] | String[]} selection     An array with the ids of the
+   *                                            selected nodes.
+   * @param {boolean} [highlightEdges]
+   */
+  exports.selectNodes = function(selection, highlightEdges) {
+    var i, iMax, id;
+
+    if (!selection || (selection.length == undefined))
+      throw 'Selection must be an array with ids';
+
+    // first unselect any selected node
+    this._unselectAll(true);
+
+    for (i = 0, iMax = selection.length; i < iMax; i++) {
+      id = selection[i];
+
+      var node = this.nodes[id];
+      if (!node) {
+        throw new RangeError('Node with id "' + id + '" not found');
+      }
+      this._selectObject(node,true,true,highlightEdges);
+    }
+    this.redraw();
+  };
+
+
+  /**
+   * select zero or more edges
+   * @param {Number[] | String[]} selection     An array with the ids of the
+   *                                            selected nodes.
+   */
+  exports.selectEdges = function(selection) {
+    var i, iMax, id;
+
+    if (!selection || (selection.length == undefined))
+      throw 'Selection must be an array with ids';
+
+    // first unselect any selected node
+    this._unselectAll(true);
+
+    for (i = 0, iMax = selection.length; i < iMax; i++) {
+      id = selection[i];
+
+      var edge = this.edges[id];
+      if (!edge) {
+        throw new RangeError('Edge with id "' + id + '" not found');
+      }
+      this._selectObject(edge,true,true,highlightEdges);
+    }
+    this.redraw();
+  };
+
+  /**
+   * Validate the selection: remove ids of nodes which no longer exist
+   * @private
+   */
+  exports._updateSelection = function () {
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        if (!this.nodes.hasOwnProperty(nodeId)) {
+          delete this.selectionObj.nodes[nodeId];
+        }
+      }
+    }
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        if (!this.edges.hasOwnProperty(edgeId)) {
+          delete this.selectionObj.edges[edgeId];
+        }
+      }
+    }
+  };
+
+
+/***/ },
+/* 51 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var util = __webpack_require__(1);
+  var Node = __webpack_require__(36);
+  var Edge = __webpack_require__(33);
+
+  /**
+   * clears the toolbar div element of children
+   *
+   * @private
+   */
+  exports._clearManipulatorBar = function() {
+    while (this.manipulationDiv.hasChildNodes()) {
+      this.manipulationDiv.removeChild(this.manipulationDiv.firstChild);
+    }
+  };
+
+  /**
+   * Manipulation UI temporarily overloads certain functions to extend or replace them. To be able to restore
+   * these functions to their original functionality, we saved them in this.cachedFunctions.
+   * This function restores these functions to their original function.
+   *
+   * @private
+   */
+  exports._restoreOverloadedFunctions = function() {
+    for (var functionName in this.cachedFunctions) {
+      if (this.cachedFunctions.hasOwnProperty(functionName)) {
+        this[functionName] = this.cachedFunctions[functionName];
+      }
+    }
+  };
+
+  /**
+   * Enable or disable edit-mode.
+   *
+   * @private
+   */
+  exports._toggleEditMode = function() {
+    this.editMode = !this.editMode;
+    var toolbar = document.getElementById("network-manipulationDiv");
+    var closeDiv = document.getElementById("network-manipulation-closeDiv");
+    var editModeDiv = document.getElementById("network-manipulation-editMode");
+    if (this.editMode == true) {
+      toolbar.style.display="block";
+      closeDiv.style.display="block";
+      editModeDiv.style.display="none";
+      closeDiv.onclick = this._toggleEditMode.bind(this);
+    }
+    else {
+      toolbar.style.display="none";
+      closeDiv.style.display="none";
+      editModeDiv.style.display="block";
+      closeDiv.onclick = null;
+    }
+    this._createManipulatorBar()
+  };
+
+  /**
+   * main function, creates the main toolbar. Removes functions bound to the select event. Binds all the buttons of the toolbar.
+   *
+   * @private
+   */
+  exports._createManipulatorBar = function() {
+    // remove bound functions
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
+
+    if (this.edgeBeingEdited !== undefined) {
+      this.edgeBeingEdited._disableControlNodes();
+      this.edgeBeingEdited = undefined;
+      this.selectedControlNode = null;
+      this.controlNodesActive = false;
+    }
+
+    // restore overloaded functions
+    this._restoreOverloadedFunctions();
+
+    // resume calculation
+    this.freezeSimulation = false;
+
+    // reset global variables
+    this.blockConnectingEdgeSelection = false;
+    this.forceAppendSelection = false;
+
+    if (this.editMode == true) {
+      while (this.manipulationDiv.hasChildNodes()) {
+        this.manipulationDiv.removeChild(this.manipulationDiv.firstChild);
+      }
+      // add the icons to the manipulator div
+      this.manipulationDiv.innerHTML = "" +
+        "<span class='network-manipulationUI add' id='network-manipulate-addNode'>" +
+          "<span class='network-manipulationLabel'>"+this.constants.labels['add'] +"</span></span>" +
+        "<div class='network-seperatorLine'></div>" +
+        "<span class='network-manipulationUI connect' id='network-manipulate-connectNode'>" +
+          "<span class='network-manipulationLabel'>"+this.constants.labels['link'] +"</span></span>";
+      if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
+        this.manipulationDiv.innerHTML += "" +
+          "<div class='network-seperatorLine'></div>" +
+          "<span class='network-manipulationUI edit' id='network-manipulate-editNode'>" +
+            "<span class='network-manipulationLabel'>"+this.constants.labels['editNode'] +"</span></span>";
+      }
+      else if (this._getSelectedEdgeCount() == 1 && this._getSelectedNodeCount() == 0) {
+        this.manipulationDiv.innerHTML += "" +
+          "<div class='network-seperatorLine'></div>" +
+          "<span class='network-manipulationUI edit' id='network-manipulate-editEdge'>" +
+          "<span class='network-manipulationLabel'>"+this.constants.labels['editEdge'] +"</span></span>";
+      }
+      if (this._selectionIsEmpty() == false) {
+        this.manipulationDiv.innerHTML += "" +
+          "<div class='network-seperatorLine'></div>" +
+          "<span class='network-manipulationUI delete' id='network-manipulate-delete'>" +
+            "<span class='network-manipulationLabel'>"+this.constants.labels['del'] +"</span></span>";
+      }
+
+
+      // bind the icons
+      var addNodeButton = document.getElementById("network-manipulate-addNode");
+      addNodeButton.onclick = this._createAddNodeToolbar.bind(this);
+      var addEdgeButton = document.getElementById("network-manipulate-connectNode");
+      addEdgeButton.onclick = this._createAddEdgeToolbar.bind(this);
+      if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
+        var editButton = document.getElementById("network-manipulate-editNode");
+        editButton.onclick = this._editNode.bind(this);
+      }
+      else if (this._getSelectedEdgeCount() == 1 && this._getSelectedNodeCount() == 0) {
+        var editButton = document.getElementById("network-manipulate-editEdge");
+        editButton.onclick = this._createEditEdgeToolbar.bind(this);
+      }
+      if (this._selectionIsEmpty() == false) {
+        var deleteButton = document.getElementById("network-manipulate-delete");
+        deleteButton.onclick = this._deleteSelected.bind(this);
+      }
+      var closeDiv = document.getElementById("network-manipulation-closeDiv");
+      closeDiv.onclick = this._toggleEditMode.bind(this);
+
+      this.boundFunction = this._createManipulatorBar.bind(this);
+      this.on('select', this.boundFunction);
+    }
+    else {
+      this.editModeDiv.innerHTML = "" +
+        "<span class='network-manipulationUI edit editmode' id='network-manipulate-editModeButton'>" +
+        "<span class='network-manipulationLabel'>" + this.constants.labels['edit'] + "</span></span>";
+      var editModeButton = document.getElementById("network-manipulate-editModeButton");
+      editModeButton.onclick = this._toggleEditMode.bind(this);
+    }
+  };
+
+
+
+  /**
+   * Create the toolbar for adding Nodes
+   *
+   * @private
+   */
+  exports._createAddNodeToolbar = function() {
+    // clear the toolbar
+    this._clearManipulatorBar();
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
+
+    // create the toolbar contents
+    this.manipulationDiv.innerHTML = "" +
+      "<span class='network-manipulationUI back' id='network-manipulate-back'>" +
+      "<span class='network-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
+      "<div class='network-seperatorLine'></div>" +
+      "<span class='network-manipulationUI none' id='network-manipulate-back'>" +
+      "<span id='network-manipulatorLabel' class='network-manipulationLabel'>" + this.constants.labels['addDescription'] + "</span></span>";
+
+    // bind the icon
+    var backButton = document.getElementById("network-manipulate-back");
+    backButton.onclick = this._createManipulatorBar.bind(this);
+
+    // we use the boundFunction so we can reference it when we unbind it from the "select" event.
+    this.boundFunction = this._addNode.bind(this);
+    this.on('select', this.boundFunction);
+  };
+
+
+  /**
+   * create the toolbar to connect nodes
+   *
+   * @private
+   */
+  exports._createAddEdgeToolbar = function() {
+    // clear the toolbar
+    this._clearManipulatorBar();
+    this._unselectAll(true);
+    this.freezeSimulation = true;
+
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
+
+    this._unselectAll();
+    this.forceAppendSelection = false;
+    this.blockConnectingEdgeSelection = true;
+
+    this.manipulationDiv.innerHTML = "" +
+      "<span class='network-manipulationUI back' id='network-manipulate-back'>" +
+        "<span class='network-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
+      "<div class='network-seperatorLine'></div>" +
+      "<span class='network-manipulationUI none' id='network-manipulate-back'>" +
+        "<span id='network-manipulatorLabel' class='network-manipulationLabel'>" + this.constants.labels['linkDescription'] + "</span></span>";
+
+    // bind the icon
+    var backButton = document.getElementById("network-manipulate-back");
+    backButton.onclick = this._createManipulatorBar.bind(this);
+
+    // we use the boundFunction so we can reference it when we unbind it from the "select" event.
+    this.boundFunction = this._handleConnect.bind(this);
+    this.on('select', this.boundFunction);
+
+    // temporarily overload functions
+    this.cachedFunctions["_handleTouch"] = this._handleTouch;
+    this.cachedFunctions["_handleOnRelease"] = this._handleOnRelease;
+    this._handleTouch = this._handleConnect;
+    this._handleOnRelease = this._finishConnect;
+
+    // redraw to show the unselect
+    this._redraw();
+  };
+
+  /**
+   * create the toolbar to edit edges
+   *
+   * @private
+   */
+  exports._createEditEdgeToolbar = function() {
+    // clear the toolbar
+    this._clearManipulatorBar();
+    this.controlNodesActive = true;
+
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
+
+    this.edgeBeingEdited = this._getSelectedEdge();
+    this.edgeBeingEdited._enableControlNodes();
+
+    this.manipulationDiv.innerHTML = "" +
+      "<span class='network-manipulationUI back' id='network-manipulate-back'>" +
+      "<span class='network-manipulationLabel'>" + this.constants.labels['back'] + " </span></span>" +
+      "<div class='network-seperatorLine'></div>" +
+      "<span class='network-manipulationUI none' id='network-manipulate-back'>" +
+      "<span id='network-manipulatorLabel' class='network-manipulationLabel'>" + this.constants.labels['editEdgeDescription'] + "</span></span>";
+
+    // bind the icon
+    var backButton = document.getElementById("network-manipulate-back");
+    backButton.onclick = this._createManipulatorBar.bind(this);
+
+    // temporarily overload functions
+    this.cachedFunctions["_handleTouch"]      = this._handleTouch;
+    this.cachedFunctions["_handleOnRelease"]  = this._handleOnRelease;
+    this.cachedFunctions["_handleTap"]        = this._handleTap;
+    this.cachedFunctions["_handleDragStart"]  = this._handleDragStart;
+    this.cachedFunctions["_handleOnDrag"]     = this._handleOnDrag;
+    this._handleTouch     = this._selectControlNode;
+    this._handleTap       = function () {};
+    this._handleOnDrag    = this._controlNodeDrag;
+    this._handleDragStart = function () {}
+    this._handleOnRelease = this._releaseControlNode;
+
+    // redraw to show the unselect
+    this._redraw();
+  };
+
+
+
+
+
+  /**
+   * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
+   * to walk the user through the process.
+   *
+   * @private
+   */
+  exports._selectControlNode = function(pointer) {
+    this.edgeBeingEdited.controlNodes.from.unselect();
+    this.edgeBeingEdited.controlNodes.to.unselect();
+    this.selectedControlNode = this.edgeBeingEdited._getSelectedControlNode(this._XconvertDOMtoCanvas(pointer.x),this._YconvertDOMtoCanvas(pointer.y));
+    if (this.selectedControlNode !== null) {
+      this.selectedControlNode.select();
+      this.freezeSimulation = true;
+    }
+    this._redraw();
+  };
+
+  /**
+   * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
+   * to walk the user through the process.
+   *
+   * @private
+   */
+  exports._controlNodeDrag = function(event) {
+    var pointer = this._getPointer(event.gesture.center);
+    if (this.selectedControlNode !== null && this.selectedControlNode !== undefined) {
+      this.selectedControlNode.x = this._XconvertDOMtoCanvas(pointer.x);
+      this.selectedControlNode.y = this._YconvertDOMtoCanvas(pointer.y);
+    }
+    this._redraw();
+  };
+
+  exports._releaseControlNode = function(pointer) {
+    var newNode = this._getNodeAt(pointer);
+    if (newNode != null) {
+      if (this.edgeBeingEdited.controlNodes.from.selected == true) {
+        this._editEdge(newNode.id, this.edgeBeingEdited.to.id);
+        this.edgeBeingEdited.controlNodes.from.unselect();
+      }
+      if (this.edgeBeingEdited.controlNodes.to.selected == true) {
+        this._editEdge(this.edgeBeingEdited.from.id, newNode.id);
+        this.edgeBeingEdited.controlNodes.to.unselect();
+      }
+    }
+    else {
+      this.edgeBeingEdited._restoreControlNodes();
+    }
+    this.freezeSimulation = false;
+    this._redraw();
+  };
+
+  /**
+   * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
+   * to walk the user through the process.
+   *
+   * @private
+   */
+  exports._handleConnect = function(pointer) {
+    if (this._getSelectedNodeCount() == 0) {
+      var node = this._getNodeAt(pointer);
+      if (node != null) {
+        if (node.clusterSize > 1) {
+          alert("Cannot create edges to a cluster.")
+        }
+        else {
+          this._selectObject(node,false);
+          // create a node the temporary line can look at
+          this.sectors['support']['nodes']['targetNode'] = new Node({id:'targetNode'},{},{},this.constants);
+          this.sectors['support']['nodes']['targetNode'].x = node.x;
+          this.sectors['support']['nodes']['targetNode'].y = node.y;
+          this.sectors['support']['nodes']['targetViaNode'] = new Node({id:'targetViaNode'},{},{},this.constants);
+          this.sectors['support']['nodes']['targetViaNode'].x = node.x;
+          this.sectors['support']['nodes']['targetViaNode'].y = node.y;
+          this.sectors['support']['nodes']['targetViaNode'].parentEdgeId = "connectionEdge";
+
+          // create a temporary edge
+          this.edges['connectionEdge'] = new Edge({id:"connectionEdge",from:node.id,to:this.sectors['support']['nodes']['targetNode'].id}, this, this.constants);
+          this.edges['connectionEdge'].from = node;
+          this.edges['connectionEdge'].connected = true;
+          this.edges['connectionEdge'].smooth = true;
+          this.edges['connectionEdge'].selected = true;
+          this.edges['connectionEdge'].to = this.sectors['support']['nodes']['targetNode'];
+          this.edges['connectionEdge'].via = this.sectors['support']['nodes']['targetViaNode'];
+
+          this.cachedFunctions["_handleOnDrag"] = this._handleOnDrag;
+          this._handleOnDrag = function(event) {
+            var pointer = this._getPointer(event.gesture.center);
+            this.sectors['support']['nodes']['targetNode'].x = this._XconvertDOMtoCanvas(pointer.x);
+            this.sectors['support']['nodes']['targetNode'].y = this._YconvertDOMtoCanvas(pointer.y);
+            this.sectors['support']['nodes']['targetViaNode'].x = 0.5 * (this._XconvertDOMtoCanvas(pointer.x) + this.edges['connectionEdge'].from.x);
+            this.sectors['support']['nodes']['targetViaNode'].y = this._YconvertDOMtoCanvas(pointer.y);
+          };
+
+          this.moving = true;
+          this.start();
+        }
+      }
+    }
+  };
+
+  exports._finishConnect = function(pointer) {
+    if (this._getSelectedNodeCount() == 1) {
+
+      // restore the drag function
+      this._handleOnDrag = this.cachedFunctions["_handleOnDrag"];
+      delete this.cachedFunctions["_handleOnDrag"];
+
+      // remember the edge id
+      var connectFromId = this.edges['connectionEdge'].fromId;
+
+      // remove the temporary nodes and edge
+      delete this.edges['connectionEdge'];
+      delete this.sectors['support']['nodes']['targetNode'];
+      delete this.sectors['support']['nodes']['targetViaNode'];
+
+      var node = this._getNodeAt(pointer);
+      if (node != null) {
+        if (node.clusterSize > 1) {
+          alert("Cannot create edges to a cluster.")
+        }
+        else {
+          this._createEdge(connectFromId,node.id);
+          this._createManipulatorBar();
+        }
+      }
+      this._unselectAll();
+    }
+  };
+
+
+  /**
+   * Adds a node on the specified location
+   */
+  exports._addNode = function() {
+    if (this._selectionIsEmpty() && this.editMode == true) {
+      var positionObject = this._pointerToPositionObject(this.pointerPosition);
+      var defaultData = {id:util.randomUUID(),x:positionObject.left,y:positionObject.top,label:"new",allowedToMoveX:true,allowedToMoveY:true};
+      if (this.triggerFunctions.add) {
+        if (this.triggerFunctions.add.length == 2) {
+          var me = this;
+          this.triggerFunctions.add(defaultData, function(finalizedData) {
+            me.nodesData.add(finalizedData);
+            me._createManipulatorBar();
+            me.moving = true;
+            me.start();
+          });
+        }
+        else {
+          alert(this.constants.labels['addError']);
+          this._createManipulatorBar();
+          this.moving = true;
+          this.start();
+        }
+      }
+      else {
+        this.nodesData.add(defaultData);
+        this._createManipulatorBar();
+        this.moving = true;
+        this.start();
+      }
+    }
+  };
+
+
+  /**
+   * connect two nodes with a new edge.
+   *
+   * @private
+   */
+  exports._createEdge = function(sourceNodeId,targetNodeId) {
+    if (this.editMode == true) {
+      var defaultData = {from:sourceNodeId, to:targetNodeId};
+      if (this.triggerFunctions.connect) {
+        if (this.triggerFunctions.connect.length == 2) {
+          var me = this;
+          this.triggerFunctions.connect(defaultData, function(finalizedData) {
+            me.edgesData.add(finalizedData);
+            me.moving = true;
+            me.start();
+          });
+        }
+        else {
+          alert(this.constants.labels["linkError"]);
+          this.moving = true;
+          this.start();
+        }
+      }
+      else {
+        this.edgesData.add(defaultData);
+        this.moving = true;
+        this.start();
+      }
+    }
+  };
+
+  /**
+   * connect two nodes with a new edge.
+   *
+   * @private
+   */
+  exports._editEdge = function(sourceNodeId,targetNodeId) {
+    if (this.editMode == true) {
+      var defaultData = {id: this.edgeBeingEdited.id, from:sourceNodeId, to:targetNodeId};
+      if (this.triggerFunctions.editEdge) {
+        if (this.triggerFunctions.editEdge.length == 2) {
+          var me = this;
+          this.triggerFunctions.editEdge(defaultData, function(finalizedData) {
+            me.edgesData.update(finalizedData);
+            me.moving = true;
+            me.start();
+          });
+        }
+        else {
+          alert(this.constants.labels["linkError"]);
+          this.moving = true;
+          this.start();
+        }
+      }
+      else {
+        this.edgesData.update(defaultData);
+        this.moving = true;
+        this.start();
+      }
+    }
+  };
+
+  /**
+   * Create the toolbar to edit the selected node. The label and the color can be changed. Other colors are derived from the chosen color.
+   *
+   * @private
+   */
+  exports._editNode = function() {
+    if (this.triggerFunctions.edit && this.editMode == true) {
+      var node = this._getSelectedNode();
+      var data = {id:node.id,
+        label: node.label,
+        group: node.group,
+        shape: node.shape,
+        color: {
+          background:node.color.background,
+          border:node.color.border,
+          highlight: {
+            background:node.color.highlight.background,
+            border:node.color.highlight.border
+          }
+        }};
+      if (this.triggerFunctions.edit.length == 2) {
+        var me = this;
+        this.triggerFunctions.edit(data, function (finalizedData) {
+          me.nodesData.update(finalizedData);
+          me._createManipulatorBar();
+          me.moving = true;
+          me.start();
+        });
+      }
+      else {
+        alert(this.constants.labels["editError"]);
+      }
+    }
+    else {
+      alert(this.constants.labels["editBoundError"]);
+    }
+  };
+
+
+
+
+  /**
+   * delete everything in the selection
+   *
+   * @private
+   */
+  exports._deleteSelected = function() {
+    if (!this._selectionIsEmpty() && this.editMode == true) {
+      if (!this._clusterInSelection()) {
+        var selectedNodes = this.getSelectedNodes();
+        var selectedEdges = this.getSelectedEdges();
+        if (this.triggerFunctions.del) {
+          var me = this;
+          var data = {nodes: selectedNodes, edges: selectedEdges};
+          if (this.triggerFunctions.del.length = 2) {
+            this.triggerFunctions.del(data, function (finalizedData) {
+              me.edgesData.remove(finalizedData.edges);
+              me.nodesData.remove(finalizedData.nodes);
+              me._unselectAll();
+              me.moving = true;
+              me.start();
+            });
+          }
+          else {
+            alert(this.constants.labels["deleteError"])
+          }
+        }
+        else {
+          this.edgesData.remove(selectedEdges);
+          this.nodesData.remove(selectedNodes);
+          this._unselectAll();
+          this.moving = true;
+          this.start();
+        }
+      }
+      else {
+        alert(this.constants.labels["deleteClusterError"]);
+      }
+    }
+  };
+
+
+/***/ },
+/* 52 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var util = __webpack_require__(1);
+
+  exports._cleanNavigation = function() {
+    // clean up previous navigation items
+    var wrapper = document.getElementById('network-navigation_wrapper');
+    if (wrapper != null) {
+      this.containerElement.removeChild(wrapper);
+    }
+    document.onmouseup = null;
+  };
+
+  /**
+   * Creation of the navigation controls nodes. They are drawn over the rest of the nodes and are not affected by scale and translation
+   * they have a triggerFunction which is called on click. If the position of the navigation controls is dependent
+   * on this.frame.canvas.clientWidth or this.frame.canvas.clientHeight, we flag horizontalAlignLeft and verticalAlignTop false.
+   * This means that the location will be corrected by the _relocateNavigation function on a size change of the canvas.
+   *
+   * @private
+   */
+  exports._loadNavigationElements = function() {
+    this._cleanNavigation();
+
+    this.navigationDivs = {};
+    var navigationDivs = ['up','down','left','right','zoomIn','zoomOut','zoomExtends'];
+    var navigationDivActions = ['_moveUp','_moveDown','_moveLeft','_moveRight','_zoomIn','_zoomOut','zoomExtent'];
+
+    this.navigationDivs['wrapper'] = document.createElement('div');
+    this.navigationDivs['wrapper'].id = "network-navigation_wrapper";
+    this.navigationDivs['wrapper'].style.position = "absolute";
+    this.navigationDivs['wrapper'].style.width = this.frame.canvas.clientWidth + "px";
+    this.navigationDivs['wrapper'].style.height = this.frame.canvas.clientHeight + "px";
+    this.containerElement.insertBefore(this.navigationDivs['wrapper'],this.frame);
+
+    for (var i = 0; i < navigationDivs.length; i++) {
+      this.navigationDivs[navigationDivs[i]] = document.createElement('div');
+      this.navigationDivs[navigationDivs[i]].id = "network-navigation_" + navigationDivs[i];
+      this.navigationDivs[navigationDivs[i]].className = "network-navigation " + navigationDivs[i];
+      this.navigationDivs['wrapper'].appendChild(this.navigationDivs[navigationDivs[i]]);
+      this.navigationDivs[navigationDivs[i]].onmousedown = this[navigationDivActions[i]].bind(this);
+    }
+
+    document.onmouseup = this._stopMovement.bind(this);
+  };
+
+  /**
+   * this stops all movement induced by the navigation buttons
+   *
+   * @private
+   */
+  exports._stopMovement = function() {
+    this._xStopMoving();
+    this._yStopMoving();
+    this._stopZoom();
+  };
+
+
+  /**
+   * move the screen up
+   * By using the increments, instead of adding a fixed number to the translation, we keep fluent and
+   * instant movement. The onKeypress event triggers immediately, then pauses, then triggers frequently
+   * To avoid this behaviour, we do the translation in the start loop.
+   *
+   * @private
+   */
+  exports._moveUp = function(event) {
+    this.yIncrement = this.constants.keyboard.speed.y;
+    this.start(); // if there is no node movement, the calculation wont be done
+    util.preventDefault(event);
+    if (this.navigationDivs) {
+      this.navigationDivs['up'].className += " active";
+    }
+  };
+
+
+  /**
+   * move the screen down
+   * @private
+   */
+  exports._moveDown = function(event) {
+    this.yIncrement = -this.constants.keyboard.speed.y;
+    this.start(); // if there is no node movement, the calculation wont be done
+    util.preventDefault(event);
+    if (this.navigationDivs) {
+      this.navigationDivs['down'].className += " active";
+    }
+  };
+
+
+  /**
+   * move the screen left
+   * @private
+   */
+  exports._moveLeft = function(event) {
+    this.xIncrement = this.constants.keyboard.speed.x;
+    this.start(); // if there is no node movement, the calculation wont be done
+    util.preventDefault(event);
+    if (this.navigationDivs) {
+      this.navigationDivs['left'].className += " active";
+    }
+  };
+
+
+  /**
+   * move the screen right
+   * @private
+   */
+  exports._moveRight = function(event) {
+    this.xIncrement = -this.constants.keyboard.speed.y;
+    this.start(); // if there is no node movement, the calculation wont be done
+    util.preventDefault(event);
+    if (this.navigationDivs) {
+      this.navigationDivs['right'].className += " active";
+    }
+  };
+
+
+  /**
+   * Zoom in, using the same method as the movement.
+   * @private
+   */
+  exports._zoomIn = function(event) {
+    this.zoomIncrement = this.constants.keyboard.speed.zoom;
+    this.start(); // if there is no node movement, the calculation wont be done
+    util.preventDefault(event);
+    if (this.navigationDivs) {
+      this.navigationDivs['zoomIn'].className += " active";
+    }
+  };
+
+
+  /**
+   * Zoom out
+   * @private
+   */
+  exports._zoomOut = function() {
+    this.zoomIncrement = -this.constants.keyboard.speed.zoom;
+    this.start(); // if there is no node movement, the calculation wont be done
+    util.preventDefault(event);
+    if (this.navigationDivs) {
+      this.navigationDivs['zoomOut'].className += " active";
+    }
+  };
+
+
+  /**
+   * Stop zooming and unhighlight the zoom controls
+   * @private
+   */
+  exports._stopZoom = function() {
+    this.zoomIncrement = 0;
+    if (this.navigationDivs) {
+      this.navigationDivs['zoomIn'].className = this.navigationDivs['zoomIn'].className.replace(" active","");
+      this.navigationDivs['zoomOut'].className = this.navigationDivs['zoomOut'].className.replace(" active","");
+    }
+  };
+
+
+  /**
+   * Stop moving in the Y direction and unHighlight the up and down
+   * @private
+   */
+  exports._yStopMoving = function() {
+    this.yIncrement = 0;
+    if (this.navigationDivs) {
+      this.navigationDivs['up'].className = this.navigationDivs['up'].className.replace(" active","");
+      this.navigationDivs['down'].className = this.navigationDivs['down'].className.replace(" active","");
+    }
+  };
+
+
+  /**
+   * Stop moving in the X direction and unHighlight left and right.
+   * @private
+   */
+  exports._xStopMoving = function() {
+    this.xIncrement = 0;
+    if (this.navigationDivs) {
+      this.navigationDivs['left'].className = this.navigationDivs['left'].className.replace(" active","");
+      this.navigationDivs['right'].className = this.navigationDivs['right'].className.replace(" active","");
+    }
+  };
+
+
+/***/ },
+/* 53 */
+/***/ function(module, exports, __webpack_require__) {
+
+  exports._resetLevels = function() {
+    for (var nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        var node = this.nodes[nodeId];
+        if (node.preassignedLevel == false) {
+          node.level = -1;
+        }
+      }
+    }
+  };
+
+  /**
+   * This is the main function to layout the nodes in a hierarchical way.
+   * It checks if the node details are supplied correctly
+   *
+   * @private
+   */
+  exports._setupHierarchicalLayout = function() {
+    if (this.constants.hierarchicalLayout.enabled == true && this.nodeIndices.length > 0) {
+      if (this.constants.hierarchicalLayout.direction == "RL" || this.constants.hierarchicalLayout.direction == "DU") {
+        this.constants.hierarchicalLayout.levelSeparation *= -1;
+      }
+      else {
+        this.constants.hierarchicalLayout.levelSeparation = Math.abs(this.constants.hierarchicalLayout.levelSeparation);
+      }
+
+      if (this.constants.hierarchicalLayout.direction == "RL" || this.constants.hierarchicalLayout.direction == "LR") {
+        if (this.constants.smoothCurves.enabled == true) {
+          this.constants.smoothCurves.type = "vertical";
+        }
+      }
+      else {
+        if (this.constants.smoothCurves.enabled == true) {
+          this.constants.smoothCurves.type = "horizontal";
+        }
+      }
+      // get the size of the largest hubs and check if the user has defined a level for a node.
+      var hubsize = 0;
+      var node, nodeId;
+      var definedLevel = false;
+      var undefinedLevel = false;
+
+      for (nodeId in this.nodes) {
+        if (this.nodes.hasOwnProperty(nodeId)) {
+          node = this.nodes[nodeId];
+          if (node.level != -1) {
+            definedLevel = true;
+          }
+          else {
+            undefinedLevel = true;
+          }
+          if (hubsize < node.edges.length) {
+            hubsize = node.edges.length;
+          }
+        }
+      }
+
+      // if the user defined some levels but not all, alert and run without hierarchical layout
+      if (undefinedLevel == true && definedLevel == true) {
+        alert("To use the hierarchical layout, nodes require either no predefined levels or levels have to be defined for all nodes.");
+        this.zoomExtent(true,this.constants.clustering.enabled);
+        if (!this.constants.clustering.enabled) {
+          this.start();
+        }
+      }
+      else {
+        // setup the system to use hierarchical method.
+        this._changeConstants();
+
+        // define levels if undefined by the users. Based on hubsize
+        if (undefinedLevel == true) {
+          this._determineLevels(hubsize);
+        }
+        // check the distribution of the nodes per level.
+        var distribution = this._getDistribution();
+
+        // place the nodes on the canvas. This also stablilizes the system.
+        this._placeNodesByHierarchy(distribution);
+
+        // start the simulation.
+        this.start();
+      }
+    }
+  };
+
+
+  /**
+   * This function places the nodes on the canvas based on the hierarchial distribution.
+   *
+   * @param {Object} distribution | obtained by the function this._getDistribution()
+   * @private
+   */
+  exports._placeNodesByHierarchy = function(distribution) {
+    var nodeId, node;
+
+    // start placing all the level 0 nodes first. Then recursively position their branches.
+    for (var level in distribution) {
+      if (distribution.hasOwnProperty(level)) {
+
+        for (nodeId in distribution[level].nodes) {
+          if (distribution[level].nodes.hasOwnProperty(nodeId)) {
+            node = distribution[level].nodes[nodeId];
+            if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
+              if (node.xFixed) {
+                node.x = distribution[level].minPos;
+                node.xFixed = false;
+
+                distribution[level].minPos += distribution[level].nodeSpacing;
+              }
+            }
+            else {
+              if (node.yFixed) {
+                node.y = distribution[level].minPos;
+                node.yFixed = false;
+
+                distribution[level].minPos += distribution[level].nodeSpacing;
+              }
+            }
+            this._placeBranchNodes(node.edges,node.id,distribution,node.level);
+          }
+        }
+      }
+    }
+
+    // stabilize the system after positioning. This function calls zoomExtent.
+    this._stabilize();
+  };
+
+
+  /**
+   * This function get the distribution of levels based on hubsize
+   *
+   * @returns {Object}
+   * @private
+   */
+  exports._getDistribution = function() {
+    var distribution = {};
+    var nodeId, node, level;
+
+    // we fix Y because the hierarchy is vertical, we fix X so we do not give a node an x position for a second time.
+    // the fix of X is removed after the x value has been set.
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        node = this.nodes[nodeId];
+        node.xFixed = true;
+        node.yFixed = true;
+        if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
+          node.y = this.constants.hierarchicalLayout.levelSeparation*node.level;
+        }
+        else {
+          node.x = this.constants.hierarchicalLayout.levelSeparation*node.level;
+        }
+        if (distribution[node.level] === undefined) {
+          distribution[node.level] = {amount: 0, nodes: {}, minPos:0, nodeSpacing:0};
+        }
+        distribution[node.level].amount += 1;
+        distribution[node.level].nodes[nodeId] = node;
+      }
+    }
+
+    // determine the largest amount of nodes of all levels
+    var maxCount = 0;
+    for (level in distribution) {
+      if (distribution.hasOwnProperty(level)) {
+        if (maxCount < distribution[level].amount) {
+          maxCount = distribution[level].amount;
+        }
+      }
+    }
+
+    // set the initial position and spacing of each nodes accordingly
+    for (level in distribution) {
+      if (distribution.hasOwnProperty(level)) {
+        distribution[level].nodeSpacing = (maxCount + 1) * this.constants.hierarchicalLayout.nodeSpacing;
+        distribution[level].nodeSpacing /= (distribution[level].amount + 1);
+        distribution[level].minPos = distribution[level].nodeSpacing - (0.5 * (distribution[level].amount + 1) * distribution[level].nodeSpacing);
+      }
+    }
+
+    return distribution;
+  };
+
+
+  /**
+   * this function allocates nodes in levels based on the recursive branching from the largest hubs.
+   *
+   * @param hubsize
+   * @private
+   */
+  exports._determineLevels = function(hubsize) {
+    var nodeId, node;
+
+    // determine hubs
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        node = this.nodes[nodeId];
+        if (node.edges.length == hubsize) {
+          node.level = 0;
+        }
+      }
+    }
+
+    // branch from hubs
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        node = this.nodes[nodeId];
+        if (node.level == 0) {
+          this._setLevel(1,node.edges,node.id);
+        }
+      }
+    }
+  };
+
+
+  /**
+   * Since hierarchical layout does not support:
+   *    - smooth curves (based on the physics),
+   *    - clustering (based on dynamic node counts)
+   *
+   * We disable both features so there will be no problems.
+   *
+   * @private
+   */
+  exports._changeConstants = function() {
+    this.constants.clustering.enabled = false;
+    this.constants.physics.barnesHut.enabled = false;
+    this.constants.physics.hierarchicalRepulsion.enabled = true;
+    this._loadSelectedForceSolver();
+    if (this.constants.smoothCurves.enabled == true) {
+      this.constants.smoothCurves.dynamic = false;
+    }
+    this._configureSmoothCurves();
+  };
+
+
+  /**
+   * This is a recursively called function to enumerate the branches from the largest hubs and place the nodes
+   * on a X position that ensures there will be no overlap.
+   *
+   * @param edges
+   * @param parentId
+   * @param distribution
+   * @param parentLevel
+   * @private
+   */
+  exports._placeBranchNodes = function(edges, parentId, distribution, parentLevel) {
+    for (var i = 0; i < edges.length; i++) {
+      var childNode = null;
+      if (edges[i].toId == parentId) {
+        childNode = edges[i].from;
+      }
+      else {
+        childNode = edges[i].to;
+      }
+
+      // if a node is conneceted to another node on the same level (or higher (means lower level))!, this is not handled here.
+      var nodeMoved = false;
+      if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
+        if (childNode.xFixed && childNode.level > parentLevel) {
+          childNode.xFixed = false;
+          childNode.x = distribution[childNode.level].minPos;
+          nodeMoved = true;
+        }
+      }
+      else {
+        if (childNode.yFixed && childNode.level > parentLevel) {
+          childNode.yFixed = false;
+          childNode.y = distribution[childNode.level].minPos;
+          nodeMoved = true;
+        }
+      }
+
+      if (nodeMoved == true) {
+        distribution[childNode.level].minPos += distribution[childNode.level].nodeSpacing;
+        if (childNode.edges.length > 1) {
+          this._placeBranchNodes(childNode.edges,childNode.id,distribution,childNode.level);
+        }
+      }
+    }
+  };
+
+
+  /**
+   * this function is called recursively to enumerate the barnches of the largest hubs and give each node a level.
+   *
+   * @param level
+   * @param edges
+   * @param parentId
+   * @private
+   */
+  exports._setLevel = function(level, edges, parentId) {
+    for (var i = 0; i < edges.length; i++) {
+      var childNode = null;
+      if (edges[i].toId == parentId) {
+        childNode = edges[i].from;
+      }
+      else {
+        childNode = edges[i].to;
+      }
+      if (childNode.level == -1 || childNode.level > level) {
+        childNode.level = level;
+        if (edges.length > 1) {
+          this._setLevel(level+1, childNode.edges, childNode.id);
+        }
+      }
+    }
+  };
+
+
+  /**
+   * Unfix nodes
+   *
+   * @private
+   */
+  exports._restoreNodes = function() {
+    for (var nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        this.nodes[nodeId].xFixed = false;
+        this.nodes[nodeId].yFixed = false;
+      }
+    }
+  };
+
+
+/***/ },
+/* 54 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var util = __webpack_require__(1);
+  var RepulsionMixin = __webpack_require__(56);
+  var HierarchialRepulsionMixin = __webpack_require__(57);
+  var BarnesHutMixin = __webpack_require__(58);
+
+  /**
+   * Toggling barnes Hut calculation on and off.
+   *
+   * @private
+   */
+  exports._toggleBarnesHut = function () {
+    this.constants.physics.barnesHut.enabled = !this.constants.physics.barnesHut.enabled;
+    this._loadSelectedForceSolver();
+    this.moving = true;
+    this.start();
+  };
+
+
+  /**
+   * This loads the node force solver based on the barnes hut or repulsion algorithm
+   *
+   * @private
+   */
+  exports._loadSelectedForceSolver = function () {
+    // this overloads the this._calculateNodeForces
+    if (this.constants.physics.barnesHut.enabled == true) {
+      this._clearMixin(RepulsionMixin);
+      this._clearMixin(HierarchialRepulsionMixin);
+
+      this.constants.physics.centralGravity = this.constants.physics.barnesHut.centralGravity;
+      this.constants.physics.springLength = this.constants.physics.barnesHut.springLength;
+      this.constants.physics.springConstant = this.constants.physics.barnesHut.springConstant;
+      this.constants.physics.damping = this.constants.physics.barnesHut.damping;
+
+      this._loadMixin(BarnesHutMixin);
+    }
+    else if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
+      this._clearMixin(BarnesHutMixin);
+      this._clearMixin(RepulsionMixin);
+
+      this.constants.physics.centralGravity = this.constants.physics.hierarchicalRepulsion.centralGravity;
+      this.constants.physics.springLength = this.constants.physics.hierarchicalRepulsion.springLength;
+      this.constants.physics.springConstant = this.constants.physics.hierarchicalRepulsion.springConstant;
+      this.constants.physics.damping = this.constants.physics.hierarchicalRepulsion.damping;
+
+      this._loadMixin(HierarchialRepulsionMixin);
+    }
+    else {
+      this._clearMixin(BarnesHutMixin);
+      this._clearMixin(HierarchialRepulsionMixin);
+      this.barnesHutTree = undefined;
+
+      this.constants.physics.centralGravity = this.constants.physics.repulsion.centralGravity;
+      this.constants.physics.springLength = this.constants.physics.repulsion.springLength;
+      this.constants.physics.springConstant = this.constants.physics.repulsion.springConstant;
+      this.constants.physics.damping = this.constants.physics.repulsion.damping;
+
+      this._loadMixin(RepulsionMixin);
+    }
+  };
+
+  /**
+   * Before calculating the forces, we check if we need to cluster to keep up performance and we check
+   * if there is more than one node. If it is just one node, we dont calculate anything.
+   *
+   * @private
+   */
+  exports._initializeForceCalculation = function () {
+    // stop calculation if there is only one node
+    if (this.nodeIndices.length == 1) {
+      this.nodes[this.nodeIndices[0]]._setForce(0, 0);
+    }
+    else {
+      // if there are too many nodes on screen, we cluster without repositioning
+      if (this.nodeIndices.length > this.constants.clustering.clusterThreshold && this.constants.clustering.enabled == true) {
+        this.clusterToFit(this.constants.clustering.reduceToNodes, false);
+      }
+
+      // we now start the force calculation
+      this._calculateForces();
+    }
+  };
+
+
+  /**
+   * Calculate the external forces acting on the nodes
+   * Forces are caused by: edges, repulsing forces between nodes, gravity
+   * @private
+   */
+  exports._calculateForces = function () {
+    // Gravity is required to keep separated groups from floating off
+    // the forces are reset to zero in this loop by using _setForce instead
+    // of _addForce
+
+    this._calculateGravitationalForces();
+    this._calculateNodeForces();
+
+    if (this.constants.physics.springConstant > 0) {
+      if (this.constants.smoothCurves.enabled == true && this.constants.smoothCurves.dynamic == true) {
+        this._calculateSpringForcesWithSupport();
+      }
+      else {
+        if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
+          this._calculateHierarchicalSpringForces();
+        }
+        else {
+          this._calculateSpringForces();
+        }
+      }
+    }
+  };
+
+
+  /**
+   * Smooth curves are created by adding invisible nodes in the center of the edges. These nodes are also
+   * handled in the calculateForces function. We then use a quadratic curve with the center node as control.
+   * This function joins the datanodes and invisible (called support) nodes into one object.
+   * We do this so we do not contaminate this.nodes with the support nodes.
+   *
+   * @private
+   */
+  exports._updateCalculationNodes = function () {
+    if (this.constants.smoothCurves.enabled == true && this.constants.smoothCurves.dynamic == true) {
+      this.calculationNodes = {};
+      this.calculationNodeIndices = [];
+
+      for (var nodeId in this.nodes) {
+        if (this.nodes.hasOwnProperty(nodeId)) {
+          this.calculationNodes[nodeId] = this.nodes[nodeId];
+        }
+      }
+      var supportNodes = this.sectors['support']['nodes'];
+      for (var supportNodeId in supportNodes) {
+        if (supportNodes.hasOwnProperty(supportNodeId)) {
+          if (this.edges.hasOwnProperty(supportNodes[supportNodeId].parentEdgeId)) {
+            this.calculationNodes[supportNodeId] = supportNodes[supportNodeId];
+          }
+          else {
+            supportNodes[supportNodeId]._setForce(0, 0);
+          }
+        }
+      }
+
+      for (var idx in this.calculationNodes) {
+        if (this.calculationNodes.hasOwnProperty(idx)) {
+          this.calculationNodeIndices.push(idx);
+        }
+      }
+    }
+    else {
+      this.calculationNodes = this.nodes;
+      this.calculationNodeIndices = this.nodeIndices;
+    }
+  };
+
+
+  /**
+   * this function applies the central gravity effect to keep groups from floating off
+   *
+   * @private
+   */
+  exports._calculateGravitationalForces = function () {
+    var dx, dy, distance, node, i;
+    var nodes = this.calculationNodes;
+    var gravity = this.constants.physics.centralGravity;
+    var gravityForce = 0;
+
+    for (i = 0; i < this.calculationNodeIndices.length; i++) {
+      node = nodes[this.calculationNodeIndices[i]];
+      node.damping = this.constants.physics.damping; // possibly add function to alter damping properties of clusters.
+      // gravity does not apply when we are in a pocket sector
+      if (this._sector() == "default" && gravity != 0) {
+        dx = -node.x;
+        dy = -node.y;
+        distance = Math.sqrt(dx * dx + dy * dy);
+
+        gravityForce = (distance == 0) ? 0 : (gravity / distance);
+        node.fx = dx * gravityForce;
+        node.fy = dy * gravityForce;
+      }
+      else {
+        node.fx = 0;
+        node.fy = 0;
+      }
+    }
+  };
+
+
+
+
+  /**
+   * this function calculates the effects of the springs in the case of unsmooth curves.
+   *
+   * @private
+   */
+  exports._calculateSpringForces = function () {
+    var edgeLength, edge, edgeId;
+    var dx, dy, fx, fy, springForce, distance;
+    var edges = this.edges;
+
+    // forces caused by the edges, modelled as springs
+    for (edgeId in edges) {
+      if (edges.hasOwnProperty(edgeId)) {
+        edge = edges[edgeId];
+        if (edge.connected) {
+          // only calculate forces if nodes are in the same sector
+          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
+            edgeLength = edge.customLength ? edge.length : this.constants.physics.springLength;
+            // this implies that the edges between big clusters are longer
+            edgeLength += (edge.to.clusterSize + edge.from.clusterSize - 2) * this.constants.clustering.edgeGrowth;
+
+            dx = (edge.from.x - edge.to.x);
+            dy = (edge.from.y - edge.to.y);
+            distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance == 0) {
+              distance = 0.01;
+            }
+
+            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+            springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
+
+            fx = dx * springForce;
+            fy = dy * springForce;
+
+            edge.from.fx += fx;
+            edge.from.fy += fy;
+            edge.to.fx -= fx;
+            edge.to.fy -= fy;
+          }
+        }
+      }
+    }
+  };
+
+
+
+
+  /**
+   * This function calculates the springforces on the nodes, accounting for the support nodes.
+   *
+   * @private
+   */
+  exports._calculateSpringForcesWithSupport = function () {
+    var edgeLength, edge, edgeId, combinedClusterSize;
+    var edges = this.edges;
+
+    // forces caused by the edges, modelled as springs
+    for (edgeId in edges) {
+      if (edges.hasOwnProperty(edgeId)) {
+        edge = edges[edgeId];
+        if (edge.connected) {
+          // only calculate forces if nodes are in the same sector
+          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
+            if (edge.via != null) {
+              var node1 = edge.to;
+              var node2 = edge.via;
+              var node3 = edge.from;
+
+              edgeLength = edge.customLength ? edge.length : this.constants.physics.springLength;
+
+              combinedClusterSize = node1.clusterSize + node3.clusterSize - 2;
+
+              // this implies that the edges between big clusters are longer
+              edgeLength += combinedClusterSize * this.constants.clustering.edgeGrowth;
+              this._calculateSpringForce(node1, node2, 0.5 * edgeLength);
+              this._calculateSpringForce(node2, node3, 0.5 * edgeLength);
+            }
+          }
+        }
+      }
+    }
+  };
+
+
+  /**
+   * This is the code actually performing the calculation for the function above. It is split out to avoid repetition.
+   *
+   * @param node1
+   * @param node2
+   * @param edgeLength
+   * @private
+   */
+  exports._calculateSpringForce = function (node1, node2, edgeLength) {
+    var dx, dy, fx, fy, springForce, distance;
+
+    dx = (node1.x - node2.x);
+    dy = (node1.y - node2.y);
+    distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance == 0) {
+      distance = 0.01;
+    }
+
+    // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+    springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
+
+    fx = dx * springForce;
+    fy = dy * springForce;
+
+    node1.fx += fx;
+    node1.fy += fy;
+    node2.fx -= fx;
+    node2.fy -= fy;
+  };
+
+
+  /**
+   * Load the HTML for the physics config and bind it
+   * @private
+   */
+  exports._loadPhysicsConfiguration = function () {
+    if (this.physicsConfiguration === undefined) {
+      this.backupConstants = {};
+      util.deepExtend(this.backupConstants,this.constants);
+
+      var hierarchicalLayoutDirections = ["LR", "RL", "UD", "DU"];
+      this.physicsConfiguration = document.createElement('div');
+      this.physicsConfiguration.className = "PhysicsConfiguration";
+      this.physicsConfiguration.innerHTML = '' +
+        '<table><tr><td><b>Simulation Mode:</b></td></tr>' +
+        '<tr>' +
+        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod1" value="BH" checked="checked">Barnes Hut</td>' +
+        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod2" value="R">Repulsion</td>' +
+        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod3" value="H">Hierarchical</td>' +
+        '</tr>' +
+        '</table>' +
+        '<table id="graph_BH_table" style="display:none">' +
+        '<tr><td><b>Barnes Hut</b></td></tr>' +
+        '<tr>' +
+        '<td width="150px">gravitationalConstant</td><td>0</td><td><input type="range" min="0" max="20000" value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" step="25" style="width:300px" id="graph_BH_gc"></td><td  width="50px">-20000</td><td><input value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" id="graph_BH_gc_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.barnesHut.centralGravity + '" step="0.05"  style="width:300px" id="graph_BH_cg"></td><td>3</td><td><input value="' + this.constants.physics.barnesHut.centralGravity + '" id="graph_BH_cg_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.barnesHut.springLength + '" step="1" style="width:300px" id="graph_BH_sl"></td><td>500</td><td><input value="' + this.constants.physics.barnesHut.springLength + '" id="graph_BH_sl_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.barnesHut.springConstant + '" step="0.001" style="width:300px" id="graph_BH_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.barnesHut.springConstant + '" id="graph_BH_sc_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.barnesHut.damping + '" step="0.005" style="width:300px" id="graph_BH_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.barnesHut.damping + '" id="graph_BH_damp_value" style="width:60px"></td>' +
+        '</tr>' +
+        '</table>' +
+        '<table id="graph_R_table" style="display:none">' +
+        '<tr><td><b>Repulsion</b></td></tr>' +
+        '<tr>' +
+        '<td width="150px">nodeDistance</td><td>0</td><td><input type="range" min="0" max="300" value="' + this.constants.physics.repulsion.nodeDistance + '" step="1" style="width:300px" id="graph_R_nd"></td><td width="50px">300</td><td><input value="' + this.constants.physics.repulsion.nodeDistance + '" id="graph_R_nd_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.repulsion.centralGravity + '" step="0.05"  style="width:300px" id="graph_R_cg"></td><td>3</td><td><input value="' + this.constants.physics.repulsion.centralGravity + '" id="graph_R_cg_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.repulsion.springLength + '" step="1" style="width:300px" id="graph_R_sl"></td><td>500</td><td><input value="' + this.constants.physics.repulsion.springLength + '" id="graph_R_sl_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.repulsion.springConstant + '" step="0.001" style="width:300px" id="graph_R_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.repulsion.springConstant + '" id="graph_R_sc_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.repulsion.damping + '" step="0.005" style="width:300px" id="graph_R_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.repulsion.damping + '" id="graph_R_damp_value" style="width:60px"></td>' +
+        '</tr>' +
+        '</table>' +
+        '<table id="graph_H_table" style="display:none">' +
+        '<tr><td width="150"><b>Hierarchical</b></td></tr>' +
+        '<tr>' +
+        '<td width="150px">nodeDistance</td><td>0</td><td><input type="range" min="0" max="300" value="' + this.constants.physics.hierarchicalRepulsion.nodeDistance + '" step="1" style="width:300px" id="graph_H_nd"></td><td width="50px">300</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.nodeDistance + '" id="graph_H_nd_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.hierarchicalRepulsion.centralGravity + '" step="0.05"  style="width:300px" id="graph_H_cg"></td><td>3</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.centralGravity + '" id="graph_H_cg_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.hierarchicalRepulsion.springLength + '" step="1" style="width:300px" id="graph_H_sl"></td><td>500</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.springLength + '" id="graph_H_sl_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.hierarchicalRepulsion.springConstant + '" step="0.001" style="width:300px" id="graph_H_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.springConstant + '" id="graph_H_sc_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.hierarchicalRepulsion.damping + '" step="0.005" style="width:300px" id="graph_H_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.damping + '" id="graph_H_damp_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">direction</td><td>1</td><td><input type="range" min="0" max="3" value="' + hierarchicalLayoutDirections.indexOf(this.constants.hierarchicalLayout.direction) + '" step="1" style="width:300px" id="graph_H_direction"></td><td>4</td><td><input value="' + this.constants.hierarchicalLayout.direction + '" id="graph_H_direction_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">levelSeparation</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.levelSeparation + '" step="1" style="width:300px" id="graph_H_levsep"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.levelSeparation + '" id="graph_H_levsep_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">nodeSpacing</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.nodeSpacing + '" step="1" style="width:300px" id="graph_H_nspac"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.nodeSpacing + '" id="graph_H_nspac_value" style="width:60px"></td>' +
+        '</tr>' +
+        '</table>' +
+        '<table><tr><td><b>Options:</b></td></tr>' +
+        '<tr>' +
+        '<td width="180px"><input type="button" id="graph_toggleSmooth" value="Toggle smoothCurves" style="width:150px"></td>' +
+        '<td width="180px"><input type="button" id="graph_repositionNodes" value="Reinitialize" style="width:150px"></td>' +
+        '<td width="180px"><input type="button" id="graph_generateOptions" value="Generate Options" style="width:150px"></td>' +
+        '</tr>' +
+        '</table>'
+      this.containerElement.parentElement.insertBefore(this.physicsConfiguration, this.containerElement);
+      this.optionsDiv = document.createElement("div");
+      this.optionsDiv.style.fontSize = "14px";
+      this.optionsDiv.style.fontFamily = "verdana";
+      this.containerElement.parentElement.insertBefore(this.optionsDiv, this.containerElement);
+
+      var rangeElement;
+      rangeElement = document.getElementById('graph_BH_gc');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_gc', -1, "physics_barnesHut_gravitationalConstant");
+      rangeElement = document.getElementById('graph_BH_cg');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_cg', 1, "physics_centralGravity");
+      rangeElement = document.getElementById('graph_BH_sc');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_sc', 1, "physics_springConstant");
+      rangeElement = document.getElementById('graph_BH_sl');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_sl', 1, "physics_springLength");
+      rangeElement = document.getElementById('graph_BH_damp');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_damp', 1, "physics_damping");
+
+      rangeElement = document.getElementById('graph_R_nd');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_nd', 1, "physics_repulsion_nodeDistance");
+      rangeElement = document.getElementById('graph_R_cg');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_cg', 1, "physics_centralGravity");
+      rangeElement = document.getElementById('graph_R_sc');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_sc', 1, "physics_springConstant");
+      rangeElement = document.getElementById('graph_R_sl');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_sl', 1, "physics_springLength");
+      rangeElement = document.getElementById('graph_R_damp');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_damp', 1, "physics_damping");
+
+      rangeElement = document.getElementById('graph_H_nd');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_nd', 1, "physics_hierarchicalRepulsion_nodeDistance");
+      rangeElement = document.getElementById('graph_H_cg');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_cg', 1, "physics_centralGravity");
+      rangeElement = document.getElementById('graph_H_sc');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_sc', 1, "physics_springConstant");
+      rangeElement = document.getElementById('graph_H_sl');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_sl', 1, "physics_springLength");
+      rangeElement = document.getElementById('graph_H_damp');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_damp', 1, "physics_damping");
+      rangeElement = document.getElementById('graph_H_direction');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_direction', hierarchicalLayoutDirections, "hierarchicalLayout_direction");
+      rangeElement = document.getElementById('graph_H_levsep');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_levsep', 1, "hierarchicalLayout_levelSeparation");
+      rangeElement = document.getElementById('graph_H_nspac');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_nspac', 1, "hierarchicalLayout_nodeSpacing");
+
+      var radioButton1 = document.getElementById("graph_physicsMethod1");
+      var radioButton2 = document.getElementById("graph_physicsMethod2");
+      var radioButton3 = document.getElementById("graph_physicsMethod3");
+      radioButton2.checked = true;
+      if (this.constants.physics.barnesHut.enabled) {
+        radioButton1.checked = true;
+      }
+      if (this.constants.hierarchicalLayout.enabled) {
+        radioButton3.checked = true;
+      }
+
+      var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
+      var graph_repositionNodes = document.getElementById("graph_repositionNodes");
+      var graph_generateOptions = document.getElementById("graph_generateOptions");
+
+      graph_toggleSmooth.onclick = graphToggleSmoothCurves.bind(this);
+      graph_repositionNodes.onclick = graphRepositionNodes.bind(this);
+      graph_generateOptions.onclick = graphGenerateOptions.bind(this);
+      if (this.constants.smoothCurves == true && this.constants.dynamicSmoothCurves == false) {
+        graph_toggleSmooth.style.background = "#A4FF56";
+      }
+      else {
+        graph_toggleSmooth.style.background = "#FF8532";
+      }
+
+
+      switchConfigurations.apply(this);
+
+      radioButton1.onchange = switchConfigurations.bind(this);
+      radioButton2.onchange = switchConfigurations.bind(this);
+      radioButton3.onchange = switchConfigurations.bind(this);
+    }
+  };
+
+  /**
+   * This overwrites the this.constants.
+   *
+   * @param constantsVariableName
+   * @param value
+   * @private
+   */
+  exports._overWriteGraphConstants = function (constantsVariableName, value) {
+    var nameArray = constantsVariableName.split("_");
+    if (nameArray.length == 1) {
+      this.constants[nameArray[0]] = value;
+    }
+    else if (nameArray.length == 2) {
+      this.constants[nameArray[0]][nameArray[1]] = value;
+    }
+    else if (nameArray.length == 3) {
+      this.constants[nameArray[0]][nameArray[1]][nameArray[2]] = value;
+    }
+  };
+
+
+  /**
+   * this function is bound to the toggle smooth curves button. That is also why it is not in the prototype.
+   */
+  function graphToggleSmoothCurves () {
+    this.constants.smoothCurves.enabled = !this.constants.smoothCurves.enabled;
+    var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
+    if (this.constants.smoothCurves.enabled == true) {graph_toggleSmooth.style.background = "#A4FF56";}
+    else                                     {graph_toggleSmooth.style.background = "#FF8532";}
+
+    this._configureSmoothCurves(false);
+  }
+
+  /**
+   * this function is used to scramble the nodes
+   *
+   */
+  function graphRepositionNodes () {
+    for (var nodeId in this.calculationNodes) {
+      if (this.calculationNodes.hasOwnProperty(nodeId)) {
+        this.calculationNodes[nodeId].vx = 0;  this.calculationNodes[nodeId].vy = 0;
+        this.calculationNodes[nodeId].fx = 0;  this.calculationNodes[nodeId].fy = 0;
+      }
+    }
+    if (this.constants.hierarchicalLayout.enabled == true) {
+      this._setupHierarchicalLayout();
+      showValueOfRange.call(this, 'graph_H_nd', 1, "physics_hierarchicalRepulsion_nodeDistance");
+      showValueOfRange.call(this, 'graph_H_cg', 1, "physics_centralGravity");
+      showValueOfRange.call(this, 'graph_H_sc', 1, "physics_springConstant");
+      showValueOfRange.call(this, 'graph_H_sl', 1, "physics_springLength");
+      showValueOfRange.call(this, 'graph_H_damp', 1, "physics_damping");
+    }
+    else {
+      this.repositionNodes();
+    }
+    this.moving = true;
+    this.start();
+  }
+
+  /**
+   *  this is used to generate an options file from the playing with physics system.
+   */
+  function graphGenerateOptions () {
+    var options = "No options are required, default values used.";
+    var optionsSpecific = [];
+    var radioButton1 = document.getElementById("graph_physicsMethod1");
+    var radioButton2 = document.getElementById("graph_physicsMethod2");
+    if (radioButton1.checked == true) {
+      if (this.constants.physics.barnesHut.gravitationalConstant != this.backupConstants.physics.barnesHut.gravitationalConstant) {optionsSpecific.push("gravitationalConstant: " + this.constants.physics.barnesHut.gravitationalConstant);}
+      if (this.constants.physics.centralGravity != this.backupConstants.physics.barnesHut.centralGravity)                         {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
+      if (this.constants.physics.springLength != this.backupConstants.physics.barnesHut.springLength)                             {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
+      if (this.constants.physics.springConstant != this.backupConstants.physics.barnesHut.springConstant)                         {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
+      if (this.constants.physics.damping != this.backupConstants.physics.barnesHut.damping)                                       {optionsSpecific.push("damping: " + this.constants.physics.damping);}
+      if (optionsSpecific.length != 0) {
+        options = "var options = {";
+        options += "physics: {barnesHut: {";
+        for (var i = 0; i < optionsSpecific.length; i++) {
+          options += optionsSpecific[i];
+          if (i < optionsSpecific.length - 1) {
+            options += ", "
+          }
+        }
+        options += '}}'
+      }
+      if (this.constants.smoothCurves.enabled != this.backupConstants.smoothCurves.enabled) {
+        if (optionsSpecific.length == 0) {options = "var options = {";}
+        else {options += ", "}
+        options += "smoothCurves: " + this.constants.smoothCurves.enabled;
+      }
+      if (options != "No options are required, default values used.") {
+        options += '};'
+      }
+    }
+    else if (radioButton2.checked == true) {
+      options = "var options = {";
+      options += "physics: {barnesHut: {enabled: false}";
+      if (this.constants.physics.repulsion.nodeDistance != this.backupConstants.physics.repulsion.nodeDistance)  {optionsSpecific.push("nodeDistance: " + this.constants.physics.repulsion.nodeDistance);}
+      if (this.constants.physics.centralGravity != this.backupConstants.physics.repulsion.centralGravity)        {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
+      if (this.constants.physics.springLength != this.backupConstants.physics.repulsion.springLength)            {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
+      if (this.constants.physics.springConstant != this.backupConstants.physics.repulsion.springConstant)        {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
+      if (this.constants.physics.damping != this.backupConstants.physics.repulsion.damping)                      {optionsSpecific.push("damping: " + this.constants.physics.damping);}
+      if (optionsSpecific.length != 0) {
+        options += ", repulsion: {";
+        for (var i = 0; i < optionsSpecific.length; i++) {
+          options += optionsSpecific[i];
+          if (i < optionsSpecific.length - 1) {
+            options += ", "
+          }
+        }
+        options += '}}'
+      }
+      if (optionsSpecific.length == 0) {options += "}"}
+      if (this.constants.smoothCurves != this.backupConstants.smoothCurves) {
+        options += ", smoothCurves: " + this.constants.smoothCurves;
+      }
+      options += '};'
+    }
+    else {
+      options = "var options = {";
+      if (this.constants.physics.hierarchicalRepulsion.nodeDistance != this.backupConstants.physics.hierarchicalRepulsion.nodeDistance)  {optionsSpecific.push("nodeDistance: " + this.constants.physics.hierarchicalRepulsion.nodeDistance);}
+      if (this.constants.physics.centralGravity != this.backupConstants.physics.hierarchicalRepulsion.centralGravity)        {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
+      if (this.constants.physics.springLength != this.backupConstants.physics.hierarchicalRepulsion.springLength)            {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
+      if (this.constants.physics.springConstant != this.backupConstants.physics.hierarchicalRepulsion.springConstant)        {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
+      if (this.constants.physics.damping != this.backupConstants.physics.hierarchicalRepulsion.damping)                      {optionsSpecific.push("damping: " + this.constants.physics.damping);}
+      if (optionsSpecific.length != 0) {
+        options += "physics: {hierarchicalRepulsion: {";
+        for (var i = 0; i < optionsSpecific.length; i++) {
+          options += optionsSpecific[i];
+          if (i < optionsSpecific.length - 1) {
+            options += ", ";
+          }
+        }
+        options += '}},';
+      }
+      options += 'hierarchicalLayout: {';
+      optionsSpecific = [];
+      if (this.constants.hierarchicalLayout.direction != this.backupConstants.hierarchicalLayout.direction)                       {optionsSpecific.push("direction: " + this.constants.hierarchicalLayout.direction);}
+      if (Math.abs(this.constants.hierarchicalLayout.levelSeparation) != this.backupConstants.hierarchicalLayout.levelSeparation) {optionsSpecific.push("levelSeparation: " + this.constants.hierarchicalLayout.levelSeparation);}
+      if (this.constants.hierarchicalLayout.nodeSpacing != this.backupConstants.hierarchicalLayout.nodeSpacing)                   {optionsSpecific.push("nodeSpacing: " + this.constants.hierarchicalLayout.nodeSpacing);}
+      if (optionsSpecific.length != 0) {
+        for (var i = 0; i < optionsSpecific.length; i++) {
+          options += optionsSpecific[i];
+          if (i < optionsSpecific.length - 1) {
+            options += ", "
+          }
+        }
+        options += '}'
+      }
+      else {
+        options += "enabled:true}";
+      }
+      options += '};'
+    }
+
+
+    this.optionsDiv.innerHTML = options;
+  }
+
+  /**
+   * this is used to switch between barnesHut, repulsion and hierarchical.
+   *
+   */
+  function switchConfigurations () {
+    var ids = ["graph_BH_table", "graph_R_table", "graph_H_table"];
+    var radioButton = document.querySelector('input[name="graph_physicsMethod"]:checked').value;
+    var tableId = "graph_" + radioButton + "_table";
+    var table = document.getElementById(tableId);
+    table.style.display = "block";
+    for (var i = 0; i < ids.length; i++) {
+      if (ids[i] != tableId) {
+        table = document.getElementById(ids[i]);
+        table.style.display = "none";
+      }
+    }
+    this._restoreNodes();
+    if (radioButton == "R") {
+      this.constants.hierarchicalLayout.enabled = false;
+      this.constants.physics.hierarchicalRepulsion.enabled = false;
+      this.constants.physics.barnesHut.enabled = false;
+    }
+    else if (radioButton == "H") {
+      if (this.constants.hierarchicalLayout.enabled == false) {
+        this.constants.hierarchicalLayout.enabled = true;
+        this.constants.physics.hierarchicalRepulsion.enabled = true;
+        this.constants.physics.barnesHut.enabled = false;
+        this.constants.smoothCurves.enabled = false;
+        this._setupHierarchicalLayout();
+      }
+    }
+    else {
+      this.constants.hierarchicalLayout.enabled = false;
+      this.constants.physics.hierarchicalRepulsion.enabled = false;
+      this.constants.physics.barnesHut.enabled = true;
+    }
+    this._loadSelectedForceSolver();
+    var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
+    if (this.constants.smoothCurves.enabled == true) {graph_toggleSmooth.style.background = "#A4FF56";}
+    else                                     {graph_toggleSmooth.style.background = "#FF8532";}
+    this.moving = true;
+    this.start();
+  }
+
+
+  /**
+   * this generates the ranges depending on the iniital values.
+   *
+   * @param id
+   * @param map
+   * @param constantsVariableName
+   */
+  function showValueOfRange (id,map,constantsVariableName) {
+    var valueId = id + "_value";
+    var rangeValue = document.getElementById(id).value;
+
+    if (map instanceof Array) {
+      document.getElementById(valueId).value = map[parseInt(rangeValue)];
+      this._overWriteGraphConstants(constantsVariableName,map[parseInt(rangeValue)]);
+    }
+    else {
+      document.getElementById(valueId).value = parseInt(map) * parseFloat(rangeValue);
+      this._overWriteGraphConstants(constantsVariableName, parseInt(map) * parseFloat(rangeValue));
+    }
+
+    if (constantsVariableName == "hierarchicalLayout_direction" ||
+      constantsVariableName == "hierarchicalLayout_levelSeparation" ||
+      constantsVariableName == "hierarchicalLayout_nodeSpacing") {
+      this._setupHierarchicalLayout();
+    }
+    this.moving = true;
+    this.start();
+  }
+
+
+/***/ },
 /* 55 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var map = {};
+  function webpackContext(req) {
+  	return __webpack_require__(webpackContextResolve(req));
+  };
+  function webpackContextResolve(req) {
+  	return map[req] || (function() { throw new Error("Cannot find module '" + req + "'.") }());
+  };
+  webpackContext.keys = function webpackContextKeys() {
+  	return Object.keys(map);
+  };
+  webpackContext.resolve = webpackContextResolve;
+  module.exports = webpackContext;
+
+
+/***/ },
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -30782,7 +30804,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 56 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -30941,7 +30963,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 57 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -31340,6971 +31362,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 58 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var map = {
-  	"./ar": 61,
-  	"./ar-ma": 59,
-  	"./ar-ma.js": 59,
-  	"./ar-sa": 60,
-  	"./ar-sa.js": 60,
-  	"./ar.js": 61,
-  	"./az": 62,
-  	"./az.js": 62,
-  	"./bg": 63,
-  	"./bg.js": 63,
-  	"./bn": 64,
-  	"./bn.js": 64,
-  	"./br": 65,
-  	"./br.js": 65,
-  	"./bs": 66,
-  	"./bs.js": 66,
-  	"./ca": 67,
-  	"./ca.js": 67,
-  	"./cs": 68,
-  	"./cs.js": 68,
-  	"./cv": 69,
-  	"./cv.js": 69,
-  	"./cy": 70,
-  	"./cy.js": 70,
-  	"./da": 71,
-  	"./da.js": 71,
-  	"./de": 73,
-  	"./de-at": 72,
-  	"./de-at.js": 72,
-  	"./de.js": 73,
-  	"./el": 74,
-  	"./el.js": 74,
-  	"./en-au": 75,
-  	"./en-au.js": 75,
-  	"./en-ca": 76,
-  	"./en-ca.js": 76,
-  	"./en-gb": 77,
-  	"./en-gb.js": 77,
-  	"./eo": 78,
-  	"./eo.js": 78,
-  	"./es": 79,
-  	"./es.js": 79,
-  	"./et": 80,
-  	"./et.js": 80,
-  	"./eu": 81,
-  	"./eu.js": 81,
-  	"./fa": 82,
-  	"./fa.js": 82,
-  	"./fi": 83,
-  	"./fi.js": 83,
-  	"./fo": 84,
-  	"./fo.js": 84,
-  	"./fr": 86,
-  	"./fr-ca": 85,
-  	"./fr-ca.js": 85,
-  	"./fr.js": 86,
-  	"./gl": 87,
-  	"./gl.js": 87,
-  	"./he": 88,
-  	"./he.js": 88,
-  	"./hi": 89,
-  	"./hi.js": 89,
-  	"./hr": 90,
-  	"./hr.js": 90,
-  	"./hu": 91,
-  	"./hu.js": 91,
-  	"./hy-am": 92,
-  	"./hy-am.js": 92,
-  	"./id": 93,
-  	"./id.js": 93,
-  	"./is": 94,
-  	"./is.js": 94,
-  	"./it": 95,
-  	"./it.js": 95,
-  	"./ja": 96,
-  	"./ja.js": 96,
-  	"./ka": 97,
-  	"./ka.js": 97,
-  	"./km": 98,
-  	"./km.js": 98,
-  	"./ko": 99,
-  	"./ko.js": 99,
-  	"./lb": 100,
-  	"./lb.js": 100,
-  	"./lt": 101,
-  	"./lt.js": 101,
-  	"./lv": 102,
-  	"./lv.js": 102,
-  	"./mk": 103,
-  	"./mk.js": 103,
-  	"./ml": 104,
-  	"./ml.js": 104,
-  	"./mr": 105,
-  	"./mr.js": 105,
-  	"./ms-my": 106,
-  	"./ms-my.js": 106,
-  	"./nb": 107,
-  	"./nb.js": 107,
-  	"./ne": 108,
-  	"./ne.js": 108,
-  	"./nl": 109,
-  	"./nl.js": 109,
-  	"./nn": 110,
-  	"./nn.js": 110,
-  	"./pl": 111,
-  	"./pl.js": 111,
-  	"./pt": 113,
-  	"./pt-br": 112,
-  	"./pt-br.js": 112,
-  	"./pt.js": 113,
-  	"./ro": 114,
-  	"./ro.js": 114,
-  	"./ru": 115,
-  	"./ru.js": 115,
-  	"./sk": 116,
-  	"./sk.js": 116,
-  	"./sl": 117,
-  	"./sl.js": 117,
-  	"./sq": 118,
-  	"./sq.js": 118,
-  	"./sr": 120,
-  	"./sr-cyrl": 119,
-  	"./sr-cyrl.js": 119,
-  	"./sr.js": 120,
-  	"./sv": 121,
-  	"./sv.js": 121,
-  	"./ta": 122,
-  	"./ta.js": 122,
-  	"./th": 123,
-  	"./th.js": 123,
-  	"./tl-ph": 124,
-  	"./tl-ph.js": 124,
-  	"./tr": 125,
-  	"./tr.js": 125,
-  	"./tzm": 127,
-  	"./tzm-latn": 126,
-  	"./tzm-latn.js": 126,
-  	"./tzm.js": 127,
-  	"./uk": 128,
-  	"./uk.js": 128,
-  	"./uz": 129,
-  	"./uz.js": 129,
-  	"./vi": 130,
-  	"./vi.js": 130,
-  	"./zh-cn": 131,
-  	"./zh-cn.js": 131,
-  	"./zh-tw": 132,
-  	"./zh-tw.js": 132
-  };
-  function webpackContext(req) {
-  	return __webpack_require__(webpackContextResolve(req));
-  };
-  function webpackContextResolve(req) {
-  	return map[req] || (function() { throw new Error("Cannot find module '" + req + "'.") }());
-  };
-  webpackContext.keys = function webpackContextKeys() {
-  	return Object.keys(map);
-  };
-  webpackContext.resolve = webpackContextResolve;
-  module.exports = webpackContext;
-
-
-/***/ },
 /* 59 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : Moroccan Arabic (ar-ma)
-  // author : ElFadili Yassine : https://github.com/ElFadiliY
-  // author : Abdel Said : https://github.com/abdelsaid
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('ar-ma', {
-          months : "يناير_فبراير_مارس_أبريل_ماي_يونيو_يوليوز_غشت_شتنبر_أكتوبر_نونبر_دجنبر".split("_"),
-          monthsShort : "يناير_فبراير_مارس_أبريل_ماي_يونيو_يوليوز_غشت_شتنبر_أكتوبر_نونبر_دجنبر".split("_"),
-          weekdays : "الأحد_الإتنين_الثلاثاء_الأربعاء_الخميس_الجمعة_السبت".split("_"),
-          weekdaysShort : "احد_اتنين_ثلاثاء_اربعاء_خميس_جمعة_سبت".split("_"),
-          weekdaysMin : "ح_ن_ث_ر_خ_ج_س".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "DD/MM/YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY LT",
-              LLLL : "dddd D MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay: "[اليوم على الساعة] LT",
-              nextDay: '[غدا على الساعة] LT',
-              nextWeek: 'dddd [على الساعة] LT',
-              lastDay: '[أمس على الساعة] LT',
-              lastWeek: 'dddd [على الساعة] LT',
-              sameElse: 'L'
-          },
-          relativeTime : {
-              future : "في %s",
-              past : "منذ %s",
-              s : "ثوان",
-              m : "دقيقة",
-              mm : "%d دقائق",
-              h : "ساعة",
-              hh : "%d ساعات",
-              d : "يوم",
-              dd : "%d أيام",
-              M : "شهر",
-              MM : "%d أشهر",
-              y : "سنة",
-              yy : "%d سنوات"
-          },
-          week : {
-              dow : 6, // Saturday is the first day of the week.
-              doy : 12  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 60 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : Arabic Saudi Arabia (ar-sa)
-  // author : Suhail Alkowaileet : https://github.com/xsoh
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      var symbolMap = {
-          '1': '١',
-          '2': '٢',
-          '3': '٣',
-          '4': '٤',
-          '5': '٥',
-          '6': '٦',
-          '7': '٧',
-          '8': '٨',
-          '9': '٩',
-          '0': '٠'
-      }, numberMap = {
-          '١': '1',
-          '٢': '2',
-          '٣': '3',
-          '٤': '4',
-          '٥': '5',
-          '٦': '6',
-          '٧': '7',
-          '٨': '8',
-          '٩': '9',
-          '٠': '0'
-      };
-
-      return moment.lang('ar-sa', {
-          months : "يناير_فبراير_مارس_أبريل_مايو_يونيو_يوليو_أغسطس_سبتمبر_أكتوبر_نوفمبر_ديسمبر".split("_"),
-          monthsShort : "يناير_فبراير_مارس_أبريل_مايو_يونيو_يوليو_أغسطس_سبتمبر_أكتوبر_نوفمبر_ديسمبر".split("_"),
-          weekdays : "الأحد_الإثنين_الثلاثاء_الأربعاء_الخميس_الجمعة_السبت".split("_"),
-          weekdaysShort : "أحد_إثنين_ثلاثاء_أربعاء_خميس_جمعة_سبت".split("_"),
-          weekdaysMin : "ح_ن_ث_ر_خ_ج_س".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "DD/MM/YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY LT",
-              LLLL : "dddd D MMMM YYYY LT"
-          },
-          meridiem : function (hour, minute, isLower) {
-              if (hour < 12) {
-                  return "ص";
-              } else {
-                  return "م";
-              }
-          },
-          calendar : {
-              sameDay: "[اليوم على الساعة] LT",
-              nextDay: '[غدا على الساعة] LT',
-              nextWeek: 'dddd [على الساعة] LT',
-              lastDay: '[أمس على الساعة] LT',
-              lastWeek: 'dddd [على الساعة] LT',
-              sameElse: 'L'
-          },
-          relativeTime : {
-              future : "في %s",
-              past : "منذ %s",
-              s : "ثوان",
-              m : "دقيقة",
-              mm : "%d دقائق",
-              h : "ساعة",
-              hh : "%d ساعات",
-              d : "يوم",
-              dd : "%d أيام",
-              M : "شهر",
-              MM : "%d أشهر",
-              y : "سنة",
-              yy : "%d سنوات"
-          },
-          preparse: function (string) {
-              return string.replace(/[۰-۹]/g, function (match) {
-                  return numberMap[match];
-              }).replace(/،/g, ',');
-          },
-          postformat: function (string) {
-              return string.replace(/\d/g, function (match) {
-                  return symbolMap[match];
-              }).replace(/,/g, '،');
-          },
-          week : {
-              dow : 6, // Saturday is the first day of the week.
-              doy : 12  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 61 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : Arabic (ar)
-  // author : Abdel Said : https://github.com/abdelsaid
-  // changes in months, weekdays : Ahmed Elkhatib
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      var symbolMap = {
-          '1': '١',
-          '2': '٢',
-          '3': '٣',
-          '4': '٤',
-          '5': '٥',
-          '6': '٦',
-          '7': '٧',
-          '8': '٨',
-          '9': '٩',
-          '0': '٠'
-      }, numberMap = {
-          '١': '1',
-          '٢': '2',
-          '٣': '3',
-          '٤': '4',
-          '٥': '5',
-          '٦': '6',
-          '٧': '7',
-          '٨': '8',
-          '٩': '9',
-          '٠': '0'
-      };
-
-      return moment.lang('ar', {
-          months : "يناير/ كانون الثاني_فبراير/ شباط_مارس/ آذار_أبريل/ نيسان_مايو/ أيار_يونيو/ حزيران_يوليو/ تموز_أغسطس/ آب_سبتمبر/ أيلول_أكتوبر/ تشرين الأول_نوفمبر/ تشرين الثاني_ديسمبر/ كانون الأول".split("_"),
-          monthsShort : "يناير/ كانون الثاني_فبراير/ شباط_مارس/ آذار_أبريل/ نيسان_مايو/ أيار_يونيو/ حزيران_يوليو/ تموز_أغسطس/ آب_سبتمبر/ أيلول_أكتوبر/ تشرين الأول_نوفمبر/ تشرين الثاني_ديسمبر/ كانون الأول".split("_"),
-          weekdays : "الأحد_الإثنين_الثلاثاء_الأربعاء_الخميس_الجمعة_السبت".split("_"),
-          weekdaysShort : "أحد_إثنين_ثلاثاء_أربعاء_خميس_جمعة_سبت".split("_"),
-          weekdaysMin : "ح_ن_ث_ر_خ_ج_س".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "DD/MM/YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY LT",
-              LLLL : "dddd D MMMM YYYY LT"
-          },
-          meridiem : function (hour, minute, isLower) {
-              if (hour < 12) {
-                  return "ص";
-              } else {
-                  return "م";
-              }
-          },
-          calendar : {
-              sameDay: "[اليوم على الساعة] LT",
-              nextDay: '[غدا على الساعة] LT',
-              nextWeek: 'dddd [على الساعة] LT',
-              lastDay: '[أمس على الساعة] LT',
-              lastWeek: 'dddd [على الساعة] LT',
-              sameElse: 'L'
-          },
-          relativeTime : {
-              future : "في %s",
-              past : "منذ %s",
-              s : "ثوان",
-              m : "دقيقة",
-              mm : "%d دقائق",
-              h : "ساعة",
-              hh : "%d ساعات",
-              d : "يوم",
-              dd : "%d أيام",
-              M : "شهر",
-              MM : "%d أشهر",
-              y : "سنة",
-              yy : "%d سنوات"
-          },
-          preparse: function (string) {
-              return string.replace(/[۰-۹]/g, function (match) {
-                  return numberMap[match];
-              }).replace(/،/g, ',');
-          },
-          postformat: function (string) {
-              return string.replace(/\d/g, function (match) {
-                  return symbolMap[match];
-              }).replace(/,/g, '،');
-          },
-          week : {
-              dow : 6, // Saturday is the first day of the week.
-              doy : 12  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 62 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : azerbaijani (az)
-  // author : topchiyev : https://github.com/topchiyev
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-
-      var suffixes = {
-          1: "-inci",
-          5: "-inci",
-          8: "-inci",
-          70: "-inci",
-          80: "-inci",
-
-          2: "-nci",
-          7: "-nci",
-          20: "-nci",
-          50: "-nci",
-
-          3: "-üncü",
-          4: "-üncü",
-          100: "-üncü",
-
-          6: "-ncı",
-
-          9: "-uncu",
-          10: "-uncu",
-          30: "-uncu",
-
-          60: "-ıncı",
-          90: "-ıncı"
-      };
-      return moment.lang('az', {
-          months : "yanvar_fevral_mart_aprel_may_iyun_iyul_avqust_sentyabr_oktyabr_noyabr_dekabr".split("_"),
-          monthsShort : "yan_fev_mar_apr_may_iyn_iyl_avq_sen_okt_noy_dek".split("_"),
-          weekdays : "Bazar_Bazar ertəsi_Çərşənbə axşamı_Çərşənbə_Cümə axşamı_Cümə_Şənbə".split("_"),
-          weekdaysShort : "Baz_BzE_ÇAx_Çər_CAx_Cüm_Şən".split("_"),
-          weekdaysMin : "Bz_BE_ÇA_Çə_CA_Cü_Şə".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "DD.MM.YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY LT",
-              LLLL : "dddd, D MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay : '[bugün saat] LT',
-              nextDay : '[sabah saat] LT',
-              nextWeek : '[gələn həftə] dddd [saat] LT',
-              lastDay : '[dünən] LT',
-              lastWeek : '[keçən həftə] dddd [saat] LT',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "%s sonra",
-              past : "%s əvvəl",
-              s : "birneçə saniyyə",
-              m : "bir dəqiqə",
-              mm : "%d dəqiqə",
-              h : "bir saat",
-              hh : "%d saat",
-              d : "bir gün",
-              dd : "%d gün",
-              M : "bir ay",
-              MM : "%d ay",
-              y : "bir il",
-              yy : "%d il"
-          },
-          meridiem : function (hour, minute, isLower) {
-              if (hour < 4) {
-                  return "gecə";
-              } else if (hour < 12) {
-                  return "səhər";
-              } else if (hour < 17) {
-                  return "gündüz";
-              } else {
-                  return "axşam";
-              }
-          },
-          ordinal : function (number) {
-              if (number === 0) {  // special case for zero
-                  return number + "-ıncı";
-              }
-              var a = number % 10,
-                  b = number % 100 - a,
-                  c = number >= 100 ? 100 : null;
-
-              return number + (suffixes[a] || suffixes[b] || suffixes[c]);
-          },
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 7  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 63 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : bulgarian (bg)
-  // author : Krasen Borisov : https://github.com/kraz
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('bg', {
-          months : "януари_февруари_март_април_май_юни_юли_август_септември_октомври_ноември_декември".split("_"),
-          monthsShort : "янр_фев_мар_апр_май_юни_юли_авг_сеп_окт_ное_дек".split("_"),
-          weekdays : "неделя_понеделник_вторник_сряда_четвъртък_петък_събота".split("_"),
-          weekdaysShort : "нед_пон_вто_сря_чет_пет_съб".split("_"),
-          weekdaysMin : "нд_пн_вт_ср_чт_пт_сб".split("_"),
-          longDateFormat : {
-              LT : "H:mm",
-              L : "D.MM.YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY LT",
-              LLLL : "dddd, D MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay : '[Днес в] LT',
-              nextDay : '[Утре в] LT',
-              nextWeek : 'dddd [в] LT',
-              lastDay : '[Вчера в] LT',
-              lastWeek : function () {
-                  switch (this.day()) {
-                  case 0:
-                  case 3:
-                  case 6:
-                      return '[В изминалата] dddd [в] LT';
-                  case 1:
-                  case 2:
-                  case 4:
-                  case 5:
-                      return '[В изминалия] dddd [в] LT';
-                  }
-              },
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "след %s",
-              past : "преди %s",
-              s : "няколко секунди",
-              m : "минута",
-              mm : "%d минути",
-              h : "час",
-              hh : "%d часа",
-              d : "ден",
-              dd : "%d дни",
-              M : "месец",
-              MM : "%d месеца",
-              y : "година",
-              yy : "%d години"
-          },
-          ordinal : function (number) {
-              var lastDigit = number % 10,
-                  last2Digits = number % 100;
-              if (number === 0) {
-                  return number + '-ев';
-              } else if (last2Digits === 0) {
-                  return number + '-ен';
-              } else if (last2Digits > 10 && last2Digits < 20) {
-                  return number + '-ти';
-              } else if (lastDigit === 1) {
-                  return number + '-ви';
-              } else if (lastDigit === 2) {
-                  return number + '-ри';
-              } else if (lastDigit === 7 || lastDigit === 8) {
-                  return number + '-ми';
-              } else {
-                  return number + '-ти';
-              }
-          },
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 7  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 64 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : Bengali (bn)
-  // author : Kaushik Gandhi : https://github.com/kaushikgandhi
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      var symbolMap = {
-          '1': '১',
-          '2': '২',
-          '3': '৩',
-          '4': '৪',
-          '5': '৫',
-          '6': '৬',
-          '7': '৭',
-          '8': '৮',
-          '9': '৯',
-          '0': '০'
-      },
-      numberMap = {
-          '১': '1',
-          '২': '2',
-          '৩': '3',
-          '৪': '4',
-          '৫': '5',
-          '৬': '6',
-          '৭': '7',
-          '৮': '8',
-          '৯': '9',
-          '০': '0'
-      };
-
-      return moment.lang('bn', {
-          months : 'জানুয়ারী_ফেবুয়ারী_মার্চ_এপ্রিল_মে_জুন_জুলাই_অগাস্ট_সেপ্টেম্বর_অক্টোবর_নভেম্বর_ডিসেম্বর'.split("_"),
-          monthsShort : 'জানু_ফেব_মার্চ_এপর_মে_জুন_জুল_অগ_সেপ্ট_অক্টো_নভ_ডিসেম্'.split("_"),
-          weekdays : 'রবিবার_সোমবার_মঙ্গলবার_বুধবার_বৃহস্পত্তিবার_শুক্রুবার_শনিবার'.split("_"),
-          weekdaysShort : 'রবি_সোম_মঙ্গল_বুধ_বৃহস্পত্তি_শুক্রু_শনি'.split("_"),
-          weekdaysMin : 'রব_সম_মঙ্গ_বু_ব্রিহ_শু_শনি'.split("_"),
-          longDateFormat : {
-              LT : "A h:mm সময়",
-              L : "DD/MM/YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY, LT",
-              LLLL : "dddd, D MMMM YYYY, LT"
-          },
-          calendar : {
-              sameDay : '[আজ] LT',
-              nextDay : '[আগামীকাল] LT',
-              nextWeek : 'dddd, LT',
-              lastDay : '[গতকাল] LT',
-              lastWeek : '[গত] dddd, LT',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "%s পরে",
-              past : "%s আগে",
-              s : "কএক সেকেন্ড",
-              m : "এক মিনিট",
-              mm : "%d মিনিট",
-              h : "এক ঘন্টা",
-              hh : "%d ঘন্টা",
-              d : "এক দিন",
-              dd : "%d দিন",
-              M : "এক মাস",
-              MM : "%d মাস",
-              y : "এক বছর",
-              yy : "%d বছর"
-          },
-          preparse: function (string) {
-              return string.replace(/[১২৩৪৫৬৭৮৯০]/g, function (match) {
-                  return numberMap[match];
-              });
-          },
-          postformat: function (string) {
-              return string.replace(/\d/g, function (match) {
-                  return symbolMap[match];
-              });
-          },
-          //Bengali is a vast language its spoken 
-          //in different forms in various parts of the world.
-          //I have just generalized with most common one used
-          meridiem : function (hour, minute, isLower) {
-              if (hour < 4) {
-                  return "রাত";
-              } else if (hour < 10) {
-                  return "শকাল";
-              } else if (hour < 17) {
-                  return "দুপুর";
-              } else if (hour < 20) {
-                  return "বিকেল";
-              } else {
-                  return "রাত";
-              }
-          },
-          week : {
-              dow : 0, // Sunday is the first day of the week.
-              doy : 6  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 65 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : breton (br)
-  // author : Jean-Baptiste Le Duigou : https://github.com/jbleduigou
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      function relativeTimeWithMutation(number, withoutSuffix, key) {
-          var format = {
-              'mm': "munutenn",
-              'MM': "miz",
-              'dd': "devezh"
-          };
-          return number + ' ' + mutation(format[key], number);
-      }
-
-      function specialMutationForYears(number) {
-          switch (lastNumber(number)) {
-          case 1:
-          case 3:
-          case 4:
-          case 5:
-          case 9:
-              return number + ' bloaz';
-          default:
-              return number + ' vloaz';
-          }
-      }
-
-      function lastNumber(number) {
-          if (number > 9) {
-              return lastNumber(number % 10);
-          }
-          return number;
-      }
-
-      function mutation(text, number) {
-          if (number === 2) {
-              return softMutation(text);
-          }
-          return text;
-      }
-
-      function softMutation(text) {
-          var mutationTable = {
-              'm': 'v',
-              'b': 'v',
-              'd': 'z'
-          };
-          if (mutationTable[text.charAt(0)] === undefined) {
-              return text;
-          }
-          return mutationTable[text.charAt(0)] + text.substring(1);
-      }
-
-      return moment.lang('br', {
-          months : "Genver_C'hwevrer_Meurzh_Ebrel_Mae_Mezheven_Gouere_Eost_Gwengolo_Here_Du_Kerzu".split("_"),
-          monthsShort : "Gen_C'hwe_Meu_Ebr_Mae_Eve_Gou_Eos_Gwe_Her_Du_Ker".split("_"),
-          weekdays : "Sul_Lun_Meurzh_Merc'her_Yaou_Gwener_Sadorn".split("_"),
-          weekdaysShort : "Sul_Lun_Meu_Mer_Yao_Gwe_Sad".split("_"),
-          weekdaysMin : "Su_Lu_Me_Mer_Ya_Gw_Sa".split("_"),
-          longDateFormat : {
-              LT : "h[e]mm A",
-              L : "DD/MM/YYYY",
-              LL : "D [a viz] MMMM YYYY",
-              LLL : "D [a viz] MMMM YYYY LT",
-              LLLL : "dddd, D [a viz] MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay : '[Hiziv da] LT',
-              nextDay : '[Warc\'hoazh da] LT',
-              nextWeek : 'dddd [da] LT',
-              lastDay : '[Dec\'h da] LT',
-              lastWeek : 'dddd [paset da] LT',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "a-benn %s",
-              past : "%s 'zo",
-              s : "un nebeud segondennoù",
-              m : "ur vunutenn",
-              mm : relativeTimeWithMutation,
-              h : "un eur",
-              hh : "%d eur",
-              d : "un devezh",
-              dd : relativeTimeWithMutation,
-              M : "ur miz",
-              MM : relativeTimeWithMutation,
-              y : "ur bloaz",
-              yy : specialMutationForYears
-          },
-          ordinal : function (number) {
-              var output = (number === 1) ? 'añ' : 'vet';
-              return number + output;
-          },
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 66 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : bosnian (bs)
-  // author : Nedim Cholich : https://github.com/frontyard
-  // based on (hr) translation by Bojan Marković
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-
-      function translate(number, withoutSuffix, key) {
-          var result = number + " ";
-          switch (key) {
-          case 'm':
-              return withoutSuffix ? 'jedna minuta' : 'jedne minute';
-          case 'mm':
-              if (number === 1) {
-                  result += 'minuta';
-              } else if (number === 2 || number === 3 || number === 4) {
-                  result += 'minute';
-              } else {
-                  result += 'minuta';
-              }
-              return result;
-          case 'h':
-              return withoutSuffix ? 'jedan sat' : 'jednog sata';
-          case 'hh':
-              if (number === 1) {
-                  result += 'sat';
-              } else if (number === 2 || number === 3 || number === 4) {
-                  result += 'sata';
-              } else {
-                  result += 'sati';
-              }
-              return result;
-          case 'dd':
-              if (number === 1) {
-                  result += 'dan';
-              } else {
-                  result += 'dana';
-              }
-              return result;
-          case 'MM':
-              if (number === 1) {
-                  result += 'mjesec';
-              } else if (number === 2 || number === 3 || number === 4) {
-                  result += 'mjeseca';
-              } else {
-                  result += 'mjeseci';
-              }
-              return result;
-          case 'yy':
-              if (number === 1) {
-                  result += 'godina';
-              } else if (number === 2 || number === 3 || number === 4) {
-                  result += 'godine';
-              } else {
-                  result += 'godina';
-              }
-              return result;
-          }
-      }
-
-      return moment.lang('bs', {
-  		months : "januar_februar_mart_april_maj_juni_juli_avgust_septembar_oktobar_novembar_decembar".split("_"),
-  		monthsShort : "jan._feb._mar._apr._maj._jun._jul._avg._sep._okt._nov._dec.".split("_"),
-          weekdays : "nedjelja_ponedjeljak_utorak_srijeda_četvrtak_petak_subota".split("_"),
-          weekdaysShort : "ned._pon._uto._sri._čet._pet._sub.".split("_"),
-          weekdaysMin : "ne_po_ut_sr_če_pe_su".split("_"),
-          longDateFormat : {
-              LT : "H:mm",
-              L : "DD. MM. YYYY",
-              LL : "D. MMMM YYYY",
-              LLL : "D. MMMM YYYY LT",
-              LLLL : "dddd, D. MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay  : '[danas u] LT',
-              nextDay  : '[sutra u] LT',
-
-              nextWeek : function () {
-                  switch (this.day()) {
-                  case 0:
-                      return '[u] [nedjelju] [u] LT';
-                  case 3:
-                      return '[u] [srijedu] [u] LT';
-                  case 6:
-                      return '[u] [subotu] [u] LT';
-                  case 1:
-                  case 2:
-                  case 4:
-                  case 5:
-                      return '[u] dddd [u] LT';
-                  }
-              },
-              lastDay  : '[jučer u] LT',
-              lastWeek : function () {
-                  switch (this.day()) {
-                  case 0:
-                  case 3:
-                      return '[prošlu] dddd [u] LT';
-                  case 6:
-                      return '[prošle] [subote] [u] LT';
-                  case 1:
-                  case 2:
-                  case 4:
-                  case 5:
-                      return '[prošli] dddd [u] LT';
-                  }
-              },
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "za %s",
-              past   : "prije %s",
-              s      : "par sekundi",
-              m      : translate,
-              mm     : translate,
-              h      : translate,
-              hh     : translate,
-              d      : "dan",
-              dd     : translate,
-              M      : "mjesec",
-              MM     : translate,
-              y      : "godinu",
-              yy     : translate
-          },
-          ordinal : '%d.',
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 7  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 67 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : catalan (ca)
-  // author : Juan G. Hurtado : https://github.com/juanghurtado
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('ca', {
-          months : "gener_febrer_març_abril_maig_juny_juliol_agost_setembre_octubre_novembre_desembre".split("_"),
-          monthsShort : "gen._febr._mar._abr._mai._jun._jul._ag._set._oct._nov._des.".split("_"),
-          weekdays : "diumenge_dilluns_dimarts_dimecres_dijous_divendres_dissabte".split("_"),
-          weekdaysShort : "dg._dl._dt._dc._dj._dv._ds.".split("_"),
-          weekdaysMin : "Dg_Dl_Dt_Dc_Dj_Dv_Ds".split("_"),
-          longDateFormat : {
-              LT : "H:mm",
-              L : "DD/MM/YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY LT",
-              LLLL : "dddd D MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay : function () {
-                  return '[avui a ' + ((this.hours() !== 1) ? 'les' : 'la') + '] LT';
-              },
-              nextDay : function () {
-                  return '[demà a ' + ((this.hours() !== 1) ? 'les' : 'la') + '] LT';
-              },
-              nextWeek : function () {
-                  return 'dddd [a ' + ((this.hours() !== 1) ? 'les' : 'la') + '] LT';
-              },
-              lastDay : function () {
-                  return '[ahir a ' + ((this.hours() !== 1) ? 'les' : 'la') + '] LT';
-              },
-              lastWeek : function () {
-                  return '[el] dddd [passat a ' + ((this.hours() !== 1) ? 'les' : 'la') + '] LT';
-              },
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "en %s",
-              past : "fa %s",
-              s : "uns segons",
-              m : "un minut",
-              mm : "%d minuts",
-              h : "una hora",
-              hh : "%d hores",
-              d : "un dia",
-              dd : "%d dies",
-              M : "un mes",
-              MM : "%d mesos",
-              y : "un any",
-              yy : "%d anys"
-          },
-          ordinal : '%dº',
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 68 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : czech (cs)
-  // author : petrbela : https://github.com/petrbela
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      var months = "leden_únor_březen_duben_květen_červen_červenec_srpen_září_říjen_listopad_prosinec".split("_"),
-          monthsShort = "led_úno_bře_dub_kvě_čvn_čvc_srp_zář_říj_lis_pro".split("_");
-
-      function plural(n) {
-          return (n > 1) && (n < 5) && (~~(n / 10) !== 1);
-      }
-
-      function translate(number, withoutSuffix, key, isFuture) {
-          var result = number + " ";
-          switch (key) {
-          case 's':  // a few seconds / in a few seconds / a few seconds ago
-              return (withoutSuffix || isFuture) ? 'pár sekund' : 'pár sekundami';
-          case 'm':  // a minute / in a minute / a minute ago
-              return withoutSuffix ? 'minuta' : (isFuture ? 'minutu' : 'minutou');
-          case 'mm': // 9 minutes / in 9 minutes / 9 minutes ago
-              if (withoutSuffix || isFuture) {
-                  return result + (plural(number) ? 'minuty' : 'minut');
-              } else {
-                  return result + 'minutami';
-              }
-              break;
-          case 'h':  // an hour / in an hour / an hour ago
-              return withoutSuffix ? 'hodina' : (isFuture ? 'hodinu' : 'hodinou');
-          case 'hh': // 9 hours / in 9 hours / 9 hours ago
-              if (withoutSuffix || isFuture) {
-                  return result + (plural(number) ? 'hodiny' : 'hodin');
-              } else {
-                  return result + 'hodinami';
-              }
-              break;
-          case 'd':  // a day / in a day / a day ago
-              return (withoutSuffix || isFuture) ? 'den' : 'dnem';
-          case 'dd': // 9 days / in 9 days / 9 days ago
-              if (withoutSuffix || isFuture) {
-                  return result + (plural(number) ? 'dny' : 'dní');
-              } else {
-                  return result + 'dny';
-              }
-              break;
-          case 'M':  // a month / in a month / a month ago
-              return (withoutSuffix || isFuture) ? 'měsíc' : 'měsícem';
-          case 'MM': // 9 months / in 9 months / 9 months ago
-              if (withoutSuffix || isFuture) {
-                  return result + (plural(number) ? 'měsíce' : 'měsíců');
-              } else {
-                  return result + 'měsíci';
-              }
-              break;
-          case 'y':  // a year / in a year / a year ago
-              return (withoutSuffix || isFuture) ? 'rok' : 'rokem';
-          case 'yy': // 9 years / in 9 years / 9 years ago
-              if (withoutSuffix || isFuture) {
-                  return result + (plural(number) ? 'roky' : 'let');
-              } else {
-                  return result + 'lety';
-              }
-              break;
-          }
-      }
-
-      return moment.lang('cs', {
-          months : months,
-          monthsShort : monthsShort,
-          monthsParse : (function (months, monthsShort) {
-              var i, _monthsParse = [];
-              for (i = 0; i < 12; i++) {
-                  // use custom parser to solve problem with July (červenec)
-                  _monthsParse[i] = new RegExp('^' + months[i] + '$|^' + monthsShort[i] + '$', 'i');
-              }
-              return _monthsParse;
-          }(months, monthsShort)),
-          weekdays : "neděle_pondělí_úterý_středa_čtvrtek_pátek_sobota".split("_"),
-          weekdaysShort : "ne_po_út_st_čt_pá_so".split("_"),
-          weekdaysMin : "ne_po_út_st_čt_pá_so".split("_"),
-          longDateFormat : {
-              LT: "H.mm",
-              L : "DD. MM. YYYY",
-              LL : "D. MMMM YYYY",
-              LLL : "D. MMMM YYYY LT",
-              LLLL : "dddd D. MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay: "[dnes v] LT",
-              nextDay: '[zítra v] LT',
-              nextWeek: function () {
-                  switch (this.day()) {
-                  case 0:
-                      return '[v neděli v] LT';
-                  case 1:
-                  case 2:
-                      return '[v] dddd [v] LT';
-                  case 3:
-                      return '[ve středu v] LT';
-                  case 4:
-                      return '[ve čtvrtek v] LT';
-                  case 5:
-                      return '[v pátek v] LT';
-                  case 6:
-                      return '[v sobotu v] LT';
-                  }
-              },
-              lastDay: '[včera v] LT',
-              lastWeek: function () {
-                  switch (this.day()) {
-                  case 0:
-                      return '[minulou neděli v] LT';
-                  case 1:
-                  case 2:
-                      return '[minulé] dddd [v] LT';
-                  case 3:
-                      return '[minulou středu v] LT';
-                  case 4:
-                  case 5:
-                      return '[minulý] dddd [v] LT';
-                  case 6:
-                      return '[minulou sobotu v] LT';
-                  }
-              },
-              sameElse: "L"
-          },
-          relativeTime : {
-              future : "za %s",
-              past : "před %s",
-              s : translate,
-              m : translate,
-              mm : translate,
-              h : translate,
-              hh : translate,
-              d : translate,
-              dd : translate,
-              M : translate,
-              MM : translate,
-              y : translate,
-              yy : translate
-          },
-          ordinal : '%d.',
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 69 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : chuvash (cv)
-  // author : Anatoly Mironov : https://github.com/mirontoli
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('cv', {
-          months : "кăрлач_нарăс_пуш_ака_май_çĕртме_утă_çурла_авăн_юпа_чӳк_раштав".split("_"),
-          monthsShort : "кăр_нар_пуш_ака_май_çĕр_утă_çур_ав_юпа_чӳк_раш".split("_"),
-          weekdays : "вырсарникун_тунтикун_ытларикун_юнкун_кĕçнерникун_эрнекун_шăматкун".split("_"),
-          weekdaysShort : "выр_тун_ытл_юн_кĕç_эрн_шăм".split("_"),
-          weekdaysMin : "вр_тн_ыт_юн_кç_эр_шм".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "DD-MM-YYYY",
-              LL : "YYYY [çулхи] MMMM [уйăхĕн] D[-мĕшĕ]",
-              LLL : "YYYY [çулхи] MMMM [уйăхĕн] D[-мĕшĕ], LT",
-              LLLL : "dddd, YYYY [çулхи] MMMM [уйăхĕн] D[-мĕшĕ], LT"
-          },
-          calendar : {
-              sameDay: '[Паян] LT [сехетре]',
-              nextDay: '[Ыран] LT [сехетре]',
-              lastDay: '[Ĕнер] LT [сехетре]',
-              nextWeek: '[Çитес] dddd LT [сехетре]',
-              lastWeek: '[Иртнĕ] dddd LT [сехетре]',
-              sameElse: 'L'
-          },
-          relativeTime : {
-              future : function (output) {
-                  var affix = /сехет$/i.exec(output) ? "рен" : /çул$/i.exec(output) ? "тан" : "ран";
-                  return output + affix;
-              },
-              past : "%s каялла",
-              s : "пĕр-ик çеккунт",
-              m : "пĕр минут",
-              mm : "%d минут",
-              h : "пĕр сехет",
-              hh : "%d сехет",
-              d : "пĕр кун",
-              dd : "%d кун",
-              M : "пĕр уйăх",
-              MM : "%d уйăх",
-              y : "пĕр çул",
-              yy : "%d çул"
-          },
-          ordinal : '%d-мĕш',
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 7  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 70 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : Welsh (cy)
-  // author : Robert Allen
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang("cy", {
-          months: "Ionawr_Chwefror_Mawrth_Ebrill_Mai_Mehefin_Gorffennaf_Awst_Medi_Hydref_Tachwedd_Rhagfyr".split("_"),
-          monthsShort: "Ion_Chwe_Maw_Ebr_Mai_Meh_Gor_Aws_Med_Hyd_Tach_Rhag".split("_"),
-          weekdays: "Dydd Sul_Dydd Llun_Dydd Mawrth_Dydd Mercher_Dydd Iau_Dydd Gwener_Dydd Sadwrn".split("_"),
-          weekdaysShort: "Sul_Llun_Maw_Mer_Iau_Gwe_Sad".split("_"),
-          weekdaysMin: "Su_Ll_Ma_Me_Ia_Gw_Sa".split("_"),
-          // time formats are the same as en-gb
-          longDateFormat: {
-              LT: "HH:mm",
-              L: "DD/MM/YYYY",
-              LL: "D MMMM YYYY",
-              LLL: "D MMMM YYYY LT",
-              LLLL: "dddd, D MMMM YYYY LT"
-          },
-          calendar: {
-              sameDay: '[Heddiw am] LT',
-              nextDay: '[Yfory am] LT',
-              nextWeek: 'dddd [am] LT',
-              lastDay: '[Ddoe am] LT',
-              lastWeek: 'dddd [diwethaf am] LT',
-              sameElse: 'L'
-          },
-          relativeTime: {
-              future: "mewn %s",
-              past: "%s yn ôl",
-              s: "ychydig eiliadau",
-              m: "munud",
-              mm: "%d munud",
-              h: "awr",
-              hh: "%d awr",
-              d: "diwrnod",
-              dd: "%d diwrnod",
-              M: "mis",
-              MM: "%d mis",
-              y: "blwyddyn",
-              yy: "%d flynedd"
-          },
-          // traditional ordinal numbers above 31 are not commonly used in colloquial Welsh
-          ordinal: function (number) {
-              var b = number,
-                  output = '',
-                  lookup = [
-                      '', 'af', 'il', 'ydd', 'ydd', 'ed', 'ed', 'ed', 'fed', 'fed', 'fed', // 1af to 10fed
-                      'eg', 'fed', 'eg', 'eg', 'fed', 'eg', 'eg', 'fed', 'eg', 'fed' // 11eg to 20fed
-                  ];
-
-              if (b > 20) {
-                  if (b === 40 || b === 50 || b === 60 || b === 80 || b === 100) {
-                      output = 'fed'; // not 30ain, 70ain or 90ain
-                  } else {
-                      output = 'ain';
-                  }
-              } else if (b > 0) {
-                  output = lookup[b];
-              }
-
-              return number + output;
-          },
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 71 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : danish (da)
-  // author : Ulrik Nielsen : https://github.com/mrbase
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('da', {
-          months : "januar_februar_marts_april_maj_juni_juli_august_september_oktober_november_december".split("_"),
-          monthsShort : "jan_feb_mar_apr_maj_jun_jul_aug_sep_okt_nov_dec".split("_"),
-          weekdays : "søndag_mandag_tirsdag_onsdag_torsdag_fredag_lørdag".split("_"),
-          weekdaysShort : "søn_man_tir_ons_tor_fre_lør".split("_"),
-          weekdaysMin : "sø_ma_ti_on_to_fr_lø".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "DD/MM/YYYY",
-              LL : "D. MMMM YYYY",
-              LLL : "D. MMMM YYYY LT",
-              LLLL : "dddd [d.] D. MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay : '[I dag kl.] LT',
-              nextDay : '[I morgen kl.] LT',
-              nextWeek : 'dddd [kl.] LT',
-              lastDay : '[I går kl.] LT',
-              lastWeek : '[sidste] dddd [kl] LT',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "om %s",
-              past : "%s siden",
-              s : "få sekunder",
-              m : "et minut",
-              mm : "%d minutter",
-              h : "en time",
-              hh : "%d timer",
-              d : "en dag",
-              dd : "%d dage",
-              M : "en måned",
-              MM : "%d måneder",
-              y : "et år",
-              yy : "%d år"
-          },
-          ordinal : '%d.',
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 72 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : austrian german (de-at)
-  // author : lluchs : https://github.com/lluchs
-  // author: Menelion Elensúle: https://github.com/Oire
-  // author : Martin Groller : https://github.com/MadMG
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      function processRelativeTime(number, withoutSuffix, key, isFuture) {
-          var format = {
-              'm': ['eine Minute', 'einer Minute'],
-              'h': ['eine Stunde', 'einer Stunde'],
-              'd': ['ein Tag', 'einem Tag'],
-              'dd': [number + ' Tage', number + ' Tagen'],
-              'M': ['ein Monat', 'einem Monat'],
-              'MM': [number + ' Monate', number + ' Monaten'],
-              'y': ['ein Jahr', 'einem Jahr'],
-              'yy': [number + ' Jahre', number + ' Jahren']
-          };
-          return withoutSuffix ? format[key][0] : format[key][1];
-      }
-
-      return moment.lang('de-at', {
-          months : "Jänner_Februar_März_April_Mai_Juni_Juli_August_September_Oktober_November_Dezember".split("_"),
-          monthsShort : "Jän._Febr._Mrz._Apr._Mai_Jun._Jul._Aug._Sept._Okt._Nov._Dez.".split("_"),
-          weekdays : "Sonntag_Montag_Dienstag_Mittwoch_Donnerstag_Freitag_Samstag".split("_"),
-          weekdaysShort : "So._Mo._Di._Mi._Do._Fr._Sa.".split("_"),
-          weekdaysMin : "So_Mo_Di_Mi_Do_Fr_Sa".split("_"),
-          longDateFormat : {
-              LT: "HH:mm [Uhr]",
-              L : "DD.MM.YYYY",
-              LL : "D. MMMM YYYY",
-              LLL : "D. MMMM YYYY LT",
-              LLLL : "dddd, D. MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay: "[Heute um] LT",
-              sameElse: "L",
-              nextDay: '[Morgen um] LT',
-              nextWeek: 'dddd [um] LT',
-              lastDay: '[Gestern um] LT',
-              lastWeek: '[letzten] dddd [um] LT'
-          },
-          relativeTime : {
-              future : "in %s",
-              past : "vor %s",
-              s : "ein paar Sekunden",
-              m : processRelativeTime,
-              mm : "%d Minuten",
-              h : processRelativeTime,
-              hh : "%d Stunden",
-              d : processRelativeTime,
-              dd : processRelativeTime,
-              M : processRelativeTime,
-              MM : processRelativeTime,
-              y : processRelativeTime,
-              yy : processRelativeTime
-          },
-          ordinal : '%d.',
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 73 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : german (de)
-  // author : lluchs : https://github.com/lluchs
-  // author: Menelion Elensúle: https://github.com/Oire
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      function processRelativeTime(number, withoutSuffix, key, isFuture) {
-          var format = {
-              'm': ['eine Minute', 'einer Minute'],
-              'h': ['eine Stunde', 'einer Stunde'],
-              'd': ['ein Tag', 'einem Tag'],
-              'dd': [number + ' Tage', number + ' Tagen'],
-              'M': ['ein Monat', 'einem Monat'],
-              'MM': [number + ' Monate', number + ' Monaten'],
-              'y': ['ein Jahr', 'einem Jahr'],
-              'yy': [number + ' Jahre', number + ' Jahren']
-          };
-          return withoutSuffix ? format[key][0] : format[key][1];
-      }
-
-      return moment.lang('de', {
-          months : "Januar_Februar_März_April_Mai_Juni_Juli_August_September_Oktober_November_Dezember".split("_"),
-          monthsShort : "Jan._Febr._Mrz._Apr._Mai_Jun._Jul._Aug._Sept._Okt._Nov._Dez.".split("_"),
-          weekdays : "Sonntag_Montag_Dienstag_Mittwoch_Donnerstag_Freitag_Samstag".split("_"),
-          weekdaysShort : "So._Mo._Di._Mi._Do._Fr._Sa.".split("_"),
-          weekdaysMin : "So_Mo_Di_Mi_Do_Fr_Sa".split("_"),
-          longDateFormat : {
-              LT: "HH:mm [Uhr]",
-              L : "DD.MM.YYYY",
-              LL : "D. MMMM YYYY",
-              LLL : "D. MMMM YYYY LT",
-              LLLL : "dddd, D. MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay: "[Heute um] LT",
-              sameElse: "L",
-              nextDay: '[Morgen um] LT',
-              nextWeek: 'dddd [um] LT',
-              lastDay: '[Gestern um] LT',
-              lastWeek: '[letzten] dddd [um] LT'
-          },
-          relativeTime : {
-              future : "in %s",
-              past : "vor %s",
-              s : "ein paar Sekunden",
-              m : processRelativeTime,
-              mm : "%d Minuten",
-              h : processRelativeTime,
-              hh : "%d Stunden",
-              d : processRelativeTime,
-              dd : processRelativeTime,
-              M : processRelativeTime,
-              MM : processRelativeTime,
-              y : processRelativeTime,
-              yy : processRelativeTime
-          },
-          ordinal : '%d.',
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 74 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : modern greek (el)
-  // author : Aggelos Karalias : https://github.com/mehiel
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('el', {
-          monthsNominativeEl : "Ιανουάριος_Φεβρουάριος_Μάρτιος_Απρίλιος_Μάιος_Ιούνιος_Ιούλιος_Αύγουστος_Σεπτέμβριος_Οκτώβριος_Νοέμβριος_Δεκέμβριος".split("_"),
-          monthsGenitiveEl : "Ιανουαρίου_Φεβρουαρίου_Μαρτίου_Απριλίου_Μαΐου_Ιουνίου_Ιουλίου_Αυγούστου_Σεπτεμβρίου_Οκτωβρίου_Νοεμβρίου_Δεκεμβρίου".split("_"),
-          months : function (momentToFormat, format) {
-              if (/D/.test(format.substring(0, format.indexOf("MMMM")))) { // if there is a day number before 'MMMM'
-                  return this._monthsGenitiveEl[momentToFormat.month()];
-              } else {
-                  return this._monthsNominativeEl[momentToFormat.month()];
-              }
-          },
-          monthsShort : "Ιαν_Φεβ_Μαρ_Απρ_Μαϊ_Ιουν_Ιουλ_Αυγ_Σεπ_Οκτ_Νοε_Δεκ".split("_"),
-          weekdays : "Κυριακή_Δευτέρα_Τρίτη_Τετάρτη_Πέμπτη_Παρασκευή_Σάββατο".split("_"),
-          weekdaysShort : "Κυρ_Δευ_Τρι_Τετ_Πεμ_Παρ_Σαβ".split("_"),
-          weekdaysMin : "Κυ_Δε_Τρ_Τε_Πε_Πα_Σα".split("_"),
-          meridiem : function (hours, minutes, isLower) {
-              if (hours > 11) {
-                  return isLower ? 'μμ' : 'ΜΜ';
-              } else {
-                  return isLower ? 'πμ' : 'ΠΜ';
-              }
-          },
-          longDateFormat : {
-              LT : "h:mm A",
-              L : "DD/MM/YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY LT",
-              LLLL : "dddd, D MMMM YYYY LT"
-          },
-          calendarEl : {
-              sameDay : '[Σήμερα {}] LT',
-              nextDay : '[Αύριο {}] LT',
-              nextWeek : 'dddd [{}] LT',
-              lastDay : '[Χθες {}] LT',
-              lastWeek : function() {
-                  switch (this.day()) {
-                      case 6:
-                          return '[το προηγούμενο] dddd [{}] LT';
-                      default:
-                          return '[την προηγούμενη] dddd [{}] LT';
-                  }
-              },
-              sameElse : 'L'
-          },
-          calendar : function (key, mom) {
-              var output = this._calendarEl[key],
-                  hours = mom && mom.hours();
-
-              if (typeof output === 'function') {
-                  output = output.apply(mom);
-              }
-
-              return output.replace("{}", (hours % 12 === 1 ? "στη" : "στις"));
-          },
-          relativeTime : {
-              future : "σε %s",
-              past : "%s πριν",
-              s : "δευτερόλεπτα",
-              m : "ένα λεπτό",
-              mm : "%d λεπτά",
-              h : "μία ώρα",
-              hh : "%d ώρες",
-              d : "μία μέρα",
-              dd : "%d μέρες",
-              M : "ένας μήνας",
-              MM : "%d μήνες",
-              y : "ένας χρόνος",
-              yy : "%d χρόνια"
-          },
-          ordinal : function (number) {
-              return number + 'η';
-          },
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 75 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : australian english (en-au)
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('en-au', {
-          months : "January_February_March_April_May_June_July_August_September_October_November_December".split("_"),
-          monthsShort : "Jan_Feb_Mar_Apr_May_Jun_Jul_Aug_Sep_Oct_Nov_Dec".split("_"),
-          weekdays : "Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday".split("_"),
-          weekdaysShort : "Sun_Mon_Tue_Wed_Thu_Fri_Sat".split("_"),
-          weekdaysMin : "Su_Mo_Tu_We_Th_Fr_Sa".split("_"),
-          longDateFormat : {
-              LT : "h:mm A",
-              L : "DD/MM/YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY LT",
-              LLLL : "dddd, D MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay : '[Today at] LT',
-              nextDay : '[Tomorrow at] LT',
-              nextWeek : 'dddd [at] LT',
-              lastDay : '[Yesterday at] LT',
-              lastWeek : '[Last] dddd [at] LT',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "in %s",
-              past : "%s ago",
-              s : "a few seconds",
-              m : "a minute",
-              mm : "%d minutes",
-              h : "an hour",
-              hh : "%d hours",
-              d : "a day",
-              dd : "%d days",
-              M : "a month",
-              MM : "%d months",
-              y : "a year",
-              yy : "%d years"
-          },
-          ordinal : function (number) {
-              var b = number % 10,
-                  output = (~~ (number % 100 / 10) === 1) ? 'th' :
-                  (b === 1) ? 'st' :
-                  (b === 2) ? 'nd' :
-                  (b === 3) ? 'rd' : 'th';
-              return number + output;
-          },
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 76 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : canadian english (en-ca)
-  // author : Jonathan Abourbih : https://github.com/jonbca
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('en-ca', {
-          months : "January_February_March_April_May_June_July_August_September_October_November_December".split("_"),
-          monthsShort : "Jan_Feb_Mar_Apr_May_Jun_Jul_Aug_Sep_Oct_Nov_Dec".split("_"),
-          weekdays : "Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday".split("_"),
-          weekdaysShort : "Sun_Mon_Tue_Wed_Thu_Fri_Sat".split("_"),
-          weekdaysMin : "Su_Mo_Tu_We_Th_Fr_Sa".split("_"),
-          longDateFormat : {
-              LT : "h:mm A",
-              L : "YYYY-MM-DD",
-              LL : "D MMMM, YYYY",
-              LLL : "D MMMM, YYYY LT",
-              LLLL : "dddd, D MMMM, YYYY LT"
-          },
-          calendar : {
-              sameDay : '[Today at] LT',
-              nextDay : '[Tomorrow at] LT',
-              nextWeek : 'dddd [at] LT',
-              lastDay : '[Yesterday at] LT',
-              lastWeek : '[Last] dddd [at] LT',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "in %s",
-              past : "%s ago",
-              s : "a few seconds",
-              m : "a minute",
-              mm : "%d minutes",
-              h : "an hour",
-              hh : "%d hours",
-              d : "a day",
-              dd : "%d days",
-              M : "a month",
-              MM : "%d months",
-              y : "a year",
-              yy : "%d years"
-          },
-          ordinal : function (number) {
-              var b = number % 10,
-                  output = (~~ (number % 100 / 10) === 1) ? 'th' :
-                  (b === 1) ? 'st' :
-                  (b === 2) ? 'nd' :
-                  (b === 3) ? 'rd' : 'th';
-              return number + output;
-          }
-      });
-  }));
-
-
-/***/ },
-/* 77 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : great britain english (en-gb)
-  // author : Chris Gedrim : https://github.com/chrisgedrim
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('en-gb', {
-          months : "January_February_March_April_May_June_July_August_September_October_November_December".split("_"),
-          monthsShort : "Jan_Feb_Mar_Apr_May_Jun_Jul_Aug_Sep_Oct_Nov_Dec".split("_"),
-          weekdays : "Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday".split("_"),
-          weekdaysShort : "Sun_Mon_Tue_Wed_Thu_Fri_Sat".split("_"),
-          weekdaysMin : "Su_Mo_Tu_We_Th_Fr_Sa".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "DD/MM/YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY LT",
-              LLLL : "dddd, D MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay : '[Today at] LT',
-              nextDay : '[Tomorrow at] LT',
-              nextWeek : 'dddd [at] LT',
-              lastDay : '[Yesterday at] LT',
-              lastWeek : '[Last] dddd [at] LT',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "in %s",
-              past : "%s ago",
-              s : "a few seconds",
-              m : "a minute",
-              mm : "%d minutes",
-              h : "an hour",
-              hh : "%d hours",
-              d : "a day",
-              dd : "%d days",
-              M : "a month",
-              MM : "%d months",
-              y : "a year",
-              yy : "%d years"
-          },
-          ordinal : function (number) {
-              var b = number % 10,
-                  output = (~~ (number % 100 / 10) === 1) ? 'th' :
-                  (b === 1) ? 'st' :
-                  (b === 2) ? 'nd' :
-                  (b === 3) ? 'rd' : 'th';
-              return number + output;
-          },
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 78 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : esperanto (eo)
-  // author : Colin Dean : https://github.com/colindean
-  // komento: Mi estas malcerta se mi korekte traktis akuzativojn en tiu traduko.
-  //          Se ne, bonvolu korekti kaj avizi min por ke mi povas lerni!
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('eo', {
-          months : "januaro_februaro_marto_aprilo_majo_junio_julio_aŭgusto_septembro_oktobro_novembro_decembro".split("_"),
-          monthsShort : "jan_feb_mar_apr_maj_jun_jul_aŭg_sep_okt_nov_dec".split("_"),
-          weekdays : "Dimanĉo_Lundo_Mardo_Merkredo_Ĵaŭdo_Vendredo_Sabato".split("_"),
-          weekdaysShort : "Dim_Lun_Mard_Merk_Ĵaŭ_Ven_Sab".split("_"),
-          weekdaysMin : "Di_Lu_Ma_Me_Ĵa_Ve_Sa".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "YYYY-MM-DD",
-              LL : "D[-an de] MMMM, YYYY",
-              LLL : "D[-an de] MMMM, YYYY LT",
-              LLLL : "dddd, [la] D[-an de] MMMM, YYYY LT"
-          },
-          meridiem : function (hours, minutes, isLower) {
-              if (hours > 11) {
-                  return isLower ? 'p.t.m.' : 'P.T.M.';
-              } else {
-                  return isLower ? 'a.t.m.' : 'A.T.M.';
-              }
-          },
-          calendar : {
-              sameDay : '[Hodiaŭ je] LT',
-              nextDay : '[Morgaŭ je] LT',
-              nextWeek : 'dddd [je] LT',
-              lastDay : '[Hieraŭ je] LT',
-              lastWeek : '[pasinta] dddd [je] LT',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "je %s",
-              past : "antaŭ %s",
-              s : "sekundoj",
-              m : "minuto",
-              mm : "%d minutoj",
-              h : "horo",
-              hh : "%d horoj",
-              d : "tago",//ne 'diurno', ĉar estas uzita por proksimumo
-              dd : "%d tagoj",
-              M : "monato",
-              MM : "%d monatoj",
-              y : "jaro",
-              yy : "%d jaroj"
-          },
-          ordinal : "%da",
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 7  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 79 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : spanish (es)
-  // author : Julio Napurí : https://github.com/julionc
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      var monthsShortDot = "ene._feb._mar._abr._may._jun._jul._ago._sep._oct._nov._dic.".split("_"),
-          monthsShort = "ene_feb_mar_abr_may_jun_jul_ago_sep_oct_nov_dic".split("_");
-
-      return moment.lang('es', {
-          months : "enero_febrero_marzo_abril_mayo_junio_julio_agosto_septiembre_octubre_noviembre_diciembre".split("_"),
-          monthsShort : function (m, format) {
-              if (/-MMM-/.test(format)) {
-                  return monthsShort[m.month()];
-              } else {
-                  return monthsShortDot[m.month()];
-              }
-          },
-          weekdays : "domingo_lunes_martes_miércoles_jueves_viernes_sábado".split("_"),
-          weekdaysShort : "dom._lun._mar._mié._jue._vie._sáb.".split("_"),
-          weekdaysMin : "Do_Lu_Ma_Mi_Ju_Vi_Sá".split("_"),
-          longDateFormat : {
-              LT : "H:mm",
-              L : "DD/MM/YYYY",
-              LL : "D [de] MMMM [del] YYYY",
-              LLL : "D [de] MMMM [del] YYYY LT",
-              LLLL : "dddd, D [de] MMMM [del] YYYY LT"
-          },
-          calendar : {
-              sameDay : function () {
-                  return '[hoy a la' + ((this.hours() !== 1) ? 's' : '') + '] LT';
-              },
-              nextDay : function () {
-                  return '[mañana a la' + ((this.hours() !== 1) ? 's' : '') + '] LT';
-              },
-              nextWeek : function () {
-                  return 'dddd [a la' + ((this.hours() !== 1) ? 's' : '') + '] LT';
-              },
-              lastDay : function () {
-                  return '[ayer a la' + ((this.hours() !== 1) ? 's' : '') + '] LT';
-              },
-              lastWeek : function () {
-                  return '[el] dddd [pasado a la' + ((this.hours() !== 1) ? 's' : '') + '] LT';
-              },
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "en %s",
-              past : "hace %s",
-              s : "unos segundos",
-              m : "un minuto",
-              mm : "%d minutos",
-              h : "una hora",
-              hh : "%d horas",
-              d : "un día",
-              dd : "%d días",
-              M : "un mes",
-              MM : "%d meses",
-              y : "un año",
-              yy : "%d años"
-          },
-          ordinal : '%dº',
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 80 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : estonian (et)
-  // author : Henry Kehlmann : https://github.com/madhenry
-  // improvements : Illimar Tambek : https://github.com/ragulka
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      function processRelativeTime(number, withoutSuffix, key, isFuture) {
-          var format = {
-              's' : ['mõne sekundi', 'mõni sekund', 'paar sekundit'],
-              'm' : ['ühe minuti', 'üks minut'],
-              'mm': [number + ' minuti', number + ' minutit'],
-              'h' : ['ühe tunni', 'tund aega', 'üks tund'],
-              'hh': [number + ' tunni', number + ' tundi'],
-              'd' : ['ühe päeva', 'üks päev'],
-              'M' : ['kuu aja', 'kuu aega', 'üks kuu'],
-              'MM': [number + ' kuu', number + ' kuud'],
-              'y' : ['ühe aasta', 'aasta', 'üks aasta'],
-              'yy': [number + ' aasta', number + ' aastat']
-          };
-          if (withoutSuffix) {
-              return format[key][2] ? format[key][2] : format[key][1];
-          }
-          return isFuture ? format[key][0] : format[key][1];
-      }
-
-      return moment.lang('et', {
-          months        : "jaanuar_veebruar_märts_aprill_mai_juuni_juuli_august_september_oktoober_november_detsember".split("_"),
-          monthsShort   : "jaan_veebr_märts_apr_mai_juuni_juuli_aug_sept_okt_nov_dets".split("_"),
-          weekdays      : "pühapäev_esmaspäev_teisipäev_kolmapäev_neljapäev_reede_laupäev".split("_"),
-          weekdaysShort : "P_E_T_K_N_R_L".split("_"),
-          weekdaysMin   : "P_E_T_K_N_R_L".split("_"),
-          longDateFormat : {
-              LT   : "H:mm",
-              L    : "DD.MM.YYYY",
-              LL   : "D. MMMM YYYY",
-              LLL  : "D. MMMM YYYY LT",
-              LLLL : "dddd, D. MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay  : '[Täna,] LT',
-              nextDay  : '[Homme,] LT',
-              nextWeek : '[Järgmine] dddd LT',
-              lastDay  : '[Eile,] LT',
-              lastWeek : '[Eelmine] dddd LT',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "%s pärast",
-              past   : "%s tagasi",
-              s      : processRelativeTime,
-              m      : processRelativeTime,
-              mm     : processRelativeTime,
-              h      : processRelativeTime,
-              hh     : processRelativeTime,
-              d      : processRelativeTime,
-              dd     : '%d päeva',
-              M      : processRelativeTime,
-              MM     : processRelativeTime,
-              y      : processRelativeTime,
-              yy     : processRelativeTime
-          },
-          ordinal : '%d.',
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 81 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : euskara (eu)
-  // author : Eneko Illarramendi : https://github.com/eillarra
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('eu', {
-          months : "urtarrila_otsaila_martxoa_apirila_maiatza_ekaina_uztaila_abuztua_iraila_urria_azaroa_abendua".split("_"),
-          monthsShort : "urt._ots._mar._api._mai._eka._uzt._abu._ira._urr._aza._abe.".split("_"),
-          weekdays : "igandea_astelehena_asteartea_asteazkena_osteguna_ostirala_larunbata".split("_"),
-          weekdaysShort : "ig._al._ar._az._og._ol._lr.".split("_"),
-          weekdaysMin : "ig_al_ar_az_og_ol_lr".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "YYYY-MM-DD",
-              LL : "YYYY[ko] MMMM[ren] D[a]",
-              LLL : "YYYY[ko] MMMM[ren] D[a] LT",
-              LLLL : "dddd, YYYY[ko] MMMM[ren] D[a] LT",
-              l : "YYYY-M-D",
-              ll : "YYYY[ko] MMM D[a]",
-              lll : "YYYY[ko] MMM D[a] LT",
-              llll : "ddd, YYYY[ko] MMM D[a] LT"
-          },
-          calendar : {
-              sameDay : '[gaur] LT[etan]',
-              nextDay : '[bihar] LT[etan]',
-              nextWeek : 'dddd LT[etan]',
-              lastDay : '[atzo] LT[etan]',
-              lastWeek : '[aurreko] dddd LT[etan]',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "%s barru",
-              past : "duela %s",
-              s : "segundo batzuk",
-              m : "minutu bat",
-              mm : "%d minutu",
-              h : "ordu bat",
-              hh : "%d ordu",
-              d : "egun bat",
-              dd : "%d egun",
-              M : "hilabete bat",
-              MM : "%d hilabete",
-              y : "urte bat",
-              yy : "%d urte"
-          },
-          ordinal : '%d.',
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 7  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 82 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : Persian Language
-  // author : Ebrahim Byagowi : https://github.com/ebraminio
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      var symbolMap = {
-          '1': '۱',
-          '2': '۲',
-          '3': '۳',
-          '4': '۴',
-          '5': '۵',
-          '6': '۶',
-          '7': '۷',
-          '8': '۸',
-          '9': '۹',
-          '0': '۰'
-      }, numberMap = {
-          '۱': '1',
-          '۲': '2',
-          '۳': '3',
-          '۴': '4',
-          '۵': '5',
-          '۶': '6',
-          '۷': '7',
-          '۸': '8',
-          '۹': '9',
-          '۰': '0'
-      };
-
-      return moment.lang('fa', {
-          months : 'ژانویه_فوریه_مارس_آوریل_مه_ژوئن_ژوئیه_اوت_سپتامبر_اکتبر_نوامبر_دسامبر'.split('_'),
-          monthsShort : 'ژانویه_فوریه_مارس_آوریل_مه_ژوئن_ژوئیه_اوت_سپتامبر_اکتبر_نوامبر_دسامبر'.split('_'),
-          weekdays : 'یک\u200cشنبه_دوشنبه_سه\u200cشنبه_چهارشنبه_پنج\u200cشنبه_جمعه_شنبه'.split('_'),
-          weekdaysShort : 'یک\u200cشنبه_دوشنبه_سه\u200cشنبه_چهارشنبه_پنج\u200cشنبه_جمعه_شنبه'.split('_'),
-          weekdaysMin : 'ی_د_س_چ_پ_ج_ش'.split('_'),
-          longDateFormat : {
-              LT : 'HH:mm',
-              L : 'DD/MM/YYYY',
-              LL : 'D MMMM YYYY',
-              LLL : 'D MMMM YYYY LT',
-              LLLL : 'dddd, D MMMM YYYY LT'
-          },
-          meridiem : function (hour, minute, isLower) {
-              if (hour < 12) {
-                  return "قبل از ظهر";
-              } else {
-                  return "بعد از ظهر";
-              }
-          },
-          calendar : {
-              sameDay : '[امروز ساعت] LT',
-              nextDay : '[فردا ساعت] LT',
-              nextWeek : 'dddd [ساعت] LT',
-              lastDay : '[دیروز ساعت] LT',
-              lastWeek : 'dddd [پیش] [ساعت] LT',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : 'در %s',
-              past : '%s پیش',
-              s : 'چندین ثانیه',
-              m : 'یک دقیقه',
-              mm : '%d دقیقه',
-              h : 'یک ساعت',
-              hh : '%d ساعت',
-              d : 'یک روز',
-              dd : '%d روز',
-              M : 'یک ماه',
-              MM : '%d ماه',
-              y : 'یک سال',
-              yy : '%d سال'
-          },
-          preparse: function (string) {
-              return string.replace(/[۰-۹]/g, function (match) {
-                  return numberMap[match];
-              }).replace(/،/g, ',');
-          },
-          postformat: function (string) {
-              return string.replace(/\d/g, function (match) {
-                  return symbolMap[match];
-              }).replace(/,/g, '،');
-          },
-          ordinal : '%dم',
-          week : {
-              dow : 6, // Saturday is the first day of the week.
-              doy : 12 // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 83 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : finnish (fi)
-  // author : Tarmo Aidantausta : https://github.com/bleadof
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      var numbersPast = 'nolla yksi kaksi kolme neljä viisi kuusi seitsemän kahdeksan yhdeksän'.split(' '),
-          numbersFuture = ['nolla', 'yhden', 'kahden', 'kolmen', 'neljän', 'viiden', 'kuuden',
-                            numbersPast[7], numbersPast[8], numbersPast[9]];
-
-      function translate(number, withoutSuffix, key, isFuture) {
-          var result = "";
-          switch (key) {
-          case 's':
-              return isFuture ? 'muutaman sekunnin' : 'muutama sekunti';
-          case 'm':
-              return isFuture ? 'minuutin' : 'minuutti';
-          case 'mm':
-              result = isFuture ? 'minuutin' : 'minuuttia';
-              break;
-          case 'h':
-              return isFuture ? 'tunnin' : 'tunti';
-          case 'hh':
-              result = isFuture ? 'tunnin' : 'tuntia';
-              break;
-          case 'd':
-              return isFuture ? 'päivän' : 'päivä';
-          case 'dd':
-              result = isFuture ? 'päivän' : 'päivää';
-              break;
-          case 'M':
-              return isFuture ? 'kuukauden' : 'kuukausi';
-          case 'MM':
-              result = isFuture ? 'kuukauden' : 'kuukautta';
-              break;
-          case 'y':
-              return isFuture ? 'vuoden' : 'vuosi';
-          case 'yy':
-              result = isFuture ? 'vuoden' : 'vuotta';
-              break;
-          }
-          result = verbalNumber(number, isFuture) + " " + result;
-          return result;
-      }
-
-      function verbalNumber(number, isFuture) {
-          return number < 10 ? (isFuture ? numbersFuture[number] : numbersPast[number]) : number;
-      }
-
-      return moment.lang('fi', {
-          months : "tammikuu_helmikuu_maaliskuu_huhtikuu_toukokuu_kesäkuu_heinäkuu_elokuu_syyskuu_lokakuu_marraskuu_joulukuu".split("_"),
-          monthsShort : "tammi_helmi_maalis_huhti_touko_kesä_heinä_elo_syys_loka_marras_joulu".split("_"),
-          weekdays : "sunnuntai_maanantai_tiistai_keskiviikko_torstai_perjantai_lauantai".split("_"),
-          weekdaysShort : "su_ma_ti_ke_to_pe_la".split("_"),
-          weekdaysMin : "su_ma_ti_ke_to_pe_la".split("_"),
-          longDateFormat : {
-              LT : "HH.mm",
-              L : "DD.MM.YYYY",
-              LL : "Do MMMM[ta] YYYY",
-              LLL : "Do MMMM[ta] YYYY, [klo] LT",
-              LLLL : "dddd, Do MMMM[ta] YYYY, [klo] LT",
-              l : "D.M.YYYY",
-              ll : "Do MMM YYYY",
-              lll : "Do MMM YYYY, [klo] LT",
-              llll : "ddd, Do MMM YYYY, [klo] LT"
-          },
-          calendar : {
-              sameDay : '[tänään] [klo] LT',
-              nextDay : '[huomenna] [klo] LT',
-              nextWeek : 'dddd [klo] LT',
-              lastDay : '[eilen] [klo] LT',
-              lastWeek : '[viime] dddd[na] [klo] LT',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "%s päästä",
-              past : "%s sitten",
-              s : translate,
-              m : translate,
-              mm : translate,
-              h : translate,
-              hh : translate,
-              d : translate,
-              dd : translate,
-              M : translate,
-              MM : translate,
-              y : translate,
-              yy : translate
-          },
-          ordinal : "%d.",
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 84 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : faroese (fo)
-  // author : Ragnar Johannesen : https://github.com/ragnar123
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('fo', {
-          months : "januar_februar_mars_apríl_mai_juni_juli_august_september_oktober_november_desember".split("_"),
-          monthsShort : "jan_feb_mar_apr_mai_jun_jul_aug_sep_okt_nov_des".split("_"),
-          weekdays : "sunnudagur_mánadagur_týsdagur_mikudagur_hósdagur_fríggjadagur_leygardagur".split("_"),
-          weekdaysShort : "sun_mán_týs_mik_hós_frí_ley".split("_"),
-          weekdaysMin : "su_má_tý_mi_hó_fr_le".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "DD/MM/YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY LT",
-              LLLL : "dddd D. MMMM, YYYY LT"
-          },
-          calendar : {
-              sameDay : '[Í dag kl.] LT',
-              nextDay : '[Í morgin kl.] LT',
-              nextWeek : 'dddd [kl.] LT',
-              lastDay : '[Í gjár kl.] LT',
-              lastWeek : '[síðstu] dddd [kl] LT',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "um %s",
-              past : "%s síðani",
-              s : "fá sekund",
-              m : "ein minutt",
-              mm : "%d minuttir",
-              h : "ein tími",
-              hh : "%d tímar",
-              d : "ein dagur",
-              dd : "%d dagar",
-              M : "ein mánaði",
-              MM : "%d mánaðir",
-              y : "eitt ár",
-              yy : "%d ár"
-          },
-          ordinal : '%d.',
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 85 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : canadian french (fr-ca)
-  // author : Jonathan Abourbih : https://github.com/jonbca
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('fr-ca', {
-          months : "janvier_février_mars_avril_mai_juin_juillet_août_septembre_octobre_novembre_décembre".split("_"),
-          monthsShort : "janv._févr._mars_avr._mai_juin_juil._août_sept._oct._nov._déc.".split("_"),
-          weekdays : "dimanche_lundi_mardi_mercredi_jeudi_vendredi_samedi".split("_"),
-          weekdaysShort : "dim._lun._mar._mer._jeu._ven._sam.".split("_"),
-          weekdaysMin : "Di_Lu_Ma_Me_Je_Ve_Sa".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "YYYY-MM-DD",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY LT",
-              LLLL : "dddd D MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay: "[Aujourd'hui à] LT",
-              nextDay: '[Demain à] LT',
-              nextWeek: 'dddd [à] LT',
-              lastDay: '[Hier à] LT',
-              lastWeek: 'dddd [dernier à] LT',
-              sameElse: 'L'
-          },
-          relativeTime : {
-              future : "dans %s",
-              past : "il y a %s",
-              s : "quelques secondes",
-              m : "une minute",
-              mm : "%d minutes",
-              h : "une heure",
-              hh : "%d heures",
-              d : "un jour",
-              dd : "%d jours",
-              M : "un mois",
-              MM : "%d mois",
-              y : "un an",
-              yy : "%d ans"
-          },
-          ordinal : function (number) {
-              return number + (number === 1 ? 'er' : '');
-          }
-      });
-  }));
-
-
-/***/ },
-/* 86 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : french (fr)
-  // author : John Fischer : https://github.com/jfroffice
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('fr', {
-          months : "janvier_février_mars_avril_mai_juin_juillet_août_septembre_octobre_novembre_décembre".split("_"),
-          monthsShort : "janv._févr._mars_avr._mai_juin_juil._août_sept._oct._nov._déc.".split("_"),
-          weekdays : "dimanche_lundi_mardi_mercredi_jeudi_vendredi_samedi".split("_"),
-          weekdaysShort : "dim._lun._mar._mer._jeu._ven._sam.".split("_"),
-          weekdaysMin : "Di_Lu_Ma_Me_Je_Ve_Sa".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "DD/MM/YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY LT",
-              LLLL : "dddd D MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay: "[Aujourd'hui à] LT",
-              nextDay: '[Demain à] LT',
-              nextWeek: 'dddd [à] LT',
-              lastDay: '[Hier à] LT',
-              lastWeek: 'dddd [dernier à] LT',
-              sameElse: 'L'
-          },
-          relativeTime : {
-              future : "dans %s",
-              past : "il y a %s",
-              s : "quelques secondes",
-              m : "une minute",
-              mm : "%d minutes",
-              h : "une heure",
-              hh : "%d heures",
-              d : "un jour",
-              dd : "%d jours",
-              M : "un mois",
-              MM : "%d mois",
-              y : "un an",
-              yy : "%d ans"
-          },
-          ordinal : function (number) {
-              return number + (number === 1 ? 'er' : '');
-          },
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 87 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : galician (gl)
-  // author : Juan G. Hurtado : https://github.com/juanghurtado
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('gl', {
-          months : "Xaneiro_Febreiro_Marzo_Abril_Maio_Xuño_Xullo_Agosto_Setembro_Outubro_Novembro_Decembro".split("_"),
-          monthsShort : "Xan._Feb._Mar._Abr._Mai._Xuñ._Xul._Ago._Set._Out._Nov._Dec.".split("_"),
-          weekdays : "Domingo_Luns_Martes_Mércores_Xoves_Venres_Sábado".split("_"),
-          weekdaysShort : "Dom._Lun._Mar._Mér._Xov._Ven._Sáb.".split("_"),
-          weekdaysMin : "Do_Lu_Ma_Mé_Xo_Ve_Sá".split("_"),
-          longDateFormat : {
-              LT : "H:mm",
-              L : "DD/MM/YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY LT",
-              LLLL : "dddd D MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay : function () {
-                  return '[hoxe ' + ((this.hours() !== 1) ? 'ás' : 'á') + '] LT';
-              },
-              nextDay : function () {
-                  return '[mañá ' + ((this.hours() !== 1) ? 'ás' : 'á') + '] LT';
-              },
-              nextWeek : function () {
-                  return 'dddd [' + ((this.hours() !== 1) ? 'ás' : 'a') + '] LT';
-              },
-              lastDay : function () {
-                  return '[onte ' + ((this.hours() !== 1) ? 'á' : 'a') + '] LT';
-              },
-              lastWeek : function () {
-                  return '[o] dddd [pasado ' + ((this.hours() !== 1) ? 'ás' : 'a') + '] LT';
-              },
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : function (str) {
-                  if (str === "uns segundos") {
-                      return "nuns segundos";
-                  }
-                  return "en " + str;
-              },
-              past : "hai %s",
-              s : "uns segundos",
-              m : "un minuto",
-              mm : "%d minutos",
-              h : "unha hora",
-              hh : "%d horas",
-              d : "un día",
-              dd : "%d días",
-              M : "un mes",
-              MM : "%d meses",
-              y : "un ano",
-              yy : "%d anos"
-          },
-          ordinal : '%dº',
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 7  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 88 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : Hebrew (he)
-  // author : Tomer Cohen : https://github.com/tomer
-  // author : Moshe Simantov : https://github.com/DevelopmentIL
-  // author : Tal Ater : https://github.com/TalAter
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('he', {
-          months : "ינואר_פברואר_מרץ_אפריל_מאי_יוני_יולי_אוגוסט_ספטמבר_אוקטובר_נובמבר_דצמבר".split("_"),
-          monthsShort : "ינו׳_פבר׳_מרץ_אפר׳_מאי_יוני_יולי_אוג׳_ספט׳_אוק׳_נוב׳_דצמ׳".split("_"),
-          weekdays : "ראשון_שני_שלישי_רביעי_חמישי_שישי_שבת".split("_"),
-          weekdaysShort : "א׳_ב׳_ג׳_ד׳_ה׳_ו׳_ש׳".split("_"),
-          weekdaysMin : "א_ב_ג_ד_ה_ו_ש".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "DD/MM/YYYY",
-              LL : "D [ב]MMMM YYYY",
-              LLL : "D [ב]MMMM YYYY LT",
-              LLLL : "dddd, D [ב]MMMM YYYY LT",
-              l : "D/M/YYYY",
-              ll : "D MMM YYYY",
-              lll : "D MMM YYYY LT",
-              llll : "ddd, D MMM YYYY LT"
-          },
-          calendar : {
-              sameDay : '[היום ב־]LT',
-              nextDay : '[מחר ב־]LT',
-              nextWeek : 'dddd [בשעה] LT',
-              lastDay : '[אתמול ב־]LT',
-              lastWeek : '[ביום] dddd [האחרון בשעה] LT',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "בעוד %s",
-              past : "לפני %s",
-              s : "מספר שניות",
-              m : "דקה",
-              mm : "%d דקות",
-              h : "שעה",
-              hh : function (number) {
-                  if (number === 2) {
-                      return "שעתיים";
-                  }
-                  return number + " שעות";
-              },
-              d : "יום",
-              dd : function (number) {
-                  if (number === 2) {
-                      return "יומיים";
-                  }
-                  return number + " ימים";
-              },
-              M : "חודש",
-              MM : function (number) {
-                  if (number === 2) {
-                      return "חודשיים";
-                  }
-                  return number + " חודשים";
-              },
-              y : "שנה",
-              yy : function (number) {
-                  if (number === 2) {
-                      return "שנתיים";
-                  }
-                  return number + " שנים";
-              }
-          }
-      });
-  }));
-
-
-/***/ },
-/* 89 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : hindi (hi)
-  // author : Mayank Singhal : https://github.com/mayanksinghal
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      var symbolMap = {
-          '1': '१',
-          '2': '२',
-          '3': '३',
-          '4': '४',
-          '5': '५',
-          '6': '६',
-          '7': '७',
-          '8': '८',
-          '9': '९',
-          '0': '०'
-      },
-      numberMap = {
-          '१': '1',
-          '२': '2',
-          '३': '3',
-          '४': '4',
-          '५': '5',
-          '६': '6',
-          '७': '7',
-          '८': '8',
-          '९': '9',
-          '०': '0'
-      };
-
-      return moment.lang('hi', {
-          months : 'जनवरी_फ़रवरी_मार्च_अप्रैल_मई_जून_जुलाई_अगस्त_सितम्बर_अक्टूबर_नवम्बर_दिसम्बर'.split("_"),
-          monthsShort : 'जन._फ़र._मार्च_अप्रै._मई_जून_जुल._अग._सित._अक्टू._नव._दिस.'.split("_"),
-          weekdays : 'रविवार_सोमवार_मंगलवार_बुधवार_गुरूवार_शुक्रवार_शनिवार'.split("_"),
-          weekdaysShort : 'रवि_सोम_मंगल_बुध_गुरू_शुक्र_शनि'.split("_"),
-          weekdaysMin : 'र_सो_मं_बु_गु_शु_श'.split("_"),
-          longDateFormat : {
-              LT : "A h:mm बजे",
-              L : "DD/MM/YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY, LT",
-              LLLL : "dddd, D MMMM YYYY, LT"
-          },
-          calendar : {
-              sameDay : '[आज] LT',
-              nextDay : '[कल] LT',
-              nextWeek : 'dddd, LT',
-              lastDay : '[कल] LT',
-              lastWeek : '[पिछले] dddd, LT',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "%s में",
-              past : "%s पहले",
-              s : "कुछ ही क्षण",
-              m : "एक मिनट",
-              mm : "%d मिनट",
-              h : "एक घंटा",
-              hh : "%d घंटे",
-              d : "एक दिन",
-              dd : "%d दिन",
-              M : "एक महीने",
-              MM : "%d महीने",
-              y : "एक वर्ष",
-              yy : "%d वर्ष"
-          },
-          preparse: function (string) {
-              return string.replace(/[१२३४५६७८९०]/g, function (match) {
-                  return numberMap[match];
-              });
-          },
-          postformat: function (string) {
-              return string.replace(/\d/g, function (match) {
-                  return symbolMap[match];
-              });
-          },
-          // Hindi notation for meridiems are quite fuzzy in practice. While there exists
-          // a rigid notion of a 'Pahar' it is not used as rigidly in modern Hindi.
-          meridiem : function (hour, minute, isLower) {
-              if (hour < 4) {
-                  return "रात";
-              } else if (hour < 10) {
-                  return "सुबह";
-              } else if (hour < 17) {
-                  return "दोपहर";
-              } else if (hour < 20) {
-                  return "शाम";
-              } else {
-                  return "रात";
-              }
-          },
-          week : {
-              dow : 0, // Sunday is the first day of the week.
-              doy : 6  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 90 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : hrvatski (hr)
-  // author : Bojan Marković : https://github.com/bmarkovic
-
-  // based on (sl) translation by Robert Sedovšek
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-
-      function translate(number, withoutSuffix, key) {
-          var result = number + " ";
-          switch (key) {
-          case 'm':
-              return withoutSuffix ? 'jedna minuta' : 'jedne minute';
-          case 'mm':
-              if (number === 1) {
-                  result += 'minuta';
-              } else if (number === 2 || number === 3 || number === 4) {
-                  result += 'minute';
-              } else {
-                  result += 'minuta';
-              }
-              return result;
-          case 'h':
-              return withoutSuffix ? 'jedan sat' : 'jednog sata';
-          case 'hh':
-              if (number === 1) {
-                  result += 'sat';
-              } else if (number === 2 || number === 3 || number === 4) {
-                  result += 'sata';
-              } else {
-                  result += 'sati';
-              }
-              return result;
-          case 'dd':
-              if (number === 1) {
-                  result += 'dan';
-              } else {
-                  result += 'dana';
-              }
-              return result;
-          case 'MM':
-              if (number === 1) {
-                  result += 'mjesec';
-              } else if (number === 2 || number === 3 || number === 4) {
-                  result += 'mjeseca';
-              } else {
-                  result += 'mjeseci';
-              }
-              return result;
-          case 'yy':
-              if (number === 1) {
-                  result += 'godina';
-              } else if (number === 2 || number === 3 || number === 4) {
-                  result += 'godine';
-              } else {
-                  result += 'godina';
-              }
-              return result;
-          }
-      }
-
-      return moment.lang('hr', {
-          months : "sječanj_veljača_ožujak_travanj_svibanj_lipanj_srpanj_kolovoz_rujan_listopad_studeni_prosinac".split("_"),
-          monthsShort : "sje._vel._ožu._tra._svi._lip._srp._kol._ruj._lis._stu._pro.".split("_"),
-          weekdays : "nedjelja_ponedjeljak_utorak_srijeda_četvrtak_petak_subota".split("_"),
-          weekdaysShort : "ned._pon._uto._sri._čet._pet._sub.".split("_"),
-          weekdaysMin : "ne_po_ut_sr_če_pe_su".split("_"),
-          longDateFormat : {
-              LT : "H:mm",
-              L : "DD. MM. YYYY",
-              LL : "D. MMMM YYYY",
-              LLL : "D. MMMM YYYY LT",
-              LLLL : "dddd, D. MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay  : '[danas u] LT',
-              nextDay  : '[sutra u] LT',
-
-              nextWeek : function () {
-                  switch (this.day()) {
-                  case 0:
-                      return '[u] [nedjelju] [u] LT';
-                  case 3:
-                      return '[u] [srijedu] [u] LT';
-                  case 6:
-                      return '[u] [subotu] [u] LT';
-                  case 1:
-                  case 2:
-                  case 4:
-                  case 5:
-                      return '[u] dddd [u] LT';
-                  }
-              },
-              lastDay  : '[jučer u] LT',
-              lastWeek : function () {
-                  switch (this.day()) {
-                  case 0:
-                  case 3:
-                      return '[prošlu] dddd [u] LT';
-                  case 6:
-                      return '[prošle] [subote] [u] LT';
-                  case 1:
-                  case 2:
-                  case 4:
-                  case 5:
-                      return '[prošli] dddd [u] LT';
-                  }
-              },
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "za %s",
-              past   : "prije %s",
-              s      : "par sekundi",
-              m      : translate,
-              mm     : translate,
-              h      : translate,
-              hh     : translate,
-              d      : "dan",
-              dd     : translate,
-              M      : "mjesec",
-              MM     : translate,
-              y      : "godinu",
-              yy     : translate
-          },
-          ordinal : '%d.',
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 7  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 91 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : hungarian (hu)
-  // author : Adam Brunner : https://github.com/adambrunner
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      var weekEndings = 'vasárnap hétfőn kedden szerdán csütörtökön pénteken szombaton'.split(' ');
-
-      function translate(number, withoutSuffix, key, isFuture) {
-          var num = number,
-              suffix;
-
-          switch (key) {
-          case 's':
-              return (isFuture || withoutSuffix) ? 'néhány másodperc' : 'néhány másodperce';
-          case 'm':
-              return 'egy' + (isFuture || withoutSuffix ? ' perc' : ' perce');
-          case 'mm':
-              return num + (isFuture || withoutSuffix ? ' perc' : ' perce');
-          case 'h':
-              return 'egy' + (isFuture || withoutSuffix ? ' óra' : ' órája');
-          case 'hh':
-              return num + (isFuture || withoutSuffix ? ' óra' : ' órája');
-          case 'd':
-              return 'egy' + (isFuture || withoutSuffix ? ' nap' : ' napja');
-          case 'dd':
-              return num + (isFuture || withoutSuffix ? ' nap' : ' napja');
-          case 'M':
-              return 'egy' + (isFuture || withoutSuffix ? ' hónap' : ' hónapja');
-          case 'MM':
-              return num + (isFuture || withoutSuffix ? ' hónap' : ' hónapja');
-          case 'y':
-              return 'egy' + (isFuture || withoutSuffix ? ' év' : ' éve');
-          case 'yy':
-              return num + (isFuture || withoutSuffix ? ' év' : ' éve');
-          }
-
-          return '';
-      }
-
-      function week(isFuture) {
-          return (isFuture ? '' : '[múlt] ') + '[' + weekEndings[this.day()] + '] LT[-kor]';
-      }
-
-      return moment.lang('hu', {
-          months : "január_február_március_április_május_június_július_augusztus_szeptember_október_november_december".split("_"),
-          monthsShort : "jan_feb_márc_ápr_máj_jún_júl_aug_szept_okt_nov_dec".split("_"),
-          weekdays : "vasárnap_hétfő_kedd_szerda_csütörtök_péntek_szombat".split("_"),
-          weekdaysShort : "vas_hét_kedd_sze_csüt_pén_szo".split("_"),
-          weekdaysMin : "v_h_k_sze_cs_p_szo".split("_"),
-          longDateFormat : {
-              LT : "H:mm",
-              L : "YYYY.MM.DD.",
-              LL : "YYYY. MMMM D.",
-              LLL : "YYYY. MMMM D., LT",
-              LLLL : "YYYY. MMMM D., dddd LT"
-          },
-          meridiem : function (hours, minutes, isLower) {
-              if (hours < 12) {
-                  return isLower === true ? 'de' : 'DE';
-              } else {
-                  return isLower === true ? 'du' : 'DU';
-              }
-          },
-          calendar : {
-              sameDay : '[ma] LT[-kor]',
-              nextDay : '[holnap] LT[-kor]',
-              nextWeek : function () {
-                  return week.call(this, true);
-              },
-              lastDay : '[tegnap] LT[-kor]',
-              lastWeek : function () {
-                  return week.call(this, false);
-              },
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "%s múlva",
-              past : "%s",
-              s : translate,
-              m : translate,
-              mm : translate,
-              h : translate,
-              hh : translate,
-              d : translate,
-              dd : translate,
-              M : translate,
-              MM : translate,
-              y : translate,
-              yy : translate
-          },
-          ordinal : '%d.',
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 7  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 92 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : Armenian (hy-am)
-  // author : Armendarabyan : https://github.com/armendarabyan
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-
-      function monthsCaseReplace(m, format) {
-          var months = {
-              'nominative': 'հունվար_փետրվար_մարտ_ապրիլ_մայիս_հունիս_հուլիս_օգոստոս_սեպտեմբեր_հոկտեմբեր_նոյեմբեր_դեկտեմբեր'.split('_'),
-              'accusative': 'հունվարի_փետրվարի_մարտի_ապրիլի_մայիսի_հունիսի_հուլիսի_օգոստոսի_սեպտեմբերի_հոկտեմբերի_նոյեմբերի_դեկտեմբերի'.split('_')
-          },
-
-          nounCase = (/D[oD]?(\[[^\[\]]*\]|\s+)+MMMM?/).test(format) ?
-              'accusative' :
-              'nominative';
-
-          return months[nounCase][m.month()];
-      }
-
-      function monthsShortCaseReplace(m, format) {
-          var monthsShort = 'հնվ_փտր_մրտ_ապր_մյս_հնս_հլս_օգս_սպտ_հկտ_նմբ_դկտ'.split('_');
-
-          return monthsShort[m.month()];
-      }
-
-      function weekdaysCaseReplace(m, format) {
-          var weekdays = 'կիրակի_երկուշաբթի_երեքշաբթի_չորեքշաբթի_հինգշաբթի_ուրբաթ_շաբաթ'.split('_');
-
-          return weekdays[m.day()];
-      }
-
-      return moment.lang('hy-am', {
-          months : monthsCaseReplace,
-          monthsShort : monthsShortCaseReplace,
-          weekdays : weekdaysCaseReplace,
-          weekdaysShort : "կրկ_երկ_երք_չրք_հնգ_ուրբ_շբթ".split("_"),
-          weekdaysMin : "կրկ_երկ_երք_չրք_հնգ_ուրբ_շբթ".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "DD.MM.YYYY",
-              LL : "D MMMM YYYY թ.",
-              LLL : "D MMMM YYYY թ., LT",
-              LLLL : "dddd, D MMMM YYYY թ., LT"
-          },
-          calendar : {
-              sameDay: '[այսօր] LT',
-              nextDay: '[վաղը] LT',
-              lastDay: '[երեկ] LT',
-              nextWeek: function () {
-                  return 'dddd [օրը ժամը] LT';
-              },
-              lastWeek: function () {
-                  return '[անցած] dddd [օրը ժամը] LT';
-              },
-              sameElse: 'L'
-          },
-          relativeTime : {
-              future : "%s հետո",
-              past : "%s առաջ",
-              s : "մի քանի վայրկյան",
-              m : "րոպե",
-              mm : "%d րոպե",
-              h : "ժամ",
-              hh : "%d ժամ",
-              d : "օր",
-              dd : "%d օր",
-              M : "ամիս",
-              MM : "%d ամիս",
-              y : "տարի",
-              yy : "%d տարի"
-          },
-
-          meridiem : function (hour) {
-              if (hour < 4) {
-                  return "գիշերվա";
-              } else if (hour < 12) {
-                  return "առավոտվա";
-              } else if (hour < 17) {
-                  return "ցերեկվա";
-              } else {
-                  return "երեկոյան";
-              }
-          },
-
-          ordinal: function (number, period) {
-              switch (period) {
-              case 'DDD':
-              case 'w':
-              case 'W':
-              case 'DDDo':
-                  if (number === 1) {
-                      return number + '-ին';
-                  }
-                  return number + '-րդ';
-              default:
-                  return number;
-              }
-          },
-
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 7  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 93 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : Bahasa Indonesia (id)
-  // author : Mohammad Satrio Utomo : https://github.com/tyok
-  // reference: http://id.wikisource.org/wiki/Pedoman_Umum_Ejaan_Bahasa_Indonesia_yang_Disempurnakan
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('id', {
-          months : "Januari_Februari_Maret_April_Mei_Juni_Juli_Agustus_September_Oktober_November_Desember".split("_"),
-          monthsShort : "Jan_Feb_Mar_Apr_Mei_Jun_Jul_Ags_Sep_Okt_Nov_Des".split("_"),
-          weekdays : "Minggu_Senin_Selasa_Rabu_Kamis_Jumat_Sabtu".split("_"),
-          weekdaysShort : "Min_Sen_Sel_Rab_Kam_Jum_Sab".split("_"),
-          weekdaysMin : "Mg_Sn_Sl_Rb_Km_Jm_Sb".split("_"),
-          longDateFormat : {
-              LT : "HH.mm",
-              L : "DD/MM/YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY [pukul] LT",
-              LLLL : "dddd, D MMMM YYYY [pukul] LT"
-          },
-          meridiem : function (hours, minutes, isLower) {
-              if (hours < 11) {
-                  return 'pagi';
-              } else if (hours < 15) {
-                  return 'siang';
-              } else if (hours < 19) {
-                  return 'sore';
-              } else {
-                  return 'malam';
-              }
-          },
-          calendar : {
-              sameDay : '[Hari ini pukul] LT',
-              nextDay : '[Besok pukul] LT',
-              nextWeek : 'dddd [pukul] LT',
-              lastDay : '[Kemarin pukul] LT',
-              lastWeek : 'dddd [lalu pukul] LT',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "dalam %s",
-              past : "%s yang lalu",
-              s : "beberapa detik",
-              m : "semenit",
-              mm : "%d menit",
-              h : "sejam",
-              hh : "%d jam",
-              d : "sehari",
-              dd : "%d hari",
-              M : "sebulan",
-              MM : "%d bulan",
-              y : "setahun",
-              yy : "%d tahun"
-          },
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 7  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 94 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : icelandic (is)
-  // author : Hinrik Örn Sigurðsson : https://github.com/hinrik
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      function plural(n) {
-          if (n % 100 === 11) {
-              return true;
-          } else if (n % 10 === 1) {
-              return false;
-          }
-          return true;
-      }
-
-      function translate(number, withoutSuffix, key, isFuture) {
-          var result = number + " ";
-          switch (key) {
-          case 's':
-              return withoutSuffix || isFuture ? 'nokkrar sekúndur' : 'nokkrum sekúndum';
-          case 'm':
-              return withoutSuffix ? 'mínúta' : 'mínútu';
-          case 'mm':
-              if (plural(number)) {
-                  return result + (withoutSuffix || isFuture ? 'mínútur' : 'mínútum');
-              } else if (withoutSuffix) {
-                  return result + 'mínúta';
-              }
-              return result + 'mínútu';
-          case 'hh':
-              if (plural(number)) {
-                  return result + (withoutSuffix || isFuture ? 'klukkustundir' : 'klukkustundum');
-              }
-              return result + 'klukkustund';
-          case 'd':
-              if (withoutSuffix) {
-                  return 'dagur';
-              }
-              return isFuture ? 'dag' : 'degi';
-          case 'dd':
-              if (plural(number)) {
-                  if (withoutSuffix) {
-                      return result + 'dagar';
-                  }
-                  return result + (isFuture ? 'daga' : 'dögum');
-              } else if (withoutSuffix) {
-                  return result + 'dagur';
-              }
-              return result + (isFuture ? 'dag' : 'degi');
-          case 'M':
-              if (withoutSuffix) {
-                  return 'mánuður';
-              }
-              return isFuture ? 'mánuð' : 'mánuði';
-          case 'MM':
-              if (plural(number)) {
-                  if (withoutSuffix) {
-                      return result + 'mánuðir';
-                  }
-                  return result + (isFuture ? 'mánuði' : 'mánuðum');
-              } else if (withoutSuffix) {
-                  return result + 'mánuður';
-              }
-              return result + (isFuture ? 'mánuð' : 'mánuði');
-          case 'y':
-              return withoutSuffix || isFuture ? 'ár' : 'ári';
-          case 'yy':
-              if (plural(number)) {
-                  return result + (withoutSuffix || isFuture ? 'ár' : 'árum');
-              }
-              return result + (withoutSuffix || isFuture ? 'ár' : 'ári');
-          }
-      }
-
-      return moment.lang('is', {
-          months : "janúar_febrúar_mars_apríl_maí_júní_júlí_ágúst_september_október_nóvember_desember".split("_"),
-          monthsShort : "jan_feb_mar_apr_maí_jún_júl_ágú_sep_okt_nóv_des".split("_"),
-          weekdays : "sunnudagur_mánudagur_þriðjudagur_miðvikudagur_fimmtudagur_föstudagur_laugardagur".split("_"),
-          weekdaysShort : "sun_mán_þri_mið_fim_fös_lau".split("_"),
-          weekdaysMin : "Su_Má_Þr_Mi_Fi_Fö_La".split("_"),
-          longDateFormat : {
-              LT : "H:mm",
-              L : "DD/MM/YYYY",
-              LL : "D. MMMM YYYY",
-              LLL : "D. MMMM YYYY [kl.] LT",
-              LLLL : "dddd, D. MMMM YYYY [kl.] LT"
-          },
-          calendar : {
-              sameDay : '[í dag kl.] LT',
-              nextDay : '[á morgun kl.] LT',
-              nextWeek : 'dddd [kl.] LT',
-              lastDay : '[í gær kl.] LT',
-              lastWeek : '[síðasta] dddd [kl.] LT',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "eftir %s",
-              past : "fyrir %s síðan",
-              s : translate,
-              m : translate,
-              mm : translate,
-              h : "klukkustund",
-              hh : translate,
-              d : translate,
-              dd : translate,
-              M : translate,
-              MM : translate,
-              y : translate,
-              yy : translate
-          },
-          ordinal : '%d.',
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 95 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : italian (it)
-  // author : Lorenzo : https://github.com/aliem
-  // author: Mattia Larentis: https://github.com/nostalgiaz
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('it', {
-          months : "gennaio_febbraio_marzo_aprile_maggio_giugno_luglio_agosto_settembre_ottobre_novembre_dicembre".split("_"),
-          monthsShort : "gen_feb_mar_apr_mag_giu_lug_ago_set_ott_nov_dic".split("_"),
-          weekdays : "Domenica_Lunedì_Martedì_Mercoledì_Giovedì_Venerdì_Sabato".split("_"),
-          weekdaysShort : "Dom_Lun_Mar_Mer_Gio_Ven_Sab".split("_"),
-          weekdaysMin : "D_L_Ma_Me_G_V_S".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "DD/MM/YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY LT",
-              LLLL : "dddd, D MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay: '[Oggi alle] LT',
-              nextDay: '[Domani alle] LT',
-              nextWeek: 'dddd [alle] LT',
-              lastDay: '[Ieri alle] LT',
-              lastWeek: '[lo scorso] dddd [alle] LT',
-              sameElse: 'L'
-          },
-          relativeTime : {
-              future : function (s) {
-                  return ((/^[0-9].+$/).test(s) ? "tra" : "in") + " " + s;
-              },
-              past : "%s fa",
-              s : "alcuni secondi",
-              m : "un minuto",
-              mm : "%d minuti",
-              h : "un'ora",
-              hh : "%d ore",
-              d : "un giorno",
-              dd : "%d giorni",
-              M : "un mese",
-              MM : "%d mesi",
-              y : "un anno",
-              yy : "%d anni"
-          },
-          ordinal: '%dº',
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 96 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : japanese (ja)
-  // author : LI Long : https://github.com/baryon
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('ja', {
-          months : "1月_2月_3月_4月_5月_6月_7月_8月_9月_10月_11月_12月".split("_"),
-          monthsShort : "1月_2月_3月_4月_5月_6月_7月_8月_9月_10月_11月_12月".split("_"),
-          weekdays : "日曜日_月曜日_火曜日_水曜日_木曜日_金曜日_土曜日".split("_"),
-          weekdaysShort : "日_月_火_水_木_金_土".split("_"),
-          weekdaysMin : "日_月_火_水_木_金_土".split("_"),
-          longDateFormat : {
-              LT : "Ah時m分",
-              L : "YYYY/MM/DD",
-              LL : "YYYY年M月D日",
-              LLL : "YYYY年M月D日LT",
-              LLLL : "YYYY年M月D日LT dddd"
-          },
-          meridiem : function (hour, minute, isLower) {
-              if (hour < 12) {
-                  return "午前";
-              } else {
-                  return "午後";
-              }
-          },
-          calendar : {
-              sameDay : '[今日] LT',
-              nextDay : '[明日] LT',
-              nextWeek : '[来週]dddd LT',
-              lastDay : '[昨日] LT',
-              lastWeek : '[前週]dddd LT',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "%s後",
-              past : "%s前",
-              s : "数秒",
-              m : "1分",
-              mm : "%d分",
-              h : "1時間",
-              hh : "%d時間",
-              d : "1日",
-              dd : "%d日",
-              M : "1ヶ月",
-              MM : "%dヶ月",
-              y : "1年",
-              yy : "%d年"
-          }
-      });
-  }));
-
-
-/***/ },
-/* 97 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : Georgian (ka)
-  // author : Irakli Janiashvili : https://github.com/irakli-janiashvili
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-
-      function monthsCaseReplace(m, format) {
-          var months = {
-              'nominative': 'იანვარი_თებერვალი_მარტი_აპრილი_მაისი_ივნისი_ივლისი_აგვისტო_სექტემბერი_ოქტომბერი_ნოემბერი_დეკემბერი'.split('_'),
-              'accusative': 'იანვარს_თებერვალს_მარტს_აპრილის_მაისს_ივნისს_ივლისს_აგვისტს_სექტემბერს_ოქტომბერს_ნოემბერს_დეკემბერს'.split('_')
-          },
-
-          nounCase = (/D[oD] *MMMM?/).test(format) ?
-              'accusative' :
-              'nominative';
-
-          return months[nounCase][m.month()];
-      }
-
-      function weekdaysCaseReplace(m, format) {
-          var weekdays = {
-              'nominative': 'კვირა_ორშაბათი_სამშაბათი_ოთხშაბათი_ხუთშაბათი_პარასკევი_შაბათი'.split('_'),
-              'accusative': 'კვირას_ორშაბათს_სამშაბათს_ოთხშაბათს_ხუთშაბათს_პარასკევს_შაბათს'.split('_')
-          },
-
-          nounCase = (/(წინა|შემდეგ)/).test(format) ?
-              'accusative' :
-              'nominative';
-
-          return weekdays[nounCase][m.day()];
-      }
-
-      return moment.lang('ka', {
-          months : monthsCaseReplace,
-          monthsShort : "იან_თებ_მარ_აპრ_მაი_ივნ_ივლ_აგვ_სექ_ოქტ_ნოე_დეკ".split("_"),
-          weekdays : weekdaysCaseReplace,
-          weekdaysShort : "კვი_ორშ_სამ_ოთხ_ხუთ_პარ_შაბ".split("_"),
-          weekdaysMin : "კვ_ორ_სა_ოთ_ხუ_პა_შა".split("_"),
-          longDateFormat : {
-              LT : "h:mm A",
-              L : "DD/MM/YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY LT",
-              LLLL : "dddd, D MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay : '[დღეს] LT[-ზე]',
-              nextDay : '[ხვალ] LT[-ზე]',
-              lastDay : '[გუშინ] LT[-ზე]',
-              nextWeek : '[შემდეგ] dddd LT[-ზე]',
-              lastWeek : '[წინა] dddd LT-ზე',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : function (s) {
-                  return (/(წამი|წუთი|საათი|წელი)/).test(s) ?
-                      s.replace(/ი$/, "ში") :
-                      s + "ში";
-              },
-              past : function (s) {
-                  if ((/(წამი|წუთი|საათი|დღე|თვე)/).test(s)) {
-                      return s.replace(/(ი|ე)$/, "ის წინ");
-                  }
-                  if ((/წელი/).test(s)) {
-                      return s.replace(/წელი$/, "წლის წინ");
-                  }
-              },
-              s : "რამდენიმე წამი",
-              m : "წუთი",
-              mm : "%d წუთი",
-              h : "საათი",
-              hh : "%d საათი",
-              d : "დღე",
-              dd : "%d დღე",
-              M : "თვე",
-              MM : "%d თვე",
-              y : "წელი",
-              yy : "%d წელი"
-          },
-          ordinal : function (number) {
-              if (number === 0) {
-                  return number;
-              }
-
-              if (number === 1) {
-                  return number + "-ლი";
-              }
-
-              if ((number < 20) || (number <= 100 && (number % 20 === 0)) || (number % 100 === 0)) {
-                  return "მე-" + number;
-              }
-
-              return number + "-ე";
-          },
-          week : {
-              dow : 1,
-              doy : 7
-          }
-      });
-  }));
-
-
-/***/ },
-/* 98 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : khmer (km)
-  // author : Kruy Vanna : https://github.com/kruyvanna
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('km', {
-          months: "មករា_កុម្ភៈ_មិនា_មេសា_ឧសភា_មិថុនា_កក្កដា_សីហា_កញ្ញា_តុលា_វិច្ឆិកា_ធ្នូ".split("_"),
-          monthsShort: "មករា_កុម្ភៈ_មិនា_មេសា_ឧសភា_មិថុនា_កក្កដា_សីហា_កញ្ញា_តុលា_វិច្ឆិកា_ធ្នូ".split("_"),
-          weekdays: "អាទិត្យ_ច័ន្ទ_អង្គារ_ពុធ_ព្រហស្បតិ៍_សុក្រ_សៅរ៍".split("_"),
-          weekdaysShort: "អាទិត្យ_ច័ន្ទ_អង្គារ_ពុធ_ព្រហស្បតិ៍_សុក្រ_សៅរ៍".split("_"),
-          weekdaysMin: "អាទិត្យ_ច័ន្ទ_អង្គារ_ពុធ_ព្រហស្បតិ៍_សុក្រ_សៅរ៍".split("_"),
-          longDateFormat: {
-              LT: "HH:mm",
-              L: "DD/MM/YYYY",
-              LL: "D MMMM YYYY",
-              LLL: "D MMMM YYYY LT",
-              LLLL: "dddd, D MMMM YYYY LT"
-          },
-          calendar: {
-              sameDay: '[ថ្ងៃនៈ ម៉ោង] LT',
-              nextDay: '[ស្អែក ម៉ោង] LT',
-              nextWeek: 'dddd [ម៉ោង] LT',
-              lastDay: '[ម្សិលមិញ ម៉ោង] LT',
-              lastWeek: 'dddd [សប្តាហ៍មុន] [ម៉ោង] LT',
-              sameElse: 'L'
-          },
-          relativeTime: {
-              future: "%sទៀត",
-              past: "%sមុន",
-              s: "ប៉ុន្មានវិនាទី",
-              m: "មួយនាទី",
-              mm: "%d នាទី",
-              h: "មួយម៉ោង",
-              hh: "%d ម៉ោង",
-              d: "មួយថ្ងៃ",
-              dd: "%d ថ្ងៃ",
-              M: "មួយខែ",
-              MM: "%d ខែ",
-              y: "មួយឆ្នាំ",
-              yy: "%d ឆ្នាំ"
-          },
-          week: {
-              dow: 1, // Monday is the first day of the week.
-              doy: 4 // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 99 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : korean (ko)
-  //
-  // authors 
-  //
-  // - Kyungwook, Park : https://github.com/kyungw00k
-  // - Jeeeyul Lee <jeeeyul@gmail.com>
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('ko', {
-          months : "1월_2월_3월_4월_5월_6월_7월_8월_9월_10월_11월_12월".split("_"),
-          monthsShort : "1월_2월_3월_4월_5월_6월_7월_8월_9월_10월_11월_12월".split("_"),
-          weekdays : "일요일_월요일_화요일_수요일_목요일_금요일_토요일".split("_"),
-          weekdaysShort : "일_월_화_수_목_금_토".split("_"),
-          weekdaysMin : "일_월_화_수_목_금_토".split("_"),
-          longDateFormat : {
-              LT : "A h시 mm분",
-              L : "YYYY.MM.DD",
-              LL : "YYYY년 MMMM D일",
-              LLL : "YYYY년 MMMM D일 LT",
-              LLLL : "YYYY년 MMMM D일 dddd LT"
-          },
-          meridiem : function (hour, minute, isUpper) {
-              return hour < 12 ? '오전' : '오후';
-          },
-          calendar : {
-              sameDay : '오늘 LT',
-              nextDay : '내일 LT',
-              nextWeek : 'dddd LT',
-              lastDay : '어제 LT',
-              lastWeek : '지난주 dddd LT',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "%s 후",
-              past : "%s 전",
-              s : "몇초",
-              ss : "%d초",
-              m : "일분",
-              mm : "%d분",
-              h : "한시간",
-              hh : "%d시간",
-              d : "하루",
-              dd : "%d일",
-              M : "한달",
-              MM : "%d달",
-              y : "일년",
-              yy : "%d년"
-          },
-          ordinal : '%d일',
-          meridiemParse : /(오전|오후)/,
-          isPM : function (token) {
-              return token === "오후";
-          }
-      });
-  }));
-
-
-/***/ },
-/* 100 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : Luxembourgish (lb)
-  // author : mweimerskirch : https://github.com/mweimerskirch
-
-  // Note: Luxembourgish has a very particular phonological rule ("Eifeler Regel") that causes the
-  // deletion of the final "n" in certain contexts. That's what the "eifelerRegelAppliesToWeekday"
-  // and "eifelerRegelAppliesToNumber" methods are meant for
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      function processRelativeTime(number, withoutSuffix, key, isFuture) {
-          var format = {
-              'm': ['eng Minutt', 'enger Minutt'],
-              'h': ['eng Stonn', 'enger Stonn'],
-              'd': ['een Dag', 'engem Dag'],
-              'dd': [number + ' Deeg', number + ' Deeg'],
-              'M': ['ee Mount', 'engem Mount'],
-              'MM': [number + ' Méint', number + ' Méint'],
-              'y': ['ee Joer', 'engem Joer'],
-              'yy': [number + ' Joer', number + ' Joer']
-          };
-          return withoutSuffix ? format[key][0] : format[key][1];
-      }
-
-      function processFutureTime(string) {
-          var number = string.substr(0, string.indexOf(' '));
-          if (eifelerRegelAppliesToNumber(number)) {
-              return "a " + string;
-          }
-          return "an " + string;
-      }
-
-      function processPastTime(string) {
-          var number = string.substr(0, string.indexOf(' '));
-          if (eifelerRegelAppliesToNumber(number)) {
-              return "viru " + string;
-          }
-          return "virun " + string;
-      }
-
-      function processLastWeek(string1) {
-          var weekday = this.format('d');
-          if (eifelerRegelAppliesToWeekday(weekday)) {
-              return '[Leschte] dddd [um] LT';
-          }
-          return '[Leschten] dddd [um] LT';
-      }
-
-      /**
-       * Returns true if the word before the given week day loses the "-n" ending.
-       * e.g. "Leschten Dënschdeg" but "Leschte Méindeg"
-       *
-       * @param weekday {integer}
-       * @returns {boolean}
-       */
-      function eifelerRegelAppliesToWeekday(weekday) {
-          weekday = parseInt(weekday, 10);
-          switch (weekday) {
-          case 0: // Sonndeg
-          case 1: // Méindeg
-          case 3: // Mëttwoch
-          case 5: // Freideg
-          case 6: // Samschdeg
-              return true;
-          default: // 2 Dënschdeg, 4 Donneschdeg
-              return false;
-          }
-      }
-
-      /**
-       * Returns true if the word before the given number loses the "-n" ending.
-       * e.g. "an 10 Deeg" but "a 5 Deeg"
-       *
-       * @param number {integer}
-       * @returns {boolean}
-       */
-      function eifelerRegelAppliesToNumber(number) {
-          number = parseInt(number, 10);
-          if (isNaN(number)) {
-              return false;
-          }
-          if (number < 0) {
-              // Negative Number --> always true
-              return true;
-          } else if (number < 10) {
-              // Only 1 digit
-              if (4 <= number && number <= 7) {
-                  return true;
-              }
-              return false;
-          } else if (number < 100) {
-              // 2 digits
-              var lastDigit = number % 10, firstDigit = number / 10;
-              if (lastDigit === 0) {
-                  return eifelerRegelAppliesToNumber(firstDigit);
-              }
-              return eifelerRegelAppliesToNumber(lastDigit);
-          } else if (number < 10000) {
-              // 3 or 4 digits --> recursively check first digit
-              while (number >= 10) {
-                  number = number / 10;
-              }
-              return eifelerRegelAppliesToNumber(number);
-          } else {
-              // Anything larger than 4 digits: recursively check first n-3 digits
-              number = number / 1000;
-              return eifelerRegelAppliesToNumber(number);
-          }
-      }
-
-      return moment.lang('lb', {
-          months: "Januar_Februar_Mäerz_Abrëll_Mee_Juni_Juli_August_September_Oktober_November_Dezember".split("_"),
-          monthsShort: "Jan._Febr._Mrz._Abr._Mee_Jun._Jul._Aug._Sept._Okt._Nov._Dez.".split("_"),
-          weekdays: "Sonndeg_Méindeg_Dënschdeg_Mëttwoch_Donneschdeg_Freideg_Samschdeg".split("_"),
-          weekdaysShort: "So._Mé._Dë._Më._Do._Fr._Sa.".split("_"),
-          weekdaysMin: "So_Mé_Dë_Më_Do_Fr_Sa".split("_"),
-          longDateFormat: {
-              LT: "H:mm [Auer]",
-              L: "DD.MM.YYYY",
-              LL: "D. MMMM YYYY",
-              LLL: "D. MMMM YYYY LT",
-              LLLL: "dddd, D. MMMM YYYY LT"
-          },
-          calendar: {
-              sameDay: "[Haut um] LT",
-              sameElse: "L",
-              nextDay: '[Muer um] LT',
-              nextWeek: 'dddd [um] LT',
-              lastDay: '[Gëschter um] LT',
-              lastWeek: processLastWeek
-          },
-          relativeTime: {
-              future: processFutureTime,
-              past: processPastTime,
-              s: "e puer Sekonnen",
-              m: processRelativeTime,
-              mm: "%d Minutten",
-              h: processRelativeTime,
-              hh: "%d Stonnen",
-              d: processRelativeTime,
-              dd: processRelativeTime,
-              M: processRelativeTime,
-              MM: processRelativeTime,
-              y: processRelativeTime,
-              yy: processRelativeTime
-          },
-          ordinal: '%d.',
-          week: {
-              dow: 1, // Monday is the first day of the week.
-              doy: 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 101 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : Lithuanian (lt)
-  // author : Mindaugas Mozūras : https://github.com/mmozuras
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      var units = {
-          "m" : "minutė_minutės_minutę",
-          "mm": "minutės_minučių_minutes",
-          "h" : "valanda_valandos_valandą",
-          "hh": "valandos_valandų_valandas",
-          "d" : "diena_dienos_dieną",
-          "dd": "dienos_dienų_dienas",
-          "M" : "mėnuo_mėnesio_mėnesį",
-          "MM": "mėnesiai_mėnesių_mėnesius",
-          "y" : "metai_metų_metus",
-          "yy": "metai_metų_metus"
-      },
-      weekDays = "sekmadienis_pirmadienis_antradienis_trečiadienis_ketvirtadienis_penktadienis_šeštadienis".split("_");
-
-      function translateSeconds(number, withoutSuffix, key, isFuture) {
-          if (withoutSuffix) {
-              return "kelios sekundės";
-          } else {
-              return isFuture ? "kelių sekundžių" : "kelias sekundes";
-          }
-      }
-
-      function translateSingular(number, withoutSuffix, key, isFuture) {
-          return withoutSuffix ? forms(key)[0] : (isFuture ? forms(key)[1] : forms(key)[2]);
-      }
-
-      function special(number) {
-          return number % 10 === 0 || (number > 10 && number < 20);
-      }
-
-      function forms(key) {
-          return units[key].split("_");
-      }
-
-      function translate(number, withoutSuffix, key, isFuture) {
-          var result = number + " ";
-          if (number === 1) {
-              return result + translateSingular(number, withoutSuffix, key[0], isFuture);
-          } else if (withoutSuffix) {
-              return result + (special(number) ? forms(key)[1] : forms(key)[0]);
-          } else {
-              if (isFuture) {
-                  return result + forms(key)[1];
-              } else {
-                  return result + (special(number) ? forms(key)[1] : forms(key)[2]);
-              }
-          }
-      }
-
-      function relativeWeekDay(moment, format) {
-          var nominative = format.indexOf('dddd HH:mm') === -1,
-              weekDay = weekDays[moment.day()];
-
-          return nominative ? weekDay : weekDay.substring(0, weekDay.length - 2) + "į";
-      }
-
-      return moment.lang("lt", {
-          months : "sausio_vasario_kovo_balandžio_gegužės_biržėlio_liepos_rugpjūčio_rugsėjo_spalio_lapkričio_gruodžio".split("_"),
-          monthsShort : "sau_vas_kov_bal_geg_bir_lie_rgp_rgs_spa_lap_grd".split("_"),
-          weekdays : relativeWeekDay,
-          weekdaysShort : "Sek_Pir_Ant_Tre_Ket_Pen_Šeš".split("_"),
-          weekdaysMin : "S_P_A_T_K_Pn_Š".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "YYYY-MM-DD",
-              LL : "YYYY [m.] MMMM D [d.]",
-              LLL : "YYYY [m.] MMMM D [d.], LT [val.]",
-              LLLL : "YYYY [m.] MMMM D [d.], dddd, LT [val.]",
-              l : "YYYY-MM-DD",
-              ll : "YYYY [m.] MMMM D [d.]",
-              lll : "YYYY [m.] MMMM D [d.], LT [val.]",
-              llll : "YYYY [m.] MMMM D [d.], ddd, LT [val.]"
-          },
-          calendar : {
-              sameDay : "[Šiandien] LT",
-              nextDay : "[Rytoj] LT",
-              nextWeek : "dddd LT",
-              lastDay : "[Vakar] LT",
-              lastWeek : "[Praėjusį] dddd LT",
-              sameElse : "L"
-          },
-          relativeTime : {
-              future : "po %s",
-              past : "prieš %s",
-              s : translateSeconds,
-              m : translateSingular,
-              mm : translate,
-              h : translateSingular,
-              hh : translate,
-              d : translateSingular,
-              dd : translate,
-              M : translateSingular,
-              MM : translate,
-              y : translateSingular,
-              yy : translate
-          },
-          ordinal : function (number) {
-              return number + '-oji';
-          },
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 102 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : latvian (lv)
-  // author : Kristaps Karlsons : https://github.com/skakri
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      var units = {
-          'mm': 'minūti_minūtes_minūte_minūtes',
-          'hh': 'stundu_stundas_stunda_stundas',
-          'dd': 'dienu_dienas_diena_dienas',
-          'MM': 'mēnesi_mēnešus_mēnesis_mēneši',
-          'yy': 'gadu_gadus_gads_gadi'
-      };
-
-      function format(word, number, withoutSuffix) {
-          var forms = word.split('_');
-          if (withoutSuffix) {
-              return number % 10 === 1 && number !== 11 ? forms[2] : forms[3];
-          } else {
-              return number % 10 === 1 && number !== 11 ? forms[0] : forms[1];
-          }
-      }
-
-      function relativeTimeWithPlural(number, withoutSuffix, key) {
-          return number + ' ' + format(units[key], number, withoutSuffix);
-      }
-
-      return moment.lang('lv', {
-          months : "janvāris_februāris_marts_aprīlis_maijs_jūnijs_jūlijs_augusts_septembris_oktobris_novembris_decembris".split("_"),
-          monthsShort : "jan_feb_mar_apr_mai_jūn_jūl_aug_sep_okt_nov_dec".split("_"),
-          weekdays : "svētdiena_pirmdiena_otrdiena_trešdiena_ceturtdiena_piektdiena_sestdiena".split("_"),
-          weekdaysShort : "Sv_P_O_T_C_Pk_S".split("_"),
-          weekdaysMin : "Sv_P_O_T_C_Pk_S".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "DD.MM.YYYY",
-              LL : "YYYY. [gada] D. MMMM",
-              LLL : "YYYY. [gada] D. MMMM, LT",
-              LLLL : "YYYY. [gada] D. MMMM, dddd, LT"
-          },
-          calendar : {
-              sameDay : '[Šodien pulksten] LT',
-              nextDay : '[Rīt pulksten] LT',
-              nextWeek : 'dddd [pulksten] LT',
-              lastDay : '[Vakar pulksten] LT',
-              lastWeek : '[Pagājušā] dddd [pulksten] LT',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "%s vēlāk",
-              past : "%s agrāk",
-              s : "dažas sekundes",
-              m : "minūti",
-              mm : relativeTimeWithPlural,
-              h : "stundu",
-              hh : relativeTimeWithPlural,
-              d : "dienu",
-              dd : relativeTimeWithPlural,
-              M : "mēnesi",
-              MM : relativeTimeWithPlural,
-              y : "gadu",
-              yy : relativeTimeWithPlural
-          },
-          ordinal : '%d.',
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 103 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : macedonian (mk)
-  // author : Borislav Mickov : https://github.com/B0k0
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('mk', {
-          months : "јануари_февруари_март_април_мај_јуни_јули_август_септември_октомври_ноември_декември".split("_"),
-          monthsShort : "јан_фев_мар_апр_мај_јун_јул_авг_сеп_окт_ное_дек".split("_"),
-          weekdays : "недела_понеделник_вторник_среда_четврток_петок_сабота".split("_"),
-          weekdaysShort : "нед_пон_вто_сре_чет_пет_саб".split("_"),
-          weekdaysMin : "нe_пo_вт_ср_че_пе_сa".split("_"),
-          longDateFormat : {
-              LT : "H:mm",
-              L : "D.MM.YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY LT",
-              LLLL : "dddd, D MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay : '[Денес во] LT',
-              nextDay : '[Утре во] LT',
-              nextWeek : 'dddd [во] LT',
-              lastDay : '[Вчера во] LT',
-              lastWeek : function () {
-                  switch (this.day()) {
-                  case 0:
-                  case 3:
-                  case 6:
-                      return '[Во изминатата] dddd [во] LT';
-                  case 1:
-                  case 2:
-                  case 4:
-                  case 5:
-                      return '[Во изминатиот] dddd [во] LT';
-                  }
-              },
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "после %s",
-              past : "пред %s",
-              s : "неколку секунди",
-              m : "минута",
-              mm : "%d минути",
-              h : "час",
-              hh : "%d часа",
-              d : "ден",
-              dd : "%d дена",
-              M : "месец",
-              MM : "%d месеци",
-              y : "година",
-              yy : "%d години"
-          },
-          ordinal : function (number) {
-              var lastDigit = number % 10,
-                  last2Digits = number % 100;
-              if (number === 0) {
-                  return number + '-ев';
-              } else if (last2Digits === 0) {
-                  return number + '-ен';
-              } else if (last2Digits > 10 && last2Digits < 20) {
-                  return number + '-ти';
-              } else if (lastDigit === 1) {
-                  return number + '-ви';
-              } else if (lastDigit === 2) {
-                  return number + '-ри';
-              } else if (lastDigit === 7 || lastDigit === 8) {
-                  return number + '-ми';
-              } else {
-                  return number + '-ти';
-              }
-          },
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 7  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 104 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : malayalam (ml)
-  // author : Floyd Pink : https://github.com/floydpink
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('ml', {
-          months : 'ജനുവരി_ഫെബ്രുവരി_മാർച്ച്_ഏപ്രിൽ_മേയ്_ജൂൺ_ജൂലൈ_ഓഗസ്റ്റ്_സെപ്റ്റംബർ_ഒക്ടോബർ_നവംബർ_ഡിസംബർ'.split("_"),
-          monthsShort : 'ജനു._ഫെബ്രു._മാർ._ഏപ്രി._മേയ്_ജൂൺ_ജൂലൈ._ഓഗ._സെപ്റ്റ._ഒക്ടോ._നവം._ഡിസം.'.split("_"),
-          weekdays : 'ഞായറാഴ്ച_തിങ്കളാഴ്ച_ചൊവ്വാഴ്ച_ബുധനാഴ്ച_വ്യാഴാഴ്ച_വെള്ളിയാഴ്ച_ശനിയാഴ്ച'.split("_"),
-          weekdaysShort : 'ഞായർ_തിങ്കൾ_ചൊവ്വ_ബുധൻ_വ്യാഴം_വെള്ളി_ശനി'.split("_"),
-          weekdaysMin : 'ഞാ_തി_ചൊ_ബു_വ്യാ_വെ_ശ'.split("_"),
-          longDateFormat : {
-              LT : "A h:mm -നു",
-              L : "DD/MM/YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY, LT",
-              LLLL : "dddd, D MMMM YYYY, LT"
-          },
-          calendar : {
-              sameDay : '[ഇന്ന്] LT',
-              nextDay : '[നാളെ] LT',
-              nextWeek : 'dddd, LT',
-              lastDay : '[ഇന്നലെ] LT',
-              lastWeek : '[കഴിഞ്ഞ] dddd, LT',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "%s കഴിഞ്ഞ്",
-              past : "%s മുൻപ്",
-              s : "അൽപ നിമിഷങ്ങൾ",
-              m : "ഒരു മിനിറ്റ്",
-              mm : "%d മിനിറ്റ്",
-              h : "ഒരു മണിക്കൂർ",
-              hh : "%d മണിക്കൂർ",
-              d : "ഒരു ദിവസം",
-              dd : "%d ദിവസം",
-              M : "ഒരു മാസം",
-              MM : "%d മാസം",
-              y : "ഒരു വർഷം",
-              yy : "%d വർഷം"
-          },
-          meridiem : function (hour, minute, isLower) {
-              if (hour < 4) {
-                  return "രാത്രി";
-              } else if (hour < 12) {
-                  return "രാവിലെ";
-              } else if (hour < 17) {
-                  return "ഉച്ച കഴിഞ്ഞ്";
-              } else if (hour < 20) {
-                  return "വൈകുന്നേരം";
-              } else {
-                  return "രാത്രി";
-              }
-          }
-      });
-  }));
-
-
-/***/ },
-/* 105 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : Marathi (mr)
-  // author : Harshad Kale : https://github.com/kalehv
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      var symbolMap = {
-          '1': '१',
-          '2': '२',
-          '3': '३',
-          '4': '४',
-          '5': '५',
-          '6': '६',
-          '7': '७',
-          '8': '८',
-          '9': '९',
-          '0': '०'
-      },
-      numberMap = {
-          '१': '1',
-          '२': '2',
-          '३': '3',
-          '४': '4',
-          '५': '5',
-          '६': '6',
-          '७': '7',
-          '८': '8',
-          '९': '9',
-          '०': '0'
-      };
-
-      return moment.lang('mr', {
-          months : 'जानेवारी_फेब्रुवारी_मार्च_एप्रिल_मे_जून_जुलै_ऑगस्ट_सप्टेंबर_ऑक्टोबर_नोव्हेंबर_डिसेंबर'.split("_"),
-          monthsShort: 'जाने._फेब्रु._मार्च._एप्रि._मे._जून._जुलै._ऑग._सप्टें._ऑक्टो._नोव्हें._डिसें.'.split("_"),
-          weekdays : 'रविवार_सोमवार_मंगळवार_बुधवार_गुरूवार_शुक्रवार_शनिवार'.split("_"),
-          weekdaysShort : 'रवि_सोम_मंगळ_बुध_गुरू_शुक्र_शनि'.split("_"),
-          weekdaysMin : 'र_सो_मं_बु_गु_शु_श'.split("_"),
-          longDateFormat : {
-              LT : "A h:mm वाजता",
-              L : "DD/MM/YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY, LT",
-              LLLL : "dddd, D MMMM YYYY, LT"
-          },
-          calendar : {
-              sameDay : '[आज] LT',
-              nextDay : '[उद्या] LT',
-              nextWeek : 'dddd, LT',
-              lastDay : '[काल] LT',
-              lastWeek: '[मागील] dddd, LT',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "%s नंतर",
-              past : "%s पूर्वी",
-              s : "सेकंद",
-              m: "एक मिनिट",
-              mm: "%d मिनिटे",
-              h : "एक तास",
-              hh : "%d तास",
-              d : "एक दिवस",
-              dd : "%d दिवस",
-              M : "एक महिना",
-              MM : "%d महिने",
-              y : "एक वर्ष",
-              yy : "%d वर्षे"
-          },
-          preparse: function (string) {
-              return string.replace(/[१२३४५६७८९०]/g, function (match) {
-                  return numberMap[match];
-              });
-          },
-          postformat: function (string) {
-              return string.replace(/\d/g, function (match) {
-                  return symbolMap[match];
-              });
-          },
-          meridiem: function (hour, minute, isLower)
-          {
-              if (hour < 4) {
-                  return "रात्री";
-              } else if (hour < 10) {
-                  return "सकाळी";
-              } else if (hour < 17) {
-                  return "दुपारी";
-              } else if (hour < 20) {
-                  return "सायंकाळी";
-              } else {
-                  return "रात्री";
-              }
-          },
-          week : {
-              dow : 0, // Sunday is the first day of the week.
-              doy : 6  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 106 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : Bahasa Malaysia (ms-MY)
-  // author : Weldan Jamili : https://github.com/weldan
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('ms-my', {
-          months : "Januari_Februari_Mac_April_Mei_Jun_Julai_Ogos_September_Oktober_November_Disember".split("_"),
-          monthsShort : "Jan_Feb_Mac_Apr_Mei_Jun_Jul_Ogs_Sep_Okt_Nov_Dis".split("_"),
-          weekdays : "Ahad_Isnin_Selasa_Rabu_Khamis_Jumaat_Sabtu".split("_"),
-          weekdaysShort : "Ahd_Isn_Sel_Rab_Kha_Jum_Sab".split("_"),
-          weekdaysMin : "Ah_Is_Sl_Rb_Km_Jm_Sb".split("_"),
-          longDateFormat : {
-              LT : "HH.mm",
-              L : "DD/MM/YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY [pukul] LT",
-              LLLL : "dddd, D MMMM YYYY [pukul] LT"
-          },
-          meridiem : function (hours, minutes, isLower) {
-              if (hours < 11) {
-                  return 'pagi';
-              } else if (hours < 15) {
-                  return 'tengahari';
-              } else if (hours < 19) {
-                  return 'petang';
-              } else {
-                  return 'malam';
-              }
-          },
-          calendar : {
-              sameDay : '[Hari ini pukul] LT',
-              nextDay : '[Esok pukul] LT',
-              nextWeek : 'dddd [pukul] LT',
-              lastDay : '[Kelmarin pukul] LT',
-              lastWeek : 'dddd [lepas pukul] LT',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "dalam %s",
-              past : "%s yang lepas",
-              s : "beberapa saat",
-              m : "seminit",
-              mm : "%d minit",
-              h : "sejam",
-              hh : "%d jam",
-              d : "sehari",
-              dd : "%d hari",
-              M : "sebulan",
-              MM : "%d bulan",
-              y : "setahun",
-              yy : "%d tahun"
-          },
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 7  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 107 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : norwegian bokmål (nb)
-  // authors : Espen Hovlandsdal : https://github.com/rexxars
-  //           Sigurd Gartmann : https://github.com/sigurdga
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('nb', {
-          months : "januar_februar_mars_april_mai_juni_juli_august_september_oktober_november_desember".split("_"),
-          monthsShort : "jan._feb._mars_april_mai_juni_juli_aug._sep._okt._nov._des.".split("_"),
-          weekdays : "søndag_mandag_tirsdag_onsdag_torsdag_fredag_lørdag".split("_"),
-          weekdaysShort : "sø._ma._ti._on._to._fr._lø.".split("_"),
-          weekdaysMin : "sø_ma_ti_on_to_fr_lø".split("_"),
-          longDateFormat : {
-              LT : "H.mm",
-              L : "DD.MM.YYYY",
-              LL : "D. MMMM YYYY",
-              LLL : "D. MMMM YYYY [kl.] LT",
-              LLLL : "dddd D. MMMM YYYY [kl.] LT"
-          },
-          calendar : {
-              sameDay: '[i dag kl.] LT',
-              nextDay: '[i morgen kl.] LT',
-              nextWeek: 'dddd [kl.] LT',
-              lastDay: '[i går kl.] LT',
-              lastWeek: '[forrige] dddd [kl.] LT',
-              sameElse: 'L'
-          },
-          relativeTime : {
-              future : "om %s",
-              past : "for %s siden",
-              s : "noen sekunder",
-              m : "ett minutt",
-              mm : "%d minutter",
-              h : "en time",
-              hh : "%d timer",
-              d : "en dag",
-              dd : "%d dager",
-              M : "en måned",
-              MM : "%d måneder",
-              y : "ett år",
-              yy : "%d år"
-          },
-          ordinal : '%d.',
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 108 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : nepali/nepalese
-  // author : suvash : https://github.com/suvash
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      var symbolMap = {
-          '1': '१',
-          '2': '२',
-          '3': '३',
-          '4': '४',
-          '5': '५',
-          '6': '६',
-          '7': '७',
-          '8': '८',
-          '9': '९',
-          '0': '०'
-      },
-      numberMap = {
-          '१': '1',
-          '२': '2',
-          '३': '3',
-          '४': '4',
-          '५': '5',
-          '६': '6',
-          '७': '7',
-          '८': '8',
-          '९': '9',
-          '०': '0'
-      };
-
-      return moment.lang('ne', {
-          months : 'जनवरी_फेब्रुवरी_मार्च_अप्रिल_मई_जुन_जुलाई_अगष्ट_सेप्टेम्बर_अक्टोबर_नोभेम्बर_डिसेम्बर'.split("_"),
-          monthsShort : 'जन._फेब्रु._मार्च_अप्रि._मई_जुन_जुलाई._अग._सेप्ट._अक्टो._नोभे._डिसे.'.split("_"),
-          weekdays : 'आइतबार_सोमबार_मङ्गलबार_बुधबार_बिहिबार_शुक्रबार_शनिबार'.split("_"),
-          weekdaysShort : 'आइत._सोम._मङ्गल._बुध._बिहि._शुक्र._शनि.'.split("_"),
-          weekdaysMin : 'आइ._सो._मङ्_बु._बि._शु._श.'.split("_"),
-          longDateFormat : {
-              LT : "Aको h:mm बजे",
-              L : "DD/MM/YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY, LT",
-              LLLL : "dddd, D MMMM YYYY, LT"
-          },
-          preparse: function (string) {
-              return string.replace(/[१२३४५६७८९०]/g, function (match) {
-                  return numberMap[match];
-              });
-          },
-          postformat: function (string) {
-              return string.replace(/\d/g, function (match) {
-                  return symbolMap[match];
-              });
-          },
-          meridiem : function (hour, minute, isLower) {
-              if (hour < 3) {
-                  return "राती";
-              } else if (hour < 10) {
-                  return "बिहान";
-              } else if (hour < 15) {
-                  return "दिउँसो";
-              } else if (hour < 18) {
-                  return "बेलुका";
-              } else if (hour < 20) {
-                  return "साँझ";
-              } else {
-                  return "राती";
-              }
-          },
-          calendar : {
-              sameDay : '[आज] LT',
-              nextDay : '[भोली] LT',
-              nextWeek : '[आउँदो] dddd[,] LT',
-              lastDay : '[हिजो] LT',
-              lastWeek : '[गएको] dddd[,] LT',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "%sमा",
-              past : "%s अगाडी",
-              s : "केही समय",
-              m : "एक मिनेट",
-              mm : "%d मिनेट",
-              h : "एक घण्टा",
-              hh : "%d घण्टा",
-              d : "एक दिन",
-              dd : "%d दिन",
-              M : "एक महिना",
-              MM : "%d महिना",
-              y : "एक बर्ष",
-              yy : "%d बर्ष"
-          },
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 7  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 109 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : dutch (nl)
-  // author : Joris Röling : https://github.com/jjupiter
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      var monthsShortWithDots = "jan._feb._mrt._apr._mei_jun._jul._aug._sep._okt._nov._dec.".split("_"),
-          monthsShortWithoutDots = "jan_feb_mrt_apr_mei_jun_jul_aug_sep_okt_nov_dec".split("_");
-
-      return moment.lang('nl', {
-          months : "januari_februari_maart_april_mei_juni_juli_augustus_september_oktober_november_december".split("_"),
-          monthsShort : function (m, format) {
-              if (/-MMM-/.test(format)) {
-                  return monthsShortWithoutDots[m.month()];
-              } else {
-                  return monthsShortWithDots[m.month()];
-              }
-          },
-          weekdays : "zondag_maandag_dinsdag_woensdag_donderdag_vrijdag_zaterdag".split("_"),
-          weekdaysShort : "zo._ma._di._wo._do._vr._za.".split("_"),
-          weekdaysMin : "Zo_Ma_Di_Wo_Do_Vr_Za".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "DD-MM-YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY LT",
-              LLLL : "dddd D MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay: '[vandaag om] LT',
-              nextDay: '[morgen om] LT',
-              nextWeek: 'dddd [om] LT',
-              lastDay: '[gisteren om] LT',
-              lastWeek: '[afgelopen] dddd [om] LT',
-              sameElse: 'L'
-          },
-          relativeTime : {
-              future : "over %s",
-              past : "%s geleden",
-              s : "een paar seconden",
-              m : "één minuut",
-              mm : "%d minuten",
-              h : "één uur",
-              hh : "%d uur",
-              d : "één dag",
-              dd : "%d dagen",
-              M : "één maand",
-              MM : "%d maanden",
-              y : "één jaar",
-              yy : "%d jaar"
-          },
-          ordinal : function (number) {
-              return number + ((number === 1 || number === 8 || number >= 20) ? 'ste' : 'de');
-          },
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 110 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : norwegian nynorsk (nn)
-  // author : https://github.com/mechuwind
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('nn', {
-          months : "januar_februar_mars_april_mai_juni_juli_august_september_oktober_november_desember".split("_"),
-          monthsShort : "jan_feb_mar_apr_mai_jun_jul_aug_sep_okt_nov_des".split("_"),
-          weekdays : "sundag_måndag_tysdag_onsdag_torsdag_fredag_laurdag".split("_"),
-          weekdaysShort : "sun_mån_tys_ons_tor_fre_lau".split("_"),
-          weekdaysMin : "su_må_ty_on_to_fr_lø".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "DD.MM.YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY LT",
-              LLLL : "dddd D MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay: '[I dag klokka] LT',
-              nextDay: '[I morgon klokka] LT',
-              nextWeek: 'dddd [klokka] LT',
-              lastDay: '[I går klokka] LT',
-              lastWeek: '[Føregåande] dddd [klokka] LT',
-              sameElse: 'L'
-          },
-          relativeTime : {
-              future : "om %s",
-              past : "for %s sidan",
-              s : "nokre sekund",
-              m : "eit minutt",
-              mm : "%d minutt",
-              h : "ein time",
-              hh : "%d timar",
-              d : "ein dag",
-              dd : "%d dagar",
-              M : "ein månad",
-              MM : "%d månader",
-              y : "eit år",
-              yy : "%d år"
-          },
-          ordinal : '%d.',
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 111 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : polish (pl)
-  // author : Rafal Hirsz : https://github.com/evoL
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      var monthsNominative = "styczeń_luty_marzec_kwiecień_maj_czerwiec_lipiec_sierpień_wrzesień_październik_listopad_grudzień".split("_"),
-          monthsSubjective = "stycznia_lutego_marca_kwietnia_maja_czerwca_lipca_sierpnia_września_października_listopada_grudnia".split("_");
-
-      function plural(n) {
-          return (n % 10 < 5) && (n % 10 > 1) && ((~~(n / 10) % 10) !== 1);
-      }
-
-      function translate(number, withoutSuffix, key) {
-          var result = number + " ";
-          switch (key) {
-          case 'm':
-              return withoutSuffix ? 'minuta' : 'minutę';
-          case 'mm':
-              return result + (plural(number) ? 'minuty' : 'minut');
-          case 'h':
-              return withoutSuffix  ? 'godzina'  : 'godzinę';
-          case 'hh':
-              return result + (plural(number) ? 'godziny' : 'godzin');
-          case 'MM':
-              return result + (plural(number) ? 'miesiące' : 'miesięcy');
-          case 'yy':
-              return result + (plural(number) ? 'lata' : 'lat');
-          }
-      }
-
-      return moment.lang('pl', {
-          months : function (momentToFormat, format) {
-              if (/D MMMM/.test(format)) {
-                  return monthsSubjective[momentToFormat.month()];
-              } else {
-                  return monthsNominative[momentToFormat.month()];
-              }
-          },
-          monthsShort : "sty_lut_mar_kwi_maj_cze_lip_sie_wrz_paź_lis_gru".split("_"),
-          weekdays : "niedziela_poniedziałek_wtorek_środa_czwartek_piątek_sobota".split("_"),
-          weekdaysShort : "nie_pon_wt_śr_czw_pt_sb".split("_"),
-          weekdaysMin : "N_Pn_Wt_Śr_Cz_Pt_So".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "DD.MM.YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY LT",
-              LLLL : "dddd, D MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay: '[Dziś o] LT',
-              nextDay: '[Jutro o] LT',
-              nextWeek: '[W] dddd [o] LT',
-              lastDay: '[Wczoraj o] LT',
-              lastWeek: function () {
-                  switch (this.day()) {
-                  case 0:
-                      return '[W zeszłą niedzielę o] LT';
-                  case 3:
-                      return '[W zeszłą środę o] LT';
-                  case 6:
-                      return '[W zeszłą sobotę o] LT';
-                  default:
-                      return '[W zeszły] dddd [o] LT';
-                  }
-              },
-              sameElse: 'L'
-          },
-          relativeTime : {
-              future : "za %s",
-              past : "%s temu",
-              s : "kilka sekund",
-              m : translate,
-              mm : translate,
-              h : translate,
-              hh : translate,
-              d : "1 dzień",
-              dd : '%d dni',
-              M : "miesiąc",
-              MM : translate,
-              y : "rok",
-              yy : translate
-          },
-          ordinal : '%d.',
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 112 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : brazilian portuguese (pt-br)
-  // author : Caio Ribeiro Pereira : https://github.com/caio-ribeiro-pereira
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('pt-br', {
-          months : "janeiro_fevereiro_março_abril_maio_junho_julho_agosto_setembro_outubro_novembro_dezembro".split("_"),
-          monthsShort : "jan_fev_mar_abr_mai_jun_jul_ago_set_out_nov_dez".split("_"),
-          weekdays : "domingo_segunda-feira_terça-feira_quarta-feira_quinta-feira_sexta-feira_sábado".split("_"),
-          weekdaysShort : "dom_seg_ter_qua_qui_sex_sáb".split("_"),
-          weekdaysMin : "dom_2ª_3ª_4ª_5ª_6ª_sáb".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "DD/MM/YYYY",
-              LL : "D [de] MMMM [de] YYYY",
-              LLL : "D [de] MMMM [de] YYYY [às] LT",
-              LLLL : "dddd, D [de] MMMM [de] YYYY [às] LT"
-          },
-          calendar : {
-              sameDay: '[Hoje às] LT',
-              nextDay: '[Amanhã às] LT',
-              nextWeek: 'dddd [às] LT',
-              lastDay: '[Ontem às] LT',
-              lastWeek: function () {
-                  return (this.day() === 0 || this.day() === 6) ?
-                      '[Último] dddd [às] LT' : // Saturday + Sunday
-                      '[Última] dddd [às] LT'; // Monday - Friday
-              },
-              sameElse: 'L'
-          },
-          relativeTime : {
-              future : "em %s",
-              past : "%s atrás",
-              s : "segundos",
-              m : "um minuto",
-              mm : "%d minutos",
-              h : "uma hora",
-              hh : "%d horas",
-              d : "um dia",
-              dd : "%d dias",
-              M : "um mês",
-              MM : "%d meses",
-              y : "um ano",
-              yy : "%d anos"
-          },
-          ordinal : '%dº'
-      });
-  }));
-
-
-/***/ },
-/* 113 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : portuguese (pt)
-  // author : Jefferson : https://github.com/jalex79
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('pt', {
-          months : "janeiro_fevereiro_março_abril_maio_junho_julho_agosto_setembro_outubro_novembro_dezembro".split("_"),
-          monthsShort : "jan_fev_mar_abr_mai_jun_jul_ago_set_out_nov_dez".split("_"),
-          weekdays : "domingo_segunda-feira_terça-feira_quarta-feira_quinta-feira_sexta-feira_sábado".split("_"),
-          weekdaysShort : "dom_seg_ter_qua_qui_sex_sáb".split("_"),
-          weekdaysMin : "dom_2ª_3ª_4ª_5ª_6ª_sáb".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "DD/MM/YYYY",
-              LL : "D [de] MMMM [de] YYYY",
-              LLL : "D [de] MMMM [de] YYYY LT",
-              LLLL : "dddd, D [de] MMMM [de] YYYY LT"
-          },
-          calendar : {
-              sameDay: '[Hoje às] LT',
-              nextDay: '[Amanhã às] LT',
-              nextWeek: 'dddd [às] LT',
-              lastDay: '[Ontem às] LT',
-              lastWeek: function () {
-                  return (this.day() === 0 || this.day() === 6) ?
-                      '[Último] dddd [às] LT' : // Saturday + Sunday
-                      '[Última] dddd [às] LT'; // Monday - Friday
-              },
-              sameElse: 'L'
-          },
-          relativeTime : {
-              future : "em %s",
-              past : "há %s",
-              s : "segundos",
-              m : "um minuto",
-              mm : "%d minutos",
-              h : "uma hora",
-              hh : "%d horas",
-              d : "um dia",
-              dd : "%d dias",
-              M : "um mês",
-              MM : "%d meses",
-              y : "um ano",
-              yy : "%d anos"
-          },
-          ordinal : '%dº',
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 114 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : romanian (ro)
-  // author : Vlad Gurdiga : https://github.com/gurdiga
-  // author : Valentin Agachi : https://github.com/avaly
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      function relativeTimeWithPlural(number, withoutSuffix, key) {
-          var format = {
-              'mm': 'minute',
-              'hh': 'ore',
-              'dd': 'zile',
-              'MM': 'luni',
-              'yy': 'ani'
-          },
-              separator = ' ';
-          if (number % 100 >= 20 || (number >= 100 && number % 100 === 0)) {
-              separator = ' de ';
-          }
-
-          return number + separator + format[key];
-      }
-
-      return moment.lang('ro', {
-          months : "ianuarie_februarie_martie_aprilie_mai_iunie_iulie_august_septembrie_octombrie_noiembrie_decembrie".split("_"),
-          monthsShort : "ian._febr._mart._apr._mai_iun._iul._aug._sept._oct._nov._dec.".split("_"),
-          weekdays : "duminică_luni_marți_miercuri_joi_vineri_sâmbătă".split("_"),
-          weekdaysShort : "Dum_Lun_Mar_Mie_Joi_Vin_Sâm".split("_"),
-          weekdaysMin : "Du_Lu_Ma_Mi_Jo_Vi_Sâ".split("_"),
-          longDateFormat : {
-              LT : "H:mm",
-              L : "DD.MM.YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY H:mm",
-              LLLL : "dddd, D MMMM YYYY H:mm"
-          },
-          calendar : {
-              sameDay: "[azi la] LT",
-              nextDay: '[mâine la] LT',
-              nextWeek: 'dddd [la] LT',
-              lastDay: '[ieri la] LT',
-              lastWeek: '[fosta] dddd [la] LT',
-              sameElse: 'L'
-          },
-          relativeTime : {
-              future : "peste %s",
-              past : "%s în urmă",
-              s : "câteva secunde",
-              m : "un minut",
-              mm : relativeTimeWithPlural,
-              h : "o oră",
-              hh : relativeTimeWithPlural,
-              d : "o zi",
-              dd : relativeTimeWithPlural,
-              M : "o lună",
-              MM : relativeTimeWithPlural,
-              y : "un an",
-              yy : relativeTimeWithPlural
-          },
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 7  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 115 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : russian (ru)
-  // author : Viktorminator : https://github.com/Viktorminator
-  // Author : Menelion Elensúle : https://github.com/Oire
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      function plural(word, num) {
-          var forms = word.split('_');
-          return num % 10 === 1 && num % 100 !== 11 ? forms[0] : (num % 10 >= 2 && num % 10 <= 4 && (num % 100 < 10 || num % 100 >= 20) ? forms[1] : forms[2]);
-      }
-
-      function relativeTimeWithPlural(number, withoutSuffix, key) {
-          var format = {
-              'mm': withoutSuffix ? 'минута_минуты_минут' : 'минуту_минуты_минут',
-              'hh': 'час_часа_часов',
-              'dd': 'день_дня_дней',
-              'MM': 'месяц_месяца_месяцев',
-              'yy': 'год_года_лет'
-          };
-          if (key === 'm') {
-              return withoutSuffix ? 'минута' : 'минуту';
-          }
-          else {
-              return number + ' ' + plural(format[key], +number);
-          }
-      }
-
-      function monthsCaseReplace(m, format) {
-          var months = {
-              'nominative': 'январь_февраль_март_апрель_май_июнь_июль_август_сентябрь_октябрь_ноябрь_декабрь'.split('_'),
-              'accusative': 'января_февраля_марта_апреля_мая_июня_июля_августа_сентября_октября_ноября_декабря'.split('_')
-          },
-
-          nounCase = (/D[oD]?(\[[^\[\]]*\]|\s+)+MMMM?/).test(format) ?
-              'accusative' :
-              'nominative';
-
-          return months[nounCase][m.month()];
-      }
-
-      function monthsShortCaseReplace(m, format) {
-          var monthsShort = {
-              'nominative': 'янв_фев_мар_апр_май_июнь_июль_авг_сен_окт_ноя_дек'.split('_'),
-              'accusative': 'янв_фев_мар_апр_мая_июня_июля_авг_сен_окт_ноя_дек'.split('_')
-          },
-
-          nounCase = (/D[oD]?(\[[^\[\]]*\]|\s+)+MMMM?/).test(format) ?
-              'accusative' :
-              'nominative';
-
-          return monthsShort[nounCase][m.month()];
-      }
-
-      function weekdaysCaseReplace(m, format) {
-          var weekdays = {
-              'nominative': 'воскресенье_понедельник_вторник_среда_четверг_пятница_суббота'.split('_'),
-              'accusative': 'воскресенье_понедельник_вторник_среду_четверг_пятницу_субботу'.split('_')
-          },
-
-          nounCase = (/\[ ?[Вв] ?(?:прошлую|следующую)? ?\] ?dddd/).test(format) ?
-              'accusative' :
-              'nominative';
-
-          return weekdays[nounCase][m.day()];
-      }
-
-      return moment.lang('ru', {
-          months : monthsCaseReplace,
-          monthsShort : monthsShortCaseReplace,
-          weekdays : weekdaysCaseReplace,
-          weekdaysShort : "вс_пн_вт_ср_чт_пт_сб".split("_"),
-          weekdaysMin : "вс_пн_вт_ср_чт_пт_сб".split("_"),
-          monthsParse : [/^янв/i, /^фев/i, /^мар/i, /^апр/i, /^ма[й|я]/i, /^июн/i, /^июл/i, /^авг/i, /^сен/i, /^окт/i, /^ноя/i, /^дек/i],
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "DD.MM.YYYY",
-              LL : "D MMMM YYYY г.",
-              LLL : "D MMMM YYYY г., LT",
-              LLLL : "dddd, D MMMM YYYY г., LT"
-          },
-          calendar : {
-              sameDay: '[Сегодня в] LT',
-              nextDay: '[Завтра в] LT',
-              lastDay: '[Вчера в] LT',
-              nextWeek: function () {
-                  return this.day() === 2 ? '[Во] dddd [в] LT' : '[В] dddd [в] LT';
-              },
-              lastWeek: function () {
-                  switch (this.day()) {
-                  case 0:
-                      return '[В прошлое] dddd [в] LT';
-                  case 1:
-                  case 2:
-                  case 4:
-                      return '[В прошлый] dddd [в] LT';
-                  case 3:
-                  case 5:
-                  case 6:
-                      return '[В прошлую] dddd [в] LT';
-                  }
-              },
-              sameElse: 'L'
-          },
-          relativeTime : {
-              future : "через %s",
-              past : "%s назад",
-              s : "несколько секунд",
-              m : relativeTimeWithPlural,
-              mm : relativeTimeWithPlural,
-              h : "час",
-              hh : relativeTimeWithPlural,
-              d : "день",
-              dd : relativeTimeWithPlural,
-              M : "месяц",
-              MM : relativeTimeWithPlural,
-              y : "год",
-              yy : relativeTimeWithPlural
-          },
-
-          meridiemParse: /ночи|утра|дня|вечера/i,
-          isPM : function (input) {
-              return /^(дня|вечера)$/.test(input);
-          },
-
-          meridiem : function (hour, minute, isLower) {
-              if (hour < 4) {
-                  return "ночи";
-              } else if (hour < 12) {
-                  return "утра";
-              } else if (hour < 17) {
-                  return "дня";
-              } else {
-                  return "вечера";
-              }
-          },
-
-          ordinal: function (number, period) {
-              switch (period) {
-              case 'M':
-              case 'd':
-              case 'DDD':
-                  return number + '-й';
-              case 'D':
-                  return number + '-го';
-              case 'w':
-              case 'W':
-                  return number + '-я';
-              default:
-                  return number;
-              }
-          },
-
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 7  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 116 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : slovak (sk)
-  // author : Martin Minka : https://github.com/k2s
-  // based on work of petrbela : https://github.com/petrbela
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      var months = "január_február_marec_apríl_máj_jún_júl_august_september_október_november_december".split("_"),
-          monthsShort = "jan_feb_mar_apr_máj_jún_júl_aug_sep_okt_nov_dec".split("_");
-
-      function plural(n) {
-          return (n > 1) && (n < 5);
-      }
-
-      function translate(number, withoutSuffix, key, isFuture) {
-          var result = number + " ";
-          switch (key) {
-          case 's':  // a few seconds / in a few seconds / a few seconds ago
-              return (withoutSuffix || isFuture) ? 'pár sekúnd' : 'pár sekundami';
-          case 'm':  // a minute / in a minute / a minute ago
-              return withoutSuffix ? 'minúta' : (isFuture ? 'minútu' : 'minútou');
-          case 'mm': // 9 minutes / in 9 minutes / 9 minutes ago
-              if (withoutSuffix || isFuture) {
-                  return result + (plural(number) ? 'minúty' : 'minút');
-              } else {
-                  return result + 'minútami';
-              }
-              break;
-          case 'h':  // an hour / in an hour / an hour ago
-              return withoutSuffix ? 'hodina' : (isFuture ? 'hodinu' : 'hodinou');
-          case 'hh': // 9 hours / in 9 hours / 9 hours ago
-              if (withoutSuffix || isFuture) {
-                  return result + (plural(number) ? 'hodiny' : 'hodín');
-              } else {
-                  return result + 'hodinami';
-              }
-              break;
-          case 'd':  // a day / in a day / a day ago
-              return (withoutSuffix || isFuture) ? 'deň' : 'dňom';
-          case 'dd': // 9 days / in 9 days / 9 days ago
-              if (withoutSuffix || isFuture) {
-                  return result + (plural(number) ? 'dni' : 'dní');
-              } else {
-                  return result + 'dňami';
-              }
-              break;
-          case 'M':  // a month / in a month / a month ago
-              return (withoutSuffix || isFuture) ? 'mesiac' : 'mesiacom';
-          case 'MM': // 9 months / in 9 months / 9 months ago
-              if (withoutSuffix || isFuture) {
-                  return result + (plural(number) ? 'mesiace' : 'mesiacov');
-              } else {
-                  return result + 'mesiacmi';
-              }
-              break;
-          case 'y':  // a year / in a year / a year ago
-              return (withoutSuffix || isFuture) ? 'rok' : 'rokom';
-          case 'yy': // 9 years / in 9 years / 9 years ago
-              if (withoutSuffix || isFuture) {
-                  return result + (plural(number) ? 'roky' : 'rokov');
-              } else {
-                  return result + 'rokmi';
-              }
-              break;
-          }
-      }
-
-      return moment.lang('sk', {
-          months : months,
-          monthsShort : monthsShort,
-          monthsParse : (function (months, monthsShort) {
-              var i, _monthsParse = [];
-              for (i = 0; i < 12; i++) {
-                  // use custom parser to solve problem with July (červenec)
-                  _monthsParse[i] = new RegExp('^' + months[i] + '$|^' + monthsShort[i] + '$', 'i');
-              }
-              return _monthsParse;
-          }(months, monthsShort)),
-          weekdays : "nedeľa_pondelok_utorok_streda_štvrtok_piatok_sobota".split("_"),
-          weekdaysShort : "ne_po_ut_st_št_pi_so".split("_"),
-          weekdaysMin : "ne_po_ut_st_št_pi_so".split("_"),
-          longDateFormat : {
-              LT: "H:mm",
-              L : "DD.MM.YYYY",
-              LL : "D. MMMM YYYY",
-              LLL : "D. MMMM YYYY LT",
-              LLLL : "dddd D. MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay: "[dnes o] LT",
-              nextDay: '[zajtra o] LT',
-              nextWeek: function () {
-                  switch (this.day()) {
-                  case 0:
-                      return '[v nedeľu o] LT';
-                  case 1:
-                  case 2:
-                      return '[v] dddd [o] LT';
-                  case 3:
-                      return '[v stredu o] LT';
-                  case 4:
-                      return '[vo štvrtok o] LT';
-                  case 5:
-                      return '[v piatok o] LT';
-                  case 6:
-                      return '[v sobotu o] LT';
-                  }
-              },
-              lastDay: '[včera o] LT',
-              lastWeek: function () {
-                  switch (this.day()) {
-                  case 0:
-                      return '[minulú nedeľu o] LT';
-                  case 1:
-                  case 2:
-                      return '[minulý] dddd [o] LT';
-                  case 3:
-                      return '[minulú stredu o] LT';
-                  case 4:
-                  case 5:
-                      return '[minulý] dddd [o] LT';
-                  case 6:
-                      return '[minulú sobotu o] LT';
-                  }
-              },
-              sameElse: "L"
-          },
-          relativeTime : {
-              future : "za %s",
-              past : "pred %s",
-              s : translate,
-              m : translate,
-              mm : translate,
-              h : translate,
-              hh : translate,
-              d : translate,
-              dd : translate,
-              M : translate,
-              MM : translate,
-              y : translate,
-              yy : translate
-          },
-          ordinal : '%d.',
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 117 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : slovenian (sl)
-  // author : Robert Sedovšek : https://github.com/sedovsek
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      function translate(number, withoutSuffix, key) {
-          var result = number + " ";
-          switch (key) {
-          case 'm':
-              return withoutSuffix ? 'ena minuta' : 'eno minuto';
-          case 'mm':
-              if (number === 1) {
-                  result += 'minuta';
-              } else if (number === 2) {
-                  result += 'minuti';
-              } else if (number === 3 || number === 4) {
-                  result += 'minute';
-              } else {
-                  result += 'minut';
-              }
-              return result;
-          case 'h':
-              return withoutSuffix ? 'ena ura' : 'eno uro';
-          case 'hh':
-              if (number === 1) {
-                  result += 'ura';
-              } else if (number === 2) {
-                  result += 'uri';
-              } else if (number === 3 || number === 4) {
-                  result += 'ure';
-              } else {
-                  result += 'ur';
-              }
-              return result;
-          case 'dd':
-              if (number === 1) {
-                  result += 'dan';
-              } else {
-                  result += 'dni';
-              }
-              return result;
-          case 'MM':
-              if (number === 1) {
-                  result += 'mesec';
-              } else if (number === 2) {
-                  result += 'meseca';
-              } else if (number === 3 || number === 4) {
-                  result += 'mesece';
-              } else {
-                  result += 'mesecev';
-              }
-              return result;
-          case 'yy':
-              if (number === 1) {
-                  result += 'leto';
-              } else if (number === 2) {
-                  result += 'leti';
-              } else if (number === 3 || number === 4) {
-                  result += 'leta';
-              } else {
-                  result += 'let';
-              }
-              return result;
-          }
-      }
-
-      return moment.lang('sl', {
-          months : "januar_februar_marec_april_maj_junij_julij_avgust_september_oktober_november_december".split("_"),
-          monthsShort : "jan._feb._mar._apr._maj._jun._jul._avg._sep._okt._nov._dec.".split("_"),
-          weekdays : "nedelja_ponedeljek_torek_sreda_četrtek_petek_sobota".split("_"),
-          weekdaysShort : "ned._pon._tor._sre._čet._pet._sob.".split("_"),
-          weekdaysMin : "ne_po_to_sr_če_pe_so".split("_"),
-          longDateFormat : {
-              LT : "H:mm",
-              L : "DD. MM. YYYY",
-              LL : "D. MMMM YYYY",
-              LLL : "D. MMMM YYYY LT",
-              LLLL : "dddd, D. MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay  : '[danes ob] LT',
-              nextDay  : '[jutri ob] LT',
-
-              nextWeek : function () {
-                  switch (this.day()) {
-                  case 0:
-                      return '[v] [nedeljo] [ob] LT';
-                  case 3:
-                      return '[v] [sredo] [ob] LT';
-                  case 6:
-                      return '[v] [soboto] [ob] LT';
-                  case 1:
-                  case 2:
-                  case 4:
-                  case 5:
-                      return '[v] dddd [ob] LT';
-                  }
-              },
-              lastDay  : '[včeraj ob] LT',
-              lastWeek : function () {
-                  switch (this.day()) {
-                  case 0:
-                  case 3:
-                  case 6:
-                      return '[prejšnja] dddd [ob] LT';
-                  case 1:
-                  case 2:
-                  case 4:
-                  case 5:
-                      return '[prejšnji] dddd [ob] LT';
-                  }
-              },
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "čez %s",
-              past   : "%s nazaj",
-              s      : "nekaj sekund",
-              m      : translate,
-              mm     : translate,
-              h      : translate,
-              hh     : translate,
-              d      : "en dan",
-              dd     : translate,
-              M      : "en mesec",
-              MM     : translate,
-              y      : "eno leto",
-              yy     : translate
-          },
-          ordinal : '%d.',
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 7  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 118 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : Albanian (sq)
-  // author : Flakërim Ismani : https://github.com/flakerimi
-  // author: Menelion Elensúle: https://github.com/Oire (tests)
-  // author : Oerd Cukalla : https://github.com/oerd (fixes)
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('sq', {
-          months : "Janar_Shkurt_Mars_Prill_Maj_Qershor_Korrik_Gusht_Shtator_Tetor_Nëntor_Dhjetor".split("_"),
-          monthsShort : "Jan_Shk_Mar_Pri_Maj_Qer_Kor_Gus_Sht_Tet_Nën_Dhj".split("_"),
-          weekdays : "E Diel_E Hënë_E Martë_E Mërkurë_E Enjte_E Premte_E Shtunë".split("_"),
-          weekdaysShort : "Die_Hën_Mar_Mër_Enj_Pre_Sht".split("_"),
-          weekdaysMin : "D_H_Ma_Më_E_P_Sh".split("_"),
-          meridiem : function (hours, minutes, isLower) {
-              return hours < 12 ? 'PD' : 'MD';
-          },
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "DD/MM/YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY LT",
-              LLLL : "dddd, D MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay : '[Sot në] LT',
-              nextDay : '[Nesër në] LT',
-              nextWeek : 'dddd [në] LT',
-              lastDay : '[Dje në] LT',
-              lastWeek : 'dddd [e kaluar në] LT',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "në %s",
-              past : "%s më parë",
-              s : "disa sekonda",
-              m : "një minutë",
-              mm : "%d minuta",
-              h : "një orë",
-              hh : "%d orë",
-              d : "një ditë",
-              dd : "%d ditë",
-              M : "një muaj",
-              MM : "%d muaj",
-              y : "një vit",
-              yy : "%d vite"
-          },
-          ordinal : '%d.',
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 119 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : Serbian-cyrillic (sr-cyrl)
-  // author : Milan Janačković<milanjanackovic@gmail.com> : https://github.com/milan-j
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-
-      var translator = {
-          words: { //Different grammatical cases
-              m: ['један минут', 'једне минуте'],
-              mm: ['минут', 'минуте', 'минута'],
-              h: ['један сат', 'једног сата'],
-              hh: ['сат', 'сата', 'сати'],
-              dd: ['дан', 'дана', 'дана'],
-              MM: ['месец', 'месеца', 'месеци'],
-              yy: ['година', 'године', 'година']
-          },
-          correctGrammaticalCase: function (number, wordKey) {
-              return number === 1 ? wordKey[0] : (number >= 2 && number <= 4 ? wordKey[1] : wordKey[2]);
-          },
-          translate: function (number, withoutSuffix, key) {
-              var wordKey = translator.words[key];
-              if (key.length === 1) {
-                  return withoutSuffix ? wordKey[0] : wordKey[1];
-              } else {
-                  return number + ' ' + translator.correctGrammaticalCase(number, wordKey);
-              }
-          }
-      };
-
-      return moment.lang('sr-cyrl', {
-          months: ['јануар', 'фебруар', 'март', 'април', 'мај', 'јун', 'јул', 'август', 'септембар', 'октобар', 'новембар', 'децембар'],
-          monthsShort: ['јан.', 'феб.', 'мар.', 'апр.', 'мај', 'јун', 'јул', 'авг.', 'сеп.', 'окт.', 'нов.', 'дец.'],
-          weekdays: ['недеља', 'понедељак', 'уторак', 'среда', 'четвртак', 'петак', 'субота'],
-          weekdaysShort: ['нед.', 'пон.', 'уто.', 'сре.', 'чет.', 'пет.', 'суб.'],
-          weekdaysMin: ['не', 'по', 'ут', 'ср', 'че', 'пе', 'су'],
-          longDateFormat: {
-              LT: "H:mm",
-              L: "DD. MM. YYYY",
-              LL: "D. MMMM YYYY",
-              LLL: "D. MMMM YYYY LT",
-              LLLL: "dddd, D. MMMM YYYY LT"
-          },
-          calendar: {
-              sameDay: '[данас у] LT',
-              nextDay: '[сутра у] LT',
-
-              nextWeek: function () {
-                  switch (this.day()) {
-                  case 0:
-                      return '[у] [недељу] [у] LT';
-                  case 3:
-                      return '[у] [среду] [у] LT';
-                  case 6:
-                      return '[у] [суботу] [у] LT';
-                  case 1:
-                  case 2:
-                  case 4:
-                  case 5:
-                      return '[у] dddd [у] LT';
-                  }
-              },
-              lastDay  : '[јуче у] LT',
-              lastWeek : function () {
-                  var lastWeekDays = [
-                      '[прошле] [недеље] [у] LT',
-                      '[прошлог] [понедељка] [у] LT',
-                      '[прошлог] [уторка] [у] LT',
-                      '[прошле] [среде] [у] LT',
-                      '[прошлог] [четвртка] [у] LT',
-                      '[прошлог] [петка] [у] LT',
-                      '[прошле] [суботе] [у] LT'
-                  ];
-                  return lastWeekDays[this.day()];
-              },
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "за %s",
-              past   : "пре %s",
-              s      : "неколико секунди",
-              m      : translator.translate,
-              mm     : translator.translate,
-              h      : translator.translate,
-              hh     : translator.translate,
-              d      : "дан",
-              dd     : translator.translate,
-              M      : "месец",
-              MM     : translator.translate,
-              y      : "годину",
-              yy     : translator.translate
-          },
-          ordinal : '%d.',
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 7  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 120 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : Serbian-latin (sr)
-  // author : Milan Janačković<milanjanackovic@gmail.com> : https://github.com/milan-j
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-
-      var translator = {
-          words: { //Different grammatical cases
-              m: ['jedan minut', 'jedne minute'],
-              mm: ['minut', 'minute', 'minuta'],
-              h: ['jedan sat', 'jednog sata'],
-              hh: ['sat', 'sata', 'sati'],
-              dd: ['dan', 'dana', 'dana'],
-              MM: ['mesec', 'meseca', 'meseci'],
-              yy: ['godina', 'godine', 'godina']
-          },
-          correctGrammaticalCase: function (number, wordKey) {
-              return number === 1 ? wordKey[0] : (number >= 2 && number <= 4 ? wordKey[1] : wordKey[2]);
-          },
-          translate: function (number, withoutSuffix, key) {
-              var wordKey = translator.words[key];
-              if (key.length === 1) {
-                  return withoutSuffix ? wordKey[0] : wordKey[1];
-              } else {
-                  return number + ' ' + translator.correctGrammaticalCase(number, wordKey);
-              }
-          }
-      };
-
-      return moment.lang('sr', {
-          months: ['januar', 'februar', 'mart', 'april', 'maj', 'jun', 'jul', 'avgust', 'septembar', 'oktobar', 'novembar', 'decembar'],
-          monthsShort: ['jan.', 'feb.', 'mar.', 'apr.', 'maj', 'jun', 'jul', 'avg.', 'sep.', 'okt.', 'nov.', 'dec.'],
-          weekdays: ['nedelja', 'ponedeljak', 'utorak', 'sreda', 'četvrtak', 'petak', 'subota'],
-          weekdaysShort: ['ned.', 'pon.', 'uto.', 'sre.', 'čet.', 'pet.', 'sub.'],
-          weekdaysMin: ['ne', 'po', 'ut', 'sr', 'če', 'pe', 'su'],
-          longDateFormat: {
-              LT: "H:mm",
-              L: "DD. MM. YYYY",
-              LL: "D. MMMM YYYY",
-              LLL: "D. MMMM YYYY LT",
-              LLLL: "dddd, D. MMMM YYYY LT"
-          },
-          calendar: {
-              sameDay: '[danas u] LT',
-              nextDay: '[sutra u] LT',
-
-              nextWeek: function () {
-                  switch (this.day()) {
-                  case 0:
-                      return '[u] [nedelju] [u] LT';
-                  case 3:
-                      return '[u] [sredu] [u] LT';
-                  case 6:
-                      return '[u] [subotu] [u] LT';
-                  case 1:
-                  case 2:
-                  case 4:
-                  case 5:
-                      return '[u] dddd [u] LT';
-                  }
-              },
-              lastDay  : '[juče u] LT',
-              lastWeek : function () {
-                  var lastWeekDays = [
-                      '[prošle] [nedelje] [u] LT',
-                      '[prošlog] [ponedeljka] [u] LT',
-                      '[prošlog] [utorka] [u] LT',
-                      '[prošle] [srede] [u] LT',
-                      '[prošlog] [četvrtka] [u] LT',
-                      '[prošlog] [petka] [u] LT',
-                      '[prošle] [subote] [u] LT'
-                  ];
-                  return lastWeekDays[this.day()];
-              },
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "za %s",
-              past   : "pre %s",
-              s      : "nekoliko sekundi",
-              m      : translator.translate,
-              mm     : translator.translate,
-              h      : translator.translate,
-              hh     : translator.translate,
-              d      : "dan",
-              dd     : translator.translate,
-              M      : "mesec",
-              MM     : translator.translate,
-              y      : "godinu",
-              yy     : translator.translate
-          },
-          ordinal : '%d.',
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 7  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 121 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : swedish (sv)
-  // author : Jens Alm : https://github.com/ulmus
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('sv', {
-          months : "januari_februari_mars_april_maj_juni_juli_augusti_september_oktober_november_december".split("_"),
-          monthsShort : "jan_feb_mar_apr_maj_jun_jul_aug_sep_okt_nov_dec".split("_"),
-          weekdays : "söndag_måndag_tisdag_onsdag_torsdag_fredag_lördag".split("_"),
-          weekdaysShort : "sön_mån_tis_ons_tor_fre_lör".split("_"),
-          weekdaysMin : "sö_må_ti_on_to_fr_lö".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "YYYY-MM-DD",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY LT",
-              LLLL : "dddd D MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay: '[Idag] LT',
-              nextDay: '[Imorgon] LT',
-              lastDay: '[Igår] LT',
-              nextWeek: 'dddd LT',
-              lastWeek: '[Förra] dddd[en] LT',
-              sameElse: 'L'
-          },
-          relativeTime : {
-              future : "om %s",
-              past : "för %s sedan",
-              s : "några sekunder",
-              m : "en minut",
-              mm : "%d minuter",
-              h : "en timme",
-              hh : "%d timmar",
-              d : "en dag",
-              dd : "%d dagar",
-              M : "en månad",
-              MM : "%d månader",
-              y : "ett år",
-              yy : "%d år"
-          },
-          ordinal : function (number) {
-              var b = number % 10,
-                  output = (~~ (number % 100 / 10) === 1) ? 'e' :
-                  (b === 1) ? 'a' :
-                  (b === 2) ? 'a' :
-                  (b === 3) ? 'e' : 'e';
-              return number + output;
-          },
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 122 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : tamil (ta)
-  // author : Arjunkumar Krishnamoorthy : https://github.com/tk120404
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      /*var symbolMap = {
-              '1': '௧',
-              '2': '௨',
-              '3': '௩',
-              '4': '௪',
-              '5': '௫',
-              '6': '௬',
-              '7': '௭',
-              '8': '௮',
-              '9': '௯',
-              '0': '௦'
-          },
-          numberMap = {
-              '௧': '1',
-              '௨': '2',
-              '௩': '3',
-              '௪': '4',
-              '௫': '5',
-              '௬': '6',
-              '௭': '7',
-              '௮': '8',
-              '௯': '9',
-              '௦': '0'
-          }; */
-
-      return moment.lang('ta', {
-          months : 'ஜனவரி_பிப்ரவரி_மார்ச்_ஏப்ரல்_மே_ஜூன்_ஜூலை_ஆகஸ்ட்_செப்டெம்பர்_அக்டோபர்_நவம்பர்_டிசம்பர்'.split("_"),
-          monthsShort : 'ஜனவரி_பிப்ரவரி_மார்ச்_ஏப்ரல்_மே_ஜூன்_ஜூலை_ஆகஸ்ட்_செப்டெம்பர்_அக்டோபர்_நவம்பர்_டிசம்பர்'.split("_"),
-          weekdays : 'ஞாயிற்றுக்கிழமை_திங்கட்கிழமை_செவ்வாய்கிழமை_புதன்கிழமை_வியாழக்கிழமை_வெள்ளிக்கிழமை_சனிக்கிழமை'.split("_"),
-          weekdaysShort : 'ஞாயிறு_திங்கள்_செவ்வாய்_புதன்_வியாழன்_வெள்ளி_சனி'.split("_"),
-          weekdaysMin : 'ஞா_தி_செ_பு_வி_வெ_ச'.split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "DD/MM/YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY, LT",
-              LLLL : "dddd, D MMMM YYYY, LT"
-          },
-          calendar : {
-              sameDay : '[இன்று] LT',
-              nextDay : '[நாளை] LT',
-              nextWeek : 'dddd, LT',
-              lastDay : '[நேற்று] LT',
-              lastWeek : '[கடந்த வாரம்] dddd, LT',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "%s இல்",
-              past : "%s முன்",
-              s : "ஒரு சில விநாடிகள்",
-              m : "ஒரு நிமிடம்",
-              mm : "%d நிமிடங்கள்",
-              h : "ஒரு மணி நேரம்",
-              hh : "%d மணி நேரம்",
-              d : "ஒரு நாள்",
-              dd : "%d நாட்கள்",
-              M : "ஒரு மாதம்",
-              MM : "%d மாதங்கள்",
-              y : "ஒரு வருடம்",
-              yy : "%d ஆண்டுகள்"
-          },
-  /*        preparse: function (string) {
-              return string.replace(/[௧௨௩௪௫௬௭௮௯௦]/g, function (match) {
-                  return numberMap[match];
-              });
-          },
-          postformat: function (string) {
-              return string.replace(/\d/g, function (match) {
-                  return symbolMap[match];
-              });
-          },*/
-          ordinal : function (number) {
-              return number + 'வது';
-          },
-
-
-  // refer http://ta.wikipedia.org/s/1er1      
-
-          meridiem : function (hour, minute, isLower) {
-              if (hour >= 6 && hour <= 10) {
-                  return " காலை";
-              } else   if (hour >= 10 && hour <= 14) {
-                  return " நண்பகல்";
-              } else    if (hour >= 14 && hour <= 18) {
-                  return " எற்பாடு";
-              } else   if (hour >= 18 && hour <= 20) {
-                  return " மாலை";
-              } else  if (hour >= 20 && hour <= 24) {
-                  return " இரவு";
-              } else  if (hour >= 0 && hour <= 6) {
-                  return " வைகறை";
-              }
-          },
-          week : {
-              dow : 0, // Sunday is the first day of the week.
-              doy : 6  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 123 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : thai (th)
-  // author : Kridsada Thanabulpong : https://github.com/sirn
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('th', {
-          months : "มกราคม_กุมภาพันธ์_มีนาคม_เมษายน_พฤษภาคม_มิถุนายน_กรกฎาคม_สิงหาคม_กันยายน_ตุลาคม_พฤศจิกายน_ธันวาคม".split("_"),
-          monthsShort : "มกรา_กุมภา_มีนา_เมษา_พฤษภา_มิถุนา_กรกฎา_สิงหา_กันยา_ตุลา_พฤศจิกา_ธันวา".split("_"),
-          weekdays : "อาทิตย์_จันทร์_อังคาร_พุธ_พฤหัสบดี_ศุกร์_เสาร์".split("_"),
-          weekdaysShort : "อาทิตย์_จันทร์_อังคาร_พุธ_พฤหัส_ศุกร์_เสาร์".split("_"), // yes, three characters difference
-          weekdaysMin : "อา._จ._อ._พ._พฤ._ศ._ส.".split("_"),
-          longDateFormat : {
-              LT : "H นาฬิกา m นาที",
-              L : "YYYY/MM/DD",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY เวลา LT",
-              LLLL : "วันddddที่ D MMMM YYYY เวลา LT"
-          },
-          meridiem : function (hour, minute, isLower) {
-              if (hour < 12) {
-                  return "ก่อนเที่ยง";
-              } else {
-                  return "หลังเที่ยง";
-              }
-          },
-          calendar : {
-              sameDay : '[วันนี้ เวลา] LT',
-              nextDay : '[พรุ่งนี้ เวลา] LT',
-              nextWeek : 'dddd[หน้า เวลา] LT',
-              lastDay : '[เมื่อวานนี้ เวลา] LT',
-              lastWeek : '[วัน]dddd[ที่แล้ว เวลา] LT',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "อีก %s",
-              past : "%sที่แล้ว",
-              s : "ไม่กี่วินาที",
-              m : "1 นาที",
-              mm : "%d นาที",
-              h : "1 ชั่วโมง",
-              hh : "%d ชั่วโมง",
-              d : "1 วัน",
-              dd : "%d วัน",
-              M : "1 เดือน",
-              MM : "%d เดือน",
-              y : "1 ปี",
-              yy : "%d ปี"
-          }
-      });
-  }));
-
-
-/***/ },
-/* 124 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : Tagalog/Filipino (tl-ph)
-  // author : Dan Hagman
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('tl-ph', {
-          months : "Enero_Pebrero_Marso_Abril_Mayo_Hunyo_Hulyo_Agosto_Setyembre_Oktubre_Nobyembre_Disyembre".split("_"),
-          monthsShort : "Ene_Peb_Mar_Abr_May_Hun_Hul_Ago_Set_Okt_Nob_Dis".split("_"),
-          weekdays : "Linggo_Lunes_Martes_Miyerkules_Huwebes_Biyernes_Sabado".split("_"),
-          weekdaysShort : "Lin_Lun_Mar_Miy_Huw_Biy_Sab".split("_"),
-          weekdaysMin : "Li_Lu_Ma_Mi_Hu_Bi_Sab".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "MM/D/YYYY",
-              LL : "MMMM D, YYYY",
-              LLL : "MMMM D, YYYY LT",
-              LLLL : "dddd, MMMM DD, YYYY LT"
-          },
-          calendar : {
-              sameDay: "[Ngayon sa] LT",
-              nextDay: '[Bukas sa] LT',
-              nextWeek: 'dddd [sa] LT',
-              lastDay: '[Kahapon sa] LT',
-              lastWeek: 'dddd [huling linggo] LT',
-              sameElse: 'L'
-          },
-          relativeTime : {
-              future : "sa loob ng %s",
-              past : "%s ang nakalipas",
-              s : "ilang segundo",
-              m : "isang minuto",
-              mm : "%d minuto",
-              h : "isang oras",
-              hh : "%d oras",
-              d : "isang araw",
-              dd : "%d araw",
-              M : "isang buwan",
-              MM : "%d buwan",
-              y : "isang taon",
-              yy : "%d taon"
-          },
-          ordinal : function (number) {
-              return number;
-          },
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 125 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : turkish (tr)
-  // authors : Erhan Gundogan : https://github.com/erhangundogan,
-  //           Burak Yiğit Kaya: https://github.com/BYK
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-
-      var suffixes = {
-          1: "'inci",
-          5: "'inci",
-          8: "'inci",
-          70: "'inci",
-          80: "'inci",
-
-          2: "'nci",
-          7: "'nci",
-          20: "'nci",
-          50: "'nci",
-
-          3: "'üncü",
-          4: "'üncü",
-          100: "'üncü",
-
-          6: "'ncı",
-
-          9: "'uncu",
-          10: "'uncu",
-          30: "'uncu",
-
-          60: "'ıncı",
-          90: "'ıncı"
-      };
-
-      return moment.lang('tr', {
-          months : "Ocak_Şubat_Mart_Nisan_Mayıs_Haziran_Temmuz_Ağustos_Eylül_Ekim_Kasım_Aralık".split("_"),
-          monthsShort : "Oca_Şub_Mar_Nis_May_Haz_Tem_Ağu_Eyl_Eki_Kas_Ara".split("_"),
-          weekdays : "Pazar_Pazartesi_Salı_Çarşamba_Perşembe_Cuma_Cumartesi".split("_"),
-          weekdaysShort : "Paz_Pts_Sal_Çar_Per_Cum_Cts".split("_"),
-          weekdaysMin : "Pz_Pt_Sa_Ça_Pe_Cu_Ct".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "DD.MM.YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY LT",
-              LLLL : "dddd, D MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay : '[bugün saat] LT',
-              nextDay : '[yarın saat] LT',
-              nextWeek : '[haftaya] dddd [saat] LT',
-              lastDay : '[dün] LT',
-              lastWeek : '[geçen hafta] dddd [saat] LT',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "%s sonra",
-              past : "%s önce",
-              s : "birkaç saniye",
-              m : "bir dakika",
-              mm : "%d dakika",
-              h : "bir saat",
-              hh : "%d saat",
-              d : "bir gün",
-              dd : "%d gün",
-              M : "bir ay",
-              MM : "%d ay",
-              y : "bir yıl",
-              yy : "%d yıl"
-          },
-          ordinal : function (number) {
-              if (number === 0) {  // special case for zero
-                  return number + "'ıncı";
-              }
-              var a = number % 10,
-                  b = number % 100 - a,
-                  c = number >= 100 ? 100 : null;
-
-              return number + (suffixes[a] || suffixes[b] || suffixes[c]);
-          },
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 7  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 126 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : Morocco Central Atlas Tamaziɣt in Latin (tzm-latn)
-  // author : Abdel Said : https://github.com/abdelsaid
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('tzm-latn', {
-          months : "innayr_brˤayrˤ_marˤsˤ_ibrir_mayyw_ywnyw_ywlywz_ɣwšt_šwtanbir_ktˤwbrˤ_nwwanbir_dwjnbir".split("_"),
-          monthsShort : "innayr_brˤayrˤ_marˤsˤ_ibrir_mayyw_ywnyw_ywlywz_ɣwšt_šwtanbir_ktˤwbrˤ_nwwanbir_dwjnbir".split("_"),
-          weekdays : "asamas_aynas_asinas_akras_akwas_asimwas_asiḍyas".split("_"),
-          weekdaysShort : "asamas_aynas_asinas_akras_akwas_asimwas_asiḍyas".split("_"),
-          weekdaysMin : "asamas_aynas_asinas_akras_akwas_asimwas_asiḍyas".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "DD/MM/YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY LT",
-              LLLL : "dddd D MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay: "[asdkh g] LT",
-              nextDay: '[aska g] LT',
-              nextWeek: 'dddd [g] LT',
-              lastDay: '[assant g] LT',
-              lastWeek: 'dddd [g] LT',
-              sameElse: 'L'
-          },
-          relativeTime : {
-              future : "dadkh s yan %s",
-              past : "yan %s",
-              s : "imik",
-              m : "minuḍ",
-              mm : "%d minuḍ",
-              h : "saɛa",
-              hh : "%d tassaɛin",
-              d : "ass",
-              dd : "%d ossan",
-              M : "ayowr",
-              MM : "%d iyyirn",
-              y : "asgas",
-              yy : "%d isgasn"
-          },
-          week : {
-              dow : 6, // Saturday is the first day of the week.
-              doy : 12  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 127 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : Morocco Central Atlas Tamaziɣt (tzm)
-  // author : Abdel Said : https://github.com/abdelsaid
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('tzm', {
-          months : "ⵉⵏⵏⴰⵢⵔ_ⴱⵕⴰⵢⵕ_ⵎⴰⵕⵚ_ⵉⴱⵔⵉⵔ_ⵎⴰⵢⵢⵓ_ⵢⵓⵏⵢⵓ_ⵢⵓⵍⵢⵓⵣ_ⵖⵓⵛⵜ_ⵛⵓⵜⴰⵏⴱⵉⵔ_ⴽⵟⵓⴱⵕ_ⵏⵓⵡⴰⵏⴱⵉⵔ_ⴷⵓⵊⵏⴱⵉⵔ".split("_"),
-          monthsShort : "ⵉⵏⵏⴰⵢⵔ_ⴱⵕⴰⵢⵕ_ⵎⴰⵕⵚ_ⵉⴱⵔⵉⵔ_ⵎⴰⵢⵢⵓ_ⵢⵓⵏⵢⵓ_ⵢⵓⵍⵢⵓⵣ_ⵖⵓⵛⵜ_ⵛⵓⵜⴰⵏⴱⵉⵔ_ⴽⵟⵓⴱⵕ_ⵏⵓⵡⴰⵏⴱⵉⵔ_ⴷⵓⵊⵏⴱⵉⵔ".split("_"),
-          weekdays : "ⴰⵙⴰⵎⴰⵙ_ⴰⵢⵏⴰⵙ_ⴰⵙⵉⵏⴰⵙ_ⴰⴽⵔⴰⵙ_ⴰⴽⵡⴰⵙ_ⴰⵙⵉⵎⵡⴰⵙ_ⴰⵙⵉⴹⵢⴰⵙ".split("_"),
-          weekdaysShort : "ⴰⵙⴰⵎⴰⵙ_ⴰⵢⵏⴰⵙ_ⴰⵙⵉⵏⴰⵙ_ⴰⴽⵔⴰⵙ_ⴰⴽⵡⴰⵙ_ⴰⵙⵉⵎⵡⴰⵙ_ⴰⵙⵉⴹⵢⴰⵙ".split("_"),
-          weekdaysMin : "ⴰⵙⴰⵎⴰⵙ_ⴰⵢⵏⴰⵙ_ⴰⵙⵉⵏⴰⵙ_ⴰⴽⵔⴰⵙ_ⴰⴽⵡⴰⵙ_ⴰⵙⵉⵎⵡⴰⵙ_ⴰⵙⵉⴹⵢⴰⵙ".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "DD/MM/YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY LT",
-              LLLL : "dddd D MMMM YYYY LT"
-          },
-          calendar : {
-              sameDay: "[ⴰⵙⴷⵅ ⴴ] LT",
-              nextDay: '[ⴰⵙⴽⴰ ⴴ] LT',
-              nextWeek: 'dddd [ⴴ] LT',
-              lastDay: '[ⴰⵚⴰⵏⵜ ⴴ] LT',
-              lastWeek: 'dddd [ⴴ] LT',
-              sameElse: 'L'
-          },
-          relativeTime : {
-              future : "ⴷⴰⴷⵅ ⵙ ⵢⴰⵏ %s",
-              past : "ⵢⴰⵏ %s",
-              s : "ⵉⵎⵉⴽ",
-              m : "ⵎⵉⵏⵓⴺ",
-              mm : "%d ⵎⵉⵏⵓⴺ",
-              h : "ⵙⴰⵄⴰ",
-              hh : "%d ⵜⴰⵙⵙⴰⵄⵉⵏ",
-              d : "ⴰⵙⵙ",
-              dd : "%d oⵙⵙⴰⵏ",
-              M : "ⴰⵢoⵓⵔ",
-              MM : "%d ⵉⵢⵢⵉⵔⵏ",
-              y : "ⴰⵙⴳⴰⵙ",
-              yy : "%d ⵉⵙⴳⴰⵙⵏ"
-          },
-          week : {
-              dow : 6, // Saturday is the first day of the week.
-              doy : 12  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 128 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : ukrainian (uk)
-  // author : zemlanin : https://github.com/zemlanin
-  // Author : Menelion Elensúle : https://github.com/Oire
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      function plural(word, num) {
-          var forms = word.split('_');
-          return num % 10 === 1 && num % 100 !== 11 ? forms[0] : (num % 10 >= 2 && num % 10 <= 4 && (num % 100 < 10 || num % 100 >= 20) ? forms[1] : forms[2]);
-      }
-
-      function relativeTimeWithPlural(number, withoutSuffix, key) {
-          var format = {
-              'mm': 'хвилина_хвилини_хвилин',
-              'hh': 'година_години_годин',
-              'dd': 'день_дні_днів',
-              'MM': 'місяць_місяці_місяців',
-              'yy': 'рік_роки_років'
-          };
-          if (key === 'm') {
-              return withoutSuffix ? 'хвилина' : 'хвилину';
-          }
-          else if (key === 'h') {
-              return withoutSuffix ? 'година' : 'годину';
-          }
-          else {
-              return number + ' ' + plural(format[key], +number);
-          }
-      }
-
-      function monthsCaseReplace(m, format) {
-          var months = {
-              'nominative': 'січень_лютий_березень_квітень_травень_червень_липень_серпень_вересень_жовтень_листопад_грудень'.split('_'),
-              'accusative': 'січня_лютого_березня_квітня_травня_червня_липня_серпня_вересня_жовтня_листопада_грудня'.split('_')
-          },
-
-          nounCase = (/D[oD]? *MMMM?/).test(format) ?
-              'accusative' :
-              'nominative';
-
-          return months[nounCase][m.month()];
-      }
-
-      function weekdaysCaseReplace(m, format) {
-          var weekdays = {
-              'nominative': 'неділя_понеділок_вівторок_середа_четвер_п’ятниця_субота'.split('_'),
-              'accusative': 'неділю_понеділок_вівторок_середу_четвер_п’ятницю_суботу'.split('_'),
-              'genitive': 'неділі_понеділка_вівторка_середи_четверга_п’ятниці_суботи'.split('_')
-          },
-
-          nounCase = (/(\[[ВвУу]\]) ?dddd/).test(format) ?
-              'accusative' :
-              ((/\[?(?:минулої|наступної)? ?\] ?dddd/).test(format) ?
-                  'genitive' :
-                  'nominative');
-
-          return weekdays[nounCase][m.day()];
-      }
-
-      function processHoursFunction(str) {
-          return function () {
-              return str + 'о' + (this.hours() === 11 ? 'б' : '') + '] LT';
-          };
-      }
-
-      return moment.lang('uk', {
-          months : monthsCaseReplace,
-          monthsShort : "січ_лют_бер_квіт_трав_черв_лип_серп_вер_жовт_лист_груд".split("_"),
-          weekdays : weekdaysCaseReplace,
-          weekdaysShort : "нд_пн_вт_ср_чт_пт_сб".split("_"),
-          weekdaysMin : "нд_пн_вт_ср_чт_пт_сб".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "DD.MM.YYYY",
-              LL : "D MMMM YYYY р.",
-              LLL : "D MMMM YYYY р., LT",
-              LLLL : "dddd, D MMMM YYYY р., LT"
-          },
-          calendar : {
-              sameDay: processHoursFunction('[Сьогодні '),
-              nextDay: processHoursFunction('[Завтра '),
-              lastDay: processHoursFunction('[Вчора '),
-              nextWeek: processHoursFunction('[У] dddd ['),
-              lastWeek: function () {
-                  switch (this.day()) {
-                  case 0:
-                  case 3:
-                  case 5:
-                  case 6:
-                      return processHoursFunction('[Минулої] dddd [').call(this);
-                  case 1:
-                  case 2:
-                  case 4:
-                      return processHoursFunction('[Минулого] dddd [').call(this);
-                  }
-              },
-              sameElse: 'L'
-          },
-          relativeTime : {
-              future : "за %s",
-              past : "%s тому",
-              s : "декілька секунд",
-              m : relativeTimeWithPlural,
-              mm : relativeTimeWithPlural,
-              h : "годину",
-              hh : relativeTimeWithPlural,
-              d : "день",
-              dd : relativeTimeWithPlural,
-              M : "місяць",
-              MM : relativeTimeWithPlural,
-              y : "рік",
-              yy : relativeTimeWithPlural
-          },
-
-          // M. E.: those two are virtually unused but a user might want to implement them for his/her website for some reason
-
-          meridiem : function (hour, minute, isLower) {
-              if (hour < 4) {
-                  return "ночі";
-              } else if (hour < 12) {
-                  return "ранку";
-              } else if (hour < 17) {
-                  return "дня";
-              } else {
-                  return "вечора";
-              }
-          },
-
-          ordinal: function (number, period) {
-              switch (period) {
-              case 'M':
-              case 'd':
-              case 'DDD':
-              case 'w':
-              case 'W':
-                  return number + '-й';
-              case 'D':
-                  return number + '-го';
-              default:
-                  return number;
-              }
-          },
-
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 7  // The week that contains Jan 1st is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 129 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : uzbek
-  // author : Sardor Muminov : https://github.com/muminoff
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('uz', {
-          months : "январь_февраль_март_апрель_май_июнь_июль_август_сентябрь_октябрь_ноябрь_декабрь".split("_"),
-          monthsShort : "янв_фев_мар_апр_май_июн_июл_авг_сен_окт_ноя_дек".split("_"),
-          weekdays : "Якшанба_Душанба_Сешанба_Чоршанба_Пайшанба_Жума_Шанба".split("_"),
-          weekdaysShort : "Якш_Душ_Сеш_Чор_Пай_Жум_Шан".split("_"),
-          weekdaysMin : "Як_Ду_Се_Чо_Па_Жу_Ша".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "DD/MM/YYYY",
-              LL : "D MMMM YYYY",
-              LLL : "D MMMM YYYY LT",
-              LLLL : "D MMMM YYYY, dddd LT"
-          },
-          calendar : {
-              sameDay : '[Бугун соат] LT [да]',
-              nextDay : '[Эртага] LT [да]',
-              nextWeek : 'dddd [куни соат] LT [да]',
-              lastDay : '[Кеча соат] LT [да]',
-              lastWeek : '[Утган] dddd [куни соат] LT [да]',
-              sameElse : 'L'
-          },
-          relativeTime : {
-              future : "Якин %s ичида",
-              past : "Бир неча %s олдин",
-              s : "фурсат",
-              m : "бир дакика",
-              mm : "%d дакика",
-              h : "бир соат",
-              hh : "%d соат",
-              d : "бир кун",
-              dd : "%d кун",
-              M : "бир ой",
-              MM : "%d ой",
-              y : "бир йил",
-              yy : "%d йил"
-          },
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 7  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 130 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : vietnamese (vi)
-  // author : Bang Nguyen : https://github.com/bangnk
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('vi', {
-          months : "tháng 1_tháng 2_tháng 3_tháng 4_tháng 5_tháng 6_tháng 7_tháng 8_tháng 9_tháng 10_tháng 11_tháng 12".split("_"),
-          monthsShort : "Th01_Th02_Th03_Th04_Th05_Th06_Th07_Th08_Th09_Th10_Th11_Th12".split("_"),
-          weekdays : "chủ nhật_thứ hai_thứ ba_thứ tư_thứ năm_thứ sáu_thứ bảy".split("_"),
-          weekdaysShort : "CN_T2_T3_T4_T5_T6_T7".split("_"),
-          weekdaysMin : "CN_T2_T3_T4_T5_T6_T7".split("_"),
-          longDateFormat : {
-              LT : "HH:mm",
-              L : "DD/MM/YYYY",
-              LL : "D MMMM [năm] YYYY",
-              LLL : "D MMMM [năm] YYYY LT",
-              LLLL : "dddd, D MMMM [năm] YYYY LT",
-              l : "DD/M/YYYY",
-              ll : "D MMM YYYY",
-              lll : "D MMM YYYY LT",
-              llll : "ddd, D MMM YYYY LT"
-          },
-          calendar : {
-              sameDay: "[Hôm nay lúc] LT",
-              nextDay: '[Ngày mai lúc] LT',
-              nextWeek: 'dddd [tuần tới lúc] LT',
-              lastDay: '[Hôm qua lúc] LT',
-              lastWeek: 'dddd [tuần rồi lúc] LT',
-              sameElse: 'L'
-          },
-          relativeTime : {
-              future : "%s tới",
-              past : "%s trước",
-              s : "vài giây",
-              m : "một phút",
-              mm : "%d phút",
-              h : "một giờ",
-              hh : "%d giờ",
-              d : "một ngày",
-              dd : "%d ngày",
-              M : "một tháng",
-              MM : "%d tháng",
-              y : "một năm",
-              yy : "%d năm"
-          },
-          ordinal : function (number) {
-              return number;
-          },
-          week : {
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 131 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : chinese
-  // author : suupic : https://github.com/suupic
-  // author : Zeno Zeng : https://github.com/zenozeng
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('zh-cn', {
-          months : "一月_二月_三月_四月_五月_六月_七月_八月_九月_十月_十一月_十二月".split("_"),
-          monthsShort : "1月_2月_3月_4月_5月_6月_7月_8月_9月_10月_11月_12月".split("_"),
-          weekdays : "星期日_星期一_星期二_星期三_星期四_星期五_星期六".split("_"),
-          weekdaysShort : "周日_周一_周二_周三_周四_周五_周六".split("_"),
-          weekdaysMin : "日_一_二_三_四_五_六".split("_"),
-          longDateFormat : {
-              LT : "Ah点mm",
-              L : "YYYY-MM-DD",
-              LL : "YYYY年MMMD日",
-              LLL : "YYYY年MMMD日LT",
-              LLLL : "YYYY年MMMD日ddddLT",
-              l : "YYYY-MM-DD",
-              ll : "YYYY年MMMD日",
-              lll : "YYYY年MMMD日LT",
-              llll : "YYYY年MMMD日ddddLT"
-          },
-          meridiem : function (hour, minute, isLower) {
-              var hm = hour * 100 + minute;
-              if (hm < 600) {
-                  return "凌晨";
-              } else if (hm < 900) {
-                  return "早上";
-              } else if (hm < 1130) {
-                  return "上午";
-              } else if (hm < 1230) {
-                  return "中午";
-              } else if (hm < 1800) {
-                  return "下午";
-              } else {
-                  return "晚上";
-              }
-          },
-          calendar : {
-              sameDay : function () {
-                  return this.minutes() === 0 ? "[今天]Ah[点整]" : "[今天]LT";
-              },
-              nextDay : function () {
-                  return this.minutes() === 0 ? "[明天]Ah[点整]" : "[明天]LT";
-              },
-              lastDay : function () {
-                  return this.minutes() === 0 ? "[昨天]Ah[点整]" : "[昨天]LT";
-              },
-              nextWeek : function () {
-                  var startOfWeek, prefix;
-                  startOfWeek = moment().startOf('week');
-                  prefix = this.unix() - startOfWeek.unix() >= 7 * 24 * 3600 ? '[下]' : '[本]';
-                  return this.minutes() === 0 ? prefix + "dddAh点整" : prefix + "dddAh点mm";
-              },
-              lastWeek : function () {
-                  var startOfWeek, prefix;
-                  startOfWeek = moment().startOf('week');
-                  prefix = this.unix() < startOfWeek.unix()  ? '[上]' : '[本]';
-                  return this.minutes() === 0 ? prefix + "dddAh点整" : prefix + "dddAh点mm";
-              },
-              sameElse : 'LL'
-          },
-          ordinal : function (number, period) {
-              switch (period) {
-              case "d":
-              case "D":
-              case "DDD":
-                  return number + "日";
-              case "M":
-                  return number + "月";
-              case "w":
-              case "W":
-                  return number + "周";
-              default:
-                  return number;
-              }
-          },
-          relativeTime : {
-              future : "%s内",
-              past : "%s前",
-              s : "几秒",
-              m : "1分钟",
-              mm : "%d分钟",
-              h : "1小时",
-              hh : "%d小时",
-              d : "1天",
-              dd : "%d天",
-              M : "1个月",
-              MM : "%d个月",
-              y : "1年",
-              yy : "%d年"
-          },
-          week : {
-              // GB/T 7408-1994《数据元和交换格式·信息交换·日期和时间表示法》与ISO 8601:1988等效
-              dow : 1, // Monday is the first day of the week.
-              doy : 4  // The week that contains Jan 4th is the first week of the year.
-          }
-      });
-  }));
-
-
-/***/ },
-/* 132 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
-  // language : traditional chinese (zh-tw)
-  // author : Ben : https://github.com/ben-lin
-
-  (function (factory) {
-      if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(53)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
-      } else if (typeof exports === 'object') {
-          module.exports = factory(require('../moment')); // Node
-      } else {
-          factory(window.moment); // Browser global
-      }
-  }(function (moment) {
-      return moment.lang('zh-tw', {
-          months : "一月_二月_三月_四月_五月_六月_七月_八月_九月_十月_十一月_十二月".split("_"),
-          monthsShort : "1月_2月_3月_4月_5月_6月_7月_8月_9月_10月_11月_12月".split("_"),
-          weekdays : "星期日_星期一_星期二_星期三_星期四_星期五_星期六".split("_"),
-          weekdaysShort : "週日_週一_週二_週三_週四_週五_週六".split("_"),
-          weekdaysMin : "日_一_二_三_四_五_六".split("_"),
-          longDateFormat : {
-              LT : "Ah點mm",
-              L : "YYYY年MMMD日",
-              LL : "YYYY年MMMD日",
-              LLL : "YYYY年MMMD日LT",
-              LLLL : "YYYY年MMMD日ddddLT",
-              l : "YYYY年MMMD日",
-              ll : "YYYY年MMMD日",
-              lll : "YYYY年MMMD日LT",
-              llll : "YYYY年MMMD日ddddLT"
-          },
-          meridiem : function (hour, minute, isLower) {
-              var hm = hour * 100 + minute;
-              if (hm < 900) {
-                  return "早上";
-              } else if (hm < 1130) {
-                  return "上午";
-              } else if (hm < 1230) {
-                  return "中午";
-              } else if (hm < 1800) {
-                  return "下午";
-              } else {
-                  return "晚上";
-              }
-          },
-          calendar : {
-              sameDay : '[今天]LT',
-              nextDay : '[明天]LT',
-              nextWeek : '[下]ddddLT',
-              lastDay : '[昨天]LT',
-              lastWeek : '[上]ddddLT',
-              sameElse : 'L'
-          },
-          ordinal : function (number, period) {
-              switch (period) {
-              case "d" :
-              case "D" :
-              case "DDD" :
-                  return number + "日";
-              case "M" :
-                  return number + "月";
-              case "w" :
-              case "W" :
-                  return number + "週";
-              default :
-                  return number;
-              }
-          },
-          relativeTime : {
-              future : "%s內",
-              past : "%s前",
-              s : "幾秒",
-              m : "一分鐘",
-              mm : "%d分鐘",
-              h : "一小時",
-              hh : "%d小時",
-              d : "一天",
-              dd : "%d天",
-              M : "一個月",
-              MM : "%d個月",
-              y : "一年",
-              yy : "%d年"
-          }
-      });
-  }));
-
-
-/***/ },
-/* 133 */
 /***/ function(module, exports, __webpack_require__) {
 
   module.exports = function(module) {
