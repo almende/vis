@@ -8,11 +8,19 @@ exports.DataView = require('./lib/DataView');
 
 // Graph3d
 exports.Graph3d = require('./lib/graph3d/Graph3d');
+exports.graph3d = {
+  Camera: require('./lib/graph3d/Camera'),
+  Filter: require('./lib/graph3d/Filter'),
+  Point2d: require('./lib/graph3d/Point2d'),
+  Point3d: require('./lib/graph3d/Point3d'),
+  Slider: require('./lib/graph3d/Slider'),
+  StepNumber: require('./lib/graph3d/StepNumber')
+};
 
 // Timeline
 exports.Timeline = require('./lib/timeline/Timeline');
 exports.Graph2d = require('./lib/timeline/Graph2d');
-exports.timeline= {
+exports.timeline = {
   DataStep: require('./lib/timeline/DataStep'),
   Range: require('./lib/timeline/Range'),
   stack: require('./lib/timeline/Stack'),
