@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.0.1-SNAPSHOT
- * @date    2014-07-18
+ * @date    2014-07-21
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -81,54 +81,54 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // utils
   exports.util = __webpack_require__(1);
-  exports.DOMutil = __webpack_require__(2);
+  exports.DOMutil = __webpack_require__(8);
 
   // data
-  exports.DataSet = __webpack_require__(3);
-  exports.DataView = __webpack_require__(4);
+  exports.DataSet = __webpack_require__(9);
+  exports.DataView = __webpack_require__(10);
 
   // Graph3d
-  exports.Graph3d = __webpack_require__(5);
+  exports.Graph3d = __webpack_require__(11);
 
   // Timeline
-  exports.Timeline = __webpack_require__(11);
-  exports.Graph2d = __webpack_require__(30);
+  exports.Timeline = __webpack_require__(17);
+  exports.Graph2d = __webpack_require__(31);
   exports.timeline= {
-    DataStep: __webpack_require__(33),
-    Range: __webpack_require__(13),
-    stack: __webpack_require__(25),
-    TimeStep: __webpack_require__(20),
+    DataStep: __webpack_require__(34),
+    Range: __webpack_require__(18),
+    stack: __webpack_require__(26),
+    TimeStep: __webpack_require__(21),
 
     components: {
       items: {
-        Item: __webpack_require__(27),
-        ItemBox: __webpack_require__(28),
-        ItemPoint: __webpack_require__(29),
-        ItemRange: __webpack_require__(26)
+        Item: __webpack_require__(28),
+        ItemBox: __webpack_require__(29),
+        ItemPoint: __webpack_require__(30),
+        ItemRange: __webpack_require__(27)
       },
 
-      Component: __webpack_require__(18),
-      CurrentTime: __webpack_require__(21),
-      CustomTime: __webpack_require__(22),
-      DataAxis: __webpack_require__(32),
-      GraphGroup: __webpack_require__(34),
-      Group: __webpack_require__(24),
-      ItemSet: __webpack_require__(23),
-      Legend: __webpack_require__(35),
-      LineGraph: __webpack_require__(31),
-      TimeAxis: __webpack_require__(19)
+      Component: __webpack_require__(19),
+      CurrentTime: __webpack_require__(22),
+      CustomTime: __webpack_require__(23),
+      DataAxis: __webpack_require__(33),
+      GraphGroup: __webpack_require__(35),
+      Group: __webpack_require__(25),
+      ItemSet: __webpack_require__(24),
+      Legend: __webpack_require__(36),
+      LineGraph: __webpack_require__(32),
+      TimeAxis: __webpack_require__(20)
     }
   };
 
   // Network
-  exports.Network = __webpack_require__(36);
+  exports.Network = __webpack_require__(37);
   exports.network = {
-    Edge: __webpack_require__(42),
-    Groups: __webpack_require__(39),
-    Images: __webpack_require__(40),
-    Node: __webpack_require__(41),
-    Popup: __webpack_require__(43),
-    dotparser: __webpack_require__(38)
+    Edge: __webpack_require__(43),
+    Groups: __webpack_require__(40),
+    Images: __webpack_require__(41),
+    Node: __webpack_require__(42),
+    Popup: __webpack_require__(44),
+    dotparser: __webpack_require__(39)
   };
 
   // Deprecated since v3.0.0
@@ -145,8 +145,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // first check if moment.js is already loaded in the browser window, if so,
   // use this instance. Else, load via commonjs.
-  var Hammer = __webpack_require__(130);
-  var moment = __webpack_require__(14);
+  var Hammer = __webpack_require__(2);
+  var moment = __webpack_require__(4);
 
   /**
    * Test whether given object is a number
@@ -1117,9 +1117,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   /**
    * https://gist.github.com/mjijackson/5311256
-   * @param hue
-   * @param saturation
-   * @param value
+   * @param h
+   * @param s
+   * @param v
    * @returns {{r: number, g: number, b: number}}
    * @constructor
    */
@@ -1432,6 +1432,4258 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
+  // Only load hammer.js when in a browser environment
+  // (loading hammer.js in a node.js environment gives errors)
+  if (typeof window !== 'undefined') {
+    module.exports = window['Hammer'] || __webpack_require__(3);
+    // TODO: throw an error when hammerjs is not available?
+  }
+  else {
+    module.exports = function () {
+      throw Error('hammer.js is only available in a browser, not in node.js.');
+    }
+  }
+
+
+/***/ },
+/* 3 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /*! Hammer.JS - v1.0.5 - 2013-04-07
+   * http://eightmedia.github.com/hammer.js
+   *
+   * Copyright (c) 2013 Jorik Tangelder <j.tangelder@gmail.com>;
+   * Licensed under the MIT license */
+
+  (function(window, undefined) {
+      'use strict';
+
+  /**
+   * Hammer
+   * use this to create instances
+   * @param   {HTMLElement}   element
+   * @param   {Object}        options
+   * @returns {Hammer.Instance}
+   * @constructor
+   */
+  var Hammer = function(element, options) {
+      return new Hammer.Instance(element, options || {});
+  };
+
+  // default settings
+  Hammer.defaults = {
+      // add styles and attributes to the element to prevent the browser from doing
+      // its native behavior. this doesnt prevent the scrolling, but cancels
+      // the contextmenu, tap highlighting etc
+      // set to false to disable this
+      stop_browser_behavior: {
+  		// this also triggers onselectstart=false for IE
+          userSelect: 'none',
+  		// this makes the element blocking in IE10 >, you could experiment with the value
+  		// see for more options this issue; https://github.com/EightMedia/hammer.js/issues/241
+          touchAction: 'none',
+  		touchCallout: 'none',
+          contentZooming: 'none',
+          userDrag: 'none',
+          tapHighlightColor: 'rgba(0,0,0,0)'
+      }
+
+      // more settings are defined per gesture at gestures.js
+  };
+
+  // detect touchevents
+  Hammer.HAS_POINTEREVENTS = navigator.pointerEnabled || navigator.msPointerEnabled;
+  Hammer.HAS_TOUCHEVENTS = ('ontouchstart' in window);
+
+  // dont use mouseevents on mobile devices
+  Hammer.MOBILE_REGEX = /mobile|tablet|ip(ad|hone|od)|android/i;
+  Hammer.NO_MOUSEEVENTS = Hammer.HAS_TOUCHEVENTS && navigator.userAgent.match(Hammer.MOBILE_REGEX);
+
+  // eventtypes per touchevent (start, move, end)
+  // are filled by Hammer.event.determineEventTypes on setup
+  Hammer.EVENT_TYPES = {};
+
+  // direction defines
+  Hammer.DIRECTION_DOWN = 'down';
+  Hammer.DIRECTION_LEFT = 'left';
+  Hammer.DIRECTION_UP = 'up';
+  Hammer.DIRECTION_RIGHT = 'right';
+
+  // pointer type
+  Hammer.POINTER_MOUSE = 'mouse';
+  Hammer.POINTER_TOUCH = 'touch';
+  Hammer.POINTER_PEN = 'pen';
+
+  // touch event defines
+  Hammer.EVENT_START = 'start';
+  Hammer.EVENT_MOVE = 'move';
+  Hammer.EVENT_END = 'end';
+
+  // hammer document where the base events are added at
+  Hammer.DOCUMENT = document;
+
+  // plugins namespace
+  Hammer.plugins = {};
+
+  // if the window events are set...
+  Hammer.READY = false;
+
+  /**
+   * setup events to detect gestures on the document
+   */
+  function setup() {
+      if(Hammer.READY) {
+          return;
+      }
+
+      // find what eventtypes we add listeners to
+      Hammer.event.determineEventTypes();
+
+      // Register all gestures inside Hammer.gestures
+      for(var name in Hammer.gestures) {
+          if(Hammer.gestures.hasOwnProperty(name)) {
+              Hammer.detection.register(Hammer.gestures[name]);
+          }
+      }
+
+      // Add touch events on the document
+      Hammer.event.onTouch(Hammer.DOCUMENT, Hammer.EVENT_MOVE, Hammer.detection.detect);
+      Hammer.event.onTouch(Hammer.DOCUMENT, Hammer.EVENT_END, Hammer.detection.detect);
+
+      // Hammer is ready...!
+      Hammer.READY = true;
+  }
+
+  /**
+   * create new hammer instance
+   * all methods should return the instance itself, so it is chainable.
+   * @param   {HTMLElement}       element
+   * @param   {Object}            [options={}]
+   * @returns {Hammer.Instance}
+   * @constructor
+   */
+  Hammer.Instance = function(element, options) {
+      var self = this;
+
+      // setup HammerJS window events and register all gestures
+      // this also sets up the default options
+      setup();
+
+      this.element = element;
+
+      // start/stop detection option
+      this.enabled = true;
+
+      // merge options
+      this.options = Hammer.utils.extend(
+          Hammer.utils.extend({}, Hammer.defaults),
+          options || {});
+
+      // add some css to the element to prevent the browser from doing its native behavoir
+      if(this.options.stop_browser_behavior) {
+          Hammer.utils.stopDefaultBrowserBehavior(this.element, this.options.stop_browser_behavior);
+      }
+
+      // start detection on touchstart
+      Hammer.event.onTouch(element, Hammer.EVENT_START, function(ev) {
+          if(self.enabled) {
+              Hammer.detection.startDetect(self, ev);
+          }
+      });
+
+      // return instance
+      return this;
+  };
+
+
+  Hammer.Instance.prototype = {
+      /**
+       * bind events to the instance
+       * @param   {String}      gesture
+       * @param   {Function}    handler
+       * @returns {Hammer.Instance}
+       */
+      on: function onEvent(gesture, handler){
+          var gestures = gesture.split(' ');
+          for(var t=0; t<gestures.length; t++) {
+              this.element.addEventListener(gestures[t], handler, false);
+          }
+          return this;
+      },
+
+
+      /**
+       * unbind events to the instance
+       * @param   {String}      gesture
+       * @param   {Function}    handler
+       * @returns {Hammer.Instance}
+       */
+      off: function offEvent(gesture, handler){
+          var gestures = gesture.split(' ');
+          for(var t=0; t<gestures.length; t++) {
+              this.element.removeEventListener(gestures[t], handler, false);
+          }
+          return this;
+      },
+
+
+      /**
+       * trigger gesture event
+       * @param   {String}      gesture
+       * @param   {Object}      eventData
+       * @returns {Hammer.Instance}
+       */
+      trigger: function triggerEvent(gesture, eventData){
+          // create DOM event
+          var event = Hammer.DOCUMENT.createEvent('Event');
+  		event.initEvent(gesture, true, true);
+  		event.gesture = eventData;
+
+          // trigger on the target if it is in the instance element,
+          // this is for event delegation tricks
+          var element = this.element;
+          if(Hammer.utils.hasParent(eventData.target, element)) {
+              element = eventData.target;
+          }
+
+          element.dispatchEvent(event);
+          return this;
+      },
+
+
+      /**
+       * enable of disable hammer.js detection
+       * @param   {Boolean}   state
+       * @returns {Hammer.Instance}
+       */
+      enable: function enable(state) {
+          this.enabled = state;
+          return this;
+      }
+  };
+
+  /**
+   * this holds the last move event,
+   * used to fix empty touchend issue
+   * see the onTouch event for an explanation
+   * @type {Object}
+   */
+  var last_move_event = null;
+
+
+  /**
+   * when the mouse is hold down, this is true
+   * @type {Boolean}
+   */
+  var enable_detect = false;
+
+
+  /**
+   * when touch events have been fired, this is true
+   * @type {Boolean}
+   */
+  var touch_triggered = false;
+
+
+  Hammer.event = {
+      /**
+       * simple addEventListener
+       * @param   {HTMLElement}   element
+       * @param   {String}        type
+       * @param   {Function}      handler
+       */
+      bindDom: function(element, type, handler) {
+          var types = type.split(' ');
+          for(var t=0; t<types.length; t++) {
+              element.addEventListener(types[t], handler, false);
+          }
+      },
+
+
+      /**
+       * touch events with mouse fallback
+       * @param   {HTMLElement}   element
+       * @param   {String}        eventType        like Hammer.EVENT_MOVE
+       * @param   {Function}      handler
+       */
+      onTouch: function onTouch(element, eventType, handler) {
+  		var self = this;
+
+          this.bindDom(element, Hammer.EVENT_TYPES[eventType], function bindDomOnTouch(ev) {
+              var sourceEventType = ev.type.toLowerCase();
+
+              // onmouseup, but when touchend has been fired we do nothing.
+              // this is for touchdevices which also fire a mouseup on touchend
+              if(sourceEventType.match(/mouse/) && touch_triggered) {
+                  return;
+              }
+
+              // mousebutton must be down or a touch event
+              else if( sourceEventType.match(/touch/) ||   // touch events are always on screen
+                  sourceEventType.match(/pointerdown/) || // pointerevents touch
+                  (sourceEventType.match(/mouse/) && ev.which === 1)   // mouse is pressed
+              ){
+                  enable_detect = true;
+              }
+
+              // we are in a touch event, set the touch triggered bool to true,
+              // this for the conflicts that may occur on ios and android
+              if(sourceEventType.match(/touch|pointer/)) {
+                  touch_triggered = true;
+              }
+
+              // count the total touches on the screen
+              var count_touches = 0;
+
+              // when touch has been triggered in this detection session
+              // and we are now handling a mouse event, we stop that to prevent conflicts
+              if(enable_detect) {
+                  // update pointerevent
+                  if(Hammer.HAS_POINTEREVENTS && eventType != Hammer.EVENT_END) {
+                      count_touches = Hammer.PointerEvent.updatePointer(eventType, ev);
+                  }
+                  // touch
+                  else if(sourceEventType.match(/touch/)) {
+                      count_touches = ev.touches.length;
+                  }
+                  // mouse
+                  else if(!touch_triggered) {
+                      count_touches = sourceEventType.match(/up/) ? 0 : 1;
+                  }
+
+                  // if we are in a end event, but when we remove one touch and
+                  // we still have enough, set eventType to move
+                  if(count_touches > 0 && eventType == Hammer.EVENT_END) {
+                      eventType = Hammer.EVENT_MOVE;
+                  }
+                  // no touches, force the end event
+                  else if(!count_touches) {
+                      eventType = Hammer.EVENT_END;
+                  }
+
+                  // because touchend has no touches, and we often want to use these in our gestures,
+                  // we send the last move event as our eventData in touchend
+                  if(!count_touches && last_move_event !== null) {
+                      ev = last_move_event;
+                  }
+                  // store the last move event
+                  else {
+                      last_move_event = ev;
+                  }
+
+                  // trigger the handler
+                  handler.call(Hammer.detection, self.collectEventData(element, eventType, ev));
+
+                  // remove pointerevent from list
+                  if(Hammer.HAS_POINTEREVENTS && eventType == Hammer.EVENT_END) {
+                      count_touches = Hammer.PointerEvent.updatePointer(eventType, ev);
+                  }
+              }
+
+              //debug(sourceEventType +" "+ eventType);
+
+              // on the end we reset everything
+              if(!count_touches) {
+                  last_move_event = null;
+                  enable_detect = false;
+                  touch_triggered = false;
+                  Hammer.PointerEvent.reset();
+              }
+          });
+      },
+
+
+      /**
+       * we have different events for each device/browser
+       * determine what we need and set them in the Hammer.EVENT_TYPES constant
+       */
+      determineEventTypes: function determineEventTypes() {
+          // determine the eventtype we want to set
+          var types;
+
+          // pointerEvents magic
+          if(Hammer.HAS_POINTEREVENTS) {
+              types = Hammer.PointerEvent.getEvents();
+          }
+          // on Android, iOS, blackberry, windows mobile we dont want any mouseevents
+          else if(Hammer.NO_MOUSEEVENTS) {
+              types = [
+                  'touchstart',
+                  'touchmove',
+                  'touchend touchcancel'];
+          }
+          // for non pointer events browsers and mixed browsers,
+          // like chrome on windows8 touch laptop
+          else {
+              types = [
+                  'touchstart mousedown',
+                  'touchmove mousemove',
+                  'touchend touchcancel mouseup'];
+          }
+
+          Hammer.EVENT_TYPES[Hammer.EVENT_START]  = types[0];
+          Hammer.EVENT_TYPES[Hammer.EVENT_MOVE]   = types[1];
+          Hammer.EVENT_TYPES[Hammer.EVENT_END]    = types[2];
+      },
+
+
+      /**
+       * create touchlist depending on the event
+       * @param   {Object}    ev
+       * @param   {String}    eventType   used by the fakemultitouch plugin
+       */
+      getTouchList: function getTouchList(ev/*, eventType*/) {
+          // get the fake pointerEvent touchlist
+          if(Hammer.HAS_POINTEREVENTS) {
+              return Hammer.PointerEvent.getTouchList();
+          }
+          // get the touchlist
+          else if(ev.touches) {
+              return ev.touches;
+          }
+          // make fake touchlist from mouse position
+          else {
+              return [{
+                  identifier: 1,
+                  pageX: ev.pageX,
+                  pageY: ev.pageY,
+                  target: ev.target
+              }];
+          }
+      },
+
+
+      /**
+       * collect event data for Hammer js
+       * @param   {HTMLElement}   element
+       * @param   {String}        eventType        like Hammer.EVENT_MOVE
+       * @param   {Object}        eventData
+       */
+      collectEventData: function collectEventData(element, eventType, ev) {
+          var touches = this.getTouchList(ev, eventType);
+
+          // find out pointerType
+          var pointerType = Hammer.POINTER_TOUCH;
+          if(ev.type.match(/mouse/) || Hammer.PointerEvent.matchType(Hammer.POINTER_MOUSE, ev)) {
+              pointerType = Hammer.POINTER_MOUSE;
+          }
+
+          return {
+              center      : Hammer.utils.getCenter(touches),
+              timeStamp   : new Date().getTime(),
+              target      : ev.target,
+              touches     : touches,
+              eventType   : eventType,
+              pointerType : pointerType,
+              srcEvent    : ev,
+
+              /**
+               * prevent the browser default actions
+               * mostly used to disable scrolling of the browser
+               */
+              preventDefault: function() {
+                  if(this.srcEvent.preventManipulation) {
+                      this.srcEvent.preventManipulation();
+                  }
+
+                  if(this.srcEvent.preventDefault) {
+                      this.srcEvent.preventDefault();
+                  }
+              },
+
+              /**
+               * stop bubbling the event up to its parents
+               */
+              stopPropagation: function() {
+                  this.srcEvent.stopPropagation();
+              },
+
+              /**
+               * immediately stop gesture detection
+               * might be useful after a swipe was detected
+               * @return {*}
+               */
+              stopDetect: function() {
+                  return Hammer.detection.stopDetect();
+              }
+          };
+      }
+  };
+
+  Hammer.PointerEvent = {
+      /**
+       * holds all pointers
+       * @type {Object}
+       */
+      pointers: {},
+
+      /**
+       * get a list of pointers
+       * @returns {Array}     touchlist
+       */
+      getTouchList: function() {
+          var self = this;
+          var touchlist = [];
+
+          // we can use forEach since pointerEvents only is in IE10
+          Object.keys(self.pointers).sort().forEach(function(id) {
+              touchlist.push(self.pointers[id]);
+          });
+          return touchlist;
+      },
+
+      /**
+       * update the position of a pointer
+       * @param   {String}   type             Hammer.EVENT_END
+       * @param   {Object}   pointerEvent
+       */
+      updatePointer: function(type, pointerEvent) {
+          if(type == Hammer.EVENT_END) {
+              this.pointers = {};
+          }
+          else {
+              pointerEvent.identifier = pointerEvent.pointerId;
+              this.pointers[pointerEvent.pointerId] = pointerEvent;
+          }
+
+          return Object.keys(this.pointers).length;
+      },
+
+      /**
+       * check if ev matches pointertype
+       * @param   {String}        pointerType     Hammer.POINTER_MOUSE
+       * @param   {PointerEvent}  ev
+       */
+      matchType: function(pointerType, ev) {
+          if(!ev.pointerType) {
+              return false;
+          }
+
+          var types = {};
+          types[Hammer.POINTER_MOUSE] = (ev.pointerType == ev.MSPOINTER_TYPE_MOUSE || ev.pointerType == Hammer.POINTER_MOUSE);
+          types[Hammer.POINTER_TOUCH] = (ev.pointerType == ev.MSPOINTER_TYPE_TOUCH || ev.pointerType == Hammer.POINTER_TOUCH);
+          types[Hammer.POINTER_PEN] = (ev.pointerType == ev.MSPOINTER_TYPE_PEN || ev.pointerType == Hammer.POINTER_PEN);
+          return types[pointerType];
+      },
+
+
+      /**
+       * get events
+       */
+      getEvents: function() {
+          return [
+              'pointerdown MSPointerDown',
+              'pointermove MSPointerMove',
+              'pointerup pointercancel MSPointerUp MSPointerCancel'
+          ];
+      },
+
+      /**
+       * reset the list
+       */
+      reset: function() {
+          this.pointers = {};
+      }
+  };
+
+
+  Hammer.utils = {
+      /**
+       * extend method,
+       * also used for cloning when dest is an empty object
+       * @param   {Object}    dest
+       * @param   {Object}    src
+  	 * @parm	{Boolean}	merge		do a merge
+       * @returns {Object}    dest
+       */
+      extend: function extend(dest, src, merge) {
+          for (var key in src) {
+  			if(dest[key] !== undefined && merge) {
+  				continue;
+  			}
+              dest[key] = src[key];
+          }
+          return dest;
+      },
+
+
+      /**
+       * find if a node is in the given parent
+       * used for event delegation tricks
+       * @param   {HTMLElement}   node
+       * @param   {HTMLElement}   parent
+       * @returns {boolean}       has_parent
+       */
+      hasParent: function(node, parent) {
+          while(node){
+              if(node == parent) {
+                  return true;
+              }
+              node = node.parentNode;
+          }
+          return false;
+      },
+
+
+      /**
+       * get the center of all the touches
+       * @param   {Array}     touches
+       * @returns {Object}    center
+       */
+      getCenter: function getCenter(touches) {
+          var valuesX = [], valuesY = [];
+
+          for(var t= 0,len=touches.length; t<len; t++) {
+              valuesX.push(touches[t].pageX);
+              valuesY.push(touches[t].pageY);
+          }
+
+          return {
+              pageX: ((Math.min.apply(Math, valuesX) + Math.max.apply(Math, valuesX)) / 2),
+              pageY: ((Math.min.apply(Math, valuesY) + Math.max.apply(Math, valuesY)) / 2)
+          };
+      },
+
+
+      /**
+       * calculate the velocity between two points
+       * @param   {Number}    delta_time
+       * @param   {Number}    delta_x
+       * @param   {Number}    delta_y
+       * @returns {Object}    velocity
+       */
+      getVelocity: function getVelocity(delta_time, delta_x, delta_y) {
+          return {
+              x: Math.abs(delta_x / delta_time) || 0,
+              y: Math.abs(delta_y / delta_time) || 0
+          };
+      },
+
+
+      /**
+       * calculate the angle between two coordinates
+       * @param   {Touch}     touch1
+       * @param   {Touch}     touch2
+       * @returns {Number}    angle
+       */
+      getAngle: function getAngle(touch1, touch2) {
+          var y = touch2.pageY - touch1.pageY,
+              x = touch2.pageX - touch1.pageX;
+          return Math.atan2(y, x) * 180 / Math.PI;
+      },
+
+
+      /**
+       * angle to direction define
+       * @param   {Touch}     touch1
+       * @param   {Touch}     touch2
+       * @returns {String}    direction constant, like Hammer.DIRECTION_LEFT
+       */
+      getDirection: function getDirection(touch1, touch2) {
+          var x = Math.abs(touch1.pageX - touch2.pageX),
+              y = Math.abs(touch1.pageY - touch2.pageY);
+
+          if(x >= y) {
+              return touch1.pageX - touch2.pageX > 0 ? Hammer.DIRECTION_LEFT : Hammer.DIRECTION_RIGHT;
+          }
+          else {
+              return touch1.pageY - touch2.pageY > 0 ? Hammer.DIRECTION_UP : Hammer.DIRECTION_DOWN;
+          }
+      },
+
+
+      /**
+       * calculate the distance between two touches
+       * @param   {Touch}     touch1
+       * @param   {Touch}     touch2
+       * @returns {Number}    distance
+       */
+      getDistance: function getDistance(touch1, touch2) {
+          var x = touch2.pageX - touch1.pageX,
+              y = touch2.pageY - touch1.pageY;
+          return Math.sqrt((x*x) + (y*y));
+      },
+
+
+      /**
+       * calculate the scale factor between two touchLists (fingers)
+       * no scale is 1, and goes down to 0 when pinched together, and bigger when pinched out
+       * @param   {Array}     start
+       * @param   {Array}     end
+       * @returns {Number}    scale
+       */
+      getScale: function getScale(start, end) {
+          // need two fingers...
+          if(start.length >= 2 && end.length >= 2) {
+              return this.getDistance(end[0], end[1]) /
+                  this.getDistance(start[0], start[1]);
+          }
+          return 1;
+      },
+
+
+      /**
+       * calculate the rotation degrees between two touchLists (fingers)
+       * @param   {Array}     start
+       * @param   {Array}     end
+       * @returns {Number}    rotation
+       */
+      getRotation: function getRotation(start, end) {
+          // need two fingers
+          if(start.length >= 2 && end.length >= 2) {
+              return this.getAngle(end[1], end[0]) -
+                  this.getAngle(start[1], start[0]);
+          }
+          return 0;
+      },
+
+
+      /**
+       * boolean if the direction is vertical
+       * @param    {String}    direction
+       * @returns  {Boolean}   is_vertical
+       */
+      isVertical: function isVertical(direction) {
+          return (direction == Hammer.DIRECTION_UP || direction == Hammer.DIRECTION_DOWN);
+      },
+
+
+      /**
+       * stop browser default behavior with css props
+       * @param   {HtmlElement}   element
+       * @param   {Object}        css_props
+       */
+      stopDefaultBrowserBehavior: function stopDefaultBrowserBehavior(element, css_props) {
+          var prop,
+              vendors = ['webkit','khtml','moz','ms','o',''];
+
+          if(!css_props || !element.style) {
+              return;
+          }
+
+          // with css properties for modern browsers
+          for(var i = 0; i < vendors.length; i++) {
+              for(var p in css_props) {
+                  if(css_props.hasOwnProperty(p)) {
+                      prop = p;
+
+                      // vender prefix at the property
+                      if(vendors[i]) {
+                          prop = vendors[i] + prop.substring(0, 1).toUpperCase() + prop.substring(1);
+                      }
+
+                      // set the style
+                      element.style[prop] = css_props[p];
+                  }
+              }
+          }
+
+          // also the disable onselectstart
+          if(css_props.userSelect == 'none') {
+              element.onselectstart = function() {
+                  return false;
+              };
+          }
+      }
+  };
+
+  Hammer.detection = {
+      // contains all registred Hammer.gestures in the correct order
+      gestures: [],
+
+      // data of the current Hammer.gesture detection session
+      current: null,
+
+      // the previous Hammer.gesture session data
+      // is a full clone of the previous gesture.current object
+      previous: null,
+
+      // when this becomes true, no gestures are fired
+      stopped: false,
+
+
+      /**
+       * start Hammer.gesture detection
+       * @param   {Hammer.Instance}   inst
+       * @param   {Object}            eventData
+       */
+      startDetect: function startDetect(inst, eventData) {
+          // already busy with a Hammer.gesture detection on an element
+          if(this.current) {
+              return;
+          }
+
+          this.stopped = false;
+
+          this.current = {
+              inst        : inst, // reference to HammerInstance we're working for
+              startEvent  : Hammer.utils.extend({}, eventData), // start eventData for distances, timing etc
+              lastEvent   : false, // last eventData
+              name        : '' // current gesture we're in/detected, can be 'tap', 'hold' etc
+          };
+
+          this.detect(eventData);
+      },
+
+
+      /**
+       * Hammer.gesture detection
+       * @param   {Object}    eventData
+       * @param   {Object}    eventData
+       */
+      detect: function detect(eventData) {
+          if(!this.current || this.stopped) {
+              return;
+          }
+
+          // extend event data with calculations about scale, distance etc
+          eventData = this.extendEventData(eventData);
+
+          // instance options
+          var inst_options = this.current.inst.options;
+
+          // call Hammer.gesture handlers
+          for(var g=0,len=this.gestures.length; g<len; g++) {
+              var gesture = this.gestures[g];
+
+              // only when the instance options have enabled this gesture
+              if(!this.stopped && inst_options[gesture.name] !== false) {
+                  // if a handler returns false, we stop with the detection
+                  if(gesture.handler.call(gesture, eventData, this.current.inst) === false) {
+                      this.stopDetect();
+                      break;
+                  }
+              }
+          }
+
+          // store as previous event event
+          if(this.current) {
+              this.current.lastEvent = eventData;
+          }
+
+          // endevent, but not the last touch, so dont stop
+          if(eventData.eventType == Hammer.EVENT_END && !eventData.touches.length-1) {
+              this.stopDetect();
+          }
+
+          return eventData;
+      },
+
+
+      /**
+       * clear the Hammer.gesture vars
+       * this is called on endDetect, but can also be used when a final Hammer.gesture has been detected
+       * to stop other Hammer.gestures from being fired
+       */
+      stopDetect: function stopDetect() {
+          // clone current data to the store as the previous gesture
+          // used for the double tap gesture, since this is an other gesture detect session
+          this.previous = Hammer.utils.extend({}, this.current);
+
+          // reset the current
+          this.current = null;
+
+          // stopped!
+          this.stopped = true;
+      },
+
+
+      /**
+       * extend eventData for Hammer.gestures
+       * @param   {Object}   ev
+       * @returns {Object}   ev
+       */
+      extendEventData: function extendEventData(ev) {
+          var startEv = this.current.startEvent;
+
+          // if the touches change, set the new touches over the startEvent touches
+          // this because touchevents don't have all the touches on touchstart, or the
+          // user must place his fingers at the EXACT same time on the screen, which is not realistic
+          // but, sometimes it happens that both fingers are touching at the EXACT same time
+          if(startEv && (ev.touches.length != startEv.touches.length || ev.touches === startEv.touches)) {
+              // extend 1 level deep to get the touchlist with the touch objects
+              startEv.touches = [];
+              for(var i=0,len=ev.touches.length; i<len; i++) {
+                  startEv.touches.push(Hammer.utils.extend({}, ev.touches[i]));
+              }
+          }
+
+          var delta_time = ev.timeStamp - startEv.timeStamp,
+              delta_x = ev.center.pageX - startEv.center.pageX,
+              delta_y = ev.center.pageY - startEv.center.pageY,
+              velocity = Hammer.utils.getVelocity(delta_time, delta_x, delta_y);
+
+          Hammer.utils.extend(ev, {
+              deltaTime   : delta_time,
+
+              deltaX      : delta_x,
+              deltaY      : delta_y,
+
+              velocityX   : velocity.x,
+              velocityY   : velocity.y,
+
+              distance    : Hammer.utils.getDistance(startEv.center, ev.center),
+              angle       : Hammer.utils.getAngle(startEv.center, ev.center),
+              direction   : Hammer.utils.getDirection(startEv.center, ev.center),
+
+              scale       : Hammer.utils.getScale(startEv.touches, ev.touches),
+              rotation    : Hammer.utils.getRotation(startEv.touches, ev.touches),
+
+              startEvent  : startEv
+          });
+
+          return ev;
+      },
+
+
+      /**
+       * register new gesture
+       * @param   {Object}    gesture object, see gestures.js for documentation
+       * @returns {Array}     gestures
+       */
+      register: function register(gesture) {
+          // add an enable gesture options if there is no given
+          var options = gesture.defaults || {};
+          if(options[gesture.name] === undefined) {
+              options[gesture.name] = true;
+          }
+
+          // extend Hammer default options with the Hammer.gesture options
+          Hammer.utils.extend(Hammer.defaults, options, true);
+
+          // set its index
+          gesture.index = gesture.index || 1000;
+
+          // add Hammer.gesture to the list
+          this.gestures.push(gesture);
+
+          // sort the list by index
+          this.gestures.sort(function(a, b) {
+              if (a.index < b.index) {
+                  return -1;
+              }
+              if (a.index > b.index) {
+                  return 1;
+              }
+              return 0;
+          });
+
+          return this.gestures;
+      }
+  };
+
+
+  Hammer.gestures = Hammer.gestures || {};
+
+  /**
+   * Custom gestures
+   * ==============================
+   *
+   * Gesture object
+   * --------------------
+   * The object structure of a gesture:
+   *
+   * { name: 'mygesture',
+   *   index: 1337,
+   *   defaults: {
+   *     mygesture_option: true
+   *   }
+   *   handler: function(type, ev, inst) {
+   *     // trigger gesture event
+   *     inst.trigger(this.name, ev);
+   *   }
+   * }
+
+   * @param   {String}    name
+   * this should be the name of the gesture, lowercase
+   * it is also being used to disable/enable the gesture per instance config.
+   *
+   * @param   {Number}    [index=1000]
+   * the index of the gesture, where it is going to be in the stack of gestures detection
+   * like when you build an gesture that depends on the drag gesture, it is a good
+   * idea to place it after the index of the drag gesture.
+   *
+   * @param   {Object}    [defaults={}]
+   * the default settings of the gesture. these are added to the instance settings,
+   * and can be overruled per instance. you can also add the name of the gesture,
+   * but this is also added by default (and set to true).
+   *
+   * @param   {Function}  handler
+   * this handles the gesture detection of your custom gesture and receives the
+   * following arguments:
+   *
+   *      @param  {Object}    eventData
+   *      event data containing the following properties:
+   *          timeStamp   {Number}        time the event occurred
+   *          target      {HTMLElement}   target element
+   *          touches     {Array}         touches (fingers, pointers, mouse) on the screen
+   *          pointerType {String}        kind of pointer that was used. matches Hammer.POINTER_MOUSE|TOUCH
+   *          center      {Object}        center position of the touches. contains pageX and pageY
+   *          deltaTime   {Number}        the total time of the touches in the screen
+   *          deltaX      {Number}        the delta on x axis we haved moved
+   *          deltaY      {Number}        the delta on y axis we haved moved
+   *          velocityX   {Number}        the velocity on the x
+   *          velocityY   {Number}        the velocity on y
+   *          angle       {Number}        the angle we are moving
+   *          direction   {String}        the direction we are moving. matches Hammer.DIRECTION_UP|DOWN|LEFT|RIGHT
+   *          distance    {Number}        the distance we haved moved
+   *          scale       {Number}        scaling of the touches, needs 2 touches
+   *          rotation    {Number}        rotation of the touches, needs 2 touches *
+   *          eventType   {String}        matches Hammer.EVENT_START|MOVE|END
+   *          srcEvent    {Object}        the source event, like TouchStart or MouseDown *
+   *          startEvent  {Object}        contains the same properties as above,
+   *                                      but from the first touch. this is used to calculate
+   *                                      distances, deltaTime, scaling etc
+   *
+   *      @param  {Hammer.Instance}    inst
+   *      the instance we are doing the detection for. you can get the options from
+   *      the inst.options object and trigger the gesture event by calling inst.trigger
+   *
+   *
+   * Handle gestures
+   * --------------------
+   * inside the handler you can get/set Hammer.detection.current. This is the current
+   * detection session. It has the following properties
+   *      @param  {String}    name
+   *      contains the name of the gesture we have detected. it has not a real function,
+   *      only to check in other gestures if something is detected.
+   *      like in the drag gesture we set it to 'drag' and in the swipe gesture we can
+   *      check if the current gesture is 'drag' by accessing Hammer.detection.current.name
+   *
+   *      @readonly
+   *      @param  {Hammer.Instance}    inst
+   *      the instance we do the detection for
+   *
+   *      @readonly
+   *      @param  {Object}    startEvent
+   *      contains the properties of the first gesture detection in this session.
+   *      Used for calculations about timing, distance, etc.
+   *
+   *      @readonly
+   *      @param  {Object}    lastEvent
+   *      contains all the properties of the last gesture detect in this session.
+   *
+   * after the gesture detection session has been completed (user has released the screen)
+   * the Hammer.detection.current object is copied into Hammer.detection.previous,
+   * this is usefull for gestures like doubletap, where you need to know if the
+   * previous gesture was a tap
+   *
+   * options that have been set by the instance can be received by calling inst.options
+   *
+   * You can trigger a gesture event by calling inst.trigger("mygesture", event).
+   * The first param is the name of your gesture, the second the event argument
+   *
+   *
+   * Register gestures
+   * --------------------
+   * When an gesture is added to the Hammer.gestures object, it is auto registered
+   * at the setup of the first Hammer instance. You can also call Hammer.detection.register
+   * manually and pass your gesture object as a param
+   *
+   */
+
+  /**
+   * Hold
+   * Touch stays at the same place for x time
+   * @events  hold
+   */
+  Hammer.gestures.Hold = {
+      name: 'hold',
+      index: 10,
+      defaults: {
+          hold_timeout	: 500,
+          hold_threshold	: 1
+      },
+      timer: null,
+      handler: function holdGesture(ev, inst) {
+          switch(ev.eventType) {
+              case Hammer.EVENT_START:
+                  // clear any running timers
+                  clearTimeout(this.timer);
+
+                  // set the gesture so we can check in the timeout if it still is
+                  Hammer.detection.current.name = this.name;
+
+                  // set timer and if after the timeout it still is hold,
+                  // we trigger the hold event
+                  this.timer = setTimeout(function() {
+                      if(Hammer.detection.current.name == 'hold') {
+                          inst.trigger('hold', ev);
+                      }
+                  }, inst.options.hold_timeout);
+                  break;
+
+              // when you move or end we clear the timer
+              case Hammer.EVENT_MOVE:
+                  if(ev.distance > inst.options.hold_threshold) {
+                      clearTimeout(this.timer);
+                  }
+                  break;
+
+              case Hammer.EVENT_END:
+                  clearTimeout(this.timer);
+                  break;
+          }
+      }
+  };
+
+
+  /**
+   * Tap/DoubleTap
+   * Quick touch at a place or double at the same place
+   * @events  tap, doubletap
+   */
+  Hammer.gestures.Tap = {
+      name: 'tap',
+      index: 100,
+      defaults: {
+          tap_max_touchtime	: 250,
+          tap_max_distance	: 10,
+  		tap_always			: true,
+          doubletap_distance	: 20,
+          doubletap_interval	: 300
+      },
+      handler: function tapGesture(ev, inst) {
+          if(ev.eventType == Hammer.EVENT_END) {
+              // previous gesture, for the double tap since these are two different gesture detections
+              var prev = Hammer.detection.previous,
+  				did_doubletap = false;
+
+              // when the touchtime is higher then the max touch time
+              // or when the moving distance is too much
+              if(ev.deltaTime > inst.options.tap_max_touchtime ||
+                  ev.distance > inst.options.tap_max_distance) {
+                  return;
+              }
+
+              // check if double tap
+              if(prev && prev.name == 'tap' &&
+                  (ev.timeStamp - prev.lastEvent.timeStamp) < inst.options.doubletap_interval &&
+                  ev.distance < inst.options.doubletap_distance) {
+  				inst.trigger('doubletap', ev);
+  				did_doubletap = true;
+              }
+
+  			// do a single tap
+  			if(!did_doubletap || inst.options.tap_always) {
+  				Hammer.detection.current.name = 'tap';
+  				inst.trigger(Hammer.detection.current.name, ev);
+  			}
+          }
+      }
+  };
+
+
+  /**
+   * Swipe
+   * triggers swipe events when the end velocity is above the threshold
+   * @events  swipe, swipeleft, swiperight, swipeup, swipedown
+   */
+  Hammer.gestures.Swipe = {
+      name: 'swipe',
+      index: 40,
+      defaults: {
+          // set 0 for unlimited, but this can conflict with transform
+          swipe_max_touches  : 1,
+          swipe_velocity     : 0.7
+      },
+      handler: function swipeGesture(ev, inst) {
+          if(ev.eventType == Hammer.EVENT_END) {
+              // max touches
+              if(inst.options.swipe_max_touches > 0 &&
+                  ev.touches.length > inst.options.swipe_max_touches) {
+                  return;
+              }
+
+              // when the distance we moved is too small we skip this gesture
+              // or we can be already in dragging
+              if(ev.velocityX > inst.options.swipe_velocity ||
+                  ev.velocityY > inst.options.swipe_velocity) {
+                  // trigger swipe events
+                  inst.trigger(this.name, ev);
+                  inst.trigger(this.name + ev.direction, ev);
+              }
+          }
+      }
+  };
+
+
+  /**
+   * Drag
+   * Move with x fingers (default 1) around on the page. Blocking the scrolling when
+   * moving left and right is a good practice. When all the drag events are blocking
+   * you disable scrolling on that area.
+   * @events  drag, drapleft, dragright, dragup, dragdown
+   */
+  Hammer.gestures.Drag = {
+      name: 'drag',
+      index: 50,
+      defaults: {
+          drag_min_distance : 10,
+          // set 0 for unlimited, but this can conflict with transform
+          drag_max_touches  : 1,
+          // prevent default browser behavior when dragging occurs
+          // be careful with it, it makes the element a blocking element
+          // when you are using the drag gesture, it is a good practice to set this true
+          drag_block_horizontal   : false,
+          drag_block_vertical     : false,
+          // drag_lock_to_axis keeps the drag gesture on the axis that it started on,
+          // It disallows vertical directions if the initial direction was horizontal, and vice versa.
+          drag_lock_to_axis       : false,
+          // drag lock only kicks in when distance > drag_lock_min_distance
+          // This way, locking occurs only when the distance has become large enough to reliably determine the direction
+          drag_lock_min_distance : 25
+      },
+      triggered: false,
+      handler: function dragGesture(ev, inst) {
+          // current gesture isnt drag, but dragged is true
+          // this means an other gesture is busy. now call dragend
+          if(Hammer.detection.current.name != this.name && this.triggered) {
+              inst.trigger(this.name +'end', ev);
+              this.triggered = false;
+              return;
+          }
+
+          // max touches
+          if(inst.options.drag_max_touches > 0 &&
+              ev.touches.length > inst.options.drag_max_touches) {
+              return;
+          }
+
+          switch(ev.eventType) {
+              case Hammer.EVENT_START:
+                  this.triggered = false;
+                  break;
+
+              case Hammer.EVENT_MOVE:
+                  // when the distance we moved is too small we skip this gesture
+                  // or we can be already in dragging
+                  if(ev.distance < inst.options.drag_min_distance &&
+                      Hammer.detection.current.name != this.name) {
+                      return;
+                  }
+
+                  // we are dragging!
+                  Hammer.detection.current.name = this.name;
+
+                  // lock drag to axis?
+                  if(Hammer.detection.current.lastEvent.drag_locked_to_axis || (inst.options.drag_lock_to_axis && inst.options.drag_lock_min_distance<=ev.distance)) {
+                      ev.drag_locked_to_axis = true;
+                  }
+                  var last_direction = Hammer.detection.current.lastEvent.direction;
+                  if(ev.drag_locked_to_axis && last_direction !== ev.direction) {
+                      // keep direction on the axis that the drag gesture started on
+                      if(Hammer.utils.isVertical(last_direction)) {
+                          ev.direction = (ev.deltaY < 0) ? Hammer.DIRECTION_UP : Hammer.DIRECTION_DOWN;
+                      }
+                      else {
+                          ev.direction = (ev.deltaX < 0) ? Hammer.DIRECTION_LEFT : Hammer.DIRECTION_RIGHT;
+                      }
+                  }
+
+                  // first time, trigger dragstart event
+                  if(!this.triggered) {
+                      inst.trigger(this.name +'start', ev);
+                      this.triggered = true;
+                  }
+
+                  // trigger normal event
+                  inst.trigger(this.name, ev);
+
+                  // direction event, like dragdown
+                  inst.trigger(this.name + ev.direction, ev);
+
+                  // block the browser events
+                  if( (inst.options.drag_block_vertical && Hammer.utils.isVertical(ev.direction)) ||
+                      (inst.options.drag_block_horizontal && !Hammer.utils.isVertical(ev.direction))) {
+                      ev.preventDefault();
+                  }
+                  break;
+
+              case Hammer.EVENT_END:
+                  // trigger dragend
+                  if(this.triggered) {
+                      inst.trigger(this.name +'end', ev);
+                  }
+
+                  this.triggered = false;
+                  break;
+          }
+      }
+  };
+
+
+  /**
+   * Transform
+   * User want to scale or rotate with 2 fingers
+   * @events  transform, pinch, pinchin, pinchout, rotate
+   */
+  Hammer.gestures.Transform = {
+      name: 'transform',
+      index: 45,
+      defaults: {
+          // factor, no scale is 1, zoomin is to 0 and zoomout until higher then 1
+          transform_min_scale     : 0.01,
+          // rotation in degrees
+          transform_min_rotation  : 1,
+          // prevent default browser behavior when two touches are on the screen
+          // but it makes the element a blocking element
+          // when you are using the transform gesture, it is a good practice to set this true
+          transform_always_block  : false
+      },
+      triggered: false,
+      handler: function transformGesture(ev, inst) {
+          // current gesture isnt drag, but dragged is true
+          // this means an other gesture is busy. now call dragend
+          if(Hammer.detection.current.name != this.name && this.triggered) {
+              inst.trigger(this.name +'end', ev);
+              this.triggered = false;
+              return;
+          }
+
+          // atleast multitouch
+          if(ev.touches.length < 2) {
+              return;
+          }
+
+          // prevent default when two fingers are on the screen
+          if(inst.options.transform_always_block) {
+              ev.preventDefault();
+          }
+
+          switch(ev.eventType) {
+              case Hammer.EVENT_START:
+                  this.triggered = false;
+                  break;
+
+              case Hammer.EVENT_MOVE:
+                  var scale_threshold = Math.abs(1-ev.scale);
+                  var rotation_threshold = Math.abs(ev.rotation);
+
+                  // when the distance we moved is too small we skip this gesture
+                  // or we can be already in dragging
+                  if(scale_threshold < inst.options.transform_min_scale &&
+                      rotation_threshold < inst.options.transform_min_rotation) {
+                      return;
+                  }
+
+                  // we are transforming!
+                  Hammer.detection.current.name = this.name;
+
+                  // first time, trigger dragstart event
+                  if(!this.triggered) {
+                      inst.trigger(this.name +'start', ev);
+                      this.triggered = true;
+                  }
+
+                  inst.trigger(this.name, ev); // basic transform event
+
+                  // trigger rotate event
+                  if(rotation_threshold > inst.options.transform_min_rotation) {
+                      inst.trigger('rotate', ev);
+                  }
+
+                  // trigger pinch event
+                  if(scale_threshold > inst.options.transform_min_scale) {
+                      inst.trigger('pinch', ev);
+                      inst.trigger('pinch'+ ((ev.scale < 1) ? 'in' : 'out'), ev);
+                  }
+                  break;
+
+              case Hammer.EVENT_END:
+                  // trigger dragend
+                  if(this.triggered) {
+                      inst.trigger(this.name +'end', ev);
+                  }
+
+                  this.triggered = false;
+                  break;
+          }
+      }
+  };
+
+
+  /**
+   * Touch
+   * Called as first, tells the user has touched the screen
+   * @events  touch
+   */
+  Hammer.gestures.Touch = {
+      name: 'touch',
+      index: -Infinity,
+      defaults: {
+          // call preventDefault at touchstart, and makes the element blocking by
+          // disabling the scrolling of the page, but it improves gestures like
+          // transforming and dragging.
+          // be careful with using this, it can be very annoying for users to be stuck
+          // on the page
+          prevent_default: false,
+
+          // disable mouse events, so only touch (or pen!) input triggers events
+          prevent_mouseevents: false
+      },
+      handler: function touchGesture(ev, inst) {
+          if(inst.options.prevent_mouseevents && ev.pointerType == Hammer.POINTER_MOUSE) {
+              ev.stopDetect();
+              return;
+          }
+
+          if(inst.options.prevent_default) {
+              ev.preventDefault();
+          }
+
+          if(ev.eventType ==  Hammer.EVENT_START) {
+              inst.trigger(this.name, ev);
+          }
+      }
+  };
+
+
+  /**
+   * Release
+   * Called as last, tells the user has released the screen
+   * @events  release
+   */
+  Hammer.gestures.Release = {
+      name: 'release',
+      index: Infinity,
+      handler: function releaseGesture(ev, inst) {
+          if(ev.eventType ==  Hammer.EVENT_END) {
+              inst.trigger(this.name, ev);
+          }
+      }
+  };
+
+  // node export
+  if(typeof module === 'object' && typeof module.exports === 'object'){
+      module.exports = Hammer;
+  }
+  // just window export
+  else {
+      window.Hammer = Hammer;
+
+      // requireJS module definition
+      if(typeof window.define === 'function' && window.define.amd) {
+          window.define('hammer', [], function() {
+              return Hammer;
+          });
+      }
+  }
+  })(this);
+
+/***/ },
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
+  // first check if moment.js is already loaded in the browser window, if so,
+  // use this instance. Else, load via commonjs.
+  module.exports = (typeof window !== 'undefined') && window['moment'] || __webpack_require__(5);
+
+
+/***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global, module) {//! moment.js
+  //! version : 2.7.0
+  //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
+  //! license : MIT
+  //! momentjs.com
+
+  (function (undefined) {
+
+      /************************************
+          Constants
+      ************************************/
+
+      var moment,
+          VERSION = "2.7.0",
+          // the global-scope this is NOT the global object in Node.js
+          globalScope = typeof global !== 'undefined' ? global : this,
+          oldGlobalMoment,
+          round = Math.round,
+          i,
+
+          YEAR = 0,
+          MONTH = 1,
+          DATE = 2,
+          HOUR = 3,
+          MINUTE = 4,
+          SECOND = 5,
+          MILLISECOND = 6,
+
+          // internal storage for language config files
+          languages = {},
+
+          // moment internal properties
+          momentProperties = {
+              _isAMomentObject: null,
+              _i : null,
+              _f : null,
+              _l : null,
+              _strict : null,
+              _tzm : null,
+              _isUTC : null,
+              _offset : null,  // optional. Combine with _isUTC
+              _pf : null,
+              _lang : null  // optional
+          },
+
+          // check for nodeJS
+          hasModule = (typeof module !== 'undefined' && module.exports),
+
+          // ASP.NET json date format regex
+          aspNetJsonRegex = /^\/?Date\((\-?\d+)/i,
+          aspNetTimeSpanJsonRegex = /(\-)?(?:(\d*)\.)?(\d+)\:(\d+)(?:\:(\d+)\.?(\d{3})?)?/,
+
+          // from http://docs.closure-library.googlecode.com/git/closure_goog_date_date.js.source.html
+          // somewhat more in line with 4.4.3.2 2004 spec, but allows decimal anywhere
+          isoDurationRegex = /^(-)?P(?:(?:([0-9,.]*)Y)?(?:([0-9,.]*)M)?(?:([0-9,.]*)D)?(?:T(?:([0-9,.]*)H)?(?:([0-9,.]*)M)?(?:([0-9,.]*)S)?)?|([0-9,.]*)W)$/,
+
+          // format tokens
+          formattingTokens = /(\[[^\[]*\])|(\\)?(Mo|MM?M?M?|Do|DDDo|DD?D?D?|ddd?d?|do?|w[o|w]?|W[o|W]?|Q|YYYYYY|YYYYY|YYYY|YY|gg(ggg?)?|GG(GGG?)?|e|E|a|A|hh?|HH?|mm?|ss?|S{1,4}|X|zz?|ZZ?|.)/g,
+          localFormattingTokens = /(\[[^\[]*\])|(\\)?(LT|LL?L?L?|l{1,4})/g,
+
+          // parsing token regexes
+          parseTokenOneOrTwoDigits = /\d\d?/, // 0 - 99
+          parseTokenOneToThreeDigits = /\d{1,3}/, // 0 - 999
+          parseTokenOneToFourDigits = /\d{1,4}/, // 0 - 9999
+          parseTokenOneToSixDigits = /[+\-]?\d{1,6}/, // -999,999 - 999,999
+          parseTokenDigits = /\d+/, // nonzero number of digits
+          parseTokenWord = /[0-9]*['a-z\u00A0-\u05FF\u0700-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+|[\u0600-\u06FF\/]+(\s*?[\u0600-\u06FF]+){1,2}/i, // any word (or two) characters or numbers including two/three word month in arabic.
+          parseTokenTimezone = /Z|[\+\-]\d\d:?\d\d/gi, // +00:00 -00:00 +0000 -0000 or Z
+          parseTokenT = /T/i, // T (ISO separator)
+          parseTokenTimestampMs = /[\+\-]?\d+(\.\d{1,3})?/, // 123456789 123456789.123
+          parseTokenOrdinal = /\d{1,2}/,
+
+          //strict parsing regexes
+          parseTokenOneDigit = /\d/, // 0 - 9
+          parseTokenTwoDigits = /\d\d/, // 00 - 99
+          parseTokenThreeDigits = /\d{3}/, // 000 - 999
+          parseTokenFourDigits = /\d{4}/, // 0000 - 9999
+          parseTokenSixDigits = /[+-]?\d{6}/, // -999,999 - 999,999
+          parseTokenSignedNumber = /[+-]?\d+/, // -inf - inf
+
+          // iso 8601 regex
+          // 0000-00-00 0000-W00 or 0000-W00-0 + T + 00 or 00:00 or 00:00:00 or 00:00:00.000 + +00:00 or +0000 or +00)
+          isoRegex = /^\s*(?:[+-]\d{6}|\d{4})-(?:(\d\d-\d\d)|(W\d\d$)|(W\d\d-\d)|(\d\d\d))((T| )(\d\d(:\d\d(:\d\d(\.\d+)?)?)?)?([\+\-]\d\d(?::?\d\d)?|\s*Z)?)?$/,
+
+          isoFormat = 'YYYY-MM-DDTHH:mm:ssZ',
+
+          isoDates = [
+              ['YYYYYY-MM-DD', /[+-]\d{6}-\d{2}-\d{2}/],
+              ['YYYY-MM-DD', /\d{4}-\d{2}-\d{2}/],
+              ['GGGG-[W]WW-E', /\d{4}-W\d{2}-\d/],
+              ['GGGG-[W]WW', /\d{4}-W\d{2}/],
+              ['YYYY-DDD', /\d{4}-\d{3}/]
+          ],
+
+          // iso time formats and regexes
+          isoTimes = [
+              ['HH:mm:ss.SSSS', /(T| )\d\d:\d\d:\d\d\.\d+/],
+              ['HH:mm:ss', /(T| )\d\d:\d\d:\d\d/],
+              ['HH:mm', /(T| )\d\d:\d\d/],
+              ['HH', /(T| )\d\d/]
+          ],
+
+          // timezone chunker "+10:00" > ["10", "00"] or "-1530" > ["-15", "30"]
+          parseTimezoneChunker = /([\+\-]|\d\d)/gi,
+
+          // getter and setter names
+          proxyGettersAndSetters = 'Date|Hours|Minutes|Seconds|Milliseconds'.split('|'),
+          unitMillisecondFactors = {
+              'Milliseconds' : 1,
+              'Seconds' : 1e3,
+              'Minutes' : 6e4,
+              'Hours' : 36e5,
+              'Days' : 864e5,
+              'Months' : 2592e6,
+              'Years' : 31536e6
+          },
+
+          unitAliases = {
+              ms : 'millisecond',
+              s : 'second',
+              m : 'minute',
+              h : 'hour',
+              d : 'day',
+              D : 'date',
+              w : 'week',
+              W : 'isoWeek',
+              M : 'month',
+              Q : 'quarter',
+              y : 'year',
+              DDD : 'dayOfYear',
+              e : 'weekday',
+              E : 'isoWeekday',
+              gg: 'weekYear',
+              GG: 'isoWeekYear'
+          },
+
+          camelFunctions = {
+              dayofyear : 'dayOfYear',
+              isoweekday : 'isoWeekday',
+              isoweek : 'isoWeek',
+              weekyear : 'weekYear',
+              isoweekyear : 'isoWeekYear'
+          },
+
+          // format function strings
+          formatFunctions = {},
+
+          // default relative time thresholds
+          relativeTimeThresholds = {
+            s: 45,   //seconds to minutes
+            m: 45,   //minutes to hours
+            h: 22,   //hours to days
+            dd: 25,  //days to month (month == 1)
+            dm: 45,  //days to months (months > 1)
+            dy: 345  //days to year
+          },
+
+          // tokens to ordinalize and pad
+          ordinalizeTokens = 'DDD w W M D d'.split(' '),
+          paddedTokens = 'M D H h m s w W'.split(' '),
+
+          formatTokenFunctions = {
+              M    : function () {
+                  return this.month() + 1;
+              },
+              MMM  : function (format) {
+                  return this.lang().monthsShort(this, format);
+              },
+              MMMM : function (format) {
+                  return this.lang().months(this, format);
+              },
+              D    : function () {
+                  return this.date();
+              },
+              DDD  : function () {
+                  return this.dayOfYear();
+              },
+              d    : function () {
+                  return this.day();
+              },
+              dd   : function (format) {
+                  return this.lang().weekdaysMin(this, format);
+              },
+              ddd  : function (format) {
+                  return this.lang().weekdaysShort(this, format);
+              },
+              dddd : function (format) {
+                  return this.lang().weekdays(this, format);
+              },
+              w    : function () {
+                  return this.week();
+              },
+              W    : function () {
+                  return this.isoWeek();
+              },
+              YY   : function () {
+                  return leftZeroFill(this.year() % 100, 2);
+              },
+              YYYY : function () {
+                  return leftZeroFill(this.year(), 4);
+              },
+              YYYYY : function () {
+                  return leftZeroFill(this.year(), 5);
+              },
+              YYYYYY : function () {
+                  var y = this.year(), sign = y >= 0 ? '+' : '-';
+                  return sign + leftZeroFill(Math.abs(y), 6);
+              },
+              gg   : function () {
+                  return leftZeroFill(this.weekYear() % 100, 2);
+              },
+              gggg : function () {
+                  return leftZeroFill(this.weekYear(), 4);
+              },
+              ggggg : function () {
+                  return leftZeroFill(this.weekYear(), 5);
+              },
+              GG   : function () {
+                  return leftZeroFill(this.isoWeekYear() % 100, 2);
+              },
+              GGGG : function () {
+                  return leftZeroFill(this.isoWeekYear(), 4);
+              },
+              GGGGG : function () {
+                  return leftZeroFill(this.isoWeekYear(), 5);
+              },
+              e : function () {
+                  return this.weekday();
+              },
+              E : function () {
+                  return this.isoWeekday();
+              },
+              a    : function () {
+                  return this.lang().meridiem(this.hours(), this.minutes(), true);
+              },
+              A    : function () {
+                  return this.lang().meridiem(this.hours(), this.minutes(), false);
+              },
+              H    : function () {
+                  return this.hours();
+              },
+              h    : function () {
+                  return this.hours() % 12 || 12;
+              },
+              m    : function () {
+                  return this.minutes();
+              },
+              s    : function () {
+                  return this.seconds();
+              },
+              S    : function () {
+                  return toInt(this.milliseconds() / 100);
+              },
+              SS   : function () {
+                  return leftZeroFill(toInt(this.milliseconds() / 10), 2);
+              },
+              SSS  : function () {
+                  return leftZeroFill(this.milliseconds(), 3);
+              },
+              SSSS : function () {
+                  return leftZeroFill(this.milliseconds(), 3);
+              },
+              Z    : function () {
+                  var a = -this.zone(),
+                      b = "+";
+                  if (a < 0) {
+                      a = -a;
+                      b = "-";
+                  }
+                  return b + leftZeroFill(toInt(a / 60), 2) + ":" + leftZeroFill(toInt(a) % 60, 2);
+              },
+              ZZ   : function () {
+                  var a = -this.zone(),
+                      b = "+";
+                  if (a < 0) {
+                      a = -a;
+                      b = "-";
+                  }
+                  return b + leftZeroFill(toInt(a / 60), 2) + leftZeroFill(toInt(a) % 60, 2);
+              },
+              z : function () {
+                  return this.zoneAbbr();
+              },
+              zz : function () {
+                  return this.zoneName();
+              },
+              X    : function () {
+                  return this.unix();
+              },
+              Q : function () {
+                  return this.quarter();
+              }
+          },
+
+          lists = ['months', 'monthsShort', 'weekdays', 'weekdaysShort', 'weekdaysMin'];
+
+      // Pick the first defined of two or three arguments. dfl comes from
+      // default.
+      function dfl(a, b, c) {
+          switch (arguments.length) {
+              case 2: return a != null ? a : b;
+              case 3: return a != null ? a : b != null ? b : c;
+              default: throw new Error("Implement me");
+          }
+      }
+
+      function defaultParsingFlags() {
+          // We need to deep clone this object, and es5 standard is not very
+          // helpful.
+          return {
+              empty : false,
+              unusedTokens : [],
+              unusedInput : [],
+              overflow : -2,
+              charsLeftOver : 0,
+              nullInput : false,
+              invalidMonth : null,
+              invalidFormat : false,
+              userInvalidated : false,
+              iso: false
+          };
+      }
+
+      function deprecate(msg, fn) {
+          var firstTime = true;
+          function printMsg() {
+              if (moment.suppressDeprecationWarnings === false &&
+                      typeof console !== 'undefined' && console.warn) {
+                  console.warn("Deprecation warning: " + msg);
+              }
+          }
+          return extend(function () {
+              if (firstTime) {
+                  printMsg();
+                  firstTime = false;
+              }
+              return fn.apply(this, arguments);
+          }, fn);
+      }
+
+      function padToken(func, count) {
+          return function (a) {
+              return leftZeroFill(func.call(this, a), count);
+          };
+      }
+      function ordinalizeToken(func, period) {
+          return function (a) {
+              return this.lang().ordinal(func.call(this, a), period);
+          };
+      }
+
+      while (ordinalizeTokens.length) {
+          i = ordinalizeTokens.pop();
+          formatTokenFunctions[i + 'o'] = ordinalizeToken(formatTokenFunctions[i], i);
+      }
+      while (paddedTokens.length) {
+          i = paddedTokens.pop();
+          formatTokenFunctions[i + i] = padToken(formatTokenFunctions[i], 2);
+      }
+      formatTokenFunctions.DDDD = padToken(formatTokenFunctions.DDD, 3);
+
+
+      /************************************
+          Constructors
+      ************************************/
+
+      function Language() {
+
+      }
+
+      // Moment prototype object
+      function Moment(config) {
+          checkOverflow(config);
+          extend(this, config);
+      }
+
+      // Duration Constructor
+      function Duration(duration) {
+          var normalizedInput = normalizeObjectUnits(duration),
+              years = normalizedInput.year || 0,
+              quarters = normalizedInput.quarter || 0,
+              months = normalizedInput.month || 0,
+              weeks = normalizedInput.week || 0,
+              days = normalizedInput.day || 0,
+              hours = normalizedInput.hour || 0,
+              minutes = normalizedInput.minute || 0,
+              seconds = normalizedInput.second || 0,
+              milliseconds = normalizedInput.millisecond || 0;
+
+          // representation for dateAddRemove
+          this._milliseconds = +milliseconds +
+              seconds * 1e3 + // 1000
+              minutes * 6e4 + // 1000 * 60
+              hours * 36e5; // 1000 * 60 * 60
+          // Because of dateAddRemove treats 24 hours as different from a
+          // day when working around DST, we need to store them separately
+          this._days = +days +
+              weeks * 7;
+          // It is impossible translate months into days without knowing
+          // which months you are are talking about, so we have to store
+          // it separately.
+          this._months = +months +
+              quarters * 3 +
+              years * 12;
+
+          this._data = {};
+
+          this._bubble();
+      }
+
+      /************************************
+          Helpers
+      ************************************/
+
+
+      function extend(a, b) {
+          for (var i in b) {
+              if (b.hasOwnProperty(i)) {
+                  a[i] = b[i];
+              }
+          }
+
+          if (b.hasOwnProperty("toString")) {
+              a.toString = b.toString;
+          }
+
+          if (b.hasOwnProperty("valueOf")) {
+              a.valueOf = b.valueOf;
+          }
+
+          return a;
+      }
+
+      function cloneMoment(m) {
+          var result = {}, i;
+          for (i in m) {
+              if (m.hasOwnProperty(i) && momentProperties.hasOwnProperty(i)) {
+                  result[i] = m[i];
+              }
+          }
+
+          return result;
+      }
+
+      function absRound(number) {
+          if (number < 0) {
+              return Math.ceil(number);
+          } else {
+              return Math.floor(number);
+          }
+      }
+
+      // left zero fill a number
+      // see http://jsperf.com/left-zero-filling for performance comparison
+      function leftZeroFill(number, targetLength, forceSign) {
+          var output = '' + Math.abs(number),
+              sign = number >= 0;
+
+          while (output.length < targetLength) {
+              output = '0' + output;
+          }
+          return (sign ? (forceSign ? '+' : '') : '-') + output;
+      }
+
+      // helper function for _.addTime and _.subtractTime
+      function addOrSubtractDurationFromMoment(mom, duration, isAdding, updateOffset) {
+          var milliseconds = duration._milliseconds,
+              days = duration._days,
+              months = duration._months;
+          updateOffset = updateOffset == null ? true : updateOffset;
+
+          if (milliseconds) {
+              mom._d.setTime(+mom._d + milliseconds * isAdding);
+          }
+          if (days) {
+              rawSetter(mom, 'Date', rawGetter(mom, 'Date') + days * isAdding);
+          }
+          if (months) {
+              rawMonthSetter(mom, rawGetter(mom, 'Month') + months * isAdding);
+          }
+          if (updateOffset) {
+              moment.updateOffset(mom, days || months);
+          }
+      }
+
+      // check if is an array
+      function isArray(input) {
+          return Object.prototype.toString.call(input) === '[object Array]';
+      }
+
+      function isDate(input) {
+          return  Object.prototype.toString.call(input) === '[object Date]' ||
+                  input instanceof Date;
+      }
+
+      // compare two arrays, return the number of differences
+      function compareArrays(array1, array2, dontConvert) {
+          var len = Math.min(array1.length, array2.length),
+              lengthDiff = Math.abs(array1.length - array2.length),
+              diffs = 0,
+              i;
+          for (i = 0; i < len; i++) {
+              if ((dontConvert && array1[i] !== array2[i]) ||
+                  (!dontConvert && toInt(array1[i]) !== toInt(array2[i]))) {
+                  diffs++;
+              }
+          }
+          return diffs + lengthDiff;
+      }
+
+      function normalizeUnits(units) {
+          if (units) {
+              var lowered = units.toLowerCase().replace(/(.)s$/, '$1');
+              units = unitAliases[units] || camelFunctions[lowered] || lowered;
+          }
+          return units;
+      }
+
+      function normalizeObjectUnits(inputObject) {
+          var normalizedInput = {},
+              normalizedProp,
+              prop;
+
+          for (prop in inputObject) {
+              if (inputObject.hasOwnProperty(prop)) {
+                  normalizedProp = normalizeUnits(prop);
+                  if (normalizedProp) {
+                      normalizedInput[normalizedProp] = inputObject[prop];
+                  }
+              }
+          }
+
+          return normalizedInput;
+      }
+
+      function makeList(field) {
+          var count, setter;
+
+          if (field.indexOf('week') === 0) {
+              count = 7;
+              setter = 'day';
+          }
+          else if (field.indexOf('month') === 0) {
+              count = 12;
+              setter = 'month';
+          }
+          else {
+              return;
+          }
+
+          moment[field] = function (format, index) {
+              var i, getter,
+                  method = moment.fn._lang[field],
+                  results = [];
+
+              if (typeof format === 'number') {
+                  index = format;
+                  format = undefined;
+              }
+
+              getter = function (i) {
+                  var m = moment().utc().set(setter, i);
+                  return method.call(moment.fn._lang, m, format || '');
+              };
+
+              if (index != null) {
+                  return getter(index);
+              }
+              else {
+                  for (i = 0; i < count; i++) {
+                      results.push(getter(i));
+                  }
+                  return results;
+              }
+          };
+      }
+
+      function toInt(argumentForCoercion) {
+          var coercedNumber = +argumentForCoercion,
+              value = 0;
+
+          if (coercedNumber !== 0 && isFinite(coercedNumber)) {
+              if (coercedNumber >= 0) {
+                  value = Math.floor(coercedNumber);
+              } else {
+                  value = Math.ceil(coercedNumber);
+              }
+          }
+
+          return value;
+      }
+
+      function daysInMonth(year, month) {
+          return new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+      }
+
+      function weeksInYear(year, dow, doy) {
+          return weekOfYear(moment([year, 11, 31 + dow - doy]), dow, doy).week;
+      }
+
+      function daysInYear(year) {
+          return isLeapYear(year) ? 366 : 365;
+      }
+
+      function isLeapYear(year) {
+          return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+      }
+
+      function checkOverflow(m) {
+          var overflow;
+          if (m._a && m._pf.overflow === -2) {
+              overflow =
+                  m._a[MONTH] < 0 || m._a[MONTH] > 11 ? MONTH :
+                  m._a[DATE] < 1 || m._a[DATE] > daysInMonth(m._a[YEAR], m._a[MONTH]) ? DATE :
+                  m._a[HOUR] < 0 || m._a[HOUR] > 23 ? HOUR :
+                  m._a[MINUTE] < 0 || m._a[MINUTE] > 59 ? MINUTE :
+                  m._a[SECOND] < 0 || m._a[SECOND] > 59 ? SECOND :
+                  m._a[MILLISECOND] < 0 || m._a[MILLISECOND] > 999 ? MILLISECOND :
+                  -1;
+
+              if (m._pf._overflowDayOfYear && (overflow < YEAR || overflow > DATE)) {
+                  overflow = DATE;
+              }
+
+              m._pf.overflow = overflow;
+          }
+      }
+
+      function isValid(m) {
+          if (m._isValid == null) {
+              m._isValid = !isNaN(m._d.getTime()) &&
+                  m._pf.overflow < 0 &&
+                  !m._pf.empty &&
+                  !m._pf.invalidMonth &&
+                  !m._pf.nullInput &&
+                  !m._pf.invalidFormat &&
+                  !m._pf.userInvalidated;
+
+              if (m._strict) {
+                  m._isValid = m._isValid &&
+                      m._pf.charsLeftOver === 0 &&
+                      m._pf.unusedTokens.length === 0;
+              }
+          }
+          return m._isValid;
+      }
+
+      function normalizeLanguage(key) {
+          return key ? key.toLowerCase().replace('_', '-') : key;
+      }
+
+      // Return a moment from input, that is local/utc/zone equivalent to model.
+      function makeAs(input, model) {
+          return model._isUTC ? moment(input).zone(model._offset || 0) :
+              moment(input).local();
+      }
+
+      /************************************
+          Languages
+      ************************************/
+
+
+      extend(Language.prototype, {
+
+          set : function (config) {
+              var prop, i;
+              for (i in config) {
+                  prop = config[i];
+                  if (typeof prop === 'function') {
+                      this[i] = prop;
+                  } else {
+                      this['_' + i] = prop;
+                  }
+              }
+          },
+
+          _months : "January_February_March_April_May_June_July_August_September_October_November_December".split("_"),
+          months : function (m) {
+              return this._months[m.month()];
+          },
+
+          _monthsShort : "Jan_Feb_Mar_Apr_May_Jun_Jul_Aug_Sep_Oct_Nov_Dec".split("_"),
+          monthsShort : function (m) {
+              return this._monthsShort[m.month()];
+          },
+
+          monthsParse : function (monthName) {
+              var i, mom, regex;
+
+              if (!this._monthsParse) {
+                  this._monthsParse = [];
+              }
+
+              for (i = 0; i < 12; i++) {
+                  // make the regex if we don't have it already
+                  if (!this._monthsParse[i]) {
+                      mom = moment.utc([2000, i]);
+                      regex = '^' + this.months(mom, '') + '|^' + this.monthsShort(mom, '');
+                      this._monthsParse[i] = new RegExp(regex.replace('.', ''), 'i');
+                  }
+                  // test the regex
+                  if (this._monthsParse[i].test(monthName)) {
+                      return i;
+                  }
+              }
+          },
+
+          _weekdays : "Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday".split("_"),
+          weekdays : function (m) {
+              return this._weekdays[m.day()];
+          },
+
+          _weekdaysShort : "Sun_Mon_Tue_Wed_Thu_Fri_Sat".split("_"),
+          weekdaysShort : function (m) {
+              return this._weekdaysShort[m.day()];
+          },
+
+          _weekdaysMin : "Su_Mo_Tu_We_Th_Fr_Sa".split("_"),
+          weekdaysMin : function (m) {
+              return this._weekdaysMin[m.day()];
+          },
+
+          weekdaysParse : function (weekdayName) {
+              var i, mom, regex;
+
+              if (!this._weekdaysParse) {
+                  this._weekdaysParse = [];
+              }
+
+              for (i = 0; i < 7; i++) {
+                  // make the regex if we don't have it already
+                  if (!this._weekdaysParse[i]) {
+                      mom = moment([2000, 1]).day(i);
+                      regex = '^' + this.weekdays(mom, '') + '|^' + this.weekdaysShort(mom, '') + '|^' + this.weekdaysMin(mom, '');
+                      this._weekdaysParse[i] = new RegExp(regex.replace('.', ''), 'i');
+                  }
+                  // test the regex
+                  if (this._weekdaysParse[i].test(weekdayName)) {
+                      return i;
+                  }
+              }
+          },
+
+          _longDateFormat : {
+              LT : "h:mm A",
+              L : "MM/DD/YYYY",
+              LL : "MMMM D YYYY",
+              LLL : "MMMM D YYYY LT",
+              LLLL : "dddd, MMMM D YYYY LT"
+          },
+          longDateFormat : function (key) {
+              var output = this._longDateFormat[key];
+              if (!output && this._longDateFormat[key.toUpperCase()]) {
+                  output = this._longDateFormat[key.toUpperCase()].replace(/MMMM|MM|DD|dddd/g, function (val) {
+                      return val.slice(1);
+                  });
+                  this._longDateFormat[key] = output;
+              }
+              return output;
+          },
+
+          isPM : function (input) {
+              // IE8 Quirks Mode & IE7 Standards Mode do not allow accessing strings like arrays
+              // Using charAt should be more compatible.
+              return ((input + '').toLowerCase().charAt(0) === 'p');
+          },
+
+          _meridiemParse : /[ap]\.?m?\.?/i,
+          meridiem : function (hours, minutes, isLower) {
+              if (hours > 11) {
+                  return isLower ? 'pm' : 'PM';
+              } else {
+                  return isLower ? 'am' : 'AM';
+              }
+          },
+
+          _calendar : {
+              sameDay : '[Today at] LT',
+              nextDay : '[Tomorrow at] LT',
+              nextWeek : 'dddd [at] LT',
+              lastDay : '[Yesterday at] LT',
+              lastWeek : '[Last] dddd [at] LT',
+              sameElse : 'L'
+          },
+          calendar : function (key, mom) {
+              var output = this._calendar[key];
+              return typeof output === 'function' ? output.apply(mom) : output;
+          },
+
+          _relativeTime : {
+              future : "in %s",
+              past : "%s ago",
+              s : "a few seconds",
+              m : "a minute",
+              mm : "%d minutes",
+              h : "an hour",
+              hh : "%d hours",
+              d : "a day",
+              dd : "%d days",
+              M : "a month",
+              MM : "%d months",
+              y : "a year",
+              yy : "%d years"
+          },
+          relativeTime : function (number, withoutSuffix, string, isFuture) {
+              var output = this._relativeTime[string];
+              return (typeof output === 'function') ?
+                  output(number, withoutSuffix, string, isFuture) :
+                  output.replace(/%d/i, number);
+          },
+          pastFuture : function (diff, output) {
+              var format = this._relativeTime[diff > 0 ? 'future' : 'past'];
+              return typeof format === 'function' ? format(output) : format.replace(/%s/i, output);
+          },
+
+          ordinal : function (number) {
+              return this._ordinal.replace("%d", number);
+          },
+          _ordinal : "%d",
+
+          preparse : function (string) {
+              return string;
+          },
+
+          postformat : function (string) {
+              return string;
+          },
+
+          week : function (mom) {
+              return weekOfYear(mom, this._week.dow, this._week.doy).week;
+          },
+
+          _week : {
+              dow : 0, // Sunday is the first day of the week.
+              doy : 6  // The week that contains Jan 1st is the first week of the year.
+          },
+
+          _invalidDate: 'Invalid date',
+          invalidDate: function () {
+              return this._invalidDate;
+          }
+      });
+
+      // Loads a language definition into the `languages` cache.  The function
+      // takes a key and optionally values.  If not in the browser and no values
+      // are provided, it will load the language file module.  As a convenience,
+      // this function also returns the language values.
+      function loadLang(key, values) {
+          values.abbr = key;
+          if (!languages[key]) {
+              languages[key] = new Language();
+          }
+          languages[key].set(values);
+          return languages[key];
+      }
+
+      // Remove a language from the `languages` cache. Mostly useful in tests.
+      function unloadLang(key) {
+          delete languages[key];
+      }
+
+      // Determines which language definition to use and returns it.
+      //
+      // With no parameters, it will return the global language.  If you
+      // pass in a language key, such as 'en', it will return the
+      // definition for 'en', so long as 'en' has already been loaded using
+      // moment.lang.
+      function getLangDefinition(key) {
+          var i = 0, j, lang, next, split,
+              get = function (k) {
+                  if (!languages[k] && hasModule) {
+                      try {
+                          __webpack_require__(6)("./" + k);
+                      } catch (e) { }
+                  }
+                  return languages[k];
+              };
+
+          if (!key) {
+              return moment.fn._lang;
+          }
+
+          if (!isArray(key)) {
+              //short-circuit everything else
+              lang = get(key);
+              if (lang) {
+                  return lang;
+              }
+              key = [key];
+          }
+
+          //pick the language from the array
+          //try ['en-au', 'en-gb'] as 'en-au', 'en-gb', 'en', as in move through the list trying each
+          //substring from most specific to least, but move to the next array item if it's a more specific variant than the current root
+          while (i < key.length) {
+              split = normalizeLanguage(key[i]).split('-');
+              j = split.length;
+              next = normalizeLanguage(key[i + 1]);
+              next = next ? next.split('-') : null;
+              while (j > 0) {
+                  lang = get(split.slice(0, j).join('-'));
+                  if (lang) {
+                      return lang;
+                  }
+                  if (next && next.length >= j && compareArrays(split, next, true) >= j - 1) {
+                      //the next array item is better than a shallower substring of this one
+                      break;
+                  }
+                  j--;
+              }
+              i++;
+          }
+          return moment.fn._lang;
+      }
+
+      /************************************
+          Formatting
+      ************************************/
+
+
+      function removeFormattingTokens(input) {
+          if (input.match(/\[[\s\S]/)) {
+              return input.replace(/^\[|\]$/g, "");
+          }
+          return input.replace(/\\/g, "");
+      }
+
+      function makeFormatFunction(format) {
+          var array = format.match(formattingTokens), i, length;
+
+          for (i = 0, length = array.length; i < length; i++) {
+              if (formatTokenFunctions[array[i]]) {
+                  array[i] = formatTokenFunctions[array[i]];
+              } else {
+                  array[i] = removeFormattingTokens(array[i]);
+              }
+          }
+
+          return function (mom) {
+              var output = "";
+              for (i = 0; i < length; i++) {
+                  output += array[i] instanceof Function ? array[i].call(mom, format) : array[i];
+              }
+              return output;
+          };
+      }
+
+      // format date using native date object
+      function formatMoment(m, format) {
+
+          if (!m.isValid()) {
+              return m.lang().invalidDate();
+          }
+
+          format = expandFormat(format, m.lang());
+
+          if (!formatFunctions[format]) {
+              formatFunctions[format] = makeFormatFunction(format);
+          }
+
+          return formatFunctions[format](m);
+      }
+
+      function expandFormat(format, lang) {
+          var i = 5;
+
+          function replaceLongDateFormatTokens(input) {
+              return lang.longDateFormat(input) || input;
+          }
+
+          localFormattingTokens.lastIndex = 0;
+          while (i >= 0 && localFormattingTokens.test(format)) {
+              format = format.replace(localFormattingTokens, replaceLongDateFormatTokens);
+              localFormattingTokens.lastIndex = 0;
+              i -= 1;
+          }
+
+          return format;
+      }
+
+
+      /************************************
+          Parsing
+      ************************************/
+
+
+      // get the regex to find the next token
+      function getParseRegexForToken(token, config) {
+          var a, strict = config._strict;
+          switch (token) {
+          case 'Q':
+              return parseTokenOneDigit;
+          case 'DDDD':
+              return parseTokenThreeDigits;
+          case 'YYYY':
+          case 'GGGG':
+          case 'gggg':
+              return strict ? parseTokenFourDigits : parseTokenOneToFourDigits;
+          case 'Y':
+          case 'G':
+          case 'g':
+              return parseTokenSignedNumber;
+          case 'YYYYYY':
+          case 'YYYYY':
+          case 'GGGGG':
+          case 'ggggg':
+              return strict ? parseTokenSixDigits : parseTokenOneToSixDigits;
+          case 'S':
+              if (strict) { return parseTokenOneDigit; }
+              /* falls through */
+          case 'SS':
+              if (strict) { return parseTokenTwoDigits; }
+              /* falls through */
+          case 'SSS':
+              if (strict) { return parseTokenThreeDigits; }
+              /* falls through */
+          case 'DDD':
+              return parseTokenOneToThreeDigits;
+          case 'MMM':
+          case 'MMMM':
+          case 'dd':
+          case 'ddd':
+          case 'dddd':
+              return parseTokenWord;
+          case 'a':
+          case 'A':
+              return getLangDefinition(config._l)._meridiemParse;
+          case 'X':
+              return parseTokenTimestampMs;
+          case 'Z':
+          case 'ZZ':
+              return parseTokenTimezone;
+          case 'T':
+              return parseTokenT;
+          case 'SSSS':
+              return parseTokenDigits;
+          case 'MM':
+          case 'DD':
+          case 'YY':
+          case 'GG':
+          case 'gg':
+          case 'HH':
+          case 'hh':
+          case 'mm':
+          case 'ss':
+          case 'ww':
+          case 'WW':
+              return strict ? parseTokenTwoDigits : parseTokenOneOrTwoDigits;
+          case 'M':
+          case 'D':
+          case 'd':
+          case 'H':
+          case 'h':
+          case 'm':
+          case 's':
+          case 'w':
+          case 'W':
+          case 'e':
+          case 'E':
+              return parseTokenOneOrTwoDigits;
+          case 'Do':
+              return parseTokenOrdinal;
+          default :
+              a = new RegExp(regexpEscape(unescapeFormat(token.replace('\\', '')), "i"));
+              return a;
+          }
+      }
+
+      function timezoneMinutesFromString(string) {
+          string = string || "";
+          var possibleTzMatches = (string.match(parseTokenTimezone) || []),
+              tzChunk = possibleTzMatches[possibleTzMatches.length - 1] || [],
+              parts = (tzChunk + '').match(parseTimezoneChunker) || ['-', 0, 0],
+              minutes = +(parts[1] * 60) + toInt(parts[2]);
+
+          return parts[0] === '+' ? -minutes : minutes;
+      }
+
+      // function to convert string input to date
+      function addTimeToArrayFromToken(token, input, config) {
+          var a, datePartArray = config._a;
+
+          switch (token) {
+          // QUARTER
+          case 'Q':
+              if (input != null) {
+                  datePartArray[MONTH] = (toInt(input) - 1) * 3;
+              }
+              break;
+          // MONTH
+          case 'M' : // fall through to MM
+          case 'MM' :
+              if (input != null) {
+                  datePartArray[MONTH] = toInt(input) - 1;
+              }
+              break;
+          case 'MMM' : // fall through to MMMM
+          case 'MMMM' :
+              a = getLangDefinition(config._l).monthsParse(input);
+              // if we didn't find a month name, mark the date as invalid.
+              if (a != null) {
+                  datePartArray[MONTH] = a;
+              } else {
+                  config._pf.invalidMonth = input;
+              }
+              break;
+          // DAY OF MONTH
+          case 'D' : // fall through to DD
+          case 'DD' :
+              if (input != null) {
+                  datePartArray[DATE] = toInt(input);
+              }
+              break;
+          case 'Do' :
+              if (input != null) {
+                  datePartArray[DATE] = toInt(parseInt(input, 10));
+              }
+              break;
+          // DAY OF YEAR
+          case 'DDD' : // fall through to DDDD
+          case 'DDDD' :
+              if (input != null) {
+                  config._dayOfYear = toInt(input);
+              }
+
+              break;
+          // YEAR
+          case 'YY' :
+              datePartArray[YEAR] = moment.parseTwoDigitYear(input);
+              break;
+          case 'YYYY' :
+          case 'YYYYY' :
+          case 'YYYYYY' :
+              datePartArray[YEAR] = toInt(input);
+              break;
+          // AM / PM
+          case 'a' : // fall through to A
+          case 'A' :
+              config._isPm = getLangDefinition(config._l).isPM(input);
+              break;
+          // 24 HOUR
+          case 'H' : // fall through to hh
+          case 'HH' : // fall through to hh
+          case 'h' : // fall through to hh
+          case 'hh' :
+              datePartArray[HOUR] = toInt(input);
+              break;
+          // MINUTE
+          case 'm' : // fall through to mm
+          case 'mm' :
+              datePartArray[MINUTE] = toInt(input);
+              break;
+          // SECOND
+          case 's' : // fall through to ss
+          case 'ss' :
+              datePartArray[SECOND] = toInt(input);
+              break;
+          // MILLISECOND
+          case 'S' :
+          case 'SS' :
+          case 'SSS' :
+          case 'SSSS' :
+              datePartArray[MILLISECOND] = toInt(('0.' + input) * 1000);
+              break;
+          // UNIX TIMESTAMP WITH MS
+          case 'X':
+              config._d = new Date(parseFloat(input) * 1000);
+              break;
+          // TIMEZONE
+          case 'Z' : // fall through to ZZ
+          case 'ZZ' :
+              config._useUTC = true;
+              config._tzm = timezoneMinutesFromString(input);
+              break;
+          // WEEKDAY - human
+          case 'dd':
+          case 'ddd':
+          case 'dddd':
+              a = getLangDefinition(config._l).weekdaysParse(input);
+              // if we didn't get a weekday name, mark the date as invalid
+              if (a != null) {
+                  config._w = config._w || {};
+                  config._w['d'] = a;
+              } else {
+                  config._pf.invalidWeekday = input;
+              }
+              break;
+          // WEEK, WEEK DAY - numeric
+          case 'w':
+          case 'ww':
+          case 'W':
+          case 'WW':
+          case 'd':
+          case 'e':
+          case 'E':
+              token = token.substr(0, 1);
+              /* falls through */
+          case 'gggg':
+          case 'GGGG':
+          case 'GGGGG':
+              token = token.substr(0, 2);
+              if (input) {
+                  config._w = config._w || {};
+                  config._w[token] = toInt(input);
+              }
+              break;
+          case 'gg':
+          case 'GG':
+              config._w = config._w || {};
+              config._w[token] = moment.parseTwoDigitYear(input);
+          }
+      }
+
+      function dayOfYearFromWeekInfo(config) {
+          var w, weekYear, week, weekday, dow, doy, temp, lang;
+
+          w = config._w;
+          if (w.GG != null || w.W != null || w.E != null) {
+              dow = 1;
+              doy = 4;
+
+              // TODO: We need to take the current isoWeekYear, but that depends on
+              // how we interpret now (local, utc, fixed offset). So create
+              // a now version of current config (take local/utc/offset flags, and
+              // create now).
+              weekYear = dfl(w.GG, config._a[YEAR], weekOfYear(moment(), 1, 4).year);
+              week = dfl(w.W, 1);
+              weekday = dfl(w.E, 1);
+          } else {
+              lang = getLangDefinition(config._l);
+              dow = lang._week.dow;
+              doy = lang._week.doy;
+
+              weekYear = dfl(w.gg, config._a[YEAR], weekOfYear(moment(), dow, doy).year);
+              week = dfl(w.w, 1);
+
+              if (w.d != null) {
+                  // weekday -- low day numbers are considered next week
+                  weekday = w.d;
+                  if (weekday < dow) {
+                      ++week;
+                  }
+              } else if (w.e != null) {
+                  // local weekday -- counting starts from begining of week
+                  weekday = w.e + dow;
+              } else {
+                  // default to begining of week
+                  weekday = dow;
+              }
+          }
+          temp = dayOfYearFromWeeks(weekYear, week, weekday, doy, dow);
+
+          config._a[YEAR] = temp.year;
+          config._dayOfYear = temp.dayOfYear;
+      }
+
+      // convert an array to a date.
+      // the array should mirror the parameters below
+      // note: all values past the year are optional and will default to the lowest possible value.
+      // [year, month, day , hour, minute, second, millisecond]
+      function dateFromConfig(config) {
+          var i, date, input = [], currentDate, yearToUse;
+
+          if (config._d) {
+              return;
+          }
+
+          currentDate = currentDateArray(config);
+
+          //compute day of the year from weeks and weekdays
+          if (config._w && config._a[DATE] == null && config._a[MONTH] == null) {
+              dayOfYearFromWeekInfo(config);
+          }
+
+          //if the day of the year is set, figure out what it is
+          if (config._dayOfYear) {
+              yearToUse = dfl(config._a[YEAR], currentDate[YEAR]);
+
+              if (config._dayOfYear > daysInYear(yearToUse)) {
+                  config._pf._overflowDayOfYear = true;
+              }
+
+              date = makeUTCDate(yearToUse, 0, config._dayOfYear);
+              config._a[MONTH] = date.getUTCMonth();
+              config._a[DATE] = date.getUTCDate();
+          }
+
+          // Default to current date.
+          // * if no year, month, day of month are given, default to today
+          // * if day of month is given, default month and year
+          // * if month is given, default only year
+          // * if year is given, don't default anything
+          for (i = 0; i < 3 && config._a[i] == null; ++i) {
+              config._a[i] = input[i] = currentDate[i];
+          }
+
+          // Zero out whatever was not defaulted, including time
+          for (; i < 7; i++) {
+              config._a[i] = input[i] = (config._a[i] == null) ? (i === 2 ? 1 : 0) : config._a[i];
+          }
+
+          config._d = (config._useUTC ? makeUTCDate : makeDate).apply(null, input);
+          // Apply timezone offset from input. The actual zone can be changed
+          // with parseZone.
+          if (config._tzm != null) {
+              config._d.setUTCMinutes(config._d.getUTCMinutes() + config._tzm);
+          }
+      }
+
+      function dateFromObject(config) {
+          var normalizedInput;
+
+          if (config._d) {
+              return;
+          }
+
+          normalizedInput = normalizeObjectUnits(config._i);
+          config._a = [
+              normalizedInput.year,
+              normalizedInput.month,
+              normalizedInput.day,
+              normalizedInput.hour,
+              normalizedInput.minute,
+              normalizedInput.second,
+              normalizedInput.millisecond
+          ];
+
+          dateFromConfig(config);
+      }
+
+      function currentDateArray(config) {
+          var now = new Date();
+          if (config._useUTC) {
+              return [
+                  now.getUTCFullYear(),
+                  now.getUTCMonth(),
+                  now.getUTCDate()
+              ];
+          } else {
+              return [now.getFullYear(), now.getMonth(), now.getDate()];
+          }
+      }
+
+      // date from string and format string
+      function makeDateFromStringAndFormat(config) {
+
+          if (config._f === moment.ISO_8601) {
+              parseISO(config);
+              return;
+          }
+
+          config._a = [];
+          config._pf.empty = true;
+
+          // This array is used to make a Date, either with `new Date` or `Date.UTC`
+          var lang = getLangDefinition(config._l),
+              string = '' + config._i,
+              i, parsedInput, tokens, token, skipped,
+              stringLength = string.length,
+              totalParsedInputLength = 0;
+
+          tokens = expandFormat(config._f, lang).match(formattingTokens) || [];
+
+          for (i = 0; i < tokens.length; i++) {
+              token = tokens[i];
+              parsedInput = (string.match(getParseRegexForToken(token, config)) || [])[0];
+              if (parsedInput) {
+                  skipped = string.substr(0, string.indexOf(parsedInput));
+                  if (skipped.length > 0) {
+                      config._pf.unusedInput.push(skipped);
+                  }
+                  string = string.slice(string.indexOf(parsedInput) + parsedInput.length);
+                  totalParsedInputLength += parsedInput.length;
+              }
+              // don't parse if it's not a known token
+              if (formatTokenFunctions[token]) {
+                  if (parsedInput) {
+                      config._pf.empty = false;
+                  }
+                  else {
+                      config._pf.unusedTokens.push(token);
+                  }
+                  addTimeToArrayFromToken(token, parsedInput, config);
+              }
+              else if (config._strict && !parsedInput) {
+                  config._pf.unusedTokens.push(token);
+              }
+          }
+
+          // add remaining unparsed input length to the string
+          config._pf.charsLeftOver = stringLength - totalParsedInputLength;
+          if (string.length > 0) {
+              config._pf.unusedInput.push(string);
+          }
+
+          // handle am pm
+          if (config._isPm && config._a[HOUR] < 12) {
+              config._a[HOUR] += 12;
+          }
+          // if is 12 am, change hours to 0
+          if (config._isPm === false && config._a[HOUR] === 12) {
+              config._a[HOUR] = 0;
+          }
+
+          dateFromConfig(config);
+          checkOverflow(config);
+      }
+
+      function unescapeFormat(s) {
+          return s.replace(/\\(\[)|\\(\])|\[([^\]\[]*)\]|\\(.)/g, function (matched, p1, p2, p3, p4) {
+              return p1 || p2 || p3 || p4;
+          });
+      }
+
+      // Code from http://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript
+      function regexpEscape(s) {
+          return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      }
+
+      // date from string and array of format strings
+      function makeDateFromStringAndArray(config) {
+          var tempConfig,
+              bestMoment,
+
+              scoreToBeat,
+              i,
+              currentScore;
+
+          if (config._f.length === 0) {
+              config._pf.invalidFormat = true;
+              config._d = new Date(NaN);
+              return;
+          }
+
+          for (i = 0; i < config._f.length; i++) {
+              currentScore = 0;
+              tempConfig = extend({}, config);
+              tempConfig._pf = defaultParsingFlags();
+              tempConfig._f = config._f[i];
+              makeDateFromStringAndFormat(tempConfig);
+
+              if (!isValid(tempConfig)) {
+                  continue;
+              }
+
+              // if there is any input that was not parsed add a penalty for that format
+              currentScore += tempConfig._pf.charsLeftOver;
+
+              //or tokens
+              currentScore += tempConfig._pf.unusedTokens.length * 10;
+
+              tempConfig._pf.score = currentScore;
+
+              if (scoreToBeat == null || currentScore < scoreToBeat) {
+                  scoreToBeat = currentScore;
+                  bestMoment = tempConfig;
+              }
+          }
+
+          extend(config, bestMoment || tempConfig);
+      }
+
+      // date from iso format
+      function parseISO(config) {
+          var i, l,
+              string = config._i,
+              match = isoRegex.exec(string);
+
+          if (match) {
+              config._pf.iso = true;
+              for (i = 0, l = isoDates.length; i < l; i++) {
+                  if (isoDates[i][1].exec(string)) {
+                      // match[5] should be "T" or undefined
+                      config._f = isoDates[i][0] + (match[6] || " ");
+                      break;
+                  }
+              }
+              for (i = 0, l = isoTimes.length; i < l; i++) {
+                  if (isoTimes[i][1].exec(string)) {
+                      config._f += isoTimes[i][0];
+                      break;
+                  }
+              }
+              if (string.match(parseTokenTimezone)) {
+                  config._f += "Z";
+              }
+              makeDateFromStringAndFormat(config);
+          } else {
+              config._isValid = false;
+          }
+      }
+
+      // date from iso format or fallback
+      function makeDateFromString(config) {
+          parseISO(config);
+          if (config._isValid === false) {
+              delete config._isValid;
+              moment.createFromInputFallback(config);
+          }
+      }
+
+      function makeDateFromInput(config) {
+          var input = config._i,
+              matched = aspNetJsonRegex.exec(input);
+
+          if (input === undefined) {
+              config._d = new Date();
+          } else if (matched) {
+              config._d = new Date(+matched[1]);
+          } else if (typeof input === 'string') {
+              makeDateFromString(config);
+          } else if (isArray(input)) {
+              config._a = input.slice(0);
+              dateFromConfig(config);
+          } else if (isDate(input)) {
+              config._d = new Date(+input);
+          } else if (typeof(input) === 'object') {
+              dateFromObject(config);
+          } else if (typeof(input) === 'number') {
+              // from milliseconds
+              config._d = new Date(input);
+          } else {
+              moment.createFromInputFallback(config);
+          }
+      }
+
+      function makeDate(y, m, d, h, M, s, ms) {
+          //can't just apply() to create a date:
+          //http://stackoverflow.com/questions/181348/instantiating-a-javascript-object-by-calling-prototype-constructor-apply
+          var date = new Date(y, m, d, h, M, s, ms);
+
+          //the date constructor doesn't accept years < 1970
+          if (y < 1970) {
+              date.setFullYear(y);
+          }
+          return date;
+      }
+
+      function makeUTCDate(y) {
+          var date = new Date(Date.UTC.apply(null, arguments));
+          if (y < 1970) {
+              date.setUTCFullYear(y);
+          }
+          return date;
+      }
+
+      function parseWeekday(input, language) {
+          if (typeof input === 'string') {
+              if (!isNaN(input)) {
+                  input = parseInt(input, 10);
+              }
+              else {
+                  input = language.weekdaysParse(input);
+                  if (typeof input !== 'number') {
+                      return null;
+                  }
+              }
+          }
+          return input;
+      }
+
+      /************************************
+          Relative Time
+      ************************************/
+
+
+      // helper function for moment.fn.from, moment.fn.fromNow, and moment.duration.fn.humanize
+      function substituteTimeAgo(string, number, withoutSuffix, isFuture, lang) {
+          return lang.relativeTime(number || 1, !!withoutSuffix, string, isFuture);
+      }
+
+      function relativeTime(milliseconds, withoutSuffix, lang) {
+          var seconds = round(Math.abs(milliseconds) / 1000),
+              minutes = round(seconds / 60),
+              hours = round(minutes / 60),
+              days = round(hours / 24),
+              years = round(days / 365),
+              args = seconds < relativeTimeThresholds.s  && ['s', seconds] ||
+                  minutes === 1 && ['m'] ||
+                  minutes < relativeTimeThresholds.m && ['mm', minutes] ||
+                  hours === 1 && ['h'] ||
+                  hours < relativeTimeThresholds.h && ['hh', hours] ||
+                  days === 1 && ['d'] ||
+                  days <= relativeTimeThresholds.dd && ['dd', days] ||
+                  days <= relativeTimeThresholds.dm && ['M'] ||
+                  days < relativeTimeThresholds.dy && ['MM', round(days / 30)] ||
+                  years === 1 && ['y'] || ['yy', years];
+          args[2] = withoutSuffix;
+          args[3] = milliseconds > 0;
+          args[4] = lang;
+          return substituteTimeAgo.apply({}, args);
+      }
+
+
+      /************************************
+          Week of Year
+      ************************************/
+
+
+      // firstDayOfWeek       0 = sun, 6 = sat
+      //                      the day of the week that starts the week
+      //                      (usually sunday or monday)
+      // firstDayOfWeekOfYear 0 = sun, 6 = sat
+      //                      the first week is the week that contains the first
+      //                      of this day of the week
+      //                      (eg. ISO weeks use thursday (4))
+      function weekOfYear(mom, firstDayOfWeek, firstDayOfWeekOfYear) {
+          var end = firstDayOfWeekOfYear - firstDayOfWeek,
+              daysToDayOfWeek = firstDayOfWeekOfYear - mom.day(),
+              adjustedMoment;
+
+
+          if (daysToDayOfWeek > end) {
+              daysToDayOfWeek -= 7;
+          }
+
+          if (daysToDayOfWeek < end - 7) {
+              daysToDayOfWeek += 7;
+          }
+
+          adjustedMoment = moment(mom).add('d', daysToDayOfWeek);
+          return {
+              week: Math.ceil(adjustedMoment.dayOfYear() / 7),
+              year: adjustedMoment.year()
+          };
+      }
+
+      //http://en.wikipedia.org/wiki/ISO_week_date#Calculating_a_date_given_the_year.2C_week_number_and_weekday
+      function dayOfYearFromWeeks(year, week, weekday, firstDayOfWeekOfYear, firstDayOfWeek) {
+          var d = makeUTCDate(year, 0, 1).getUTCDay(), daysToAdd, dayOfYear;
+
+          d = d === 0 ? 7 : d;
+          weekday = weekday != null ? weekday : firstDayOfWeek;
+          daysToAdd = firstDayOfWeek - d + (d > firstDayOfWeekOfYear ? 7 : 0) - (d < firstDayOfWeek ? 7 : 0);
+          dayOfYear = 7 * (week - 1) + (weekday - firstDayOfWeek) + daysToAdd + 1;
+
+          return {
+              year: dayOfYear > 0 ? year : year - 1,
+              dayOfYear: dayOfYear > 0 ?  dayOfYear : daysInYear(year - 1) + dayOfYear
+          };
+      }
+
+      /************************************
+          Top Level Functions
+      ************************************/
+
+      function makeMoment(config) {
+          var input = config._i,
+              format = config._f;
+
+          if (input === null || (format === undefined && input === '')) {
+              return moment.invalid({nullInput: true});
+          }
+
+          if (typeof input === 'string') {
+              config._i = input = getLangDefinition().preparse(input);
+          }
+
+          if (moment.isMoment(input)) {
+              config = cloneMoment(input);
+
+              config._d = new Date(+input._d);
+          } else if (format) {
+              if (isArray(format)) {
+                  makeDateFromStringAndArray(config);
+              } else {
+                  makeDateFromStringAndFormat(config);
+              }
+          } else {
+              makeDateFromInput(config);
+          }
+
+          return new Moment(config);
+      }
+
+      moment = function (input, format, lang, strict) {
+          var c;
+
+          if (typeof(lang) === "boolean") {
+              strict = lang;
+              lang = undefined;
+          }
+          // object construction must be done this way.
+          // https://github.com/moment/moment/issues/1423
+          c = {};
+          c._isAMomentObject = true;
+          c._i = input;
+          c._f = format;
+          c._l = lang;
+          c._strict = strict;
+          c._isUTC = false;
+          c._pf = defaultParsingFlags();
+
+          return makeMoment(c);
+      };
+
+      moment.suppressDeprecationWarnings = false;
+
+      moment.createFromInputFallback = deprecate(
+              "moment construction falls back to js Date. This is " +
+              "discouraged and will be removed in upcoming major " +
+              "release. Please refer to " +
+              "https://github.com/moment/moment/issues/1407 for more info.",
+              function (config) {
+          config._d = new Date(config._i);
+      });
+
+      // Pick a moment m from moments so that m[fn](other) is true for all
+      // other. This relies on the function fn to be transitive.
+      //
+      // moments should either be an array of moment objects or an array, whose
+      // first element is an array of moment objects.
+      function pickBy(fn, moments) {
+          var res, i;
+          if (moments.length === 1 && isArray(moments[0])) {
+              moments = moments[0];
+          }
+          if (!moments.length) {
+              return moment();
+          }
+          res = moments[0];
+          for (i = 1; i < moments.length; ++i) {
+              if (moments[i][fn](res)) {
+                  res = moments[i];
+              }
+          }
+          return res;
+      }
+
+      moment.min = function () {
+          var args = [].slice.call(arguments, 0);
+
+          return pickBy('isBefore', args);
+      };
+
+      moment.max = function () {
+          var args = [].slice.call(arguments, 0);
+
+          return pickBy('isAfter', args);
+      };
+
+      // creating with utc
+      moment.utc = function (input, format, lang, strict) {
+          var c;
+
+          if (typeof(lang) === "boolean") {
+              strict = lang;
+              lang = undefined;
+          }
+          // object construction must be done this way.
+          // https://github.com/moment/moment/issues/1423
+          c = {};
+          c._isAMomentObject = true;
+          c._useUTC = true;
+          c._isUTC = true;
+          c._l = lang;
+          c._i = input;
+          c._f = format;
+          c._strict = strict;
+          c._pf = defaultParsingFlags();
+
+          return makeMoment(c).utc();
+      };
+
+      // creating with unix timestamp (in seconds)
+      moment.unix = function (input) {
+          return moment(input * 1000);
+      };
+
+      // duration
+      moment.duration = function (input, key) {
+          var duration = input,
+              // matching against regexp is expensive, do it on demand
+              match = null,
+              sign,
+              ret,
+              parseIso;
+
+          if (moment.isDuration(input)) {
+              duration = {
+                  ms: input._milliseconds,
+                  d: input._days,
+                  M: input._months
+              };
+          } else if (typeof input === 'number') {
+              duration = {};
+              if (key) {
+                  duration[key] = input;
+              } else {
+                  duration.milliseconds = input;
+              }
+          } else if (!!(match = aspNetTimeSpanJsonRegex.exec(input))) {
+              sign = (match[1] === "-") ? -1 : 1;
+              duration = {
+                  y: 0,
+                  d: toInt(match[DATE]) * sign,
+                  h: toInt(match[HOUR]) * sign,
+                  m: toInt(match[MINUTE]) * sign,
+                  s: toInt(match[SECOND]) * sign,
+                  ms: toInt(match[MILLISECOND]) * sign
+              };
+          } else if (!!(match = isoDurationRegex.exec(input))) {
+              sign = (match[1] === "-") ? -1 : 1;
+              parseIso = function (inp) {
+                  // We'd normally use ~~inp for this, but unfortunately it also
+                  // converts floats to ints.
+                  // inp may be undefined, so careful calling replace on it.
+                  var res = inp && parseFloat(inp.replace(',', '.'));
+                  // apply sign while we're at it
+                  return (isNaN(res) ? 0 : res) * sign;
+              };
+              duration = {
+                  y: parseIso(match[2]),
+                  M: parseIso(match[3]),
+                  d: parseIso(match[4]),
+                  h: parseIso(match[5]),
+                  m: parseIso(match[6]),
+                  s: parseIso(match[7]),
+                  w: parseIso(match[8])
+              };
+          }
+
+          ret = new Duration(duration);
+
+          if (moment.isDuration(input) && input.hasOwnProperty('_lang')) {
+              ret._lang = input._lang;
+          }
+
+          return ret;
+      };
+
+      // version number
+      moment.version = VERSION;
+
+      // default format
+      moment.defaultFormat = isoFormat;
+
+      // constant that refers to the ISO standard
+      moment.ISO_8601 = function () {};
+
+      // Plugins that add properties should also add the key here (null value),
+      // so we can properly clone ourselves.
+      moment.momentProperties = momentProperties;
+
+      // This function will be called whenever a moment is mutated.
+      // It is intended to keep the offset in sync with the timezone.
+      moment.updateOffset = function () {};
+
+      // This function allows you to set a threshold for relative time strings
+      moment.relativeTimeThreshold = function(threshold, limit) {
+        if (relativeTimeThresholds[threshold] === undefined) {
+          return false;
+        }
+        relativeTimeThresholds[threshold] = limit;
+        return true;
+      };
+
+      // This function will load languages and then set the global language.  If
+      // no arguments are passed in, it will simply return the current global
+      // language key.
+      moment.lang = function (key, values) {
+          var r;
+          if (!key) {
+              return moment.fn._lang._abbr;
+          }
+          if (values) {
+              loadLang(normalizeLanguage(key), values);
+          } else if (values === null) {
+              unloadLang(key);
+              key = 'en';
+          } else if (!languages[key]) {
+              getLangDefinition(key);
+          }
+          r = moment.duration.fn._lang = moment.fn._lang = getLangDefinition(key);
+          return r._abbr;
+      };
+
+      // returns language data
+      moment.langData = function (key) {
+          if (key && key._lang && key._lang._abbr) {
+              key = key._lang._abbr;
+          }
+          return getLangDefinition(key);
+      };
+
+      // compare moment object
+      moment.isMoment = function (obj) {
+          return obj instanceof Moment ||
+              (obj != null &&  obj.hasOwnProperty('_isAMomentObject'));
+      };
+
+      // for typechecking Duration objects
+      moment.isDuration = function (obj) {
+          return obj instanceof Duration;
+      };
+
+      for (i = lists.length - 1; i >= 0; --i) {
+          makeList(lists[i]);
+      }
+
+      moment.normalizeUnits = function (units) {
+          return normalizeUnits(units);
+      };
+
+      moment.invalid = function (flags) {
+          var m = moment.utc(NaN);
+          if (flags != null) {
+              extend(m._pf, flags);
+          }
+          else {
+              m._pf.userInvalidated = true;
+          }
+
+          return m;
+      };
+
+      moment.parseZone = function () {
+          return moment.apply(null, arguments).parseZone();
+      };
+
+      moment.parseTwoDigitYear = function (input) {
+          return toInt(input) + (toInt(input) > 68 ? 1900 : 2000);
+      };
+
+      /************************************
+          Moment Prototype
+      ************************************/
+
+
+      extend(moment.fn = Moment.prototype, {
+
+          clone : function () {
+              return moment(this);
+          },
+
+          valueOf : function () {
+              return +this._d + ((this._offset || 0) * 60000);
+          },
+
+          unix : function () {
+              return Math.floor(+this / 1000);
+          },
+
+          toString : function () {
+              return this.clone().lang('en').format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ");
+          },
+
+          toDate : function () {
+              return this._offset ? new Date(+this) : this._d;
+          },
+
+          toISOString : function () {
+              var m = moment(this).utc();
+              if (0 < m.year() && m.year() <= 9999) {
+                  return formatMoment(m, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]');
+              } else {
+                  return formatMoment(m, 'YYYYYY-MM-DD[T]HH:mm:ss.SSS[Z]');
+              }
+          },
+
+          toArray : function () {
+              var m = this;
+              return [
+                  m.year(),
+                  m.month(),
+                  m.date(),
+                  m.hours(),
+                  m.minutes(),
+                  m.seconds(),
+                  m.milliseconds()
+              ];
+          },
+
+          isValid : function () {
+              return isValid(this);
+          },
+
+          isDSTShifted : function () {
+
+              if (this._a) {
+                  return this.isValid() && compareArrays(this._a, (this._isUTC ? moment.utc(this._a) : moment(this._a)).toArray()) > 0;
+              }
+
+              return false;
+          },
+
+          parsingFlags : function () {
+              return extend({}, this._pf);
+          },
+
+          invalidAt: function () {
+              return this._pf.overflow;
+          },
+
+          utc : function () {
+              return this.zone(0);
+          },
+
+          local : function () {
+              this.zone(0);
+              this._isUTC = false;
+              return this;
+          },
+
+          format : function (inputString) {
+              var output = formatMoment(this, inputString || moment.defaultFormat);
+              return this.lang().postformat(output);
+          },
+
+          add : function (input, val) {
+              var dur;
+              // switch args to support add('s', 1) and add(1, 's')
+              if (typeof input === 'string' && typeof val === 'string') {
+                  dur = moment.duration(isNaN(+val) ? +input : +val, isNaN(+val) ? val : input);
+              } else if (typeof input === 'string') {
+                  dur = moment.duration(+val, input);
+              } else {
+                  dur = moment.duration(input, val);
+              }
+              addOrSubtractDurationFromMoment(this, dur, 1);
+              return this;
+          },
+
+          subtract : function (input, val) {
+              var dur;
+              // switch args to support subtract('s', 1) and subtract(1, 's')
+              if (typeof input === 'string' && typeof val === 'string') {
+                  dur = moment.duration(isNaN(+val) ? +input : +val, isNaN(+val) ? val : input);
+              } else if (typeof input === 'string') {
+                  dur = moment.duration(+val, input);
+              } else {
+                  dur = moment.duration(input, val);
+              }
+              addOrSubtractDurationFromMoment(this, dur, -1);
+              return this;
+          },
+
+          diff : function (input, units, asFloat) {
+              var that = makeAs(input, this),
+                  zoneDiff = (this.zone() - that.zone()) * 6e4,
+                  diff, output;
+
+              units = normalizeUnits(units);
+
+              if (units === 'year' || units === 'month') {
+                  // average number of days in the months in the given dates
+                  diff = (this.daysInMonth() + that.daysInMonth()) * 432e5; // 24 * 60 * 60 * 1000 / 2
+                  // difference in months
+                  output = ((this.year() - that.year()) * 12) + (this.month() - that.month());
+                  // adjust by taking difference in days, average number of days
+                  // and dst in the given months.
+                  output += ((this - moment(this).startOf('month')) -
+                          (that - moment(that).startOf('month'))) / diff;
+                  // same as above but with zones, to negate all dst
+                  output -= ((this.zone() - moment(this).startOf('month').zone()) -
+                          (that.zone() - moment(that).startOf('month').zone())) * 6e4 / diff;
+                  if (units === 'year') {
+                      output = output / 12;
+                  }
+              } else {
+                  diff = (this - that);
+                  output = units === 'second' ? diff / 1e3 : // 1000
+                      units === 'minute' ? diff / 6e4 : // 1000 * 60
+                      units === 'hour' ? diff / 36e5 : // 1000 * 60 * 60
+                      units === 'day' ? (diff - zoneDiff) / 864e5 : // 1000 * 60 * 60 * 24, negate dst
+                      units === 'week' ? (diff - zoneDiff) / 6048e5 : // 1000 * 60 * 60 * 24 * 7, negate dst
+                      diff;
+              }
+              return asFloat ? output : absRound(output);
+          },
+
+          from : function (time, withoutSuffix) {
+              return moment.duration(this.diff(time)).lang(this.lang()._abbr).humanize(!withoutSuffix);
+          },
+
+          fromNow : function (withoutSuffix) {
+              return this.from(moment(), withoutSuffix);
+          },
+
+          calendar : function (time) {
+              // We want to compare the start of today, vs this.
+              // Getting start-of-today depends on whether we're zone'd or not.
+              var now = time || moment(),
+                  sod = makeAs(now, this).startOf('day'),
+                  diff = this.diff(sod, 'days', true),
+                  format = diff < -6 ? 'sameElse' :
+                      diff < -1 ? 'lastWeek' :
+                      diff < 0 ? 'lastDay' :
+                      diff < 1 ? 'sameDay' :
+                      diff < 2 ? 'nextDay' :
+                      diff < 7 ? 'nextWeek' : 'sameElse';
+              return this.format(this.lang().calendar(format, this));
+          },
+
+          isLeapYear : function () {
+              return isLeapYear(this.year());
+          },
+
+          isDST : function () {
+              return (this.zone() < this.clone().month(0).zone() ||
+                  this.zone() < this.clone().month(5).zone());
+          },
+
+          day : function (input) {
+              var day = this._isUTC ? this._d.getUTCDay() : this._d.getDay();
+              if (input != null) {
+                  input = parseWeekday(input, this.lang());
+                  return this.add({ d : input - day });
+              } else {
+                  return day;
+              }
+          },
+
+          month : makeAccessor('Month', true),
+
+          startOf: function (units) {
+              units = normalizeUnits(units);
+              // the following switch intentionally omits break keywords
+              // to utilize falling through the cases.
+              switch (units) {
+              case 'year':
+                  this.month(0);
+                  /* falls through */
+              case 'quarter':
+              case 'month':
+                  this.date(1);
+                  /* falls through */
+              case 'week':
+              case 'isoWeek':
+              case 'day':
+                  this.hours(0);
+                  /* falls through */
+              case 'hour':
+                  this.minutes(0);
+                  /* falls through */
+              case 'minute':
+                  this.seconds(0);
+                  /* falls through */
+              case 'second':
+                  this.milliseconds(0);
+                  /* falls through */
+              }
+
+              // weeks are a special case
+              if (units === 'week') {
+                  this.weekday(0);
+              } else if (units === 'isoWeek') {
+                  this.isoWeekday(1);
+              }
+
+              // quarters are also special
+              if (units === 'quarter') {
+                  this.month(Math.floor(this.month() / 3) * 3);
+              }
+
+              return this;
+          },
+
+          endOf: function (units) {
+              units = normalizeUnits(units);
+              return this.startOf(units).add((units === 'isoWeek' ? 'week' : units), 1).subtract('ms', 1);
+          },
+
+          isAfter: function (input, units) {
+              units = typeof units !== 'undefined' ? units : 'millisecond';
+              return +this.clone().startOf(units) > +moment(input).startOf(units);
+          },
+
+          isBefore: function (input, units) {
+              units = typeof units !== 'undefined' ? units : 'millisecond';
+              return +this.clone().startOf(units) < +moment(input).startOf(units);
+          },
+
+          isSame: function (input, units) {
+              units = units || 'ms';
+              return +this.clone().startOf(units) === +makeAs(input, this).startOf(units);
+          },
+
+          min: deprecate(
+                   "moment().min is deprecated, use moment.min instead. https://github.com/moment/moment/issues/1548",
+                   function (other) {
+                       other = moment.apply(null, arguments);
+                       return other < this ? this : other;
+                   }
+           ),
+
+          max: deprecate(
+                  "moment().max is deprecated, use moment.max instead. https://github.com/moment/moment/issues/1548",
+                  function (other) {
+                      other = moment.apply(null, arguments);
+                      return other > this ? this : other;
+                  }
+          ),
+
+          // keepTime = true means only change the timezone, without affecting
+          // the local hour. So 5:31:26 +0300 --[zone(2, true)]--> 5:31:26 +0200
+          // It is possible that 5:31:26 doesn't exist int zone +0200, so we
+          // adjust the time as needed, to be valid.
+          //
+          // Keeping the time actually adds/subtracts (one hour)
+          // from the actual represented time. That is why we call updateOffset
+          // a second time. In case it wants us to change the offset again
+          // _changeInProgress == true case, then we have to adjust, because
+          // there is no such time in the given timezone.
+          zone : function (input, keepTime) {
+              var offset = this._offset || 0;
+              if (input != null) {
+                  if (typeof input === "string") {
+                      input = timezoneMinutesFromString(input);
+                  }
+                  if (Math.abs(input) < 16) {
+                      input = input * 60;
+                  }
+                  this._offset = input;
+                  this._isUTC = true;
+                  if (offset !== input) {
+                      if (!keepTime || this._changeInProgress) {
+                          addOrSubtractDurationFromMoment(this,
+                                  moment.duration(offset - input, 'm'), 1, false);
+                      } else if (!this._changeInProgress) {
+                          this._changeInProgress = true;
+                          moment.updateOffset(this, true);
+                          this._changeInProgress = null;
+                      }
+                  }
+              } else {
+                  return this._isUTC ? offset : this._d.getTimezoneOffset();
+              }
+              return this;
+          },
+
+          zoneAbbr : function () {
+              return this._isUTC ? "UTC" : "";
+          },
+
+          zoneName : function () {
+              return this._isUTC ? "Coordinated Universal Time" : "";
+          },
+
+          parseZone : function () {
+              if (this._tzm) {
+                  this.zone(this._tzm);
+              } else if (typeof this._i === 'string') {
+                  this.zone(this._i);
+              }
+              return this;
+          },
+
+          hasAlignedHourOffset : function (input) {
+              if (!input) {
+                  input = 0;
+              }
+              else {
+                  input = moment(input).zone();
+              }
+
+              return (this.zone() - input) % 60 === 0;
+          },
+
+          daysInMonth : function () {
+              return daysInMonth(this.year(), this.month());
+          },
+
+          dayOfYear : function (input) {
+              var dayOfYear = round((moment(this).startOf('day') - moment(this).startOf('year')) / 864e5) + 1;
+              return input == null ? dayOfYear : this.add("d", (input - dayOfYear));
+          },
+
+          quarter : function (input) {
+              return input == null ? Math.ceil((this.month() + 1) / 3) : this.month((input - 1) * 3 + this.month() % 3);
+          },
+
+          weekYear : function (input) {
+              var year = weekOfYear(this, this.lang()._week.dow, this.lang()._week.doy).year;
+              return input == null ? year : this.add("y", (input - year));
+          },
+
+          isoWeekYear : function (input) {
+              var year = weekOfYear(this, 1, 4).year;
+              return input == null ? year : this.add("y", (input - year));
+          },
+
+          week : function (input) {
+              var week = this.lang().week(this);
+              return input == null ? week : this.add("d", (input - week) * 7);
+          },
+
+          isoWeek : function (input) {
+              var week = weekOfYear(this, 1, 4).week;
+              return input == null ? week : this.add("d", (input - week) * 7);
+          },
+
+          weekday : function (input) {
+              var weekday = (this.day() + 7 - this.lang()._week.dow) % 7;
+              return input == null ? weekday : this.add("d", input - weekday);
+          },
+
+          isoWeekday : function (input) {
+              // behaves the same as moment#day except
+              // as a getter, returns 7 instead of 0 (1-7 range instead of 0-6)
+              // as a setter, sunday should belong to the previous week.
+              return input == null ? this.day() || 7 : this.day(this.day() % 7 ? input : input - 7);
+          },
+
+          isoWeeksInYear : function () {
+              return weeksInYear(this.year(), 1, 4);
+          },
+
+          weeksInYear : function () {
+              var weekInfo = this._lang._week;
+              return weeksInYear(this.year(), weekInfo.dow, weekInfo.doy);
+          },
+
+          get : function (units) {
+              units = normalizeUnits(units);
+              return this[units]();
+          },
+
+          set : function (units, value) {
+              units = normalizeUnits(units);
+              if (typeof this[units] === 'function') {
+                  this[units](value);
+              }
+              return this;
+          },
+
+          // If passed a language key, it will set the language for this
+          // instance.  Otherwise, it will return the language configuration
+          // variables for this instance.
+          lang : function (key) {
+              if (key === undefined) {
+                  return this._lang;
+              } else {
+                  this._lang = getLangDefinition(key);
+                  return this;
+              }
+          }
+      });
+
+      function rawMonthSetter(mom, value) {
+          var dayOfMonth;
+
+          // TODO: Move this out of here!
+          if (typeof value === 'string') {
+              value = mom.lang().monthsParse(value);
+              // TODO: Another silent failure?
+              if (typeof value !== 'number') {
+                  return mom;
+              }
+          }
+
+          dayOfMonth = Math.min(mom.date(),
+                  daysInMonth(mom.year(), value));
+          mom._d['set' + (mom._isUTC ? 'UTC' : '') + 'Month'](value, dayOfMonth);
+          return mom;
+      }
+
+      function rawGetter(mom, unit) {
+          return mom._d['get' + (mom._isUTC ? 'UTC' : '') + unit]();
+      }
+
+      function rawSetter(mom, unit, value) {
+          if (unit === 'Month') {
+              return rawMonthSetter(mom, value);
+          } else {
+              return mom._d['set' + (mom._isUTC ? 'UTC' : '') + unit](value);
+          }
+      }
+
+      function makeAccessor(unit, keepTime) {
+          return function (value) {
+              if (value != null) {
+                  rawSetter(this, unit, value);
+                  moment.updateOffset(this, keepTime);
+                  return this;
+              } else {
+                  return rawGetter(this, unit);
+              }
+          };
+      }
+
+      moment.fn.millisecond = moment.fn.milliseconds = makeAccessor('Milliseconds', false);
+      moment.fn.second = moment.fn.seconds = makeAccessor('Seconds', false);
+      moment.fn.minute = moment.fn.minutes = makeAccessor('Minutes', false);
+      // Setting the hour should keep the time, because the user explicitly
+      // specified which hour he wants. So trying to maintain the same hour (in
+      // a new timezone) makes sense. Adding/subtracting hours does not follow
+      // this rule.
+      moment.fn.hour = moment.fn.hours = makeAccessor('Hours', true);
+      // moment.fn.month is defined separately
+      moment.fn.date = makeAccessor('Date', true);
+      moment.fn.dates = deprecate("dates accessor is deprecated. Use date instead.", makeAccessor('Date', true));
+      moment.fn.year = makeAccessor('FullYear', true);
+      moment.fn.years = deprecate("years accessor is deprecated. Use year instead.", makeAccessor('FullYear', true));
+
+      // add plural methods
+      moment.fn.days = moment.fn.day;
+      moment.fn.months = moment.fn.month;
+      moment.fn.weeks = moment.fn.week;
+      moment.fn.isoWeeks = moment.fn.isoWeek;
+      moment.fn.quarters = moment.fn.quarter;
+
+      // add aliased format methods
+      moment.fn.toJSON = moment.fn.toISOString;
+
+      /************************************
+          Duration Prototype
+      ************************************/
+
+
+      extend(moment.duration.fn = Duration.prototype, {
+
+          _bubble : function () {
+              var milliseconds = this._milliseconds,
+                  days = this._days,
+                  months = this._months,
+                  data = this._data,
+                  seconds, minutes, hours, years;
+
+              // The following code bubbles up values, see the tests for
+              // examples of what that means.
+              data.milliseconds = milliseconds % 1000;
+
+              seconds = absRound(milliseconds / 1000);
+              data.seconds = seconds % 60;
+
+              minutes = absRound(seconds / 60);
+              data.minutes = minutes % 60;
+
+              hours = absRound(minutes / 60);
+              data.hours = hours % 24;
+
+              days += absRound(hours / 24);
+              data.days = days % 30;
+
+              months += absRound(days / 30);
+              data.months = months % 12;
+
+              years = absRound(months / 12);
+              data.years = years;
+          },
+
+          weeks : function () {
+              return absRound(this.days() / 7);
+          },
+
+          valueOf : function () {
+              return this._milliseconds +
+                this._days * 864e5 +
+                (this._months % 12) * 2592e6 +
+                toInt(this._months / 12) * 31536e6;
+          },
+
+          humanize : function (withSuffix) {
+              var difference = +this,
+                  output = relativeTime(difference, !withSuffix, this.lang());
+
+              if (withSuffix) {
+                  output = this.lang().pastFuture(difference, output);
+              }
+
+              return this.lang().postformat(output);
+          },
+
+          add : function (input, val) {
+              // supports only 2.0-style add(1, 's') or add(moment)
+              var dur = moment.duration(input, val);
+
+              this._milliseconds += dur._milliseconds;
+              this._days += dur._days;
+              this._months += dur._months;
+
+              this._bubble();
+
+              return this;
+          },
+
+          subtract : function (input, val) {
+              var dur = moment.duration(input, val);
+
+              this._milliseconds -= dur._milliseconds;
+              this._days -= dur._days;
+              this._months -= dur._months;
+
+              this._bubble();
+
+              return this;
+          },
+
+          get : function (units) {
+              units = normalizeUnits(units);
+              return this[units.toLowerCase() + 's']();
+          },
+
+          as : function (units) {
+              units = normalizeUnits(units);
+              return this['as' + units.charAt(0).toUpperCase() + units.slice(1) + 's']();
+          },
+
+          lang : moment.fn.lang,
+
+          toIsoString : function () {
+              // inspired by https://github.com/dordille/moment-isoduration/blob/master/moment.isoduration.js
+              var years = Math.abs(this.years()),
+                  months = Math.abs(this.months()),
+                  days = Math.abs(this.days()),
+                  hours = Math.abs(this.hours()),
+                  minutes = Math.abs(this.minutes()),
+                  seconds = Math.abs(this.seconds() + this.milliseconds() / 1000);
+
+              if (!this.asSeconds()) {
+                  // this is the same as C#'s (Noda) and python (isodate)...
+                  // but not other JS (goog.date)
+                  return 'P0D';
+              }
+
+              return (this.asSeconds() < 0 ? '-' : '') +
+                  'P' +
+                  (years ? years + 'Y' : '') +
+                  (months ? months + 'M' : '') +
+                  (days ? days + 'D' : '') +
+                  ((hours || minutes || seconds) ? 'T' : '') +
+                  (hours ? hours + 'H' : '') +
+                  (minutes ? minutes + 'M' : '') +
+                  (seconds ? seconds + 'S' : '');
+          }
+      });
+
+      function makeDurationGetter(name) {
+          moment.duration.fn[name] = function () {
+              return this._data[name];
+          };
+      }
+
+      function makeDurationAsGetter(name, factor) {
+          moment.duration.fn['as' + name] = function () {
+              return +this / factor;
+          };
+      }
+
+      for (i in unitMillisecondFactors) {
+          if (unitMillisecondFactors.hasOwnProperty(i)) {
+              makeDurationAsGetter(i, unitMillisecondFactors[i]);
+              makeDurationGetter(i.toLowerCase());
+          }
+      }
+
+      makeDurationAsGetter('Weeks', 6048e5);
+      moment.duration.fn.asMonths = function () {
+          return (+this - this.years() * 31536e6) / 2592e6 + this.years() * 12;
+      };
+
+
+      /************************************
+          Default Lang
+      ************************************/
+
+
+      // Set default language, other languages will inherit from English.
+      moment.lang('en', {
+          ordinal : function (number) {
+              var b = number % 10,
+                  output = (toInt(number % 100 / 10) === 1) ? 'th' :
+                  (b === 1) ? 'st' :
+                  (b === 2) ? 'nd' :
+                  (b === 3) ? 'rd' : 'th';
+              return number + output;
+          }
+      });
+
+      /* EMBED_LANGUAGES */
+
+      /************************************
+          Exposing Moment
+      ************************************/
+
+      function makeGlobal(shouldDeprecate) {
+          /*global ender:false */
+          if (typeof ender !== 'undefined') {
+              return;
+          }
+          oldGlobalMoment = globalScope.moment;
+          if (shouldDeprecate) {
+              globalScope.moment = deprecate(
+                      "Accessing Moment through the global scope is " +
+                      "deprecated, and will be removed in an upcoming " +
+                      "release.",
+                      moment);
+          } else {
+              globalScope.moment = moment;
+          }
+      }
+
+      // CommonJS module is defined
+      if (hasModule) {
+          module.exports = moment;
+      } else if (true) {
+          !(__WEBPACK_AMD_DEFINE_RESULT__ = (function (require, exports, module) {
+              if (module.config && module.config() && module.config().noGlobal === true) {
+                  // release the global variable
+                  globalScope.moment = oldGlobalMoment;
+              }
+
+              return moment;
+          }.call(exports, __webpack_require__, exports, module)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+          makeGlobal(true);
+      } else {
+          makeGlobal();
+      }
+  }).call(this);
+  
+  /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(7)(module)))
+
+/***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var map = {
+  	"./ar": 59,
+  	"./ar-ma": 57,
+  	"./ar-ma.js": 57,
+  	"./ar-sa": 58,
+  	"./ar-sa.js": 58,
+  	"./ar.js": 59,
+  	"./az": 60,
+  	"./az.js": 60,
+  	"./bg": 61,
+  	"./bg.js": 61,
+  	"./bn": 62,
+  	"./bn.js": 62,
+  	"./br": 63,
+  	"./br.js": 63,
+  	"./bs": 64,
+  	"./bs.js": 64,
+  	"./ca": 65,
+  	"./ca.js": 65,
+  	"./cs": 66,
+  	"./cs.js": 66,
+  	"./cv": 67,
+  	"./cv.js": 67,
+  	"./cy": 68,
+  	"./cy.js": 68,
+  	"./da": 69,
+  	"./da.js": 69,
+  	"./de": 71,
+  	"./de-at": 70,
+  	"./de-at.js": 70,
+  	"./de.js": 71,
+  	"./el": 72,
+  	"./el.js": 72,
+  	"./en-au": 73,
+  	"./en-au.js": 73,
+  	"./en-ca": 74,
+  	"./en-ca.js": 74,
+  	"./en-gb": 75,
+  	"./en-gb.js": 75,
+  	"./eo": 76,
+  	"./eo.js": 76,
+  	"./es": 77,
+  	"./es.js": 77,
+  	"./et": 78,
+  	"./et.js": 78,
+  	"./eu": 79,
+  	"./eu.js": 79,
+  	"./fa": 80,
+  	"./fa.js": 80,
+  	"./fi": 81,
+  	"./fi.js": 81,
+  	"./fo": 82,
+  	"./fo.js": 82,
+  	"./fr": 84,
+  	"./fr-ca": 83,
+  	"./fr-ca.js": 83,
+  	"./fr.js": 84,
+  	"./gl": 85,
+  	"./gl.js": 85,
+  	"./he": 86,
+  	"./he.js": 86,
+  	"./hi": 87,
+  	"./hi.js": 87,
+  	"./hr": 88,
+  	"./hr.js": 88,
+  	"./hu": 89,
+  	"./hu.js": 89,
+  	"./hy-am": 90,
+  	"./hy-am.js": 90,
+  	"./id": 91,
+  	"./id.js": 91,
+  	"./is": 92,
+  	"./is.js": 92,
+  	"./it": 93,
+  	"./it.js": 93,
+  	"./ja": 94,
+  	"./ja.js": 94,
+  	"./ka": 95,
+  	"./ka.js": 95,
+  	"./km": 96,
+  	"./km.js": 96,
+  	"./ko": 97,
+  	"./ko.js": 97,
+  	"./lb": 98,
+  	"./lb.js": 98,
+  	"./lt": 99,
+  	"./lt.js": 99,
+  	"./lv": 100,
+  	"./lv.js": 100,
+  	"./mk": 101,
+  	"./mk.js": 101,
+  	"./ml": 102,
+  	"./ml.js": 102,
+  	"./mr": 103,
+  	"./mr.js": 103,
+  	"./ms-my": 104,
+  	"./ms-my.js": 104,
+  	"./nb": 105,
+  	"./nb.js": 105,
+  	"./ne": 106,
+  	"./ne.js": 106,
+  	"./nl": 107,
+  	"./nl.js": 107,
+  	"./nn": 108,
+  	"./nn.js": 108,
+  	"./pl": 109,
+  	"./pl.js": 109,
+  	"./pt": 111,
+  	"./pt-br": 110,
+  	"./pt-br.js": 110,
+  	"./pt.js": 111,
+  	"./ro": 112,
+  	"./ro.js": 112,
+  	"./ru": 113,
+  	"./ru.js": 113,
+  	"./sk": 114,
+  	"./sk.js": 114,
+  	"./sl": 115,
+  	"./sl.js": 115,
+  	"./sq": 116,
+  	"./sq.js": 116,
+  	"./sr": 118,
+  	"./sr-cyrl": 117,
+  	"./sr-cyrl.js": 117,
+  	"./sr.js": 118,
+  	"./sv": 119,
+  	"./sv.js": 119,
+  	"./ta": 120,
+  	"./ta.js": 120,
+  	"./th": 121,
+  	"./th.js": 121,
+  	"./tl-ph": 122,
+  	"./tl-ph.js": 122,
+  	"./tr": 123,
+  	"./tr.js": 123,
+  	"./tzm": 125,
+  	"./tzm-latn": 124,
+  	"./tzm-latn.js": 124,
+  	"./tzm.js": 125,
+  	"./uk": 126,
+  	"./uk.js": 126,
+  	"./uz": 127,
+  	"./uz.js": 127,
+  	"./vi": 128,
+  	"./vi.js": 128,
+  	"./zh-cn": 129,
+  	"./zh-cn.js": 129,
+  	"./zh-tw": 130,
+  	"./zh-tw.js": 130
+  };
+  function webpackContext(req) {
+  	return __webpack_require__(webpackContextResolve(req));
+  };
+  function webpackContextResolve(req) {
+  	return map[req] || (function() { throw new Error("Cannot find module '" + req + "'.") }());
+  };
+  webpackContext.keys = function webpackContextKeys() {
+  	return Object.keys(map);
+  };
+  webpackContext.resolve = webpackContextResolve;
+  module.exports = webpackContext;
+
+
+/***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+  module.exports = function(module) {
+  	if(!module.webpackPolyfill) {
+  		module.deprecate = function() {};
+  		module.paths = [];
+  		// module.parent = undefined by default
+  		module.children = [];
+  		module.webpackPolyfill = 1;
+  	}
+  	return module;
+  }
+
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
   // DOM utility methods
 
   /**
@@ -1593,7 +5845,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 3 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -1920,7 +6172,8 @@ return /******/ (function(modules) { // webpackBootstrap
     // determine the return type
     var returnType;
     if (options && options.returnType) {
-      returnType = (options.returnType == 'DataTable') ? 'DataTable' : 'Array';
+      var allowedValues = ["DataTable", "Array", "Object"];
+      returnType = allowedValues.indexOf(options.returnType) == -1 ? "Array" : options.returnType;
 
       if (data && (returnType != util.getType(data))) {
         throw new Error('Type of parameter "data" (' + util.getType(data) + ') ' +
@@ -1999,11 +6252,18 @@ return /******/ (function(modules) { // webpackBootstrap
       }
       else {
         // copy the items to the provided data table
-        for (i = 0, len = items.length; i < len; i++) {
+        for (i = 0; i < items.length; i++) {
           me._appendRow(data, columns, items[i]);
         }
       }
       return data;
+    }
+    else if (returnType == "Object") {
+      var result = {};
+      for (i = 0; i < items.length; i++) {
+        result[items[i].id] = items[i];
+      }
+      return result;
     }
     else {
       // return an array
@@ -2537,11 +6797,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 4 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(3);
+  var DataSet = __webpack_require__(9);
 
   /**
    * DataView
@@ -2843,16 +7103,16 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataView;
 
 /***/ },
-/* 5 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(6);
-  var DataSet = __webpack_require__(3);
-  var DataView = __webpack_require__(4);
-  var Point3d = __webpack_require__(7);
-  var Point2d = __webpack_require__(8);
-  var Filter = __webpack_require__(9);
-  var StepNumber = __webpack_require__(10);
+  var Emitter = __webpack_require__(12);
+  var DataSet = __webpack_require__(9);
+  var DataView = __webpack_require__(10);
+  var Point3d = __webpack_require__(13);
+  var Point2d = __webpack_require__(14);
+  var Filter = __webpack_require__(15);
+  var StepNumber = __webpack_require__(16);
 
   /**
    * @constructor Graph3d
@@ -5703,7 +9963,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 6 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
   
@@ -5873,7 +10133,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 7 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -5964,7 +10224,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 8 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -5981,10 +10241,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 9 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var DataView = __webpack_require__(4);
+  var DataView = __webpack_require__(10);
 
   /**
    * @class Filter
@@ -6205,7 +10465,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 10 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -6351,19 +10611,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 11 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(6);
-  var Hammer = __webpack_require__(12);
+  var Emitter = __webpack_require__(12);
+  var Hammer = __webpack_require__(3);
   var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(3);
-  var DataView = __webpack_require__(4);
-  var Range = __webpack_require__(13);
-  var TimeAxis = __webpack_require__(19);
-  var CurrentTime = __webpack_require__(21);
-  var CustomTime = __webpack_require__(22);
-  var ItemSet = __webpack_require__(23);
+  var DataSet = __webpack_require__(9);
+  var DataView = __webpack_require__(10);
+  var Range = __webpack_require__(18);
+  var TimeAxis = __webpack_require__(20);
+  var CurrentTime = __webpack_require__(22);
+  var CustomTime = __webpack_require__(23);
+  var ItemSet = __webpack_require__(24);
 
   /**
    * Create a timeline visualization
@@ -7266,1438 +11526,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 12 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /*! Hammer.JS - v1.0.5 - 2013-04-07
-   * http://eightmedia.github.com/hammer.js
-   *
-   * Copyright (c) 2013 Jorik Tangelder <j.tangelder@gmail.com>;
-   * Licensed under the MIT license */
-
-  (function(window, undefined) {
-      'use strict';
-
-  /**
-   * Hammer
-   * use this to create instances
-   * @param   {HTMLElement}   element
-   * @param   {Object}        options
-   * @returns {Hammer.Instance}
-   * @constructor
-   */
-  var Hammer = function(element, options) {
-      return new Hammer.Instance(element, options || {});
-  };
-
-  // default settings
-  Hammer.defaults = {
-      // add styles and attributes to the element to prevent the browser from doing
-      // its native behavior. this doesnt prevent the scrolling, but cancels
-      // the contextmenu, tap highlighting etc
-      // set to false to disable this
-      stop_browser_behavior: {
-  		// this also triggers onselectstart=false for IE
-          userSelect: 'none',
-  		// this makes the element blocking in IE10 >, you could experiment with the value
-  		// see for more options this issue; https://github.com/EightMedia/hammer.js/issues/241
-          touchAction: 'none',
-  		touchCallout: 'none',
-          contentZooming: 'none',
-          userDrag: 'none',
-          tapHighlightColor: 'rgba(0,0,0,0)'
-      }
-
-      // more settings are defined per gesture at gestures.js
-  };
-
-  // detect touchevents
-  Hammer.HAS_POINTEREVENTS = navigator.pointerEnabled || navigator.msPointerEnabled;
-  Hammer.HAS_TOUCHEVENTS = ('ontouchstart' in window);
-
-  // dont use mouseevents on mobile devices
-  Hammer.MOBILE_REGEX = /mobile|tablet|ip(ad|hone|od)|android/i;
-  Hammer.NO_MOUSEEVENTS = Hammer.HAS_TOUCHEVENTS && navigator.userAgent.match(Hammer.MOBILE_REGEX);
-
-  // eventtypes per touchevent (start, move, end)
-  // are filled by Hammer.event.determineEventTypes on setup
-  Hammer.EVENT_TYPES = {};
-
-  // direction defines
-  Hammer.DIRECTION_DOWN = 'down';
-  Hammer.DIRECTION_LEFT = 'left';
-  Hammer.DIRECTION_UP = 'up';
-  Hammer.DIRECTION_RIGHT = 'right';
-
-  // pointer type
-  Hammer.POINTER_MOUSE = 'mouse';
-  Hammer.POINTER_TOUCH = 'touch';
-  Hammer.POINTER_PEN = 'pen';
-
-  // touch event defines
-  Hammer.EVENT_START = 'start';
-  Hammer.EVENT_MOVE = 'move';
-  Hammer.EVENT_END = 'end';
-
-  // hammer document where the base events are added at
-  Hammer.DOCUMENT = document;
-
-  // plugins namespace
-  Hammer.plugins = {};
-
-  // if the window events are set...
-  Hammer.READY = false;
-
-  /**
-   * setup events to detect gestures on the document
-   */
-  function setup() {
-      if(Hammer.READY) {
-          return;
-      }
-
-      // find what eventtypes we add listeners to
-      Hammer.event.determineEventTypes();
-
-      // Register all gestures inside Hammer.gestures
-      for(var name in Hammer.gestures) {
-          if(Hammer.gestures.hasOwnProperty(name)) {
-              Hammer.detection.register(Hammer.gestures[name]);
-          }
-      }
-
-      // Add touch events on the document
-      Hammer.event.onTouch(Hammer.DOCUMENT, Hammer.EVENT_MOVE, Hammer.detection.detect);
-      Hammer.event.onTouch(Hammer.DOCUMENT, Hammer.EVENT_END, Hammer.detection.detect);
-
-      // Hammer is ready...!
-      Hammer.READY = true;
-  }
-
-  /**
-   * create new hammer instance
-   * all methods should return the instance itself, so it is chainable.
-   * @param   {HTMLElement}       element
-   * @param   {Object}            [options={}]
-   * @returns {Hammer.Instance}
-   * @constructor
-   */
-  Hammer.Instance = function(element, options) {
-      var self = this;
-
-      // setup HammerJS window events and register all gestures
-      // this also sets up the default options
-      setup();
-
-      this.element = element;
-
-      // start/stop detection option
-      this.enabled = true;
-
-      // merge options
-      this.options = Hammer.utils.extend(
-          Hammer.utils.extend({}, Hammer.defaults),
-          options || {});
-
-      // add some css to the element to prevent the browser from doing its native behavoir
-      if(this.options.stop_browser_behavior) {
-          Hammer.utils.stopDefaultBrowserBehavior(this.element, this.options.stop_browser_behavior);
-      }
-
-      // start detection on touchstart
-      Hammer.event.onTouch(element, Hammer.EVENT_START, function(ev) {
-          if(self.enabled) {
-              Hammer.detection.startDetect(self, ev);
-          }
-      });
-
-      // return instance
-      return this;
-  };
-
-
-  Hammer.Instance.prototype = {
-      /**
-       * bind events to the instance
-       * @param   {String}      gesture
-       * @param   {Function}    handler
-       * @returns {Hammer.Instance}
-       */
-      on: function onEvent(gesture, handler){
-          var gestures = gesture.split(' ');
-          for(var t=0; t<gestures.length; t++) {
-              this.element.addEventListener(gestures[t], handler, false);
-          }
-          return this;
-      },
-
-
-      /**
-       * unbind events to the instance
-       * @param   {String}      gesture
-       * @param   {Function}    handler
-       * @returns {Hammer.Instance}
-       */
-      off: function offEvent(gesture, handler){
-          var gestures = gesture.split(' ');
-          for(var t=0; t<gestures.length; t++) {
-              this.element.removeEventListener(gestures[t], handler, false);
-          }
-          return this;
-      },
-
-
-      /**
-       * trigger gesture event
-       * @param   {String}      gesture
-       * @param   {Object}      eventData
-       * @returns {Hammer.Instance}
-       */
-      trigger: function triggerEvent(gesture, eventData){
-          // create DOM event
-          var event = Hammer.DOCUMENT.createEvent('Event');
-  		event.initEvent(gesture, true, true);
-  		event.gesture = eventData;
-
-          // trigger on the target if it is in the instance element,
-          // this is for event delegation tricks
-          var element = this.element;
-          if(Hammer.utils.hasParent(eventData.target, element)) {
-              element = eventData.target;
-          }
-
-          element.dispatchEvent(event);
-          return this;
-      },
-
-
-      /**
-       * enable of disable hammer.js detection
-       * @param   {Boolean}   state
-       * @returns {Hammer.Instance}
-       */
-      enable: function enable(state) {
-          this.enabled = state;
-          return this;
-      }
-  };
-
-  /**
-   * this holds the last move event,
-   * used to fix empty touchend issue
-   * see the onTouch event for an explanation
-   * @type {Object}
-   */
-  var last_move_event = null;
-
-
-  /**
-   * when the mouse is hold down, this is true
-   * @type {Boolean}
-   */
-  var enable_detect = false;
-
-
-  /**
-   * when touch events have been fired, this is true
-   * @type {Boolean}
-   */
-  var touch_triggered = false;
-
-
-  Hammer.event = {
-      /**
-       * simple addEventListener
-       * @param   {HTMLElement}   element
-       * @param   {String}        type
-       * @param   {Function}      handler
-       */
-      bindDom: function(element, type, handler) {
-          var types = type.split(' ');
-          for(var t=0; t<types.length; t++) {
-              element.addEventListener(types[t], handler, false);
-          }
-      },
-
-
-      /**
-       * touch events with mouse fallback
-       * @param   {HTMLElement}   element
-       * @param   {String}        eventType        like Hammer.EVENT_MOVE
-       * @param   {Function}      handler
-       */
-      onTouch: function onTouch(element, eventType, handler) {
-  		var self = this;
-
-          this.bindDom(element, Hammer.EVENT_TYPES[eventType], function bindDomOnTouch(ev) {
-              var sourceEventType = ev.type.toLowerCase();
-
-              // onmouseup, but when touchend has been fired we do nothing.
-              // this is for touchdevices which also fire a mouseup on touchend
-              if(sourceEventType.match(/mouse/) && touch_triggered) {
-                  return;
-              }
-
-              // mousebutton must be down or a touch event
-              else if( sourceEventType.match(/touch/) ||   // touch events are always on screen
-                  sourceEventType.match(/pointerdown/) || // pointerevents touch
-                  (sourceEventType.match(/mouse/) && ev.which === 1)   // mouse is pressed
-              ){
-                  enable_detect = true;
-              }
-
-              // we are in a touch event, set the touch triggered bool to true,
-              // this for the conflicts that may occur on ios and android
-              if(sourceEventType.match(/touch|pointer/)) {
-                  touch_triggered = true;
-              }
-
-              // count the total touches on the screen
-              var count_touches = 0;
-
-              // when touch has been triggered in this detection session
-              // and we are now handling a mouse event, we stop that to prevent conflicts
-              if(enable_detect) {
-                  // update pointerevent
-                  if(Hammer.HAS_POINTEREVENTS && eventType != Hammer.EVENT_END) {
-                      count_touches = Hammer.PointerEvent.updatePointer(eventType, ev);
-                  }
-                  // touch
-                  else if(sourceEventType.match(/touch/)) {
-                      count_touches = ev.touches.length;
-                  }
-                  // mouse
-                  else if(!touch_triggered) {
-                      count_touches = sourceEventType.match(/up/) ? 0 : 1;
-                  }
-
-                  // if we are in a end event, but when we remove one touch and
-                  // we still have enough, set eventType to move
-                  if(count_touches > 0 && eventType == Hammer.EVENT_END) {
-                      eventType = Hammer.EVENT_MOVE;
-                  }
-                  // no touches, force the end event
-                  else if(!count_touches) {
-                      eventType = Hammer.EVENT_END;
-                  }
-
-                  // because touchend has no touches, and we often want to use these in our gestures,
-                  // we send the last move event as our eventData in touchend
-                  if(!count_touches && last_move_event !== null) {
-                      ev = last_move_event;
-                  }
-                  // store the last move event
-                  else {
-                      last_move_event = ev;
-                  }
-
-                  // trigger the handler
-                  handler.call(Hammer.detection, self.collectEventData(element, eventType, ev));
-
-                  // remove pointerevent from list
-                  if(Hammer.HAS_POINTEREVENTS && eventType == Hammer.EVENT_END) {
-                      count_touches = Hammer.PointerEvent.updatePointer(eventType, ev);
-                  }
-              }
-
-              //debug(sourceEventType +" "+ eventType);
-
-              // on the end we reset everything
-              if(!count_touches) {
-                  last_move_event = null;
-                  enable_detect = false;
-                  touch_triggered = false;
-                  Hammer.PointerEvent.reset();
-              }
-          });
-      },
-
-
-      /**
-       * we have different events for each device/browser
-       * determine what we need and set them in the Hammer.EVENT_TYPES constant
-       */
-      determineEventTypes: function determineEventTypes() {
-          // determine the eventtype we want to set
-          var types;
-
-          // pointerEvents magic
-          if(Hammer.HAS_POINTEREVENTS) {
-              types = Hammer.PointerEvent.getEvents();
-          }
-          // on Android, iOS, blackberry, windows mobile we dont want any mouseevents
-          else if(Hammer.NO_MOUSEEVENTS) {
-              types = [
-                  'touchstart',
-                  'touchmove',
-                  'touchend touchcancel'];
-          }
-          // for non pointer events browsers and mixed browsers,
-          // like chrome on windows8 touch laptop
-          else {
-              types = [
-                  'touchstart mousedown',
-                  'touchmove mousemove',
-                  'touchend touchcancel mouseup'];
-          }
-
-          Hammer.EVENT_TYPES[Hammer.EVENT_START]  = types[0];
-          Hammer.EVENT_TYPES[Hammer.EVENT_MOVE]   = types[1];
-          Hammer.EVENT_TYPES[Hammer.EVENT_END]    = types[2];
-      },
-
-
-      /**
-       * create touchlist depending on the event
-       * @param   {Object}    ev
-       * @param   {String}    eventType   used by the fakemultitouch plugin
-       */
-      getTouchList: function getTouchList(ev/*, eventType*/) {
-          // get the fake pointerEvent touchlist
-          if(Hammer.HAS_POINTEREVENTS) {
-              return Hammer.PointerEvent.getTouchList();
-          }
-          // get the touchlist
-          else if(ev.touches) {
-              return ev.touches;
-          }
-          // make fake touchlist from mouse position
-          else {
-              return [{
-                  identifier: 1,
-                  pageX: ev.pageX,
-                  pageY: ev.pageY,
-                  target: ev.target
-              }];
-          }
-      },
-
-
-      /**
-       * collect event data for Hammer js
-       * @param   {HTMLElement}   element
-       * @param   {String}        eventType        like Hammer.EVENT_MOVE
-       * @param   {Object}        eventData
-       */
-      collectEventData: function collectEventData(element, eventType, ev) {
-          var touches = this.getTouchList(ev, eventType);
-
-          // find out pointerType
-          var pointerType = Hammer.POINTER_TOUCH;
-          if(ev.type.match(/mouse/) || Hammer.PointerEvent.matchType(Hammer.POINTER_MOUSE, ev)) {
-              pointerType = Hammer.POINTER_MOUSE;
-          }
-
-          return {
-              center      : Hammer.utils.getCenter(touches),
-              timeStamp   : new Date().getTime(),
-              target      : ev.target,
-              touches     : touches,
-              eventType   : eventType,
-              pointerType : pointerType,
-              srcEvent    : ev,
-
-              /**
-               * prevent the browser default actions
-               * mostly used to disable scrolling of the browser
-               */
-              preventDefault: function() {
-                  if(this.srcEvent.preventManipulation) {
-                      this.srcEvent.preventManipulation();
-                  }
-
-                  if(this.srcEvent.preventDefault) {
-                      this.srcEvent.preventDefault();
-                  }
-              },
-
-              /**
-               * stop bubbling the event up to its parents
-               */
-              stopPropagation: function() {
-                  this.srcEvent.stopPropagation();
-              },
-
-              /**
-               * immediately stop gesture detection
-               * might be useful after a swipe was detected
-               * @return {*}
-               */
-              stopDetect: function() {
-                  return Hammer.detection.stopDetect();
-              }
-          };
-      }
-  };
-
-  Hammer.PointerEvent = {
-      /**
-       * holds all pointers
-       * @type {Object}
-       */
-      pointers: {},
-
-      /**
-       * get a list of pointers
-       * @returns {Array}     touchlist
-       */
-      getTouchList: function() {
-          var self = this;
-          var touchlist = [];
-
-          // we can use forEach since pointerEvents only is in IE10
-          Object.keys(self.pointers).sort().forEach(function(id) {
-              touchlist.push(self.pointers[id]);
-          });
-          return touchlist;
-      },
-
-      /**
-       * update the position of a pointer
-       * @param   {String}   type             Hammer.EVENT_END
-       * @param   {Object}   pointerEvent
-       */
-      updatePointer: function(type, pointerEvent) {
-          if(type == Hammer.EVENT_END) {
-              this.pointers = {};
-          }
-          else {
-              pointerEvent.identifier = pointerEvent.pointerId;
-              this.pointers[pointerEvent.pointerId] = pointerEvent;
-          }
-
-          return Object.keys(this.pointers).length;
-      },
-
-      /**
-       * check if ev matches pointertype
-       * @param   {String}        pointerType     Hammer.POINTER_MOUSE
-       * @param   {PointerEvent}  ev
-       */
-      matchType: function(pointerType, ev) {
-          if(!ev.pointerType) {
-              return false;
-          }
-
-          var types = {};
-          types[Hammer.POINTER_MOUSE] = (ev.pointerType == ev.MSPOINTER_TYPE_MOUSE || ev.pointerType == Hammer.POINTER_MOUSE);
-          types[Hammer.POINTER_TOUCH] = (ev.pointerType == ev.MSPOINTER_TYPE_TOUCH || ev.pointerType == Hammer.POINTER_TOUCH);
-          types[Hammer.POINTER_PEN] = (ev.pointerType == ev.MSPOINTER_TYPE_PEN || ev.pointerType == Hammer.POINTER_PEN);
-          return types[pointerType];
-      },
-
-
-      /**
-       * get events
-       */
-      getEvents: function() {
-          return [
-              'pointerdown MSPointerDown',
-              'pointermove MSPointerMove',
-              'pointerup pointercancel MSPointerUp MSPointerCancel'
-          ];
-      },
-
-      /**
-       * reset the list
-       */
-      reset: function() {
-          this.pointers = {};
-      }
-  };
-
-
-  Hammer.utils = {
-      /**
-       * extend method,
-       * also used for cloning when dest is an empty object
-       * @param   {Object}    dest
-       * @param   {Object}    src
-  	 * @parm	{Boolean}	merge		do a merge
-       * @returns {Object}    dest
-       */
-      extend: function extend(dest, src, merge) {
-          for (var key in src) {
-  			if(dest[key] !== undefined && merge) {
-  				continue;
-  			}
-              dest[key] = src[key];
-          }
-          return dest;
-      },
-
-
-      /**
-       * find if a node is in the given parent
-       * used for event delegation tricks
-       * @param   {HTMLElement}   node
-       * @param   {HTMLElement}   parent
-       * @returns {boolean}       has_parent
-       */
-      hasParent: function(node, parent) {
-          while(node){
-              if(node == parent) {
-                  return true;
-              }
-              node = node.parentNode;
-          }
-          return false;
-      },
-
-
-      /**
-       * get the center of all the touches
-       * @param   {Array}     touches
-       * @returns {Object}    center
-       */
-      getCenter: function getCenter(touches) {
-          var valuesX = [], valuesY = [];
-
-          for(var t= 0,len=touches.length; t<len; t++) {
-              valuesX.push(touches[t].pageX);
-              valuesY.push(touches[t].pageY);
-          }
-
-          return {
-              pageX: ((Math.min.apply(Math, valuesX) + Math.max.apply(Math, valuesX)) / 2),
-              pageY: ((Math.min.apply(Math, valuesY) + Math.max.apply(Math, valuesY)) / 2)
-          };
-      },
-
-
-      /**
-       * calculate the velocity between two points
-       * @param   {Number}    delta_time
-       * @param   {Number}    delta_x
-       * @param   {Number}    delta_y
-       * @returns {Object}    velocity
-       */
-      getVelocity: function getVelocity(delta_time, delta_x, delta_y) {
-          return {
-              x: Math.abs(delta_x / delta_time) || 0,
-              y: Math.abs(delta_y / delta_time) || 0
-          };
-      },
-
-
-      /**
-       * calculate the angle between two coordinates
-       * @param   {Touch}     touch1
-       * @param   {Touch}     touch2
-       * @returns {Number}    angle
-       */
-      getAngle: function getAngle(touch1, touch2) {
-          var y = touch2.pageY - touch1.pageY,
-              x = touch2.pageX - touch1.pageX;
-          return Math.atan2(y, x) * 180 / Math.PI;
-      },
-
-
-      /**
-       * angle to direction define
-       * @param   {Touch}     touch1
-       * @param   {Touch}     touch2
-       * @returns {String}    direction constant, like Hammer.DIRECTION_LEFT
-       */
-      getDirection: function getDirection(touch1, touch2) {
-          var x = Math.abs(touch1.pageX - touch2.pageX),
-              y = Math.abs(touch1.pageY - touch2.pageY);
-
-          if(x >= y) {
-              return touch1.pageX - touch2.pageX > 0 ? Hammer.DIRECTION_LEFT : Hammer.DIRECTION_RIGHT;
-          }
-          else {
-              return touch1.pageY - touch2.pageY > 0 ? Hammer.DIRECTION_UP : Hammer.DIRECTION_DOWN;
-          }
-      },
-
-
-      /**
-       * calculate the distance between two touches
-       * @param   {Touch}     touch1
-       * @param   {Touch}     touch2
-       * @returns {Number}    distance
-       */
-      getDistance: function getDistance(touch1, touch2) {
-          var x = touch2.pageX - touch1.pageX,
-              y = touch2.pageY - touch1.pageY;
-          return Math.sqrt((x*x) + (y*y));
-      },
-
-
-      /**
-       * calculate the scale factor between two touchLists (fingers)
-       * no scale is 1, and goes down to 0 when pinched together, and bigger when pinched out
-       * @param   {Array}     start
-       * @param   {Array}     end
-       * @returns {Number}    scale
-       */
-      getScale: function getScale(start, end) {
-          // need two fingers...
-          if(start.length >= 2 && end.length >= 2) {
-              return this.getDistance(end[0], end[1]) /
-                  this.getDistance(start[0], start[1]);
-          }
-          return 1;
-      },
-
-
-      /**
-       * calculate the rotation degrees between two touchLists (fingers)
-       * @param   {Array}     start
-       * @param   {Array}     end
-       * @returns {Number}    rotation
-       */
-      getRotation: function getRotation(start, end) {
-          // need two fingers
-          if(start.length >= 2 && end.length >= 2) {
-              return this.getAngle(end[1], end[0]) -
-                  this.getAngle(start[1], start[0]);
-          }
-          return 0;
-      },
-
-
-      /**
-       * boolean if the direction is vertical
-       * @param    {String}    direction
-       * @returns  {Boolean}   is_vertical
-       */
-      isVertical: function isVertical(direction) {
-          return (direction == Hammer.DIRECTION_UP || direction == Hammer.DIRECTION_DOWN);
-      },
-
-
-      /**
-       * stop browser default behavior with css props
-       * @param   {HtmlElement}   element
-       * @param   {Object}        css_props
-       */
-      stopDefaultBrowserBehavior: function stopDefaultBrowserBehavior(element, css_props) {
-          var prop,
-              vendors = ['webkit','khtml','moz','ms','o',''];
-
-          if(!css_props || !element.style) {
-              return;
-          }
-
-          // with css properties for modern browsers
-          for(var i = 0; i < vendors.length; i++) {
-              for(var p in css_props) {
-                  if(css_props.hasOwnProperty(p)) {
-                      prop = p;
-
-                      // vender prefix at the property
-                      if(vendors[i]) {
-                          prop = vendors[i] + prop.substring(0, 1).toUpperCase() + prop.substring(1);
-                      }
-
-                      // set the style
-                      element.style[prop] = css_props[p];
-                  }
-              }
-          }
-
-          // also the disable onselectstart
-          if(css_props.userSelect == 'none') {
-              element.onselectstart = function() {
-                  return false;
-              };
-          }
-      }
-  };
-
-  Hammer.detection = {
-      // contains all registred Hammer.gestures in the correct order
-      gestures: [],
-
-      // data of the current Hammer.gesture detection session
-      current: null,
-
-      // the previous Hammer.gesture session data
-      // is a full clone of the previous gesture.current object
-      previous: null,
-
-      // when this becomes true, no gestures are fired
-      stopped: false,
-
-
-      /**
-       * start Hammer.gesture detection
-       * @param   {Hammer.Instance}   inst
-       * @param   {Object}            eventData
-       */
-      startDetect: function startDetect(inst, eventData) {
-          // already busy with a Hammer.gesture detection on an element
-          if(this.current) {
-              return;
-          }
-
-          this.stopped = false;
-
-          this.current = {
-              inst        : inst, // reference to HammerInstance we're working for
-              startEvent  : Hammer.utils.extend({}, eventData), // start eventData for distances, timing etc
-              lastEvent   : false, // last eventData
-              name        : '' // current gesture we're in/detected, can be 'tap', 'hold' etc
-          };
-
-          this.detect(eventData);
-      },
-
-
-      /**
-       * Hammer.gesture detection
-       * @param   {Object}    eventData
-       * @param   {Object}    eventData
-       */
-      detect: function detect(eventData) {
-          if(!this.current || this.stopped) {
-              return;
-          }
-
-          // extend event data with calculations about scale, distance etc
-          eventData = this.extendEventData(eventData);
-
-          // instance options
-          var inst_options = this.current.inst.options;
-
-          // call Hammer.gesture handlers
-          for(var g=0,len=this.gestures.length; g<len; g++) {
-              var gesture = this.gestures[g];
-
-              // only when the instance options have enabled this gesture
-              if(!this.stopped && inst_options[gesture.name] !== false) {
-                  // if a handler returns false, we stop with the detection
-                  if(gesture.handler.call(gesture, eventData, this.current.inst) === false) {
-                      this.stopDetect();
-                      break;
-                  }
-              }
-          }
-
-          // store as previous event event
-          if(this.current) {
-              this.current.lastEvent = eventData;
-          }
-
-          // endevent, but not the last touch, so dont stop
-          if(eventData.eventType == Hammer.EVENT_END && !eventData.touches.length-1) {
-              this.stopDetect();
-          }
-
-          return eventData;
-      },
-
-
-      /**
-       * clear the Hammer.gesture vars
-       * this is called on endDetect, but can also be used when a final Hammer.gesture has been detected
-       * to stop other Hammer.gestures from being fired
-       */
-      stopDetect: function stopDetect() {
-          // clone current data to the store as the previous gesture
-          // used for the double tap gesture, since this is an other gesture detect session
-          this.previous = Hammer.utils.extend({}, this.current);
-
-          // reset the current
-          this.current = null;
-
-          // stopped!
-          this.stopped = true;
-      },
-
-
-      /**
-       * extend eventData for Hammer.gestures
-       * @param   {Object}   ev
-       * @returns {Object}   ev
-       */
-      extendEventData: function extendEventData(ev) {
-          var startEv = this.current.startEvent;
-
-          // if the touches change, set the new touches over the startEvent touches
-          // this because touchevents don't have all the touches on touchstart, or the
-          // user must place his fingers at the EXACT same time on the screen, which is not realistic
-          // but, sometimes it happens that both fingers are touching at the EXACT same time
-          if(startEv && (ev.touches.length != startEv.touches.length || ev.touches === startEv.touches)) {
-              // extend 1 level deep to get the touchlist with the touch objects
-              startEv.touches = [];
-              for(var i=0,len=ev.touches.length; i<len; i++) {
-                  startEv.touches.push(Hammer.utils.extend({}, ev.touches[i]));
-              }
-          }
-
-          var delta_time = ev.timeStamp - startEv.timeStamp,
-              delta_x = ev.center.pageX - startEv.center.pageX,
-              delta_y = ev.center.pageY - startEv.center.pageY,
-              velocity = Hammer.utils.getVelocity(delta_time, delta_x, delta_y);
-
-          Hammer.utils.extend(ev, {
-              deltaTime   : delta_time,
-
-              deltaX      : delta_x,
-              deltaY      : delta_y,
-
-              velocityX   : velocity.x,
-              velocityY   : velocity.y,
-
-              distance    : Hammer.utils.getDistance(startEv.center, ev.center),
-              angle       : Hammer.utils.getAngle(startEv.center, ev.center),
-              direction   : Hammer.utils.getDirection(startEv.center, ev.center),
-
-              scale       : Hammer.utils.getScale(startEv.touches, ev.touches),
-              rotation    : Hammer.utils.getRotation(startEv.touches, ev.touches),
-
-              startEvent  : startEv
-          });
-
-          return ev;
-      },
-
-
-      /**
-       * register new gesture
-       * @param   {Object}    gesture object, see gestures.js for documentation
-       * @returns {Array}     gestures
-       */
-      register: function register(gesture) {
-          // add an enable gesture options if there is no given
-          var options = gesture.defaults || {};
-          if(options[gesture.name] === undefined) {
-              options[gesture.name] = true;
-          }
-
-          // extend Hammer default options with the Hammer.gesture options
-          Hammer.utils.extend(Hammer.defaults, options, true);
-
-          // set its index
-          gesture.index = gesture.index || 1000;
-
-          // add Hammer.gesture to the list
-          this.gestures.push(gesture);
-
-          // sort the list by index
-          this.gestures.sort(function(a, b) {
-              if (a.index < b.index) {
-                  return -1;
-              }
-              if (a.index > b.index) {
-                  return 1;
-              }
-              return 0;
-          });
-
-          return this.gestures;
-      }
-  };
-
-
-  Hammer.gestures = Hammer.gestures || {};
-
-  /**
-   * Custom gestures
-   * ==============================
-   *
-   * Gesture object
-   * --------------------
-   * The object structure of a gesture:
-   *
-   * { name: 'mygesture',
-   *   index: 1337,
-   *   defaults: {
-   *     mygesture_option: true
-   *   }
-   *   handler: function(type, ev, inst) {
-   *     // trigger gesture event
-   *     inst.trigger(this.name, ev);
-   *   }
-   * }
-
-   * @param   {String}    name
-   * this should be the name of the gesture, lowercase
-   * it is also being used to disable/enable the gesture per instance config.
-   *
-   * @param   {Number}    [index=1000]
-   * the index of the gesture, where it is going to be in the stack of gestures detection
-   * like when you build an gesture that depends on the drag gesture, it is a good
-   * idea to place it after the index of the drag gesture.
-   *
-   * @param   {Object}    [defaults={}]
-   * the default settings of the gesture. these are added to the instance settings,
-   * and can be overruled per instance. you can also add the name of the gesture,
-   * but this is also added by default (and set to true).
-   *
-   * @param   {Function}  handler
-   * this handles the gesture detection of your custom gesture and receives the
-   * following arguments:
-   *
-   *      @param  {Object}    eventData
-   *      event data containing the following properties:
-   *          timeStamp   {Number}        time the event occurred
-   *          target      {HTMLElement}   target element
-   *          touches     {Array}         touches (fingers, pointers, mouse) on the screen
-   *          pointerType {String}        kind of pointer that was used. matches Hammer.POINTER_MOUSE|TOUCH
-   *          center      {Object}        center position of the touches. contains pageX and pageY
-   *          deltaTime   {Number}        the total time of the touches in the screen
-   *          deltaX      {Number}        the delta on x axis we haved moved
-   *          deltaY      {Number}        the delta on y axis we haved moved
-   *          velocityX   {Number}        the velocity on the x
-   *          velocityY   {Number}        the velocity on y
-   *          angle       {Number}        the angle we are moving
-   *          direction   {String}        the direction we are moving. matches Hammer.DIRECTION_UP|DOWN|LEFT|RIGHT
-   *          distance    {Number}        the distance we haved moved
-   *          scale       {Number}        scaling of the touches, needs 2 touches
-   *          rotation    {Number}        rotation of the touches, needs 2 touches *
-   *          eventType   {String}        matches Hammer.EVENT_START|MOVE|END
-   *          srcEvent    {Object}        the source event, like TouchStart or MouseDown *
-   *          startEvent  {Object}        contains the same properties as above,
-   *                                      but from the first touch. this is used to calculate
-   *                                      distances, deltaTime, scaling etc
-   *
-   *      @param  {Hammer.Instance}    inst
-   *      the instance we are doing the detection for. you can get the options from
-   *      the inst.options object and trigger the gesture event by calling inst.trigger
-   *
-   *
-   * Handle gestures
-   * --------------------
-   * inside the handler you can get/set Hammer.detection.current. This is the current
-   * detection session. It has the following properties
-   *      @param  {String}    name
-   *      contains the name of the gesture we have detected. it has not a real function,
-   *      only to check in other gestures if something is detected.
-   *      like in the drag gesture we set it to 'drag' and in the swipe gesture we can
-   *      check if the current gesture is 'drag' by accessing Hammer.detection.current.name
-   *
-   *      @readonly
-   *      @param  {Hammer.Instance}    inst
-   *      the instance we do the detection for
-   *
-   *      @readonly
-   *      @param  {Object}    startEvent
-   *      contains the properties of the first gesture detection in this session.
-   *      Used for calculations about timing, distance, etc.
-   *
-   *      @readonly
-   *      @param  {Object}    lastEvent
-   *      contains all the properties of the last gesture detect in this session.
-   *
-   * after the gesture detection session has been completed (user has released the screen)
-   * the Hammer.detection.current object is copied into Hammer.detection.previous,
-   * this is usefull for gestures like doubletap, where you need to know if the
-   * previous gesture was a tap
-   *
-   * options that have been set by the instance can be received by calling inst.options
-   *
-   * You can trigger a gesture event by calling inst.trigger("mygesture", event).
-   * The first param is the name of your gesture, the second the event argument
-   *
-   *
-   * Register gestures
-   * --------------------
-   * When an gesture is added to the Hammer.gestures object, it is auto registered
-   * at the setup of the first Hammer instance. You can also call Hammer.detection.register
-   * manually and pass your gesture object as a param
-   *
-   */
-
-  /**
-   * Hold
-   * Touch stays at the same place for x time
-   * @events  hold
-   */
-  Hammer.gestures.Hold = {
-      name: 'hold',
-      index: 10,
-      defaults: {
-          hold_timeout	: 500,
-          hold_threshold	: 1
-      },
-      timer: null,
-      handler: function holdGesture(ev, inst) {
-          switch(ev.eventType) {
-              case Hammer.EVENT_START:
-                  // clear any running timers
-                  clearTimeout(this.timer);
-
-                  // set the gesture so we can check in the timeout if it still is
-                  Hammer.detection.current.name = this.name;
-
-                  // set timer and if after the timeout it still is hold,
-                  // we trigger the hold event
-                  this.timer = setTimeout(function() {
-                      if(Hammer.detection.current.name == 'hold') {
-                          inst.trigger('hold', ev);
-                      }
-                  }, inst.options.hold_timeout);
-                  break;
-
-              // when you move or end we clear the timer
-              case Hammer.EVENT_MOVE:
-                  if(ev.distance > inst.options.hold_threshold) {
-                      clearTimeout(this.timer);
-                  }
-                  break;
-
-              case Hammer.EVENT_END:
-                  clearTimeout(this.timer);
-                  break;
-          }
-      }
-  };
-
-
-  /**
-   * Tap/DoubleTap
-   * Quick touch at a place or double at the same place
-   * @events  tap, doubletap
-   */
-  Hammer.gestures.Tap = {
-      name: 'tap',
-      index: 100,
-      defaults: {
-          tap_max_touchtime	: 250,
-          tap_max_distance	: 10,
-  		tap_always			: true,
-          doubletap_distance	: 20,
-          doubletap_interval	: 300
-      },
-      handler: function tapGesture(ev, inst) {
-          if(ev.eventType == Hammer.EVENT_END) {
-              // previous gesture, for the double tap since these are two different gesture detections
-              var prev = Hammer.detection.previous,
-  				did_doubletap = false;
-
-              // when the touchtime is higher then the max touch time
-              // or when the moving distance is too much
-              if(ev.deltaTime > inst.options.tap_max_touchtime ||
-                  ev.distance > inst.options.tap_max_distance) {
-                  return;
-              }
-
-              // check if double tap
-              if(prev && prev.name == 'tap' &&
-                  (ev.timeStamp - prev.lastEvent.timeStamp) < inst.options.doubletap_interval &&
-                  ev.distance < inst.options.doubletap_distance) {
-  				inst.trigger('doubletap', ev);
-  				did_doubletap = true;
-              }
-
-  			// do a single tap
-  			if(!did_doubletap || inst.options.tap_always) {
-  				Hammer.detection.current.name = 'tap';
-  				inst.trigger(Hammer.detection.current.name, ev);
-  			}
-          }
-      }
-  };
-
-
-  /**
-   * Swipe
-   * triggers swipe events when the end velocity is above the threshold
-   * @events  swipe, swipeleft, swiperight, swipeup, swipedown
-   */
-  Hammer.gestures.Swipe = {
-      name: 'swipe',
-      index: 40,
-      defaults: {
-          // set 0 for unlimited, but this can conflict with transform
-          swipe_max_touches  : 1,
-          swipe_velocity     : 0.7
-      },
-      handler: function swipeGesture(ev, inst) {
-          if(ev.eventType == Hammer.EVENT_END) {
-              // max touches
-              if(inst.options.swipe_max_touches > 0 &&
-                  ev.touches.length > inst.options.swipe_max_touches) {
-                  return;
-              }
-
-              // when the distance we moved is too small we skip this gesture
-              // or we can be already in dragging
-              if(ev.velocityX > inst.options.swipe_velocity ||
-                  ev.velocityY > inst.options.swipe_velocity) {
-                  // trigger swipe events
-                  inst.trigger(this.name, ev);
-                  inst.trigger(this.name + ev.direction, ev);
-              }
-          }
-      }
-  };
-
-
-  /**
-   * Drag
-   * Move with x fingers (default 1) around on the page. Blocking the scrolling when
-   * moving left and right is a good practice. When all the drag events are blocking
-   * you disable scrolling on that area.
-   * @events  drag, drapleft, dragright, dragup, dragdown
-   */
-  Hammer.gestures.Drag = {
-      name: 'drag',
-      index: 50,
-      defaults: {
-          drag_min_distance : 10,
-          // set 0 for unlimited, but this can conflict with transform
-          drag_max_touches  : 1,
-          // prevent default browser behavior when dragging occurs
-          // be careful with it, it makes the element a blocking element
-          // when you are using the drag gesture, it is a good practice to set this true
-          drag_block_horizontal   : false,
-          drag_block_vertical     : false,
-          // drag_lock_to_axis keeps the drag gesture on the axis that it started on,
-          // It disallows vertical directions if the initial direction was horizontal, and vice versa.
-          drag_lock_to_axis       : false,
-          // drag lock only kicks in when distance > drag_lock_min_distance
-          // This way, locking occurs only when the distance has become large enough to reliably determine the direction
-          drag_lock_min_distance : 25
-      },
-      triggered: false,
-      handler: function dragGesture(ev, inst) {
-          // current gesture isnt drag, but dragged is true
-          // this means an other gesture is busy. now call dragend
-          if(Hammer.detection.current.name != this.name && this.triggered) {
-              inst.trigger(this.name +'end', ev);
-              this.triggered = false;
-              return;
-          }
-
-          // max touches
-          if(inst.options.drag_max_touches > 0 &&
-              ev.touches.length > inst.options.drag_max_touches) {
-              return;
-          }
-
-          switch(ev.eventType) {
-              case Hammer.EVENT_START:
-                  this.triggered = false;
-                  break;
-
-              case Hammer.EVENT_MOVE:
-                  // when the distance we moved is too small we skip this gesture
-                  // or we can be already in dragging
-                  if(ev.distance < inst.options.drag_min_distance &&
-                      Hammer.detection.current.name != this.name) {
-                      return;
-                  }
-
-                  // we are dragging!
-                  Hammer.detection.current.name = this.name;
-
-                  // lock drag to axis?
-                  if(Hammer.detection.current.lastEvent.drag_locked_to_axis || (inst.options.drag_lock_to_axis && inst.options.drag_lock_min_distance<=ev.distance)) {
-                      ev.drag_locked_to_axis = true;
-                  }
-                  var last_direction = Hammer.detection.current.lastEvent.direction;
-                  if(ev.drag_locked_to_axis && last_direction !== ev.direction) {
-                      // keep direction on the axis that the drag gesture started on
-                      if(Hammer.utils.isVertical(last_direction)) {
-                          ev.direction = (ev.deltaY < 0) ? Hammer.DIRECTION_UP : Hammer.DIRECTION_DOWN;
-                      }
-                      else {
-                          ev.direction = (ev.deltaX < 0) ? Hammer.DIRECTION_LEFT : Hammer.DIRECTION_RIGHT;
-                      }
-                  }
-
-                  // first time, trigger dragstart event
-                  if(!this.triggered) {
-                      inst.trigger(this.name +'start', ev);
-                      this.triggered = true;
-                  }
-
-                  // trigger normal event
-                  inst.trigger(this.name, ev);
-
-                  // direction event, like dragdown
-                  inst.trigger(this.name + ev.direction, ev);
-
-                  // block the browser events
-                  if( (inst.options.drag_block_vertical && Hammer.utils.isVertical(ev.direction)) ||
-                      (inst.options.drag_block_horizontal && !Hammer.utils.isVertical(ev.direction))) {
-                      ev.preventDefault();
-                  }
-                  break;
-
-              case Hammer.EVENT_END:
-                  // trigger dragend
-                  if(this.triggered) {
-                      inst.trigger(this.name +'end', ev);
-                  }
-
-                  this.triggered = false;
-                  break;
-          }
-      }
-  };
-
-
-  /**
-   * Transform
-   * User want to scale or rotate with 2 fingers
-   * @events  transform, pinch, pinchin, pinchout, rotate
-   */
-  Hammer.gestures.Transform = {
-      name: 'transform',
-      index: 45,
-      defaults: {
-          // factor, no scale is 1, zoomin is to 0 and zoomout until higher then 1
-          transform_min_scale     : 0.01,
-          // rotation in degrees
-          transform_min_rotation  : 1,
-          // prevent default browser behavior when two touches are on the screen
-          // but it makes the element a blocking element
-          // when you are using the transform gesture, it is a good practice to set this true
-          transform_always_block  : false
-      },
-      triggered: false,
-      handler: function transformGesture(ev, inst) {
-          // current gesture isnt drag, but dragged is true
-          // this means an other gesture is busy. now call dragend
-          if(Hammer.detection.current.name != this.name && this.triggered) {
-              inst.trigger(this.name +'end', ev);
-              this.triggered = false;
-              return;
-          }
-
-          // atleast multitouch
-          if(ev.touches.length < 2) {
-              return;
-          }
-
-          // prevent default when two fingers are on the screen
-          if(inst.options.transform_always_block) {
-              ev.preventDefault();
-          }
-
-          switch(ev.eventType) {
-              case Hammer.EVENT_START:
-                  this.triggered = false;
-                  break;
-
-              case Hammer.EVENT_MOVE:
-                  var scale_threshold = Math.abs(1-ev.scale);
-                  var rotation_threshold = Math.abs(ev.rotation);
-
-                  // when the distance we moved is too small we skip this gesture
-                  // or we can be already in dragging
-                  if(scale_threshold < inst.options.transform_min_scale &&
-                      rotation_threshold < inst.options.transform_min_rotation) {
-                      return;
-                  }
-
-                  // we are transforming!
-                  Hammer.detection.current.name = this.name;
-
-                  // first time, trigger dragstart event
-                  if(!this.triggered) {
-                      inst.trigger(this.name +'start', ev);
-                      this.triggered = true;
-                  }
-
-                  inst.trigger(this.name, ev); // basic transform event
-
-                  // trigger rotate event
-                  if(rotation_threshold > inst.options.transform_min_rotation) {
-                      inst.trigger('rotate', ev);
-                  }
-
-                  // trigger pinch event
-                  if(scale_threshold > inst.options.transform_min_scale) {
-                      inst.trigger('pinch', ev);
-                      inst.trigger('pinch'+ ((ev.scale < 1) ? 'in' : 'out'), ev);
-                  }
-                  break;
-
-              case Hammer.EVENT_END:
-                  // trigger dragend
-                  if(this.triggered) {
-                      inst.trigger(this.name +'end', ev);
-                  }
-
-                  this.triggered = false;
-                  break;
-          }
-      }
-  };
-
-
-  /**
-   * Touch
-   * Called as first, tells the user has touched the screen
-   * @events  touch
-   */
-  Hammer.gestures.Touch = {
-      name: 'touch',
-      index: -Infinity,
-      defaults: {
-          // call preventDefault at touchstart, and makes the element blocking by
-          // disabling the scrolling of the page, but it improves gestures like
-          // transforming and dragging.
-          // be careful with using this, it can be very annoying for users to be stuck
-          // on the page
-          prevent_default: false,
-
-          // disable mouse events, so only touch (or pen!) input triggers events
-          prevent_mouseevents: false
-      },
-      handler: function touchGesture(ev, inst) {
-          if(inst.options.prevent_mouseevents && ev.pointerType == Hammer.POINTER_MOUSE) {
-              ev.stopDetect();
-              return;
-          }
-
-          if(inst.options.prevent_default) {
-              ev.preventDefault();
-          }
-
-          if(ev.eventType ==  Hammer.EVENT_START) {
-              inst.trigger(this.name, ev);
-          }
-      }
-  };
-
-
-  /**
-   * Release
-   * Called as last, tells the user has released the screen
-   * @events  release
-   */
-  Hammer.gestures.Release = {
-      name: 'release',
-      index: Infinity,
-      handler: function releaseGesture(ev, inst) {
-          if(ev.eventType ==  Hammer.EVENT_END) {
-              inst.trigger(this.name, ev);
-          }
-      }
-  };
-
-  // node export
-  if(typeof module === 'object' && typeof module.exports === 'object'){
-      module.exports = Hammer;
-  }
-  // just window export
-  else {
-      window.Hammer = Hammer;
-
-      // requireJS module definition
-      if(typeof window.define === 'function' && window.define.amd) {
-          window.define('hammer', [], function() {
-              return Hammer;
-          });
-      }
-  }
-  })(this);
-
-/***/ },
-/* 13 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var moment = __webpack_require__(14);
-  var Component = __webpack_require__(18);
+  var moment = __webpack_require__(4);
+  var Component = __webpack_require__(19);
 
   /**
    * @constructor Range
@@ -9231,2816 +12065,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 14 */
-/***/ function(module, exports, __webpack_require__) {
-
-  // first check if moment.js is already loaded in the browser window, if so,
-  // use this instance. Else, load via commonjs.
-  module.exports = (typeof window !== 'undefined') && window['moment'] || __webpack_require__(15);
-
-
-/***/ },
-/* 15 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global, module) {//! moment.js
-  //! version : 2.7.0
-  //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
-  //! license : MIT
-  //! momentjs.com
-
-  (function (undefined) {
-
-      /************************************
-          Constants
-      ************************************/
-
-      var moment,
-          VERSION = "2.7.0",
-          // the global-scope this is NOT the global object in Node.js
-          globalScope = typeof global !== 'undefined' ? global : this,
-          oldGlobalMoment,
-          round = Math.round,
-          i,
-
-          YEAR = 0,
-          MONTH = 1,
-          DATE = 2,
-          HOUR = 3,
-          MINUTE = 4,
-          SECOND = 5,
-          MILLISECOND = 6,
-
-          // internal storage for language config files
-          languages = {},
-
-          // moment internal properties
-          momentProperties = {
-              _isAMomentObject: null,
-              _i : null,
-              _f : null,
-              _l : null,
-              _strict : null,
-              _tzm : null,
-              _isUTC : null,
-              _offset : null,  // optional. Combine with _isUTC
-              _pf : null,
-              _lang : null  // optional
-          },
-
-          // check for nodeJS
-          hasModule = (typeof module !== 'undefined' && module.exports),
-
-          // ASP.NET json date format regex
-          aspNetJsonRegex = /^\/?Date\((\-?\d+)/i,
-          aspNetTimeSpanJsonRegex = /(\-)?(?:(\d*)\.)?(\d+)\:(\d+)(?:\:(\d+)\.?(\d{3})?)?/,
-
-          // from http://docs.closure-library.googlecode.com/git/closure_goog_date_date.js.source.html
-          // somewhat more in line with 4.4.3.2 2004 spec, but allows decimal anywhere
-          isoDurationRegex = /^(-)?P(?:(?:([0-9,.]*)Y)?(?:([0-9,.]*)M)?(?:([0-9,.]*)D)?(?:T(?:([0-9,.]*)H)?(?:([0-9,.]*)M)?(?:([0-9,.]*)S)?)?|([0-9,.]*)W)$/,
-
-          // format tokens
-          formattingTokens = /(\[[^\[]*\])|(\\)?(Mo|MM?M?M?|Do|DDDo|DD?D?D?|ddd?d?|do?|w[o|w]?|W[o|W]?|Q|YYYYYY|YYYYY|YYYY|YY|gg(ggg?)?|GG(GGG?)?|e|E|a|A|hh?|HH?|mm?|ss?|S{1,4}|X|zz?|ZZ?|.)/g,
-          localFormattingTokens = /(\[[^\[]*\])|(\\)?(LT|LL?L?L?|l{1,4})/g,
-
-          // parsing token regexes
-          parseTokenOneOrTwoDigits = /\d\d?/, // 0 - 99
-          parseTokenOneToThreeDigits = /\d{1,3}/, // 0 - 999
-          parseTokenOneToFourDigits = /\d{1,4}/, // 0 - 9999
-          parseTokenOneToSixDigits = /[+\-]?\d{1,6}/, // -999,999 - 999,999
-          parseTokenDigits = /\d+/, // nonzero number of digits
-          parseTokenWord = /[0-9]*['a-z\u00A0-\u05FF\u0700-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+|[\u0600-\u06FF\/]+(\s*?[\u0600-\u06FF]+){1,2}/i, // any word (or two) characters or numbers including two/three word month in arabic.
-          parseTokenTimezone = /Z|[\+\-]\d\d:?\d\d/gi, // +00:00 -00:00 +0000 -0000 or Z
-          parseTokenT = /T/i, // T (ISO separator)
-          parseTokenTimestampMs = /[\+\-]?\d+(\.\d{1,3})?/, // 123456789 123456789.123
-          parseTokenOrdinal = /\d{1,2}/,
-
-          //strict parsing regexes
-          parseTokenOneDigit = /\d/, // 0 - 9
-          parseTokenTwoDigits = /\d\d/, // 00 - 99
-          parseTokenThreeDigits = /\d{3}/, // 000 - 999
-          parseTokenFourDigits = /\d{4}/, // 0000 - 9999
-          parseTokenSixDigits = /[+-]?\d{6}/, // -999,999 - 999,999
-          parseTokenSignedNumber = /[+-]?\d+/, // -inf - inf
-
-          // iso 8601 regex
-          // 0000-00-00 0000-W00 or 0000-W00-0 + T + 00 or 00:00 or 00:00:00 or 00:00:00.000 + +00:00 or +0000 or +00)
-          isoRegex = /^\s*(?:[+-]\d{6}|\d{4})-(?:(\d\d-\d\d)|(W\d\d$)|(W\d\d-\d)|(\d\d\d))((T| )(\d\d(:\d\d(:\d\d(\.\d+)?)?)?)?([\+\-]\d\d(?::?\d\d)?|\s*Z)?)?$/,
-
-          isoFormat = 'YYYY-MM-DDTHH:mm:ssZ',
-
-          isoDates = [
-              ['YYYYYY-MM-DD', /[+-]\d{6}-\d{2}-\d{2}/],
-              ['YYYY-MM-DD', /\d{4}-\d{2}-\d{2}/],
-              ['GGGG-[W]WW-E', /\d{4}-W\d{2}-\d/],
-              ['GGGG-[W]WW', /\d{4}-W\d{2}/],
-              ['YYYY-DDD', /\d{4}-\d{3}/]
-          ],
-
-          // iso time formats and regexes
-          isoTimes = [
-              ['HH:mm:ss.SSSS', /(T| )\d\d:\d\d:\d\d\.\d+/],
-              ['HH:mm:ss', /(T| )\d\d:\d\d:\d\d/],
-              ['HH:mm', /(T| )\d\d:\d\d/],
-              ['HH', /(T| )\d\d/]
-          ],
-
-          // timezone chunker "+10:00" > ["10", "00"] or "-1530" > ["-15", "30"]
-          parseTimezoneChunker = /([\+\-]|\d\d)/gi,
-
-          // getter and setter names
-          proxyGettersAndSetters = 'Date|Hours|Minutes|Seconds|Milliseconds'.split('|'),
-          unitMillisecondFactors = {
-              'Milliseconds' : 1,
-              'Seconds' : 1e3,
-              'Minutes' : 6e4,
-              'Hours' : 36e5,
-              'Days' : 864e5,
-              'Months' : 2592e6,
-              'Years' : 31536e6
-          },
-
-          unitAliases = {
-              ms : 'millisecond',
-              s : 'second',
-              m : 'minute',
-              h : 'hour',
-              d : 'day',
-              D : 'date',
-              w : 'week',
-              W : 'isoWeek',
-              M : 'month',
-              Q : 'quarter',
-              y : 'year',
-              DDD : 'dayOfYear',
-              e : 'weekday',
-              E : 'isoWeekday',
-              gg: 'weekYear',
-              GG: 'isoWeekYear'
-          },
-
-          camelFunctions = {
-              dayofyear : 'dayOfYear',
-              isoweekday : 'isoWeekday',
-              isoweek : 'isoWeek',
-              weekyear : 'weekYear',
-              isoweekyear : 'isoWeekYear'
-          },
-
-          // format function strings
-          formatFunctions = {},
-
-          // default relative time thresholds
-          relativeTimeThresholds = {
-            s: 45,   //seconds to minutes
-            m: 45,   //minutes to hours
-            h: 22,   //hours to days
-            dd: 25,  //days to month (month == 1)
-            dm: 45,  //days to months (months > 1)
-            dy: 345  //days to year
-          },
-
-          // tokens to ordinalize and pad
-          ordinalizeTokens = 'DDD w W M D d'.split(' '),
-          paddedTokens = 'M D H h m s w W'.split(' '),
-
-          formatTokenFunctions = {
-              M    : function () {
-                  return this.month() + 1;
-              },
-              MMM  : function (format) {
-                  return this.lang().monthsShort(this, format);
-              },
-              MMMM : function (format) {
-                  return this.lang().months(this, format);
-              },
-              D    : function () {
-                  return this.date();
-              },
-              DDD  : function () {
-                  return this.dayOfYear();
-              },
-              d    : function () {
-                  return this.day();
-              },
-              dd   : function (format) {
-                  return this.lang().weekdaysMin(this, format);
-              },
-              ddd  : function (format) {
-                  return this.lang().weekdaysShort(this, format);
-              },
-              dddd : function (format) {
-                  return this.lang().weekdays(this, format);
-              },
-              w    : function () {
-                  return this.week();
-              },
-              W    : function () {
-                  return this.isoWeek();
-              },
-              YY   : function () {
-                  return leftZeroFill(this.year() % 100, 2);
-              },
-              YYYY : function () {
-                  return leftZeroFill(this.year(), 4);
-              },
-              YYYYY : function () {
-                  return leftZeroFill(this.year(), 5);
-              },
-              YYYYYY : function () {
-                  var y = this.year(), sign = y >= 0 ? '+' : '-';
-                  return sign + leftZeroFill(Math.abs(y), 6);
-              },
-              gg   : function () {
-                  return leftZeroFill(this.weekYear() % 100, 2);
-              },
-              gggg : function () {
-                  return leftZeroFill(this.weekYear(), 4);
-              },
-              ggggg : function () {
-                  return leftZeroFill(this.weekYear(), 5);
-              },
-              GG   : function () {
-                  return leftZeroFill(this.isoWeekYear() % 100, 2);
-              },
-              GGGG : function () {
-                  return leftZeroFill(this.isoWeekYear(), 4);
-              },
-              GGGGG : function () {
-                  return leftZeroFill(this.isoWeekYear(), 5);
-              },
-              e : function () {
-                  return this.weekday();
-              },
-              E : function () {
-                  return this.isoWeekday();
-              },
-              a    : function () {
-                  return this.lang().meridiem(this.hours(), this.minutes(), true);
-              },
-              A    : function () {
-                  return this.lang().meridiem(this.hours(), this.minutes(), false);
-              },
-              H    : function () {
-                  return this.hours();
-              },
-              h    : function () {
-                  return this.hours() % 12 || 12;
-              },
-              m    : function () {
-                  return this.minutes();
-              },
-              s    : function () {
-                  return this.seconds();
-              },
-              S    : function () {
-                  return toInt(this.milliseconds() / 100);
-              },
-              SS   : function () {
-                  return leftZeroFill(toInt(this.milliseconds() / 10), 2);
-              },
-              SSS  : function () {
-                  return leftZeroFill(this.milliseconds(), 3);
-              },
-              SSSS : function () {
-                  return leftZeroFill(this.milliseconds(), 3);
-              },
-              Z    : function () {
-                  var a = -this.zone(),
-                      b = "+";
-                  if (a < 0) {
-                      a = -a;
-                      b = "-";
-                  }
-                  return b + leftZeroFill(toInt(a / 60), 2) + ":" + leftZeroFill(toInt(a) % 60, 2);
-              },
-              ZZ   : function () {
-                  var a = -this.zone(),
-                      b = "+";
-                  if (a < 0) {
-                      a = -a;
-                      b = "-";
-                  }
-                  return b + leftZeroFill(toInt(a / 60), 2) + leftZeroFill(toInt(a) % 60, 2);
-              },
-              z : function () {
-                  return this.zoneAbbr();
-              },
-              zz : function () {
-                  return this.zoneName();
-              },
-              X    : function () {
-                  return this.unix();
-              },
-              Q : function () {
-                  return this.quarter();
-              }
-          },
-
-          lists = ['months', 'monthsShort', 'weekdays', 'weekdaysShort', 'weekdaysMin'];
-
-      // Pick the first defined of two or three arguments. dfl comes from
-      // default.
-      function dfl(a, b, c) {
-          switch (arguments.length) {
-              case 2: return a != null ? a : b;
-              case 3: return a != null ? a : b != null ? b : c;
-              default: throw new Error("Implement me");
-          }
-      }
-
-      function defaultParsingFlags() {
-          // We need to deep clone this object, and es5 standard is not very
-          // helpful.
-          return {
-              empty : false,
-              unusedTokens : [],
-              unusedInput : [],
-              overflow : -2,
-              charsLeftOver : 0,
-              nullInput : false,
-              invalidMonth : null,
-              invalidFormat : false,
-              userInvalidated : false,
-              iso: false
-          };
-      }
-
-      function deprecate(msg, fn) {
-          var firstTime = true;
-          function printMsg() {
-              if (moment.suppressDeprecationWarnings === false &&
-                      typeof console !== 'undefined' && console.warn) {
-                  console.warn("Deprecation warning: " + msg);
-              }
-          }
-          return extend(function () {
-              if (firstTime) {
-                  printMsg();
-                  firstTime = false;
-              }
-              return fn.apply(this, arguments);
-          }, fn);
-      }
-
-      function padToken(func, count) {
-          return function (a) {
-              return leftZeroFill(func.call(this, a), count);
-          };
-      }
-      function ordinalizeToken(func, period) {
-          return function (a) {
-              return this.lang().ordinal(func.call(this, a), period);
-          };
-      }
-
-      while (ordinalizeTokens.length) {
-          i = ordinalizeTokens.pop();
-          formatTokenFunctions[i + 'o'] = ordinalizeToken(formatTokenFunctions[i], i);
-      }
-      while (paddedTokens.length) {
-          i = paddedTokens.pop();
-          formatTokenFunctions[i + i] = padToken(formatTokenFunctions[i], 2);
-      }
-      formatTokenFunctions.DDDD = padToken(formatTokenFunctions.DDD, 3);
-
-
-      /************************************
-          Constructors
-      ************************************/
-
-      function Language() {
-
-      }
-
-      // Moment prototype object
-      function Moment(config) {
-          checkOverflow(config);
-          extend(this, config);
-      }
-
-      // Duration Constructor
-      function Duration(duration) {
-          var normalizedInput = normalizeObjectUnits(duration),
-              years = normalizedInput.year || 0,
-              quarters = normalizedInput.quarter || 0,
-              months = normalizedInput.month || 0,
-              weeks = normalizedInput.week || 0,
-              days = normalizedInput.day || 0,
-              hours = normalizedInput.hour || 0,
-              minutes = normalizedInput.minute || 0,
-              seconds = normalizedInput.second || 0,
-              milliseconds = normalizedInput.millisecond || 0;
-
-          // representation for dateAddRemove
-          this._milliseconds = +milliseconds +
-              seconds * 1e3 + // 1000
-              minutes * 6e4 + // 1000 * 60
-              hours * 36e5; // 1000 * 60 * 60
-          // Because of dateAddRemove treats 24 hours as different from a
-          // day when working around DST, we need to store them separately
-          this._days = +days +
-              weeks * 7;
-          // It is impossible translate months into days without knowing
-          // which months you are are talking about, so we have to store
-          // it separately.
-          this._months = +months +
-              quarters * 3 +
-              years * 12;
-
-          this._data = {};
-
-          this._bubble();
-      }
-
-      /************************************
-          Helpers
-      ************************************/
-
-
-      function extend(a, b) {
-          for (var i in b) {
-              if (b.hasOwnProperty(i)) {
-                  a[i] = b[i];
-              }
-          }
-
-          if (b.hasOwnProperty("toString")) {
-              a.toString = b.toString;
-          }
-
-          if (b.hasOwnProperty("valueOf")) {
-              a.valueOf = b.valueOf;
-          }
-
-          return a;
-      }
-
-      function cloneMoment(m) {
-          var result = {}, i;
-          for (i in m) {
-              if (m.hasOwnProperty(i) && momentProperties.hasOwnProperty(i)) {
-                  result[i] = m[i];
-              }
-          }
-
-          return result;
-      }
-
-      function absRound(number) {
-          if (number < 0) {
-              return Math.ceil(number);
-          } else {
-              return Math.floor(number);
-          }
-      }
-
-      // left zero fill a number
-      // see http://jsperf.com/left-zero-filling for performance comparison
-      function leftZeroFill(number, targetLength, forceSign) {
-          var output = '' + Math.abs(number),
-              sign = number >= 0;
-
-          while (output.length < targetLength) {
-              output = '0' + output;
-          }
-          return (sign ? (forceSign ? '+' : '') : '-') + output;
-      }
-
-      // helper function for _.addTime and _.subtractTime
-      function addOrSubtractDurationFromMoment(mom, duration, isAdding, updateOffset) {
-          var milliseconds = duration._milliseconds,
-              days = duration._days,
-              months = duration._months;
-          updateOffset = updateOffset == null ? true : updateOffset;
-
-          if (milliseconds) {
-              mom._d.setTime(+mom._d + milliseconds * isAdding);
-          }
-          if (days) {
-              rawSetter(mom, 'Date', rawGetter(mom, 'Date') + days * isAdding);
-          }
-          if (months) {
-              rawMonthSetter(mom, rawGetter(mom, 'Month') + months * isAdding);
-          }
-          if (updateOffset) {
-              moment.updateOffset(mom, days || months);
-          }
-      }
-
-      // check if is an array
-      function isArray(input) {
-          return Object.prototype.toString.call(input) === '[object Array]';
-      }
-
-      function isDate(input) {
-          return  Object.prototype.toString.call(input) === '[object Date]' ||
-                  input instanceof Date;
-      }
-
-      // compare two arrays, return the number of differences
-      function compareArrays(array1, array2, dontConvert) {
-          var len = Math.min(array1.length, array2.length),
-              lengthDiff = Math.abs(array1.length - array2.length),
-              diffs = 0,
-              i;
-          for (i = 0; i < len; i++) {
-              if ((dontConvert && array1[i] !== array2[i]) ||
-                  (!dontConvert && toInt(array1[i]) !== toInt(array2[i]))) {
-                  diffs++;
-              }
-          }
-          return diffs + lengthDiff;
-      }
-
-      function normalizeUnits(units) {
-          if (units) {
-              var lowered = units.toLowerCase().replace(/(.)s$/, '$1');
-              units = unitAliases[units] || camelFunctions[lowered] || lowered;
-          }
-          return units;
-      }
-
-      function normalizeObjectUnits(inputObject) {
-          var normalizedInput = {},
-              normalizedProp,
-              prop;
-
-          for (prop in inputObject) {
-              if (inputObject.hasOwnProperty(prop)) {
-                  normalizedProp = normalizeUnits(prop);
-                  if (normalizedProp) {
-                      normalizedInput[normalizedProp] = inputObject[prop];
-                  }
-              }
-          }
-
-          return normalizedInput;
-      }
-
-      function makeList(field) {
-          var count, setter;
-
-          if (field.indexOf('week') === 0) {
-              count = 7;
-              setter = 'day';
-          }
-          else if (field.indexOf('month') === 0) {
-              count = 12;
-              setter = 'month';
-          }
-          else {
-              return;
-          }
-
-          moment[field] = function (format, index) {
-              var i, getter,
-                  method = moment.fn._lang[field],
-                  results = [];
-
-              if (typeof format === 'number') {
-                  index = format;
-                  format = undefined;
-              }
-
-              getter = function (i) {
-                  var m = moment().utc().set(setter, i);
-                  return method.call(moment.fn._lang, m, format || '');
-              };
-
-              if (index != null) {
-                  return getter(index);
-              }
-              else {
-                  for (i = 0; i < count; i++) {
-                      results.push(getter(i));
-                  }
-                  return results;
-              }
-          };
-      }
-
-      function toInt(argumentForCoercion) {
-          var coercedNumber = +argumentForCoercion,
-              value = 0;
-
-          if (coercedNumber !== 0 && isFinite(coercedNumber)) {
-              if (coercedNumber >= 0) {
-                  value = Math.floor(coercedNumber);
-              } else {
-                  value = Math.ceil(coercedNumber);
-              }
-          }
-
-          return value;
-      }
-
-      function daysInMonth(year, month) {
-          return new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
-      }
-
-      function weeksInYear(year, dow, doy) {
-          return weekOfYear(moment([year, 11, 31 + dow - doy]), dow, doy).week;
-      }
-
-      function daysInYear(year) {
-          return isLeapYear(year) ? 366 : 365;
-      }
-
-      function isLeapYear(year) {
-          return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
-      }
-
-      function checkOverflow(m) {
-          var overflow;
-          if (m._a && m._pf.overflow === -2) {
-              overflow =
-                  m._a[MONTH] < 0 || m._a[MONTH] > 11 ? MONTH :
-                  m._a[DATE] < 1 || m._a[DATE] > daysInMonth(m._a[YEAR], m._a[MONTH]) ? DATE :
-                  m._a[HOUR] < 0 || m._a[HOUR] > 23 ? HOUR :
-                  m._a[MINUTE] < 0 || m._a[MINUTE] > 59 ? MINUTE :
-                  m._a[SECOND] < 0 || m._a[SECOND] > 59 ? SECOND :
-                  m._a[MILLISECOND] < 0 || m._a[MILLISECOND] > 999 ? MILLISECOND :
-                  -1;
-
-              if (m._pf._overflowDayOfYear && (overflow < YEAR || overflow > DATE)) {
-                  overflow = DATE;
-              }
-
-              m._pf.overflow = overflow;
-          }
-      }
-
-      function isValid(m) {
-          if (m._isValid == null) {
-              m._isValid = !isNaN(m._d.getTime()) &&
-                  m._pf.overflow < 0 &&
-                  !m._pf.empty &&
-                  !m._pf.invalidMonth &&
-                  !m._pf.nullInput &&
-                  !m._pf.invalidFormat &&
-                  !m._pf.userInvalidated;
-
-              if (m._strict) {
-                  m._isValid = m._isValid &&
-                      m._pf.charsLeftOver === 0 &&
-                      m._pf.unusedTokens.length === 0;
-              }
-          }
-          return m._isValid;
-      }
-
-      function normalizeLanguage(key) {
-          return key ? key.toLowerCase().replace('_', '-') : key;
-      }
-
-      // Return a moment from input, that is local/utc/zone equivalent to model.
-      function makeAs(input, model) {
-          return model._isUTC ? moment(input).zone(model._offset || 0) :
-              moment(input).local();
-      }
-
-      /************************************
-          Languages
-      ************************************/
-
-
-      extend(Language.prototype, {
-
-          set : function (config) {
-              var prop, i;
-              for (i in config) {
-                  prop = config[i];
-                  if (typeof prop === 'function') {
-                      this[i] = prop;
-                  } else {
-                      this['_' + i] = prop;
-                  }
-              }
-          },
-
-          _months : "January_February_March_April_May_June_July_August_September_October_November_December".split("_"),
-          months : function (m) {
-              return this._months[m.month()];
-          },
-
-          _monthsShort : "Jan_Feb_Mar_Apr_May_Jun_Jul_Aug_Sep_Oct_Nov_Dec".split("_"),
-          monthsShort : function (m) {
-              return this._monthsShort[m.month()];
-          },
-
-          monthsParse : function (monthName) {
-              var i, mom, regex;
-
-              if (!this._monthsParse) {
-                  this._monthsParse = [];
-              }
-
-              for (i = 0; i < 12; i++) {
-                  // make the regex if we don't have it already
-                  if (!this._monthsParse[i]) {
-                      mom = moment.utc([2000, i]);
-                      regex = '^' + this.months(mom, '') + '|^' + this.monthsShort(mom, '');
-                      this._monthsParse[i] = new RegExp(regex.replace('.', ''), 'i');
-                  }
-                  // test the regex
-                  if (this._monthsParse[i].test(monthName)) {
-                      return i;
-                  }
-              }
-          },
-
-          _weekdays : "Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday".split("_"),
-          weekdays : function (m) {
-              return this._weekdays[m.day()];
-          },
-
-          _weekdaysShort : "Sun_Mon_Tue_Wed_Thu_Fri_Sat".split("_"),
-          weekdaysShort : function (m) {
-              return this._weekdaysShort[m.day()];
-          },
-
-          _weekdaysMin : "Su_Mo_Tu_We_Th_Fr_Sa".split("_"),
-          weekdaysMin : function (m) {
-              return this._weekdaysMin[m.day()];
-          },
-
-          weekdaysParse : function (weekdayName) {
-              var i, mom, regex;
-
-              if (!this._weekdaysParse) {
-                  this._weekdaysParse = [];
-              }
-
-              for (i = 0; i < 7; i++) {
-                  // make the regex if we don't have it already
-                  if (!this._weekdaysParse[i]) {
-                      mom = moment([2000, 1]).day(i);
-                      regex = '^' + this.weekdays(mom, '') + '|^' + this.weekdaysShort(mom, '') + '|^' + this.weekdaysMin(mom, '');
-                      this._weekdaysParse[i] = new RegExp(regex.replace('.', ''), 'i');
-                  }
-                  // test the regex
-                  if (this._weekdaysParse[i].test(weekdayName)) {
-                      return i;
-                  }
-              }
-          },
-
-          _longDateFormat : {
-              LT : "h:mm A",
-              L : "MM/DD/YYYY",
-              LL : "MMMM D YYYY",
-              LLL : "MMMM D YYYY LT",
-              LLLL : "dddd, MMMM D YYYY LT"
-          },
-          longDateFormat : function (key) {
-              var output = this._longDateFormat[key];
-              if (!output && this._longDateFormat[key.toUpperCase()]) {
-                  output = this._longDateFormat[key.toUpperCase()].replace(/MMMM|MM|DD|dddd/g, function (val) {
-                      return val.slice(1);
-                  });
-                  this._longDateFormat[key] = output;
-              }
-              return output;
-          },
-
-          isPM : function (input) {
-              // IE8 Quirks Mode & IE7 Standards Mode do not allow accessing strings like arrays
-              // Using charAt should be more compatible.
-              return ((input + '').toLowerCase().charAt(0) === 'p');
-          },
-
-          _meridiemParse : /[ap]\.?m?\.?/i,
-          meridiem : function (hours, minutes, isLower) {
-              if (hours > 11) {
-                  return isLower ? 'pm' : 'PM';
-              } else {
-                  return isLower ? 'am' : 'AM';
-              }
-          },
-
-          _calendar : {
-              sameDay : '[Today at] LT',
-              nextDay : '[Tomorrow at] LT',
-              nextWeek : 'dddd [at] LT',
-              lastDay : '[Yesterday at] LT',
-              lastWeek : '[Last] dddd [at] LT',
-              sameElse : 'L'
-          },
-          calendar : function (key, mom) {
-              var output = this._calendar[key];
-              return typeof output === 'function' ? output.apply(mom) : output;
-          },
-
-          _relativeTime : {
-              future : "in %s",
-              past : "%s ago",
-              s : "a few seconds",
-              m : "a minute",
-              mm : "%d minutes",
-              h : "an hour",
-              hh : "%d hours",
-              d : "a day",
-              dd : "%d days",
-              M : "a month",
-              MM : "%d months",
-              y : "a year",
-              yy : "%d years"
-          },
-          relativeTime : function (number, withoutSuffix, string, isFuture) {
-              var output = this._relativeTime[string];
-              return (typeof output === 'function') ?
-                  output(number, withoutSuffix, string, isFuture) :
-                  output.replace(/%d/i, number);
-          },
-          pastFuture : function (diff, output) {
-              var format = this._relativeTime[diff > 0 ? 'future' : 'past'];
-              return typeof format === 'function' ? format(output) : format.replace(/%s/i, output);
-          },
-
-          ordinal : function (number) {
-              return this._ordinal.replace("%d", number);
-          },
-          _ordinal : "%d",
-
-          preparse : function (string) {
-              return string;
-          },
-
-          postformat : function (string) {
-              return string;
-          },
-
-          week : function (mom) {
-              return weekOfYear(mom, this._week.dow, this._week.doy).week;
-          },
-
-          _week : {
-              dow : 0, // Sunday is the first day of the week.
-              doy : 6  // The week that contains Jan 1st is the first week of the year.
-          },
-
-          _invalidDate: 'Invalid date',
-          invalidDate: function () {
-              return this._invalidDate;
-          }
-      });
-
-      // Loads a language definition into the `languages` cache.  The function
-      // takes a key and optionally values.  If not in the browser and no values
-      // are provided, it will load the language file module.  As a convenience,
-      // this function also returns the language values.
-      function loadLang(key, values) {
-          values.abbr = key;
-          if (!languages[key]) {
-              languages[key] = new Language();
-          }
-          languages[key].set(values);
-          return languages[key];
-      }
-
-      // Remove a language from the `languages` cache. Mostly useful in tests.
-      function unloadLang(key) {
-          delete languages[key];
-      }
-
-      // Determines which language definition to use and returns it.
-      //
-      // With no parameters, it will return the global language.  If you
-      // pass in a language key, such as 'en', it will return the
-      // definition for 'en', so long as 'en' has already been loaded using
-      // moment.lang.
-      function getLangDefinition(key) {
-          var i = 0, j, lang, next, split,
-              get = function (k) {
-                  if (!languages[k] && hasModule) {
-                      try {
-                          __webpack_require__(16)("./" + k);
-                      } catch (e) { }
-                  }
-                  return languages[k];
-              };
-
-          if (!key) {
-              return moment.fn._lang;
-          }
-
-          if (!isArray(key)) {
-              //short-circuit everything else
-              lang = get(key);
-              if (lang) {
-                  return lang;
-              }
-              key = [key];
-          }
-
-          //pick the language from the array
-          //try ['en-au', 'en-gb'] as 'en-au', 'en-gb', 'en', as in move through the list trying each
-          //substring from most specific to least, but move to the next array item if it's a more specific variant than the current root
-          while (i < key.length) {
-              split = normalizeLanguage(key[i]).split('-');
-              j = split.length;
-              next = normalizeLanguage(key[i + 1]);
-              next = next ? next.split('-') : null;
-              while (j > 0) {
-                  lang = get(split.slice(0, j).join('-'));
-                  if (lang) {
-                      return lang;
-                  }
-                  if (next && next.length >= j && compareArrays(split, next, true) >= j - 1) {
-                      //the next array item is better than a shallower substring of this one
-                      break;
-                  }
-                  j--;
-              }
-              i++;
-          }
-          return moment.fn._lang;
-      }
-
-      /************************************
-          Formatting
-      ************************************/
-
-
-      function removeFormattingTokens(input) {
-          if (input.match(/\[[\s\S]/)) {
-              return input.replace(/^\[|\]$/g, "");
-          }
-          return input.replace(/\\/g, "");
-      }
-
-      function makeFormatFunction(format) {
-          var array = format.match(formattingTokens), i, length;
-
-          for (i = 0, length = array.length; i < length; i++) {
-              if (formatTokenFunctions[array[i]]) {
-                  array[i] = formatTokenFunctions[array[i]];
-              } else {
-                  array[i] = removeFormattingTokens(array[i]);
-              }
-          }
-
-          return function (mom) {
-              var output = "";
-              for (i = 0; i < length; i++) {
-                  output += array[i] instanceof Function ? array[i].call(mom, format) : array[i];
-              }
-              return output;
-          };
-      }
-
-      // format date using native date object
-      function formatMoment(m, format) {
-
-          if (!m.isValid()) {
-              return m.lang().invalidDate();
-          }
-
-          format = expandFormat(format, m.lang());
-
-          if (!formatFunctions[format]) {
-              formatFunctions[format] = makeFormatFunction(format);
-          }
-
-          return formatFunctions[format](m);
-      }
-
-      function expandFormat(format, lang) {
-          var i = 5;
-
-          function replaceLongDateFormatTokens(input) {
-              return lang.longDateFormat(input) || input;
-          }
-
-          localFormattingTokens.lastIndex = 0;
-          while (i >= 0 && localFormattingTokens.test(format)) {
-              format = format.replace(localFormattingTokens, replaceLongDateFormatTokens);
-              localFormattingTokens.lastIndex = 0;
-              i -= 1;
-          }
-
-          return format;
-      }
-
-
-      /************************************
-          Parsing
-      ************************************/
-
-
-      // get the regex to find the next token
-      function getParseRegexForToken(token, config) {
-          var a, strict = config._strict;
-          switch (token) {
-          case 'Q':
-              return parseTokenOneDigit;
-          case 'DDDD':
-              return parseTokenThreeDigits;
-          case 'YYYY':
-          case 'GGGG':
-          case 'gggg':
-              return strict ? parseTokenFourDigits : parseTokenOneToFourDigits;
-          case 'Y':
-          case 'G':
-          case 'g':
-              return parseTokenSignedNumber;
-          case 'YYYYYY':
-          case 'YYYYY':
-          case 'GGGGG':
-          case 'ggggg':
-              return strict ? parseTokenSixDigits : parseTokenOneToSixDigits;
-          case 'S':
-              if (strict) { return parseTokenOneDigit; }
-              /* falls through */
-          case 'SS':
-              if (strict) { return parseTokenTwoDigits; }
-              /* falls through */
-          case 'SSS':
-              if (strict) { return parseTokenThreeDigits; }
-              /* falls through */
-          case 'DDD':
-              return parseTokenOneToThreeDigits;
-          case 'MMM':
-          case 'MMMM':
-          case 'dd':
-          case 'ddd':
-          case 'dddd':
-              return parseTokenWord;
-          case 'a':
-          case 'A':
-              return getLangDefinition(config._l)._meridiemParse;
-          case 'X':
-              return parseTokenTimestampMs;
-          case 'Z':
-          case 'ZZ':
-              return parseTokenTimezone;
-          case 'T':
-              return parseTokenT;
-          case 'SSSS':
-              return parseTokenDigits;
-          case 'MM':
-          case 'DD':
-          case 'YY':
-          case 'GG':
-          case 'gg':
-          case 'HH':
-          case 'hh':
-          case 'mm':
-          case 'ss':
-          case 'ww':
-          case 'WW':
-              return strict ? parseTokenTwoDigits : parseTokenOneOrTwoDigits;
-          case 'M':
-          case 'D':
-          case 'd':
-          case 'H':
-          case 'h':
-          case 'm':
-          case 's':
-          case 'w':
-          case 'W':
-          case 'e':
-          case 'E':
-              return parseTokenOneOrTwoDigits;
-          case 'Do':
-              return parseTokenOrdinal;
-          default :
-              a = new RegExp(regexpEscape(unescapeFormat(token.replace('\\', '')), "i"));
-              return a;
-          }
-      }
-
-      function timezoneMinutesFromString(string) {
-          string = string || "";
-          var possibleTzMatches = (string.match(parseTokenTimezone) || []),
-              tzChunk = possibleTzMatches[possibleTzMatches.length - 1] || [],
-              parts = (tzChunk + '').match(parseTimezoneChunker) || ['-', 0, 0],
-              minutes = +(parts[1] * 60) + toInt(parts[2]);
-
-          return parts[0] === '+' ? -minutes : minutes;
-      }
-
-      // function to convert string input to date
-      function addTimeToArrayFromToken(token, input, config) {
-          var a, datePartArray = config._a;
-
-          switch (token) {
-          // QUARTER
-          case 'Q':
-              if (input != null) {
-                  datePartArray[MONTH] = (toInt(input) - 1) * 3;
-              }
-              break;
-          // MONTH
-          case 'M' : // fall through to MM
-          case 'MM' :
-              if (input != null) {
-                  datePartArray[MONTH] = toInt(input) - 1;
-              }
-              break;
-          case 'MMM' : // fall through to MMMM
-          case 'MMMM' :
-              a = getLangDefinition(config._l).monthsParse(input);
-              // if we didn't find a month name, mark the date as invalid.
-              if (a != null) {
-                  datePartArray[MONTH] = a;
-              } else {
-                  config._pf.invalidMonth = input;
-              }
-              break;
-          // DAY OF MONTH
-          case 'D' : // fall through to DD
-          case 'DD' :
-              if (input != null) {
-                  datePartArray[DATE] = toInt(input);
-              }
-              break;
-          case 'Do' :
-              if (input != null) {
-                  datePartArray[DATE] = toInt(parseInt(input, 10));
-              }
-              break;
-          // DAY OF YEAR
-          case 'DDD' : // fall through to DDDD
-          case 'DDDD' :
-              if (input != null) {
-                  config._dayOfYear = toInt(input);
-              }
-
-              break;
-          // YEAR
-          case 'YY' :
-              datePartArray[YEAR] = moment.parseTwoDigitYear(input);
-              break;
-          case 'YYYY' :
-          case 'YYYYY' :
-          case 'YYYYYY' :
-              datePartArray[YEAR] = toInt(input);
-              break;
-          // AM / PM
-          case 'a' : // fall through to A
-          case 'A' :
-              config._isPm = getLangDefinition(config._l).isPM(input);
-              break;
-          // 24 HOUR
-          case 'H' : // fall through to hh
-          case 'HH' : // fall through to hh
-          case 'h' : // fall through to hh
-          case 'hh' :
-              datePartArray[HOUR] = toInt(input);
-              break;
-          // MINUTE
-          case 'm' : // fall through to mm
-          case 'mm' :
-              datePartArray[MINUTE] = toInt(input);
-              break;
-          // SECOND
-          case 's' : // fall through to ss
-          case 'ss' :
-              datePartArray[SECOND] = toInt(input);
-              break;
-          // MILLISECOND
-          case 'S' :
-          case 'SS' :
-          case 'SSS' :
-          case 'SSSS' :
-              datePartArray[MILLISECOND] = toInt(('0.' + input) * 1000);
-              break;
-          // UNIX TIMESTAMP WITH MS
-          case 'X':
-              config._d = new Date(parseFloat(input) * 1000);
-              break;
-          // TIMEZONE
-          case 'Z' : // fall through to ZZ
-          case 'ZZ' :
-              config._useUTC = true;
-              config._tzm = timezoneMinutesFromString(input);
-              break;
-          // WEEKDAY - human
-          case 'dd':
-          case 'ddd':
-          case 'dddd':
-              a = getLangDefinition(config._l).weekdaysParse(input);
-              // if we didn't get a weekday name, mark the date as invalid
-              if (a != null) {
-                  config._w = config._w || {};
-                  config._w['d'] = a;
-              } else {
-                  config._pf.invalidWeekday = input;
-              }
-              break;
-          // WEEK, WEEK DAY - numeric
-          case 'w':
-          case 'ww':
-          case 'W':
-          case 'WW':
-          case 'd':
-          case 'e':
-          case 'E':
-              token = token.substr(0, 1);
-              /* falls through */
-          case 'gggg':
-          case 'GGGG':
-          case 'GGGGG':
-              token = token.substr(0, 2);
-              if (input) {
-                  config._w = config._w || {};
-                  config._w[token] = toInt(input);
-              }
-              break;
-          case 'gg':
-          case 'GG':
-              config._w = config._w || {};
-              config._w[token] = moment.parseTwoDigitYear(input);
-          }
-      }
-
-      function dayOfYearFromWeekInfo(config) {
-          var w, weekYear, week, weekday, dow, doy, temp, lang;
-
-          w = config._w;
-          if (w.GG != null || w.W != null || w.E != null) {
-              dow = 1;
-              doy = 4;
-
-              // TODO: We need to take the current isoWeekYear, but that depends on
-              // how we interpret now (local, utc, fixed offset). So create
-              // a now version of current config (take local/utc/offset flags, and
-              // create now).
-              weekYear = dfl(w.GG, config._a[YEAR], weekOfYear(moment(), 1, 4).year);
-              week = dfl(w.W, 1);
-              weekday = dfl(w.E, 1);
-          } else {
-              lang = getLangDefinition(config._l);
-              dow = lang._week.dow;
-              doy = lang._week.doy;
-
-              weekYear = dfl(w.gg, config._a[YEAR], weekOfYear(moment(), dow, doy).year);
-              week = dfl(w.w, 1);
-
-              if (w.d != null) {
-                  // weekday -- low day numbers are considered next week
-                  weekday = w.d;
-                  if (weekday < dow) {
-                      ++week;
-                  }
-              } else if (w.e != null) {
-                  // local weekday -- counting starts from begining of week
-                  weekday = w.e + dow;
-              } else {
-                  // default to begining of week
-                  weekday = dow;
-              }
-          }
-          temp = dayOfYearFromWeeks(weekYear, week, weekday, doy, dow);
-
-          config._a[YEAR] = temp.year;
-          config._dayOfYear = temp.dayOfYear;
-      }
-
-      // convert an array to a date.
-      // the array should mirror the parameters below
-      // note: all values past the year are optional and will default to the lowest possible value.
-      // [year, month, day , hour, minute, second, millisecond]
-      function dateFromConfig(config) {
-          var i, date, input = [], currentDate, yearToUse;
-
-          if (config._d) {
-              return;
-          }
-
-          currentDate = currentDateArray(config);
-
-          //compute day of the year from weeks and weekdays
-          if (config._w && config._a[DATE] == null && config._a[MONTH] == null) {
-              dayOfYearFromWeekInfo(config);
-          }
-
-          //if the day of the year is set, figure out what it is
-          if (config._dayOfYear) {
-              yearToUse = dfl(config._a[YEAR], currentDate[YEAR]);
-
-              if (config._dayOfYear > daysInYear(yearToUse)) {
-                  config._pf._overflowDayOfYear = true;
-              }
-
-              date = makeUTCDate(yearToUse, 0, config._dayOfYear);
-              config._a[MONTH] = date.getUTCMonth();
-              config._a[DATE] = date.getUTCDate();
-          }
-
-          // Default to current date.
-          // * if no year, month, day of month are given, default to today
-          // * if day of month is given, default month and year
-          // * if month is given, default only year
-          // * if year is given, don't default anything
-          for (i = 0; i < 3 && config._a[i] == null; ++i) {
-              config._a[i] = input[i] = currentDate[i];
-          }
-
-          // Zero out whatever was not defaulted, including time
-          for (; i < 7; i++) {
-              config._a[i] = input[i] = (config._a[i] == null) ? (i === 2 ? 1 : 0) : config._a[i];
-          }
-
-          config._d = (config._useUTC ? makeUTCDate : makeDate).apply(null, input);
-          // Apply timezone offset from input. The actual zone can be changed
-          // with parseZone.
-          if (config._tzm != null) {
-              config._d.setUTCMinutes(config._d.getUTCMinutes() + config._tzm);
-          }
-      }
-
-      function dateFromObject(config) {
-          var normalizedInput;
-
-          if (config._d) {
-              return;
-          }
-
-          normalizedInput = normalizeObjectUnits(config._i);
-          config._a = [
-              normalizedInput.year,
-              normalizedInput.month,
-              normalizedInput.day,
-              normalizedInput.hour,
-              normalizedInput.minute,
-              normalizedInput.second,
-              normalizedInput.millisecond
-          ];
-
-          dateFromConfig(config);
-      }
-
-      function currentDateArray(config) {
-          var now = new Date();
-          if (config._useUTC) {
-              return [
-                  now.getUTCFullYear(),
-                  now.getUTCMonth(),
-                  now.getUTCDate()
-              ];
-          } else {
-              return [now.getFullYear(), now.getMonth(), now.getDate()];
-          }
-      }
-
-      // date from string and format string
-      function makeDateFromStringAndFormat(config) {
-
-          if (config._f === moment.ISO_8601) {
-              parseISO(config);
-              return;
-          }
-
-          config._a = [];
-          config._pf.empty = true;
-
-          // This array is used to make a Date, either with `new Date` or `Date.UTC`
-          var lang = getLangDefinition(config._l),
-              string = '' + config._i,
-              i, parsedInput, tokens, token, skipped,
-              stringLength = string.length,
-              totalParsedInputLength = 0;
-
-          tokens = expandFormat(config._f, lang).match(formattingTokens) || [];
-
-          for (i = 0; i < tokens.length; i++) {
-              token = tokens[i];
-              parsedInput = (string.match(getParseRegexForToken(token, config)) || [])[0];
-              if (parsedInput) {
-                  skipped = string.substr(0, string.indexOf(parsedInput));
-                  if (skipped.length > 0) {
-                      config._pf.unusedInput.push(skipped);
-                  }
-                  string = string.slice(string.indexOf(parsedInput) + parsedInput.length);
-                  totalParsedInputLength += parsedInput.length;
-              }
-              // don't parse if it's not a known token
-              if (formatTokenFunctions[token]) {
-                  if (parsedInput) {
-                      config._pf.empty = false;
-                  }
-                  else {
-                      config._pf.unusedTokens.push(token);
-                  }
-                  addTimeToArrayFromToken(token, parsedInput, config);
-              }
-              else if (config._strict && !parsedInput) {
-                  config._pf.unusedTokens.push(token);
-              }
-          }
-
-          // add remaining unparsed input length to the string
-          config._pf.charsLeftOver = stringLength - totalParsedInputLength;
-          if (string.length > 0) {
-              config._pf.unusedInput.push(string);
-          }
-
-          // handle am pm
-          if (config._isPm && config._a[HOUR] < 12) {
-              config._a[HOUR] += 12;
-          }
-          // if is 12 am, change hours to 0
-          if (config._isPm === false && config._a[HOUR] === 12) {
-              config._a[HOUR] = 0;
-          }
-
-          dateFromConfig(config);
-          checkOverflow(config);
-      }
-
-      function unescapeFormat(s) {
-          return s.replace(/\\(\[)|\\(\])|\[([^\]\[]*)\]|\\(.)/g, function (matched, p1, p2, p3, p4) {
-              return p1 || p2 || p3 || p4;
-          });
-      }
-
-      // Code from http://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript
-      function regexpEscape(s) {
-          return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-      }
-
-      // date from string and array of format strings
-      function makeDateFromStringAndArray(config) {
-          var tempConfig,
-              bestMoment,
-
-              scoreToBeat,
-              i,
-              currentScore;
-
-          if (config._f.length === 0) {
-              config._pf.invalidFormat = true;
-              config._d = new Date(NaN);
-              return;
-          }
-
-          for (i = 0; i < config._f.length; i++) {
-              currentScore = 0;
-              tempConfig = extend({}, config);
-              tempConfig._pf = defaultParsingFlags();
-              tempConfig._f = config._f[i];
-              makeDateFromStringAndFormat(tempConfig);
-
-              if (!isValid(tempConfig)) {
-                  continue;
-              }
-
-              // if there is any input that was not parsed add a penalty for that format
-              currentScore += tempConfig._pf.charsLeftOver;
-
-              //or tokens
-              currentScore += tempConfig._pf.unusedTokens.length * 10;
-
-              tempConfig._pf.score = currentScore;
-
-              if (scoreToBeat == null || currentScore < scoreToBeat) {
-                  scoreToBeat = currentScore;
-                  bestMoment = tempConfig;
-              }
-          }
-
-          extend(config, bestMoment || tempConfig);
-      }
-
-      // date from iso format
-      function parseISO(config) {
-          var i, l,
-              string = config._i,
-              match = isoRegex.exec(string);
-
-          if (match) {
-              config._pf.iso = true;
-              for (i = 0, l = isoDates.length; i < l; i++) {
-                  if (isoDates[i][1].exec(string)) {
-                      // match[5] should be "T" or undefined
-                      config._f = isoDates[i][0] + (match[6] || " ");
-                      break;
-                  }
-              }
-              for (i = 0, l = isoTimes.length; i < l; i++) {
-                  if (isoTimes[i][1].exec(string)) {
-                      config._f += isoTimes[i][0];
-                      break;
-                  }
-              }
-              if (string.match(parseTokenTimezone)) {
-                  config._f += "Z";
-              }
-              makeDateFromStringAndFormat(config);
-          } else {
-              config._isValid = false;
-          }
-      }
-
-      // date from iso format or fallback
-      function makeDateFromString(config) {
-          parseISO(config);
-          if (config._isValid === false) {
-              delete config._isValid;
-              moment.createFromInputFallback(config);
-          }
-      }
-
-      function makeDateFromInput(config) {
-          var input = config._i,
-              matched = aspNetJsonRegex.exec(input);
-
-          if (input === undefined) {
-              config._d = new Date();
-          } else if (matched) {
-              config._d = new Date(+matched[1]);
-          } else if (typeof input === 'string') {
-              makeDateFromString(config);
-          } else if (isArray(input)) {
-              config._a = input.slice(0);
-              dateFromConfig(config);
-          } else if (isDate(input)) {
-              config._d = new Date(+input);
-          } else if (typeof(input) === 'object') {
-              dateFromObject(config);
-          } else if (typeof(input) === 'number') {
-              // from milliseconds
-              config._d = new Date(input);
-          } else {
-              moment.createFromInputFallback(config);
-          }
-      }
-
-      function makeDate(y, m, d, h, M, s, ms) {
-          //can't just apply() to create a date:
-          //http://stackoverflow.com/questions/181348/instantiating-a-javascript-object-by-calling-prototype-constructor-apply
-          var date = new Date(y, m, d, h, M, s, ms);
-
-          //the date constructor doesn't accept years < 1970
-          if (y < 1970) {
-              date.setFullYear(y);
-          }
-          return date;
-      }
-
-      function makeUTCDate(y) {
-          var date = new Date(Date.UTC.apply(null, arguments));
-          if (y < 1970) {
-              date.setUTCFullYear(y);
-          }
-          return date;
-      }
-
-      function parseWeekday(input, language) {
-          if (typeof input === 'string') {
-              if (!isNaN(input)) {
-                  input = parseInt(input, 10);
-              }
-              else {
-                  input = language.weekdaysParse(input);
-                  if (typeof input !== 'number') {
-                      return null;
-                  }
-              }
-          }
-          return input;
-      }
-
-      /************************************
-          Relative Time
-      ************************************/
-
-
-      // helper function for moment.fn.from, moment.fn.fromNow, and moment.duration.fn.humanize
-      function substituteTimeAgo(string, number, withoutSuffix, isFuture, lang) {
-          return lang.relativeTime(number || 1, !!withoutSuffix, string, isFuture);
-      }
-
-      function relativeTime(milliseconds, withoutSuffix, lang) {
-          var seconds = round(Math.abs(milliseconds) / 1000),
-              minutes = round(seconds / 60),
-              hours = round(minutes / 60),
-              days = round(hours / 24),
-              years = round(days / 365),
-              args = seconds < relativeTimeThresholds.s  && ['s', seconds] ||
-                  minutes === 1 && ['m'] ||
-                  minutes < relativeTimeThresholds.m && ['mm', minutes] ||
-                  hours === 1 && ['h'] ||
-                  hours < relativeTimeThresholds.h && ['hh', hours] ||
-                  days === 1 && ['d'] ||
-                  days <= relativeTimeThresholds.dd && ['dd', days] ||
-                  days <= relativeTimeThresholds.dm && ['M'] ||
-                  days < relativeTimeThresholds.dy && ['MM', round(days / 30)] ||
-                  years === 1 && ['y'] || ['yy', years];
-          args[2] = withoutSuffix;
-          args[3] = milliseconds > 0;
-          args[4] = lang;
-          return substituteTimeAgo.apply({}, args);
-      }
-
-
-      /************************************
-          Week of Year
-      ************************************/
-
-
-      // firstDayOfWeek       0 = sun, 6 = sat
-      //                      the day of the week that starts the week
-      //                      (usually sunday or monday)
-      // firstDayOfWeekOfYear 0 = sun, 6 = sat
-      //                      the first week is the week that contains the first
-      //                      of this day of the week
-      //                      (eg. ISO weeks use thursday (4))
-      function weekOfYear(mom, firstDayOfWeek, firstDayOfWeekOfYear) {
-          var end = firstDayOfWeekOfYear - firstDayOfWeek,
-              daysToDayOfWeek = firstDayOfWeekOfYear - mom.day(),
-              adjustedMoment;
-
-
-          if (daysToDayOfWeek > end) {
-              daysToDayOfWeek -= 7;
-          }
-
-          if (daysToDayOfWeek < end - 7) {
-              daysToDayOfWeek += 7;
-          }
-
-          adjustedMoment = moment(mom).add('d', daysToDayOfWeek);
-          return {
-              week: Math.ceil(adjustedMoment.dayOfYear() / 7),
-              year: adjustedMoment.year()
-          };
-      }
-
-      //http://en.wikipedia.org/wiki/ISO_week_date#Calculating_a_date_given_the_year.2C_week_number_and_weekday
-      function dayOfYearFromWeeks(year, week, weekday, firstDayOfWeekOfYear, firstDayOfWeek) {
-          var d = makeUTCDate(year, 0, 1).getUTCDay(), daysToAdd, dayOfYear;
-
-          d = d === 0 ? 7 : d;
-          weekday = weekday != null ? weekday : firstDayOfWeek;
-          daysToAdd = firstDayOfWeek - d + (d > firstDayOfWeekOfYear ? 7 : 0) - (d < firstDayOfWeek ? 7 : 0);
-          dayOfYear = 7 * (week - 1) + (weekday - firstDayOfWeek) + daysToAdd + 1;
-
-          return {
-              year: dayOfYear > 0 ? year : year - 1,
-              dayOfYear: dayOfYear > 0 ?  dayOfYear : daysInYear(year - 1) + dayOfYear
-          };
-      }
-
-      /************************************
-          Top Level Functions
-      ************************************/
-
-      function makeMoment(config) {
-          var input = config._i,
-              format = config._f;
-
-          if (input === null || (format === undefined && input === '')) {
-              return moment.invalid({nullInput: true});
-          }
-
-          if (typeof input === 'string') {
-              config._i = input = getLangDefinition().preparse(input);
-          }
-
-          if (moment.isMoment(input)) {
-              config = cloneMoment(input);
-
-              config._d = new Date(+input._d);
-          } else if (format) {
-              if (isArray(format)) {
-                  makeDateFromStringAndArray(config);
-              } else {
-                  makeDateFromStringAndFormat(config);
-              }
-          } else {
-              makeDateFromInput(config);
-          }
-
-          return new Moment(config);
-      }
-
-      moment = function (input, format, lang, strict) {
-          var c;
-
-          if (typeof(lang) === "boolean") {
-              strict = lang;
-              lang = undefined;
-          }
-          // object construction must be done this way.
-          // https://github.com/moment/moment/issues/1423
-          c = {};
-          c._isAMomentObject = true;
-          c._i = input;
-          c._f = format;
-          c._l = lang;
-          c._strict = strict;
-          c._isUTC = false;
-          c._pf = defaultParsingFlags();
-
-          return makeMoment(c);
-      };
-
-      moment.suppressDeprecationWarnings = false;
-
-      moment.createFromInputFallback = deprecate(
-              "moment construction falls back to js Date. This is " +
-              "discouraged and will be removed in upcoming major " +
-              "release. Please refer to " +
-              "https://github.com/moment/moment/issues/1407 for more info.",
-              function (config) {
-          config._d = new Date(config._i);
-      });
-
-      // Pick a moment m from moments so that m[fn](other) is true for all
-      // other. This relies on the function fn to be transitive.
-      //
-      // moments should either be an array of moment objects or an array, whose
-      // first element is an array of moment objects.
-      function pickBy(fn, moments) {
-          var res, i;
-          if (moments.length === 1 && isArray(moments[0])) {
-              moments = moments[0];
-          }
-          if (!moments.length) {
-              return moment();
-          }
-          res = moments[0];
-          for (i = 1; i < moments.length; ++i) {
-              if (moments[i][fn](res)) {
-                  res = moments[i];
-              }
-          }
-          return res;
-      }
-
-      moment.min = function () {
-          var args = [].slice.call(arguments, 0);
-
-          return pickBy('isBefore', args);
-      };
-
-      moment.max = function () {
-          var args = [].slice.call(arguments, 0);
-
-          return pickBy('isAfter', args);
-      };
-
-      // creating with utc
-      moment.utc = function (input, format, lang, strict) {
-          var c;
-
-          if (typeof(lang) === "boolean") {
-              strict = lang;
-              lang = undefined;
-          }
-          // object construction must be done this way.
-          // https://github.com/moment/moment/issues/1423
-          c = {};
-          c._isAMomentObject = true;
-          c._useUTC = true;
-          c._isUTC = true;
-          c._l = lang;
-          c._i = input;
-          c._f = format;
-          c._strict = strict;
-          c._pf = defaultParsingFlags();
-
-          return makeMoment(c).utc();
-      };
-
-      // creating with unix timestamp (in seconds)
-      moment.unix = function (input) {
-          return moment(input * 1000);
-      };
-
-      // duration
-      moment.duration = function (input, key) {
-          var duration = input,
-              // matching against regexp is expensive, do it on demand
-              match = null,
-              sign,
-              ret,
-              parseIso;
-
-          if (moment.isDuration(input)) {
-              duration = {
-                  ms: input._milliseconds,
-                  d: input._days,
-                  M: input._months
-              };
-          } else if (typeof input === 'number') {
-              duration = {};
-              if (key) {
-                  duration[key] = input;
-              } else {
-                  duration.milliseconds = input;
-              }
-          } else if (!!(match = aspNetTimeSpanJsonRegex.exec(input))) {
-              sign = (match[1] === "-") ? -1 : 1;
-              duration = {
-                  y: 0,
-                  d: toInt(match[DATE]) * sign,
-                  h: toInt(match[HOUR]) * sign,
-                  m: toInt(match[MINUTE]) * sign,
-                  s: toInt(match[SECOND]) * sign,
-                  ms: toInt(match[MILLISECOND]) * sign
-              };
-          } else if (!!(match = isoDurationRegex.exec(input))) {
-              sign = (match[1] === "-") ? -1 : 1;
-              parseIso = function (inp) {
-                  // We'd normally use ~~inp for this, but unfortunately it also
-                  // converts floats to ints.
-                  // inp may be undefined, so careful calling replace on it.
-                  var res = inp && parseFloat(inp.replace(',', '.'));
-                  // apply sign while we're at it
-                  return (isNaN(res) ? 0 : res) * sign;
-              };
-              duration = {
-                  y: parseIso(match[2]),
-                  M: parseIso(match[3]),
-                  d: parseIso(match[4]),
-                  h: parseIso(match[5]),
-                  m: parseIso(match[6]),
-                  s: parseIso(match[7]),
-                  w: parseIso(match[8])
-              };
-          }
-
-          ret = new Duration(duration);
-
-          if (moment.isDuration(input) && input.hasOwnProperty('_lang')) {
-              ret._lang = input._lang;
-          }
-
-          return ret;
-      };
-
-      // version number
-      moment.version = VERSION;
-
-      // default format
-      moment.defaultFormat = isoFormat;
-
-      // constant that refers to the ISO standard
-      moment.ISO_8601 = function () {};
-
-      // Plugins that add properties should also add the key here (null value),
-      // so we can properly clone ourselves.
-      moment.momentProperties = momentProperties;
-
-      // This function will be called whenever a moment is mutated.
-      // It is intended to keep the offset in sync with the timezone.
-      moment.updateOffset = function () {};
-
-      // This function allows you to set a threshold for relative time strings
-      moment.relativeTimeThreshold = function(threshold, limit) {
-        if (relativeTimeThresholds[threshold] === undefined) {
-          return false;
-        }
-        relativeTimeThresholds[threshold] = limit;
-        return true;
-      };
-
-      // This function will load languages and then set the global language.  If
-      // no arguments are passed in, it will simply return the current global
-      // language key.
-      moment.lang = function (key, values) {
-          var r;
-          if (!key) {
-              return moment.fn._lang._abbr;
-          }
-          if (values) {
-              loadLang(normalizeLanguage(key), values);
-          } else if (values === null) {
-              unloadLang(key);
-              key = 'en';
-          } else if (!languages[key]) {
-              getLangDefinition(key);
-          }
-          r = moment.duration.fn._lang = moment.fn._lang = getLangDefinition(key);
-          return r._abbr;
-      };
-
-      // returns language data
-      moment.langData = function (key) {
-          if (key && key._lang && key._lang._abbr) {
-              key = key._lang._abbr;
-          }
-          return getLangDefinition(key);
-      };
-
-      // compare moment object
-      moment.isMoment = function (obj) {
-          return obj instanceof Moment ||
-              (obj != null &&  obj.hasOwnProperty('_isAMomentObject'));
-      };
-
-      // for typechecking Duration objects
-      moment.isDuration = function (obj) {
-          return obj instanceof Duration;
-      };
-
-      for (i = lists.length - 1; i >= 0; --i) {
-          makeList(lists[i]);
-      }
-
-      moment.normalizeUnits = function (units) {
-          return normalizeUnits(units);
-      };
-
-      moment.invalid = function (flags) {
-          var m = moment.utc(NaN);
-          if (flags != null) {
-              extend(m._pf, flags);
-          }
-          else {
-              m._pf.userInvalidated = true;
-          }
-
-          return m;
-      };
-
-      moment.parseZone = function () {
-          return moment.apply(null, arguments).parseZone();
-      };
-
-      moment.parseTwoDigitYear = function (input) {
-          return toInt(input) + (toInt(input) > 68 ? 1900 : 2000);
-      };
-
-      /************************************
-          Moment Prototype
-      ************************************/
-
-
-      extend(moment.fn = Moment.prototype, {
-
-          clone : function () {
-              return moment(this);
-          },
-
-          valueOf : function () {
-              return +this._d + ((this._offset || 0) * 60000);
-          },
-
-          unix : function () {
-              return Math.floor(+this / 1000);
-          },
-
-          toString : function () {
-              return this.clone().lang('en').format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ");
-          },
-
-          toDate : function () {
-              return this._offset ? new Date(+this) : this._d;
-          },
-
-          toISOString : function () {
-              var m = moment(this).utc();
-              if (0 < m.year() && m.year() <= 9999) {
-                  return formatMoment(m, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]');
-              } else {
-                  return formatMoment(m, 'YYYYYY-MM-DD[T]HH:mm:ss.SSS[Z]');
-              }
-          },
-
-          toArray : function () {
-              var m = this;
-              return [
-                  m.year(),
-                  m.month(),
-                  m.date(),
-                  m.hours(),
-                  m.minutes(),
-                  m.seconds(),
-                  m.milliseconds()
-              ];
-          },
-
-          isValid : function () {
-              return isValid(this);
-          },
-
-          isDSTShifted : function () {
-
-              if (this._a) {
-                  return this.isValid() && compareArrays(this._a, (this._isUTC ? moment.utc(this._a) : moment(this._a)).toArray()) > 0;
-              }
-
-              return false;
-          },
-
-          parsingFlags : function () {
-              return extend({}, this._pf);
-          },
-
-          invalidAt: function () {
-              return this._pf.overflow;
-          },
-
-          utc : function () {
-              return this.zone(0);
-          },
-
-          local : function () {
-              this.zone(0);
-              this._isUTC = false;
-              return this;
-          },
-
-          format : function (inputString) {
-              var output = formatMoment(this, inputString || moment.defaultFormat);
-              return this.lang().postformat(output);
-          },
-
-          add : function (input, val) {
-              var dur;
-              // switch args to support add('s', 1) and add(1, 's')
-              if (typeof input === 'string' && typeof val === 'string') {
-                  dur = moment.duration(isNaN(+val) ? +input : +val, isNaN(+val) ? val : input);
-              } else if (typeof input === 'string') {
-                  dur = moment.duration(+val, input);
-              } else {
-                  dur = moment.duration(input, val);
-              }
-              addOrSubtractDurationFromMoment(this, dur, 1);
-              return this;
-          },
-
-          subtract : function (input, val) {
-              var dur;
-              // switch args to support subtract('s', 1) and subtract(1, 's')
-              if (typeof input === 'string' && typeof val === 'string') {
-                  dur = moment.duration(isNaN(+val) ? +input : +val, isNaN(+val) ? val : input);
-              } else if (typeof input === 'string') {
-                  dur = moment.duration(+val, input);
-              } else {
-                  dur = moment.duration(input, val);
-              }
-              addOrSubtractDurationFromMoment(this, dur, -1);
-              return this;
-          },
-
-          diff : function (input, units, asFloat) {
-              var that = makeAs(input, this),
-                  zoneDiff = (this.zone() - that.zone()) * 6e4,
-                  diff, output;
-
-              units = normalizeUnits(units);
-
-              if (units === 'year' || units === 'month') {
-                  // average number of days in the months in the given dates
-                  diff = (this.daysInMonth() + that.daysInMonth()) * 432e5; // 24 * 60 * 60 * 1000 / 2
-                  // difference in months
-                  output = ((this.year() - that.year()) * 12) + (this.month() - that.month());
-                  // adjust by taking difference in days, average number of days
-                  // and dst in the given months.
-                  output += ((this - moment(this).startOf('month')) -
-                          (that - moment(that).startOf('month'))) / diff;
-                  // same as above but with zones, to negate all dst
-                  output -= ((this.zone() - moment(this).startOf('month').zone()) -
-                          (that.zone() - moment(that).startOf('month').zone())) * 6e4 / diff;
-                  if (units === 'year') {
-                      output = output / 12;
-                  }
-              } else {
-                  diff = (this - that);
-                  output = units === 'second' ? diff / 1e3 : // 1000
-                      units === 'minute' ? diff / 6e4 : // 1000 * 60
-                      units === 'hour' ? diff / 36e5 : // 1000 * 60 * 60
-                      units === 'day' ? (diff - zoneDiff) / 864e5 : // 1000 * 60 * 60 * 24, negate dst
-                      units === 'week' ? (diff - zoneDiff) / 6048e5 : // 1000 * 60 * 60 * 24 * 7, negate dst
-                      diff;
-              }
-              return asFloat ? output : absRound(output);
-          },
-
-          from : function (time, withoutSuffix) {
-              return moment.duration(this.diff(time)).lang(this.lang()._abbr).humanize(!withoutSuffix);
-          },
-
-          fromNow : function (withoutSuffix) {
-              return this.from(moment(), withoutSuffix);
-          },
-
-          calendar : function (time) {
-              // We want to compare the start of today, vs this.
-              // Getting start-of-today depends on whether we're zone'd or not.
-              var now = time || moment(),
-                  sod = makeAs(now, this).startOf('day'),
-                  diff = this.diff(sod, 'days', true),
-                  format = diff < -6 ? 'sameElse' :
-                      diff < -1 ? 'lastWeek' :
-                      diff < 0 ? 'lastDay' :
-                      diff < 1 ? 'sameDay' :
-                      diff < 2 ? 'nextDay' :
-                      diff < 7 ? 'nextWeek' : 'sameElse';
-              return this.format(this.lang().calendar(format, this));
-          },
-
-          isLeapYear : function () {
-              return isLeapYear(this.year());
-          },
-
-          isDST : function () {
-              return (this.zone() < this.clone().month(0).zone() ||
-                  this.zone() < this.clone().month(5).zone());
-          },
-
-          day : function (input) {
-              var day = this._isUTC ? this._d.getUTCDay() : this._d.getDay();
-              if (input != null) {
-                  input = parseWeekday(input, this.lang());
-                  return this.add({ d : input - day });
-              } else {
-                  return day;
-              }
-          },
-
-          month : makeAccessor('Month', true),
-
-          startOf: function (units) {
-              units = normalizeUnits(units);
-              // the following switch intentionally omits break keywords
-              // to utilize falling through the cases.
-              switch (units) {
-              case 'year':
-                  this.month(0);
-                  /* falls through */
-              case 'quarter':
-              case 'month':
-                  this.date(1);
-                  /* falls through */
-              case 'week':
-              case 'isoWeek':
-              case 'day':
-                  this.hours(0);
-                  /* falls through */
-              case 'hour':
-                  this.minutes(0);
-                  /* falls through */
-              case 'minute':
-                  this.seconds(0);
-                  /* falls through */
-              case 'second':
-                  this.milliseconds(0);
-                  /* falls through */
-              }
-
-              // weeks are a special case
-              if (units === 'week') {
-                  this.weekday(0);
-              } else if (units === 'isoWeek') {
-                  this.isoWeekday(1);
-              }
-
-              // quarters are also special
-              if (units === 'quarter') {
-                  this.month(Math.floor(this.month() / 3) * 3);
-              }
-
-              return this;
-          },
-
-          endOf: function (units) {
-              units = normalizeUnits(units);
-              return this.startOf(units).add((units === 'isoWeek' ? 'week' : units), 1).subtract('ms', 1);
-          },
-
-          isAfter: function (input, units) {
-              units = typeof units !== 'undefined' ? units : 'millisecond';
-              return +this.clone().startOf(units) > +moment(input).startOf(units);
-          },
-
-          isBefore: function (input, units) {
-              units = typeof units !== 'undefined' ? units : 'millisecond';
-              return +this.clone().startOf(units) < +moment(input).startOf(units);
-          },
-
-          isSame: function (input, units) {
-              units = units || 'ms';
-              return +this.clone().startOf(units) === +makeAs(input, this).startOf(units);
-          },
-
-          min: deprecate(
-                   "moment().min is deprecated, use moment.min instead. https://github.com/moment/moment/issues/1548",
-                   function (other) {
-                       other = moment.apply(null, arguments);
-                       return other < this ? this : other;
-                   }
-           ),
-
-          max: deprecate(
-                  "moment().max is deprecated, use moment.max instead. https://github.com/moment/moment/issues/1548",
-                  function (other) {
-                      other = moment.apply(null, arguments);
-                      return other > this ? this : other;
-                  }
-          ),
-
-          // keepTime = true means only change the timezone, without affecting
-          // the local hour. So 5:31:26 +0300 --[zone(2, true)]--> 5:31:26 +0200
-          // It is possible that 5:31:26 doesn't exist int zone +0200, so we
-          // adjust the time as needed, to be valid.
-          //
-          // Keeping the time actually adds/subtracts (one hour)
-          // from the actual represented time. That is why we call updateOffset
-          // a second time. In case it wants us to change the offset again
-          // _changeInProgress == true case, then we have to adjust, because
-          // there is no such time in the given timezone.
-          zone : function (input, keepTime) {
-              var offset = this._offset || 0;
-              if (input != null) {
-                  if (typeof input === "string") {
-                      input = timezoneMinutesFromString(input);
-                  }
-                  if (Math.abs(input) < 16) {
-                      input = input * 60;
-                  }
-                  this._offset = input;
-                  this._isUTC = true;
-                  if (offset !== input) {
-                      if (!keepTime || this._changeInProgress) {
-                          addOrSubtractDurationFromMoment(this,
-                                  moment.duration(offset - input, 'm'), 1, false);
-                      } else if (!this._changeInProgress) {
-                          this._changeInProgress = true;
-                          moment.updateOffset(this, true);
-                          this._changeInProgress = null;
-                      }
-                  }
-              } else {
-                  return this._isUTC ? offset : this._d.getTimezoneOffset();
-              }
-              return this;
-          },
-
-          zoneAbbr : function () {
-              return this._isUTC ? "UTC" : "";
-          },
-
-          zoneName : function () {
-              return this._isUTC ? "Coordinated Universal Time" : "";
-          },
-
-          parseZone : function () {
-              if (this._tzm) {
-                  this.zone(this._tzm);
-              } else if (typeof this._i === 'string') {
-                  this.zone(this._i);
-              }
-              return this;
-          },
-
-          hasAlignedHourOffset : function (input) {
-              if (!input) {
-                  input = 0;
-              }
-              else {
-                  input = moment(input).zone();
-              }
-
-              return (this.zone() - input) % 60 === 0;
-          },
-
-          daysInMonth : function () {
-              return daysInMonth(this.year(), this.month());
-          },
-
-          dayOfYear : function (input) {
-              var dayOfYear = round((moment(this).startOf('day') - moment(this).startOf('year')) / 864e5) + 1;
-              return input == null ? dayOfYear : this.add("d", (input - dayOfYear));
-          },
-
-          quarter : function (input) {
-              return input == null ? Math.ceil((this.month() + 1) / 3) : this.month((input - 1) * 3 + this.month() % 3);
-          },
-
-          weekYear : function (input) {
-              var year = weekOfYear(this, this.lang()._week.dow, this.lang()._week.doy).year;
-              return input == null ? year : this.add("y", (input - year));
-          },
-
-          isoWeekYear : function (input) {
-              var year = weekOfYear(this, 1, 4).year;
-              return input == null ? year : this.add("y", (input - year));
-          },
-
-          week : function (input) {
-              var week = this.lang().week(this);
-              return input == null ? week : this.add("d", (input - week) * 7);
-          },
-
-          isoWeek : function (input) {
-              var week = weekOfYear(this, 1, 4).week;
-              return input == null ? week : this.add("d", (input - week) * 7);
-          },
-
-          weekday : function (input) {
-              var weekday = (this.day() + 7 - this.lang()._week.dow) % 7;
-              return input == null ? weekday : this.add("d", input - weekday);
-          },
-
-          isoWeekday : function (input) {
-              // behaves the same as moment#day except
-              // as a getter, returns 7 instead of 0 (1-7 range instead of 0-6)
-              // as a setter, sunday should belong to the previous week.
-              return input == null ? this.day() || 7 : this.day(this.day() % 7 ? input : input - 7);
-          },
-
-          isoWeeksInYear : function () {
-              return weeksInYear(this.year(), 1, 4);
-          },
-
-          weeksInYear : function () {
-              var weekInfo = this._lang._week;
-              return weeksInYear(this.year(), weekInfo.dow, weekInfo.doy);
-          },
-
-          get : function (units) {
-              units = normalizeUnits(units);
-              return this[units]();
-          },
-
-          set : function (units, value) {
-              units = normalizeUnits(units);
-              if (typeof this[units] === 'function') {
-                  this[units](value);
-              }
-              return this;
-          },
-
-          // If passed a language key, it will set the language for this
-          // instance.  Otherwise, it will return the language configuration
-          // variables for this instance.
-          lang : function (key) {
-              if (key === undefined) {
-                  return this._lang;
-              } else {
-                  this._lang = getLangDefinition(key);
-                  return this;
-              }
-          }
-      });
-
-      function rawMonthSetter(mom, value) {
-          var dayOfMonth;
-
-          // TODO: Move this out of here!
-          if (typeof value === 'string') {
-              value = mom.lang().monthsParse(value);
-              // TODO: Another silent failure?
-              if (typeof value !== 'number') {
-                  return mom;
-              }
-          }
-
-          dayOfMonth = Math.min(mom.date(),
-                  daysInMonth(mom.year(), value));
-          mom._d['set' + (mom._isUTC ? 'UTC' : '') + 'Month'](value, dayOfMonth);
-          return mom;
-      }
-
-      function rawGetter(mom, unit) {
-          return mom._d['get' + (mom._isUTC ? 'UTC' : '') + unit]();
-      }
-
-      function rawSetter(mom, unit, value) {
-          if (unit === 'Month') {
-              return rawMonthSetter(mom, value);
-          } else {
-              return mom._d['set' + (mom._isUTC ? 'UTC' : '') + unit](value);
-          }
-      }
-
-      function makeAccessor(unit, keepTime) {
-          return function (value) {
-              if (value != null) {
-                  rawSetter(this, unit, value);
-                  moment.updateOffset(this, keepTime);
-                  return this;
-              } else {
-                  return rawGetter(this, unit);
-              }
-          };
-      }
-
-      moment.fn.millisecond = moment.fn.milliseconds = makeAccessor('Milliseconds', false);
-      moment.fn.second = moment.fn.seconds = makeAccessor('Seconds', false);
-      moment.fn.minute = moment.fn.minutes = makeAccessor('Minutes', false);
-      // Setting the hour should keep the time, because the user explicitly
-      // specified which hour he wants. So trying to maintain the same hour (in
-      // a new timezone) makes sense. Adding/subtracting hours does not follow
-      // this rule.
-      moment.fn.hour = moment.fn.hours = makeAccessor('Hours', true);
-      // moment.fn.month is defined separately
-      moment.fn.date = makeAccessor('Date', true);
-      moment.fn.dates = deprecate("dates accessor is deprecated. Use date instead.", makeAccessor('Date', true));
-      moment.fn.year = makeAccessor('FullYear', true);
-      moment.fn.years = deprecate("years accessor is deprecated. Use year instead.", makeAccessor('FullYear', true));
-
-      // add plural methods
-      moment.fn.days = moment.fn.day;
-      moment.fn.months = moment.fn.month;
-      moment.fn.weeks = moment.fn.week;
-      moment.fn.isoWeeks = moment.fn.isoWeek;
-      moment.fn.quarters = moment.fn.quarter;
-
-      // add aliased format methods
-      moment.fn.toJSON = moment.fn.toISOString;
-
-      /************************************
-          Duration Prototype
-      ************************************/
-
-
-      extend(moment.duration.fn = Duration.prototype, {
-
-          _bubble : function () {
-              var milliseconds = this._milliseconds,
-                  days = this._days,
-                  months = this._months,
-                  data = this._data,
-                  seconds, minutes, hours, years;
-
-              // The following code bubbles up values, see the tests for
-              // examples of what that means.
-              data.milliseconds = milliseconds % 1000;
-
-              seconds = absRound(milliseconds / 1000);
-              data.seconds = seconds % 60;
-
-              minutes = absRound(seconds / 60);
-              data.minutes = minutes % 60;
-
-              hours = absRound(minutes / 60);
-              data.hours = hours % 24;
-
-              days += absRound(hours / 24);
-              data.days = days % 30;
-
-              months += absRound(days / 30);
-              data.months = months % 12;
-
-              years = absRound(months / 12);
-              data.years = years;
-          },
-
-          weeks : function () {
-              return absRound(this.days() / 7);
-          },
-
-          valueOf : function () {
-              return this._milliseconds +
-                this._days * 864e5 +
-                (this._months % 12) * 2592e6 +
-                toInt(this._months / 12) * 31536e6;
-          },
-
-          humanize : function (withSuffix) {
-              var difference = +this,
-                  output = relativeTime(difference, !withSuffix, this.lang());
-
-              if (withSuffix) {
-                  output = this.lang().pastFuture(difference, output);
-              }
-
-              return this.lang().postformat(output);
-          },
-
-          add : function (input, val) {
-              // supports only 2.0-style add(1, 's') or add(moment)
-              var dur = moment.duration(input, val);
-
-              this._milliseconds += dur._milliseconds;
-              this._days += dur._days;
-              this._months += dur._months;
-
-              this._bubble();
-
-              return this;
-          },
-
-          subtract : function (input, val) {
-              var dur = moment.duration(input, val);
-
-              this._milliseconds -= dur._milliseconds;
-              this._days -= dur._days;
-              this._months -= dur._months;
-
-              this._bubble();
-
-              return this;
-          },
-
-          get : function (units) {
-              units = normalizeUnits(units);
-              return this[units.toLowerCase() + 's']();
-          },
-
-          as : function (units) {
-              units = normalizeUnits(units);
-              return this['as' + units.charAt(0).toUpperCase() + units.slice(1) + 's']();
-          },
-
-          lang : moment.fn.lang,
-
-          toIsoString : function () {
-              // inspired by https://github.com/dordille/moment-isoduration/blob/master/moment.isoduration.js
-              var years = Math.abs(this.years()),
-                  months = Math.abs(this.months()),
-                  days = Math.abs(this.days()),
-                  hours = Math.abs(this.hours()),
-                  minutes = Math.abs(this.minutes()),
-                  seconds = Math.abs(this.seconds() + this.milliseconds() / 1000);
-
-              if (!this.asSeconds()) {
-                  // this is the same as C#'s (Noda) and python (isodate)...
-                  // but not other JS (goog.date)
-                  return 'P0D';
-              }
-
-              return (this.asSeconds() < 0 ? '-' : '') +
-                  'P' +
-                  (years ? years + 'Y' : '') +
-                  (months ? months + 'M' : '') +
-                  (days ? days + 'D' : '') +
-                  ((hours || minutes || seconds) ? 'T' : '') +
-                  (hours ? hours + 'H' : '') +
-                  (minutes ? minutes + 'M' : '') +
-                  (seconds ? seconds + 'S' : '');
-          }
-      });
-
-      function makeDurationGetter(name) {
-          moment.duration.fn[name] = function () {
-              return this._data[name];
-          };
-      }
-
-      function makeDurationAsGetter(name, factor) {
-          moment.duration.fn['as' + name] = function () {
-              return +this / factor;
-          };
-      }
-
-      for (i in unitMillisecondFactors) {
-          if (unitMillisecondFactors.hasOwnProperty(i)) {
-              makeDurationAsGetter(i, unitMillisecondFactors[i]);
-              makeDurationGetter(i.toLowerCase());
-          }
-      }
-
-      makeDurationAsGetter('Weeks', 6048e5);
-      moment.duration.fn.asMonths = function () {
-          return (+this - this.years() * 31536e6) / 2592e6 + this.years() * 12;
-      };
-
-
-      /************************************
-          Default Lang
-      ************************************/
-
-
-      // Set default language, other languages will inherit from English.
-      moment.lang('en', {
-          ordinal : function (number) {
-              var b = number % 10,
-                  output = (toInt(number % 100 / 10) === 1) ? 'th' :
-                  (b === 1) ? 'st' :
-                  (b === 2) ? 'nd' :
-                  (b === 3) ? 'rd' : 'th';
-              return number + output;
-          }
-      });
-
-      /* EMBED_LANGUAGES */
-
-      /************************************
-          Exposing Moment
-      ************************************/
-
-      function makeGlobal(shouldDeprecate) {
-          /*global ender:false */
-          if (typeof ender !== 'undefined') {
-              return;
-          }
-          oldGlobalMoment = globalScope.moment;
-          if (shouldDeprecate) {
-              globalScope.moment = deprecate(
-                      "Accessing Moment through the global scope is " +
-                      "deprecated, and will be removed in an upcoming " +
-                      "release.",
-                      moment);
-          } else {
-              globalScope.moment = moment;
-          }
-      }
-
-      // CommonJS module is defined
-      if (hasModule) {
-          module.exports = moment;
-      } else if (true) {
-          !(__WEBPACK_AMD_DEFINE_RESULT__ = (function (require, exports, module) {
-              if (module.config && module.config() && module.config().noGlobal === true) {
-                  // release the global variable
-                  globalScope.moment = oldGlobalMoment;
-              }
-
-              return moment;
-          }.call(exports, __webpack_require__, exports, module)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-          makeGlobal(true);
-      } else {
-          makeGlobal();
-      }
-  }).call(this);
-  
-  /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(17)(module)))
-
-/***/ },
-/* 16 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var map = {
-  	"./ar": 58,
-  	"./ar-ma": 56,
-  	"./ar-ma.js": 56,
-  	"./ar-sa": 57,
-  	"./ar-sa.js": 57,
-  	"./ar.js": 58,
-  	"./az": 59,
-  	"./az.js": 59,
-  	"./bg": 60,
-  	"./bg.js": 60,
-  	"./bn": 61,
-  	"./bn.js": 61,
-  	"./br": 62,
-  	"./br.js": 62,
-  	"./bs": 63,
-  	"./bs.js": 63,
-  	"./ca": 64,
-  	"./ca.js": 64,
-  	"./cs": 65,
-  	"./cs.js": 65,
-  	"./cv": 66,
-  	"./cv.js": 66,
-  	"./cy": 67,
-  	"./cy.js": 67,
-  	"./da": 68,
-  	"./da.js": 68,
-  	"./de": 70,
-  	"./de-at": 69,
-  	"./de-at.js": 69,
-  	"./de.js": 70,
-  	"./el": 71,
-  	"./el.js": 71,
-  	"./en-au": 72,
-  	"./en-au.js": 72,
-  	"./en-ca": 73,
-  	"./en-ca.js": 73,
-  	"./en-gb": 74,
-  	"./en-gb.js": 74,
-  	"./eo": 75,
-  	"./eo.js": 75,
-  	"./es": 76,
-  	"./es.js": 76,
-  	"./et": 77,
-  	"./et.js": 77,
-  	"./eu": 78,
-  	"./eu.js": 78,
-  	"./fa": 79,
-  	"./fa.js": 79,
-  	"./fi": 80,
-  	"./fi.js": 80,
-  	"./fo": 81,
-  	"./fo.js": 81,
-  	"./fr": 83,
-  	"./fr-ca": 82,
-  	"./fr-ca.js": 82,
-  	"./fr.js": 83,
-  	"./gl": 84,
-  	"./gl.js": 84,
-  	"./he": 85,
-  	"./he.js": 85,
-  	"./hi": 86,
-  	"./hi.js": 86,
-  	"./hr": 87,
-  	"./hr.js": 87,
-  	"./hu": 88,
-  	"./hu.js": 88,
-  	"./hy-am": 89,
-  	"./hy-am.js": 89,
-  	"./id": 90,
-  	"./id.js": 90,
-  	"./is": 91,
-  	"./is.js": 91,
-  	"./it": 92,
-  	"./it.js": 92,
-  	"./ja": 93,
-  	"./ja.js": 93,
-  	"./ka": 94,
-  	"./ka.js": 94,
-  	"./km": 95,
-  	"./km.js": 95,
-  	"./ko": 96,
-  	"./ko.js": 96,
-  	"./lb": 97,
-  	"./lb.js": 97,
-  	"./lt": 98,
-  	"./lt.js": 98,
-  	"./lv": 99,
-  	"./lv.js": 99,
-  	"./mk": 100,
-  	"./mk.js": 100,
-  	"./ml": 101,
-  	"./ml.js": 101,
-  	"./mr": 102,
-  	"./mr.js": 102,
-  	"./ms-my": 103,
-  	"./ms-my.js": 103,
-  	"./nb": 104,
-  	"./nb.js": 104,
-  	"./ne": 105,
-  	"./ne.js": 105,
-  	"./nl": 106,
-  	"./nl.js": 106,
-  	"./nn": 107,
-  	"./nn.js": 107,
-  	"./pl": 108,
-  	"./pl.js": 108,
-  	"./pt": 110,
-  	"./pt-br": 109,
-  	"./pt-br.js": 109,
-  	"./pt.js": 110,
-  	"./ro": 111,
-  	"./ro.js": 111,
-  	"./ru": 112,
-  	"./ru.js": 112,
-  	"./sk": 113,
-  	"./sk.js": 113,
-  	"./sl": 114,
-  	"./sl.js": 114,
-  	"./sq": 115,
-  	"./sq.js": 115,
-  	"./sr": 117,
-  	"./sr-cyrl": 116,
-  	"./sr-cyrl.js": 116,
-  	"./sr.js": 117,
-  	"./sv": 118,
-  	"./sv.js": 118,
-  	"./ta": 119,
-  	"./ta.js": 119,
-  	"./th": 120,
-  	"./th.js": 120,
-  	"./tl-ph": 121,
-  	"./tl-ph.js": 121,
-  	"./tr": 122,
-  	"./tr.js": 122,
-  	"./tzm": 124,
-  	"./tzm-latn": 123,
-  	"./tzm-latn.js": 123,
-  	"./tzm.js": 124,
-  	"./uk": 125,
-  	"./uk.js": 125,
-  	"./uz": 126,
-  	"./uz.js": 126,
-  	"./vi": 127,
-  	"./vi.js": 127,
-  	"./zh-cn": 128,
-  	"./zh-cn.js": 128,
-  	"./zh-tw": 129,
-  	"./zh-tw.js": 129
-  };
-  function webpackContext(req) {
-  	return __webpack_require__(webpackContextResolve(req));
-  };
-  function webpackContextResolve(req) {
-  	return map[req] || (function() { throw new Error("Cannot find module '" + req + "'.") }());
-  };
-  webpackContext.keys = function webpackContextKeys() {
-  	return Object.keys(map);
-  };
-  webpackContext.resolve = webpackContextResolve;
-  module.exports = webpackContext;
-
-
-/***/ },
-/* 17 */
-/***/ function(module, exports, __webpack_require__) {
-
-  module.exports = function(module) {
-  	if(!module.webpackPolyfill) {
-  		module.deprecate = function() {};
-  		module.paths = [];
-  		// module.parent = undefined by default
-  		module.children = [];
-  		module.webpackPolyfill = 1;
-  	}
-  	return module;
-  }
-
-
-/***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -12100,12 +12125,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Component = __webpack_require__(18);
-  var TimeStep = __webpack_require__(20);
+  var Component = __webpack_require__(19);
+  var TimeStep = __webpack_require__(21);
 
   /**
    * A horizontal time axis
@@ -12501,10 +12526,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var moment = __webpack_require__(14);
+  var moment = __webpack_require__(4);
 
   /**
    * @constructor  TimeStep
@@ -12977,11 +13002,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Component = __webpack_require__(18);
+  var Component = __webpack_require__(19);
 
   /**
    * A current time bar
@@ -13115,12 +13140,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 22 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(12);
+  var Hammer = __webpack_require__(3);
   var util = __webpack_require__(1);
-  var Component = __webpack_require__(18);
+  var Component = __webpack_require__(19);
 
   /**
    * A custom time bar
@@ -13309,18 +13334,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(12);
+  var Hammer = __webpack_require__(3);
   var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(3);
-  var DataView = __webpack_require__(4);
-  var Component = __webpack_require__(18);
-  var Group = __webpack_require__(24);
-  var ItemBox = __webpack_require__(28);
-  var ItemPoint = __webpack_require__(29);
-  var ItemRange = __webpack_require__(26);
+  var DataSet = __webpack_require__(9);
+  var DataView = __webpack_require__(10);
+  var Component = __webpack_require__(19);
+  var Group = __webpack_require__(25);
+  var ItemBox = __webpack_require__(29);
+  var ItemPoint = __webpack_require__(30);
+  var ItemRange = __webpack_require__(27);
 
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
@@ -14697,12 +14722,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 24 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var stack = __webpack_require__(25);
-  var ItemRange = __webpack_require__(26);
+  var stack = __webpack_require__(26);
+  var ItemRange = __webpack_require__(27);
 
   /**
    * @constructor Group
@@ -15127,7 +15152,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 25 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Utility functions for ordering and stacking of items
@@ -15241,11 +15266,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 26 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(12);
-  var Item = __webpack_require__(27);
+  var Hammer = __webpack_require__(3);
+  var Item = __webpack_require__(28);
 
   /**
    * @constructor ItemRange
@@ -15538,10 +15563,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 27 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(12);
+  var Hammer = __webpack_require__(3);
 
   /**
    * @constructor Item
@@ -15687,10 +15712,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 28 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Item = __webpack_require__(27);
+  var Item = __webpack_require__(28);
 
   /**
    * @constructor ItemBox
@@ -15933,10 +15958,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 29 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Item = __webpack_require__(27);
+  var Item = __webpack_require__(28);
 
   /**
    * @constructor ItemPoint
@@ -16139,19 +16164,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 30 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(6);
-  var Hammer = __webpack_require__(12);
+  var Emitter = __webpack_require__(12);
+  var Hammer = __webpack_require__(3);
   var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(3);
-  var DataView = __webpack_require__(4);
-  var Range = __webpack_require__(13);
-  var TimeAxis = __webpack_require__(19);
-  var CurrentTime = __webpack_require__(21);
-  var CustomTime = __webpack_require__(22);
-  var LineGraph = __webpack_require__(31);
+  var DataSet = __webpack_require__(9);
+  var DataView = __webpack_require__(10);
+  var Range = __webpack_require__(18);
+  var TimeAxis = __webpack_require__(20);
+  var CurrentTime = __webpack_require__(22);
+  var CustomTime = __webpack_require__(23);
+  var LineGraph = __webpack_require__(32);
 
   /**
    * Create a timeline visualization
@@ -17028,17 +17053,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 31 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var DOMutil = __webpack_require__(2);
-  var DataSet = __webpack_require__(3);
-  var DataView = __webpack_require__(4);
-  var Component = __webpack_require__(18);
-  var DataAxis = __webpack_require__(32);
-  var GraphGroup = __webpack_require__(34);
-  var Legend = __webpack_require__(35);
+  var DOMutil = __webpack_require__(8);
+  var DataSet = __webpack_require__(9);
+  var DataView = __webpack_require__(10);
+  var Component = __webpack_require__(19);
+  var DataAxis = __webpack_require__(33);
+  var GraphGroup = __webpack_require__(35);
+  var Legend = __webpack_require__(36);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -18105,13 +18130,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 32 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var DOMutil = __webpack_require__(2);
-  var Component = __webpack_require__(18);
-  var DataStep = __webpack_require__(33);
+  var DOMutil = __webpack_require__(8);
+  var Component = __webpack_require__(19);
+  var DataStep = __webpack_require__(34);
 
   /**
    * A horizontal time axis
@@ -18586,7 +18611,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 33 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -18813,11 +18838,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 34 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var DOMutil = __webpack_require__(2);
+  var DOMutil = __webpack_require__(8);
 
   /**
    * @constructor Group
@@ -18940,12 +18965,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 35 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var DOMutil = __webpack_require__(2);
-  var Component = __webpack_require__(18);
+  var DOMutil = __webpack_require__(8);
+  var Component = __webpack_require__(19);
 
   /**
    * Legend for Graph2d
@@ -19129,25 +19154,25 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 36 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(6);
-  var Hammer = __webpack_require__(12);
-  var mousetrap = __webpack_require__(37);
+  var Emitter = __webpack_require__(12);
+  var Hammer = __webpack_require__(3);
+  var mousetrap = __webpack_require__(38);
   var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(3);
-  var DataView = __webpack_require__(4);
-  var dotparser = __webpack_require__(38);
-  var Groups = __webpack_require__(39);
-  var Images = __webpack_require__(40);
-  var Node = __webpack_require__(41);
-  var Edge = __webpack_require__(42);
-  var Popup = __webpack_require__(43);
-  var MixinLoader = __webpack_require__(44);
+  var DataSet = __webpack_require__(9);
+  var DataView = __webpack_require__(10);
+  var dotparser = __webpack_require__(39);
+  var Groups = __webpack_require__(40);
+  var Images = __webpack_require__(41);
+  var Node = __webpack_require__(42);
+  var Edge = __webpack_require__(43);
+  var Popup = __webpack_require__(44);
+  var MixinLoader = __webpack_require__(45);
 
   // Load custom shapes into CanvasRenderingContext2D
-  __webpack_require__(55);
+  __webpack_require__(56);
 
   /**
    * @constructor Network
@@ -21511,7 +21536,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 37 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -22316,7 +22341,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 38 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -23148,7 +23173,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 39 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -23206,7 +23231,6 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   Groups.prototype.get = function (groupname) {
     var group = this.groups[groupname];
-
     if (group == undefined) {
       // create new group
       var index = this.defaultIndex % Groups.DEFAULT.length;
@@ -23238,7 +23262,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 40 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -23287,7 +23311,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 41 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -23463,7 +23487,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     // copy group properties
-    if (this.group) {
+    if (this.group !== undefined) {
       var groupObj = this.grouplist.get(this.group);
       for (var prop in groupObj) {
         if (groupObj.hasOwnProperty(prop)) {
@@ -23471,6 +23495,7 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       }
     }
+
 
     // individual shape properties
     if (properties.shape !== undefined)          {this.shape = properties.shape;}
@@ -24274,11 +24299,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 42 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Node = __webpack_require__(41);
+  var Node = __webpack_require__(42);
 
   /**
    * @class Edge
@@ -25478,7 +25503,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Edge;
 
 /***/ },
-/* 43 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -25618,16 +25643,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 44 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var PhysicsMixin = __webpack_require__(45);
-  var ClusterMixin = __webpack_require__(49);
-  var SectorsMixin = __webpack_require__(50);
-  var SelectionMixin = __webpack_require__(51);
-  var ManipulationMixin = __webpack_require__(52);
-  var NavigationMixin = __webpack_require__(53);
-  var HierarchicalLayoutMixin = __webpack_require__(54);
+  var PhysicsMixin = __webpack_require__(46);
+  var ClusterMixin = __webpack_require__(50);
+  var SectorsMixin = __webpack_require__(51);
+  var SelectionMixin = __webpack_require__(52);
+  var ManipulationMixin = __webpack_require__(53);
+  var NavigationMixin = __webpack_require__(54);
+  var HierarchicalLayoutMixin = __webpack_require__(55);
 
   /**
    * Load a mixin into the network object
@@ -25822,13 +25847,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 45 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var RepulsionMixin = __webpack_require__(46);
-  var HierarchialRepulsionMixin = __webpack_require__(47);
-  var BarnesHutMixin = __webpack_require__(48);
+  var RepulsionMixin = __webpack_require__(47);
+  var HierarchialRepulsionMixin = __webpack_require__(48);
+  var BarnesHutMixin = __webpack_require__(49);
 
   /**
    * Toggling barnes Hut calculation on and off.
@@ -26536,7 +26561,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 46 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -26600,7 +26625,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 47 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -26759,7 +26784,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 48 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27158,7 +27183,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 49 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -28301,7 +28326,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 50 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -28855,10 +28880,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 51 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Node = __webpack_require__(41);
+  var Node = __webpack_require__(42);
 
   /**
    * This function can be called from the _doInAllSectors function
@@ -29566,12 +29591,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 52 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Node = __webpack_require__(41);
-  var Edge = __webpack_require__(42);
+  var Node = __webpack_require__(42);
+  var Edge = __webpack_require__(43);
 
   /**
    * clears the toolbar div element of children
@@ -30148,7 +30173,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 53 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
   exports._cleanNavigation = function() {
@@ -30350,7 +30375,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 54 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
   exports._resetLevels = function() {
@@ -30678,7 +30703,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 55 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -30909,7 +30934,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 56 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -30919,7 +30944,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -30971,7 +30996,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 57 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -30980,7 +31005,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31073,7 +31098,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 58 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31083,7 +31108,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31176,7 +31201,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 59 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31185,7 +31210,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31284,7 +31309,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 60 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31293,7 +31318,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31376,7 +31401,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 61 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31385,7 +31410,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31488,7 +31513,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 62 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31497,7 +31522,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31601,7 +31626,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 63 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31611,7 +31636,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31746,7 +31771,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 64 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31755,7 +31780,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31818,7 +31843,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 65 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31827,7 +31852,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31979,7 +32004,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 66 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31988,7 +32013,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32044,7 +32069,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 67 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32053,7 +32078,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32127,7 +32152,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 68 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32136,7 +32161,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32189,7 +32214,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 69 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32200,7 +32225,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32267,7 +32292,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 70 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32277,7 +32302,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32344,7 +32369,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 71 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32353,7 +32378,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32440,7 +32465,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 72 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32448,7 +32473,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32508,7 +32533,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 73 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32517,7 +32542,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32573,7 +32598,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 74 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32582,7 +32607,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32642,7 +32667,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 75 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32653,7 +32678,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32713,7 +32738,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 76 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32722,7 +32747,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32794,7 +32819,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 77 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32804,7 +32829,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32876,7 +32901,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 78 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32885,7 +32910,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32942,7 +32967,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 79 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32951,7 +32976,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33045,7 +33070,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 80 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33054,7 +33079,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33154,7 +33179,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 81 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33163,7 +33188,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33216,7 +33241,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 82 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33225,7 +33250,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33276,7 +33301,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 83 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33285,7 +33310,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33340,7 +33365,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 84 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33349,7 +33374,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33417,7 +33442,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 85 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33428,7 +33453,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33500,7 +33525,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 86 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33509,7 +33534,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33611,7 +33636,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 87 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33622,7 +33647,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33757,7 +33782,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 88 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33766,7 +33791,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33868,7 +33893,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 89 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33877,7 +33902,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33987,7 +34012,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 90 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33997,7 +34022,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34060,7 +34085,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 91 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34069,7 +34094,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34190,7 +34215,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 92 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34200,7 +34225,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34255,7 +34280,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 93 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34264,7 +34289,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34319,7 +34344,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 94 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34328,7 +34353,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34433,7 +34458,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 95 */
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34442,7 +34467,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34494,7 +34519,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 96 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34506,7 +34531,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // - Jeeeyul Lee <jeeeyul@gmail.com>
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34563,7 +34588,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 97 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34576,7 +34601,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34729,7 +34754,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 98 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34738,7 +34763,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34853,7 +34878,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 99 */
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34862,7 +34887,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34936,7 +34961,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 100 */
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34945,7 +34970,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35028,7 +35053,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 101 */
+/* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35037,7 +35062,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35098,7 +35123,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 102 */
+/* 103 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35107,7 +35132,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35208,7 +35233,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 103 */
+/* 104 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35217,7 +35242,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35280,7 +35305,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 104 */
+/* 105 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35290,7 +35315,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35343,7 +35368,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 105 */
+/* 106 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35352,7 +35377,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35454,7 +35479,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 106 */
+/* 107 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35463,7 +35488,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35527,7 +35552,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 107 */
+/* 108 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35536,7 +35561,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35589,7 +35614,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 108 */
+/* 109 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35598,7 +35623,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35693,7 +35718,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 109 */
+/* 110 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35702,7 +35727,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35755,7 +35780,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 110 */
+/* 111 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35764,7 +35789,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35821,7 +35846,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 111 */
+/* 112 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35831,7 +35856,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35899,7 +35924,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 112 */
+/* 113 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35909,7 +35934,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36071,7 +36096,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 113 */
+/* 114 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36081,7 +36106,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36233,7 +36258,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 114 */
+/* 115 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36242,7 +36267,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36383,7 +36408,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 115 */
+/* 116 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36394,7 +36419,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36450,7 +36475,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 116 */
+/* 117 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36459,7 +36484,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36562,7 +36587,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 117 */
+/* 118 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36571,7 +36596,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36674,7 +36699,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 118 */
+/* 119 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36683,7 +36708,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36743,7 +36768,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 119 */
+/* 120 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36752,7 +36777,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36861,7 +36886,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 120 */
+/* 121 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36870,7 +36895,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36925,7 +36950,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 121 */
+/* 122 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36934,7 +36959,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36989,7 +37014,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 122 */
+/* 123 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36999,7 +37024,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -37088,7 +37113,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 123 */
+/* 124 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -37097,7 +37122,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -37149,7 +37174,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 124 */
+/* 125 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -37158,7 +37183,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -37210,7 +37235,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 125 */
+/* 126 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -37220,7 +37245,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -37373,7 +37398,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 126 */
+/* 127 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -37382,7 +37407,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -37434,7 +37459,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 127 */
+/* 128 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -37443,7 +37468,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -37502,7 +37527,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 128 */
+/* 129 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -37512,7 +37537,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -37616,7 +37641,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 129 */
+/* 130 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -37625,7 +37650,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -37703,23 +37728,6 @@ return /******/ (function(modules) { // webpackBootstrap
           }
       });
   }));
-
-
-/***/ },
-/* 130 */
-/***/ function(module, exports, __webpack_require__) {
-
-  // Only load hammer.js when in a browser environment
-  // (loading hammer.js in a node.js environment gives errors)
-  if (typeof window !== 'undefined') {
-    module.exports = window['Hammer'] || __webpack_require__(12);
-    // TODO: throw an error when hammerjs is not available?
-  }
-  else {
-    module.exports = function () {
-      throw Error('hammer.js is only available in a browser, not in node.js.');
-    }
-  }
 
 
 /***/ }
