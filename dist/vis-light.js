@@ -1039,9 +1039,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   /**
    * https://gist.github.com/mjijackson/5311256
-   * @param hue
-   * @param saturation
-   * @param value
+   * @param h
+   * @param s
+   * @param v
    * @returns {{r: number, g: number, b: number}}
    * @constructor
    */
@@ -1842,7 +1842,8 @@ return /******/ (function(modules) { // webpackBootstrap
     // determine the return type
     var returnType;
     if (options && options.returnType) {
-      returnType = (options.returnType == 'DataTable') ? 'DataTable' : 'Array';
+      var allowedValues = ["DataTable", "Array", "Object"];
+      returnType = allowedValues.indexOf(options.returnType) == -1 ? "Array" : options.returnType;
 
       if (data && (returnType != util.getType(data))) {
         throw new Error('Type of parameter "data" (' + util.getType(data) + ') ' +
@@ -1921,11 +1922,18 @@ return /******/ (function(modules) { // webpackBootstrap
       }
       else {
         // copy the items to the provided data table
-        for (i = 0, len = items.length; i < len; i++) {
+        for (i = 0; i < items.length; i++) {
           me._appendRow(data, columns, items[i]);
         }
       }
       return data;
+    }
+    else if (returnType == "Object") {
+      var result = {};
+      for (i = 0; i < items.length; i++) {
+        result[items[i].id] = items[i];
+      }
+      return result;
     }
     else {
       // return an array
@@ -18198,7 +18206,6 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   Groups.prototype.get = function (groupname) {
     var group = this.groups[groupname];
-
     if (group == undefined) {
       // create new group
       var index = this.defaultIndex % Groups.DEFAULT.length;
@@ -18455,7 +18462,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     // copy group properties
-    if (this.group) {
+    if (this.group !== undefined) {
       var groupObj = this.grouplist.get(this.group);
       for (var prop in groupObj) {
         if (groupObj.hasOwnProperty(prop)) {
@@ -18463,6 +18470,7 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       }
     }
+
 
     // individual shape properties
     if (properties.shape !== undefined)          {this.shape = properties.shape;}
