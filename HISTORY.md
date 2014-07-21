@@ -12,9 +12,12 @@ http://visjs.org
   allows to specify different margins horizontally/vertically.
 - Removed check for number of arguments in callbacks `onAdd`, `onUpdate`, 
   `onRemove`, and `onMove`.
+- Refactored the code to commonjs modules, which are browserifyable. This allows
+  to create custom bundles.
 - Fixed items in groups sometimes being displayed but not positioned correctly.
 - Fixed range where the `end` of the first is equal to the `start` of the second 
-  sometimes being stacked instead of put besides each other when `item.margin=0`.
+  sometimes being stacked instead of put besides each other when `item.margin=0`
+  due to round-off errors.
 
 ### Network (formerly named Graph)
 
@@ -31,6 +34,7 @@ http://visjs.org
 - Fixed recursively constructing of hierarchical layouts.
 - Added borderWidth option for nodes.
 - Implemented new Hierarchical view solver.
+- Fixed an issue with selecting nodes when the web page is scrolled down.
 
 
 

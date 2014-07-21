@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.0.1-SNAPSHOT
- * @date    2014-07-18
+ * @date    2014-07-21
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -561,17 +561,7 @@ return /******/ (function(modules) { // webpackBootstrap
    *                              in the browser page.
    */
   exports.getAbsoluteLeft = function(elem) {
-    var doc = document.documentElement;
-    var body = document.body;
-
-    var left = elem.offsetLeft;
-    var e = elem.offsetParent;
-    while (e != null && e != body && e != doc) {
-      left += e.offsetLeft;
-      left -= e.scrollLeft;
-      e = e.offsetParent;
-    }
-    return left;
+    return elem.getBoundingClientRect().left + window.pageXOffset;
   };
 
   /**
@@ -581,17 +571,7 @@ return /******/ (function(modules) { // webpackBootstrap
    *                              in the browser page.
    */
   exports.getAbsoluteTop = function(elem) {
-    var doc = document.documentElement;
-    var body = document.body;
-
-    var top = elem.offsetTop;
-    var e = elem.offsetParent;
-    while (e != null && e != body && e != doc) {
-      top += e.offsetTop;
-      top -= e.scrollTop;
-      e = e.offsetParent;
-    }
-    return top;
+    return elem.getBoundingClientRect().top + window.pageYOffset;
   };
 
   /**
