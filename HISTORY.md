@@ -35,6 +35,14 @@ http://visjs.org
 - Added borderWidth option for nodes.
 - Implemented new Hierarchical view solver.
 - Fixed an issue with selecting nodes when the web page is scrolled down.
+- Added Gephi JSON parser
+- Added Neighbour Highlight example
+- Added Import From Gephi example
+- Enabled color parsing for nodes when supplied with rgb(xxx,xxx,xxx) value.
+
+### DataSet
+
+- Added .get() returnType option to return as JSON object, Array or Google DataTable.
 
 
 
