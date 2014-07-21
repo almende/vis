@@ -34,12 +34,12 @@
 <body>
 
 <h2>Dynamic Data - Importing from Gephi (JSON)</h2>
-<div style="width:900px; font-size:14px;">
+<div style="width:700px; font-size:14px;">
     This example shows how to import a JSON file exported by Gephi. The two options available for the import are
     available through the checkboxes. You can download the Gephi JSON exporter here:
     <a href="https://marketplace.gephi.org/plugin/json-exporter/" target="_blank">https://marketplace.gephi.org/plugin/json-exporter/</a>.
-    All of Gephi's attributes are also contained within the node elements. This means you can access all of this data through the DataSet. An example of this is shown next to the network.
-    <br /><br />
+    All of Gephi's attributes are also contained within the node elements. This means you can access all of this data through the DataSet.
+    <br />
 </div>
 
 
@@ -49,55 +49,54 @@
 <div class="nodeContent"><h4>Node Content:</h4> <pre id="nodeContent"></pre></div>
 
 <script type="text/javascript">
-    var network;
+var network;
 
-    var nodes = new vis.DataSet();
-    var edges = new vis.DataSet();
-    var gephiImported;
-    var allowedToMoveCheckbox = document.getElementById("allowedToMove");
-    allowedToMoveCheckbox.onchange = redrawAll;
+var nodes = new vis.DataSet();
+var edges = new vis.DataSet();
+var gephiImported;
+var allowedToMoveCheckbox = document.getElementById("allowedToMove");
+allowedToMoveCheckbox.onchange = redrawAll;
 
-    var parseColorCheckbox = document.getElementById("parseColor");
-    parseColorCheckbox.onchange = redrawAll;
+var parseColorCheckbox = document.getElementById("parseColor");
+parseColorCheckbox.onchange = redrawAll;
 
-    var nodeContent = document.getElementById("nodeContent");
+var nodeContent = document.getElementById("nodeContent");
 
-    loadJSON("./data/WorldCup2014.json",redrawAll);
+loadJSON("./data/WorldCup2014.json",redrawAll);
 
-    var container = document.getElementById('mynetwork');
-    var data = {
-        nodes: nodes,
-        edges: edges
-    };
-    var options = {
-        nodes: {
-            shape: 'dot',
-            fontFace: "Tahoma"
-        },
-        edges: {
-            width: 0.15,
-            inheritColor: "from"
-        },
-        tooltip: {
-            delay: 200,
-            fontSize: 12,
-            color: {
-                background: "#fff"
-            }
-        },
-        smoothCurves: {dynamic:false, type: "continuous"},
-        stabilize: false,
-        physics: {barnesHut: {gravitationalConstant: -10000, springConstant: 0.002, springLength: 150}},
-        hideEdgesOnDrag: true
-    };
+var container = document.getElementById('mynetwork');
+var data = {
+    nodes: nodes,
+    edges: edges
+};
+var options = {
+    nodes: {
+        shape: 'dot',
+        fontFace: "Tahoma"
+    },
+    edges: {
+        width: 0.15,
+        inheritColor: "from"
+    },
+    tooltip: {
+        delay: 200,
+        fontSize: 12,
+        color: {
+            background: "#fff"
+        }
+    },
+    smoothCurves: {dynamic:false, type: "continuous"},
+    stabilize: false,
+    physics: {barnesHut: {gravitationalConstant: -10000, springConstant: 0.002, springLength: 150}},
+    hideEdgesOnDrag: true
+};
 
-    network = new vis.Network(container, data, options);
+network = new vis.Network(container, data, options);
 
 /**
  * This function fills the DataSets. These DataSets will update the network.
  */
 function redrawAll(gephiJSON) {
-    // only have to get the JSON from the file once
     if (gephiJSON.nodes === undefined) {
         gephiJSON = gephiImported;
     }
@@ -105,8 +104,6 @@ function redrawAll(gephiJSON) {
         gephiImported = gephiJSON;
     }
 
-
-    // empty the DataSets
     nodes.clear();
     edges.clear();
 
