@@ -80,7 +80,7 @@ component.
 
 The folder `dist` contains bundled versions of vis.js for direct use in the browser. In general, to use vis, load the files `vis.js` and `vis.css`.
 
-vis.js offers various bundled files: default or light version, and minified or non-minified. The source code of vis.js consists of commonjs modules, which makes it possible to create custom bundles using tools like [Browserify](http://browserify.org/) or [Webpack](http://webpack.github.io/). This can be bundling just one visualization like the Timeline, or bundling vis.js as part of your own browserified web application.
+vis.js offers various bundled files: default or light version, and minified or non-minified. The source code of vis.js consists of commonjs modules, which makes it possible to create custom bundles using tools like [Browserify](http://browserify.org/) or [Webpack](http://webpack.github.io/). This can be bundling just one visualization like the Timeline, or bundling vis.js as part of your own browserified web application. Note that hammer.js v1.0.6 or newer is required.
 
 Bundle | Files | Description
 ------ | ----- | -----------

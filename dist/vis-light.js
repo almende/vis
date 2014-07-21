@@ -32,7 +32,7 @@
 		exports["vis"] = factory(require("hammerjs"), require("moment"));
 	else
 		root["vis"] = factory(root["hammerjs"], root["moment"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_43__, __WEBPACK_EXTERNAL_MODULE_44__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_44__, __WEBPACK_EXTERNAL_MODULE_45__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -153,7 +153,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // first check if moment.js is already loaded in the browser window, if so,
   // use this instance. Else, load via commonjs.
-  var Hammer = __webpack_require__(40);
   var moment = __webpack_require__(41);
 
   /**
@@ -758,33 +757,6 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     return target;
-  };
-
-  /**
-   * Fake a hammer.js gesture. Event can be a ScrollEvent or MouseMoveEvent
-   * @param {Element} element
-   * @param {Event} event
-   */
-  exports.fakeGesture = function(element, event) {
-    var eventType = null;
-
-    // for hammer.js 1.0.5
-    var gesture = Hammer.event.collectEventData(this, eventType, event);
-
-    // for hammer.js 1.0.6
-    //var touches = Hammer.event.getTouchList(event, eventType);
-    // var gesture = Hammer.event.collectEventData(this, eventType, touches, event);
-
-    // on IE in standards mode, no touches are recognized by hammer.js,
-    // resulting in NaN values for center.pageX and center.pageY
-    if (isNaN(gesture.center.pageX)) {
-      gesture.center.pageX = event.pageX;
-    }
-    if (isNaN(gesture.center.pageY)) {
-      gesture.center.pageY = event.pageY;
-    }
-
-    return gesture;
   };
 
   exports.option = {};
@@ -2796,7 +2768,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(45);
+  var Emitter = __webpack_require__(46);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var util = __webpack_require__(1);
@@ -6040,8 +6012,8 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(45);
-  var Hammer = __webpack_require__(40);
+  var Emitter = __webpack_require__(46);
+  var Hammer = __webpack_require__(42);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
@@ -6955,8 +6927,8 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(45);
-  var Hammer = __webpack_require__(40);
+  var Emitter = __webpack_require__(46);
+  var Hammer = __webpack_require__(42);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
@@ -8072,6 +8044,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
+  var hammerUtil = __webpack_require__(39);
   var moment = __webpack_require__(41);
   var Component = __webpack_require__(18);
 
@@ -8447,7 +8420,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       // calculate center, the date to zoom around
-      var gesture = util.fakeGesture(this, event),
+      var gesture = hammerUtil.fakeGesture(this, event),
           pointer = getPointer(gesture.center, this.body.dom.center),
           pointerDate = this._pointerToDate(pointer);
 
@@ -9398,7 +9371,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(40);
+  var Hammer = __webpack_require__(42);
   var util = __webpack_require__(1);
   var Component = __webpack_require__(18);
 
@@ -10630,7 +10603,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(40);
+  var Hammer = __webpack_require__(42);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
@@ -13685,7 +13658,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(40);
+  var Hammer = __webpack_require__(42);
 
   /**
    * @constructor Item
@@ -14286,7 +14259,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(40);
+  var Hammer = __webpack_require__(42);
   var Item = __webpack_require__(28);
 
   /**
@@ -14583,10 +14556,11 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(45);
-  var Hammer = __webpack_require__(40);
-  var mousetrap = __webpack_require__(46);
+  var Emitter = __webpack_require__(46);
+  var Hammer = __webpack_require__(42);
+  var mousetrap = __webpack_require__(47);
   var util = __webpack_require__(1);
+  var hammerUtil = __webpack_require__(39);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var dotparser = __webpack_require__(38);
@@ -14595,10 +14569,10 @@ return /******/ (function(modules) { // webpackBootstrap
   var Node = __webpack_require__(36);
   var Edge = __webpack_require__(33);
   var Popup = __webpack_require__(37);
-  var MixinLoader = __webpack_require__(42);
+  var MixinLoader = __webpack_require__(43);
 
   // Load custom shapes into CanvasRenderingContext2D
-  __webpack_require__(39);
+  __webpack_require__(40);
 
   /**
    * @constructor Network
@@ -15809,7 +15783,7 @@ return /******/ (function(modules) { // webpackBootstrap
       scale *= (1 + zoom);
 
       // calculate the pointer location
-      var gesture = util.fakeGesture(this, event);
+      var gesture = hammerUtil.fakeGesture(this, event);
       var pointer = this._getPointer(gesture.center);
 
       // apply the new scale
@@ -15827,7 +15801,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   Network.prototype._onMouseMoveTitle = function (event) {
-    var gesture = util.fakeGesture(this, event);
+    var gesture = hammerUtil.fakeGesture(this, event);
     var pointer = this._getPointer(gesture.center);
 
     // check if the previously selected node is still selected
@@ -20267,6 +20241,40 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
+  var Hammer = __webpack_require__(42);
+
+  /**
+   * Fake a hammer.js gesture. Event can be a ScrollEvent or MouseMoveEvent
+   * @param {Element} element
+   * @param {Event} event
+   */
+  exports.fakeGesture = function(element, event) {
+    var eventType = null;
+
+    // for hammer.js 1.0.5
+    // var gesture = Hammer.event.collectEventData(this, eventType, event);
+
+    // for hammer.js 1.0.6+
+    var touches = Hammer.event.getTouchList(event, eventType);
+    var gesture = Hammer.event.collectEventData(this, eventType, touches, event);
+
+    // on IE in standards mode, no touches are recognized by hammer.js,
+    // resulting in NaN values for center.pageX and center.pageY
+    if (isNaN(gesture.center.pageX)) {
+      gesture.center.pageX = event.pageX;
+    }
+    if (isNaN(gesture.center.pageY)) {
+      gesture.center.pageY = event.pageY;
+    }
+
+    return gesture;
+  };
+
+
+/***/ },
+/* 40 */
+/***/ function(module, exports, __webpack_require__) {
+
   /**
    * Canvas shapes used by Network
    */
@@ -20495,13 +20503,22 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 40 */
+/* 41 */
+/***/ function(module, exports, __webpack_require__) {
+
+  // first check if moment.js is already loaded in the browser window, if so,
+  // use this instance. Else, load via commonjs.
+  module.exports = (typeof window !== 'undefined') && window['moment'] || __webpack_require__(45);
+
+
+/***/ },
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Only load hammer.js when in a browser environment
   // (loading hammer.js in a node.js environment gives errors)
   if (typeof window !== 'undefined') {
-    module.exports = window['Hammer'] || __webpack_require__(43);
+    module.exports = window['Hammer'] || __webpack_require__(44);
   }
   else {
     module.exports = function () {
@@ -20511,25 +20528,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 41 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
-  // first check if moment.js is already loaded in the browser window, if so,
-  // use this instance. Else, load via commonjs.
-  module.exports = (typeof window !== 'undefined') && window['moment'] || __webpack_require__(44);
-
-
-/***/ },
-/* 42 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var PhysicsMixin = __webpack_require__(53);
-  var ClusterMixin = __webpack_require__(47);
-  var SectorsMixin = __webpack_require__(48);
-  var SelectionMixin = __webpack_require__(49);
-  var ManipulationMixin = __webpack_require__(50);
-  var NavigationMixin = __webpack_require__(51);
-  var HierarchicalLayoutMixin = __webpack_require__(52);
+  var PhysicsMixin = __webpack_require__(54);
+  var ClusterMixin = __webpack_require__(48);
+  var SectorsMixin = __webpack_require__(49);
+  var SelectionMixin = __webpack_require__(50);
+  var ManipulationMixin = __webpack_require__(51);
+  var NavigationMixin = __webpack_require__(52);
+  var HierarchicalLayoutMixin = __webpack_require__(53);
 
   /**
    * Load a mixin into the network object
@@ -20724,12 +20732,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 43 */
-/***/ function(module, exports, __webpack_require__) {
-
-  module.exports = __WEBPACK_EXTERNAL_MODULE_43__;
-
-/***/ },
 /* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -20737,6 +20739,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 45 */
+/***/ function(module, exports, __webpack_require__) {
+
+  module.exports = __WEBPACK_EXTERNAL_MODULE_45__;
+
+/***/ },
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   
@@ -20906,7 +20914,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 46 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -21711,7 +21719,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 47 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -22854,7 +22862,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 48 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -23408,7 +23416,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 49 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Node = __webpack_require__(36);
@@ -24119,7 +24127,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 50 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -24701,7 +24709,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 51 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -24888,7 +24896,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 52 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
   exports._resetLevels = function() {
@@ -25216,13 +25224,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 53 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var RepulsionMixin = __webpack_require__(54);
-  var HierarchialRepulsionMixin = __webpack_require__(55);
-  var BarnesHutMixin = __webpack_require__(56);
+  var RepulsionMixin = __webpack_require__(55);
+  var HierarchialRepulsionMixin = __webpack_require__(56);
+  var BarnesHutMixin = __webpack_require__(57);
 
   /**
    * Toggling barnes Hut calculation on and off.
@@ -25930,7 +25938,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 54 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -25994,7 +26002,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 55 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -26153,7 +26161,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 56 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**

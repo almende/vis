@@ -153,7 +153,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // first check if moment.js is already loaded in the browser window, if so,
   // use this instance. Else, load via commonjs.
-  var Hammer = __webpack_require__(40);
   var moment = __webpack_require__(41);
 
   /**
@@ -758,33 +757,6 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     return target;
-  };
-
-  /**
-   * Fake a hammer.js gesture. Event can be a ScrollEvent or MouseMoveEvent
-   * @param {Element} element
-   * @param {Event} event
-   */
-  exports.fakeGesture = function(element, event) {
-    var eventType = null;
-
-    // for hammer.js 1.0.5
-    var gesture = Hammer.event.collectEventData(this, eventType, event);
-
-    // for hammer.js 1.0.6
-    //var touches = Hammer.event.getTouchList(event, eventType);
-    // var gesture = Hammer.event.collectEventData(this, eventType, touches, event);
-
-    // on IE in standards mode, no touches are recognized by hammer.js,
-    // resulting in NaN values for center.pageX and center.pageY
-    if (isNaN(gesture.center.pageX)) {
-      gesture.center.pageX = event.pageX;
-    }
-    if (isNaN(gesture.center.pageY)) {
-      gesture.center.pageY = event.pageY;
-    }
-
-    return gesture;
   };
 
   exports.option = {};
@@ -2796,7 +2768,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(43);
+  var Emitter = __webpack_require__(44);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var util = __webpack_require__(1);
@@ -6040,8 +6012,8 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(43);
-  var Hammer = __webpack_require__(40);
+  var Emitter = __webpack_require__(44);
+  var Hammer = __webpack_require__(42);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
@@ -6955,8 +6927,8 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(43);
-  var Hammer = __webpack_require__(40);
+  var Emitter = __webpack_require__(44);
+  var Hammer = __webpack_require__(42);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
@@ -8072,6 +8044,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
+  var hammerUtil = __webpack_require__(39);
   var moment = __webpack_require__(41);
   var Component = __webpack_require__(18);
 
@@ -8447,7 +8420,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       // calculate center, the date to zoom around
-      var gesture = util.fakeGesture(this, event),
+      var gesture = hammerUtil.fakeGesture(this, event),
           pointer = getPointer(gesture.center, this.body.dom.center),
           pointerDate = this._pointerToDate(pointer);
 
@@ -9398,7 +9371,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(40);
+  var Hammer = __webpack_require__(42);
   var util = __webpack_require__(1);
   var Component = __webpack_require__(18);
 
@@ -10630,7 +10603,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(40);
+  var Hammer = __webpack_require__(42);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
@@ -13685,7 +13658,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(40);
+  var Hammer = __webpack_require__(42);
 
   /**
    * @constructor Item
@@ -14286,7 +14259,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(40);
+  var Hammer = __webpack_require__(42);
   var Item = __webpack_require__(28);
 
   /**
@@ -14583,10 +14556,11 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(43);
-  var Hammer = __webpack_require__(40);
-  var mousetrap = __webpack_require__(44);
+  var Emitter = __webpack_require__(44);
+  var Hammer = __webpack_require__(42);
+  var mousetrap = __webpack_require__(45);
   var util = __webpack_require__(1);
+  var hammerUtil = __webpack_require__(39);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var dotparser = __webpack_require__(38);
@@ -14595,10 +14569,10 @@ return /******/ (function(modules) { // webpackBootstrap
   var Node = __webpack_require__(36);
   var Edge = __webpack_require__(33);
   var Popup = __webpack_require__(37);
-  var MixinLoader = __webpack_require__(42);
+  var MixinLoader = __webpack_require__(43);
 
   // Load custom shapes into CanvasRenderingContext2D
-  __webpack_require__(39);
+  __webpack_require__(40);
 
   /**
    * @constructor Network
@@ -15809,7 +15783,7 @@ return /******/ (function(modules) { // webpackBootstrap
       scale *= (1 + zoom);
 
       // calculate the pointer location
-      var gesture = util.fakeGesture(this, event);
+      var gesture = hammerUtil.fakeGesture(this, event);
       var pointer = this._getPointer(gesture.center);
 
       // apply the new scale
@@ -15827,7 +15801,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   Network.prototype._onMouseMoveTitle = function (event) {
-    var gesture = util.fakeGesture(this, event);
+    var gesture = hammerUtil.fakeGesture(this, event);
     var pointer = this._getPointer(gesture.center);
 
     // check if the previously selected node is still selected
@@ -20267,6 +20241,40 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
+  var Hammer = __webpack_require__(42);
+
+  /**
+   * Fake a hammer.js gesture. Event can be a ScrollEvent or MouseMoveEvent
+   * @param {Element} element
+   * @param {Event} event
+   */
+  exports.fakeGesture = function(element, event) {
+    var eventType = null;
+
+    // for hammer.js 1.0.5
+    // var gesture = Hammer.event.collectEventData(this, eventType, event);
+
+    // for hammer.js 1.0.6+
+    var touches = Hammer.event.getTouchList(event, eventType);
+    var gesture = Hammer.event.collectEventData(this, eventType, touches, event);
+
+    // on IE in standards mode, no touches are recognized by hammer.js,
+    // resulting in NaN values for center.pageX and center.pageY
+    if (isNaN(gesture.center.pageX)) {
+      gesture.center.pageX = event.pageX;
+    }
+    if (isNaN(gesture.center.pageY)) {
+      gesture.center.pageY = event.pageY;
+    }
+
+    return gesture;
+  };
+
+
+/***/ },
+/* 40 */
+/***/ function(module, exports, __webpack_require__) {
+
   /**
    * Canvas shapes used by Network
    */
@@ -20495,7 +20503,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 40 */
+/* 41 */
+/***/ function(module, exports, __webpack_require__) {
+
+  // first check if moment.js is already loaded in the browser window, if so,
+  // use this instance. Else, load via commonjs.
+  module.exports = (typeof window !== 'undefined') && window['moment'] || __webpack_require__(54);
+
+
+/***/ },
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Only load hammer.js when in a browser environment
@@ -20511,25 +20528,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 41 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
-  // first check if moment.js is already loaded in the browser window, if so,
-  // use this instance. Else, load via commonjs.
-  module.exports = (typeof window !== 'undefined') && window['moment'] || __webpack_require__(52);
-
-
-/***/ },
-/* 42 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var PhysicsMixin = __webpack_require__(51);
-  var ClusterMixin = __webpack_require__(45);
-  var SectorsMixin = __webpack_require__(46);
-  var SelectionMixin = __webpack_require__(47);
-  var ManipulationMixin = __webpack_require__(48);
-  var NavigationMixin = __webpack_require__(49);
-  var HierarchicalLayoutMixin = __webpack_require__(50);
+  var PhysicsMixin = __webpack_require__(52);
+  var ClusterMixin = __webpack_require__(46);
+  var SectorsMixin = __webpack_require__(47);
+  var SelectionMixin = __webpack_require__(48);
+  var ManipulationMixin = __webpack_require__(49);
+  var NavigationMixin = __webpack_require__(50);
+  var HierarchicalLayoutMixin = __webpack_require__(51);
 
   /**
    * Load a mixin into the network object
@@ -20724,7 +20732,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 43 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   
@@ -20894,7 +20902,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 44 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -21699,7 +21707,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 45 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -22842,7 +22850,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 46 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -23396,7 +23404,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 47 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Node = __webpack_require__(36);
@@ -24107,7 +24115,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 48 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -24689,7 +24697,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 49 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -24876,7 +24884,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 50 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   exports._resetLevels = function() {
@@ -25204,13 +25212,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 51 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var RepulsionMixin = __webpack_require__(54);
-  var HierarchialRepulsionMixin = __webpack_require__(55);
-  var BarnesHutMixin = __webpack_require__(56);
+  var RepulsionMixin = __webpack_require__(55);
+  var HierarchialRepulsionMixin = __webpack_require__(56);
+  var BarnesHutMixin = __webpack_require__(57);
 
   /**
    * Toggling barnes Hut calculation on and off.
@@ -25918,7 +25926,2174 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 52 */
+/* 53 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v1.1.3 - 2014-05-20
+   * http://eightmedia.github.io/hammer.js
+   *
+   * Copyright (c) 2014 Jorik Tangelder <j.tangelder@gmail.com>;
+   * Licensed under the MIT license */
+
+  (function(window, undefined) {
+    'use strict';
+
+  /**
+   * @main
+   * @module hammer
+   *
+   * @class Hammer
+   * @static
+   */
+
+  /**
+   * Hammer, use this to create instances
+   * ````
+   * var hammertime = new Hammer(myElement);
+   * ````
+   *
+   * @method Hammer
+   * @param {HTMLElement} element
+   * @param {Object} [options={}]
+   * @return {Hammer.Instance}
+   */
+  var Hammer = function Hammer(element, options) {
+      return new Hammer.Instance(element, options || {});
+  };
+
+  /**
+   * version, as defined in package.json
+   * the value will be set at each build
+   * @property VERSION
+   * @final
+   * @type {String}
+   */
+  Hammer.VERSION = '1.1.3';
+
+  /**
+   * default settings.
+   * more settings are defined per gesture at `/gestures`. Each gesture can be disabled/enabled
+   * by setting it's name (like `swipe`) to false.
+   * You can set the defaults for all instances by changing this object before creating an instance.
+   * @example
+   * ````
+   *  Hammer.defaults.drag = false;
+   *  Hammer.defaults.behavior.touchAction = 'pan-y';
+   *  delete Hammer.defaults.behavior.userSelect;
+   * ````
+   * @property defaults
+   * @type {Object}
+   */
+  Hammer.defaults = {
+      /**
+       * this setting object adds styles and attributes to the element to prevent the browser from doing
+       * its native behavior. The css properties are auto prefixed for the browsers when needed.
+       * @property defaults.behavior
+       * @type {Object}
+       */
+      behavior: {
+          /**
+           * Disables text selection to improve the dragging gesture. When the value is `none` it also sets
+           * `onselectstart=false` for IE on the element. Mainly for desktop browsers.
+           * @property defaults.behavior.userSelect
+           * @type {String}
+           * @default 'none'
+           */
+          userSelect: 'none',
+
+          /**
+           * Specifies whether and how a given region can be manipulated by the user (for instance, by panning or zooming).
+           * Used by Chrome 35> and IE10>. By default this makes the element blocking any touch event.
+           * @property defaults.behavior.touchAction
+           * @type {String}
+           * @default: 'pan-y'
+           */
+          touchAction: 'pan-y',
+
+          /**
+           * Disables the default callout shown when you touch and hold a touch target.
+           * On iOS, when you touch and hold a touch target such as a link, Safari displays
+           * a callout containing information about the link. This property allows you to disable that callout.
+           * @property defaults.behavior.touchCallout
+           * @type {String}
+           * @default 'none'
+           */
+          touchCallout: 'none',
+
+          /**
+           * Specifies whether zooming is enabled. Used by IE10>
+           * @property defaults.behavior.contentZooming
+           * @type {String}
+           * @default 'none'
+           */
+          contentZooming: 'none',
+
+          /**
+           * Specifies that an entire element should be draggable instead of its contents.
+           * Mainly for desktop browsers.
+           * @property defaults.behavior.userDrag
+           * @type {String}
+           * @default 'none'
+           */
+          userDrag: 'none',
+
+          /**
+           * Overrides the highlight color shown when the user taps a link or a JavaScript
+           * clickable element in Safari on iPhone. This property obeys the alpha value, if specified.
+           *
+           * If you don't specify an alpha value, Safari on iPhone applies a default alpha value
+           * to the color. To disable tap highlighting, set the alpha value to 0 (invisible).
+           * If you set the alpha value to 1.0 (opaque), the element is not visible when tapped.
+           * @property defaults.behavior.tapHighlightColor
+           * @type {String}
+           * @default 'rgba(0,0,0,0)'
+           */
+          tapHighlightColor: 'rgba(0,0,0,0)'
+      }
+  };
+
+  /**
+   * hammer document where the base events are added at
+   * @property DOCUMENT
+   * @type {HTMLElement}
+   * @default window.document
+   */
+  Hammer.DOCUMENT = document;
+
+  /**
+   * detect support for pointer events
+   * @property HAS_POINTEREVENTS
+   * @type {Boolean}
+   */
+  Hammer.HAS_POINTEREVENTS = navigator.pointerEnabled || navigator.msPointerEnabled;
+
+  /**
+   * detect support for touch events
+   * @property HAS_TOUCHEVENTS
+   * @type {Boolean}
+   */
+  Hammer.HAS_TOUCHEVENTS = ('ontouchstart' in window);
+
+  /**
+   * detect mobile browsers
+   * @property IS_MOBILE
+   * @type {Boolean}
+   */
+  Hammer.IS_MOBILE = /mobile|tablet|ip(ad|hone|od)|android|silk/i.test(navigator.userAgent);
+
+  /**
+   * detect if we want to support mouseevents at all
+   * @property NO_MOUSEEVENTS
+   * @type {Boolean}
+   */
+  Hammer.NO_MOUSEEVENTS = (Hammer.HAS_TOUCHEVENTS && Hammer.IS_MOBILE) || Hammer.HAS_POINTEREVENTS;
+
+  /**
+   * interval in which Hammer recalculates current velocity/direction/angle in ms
+   * @property CALCULATE_INTERVAL
+   * @type {Number}
+   * @default 25
+   */
+  Hammer.CALCULATE_INTERVAL = 25;
+
+  /**
+   * eventtypes per touchevent (start, move, end) are filled by `Event.determineEventTypes` on `setup`
+   * the object contains the DOM event names per type (`EVENT_START`, `EVENT_MOVE`, `EVENT_END`)
+   * @property EVENT_TYPES
+   * @private
+   * @writeOnce
+   * @type {Object}
+   */
+  var EVENT_TYPES = {};
+
+  /**
+   * direction strings, for safe comparisons
+   * @property DIRECTION_DOWN|LEFT|UP|RIGHT
+   * @final
+   * @type {String}
+   * @default 'down' 'left' 'up' 'right'
+   */
+  var DIRECTION_DOWN = Hammer.DIRECTION_DOWN = 'down';
+  var DIRECTION_LEFT = Hammer.DIRECTION_LEFT = 'left';
+  var DIRECTION_UP = Hammer.DIRECTION_UP = 'up';
+  var DIRECTION_RIGHT = Hammer.DIRECTION_RIGHT = 'right';
+
+  /**
+   * pointertype strings, for safe comparisons
+   * @property POINTER_MOUSE|TOUCH|PEN
+   * @final
+   * @type {String}
+   * @default 'mouse' 'touch' 'pen'
+   */
+  var POINTER_MOUSE = Hammer.POINTER_MOUSE = 'mouse';
+  var POINTER_TOUCH = Hammer.POINTER_TOUCH = 'touch';
+  var POINTER_PEN = Hammer.POINTER_PEN = 'pen';
+
+  /**
+   * eventtypes
+   * @property EVENT_START|MOVE|END|RELEASE|TOUCH
+   * @final
+   * @type {String}
+   * @default 'start' 'change' 'move' 'end' 'release' 'touch'
+   */
+  var EVENT_START = Hammer.EVENT_START = 'start';
+  var EVENT_MOVE = Hammer.EVENT_MOVE = 'move';
+  var EVENT_END = Hammer.EVENT_END = 'end';
+  var EVENT_RELEASE = Hammer.EVENT_RELEASE = 'release';
+  var EVENT_TOUCH = Hammer.EVENT_TOUCH = 'touch';
+
+  /**
+   * if the window events are set...
+   * @property READY
+   * @writeOnce
+   * @type {Boolean}
+   * @default false
+   */
+  Hammer.READY = false;
+
+  /**
+   * plugins namespace
+   * @property plugins
+   * @type {Object}
+   */
+  Hammer.plugins = Hammer.plugins || {};
+
+  /**
+   * gestures namespace
+   * see `/gestures` for the definitions
+   * @property gestures
+   * @type {Object}
+   */
+  Hammer.gestures = Hammer.gestures || {};
+
+  /**
+   * setup events to detect gestures on the document
+   * this function is called when creating an new instance
+   * @private
+   */
+  function setup() {
+      if(Hammer.READY) {
+          return;
+      }
+
+      // find what eventtypes we add listeners to
+      Event.determineEventTypes();
+
+      // Register all gestures inside Hammer.gestures
+      Utils.each(Hammer.gestures, function(gesture) {
+          Detection.register(gesture);
+      });
+
+      // Add touch events on the document
+      Event.onTouch(Hammer.DOCUMENT, EVENT_MOVE, Detection.detect);
+      Event.onTouch(Hammer.DOCUMENT, EVENT_END, Detection.detect);
+
+      // Hammer is ready...!
+      Hammer.READY = true;
+  }
+
+  /**
+   * @module hammer
+   *
+   * @class Utils
+   * @static
+   */
+  var Utils = Hammer.utils = {
+      /**
+       * extend method, could also be used for cloning when `dest` is an empty object.
+       * changes the dest object
+       * @method extend
+       * @param {Object} dest
+       * @param {Object} src
+       * @param {Boolean} [merge=false]  do a merge
+       * @return {Object} dest
+       */
+      extend: function extend(dest, src, merge) {
+          for(var key in src) {
+              if(!src.hasOwnProperty(key) || (dest[key] !== undefined && merge)) {
+                  continue;
+              }
+              dest[key] = src[key];
+          }
+          return dest;
+      },
+
+      /**
+       * simple addEventListener wrapper
+       * @method on
+       * @param {HTMLElement} element
+       * @param {String} type
+       * @param {Function} handler
+       */
+      on: function on(element, type, handler) {
+          element.addEventListener(type, handler, false);
+      },
+
+      /**
+       * simple removeEventListener wrapper
+       * @method off
+       * @param {HTMLElement} element
+       * @param {String} type
+       * @param {Function} handler
+       */
+      off: function off(element, type, handler) {
+          element.removeEventListener(type, handler, false);
+      },
+
+      /**
+       * forEach over arrays and objects
+       * @method each
+       * @param {Object|Array} obj
+       * @param {Function} iterator
+       * @param {any} iterator.item
+       * @param {Number} iterator.index
+       * @param {Object|Array} iterator.obj the source object
+       * @param {Object} context value to use as `this` in the iterator
+       */
+      each: function each(obj, iterator, context) {
+          var i, len;
+
+          // native forEach on arrays
+          if('forEach' in obj) {
+              obj.forEach(iterator, context);
+          // arrays
+          } else if(obj.length !== undefined) {
+              for(i = 0, len = obj.length; i < len; i++) {
+                  if(iterator.call(context, obj[i], i, obj) === false) {
+                      return;
+                  }
+              }
+          // objects
+          } else {
+              for(i in obj) {
+                  if(obj.hasOwnProperty(i) &&
+                      iterator.call(context, obj[i], i, obj) === false) {
+                      return;
+                  }
+              }
+          }
+      },
+
+      /**
+       * find if a string contains the string using indexOf
+       * @method inStr
+       * @param {String} src
+       * @param {String} find
+       * @return {Boolean} found
+       */
+      inStr: function inStr(src, find) {
+          return src.indexOf(find) > -1;
+      },
+
+      /**
+       * find if a array contains the object using indexOf or a simple polyfill
+       * @method inArray
+       * @param {String} src
+       * @param {String} find
+       * @return {Boolean|Number} false when not found, or the index
+       */
+      inArray: function inArray(src, find) {
+          if(src.indexOf) {
+              var index = src.indexOf(find);
+              return (index === -1) ? false : index;
+          } else {
+              for(var i = 0, len = src.length; i < len; i++) {
+                  if(src[i] === find) {
+                      return i;
+                  }
+              }
+              return false;
+          }
+      },
+
+      /**
+       * convert an array-like object (`arguments`, `touchlist`) to an array
+       * @method toArray
+       * @param {Object} obj
+       * @return {Array}
+       */
+      toArray: function toArray(obj) {
+          return Array.prototype.slice.call(obj, 0);
+      },
+
+      /**
+       * find if a node is in the given parent
+       * @method hasParent
+       * @param {HTMLElement} node
+       * @param {HTMLElement} parent
+       * @return {Boolean} found
+       */
+      hasParent: function hasParent(node, parent) {
+          while(node) {
+              if(node == parent) {
+                  return true;
+              }
+              node = node.parentNode;
+          }
+          return false;
+      },
+
+      /**
+       * get the center of all the touches
+       * @method getCenter
+       * @param {Array} touches
+       * @return {Object} center contains `pageX`, `pageY`, `clientX` and `clientY` properties
+       */
+      getCenter: function getCenter(touches) {
+          var pageX = [],
+              pageY = [],
+              clientX = [],
+              clientY = [],
+              min = Math.min,
+              max = Math.max;
+
+          // no need to loop when only one touch
+          if(touches.length === 1) {
+              return {
+                  pageX: touches[0].pageX,
+                  pageY: touches[0].pageY,
+                  clientX: touches[0].clientX,
+                  clientY: touches[0].clientY
+              };
+          }
+
+          Utils.each(touches, function(touch) {
+              pageX.push(touch.pageX);
+              pageY.push(touch.pageY);
+              clientX.push(touch.clientX);
+              clientY.push(touch.clientY);
+          });
+
+          return {
+              pageX: (min.apply(Math, pageX) + max.apply(Math, pageX)) / 2,
+              pageY: (min.apply(Math, pageY) + max.apply(Math, pageY)) / 2,
+              clientX: (min.apply(Math, clientX) + max.apply(Math, clientX)) / 2,
+              clientY: (min.apply(Math, clientY) + max.apply(Math, clientY)) / 2
+          };
+      },
+
+      /**
+       * calculate the velocity between two points. unit is in px per ms.
+       * @method getVelocity
+       * @param {Number} deltaTime
+       * @param {Number} deltaX
+       * @param {Number} deltaY
+       * @return {Object} velocity `x` and `y`
+       */
+      getVelocity: function getVelocity(deltaTime, deltaX, deltaY) {
+          return {
+              x: Math.abs(deltaX / deltaTime) || 0,
+              y: Math.abs(deltaY / deltaTime) || 0
+          };
+      },
+
+      /**
+       * calculate the angle between two coordinates
+       * @method getAngle
+       * @param {Touch} touch1
+       * @param {Touch} touch2
+       * @return {Number} angle
+       */
+      getAngle: function getAngle(touch1, touch2) {
+          var x = touch2.clientX - touch1.clientX,
+              y = touch2.clientY - touch1.clientY;
+
+          return Math.atan2(y, x) * 180 / Math.PI;
+      },
+
+      /**
+       * do a small comparision to get the direction between two touches.
+       * @method getDirection
+       * @param {Touch} touch1
+       * @param {Touch} touch2
+       * @return {String} direction matches `DIRECTION_LEFT|RIGHT|UP|DOWN`
+       */
+      getDirection: function getDirection(touch1, touch2) {
+          var x = Math.abs(touch1.clientX - touch2.clientX),
+              y = Math.abs(touch1.clientY - touch2.clientY);
+
+          if(x >= y) {
+              return touch1.clientX - touch2.clientX > 0 ? DIRECTION_LEFT : DIRECTION_RIGHT;
+          }
+          return touch1.clientY - touch2.clientY > 0 ? DIRECTION_UP : DIRECTION_DOWN;
+      },
+
+      /**
+       * calculate the distance between two touches
+       * @method getDistance
+       * @param {Touch}touch1
+       * @param {Touch} touch2
+       * @return {Number} distance
+       */
+      getDistance: function getDistance(touch1, touch2) {
+          var x = touch2.clientX - touch1.clientX,
+              y = touch2.clientY - touch1.clientY;
+
+          return Math.sqrt((x * x) + (y * y));
+      },
+
+      /**
+       * calculate the scale factor between two touchLists
+       * no scale is 1, and goes down to 0 when pinched together, and bigger when pinched out
+       * @method getScale
+       * @param {Array} start array of touches
+       * @param {Array} end array of touches
+       * @return {Number} scale
+       */
+      getScale: function getScale(start, end) {
+          // need two fingers...
+          if(start.length >= 2 && end.length >= 2) {
+              return this.getDistance(end[0], end[1]) / this.getDistance(start[0], start[1]);
+          }
+          return 1;
+      },
+
+      /**
+       * calculate the rotation degrees between two touchLists
+       * @method getRotation
+       * @param {Array} start array of touches
+       * @param {Array} end array of touches
+       * @return {Number} rotation
+       */
+      getRotation: function getRotation(start, end) {
+          // need two fingers
+          if(start.length >= 2 && end.length >= 2) {
+              return this.getAngle(end[1], end[0]) - this.getAngle(start[1], start[0]);
+          }
+          return 0;
+      },
+
+      /**
+       * find out if the direction is vertical   *
+       * @method isVertical
+       * @param {String} direction matches `DIRECTION_UP|DOWN`
+       * @return {Boolean} is_vertical
+       */
+      isVertical: function isVertical(direction) {
+          return direction == DIRECTION_UP || direction == DIRECTION_DOWN;
+      },
+
+      /**
+       * set css properties with their prefixes
+       * @param {HTMLElement} element
+       * @param {String} prop
+       * @param {String} value
+       * @param {Boolean} [toggle=true]
+       * @return {Boolean}
+       */
+      setPrefixedCss: function setPrefixedCss(element, prop, value, toggle) {
+          var prefixes = ['', 'Webkit', 'Moz', 'O', 'ms'];
+          prop = Utils.toCamelCase(prop);
+
+          for(var i = 0; i < prefixes.length; i++) {
+              var p = prop;
+              // prefixes
+              if(prefixes[i]) {
+                  p = prefixes[i] + p.slice(0, 1).toUpperCase() + p.slice(1);
+              }
+
+              // test the style
+              if(p in element.style) {
+                  element.style[p] = (toggle == null || toggle) && value || '';
+                  break;
+              }
+          }
+      },
+
+      /**
+       * toggle browser default behavior by setting css properties.
+       * `userSelect='none'` also sets `element.onselectstart` to false
+       * `userDrag='none'` also sets `element.ondragstart` to false
+       *
+       * @method toggleBehavior
+       * @param {HtmlElement} element
+       * @param {Object} props
+       * @param {Boolean} [toggle=true]
+       */
+      toggleBehavior: function toggleBehavior(element, props, toggle) {
+          if(!props || !element || !element.style) {
+              return;
+          }
+
+          // set the css properties
+          Utils.each(props, function(value, prop) {
+              Utils.setPrefixedCss(element, prop, value, toggle);
+          });
+
+          var falseFn = toggle && function() {
+              return false;
+          };
+
+          // also the disable onselectstart
+          if(props.userSelect == 'none') {
+              element.onselectstart = falseFn;
+          }
+          // and disable ondragstart
+          if(props.userDrag == 'none') {
+              element.ondragstart = falseFn;
+          }
+      },
+
+      /**
+       * convert a string with underscores to camelCase
+       * so prevent_default becomes preventDefault
+       * @param {String} str
+       * @return {String} camelCaseStr
+       */
+      toCamelCase: function toCamelCase(str) {
+          return str.replace(/[_-]([a-z])/g, function(s) {
+              return s[1].toUpperCase();
+          });
+      }
+  };
+
+
+  /**
+   * @module hammer
+   */
+  /**
+   * @class Event
+   * @static
+   */
+  var Event = Hammer.event = {
+      /**
+       * when touch events have been fired, this is true
+       * this is used to stop mouse events
+       * @property prevent_mouseevents
+       * @private
+       * @type {Boolean}
+       */
+      preventMouseEvents: false,
+
+      /**
+       * if EVENT_START has been fired
+       * @property started
+       * @private
+       * @type {Boolean}
+       */
+      started: false,
+
+      /**
+       * when the mouse is hold down, this is true
+       * @property should_detect
+       * @private
+       * @type {Boolean}
+       */
+      shouldDetect: false,
+
+      /**
+       * simple event binder with a hook and support for multiple types
+       * @method on
+       * @param {HTMLElement} element
+       * @param {String} type
+       * @param {Function} handler
+       * @param {Function} [hook]
+       * @param {Object} hook.type
+       */
+      on: function on(element, type, handler, hook) {
+          var types = type.split(' ');
+          Utils.each(types, function(type) {
+              Utils.on(element, type, handler);
+              hook && hook(type);
+          });
+      },
+
+      /**
+       * simple event unbinder with a hook and support for multiple types
+       * @method off
+       * @param {HTMLElement} element
+       * @param {String} type
+       * @param {Function} handler
+       * @param {Function} [hook]
+       * @param {Object} hook.type
+       */
+      off: function off(element, type, handler, hook) {
+          var types = type.split(' ');
+          Utils.each(types, function(type) {
+              Utils.off(element, type, handler);
+              hook && hook(type);
+          });
+      },
+
+      /**
+       * the core touch event handler.
+       * this finds out if we should to detect gestures
+       * @method onTouch
+       * @param {HTMLElement} element
+       * @param {String} eventType matches `EVENT_START|MOVE|END`
+       * @param {Function} handler
+       * @return onTouchHandler {Function} the core event handler
+       */
+      onTouch: function onTouch(element, eventType, handler) {
+          var self = this;
+
+          var onTouchHandler = function onTouchHandler(ev) {
+              var srcType = ev.type.toLowerCase(),
+                  isPointer = Hammer.HAS_POINTEREVENTS,
+                  isMouse = Utils.inStr(srcType, 'mouse'),
+                  triggerType;
+
+              // if we are in a mouseevent, but there has been a touchevent triggered in this session
+              // we want to do nothing. simply break out of the event.
+              if(isMouse && self.preventMouseEvents) {
+                  return;
+
+              // mousebutton must be down
+              } else if(isMouse && eventType == EVENT_START && ev.button === 0) {
+                  self.preventMouseEvents = false;
+                  self.shouldDetect = true;
+              } else if(isPointer && eventType == EVENT_START) {
+                  self.shouldDetect = (ev.buttons === 1 || PointerEvent.matchType(POINTER_TOUCH, ev));
+              // just a valid start event, but no mouse
+              } else if(!isMouse && eventType == EVENT_START) {
+                  self.preventMouseEvents = true;
+                  self.shouldDetect = true;
+              }
+
+              // update the pointer event before entering the detection
+              if(isPointer && eventType != EVENT_END) {
+                  PointerEvent.updatePointer(eventType, ev);
+              }
+
+              // we are in a touch/down state, so allowed detection of gestures
+              if(self.shouldDetect) {
+                  triggerType = self.doDetect.call(self, ev, eventType, element, handler);
+              }
+
+              // ...and we are done with the detection
+              // so reset everything to start each detection totally fresh
+              if(triggerType == EVENT_END) {
+                  self.preventMouseEvents = false;
+                  self.shouldDetect = false;
+                  PointerEvent.reset();
+              // update the pointerevent object after the detection
+              }
+
+              if(isPointer && eventType == EVENT_END) {
+                  PointerEvent.updatePointer(eventType, ev);
+              }
+          };
+
+          this.on(element, EVENT_TYPES[eventType], onTouchHandler);
+          return onTouchHandler;
+      },
+
+      /**
+       * the core detection method
+       * this finds out what hammer-touch-events to trigger
+       * @method doDetect
+       * @param {Object} ev
+       * @param {String} eventType matches `EVENT_START|MOVE|END`
+       * @param {HTMLElement} element
+       * @param {Function} handler
+       * @return {String} triggerType matches `EVENT_START|MOVE|END`
+       */
+      doDetect: function doDetect(ev, eventType, element, handler) {
+          var touchList = this.getTouchList(ev, eventType);
+          var touchListLength = touchList.length;
+          var triggerType = eventType;
+          var triggerChange = touchList.trigger; // used by fakeMultitouch plugin
+          var changedLength = touchListLength;
+
+          // at each touchstart-like event we want also want to trigger a TOUCH event...
+          if(eventType == EVENT_START) {
+              triggerChange = EVENT_TOUCH;
+          // ...the same for a touchend-like event
+          } else if(eventType == EVENT_END) {
+              triggerChange = EVENT_RELEASE;
+
+              // keep track of how many touches have been removed
+              changedLength = touchList.length - ((ev.changedTouches) ? ev.changedTouches.length : 1);
+          }
+
+          // after there are still touches on the screen,
+          // we just want to trigger a MOVE event. so change the START or END to a MOVE
+          // but only after detection has been started, the first time we actualy want a START
+          if(changedLength > 0 && this.started) {
+              triggerType = EVENT_MOVE;
+          }
+
+          // detection has been started, we keep track of this, see above
+          this.started = true;
+
+          // generate some event data, some basic information
+          var evData = this.collectEventData(element, triggerType, touchList, ev);
+
+          // trigger the triggerType event before the change (TOUCH, RELEASE) events
+          // but the END event should be at last
+          if(eventType != EVENT_END) {
+              handler.call(Detection, evData);
+          }
+
+          // trigger a change (TOUCH, RELEASE) event, this means the length of the touches changed
+          if(triggerChange) {
+              evData.changedLength = changedLength;
+              evData.eventType = triggerChange;
+
+              handler.call(Detection, evData);
+
+              evData.eventType = triggerType;
+              delete evData.changedLength;
+          }
+
+          // trigger the END event
+          if(triggerType == EVENT_END) {
+              handler.call(Detection, evData);
+
+              // ...and we are done with the detection
+              // so reset everything to start each detection totally fresh
+              this.started = false;
+          }
+
+          return triggerType;
+      },
+
+      /**
+       * we have different events for each device/browser
+       * determine what we need and set them in the EVENT_TYPES constant
+       * the `onTouch` method is bind to these properties.
+       * @method determineEventTypes
+       * @return {Object} events
+       */
+      determineEventTypes: function determineEventTypes() {
+          var types;
+          if(Hammer.HAS_POINTEREVENTS) {
+              if(window.PointerEvent) {
+                  types = [
+                      'pointerdown',
+                      'pointermove',
+                      'pointerup pointercancel lostpointercapture'
+                  ];
+              } else {
+                  types = [
+                      'MSPointerDown',
+                      'MSPointerMove',
+                      'MSPointerUp MSPointerCancel MSLostPointerCapture'
+                  ];
+              }
+          } else if(Hammer.NO_MOUSEEVENTS) {
+              types = [
+                  'touchstart',
+                  'touchmove',
+                  'touchend touchcancel'
+              ];
+          } else {
+              types = [
+                  'touchstart mousedown',
+                  'touchmove mousemove',
+                  'touchend touchcancel mouseup'
+              ];
+          }
+
+          EVENT_TYPES[EVENT_START] = types[0];
+          EVENT_TYPES[EVENT_MOVE] = types[1];
+          EVENT_TYPES[EVENT_END] = types[2];
+          return EVENT_TYPES;
+      },
+
+      /**
+       * create touchList depending on the event
+       * @method getTouchList
+       * @param {Object} ev
+       * @param {String} eventType
+       * @return {Array} touches
+       */
+      getTouchList: function getTouchList(ev, eventType) {
+          // get the fake pointerEvent touchlist
+          if(Hammer.HAS_POINTEREVENTS) {
+              return PointerEvent.getTouchList();
+          }
+
+          // get the touchlist
+          if(ev.touches) {
+              if(eventType == EVENT_MOVE) {
+                  return ev.touches;
+              }
+
+              var identifiers = [];
+              var concat = [].concat(Utils.toArray(ev.touches), Utils.toArray(ev.changedTouches));
+              var touchList = [];
+
+              Utils.each(concat, function(touch) {
+                  if(Utils.inArray(identifiers, touch.identifier) === false) {
+                      touchList.push(touch);
+                  }
+                  identifiers.push(touch.identifier);
+              });
+
+              return touchList;
+          }
+
+          // make fake touchList from mouse position
+          ev.identifier = 1;
+          return [ev];
+      },
+
+      /**
+       * collect basic event data
+       * @method collectEventData
+       * @param {HTMLElement} element
+       * @param {String} eventType matches `EVENT_START|MOVE|END`
+       * @param {Array} touches
+       * @param {Object} ev
+       * @return {Object} ev
+       */
+      collectEventData: function collectEventData(element, eventType, touches, ev) {
+          // find out pointerType
+          var pointerType = POINTER_TOUCH;
+          if(Utils.inStr(ev.type, 'mouse') || PointerEvent.matchType(POINTER_MOUSE, ev)) {
+              pointerType = POINTER_MOUSE;
+          } else if(PointerEvent.matchType(POINTER_PEN, ev)) {
+              pointerType = POINTER_PEN;
+          }
+
+          return {
+              center: Utils.getCenter(touches),
+              timeStamp: Date.now(),
+              target: ev.target,
+              touches: touches,
+              eventType: eventType,
+              pointerType: pointerType,
+              srcEvent: ev,
+
+              /**
+               * prevent the browser default actions
+               * mostly used to disable scrolling of the browser
+               */
+              preventDefault: function() {
+                  var srcEvent = this.srcEvent;
+                  srcEvent.preventManipulation && srcEvent.preventManipulation();
+                  srcEvent.preventDefault && srcEvent.preventDefault();
+              },
+
+              /**
+               * stop bubbling the event up to its parents
+               */
+              stopPropagation: function() {
+                  this.srcEvent.stopPropagation();
+              },
+
+              /**
+               * immediately stop gesture detection
+               * might be useful after a swipe was detected
+               * @return {*}
+               */
+              stopDetect: function() {
+                  return Detection.stopDetect();
+              }
+          };
+      }
+  };
+
+
+  /**
+   * @module hammer
+   *
+   * @class PointerEvent
+   * @static
+   */
+  var PointerEvent = Hammer.PointerEvent = {
+      /**
+       * holds all pointers, by `identifier`
+       * @property pointers
+       * @type {Object}
+       */
+      pointers: {},
+
+      /**
+       * get the pointers as an array
+       * @method getTouchList
+       * @return {Array} touchlist
+       */
+      getTouchList: function getTouchList() {
+          var touchlist = [];
+          // we can use forEach since pointerEvents only is in IE10
+          Utils.each(this.pointers, function(pointer) {
+              touchlist.push(pointer);
+          });
+          return touchlist;
+      },
+
+      /**
+       * update the position of a pointer
+       * @method updatePointer
+       * @param {String} eventType matches `EVENT_START|MOVE|END`
+       * @param {Object} pointerEvent
+       */
+      updatePointer: function updatePointer(eventType, pointerEvent) {
+          if(eventType == EVENT_END || (eventType != EVENT_END && pointerEvent.buttons !== 1)) {
+              delete this.pointers[pointerEvent.pointerId];
+          } else {
+              pointerEvent.identifier = pointerEvent.pointerId;
+              this.pointers[pointerEvent.pointerId] = pointerEvent;
+          }
+      },
+
+      /**
+       * check if ev matches pointertype
+       * @method matchType
+       * @param {String} pointerType matches `POINTER_MOUSE|TOUCH|PEN`
+       * @param {PointerEvent} ev
+       */
+      matchType: function matchType(pointerType, ev) {
+          if(!ev.pointerType) {
+              return false;
+          }
+
+          var pt = ev.pointerType,
+              types = {};
+
+          types[POINTER_MOUSE] = (pt === (ev.MSPOINTER_TYPE_MOUSE || POINTER_MOUSE));
+          types[POINTER_TOUCH] = (pt === (ev.MSPOINTER_TYPE_TOUCH || POINTER_TOUCH));
+          types[POINTER_PEN] = (pt === (ev.MSPOINTER_TYPE_PEN || POINTER_PEN));
+          return types[pointerType];
+      },
+
+      /**
+       * reset the stored pointers
+       * @method reset
+       */
+      reset: function resetList() {
+          this.pointers = {};
+      }
+  };
+
+
+  /**
+   * @module hammer
+   *
+   * @class Detection
+   * @static
+   */
+  var Detection = Hammer.detection = {
+      // contains all registred Hammer.gestures in the correct order
+      gestures: [],
+
+      // data of the current Hammer.gesture detection session
+      current: null,
+
+      // the previous Hammer.gesture session data
+      // is a full clone of the previous gesture.current object
+      previous: null,
+
+      // when this becomes true, no gestures are fired
+      stopped: false,
+
+      /**
+       * start Hammer.gesture detection
+       * @method startDetect
+       * @param {Hammer.Instance} inst
+       * @param {Object} eventData
+       */
+      startDetect: function startDetect(inst, eventData) {
+          // already busy with a Hammer.gesture detection on an element
+          if(this.current) {
+              return;
+          }
+
+          this.stopped = false;
+
+          // holds current session
+          this.current = {
+              inst: inst, // reference to HammerInstance we're working for
+              startEvent: Utils.extend({}, eventData), // start eventData for distances, timing etc
+              lastEvent: false, // last eventData
+              lastCalcEvent: false, // last eventData for calculations.
+              futureCalcEvent: false, // last eventData for calculations.
+              lastCalcData: {}, // last lastCalcData
+              name: '' // current gesture we're in/detected, can be 'tap', 'hold' etc
+          };
+
+          this.detect(eventData);
+      },
+
+      /**
+       * Hammer.gesture detection
+       * @method detect
+       * @param {Object} eventData
+       * @return {any}
+       */
+      detect: function detect(eventData) {
+          if(!this.current || this.stopped) {
+              return;
+          }
+
+          // extend event data with calculations about scale, distance etc
+          eventData = this.extendEventData(eventData);
+
+          // hammer instance and instance options
+          var inst = this.current.inst,
+              instOptions = inst.options;
+
+          // call Hammer.gesture handlers
+          Utils.each(this.gestures, function triggerGesture(gesture) {
+              // only when the instance options have enabled this gesture
+              if(!this.stopped && inst.enabled && instOptions[gesture.name]) {
+                  gesture.handler.call(gesture, eventData, inst);
+              }
+          }, this);
+
+          // store as previous event event
+          if(this.current) {
+              this.current.lastEvent = eventData;
+          }
+
+          if(eventData.eventType == EVENT_END) {
+              this.stopDetect();
+          }
+
+          return eventData;
+      },
+
+      /**
+       * clear the Hammer.gesture vars
+       * this is called on endDetect, but can also be used when a final Hammer.gesture has been detected
+       * to stop other Hammer.gestures from being fired
+       * @method stopDetect
+       */
+      stopDetect: function stopDetect() {
+          // clone current data to the store as the previous gesture
+          // used for the double tap gesture, since this is an other gesture detect session
+          this.previous = Utils.extend({}, this.current);
+
+          // reset the current
+          this.current = null;
+          this.stopped = true;
+      },
+
+      /**
+       * calculate velocity, angle and direction
+       * @method getVelocityData
+       * @param {Object} ev
+       * @param {Object} center
+       * @param {Number} deltaTime
+       * @param {Number} deltaX
+       * @param {Number} deltaY
+       */
+      getCalculatedData: function getCalculatedData(ev, center, deltaTime, deltaX, deltaY) {
+          var cur = this.current,
+              recalc = false,
+              calcEv = cur.lastCalcEvent,
+              calcData = cur.lastCalcData;
+
+          if(calcEv && ev.timeStamp - calcEv.timeStamp > Hammer.CALCULATE_INTERVAL) {
+              center = calcEv.center;
+              deltaTime = ev.timeStamp - calcEv.timeStamp;
+              deltaX = ev.center.clientX - calcEv.center.clientX;
+              deltaY = ev.center.clientY - calcEv.center.clientY;
+              recalc = true;
+          }
+
+          if(ev.eventType == EVENT_TOUCH || ev.eventType == EVENT_RELEASE) {
+              cur.futureCalcEvent = ev;
+          }
+
+          if(!cur.lastCalcEvent || recalc) {
+              calcData.velocity = Utils.getVelocity(deltaTime, deltaX, deltaY);
+              calcData.angle = Utils.getAngle(center, ev.center);
+              calcData.direction = Utils.getDirection(center, ev.center);
+
+              cur.lastCalcEvent = cur.futureCalcEvent || ev;
+              cur.futureCalcEvent = ev;
+          }
+
+          ev.velocityX = calcData.velocity.x;
+          ev.velocityY = calcData.velocity.y;
+          ev.interimAngle = calcData.angle;
+          ev.interimDirection = calcData.direction;
+      },
+
+      /**
+       * extend eventData for Hammer.gestures
+       * @method extendEventData
+       * @param {Object} ev
+       * @return {Object} ev
+       */
+      extendEventData: function extendEventData(ev) {
+          var cur = this.current,
+              startEv = cur.startEvent,
+              lastEv = cur.lastEvent || startEv;
+
+          // update the start touchlist to calculate the scale/rotation
+          if(ev.eventType == EVENT_TOUCH || ev.eventType == EVENT_RELEASE) {
+              startEv.touches = [];
+              Utils.each(ev.touches, function(touch) {
+                  startEv.touches.push({
+                      clientX: touch.clientX,
+                      clientY: touch.clientY
+                  });
+              });
+          }
+
+          var deltaTime = ev.timeStamp - startEv.timeStamp,
+              deltaX = ev.center.clientX - startEv.center.clientX,
+              deltaY = ev.center.clientY - startEv.center.clientY;
+
+          this.getCalculatedData(ev, lastEv.center, deltaTime, deltaX, deltaY);
+
+          Utils.extend(ev, {
+              startEvent: startEv,
+
+              deltaTime: deltaTime,
+              deltaX: deltaX,
+              deltaY: deltaY,
+
+              distance: Utils.getDistance(startEv.center, ev.center),
+              angle: Utils.getAngle(startEv.center, ev.center),
+              direction: Utils.getDirection(startEv.center, ev.center),
+              scale: Utils.getScale(startEv.touches, ev.touches),
+              rotation: Utils.getRotation(startEv.touches, ev.touches)
+          });
+
+          return ev;
+      },
+
+      /**
+       * register new gesture
+       * @method register
+       * @param {Object} gesture object, see `gestures/` for documentation
+       * @return {Array} gestures
+       */
+      register: function register(gesture) {
+          // add an enable gesture options if there is no given
+          var options = gesture.defaults || {};
+          if(options[gesture.name] === undefined) {
+              options[gesture.name] = true;
+          }
+
+          // extend Hammer default options with the Hammer.gesture options
+          Utils.extend(Hammer.defaults, options, true);
+
+          // set its index
+          gesture.index = gesture.index || 1000;
+
+          // add Hammer.gesture to the list
+          this.gestures.push(gesture);
+
+          // sort the list by index
+          this.gestures.sort(function(a, b) {
+              if(a.index < b.index) {
+                  return -1;
+              }
+              if(a.index > b.index) {
+                  return 1;
+              }
+              return 0;
+          });
+
+          return this.gestures;
+      }
+  };
+
+
+  /**
+   * @module hammer
+   */
+
+  /**
+   * create new hammer instance
+   * all methods should return the instance itself, so it is chainable.
+   *
+   * @class Instance
+   * @constructor
+   * @param {HTMLElement} element
+   * @param {Object} [options={}] options are merged with `Hammer.defaults`
+   * @return {Hammer.Instance}
+   */
+  Hammer.Instance = function(element, options) {
+      var self = this;
+
+      // setup HammerJS window events and register all gestures
+      // this also sets up the default options
+      setup();
+
+      /**
+       * @property element
+       * @type {HTMLElement}
+       */
+      this.element = element;
+
+      /**
+       * @property enabled
+       * @type {Boolean}
+       * @protected
+       */
+      this.enabled = true;
+
+      /**
+       * options, merged with the defaults
+       * options with an _ are converted to camelCase
+       * @property options
+       * @type {Object}
+       */
+      Utils.each(options, function(value, name) {
+          delete options[name];
+          options[Utils.toCamelCase(name)] = value;
+      });
+
+      this.options = Utils.extend(Utils.extend({}, Hammer.defaults), options || {});
+
+      // add some css to the element to prevent the browser from doing its native behavoir
+      if(this.options.behavior) {
+          Utils.toggleBehavior(this.element, this.options.behavior, true);
+      }
+
+      /**
+       * event start handler on the element to start the detection
+       * @property eventStartHandler
+       * @type {Object}
+       */
+      this.eventStartHandler = Event.onTouch(element, EVENT_START, function(ev) {
+          if(self.enabled && ev.eventType == EVENT_START) {
+              Detection.startDetect(self, ev);
+          } else if(ev.eventType == EVENT_TOUCH) {
+              Detection.detect(ev);
+          }
+      });
+
+      /**
+       * keep a list of user event handlers which needs to be removed when calling 'dispose'
+       * @property eventHandlers
+       * @type {Array}
+       */
+      this.eventHandlers = [];
+  };
+
+  Hammer.Instance.prototype = {
+      /**
+       * bind events to the instance
+       * @method on
+       * @chainable
+       * @param {String} gestures multiple gestures by splitting with a space
+       * @param {Function} handler
+       * @param {Object} handler.ev event object
+       */
+      on: function onEvent(gestures, handler) {
+          var self = this;
+          Event.on(self.element, gestures, handler, function(type) {
+              self.eventHandlers.push({ gesture: type, handler: handler });
+          });
+          return self;
+      },
+
+      /**
+       * unbind events to the instance
+       * @method off
+       * @chainable
+       * @param {String} gestures
+       * @param {Function} handler
+       */
+      off: function offEvent(gestures, handler) {
+          var self = this;
+
+          Event.off(self.element, gestures, handler, function(type) {
+              var index = Utils.inArray({ gesture: type, handler: handler });
+              if(index !== false) {
+                  self.eventHandlers.splice(index, 1);
+              }
+          });
+          return self;
+      },
+
+      /**
+       * trigger gesture event
+       * @method trigger
+       * @chainable
+       * @param {String} gesture
+       * @param {Object} [eventData]
+       */
+      trigger: function triggerEvent(gesture, eventData) {
+          // optional
+          if(!eventData) {
+              eventData = {};
+          }
+
+          // create DOM event
+          var event = Hammer.DOCUMENT.createEvent('Event');
+          event.initEvent(gesture, true, true);
+          event.gesture = eventData;
+
+          // trigger on the target if it is in the instance element,
+          // this is for event delegation tricks
+          var element = this.element;
+          if(Utils.hasParent(eventData.target, element)) {
+              element = eventData.target;
+          }
+
+          element.dispatchEvent(event);
+          return this;
+      },
+
+      /**
+       * enable of disable hammer.js detection
+       * @method enable
+       * @chainable
+       * @param {Boolean} state
+       */
+      enable: function enable(state) {
+          this.enabled = state;
+          return this;
+      },
+
+      /**
+       * dispose this hammer instance
+       * @method dispose
+       * @return {Null}
+       */
+      dispose: function dispose() {
+          var i, eh;
+
+          // undo all changes made by stop_browser_behavior
+          Utils.toggleBehavior(this.element, this.options.behavior, false);
+
+          // unbind all custom event handlers
+          for(i = -1; (eh = this.eventHandlers[++i]);) {
+              Utils.off(this.element, eh.gesture, eh.handler);
+          }
+
+          this.eventHandlers = [];
+
+          // unbind the start event listener
+          Event.off(this.element, EVENT_TYPES[EVENT_START], this.eventStartHandler);
+
+          return null;
+      }
+  };
+
+
+  /**
+   * @module gestures
+   */
+  /**
+   * Move with x fingers (default 1) around on the page.
+   * Preventing the default browser behavior is a good way to improve feel and working.
+   * ````
+   *  hammertime.on("drag", function(ev) {
+   *    console.log(ev);
+   *    ev.gesture.preventDefault();
+   *  });
+   * ````
+   *
+   * @class Drag
+   * @static
+   */
+  /**
+   * @event drag
+   * @param {Object} ev
+   */
+  /**
+   * @event dragstart
+   * @param {Object} ev
+   */
+  /**
+   * @event dragend
+   * @param {Object} ev
+   */
+  /**
+   * @event drapleft
+   * @param {Object} ev
+   */
+  /**
+   * @event dragright
+   * @param {Object} ev
+   */
+  /**
+   * @event dragup
+   * @param {Object} ev
+   */
+  /**
+   * @event dragdown
+   * @param {Object} ev
+   */
+
+  /**
+   * @param {String} name
+   */
+  (function(name) {
+      var triggered = false;
+
+      function dragGesture(ev, inst) {
+          var cur = Detection.current;
+
+          // max touches
+          if(inst.options.dragMaxTouches > 0 &&
+              ev.touches.length > inst.options.dragMaxTouches) {
+              return;
+          }
+
+          switch(ev.eventType) {
+              case EVENT_START:
+                  triggered = false;
+                  break;
+
+              case EVENT_MOVE:
+                  // when the distance we moved is too small we skip this gesture
+                  // or we can be already in dragging
+                  if(ev.distance < inst.options.dragMinDistance &&
+                      cur.name != name) {
+                      return;
+                  }
+
+                  var startCenter = cur.startEvent.center;
+
+                  // we are dragging!
+                  if(cur.name != name) {
+                      cur.name = name;
+                      if(inst.options.dragDistanceCorrection && ev.distance > 0) {
+                          // When a drag is triggered, set the event center to dragMinDistance pixels from the original event center.
+                          // Without this correction, the dragged distance would jumpstart at dragMinDistance pixels instead of at 0.
+                          // It might be useful to save the original start point somewhere
+                          var factor = Math.abs(inst.options.dragMinDistance / ev.distance);
+                          startCenter.pageX += ev.deltaX * factor;
+                          startCenter.pageY += ev.deltaY * factor;
+                          startCenter.clientX += ev.deltaX * factor;
+                          startCenter.clientY += ev.deltaY * factor;
+
+                          // recalculate event data using new start point
+                          ev = Detection.extendEventData(ev);
+                      }
+                  }
+
+                  // lock drag to axis?
+                  if(cur.lastEvent.dragLockToAxis ||
+                      ( inst.options.dragLockToAxis &&
+                          inst.options.dragLockMinDistance <= ev.distance
+                          )) {
+                      ev.dragLockToAxis = true;
+                  }
+
+                  // keep direction on the axis that the drag gesture started on
+                  var lastDirection = cur.lastEvent.direction;
+                  if(ev.dragLockToAxis && lastDirection !== ev.direction) {
+                      if(Utils.isVertical(lastDirection)) {
+                          ev.direction = (ev.deltaY < 0) ? DIRECTION_UP : DIRECTION_DOWN;
+                      } else {
+                          ev.direction = (ev.deltaX < 0) ? DIRECTION_LEFT : DIRECTION_RIGHT;
+                      }
+                  }
+
+                  // first time, trigger dragstart event
+                  if(!triggered) {
+                      inst.trigger(name + 'start', ev);
+                      triggered = true;
+                  }
+
+                  // trigger events
+                  inst.trigger(name, ev);
+                  inst.trigger(name + ev.direction, ev);
+
+                  var isVertical = Utils.isVertical(ev.direction);
+
+                  // block the browser events
+                  if((inst.options.dragBlockVertical && isVertical) ||
+                      (inst.options.dragBlockHorizontal && !isVertical)) {
+                      ev.preventDefault();
+                  }
+                  break;
+
+              case EVENT_RELEASE:
+                  if(triggered && ev.changedLength <= inst.options.dragMaxTouches) {
+                      inst.trigger(name + 'end', ev);
+                      triggered = false;
+                  }
+                  break;
+
+              case EVENT_END:
+                  triggered = false;
+                  break;
+          }
+      }
+
+      Hammer.gestures.Drag = {
+          name: name,
+          index: 50,
+          handler: dragGesture,
+          defaults: {
+              /**
+               * minimal movement that have to be made before the drag event gets triggered
+               * @property dragMinDistance
+               * @type {Number}
+               * @default 10
+               */
+              dragMinDistance: 10,
+
+              /**
+               * Set dragDistanceCorrection to true to make the starting point of the drag
+               * be calculated from where the drag was triggered, not from where the touch started.
+               * Useful to avoid a jerk-starting drag, which can make fine-adjustments
+               * through dragging difficult, and be visually unappealing.
+               * @property dragDistanceCorrection
+               * @type {Boolean}
+               * @default true
+               */
+              dragDistanceCorrection: true,
+
+              /**
+               * set 0 for unlimited, but this can conflict with transform
+               * @property dragMaxTouches
+               * @type {Number}
+               * @default 1
+               */
+              dragMaxTouches: 1,
+
+              /**
+               * prevent default browser behavior when dragging occurs
+               * be careful with it, it makes the element a blocking element
+               * when you are using the drag gesture, it is a good practice to set this true
+               * @property dragBlockHorizontal
+               * @type {Boolean}
+               * @default false
+               */
+              dragBlockHorizontal: false,
+
+              /**
+               * same as `dragBlockHorizontal`, but for vertical movement
+               * @property dragBlockVertical
+               * @type {Boolean}
+               * @default false
+               */
+              dragBlockVertical: false,
+
+              /**
+               * dragLockToAxis keeps the drag gesture on the axis that it started on,
+               * It disallows vertical directions if the initial direction was horizontal, and vice versa.
+               * @property dragLockToAxis
+               * @type {Boolean}
+               * @default false
+               */
+              dragLockToAxis: false,
+
+              /**
+               * drag lock only kicks in when distance > dragLockMinDistance
+               * This way, locking occurs only when the distance has become large enough to reliably determine the direction
+               * @property dragLockMinDistance
+               * @type {Number}
+               * @default 25
+               */
+              dragLockMinDistance: 25
+          }
+      };
+  })('drag');
+
+  /**
+   * @module gestures
+   */
+  /**
+   * trigger a simple gesture event, so you can do anything in your handler.
+   * only usable if you know what your doing...
+   *
+   * @class Gesture
+   * @static
+   */
+  /**
+   * @event gesture
+   * @param {Object} ev
+   */
+  Hammer.gestures.Gesture = {
+      name: 'gesture',
+      index: 1337,
+      handler: function releaseGesture(ev, inst) {
+          inst.trigger(this.name, ev);
+      }
+  };
+
+  /**
+   * @module gestures
+   */
+  /**
+   * Touch stays at the same place for x time
+   *
+   * @class Hold
+   * @static
+   */
+  /**
+   * @event hold
+   * @param {Object} ev
+   */
+
+  /**
+   * @param {String} name
+   */
+  (function(name) {
+      var timer;
+
+      function holdGesture(ev, inst) {
+          var options = inst.options,
+              current = Detection.current;
+
+          switch(ev.eventType) {
+              case EVENT_START:
+                  clearTimeout(timer);
+
+                  // set the gesture so we can check in the timeout if it still is
+                  current.name = name;
+
+                  // set timer and if after the timeout it still is hold,
+                  // we trigger the hold event
+                  timer = setTimeout(function() {
+                      if(current && current.name == name) {
+                          inst.trigger(name, ev);
+                      }
+                  }, options.holdTimeout);
+                  break;
+
+              case EVENT_MOVE:
+                  if(ev.distance > options.holdThreshold) {
+                      clearTimeout(timer);
+                  }
+                  break;
+
+              case EVENT_RELEASE:
+                  clearTimeout(timer);
+                  break;
+          }
+      }
+
+      Hammer.gestures.Hold = {
+          name: name,
+          index: 10,
+          defaults: {
+              /**
+               * @property holdTimeout
+               * @type {Number}
+               * @default 500
+               */
+              holdTimeout: 500,
+
+              /**
+               * movement allowed while holding
+               * @property holdThreshold
+               * @type {Number}
+               * @default 2
+               */
+              holdThreshold: 2
+          },
+          handler: holdGesture
+      };
+  })('hold');
+
+  /**
+   * @module gestures
+   */
+  /**
+   * when a touch is being released from the page
+   *
+   * @class Release
+   * @static
+   */
+  /**
+   * @event release
+   * @param {Object} ev
+   */
+  Hammer.gestures.Release = {
+      name: 'release',
+      index: Infinity,
+      handler: function releaseGesture(ev, inst) {
+          if(ev.eventType == EVENT_RELEASE) {
+              inst.trigger(this.name, ev);
+          }
+      }
+  };
+
+  /**
+   * @module gestures
+   */
+  /**
+   * triggers swipe events when the end velocity is above the threshold
+   * for best usage, set `preventDefault` (on the drag gesture) to `true`
+   * ````
+   *  hammertime.on("dragleft swipeleft", function(ev) {
+   *    console.log(ev);
+   *    ev.gesture.preventDefault();
+   *  });
+   * ````
+   *
+   * @class Swipe
+   * @static
+   */
+  /**
+   * @event swipe
+   * @param {Object} ev
+   */
+  /**
+   * @event swipeleft
+   * @param {Object} ev
+   */
+  /**
+   * @event swiperight
+   * @param {Object} ev
+   */
+  /**
+   * @event swipeup
+   * @param {Object} ev
+   */
+  /**
+   * @event swipedown
+   * @param {Object} ev
+   */
+  Hammer.gestures.Swipe = {
+      name: 'swipe',
+      index: 40,
+      defaults: {
+          /**
+           * @property swipeMinTouches
+           * @type {Number}
+           * @default 1
+           */
+          swipeMinTouches: 1,
+
+          /**
+           * @property swipeMaxTouches
+           * @type {Number}
+           * @default 1
+           */
+          swipeMaxTouches: 1,
+
+          /**
+           * horizontal swipe velocity
+           * @property swipeVelocityX
+           * @type {Number}
+           * @default 0.6
+           */
+          swipeVelocityX: 0.6,
+
+          /**
+           * vertical swipe velocity
+           * @property swipeVelocityY
+           * @type {Number}
+           * @default 0.6
+           */
+          swipeVelocityY: 0.6
+      },
+
+      handler: function swipeGesture(ev, inst) {
+          if(ev.eventType == EVENT_RELEASE) {
+              var touches = ev.touches.length,
+                  options = inst.options;
+
+              // max touches
+              if(touches < options.swipeMinTouches ||
+                  touches > options.swipeMaxTouches) {
+                  return;
+              }
+
+              // when the distance we moved is too small we skip this gesture
+              // or we can be already in dragging
+              if(ev.velocityX > options.swipeVelocityX ||
+                  ev.velocityY > options.swipeVelocityY) {
+                  // trigger swipe events
+                  inst.trigger(this.name, ev);
+                  inst.trigger(this.name + ev.direction, ev);
+              }
+          }
+      }
+  };
+
+  /**
+   * @module gestures
+   */
+  /**
+   * Single tap and a double tap on a place
+   *
+   * @class Tap
+   * @static
+   */
+  /**
+   * @event tap
+   * @param {Object} ev
+   */
+  /**
+   * @event doubletap
+   * @param {Object} ev
+   */
+
+  /**
+   * @param {String} name
+   */
+  (function(name) {
+      var hasMoved = false;
+
+      function tapGesture(ev, inst) {
+          var options = inst.options,
+              current = Detection.current,
+              prev = Detection.previous,
+              sincePrev,
+              didDoubleTap;
+
+          switch(ev.eventType) {
+              case EVENT_START:
+                  hasMoved = false;
+                  break;
+
+              case EVENT_MOVE:
+                  hasMoved = hasMoved || (ev.distance > options.tapMaxDistance);
+                  break;
+
+              case EVENT_END:
+                  if(!Utils.inStr(ev.srcEvent.type, 'cancel') && ev.deltaTime < options.tapMaxTime && !hasMoved) {
+                      // previous gesture, for the double tap since these are two different gesture detections
+                      sincePrev = prev && prev.lastEvent && ev.timeStamp - prev.lastEvent.timeStamp;
+                      didDoubleTap = false;
+
+                      // check if double tap
+                      if(prev && prev.name == name &&
+                          (sincePrev && sincePrev < options.doubleTapInterval) &&
+                          ev.distance < options.doubleTapDistance) {
+                          inst.trigger('doubletap', ev);
+                          didDoubleTap = true;
+                      }
+
+                      // do a single tap
+                      if(!didDoubleTap || options.tapAlways) {
+                          current.name = name;
+                          inst.trigger(current.name, ev);
+                      }
+                  }
+                  break;
+          }
+      }
+
+      Hammer.gestures.Tap = {
+          name: name,
+          index: 100,
+          handler: tapGesture,
+          defaults: {
+              /**
+               * max time of a tap, this is for the slow tappers
+               * @property tapMaxTime
+               * @type {Number}
+               * @default 250
+               */
+              tapMaxTime: 250,
+
+              /**
+               * max distance of movement of a tap, this is for the slow tappers
+               * @property tapMaxDistance
+               * @type {Number}
+               * @default 10
+               */
+              tapMaxDistance: 10,
+
+              /**
+               * always trigger the `tap` event, even while double-tapping
+               * @property tapAlways
+               * @type {Boolean}
+               * @default true
+               */
+              tapAlways: true,
+
+              /**
+               * max distance between two taps
+               * @property doubleTapDistance
+               * @type {Number}
+               * @default 20
+               */
+              doubleTapDistance: 20,
+
+              /**
+               * max time between two taps
+               * @property doubleTapInterval
+               * @type {Number}
+               * @default 300
+               */
+              doubleTapInterval: 300
+          }
+      };
+  })('tap');
+
+  /**
+   * @module gestures
+   */
+  /**
+   * when a touch is being touched at the page
+   *
+   * @class Touch
+   * @static
+   */
+  /**
+   * @event touch
+   * @param {Object} ev
+   */
+  Hammer.gestures.Touch = {
+      name: 'touch',
+      index: -Infinity,
+      defaults: {
+          /**
+           * call preventDefault at touchstart, and makes the element blocking by disabling the scrolling of the page,
+           * but it improves gestures like transforming and dragging.
+           * be careful with using this, it can be very annoying for users to be stuck on the page
+           * @property preventDefault
+           * @type {Boolean}
+           * @default false
+           */
+          preventDefault: false,
+
+          /**
+           * disable mouse events, so only touch (or pen!) input triggers events
+           * @property preventMouse
+           * @type {Boolean}
+           * @default false
+           */
+          preventMouse: false
+      },
+      handler: function touchGesture(ev, inst) {
+          if(inst.options.preventMouse && ev.pointerType == POINTER_MOUSE) {
+              ev.stopDetect();
+              return;
+          }
+
+          if(inst.options.preventDefault) {
+              ev.preventDefault();
+          }
+
+          if(ev.eventType == EVENT_TOUCH) {
+              inst.trigger('touch', ev);
+          }
+      }
+  };
+
+  /**
+   * @module gestures
+   */
+  /**
+   * User want to scale or rotate with 2 fingers
+   * Preventing the default browser behavior is a good way to improve feel and working. This can be done with the
+   * `preventDefault` option.
+   *
+   * @class Transform
+   * @static
+   */
+  /**
+   * @event transform
+   * @param {Object} ev
+   */
+  /**
+   * @event transformstart
+   * @param {Object} ev
+   */
+  /**
+   * @event transformend
+   * @param {Object} ev
+   */
+  /**
+   * @event pinchin
+   * @param {Object} ev
+   */
+  /**
+   * @event pinchout
+   * @param {Object} ev
+   */
+  /**
+   * @event rotate
+   * @param {Object} ev
+   */
+
+  /**
+   * @param {String} name
+   */
+  (function(name) {
+      var triggered = false;
+
+      function transformGesture(ev, inst) {
+          switch(ev.eventType) {
+              case EVENT_START:
+                  triggered = false;
+                  break;
+
+              case EVENT_MOVE:
+                  // at least multitouch
+                  if(ev.touches.length < 2) {
+                      return;
+                  }
+
+                  var scaleThreshold = Math.abs(1 - ev.scale);
+                  var rotationThreshold = Math.abs(ev.rotation);
+
+                  // when the distance we moved is too small we skip this gesture
+                  // or we can be already in dragging
+                  if(scaleThreshold < inst.options.transformMinScale &&
+                      rotationThreshold < inst.options.transformMinRotation) {
+                      return;
+                  }
+
+                  // we are transforming!
+                  Detection.current.name = name;
+
+                  // first time, trigger dragstart event
+                  if(!triggered) {
+                      inst.trigger(name + 'start', ev);
+                      triggered = true;
+                  }
+
+                  inst.trigger(name, ev); // basic transform event
+
+                  // trigger rotate event
+                  if(rotationThreshold > inst.options.transformMinRotation) {
+                      inst.trigger('rotate', ev);
+                  }
+
+                  // trigger pinch event
+                  if(scaleThreshold > inst.options.transformMinScale) {
+                      inst.trigger('pinch', ev);
+                      inst.trigger('pinch' + (ev.scale < 1 ? 'in' : 'out'), ev);
+                  }
+                  break;
+
+              case EVENT_RELEASE:
+                  if(triggered && ev.changedLength < 2) {
+                      inst.trigger(name + 'end', ev);
+                      triggered = false;
+                  }
+                  break;
+          }
+      }
+
+      Hammer.gestures.Transform = {
+          name: name,
+          index: 45,
+          defaults: {
+              /**
+               * minimal scale factor, no scale is 1, zoomin is to 0 and zoomout until higher then 1
+               * @property transformMinScale
+               * @type {Number}
+               * @default 0.01
+               */
+              transformMinScale: 0.01,
+
+              /**
+               * rotation in degrees
+               * @property transformMinRotation
+               * @type {Number}
+               * @default 1
+               */
+              transformMinRotation: 1
+          },
+
+          handler: transformGesture
+      };
+  })('transform');
+
+  /**
+   * @module hammer
+   */
+
+  // AMD export
+  if(true) {
+      !(__WEBPACK_AMD_DEFINE_RESULT__ = (function() {
+          return Hammer;
+      }.call(exports, __webpack_require__, exports, module)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+  // commonjs export
+  } else if(typeof module !== 'undefined' && module.exports) {
+      module.exports = Hammer;
+  // browser export
+  } else {
+      window.Hammer = Hammer;
+  }
+
+  })(window);
+
+/***/ },
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global, module) {//! moment.js
@@ -26793,7 +28968,7 @@ return /******/ (function(modules) { // webpackBootstrap
               get = function (k) {
                   if (!languages[k] && hasModule) {
                       try {
-                          __webpack_require__(57)("./" + k);
+                          __webpack_require__(58)("./" + k);
                       } catch (e) { }
                   }
                   return languages[k];
@@ -28532,1436 +30707,10 @@ return /******/ (function(modules) { // webpackBootstrap
       }
   }).call(this);
   
-  /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(132)(module)))
+  /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(133)(module)))
 
 /***/ },
-/* 53 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /*! Hammer.JS - v1.0.5 - 2013-04-07
-   * http://eightmedia.github.com/hammer.js
-   *
-   * Copyright (c) 2013 Jorik Tangelder <j.tangelder@gmail.com>;
-   * Licensed under the MIT license */
-
-  (function(window, undefined) {
-      'use strict';
-
-  /**
-   * Hammer
-   * use this to create instances
-   * @param   {HTMLElement}   element
-   * @param   {Object}        options
-   * @returns {Hammer.Instance}
-   * @constructor
-   */
-  var Hammer = function(element, options) {
-      return new Hammer.Instance(element, options || {});
-  };
-
-  // default settings
-  Hammer.defaults = {
-      // add styles and attributes to the element to prevent the browser from doing
-      // its native behavior. this doesnt prevent the scrolling, but cancels
-      // the contextmenu, tap highlighting etc
-      // set to false to disable this
-      stop_browser_behavior: {
-  		// this also triggers onselectstart=false for IE
-          userSelect: 'none',
-  		// this makes the element blocking in IE10 >, you could experiment with the value
-  		// see for more options this issue; https://github.com/EightMedia/hammer.js/issues/241
-          touchAction: 'none',
-  		touchCallout: 'none',
-          contentZooming: 'none',
-          userDrag: 'none',
-          tapHighlightColor: 'rgba(0,0,0,0)'
-      }
-
-      // more settings are defined per gesture at gestures.js
-  };
-
-  // detect touchevents
-  Hammer.HAS_POINTEREVENTS = navigator.pointerEnabled || navigator.msPointerEnabled;
-  Hammer.HAS_TOUCHEVENTS = ('ontouchstart' in window);
-
-  // dont use mouseevents on mobile devices
-  Hammer.MOBILE_REGEX = /mobile|tablet|ip(ad|hone|od)|android/i;
-  Hammer.NO_MOUSEEVENTS = Hammer.HAS_TOUCHEVENTS && navigator.userAgent.match(Hammer.MOBILE_REGEX);
-
-  // eventtypes per touchevent (start, move, end)
-  // are filled by Hammer.event.determineEventTypes on setup
-  Hammer.EVENT_TYPES = {};
-
-  // direction defines
-  Hammer.DIRECTION_DOWN = 'down';
-  Hammer.DIRECTION_LEFT = 'left';
-  Hammer.DIRECTION_UP = 'up';
-  Hammer.DIRECTION_RIGHT = 'right';
-
-  // pointer type
-  Hammer.POINTER_MOUSE = 'mouse';
-  Hammer.POINTER_TOUCH = 'touch';
-  Hammer.POINTER_PEN = 'pen';
-
-  // touch event defines
-  Hammer.EVENT_START = 'start';
-  Hammer.EVENT_MOVE = 'move';
-  Hammer.EVENT_END = 'end';
-
-  // hammer document where the base events are added at
-  Hammer.DOCUMENT = document;
-
-  // plugins namespace
-  Hammer.plugins = {};
-
-  // if the window events are set...
-  Hammer.READY = false;
-
-  /**
-   * setup events to detect gestures on the document
-   */
-  function setup() {
-      if(Hammer.READY) {
-          return;
-      }
-
-      // find what eventtypes we add listeners to
-      Hammer.event.determineEventTypes();
-
-      // Register all gestures inside Hammer.gestures
-      for(var name in Hammer.gestures) {
-          if(Hammer.gestures.hasOwnProperty(name)) {
-              Hammer.detection.register(Hammer.gestures[name]);
-          }
-      }
-
-      // Add touch events on the document
-      Hammer.event.onTouch(Hammer.DOCUMENT, Hammer.EVENT_MOVE, Hammer.detection.detect);
-      Hammer.event.onTouch(Hammer.DOCUMENT, Hammer.EVENT_END, Hammer.detection.detect);
-
-      // Hammer is ready...!
-      Hammer.READY = true;
-  }
-
-  /**
-   * create new hammer instance
-   * all methods should return the instance itself, so it is chainable.
-   * @param   {HTMLElement}       element
-   * @param   {Object}            [options={}]
-   * @returns {Hammer.Instance}
-   * @constructor
-   */
-  Hammer.Instance = function(element, options) {
-      var self = this;
-
-      // setup HammerJS window events and register all gestures
-      // this also sets up the default options
-      setup();
-
-      this.element = element;
-
-      // start/stop detection option
-      this.enabled = true;
-
-      // merge options
-      this.options = Hammer.utils.extend(
-          Hammer.utils.extend({}, Hammer.defaults),
-          options || {});
-
-      // add some css to the element to prevent the browser from doing its native behavoir
-      if(this.options.stop_browser_behavior) {
-          Hammer.utils.stopDefaultBrowserBehavior(this.element, this.options.stop_browser_behavior);
-      }
-
-      // start detection on touchstart
-      Hammer.event.onTouch(element, Hammer.EVENT_START, function(ev) {
-          if(self.enabled) {
-              Hammer.detection.startDetect(self, ev);
-          }
-      });
-
-      // return instance
-      return this;
-  };
-
-
-  Hammer.Instance.prototype = {
-      /**
-       * bind events to the instance
-       * @param   {String}      gesture
-       * @param   {Function}    handler
-       * @returns {Hammer.Instance}
-       */
-      on: function onEvent(gesture, handler){
-          var gestures = gesture.split(' ');
-          for(var t=0; t<gestures.length; t++) {
-              this.element.addEventListener(gestures[t], handler, false);
-          }
-          return this;
-      },
-
-
-      /**
-       * unbind events to the instance
-       * @param   {String}      gesture
-       * @param   {Function}    handler
-       * @returns {Hammer.Instance}
-       */
-      off: function offEvent(gesture, handler){
-          var gestures = gesture.split(' ');
-          for(var t=0; t<gestures.length; t++) {
-              this.element.removeEventListener(gestures[t], handler, false);
-          }
-          return this;
-      },
-
-
-      /**
-       * trigger gesture event
-       * @param   {String}      gesture
-       * @param   {Object}      eventData
-       * @returns {Hammer.Instance}
-       */
-      trigger: function triggerEvent(gesture, eventData){
-          // create DOM event
-          var event = Hammer.DOCUMENT.createEvent('Event');
-  		event.initEvent(gesture, true, true);
-  		event.gesture = eventData;
-
-          // trigger on the target if it is in the instance element,
-          // this is for event delegation tricks
-          var element = this.element;
-          if(Hammer.utils.hasParent(eventData.target, element)) {
-              element = eventData.target;
-          }
-
-          element.dispatchEvent(event);
-          return this;
-      },
-
-
-      /**
-       * enable of disable hammer.js detection
-       * @param   {Boolean}   state
-       * @returns {Hammer.Instance}
-       */
-      enable: function enable(state) {
-          this.enabled = state;
-          return this;
-      }
-  };
-
-  /**
-   * this holds the last move event,
-   * used to fix empty touchend issue
-   * see the onTouch event for an explanation
-   * @type {Object}
-   */
-  var last_move_event = null;
-
-
-  /**
-   * when the mouse is hold down, this is true
-   * @type {Boolean}
-   */
-  var enable_detect = false;
-
-
-  /**
-   * when touch events have been fired, this is true
-   * @type {Boolean}
-   */
-  var touch_triggered = false;
-
-
-  Hammer.event = {
-      /**
-       * simple addEventListener
-       * @param   {HTMLElement}   element
-       * @param   {String}        type
-       * @param   {Function}      handler
-       */
-      bindDom: function(element, type, handler) {
-          var types = type.split(' ');
-          for(var t=0; t<types.length; t++) {
-              element.addEventListener(types[t], handler, false);
-          }
-      },
-
-
-      /**
-       * touch events with mouse fallback
-       * @param   {HTMLElement}   element
-       * @param   {String}        eventType        like Hammer.EVENT_MOVE
-       * @param   {Function}      handler
-       */
-      onTouch: function onTouch(element, eventType, handler) {
-  		var self = this;
-
-          this.bindDom(element, Hammer.EVENT_TYPES[eventType], function bindDomOnTouch(ev) {
-              var sourceEventType = ev.type.toLowerCase();
-
-              // onmouseup, but when touchend has been fired we do nothing.
-              // this is for touchdevices which also fire a mouseup on touchend
-              if(sourceEventType.match(/mouse/) && touch_triggered) {
-                  return;
-              }
-
-              // mousebutton must be down or a touch event
-              else if( sourceEventType.match(/touch/) ||   // touch events are always on screen
-                  sourceEventType.match(/pointerdown/) || // pointerevents touch
-                  (sourceEventType.match(/mouse/) && ev.which === 1)   // mouse is pressed
-              ){
-                  enable_detect = true;
-              }
-
-              // we are in a touch event, set the touch triggered bool to true,
-              // this for the conflicts that may occur on ios and android
-              if(sourceEventType.match(/touch|pointer/)) {
-                  touch_triggered = true;
-              }
-
-              // count the total touches on the screen
-              var count_touches = 0;
-
-              // when touch has been triggered in this detection session
-              // and we are now handling a mouse event, we stop that to prevent conflicts
-              if(enable_detect) {
-                  // update pointerevent
-                  if(Hammer.HAS_POINTEREVENTS && eventType != Hammer.EVENT_END) {
-                      count_touches = Hammer.PointerEvent.updatePointer(eventType, ev);
-                  }
-                  // touch
-                  else if(sourceEventType.match(/touch/)) {
-                      count_touches = ev.touches.length;
-                  }
-                  // mouse
-                  else if(!touch_triggered) {
-                      count_touches = sourceEventType.match(/up/) ? 0 : 1;
-                  }
-
-                  // if we are in a end event, but when we remove one touch and
-                  // we still have enough, set eventType to move
-                  if(count_touches > 0 && eventType == Hammer.EVENT_END) {
-                      eventType = Hammer.EVENT_MOVE;
-                  }
-                  // no touches, force the end event
-                  else if(!count_touches) {
-                      eventType = Hammer.EVENT_END;
-                  }
-
-                  // because touchend has no touches, and we often want to use these in our gestures,
-                  // we send the last move event as our eventData in touchend
-                  if(!count_touches && last_move_event !== null) {
-                      ev = last_move_event;
-                  }
-                  // store the last move event
-                  else {
-                      last_move_event = ev;
-                  }
-
-                  // trigger the handler
-                  handler.call(Hammer.detection, self.collectEventData(element, eventType, ev));
-
-                  // remove pointerevent from list
-                  if(Hammer.HAS_POINTEREVENTS && eventType == Hammer.EVENT_END) {
-                      count_touches = Hammer.PointerEvent.updatePointer(eventType, ev);
-                  }
-              }
-
-              //debug(sourceEventType +" "+ eventType);
-
-              // on the end we reset everything
-              if(!count_touches) {
-                  last_move_event = null;
-                  enable_detect = false;
-                  touch_triggered = false;
-                  Hammer.PointerEvent.reset();
-              }
-          });
-      },
-
-
-      /**
-       * we have different events for each device/browser
-       * determine what we need and set them in the Hammer.EVENT_TYPES constant
-       */
-      determineEventTypes: function determineEventTypes() {
-          // determine the eventtype we want to set
-          var types;
-
-          // pointerEvents magic
-          if(Hammer.HAS_POINTEREVENTS) {
-              types = Hammer.PointerEvent.getEvents();
-          }
-          // on Android, iOS, blackberry, windows mobile we dont want any mouseevents
-          else if(Hammer.NO_MOUSEEVENTS) {
-              types = [
-                  'touchstart',
-                  'touchmove',
-                  'touchend touchcancel'];
-          }
-          // for non pointer events browsers and mixed browsers,
-          // like chrome on windows8 touch laptop
-          else {
-              types = [
-                  'touchstart mousedown',
-                  'touchmove mousemove',
-                  'touchend touchcancel mouseup'];
-          }
-
-          Hammer.EVENT_TYPES[Hammer.EVENT_START]  = types[0];
-          Hammer.EVENT_TYPES[Hammer.EVENT_MOVE]   = types[1];
-          Hammer.EVENT_TYPES[Hammer.EVENT_END]    = types[2];
-      },
-
-
-      /**
-       * create touchlist depending on the event
-       * @param   {Object}    ev
-       * @param   {String}    eventType   used by the fakemultitouch plugin
-       */
-      getTouchList: function getTouchList(ev/*, eventType*/) {
-          // get the fake pointerEvent touchlist
-          if(Hammer.HAS_POINTEREVENTS) {
-              return Hammer.PointerEvent.getTouchList();
-          }
-          // get the touchlist
-          else if(ev.touches) {
-              return ev.touches;
-          }
-          // make fake touchlist from mouse position
-          else {
-              return [{
-                  identifier: 1,
-                  pageX: ev.pageX,
-                  pageY: ev.pageY,
-                  target: ev.target
-              }];
-          }
-      },
-
-
-      /**
-       * collect event data for Hammer js
-       * @param   {HTMLElement}   element
-       * @param   {String}        eventType        like Hammer.EVENT_MOVE
-       * @param   {Object}        eventData
-       */
-      collectEventData: function collectEventData(element, eventType, ev) {
-          var touches = this.getTouchList(ev, eventType);
-
-          // find out pointerType
-          var pointerType = Hammer.POINTER_TOUCH;
-          if(ev.type.match(/mouse/) || Hammer.PointerEvent.matchType(Hammer.POINTER_MOUSE, ev)) {
-              pointerType = Hammer.POINTER_MOUSE;
-          }
-
-          return {
-              center      : Hammer.utils.getCenter(touches),
-              timeStamp   : new Date().getTime(),
-              target      : ev.target,
-              touches     : touches,
-              eventType   : eventType,
-              pointerType : pointerType,
-              srcEvent    : ev,
-
-              /**
-               * prevent the browser default actions
-               * mostly used to disable scrolling of the browser
-               */
-              preventDefault: function() {
-                  if(this.srcEvent.preventManipulation) {
-                      this.srcEvent.preventManipulation();
-                  }
-
-                  if(this.srcEvent.preventDefault) {
-                      this.srcEvent.preventDefault();
-                  }
-              },
-
-              /**
-               * stop bubbling the event up to its parents
-               */
-              stopPropagation: function() {
-                  this.srcEvent.stopPropagation();
-              },
-
-              /**
-               * immediately stop gesture detection
-               * might be useful after a swipe was detected
-               * @return {*}
-               */
-              stopDetect: function() {
-                  return Hammer.detection.stopDetect();
-              }
-          };
-      }
-  };
-
-  Hammer.PointerEvent = {
-      /**
-       * holds all pointers
-       * @type {Object}
-       */
-      pointers: {},
-
-      /**
-       * get a list of pointers
-       * @returns {Array}     touchlist
-       */
-      getTouchList: function() {
-          var self = this;
-          var touchlist = [];
-
-          // we can use forEach since pointerEvents only is in IE10
-          Object.keys(self.pointers).sort().forEach(function(id) {
-              touchlist.push(self.pointers[id]);
-          });
-          return touchlist;
-      },
-
-      /**
-       * update the position of a pointer
-       * @param   {String}   type             Hammer.EVENT_END
-       * @param   {Object}   pointerEvent
-       */
-      updatePointer: function(type, pointerEvent) {
-          if(type == Hammer.EVENT_END) {
-              this.pointers = {};
-          }
-          else {
-              pointerEvent.identifier = pointerEvent.pointerId;
-              this.pointers[pointerEvent.pointerId] = pointerEvent;
-          }
-
-          return Object.keys(this.pointers).length;
-      },
-
-      /**
-       * check if ev matches pointertype
-       * @param   {String}        pointerType     Hammer.POINTER_MOUSE
-       * @param   {PointerEvent}  ev
-       */
-      matchType: function(pointerType, ev) {
-          if(!ev.pointerType) {
-              return false;
-          }
-
-          var types = {};
-          types[Hammer.POINTER_MOUSE] = (ev.pointerType == ev.MSPOINTER_TYPE_MOUSE || ev.pointerType == Hammer.POINTER_MOUSE);
-          types[Hammer.POINTER_TOUCH] = (ev.pointerType == ev.MSPOINTER_TYPE_TOUCH || ev.pointerType == Hammer.POINTER_TOUCH);
-          types[Hammer.POINTER_PEN] = (ev.pointerType == ev.MSPOINTER_TYPE_PEN || ev.pointerType == Hammer.POINTER_PEN);
-          return types[pointerType];
-      },
-
-
-      /**
-       * get events
-       */
-      getEvents: function() {
-          return [
-              'pointerdown MSPointerDown',
-              'pointermove MSPointerMove',
-              'pointerup pointercancel MSPointerUp MSPointerCancel'
-          ];
-      },
-
-      /**
-       * reset the list
-       */
-      reset: function() {
-          this.pointers = {};
-      }
-  };
-
-
-  Hammer.utils = {
-      /**
-       * extend method,
-       * also used for cloning when dest is an empty object
-       * @param   {Object}    dest
-       * @param   {Object}    src
-  	 * @parm	{Boolean}	merge		do a merge
-       * @returns {Object}    dest
-       */
-      extend: function extend(dest, src, merge) {
-          for (var key in src) {
-  			if(dest[key] !== undefined && merge) {
-  				continue;
-  			}
-              dest[key] = src[key];
-          }
-          return dest;
-      },
-
-
-      /**
-       * find if a node is in the given parent
-       * used for event delegation tricks
-       * @param   {HTMLElement}   node
-       * @param   {HTMLElement}   parent
-       * @returns {boolean}       has_parent
-       */
-      hasParent: function(node, parent) {
-          while(node){
-              if(node == parent) {
-                  return true;
-              }
-              node = node.parentNode;
-          }
-          return false;
-      },
-
-
-      /**
-       * get the center of all the touches
-       * @param   {Array}     touches
-       * @returns {Object}    center
-       */
-      getCenter: function getCenter(touches) {
-          var valuesX = [], valuesY = [];
-
-          for(var t= 0,len=touches.length; t<len; t++) {
-              valuesX.push(touches[t].pageX);
-              valuesY.push(touches[t].pageY);
-          }
-
-          return {
-              pageX: ((Math.min.apply(Math, valuesX) + Math.max.apply(Math, valuesX)) / 2),
-              pageY: ((Math.min.apply(Math, valuesY) + Math.max.apply(Math, valuesY)) / 2)
-          };
-      },
-
-
-      /**
-       * calculate the velocity between two points
-       * @param   {Number}    delta_time
-       * @param   {Number}    delta_x
-       * @param   {Number}    delta_y
-       * @returns {Object}    velocity
-       */
-      getVelocity: function getVelocity(delta_time, delta_x, delta_y) {
-          return {
-              x: Math.abs(delta_x / delta_time) || 0,
-              y: Math.abs(delta_y / delta_time) || 0
-          };
-      },
-
-
-      /**
-       * calculate the angle between two coordinates
-       * @param   {Touch}     touch1
-       * @param   {Touch}     touch2
-       * @returns {Number}    angle
-       */
-      getAngle: function getAngle(touch1, touch2) {
-          var y = touch2.pageY - touch1.pageY,
-              x = touch2.pageX - touch1.pageX;
-          return Math.atan2(y, x) * 180 / Math.PI;
-      },
-
-
-      /**
-       * angle to direction define
-       * @param   {Touch}     touch1
-       * @param   {Touch}     touch2
-       * @returns {String}    direction constant, like Hammer.DIRECTION_LEFT
-       */
-      getDirection: function getDirection(touch1, touch2) {
-          var x = Math.abs(touch1.pageX - touch2.pageX),
-              y = Math.abs(touch1.pageY - touch2.pageY);
-
-          if(x >= y) {
-              return touch1.pageX - touch2.pageX > 0 ? Hammer.DIRECTION_LEFT : Hammer.DIRECTION_RIGHT;
-          }
-          else {
-              return touch1.pageY - touch2.pageY > 0 ? Hammer.DIRECTION_UP : Hammer.DIRECTION_DOWN;
-          }
-      },
-
-
-      /**
-       * calculate the distance between two touches
-       * @param   {Touch}     touch1
-       * @param   {Touch}     touch2
-       * @returns {Number}    distance
-       */
-      getDistance: function getDistance(touch1, touch2) {
-          var x = touch2.pageX - touch1.pageX,
-              y = touch2.pageY - touch1.pageY;
-          return Math.sqrt((x*x) + (y*y));
-      },
-
-
-      /**
-       * calculate the scale factor between two touchLists (fingers)
-       * no scale is 1, and goes down to 0 when pinched together, and bigger when pinched out
-       * @param   {Array}     start
-       * @param   {Array}     end
-       * @returns {Number}    scale
-       */
-      getScale: function getScale(start, end) {
-          // need two fingers...
-          if(start.length >= 2 && end.length >= 2) {
-              return this.getDistance(end[0], end[1]) /
-                  this.getDistance(start[0], start[1]);
-          }
-          return 1;
-      },
-
-
-      /**
-       * calculate the rotation degrees between two touchLists (fingers)
-       * @param   {Array}     start
-       * @param   {Array}     end
-       * @returns {Number}    rotation
-       */
-      getRotation: function getRotation(start, end) {
-          // need two fingers
-          if(start.length >= 2 && end.length >= 2) {
-              return this.getAngle(end[1], end[0]) -
-                  this.getAngle(start[1], start[0]);
-          }
-          return 0;
-      },
-
-
-      /**
-       * boolean if the direction is vertical
-       * @param    {String}    direction
-       * @returns  {Boolean}   is_vertical
-       */
-      isVertical: function isVertical(direction) {
-          return (direction == Hammer.DIRECTION_UP || direction == Hammer.DIRECTION_DOWN);
-      },
-
-
-      /**
-       * stop browser default behavior with css props
-       * @param   {HtmlElement}   element
-       * @param   {Object}        css_props
-       */
-      stopDefaultBrowserBehavior: function stopDefaultBrowserBehavior(element, css_props) {
-          var prop,
-              vendors = ['webkit','khtml','moz','ms','o',''];
-
-          if(!css_props || !element.style) {
-              return;
-          }
-
-          // with css properties for modern browsers
-          for(var i = 0; i < vendors.length; i++) {
-              for(var p in css_props) {
-                  if(css_props.hasOwnProperty(p)) {
-                      prop = p;
-
-                      // vender prefix at the property
-                      if(vendors[i]) {
-                          prop = vendors[i] + prop.substring(0, 1).toUpperCase() + prop.substring(1);
-                      }
-
-                      // set the style
-                      element.style[prop] = css_props[p];
-                  }
-              }
-          }
-
-          // also the disable onselectstart
-          if(css_props.userSelect == 'none') {
-              element.onselectstart = function() {
-                  return false;
-              };
-          }
-      }
-  };
-
-  Hammer.detection = {
-      // contains all registred Hammer.gestures in the correct order
-      gestures: [],
-
-      // data of the current Hammer.gesture detection session
-      current: null,
-
-      // the previous Hammer.gesture session data
-      // is a full clone of the previous gesture.current object
-      previous: null,
-
-      // when this becomes true, no gestures are fired
-      stopped: false,
-
-
-      /**
-       * start Hammer.gesture detection
-       * @param   {Hammer.Instance}   inst
-       * @param   {Object}            eventData
-       */
-      startDetect: function startDetect(inst, eventData) {
-          // already busy with a Hammer.gesture detection on an element
-          if(this.current) {
-              return;
-          }
-
-          this.stopped = false;
-
-          this.current = {
-              inst        : inst, // reference to HammerInstance we're working for
-              startEvent  : Hammer.utils.extend({}, eventData), // start eventData for distances, timing etc
-              lastEvent   : false, // last eventData
-              name        : '' // current gesture we're in/detected, can be 'tap', 'hold' etc
-          };
-
-          this.detect(eventData);
-      },
-
-
-      /**
-       * Hammer.gesture detection
-       * @param   {Object}    eventData
-       * @param   {Object}    eventData
-       */
-      detect: function detect(eventData) {
-          if(!this.current || this.stopped) {
-              return;
-          }
-
-          // extend event data with calculations about scale, distance etc
-          eventData = this.extendEventData(eventData);
-
-          // instance options
-          var inst_options = this.current.inst.options;
-
-          // call Hammer.gesture handlers
-          for(var g=0,len=this.gestures.length; g<len; g++) {
-              var gesture = this.gestures[g];
-
-              // only when the instance options have enabled this gesture
-              if(!this.stopped && inst_options[gesture.name] !== false) {
-                  // if a handler returns false, we stop with the detection
-                  if(gesture.handler.call(gesture, eventData, this.current.inst) === false) {
-                      this.stopDetect();
-                      break;
-                  }
-              }
-          }
-
-          // store as previous event event
-          if(this.current) {
-              this.current.lastEvent = eventData;
-          }
-
-          // endevent, but not the last touch, so dont stop
-          if(eventData.eventType == Hammer.EVENT_END && !eventData.touches.length-1) {
-              this.stopDetect();
-          }
-
-          return eventData;
-      },
-
-
-      /**
-       * clear the Hammer.gesture vars
-       * this is called on endDetect, but can also be used when a final Hammer.gesture has been detected
-       * to stop other Hammer.gestures from being fired
-       */
-      stopDetect: function stopDetect() {
-          // clone current data to the store as the previous gesture
-          // used for the double tap gesture, since this is an other gesture detect session
-          this.previous = Hammer.utils.extend({}, this.current);
-
-          // reset the current
-          this.current = null;
-
-          // stopped!
-          this.stopped = true;
-      },
-
-
-      /**
-       * extend eventData for Hammer.gestures
-       * @param   {Object}   ev
-       * @returns {Object}   ev
-       */
-      extendEventData: function extendEventData(ev) {
-          var startEv = this.current.startEvent;
-
-          // if the touches change, set the new touches over the startEvent touches
-          // this because touchevents don't have all the touches on touchstart, or the
-          // user must place his fingers at the EXACT same time on the screen, which is not realistic
-          // but, sometimes it happens that both fingers are touching at the EXACT same time
-          if(startEv && (ev.touches.length != startEv.touches.length || ev.touches === startEv.touches)) {
-              // extend 1 level deep to get the touchlist with the touch objects
-              startEv.touches = [];
-              for(var i=0,len=ev.touches.length; i<len; i++) {
-                  startEv.touches.push(Hammer.utils.extend({}, ev.touches[i]));
-              }
-          }
-
-          var delta_time = ev.timeStamp - startEv.timeStamp,
-              delta_x = ev.center.pageX - startEv.center.pageX,
-              delta_y = ev.center.pageY - startEv.center.pageY,
-              velocity = Hammer.utils.getVelocity(delta_time, delta_x, delta_y);
-
-          Hammer.utils.extend(ev, {
-              deltaTime   : delta_time,
-
-              deltaX      : delta_x,
-              deltaY      : delta_y,
-
-              velocityX   : velocity.x,
-              velocityY   : velocity.y,
-
-              distance    : Hammer.utils.getDistance(startEv.center, ev.center),
-              angle       : Hammer.utils.getAngle(startEv.center, ev.center),
-              direction   : Hammer.utils.getDirection(startEv.center, ev.center),
-
-              scale       : Hammer.utils.getScale(startEv.touches, ev.touches),
-              rotation    : Hammer.utils.getRotation(startEv.touches, ev.touches),
-
-              startEvent  : startEv
-          });
-
-          return ev;
-      },
-
-
-      /**
-       * register new gesture
-       * @param   {Object}    gesture object, see gestures.js for documentation
-       * @returns {Array}     gestures
-       */
-      register: function register(gesture) {
-          // add an enable gesture options if there is no given
-          var options = gesture.defaults || {};
-          if(options[gesture.name] === undefined) {
-              options[gesture.name] = true;
-          }
-
-          // extend Hammer default options with the Hammer.gesture options
-          Hammer.utils.extend(Hammer.defaults, options, true);
-
-          // set its index
-          gesture.index = gesture.index || 1000;
-
-          // add Hammer.gesture to the list
-          this.gestures.push(gesture);
-
-          // sort the list by index
-          this.gestures.sort(function(a, b) {
-              if (a.index < b.index) {
-                  return -1;
-              }
-              if (a.index > b.index) {
-                  return 1;
-              }
-              return 0;
-          });
-
-          return this.gestures;
-      }
-  };
-
-
-  Hammer.gestures = Hammer.gestures || {};
-
-  /**
-   * Custom gestures
-   * ==============================
-   *
-   * Gesture object
-   * --------------------
-   * The object structure of a gesture:
-   *
-   * { name: 'mygesture',
-   *   index: 1337,
-   *   defaults: {
-   *     mygesture_option: true
-   *   }
-   *   handler: function(type, ev, inst) {
-   *     // trigger gesture event
-   *     inst.trigger(this.name, ev);
-   *   }
-   * }
-
-   * @param   {String}    name
-   * this should be the name of the gesture, lowercase
-   * it is also being used to disable/enable the gesture per instance config.
-   *
-   * @param   {Number}    [index=1000]
-   * the index of the gesture, where it is going to be in the stack of gestures detection
-   * like when you build an gesture that depends on the drag gesture, it is a good
-   * idea to place it after the index of the drag gesture.
-   *
-   * @param   {Object}    [defaults={}]
-   * the default settings of the gesture. these are added to the instance settings,
-   * and can be overruled per instance. you can also add the name of the gesture,
-   * but this is also added by default (and set to true).
-   *
-   * @param   {Function}  handler
-   * this handles the gesture detection of your custom gesture and receives the
-   * following arguments:
-   *
-   *      @param  {Object}    eventData
-   *      event data containing the following properties:
-   *          timeStamp   {Number}        time the event occurred
-   *          target      {HTMLElement}   target element
-   *          touches     {Array}         touches (fingers, pointers, mouse) on the screen
-   *          pointerType {String}        kind of pointer that was used. matches Hammer.POINTER_MOUSE|TOUCH
-   *          center      {Object}        center position of the touches. contains pageX and pageY
-   *          deltaTime   {Number}        the total time of the touches in the screen
-   *          deltaX      {Number}        the delta on x axis we haved moved
-   *          deltaY      {Number}        the delta on y axis we haved moved
-   *          velocityX   {Number}        the velocity on the x
-   *          velocityY   {Number}        the velocity on y
-   *          angle       {Number}        the angle we are moving
-   *          direction   {String}        the direction we are moving. matches Hammer.DIRECTION_UP|DOWN|LEFT|RIGHT
-   *          distance    {Number}        the distance we haved moved
-   *          scale       {Number}        scaling of the touches, needs 2 touches
-   *          rotation    {Number}        rotation of the touches, needs 2 touches *
-   *          eventType   {String}        matches Hammer.EVENT_START|MOVE|END
-   *          srcEvent    {Object}        the source event, like TouchStart or MouseDown *
-   *          startEvent  {Object}        contains the same properties as above,
-   *                                      but from the first touch. this is used to calculate
-   *                                      distances, deltaTime, scaling etc
-   *
-   *      @param  {Hammer.Instance}    inst
-   *      the instance we are doing the detection for. you can get the options from
-   *      the inst.options object and trigger the gesture event by calling inst.trigger
-   *
-   *
-   * Handle gestures
-   * --------------------
-   * inside the handler you can get/set Hammer.detection.current. This is the current
-   * detection session. It has the following properties
-   *      @param  {String}    name
-   *      contains the name of the gesture we have detected. it has not a real function,
-   *      only to check in other gestures if something is detected.
-   *      like in the drag gesture we set it to 'drag' and in the swipe gesture we can
-   *      check if the current gesture is 'drag' by accessing Hammer.detection.current.name
-   *
-   *      @readonly
-   *      @param  {Hammer.Instance}    inst
-   *      the instance we do the detection for
-   *
-   *      @readonly
-   *      @param  {Object}    startEvent
-   *      contains the properties of the first gesture detection in this session.
-   *      Used for calculations about timing, distance, etc.
-   *
-   *      @readonly
-   *      @param  {Object}    lastEvent
-   *      contains all the properties of the last gesture detect in this session.
-   *
-   * after the gesture detection session has been completed (user has released the screen)
-   * the Hammer.detection.current object is copied into Hammer.detection.previous,
-   * this is usefull for gestures like doubletap, where you need to know if the
-   * previous gesture was a tap
-   *
-   * options that have been set by the instance can be received by calling inst.options
-   *
-   * You can trigger a gesture event by calling inst.trigger("mygesture", event).
-   * The first param is the name of your gesture, the second the event argument
-   *
-   *
-   * Register gestures
-   * --------------------
-   * When an gesture is added to the Hammer.gestures object, it is auto registered
-   * at the setup of the first Hammer instance. You can also call Hammer.detection.register
-   * manually and pass your gesture object as a param
-   *
-   */
-
-  /**
-   * Hold
-   * Touch stays at the same place for x time
-   * @events  hold
-   */
-  Hammer.gestures.Hold = {
-      name: 'hold',
-      index: 10,
-      defaults: {
-          hold_timeout	: 500,
-          hold_threshold	: 1
-      },
-      timer: null,
-      handler: function holdGesture(ev, inst) {
-          switch(ev.eventType) {
-              case Hammer.EVENT_START:
-                  // clear any running timers
-                  clearTimeout(this.timer);
-
-                  // set the gesture so we can check in the timeout if it still is
-                  Hammer.detection.current.name = this.name;
-
-                  // set timer and if after the timeout it still is hold,
-                  // we trigger the hold event
-                  this.timer = setTimeout(function() {
-                      if(Hammer.detection.current.name == 'hold') {
-                          inst.trigger('hold', ev);
-                      }
-                  }, inst.options.hold_timeout);
-                  break;
-
-              // when you move or end we clear the timer
-              case Hammer.EVENT_MOVE:
-                  if(ev.distance > inst.options.hold_threshold) {
-                      clearTimeout(this.timer);
-                  }
-                  break;
-
-              case Hammer.EVENT_END:
-                  clearTimeout(this.timer);
-                  break;
-          }
-      }
-  };
-
-
-  /**
-   * Tap/DoubleTap
-   * Quick touch at a place or double at the same place
-   * @events  tap, doubletap
-   */
-  Hammer.gestures.Tap = {
-      name: 'tap',
-      index: 100,
-      defaults: {
-          tap_max_touchtime	: 250,
-          tap_max_distance	: 10,
-  		tap_always			: true,
-          doubletap_distance	: 20,
-          doubletap_interval	: 300
-      },
-      handler: function tapGesture(ev, inst) {
-          if(ev.eventType == Hammer.EVENT_END) {
-              // previous gesture, for the double tap since these are two different gesture detections
-              var prev = Hammer.detection.previous,
-  				did_doubletap = false;
-
-              // when the touchtime is higher then the max touch time
-              // or when the moving distance is too much
-              if(ev.deltaTime > inst.options.tap_max_touchtime ||
-                  ev.distance > inst.options.tap_max_distance) {
-                  return;
-              }
-
-              // check if double tap
-              if(prev && prev.name == 'tap' &&
-                  (ev.timeStamp - prev.lastEvent.timeStamp) < inst.options.doubletap_interval &&
-                  ev.distance < inst.options.doubletap_distance) {
-  				inst.trigger('doubletap', ev);
-  				did_doubletap = true;
-              }
-
-  			// do a single tap
-  			if(!did_doubletap || inst.options.tap_always) {
-  				Hammer.detection.current.name = 'tap';
-  				inst.trigger(Hammer.detection.current.name, ev);
-  			}
-          }
-      }
-  };
-
-
-  /**
-   * Swipe
-   * triggers swipe events when the end velocity is above the threshold
-   * @events  swipe, swipeleft, swiperight, swipeup, swipedown
-   */
-  Hammer.gestures.Swipe = {
-      name: 'swipe',
-      index: 40,
-      defaults: {
-          // set 0 for unlimited, but this can conflict with transform
-          swipe_max_touches  : 1,
-          swipe_velocity     : 0.7
-      },
-      handler: function swipeGesture(ev, inst) {
-          if(ev.eventType == Hammer.EVENT_END) {
-              // max touches
-              if(inst.options.swipe_max_touches > 0 &&
-                  ev.touches.length > inst.options.swipe_max_touches) {
-                  return;
-              }
-
-              // when the distance we moved is too small we skip this gesture
-              // or we can be already in dragging
-              if(ev.velocityX > inst.options.swipe_velocity ||
-                  ev.velocityY > inst.options.swipe_velocity) {
-                  // trigger swipe events
-                  inst.trigger(this.name, ev);
-                  inst.trigger(this.name + ev.direction, ev);
-              }
-          }
-      }
-  };
-
-
-  /**
-   * Drag
-   * Move with x fingers (default 1) around on the page. Blocking the scrolling when
-   * moving left and right is a good practice. When all the drag events are blocking
-   * you disable scrolling on that area.
-   * @events  drag, drapleft, dragright, dragup, dragdown
-   */
-  Hammer.gestures.Drag = {
-      name: 'drag',
-      index: 50,
-      defaults: {
-          drag_min_distance : 10,
-          // set 0 for unlimited, but this can conflict with transform
-          drag_max_touches  : 1,
-          // prevent default browser behavior when dragging occurs
-          // be careful with it, it makes the element a blocking element
-          // when you are using the drag gesture, it is a good practice to set this true
-          drag_block_horizontal   : false,
-          drag_block_vertical     : false,
-          // drag_lock_to_axis keeps the drag gesture on the axis that it started on,
-          // It disallows vertical directions if the initial direction was horizontal, and vice versa.
-          drag_lock_to_axis       : false,
-          // drag lock only kicks in when distance > drag_lock_min_distance
-          // This way, locking occurs only when the distance has become large enough to reliably determine the direction
-          drag_lock_min_distance : 25
-      },
-      triggered: false,
-      handler: function dragGesture(ev, inst) {
-          // current gesture isnt drag, but dragged is true
-          // this means an other gesture is busy. now call dragend
-          if(Hammer.detection.current.name != this.name && this.triggered) {
-              inst.trigger(this.name +'end', ev);
-              this.triggered = false;
-              return;
-          }
-
-          // max touches
-          if(inst.options.drag_max_touches > 0 &&
-              ev.touches.length > inst.options.drag_max_touches) {
-              return;
-          }
-
-          switch(ev.eventType) {
-              case Hammer.EVENT_START:
-                  this.triggered = false;
-                  break;
-
-              case Hammer.EVENT_MOVE:
-                  // when the distance we moved is too small we skip this gesture
-                  // or we can be already in dragging
-                  if(ev.distance < inst.options.drag_min_distance &&
-                      Hammer.detection.current.name != this.name) {
-                      return;
-                  }
-
-                  // we are dragging!
-                  Hammer.detection.current.name = this.name;
-
-                  // lock drag to axis?
-                  if(Hammer.detection.current.lastEvent.drag_locked_to_axis || (inst.options.drag_lock_to_axis && inst.options.drag_lock_min_distance<=ev.distance)) {
-                      ev.drag_locked_to_axis = true;
-                  }
-                  var last_direction = Hammer.detection.current.lastEvent.direction;
-                  if(ev.drag_locked_to_axis && last_direction !== ev.direction) {
-                      // keep direction on the axis that the drag gesture started on
-                      if(Hammer.utils.isVertical(last_direction)) {
-                          ev.direction = (ev.deltaY < 0) ? Hammer.DIRECTION_UP : Hammer.DIRECTION_DOWN;
-                      }
-                      else {
-                          ev.direction = (ev.deltaX < 0) ? Hammer.DIRECTION_LEFT : Hammer.DIRECTION_RIGHT;
-                      }
-                  }
-
-                  // first time, trigger dragstart event
-                  if(!this.triggered) {
-                      inst.trigger(this.name +'start', ev);
-                      this.triggered = true;
-                  }
-
-                  // trigger normal event
-                  inst.trigger(this.name, ev);
-
-                  // direction event, like dragdown
-                  inst.trigger(this.name + ev.direction, ev);
-
-                  // block the browser events
-                  if( (inst.options.drag_block_vertical && Hammer.utils.isVertical(ev.direction)) ||
-                      (inst.options.drag_block_horizontal && !Hammer.utils.isVertical(ev.direction))) {
-                      ev.preventDefault();
-                  }
-                  break;
-
-              case Hammer.EVENT_END:
-                  // trigger dragend
-                  if(this.triggered) {
-                      inst.trigger(this.name +'end', ev);
-                  }
-
-                  this.triggered = false;
-                  break;
-          }
-      }
-  };
-
-
-  /**
-   * Transform
-   * User want to scale or rotate with 2 fingers
-   * @events  transform, pinch, pinchin, pinchout, rotate
-   */
-  Hammer.gestures.Transform = {
-      name: 'transform',
-      index: 45,
-      defaults: {
-          // factor, no scale is 1, zoomin is to 0 and zoomout until higher then 1
-          transform_min_scale     : 0.01,
-          // rotation in degrees
-          transform_min_rotation  : 1,
-          // prevent default browser behavior when two touches are on the screen
-          // but it makes the element a blocking element
-          // when you are using the transform gesture, it is a good practice to set this true
-          transform_always_block  : false
-      },
-      triggered: false,
-      handler: function transformGesture(ev, inst) {
-          // current gesture isnt drag, but dragged is true
-          // this means an other gesture is busy. now call dragend
-          if(Hammer.detection.current.name != this.name && this.triggered) {
-              inst.trigger(this.name +'end', ev);
-              this.triggered = false;
-              return;
-          }
-
-          // atleast multitouch
-          if(ev.touches.length < 2) {
-              return;
-          }
-
-          // prevent default when two fingers are on the screen
-          if(inst.options.transform_always_block) {
-              ev.preventDefault();
-          }
-
-          switch(ev.eventType) {
-              case Hammer.EVENT_START:
-                  this.triggered = false;
-                  break;
-
-              case Hammer.EVENT_MOVE:
-                  var scale_threshold = Math.abs(1-ev.scale);
-                  var rotation_threshold = Math.abs(ev.rotation);
-
-                  // when the distance we moved is too small we skip this gesture
-                  // or we can be already in dragging
-                  if(scale_threshold < inst.options.transform_min_scale &&
-                      rotation_threshold < inst.options.transform_min_rotation) {
-                      return;
-                  }
-
-                  // we are transforming!
-                  Hammer.detection.current.name = this.name;
-
-                  // first time, trigger dragstart event
-                  if(!this.triggered) {
-                      inst.trigger(this.name +'start', ev);
-                      this.triggered = true;
-                  }
-
-                  inst.trigger(this.name, ev); // basic transform event
-
-                  // trigger rotate event
-                  if(rotation_threshold > inst.options.transform_min_rotation) {
-                      inst.trigger('rotate', ev);
-                  }
-
-                  // trigger pinch event
-                  if(scale_threshold > inst.options.transform_min_scale) {
-                      inst.trigger('pinch', ev);
-                      inst.trigger('pinch'+ ((ev.scale < 1) ? 'in' : 'out'), ev);
-                  }
-                  break;
-
-              case Hammer.EVENT_END:
-                  // trigger dragend
-                  if(this.triggered) {
-                      inst.trigger(this.name +'end', ev);
-                  }
-
-                  this.triggered = false;
-                  break;
-          }
-      }
-  };
-
-
-  /**
-   * Touch
-   * Called as first, tells the user has touched the screen
-   * @events  touch
-   */
-  Hammer.gestures.Touch = {
-      name: 'touch',
-      index: -Infinity,
-      defaults: {
-          // call preventDefault at touchstart, and makes the element blocking by
-          // disabling the scrolling of the page, but it improves gestures like
-          // transforming and dragging.
-          // be careful with using this, it can be very annoying for users to be stuck
-          // on the page
-          prevent_default: false,
-
-          // disable mouse events, so only touch (or pen!) input triggers events
-          prevent_mouseevents: false
-      },
-      handler: function touchGesture(ev, inst) {
-          if(inst.options.prevent_mouseevents && ev.pointerType == Hammer.POINTER_MOUSE) {
-              ev.stopDetect();
-              return;
-          }
-
-          if(inst.options.prevent_default) {
-              ev.preventDefault();
-          }
-
-          if(ev.eventType ==  Hammer.EVENT_START) {
-              inst.trigger(this.name, ev);
-          }
-      }
-  };
-
-
-  /**
-   * Release
-   * Called as last, tells the user has released the screen
-   * @events  release
-   */
-  Hammer.gestures.Release = {
-      name: 'release',
-      index: Infinity,
-      handler: function releaseGesture(ev, inst) {
-          if(ev.eventType ==  Hammer.EVENT_END) {
-              inst.trigger(this.name, ev);
-          }
-      }
-  };
-
-  // node export
-  if(typeof module === 'object' && typeof module.exports === 'object'){
-      module.exports = Hammer;
-  }
-  // just window export
-  else {
-      window.Hammer = Hammer;
-
-      // requireJS module definition
-      if(typeof window.define === 'function' && window.define.amd) {
-          window.define('hammer', [], function() {
-              return Hammer;
-          });
-      }
-  }
-  })(this);
-
-/***/ },
-/* 54 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -30025,7 +30774,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 55 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -30184,7 +30933,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 56 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -30583,158 +31332,158 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 57 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
   var map = {
-  	"./ar": 60,
-  	"./ar-ma": 58,
-  	"./ar-ma.js": 58,
-  	"./ar-sa": 59,
-  	"./ar-sa.js": 59,
-  	"./ar.js": 60,
-  	"./az": 61,
-  	"./az.js": 61,
-  	"./bg": 62,
-  	"./bg.js": 62,
-  	"./bn": 63,
-  	"./bn.js": 63,
-  	"./br": 64,
-  	"./br.js": 64,
-  	"./bs": 65,
-  	"./bs.js": 65,
-  	"./ca": 66,
-  	"./ca.js": 66,
-  	"./cs": 67,
-  	"./cs.js": 67,
-  	"./cv": 68,
-  	"./cv.js": 68,
-  	"./cy": 69,
-  	"./cy.js": 69,
-  	"./da": 70,
-  	"./da.js": 70,
-  	"./de": 72,
-  	"./de-at": 71,
-  	"./de-at.js": 71,
-  	"./de.js": 72,
-  	"./el": 73,
-  	"./el.js": 73,
-  	"./en-au": 74,
-  	"./en-au.js": 74,
-  	"./en-ca": 75,
-  	"./en-ca.js": 75,
-  	"./en-gb": 76,
-  	"./en-gb.js": 76,
-  	"./eo": 77,
-  	"./eo.js": 77,
-  	"./es": 78,
-  	"./es.js": 78,
-  	"./et": 79,
-  	"./et.js": 79,
-  	"./eu": 80,
-  	"./eu.js": 80,
-  	"./fa": 81,
-  	"./fa.js": 81,
-  	"./fi": 82,
-  	"./fi.js": 82,
-  	"./fo": 83,
-  	"./fo.js": 83,
-  	"./fr": 85,
-  	"./fr-ca": 84,
-  	"./fr-ca.js": 84,
-  	"./fr.js": 85,
-  	"./gl": 86,
-  	"./gl.js": 86,
-  	"./he": 87,
-  	"./he.js": 87,
-  	"./hi": 88,
-  	"./hi.js": 88,
-  	"./hr": 89,
-  	"./hr.js": 89,
-  	"./hu": 90,
-  	"./hu.js": 90,
-  	"./hy-am": 91,
-  	"./hy-am.js": 91,
-  	"./id": 92,
-  	"./id.js": 92,
-  	"./is": 93,
-  	"./is.js": 93,
-  	"./it": 94,
-  	"./it.js": 94,
-  	"./ja": 95,
-  	"./ja.js": 95,
-  	"./ka": 96,
-  	"./ka.js": 96,
-  	"./km": 97,
-  	"./km.js": 97,
-  	"./ko": 98,
-  	"./ko.js": 98,
-  	"./lb": 99,
-  	"./lb.js": 99,
-  	"./lt": 100,
-  	"./lt.js": 100,
-  	"./lv": 101,
-  	"./lv.js": 101,
-  	"./mk": 102,
-  	"./mk.js": 102,
-  	"./ml": 103,
-  	"./ml.js": 103,
-  	"./mr": 104,
-  	"./mr.js": 104,
-  	"./ms-my": 105,
-  	"./ms-my.js": 105,
-  	"./nb": 106,
-  	"./nb.js": 106,
-  	"./ne": 107,
-  	"./ne.js": 107,
-  	"./nl": 108,
-  	"./nl.js": 108,
-  	"./nn": 109,
-  	"./nn.js": 109,
-  	"./pl": 110,
-  	"./pl.js": 110,
-  	"./pt": 112,
-  	"./pt-br": 111,
-  	"./pt-br.js": 111,
-  	"./pt.js": 112,
-  	"./ro": 113,
-  	"./ro.js": 113,
-  	"./ru": 114,
-  	"./ru.js": 114,
-  	"./sk": 115,
-  	"./sk.js": 115,
-  	"./sl": 116,
-  	"./sl.js": 116,
-  	"./sq": 117,
-  	"./sq.js": 117,
-  	"./sr": 119,
-  	"./sr-cyrl": 118,
-  	"./sr-cyrl.js": 118,
-  	"./sr.js": 119,
-  	"./sv": 120,
-  	"./sv.js": 120,
-  	"./ta": 121,
-  	"./ta.js": 121,
-  	"./th": 122,
-  	"./th.js": 122,
-  	"./tl-ph": 123,
-  	"./tl-ph.js": 123,
-  	"./tr": 124,
-  	"./tr.js": 124,
-  	"./tzm": 126,
-  	"./tzm-latn": 125,
-  	"./tzm-latn.js": 125,
-  	"./tzm.js": 126,
-  	"./uk": 127,
-  	"./uk.js": 127,
-  	"./uz": 128,
-  	"./uz.js": 128,
-  	"./vi": 129,
-  	"./vi.js": 129,
-  	"./zh-cn": 130,
-  	"./zh-cn.js": 130,
-  	"./zh-tw": 131,
-  	"./zh-tw.js": 131
+  	"./ar": 61,
+  	"./ar-ma": 59,
+  	"./ar-ma.js": 59,
+  	"./ar-sa": 60,
+  	"./ar-sa.js": 60,
+  	"./ar.js": 61,
+  	"./az": 62,
+  	"./az.js": 62,
+  	"./bg": 63,
+  	"./bg.js": 63,
+  	"./bn": 64,
+  	"./bn.js": 64,
+  	"./br": 65,
+  	"./br.js": 65,
+  	"./bs": 66,
+  	"./bs.js": 66,
+  	"./ca": 67,
+  	"./ca.js": 67,
+  	"./cs": 68,
+  	"./cs.js": 68,
+  	"./cv": 69,
+  	"./cv.js": 69,
+  	"./cy": 70,
+  	"./cy.js": 70,
+  	"./da": 71,
+  	"./da.js": 71,
+  	"./de": 73,
+  	"./de-at": 72,
+  	"./de-at.js": 72,
+  	"./de.js": 73,
+  	"./el": 74,
+  	"./el.js": 74,
+  	"./en-au": 75,
+  	"./en-au.js": 75,
+  	"./en-ca": 76,
+  	"./en-ca.js": 76,
+  	"./en-gb": 77,
+  	"./en-gb.js": 77,
+  	"./eo": 78,
+  	"./eo.js": 78,
+  	"./es": 79,
+  	"./es.js": 79,
+  	"./et": 80,
+  	"./et.js": 80,
+  	"./eu": 81,
+  	"./eu.js": 81,
+  	"./fa": 82,
+  	"./fa.js": 82,
+  	"./fi": 83,
+  	"./fi.js": 83,
+  	"./fo": 84,
+  	"./fo.js": 84,
+  	"./fr": 86,
+  	"./fr-ca": 85,
+  	"./fr-ca.js": 85,
+  	"./fr.js": 86,
+  	"./gl": 87,
+  	"./gl.js": 87,
+  	"./he": 88,
+  	"./he.js": 88,
+  	"./hi": 89,
+  	"./hi.js": 89,
+  	"./hr": 90,
+  	"./hr.js": 90,
+  	"./hu": 91,
+  	"./hu.js": 91,
+  	"./hy-am": 92,
+  	"./hy-am.js": 92,
+  	"./id": 93,
+  	"./id.js": 93,
+  	"./is": 94,
+  	"./is.js": 94,
+  	"./it": 95,
+  	"./it.js": 95,
+  	"./ja": 96,
+  	"./ja.js": 96,
+  	"./ka": 97,
+  	"./ka.js": 97,
+  	"./km": 98,
+  	"./km.js": 98,
+  	"./ko": 99,
+  	"./ko.js": 99,
+  	"./lb": 100,
+  	"./lb.js": 100,
+  	"./lt": 101,
+  	"./lt.js": 101,
+  	"./lv": 102,
+  	"./lv.js": 102,
+  	"./mk": 103,
+  	"./mk.js": 103,
+  	"./ml": 104,
+  	"./ml.js": 104,
+  	"./mr": 105,
+  	"./mr.js": 105,
+  	"./ms-my": 106,
+  	"./ms-my.js": 106,
+  	"./nb": 107,
+  	"./nb.js": 107,
+  	"./ne": 108,
+  	"./ne.js": 108,
+  	"./nl": 109,
+  	"./nl.js": 109,
+  	"./nn": 110,
+  	"./nn.js": 110,
+  	"./pl": 111,
+  	"./pl.js": 111,
+  	"./pt": 113,
+  	"./pt-br": 112,
+  	"./pt-br.js": 112,
+  	"./pt.js": 113,
+  	"./ro": 114,
+  	"./ro.js": 114,
+  	"./ru": 115,
+  	"./ru.js": 115,
+  	"./sk": 116,
+  	"./sk.js": 116,
+  	"./sl": 117,
+  	"./sl.js": 117,
+  	"./sq": 118,
+  	"./sq.js": 118,
+  	"./sr": 120,
+  	"./sr-cyrl": 119,
+  	"./sr-cyrl.js": 119,
+  	"./sr.js": 120,
+  	"./sv": 121,
+  	"./sv.js": 121,
+  	"./ta": 122,
+  	"./ta.js": 122,
+  	"./th": 123,
+  	"./th.js": 123,
+  	"./tl-ph": 124,
+  	"./tl-ph.js": 124,
+  	"./tr": 125,
+  	"./tr.js": 125,
+  	"./tzm": 127,
+  	"./tzm-latn": 126,
+  	"./tzm-latn.js": 126,
+  	"./tzm.js": 127,
+  	"./uk": 128,
+  	"./uk.js": 128,
+  	"./uz": 129,
+  	"./uz.js": 129,
+  	"./vi": 130,
+  	"./vi.js": 130,
+  	"./zh-cn": 131,
+  	"./zh-cn.js": 131,
+  	"./zh-tw": 132,
+  	"./zh-tw.js": 132
   };
   function webpackContext(req) {
   	return __webpack_require__(webpackContextResolve(req));
@@ -30750,7 +31499,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 58 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -30760,7 +31509,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -30812,7 +31561,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 59 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -30821,7 +31570,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -30914,7 +31663,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 60 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -30924,7 +31673,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31017,7 +31766,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 61 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31026,7 +31775,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31125,7 +31874,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 62 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31134,7 +31883,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31217,7 +31966,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 63 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31226,7 +31975,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31329,7 +32078,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 64 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31338,7 +32087,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31442,7 +32191,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 65 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31452,7 +32201,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31587,7 +32336,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 66 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31596,7 +32345,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31659,7 +32408,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 67 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31668,7 +32417,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31820,7 +32569,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 68 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31829,7 +32578,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31885,7 +32634,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 69 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31894,7 +32643,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -31968,7 +32717,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 70 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -31977,7 +32726,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32030,7 +32779,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 71 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32041,7 +32790,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32108,7 +32857,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 72 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32118,7 +32867,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32185,7 +32934,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 73 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32194,7 +32943,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32281,7 +33030,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 74 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32289,7 +33038,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32349,7 +33098,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 75 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32358,7 +33107,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32414,7 +33163,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 76 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32423,7 +33172,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32483,7 +33232,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 77 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32494,7 +33243,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32554,7 +33303,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 78 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32563,7 +33312,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32635,7 +33384,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 79 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32645,7 +33394,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32717,7 +33466,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 80 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32726,7 +33475,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32783,7 +33532,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 81 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32792,7 +33541,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32886,7 +33635,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 82 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -32895,7 +33644,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -32995,7 +33744,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 83 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33004,7 +33753,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33057,7 +33806,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 84 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33066,7 +33815,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33117,7 +33866,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 85 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33126,7 +33875,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33181,7 +33930,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 86 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33190,7 +33939,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33258,7 +34007,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 87 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33269,7 +34018,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33341,7 +34090,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 88 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33350,7 +34099,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33452,7 +34201,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 89 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33463,7 +34212,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33598,7 +34347,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 90 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33607,7 +34356,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33709,7 +34458,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 91 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33718,7 +34467,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33828,7 +34577,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 92 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33838,7 +34587,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -33901,7 +34650,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 93 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -33910,7 +34659,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34031,7 +34780,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 94 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34041,7 +34790,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34096,7 +34845,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 95 */
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34105,7 +34854,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34160,7 +34909,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 96 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34169,7 +34918,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34274,7 +35023,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 97 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34283,7 +35032,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34335,7 +35084,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 98 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34347,7 +35096,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // - Jeeeyul Lee <jeeeyul@gmail.com>
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34404,7 +35153,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 99 */
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34417,7 +35166,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34570,7 +35319,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 100 */
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34579,7 +35328,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34694,7 +35443,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 101 */
+/* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34703,7 +35452,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34777,7 +35526,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 102 */
+/* 103 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34786,7 +35535,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34869,7 +35618,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 103 */
+/* 104 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34878,7 +35627,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -34939,7 +35688,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 104 */
+/* 105 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -34948,7 +35697,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35049,7 +35798,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 105 */
+/* 106 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35058,7 +35807,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35121,7 +35870,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 106 */
+/* 107 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35131,7 +35880,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35184,7 +35933,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 107 */
+/* 108 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35193,7 +35942,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35295,7 +36044,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 108 */
+/* 109 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35304,7 +36053,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35368,7 +36117,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 109 */
+/* 110 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35377,7 +36126,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35430,7 +36179,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 110 */
+/* 111 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35439,7 +36188,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35534,7 +36283,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 111 */
+/* 112 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35543,7 +36292,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35596,7 +36345,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 112 */
+/* 113 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35605,7 +36354,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35662,7 +36411,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 113 */
+/* 114 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35672,7 +36421,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35740,7 +36489,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 114 */
+/* 115 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35750,7 +36499,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -35912,7 +36661,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 115 */
+/* 116 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -35922,7 +36671,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36074,7 +36823,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 116 */
+/* 117 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36083,7 +36832,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36224,7 +36973,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 117 */
+/* 118 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36235,7 +36984,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36291,7 +37040,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 118 */
+/* 119 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36300,7 +37049,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36403,7 +37152,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 119 */
+/* 120 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36412,7 +37161,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36515,7 +37264,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 120 */
+/* 121 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36524,7 +37273,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36584,7 +37333,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 121 */
+/* 122 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36593,7 +37342,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36702,7 +37451,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 122 */
+/* 123 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36711,7 +37460,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36766,7 +37515,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 123 */
+/* 124 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36775,7 +37524,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36830,7 +37579,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 124 */
+/* 125 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36840,7 +37589,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36929,7 +37678,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 125 */
+/* 126 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36938,7 +37687,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -36990,7 +37739,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 126 */
+/* 127 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -36999,7 +37748,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -37051,7 +37800,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 127 */
+/* 128 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -37061,7 +37810,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -37214,7 +37963,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 128 */
+/* 129 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -37223,7 +37972,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -37275,7 +38024,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 129 */
+/* 130 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -37284,7 +38033,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -37343,7 +38092,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 130 */
+/* 131 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -37353,7 +38102,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -37457,7 +38206,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 131 */
+/* 132 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// moment.js language configuration
@@ -37466,7 +38215,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   (function (factory) {
       if (true) {
-          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(52)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+          !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(54)], __WEBPACK_AMD_DEFINE_RESULT__ = (factory.apply(null, __WEBPACK_AMD_DEFINE_ARRAY__)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
       } else if (typeof exports === 'object') {
           module.exports = factory(require('../moment')); // Node
       } else {
@@ -37547,7 +38296,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 132 */
+/* 133 */
 /***/ function(module, exports, __webpack_require__) {
 
   module.exports = function(module) {
