@@ -47,6 +47,10 @@ var webpackConfig = {
     filename: VIS_JS,
     sourcePrefix: '  '
   },
+  // exclude requires of moment.js language files
+  module: {
+    wrappedContextRegExp: /$^/
+  },
   plugins: [ bannerPlugin ],
   cache: true
 };

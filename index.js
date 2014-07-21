@@ -63,3 +63,7 @@ exports.network = {
 exports.Graph = function () {
   throw new Error('Graph is renamed to Network. Please create a graph as new vis.Network(...)');
 };
+
+// bundled external libraries
+exports.moment = require('./lib/module/moment');
+exports.hammer = require('./lib/module/hammer');
