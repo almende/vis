@@ -25,13 +25,13 @@
 
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
-		module.exports = factory(require("hammerjs"), require("moment"));
+		module.exports = factory(require("moment"), require("hammerjs"));
 	else if(typeof define === 'function' && define.amd)
-		define(["hammerjs", "moment"], factory);
+		define(["moment", "hammerjs"], factory);
 	else if(typeof exports === 'object')
-		exports["vis"] = factory(require("hammerjs"), require("moment"));
+		exports["vis"] = factory(require("moment"), require("hammerjs"));
 	else
-		root["vis"] = factory(root["hammerjs"], root["moment"]);
+		root["vis"] = factory(root["moment"], root["hammerjs"]);
 })(this, function(__WEBPACK_EXTERNAL_MODULE_44__, __WEBPACK_EXTERNAL_MODULE_45__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -20516,7 +20516,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // first check if moment.js is already loaded in the browser window, if so,
   // use this instance. Else, load via commonjs.
-  module.exports = (typeof window !== 'undefined') && window['moment'] || __webpack_require__(45);
+  module.exports = (typeof window !== 'undefined') && window['moment'] || __webpack_require__(44);
 
 
 /***/ },
@@ -20526,7 +20526,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // Only load hammer.js when in a browser environment
   // (loading hammer.js in a node.js environment gives errors)
   if (typeof window !== 'undefined') {
-    module.exports = window['Hammer'] || __webpack_require__(44);
+    module.exports = window['Hammer'] || __webpack_require__(45);
   }
   else {
     module.exports = function () {
