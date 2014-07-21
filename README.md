@@ -76,6 +76,22 @@ Where `container` is an HTML element, `data` is an Array with data or a DataSet,
 and `options` is an optional object with configuration options for the
 component.
 
+### Bundles
+
+The folder `dist` contains bundled versions of vis.js for direct use in the browser. In general, to use vis, load the files `vis.js` and `vis.css`.
+
+vis.js offers various bundled files: default or light version, and minified or non-minified. The source code of vis.js consists of commonjs modules, which makes it possible to create custom bundles using tools like [Browserify](http://browserify.org/) or [Webpack](http://webpack.github.io/). This can be bundling just one visualization like the Timeline, or bundling vis.js as part of your own browserified web application.
+
+Bundle | Files | Description
+------ | ----- | -----------
+default           | vis.js, vis.css         | The default bundle, fully standalone. Code is not minified, use this version for development.
+default minified  | vis.min.js, vis.min.css | The default bundle, fully standalone. Code is minified, use this version for production.
+light             | vis-light.js, vis.css   | The light bundle. External libraries [moment.js](http://momentjs.com/) and [hammer.js](http://hammerjs.github.io/) are excluded and need to be loaded before loading vis. Code is not minified, use this version for development.
+light minified  | vis-light.min.js, vis.min.css | The light bundle. External libraries [moment.js](http://momentjs.com/) and [hammer.js](http://hammerjs.github.io/) are excluded and need to be loaded before loading vis. Codee is minified, use this version for production.
+
+
+
+
 
 ## Example
 
