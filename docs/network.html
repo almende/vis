@@ -54,6 +54,7 @@
       <li><a href="#Nodes">Nodes</a></li>
       <li><a href="#Edges">Edges</a></li>
       <li><a href="#DOT_language">DOT language</a></li>
+      <li><a href="#Gephi_import">Gephi import</a></li>
     </ul>
   </li>
   <li>
@@ -759,7 +760,85 @@ var data = {
 var network = new vis.Network(container, data);
 </pre>
 
+<h3 id="Gephi_import">Gephi import (JSON)</h3>
 
+<p>
+    network can import data straight from an exported json file from gephi. You can get the JSON exporter here:
+    <a href="https://marketplace.gephi.org/plugin/json-exporter/" target="_blank">https://marketplace.gephi.org/plugin/json-exporter/</a>.
+    An example exists showing how to get a JSON file into Vis: <a href="../examples/Network/30_importing_from_gephi.html">30_importing_from_gephi</a>.
+</p>
+
+<p>
+    Example usage:
+</p>
+
+<pre class="prettyprint lang-js">
+// load the JSON file containing the Gephi network.
+var gephiJSON = loadJSON("./data/WorldCup2014.json"); // code in example 30
+
+// create a data object with the gephi key:
+var data = {
+  gephi: gephiJSON
+};
+
+// create a network
+var network = new vis.Network(container, data);
+</pre>
+Alternatively you can use the parser manually:
+<pre class="prettyprint lang-js">
+// load the JSON file containing the Gephi network.
+var gephiJSON = loadJSON("./data/WorldCup2014.json"); // code in example 30
+
+// parse the gephi file to receive an object
+// containing nodes and edges in vis format.
+var parsed = vis.network.gephiParser.parseGephi(gephiJSON);
+
+// provide data in the normal fashion
+var data = {
+  nodes: parsed.nodes,
+  edged: parsed.edges
+};
+
+// create a network
+var network = new vis.Network(container, data);
+</pre>
+
+<h4>Gephi parser options</h4>
+
+There are a few options you can use to tell Vis what to do with the data from Gephi.
+
+<pre class="prettyprint lang-js">
+var parserOptions = {
+  allowedToMove: false,
+  parseColor: false
+}
+var parsed = vis.network.gephiParser.parseGephi(gephiJSON, parserOptions);
+</pre>
+<table>
+<tr>
+    <th>Name</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+</tr>
+
+<tr>
+    <td>allowedToMove</td>
+    <td>Boolean</td>
+    <td>false</td>
+    <td>
+        If true, the nodes will move according to the physics model after import. If false, the nodes do not move at all.
+    </td>
+</tr>
+<tr>
+    <td>parseColor</td>
+    <td>Boolean</td>
+    <td>false</td>
+    <td>
+        If true, the color will be parsed by the vis parser, generating extra colors for the borders, highlighs and hover. If false, the node will be the supplied color.
+    </td>
+</tr>
+</table>
 
 <h2 id="Configuration_options">Configuration options</h2>
 
