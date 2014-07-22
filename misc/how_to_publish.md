@@ -31,7 +31,7 @@ This generates the vis.js library in the folder `./dist`.
 - Push the branches to github
 - Create a version tag (with the new version number) and push it to github:
 
-        git tag v0.3.0
+        git tag v3.1.0
         git push --tags
 
 

@@ -2,7 +2,12 @@
 http://visjs.org
 
 
-## not yet released, version 3.0.1-SNAPSHOT
+## 2014-07-22, version 3.1.0
+
+### General
+
+- Refactored the code to commonjs modules, which are browserifyable. This allows
+  to create custom builds.
 
 ### Timeline
 
@@ -12,8 +17,6 @@ http://visjs.org
   allows to specify different margins horizontally/vertically.
 - Removed check for number of arguments in callbacks `onAdd`, `onUpdate`, 
   `onRemove`, and `onMove`.
-- Refactored the code to commonjs modules, which are browserifyable. This allows
-  to create custom bundles.
 - Fixed items in groups sometimes being displayed but not positioned correctly.
 - Fixed range where the `end` of the first is equal to the `start` of the second 
   sometimes being stacked instead of put besides each other when `item.margin=0`
@@ -42,7 +45,8 @@ http://visjs.org
 
 ### DataSet
 
-- Added .get() returnType option to return as JSON object, Array or Google DataTable.
+- Added .get() returnType option to return as JSON object, Array or Google 
+  DataTable.
 
 
 
