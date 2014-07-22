@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.0.1-SNAPSHOT
- * @date    2014-07-21
+ * @date    2014-07-22
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -131,13 +131,13 @@ return /******/ (function(modules) { // webpackBootstrap
   // Network
   exports.Network = __webpack_require__(38);
   exports.network = {
-    Edge: __webpack_require__(39),
-    Groups: __webpack_require__(41),
-    Images: __webpack_require__(42),
-    Node: __webpack_require__(40),
-    Popup: __webpack_require__(43),
-    dotparser: __webpack_require__(44),
-    gephiParser: __webpack_require__(45)
+    Edge: __webpack_require__(45),
+    Groups: __webpack_require__(42),
+    Images: __webpack_require__(43),
+    Node: __webpack_require__(44),
+    Popup: __webpack_require__(46),
+    dotparser: __webpack_require__(40),
+    gephiParser: __webpack_require__(41)
   };
 
   // Deprecated since v3.0.0
@@ -14821,18 +14821,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var Emitter = __webpack_require__(8);
   var Hammer = __webpack_require__(16);
-  var mousetrap = __webpack_require__(46);
+  var mousetrap = __webpack_require__(39);
   var util = __webpack_require__(1);
   var hammerUtil = __webpack_require__(19);
   var DataSet = __webpack_require__(5);
   var DataView = __webpack_require__(6);
-  var dotparser = __webpack_require__(44);
-  var gephiParser = __webpack_require__(45);
-  var Groups = __webpack_require__(41);
-  var Images = __webpack_require__(42);
-  var Node = __webpack_require__(40);
-  var Edge = __webpack_require__(39);
-  var Popup = __webpack_require__(43);
+  var dotparser = __webpack_require__(40);
+  var gephiParser = __webpack_require__(41);
+  var Groups = __webpack_require__(42);
+  var Images = __webpack_require__(43);
+  var Node = __webpack_require__(44);
+  var Edge = __webpack_require__(45);
+  var Popup = __webpack_require__(46);
   var MixinLoader = __webpack_require__(47);
 
   // Load custom shapes into CanvasRenderingContext2D
@@ -17214,1208 +17214,1844 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var util = __webpack_require__(1);
-  var Node = __webpack_require__(40);
-
   /**
-   * @class Edge
+   * Copyright 2012 Craig Campbell
    *
-   * A edge connects two nodes
-   * @param {Object} properties     Object with properties. Must contain
-   *                                At least properties from and to.
-   *                                Available properties: from (number),
-   *                                to (number), label (string, color (string),
-   *                                width (number), style (string),
-   *                                length (number), title (string)
-   * @param {Network} network       A Network object, used to find and edge to
-   *                                nodes.
-   * @param {Object} constants      An object with default values for
-   *                                example for the color
-   */
-  function Edge (properties, network, constants) {
-    if (!network) {
-      throw "No network provided";
-    }
-    this.network = network;
-
-    // initialize constants
-    this.widthMin = constants.edges.widthMin;
-    this.widthMax = constants.edges.widthMax;
-
-    // initialize variables
-    this.id     = undefined;
-    this.fromId = undefined;
-    this.toId   = undefined;
-    this.style  = constants.edges.style;
-    this.title  = undefined;
-    this.width  = constants.edges.width;
-    this.widthSelectionMultiplier = constants.edges.widthSelectionMultiplier;
-    this.widthSelected = this.width * this.widthSelectionMultiplier;
-    this.hoverWidth = constants.edges.hoverWidth;
-    this.value  = undefined;
-    this.length = constants.physics.springLength;
-    this.customLength = false;
-    this.selected = false;
-    this.hover = false;
-    this.smoothCurves = constants.smoothCurves;
-    this.dynamicSmoothCurves = constants.dynamicSmoothCurves;
-    this.arrowScaleFactor = constants.edges.arrowScaleFactor;
-    this.inheritColor = constants.edges.inheritColor;
-
-    this.from = null;   // a node
-    this.to = null;     // a node
-    this.via = null;    // a temp node
-
-    // we use this to be able to reconnect the edge to a cluster if its node is put into a cluster
-    // by storing the original information we can revert to the original connection when the cluser is opened.
-    this.originalFromId = [];
-    this.originalToId = [];
-
-    this.connected = false;
-
-    // Added to support dashed lines
-    // David Jordan
-    // 2012-08-08
-    this.dash = util.extend({}, constants.edges.dash); // contains properties length, gap, altLength
-
-    this.color       = {color:constants.edges.color.color,
-                        highlight:constants.edges.color.highlight,
-                        hover:constants.edges.color.hover};
-    this.widthFixed  = false;
-    this.lengthFixed = false;
-
-    this.setProperties(properties, constants);
-
-    this.controlNodesEnabled = false;
-    this.controlNodes = {from:null, to:null, positions:{}};
-    this.connectedNode = null;
-  }
-
-  /**
-   * Set or overwrite properties for the edge
-   * @param {Object} properties  an object with properties
-   * @param {Object} constants   and object with default, global properties
-   */
-  Edge.prototype.setProperties = function(properties, constants) {
-    if (!properties) {
-      return;
-    }
-
-    if (properties.from !== undefined)           {this.fromId = properties.from;}
-    if (properties.to !== undefined)             {this.toId = properties.to;}
-
-    if (properties.id !== undefined)             {this.id = properties.id;}
-    if (properties.style !== undefined)          {this.style = properties.style;}
-    if (properties.label !== undefined)          {this.label = properties.label;}
-
-    if (this.label) {
-      this.fontSize = constants.edges.fontSize;
-      this.fontFace = constants.edges.fontFace;
-      this.fontColor = constants.edges.fontColor;
-      this.fontFill = constants.edges.fontFill;
-
-      if (properties.fontColor !== undefined)  {this.fontColor = properties.fontColor;}
-      if (properties.fontSize !== undefined)   {this.fontSize = properties.fontSize;}
-      if (properties.fontFace !== undefined)   {this.fontFace = properties.fontFace;}
-      if (properties.fontFill !== undefined)   {this.fontFill = properties.fontFill;}
-    }
-
-    if (properties.title !== undefined)        {this.title = properties.title;}
-    if (properties.width !== undefined)        {this.width = properties.width;}
-    if (properties.widthSelectionMultiplier !== undefined)
-                                               {this.widthSelectionMultiplier = properties.widthSelectionMultiplier;}
-    if (properties.hoverWidth !== undefined)   {this.hoverWidth = properties.hoverWidth;}
-    if (properties.value !== undefined)        {this.value = properties.value;}
-    if (properties.length !== undefined)       {this.length = properties.length;
-                                                this.customLength = true;}
-
-    // scale the arrow
-    if (properties.arrowScaleFactor !== undefined)       {this.arrowScaleFactor = properties.arrowScaleFactor;}
-
-    if (properties.inheritColor !== undefined)       {this.inheritColor = properties.inheritColor;}
-
-    // Added to support dashed lines
-    // David Jordan
-    // 2012-08-08
-    if (properties.dash) {
-      if (properties.dash.length !== undefined)    {this.dash.length = properties.dash.length;}
-      if (properties.dash.gap !== undefined)       {this.dash.gap = properties.dash.gap;}
-      if (properties.dash.altLength !== undefined) {this.dash.altLength = properties.dash.altLength;}
-    }
-
-    if (properties.color !== undefined) {
-      if (util.isString(properties.color)) {
-        this.color.color = properties.color;
-        this.color.highlight = properties.color;
-      }
-      else {
-        if (properties.color.color !== undefined)     {this.color.color = properties.color.color;}
-        if (properties.color.highlight !== undefined) {this.color.highlight = properties.color.highlight;}
-        if (properties.color.hover !== undefined)     {this.color.hover = properties.color.hover;}
-      }
-    }
-
-    // A node is connected when it has a from and to node.
-    this.connect();
-
-    this.widthFixed = this.widthFixed || (properties.width !== undefined);
-    this.lengthFixed = this.lengthFixed || (properties.length !== undefined);
-
-    this.widthSelected = this.width * this.widthSelectionMultiplier;
-
-    // set draw method based on style
-    switch (this.style) {
-      case 'line':          this.draw = this._drawLine; break;
-      case 'arrow':         this.draw = this._drawArrow; break;
-      case 'arrow-center':  this.draw = this._drawArrowCenter; break;
-      case 'dash-line':     this.draw = this._drawDashLine; break;
-      default:              this.draw = this._drawLine; break;
-    }
-  };
-
-  /**
-   * Connect an edge to its nodes
-   */
-  Edge.prototype.connect = function () {
-    this.disconnect();
-
-    this.from = this.network.nodes[this.fromId] || null;
-    this.to = this.network.nodes[this.toId] || null;
-    this.connected = (this.from && this.to);
-
-    if (this.connected) {
-      this.from.attachEdge(this);
-      this.to.attachEdge(this);
-    }
-    else {
-      if (this.from) {
-        this.from.detachEdge(this);
-      }
-      if (this.to) {
-        this.to.detachEdge(this);
-      }
-    }
-  };
-
-  /**
-   * Disconnect an edge from its nodes
-   */
-  Edge.prototype.disconnect = function () {
-    if (this.from) {
-      this.from.detachEdge(this);
-      this.from = null;
-    }
-    if (this.to) {
-      this.to.detachEdge(this);
-      this.to = null;
-    }
-
-    this.connected = false;
-  };
-
-  /**
-   * get the title of this edge.
-   * @return {string} title    The title of the edge, or undefined when no title
-   *                           has been set.
-   */
-  Edge.prototype.getTitle = function() {
-    return typeof this.title === "function" ? this.title() : this.title;
-  };
-
-
-  /**
-   * Retrieve the value of the edge. Can be undefined
-   * @return {Number} value
-   */
-  Edge.prototype.getValue = function() {
-    return this.value;
-  };
-
-  /**
-   * Adjust the value range of the edge. The edge will adjust it's width
-   * based on its value.
-   * @param {Number} min
-   * @param {Number} max
-   */
-  Edge.prototype.setValueRange = function(min, max) {
-    if (!this.widthFixed && this.value !== undefined) {
-      var scale = (this.widthMax - this.widthMin) / (max - min);
-      this.width = (this.value - min) * scale + this.widthMin;
-    }
-  };
-
-  /**
-   * Redraw a edge
-   * Draw this edge in the given canvas
-   * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-   * @param {CanvasRenderingContext2D}   ctx
-   */
-  Edge.prototype.draw = function(ctx) {
-    throw "Method draw not initialized in edge";
-  };
-
-  /**
-   * Check if this object is overlapping with the provided object
-   * @param {Object} obj   an object with parameters left, top
-   * @return {boolean}     True if location is located on the edge
-   */
-  Edge.prototype.isOverlappingWith = function(obj) {
-    if (this.connected) {
-      var distMax = 10;
-      var xFrom = this.from.x;
-      var yFrom = this.from.y;
-      var xTo = this.to.x;
-      var yTo = this.to.y;
-      var xObj = obj.left;
-      var yObj = obj.top;
-
-      var dist = this._getDistanceToEdge(xFrom, yFrom, xTo, yTo, xObj, yObj);
-
-      return (dist < distMax);
-    }
-    else {
-      return false
-    }
-  };
-
-  Edge.prototype._getColor = function() {
-    var colorObj = this.color;
-    if (this.inheritColor == "to") {
-      colorObj = {
-        highlight: this.to.color.highlight.border,
-        hover: this.to.color.hover.border,
-        color: this.to.color.border
-      };
-    }
-    else if (this.inheritColor == "from" || this.inheritColor == true) {
-      colorObj = {
-        highlight: this.from.color.highlight.border,
-        hover: this.from.color.hover.border,
-        color: this.from.color.border
-      };
-    }
-
-    if (this.selected == true)   {return colorObj.highlight;}
-    else if (this.hover == true) {return colorObj.hover;}
-    else                         {return colorObj.color;}
-  }
-
-
-  /**
-   * Redraw a edge as a line
-   * Draw this edge in the given canvas
-   * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-   * @param {CanvasRenderingContext2D}   ctx
-   * @private
-   */
-  Edge.prototype._drawLine = function(ctx) {
-    // set style
-    ctx.strokeStyle = this._getColor();
-    ctx.lineWidth   = this._getLineWidth();
-
-    if (this.from != this.to) {
-      // draw line
-      var via = this._line(ctx);
-
-      // draw label
-      var point;
-      if (this.label) {
-        if (this.smoothCurves.enabled == true && via != null) {
-          var midpointX = 0.5*(0.5*(this.from.x + via.x) + 0.5*(this.to.x + via.x));
-          var midpointY = 0.5*(0.5*(this.from.y + via.y) + 0.5*(this.to.y + via.y));
-          point = {x:midpointX, y:midpointY};
-        }
-        else {
-          point = this._pointOnLine(0.5);
-        }
-        this._label(ctx, this.label, point.x, point.y);
-      }
-    }
-    else {
-      var x, y;
-      var radius = this.length / 4;
-      var node = this.from;
-      if (!node.width) {
-        node.resize(ctx);
-      }
-      if (node.width > node.height) {
-        x = node.x + node.width / 2;
-        y = node.y - radius;
-      }
-      else {
-        x = node.x + radius;
-        y = node.y - node.height / 2;
-      }
-      this._circle(ctx, x, y, radius);
-      point = this._pointOnCircle(x, y, radius, 0.5);
-      this._label(ctx, this.label, point.x, point.y);
-    }
-  };
-
-  /**
-   * Get the line width of the edge. Depends on width and whether one of the
-   * connected nodes is selected.
-   * @return {Number} width
-   * @private
-   */
-  Edge.prototype._getLineWidth = function() {
-    if (this.selected == true) {
-      return Math.min(this.widthSelected, this.widthMax)*this.networkScaleInv;
-    }
-    else {
-      if (this.hover == true) {
-        return Math.min(this.hoverWidth, this.widthMax)*this.networkScaleInv;
-      }
-      else {
-        return this.width*this.networkScaleInv;
-      }
-    }
-  };
-
-  Edge.prototype._getViaCoordinates = function () {
-    var xVia = null;
-    var yVia = null;
-    var factor = this.smoothCurves.roundness;
-    var type = this.smoothCurves.type;
-
-    var dx = Math.abs(this.from.x - this.to.x);
-    var dy = Math.abs(this.from.y - this.to.y);
-    if (type == 'discrete' || type == 'diagonalCross') {
-      if (Math.abs(this.from.x - this.to.x) < Math.abs(this.from.y - this.to.y)) {
-        if (this.from.y > this.to.y) {
-          if (this.from.x < this.to.x) {
-            xVia = this.from.x + factor * dy;
-            yVia = this.from.y - factor * dy;
-          }
-          else if (this.from.x > this.to.x) {
-            xVia = this.from.x - factor * dy;
-            yVia = this.from.y - factor * dy;
-          }
-        }
-        else if (this.from.y < this.to.y) {
-          if (this.from.x < this.to.x) {
-            xVia = this.from.x + factor * dy;
-            yVia = this.from.y + factor * dy;
-          }
-          else if (this.from.x > this.to.x) {
-            xVia = this.from.x - factor * dy;
-            yVia = this.from.y + factor * dy;
-          }
-        }
-        if (type == "discrete") {
-          xVia = dx < factor * dy ? this.from.x : xVia;
-        }
-      }
-      else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) {
-        if (this.from.y > this.to.y) {
-          if (this.from.x < this.to.x) {
-            xVia = this.from.x + factor * dx;
-            yVia = this.from.y - factor * dx;
-          }
-          else if (this.from.x > this.to.x) {
-            xVia = this.from.x - factor * dx;
-            yVia = this.from.y - factor * dx;
-          }
-        }
-        else if (this.from.y < this.to.y) {
-          if (this.from.x < this.to.x) {
-            xVia = this.from.x + factor * dx;
-            yVia = this.from.y + factor * dx;
-          }
-          else if (this.from.x > this.to.x) {
-            xVia = this.from.x - factor * dx;
-            yVia = this.from.y + factor * dx;
-          }
-        }
-        if (type == "discrete") {
-          yVia = dy < factor * dx ? this.from.y : yVia;
-        }
-      }
-    }
-    else if (type == "straightCross") {
-      if (Math.abs(this.from.x - this.to.x) < Math.abs(this.from.y - this.to.y)) {  // up - down
-        xVia = this.from.x;
-        if (this.from.y < this.to.y) {
-          yVia = this.to.y - (1-factor) * dy;
-        }
-        else {
-          yVia = this.to.y + (1-factor) * dy;
-        }
-      }
-      else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) { // left - right
-        if (this.from.x < this.to.x) {
-          xVia = this.to.x - (1-factor) * dx;
-        }
-        else {
-          xVia = this.to.x + (1-factor) * dx;
-        }
-        yVia = this.from.y;
-      }
-    }
-    else if (type == 'horizontal') {
-      if (this.from.x < this.to.x) {
-        xVia = this.to.x - (1-factor) * dx;
-      }
-      else {
-        xVia = this.to.x + (1-factor) * dx;
-      }
-      yVia = this.from.y;
-    }
-    else if (type == 'vertical') {
-      xVia = this.from.x;
-      if (this.from.y < this.to.y) {
-        yVia = this.to.y - (1-factor) * dy;
-      }
-      else {
-        yVia = this.to.y + (1-factor) * dy;
-      }
-    }
-    else { // continuous
-      if (Math.abs(this.from.x - this.to.x) < Math.abs(this.from.y - this.to.y)) {
-        if (this.from.y > this.to.y) {
-          if (this.from.x < this.to.x) {
-  //          console.log(1)
-            xVia = this.from.x + factor * dy;
-            yVia = this.from.y - factor * dy;
-            xVia = this.to.x < xVia ? this.to.x : xVia;
-          }
-          else if (this.from.x > this.to.x) {
-  //          console.log(2)
-            xVia = this.from.x - factor * dy;
-            yVia = this.from.y - factor * dy;
-            xVia = this.to.x > xVia ? this.to.x :xVia;
-          }
-        }
-        else if (this.from.y < this.to.y) {
-          if (this.from.x < this.to.x) {
-  //          console.log(3)
-            xVia = this.from.x + factor * dy;
-            yVia = this.from.y + factor * dy;
-            xVia = this.to.x < xVia ? this.to.x : xVia;
-          }
-          else if (this.from.x > this.to.x) {
-  //          console.log(4, this.from.x, this.to.x)
-            xVia = this.from.x - factor * dy;
-            yVia = this.from.y + factor * dy;
-            xVia = this.to.x > xVia ? this.to.x : xVia;
-          }
-        }
-      }
-      else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) {
-        if (this.from.y > this.to.y) {
-          if (this.from.x < this.to.x) {
-  //          console.log(5)
-            xVia = this.from.x + factor * dx;
-            yVia = this.from.y - factor * dx;
-            yVia = this.to.y > yVia ? this.to.y : yVia;
-          }
-          else if (this.from.x > this.to.x) {
-  //          console.log(6)
-            xVia = this.from.x - factor * dx;
-            yVia = this.from.y - factor * dx;
-            yVia = this.to.y > yVia ? this.to.y : yVia;
-          }
-        }
-        else if (this.from.y < this.to.y) {
-          if (this.from.x < this.to.x) {
-  //          console.log(7)
-            xVia = this.from.x + factor * dx;
-            yVia = this.from.y + factor * dx;
-            yVia = this.to.y < yVia ? this.to.y : yVia;
-          }
-          else if (this.from.x > this.to.x) {
-  //          console.log(8)
-            xVia = this.from.x - factor * dx;
-            yVia = this.from.y + factor * dx;
-            yVia = this.to.y < yVia ? this.to.y : yVia;
-          }
-        }
-      }
-    }
-
-
-    return {x:xVia, y:yVia};
-  }
-
-  /**
-   * Draw a line between two nodes
-   * @param {CanvasRenderingContext2D} ctx
-   * @private
-   */
-  Edge.prototype._line = function (ctx) {
-    // draw a straight line
-    ctx.beginPath();
-    ctx.moveTo(this.from.x, this.from.y);
-    if (this.smoothCurves.enabled == true) {
-      if (this.smoothCurves.dynamic == false) {
-        var via = this._getViaCoordinates();
-        if (via.x == null) {
-          ctx.lineTo(this.to.x, this.to.y);
-          ctx.stroke();
-          return null;
-        }
-        else {
-  //        this.via.x = via.x;
-  //        this.via.y = via.y;
-          ctx.quadraticCurveTo(via.x,via.y,this.to.x, this.to.y);
-          ctx.stroke();
-          return via;
-        }
-      }
-      else {
-        ctx.quadraticCurveTo(this.via.x,this.via.y,this.to.x, this.to.y);
-        ctx.stroke();
-        return this.via;
-      }
-    }
-    else {
-      ctx.lineTo(this.to.x, this.to.y);
-      ctx.stroke();
-      return null;
-    }
-  };
-
-  /**
-   * Draw a line from a node to itself, a circle
-   * @param {CanvasRenderingContext2D} ctx
-   * @param {Number} x
-   * @param {Number} y
-   * @param {Number} radius
-   * @private
-   */
-  Edge.prototype._circle = function (ctx, x, y, radius) {
-    // draw a circle
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
-    ctx.stroke();
-  };
-
-  /**
-   * Draw label with white background and with the middle at (x, y)
-   * @param {CanvasRenderingContext2D} ctx
-   * @param {String} text
-   * @param {Number} x
-   * @param {Number} y
-   * @private
-   */
-  Edge.prototype._label = function (ctx, text, x, y) {
-    if (text) {
-      // TODO: cache the calculated size
-      ctx.font = ((this.from.selected || this.to.selected) ? "bold " : "") +
-          this.fontSize + "px " + this.fontFace;
-      ctx.fillStyle = this.fontFill;
-      var width = ctx.measureText(text).width;
-      var height = this.fontSize;
-      var left = x - width / 2;
-      var top = y - height / 2;
-
-      ctx.fillRect(left, top, width, height);
-
-      // draw text
-      ctx.fillStyle = this.fontColor || "black";
-      ctx.textAlign = "left";
-      ctx.textBaseline = "top";
-      ctx.fillText(text, left, top);
-    }
-  };
-
-  /**
-   * Redraw a edge as a dashed line
-   * Draw this edge in the given canvas
-   * @author David Jordan
-   * @date 2012-08-08
-   * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-   * @param {CanvasRenderingContext2D}   ctx
-   * @private
-   */
-  Edge.prototype._drawDashLine = function(ctx) {
-    // set style
-    if (this.selected == true)   {ctx.strokeStyle = this.color.highlight;}
-    else if (this.hover == true) {ctx.strokeStyle = this.color.hover;}
-    else                         {ctx.strokeStyle = this.color.color;}
-
-    ctx.lineWidth = this._getLineWidth();
-
-    var via = null;
-    // only firefox and chrome support this method, else we use the legacy one.
-    if (ctx.mozDash !== undefined || ctx.setLineDash !== undefined) {
-      // configure the dash pattern
-      var pattern = [0];
-      if (this.dash.length !== undefined && this.dash.gap !== undefined) {
-        pattern = [this.dash.length,this.dash.gap];
-      }
-      else {
-        pattern = [5,5];
-      }
-
-      // set dash settings for chrome or firefox
-      if (typeof ctx.setLineDash !== 'undefined') { //Chrome
-        ctx.setLineDash(pattern);
-        ctx.lineDashOffset = 0;
-
-      } else { //Firefox
-        ctx.mozDash = pattern;
-        ctx.mozDashOffset = 0;
-      }
-
-      // draw the line
-      via = this._line(ctx);
-
-      // restore the dash settings.
-      if (typeof ctx.setLineDash !== 'undefined') { //Chrome
-        ctx.setLineDash([0]);
-        ctx.lineDashOffset = 0;
-
-      } else { //Firefox
-        ctx.mozDash = [0];
-        ctx.mozDashOffset = 0;
-      }
-    }
-    else { // unsupporting smooth lines
-      // draw dashed line
-      ctx.beginPath();
-      ctx.lineCap = 'round';
-      if (this.dash.altLength !== undefined) //If an alt dash value has been set add to the array this value
-      {
-        ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
-            [this.dash.length,this.dash.gap,this.dash.altLength,this.dash.gap]);
-      }
-      else if (this.dash.length !== undefined && this.dash.gap !== undefined) //If a dash and gap value has been set add to the array this value
-      {
-        ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
-            [this.dash.length,this.dash.gap]);
-      }
-      else //If all else fails draw a line
-      {
-        ctx.moveTo(this.from.x, this.from.y);
-        ctx.lineTo(this.to.x, this.to.y);
-      }
-      ctx.stroke();
-    }
-
-    // draw label
-    if (this.label) {
-      var point;
-      if (this.smoothCurves.enabled == true && via != null) {
-        var midpointX = 0.5*(0.5*(this.from.x + via.x) + 0.5*(this.to.x + via.x));
-        var midpointY = 0.5*(0.5*(this.from.y + via.y) + 0.5*(this.to.y + via.y));
-        point = {x:midpointX, y:midpointY};
-      }
-      else {
-        point = this._pointOnLine(0.5);
-      }
-      this._label(ctx, this.label, point.x, point.y);
-    }
-  };
-
-  /**
-   * Get a point on a line
-   * @param {Number} percentage. Value between 0 (line start) and 1 (line end)
-   * @return {Object} point
-   * @private
-   */
-  Edge.prototype._pointOnLine = function (percentage) {
-    return {
-      x: (1 - percentage) * this.from.x + percentage * this.to.x,
-      y: (1 - percentage) * this.from.y + percentage * this.to.y
-    }
-  };
-
-  /**
-   * Get a point on a circle
-   * @param {Number} x
-   * @param {Number} y
-   * @param {Number} radius
-   * @param {Number} percentage. Value between 0 (line start) and 1 (line end)
-   * @return {Object} point
-   * @private
-   */
-  Edge.prototype._pointOnCircle = function (x, y, radius, percentage) {
-    var angle = (percentage - 3/8) * 2 * Math.PI;
-    return {
-      x: x + radius * Math.cos(angle),
-      y: y - radius * Math.sin(angle)
-    }
-  };
-
-  /**
-   * Redraw a edge as a line with an arrow halfway the line
-   * Draw this edge in the given canvas
-   * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-   * @param {CanvasRenderingContext2D}   ctx
-   * @private
-   */
-  Edge.prototype._drawArrowCenter = function(ctx) {
-    var point;
-    // set style
-    if (this.selected == true)   {ctx.strokeStyle = this.color.highlight; ctx.fillStyle = this.color.highlight;}
-    else if (this.hover == true) {ctx.strokeStyle = this.color.hover;     ctx.fillStyle = this.color.hover;}
-    else                         {ctx.strokeStyle = this.color.color;     ctx.fillStyle = this.color.color;}
-    ctx.lineWidth = this._getLineWidth();
-
-    if (this.from != this.to) {
-      // draw line
-      var via = this._line(ctx);
-
-      var angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
-      var length = (10 + 5 * this.width) * this.arrowScaleFactor;
-      // draw an arrow halfway the line
-      if (this.smoothCurves.enabled == true && via != null) {
-        var midpointX = 0.5*(0.5*(this.from.x + via.x) + 0.5*(this.to.x + via.x));
-        var midpointY = 0.5*(0.5*(this.from.y + via.y) + 0.5*(this.to.y + via.y));
-        point = {x:midpointX, y:midpointY};
-      }
-      else {
-        point = this._pointOnLine(0.5);
-      }
-
-      ctx.arrow(point.x, point.y, angle, length);
-      ctx.fill();
-      ctx.stroke();
-
-      // draw label
-      if (this.label) {
-        this._label(ctx, this.label, point.x, point.y);
-      }
-    }
-    else {
-      // draw circle
-      var x, y;
-      var radius = 0.25 * Math.max(100,this.length);
-      var node = this.from;
-      if (!node.width) {
-        node.resize(ctx);
-      }
-      if (node.width > node.height) {
-        x = node.x + node.width * 0.5;
-        y = node.y - radius;
-      }
-      else {
-        x = node.x + radius;
-        y = node.y - node.height * 0.5;
-      }
-      this._circle(ctx, x, y, radius);
-
-      // draw all arrows
-      var angle = 0.2 * Math.PI;
-      var length = (10 + 5 * this.width) * this.arrowScaleFactor;
-      point = this._pointOnCircle(x, y, radius, 0.5);
-      ctx.arrow(point.x, point.y, angle, length);
-      ctx.fill();
-      ctx.stroke();
-
-      // draw label
-      if (this.label) {
-        point = this._pointOnCircle(x, y, radius, 0.5);
-        this._label(ctx, this.label, point.x, point.y);
-      }
-    }
-  };
-
-
-
-  /**
-   * Redraw a edge as a line with an arrow
-   * Draw this edge in the given canvas
-   * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-   * @param {CanvasRenderingContext2D}   ctx
-   * @private
-   */
-  Edge.prototype._drawArrow = function(ctx) {
-    // set style
-    if (this.selected == true)   {ctx.strokeStyle = this.color.highlight; ctx.fillStyle = this.color.highlight;}
-    else if (this.hover == true) {ctx.strokeStyle = this.color.hover;     ctx.fillStyle = this.color.hover;}
-    else                         {ctx.strokeStyle = this.color.color;     ctx.fillStyle = this.color.color;}
-
-    ctx.lineWidth = this._getLineWidth();
-
-    var angle, length;
-    //draw a line
-    if (this.from != this.to) {
-      angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
-      var dx = (this.to.x - this.from.x);
-      var dy = (this.to.y - this.from.y);
-      var edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
-
-      var fromBorderDist = this.from.distanceToBorder(ctx, angle + Math.PI);
-      var fromBorderPoint = (edgeSegmentLength - fromBorderDist) / edgeSegmentLength;
-      var xFrom = (fromBorderPoint) * this.from.x + (1 - fromBorderPoint) * this.to.x;
-      var yFrom = (fromBorderPoint) * this.from.y + (1 - fromBorderPoint) * this.to.y;
-
-      var via;
-      if (this.smoothCurves.dynamic == true && this.smoothCurves.enabled == true ) {
-        via = this.via;
-      }
-      else if (this.smoothCurves.enabled == true) {
-        via = this._getViaCoordinates();
-      }
-
-      if (this.smoothCurves.enabled == true && via.x != null) {
-        angle = Math.atan2((this.to.y - via.y), (this.to.x - via.x));
-        dx = (this.to.x - via.x);
-        dy = (this.to.y - via.y);
-        edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
-      }
-      var toBorderDist = this.to.distanceToBorder(ctx, angle);
-      var toBorderPoint = (edgeSegmentLength - toBorderDist) / edgeSegmentLength;
-
-      var xTo,yTo;
-      if (this.smoothCurves.enabled == true && via.x != null) {
-       xTo = (1 - toBorderPoint) * via.x + toBorderPoint * this.to.x;
-       yTo = (1 - toBorderPoint) * via.y + toBorderPoint * this.to.y;
-      }
-      else {
-        xTo = (1 - toBorderPoint) * this.from.x + toBorderPoint * this.to.x;
-        yTo = (1 - toBorderPoint) * this.from.y + toBorderPoint * this.to.y;
-      }
-
-      ctx.beginPath();
-      ctx.moveTo(xFrom,yFrom);
-      if (this.smoothCurves.enabled == true && via.x != null) {
-        ctx.quadraticCurveTo(via.x,via.y,xTo, yTo);
-      }
-      else {
-        ctx.lineTo(xTo, yTo);
-      }
-      ctx.stroke();
-
-      // draw arrow at the end of the line
-      length = (10 + 5 * this.width) * this.arrowScaleFactor;
-      ctx.arrow(xTo, yTo, angle, length);
-      ctx.fill();
-      ctx.stroke();
-
-      // draw label
-      if (this.label) {
-        var point;
-        if (this.smoothCurves.enabled == true && via != null) {
-          var midpointX = 0.5*(0.5*(this.from.x + via.x) + 0.5*(this.to.x + via.x));
-          var midpointY = 0.5*(0.5*(this.from.y + via.y) + 0.5*(this.to.y + via.y));
-          point = {x:midpointX, y:midpointY};
-        }
-        else {
-          point = this._pointOnLine(0.5);
-        }
-        this._label(ctx, this.label, point.x, point.y);
-      }
-    }
-    else {
-      // draw circle
-      var node = this.from;
-      var x, y, arrow;
-      var radius = 0.25 * Math.max(100,this.length);
-      if (!node.width) {
-        node.resize(ctx);
-      }
-      if (node.width > node.height) {
-        x = node.x + node.width * 0.5;
-        y = node.y - radius;
-        arrow = {
-          x: x,
-          y: node.y,
-          angle: 0.9 * Math.PI
-        };
-      }
-      else {
-        x = node.x + radius;
-        y = node.y - node.height * 0.5;
-        arrow = {
-          x: node.x,
-          y: y,
-          angle: 0.6 * Math.PI
-        };
-      }
-      ctx.beginPath();
-      // TODO: similarly, for a line without arrows, draw to the border of the nodes instead of the center
-      ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
-      ctx.stroke();
-
-      // draw all arrows
-      var length = (10 + 5 * this.width) * this.arrowScaleFactor;
-      ctx.arrow(arrow.x, arrow.y, arrow.angle, length);
-      ctx.fill();
-      ctx.stroke();
-
-      // draw label
-      if (this.label) {
-        point = this._pointOnCircle(x, y, radius, 0.5);
-        this._label(ctx, this.label, point.x, point.y);
-      }
-    }
-  };
-
-
-
-  /**
-   * Calculate the distance between a point (x3,y3) and a line segment from
-   * (x1,y1) to (x2,y2).
-   * http://stackoverflow.com/questions/849211/shortest-distancae-between-a-point-and-a-line-segment
-   * @param {number} x1
-   * @param {number} y1
-   * @param {number} x2
-   * @param {number} y2
-   * @param {number} x3
-   * @param {number} y3
-   * @private
-   */
-  Edge.prototype._getDistanceToEdge = function (x1,y1, x2,y2, x3,y3) { // x3,y3 is the point
-    if (this.from != this.to) {
-      if (this.smoothCurves.enabled == true) {
-        var xVia, yVia;
-        if (this.smoothCurves.enabled == true && this.smoothCurves.dynamic == true) {
-          xVia = this.via.x;
-          yVia = this.via.y;
-        }
-        else {
-          var via = this._getViaCoordinates();
-          xVia = via.x;
-          yVia = via.y;
-        }
-        var minDistance = 1e9;
-        var distance;
-        var i,t,x,y, lastX, lastY;
-        for (i = 0; i < 10; i++) {
-          t = 0.1*i;
-          x = Math.pow(1-t,2)*x1 + (2*t*(1 - t))*xVia + Math.pow(t,2)*x2;
-          y = Math.pow(1-t,2)*y1 + (2*t*(1 - t))*yVia + Math.pow(t,2)*y2;
-          if (i > 0) {
-            distance = this._getDistanceToLine(lastX,lastY,x,y, x3,y3);
-            minDistance = distance < minDistance ? distance : minDistance;
-          }
-          lastX = x; lastY = y;
-        }
-        return minDistance
-      }
-      else {
-        return this._getDistanceToLine(x1,y1,x2,y2,x3,y3);
-      }
-    }
-    else {
-      var x, y, dx, dy;
-      var radius = this.length / 4;
-      var node = this.from;
-      if (!node.width) {
-        node.resize(ctx);
-      }
-      if (node.width > node.height) {
-        x = node.x + node.width / 2;
-        y = node.y - radius;
-      }
-      else {
-        x = node.x + radius;
-        y = node.y - node.height / 2;
-      }
-      dx = x - x3;
-      dy = y - y3;
-      return Math.abs(Math.sqrt(dx*dx + dy*dy) - radius);
-    }
-  };
-
-  Edge.prototype._getDistanceToLine = function(x1,y1,x2,y2,x3,y3) {
-    var px = x2-x1,
-      py = y2-y1,
-      something = px*px + py*py,
-      u =  ((x3 - x1) * px + (y3 - y1) * py) / something;
-
-    if (u > 1) {
-      u = 1;
-    }
-    else if (u < 0) {
-      u = 0;
-    }
-
-    var x = x1 + u * px,
-      y = y1 + u * py,
-      dx = x - x3,
-      dy = y - y3;
-
-    //# Note: If the actual distance does not matter,
-    //# if you only want to compare what this function
-    //# returns to other results of this function, you
-    //# can just return the squared distance instead
-    //# (i.e. remove the sqrt) to gain a little performance
-
-    return Math.sqrt(dx*dx + dy*dy);
-  }
-
-  /**
-   * This allows the zoom level of the network to influence the rendering
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
    *
-   * @param scale
-   */
-  Edge.prototype.setScale = function(scale) {
-    this.networkScaleInv = 1.0/scale;
-  };
-
-
-  Edge.prototype.select = function() {
-    this.selected = true;
-  };
-
-  Edge.prototype.unselect = function() {
-    this.selected = false;
-  };
-
-  Edge.prototype.positionBezierNode = function() {
-    if (this.via !== null) {
-      this.via.x = 0.5 * (this.from.x + this.to.x);
-      this.via.y = 0.5 * (this.from.y + this.to.y);
-    }
-  };
-
-  /**
-   * This function draws the control nodes for the manipulator. In order to enable this, only set the this.controlNodesEnabled to true.
-   * @param ctx
-   */
-  Edge.prototype._drawControlNodes = function(ctx) {
-    if (this.controlNodesEnabled == true) {
-      if (this.controlNodes.from === null && this.controlNodes.to === null) {
-        var nodeIdFrom = "edgeIdFrom:".concat(this.id);
-        var nodeIdTo = "edgeIdTo:".concat(this.id);
-        var constants = {
-                        nodes:{group:'', radius:8},
-                        physics:{damping:0},
-                        clustering: {maxNodeSizeIncrements: 0 ,nodeScaling: {width:0, height: 0, radius:0}}
-                        };
-        this.controlNodes.from = new Node(
-          {id:nodeIdFrom,
-            shape:'dot',
-              color:{background:'#ff4e00', border:'#3c3c3c', highlight: {background:'#07f968'}}
-          },{},{},constants);
-        this.controlNodes.to = new Node(
-          {id:nodeIdTo,
-            shape:'dot',
-            color:{background:'#ff4e00', border:'#3c3c3c', highlight: {background:'#07f968'}}
-          },{},{},constants);
-      }
-
-      if (this.controlNodes.from.selected == false && this.controlNodes.to.selected == false) {
-        this.controlNodes.positions = this.getControlNodePositions(ctx);
-        this.controlNodes.from.x = this.controlNodes.positions.from.x;
-        this.controlNodes.from.y = this.controlNodes.positions.from.y;
-        this.controlNodes.to.x = this.controlNodes.positions.to.x;
-        this.controlNodes.to.y = this.controlNodes.positions.to.y;
-      }
-
-      this.controlNodes.from.draw(ctx);
-      this.controlNodes.to.draw(ctx);
-    }
-    else {
-      this.controlNodes = {from:null, to:null, positions:{}};
-    }
-  };
-
-  /**
-   * Enable control nodes.
-   * @private
-   */
-  Edge.prototype._enableControlNodes = function() {
-    this.controlNodesEnabled = true;
-  };
-
-  /**
-   * disable control nodes
-   * @private
-   */
-  Edge.prototype._disableControlNodes = function() {
-    this.controlNodesEnabled = false;
-  };
-
-  /**
-   * This checks if one of the control nodes is selected and if so, returns the control node object. Else it returns null.
-   * @param x
-   * @param y
-   * @returns {null}
-   * @private
-   */
-  Edge.prototype._getSelectedControlNode = function(x,y) {
-    var positions = this.controlNodes.positions;
-    var fromDistance = Math.sqrt(Math.pow(x - positions.from.x,2) + Math.pow(y - positions.from.y,2));
-    var toDistance =   Math.sqrt(Math.pow(x - positions.to.x  ,2) + Math.pow(y - positions.to.y  ,2));
-
-    if (fromDistance < 15) {
-      this.connectedNode = this.from;
-      this.from = this.controlNodes.from;
-      return this.controlNodes.from;
-    }
-    else if (toDistance < 15) {
-      this.connectedNode = this.to;
-      this.to = this.controlNodes.to;
-      return this.controlNodes.to;
-    }
-    else {
-      return null;
-    }
-  };
-
-
-  /**
-   * this resets the control nodes to their original position.
-   * @private
-   */
-  Edge.prototype._restoreControlNodes = function() {
-    if (this.controlNodes.from.selected == true) {
-      this.from = this.connectedNode;
-      this.connectedNode = null;
-      this.controlNodes.from.unselect();
-    }
-    if (this.controlNodes.to.selected == true) {
-      this.to = this.connectedNode;
-      this.connectedNode = null;
-      this.controlNodes.to.unselect();
-    }
-  };
-
-  /**
-   * this calculates the position of the control nodes on the edges of the parent nodes.
+   * http://www.apache.org/licenses/LICENSE-2.0
    *
-   * @param ctx
-   * @returns {{from: {x: number, y: number}, to: {x: *, y: *}}}
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   *
+   * Mousetrap is a simple keyboard shortcut library for Javascript with
+   * no external dependencies
+   *
+   * @version 1.1.2
+   * @url craig.is/killing/mice
    */
-  Edge.prototype.getControlNodePositions = function(ctx) {
-    var angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
-    var dx = (this.to.x - this.from.x);
-    var dy = (this.to.y - this.from.y);
-    var edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
-    var fromBorderDist = this.from.distanceToBorder(ctx, angle + Math.PI);
-    var fromBorderPoint = (edgeSegmentLength - fromBorderDist) / edgeSegmentLength;
-    var xFrom = (fromBorderPoint) * this.from.x + (1 - fromBorderPoint) * this.to.x;
-    var yFrom = (fromBorderPoint) * this.from.y + (1 - fromBorderPoint) * this.to.y;
 
-    var via;
-    if (this.smoothCurves.dynamic == true && this.smoothCurves.enabled == true) {
-      via = this.via;
-    }
-    else if (this.smoothCurves.enabled == true) {
-      via = this._getViaCoordinates();
+    /**
+     * mapping of special keycodes to their corresponding keys
+     *
+     * everything in this dictionary cannot use keypress events
+     * so it has to be here to map to the correct keycodes for
+     * keyup/keydown events
+     *
+     * @type {Object}
+     */
+    var _MAP = {
+            8: 'backspace',
+            9: 'tab',
+            13: 'enter',
+            16: 'shift',
+            17: 'ctrl',
+            18: 'alt',
+            20: 'capslock',
+            27: 'esc',
+            32: 'space',
+            33: 'pageup',
+            34: 'pagedown',
+            35: 'end',
+            36: 'home',
+            37: 'left',
+            38: 'up',
+            39: 'right',
+            40: 'down',
+            45: 'ins',
+            46: 'del',
+            91: 'meta',
+            93: 'meta',
+            224: 'meta'
+        },
+
+        /**
+         * mapping for special characters so they can support
+         *
+         * this dictionary is only used incase you want to bind a
+         * keyup or keydown event to one of these keys
+         *
+         * @type {Object}
+         */
+        _KEYCODE_MAP = {
+            106: '*',
+            107: '+',
+            109: '-',
+            110: '.',
+            111 : '/',
+            186: ';',
+            187: '=',
+            188: ',',
+            189: '-',
+            190: '.',
+            191: '/',
+            192: '`',
+            219: '[',
+            220: '\\',
+            221: ']',
+            222: '\''
+        },
+
+        /**
+         * this is a mapping of keys that require shift on a US keypad
+         * back to the non shift equivelents
+         *
+         * this is so you can use keyup events with these keys
+         *
+         * note that this will only work reliably on US keyboards
+         *
+         * @type {Object}
+         */
+        _SHIFT_MAP = {
+            '~': '`',
+            '!': '1',
+            '@': '2',
+            '#': '3',
+            '$': '4',
+            '%': '5',
+            '^': '6',
+            '&': '7',
+            '*': '8',
+            '(': '9',
+            ')': '0',
+            '_': '-',
+            '+': '=',
+            ':': ';',
+            '\"': '\'',
+            '<': ',',
+            '>': '.',
+            '?': '/',
+            '|': '\\'
+        },
+
+        /**
+         * this is a list of special strings you can use to map
+         * to modifier keys when you specify your keyboard shortcuts
+         *
+         * @type {Object}
+         */
+        _SPECIAL_ALIASES = {
+            'option': 'alt',
+            'command': 'meta',
+            'return': 'enter',
+            'escape': 'esc'
+        },
+
+        /**
+         * variable to store the flipped version of _MAP from above
+         * needed to check if we should use keypress or not when no action
+         * is specified
+         *
+         * @type {Object|undefined}
+         */
+        _REVERSE_MAP,
+
+        /**
+         * a list of all the callbacks setup via Mousetrap.bind()
+         *
+         * @type {Object}
+         */
+        _callbacks = {},
+
+        /**
+         * direct map of string combinations to callbacks used for trigger()
+         *
+         * @type {Object}
+         */
+        _direct_map = {},
+
+        /**
+         * keeps track of what level each sequence is at since multiple
+         * sequences can start out with the same sequence
+         *
+         * @type {Object}
+         */
+        _sequence_levels = {},
+
+        /**
+         * variable to store the setTimeout call
+         *
+         * @type {null|number}
+         */
+        _reset_timer,
+
+        /**
+         * temporary state where we will ignore the next keyup
+         *
+         * @type {boolean|string}
+         */
+        _ignore_next_keyup = false,
+
+        /**
+         * are we currently inside of a sequence?
+         * type of action ("keyup" or "keydown" or "keypress") or false
+         *
+         * @type {boolean|string}
+         */
+        _inside_sequence = false;
+
+    /**
+     * loop through the f keys, f1 to f19 and add them to the map
+     * programatically
+     */
+    for (var i = 1; i < 20; ++i) {
+        _MAP[111 + i] = 'f' + i;
     }
 
-    if (this.smoothCurves.enabled == true && via.x != null) {
-      angle = Math.atan2((this.to.y - via.y), (this.to.x - via.x));
-      dx = (this.to.x - via.x);
-      dy = (this.to.y - via.y);
-      edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
-    }
-    var toBorderDist = this.to.distanceToBorder(ctx, angle);
-    var toBorderPoint = (edgeSegmentLength - toBorderDist) / edgeSegmentLength;
-
-    var xTo,yTo;
-    if (this.smoothCurves.enabled == true && via.x != null) {
-      xTo = (1 - toBorderPoint) * via.x + toBorderPoint * this.to.x;
-      yTo = (1 - toBorderPoint) * via.y + toBorderPoint * this.to.y;
-    }
-    else {
-      xTo = (1 - toBorderPoint) * this.from.x + toBorderPoint * this.to.x;
-      yTo = (1 - toBorderPoint) * this.from.y + toBorderPoint * this.to.y;
+    /**
+     * loop through to map numbers on the numeric keypad
+     */
+    for (i = 0; i <= 9; ++i) {
+        _MAP[i + 96] = i;
     }
 
-    return {from:{x:xFrom,y:yFrom},to:{x:xTo,y:yTo}};
-  };
+    /**
+     * cross browser add event method
+     *
+     * @param {Element|HTMLDocument} object
+     * @param {string} type
+     * @param {Function} callback
+     * @returns void
+     */
+    function _addEvent(object, type, callback) {
+        if (object.addEventListener) {
+            return object.addEventListener(type, callback, false);
+        }
 
-  module.exports = Edge;
+        object.attachEvent('on' + type, callback);
+    }
+
+    /**
+     * takes the event and returns the key character
+     *
+     * @param {Event} e
+     * @return {string}
+     */
+    function _characterFromEvent(e) {
+
+        // for keypress events we should return the character as is
+        if (e.type == 'keypress') {
+            return String.fromCharCode(e.which);
+        }
+
+        // for non keypress events the special maps are needed
+        if (_MAP[e.which]) {
+            return _MAP[e.which];
+        }
+
+        if (_KEYCODE_MAP[e.which]) {
+            return _KEYCODE_MAP[e.which];
+        }
+
+        // if it is not in the special map
+        return String.fromCharCode(e.which).toLowerCase();
+    }
+
+    /**
+     * should we stop this event before firing off callbacks
+     *
+     * @param {Event} e
+     * @return {boolean}
+     */
+    function _stop(e) {
+        var element = e.target || e.srcElement,
+            tag_name = element.tagName;
+
+        // if the element has the class "mousetrap" then no need to stop
+        if ((' ' + element.className + ' ').indexOf(' mousetrap ') > -1) {
+            return false;
+        }
+
+        // stop for input, select, and textarea
+        return tag_name == 'INPUT' || tag_name == 'SELECT' || tag_name == 'TEXTAREA' || (element.contentEditable && element.contentEditable == 'true');
+    }
+
+    /**
+     * checks if two arrays are equal
+     *
+     * @param {Array} modifiers1
+     * @param {Array} modifiers2
+     * @returns {boolean}
+     */
+    function _modifiersMatch(modifiers1, modifiers2) {
+        return modifiers1.sort().join(',') === modifiers2.sort().join(',');
+    }
+
+    /**
+     * resets all sequence counters except for the ones passed in
+     *
+     * @param {Object} do_not_reset
+     * @returns void
+     */
+    function _resetSequences(do_not_reset) {
+        do_not_reset = do_not_reset || {};
+
+        var active_sequences = false,
+            key;
+
+        for (key in _sequence_levels) {
+            if (do_not_reset[key]) {
+                active_sequences = true;
+                continue;
+            }
+            _sequence_levels[key] = 0;
+        }
+
+        if (!active_sequences) {
+            _inside_sequence = false;
+        }
+    }
+
+    /**
+     * finds all callbacks that match based on the keycode, modifiers,
+     * and action
+     *
+     * @param {string} character
+     * @param {Array} modifiers
+     * @param {string} action
+     * @param {boolean=} remove - should we remove any matches
+     * @param {string=} combination
+     * @returns {Array}
+     */
+    function _getMatches(character, modifiers, action, remove, combination) {
+        var i,
+            callback,
+            matches = [];
+
+        // if there are no events related to this keycode
+        if (!_callbacks[character]) {
+            return [];
+        }
+
+        // if a modifier key is coming up on its own we should allow it
+        if (action == 'keyup' && _isModifier(character)) {
+            modifiers = [character];
+        }
+
+        // loop through all callbacks for the key that was pressed
+        // and see if any of them match
+        for (i = 0; i < _callbacks[character].length; ++i) {
+            callback = _callbacks[character][i];
+
+            // if this is a sequence but it is not at the right level
+            // then move onto the next match
+            if (callback.seq && _sequence_levels[callback.seq] != callback.level) {
+                continue;
+            }
+
+            // if the action we are looking for doesn't match the action we got
+            // then we should keep going
+            if (action != callback.action) {
+                continue;
+            }
+
+            // if this is a keypress event that means that we need to only
+            // look at the character, otherwise check the modifiers as
+            // well
+            if (action == 'keypress' || _modifiersMatch(modifiers, callback.modifiers)) {
+
+                // remove is used so if you change your mind and call bind a
+                // second time with a new function the first one is overwritten
+                if (remove && callback.combo == combination) {
+                    _callbacks[character].splice(i, 1);
+                }
+
+                matches.push(callback);
+            }
+        }
+
+        return matches;
+    }
+
+    /**
+     * takes a key event and figures out what the modifiers are
+     *
+     * @param {Event} e
+     * @returns {Array}
+     */
+    function _eventModifiers(e) {
+        var modifiers = [];
+
+        if (e.shiftKey) {
+            modifiers.push('shift');
+        }
+
+        if (e.altKey) {
+            modifiers.push('alt');
+        }
+
+        if (e.ctrlKey) {
+            modifiers.push('ctrl');
+        }
+
+        if (e.metaKey) {
+            modifiers.push('meta');
+        }
+
+        return modifiers;
+    }
+
+    /**
+     * actually calls the callback function
+     *
+     * if your callback function returns false this will use the jquery
+     * convention - prevent default and stop propogation on the event
+     *
+     * @param {Function} callback
+     * @param {Event} e
+     * @returns void
+     */
+    function _fireCallback(callback, e) {
+        if (callback(e) === false) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+
+            e.returnValue = false;
+            e.cancelBubble = true;
+        }
+    }
+
+    /**
+     * handles a character key event
+     *
+     * @param {string} character
+     * @param {Event} e
+     * @returns void
+     */
+    function _handleCharacter(character, e) {
+
+        // if this event should not happen stop here
+        if (_stop(e)) {
+            return;
+        }
+
+        var callbacks = _getMatches(character, _eventModifiers(e), e.type),
+            i,
+            do_not_reset = {},
+            processed_sequence_callback = false;
+
+        // loop through matching callbacks for this key event
+        for (i = 0; i < callbacks.length; ++i) {
+
+            // fire for all sequence callbacks
+            // this is because if for example you have multiple sequences
+            // bound such as "g i" and "g t" they both need to fire the
+            // callback for matching g cause otherwise you can only ever
+            // match the first one
+            if (callbacks[i].seq) {
+                processed_sequence_callback = true;
+
+                // keep a list of which sequences were matches for later
+                do_not_reset[callbacks[i].seq] = 1;
+                _fireCallback(callbacks[i].callback, e);
+                continue;
+            }
+
+            // if there were no sequence matches but we are still here
+            // that means this is a regular match so we should fire that
+            if (!processed_sequence_callback && !_inside_sequence) {
+                _fireCallback(callbacks[i].callback, e);
+            }
+        }
+
+        // if you are inside of a sequence and the key you are pressing
+        // is not a modifier key then we should reset all sequences
+        // that were not matched by this key event
+        if (e.type == _inside_sequence && !_isModifier(character)) {
+            _resetSequences(do_not_reset);
+        }
+    }
+
+    /**
+     * handles a keydown event
+     *
+     * @param {Event} e
+     * @returns void
+     */
+    function _handleKey(e) {
+
+        // normalize e.which for key events
+        // @see http://stackoverflow.com/questions/4285627/javascript-keycode-vs-charcode-utter-confusion
+        e.which = typeof e.which == "number" ? e.which : e.keyCode;
+
+        var character = _characterFromEvent(e);
+
+        // no character found then stop
+        if (!character) {
+            return;
+        }
+
+        if (e.type == 'keyup' && _ignore_next_keyup == character) {
+            _ignore_next_keyup = false;
+            return;
+        }
+
+        _handleCharacter(character, e);
+    }
+
+    /**
+     * determines if the keycode specified is a modifier key or not
+     *
+     * @param {string} key
+     * @returns {boolean}
+     */
+    function _isModifier(key) {
+        return key == 'shift' || key == 'ctrl' || key == 'alt' || key == 'meta';
+    }
+
+    /**
+     * called to set a 1 second timeout on the specified sequence
+     *
+     * this is so after each key press in the sequence you have 1 second
+     * to press the next key before you have to start over
+     *
+     * @returns void
+     */
+    function _resetSequenceTimer() {
+        clearTimeout(_reset_timer);
+        _reset_timer = setTimeout(_resetSequences, 1000);
+    }
+
+    /**
+     * reverses the map lookup so that we can look for specific keys
+     * to see what can and can't use keypress
+     *
+     * @return {Object}
+     */
+    function _getReverseMap() {
+        if (!_REVERSE_MAP) {
+            _REVERSE_MAP = {};
+            for (var key in _MAP) {
+
+                // pull out the numeric keypad from here cause keypress should
+                // be able to detect the keys from the character
+                if (key > 95 && key < 112) {
+                    continue;
+                }
+
+                if (_MAP.hasOwnProperty(key)) {
+                    _REVERSE_MAP[_MAP[key]] = key;
+                }
+            }
+        }
+        return _REVERSE_MAP;
+    }
+
+    /**
+     * picks the best action based on the key combination
+     *
+     * @param {string} key - character for key
+     * @param {Array} modifiers
+     * @param {string=} action passed in
+     */
+    function _pickBestAction(key, modifiers, action) {
+
+        // if no action was picked in we should try to pick the one
+        // that we think would work best for this key
+        if (!action) {
+            action = _getReverseMap()[key] ? 'keydown' : 'keypress';
+        }
+
+        // modifier keys don't work as expected with keypress,
+        // switch to keydown
+        if (action == 'keypress' && modifiers.length) {
+            action = 'keydown';
+        }
+
+        return action;
+    }
+
+    /**
+     * binds a key sequence to an event
+     *
+     * @param {string} combo - combo specified in bind call
+     * @param {Array} keys
+     * @param {Function} callback
+     * @param {string=} action
+     * @returns void
+     */
+    function _bindSequence(combo, keys, callback, action) {
+
+        // start off by adding a sequence level record for this combination
+        // and setting the level to 0
+        _sequence_levels[combo] = 0;
+
+        // if there is no action pick the best one for the first key
+        // in the sequence
+        if (!action) {
+            action = _pickBestAction(keys[0], []);
+        }
+
+        /**
+         * callback to increase the sequence level for this sequence and reset
+         * all other sequences that were active
+         *
+         * @param {Event} e
+         * @returns void
+         */
+        var _increaseSequence = function(e) {
+                _inside_sequence = action;
+                ++_sequence_levels[combo];
+                _resetSequenceTimer();
+            },
+
+            /**
+             * wraps the specified callback inside of another function in order
+             * to reset all sequence counters as soon as this sequence is done
+             *
+             * @param {Event} e
+             * @returns void
+             */
+            _callbackAndReset = function(e) {
+                _fireCallback(callback, e);
+
+                // we should ignore the next key up if the action is key down
+                // or keypress.  this is so if you finish a sequence and
+                // release the key the final key will not trigger a keyup
+                if (action !== 'keyup') {
+                    _ignore_next_keyup = _characterFromEvent(e);
+                }
+
+                // weird race condition if a sequence ends with the key
+                // another sequence begins with
+                setTimeout(_resetSequences, 10);
+            },
+            i;
+
+        // loop through keys one at a time and bind the appropriate callback
+        // function.  for any key leading up to the final one it should
+        // increase the sequence. after the final, it should reset all sequences
+        for (i = 0; i < keys.length; ++i) {
+            _bindSingle(keys[i], i < keys.length - 1 ? _increaseSequence : _callbackAndReset, action, combo, i);
+        }
+    }
+
+    /**
+     * binds a single keyboard combination
+     *
+     * @param {string} combination
+     * @param {Function} callback
+     * @param {string=} action
+     * @param {string=} sequence_name - name of sequence if part of sequence
+     * @param {number=} level - what part of the sequence the command is
+     * @returns void
+     */
+    function _bindSingle(combination, callback, action, sequence_name, level) {
+
+        // make sure multiple spaces in a row become a single space
+        combination = combination.replace(/\s+/g, ' ');
+
+        var sequence = combination.split(' '),
+            i,
+            key,
+            keys,
+            modifiers = [];
+
+        // if this pattern is a sequence of keys then run through this method
+        // to reprocess each pattern one key at a time
+        if (sequence.length > 1) {
+            return _bindSequence(combination, sequence, callback, action);
+        }
+
+        // take the keys from this pattern and figure out what the actual
+        // pattern is all about
+        keys = combination === '+' ? ['+'] : combination.split('+');
+
+        for (i = 0; i < keys.length; ++i) {
+            key = keys[i];
+
+            // normalize key names
+            if (_SPECIAL_ALIASES[key]) {
+                key = _SPECIAL_ALIASES[key];
+            }
+
+            // if this is not a keypress event then we should
+            // be smart about using shift keys
+            // this will only work for US keyboards however
+            if (action && action != 'keypress' && _SHIFT_MAP[key]) {
+                key = _SHIFT_MAP[key];
+                modifiers.push('shift');
+            }
+
+            // if this key is a modifier then add it to the list of modifiers
+            if (_isModifier(key)) {
+                modifiers.push(key);
+            }
+        }
+
+        // depending on what the key combination is
+        // we will try to pick the best event for it
+        action = _pickBestAction(key, modifiers, action);
+
+        // make sure to initialize array if this is the first time
+        // a callback is added for this key
+        if (!_callbacks[key]) {
+            _callbacks[key] = [];
+        }
+
+        // remove an existing match if there is one
+        _getMatches(key, modifiers, action, !sequence_name, combination);
+
+        // add this call back to the array
+        // if it is a sequence put it at the beginning
+        // if not put it at the end
+        //
+        // this is important because the way these are processed expects
+        // the sequence ones to come first
+        _callbacks[key][sequence_name ? 'unshift' : 'push']({
+            callback: callback,
+            modifiers: modifiers,
+            action: action,
+            seq: sequence_name,
+            level: level,
+            combo: combination
+        });
+    }
+
+    /**
+     * binds multiple combinations to the same callback
+     *
+     * @param {Array} combinations
+     * @param {Function} callback
+     * @param {string|undefined} action
+     * @returns void
+     */
+    function _bindMultiple(combinations, callback, action) {
+        for (var i = 0; i < combinations.length; ++i) {
+            _bindSingle(combinations[i], callback, action);
+        }
+    }
+
+    // start!
+    _addEvent(document, 'keypress', _handleKey);
+    _addEvent(document, 'keydown', _handleKey);
+    _addEvent(document, 'keyup', _handleKey);
+
+    var mousetrap = {
+
+        /**
+         * binds an event to mousetrap
+         *
+         * can be a single key, a combination of keys separated with +,
+         * a comma separated list of keys, an array of keys, or
+         * a sequence of keys separated by spaces
+         *
+         * be sure to list the modifier keys first to make sure that the
+         * correct key ends up getting bound (the last key in the pattern)
+         *
+         * @param {string|Array} keys
+         * @param {Function} callback
+         * @param {string=} action - 'keypress', 'keydown', or 'keyup'
+         * @returns void
+         */
+        bind: function(keys, callback, action) {
+            _bindMultiple(keys instanceof Array ? keys : [keys], callback, action);
+            _direct_map[keys + ':' + action] = callback;
+            return this;
+        },
+
+        /**
+         * unbinds an event to mousetrap
+         *
+         * the unbinding sets the callback function of the specified key combo
+         * to an empty function and deletes the corresponding key in the
+         * _direct_map dict.
+         *
+         * the keycombo+action has to be exactly the same as
+         * it was defined in the bind method
+         *
+         * TODO: actually remove this from the _callbacks dictionary instead
+         * of binding an empty function
+         *
+         * @param {string|Array} keys
+         * @param {string} action
+         * @returns void
+         */
+        unbind: function(keys, action) {
+            if (_direct_map[keys + ':' + action]) {
+                delete _direct_map[keys + ':' + action];
+                this.bind(keys, function() {}, action);
+            }
+            return this;
+        },
+
+        /**
+         * triggers an event that has already been bound
+         *
+         * @param {string} keys
+         * @param {string=} action
+         * @returns void
+         */
+        trigger: function(keys, action) {
+            _direct_map[keys + ':' + action]();
+            return this;
+        },
+
+        /**
+         * resets the library back to its initial state.  this is useful
+         * if you want to clear out the current keyboard shortcuts and bind
+         * new ones - for example if you switch to another page
+         *
+         * @returns void
+         */
+        reset: function() {
+            _callbacks = {};
+            _direct_map = {};
+            return this;
+        }
+    };
+
+  module.exports = mousetrap;
+
+
 
 /***/ },
 /* 40 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Parse a text source containing data in DOT language into a JSON object.
+   * The object contains two lists: one with nodes and one with edges.
+   *
+   * DOT language reference: http://www.graphviz.org/doc/info/lang.html
+   *
+   * @param {String} data     Text containing a graph in DOT-notation
+   * @return {Object} graph   An object containing two parameters:
+   *                          {Object[]} nodes
+   *                          {Object[]} edges
+   */
+  function parseDOT (data) {
+    dot = data;
+    return parseGraph();
+  }
+
+  // token types enumeration
+  var TOKENTYPE = {
+    NULL : 0,
+    DELIMITER : 1,
+    IDENTIFIER: 2,
+    UNKNOWN : 3
+  };
+
+  // map with all delimiters
+  var DELIMITERS = {
+    '{': true,
+    '}': true,
+    '[': true,
+    ']': true,
+    ';': true,
+    '=': true,
+    ',': true,
+
+    '->': true,
+    '--': true
+  };
+
+  var dot = '';                   // current dot file
+  var index = 0;                  // current index in dot file
+  var c = '';                     // current token character in expr
+  var token = '';                 // current token
+  var tokenType = TOKENTYPE.NULL; // type of the token
+
+  /**
+   * Get the first character from the dot file.
+   * The character is stored into the char c. If the end of the dot file is
+   * reached, the function puts an empty string in c.
+   */
+  function first() {
+    index = 0;
+    c = dot.charAt(0);
+  }
+
+  /**
+   * Get the next character from the dot file.
+   * The character is stored into the char c. If the end of the dot file is
+   * reached, the function puts an empty string in c.
+   */
+  function next() {
+    index++;
+    c = dot.charAt(index);
+  }
+
+  /**
+   * Preview the next character from the dot file.
+   * @return {String} cNext
+   */
+  function nextPreview() {
+    return dot.charAt(index + 1);
+  }
+
+  /**
+   * Test whether given character is alphabetic or numeric
+   * @param {String} c
+   * @return {Boolean} isAlphaNumeric
+   */
+  var regexAlphaNumeric = /[a-zA-Z_0-9.:#]/;
+  function isAlphaNumeric(c) {
+    return regexAlphaNumeric.test(c);
+  }
+
+  /**
+   * Merge all properties of object b into object b
+   * @param {Object} a
+   * @param {Object} b
+   * @return {Object} a
+   */
+  function merge (a, b) {
+    if (!a) {
+      a = {};
+    }
+
+    if (b) {
+      for (var name in b) {
+        if (b.hasOwnProperty(name)) {
+          a[name] = b[name];
+        }
+      }
+    }
+    return a;
+  }
+
+  /**
+   * Set a value in an object, where the provided parameter name can be a
+   * path with nested parameters. For example:
+   *
+   *     var obj = {a: 2};
+   *     setValue(obj, 'b.c', 3);     // obj = {a: 2, b: {c: 3}}
+   *
+   * @param {Object} obj
+   * @param {String} path  A parameter name or dot-separated parameter path,
+   *                      like "color.highlight.border".
+   * @param {*} value
+   */
+  function setValue(obj, path, value) {
+    var keys = path.split('.');
+    var o = obj;
+    while (keys.length) {
+      var key = keys.shift();
+      if (keys.length) {
+        // this isn't the end point
+        if (!o[key]) {
+          o[key] = {};
+        }
+        o = o[key];
+      }
+      else {
+        // this is the end point
+        o[key] = value;
+      }
+    }
+  }
+
+  /**
+   * Add a node to a graph object. If there is already a node with
+   * the same id, their attributes will be merged.
+   * @param {Object} graph
+   * @param {Object} node
+   */
+  function addNode(graph, node) {
+    var i, len;
+    var current = null;
+
+    // find root graph (in case of subgraph)
+    var graphs = [graph]; // list with all graphs from current graph to root graph
+    var root = graph;
+    while (root.parent) {
+      graphs.push(root.parent);
+      root = root.parent;
+    }
+
+    // find existing node (at root level) by its id
+    if (root.nodes) {
+      for (i = 0, len = root.nodes.length; i < len; i++) {
+        if (node.id === root.nodes[i].id) {
+          current = root.nodes[i];
+          break;
+        }
+      }
+    }
+
+    if (!current) {
+      // this is a new node
+      current = {
+        id: node.id
+      };
+      if (graph.node) {
+        // clone default attributes
+        current.attr = merge(current.attr, graph.node);
+      }
+    }
+
+    // add node to this (sub)graph and all its parent graphs
+    for (i = graphs.length - 1; i >= 0; i--) {
+      var g = graphs[i];
+
+      if (!g.nodes) {
+        g.nodes = [];
+      }
+      if (g.nodes.indexOf(current) == -1) {
+        g.nodes.push(current);
+      }
+    }
+
+    // merge attributes
+    if (node.attr) {
+      current.attr = merge(current.attr, node.attr);
+    }
+  }
+
+  /**
+   * Add an edge to a graph object
+   * @param {Object} graph
+   * @param {Object} edge
+   */
+  function addEdge(graph, edge) {
+    if (!graph.edges) {
+      graph.edges = [];
+    }
+    graph.edges.push(edge);
+    if (graph.edge) {
+      var attr = merge({}, graph.edge);     // clone default attributes
+      edge.attr = merge(attr, edge.attr); // merge attributes
+    }
+  }
+
+  /**
+   * Create an edge to a graph object
+   * @param {Object} graph
+   * @param {String | Number | Object} from
+   * @param {String | Number | Object} to
+   * @param {String} type
+   * @param {Object | null} attr
+   * @return {Object} edge
+   */
+  function createEdge(graph, from, to, type, attr) {
+    var edge = {
+      from: from,
+      to: to,
+      type: type
+    };
+
+    if (graph.edge) {
+      edge.attr = merge({}, graph.edge);  // clone default attributes
+    }
+    edge.attr = merge(edge.attr || {}, attr); // merge attributes
+
+    return edge;
+  }
+
+  /**
+   * Get next token in the current dot file.
+   * The token and token type are available as token and tokenType
+   */
+  function getToken() {
+    tokenType = TOKENTYPE.NULL;
+    token = '';
+
+    // skip over whitespaces
+    while (c == ' ' || c == '\t' || c == '\n' || c == '\r') {  // space, tab, enter
+      next();
+    }
+
+    do {
+      var isComment = false;
+
+      // skip comment
+      if (c == '#') {
+        // find the previous non-space character
+        var i = index - 1;
+        while (dot.charAt(i) == ' ' || dot.charAt(i) == '\t') {
+          i--;
+        }
+        if (dot.charAt(i) == '\n' || dot.charAt(i) == '') {
+          // the # is at the start of a line, this is indeed a line comment
+          while (c != '' && c != '\n') {
+            next();
+          }
+          isComment = true;
+        }
+      }
+      if (c == '/' && nextPreview() == '/') {
+        // skip line comment
+        while (c != '' && c != '\n') {
+          next();
+        }
+        isComment = true;
+      }
+      if (c == '/' && nextPreview() == '*') {
+        // skip block comment
+        while (c != '') {
+          if (c == '*' && nextPreview() == '/') {
+            // end of block comment found. skip these last two characters
+            next();
+            next();
+            break;
+          }
+          else {
+            next();
+          }
+        }
+        isComment = true;
+      }
+
+      // skip over whitespaces
+      while (c == ' ' || c == '\t' || c == '\n' || c == '\r') {  // space, tab, enter
+        next();
+      }
+    }
+    while (isComment);
+
+    // check for end of dot file
+    if (c == '') {
+      // token is still empty
+      tokenType = TOKENTYPE.DELIMITER;
+      return;
+    }
+
+    // check for delimiters consisting of 2 characters
+    var c2 = c + nextPreview();
+    if (DELIMITERS[c2]) {
+      tokenType = TOKENTYPE.DELIMITER;
+      token = c2;
+      next();
+      next();
+      return;
+    }
+
+    // check for delimiters consisting of 1 character
+    if (DELIMITERS[c]) {
+      tokenType = TOKENTYPE.DELIMITER;
+      token = c;
+      next();
+      return;
+    }
+
+    // check for an identifier (number or string)
+    // TODO: more precise parsing of numbers/strings (and the port separator ':')
+    if (isAlphaNumeric(c) || c == '-') {
+      token += c;
+      next();
+
+      while (isAlphaNumeric(c)) {
+        token += c;
+        next();
+      }
+      if (token == 'false') {
+        token = false;   // convert to boolean
+      }
+      else if (token == 'true') {
+        token = true;   // convert to boolean
+      }
+      else if (!isNaN(Number(token))) {
+        token = Number(token); // convert to number
+      }
+      tokenType = TOKENTYPE.IDENTIFIER;
+      return;
+    }
+
+    // check for a string enclosed by double quotes
+    if (c == '"') {
+      next();
+      while (c != '' && (c != '"' || (c == '"' && nextPreview() == '"'))) {
+        token += c;
+        if (c == '"') { // skip the escape character
+          next();
+        }
+        next();
+      }
+      if (c != '"') {
+        throw newSyntaxError('End of string " expected');
+      }
+      next();
+      tokenType = TOKENTYPE.IDENTIFIER;
+      return;
+    }
+
+    // something unknown is found, wrong characters, a syntax error
+    tokenType = TOKENTYPE.UNKNOWN;
+    while (c != '') {
+      token += c;
+      next();
+    }
+    throw new SyntaxError('Syntax error in part "' + chop(token, 30) + '"');
+  }
+
+  /**
+   * Parse a graph.
+   * @returns {Object} graph
+   */
+  function parseGraph() {
+    var graph = {};
+
+    first();
+    getToken();
+
+    // optional strict keyword
+    if (token == 'strict') {
+      graph.strict = true;
+      getToken();
+    }
+
+    // graph or digraph keyword
+    if (token == 'graph' || token == 'digraph') {
+      graph.type = token;
+      getToken();
+    }
+
+    // optional graph id
+    if (tokenType == TOKENTYPE.IDENTIFIER) {
+      graph.id = token;
+      getToken();
+    }
+
+    // open angle bracket
+    if (token != '{') {
+      throw newSyntaxError('Angle bracket { expected');
+    }
+    getToken();
+
+    // statements
+    parseStatements(graph);
+
+    // close angle bracket
+    if (token != '}') {
+      throw newSyntaxError('Angle bracket } expected');
+    }
+    getToken();
+
+    // end of file
+    if (token !== '') {
+      throw newSyntaxError('End of file expected');
+    }
+    getToken();
+
+    // remove temporary default properties
+    delete graph.node;
+    delete graph.edge;
+    delete graph.graph;
+
+    return graph;
+  }
+
+  /**
+   * Parse a list with statements.
+   * @param {Object} graph
+   */
+  function parseStatements (graph) {
+    while (token !== '' && token != '}') {
+      parseStatement(graph);
+      if (token == ';') {
+        getToken();
+      }
+    }
+  }
+
+  /**
+   * Parse a single statement. Can be a an attribute statement, node
+   * statement, a series of node statements and edge statements, or a
+   * parameter.
+   * @param {Object} graph
+   */
+  function parseStatement(graph) {
+    // parse subgraph
+    var subgraph = parseSubgraph(graph);
+    if (subgraph) {
+      // edge statements
+      parseEdge(graph, subgraph);
+
+      return;
+    }
+
+    // parse an attribute statement
+    var attr = parseAttributeStatement(graph);
+    if (attr) {
+      return;
+    }
+
+    // parse node
+    if (tokenType != TOKENTYPE.IDENTIFIER) {
+      throw newSyntaxError('Identifier expected');
+    }
+    var id = token; // id can be a string or a number
+    getToken();
+
+    if (token == '=') {
+      // id statement
+      getToken();
+      if (tokenType != TOKENTYPE.IDENTIFIER) {
+        throw newSyntaxError('Identifier expected');
+      }
+      graph[id] = token;
+      getToken();
+      // TODO: implement comma separated list with "a_list: ID=ID [','] [a_list] "
+    }
+    else {
+      parseNodeStatement(graph, id);
+    }
+  }
+
+  /**
+   * Parse a subgraph
+   * @param {Object} graph    parent graph object
+   * @return {Object | null} subgraph
+   */
+  function parseSubgraph (graph) {
+    var subgraph = null;
+
+    // optional subgraph keyword
+    if (token == 'subgraph') {
+      subgraph = {};
+      subgraph.type = 'subgraph';
+      getToken();
+
+      // optional graph id
+      if (tokenType == TOKENTYPE.IDENTIFIER) {
+        subgraph.id = token;
+        getToken();
+      }
+    }
+
+    // open angle bracket
+    if (token == '{') {
+      getToken();
+
+      if (!subgraph) {
+        subgraph = {};
+      }
+      subgraph.parent = graph;
+      subgraph.node = graph.node;
+      subgraph.edge = graph.edge;
+      subgraph.graph = graph.graph;
+
+      // statements
+      parseStatements(subgraph);
+
+      // close angle bracket
+      if (token != '}') {
+        throw newSyntaxError('Angle bracket } expected');
+      }
+      getToken();
+
+      // remove temporary default properties
+      delete subgraph.node;
+      delete subgraph.edge;
+      delete subgraph.graph;
+      delete subgraph.parent;
+
+      // register at the parent graph
+      if (!graph.subgraphs) {
+        graph.subgraphs = [];
+      }
+      graph.subgraphs.push(subgraph);
+    }
+
+    return subgraph;
+  }
+
+  /**
+   * parse an attribute statement like "node [shape=circle fontSize=16]".
+   * Available keywords are 'node', 'edge', 'graph'.
+   * The previous list with default attributes will be replaced
+   * @param {Object} graph
+   * @returns {String | null} keyword Returns the name of the parsed attribute
+   *                                  (node, edge, graph), or null if nothing
+   *                                  is parsed.
+   */
+  function parseAttributeStatement (graph) {
+    // attribute statements
+    if (token == 'node') {
+      getToken();
+
+      // node attributes
+      graph.node = parseAttributeList();
+      return 'node';
+    }
+    else if (token == 'edge') {
+      getToken();
+
+      // edge attributes
+      graph.edge = parseAttributeList();
+      return 'edge';
+    }
+    else if (token == 'graph') {
+      getToken();
+
+      // graph attributes
+      graph.graph = parseAttributeList();
+      return 'graph';
+    }
+
+    return null;
+  }
+
+  /**
+   * parse a node statement
+   * @param {Object} graph
+   * @param {String | Number} id
+   */
+  function parseNodeStatement(graph, id) {
+    // node statement
+    var node = {
+      id: id
+    };
+    var attr = parseAttributeList();
+    if (attr) {
+      node.attr = attr;
+    }
+    addNode(graph, node);
+
+    // edge statements
+    parseEdge(graph, id);
+  }
+
+  /**
+   * Parse an edge or a series of edges
+   * @param {Object} graph
+   * @param {String | Number} from        Id of the from node
+   */
+  function parseEdge(graph, from) {
+    while (token == '->' || token == '--') {
+      var to;
+      var type = token;
+      getToken();
+
+      var subgraph = parseSubgraph(graph);
+      if (subgraph) {
+        to = subgraph;
+      }
+      else {
+        if (tokenType != TOKENTYPE.IDENTIFIER) {
+          throw newSyntaxError('Identifier or subgraph expected');
+        }
+        to = token;
+        addNode(graph, {
+          id: to
+        });
+        getToken();
+      }
+
+      // parse edge attributes
+      var attr = parseAttributeList();
+
+      // create edge
+      var edge = createEdge(graph, from, to, type, attr);
+      addEdge(graph, edge);
+
+      from = to;
+    }
+  }
+
+  /**
+   * Parse a set with attributes,
+   * for example [label="1.000", shape=solid]
+   * @return {Object | null} attr
+   */
+  function parseAttributeList() {
+    var attr = null;
+
+    while (token == '[') {
+      getToken();
+      attr = {};
+      while (token !== '' && token != ']') {
+        if (tokenType != TOKENTYPE.IDENTIFIER) {
+          throw newSyntaxError('Attribute name expected');
+        }
+        var name = token;
+
+        getToken();
+        if (token != '=') {
+          throw newSyntaxError('Equal sign = expected');
+        }
+        getToken();
+
+        if (tokenType != TOKENTYPE.IDENTIFIER) {
+          throw newSyntaxError('Attribute value expected');
+        }
+        var value = token;
+        setValue(attr, name, value); // name can be a path
+
+        getToken();
+        if (token ==',') {
+          getToken();
+        }
+      }
+
+      if (token != ']') {
+        throw newSyntaxError('Bracket ] expected');
+      }
+      getToken();
+    }
+
+    return attr;
+  }
+
+  /**
+   * Create a syntax error with extra information on current token and index.
+   * @param {String} message
+   * @returns {SyntaxError} err
+   */
+  function newSyntaxError(message) {
+    return new SyntaxError(message + ', got "' + chop(token, 30) + '" (char ' + index + ')');
+  }
+
+  /**
+   * Chop off text after a maximum length
+   * @param {String} text
+   * @param {Number} maxLength
+   * @returns {String}
+   */
+  function chop (text, maxLength) {
+    return (text.length <= maxLength) ? text : (text.substr(0, 27) + '...');
+  }
+
+  /**
+   * Execute a function fn for each pair of elements in two arrays
+   * @param {Array | *} array1
+   * @param {Array | *} array2
+   * @param {function} fn
+   */
+  function forEach2(array1, array2, fn) {
+    if (array1 instanceof Array) {
+      array1.forEach(function (elem1) {
+        if (array2 instanceof Array) {
+          array2.forEach(function (elem2)  {
+            fn(elem1, elem2);
+          });
+        }
+        else {
+          fn(elem1, array2);
+        }
+      });
+    }
+    else {
+      if (array2 instanceof Array) {
+        array2.forEach(function (elem2)  {
+          fn(array1, elem2);
+        });
+      }
+      else {
+        fn(array1, array2);
+      }
+    }
+  }
+
+  /**
+   * Convert a string containing a graph in DOT language into a map containing
+   * with nodes and edges in the format of graph.
+   * @param {String} data         Text containing a graph in DOT-notation
+   * @return {Object} graphData
+   */
+  function DOTToGraph (data) {
+    // parse the DOT file
+    var dotData = parseDOT(data);
+    var graphData = {
+      nodes: [],
+      edges: [],
+      options: {}
+    };
+
+    // copy the nodes
+    if (dotData.nodes) {
+      dotData.nodes.forEach(function (dotNode) {
+        var graphNode = {
+          id: dotNode.id,
+          label: String(dotNode.label || dotNode.id)
+        };
+        merge(graphNode, dotNode.attr);
+        if (graphNode.image) {
+          graphNode.shape = 'image';
+        }
+        graphData.nodes.push(graphNode);
+      });
+    }
+
+    // copy the edges
+    if (dotData.edges) {
+      /**
+       * Convert an edge in DOT format to an edge with VisGraph format
+       * @param {Object} dotEdge
+       * @returns {Object} graphEdge
+       */
+      function convertEdge(dotEdge) {
+        var graphEdge = {
+          from: dotEdge.from,
+          to: dotEdge.to
+        };
+        merge(graphEdge, dotEdge.attr);
+        graphEdge.style = (dotEdge.type == '->') ? 'arrow' : 'line';
+        return graphEdge;
+      }
+
+      dotData.edges.forEach(function (dotEdge) {
+        var from, to;
+        if (dotEdge.from instanceof Object) {
+          from = dotEdge.from.nodes;
+        }
+        else {
+          from = {
+            id: dotEdge.from
+          }
+        }
+
+        if (dotEdge.to instanceof Object) {
+          to = dotEdge.to.nodes;
+        }
+        else {
+          to = {
+            id: dotEdge.to
+          }
+        }
+
+        if (dotEdge.from instanceof Object && dotEdge.from.edges) {
+          dotEdge.from.edges.forEach(function (subEdge) {
+            var graphEdge = convertEdge(subEdge);
+            graphData.edges.push(graphEdge);
+          });
+        }
+
+        forEach2(from, to, function (from, to) {
+          var subEdge = createEdge(graphData, from.id, to.id, dotEdge.type, dotEdge.attr);
+          var graphEdge = convertEdge(subEdge);
+          graphData.edges.push(graphEdge);
+        });
+
+        if (dotEdge.to instanceof Object && dotEdge.to.edges) {
+          dotEdge.to.edges.forEach(function (subEdge) {
+            var graphEdge = convertEdge(subEdge);
+            graphData.edges.push(graphEdge);
+          });
+        }
+      });
+    }
+
+    // copy the options
+    if (dotData.attr) {
+      graphData.options = dotData.attr;
+    }
+
+    return graphData;
+  }
+
+  // exports
+  exports.parseDOT = parseDOT;
+  exports.DOTToGraph = DOTToGraph;
+
+
+/***/ },
+/* 41 */
+/***/ function(module, exports, __webpack_require__) {
+
+  
+  function parseGephi(gephiJSON, options) {
+    var edges = [];
+    var nodes = [];
+    this.options = {
+      edges: {
+        inheritColor: true
+      },
+      nodes: {
+        allowedToMove: false,
+        parseColor: false
+      }
+    };
+
+    if (options !== undefined) {
+      this.options.nodes['allowedToMove'] = options.allowedToMove | false;
+      this.options.nodes['parseColor']    = options.parseColor    | false;
+      this.options.edges['inheritColor']  = options.inheritColor  | true;
+    }
+
+    var gEdges = gephiJSON.edges;
+    var gNodes = gephiJSON.nodes;
+    for (var i = 0; i < gEdges.length; i++) {
+      var edge = {};
+      var gEdge = gEdges[i];
+      edge['id'] = gEdge.id;
+      edge['from'] = gEdge.source;
+      edge['to'] = gEdge.target;
+      edge['attributes'] = gEdge.attributes;
+  //    edge['value'] = gEdge.attributes !== undefined ? gEdge.attributes.Weight : undefined;
+  //    edge['width'] = edge['value'] !== undefined ? undefined : edgegEdge.size;
+      edge['color'] = gEdge.color;
+      edge['inheritColor'] = edge['color'] !== undefined ? false : this.options.inheritColor;
+      edges.push(edge);
+    }
+
+    for (var i = 0; i < gNodes.length; i++) {
+      var node = {};
+      var gNode = gNodes[i];
+      node['id'] = gNode.id;
+      node['attributes'] = gNode.attributes;
+      node['x'] = gNode.x;
+      node['y'] = gNode.y;
+      node['label'] = gNode.label;
+      if (this.options.nodes.parseColor == true) {
+        node['color'] = gNode.color;
+      }
+      else {
+        node['color'] = gNode.color !== undefined ? {background:gNode.color, border:gNode.color} : undefined;
+      }
+      node['radius'] = gNode.size;
+      node['allowedToMoveX'] = this.options.nodes.allowedToMove;
+      node['allowedToMoveY'] = this.options.nodes.allowedToMove;
+      nodes.push(node);
+    }
+
+    return {nodes:nodes, edges:edges};
+  }
+
+  exports.parseGephi = parseGephi;
+
+/***/ },
+/* 42 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var util = __webpack_require__(1);
+
+  /**
+   * @class Groups
+   * This class can store groups and properties specific for groups.
+   */
+  function Groups() {
+    this.clear();
+    this.defaultIndex = 0;
+  }
+
+
+  /**
+   * default constants for group colors
+   */
+  Groups.DEFAULT = [
+    {border: "#2B7CE9", background: "#97C2FC", highlight: {border: "#2B7CE9", background: "#D2E5FF"}, hover: {border: "#2B7CE9", background: "#D2E5FF"}}, // blue
+    {border: "#FFA500", background: "#FFFF00", highlight: {border: "#FFA500", background: "#FFFFA3"}, hover: {border: "#FFA500", background: "#FFFFA3"}}, // yellow
+    {border: "#FA0A10", background: "#FB7E81", highlight: {border: "#FA0A10", background: "#FFAFB1"}, hover: {border: "#FA0A10", background: "#FFAFB1"}}, // red
+    {border: "#41A906", background: "#7BE141", highlight: {border: "#41A906", background: "#A1EC76"}, hover: {border: "#41A906", background: "#A1EC76"}}, // green
+    {border: "#E129F0", background: "#EB7DF4", highlight: {border: "#E129F0", background: "#F0B3F5"}, hover: {border: "#E129F0", background: "#F0B3F5"}}, // magenta
+    {border: "#7C29F0", background: "#AD85E4", highlight: {border: "#7C29F0", background: "#D3BDF0"}, hover: {border: "#7C29F0", background: "#D3BDF0"}}, // purple
+    {border: "#C37F00", background: "#FFA807", highlight: {border: "#C37F00", background: "#FFCA66"}, hover: {border: "#C37F00", background: "#FFCA66"}}, // orange
+    {border: "#4220FB", background: "#6E6EFD", highlight: {border: "#4220FB", background: "#9B9BFD"}, hover: {border: "#4220FB", background: "#9B9BFD"}}, // darkblue
+    {border: "#FD5A77", background: "#FFC0CB", highlight: {border: "#FD5A77", background: "#FFD1D9"}, hover: {border: "#FD5A77", background: "#FFD1D9"}}, // pink
+    {border: "#4AD63A", background: "#C2FABC", highlight: {border: "#4AD63A", background: "#E6FFE3"}, hover: {border: "#4AD63A", background: "#E6FFE3"}}  // mint
+  ];
+
+
+  /**
+   * Clear all groups
+   */
+  Groups.prototype.clear = function () {
+    this.groups = {};
+    this.groups.length = function()
+    {
+      var i = 0;
+      for ( var p in this ) {
+        if (this.hasOwnProperty(p)) {
+          i++;
+        }
+      }
+      return i;
+    }
+  };
+
+
+  /**
+   * get group properties of a groupname. If groupname is not found, a new group
+   * is added.
+   * @param {*} groupname        Can be a number, string, Date, etc.
+   * @return {Object} group      The created group, containing all group properties
+   */
+  Groups.prototype.get = function (groupname) {
+    var group = this.groups[groupname];
+    if (group == undefined) {
+      // create new group
+      var index = this.defaultIndex % Groups.DEFAULT.length;
+      this.defaultIndex++;
+      group = {};
+      group.color = Groups.DEFAULT[index];
+      this.groups[groupname] = group;
+    }
+
+    return group;
+  };
+
+  /**
+   * Add a custom group style
+   * @param {String} groupname
+   * @param {Object} style       An object containing borderColor,
+   *                             backgroundColor, etc.
+   * @return {Object} group      The created group object
+   */
+  Groups.prototype.add = function (groupname, style) {
+    this.groups[groupname] = style;
+    if (style.color) {
+      style.color = util.parseColor(style.color);
+    }
+    return style;
+  };
+
+  module.exports = Groups;
+
+
+/***/ },
+/* 43 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * @class Images
+   * This class loads images and keeps them stored.
+   */
+  function Images() {
+    this.images = {};
+
+    this.callback = undefined;
+  }
+
+  /**
+   * Set an onload callback function. This will be called each time an image
+   * is loaded
+   * @param {function} callback
+   */
+  Images.prototype.setOnloadCallback = function(callback) {
+    this.callback = callback;
+  };
+
+  /**
+   *
+   * @param {string} url          Url of the image
+   * @return {Image} img          The image object
+   */
+  Images.prototype.load = function(url) {
+    var img = this.images[url];
+    if (img == undefined) {
+      // create the image
+      var images = this;
+      img = new Image();
+      this.images[url] = img;
+      img.onload = function() {
+        if (images.callback) {
+          images.callback(this);
+        }
+      };
+      img.src = url;
+    }
+
+    return img;
+  };
+
+  module.exports = Images;
+
+
+/***/ },
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -19403,145 +20039,1212 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 41 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
+  var Node = __webpack_require__(44);
 
   /**
-   * @class Groups
-   * This class can store groups and properties specific for groups.
+   * @class Edge
+   *
+   * A edge connects two nodes
+   * @param {Object} properties     Object with properties. Must contain
+   *                                At least properties from and to.
+   *                                Available properties: from (number),
+   *                                to (number), label (string, color (string),
+   *                                width (number), style (string),
+   *                                length (number), title (string)
+   * @param {Network} network       A Network object, used to find and edge to
+   *                                nodes.
+   * @param {Object} constants      An object with default values for
+   *                                example for the color
    */
-  function Groups() {
-    this.clear();
-    this.defaultIndex = 0;
+  function Edge (properties, network, constants) {
+    if (!network) {
+      throw "No network provided";
+    }
+    this.network = network;
+
+    // initialize constants
+    this.widthMin = constants.edges.widthMin;
+    this.widthMax = constants.edges.widthMax;
+
+    // initialize variables
+    this.id     = undefined;
+    this.fromId = undefined;
+    this.toId   = undefined;
+    this.style  = constants.edges.style;
+    this.title  = undefined;
+    this.width  = constants.edges.width;
+    this.widthSelectionMultiplier = constants.edges.widthSelectionMultiplier;
+    this.widthSelected = this.width * this.widthSelectionMultiplier;
+    this.hoverWidth = constants.edges.hoverWidth;
+    this.value  = undefined;
+    this.length = constants.physics.springLength;
+    this.customLength = false;
+    this.selected = false;
+    this.hover = false;
+    this.smoothCurves = constants.smoothCurves;
+    this.dynamicSmoothCurves = constants.dynamicSmoothCurves;
+    this.arrowScaleFactor = constants.edges.arrowScaleFactor;
+    this.inheritColor = constants.edges.inheritColor;
+
+    this.from = null;   // a node
+    this.to = null;     // a node
+    this.via = null;    // a temp node
+
+    // we use this to be able to reconnect the edge to a cluster if its node is put into a cluster
+    // by storing the original information we can revert to the original connection when the cluser is opened.
+    this.originalFromId = [];
+    this.originalToId = [];
+
+    this.connected = false;
+
+    // Added to support dashed lines
+    // David Jordan
+    // 2012-08-08
+    this.dash = util.extend({}, constants.edges.dash); // contains properties length, gap, altLength
+
+    this.color       = {color:constants.edges.color.color,
+                        highlight:constants.edges.color.highlight,
+                        hover:constants.edges.color.hover};
+    this.widthFixed  = false;
+    this.lengthFixed = false;
+
+    this.setProperties(properties, constants);
+
+    this.controlNodesEnabled = false;
+    this.controlNodes = {from:null, to:null, positions:{}};
+    this.connectedNode = null;
+  }
+
+  /**
+   * Set or overwrite properties for the edge
+   * @param {Object} properties  an object with properties
+   * @param {Object} constants   and object with default, global properties
+   */
+  Edge.prototype.setProperties = function(properties, constants) {
+    if (!properties) {
+      return;
+    }
+
+    if (properties.from !== undefined)           {this.fromId = properties.from;}
+    if (properties.to !== undefined)             {this.toId = properties.to;}
+
+    if (properties.id !== undefined)             {this.id = properties.id;}
+    if (properties.style !== undefined)          {this.style = properties.style;}
+    if (properties.label !== undefined)          {this.label = properties.label;}
+
+    if (this.label) {
+      this.fontSize = constants.edges.fontSize;
+      this.fontFace = constants.edges.fontFace;
+      this.fontColor = constants.edges.fontColor;
+      this.fontFill = constants.edges.fontFill;
+
+      if (properties.fontColor !== undefined)  {this.fontColor = properties.fontColor;}
+      if (properties.fontSize !== undefined)   {this.fontSize = properties.fontSize;}
+      if (properties.fontFace !== undefined)   {this.fontFace = properties.fontFace;}
+      if (properties.fontFill !== undefined)   {this.fontFill = properties.fontFill;}
+    }
+
+    if (properties.title !== undefined)        {this.title = properties.title;}
+    if (properties.width !== undefined)        {this.width = properties.width;}
+    if (properties.widthSelectionMultiplier !== undefined)
+                                               {this.widthSelectionMultiplier = properties.widthSelectionMultiplier;}
+    if (properties.hoverWidth !== undefined)   {this.hoverWidth = properties.hoverWidth;}
+    if (properties.value !== undefined)        {this.value = properties.value;}
+    if (properties.length !== undefined)       {this.length = properties.length;
+                                                this.customLength = true;}
+
+    // scale the arrow
+    if (properties.arrowScaleFactor !== undefined)       {this.arrowScaleFactor = properties.arrowScaleFactor;}
+
+    if (properties.inheritColor !== undefined)       {this.inheritColor = properties.inheritColor;}
+
+    // Added to support dashed lines
+    // David Jordan
+    // 2012-08-08
+    if (properties.dash) {
+      if (properties.dash.length !== undefined)    {this.dash.length = properties.dash.length;}
+      if (properties.dash.gap !== undefined)       {this.dash.gap = properties.dash.gap;}
+      if (properties.dash.altLength !== undefined) {this.dash.altLength = properties.dash.altLength;}
+    }
+
+    if (properties.color !== undefined) {
+      if (util.isString(properties.color)) {
+        this.color.color = properties.color;
+        this.color.highlight = properties.color;
+      }
+      else {
+        if (properties.color.color !== undefined)     {this.color.color = properties.color.color;}
+        if (properties.color.highlight !== undefined) {this.color.highlight = properties.color.highlight;}
+        if (properties.color.hover !== undefined)     {this.color.hover = properties.color.hover;}
+      }
+    }
+
+    // A node is connected when it has a from and to node.
+    this.connect();
+
+    this.widthFixed = this.widthFixed || (properties.width !== undefined);
+    this.lengthFixed = this.lengthFixed || (properties.length !== undefined);
+
+    this.widthSelected = this.width * this.widthSelectionMultiplier;
+
+    // set draw method based on style
+    switch (this.style) {
+      case 'line':          this.draw = this._drawLine; break;
+      case 'arrow':         this.draw = this._drawArrow; break;
+      case 'arrow-center':  this.draw = this._drawArrowCenter; break;
+      case 'dash-line':     this.draw = this._drawDashLine; break;
+      default:              this.draw = this._drawLine; break;
+    }
+  };
+
+  /**
+   * Connect an edge to its nodes
+   */
+  Edge.prototype.connect = function () {
+    this.disconnect();
+
+    this.from = this.network.nodes[this.fromId] || null;
+    this.to = this.network.nodes[this.toId] || null;
+    this.connected = (this.from && this.to);
+
+    if (this.connected) {
+      this.from.attachEdge(this);
+      this.to.attachEdge(this);
+    }
+    else {
+      if (this.from) {
+        this.from.detachEdge(this);
+      }
+      if (this.to) {
+        this.to.detachEdge(this);
+      }
+    }
+  };
+
+  /**
+   * Disconnect an edge from its nodes
+   */
+  Edge.prototype.disconnect = function () {
+    if (this.from) {
+      this.from.detachEdge(this);
+      this.from = null;
+    }
+    if (this.to) {
+      this.to.detachEdge(this);
+      this.to = null;
+    }
+
+    this.connected = false;
+  };
+
+  /**
+   * get the title of this edge.
+   * @return {string} title    The title of the edge, or undefined when no title
+   *                           has been set.
+   */
+  Edge.prototype.getTitle = function() {
+    return typeof this.title === "function" ? this.title() : this.title;
+  };
+
+
+  /**
+   * Retrieve the value of the edge. Can be undefined
+   * @return {Number} value
+   */
+  Edge.prototype.getValue = function() {
+    return this.value;
+  };
+
+  /**
+   * Adjust the value range of the edge. The edge will adjust it's width
+   * based on its value.
+   * @param {Number} min
+   * @param {Number} max
+   */
+  Edge.prototype.setValueRange = function(min, max) {
+    if (!this.widthFixed && this.value !== undefined) {
+      var scale = (this.widthMax - this.widthMin) / (max - min);
+      this.width = (this.value - min) * scale + this.widthMin;
+      this.widthSelected = this.width * this.widthSelectionMultiplier;
+    }
+  };
+
+  /**
+   * Redraw a edge
+   * Draw this edge in the given canvas
+   * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+   * @param {CanvasRenderingContext2D}   ctx
+   */
+  Edge.prototype.draw = function(ctx) {
+    throw "Method draw not initialized in edge";
+  };
+
+  /**
+   * Check if this object is overlapping with the provided object
+   * @param {Object} obj   an object with parameters left, top
+   * @return {boolean}     True if location is located on the edge
+   */
+  Edge.prototype.isOverlappingWith = function(obj) {
+    if (this.connected) {
+      var distMax = 10;
+      var xFrom = this.from.x;
+      var yFrom = this.from.y;
+      var xTo = this.to.x;
+      var yTo = this.to.y;
+      var xObj = obj.left;
+      var yObj = obj.top;
+
+      var dist = this._getDistanceToEdge(xFrom, yFrom, xTo, yTo, xObj, yObj);
+
+      return (dist < distMax);
+    }
+    else {
+      return false
+    }
+  };
+
+  Edge.prototype._getColor = function() {
+    var colorObj = this.color;
+    if (this.inheritColor == "to") {
+      colorObj = {
+        highlight: this.to.color.highlight.border,
+        hover: this.to.color.hover.border,
+        color: this.to.color.border
+      };
+    }
+    else if (this.inheritColor == "from" || this.inheritColor == true) {
+      colorObj = {
+        highlight: this.from.color.highlight.border,
+        hover: this.from.color.hover.border,
+        color: this.from.color.border
+      };
+    }
+
+    if (this.selected == true)   {return colorObj.highlight;}
+    else if (this.hover == true) {return colorObj.hover;}
+    else                         {return colorObj.color;}
   }
 
 
   /**
-   * default constants for group colors
+   * Redraw a edge as a line
+   * Draw this edge in the given canvas
+   * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+   * @param {CanvasRenderingContext2D}   ctx
+   * @private
    */
-  Groups.DEFAULT = [
-    {border: "#2B7CE9", background: "#97C2FC", highlight: {border: "#2B7CE9", background: "#D2E5FF"}, hover: {border: "#2B7CE9", background: "#D2E5FF"}}, // blue
-    {border: "#FFA500", background: "#FFFF00", highlight: {border: "#FFA500", background: "#FFFFA3"}, hover: {border: "#FFA500", background: "#FFFFA3"}}, // yellow
-    {border: "#FA0A10", background: "#FB7E81", highlight: {border: "#FA0A10", background: "#FFAFB1"}, hover: {border: "#FA0A10", background: "#FFAFB1"}}, // red
-    {border: "#41A906", background: "#7BE141", highlight: {border: "#41A906", background: "#A1EC76"}, hover: {border: "#41A906", background: "#A1EC76"}}, // green
-    {border: "#E129F0", background: "#EB7DF4", highlight: {border: "#E129F0", background: "#F0B3F5"}, hover: {border: "#E129F0", background: "#F0B3F5"}}, // magenta
-    {border: "#7C29F0", background: "#AD85E4", highlight: {border: "#7C29F0", background: "#D3BDF0"}, hover: {border: "#7C29F0", background: "#D3BDF0"}}, // purple
-    {border: "#C37F00", background: "#FFA807", highlight: {border: "#C37F00", background: "#FFCA66"}, hover: {border: "#C37F00", background: "#FFCA66"}}, // orange
-    {border: "#4220FB", background: "#6E6EFD", highlight: {border: "#4220FB", background: "#9B9BFD"}, hover: {border: "#4220FB", background: "#9B9BFD"}}, // darkblue
-    {border: "#FD5A77", background: "#FFC0CB", highlight: {border: "#FD5A77", background: "#FFD1D9"}, hover: {border: "#FD5A77", background: "#FFD1D9"}}, // pink
-    {border: "#4AD63A", background: "#C2FABC", highlight: {border: "#4AD63A", background: "#E6FFE3"}, hover: {border: "#4AD63A", background: "#E6FFE3"}}  // mint
-  ];
+  Edge.prototype._drawLine = function(ctx) {
+    // set style
+    ctx.strokeStyle = this._getColor();
+    ctx.lineWidth   = this._getLineWidth();
 
+    if (this.from != this.to) {
+      // draw line
+      var via = this._line(ctx);
+
+      // draw label
+      var point;
+      if (this.label) {
+        if (this.smoothCurves.enabled == true && via != null) {
+          var midpointX = 0.5*(0.5*(this.from.x + via.x) + 0.5*(this.to.x + via.x));
+          var midpointY = 0.5*(0.5*(this.from.y + via.y) + 0.5*(this.to.y + via.y));
+          point = {x:midpointX, y:midpointY};
+        }
+        else {
+          point = this._pointOnLine(0.5);
+        }
+        this._label(ctx, this.label, point.x, point.y);
+      }
+    }
+    else {
+      var x, y;
+      var radius = this.length / 4;
+      var node = this.from;
+      if (!node.width) {
+        node.resize(ctx);
+      }
+      if (node.width > node.height) {
+        x = node.x + node.width / 2;
+        y = node.y - radius;
+      }
+      else {
+        x = node.x + radius;
+        y = node.y - node.height / 2;
+      }
+      this._circle(ctx, x, y, radius);
+      point = this._pointOnCircle(x, y, radius, 0.5);
+      this._label(ctx, this.label, point.x, point.y);
+    }
+  };
 
   /**
-   * Clear all groups
+   * Get the line width of the edge. Depends on width and whether one of the
+   * connected nodes is selected.
+   * @return {Number} width
+   * @private
    */
-  Groups.prototype.clear = function () {
-    this.groups = {};
-    this.groups.length = function()
-    {
-      var i = 0;
-      for ( var p in this ) {
-        if (this.hasOwnProperty(p)) {
-          i++;
+  Edge.prototype._getLineWidth = function() {
+    if (this.selected == true) {
+      return Math.min(this.widthSelected, this.widthMax)*this.networkScaleInv;
+    }
+    else {
+      if (this.hover == true) {
+        return Math.min(this.hoverWidth, this.widthMax)*this.networkScaleInv;
+      }
+      else {
+        return this.width*this.networkScaleInv;
+      }
+    }
+  };
+
+  Edge.prototype._getViaCoordinates = function () {
+    var xVia = null;
+    var yVia = null;
+    var factor = this.smoothCurves.roundness;
+    var type = this.smoothCurves.type;
+
+    var dx = Math.abs(this.from.x - this.to.x);
+    var dy = Math.abs(this.from.y - this.to.y);
+    if (type == 'discrete' || type == 'diagonalCross') {
+      if (Math.abs(this.from.x - this.to.x) < Math.abs(this.from.y - this.to.y)) {
+        if (this.from.y > this.to.y) {
+          if (this.from.x < this.to.x) {
+            xVia = this.from.x + factor * dy;
+            yVia = this.from.y - factor * dy;
+          }
+          else if (this.from.x > this.to.x) {
+            xVia = this.from.x - factor * dy;
+            yVia = this.from.y - factor * dy;
+          }
+        }
+        else if (this.from.y < this.to.y) {
+          if (this.from.x < this.to.x) {
+            xVia = this.from.x + factor * dy;
+            yVia = this.from.y + factor * dy;
+          }
+          else if (this.from.x > this.to.x) {
+            xVia = this.from.x - factor * dy;
+            yVia = this.from.y + factor * dy;
+          }
+        }
+        if (type == "discrete") {
+          xVia = dx < factor * dy ? this.from.x : xVia;
         }
       }
-      return i;
+      else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) {
+        if (this.from.y > this.to.y) {
+          if (this.from.x < this.to.x) {
+            xVia = this.from.x + factor * dx;
+            yVia = this.from.y - factor * dx;
+          }
+          else if (this.from.x > this.to.x) {
+            xVia = this.from.x - factor * dx;
+            yVia = this.from.y - factor * dx;
+          }
+        }
+        else if (this.from.y < this.to.y) {
+          if (this.from.x < this.to.x) {
+            xVia = this.from.x + factor * dx;
+            yVia = this.from.y + factor * dx;
+          }
+          else if (this.from.x > this.to.x) {
+            xVia = this.from.x - factor * dx;
+            yVia = this.from.y + factor * dx;
+          }
+        }
+        if (type == "discrete") {
+          yVia = dy < factor * dx ? this.from.y : yVia;
+        }
+      }
     }
-  };
-
-
-  /**
-   * get group properties of a groupname. If groupname is not found, a new group
-   * is added.
-   * @param {*} groupname        Can be a number, string, Date, etc.
-   * @return {Object} group      The created group, containing all group properties
-   */
-  Groups.prototype.get = function (groupname) {
-    var group = this.groups[groupname];
-    if (group == undefined) {
-      // create new group
-      var index = this.defaultIndex % Groups.DEFAULT.length;
-      this.defaultIndex++;
-      group = {};
-      group.color = Groups.DEFAULT[index];
-      this.groups[groupname] = group;
+    else if (type == "straightCross") {
+      if (Math.abs(this.from.x - this.to.x) < Math.abs(this.from.y - this.to.y)) {  // up - down
+        xVia = this.from.x;
+        if (this.from.y < this.to.y) {
+          yVia = this.to.y - (1-factor) * dy;
+        }
+        else {
+          yVia = this.to.y + (1-factor) * dy;
+        }
+      }
+      else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) { // left - right
+        if (this.from.x < this.to.x) {
+          xVia = this.to.x - (1-factor) * dx;
+        }
+        else {
+          xVia = this.to.x + (1-factor) * dx;
+        }
+        yVia = this.from.y;
+      }
+    }
+    else if (type == 'horizontal') {
+      if (this.from.x < this.to.x) {
+        xVia = this.to.x - (1-factor) * dx;
+      }
+      else {
+        xVia = this.to.x + (1-factor) * dx;
+      }
+      yVia = this.from.y;
+    }
+    else if (type == 'vertical') {
+      xVia = this.from.x;
+      if (this.from.y < this.to.y) {
+        yVia = this.to.y - (1-factor) * dy;
+      }
+      else {
+        yVia = this.to.y + (1-factor) * dy;
+      }
+    }
+    else { // continuous
+      if (Math.abs(this.from.x - this.to.x) < Math.abs(this.from.y - this.to.y)) {
+        if (this.from.y > this.to.y) {
+          if (this.from.x < this.to.x) {
+  //          console.log(1)
+            xVia = this.from.x + factor * dy;
+            yVia = this.from.y - factor * dy;
+            xVia = this.to.x < xVia ? this.to.x : xVia;
+          }
+          else if (this.from.x > this.to.x) {
+  //          console.log(2)
+            xVia = this.from.x - factor * dy;
+            yVia = this.from.y - factor * dy;
+            xVia = this.to.x > xVia ? this.to.x :xVia;
+          }
+        }
+        else if (this.from.y < this.to.y) {
+          if (this.from.x < this.to.x) {
+  //          console.log(3)
+            xVia = this.from.x + factor * dy;
+            yVia = this.from.y + factor * dy;
+            xVia = this.to.x < xVia ? this.to.x : xVia;
+          }
+          else if (this.from.x > this.to.x) {
+  //          console.log(4, this.from.x, this.to.x)
+            xVia = this.from.x - factor * dy;
+            yVia = this.from.y + factor * dy;
+            xVia = this.to.x > xVia ? this.to.x : xVia;
+          }
+        }
+      }
+      else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) {
+        if (this.from.y > this.to.y) {
+          if (this.from.x < this.to.x) {
+  //          console.log(5)
+            xVia = this.from.x + factor * dx;
+            yVia = this.from.y - factor * dx;
+            yVia = this.to.y > yVia ? this.to.y : yVia;
+          }
+          else if (this.from.x > this.to.x) {
+  //          console.log(6)
+            xVia = this.from.x - factor * dx;
+            yVia = this.from.y - factor * dx;
+            yVia = this.to.y > yVia ? this.to.y : yVia;
+          }
+        }
+        else if (this.from.y < this.to.y) {
+          if (this.from.x < this.to.x) {
+  //          console.log(7)
+            xVia = this.from.x + factor * dx;
+            yVia = this.from.y + factor * dx;
+            yVia = this.to.y < yVia ? this.to.y : yVia;
+          }
+          else if (this.from.x > this.to.x) {
+  //          console.log(8)
+            xVia = this.from.x - factor * dx;
+            yVia = this.from.y + factor * dx;
+            yVia = this.to.y < yVia ? this.to.y : yVia;
+          }
+        }
+      }
     }
 
-    return group;
-  };
 
-  /**
-   * Add a custom group style
-   * @param {String} groupname
-   * @param {Object} style       An object containing borderColor,
-   *                             backgroundColor, etc.
-   * @return {Object} group      The created group object
-   */
-  Groups.prototype.add = function (groupname, style) {
-    this.groups[groupname] = style;
-    if (style.color) {
-      style.color = util.parseColor(style.color);
-    }
-    return style;
-  };
-
-  module.exports = Groups;
-
-
-/***/ },
-/* 42 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * @class Images
-   * This class loads images and keeps them stored.
-   */
-  function Images() {
-    this.images = {};
-
-    this.callback = undefined;
+    return {x:xVia, y:yVia};
   }
 
   /**
-   * Set an onload callback function. This will be called each time an image
-   * is loaded
-   * @param {function} callback
+   * Draw a line between two nodes
+   * @param {CanvasRenderingContext2D} ctx
+   * @private
    */
-  Images.prototype.setOnloadCallback = function(callback) {
-    this.callback = callback;
+  Edge.prototype._line = function (ctx) {
+    // draw a straight line
+    ctx.beginPath();
+    ctx.moveTo(this.from.x, this.from.y);
+    if (this.smoothCurves.enabled == true) {
+      if (this.smoothCurves.dynamic == false) {
+        var via = this._getViaCoordinates();
+        if (via.x == null) {
+          ctx.lineTo(this.to.x, this.to.y);
+          ctx.stroke();
+          return null;
+        }
+        else {
+  //        this.via.x = via.x;
+  //        this.via.y = via.y;
+          ctx.quadraticCurveTo(via.x,via.y,this.to.x, this.to.y);
+          ctx.stroke();
+          return via;
+        }
+      }
+      else {
+        ctx.quadraticCurveTo(this.via.x,this.via.y,this.to.x, this.to.y);
+        ctx.stroke();
+        return this.via;
+      }
+    }
+    else {
+      ctx.lineTo(this.to.x, this.to.y);
+      ctx.stroke();
+      return null;
+    }
   };
 
   /**
-   *
-   * @param {string} url          Url of the image
-   * @return {Image} img          The image object
+   * Draw a line from a node to itself, a circle
+   * @param {CanvasRenderingContext2D} ctx
+   * @param {Number} x
+   * @param {Number} y
+   * @param {Number} radius
+   * @private
    */
-  Images.prototype.load = function(url) {
-    var img = this.images[url];
-    if (img == undefined) {
-      // create the image
-      var images = this;
-      img = new Image();
-      this.images[url] = img;
-      img.onload = function() {
-        if (images.callback) {
-          images.callback(this);
-        }
-      };
-      img.src = url;
-    }
-
-    return img;
+  Edge.prototype._circle = function (ctx, x, y, radius) {
+    // draw a circle
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
+    ctx.stroke();
   };
 
-  module.exports = Images;
+  /**
+   * Draw label with white background and with the middle at (x, y)
+   * @param {CanvasRenderingContext2D} ctx
+   * @param {String} text
+   * @param {Number} x
+   * @param {Number} y
+   * @private
+   */
+  Edge.prototype._label = function (ctx, text, x, y) {
+    if (text) {
+      // TODO: cache the calculated size
+      ctx.font = ((this.from.selected || this.to.selected) ? "bold " : "") +
+          this.fontSize + "px " + this.fontFace;
+      ctx.fillStyle = this.fontFill;
+      var width = ctx.measureText(text).width;
+      var height = this.fontSize;
+      var left = x - width / 2;
+      var top = y - height / 2;
 
+      ctx.fillRect(left, top, width, height);
+
+      // draw text
+      ctx.fillStyle = this.fontColor || "black";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
+      ctx.fillText(text, left, top);
+    }
+  };
+
+  /**
+   * Redraw a edge as a dashed line
+   * Draw this edge in the given canvas
+   * @author David Jordan
+   * @date 2012-08-08
+   * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+   * @param {CanvasRenderingContext2D}   ctx
+   * @private
+   */
+  Edge.prototype._drawDashLine = function(ctx) {
+    // set style
+    if (this.selected == true)   {ctx.strokeStyle = this.color.highlight;}
+    else if (this.hover == true) {ctx.strokeStyle = this.color.hover;}
+    else                         {ctx.strokeStyle = this.color.color;}
+
+    ctx.lineWidth = this._getLineWidth();
+
+    var via = null;
+    // only firefox and chrome support this method, else we use the legacy one.
+    if (ctx.mozDash !== undefined || ctx.setLineDash !== undefined) {
+      // configure the dash pattern
+      var pattern = [0];
+      if (this.dash.length !== undefined && this.dash.gap !== undefined) {
+        pattern = [this.dash.length,this.dash.gap];
+      }
+      else {
+        pattern = [5,5];
+      }
+
+      // set dash settings for chrome or firefox
+      if (typeof ctx.setLineDash !== 'undefined') { //Chrome
+        ctx.setLineDash(pattern);
+        ctx.lineDashOffset = 0;
+
+      } else { //Firefox
+        ctx.mozDash = pattern;
+        ctx.mozDashOffset = 0;
+      }
+
+      // draw the line
+      via = this._line(ctx);
+
+      // restore the dash settings.
+      if (typeof ctx.setLineDash !== 'undefined') { //Chrome
+        ctx.setLineDash([0]);
+        ctx.lineDashOffset = 0;
+
+      } else { //Firefox
+        ctx.mozDash = [0];
+        ctx.mozDashOffset = 0;
+      }
+    }
+    else { // unsupporting smooth lines
+      // draw dashed line
+      ctx.beginPath();
+      ctx.lineCap = 'round';
+      if (this.dash.altLength !== undefined) //If an alt dash value has been set add to the array this value
+      {
+        ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
+            [this.dash.length,this.dash.gap,this.dash.altLength,this.dash.gap]);
+      }
+      else if (this.dash.length !== undefined && this.dash.gap !== undefined) //If a dash and gap value has been set add to the array this value
+      {
+        ctx.dashedLine(this.from.x,this.from.y,this.to.x,this.to.y,
+            [this.dash.length,this.dash.gap]);
+      }
+      else //If all else fails draw a line
+      {
+        ctx.moveTo(this.from.x, this.from.y);
+        ctx.lineTo(this.to.x, this.to.y);
+      }
+      ctx.stroke();
+    }
+
+    // draw label
+    if (this.label) {
+      var point;
+      if (this.smoothCurves.enabled == true && via != null) {
+        var midpointX = 0.5*(0.5*(this.from.x + via.x) + 0.5*(this.to.x + via.x));
+        var midpointY = 0.5*(0.5*(this.from.y + via.y) + 0.5*(this.to.y + via.y));
+        point = {x:midpointX, y:midpointY};
+      }
+      else {
+        point = this._pointOnLine(0.5);
+      }
+      this._label(ctx, this.label, point.x, point.y);
+    }
+  };
+
+  /**
+   * Get a point on a line
+   * @param {Number} percentage. Value between 0 (line start) and 1 (line end)
+   * @return {Object} point
+   * @private
+   */
+  Edge.prototype._pointOnLine = function (percentage) {
+    return {
+      x: (1 - percentage) * this.from.x + percentage * this.to.x,
+      y: (1 - percentage) * this.from.y + percentage * this.to.y
+    }
+  };
+
+  /**
+   * Get a point on a circle
+   * @param {Number} x
+   * @param {Number} y
+   * @param {Number} radius
+   * @param {Number} percentage. Value between 0 (line start) and 1 (line end)
+   * @return {Object} point
+   * @private
+   */
+  Edge.prototype._pointOnCircle = function (x, y, radius, percentage) {
+    var angle = (percentage - 3/8) * 2 * Math.PI;
+    return {
+      x: x + radius * Math.cos(angle),
+      y: y - radius * Math.sin(angle)
+    }
+  };
+
+  /**
+   * Redraw a edge as a line with an arrow halfway the line
+   * Draw this edge in the given canvas
+   * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+   * @param {CanvasRenderingContext2D}   ctx
+   * @private
+   */
+  Edge.prototype._drawArrowCenter = function(ctx) {
+    var point;
+    // set style
+    if (this.selected == true)   {ctx.strokeStyle = this.color.highlight; ctx.fillStyle = this.color.highlight;}
+    else if (this.hover == true) {ctx.strokeStyle = this.color.hover;     ctx.fillStyle = this.color.hover;}
+    else                         {ctx.strokeStyle = this.color.color;     ctx.fillStyle = this.color.color;}
+    ctx.lineWidth = this._getLineWidth();
+
+    if (this.from != this.to) {
+      // draw line
+      var via = this._line(ctx);
+
+      var angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
+      var length = (10 + 5 * this.width) * this.arrowScaleFactor;
+      // draw an arrow halfway the line
+      if (this.smoothCurves.enabled == true && via != null) {
+        var midpointX = 0.5*(0.5*(this.from.x + via.x) + 0.5*(this.to.x + via.x));
+        var midpointY = 0.5*(0.5*(this.from.y + via.y) + 0.5*(this.to.y + via.y));
+        point = {x:midpointX, y:midpointY};
+      }
+      else {
+        point = this._pointOnLine(0.5);
+      }
+
+      ctx.arrow(point.x, point.y, angle, length);
+      ctx.fill();
+      ctx.stroke();
+
+      // draw label
+      if (this.label) {
+        this._label(ctx, this.label, point.x, point.y);
+      }
+    }
+    else {
+      // draw circle
+      var x, y;
+      var radius = 0.25 * Math.max(100,this.length);
+      var node = this.from;
+      if (!node.width) {
+        node.resize(ctx);
+      }
+      if (node.width > node.height) {
+        x = node.x + node.width * 0.5;
+        y = node.y - radius;
+      }
+      else {
+        x = node.x + radius;
+        y = node.y - node.height * 0.5;
+      }
+      this._circle(ctx, x, y, radius);
+
+      // draw all arrows
+      var angle = 0.2 * Math.PI;
+      var length = (10 + 5 * this.width) * this.arrowScaleFactor;
+      point = this._pointOnCircle(x, y, radius, 0.5);
+      ctx.arrow(point.x, point.y, angle, length);
+      ctx.fill();
+      ctx.stroke();
+
+      // draw label
+      if (this.label) {
+        point = this._pointOnCircle(x, y, radius, 0.5);
+        this._label(ctx, this.label, point.x, point.y);
+      }
+    }
+  };
+
+
+
+  /**
+   * Redraw a edge as a line with an arrow
+   * Draw this edge in the given canvas
+   * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+   * @param {CanvasRenderingContext2D}   ctx
+   * @private
+   */
+  Edge.prototype._drawArrow = function(ctx) {
+    // set style
+    if (this.selected == true)   {ctx.strokeStyle = this.color.highlight; ctx.fillStyle = this.color.highlight;}
+    else if (this.hover == true) {ctx.strokeStyle = this.color.hover;     ctx.fillStyle = this.color.hover;}
+    else                         {ctx.strokeStyle = this.color.color;     ctx.fillStyle = this.color.color;}
+
+    ctx.lineWidth = this._getLineWidth();
+
+    var angle, length;
+    //draw a line
+    if (this.from != this.to) {
+      angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
+      var dx = (this.to.x - this.from.x);
+      var dy = (this.to.y - this.from.y);
+      var edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
+
+      var fromBorderDist = this.from.distanceToBorder(ctx, angle + Math.PI);
+      var fromBorderPoint = (edgeSegmentLength - fromBorderDist) / edgeSegmentLength;
+      var xFrom = (fromBorderPoint) * this.from.x + (1 - fromBorderPoint) * this.to.x;
+      var yFrom = (fromBorderPoint) * this.from.y + (1 - fromBorderPoint) * this.to.y;
+
+      var via;
+      if (this.smoothCurves.dynamic == true && this.smoothCurves.enabled == true ) {
+        via = this.via;
+      }
+      else if (this.smoothCurves.enabled == true) {
+        via = this._getViaCoordinates();
+      }
+
+      if (this.smoothCurves.enabled == true && via.x != null) {
+        angle = Math.atan2((this.to.y - via.y), (this.to.x - via.x));
+        dx = (this.to.x - via.x);
+        dy = (this.to.y - via.y);
+        edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
+      }
+      var toBorderDist = this.to.distanceToBorder(ctx, angle);
+      var toBorderPoint = (edgeSegmentLength - toBorderDist) / edgeSegmentLength;
+
+      var xTo,yTo;
+      if (this.smoothCurves.enabled == true && via.x != null) {
+       xTo = (1 - toBorderPoint) * via.x + toBorderPoint * this.to.x;
+       yTo = (1 - toBorderPoint) * via.y + toBorderPoint * this.to.y;
+      }
+      else {
+        xTo = (1 - toBorderPoint) * this.from.x + toBorderPoint * this.to.x;
+        yTo = (1 - toBorderPoint) * this.from.y + toBorderPoint * this.to.y;
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(xFrom,yFrom);
+      if (this.smoothCurves.enabled == true && via.x != null) {
+        ctx.quadraticCurveTo(via.x,via.y,xTo, yTo);
+      }
+      else {
+        ctx.lineTo(xTo, yTo);
+      }
+      ctx.stroke();
+
+      // draw arrow at the end of the line
+      length = (10 + 5 * this.width) * this.arrowScaleFactor;
+      ctx.arrow(xTo, yTo, angle, length);
+      ctx.fill();
+      ctx.stroke();
+
+      // draw label
+      if (this.label) {
+        var point;
+        if (this.smoothCurves.enabled == true && via != null) {
+          var midpointX = 0.5*(0.5*(this.from.x + via.x) + 0.5*(this.to.x + via.x));
+          var midpointY = 0.5*(0.5*(this.from.y + via.y) + 0.5*(this.to.y + via.y));
+          point = {x:midpointX, y:midpointY};
+        }
+        else {
+          point = this._pointOnLine(0.5);
+        }
+        this._label(ctx, this.label, point.x, point.y);
+      }
+    }
+    else {
+      // draw circle
+      var node = this.from;
+      var x, y, arrow;
+      var radius = 0.25 * Math.max(100,this.length);
+      if (!node.width) {
+        node.resize(ctx);
+      }
+      if (node.width > node.height) {
+        x = node.x + node.width * 0.5;
+        y = node.y - radius;
+        arrow = {
+          x: x,
+          y: node.y,
+          angle: 0.9 * Math.PI
+        };
+      }
+      else {
+        x = node.x + radius;
+        y = node.y - node.height * 0.5;
+        arrow = {
+          x: node.x,
+          y: y,
+          angle: 0.6 * Math.PI
+        };
+      }
+      ctx.beginPath();
+      // TODO: similarly, for a line without arrows, draw to the border of the nodes instead of the center
+      ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
+      ctx.stroke();
+
+      // draw all arrows
+      var length = (10 + 5 * this.width) * this.arrowScaleFactor;
+      ctx.arrow(arrow.x, arrow.y, arrow.angle, length);
+      ctx.fill();
+      ctx.stroke();
+
+      // draw label
+      if (this.label) {
+        point = this._pointOnCircle(x, y, radius, 0.5);
+        this._label(ctx, this.label, point.x, point.y);
+      }
+    }
+  };
+
+
+
+  /**
+   * Calculate the distance between a point (x3,y3) and a line segment from
+   * (x1,y1) to (x2,y2).
+   * http://stackoverflow.com/questions/849211/shortest-distancae-between-a-point-and-a-line-segment
+   * @param {number} x1
+   * @param {number} y1
+   * @param {number} x2
+   * @param {number} y2
+   * @param {number} x3
+   * @param {number} y3
+   * @private
+   */
+  Edge.prototype._getDistanceToEdge = function (x1,y1, x2,y2, x3,y3) { // x3,y3 is the point
+    if (this.from != this.to) {
+      if (this.smoothCurves.enabled == true) {
+        var xVia, yVia;
+        if (this.smoothCurves.enabled == true && this.smoothCurves.dynamic == true) {
+          xVia = this.via.x;
+          yVia = this.via.y;
+        }
+        else {
+          var via = this._getViaCoordinates();
+          xVia = via.x;
+          yVia = via.y;
+        }
+        var minDistance = 1e9;
+        var distance;
+        var i,t,x,y, lastX, lastY;
+        for (i = 0; i < 10; i++) {
+          t = 0.1*i;
+          x = Math.pow(1-t,2)*x1 + (2*t*(1 - t))*xVia + Math.pow(t,2)*x2;
+          y = Math.pow(1-t,2)*y1 + (2*t*(1 - t))*yVia + Math.pow(t,2)*y2;
+          if (i > 0) {
+            distance = this._getDistanceToLine(lastX,lastY,x,y, x3,y3);
+            minDistance = distance < minDistance ? distance : minDistance;
+          }
+          lastX = x; lastY = y;
+        }
+        return minDistance
+      }
+      else {
+        return this._getDistanceToLine(x1,y1,x2,y2,x3,y3);
+      }
+    }
+    else {
+      var x, y, dx, dy;
+      var radius = this.length / 4;
+      var node = this.from;
+      if (!node.width) {
+        node.resize(ctx);
+      }
+      if (node.width > node.height) {
+        x = node.x + node.width / 2;
+        y = node.y - radius;
+      }
+      else {
+        x = node.x + radius;
+        y = node.y - node.height / 2;
+      }
+      dx = x - x3;
+      dy = y - y3;
+      return Math.abs(Math.sqrt(dx*dx + dy*dy) - radius);
+    }
+  };
+
+  Edge.prototype._getDistanceToLine = function(x1,y1,x2,y2,x3,y3) {
+    var px = x2-x1,
+      py = y2-y1,
+      something = px*px + py*py,
+      u =  ((x3 - x1) * px + (y3 - y1) * py) / something;
+
+    if (u > 1) {
+      u = 1;
+    }
+    else if (u < 0) {
+      u = 0;
+    }
+
+    var x = x1 + u * px,
+      y = y1 + u * py,
+      dx = x - x3,
+      dy = y - y3;
+
+    //# Note: If the actual distance does not matter,
+    //# if you only want to compare what this function
+    //# returns to other results of this function, you
+    //# can just return the squared distance instead
+    //# (i.e. remove the sqrt) to gain a little performance
+
+    return Math.sqrt(dx*dx + dy*dy);
+  }
+
+  /**
+   * This allows the zoom level of the network to influence the rendering
+   *
+   * @param scale
+   */
+  Edge.prototype.setScale = function(scale) {
+    this.networkScaleInv = 1.0/scale;
+  };
+
+
+  Edge.prototype.select = function() {
+    this.selected = true;
+  };
+
+  Edge.prototype.unselect = function() {
+    this.selected = false;
+  };
+
+  Edge.prototype.positionBezierNode = function() {
+    if (this.via !== null) {
+      this.via.x = 0.5 * (this.from.x + this.to.x);
+      this.via.y = 0.5 * (this.from.y + this.to.y);
+    }
+  };
+
+  /**
+   * This function draws the control nodes for the manipulator. In order to enable this, only set the this.controlNodesEnabled to true.
+   * @param ctx
+   */
+  Edge.prototype._drawControlNodes = function(ctx) {
+    if (this.controlNodesEnabled == true) {
+      if (this.controlNodes.from === null && this.controlNodes.to === null) {
+        var nodeIdFrom = "edgeIdFrom:".concat(this.id);
+        var nodeIdTo = "edgeIdTo:".concat(this.id);
+        var constants = {
+                        nodes:{group:'', radius:8},
+                        physics:{damping:0},
+                        clustering: {maxNodeSizeIncrements: 0 ,nodeScaling: {width:0, height: 0, radius:0}}
+                        };
+        this.controlNodes.from = new Node(
+          {id:nodeIdFrom,
+            shape:'dot',
+              color:{background:'#ff4e00', border:'#3c3c3c', highlight: {background:'#07f968'}}
+          },{},{},constants);
+        this.controlNodes.to = new Node(
+          {id:nodeIdTo,
+            shape:'dot',
+            color:{background:'#ff4e00', border:'#3c3c3c', highlight: {background:'#07f968'}}
+          },{},{},constants);
+      }
+
+      if (this.controlNodes.from.selected == false && this.controlNodes.to.selected == false) {
+        this.controlNodes.positions = this.getControlNodePositions(ctx);
+        this.controlNodes.from.x = this.controlNodes.positions.from.x;
+        this.controlNodes.from.y = this.controlNodes.positions.from.y;
+        this.controlNodes.to.x = this.controlNodes.positions.to.x;
+        this.controlNodes.to.y = this.controlNodes.positions.to.y;
+      }
+
+      this.controlNodes.from.draw(ctx);
+      this.controlNodes.to.draw(ctx);
+    }
+    else {
+      this.controlNodes = {from:null, to:null, positions:{}};
+    }
+  };
+
+  /**
+   * Enable control nodes.
+   * @private
+   */
+  Edge.prototype._enableControlNodes = function() {
+    this.controlNodesEnabled = true;
+  };
+
+  /**
+   * disable control nodes
+   * @private
+   */
+  Edge.prototype._disableControlNodes = function() {
+    this.controlNodesEnabled = false;
+  };
+
+  /**
+   * This checks if one of the control nodes is selected and if so, returns the control node object. Else it returns null.
+   * @param x
+   * @param y
+   * @returns {null}
+   * @private
+   */
+  Edge.prototype._getSelectedControlNode = function(x,y) {
+    var positions = this.controlNodes.positions;
+    var fromDistance = Math.sqrt(Math.pow(x - positions.from.x,2) + Math.pow(y - positions.from.y,2));
+    var toDistance =   Math.sqrt(Math.pow(x - positions.to.x  ,2) + Math.pow(y - positions.to.y  ,2));
+
+    if (fromDistance < 15) {
+      this.connectedNode = this.from;
+      this.from = this.controlNodes.from;
+      return this.controlNodes.from;
+    }
+    else if (toDistance < 15) {
+      this.connectedNode = this.to;
+      this.to = this.controlNodes.to;
+      return this.controlNodes.to;
+    }
+    else {
+      return null;
+    }
+  };
+
+
+  /**
+   * this resets the control nodes to their original position.
+   * @private
+   */
+  Edge.prototype._restoreControlNodes = function() {
+    if (this.controlNodes.from.selected == true) {
+      this.from = this.connectedNode;
+      this.connectedNode = null;
+      this.controlNodes.from.unselect();
+    }
+    if (this.controlNodes.to.selected == true) {
+      this.to = this.connectedNode;
+      this.connectedNode = null;
+      this.controlNodes.to.unselect();
+    }
+  };
+
+  /**
+   * this calculates the position of the control nodes on the edges of the parent nodes.
+   *
+   * @param ctx
+   * @returns {{from: {x: number, y: number}, to: {x: *, y: *}}}
+   */
+  Edge.prototype.getControlNodePositions = function(ctx) {
+    var angle = Math.atan2((this.to.y - this.from.y), (this.to.x - this.from.x));
+    var dx = (this.to.x - this.from.x);
+    var dy = (this.to.y - this.from.y);
+    var edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
+    var fromBorderDist = this.from.distanceToBorder(ctx, angle + Math.PI);
+    var fromBorderPoint = (edgeSegmentLength - fromBorderDist) / edgeSegmentLength;
+    var xFrom = (fromBorderPoint) * this.from.x + (1 - fromBorderPoint) * this.to.x;
+    var yFrom = (fromBorderPoint) * this.from.y + (1 - fromBorderPoint) * this.to.y;
+
+    var via;
+    if (this.smoothCurves.dynamic == true && this.smoothCurves.enabled == true) {
+      via = this.via;
+    }
+    else if (this.smoothCurves.enabled == true) {
+      via = this._getViaCoordinates();
+    }
+
+    if (this.smoothCurves.enabled == true && via.x != null) {
+      angle = Math.atan2((this.to.y - via.y), (this.to.x - via.x));
+      dx = (this.to.x - via.x);
+      dy = (this.to.y - via.y);
+      edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
+    }
+    var toBorderDist = this.to.distanceToBorder(ctx, angle);
+    var toBorderPoint = (edgeSegmentLength - toBorderDist) / edgeSegmentLength;
+
+    var xTo,yTo;
+    if (this.smoothCurves.enabled == true && via.x != null) {
+      xTo = (1 - toBorderPoint) * via.x + toBorderPoint * this.to.x;
+      yTo = (1 - toBorderPoint) * via.y + toBorderPoint * this.to.y;
+    }
+    else {
+      xTo = (1 - toBorderPoint) * this.from.x + toBorderPoint * this.to.x;
+      yTo = (1 - toBorderPoint) * this.from.y + toBorderPoint * this.to.y;
+    }
+
+    return {from:{x:xFrom,y:yFrom},to:{x:xTo,y:yTo}};
+  };
+
+  module.exports = Edge;
 
 /***/ },
-/* 43 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -19678,1708 +21381,6 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   module.exports = Popup;
-
-
-/***/ },
-/* 44 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * Parse a text source containing data in DOT language into a JSON object.
-   * The object contains two lists: one with nodes and one with edges.
-   *
-   * DOT language reference: http://www.graphviz.org/doc/info/lang.html
-   *
-   * @param {String} data     Text containing a graph in DOT-notation
-   * @return {Object} graph   An object containing two parameters:
-   *                          {Object[]} nodes
-   *                          {Object[]} edges
-   */
-  function parseDOT (data) {
-    dot = data;
-    return parseGraph();
-  }
-
-  // token types enumeration
-  var TOKENTYPE = {
-    NULL : 0,
-    DELIMITER : 1,
-    IDENTIFIER: 2,
-    UNKNOWN : 3
-  };
-
-  // map with all delimiters
-  var DELIMITERS = {
-    '{': true,
-    '}': true,
-    '[': true,
-    ']': true,
-    ';': true,
-    '=': true,
-    ',': true,
-
-    '->': true,
-    '--': true
-  };
-
-  var dot = '';                   // current dot file
-  var index = 0;                  // current index in dot file
-  var c = '';                     // current token character in expr
-  var token = '';                 // current token
-  var tokenType = TOKENTYPE.NULL; // type of the token
-
-  /**
-   * Get the first character from the dot file.
-   * The character is stored into the char c. If the end of the dot file is
-   * reached, the function puts an empty string in c.
-   */
-  function first() {
-    index = 0;
-    c = dot.charAt(0);
-  }
-
-  /**
-   * Get the next character from the dot file.
-   * The character is stored into the char c. If the end of the dot file is
-   * reached, the function puts an empty string in c.
-   */
-  function next() {
-    index++;
-    c = dot.charAt(index);
-  }
-
-  /**
-   * Preview the next character from the dot file.
-   * @return {String} cNext
-   */
-  function nextPreview() {
-    return dot.charAt(index + 1);
-  }
-
-  /**
-   * Test whether given character is alphabetic or numeric
-   * @param {String} c
-   * @return {Boolean} isAlphaNumeric
-   */
-  var regexAlphaNumeric = /[a-zA-Z_0-9.:#]/;
-  function isAlphaNumeric(c) {
-    return regexAlphaNumeric.test(c);
-  }
-
-  /**
-   * Merge all properties of object b into object b
-   * @param {Object} a
-   * @param {Object} b
-   * @return {Object} a
-   */
-  function merge (a, b) {
-    if (!a) {
-      a = {};
-    }
-
-    if (b) {
-      for (var name in b) {
-        if (b.hasOwnProperty(name)) {
-          a[name] = b[name];
-        }
-      }
-    }
-    return a;
-  }
-
-  /**
-   * Set a value in an object, where the provided parameter name can be a
-   * path with nested parameters. For example:
-   *
-   *     var obj = {a: 2};
-   *     setValue(obj, 'b.c', 3);     // obj = {a: 2, b: {c: 3}}
-   *
-   * @param {Object} obj
-   * @param {String} path  A parameter name or dot-separated parameter path,
-   *                      like "color.highlight.border".
-   * @param {*} value
-   */
-  function setValue(obj, path, value) {
-    var keys = path.split('.');
-    var o = obj;
-    while (keys.length) {
-      var key = keys.shift();
-      if (keys.length) {
-        // this isn't the end point
-        if (!o[key]) {
-          o[key] = {};
-        }
-        o = o[key];
-      }
-      else {
-        // this is the end point
-        o[key] = value;
-      }
-    }
-  }
-
-  /**
-   * Add a node to a graph object. If there is already a node with
-   * the same id, their attributes will be merged.
-   * @param {Object} graph
-   * @param {Object} node
-   */
-  function addNode(graph, node) {
-    var i, len;
-    var current = null;
-
-    // find root graph (in case of subgraph)
-    var graphs = [graph]; // list with all graphs from current graph to root graph
-    var root = graph;
-    while (root.parent) {
-      graphs.push(root.parent);
-      root = root.parent;
-    }
-
-    // find existing node (at root level) by its id
-    if (root.nodes) {
-      for (i = 0, len = root.nodes.length; i < len; i++) {
-        if (node.id === root.nodes[i].id) {
-          current = root.nodes[i];
-          break;
-        }
-      }
-    }
-
-    if (!current) {
-      // this is a new node
-      current = {
-        id: node.id
-      };
-      if (graph.node) {
-        // clone default attributes
-        current.attr = merge(current.attr, graph.node);
-      }
-    }
-
-    // add node to this (sub)graph and all its parent graphs
-    for (i = graphs.length - 1; i >= 0; i--) {
-      var g = graphs[i];
-
-      if (!g.nodes) {
-        g.nodes = [];
-      }
-      if (g.nodes.indexOf(current) == -1) {
-        g.nodes.push(current);
-      }
-    }
-
-    // merge attributes
-    if (node.attr) {
-      current.attr = merge(current.attr, node.attr);
-    }
-  }
-
-  /**
-   * Add an edge to a graph object
-   * @param {Object} graph
-   * @param {Object} edge
-   */
-  function addEdge(graph, edge) {
-    if (!graph.edges) {
-      graph.edges = [];
-    }
-    graph.edges.push(edge);
-    if (graph.edge) {
-      var attr = merge({}, graph.edge);     // clone default attributes
-      edge.attr = merge(attr, edge.attr); // merge attributes
-    }
-  }
-
-  /**
-   * Create an edge to a graph object
-   * @param {Object} graph
-   * @param {String | Number | Object} from
-   * @param {String | Number | Object} to
-   * @param {String} type
-   * @param {Object | null} attr
-   * @return {Object} edge
-   */
-  function createEdge(graph, from, to, type, attr) {
-    var edge = {
-      from: from,
-      to: to,
-      type: type
-    };
-
-    if (graph.edge) {
-      edge.attr = merge({}, graph.edge);  // clone default attributes
-    }
-    edge.attr = merge(edge.attr || {}, attr); // merge attributes
-
-    return edge;
-  }
-
-  /**
-   * Get next token in the current dot file.
-   * The token and token type are available as token and tokenType
-   */
-  function getToken() {
-    tokenType = TOKENTYPE.NULL;
-    token = '';
-
-    // skip over whitespaces
-    while (c == ' ' || c == '\t' || c == '\n' || c == '\r') {  // space, tab, enter
-      next();
-    }
-
-    do {
-      var isComment = false;
-
-      // skip comment
-      if (c == '#') {
-        // find the previous non-space character
-        var i = index - 1;
-        while (dot.charAt(i) == ' ' || dot.charAt(i) == '\t') {
-          i--;
-        }
-        if (dot.charAt(i) == '\n' || dot.charAt(i) == '') {
-          // the # is at the start of a line, this is indeed a line comment
-          while (c != '' && c != '\n') {
-            next();
-          }
-          isComment = true;
-        }
-      }
-      if (c == '/' && nextPreview() == '/') {
-        // skip line comment
-        while (c != '' && c != '\n') {
-          next();
-        }
-        isComment = true;
-      }
-      if (c == '/' && nextPreview() == '*') {
-        // skip block comment
-        while (c != '') {
-          if (c == '*' && nextPreview() == '/') {
-            // end of block comment found. skip these last two characters
-            next();
-            next();
-            break;
-          }
-          else {
-            next();
-          }
-        }
-        isComment = true;
-      }
-
-      // skip over whitespaces
-      while (c == ' ' || c == '\t' || c == '\n' || c == '\r') {  // space, tab, enter
-        next();
-      }
-    }
-    while (isComment);
-
-    // check for end of dot file
-    if (c == '') {
-      // token is still empty
-      tokenType = TOKENTYPE.DELIMITER;
-      return;
-    }
-
-    // check for delimiters consisting of 2 characters
-    var c2 = c + nextPreview();
-    if (DELIMITERS[c2]) {
-      tokenType = TOKENTYPE.DELIMITER;
-      token = c2;
-      next();
-      next();
-      return;
-    }
-
-    // check for delimiters consisting of 1 character
-    if (DELIMITERS[c]) {
-      tokenType = TOKENTYPE.DELIMITER;
-      token = c;
-      next();
-      return;
-    }
-
-    // check for an identifier (number or string)
-    // TODO: more precise parsing of numbers/strings (and the port separator ':')
-    if (isAlphaNumeric(c) || c == '-') {
-      token += c;
-      next();
-
-      while (isAlphaNumeric(c)) {
-        token += c;
-        next();
-      }
-      if (token == 'false') {
-        token = false;   // convert to boolean
-      }
-      else if (token == 'true') {
-        token = true;   // convert to boolean
-      }
-      else if (!isNaN(Number(token))) {
-        token = Number(token); // convert to number
-      }
-      tokenType = TOKENTYPE.IDENTIFIER;
-      return;
-    }
-
-    // check for a string enclosed by double quotes
-    if (c == '"') {
-      next();
-      while (c != '' && (c != '"' || (c == '"' && nextPreview() == '"'))) {
-        token += c;
-        if (c == '"') { // skip the escape character
-          next();
-        }
-        next();
-      }
-      if (c != '"') {
-        throw newSyntaxError('End of string " expected');
-      }
-      next();
-      tokenType = TOKENTYPE.IDENTIFIER;
-      return;
-    }
-
-    // something unknown is found, wrong characters, a syntax error
-    tokenType = TOKENTYPE.UNKNOWN;
-    while (c != '') {
-      token += c;
-      next();
-    }
-    throw new SyntaxError('Syntax error in part "' + chop(token, 30) + '"');
-  }
-
-  /**
-   * Parse a graph.
-   * @returns {Object} graph
-   */
-  function parseGraph() {
-    var graph = {};
-
-    first();
-    getToken();
-
-    // optional strict keyword
-    if (token == 'strict') {
-      graph.strict = true;
-      getToken();
-    }
-
-    // graph or digraph keyword
-    if (token == 'graph' || token == 'digraph') {
-      graph.type = token;
-      getToken();
-    }
-
-    // optional graph id
-    if (tokenType == TOKENTYPE.IDENTIFIER) {
-      graph.id = token;
-      getToken();
-    }
-
-    // open angle bracket
-    if (token != '{') {
-      throw newSyntaxError('Angle bracket { expected');
-    }
-    getToken();
-
-    // statements
-    parseStatements(graph);
-
-    // close angle bracket
-    if (token != '}') {
-      throw newSyntaxError('Angle bracket } expected');
-    }
-    getToken();
-
-    // end of file
-    if (token !== '') {
-      throw newSyntaxError('End of file expected');
-    }
-    getToken();
-
-    // remove temporary default properties
-    delete graph.node;
-    delete graph.edge;
-    delete graph.graph;
-
-    return graph;
-  }
-
-  /**
-   * Parse a list with statements.
-   * @param {Object} graph
-   */
-  function parseStatements (graph) {
-    while (token !== '' && token != '}') {
-      parseStatement(graph);
-      if (token == ';') {
-        getToken();
-      }
-    }
-  }
-
-  /**
-   * Parse a single statement. Can be a an attribute statement, node
-   * statement, a series of node statements and edge statements, or a
-   * parameter.
-   * @param {Object} graph
-   */
-  function parseStatement(graph) {
-    // parse subgraph
-    var subgraph = parseSubgraph(graph);
-    if (subgraph) {
-      // edge statements
-      parseEdge(graph, subgraph);
-
-      return;
-    }
-
-    // parse an attribute statement
-    var attr = parseAttributeStatement(graph);
-    if (attr) {
-      return;
-    }
-
-    // parse node
-    if (tokenType != TOKENTYPE.IDENTIFIER) {
-      throw newSyntaxError('Identifier expected');
-    }
-    var id = token; // id can be a string or a number
-    getToken();
-
-    if (token == '=') {
-      // id statement
-      getToken();
-      if (tokenType != TOKENTYPE.IDENTIFIER) {
-        throw newSyntaxError('Identifier expected');
-      }
-      graph[id] = token;
-      getToken();
-      // TODO: implement comma separated list with "a_list: ID=ID [','] [a_list] "
-    }
-    else {
-      parseNodeStatement(graph, id);
-    }
-  }
-
-  /**
-   * Parse a subgraph
-   * @param {Object} graph    parent graph object
-   * @return {Object | null} subgraph
-   */
-  function parseSubgraph (graph) {
-    var subgraph = null;
-
-    // optional subgraph keyword
-    if (token == 'subgraph') {
-      subgraph = {};
-      subgraph.type = 'subgraph';
-      getToken();
-
-      // optional graph id
-      if (tokenType == TOKENTYPE.IDENTIFIER) {
-        subgraph.id = token;
-        getToken();
-      }
-    }
-
-    // open angle bracket
-    if (token == '{') {
-      getToken();
-
-      if (!subgraph) {
-        subgraph = {};
-      }
-      subgraph.parent = graph;
-      subgraph.node = graph.node;
-      subgraph.edge = graph.edge;
-      subgraph.graph = graph.graph;
-
-      // statements
-      parseStatements(subgraph);
-
-      // close angle bracket
-      if (token != '}') {
-        throw newSyntaxError('Angle bracket } expected');
-      }
-      getToken();
-
-      // remove temporary default properties
-      delete subgraph.node;
-      delete subgraph.edge;
-      delete subgraph.graph;
-      delete subgraph.parent;
-
-      // register at the parent graph
-      if (!graph.subgraphs) {
-        graph.subgraphs = [];
-      }
-      graph.subgraphs.push(subgraph);
-    }
-
-    return subgraph;
-  }
-
-  /**
-   * parse an attribute statement like "node [shape=circle fontSize=16]".
-   * Available keywords are 'node', 'edge', 'graph'.
-   * The previous list with default attributes will be replaced
-   * @param {Object} graph
-   * @returns {String | null} keyword Returns the name of the parsed attribute
-   *                                  (node, edge, graph), or null if nothing
-   *                                  is parsed.
-   */
-  function parseAttributeStatement (graph) {
-    // attribute statements
-    if (token == 'node') {
-      getToken();
-
-      // node attributes
-      graph.node = parseAttributeList();
-      return 'node';
-    }
-    else if (token == 'edge') {
-      getToken();
-
-      // edge attributes
-      graph.edge = parseAttributeList();
-      return 'edge';
-    }
-    else if (token == 'graph') {
-      getToken();
-
-      // graph attributes
-      graph.graph = parseAttributeList();
-      return 'graph';
-    }
-
-    return null;
-  }
-
-  /**
-   * parse a node statement
-   * @param {Object} graph
-   * @param {String | Number} id
-   */
-  function parseNodeStatement(graph, id) {
-    // node statement
-    var node = {
-      id: id
-    };
-    var attr = parseAttributeList();
-    if (attr) {
-      node.attr = attr;
-    }
-    addNode(graph, node);
-
-    // edge statements
-    parseEdge(graph, id);
-  }
-
-  /**
-   * Parse an edge or a series of edges
-   * @param {Object} graph
-   * @param {String | Number} from        Id of the from node
-   */
-  function parseEdge(graph, from) {
-    while (token == '->' || token == '--') {
-      var to;
-      var type = token;
-      getToken();
-
-      var subgraph = parseSubgraph(graph);
-      if (subgraph) {
-        to = subgraph;
-      }
-      else {
-        if (tokenType != TOKENTYPE.IDENTIFIER) {
-          throw newSyntaxError('Identifier or subgraph expected');
-        }
-        to = token;
-        addNode(graph, {
-          id: to
-        });
-        getToken();
-      }
-
-      // parse edge attributes
-      var attr = parseAttributeList();
-
-      // create edge
-      var edge = createEdge(graph, from, to, type, attr);
-      addEdge(graph, edge);
-
-      from = to;
-    }
-  }
-
-  /**
-   * Parse a set with attributes,
-   * for example [label="1.000", shape=solid]
-   * @return {Object | null} attr
-   */
-  function parseAttributeList() {
-    var attr = null;
-
-    while (token == '[') {
-      getToken();
-      attr = {};
-      while (token !== '' && token != ']') {
-        if (tokenType != TOKENTYPE.IDENTIFIER) {
-          throw newSyntaxError('Attribute name expected');
-        }
-        var name = token;
-
-        getToken();
-        if (token != '=') {
-          throw newSyntaxError('Equal sign = expected');
-        }
-        getToken();
-
-        if (tokenType != TOKENTYPE.IDENTIFIER) {
-          throw newSyntaxError('Attribute value expected');
-        }
-        var value = token;
-        setValue(attr, name, value); // name can be a path
-
-        getToken();
-        if (token ==',') {
-          getToken();
-        }
-      }
-
-      if (token != ']') {
-        throw newSyntaxError('Bracket ] expected');
-      }
-      getToken();
-    }
-
-    return attr;
-  }
-
-  /**
-   * Create a syntax error with extra information on current token and index.
-   * @param {String} message
-   * @returns {SyntaxError} err
-   */
-  function newSyntaxError(message) {
-    return new SyntaxError(message + ', got "' + chop(token, 30) + '" (char ' + index + ')');
-  }
-
-  /**
-   * Chop off text after a maximum length
-   * @param {String} text
-   * @param {Number} maxLength
-   * @returns {String}
-   */
-  function chop (text, maxLength) {
-    return (text.length <= maxLength) ? text : (text.substr(0, 27) + '...');
-  }
-
-  /**
-   * Execute a function fn for each pair of elements in two arrays
-   * @param {Array | *} array1
-   * @param {Array | *} array2
-   * @param {function} fn
-   */
-  function forEach2(array1, array2, fn) {
-    if (array1 instanceof Array) {
-      array1.forEach(function (elem1) {
-        if (array2 instanceof Array) {
-          array2.forEach(function (elem2)  {
-            fn(elem1, elem2);
-          });
-        }
-        else {
-          fn(elem1, array2);
-        }
-      });
-    }
-    else {
-      if (array2 instanceof Array) {
-        array2.forEach(function (elem2)  {
-          fn(array1, elem2);
-        });
-      }
-      else {
-        fn(array1, array2);
-      }
-    }
-  }
-
-  /**
-   * Convert a string containing a graph in DOT language into a map containing
-   * with nodes and edges in the format of graph.
-   * @param {String} data         Text containing a graph in DOT-notation
-   * @return {Object} graphData
-   */
-  function DOTToGraph (data) {
-    // parse the DOT file
-    var dotData = parseDOT(data);
-    var graphData = {
-      nodes: [],
-      edges: [],
-      options: {}
-    };
-
-    // copy the nodes
-    if (dotData.nodes) {
-      dotData.nodes.forEach(function (dotNode) {
-        var graphNode = {
-          id: dotNode.id,
-          label: String(dotNode.label || dotNode.id)
-        };
-        merge(graphNode, dotNode.attr);
-        if (graphNode.image) {
-          graphNode.shape = 'image';
-        }
-        graphData.nodes.push(graphNode);
-      });
-    }
-
-    // copy the edges
-    if (dotData.edges) {
-      /**
-       * Convert an edge in DOT format to an edge with VisGraph format
-       * @param {Object} dotEdge
-       * @returns {Object} graphEdge
-       */
-      function convertEdge(dotEdge) {
-        var graphEdge = {
-          from: dotEdge.from,
-          to: dotEdge.to
-        };
-        merge(graphEdge, dotEdge.attr);
-        graphEdge.style = (dotEdge.type == '->') ? 'arrow' : 'line';
-        return graphEdge;
-      }
-
-      dotData.edges.forEach(function (dotEdge) {
-        var from, to;
-        if (dotEdge.from instanceof Object) {
-          from = dotEdge.from.nodes;
-        }
-        else {
-          from = {
-            id: dotEdge.from
-          }
-        }
-
-        if (dotEdge.to instanceof Object) {
-          to = dotEdge.to.nodes;
-        }
-        else {
-          to = {
-            id: dotEdge.to
-          }
-        }
-
-        if (dotEdge.from instanceof Object && dotEdge.from.edges) {
-          dotEdge.from.edges.forEach(function (subEdge) {
-            var graphEdge = convertEdge(subEdge);
-            graphData.edges.push(graphEdge);
-          });
-        }
-
-        forEach2(from, to, function (from, to) {
-          var subEdge = createEdge(graphData, from.id, to.id, dotEdge.type, dotEdge.attr);
-          var graphEdge = convertEdge(subEdge);
-          graphData.edges.push(graphEdge);
-        });
-
-        if (dotEdge.to instanceof Object && dotEdge.to.edges) {
-          dotEdge.to.edges.forEach(function (subEdge) {
-            var graphEdge = convertEdge(subEdge);
-            graphData.edges.push(graphEdge);
-          });
-        }
-      });
-    }
-
-    // copy the options
-    if (dotData.attr) {
-      graphData.options = dotData.attr;
-    }
-
-    return graphData;
-  }
-
-  // exports
-  exports.parseDOT = parseDOT;
-  exports.DOTToGraph = DOTToGraph;
-
-
-/***/ },
-/* 45 */
-/***/ function(module, exports, __webpack_require__) {
-
-  
-  function parseGephi(gephiJSON, options) {
-    var edges = [];
-    var nodes = [];
-    this.options = {
-      edges: {
-        inheritColor: true
-      },
-      nodes: {
-        allowedToMove: false,
-        parseColor: false
-      }
-    };
-
-    if (options !== undefined) {
-      this.options.nodes['allowedToMove'] = options.allowedToMove | false;
-      this.options.nodes['parseColor']    = options.parseColor    | false;
-      this.options.edges['inheritColor']  = options.inheritColor  | true;
-    }
-
-    var gEdges = gephiJSON.edges;
-    var gNodes = gephiJSON.nodes;
-    for (var i = 0; i < gEdges.length; i++) {
-      var edge = {};
-      var gEdge = gEdges[i];
-      edge['id'] = gEdge.id;
-      edge['from'] = gEdge.source;
-      edge['to'] = gEdge.target;
-      edge['attributes'] = gEdge.attributes;
-  //    edge['value'] = gEdge.attributes !== undefined ? gEdge.attributes.Weight : undefined;
-  //    edge['width'] = edge['value'] !== undefined ? undefined : edgegEdge.size;
-      edge['color'] = gEdge.color;
-      edge['inheritColor'] = edge['color'] !== undefined ? false : this.options.inheritColor;
-      edges.push(edge);
-    }
-
-    for (var i = 0; i < gNodes.length; i++) {
-      var node = {};
-      var gNode = gNodes[i];
-      node['id'] = gNode.id;
-      node['attributes'] = gNode.attributes;
-      node['x'] = gNode.x;
-      node['y'] = gNode.y;
-      node['label'] = gNode.label;
-      if (this.options.nodes.parseColor == true) {
-        node['color'] = gNode.color;
-      }
-      else {
-        node['color'] = gNode.color !== undefined ? {background:gNode.color, border:gNode.color} : undefined;
-      }
-      node['radius'] = gNode.size;
-      node['allowedToMoveX'] = this.options.nodes.allowedToMove;
-      node['allowedToMoveY'] = this.options.nodes.allowedToMove;
-      nodes.push(node);
-    }
-
-    return {nodes:nodes, edges:edges};
-  }
-
-  exports.parseGephi = parseGephi;
-
-/***/ },
-/* 46 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * Copyright 2012 Craig Campbell
-   *
-   * Licensed under the Apache License, Version 2.0 (the "License");
-   * you may not use this file except in compliance with the License.
-   * You may obtain a copy of the License at
-   *
-   * http://www.apache.org/licenses/LICENSE-2.0
-   *
-   * Unless required by applicable law or agreed to in writing, software
-   * distributed under the License is distributed on an "AS IS" BASIS,
-   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   * See the License for the specific language governing permissions and
-   * limitations under the License.
-   *
-   * Mousetrap is a simple keyboard shortcut library for Javascript with
-   * no external dependencies
-   *
-   * @version 1.1.2
-   * @url craig.is/killing/mice
-   */
-
-    /**
-     * mapping of special keycodes to their corresponding keys
-     *
-     * everything in this dictionary cannot use keypress events
-     * so it has to be here to map to the correct keycodes for
-     * keyup/keydown events
-     *
-     * @type {Object}
-     */
-    var _MAP = {
-            8: 'backspace',
-            9: 'tab',
-            13: 'enter',
-            16: 'shift',
-            17: 'ctrl',
-            18: 'alt',
-            20: 'capslock',
-            27: 'esc',
-            32: 'space',
-            33: 'pageup',
-            34: 'pagedown',
-            35: 'end',
-            36: 'home',
-            37: 'left',
-            38: 'up',
-            39: 'right',
-            40: 'down',
-            45: 'ins',
-            46: 'del',
-            91: 'meta',
-            93: 'meta',
-            224: 'meta'
-        },
-
-        /**
-         * mapping for special characters so they can support
-         *
-         * this dictionary is only used incase you want to bind a
-         * keyup or keydown event to one of these keys
-         *
-         * @type {Object}
-         */
-        _KEYCODE_MAP = {
-            106: '*',
-            107: '+',
-            109: '-',
-            110: '.',
-            111 : '/',
-            186: ';',
-            187: '=',
-            188: ',',
-            189: '-',
-            190: '.',
-            191: '/',
-            192: '`',
-            219: '[',
-            220: '\\',
-            221: ']',
-            222: '\''
-        },
-
-        /**
-         * this is a mapping of keys that require shift on a US keypad
-         * back to the non shift equivelents
-         *
-         * this is so you can use keyup events with these keys
-         *
-         * note that this will only work reliably on US keyboards
-         *
-         * @type {Object}
-         */
-        _SHIFT_MAP = {
-            '~': '`',
-            '!': '1',
-            '@': '2',
-            '#': '3',
-            '$': '4',
-            '%': '5',
-            '^': '6',
-            '&': '7',
-            '*': '8',
-            '(': '9',
-            ')': '0',
-            '_': '-',
-            '+': '=',
-            ':': ';',
-            '\"': '\'',
-            '<': ',',
-            '>': '.',
-            '?': '/',
-            '|': '\\'
-        },
-
-        /**
-         * this is a list of special strings you can use to map
-         * to modifier keys when you specify your keyboard shortcuts
-         *
-         * @type {Object}
-         */
-        _SPECIAL_ALIASES = {
-            'option': 'alt',
-            'command': 'meta',
-            'return': 'enter',
-            'escape': 'esc'
-        },
-
-        /**
-         * variable to store the flipped version of _MAP from above
-         * needed to check if we should use keypress or not when no action
-         * is specified
-         *
-         * @type {Object|undefined}
-         */
-        _REVERSE_MAP,
-
-        /**
-         * a list of all the callbacks setup via Mousetrap.bind()
-         *
-         * @type {Object}
-         */
-        _callbacks = {},
-
-        /**
-         * direct map of string combinations to callbacks used for trigger()
-         *
-         * @type {Object}
-         */
-        _direct_map = {},
-
-        /**
-         * keeps track of what level each sequence is at since multiple
-         * sequences can start out with the same sequence
-         *
-         * @type {Object}
-         */
-        _sequence_levels = {},
-
-        /**
-         * variable to store the setTimeout call
-         *
-         * @type {null|number}
-         */
-        _reset_timer,
-
-        /**
-         * temporary state where we will ignore the next keyup
-         *
-         * @type {boolean|string}
-         */
-        _ignore_next_keyup = false,
-
-        /**
-         * are we currently inside of a sequence?
-         * type of action ("keyup" or "keydown" or "keypress") or false
-         *
-         * @type {boolean|string}
-         */
-        _inside_sequence = false;
-
-    /**
-     * loop through the f keys, f1 to f19 and add them to the map
-     * programatically
-     */
-    for (var i = 1; i < 20; ++i) {
-        _MAP[111 + i] = 'f' + i;
-    }
-
-    /**
-     * loop through to map numbers on the numeric keypad
-     */
-    for (i = 0; i <= 9; ++i) {
-        _MAP[i + 96] = i;
-    }
-
-    /**
-     * cross browser add event method
-     *
-     * @param {Element|HTMLDocument} object
-     * @param {string} type
-     * @param {Function} callback
-     * @returns void
-     */
-    function _addEvent(object, type, callback) {
-        if (object.addEventListener) {
-            return object.addEventListener(type, callback, false);
-        }
-
-        object.attachEvent('on' + type, callback);
-    }
-
-    /**
-     * takes the event and returns the key character
-     *
-     * @param {Event} e
-     * @return {string}
-     */
-    function _characterFromEvent(e) {
-
-        // for keypress events we should return the character as is
-        if (e.type == 'keypress') {
-            return String.fromCharCode(e.which);
-        }
-
-        // for non keypress events the special maps are needed
-        if (_MAP[e.which]) {
-            return _MAP[e.which];
-        }
-
-        if (_KEYCODE_MAP[e.which]) {
-            return _KEYCODE_MAP[e.which];
-        }
-
-        // if it is not in the special map
-        return String.fromCharCode(e.which).toLowerCase();
-    }
-
-    /**
-     * should we stop this event before firing off callbacks
-     *
-     * @param {Event} e
-     * @return {boolean}
-     */
-    function _stop(e) {
-        var element = e.target || e.srcElement,
-            tag_name = element.tagName;
-
-        // if the element has the class "mousetrap" then no need to stop
-        if ((' ' + element.className + ' ').indexOf(' mousetrap ') > -1) {
-            return false;
-        }
-
-        // stop for input, select, and textarea
-        return tag_name == 'INPUT' || tag_name == 'SELECT' || tag_name == 'TEXTAREA' || (element.contentEditable && element.contentEditable == 'true');
-    }
-
-    /**
-     * checks if two arrays are equal
-     *
-     * @param {Array} modifiers1
-     * @param {Array} modifiers2
-     * @returns {boolean}
-     */
-    function _modifiersMatch(modifiers1, modifiers2) {
-        return modifiers1.sort().join(',') === modifiers2.sort().join(',');
-    }
-
-    /**
-     * resets all sequence counters except for the ones passed in
-     *
-     * @param {Object} do_not_reset
-     * @returns void
-     */
-    function _resetSequences(do_not_reset) {
-        do_not_reset = do_not_reset || {};
-
-        var active_sequences = false,
-            key;
-
-        for (key in _sequence_levels) {
-            if (do_not_reset[key]) {
-                active_sequences = true;
-                continue;
-            }
-            _sequence_levels[key] = 0;
-        }
-
-        if (!active_sequences) {
-            _inside_sequence = false;
-        }
-    }
-
-    /**
-     * finds all callbacks that match based on the keycode, modifiers,
-     * and action
-     *
-     * @param {string} character
-     * @param {Array} modifiers
-     * @param {string} action
-     * @param {boolean=} remove - should we remove any matches
-     * @param {string=} combination
-     * @returns {Array}
-     */
-    function _getMatches(character, modifiers, action, remove, combination) {
-        var i,
-            callback,
-            matches = [];
-
-        // if there are no events related to this keycode
-        if (!_callbacks[character]) {
-            return [];
-        }
-
-        // if a modifier key is coming up on its own we should allow it
-        if (action == 'keyup' && _isModifier(character)) {
-            modifiers = [character];
-        }
-
-        // loop through all callbacks for the key that was pressed
-        // and see if any of them match
-        for (i = 0; i < _callbacks[character].length; ++i) {
-            callback = _callbacks[character][i];
-
-            // if this is a sequence but it is not at the right level
-            // then move onto the next match
-            if (callback.seq && _sequence_levels[callback.seq] != callback.level) {
-                continue;
-            }
-
-            // if the action we are looking for doesn't match the action we got
-            // then we should keep going
-            if (action != callback.action) {
-                continue;
-            }
-
-            // if this is a keypress event that means that we need to only
-            // look at the character, otherwise check the modifiers as
-            // well
-            if (action == 'keypress' || _modifiersMatch(modifiers, callback.modifiers)) {
-
-                // remove is used so if you change your mind and call bind a
-                // second time with a new function the first one is overwritten
-                if (remove && callback.combo == combination) {
-                    _callbacks[character].splice(i, 1);
-                }
-
-                matches.push(callback);
-            }
-        }
-
-        return matches;
-    }
-
-    /**
-     * takes a key event and figures out what the modifiers are
-     *
-     * @param {Event} e
-     * @returns {Array}
-     */
-    function _eventModifiers(e) {
-        var modifiers = [];
-
-        if (e.shiftKey) {
-            modifiers.push('shift');
-        }
-
-        if (e.altKey) {
-            modifiers.push('alt');
-        }
-
-        if (e.ctrlKey) {
-            modifiers.push('ctrl');
-        }
-
-        if (e.metaKey) {
-            modifiers.push('meta');
-        }
-
-        return modifiers;
-    }
-
-    /**
-     * actually calls the callback function
-     *
-     * if your callback function returns false this will use the jquery
-     * convention - prevent default and stop propogation on the event
-     *
-     * @param {Function} callback
-     * @param {Event} e
-     * @returns void
-     */
-    function _fireCallback(callback, e) {
-        if (callback(e) === false) {
-            if (e.preventDefault) {
-                e.preventDefault();
-            }
-
-            if (e.stopPropagation) {
-                e.stopPropagation();
-            }
-
-            e.returnValue = false;
-            e.cancelBubble = true;
-        }
-    }
-
-    /**
-     * handles a character key event
-     *
-     * @param {string} character
-     * @param {Event} e
-     * @returns void
-     */
-    function _handleCharacter(character, e) {
-
-        // if this event should not happen stop here
-        if (_stop(e)) {
-            return;
-        }
-
-        var callbacks = _getMatches(character, _eventModifiers(e), e.type),
-            i,
-            do_not_reset = {},
-            processed_sequence_callback = false;
-
-        // loop through matching callbacks for this key event
-        for (i = 0; i < callbacks.length; ++i) {
-
-            // fire for all sequence callbacks
-            // this is because if for example you have multiple sequences
-            // bound such as "g i" and "g t" they both need to fire the
-            // callback for matching g cause otherwise you can only ever
-            // match the first one
-            if (callbacks[i].seq) {
-                processed_sequence_callback = true;
-
-                // keep a list of which sequences were matches for later
-                do_not_reset[callbacks[i].seq] = 1;
-                _fireCallback(callbacks[i].callback, e);
-                continue;
-            }
-
-            // if there were no sequence matches but we are still here
-            // that means this is a regular match so we should fire that
-            if (!processed_sequence_callback && !_inside_sequence) {
-                _fireCallback(callbacks[i].callback, e);
-            }
-        }
-
-        // if you are inside of a sequence and the key you are pressing
-        // is not a modifier key then we should reset all sequences
-        // that were not matched by this key event
-        if (e.type == _inside_sequence && !_isModifier(character)) {
-            _resetSequences(do_not_reset);
-        }
-    }
-
-    /**
-     * handles a keydown event
-     *
-     * @param {Event} e
-     * @returns void
-     */
-    function _handleKey(e) {
-
-        // normalize e.which for key events
-        // @see http://stackoverflow.com/questions/4285627/javascript-keycode-vs-charcode-utter-confusion
-        e.which = typeof e.which == "number" ? e.which : e.keyCode;
-
-        var character = _characterFromEvent(e);
-
-        // no character found then stop
-        if (!character) {
-            return;
-        }
-
-        if (e.type == 'keyup' && _ignore_next_keyup == character) {
-            _ignore_next_keyup = false;
-            return;
-        }
-
-        _handleCharacter(character, e);
-    }
-
-    /**
-     * determines if the keycode specified is a modifier key or not
-     *
-     * @param {string} key
-     * @returns {boolean}
-     */
-    function _isModifier(key) {
-        return key == 'shift' || key == 'ctrl' || key == 'alt' || key == 'meta';
-    }
-
-    /**
-     * called to set a 1 second timeout on the specified sequence
-     *
-     * this is so after each key press in the sequence you have 1 second
-     * to press the next key before you have to start over
-     *
-     * @returns void
-     */
-    function _resetSequenceTimer() {
-        clearTimeout(_reset_timer);
-        _reset_timer = setTimeout(_resetSequences, 1000);
-    }
-
-    /**
-     * reverses the map lookup so that we can look for specific keys
-     * to see what can and can't use keypress
-     *
-     * @return {Object}
-     */
-    function _getReverseMap() {
-        if (!_REVERSE_MAP) {
-            _REVERSE_MAP = {};
-            for (var key in _MAP) {
-
-                // pull out the numeric keypad from here cause keypress should
-                // be able to detect the keys from the character
-                if (key > 95 && key < 112) {
-                    continue;
-                }
-
-                if (_MAP.hasOwnProperty(key)) {
-                    _REVERSE_MAP[_MAP[key]] = key;
-                }
-            }
-        }
-        return _REVERSE_MAP;
-    }
-
-    /**
-     * picks the best action based on the key combination
-     *
-     * @param {string} key - character for key
-     * @param {Array} modifiers
-     * @param {string=} action passed in
-     */
-    function _pickBestAction(key, modifiers, action) {
-
-        // if no action was picked in we should try to pick the one
-        // that we think would work best for this key
-        if (!action) {
-            action = _getReverseMap()[key] ? 'keydown' : 'keypress';
-        }
-
-        // modifier keys don't work as expected with keypress,
-        // switch to keydown
-        if (action == 'keypress' && modifiers.length) {
-            action = 'keydown';
-        }
-
-        return action;
-    }
-
-    /**
-     * binds a key sequence to an event
-     *
-     * @param {string} combo - combo specified in bind call
-     * @param {Array} keys
-     * @param {Function} callback
-     * @param {string=} action
-     * @returns void
-     */
-    function _bindSequence(combo, keys, callback, action) {
-
-        // start off by adding a sequence level record for this combination
-        // and setting the level to 0
-        _sequence_levels[combo] = 0;
-
-        // if there is no action pick the best one for the first key
-        // in the sequence
-        if (!action) {
-            action = _pickBestAction(keys[0], []);
-        }
-
-        /**
-         * callback to increase the sequence level for this sequence and reset
-         * all other sequences that were active
-         *
-         * @param {Event} e
-         * @returns void
-         */
-        var _increaseSequence = function(e) {
-                _inside_sequence = action;
-                ++_sequence_levels[combo];
-                _resetSequenceTimer();
-            },
-
-            /**
-             * wraps the specified callback inside of another function in order
-             * to reset all sequence counters as soon as this sequence is done
-             *
-             * @param {Event} e
-             * @returns void
-             */
-            _callbackAndReset = function(e) {
-                _fireCallback(callback, e);
-
-                // we should ignore the next key up if the action is key down
-                // or keypress.  this is so if you finish a sequence and
-                // release the key the final key will not trigger a keyup
-                if (action !== 'keyup') {
-                    _ignore_next_keyup = _characterFromEvent(e);
-                }
-
-                // weird race condition if a sequence ends with the key
-                // another sequence begins with
-                setTimeout(_resetSequences, 10);
-            },
-            i;
-
-        // loop through keys one at a time and bind the appropriate callback
-        // function.  for any key leading up to the final one it should
-        // increase the sequence. after the final, it should reset all sequences
-        for (i = 0; i < keys.length; ++i) {
-            _bindSingle(keys[i], i < keys.length - 1 ? _increaseSequence : _callbackAndReset, action, combo, i);
-        }
-    }
-
-    /**
-     * binds a single keyboard combination
-     *
-     * @param {string} combination
-     * @param {Function} callback
-     * @param {string=} action
-     * @param {string=} sequence_name - name of sequence if part of sequence
-     * @param {number=} level - what part of the sequence the command is
-     * @returns void
-     */
-    function _bindSingle(combination, callback, action, sequence_name, level) {
-
-        // make sure multiple spaces in a row become a single space
-        combination = combination.replace(/\s+/g, ' ');
-
-        var sequence = combination.split(' '),
-            i,
-            key,
-            keys,
-            modifiers = [];
-
-        // if this pattern is a sequence of keys then run through this method
-        // to reprocess each pattern one key at a time
-        if (sequence.length > 1) {
-            return _bindSequence(combination, sequence, callback, action);
-        }
-
-        // take the keys from this pattern and figure out what the actual
-        // pattern is all about
-        keys = combination === '+' ? ['+'] : combination.split('+');
-
-        for (i = 0; i < keys.length; ++i) {
-            key = keys[i];
-
-            // normalize key names
-            if (_SPECIAL_ALIASES[key]) {
-                key = _SPECIAL_ALIASES[key];
-            }
-
-            // if this is not a keypress event then we should
-            // be smart about using shift keys
-            // this will only work for US keyboards however
-            if (action && action != 'keypress' && _SHIFT_MAP[key]) {
-                key = _SHIFT_MAP[key];
-                modifiers.push('shift');
-            }
-
-            // if this key is a modifier then add it to the list of modifiers
-            if (_isModifier(key)) {
-                modifiers.push(key);
-            }
-        }
-
-        // depending on what the key combination is
-        // we will try to pick the best event for it
-        action = _pickBestAction(key, modifiers, action);
-
-        // make sure to initialize array if this is the first time
-        // a callback is added for this key
-        if (!_callbacks[key]) {
-            _callbacks[key] = [];
-        }
-
-        // remove an existing match if there is one
-        _getMatches(key, modifiers, action, !sequence_name, combination);
-
-        // add this call back to the array
-        // if it is a sequence put it at the beginning
-        // if not put it at the end
-        //
-        // this is important because the way these are processed expects
-        // the sequence ones to come first
-        _callbacks[key][sequence_name ? 'unshift' : 'push']({
-            callback: callback,
-            modifiers: modifiers,
-            action: action,
-            seq: sequence_name,
-            level: level,
-            combo: combination
-        });
-    }
-
-    /**
-     * binds multiple combinations to the same callback
-     *
-     * @param {Array} combinations
-     * @param {Function} callback
-     * @param {string|undefined} action
-     * @returns void
-     */
-    function _bindMultiple(combinations, callback, action) {
-        for (var i = 0; i < combinations.length; ++i) {
-            _bindSingle(combinations[i], callback, action);
-        }
-    }
-
-    // start!
-    _addEvent(document, 'keypress', _handleKey);
-    _addEvent(document, 'keydown', _handleKey);
-    _addEvent(document, 'keyup', _handleKey);
-
-    var mousetrap = {
-
-        /**
-         * binds an event to mousetrap
-         *
-         * can be a single key, a combination of keys separated with +,
-         * a comma separated list of keys, an array of keys, or
-         * a sequence of keys separated by spaces
-         *
-         * be sure to list the modifier keys first to make sure that the
-         * correct key ends up getting bound (the last key in the pattern)
-         *
-         * @param {string|Array} keys
-         * @param {Function} callback
-         * @param {string=} action - 'keypress', 'keydown', or 'keyup'
-         * @returns void
-         */
-        bind: function(keys, callback, action) {
-            _bindMultiple(keys instanceof Array ? keys : [keys], callback, action);
-            _direct_map[keys + ':' + action] = callback;
-            return this;
-        },
-
-        /**
-         * unbinds an event to mousetrap
-         *
-         * the unbinding sets the callback function of the specified key combo
-         * to an empty function and deletes the corresponding key in the
-         * _direct_map dict.
-         *
-         * the keycombo+action has to be exactly the same as
-         * it was defined in the bind method
-         *
-         * TODO: actually remove this from the _callbacks dictionary instead
-         * of binding an empty function
-         *
-         * @param {string|Array} keys
-         * @param {string} action
-         * @returns void
-         */
-        unbind: function(keys, action) {
-            if (_direct_map[keys + ':' + action]) {
-                delete _direct_map[keys + ':' + action];
-                this.bind(keys, function() {}, action);
-            }
-            return this;
-        },
-
-        /**
-         * triggers an event that has already been bound
-         *
-         * @param {string} keys
-         * @param {string=} action
-         * @returns void
-         */
-        trigger: function(keys, action) {
-            _direct_map[keys + ':' + action]();
-            return this;
-        },
-
-        /**
-         * resets the library back to its initial state.  this is useful
-         * if you want to clear out the current keyboard shortcuts and bind
-         * new ones - for example if you switch to another page
-         *
-         * @returns void
-         */
-        reset: function() {
-            _callbacks = {};
-            _direct_map = {};
-            return this;
-        }
-    };
-
-  module.exports = mousetrap;
-
 
 
 /***/ },
@@ -24623,7 +24624,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Node = __webpack_require__(40);
+  var Node = __webpack_require__(44);
 
   /**
    * This function can be called from the _doInAllSectors function
@@ -25335,8 +25336,8 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Node = __webpack_require__(40);
-  var Edge = __webpack_require__(39);
+  var Node = __webpack_require__(44);
+  var Edge = __webpack_require__(45);
 
   /**
    * clears the toolbar div element of children
