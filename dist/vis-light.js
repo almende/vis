@@ -19227,7 +19227,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     // copy group properties
-    if (this.group !== undefined) {
+    if (this.group !== undefined && this.group != "") {
       var groupObj = this.grouplist.get(this.group);
       for (var prop in groupObj) {
         if (groupObj.hasOwnProperty(prop)) {
