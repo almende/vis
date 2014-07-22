@@ -10,7 +10,6 @@
   "ignore": [
     "misc",
     "node_modules",
-    "lib",
     "test",
     "tools",
     ".idea",

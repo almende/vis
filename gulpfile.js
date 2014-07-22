@@ -16,9 +16,6 @@ var DIST              = './dist';
 var VIS_JS            = 'vis.js';
 var VIS_MAP           = 'vis.map';
 var VIS_MIN_JS        = 'vis.min.js';
-var VIS_LIGHT_JS      = 'vis-light.js';
-var VIS_LIGHT_MAP     = 'vis-light.map';
-var VIS_LIGHT_MIN_JS  = 'vis-light.min.js';
 var VIS_CSS           = 'vis.css';
 var VIS_MIN_CSS       = 'vis.min.css';
 
@@ -55,23 +52,6 @@ var webpackConfig = {
   cache: true
 };
 
-var webpackConfigLight = {
-  entry: ENTRY,
-  output: {
-    library: 'vis',
-    libraryTarget: 'umd',
-    path: DIST,
-    filename: VIS_LIGHT_JS,
-    sourcePrefix: '  '
-  },  
-  externals: [
-    'hammerjs',
-    'moment'
-  ],
-  plugins: [ bannerPlugin ],
-  cache: true
-};
-
 var uglifyConfig = {
   outSourceMap: VIS_MAP,
   output: {
@@ -81,7 +61,6 @@ var uglifyConfig = {
 
 // create a single instance of the compiler to allow caching
 var compiler = webpack(webpackConfig);
-var compilerLight = webpack(webpackConfigLight);
 
 // clean the dist/img directory
 gulp.task('clean', function (cb) {
@@ -93,16 +72,6 @@ gulp.task('bundle-js', ['clean'], function (cb) {
   bannerPlugin.banner = createBanner();
 
   compiler.run(function (err, stats) {
-    if (err) gutil.log(err);
-    cb();
-  });
-});
-
-gulp.task('bundle-js-light', ['clean'], function (cb) {
-  // update the banner contents (has a date in it which should stay up to date)
-  bannerPlugin.banner = createBanner();
-
-  compilerLight.run(function (err, stats) {
     if (err) gutil.log(err);
     cb();
   });
@@ -149,20 +118,15 @@ gulp.task('copy', ['clean'], function () {
 });
 
 gulp.task('minify', ['bundle-js'], function (cb) {
-  // minify full version of vis.js
   var result = uglify.minify([DIST + '/' + VIS_JS], uglifyConfig);
+
   fs.writeFileSync(DIST + '/' + VIS_MIN_JS, result.code);
   fs.writeFileSync(DIST + '/' + VIS_MAP, result.map);
-
-  // minify light version of vis.js (external dependencies excluded)
-  var result = uglify.minify([DIST + '/' + VIS_LIGHT_JS], uglifyConfig);
-  fs.writeFileSync(DIST + '/' + VIS_LIGHT_MIN_JS, result.code);
-  fs.writeFileSync(DIST + '/' + VIS_LIGHT_MAP, result.map);
 
   cb();
 });
 
-gulp.task('bundle', ['bundle-js', 'bundle-js-light', 'bundle-css', 'copy']);
+gulp.task('bundle', ['bundle-js', 'bundle-css', 'copy']);
 
 // read command line arguments --bundle and --minify
 var bundle = 'bundle' in argv;
