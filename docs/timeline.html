@@ -449,7 +449,21 @@ var options = {
     <td>margin.item</td>
     <td>Number</td>
     <td>10</td>
-    <td>The minimal margin in pixels between items.</td>
+    <td>The minimal margin in pixels between items in both horizontal and vertical direction.</td>
+</tr>
+
+<tr>
+    <td>margin.item.horizontal</td>
+    <td>Number</td>
+    <td>10</td>
+    <td>The minimal horizontal margin in pixels between items.</td>
+</tr>
+
+<tr>
+    <td>margin.item.vertical</td>
+    <td>Number</td>
+    <td>10</td>
+    <td>The minimal vertical margin in pixels between items.</td>
 </tr>
 
 <tr>
@@ -724,6 +738,12 @@ timeline.clear({options: true}); // clear options only
     <td>getSelection()</td>
     <td>Number[]</td>
     <td>Get an array with the ids of the currently selected items.</td>
+  </tr>
+
+  <tr>
+    <td>getVisibleItems()</td>
+    <td>Number[]</td>
+    <td>Get an array with the ids of the currently visible items.</td>
   </tr>
 
   <tr>
