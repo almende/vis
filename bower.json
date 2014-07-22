@@ -1,6 +1,6 @@
 {
   "name": "vis",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "A dynamic, browser-based visualization library.",
   "homepage": "http://visjs.org/",
   "repository": {
@@ -10,11 +10,10 @@
   "ignore": [
     "misc",
     "node_modules",
-    "src",
     "test",
     "tools",
     ".idea",
-    "Jakefile.js",
+    "gulpfile.js",
     "package.json",
     ".npmignore",
     ".gitignore"

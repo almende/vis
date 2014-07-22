@@ -3,6 +3,10 @@
 <head>
   <title></title>
   <script src="../node_modules/moment/moment.js"></script>
+  <script src="../node_modules/moment/lang/nl.js"></script>
+  <script>
+    moment.lang('nl');
+  </script>
   <script src="../dist/vis.js"></script>
   <link href="../dist/vis.css" rel="stylesheet" type="text/css" />
 
@@ -66,7 +70,7 @@
   });
   items.add([
     {_id: 0, content: 'item 0', start: now.clone().add('days', 3).toDate(), title: 'hello title!'},
-    {_id: 1, content: 'item 1<br>start', start: now.clone().add('days', 4).toDate()},
+    {_id: '1', content: 'item 1<br>start', start: now.clone().add('days', 4).toDate()},
     {_id: 2, content: 'item 2', start: now.clone().add('days', -2).toDate() },
     {_id: 3, content: 'item 3', start: now.clone().add('days', 2).toDate()},
     {

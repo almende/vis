@@ -20,6 +20,7 @@
     var nodes = null;
     var edges = null;
     var network = null;
+    var directionInput = document.getElementById("direction");
 
     function draw() {
       nodes = [];
@@ -113,7 +114,9 @@
       };
 
     var options = {
-        hierarchicalLayout:true
+        hierarchicalLayout: {
+            direction: directionInput.value
+        }
     };
       network = new vis.Network(container, data, options);
 
@@ -122,6 +125,7 @@
         document.getElementById('selection').innerHTML = 'Selection: ' + params.nodes;
       });
     }
+
   </script>
 </head>
 
@@ -129,11 +133,40 @@
 <h2>Hierarchical Layout - User-defined</h2>
 <div style="width:700px; font-size:14px;">
     This example shows a user-defined hierarchical layout. If the user defines levels for nodes but does not do so for all nodes, an alert will show up and hierarchical layout will be disabled. Either all or none can be defined.
+    If the smooth curves appear to be inverted, the direction of the edge is not in the same direction as the network.
 </div>
+<input type="button" id="btn-UD" value="Up-Down">
+<input type="button" id="btn-DU" value="Down-Up">
+<input type="button" id="btn-LR" value="Left-Right">
+<input type="button" id="btn-RL" value="Right-Left">
+<input type="hidden" id='direction' value="UD">
 <br />
 
 <div id="mynetwork"></div>
 
 <p id="selection"></p>
+<script language="JavaScript">
+    var directionInput = document.getElementById("direction");
+    var btnUD = document.getElementById("btn-UD");
+    btnUD.onclick = function() {
+        directionInput.value = "UD";
+        draw();
+    }
+    var btnDU = document.getElementById("btn-DU");
+    btnDU.onclick = function() {
+        directionInput.value = "DU";
+        draw();
+    };
+    var btnLR = document.getElementById("btn-LR");
+    btnLR.onclick = function() {
+        directionInput.value = "LR";
+        draw();
+    };
+    var btnRL = document.getElementById("btn-RL");
+    btnRL.onclick = function() {
+        directionInput.value = "RL";
+        draw();
+    };
+</script>
 </body>
 </html>

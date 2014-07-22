@@ -2,6 +2,54 @@
 http://visjs.org
 
 
+## 2014-07-22, version 3.1.0
+
+### General
+
+- Refactored the code to commonjs modules, which are browserifyable. This allows
+  to create custom builds.
+
+### Timeline
+
+- Implemented function `getVisibleItems()`, which returns the items visible
+  in the current window.
+- Added options `margin.item.horizontal` and  `margin.item.vertical`, which
+  allows to specify different margins horizontally/vertically.
+- Removed check for number of arguments in callbacks `onAdd`, `onUpdate`, 
+  `onRemove`, and `onMove`.
+- Fixed items in groups sometimes being displayed but not positioned correctly.
+- Fixed range where the `end` of the first is equal to the `start` of the second 
+  sometimes being stacked instead of put besides each other when `item.margin=0`
+  due to round-off errors.
+
+### Network (formerly named Graph)
+
+- Expanded smoothCurves options for improved support for large clusters.
+- Added multiple types of smoothCurve drawing for greatly improved performance.
+- Option for inherited edge colors from connected nodes.
+- Option to disable the drawing of nodes or edges on drag.
+- Fixed support nodes not being cleaned up if edges are removed.
+- Improved edge selection detection for long smooth curves.
+- Fixed dot radius bug.
+- Updated max velocity of nodes to three times it's original value.
+- Made "stabilized" event fire every time the network stabilizes.
+- Fixed drift in dragging nodes while zooming.
+- Fixed recursively constructing of hierarchical layouts.
+- Added borderWidth option for nodes.
+- Implemented new Hierarchical view solver.
+- Fixed an issue with selecting nodes when the web page is scrolled down.
+- Added Gephi JSON parser
+- Added Neighbour Highlight example
+- Added Import From Gephi example
+- Enabled color parsing for nodes when supplied with rgb(xxx,xxx,xxx) value.
+
+### DataSet
+
+- Added .get() returnType option to return as JSON object, Array or Google 
+  DataTable.
+
+
+
 ## 2014-07-07, version 3.0.0
 
 ### Timeline

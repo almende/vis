@@ -54,6 +54,7 @@
       <li><a href="#Nodes">Nodes</a></li>
       <li><a href="#Edges">Edges</a></li>
       <li><a href="#DOT_language">DOT language</a></li>
+      <li><a href="#Gephi_import">Gephi import</a></li>
     </ul>
   </li>
   <li>
@@ -260,6 +261,21 @@ When using a DataSet, the network is automatically updating to changes in the Da
     <th>Type</th>
     <th>Required</th>
     <th>Description</th>
+  </tr>
+
+  <tr>
+      <td>borderWidth</td>
+      <td>Number</td>
+      <td>1</td>
+      <td>The width of the border of the node when it is not selected, automatically limited by the width of the node.</td>
+  </tr>
+
+
+  <tr>
+      <td>borderWidthSelected</td>
+      <td>Number</td>
+      <td>undefined</td>
+      <td>The width of the border of the node when it is selected. If left at undefined, double the borderWidth will be used.</td>
   </tr>
 
   <tr>
@@ -672,6 +688,14 @@ When using a DataSet, the network is automatically updating to changes in the Da
         <td>physics.[method].springLength</td>
         <td>The resting length of the edge when modeled as a spring. By default the springLength determined by the physics is used. By using this setting you can make certain edges have different resting lengths.</td>
     </tr>
+
+    <tr>
+        <td>inheritColor</td>
+        <td>String | Boolean</td>
+        <td>false</td>
+        <td>Possible values: <code>"to","from", true, false</code>. If this value is set to false, the edge color information is used. If the value is set to true or "from",
+            the color data from the borders of the "from" node is used. If this value is "to", the color data from the borders of the "to" node is used.</td>
+    </tr>
   <tr>
     <td>title</td>
     <td>string | function</td>
@@ -736,7 +760,85 @@ var data = {
 var network = new vis.Network(container, data);
 </pre>
 
+<h3 id="Gephi_import">Gephi import (JSON)</h3>
 
+<p>
+    network can import data straight from an exported json file from gephi. You can get the JSON exporter here:
+    <a href="https://marketplace.gephi.org/plugin/json-exporter/" target="_blank">https://marketplace.gephi.org/plugin/json-exporter/</a>.
+    An example exists showing how to get a JSON file into Vis: <a href="../examples/Network/30_importing_from_gephi.html">30_importing_from_gephi</a>.
+</p>
+
+<p>
+    Example usage:
+</p>
+
+<pre class="prettyprint lang-js">
+// load the JSON file containing the Gephi network.
+var gephiJSON = loadJSON("./data/WorldCup2014.json"); // code in example 30
+
+// create a data object with the gephi key:
+var data = {
+  gephi: gephiJSON
+};
+
+// create a network
+var network = new vis.Network(container, data);
+</pre>
+Alternatively you can use the parser manually:
+<pre class="prettyprint lang-js">
+// load the JSON file containing the Gephi network.
+var gephiJSON = loadJSON("./data/WorldCup2014.json"); // code in example 30
+
+// parse the gephi file to receive an object
+// containing nodes and edges in vis format.
+var parsed = vis.network.gephiParser.parseGephi(gephiJSON);
+
+// provide data in the normal fashion
+var data = {
+  nodes: parsed.nodes,
+  edged: parsed.edges
+};
+
+// create a network
+var network = new vis.Network(container, data);
+</pre>
+
+<h4>Gephi parser options</h4>
+
+There are a few options you can use to tell Vis what to do with the data from Gephi.
+
+<pre class="prettyprint lang-js">
+var parserOptions = {
+  allowedToMove: false,
+  parseColor: false
+}
+var parsed = vis.network.gephiParser.parseGephi(gephiJSON, parserOptions);
+</pre>
+<table>
+<tr>
+    <th>Name</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+</tr>
+
+<tr>
+    <td>allowedToMove</td>
+    <td>Boolean</td>
+    <td>false</td>
+    <td>
+        If true, the nodes will move according to the physics model after import. If false, the nodes do not move at all.
+    </td>
+</tr>
+<tr>
+    <td>parseColor</td>
+    <td>Boolean</td>
+    <td>false</td>
+    <td>
+        If true, the color will be parsed by the vis parser, generating extra colors for the borders, highlighs and hover. If false, the node will be the supplied color.
+    </td>
+</tr>
+</table>
 
 <h2 id="Configuration_options">Configuration options</h2>
 
@@ -874,7 +976,22 @@ var options = {
             Toggle if the nodes can be dragged. This will not affect the dragging of the network.
         </td>
     </tr>
-
+  <tr>
+      <td>hideNodesOnDrag</td>
+      <td>Boolean</td>
+      <td>false</td>
+      <td>
+          Toggle if the nodes are drawn during a drag. This can greatly improve performance if you have many nodes.
+      </td>
+  </tr>
+  <tr>
+      <td>hideEdgesOnDrag</td>
+      <td>Boolean</td>
+      <td>false</td>
+      <td>
+          Toggle if the edges are drawn during a drag. This can greatly improve performance if you have many edges.
+      </td>
+  </tr>
   <tr>
     <td><a href="#Navigation_controls">navigation</a></td>
     <td>Object</td>
@@ -895,11 +1012,31 @@ var options = {
 
     <tr>
         <td>smoothCurves</td>
-        <td>Boolean</td>
-        <td>true</td>
-        <td>If true, edges are drawn as smooth curves. This is more computationally intensive since the edge now is a quadratic Bezier curve with control points on both nodes and an invisible node in the center of the edge. This support node is also handed by the physics simulation.</td>
+        <td>Boolean || object</td>
+        <td>object</td>
+        <td>If true, edges are drawn as smooth curves. This is more computationally intensive since the edge now is a quadratic Bezier curve. This can be further configured by the options below.</td>
     </tr>
 
+    <tr>
+        <td>smoothCurves.dynamic</td>
+        <td>Boolean</td>
+        <td>true</td>
+        <td>By default, the edges are dynamic. This means there are support nodes placed in the middle of the edge. This support node is also handed by the physics simulation. If false, the smoothness will be based on the
+        relative positions of the to and from nodes. This is computationally cheaper but there is no self organisation.</td>
+    </tr>
+    <tr>
+        <td>smoothCurves.type</td>
+        <td>String</td>
+        <td>"continuous"</td>
+        <td>This option only affects NONdynamic smooth curves. The supported types are: <code>continuous, discrete, diagonalCross, straightCross, horizontal, vertical</code>. The effects of these types
+        are shown in examples <a href="../examples/Network/26_staticSmoothCurves.html">26</a> and <a href="../examples/Network/27_world_cup_network.html">27</a></td>
+    </tr>
+    <tr>
+        <td>smoothCurves.roundness</td>
+        <td>Number</td>
+        <td>0.5</td>
+        <td>This only affects NONdynamic smooth curves. The roundness can be tweaked with the parameter. The value range is from 0 to 1 with a maximum roundness at 0.5.</td>
+    </tr>
   <tr>
     <td>selectable</td>
     <td>Boolean</td>
@@ -1222,6 +1359,14 @@ var options = {
     <td>physics.[method].springLength</td>
     <td>The resting length of the edge when modeled as a spring. By default the springLength determined by the physics is used. By using this setting you can make certain edges have different resting lengths.</td>
   </tr>
+
+    <tr>
+        <td>inheritColor</td>
+        <td>String | Boolean</td>
+        <td>false</td>
+        <td>Possible values: <code>"to","from", true, false</code>. If this value is set to false, the edge color information is used. If the value is set to true or "from",
+            the color data from the borders of the "from" node is used. If this value is "to", the color data from the borders of the "to" node is used.</td>
+    </tr>
 
   <tr>
     <td>style</td>
@@ -2366,7 +2511,8 @@ network.off('select', onSelect);
     </tr>
     <tr>
         <td>stabilized</td>
-        <td>Fired when the network has been stabilized after initialization. This event can be used to trigger the .storePosition() function after stabilization.</td>
+        <td>Fired when the network has been stabilized. This event can be used to trigger the .storePosition() function after stabilization. When the network in initialized, the parameter
+        iterations will be the amount of iterations it took to stabilize. After initialization, this parameter is null.</td>
         <td>
             <ul>
                 <li><code>iterations</code>: number of iterations used to stabilize</li>
