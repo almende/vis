@@ -11,6 +11,7 @@ http://visjs.org
 
 - Added visible property to the groups.
 - Added getLegend() method.
+- Added isGroupVisible() method.
 
 ### Timeline
 
