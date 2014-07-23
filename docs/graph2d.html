@@ -695,6 +695,19 @@ Graph2d.clear({options: true}); // clear options only
     </tr>
 
     <tr>
+        <td>getItemRange()</td>
+        <td>Object</td>
+        <td>Get the range of all the items as an object containing <code>min: Date</code> and <code>max: Date</code>.</td>
+    </tr>
+
+    <tr>
+        <td>fit()</td>
+        <td>none</td>
+        <td>Adjust the visible window such that it fits all items.
+        </td>
+    </tr>
+
+    <tr>
         <td>on(event, callback)</td>
         <td>none</td>
         <td>Create an event listener. The callback function is invoked every time the event is triggered. Avialable events: <code>rangechange</code>, <code>rangechanged</code>, <code>select</code>. The callback function is invoked as <code>callback(properties)</code>, where <code>properties</code> is an object containing event specific properties. See section <a href="#Events">Events for more information</a>.</td>

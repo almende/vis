@@ -12,10 +12,13 @@ http://visjs.org
 - Added visible property to the groups.
 - Added getLegend() method.
 - Added isGroupVisible() method.
+- Fixed empty group bug.
+- Added fit() and getItemRange() methods.
 
 ### Timeline
 
 - Fixed items in groups sometimes being displayed but not positioned correctly.
+
 
 
 

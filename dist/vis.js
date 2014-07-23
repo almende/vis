@@ -6042,7 +6042,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(15);
-  var Core = __webpack_require__(42);
+  var Core = __webpack_require__(43);
   var TimeAxis = __webpack_require__(27);
   var CurrentTime = __webpack_require__(19);
   var CustomTime = __webpack_require__(20);
@@ -6275,6 +6275,48 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 
+  /**
+   * Get the data range of the item set.
+   * @returns {{min: Date, max: Date}} range  A range with a start and end Date.
+   *                                          When no minimum is found, min==null
+   *                                          When no maximum is found, max==null
+   */
+  Timeline.prototype.getItemRange = function() {
+    // calculate min from start filed
+    var dataset = this.itemsData.getDataSet(),
+      min = null,
+      max = null;
+
+    if (dataset) {
+      // calculate the minimum value of the field 'start'
+      var minItem = dataset.min('start');
+      min = minItem ? util.convert(minItem.start, 'Date').valueOf() : null;
+      // Note: we convert first to Date and then to number because else
+      // a conversion from ISODate to Number will fail
+
+      // calculate maximum value of fields 'start' and 'end'
+      var maxStartItem = dataset.max('start');
+      if (maxStartItem) {
+        max = util.convert(maxStartItem.start, 'Date').valueOf();
+      }
+      var maxEndItem = dataset.max('end');
+      if (maxEndItem) {
+        if (max == null) {
+          max = util.convert(maxEndItem.end, 'Date').valueOf();
+        }
+        else {
+          max = Math.max(max, util.convert(maxEndItem.end, 'Date').valueOf());
+        }
+      }
+    }
+
+    return {
+      min: (min != null) ? new Date(min) : null,
+      max: (max != null) ? new Date(max) : null
+    };
+  };
+
+
   module.exports = Timeline;
 
 
@@ -6288,7 +6330,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(15);
-  var Core = __webpack_require__(42);
+  var Core = __webpack_require__(43);
   var TimeAxis = __webpack_require__(27);
   var CurrentTime = __webpack_require__(19);
   var CustomTime = __webpack_require__(20);
@@ -6534,6 +6576,40 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 
+  /**
+   * Get the data range of the item set.
+   * @returns {{min: Date, max: Date}} range  A range with a start and end Date.
+   *                                          When no minimum is found, min==null
+   *                                          When no maximum is found, max==null
+   */
+  Graph2d.prototype.getItemRange = function() {
+    // calculate min from start filed
+    var dataset = this.itemsData.getDataSet(),
+      min = null,
+      max = null;
+
+    if (dataset) {
+      // calculate the minimum value of the field 'start'
+      var minItem = dataset.min('x');
+      min = minItem ? util.convert(minItem.x, 'Date').valueOf() : null;
+      // Note: we convert first to Date and then to number because else
+      // a conversion from ISODate to Number will fail
+
+      // calculate maximum value of fields 'start' and 'end'
+      var maxStartItem = dataset.max('x');
+      if (maxStartItem) {
+        max = util.convert(maxStartItem.x, 'Date').valueOf();
+      }
+    }
+
+    return {
+      min: (min != null) ? new Date(min) : null,
+      max: (max != null) ? new Date(max) : null
+    };
+  };
+
+
+
   module.exports = Graph2d;
 
 
@@ -6769,7 +6845,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(43);
+  var hammerUtil = __webpack_require__(42);
   var moment = __webpack_require__(40);
   var Component = __webpack_require__(18);
 
@@ -13319,7 +13395,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var Hammer = __webpack_require__(41);
   var mousetrap = __webpack_require__(47);
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(43);
+  var hammerUtil = __webpack_require__(42);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var dotparser = __webpack_require__(38);
@@ -19102,6 +19178,40 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
+  var Hammer = __webpack_require__(41);
+
+  /**
+   * Fake a hammer.js gesture. Event can be a ScrollEvent or MouseMoveEvent
+   * @param {Element} element
+   * @param {Event} event
+   */
+  exports.fakeGesture = function(element, event) {
+    var eventType = null;
+
+    // for hammer.js 1.0.5
+    // var gesture = Hammer.event.collectEventData(this, eventType, event);
+
+    // for hammer.js 1.0.6+
+    var touches = Hammer.event.getTouchList(event, eventType);
+    var gesture = Hammer.event.collectEventData(this, eventType, touches, event);
+
+    // on IE in standards mode, no touches are recognized by hammer.js,
+    // resulting in NaN values for center.pageX and center.pageY
+    if (isNaN(gesture.center.pageX)) {
+      gesture.center.pageX = event.pageX;
+    }
+    if (isNaN(gesture.center.pageY)) {
+      gesture.center.pageY = event.pageY;
+    }
+
+    return gesture;
+  };
+
+
+/***/ },
+/* 43 */
+/***/ function(module, exports, __webpack_require__) {
+
   var Emitter = __webpack_require__(46);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
@@ -19376,46 +19486,6 @@ return /******/ (function(modules) { // webpackBootstrap
     this.range.setRange(start, end);
   };
 
-  /**
-   * Get the data range of the item set.
-   * @returns {{min: Date, max: Date}} range  A range with a start and end Date.
-   *                                          When no minimum is found, min==null
-   *                                          When no maximum is found, max==null
-   */
-  Core.prototype.getItemRange = function() {
-    // calculate min from start filed
-    var dataset = this.itemsData.getDataSet(),
-      min = null,
-      max = null;
-
-    if (dataset) {
-      // calculate the minimum value of the field 'start'
-      var minItem = dataset.min('start');
-      min = minItem ? util.convert(minItem.start, 'Date').valueOf() : null;
-      // Note: we convert first to Date and then to number because else
-      // a conversion from ISODate to Number will fail
-
-      // calculate maximum value of fields 'start' and 'end'
-      var maxStartItem = dataset.max('start');
-      if (maxStartItem) {
-        max = util.convert(maxStartItem.start, 'Date').valueOf();
-      }
-      var maxEndItem = dataset.max('end');
-      if (maxEndItem) {
-        if (max == null) {
-          max = util.convert(maxEndItem.end, 'Date').valueOf();
-        }
-        else {
-          max = Math.max(max, util.convert(maxEndItem.end, 'Date').valueOf());
-        }
-      }
-    }
-
-    return {
-      min: (min != null) ? new Date(min) : null,
-      max: (max != null) ? new Date(max) : null
-    };
-  };
 
   /**
    * Set the visible window. Both parameters are optional, you can change only
@@ -19804,40 +19874,6 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   module.exports = Core;
-
-
-/***/ },
-/* 43 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var Hammer = __webpack_require__(41);
-
-  /**
-   * Fake a hammer.js gesture. Event can be a ScrollEvent or MouseMoveEvent
-   * @param {Element} element
-   * @param {Event} event
-   */
-  exports.fakeGesture = function(element, event) {
-    var eventType = null;
-
-    // for hammer.js 1.0.5
-    // var gesture = Hammer.event.collectEventData(this, eventType, event);
-
-    // for hammer.js 1.0.6+
-    var touches = Hammer.event.getTouchList(event, eventType);
-    var gesture = Hammer.event.collectEventData(this, eventType, touches, event);
-
-    // on IE in standards mode, no touches are recognized by hammer.js,
-    // resulting in NaN values for center.pageX and center.pageY
-    if (isNaN(gesture.center.pageX)) {
-      gesture.center.pageX = event.pageX;
-    }
-    if (isNaN(gesture.center.pageY)) {
-      gesture.center.pageY = event.pageY;
-    }
-
-    return gesture;
-  };
 
 
 /***/ },
