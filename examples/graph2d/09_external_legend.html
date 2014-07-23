@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>Graph2d | Both Axis Example</title>
+    <title>Graph2d | External legend Example</title>
     <link href="../../dist/vis.css" rel="stylesheet" type="text/css" />
     <style type="text/css">
         body, html {
@@ -28,27 +28,184 @@
             stroke-width:2px;
             stroke: #029200;
         }
+
         path.customStyle3.fill {
             fill-opacity:0.5 !important;
             stroke: none;
         }
+
+         .graphGroup0 {
+            fill:#4f81bd;
+            fill-opacity:0;
+            stroke-width:2px;
+            stroke: #4f81bd;
+        }
+
+         .graphGroup1 {
+            fill:#f79646;
+            fill-opacity:0;
+            stroke-width:2px;
+            stroke: #f79646;
+        }
+
+         .graphGroup2 {
+            fill: #8c51cf;
+            fill-opacity:0;
+            stroke-width:2px;
+            stroke: #8c51cf;
+        }
+
+         .graphGroup3 {
+            fill: #75c841;
+            fill-opacity:0;
+            stroke-width:2px;
+            stroke: #75c841;
+        }
+
+         .graphGroup4 {
+            fill: #ff0100;
+            fill-opacity:0;
+            stroke-width:2px;
+            stroke: #ff0100;
+        }
+
+         .graphGroup5 {
+            fill: #37d8e6;
+            fill-opacity:0;
+            stroke-width:2px;
+            stroke: #37d8e6;
+        }
+
+         .graphGroup6 {
+            fill: #042662;
+            fill-opacity:0;
+            stroke-width:2px;
+            stroke: #042662;
+        }
+
+         .graphGroup7 {
+            fill:#00ff26;
+            fill-opacity:0;
+            stroke-width:2px;
+            stroke: #00ff26;
+        }
+
+         .graphGroup8 {
+            fill:#ff00ff;
+            fill-opacity:0;
+            stroke-width:2px;
+            stroke: #ff00ff;
+        }
+
+         .graphGroup9 {
+            fill: #8f3938;
+            fill-opacity:0;
+            stroke-width:2px;
+            stroke: #8f3938;
+        }
+
+         .fill {
+            fill-opacity:0.1;
+            stroke: none;
+        }
+
+
+         .bar {
+            fill-opacity:0.5;
+            stroke-width:1px;
+        }
+
+         .point {
+            stroke-width:2px;
+            fill-opacity:1.0;
+        }
+
+
+         .legendBackground {
+            stroke-width:1px;
+            fill-opacity:0.9;
+            fill: #ffffff;
+            stroke: #c2c2c2;
+        }
+
+
+         .outline {
+            stroke-width:1px;
+            fill-opacity:1;
+            fill: #ffffff;
+            stroke: #e5e5e5;
+        }
+
+         .iconFill {
+            fill-opacity:0.3;
+            stroke: none;
+        }
+
+        div.descriptionContainer {
+            float:left;
+            height:30px;
+            width:160px;
+            padding-left:5px;
+            padding-right:5px;
+            line-height: 30px;
+        }
+
+        div.iconContainer {
+            float:left;
+        }
+
+        div.legendElementContainer {
+            display:inline-block;
+            width:200px;
+            height:30px;
+            border-style:solid;
+            border-width:1px;
+            border-color: #e0e0e0;
+            background-color: #ffffff;
+            margin:4px;
+            padding:4px;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            cursor:pointer;
+        }
+        div.legendElementContainer.hidden {
+            background-color: #d3e6ff;
+        }
+
+        svg.legendIcon {
+            width:30px;
+            height:30px;
+        }
+
+        div.externalLegend {
+            position:relative;
+            margin-left: -5px;
+            width: 900px;
+        }
+
+
+
+
     </style>
 
     <script src="../../dist/vis.js"></script>
 
 </head>
 <body>
-<h2>Graph2d | Both Axis Example</h2>
-<div style="width:700px; font-size:14px; text-align: justify;">
-    This example shows the some of the graphs outlined on the right side using the <code>yAxisOrientation</code> option within the groups.
-    We also show a few more custom styles for the graphs. Finally, the legend is manually positioned. Both the left and right axis
-    have their own legend. If one of the axis is unused, the legend is not shown. The options for the legend have been split
-    in a <code>left</code> and a <code>right</code> segment. The default position of the left axis has been changed.
-
+<h2>Graph2d | External custom legend</h2>
+<div style="width:800px; font-size:14px; text-align: justify;">
+    This example shows how to create an external custom legend using the getLegend function. We use normal JavaScript to show and hide the
+    groups by updating the dataset.
 
 </div>
 <br />
+<div id="Legend" class="externalLegend"></div>
 <div id="visualization"></div>
+
 
 <script type="text/javascript">
     // create a dataSet with groups
@@ -127,13 +284,60 @@
     var dataset = new vis.DataSet(items);
     var options = {
         dataAxis: {showMinorLabels: false},
-        legend: {left:{position:"bottom-left"}},
         start: '2014-06-09',
         end: '2014-07-03'
     };
     var graph2d = new vis.Graph2d(container, items, options, groups);
 
 
+function populateExternalLegend() {
+    var groupsData = groups.get();
+    var legendDiv = document.getElementById("Legend");
+    legendDiv.innerHTML = "";
+
+    for (var i = 0; i < groupsData.length; i++) {
+        var containerDiv = document.createElement("div");
+        var iconDiv = document.createElement("div");
+        var descriptionDiv = document.createElement("div");
+
+        containerDiv.className = 'legendElementContainer';
+        containerDiv.id = groupsData[i].id + "_legendContainer"
+        iconDiv.className = "iconContainer";
+        descriptionDiv.className = "descriptionContainer";
+
+        var legend = graph2d.getLegend(groupsData[i].id,30,30);
+        legend.icon.setAttributeNS(null, "class", "legendIcon");
+        iconDiv.appendChild(legend.icon);
+        descriptionDiv.innerHTML = legend.label;
+        console.log(legend)
+        if (legend.orientation == 'left') {
+            descriptionDiv.style.textAlign = "left";
+            containerDiv.appendChild(iconDiv);
+            containerDiv.appendChild(descriptionDiv);
+        }
+        else {
+            descriptionDiv.style.textAlign = "right";
+            containerDiv.appendChild(descriptionDiv);
+            containerDiv.appendChild(iconDiv);
+        }
+        legendDiv.appendChild(containerDiv);
+        containerDiv.onclick = toggleGraph.bind(this,groupsData[i].id);
+    }
+}
+
+function toggleGraph(groupId) {
+    var container = document.getElementById(groupId + "_legendContainer")
+    if (graph2d.isGroupVisible(groupId) == true) {
+        groups.update({id:groupId, visible:false});
+        container.className = container.className + " hidden";
+    }
+    else {
+        groups.update({id:groupId, visible:true});
+        container.className = container.className.replace("hidden","");
+    }
+}
+
+populateExternalLegend()
 
 </script>
 </body>

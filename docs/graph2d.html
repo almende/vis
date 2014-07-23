@@ -174,7 +174,7 @@ var items = [
   </tr>
 </table>
 
-<h3 id="Groups">Groups</h3>
+<h3 id="groups">Groups</h3>
 
 <p>
     Like the items, groups are regular JavaScript Arrays and Objects.
@@ -191,7 +191,8 @@ var items = [
 var groups = new vis.DataSet();
 groups.add({
     id: 1,
-    content: 'Group 1'
+    content: 'Group 1',
+    // Optional: a field 'visible'
     // Optional: a field 'className'
     // Optional: options
   })
@@ -240,6 +241,12 @@ groups.add({
         <td>no</td>
         <td>This field is optional. The options can be used to give a group a specific draw style.
             Any options that are colored green in the Configuration Options can be used as options here.
+    </tr>
+    <tr>
+        <td>visible</td>
+        <td>Boolean</td>
+        <td>true</td>
+        <td>This field is optional. If false, the graph will not be drawn.
     </tr>
 </table>
 
@@ -671,6 +678,13 @@ Graph2d.clear({options: true}); // clear options only
         <td>setCustomTime(time)</td>
         <td>none</td>
         <td>Adjust the custom time bar. Only applicable when the option <code>showCustomTime</code> is true. <code>time</code> is a Date object.
+        </td>
+    </tr>
+
+    <tr>
+        <td>getLegend(groupId, iconWidth, iconHeight)</td>
+        <td>SVGelement, String, String</td>
+        <td>Returns an object containing an SVG element with the icon of the group (size determined by iconWidth and iconHeight), the label of the group (content) and the yAxisOrientation of the group (left or right).
         </td>
     </tr>
 

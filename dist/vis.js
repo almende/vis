@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.1.1-SNAPSHOT
- * @date    2014-07-22
+ * @date    2014-07-23
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -102,7 +102,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.Timeline = __webpack_require__(17);
   exports.Graph2d = __webpack_require__(35);
   exports.timeline = {
-    DataStep: __webpack_require__(36),
+    DataStep: __webpack_require__(38),
     Range: __webpack_require__(20),
     stack: __webpack_require__(30),
     TimeStep: __webpack_require__(25),
@@ -119,11 +119,11 @@ return /******/ (function(modules) { // webpackBootstrap
       CurrentTime: __webpack_require__(26),
       CustomTime: __webpack_require__(27),
       DataAxis: __webpack_require__(37),
-      GraphGroup: __webpack_require__(38),
+      GraphGroup: __webpack_require__(39),
       Group: __webpack_require__(29),
       ItemSet: __webpack_require__(28),
-      Legend: __webpack_require__(39),
-      LineGraph: __webpack_require__(40),
+      Legend: __webpack_require__(40),
+      LineGraph: __webpack_require__(36),
       TimeAxis: __webpack_require__(24)
     }
   };
@@ -4114,7 +4114,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   exports.getDOMElement = function (elementType, JSONcontainer, DOMContainer) {
     var element;
-    // allocate SVG element, if it doesnt yet exist, create one.
+    // allocate DOM element, if it doesnt yet exist, create one.
     if (JSONcontainer.hasOwnProperty(elementType)) { // this element has been created before
       // check if there is an redundant element
       if (JSONcontainer[elementType].redundant.length > 0) {
@@ -4180,12 +4180,14 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param className
    */
   exports.drawBar = function (x, y, width, height, className, JSONcontainer, svgContainer) {
-    var rect = exports.getSVGElement('rect',JSONcontainer, svgContainer);
-    rect.setAttributeNS(null, "x", x - 0.5 * width);
-    rect.setAttributeNS(null, "y", y);
-    rect.setAttributeNS(null, "width", width);
-    rect.setAttributeNS(null, "height", height);
-    rect.setAttributeNS(null, "class", className);
+  //  if (height != 0) {
+      var rect = exports.getSVGElement('rect',JSONcontainer, svgContainer);
+      rect.setAttributeNS(null, "x", x - 0.5 * width);
+      rect.setAttributeNS(null, "y", y);
+      rect.setAttributeNS(null, "width", width);
+      rect.setAttributeNS(null, "height", height);
+      rect.setAttributeNS(null, "class", className);
+  //  }
   };
 
 /***/ },
@@ -16684,7 +16686,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var TimeAxis = __webpack_require__(24);
   var CurrentTime = __webpack_require__(26);
   var CustomTime = __webpack_require__(27);
-  var LineGraph = __webpack_require__(40);
+  var LineGraph = __webpack_require__(36);
 
   /**
    * Create a timeline visualization
@@ -16894,6 +16896,32 @@ return /******/ (function(modules) { // webpackBootstrap
     this.linegraph.setGroups(newDataSet);
   };
 
+  /**
+   *
+   * @param groupId
+   * @param width
+   * @param height
+   */
+  Graph2d.prototype.getLegend = function(groupId, width, height) {
+    if (width  === undefined) {width  = 15;}
+    if (height === undefined) {height = 15;}
+    if (this.linegraph.groups[groupId] !== undefined) {
+      return this.linegraph.groups[groupId].getLegend(width,height);
+    }
+    else {
+      return "cannot find group:" +  groupId;
+    }
+  }
+
+  Graph2d.prototype.isGroupVisible = function(groupId) {
+    if (this.linegraph.groups[groupId] !== undefined) {
+      return this.linegraph.groups[groupId].visible;
+    }
+    else {
+      return false;
+    }
+  }
+
 
   module.exports = Graph2d;
 
@@ -16902,1038 +16930,14 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
-  /**
-   * @constructor  DataStep
-   * The class DataStep is an iterator for data for the lineGraph. You provide a start data point and an
-   * end data point. The class itself determines the best scale (step size) based on the
-   * provided start Date, end Date, and minimumStep.
-   *
-   * If minimumStep is provided, the step size is chosen as close as possible
-   * to the minimumStep but larger than minimumStep. If minimumStep is not
-   * provided, the scale is set to 1 DAY.
-   * The minimumStep should correspond with the onscreen size of about 6 characters
-   *
-   * Alternatively, you can set a scale by hand.
-   * After creation, you can initialize the class by executing first(). Then you
-   * can iterate from the start date to the end date via next(). You can check if
-   * the end date is reached with the function hasNext(). After each step, you can
-   * retrieve the current date via getCurrent().
-   * The DataStep has scales ranging from milliseconds, seconds, minutes, hours,
-   * days, to years.
-   *
-   * Version: 1.2
-   *
-   * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
-   *                               or new Date(2010, 9, 21, 23, 45, 00)
-   * @param {Date} [end]           The end date
-   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
-   */
-  function DataStep(start, end, minimumStep, containerHeight, forcedStepSize) {
-    // variables
-    this.current = 0;
-
-    this.autoScale = true;
-    this.stepIndex = 0;
-    this.step = 1;
-    this.scale = 1;
-
-    this.marginStart;
-    this.marginEnd;
-
-    this.majorSteps = [1,     2,    5,  10];
-    this.minorSteps = [0.25,  0.5,  1,  2];
-
-    this.setRange(start, end, minimumStep, containerHeight, forcedStepSize);
-  }
-
-
-
-  /**
-   * Set a new range
-   * If minimumStep is provided, the step size is chosen as close as possible
-   * to the minimumStep but larger than minimumStep. If minimumStep is not
-   * provided, the scale is set to 1 DAY.
-   * The minimumStep should correspond with the onscreen size of about 6 characters
-   * @param {Number} [start]      The start date and time.
-   * @param {Number} [end]        The end date and time.
-   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
-   */
-  DataStep.prototype.setRange = function(start, end, minimumStep, containerHeight, forcedStepSize) {
-    this._start = start;
-    this._end = end;
-
-    if (start == end) {
-      this._start = start - 0.75;
-      this._end = end + 1;
-    }
-
-    if (this.autoScale) {
-      this.setMinimumStep(minimumStep, containerHeight, forcedStepSize);
-    }
-    this.setFirst();
-  };
-
-  /**
-   * Automatically determine the scale that bests fits the provided minimum step
-   * @param {Number} [minimumStep]  The minimum step size in milliseconds
-   */
-  DataStep.prototype.setMinimumStep = function(minimumStep, containerHeight) {
-    // round to floor
-    var size = this._end - this._start;
-    var safeSize = size * 1.1;
-    var minimumStepValue = minimumStep * (safeSize / containerHeight);
-    var orderOfMagnitude = Math.round(Math.log(safeSize)/Math.LN10);
-
-    var minorStepIdx = -1;
-    var magnitudefactor = Math.pow(10,orderOfMagnitude);
-
-    var start = 0;
-    if (orderOfMagnitude < 0) {
-      start = orderOfMagnitude;
-    }
-
-    var solutionFound = false;
-    for (var i = start; Math.abs(i) <= Math.abs(orderOfMagnitude); i++) {
-      magnitudefactor = Math.pow(10,i);
-      for (var j = 0; j < this.minorSteps.length; j++) {
-        var stepSize = magnitudefactor * this.minorSteps[j];
-        if (stepSize >= minimumStepValue) {
-          solutionFound = true;
-          minorStepIdx = j;
-          break;
-        }
-      }
-      if (solutionFound == true) {
-        break;
-      }
-    }
-    this.stepIndex = minorStepIdx;
-    this.scale = magnitudefactor;
-    this.step = magnitudefactor * this.minorSteps[minorStepIdx];
-  };
-
-
-  /**
-   * Set the range iterator to the start date.
-   */
-  DataStep.prototype.first = function() {
-    this.setFirst();
-  };
-
-  /**
-   * Round the current date to the first minor date value
-   * This must be executed once when the current date is set to start Date
-   */
-  DataStep.prototype.setFirst = function() {
-    var niceStart = this._start - (this.scale * this.minorSteps[this.stepIndex]);
-    var niceEnd = this._end + (this.scale * this.minorSteps[this.stepIndex]);
-
-    this.marginEnd = this.roundToMinor(niceEnd);
-    this.marginStart = this.roundToMinor(niceStart);
-    this.marginRange = this.marginEnd - this.marginStart;
-
-    this.current = this.marginEnd;
-
-  };
-
-  DataStep.prototype.roundToMinor = function(value) {
-    var rounded = value - (value % (this.scale * this.minorSteps[this.stepIndex]));
-    if (value % (this.scale * this.minorSteps[this.stepIndex]) > 0.5 * (this.scale * this.minorSteps[this.stepIndex])) {
-      return rounded + (this.scale * this.minorSteps[this.stepIndex]);
-    }
-    else {
-      return rounded;
-    }
-  }
-
-
-  /**
-   * Check if the there is a next step
-   * @return {boolean}  true if the current date has not passed the end date
-   */
-  DataStep.prototype.hasNext = function () {
-    return (this.current >= this.marginStart);
-  };
-
-  /**
-   * Do the next step
-   */
-  DataStep.prototype.next = function() {
-    var prev = this.current;
-    this.current -= this.step;
-
-    // safety mechanism: if current time is still unchanged, move to the end
-    if (this.current == prev) {
-      this.current = this._end;
-    }
-  };
-
-  /**
-   * Do the next step
-   */
-  DataStep.prototype.previous = function() {
-    this.current += this.step;
-    this.marginEnd += this.step;
-    this.marginRange = this.marginEnd - this.marginStart;
-  };
-
-
-
-  /**
-   * Get the current datetime
-   * @return {String}  current The current date
-   */
-  DataStep.prototype.getCurrent = function() {
-    var toPrecision = '' + Number(this.current).toPrecision(5);
-    for (var i = toPrecision.length-1; i > 0; i--) {
-      if (toPrecision[i] == "0") {
-        toPrecision = toPrecision.slice(0,i);
-      }
-      else if (toPrecision[i] == "." || toPrecision[i] == ",") {
-        toPrecision = toPrecision.slice(0,i);
-        break;
-      }
-      else{
-        break;
-      }
-    }
-
-    return toPrecision;
-  };
-
-
-
-  /**
-   * Snap a date to a rounded value.
-   * The snap intervals are dependent on the current scale and step.
-   * @param {Date} date   the date to be snapped.
-   * @return {Date} snappedDate
-   */
-  DataStep.prototype.snap = function(date) {
-
-  };
-
-  /**
-   * Check if the current value is a major value (for example when the step
-   * is DAY, a major value is each first day of the MONTH)
-   * @return {boolean} true if current date is major, else false.
-   */
-  DataStep.prototype.isMajor = function() {
-    return (this.current % (this.scale * this.majorSteps[this.stepIndex]) == 0);
-  };
-
-  module.exports = DataStep;
-
-
-/***/ },
-/* 37 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var util = __webpack_require__(1);
-  var DOMutil = __webpack_require__(6);
-  var Component = __webpack_require__(22);
-  var DataStep = __webpack_require__(36);
-
-  /**
-   * A horizontal time axis
-   * @param {Object} [options]        See DataAxis.setOptions for the available
-   *                                  options.
-   * @constructor DataAxis
-   * @extends Component
-   * @param body
-   */
-  function DataAxis (body, options, svg) {
-    this.id = util.randomUUID();
-    this.body = body;
-
-    this.defaultOptions = {
-      orientation: 'left',  // supported: 'left', 'right'
-      showMinorLabels: true,
-      showMajorLabels: true,
-      icons: true,
-      majorLinesOffset: 7,
-      minorLinesOffset: 4,
-      labelOffsetX: 10,
-      labelOffsetY: 2,
-      iconWidth: 20,
-      width: '40px',
-      visible: true
-    };
-
-    this.linegraphSVG = svg;
-    this.props = {};
-    this.DOMelements = { // dynamic elements
-      lines: {},
-      labels: {}
-    };
-
-    this.dom = {};
-
-    this.range = {start:0, end:0};
-
-    this.options = util.extend({}, this.defaultOptions);
-    this.conversionFactor = 1;
-
-    this.setOptions(options);
-    this.width = Number(('' + this.options.width).replace("px",""));
-    this.minWidth = this.width;
-    this.height = this.linegraphSVG.offsetHeight;
-
-    this.stepPixels = 25;
-    this.stepPixelsForced = 25;
-    this.lineOffset = 0;
-    this.master = true;
-    this.svgElements = {};
-
-
-    this.groups = {};
-    this.amountOfGroups = 0;
-
-    // create the HTML DOM
-    this._create();
-  }
-
-  DataAxis.prototype = new Component();
-
-
-
-  DataAxis.prototype.addGroup = function(label, graphOptions) {
-    if (!this.groups.hasOwnProperty(label)) {
-      this.groups[label] = graphOptions;
-    }
-    this.amountOfGroups += 1;
-  };
-
-  DataAxis.prototype.updateGroup = function(label, graphOptions) {
-    this.groups[label] = graphOptions;
-  };
-
-  DataAxis.prototype.removeGroup = function(label) {
-    if (this.groups.hasOwnProperty(label)) {
-      delete this.groups[label];
-      this.amountOfGroups -= 1;
-    }
-  };
-
-
-  DataAxis.prototype.setOptions = function (options) {
-    if (options) {
-      var redraw = false;
-      if (this.options.orientation != options.orientation && options.orientation !== undefined) {
-        redraw = true;
-      }
-      var fields = [
-        'orientation',
-        'showMinorLabels',
-        'showMajorLabels',
-        'icons',
-        'majorLinesOffset',
-        'minorLinesOffset',
-        'labelOffsetX',
-        'labelOffsetY',
-        'iconWidth',
-        'width',
-        'visible'];
-      util.selectiveExtend(fields, this.options, options);
-
-      this.minWidth = Number(('' + this.options.width).replace("px",""));
-
-      if (redraw == true && this.dom.frame) {
-        this.hide();
-        this.show();
-      }
-    }
-  };
-
-
-  /**
-   * Create the HTML DOM for the DataAxis
-   */
-  DataAxis.prototype._create = function() {
-    this.dom.frame = document.createElement('div');
-    this.dom.frame.style.width = this.options.width;
-    this.dom.frame.style.height = this.height;
-
-    this.dom.lineContainer = document.createElement('div');
-    this.dom.lineContainer.style.width = '100%';
-    this.dom.lineContainer.style.height = this.height;
-
-    // create svg element for graph drawing.
-    this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
-    this.svg.style.position = "absolute";
-    this.svg.style.top = '0px';
-    this.svg.style.height = '100%';
-    this.svg.style.width = '100%';
-    this.svg.style.display = "block";
-    this.dom.frame.appendChild(this.svg);
-  };
-
-  DataAxis.prototype._redrawGroupIcons = function () {
-    DOMutil.prepareElements(this.svgElements);
-
-    var x;
-    var iconWidth = this.options.iconWidth;
-    var iconHeight = 15;
-    var iconOffset = 4;
-    var y = iconOffset + 0.5 * iconHeight;
-
-    if (this.options.orientation == 'left') {
-      x = iconOffset;
-    }
-    else {
-      x = this.width - iconWidth - iconOffset;
-    }
-
-    for (var groupId in this.groups) {
-      if (this.groups.hasOwnProperty(groupId)) {
-        this.groups[groupId].drawIcon(x, y, this.svgElements, this.svg, iconWidth, iconHeight);
-        y += iconHeight + iconOffset;
-      }
-    }
-
-    DOMutil.cleanupElements(this.svgElements);
-  };
-
-  /**
-   * Create the HTML DOM for the DataAxis
-   */
-  DataAxis.prototype.show = function() {
-    if (!this.dom.frame.parentNode) {
-      if (this.options.orientation == 'left') {
-        this.body.dom.left.appendChild(this.dom.frame);
-      }
-      else {
-        this.body.dom.right.appendChild(this.dom.frame);
-      }
-    }
-
-    if (!this.dom.lineContainer.parentNode) {
-      this.body.dom.backgroundHorizontal.appendChild(this.dom.lineContainer);
-    }
-  };
-
-  /**
-   * Create the HTML DOM for the DataAxis
-   */
-  DataAxis.prototype.hide = function() {
-    if (this.dom.frame.parentNode) {
-      this.dom.frame.parentNode.removeChild(this.dom.frame);
-    }
-
-    if (this.dom.lineContainer.parentNode) {
-      this.dom.lineContainer.parentNode.removeChild(this.dom.lineContainer);
-    }
-  };
-
-  /**
-   * Set a range (start and end)
-   * @param end
-   * @param start
-   * @param end
-   */
-  DataAxis.prototype.setRange = function (start, end) {
-    this.range.start = start;
-    this.range.end = end;
-  };
-
-  /**
-   * Repaint the component
-   * @return {boolean} Returns true if the component is resized
-   */
-  DataAxis.prototype.redraw = function () {
-    var changeCalled = false;
-    if (this.amountOfGroups == 0) {
-      this.hide();
-    }
-    else {
-      this.show();
-      this.height = Number(this.linegraphSVG.style.height.replace("px",""));
-      // svg offsetheight did not work in firefox and explorer...
-
-      this.dom.lineContainer.style.height = this.height + 'px';
-      this.width = this.options.visible == true ? Number(('' + this.options.width).replace("px","")) : 0;
-
-      var props = this.props;
-      var frame = this.dom.frame;
-
-      // update classname
-      frame.className = 'dataaxis';
-
-      // calculate character width and height
-      this._calculateCharSize();
-
-      var orientation = this.options.orientation;
-      var showMinorLabels = this.options.showMinorLabels;
-      var showMajorLabels = this.options.showMajorLabels;
-
-      // determine the width and height of the elemens for the axis
-      props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
-      props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
-
-      props.minorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2 * this.options.minorLinesOffset;
-      props.minorLineHeight = 1;
-      props.majorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2 * this.options.majorLinesOffset;
-      props.majorLineHeight = 1;
-
-      //  take frame offline while updating (is almost twice as fast)
-      if (orientation == 'left') {
-        frame.style.top = '0';
-        frame.style.left = '0';
-        frame.style.bottom = '';
-        frame.style.width = this.width + 'px';
-        frame.style.height = this.height + "px";
-      }
-      else { // right
-        frame.style.top = '';
-        frame.style.bottom = '0';
-        frame.style.left = '0';
-        frame.style.width = this.width + 'px';
-        frame.style.height = this.height + "px";
-      }
-      changeCalled = this._redrawLabels();
-      if (this.options.icons == true) {
-        this._redrawGroupIcons();
-      }
-    }
-    return changeCalled;
-  };
-
-  /**
-   * Repaint major and minor text labels and vertical grid lines
-   * @private
-   */
-  DataAxis.prototype._redrawLabels = function () {
-    DOMutil.prepareElements(this.DOMelements);
-
-    var orientation = this.options['orientation'];
-
-    // calculate range and step (step such that we have space for 7 characters per label)
-    var minimumStep = this.master ? this.props.majorCharHeight || 10 : this.stepPixelsForced;
-    var step = new DataStep(this.range.start, this.range.end, minimumStep, this.dom.frame.offsetHeight);
-    this.step = step;
-    step.first();
-
-    // get the distance in pixels for a step
-    var stepPixels = this.dom.frame.offsetHeight / ((step.marginRange / step.step) + 1);
-    this.stepPixels = stepPixels;
-
-    var amountOfSteps = this.height / stepPixels;
-    var stepDifference = 0;
-
-    if (this.master == false) {
-      stepPixels = this.stepPixelsForced;
-      stepDifference = Math.round((this.height / stepPixels) - amountOfSteps);
-      for (var i = 0; i < 0.5 * stepDifference; i++) {
-        step.previous();
-      }
-      amountOfSteps = this.height / stepPixels;
-    }
-
-
-    this.valueAtZero = step.marginEnd;
-    var marginStartPos = 0;
-
-    // do not draw the first label
-    var max = 1;
-    step.next();
-
-    this.maxLabelSize = 0;
-    var y = 0;
-    while (max < Math.round(amountOfSteps)) {
-
-      y = Math.round(max * stepPixels);
-      marginStartPos = max * stepPixels;
-      var isMajor = step.isMajor();
-
-      if (this.options['showMinorLabels'] && isMajor == false || this.master == false && this.options['showMinorLabels'] == true) {
-        this._redrawLabel(y - 2, step.getCurrent(), orientation, 'yAxis minor', this.props.minorCharHeight);
-      }
-
-      if (isMajor && this.options['showMajorLabels'] && this.master == true ||
-          this.options['showMinorLabels'] == false && this.master == false && isMajor == true) {
-
-        if (y >= 0) {
-          this._redrawLabel(y - 2, step.getCurrent(), orientation, 'yAxis major', this.props.majorCharHeight);
-        }
-        this._redrawLine(y, orientation, 'grid horizontal major', this.options.majorLinesOffset, this.props.majorLineWidth);
-      }
-      else {
-        this._redrawLine(y, orientation, 'grid horizontal minor', this.options.minorLinesOffset, this.props.minorLineWidth);
-      }
-
-      step.next();
-      max++;
-    }
-
-    this.conversionFactor = marginStartPos/((amountOfSteps-1) * step.step);
-
-    var offset = this.options.icons == true ? this.options.iconWidth + this.options.labelOffsetX + 15 : this.options.labelOffsetX + 15;
-    // this will resize the yAxis to accomodate the labels.
-    if (this.maxLabelSize > (this.width - offset) && this.options.visible == true) {
-      this.width = this.maxLabelSize + offset;
-      this.options.width = this.width + "px";
-      DOMutil.cleanupElements(this.DOMelements);
-      this.redraw();
-      return true;
-    }
-    // this will resize the yAxis if it is too big for the labels.
-    else if (this.maxLabelSize < (this.width - offset) && this.options.visible == true && this.width > this.minWidth) {
-      this.width = Math.max(this.minWidth,this.maxLabelSize + offset);
-      this.options.width = this.width + "px";
-      DOMutil.cleanupElements(this.DOMelements);
-      this.redraw();
-      return true;
-    }
-    else {
-      DOMutil.cleanupElements(this.DOMelements);
-      return false;
-    }
-  };
-
-  /**
-   * Create a label for the axis at position x
-   * @private
-   * @param y
-   * @param text
-   * @param orientation
-   * @param className
-   * @param characterHeight
-   */
-  DataAxis.prototype._redrawLabel = function (y, text, orientation, className, characterHeight) {
-    // reuse redundant label
-    var label = DOMutil.getDOMElement('div',this.DOMelements, this.dom.frame); //this.dom.redundant.labels.shift();
-    label.className = className;
-    label.innerHTML = text;
-
-    if (orientation == 'left') {
-      label.style.left = '-' + this.options.labelOffsetX + 'px';
-      label.style.textAlign = "right";
-    }
-    else {
-      label.style.right = '-' + this.options.labelOffsetX + 'px';
-      label.style.textAlign = "left";
-    }
-
-    label.style.top = y - 0.5 * characterHeight + this.options.labelOffsetY + 'px';
-
-    text += '';
-
-    var largestWidth = Math.max(this.props.majorCharWidth,this.props.minorCharWidth);
-    if (this.maxLabelSize < text.length * largestWidth) {
-      this.maxLabelSize = text.length * largestWidth;
-    }
-  };
-
-  /**
-   * Create a minor line for the axis at position y
-   * @param y
-   * @param orientation
-   * @param className
-   * @param offset
-   * @param width
-   */
-  DataAxis.prototype._redrawLine = function (y, orientation, className, offset, width) {
-    if (this.master == true) {
-      var line = DOMutil.getDOMElement('div',this.DOMelements, this.dom.lineContainer);//this.dom.redundant.lines.shift();
-      line.className = className;
-      line.innerHTML = '';
-
-      if (orientation == 'left') {
-        line.style.left = (this.width - offset) + 'px';
-      }
-      else {
-        line.style.right = (this.width - offset) + 'px';
-      }
-
-      line.style.width = width + 'px';
-      line.style.top = y + 'px';
-    }
-  };
-
-
-  DataAxis.prototype.convertValue = function (value) {
-    var invertedValue = this.valueAtZero - value;
-    var convertedValue = invertedValue * this.conversionFactor;
-    return convertedValue; // the -2 is to compensate for the borders
-  };
-
-
-  /**
-   * Determine the size of text on the axis (both major and minor axis).
-   * The size is calculated only once and then cached in this.props.
-   * @private
-   */
-  DataAxis.prototype._calculateCharSize = function () {
-    // determine the char width and height on the minor axis
-    if (!('minorCharHeight' in this.props)) {
-
-      var textMinor = document.createTextNode('0');
-      var measureCharMinor = document.createElement('DIV');
-      measureCharMinor.className = 'yAxis minor measure';
-      measureCharMinor.appendChild(textMinor);
-      this.dom.frame.appendChild(measureCharMinor);
-
-      this.props.minorCharHeight = measureCharMinor.clientHeight;
-      this.props.minorCharWidth = measureCharMinor.clientWidth;
-
-      this.dom.frame.removeChild(measureCharMinor);
-    }
-
-    if (!('majorCharHeight' in this.props)) {
-      var textMajor = document.createTextNode('0');
-      var measureCharMajor = document.createElement('DIV');
-      measureCharMajor.className = 'yAxis major measure';
-      measureCharMajor.appendChild(textMajor);
-      this.dom.frame.appendChild(measureCharMajor);
-
-      this.props.majorCharHeight = measureCharMajor.clientHeight;
-      this.props.majorCharWidth = measureCharMajor.clientWidth;
-
-      this.dom.frame.removeChild(measureCharMajor);
-    }
-  };
-
-  /**
-   * Snap a date to a rounded value.
-   * The snap intervals are dependent on the current scale and step.
-   * @param {Date} date   the date to be snapped.
-   * @return {Date} snappedDate
-   */
-  DataAxis.prototype.snap = function(date) {
-    return this.step.snap(date);
-  };
-
-  module.exports = DataAxis;
-
-
-/***/ },
-/* 38 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var util = __webpack_require__(1);
-  var DOMutil = __webpack_require__(6);
-
-  /**
-   * @constructor Group
-   * @param {Number | String} groupId
-   * @param {Object} data
-   * @param {ItemSet} itemSet
-   */
-  function GraphGroup (group, groupId, options, groupsUsingDefaultStyles) {
-    this.id = groupId;
-    var fields = ['sampling','style','sort','yAxisOrientation','barChart','drawPoints','shaded','catmullRom']
-    this.options = util.selectiveBridgeObject(fields,options);
-    this.usingDefaultStyle = group.className === undefined;
-    this.groupsUsingDefaultStyles = groupsUsingDefaultStyles;
-    this.zeroPosition = 0;
-    this.update(group);
-    if (this.usingDefaultStyle == true) {
-      this.groupsUsingDefaultStyles[0] += 1;
-    }
-    this.itemsData = [];
-  }
-
-  GraphGroup.prototype.setItems = function(items) {
-    if (items != null) {
-      this.itemsData = items;
-      if (this.options.sort == true) {
-        this.itemsData.sort(function (a,b) {return a.x - b.x;})
-      }
-    }
-    else {
-      this.itemsData = [];
-    }
-  };
-
-  GraphGroup.prototype.setZeroPosition = function(pos) {
-    this.zeroPosition = pos;
-  };
-
-  GraphGroup.prototype.setOptions = function(options) {
-    if (options !== undefined) {
-      var fields = ['sampling','style','sort','yAxisOrientation','barChart'];
-      util.selectiveDeepExtend(fields, this.options, options);
-
-      util.mergeOptions(this.options, options,'catmullRom');
-      util.mergeOptions(this.options, options,'drawPoints');
-      util.mergeOptions(this.options, options,'shaded');
-
-      if (options.catmullRom) {
-        if (typeof options.catmullRom == 'object') {
-          if (options.catmullRom.parametrization) {
-            if (options.catmullRom.parametrization == 'uniform') {
-              this.options.catmullRom.alpha = 0;
-            }
-            else if (options.catmullRom.parametrization == 'chordal') {
-              this.options.catmullRom.alpha = 1.0;
-            }
-            else {
-              this.options.catmullRom.parametrization = 'centripetal';
-              this.options.catmullRom.alpha = 0.5;
-            }
-          }
-        }
-      }
-    }
-  };
-
-  GraphGroup.prototype.update = function(group) {
-    this.group = group;
-    this.content = group.content || 'graph';
-    this.className = group.className || this.className || "graphGroup" + this.groupsUsingDefaultStyles[0] % 10;
-    this.setOptions(group.options);
-  };
-
-  GraphGroup.prototype.drawIcon = function(x, y, JSONcontainer, SVGcontainer, iconWidth, iconHeight) {
-    var fillHeight = iconHeight * 0.5;
-    var path, fillPath;
-
-    var outline = DOMutil.getSVGElement("rect", JSONcontainer, SVGcontainer);
-    outline.setAttributeNS(null, "x", x);
-    outline.setAttributeNS(null, "y", y - fillHeight);
-    outline.setAttributeNS(null, "width", iconWidth);
-    outline.setAttributeNS(null, "height", 2*fillHeight);
-    outline.setAttributeNS(null, "class", "outline");
-
-    if (this.options.style == 'line') {
-      path = DOMutil.getSVGElement("path", JSONcontainer, SVGcontainer);
-      path.setAttributeNS(null, "class", this.className);
-      path.setAttributeNS(null, "d", "M" + x + ","+y+" L" + (x + iconWidth) + ","+y+"");
-      if (this.options.shaded.enabled == true) {
-        fillPath = DOMutil.getSVGElement("path", JSONcontainer, SVGcontainer);
-        if (this.options.shaded.orientation == 'top') {
-          fillPath.setAttributeNS(null, "d", "M"+x+", " + (y - fillHeight) +
-            "L"+x+","+y+" L"+ (x + iconWidth) + ","+y+" L"+ (x + iconWidth) + "," + (y - fillHeight));
-        }
-        else {
-          fillPath.setAttributeNS(null, "d", "M"+x+","+y+" " +
-            "L"+x+"," + (y + fillHeight) + " " +
-            "L"+ (x + iconWidth) + "," + (y + fillHeight) +
-            "L"+ (x + iconWidth) + ","+y);
-        }
-        fillPath.setAttributeNS(null, "class", this.className + " iconFill");
-      }
-
-      if (this.options.drawPoints.enabled == true) {
-        DOMutil.drawPoint(x + 0.5 * iconWidth,y, this, JSONcontainer, SVGcontainer);
-      }
-    }
-    else {
-      var barWidth = Math.round(0.3 * iconWidth);
-      var bar1Height = Math.round(0.4 * iconHeight);
-      var bar2Height = Math.round(0.75 * iconHeight);
-
-      var offset = Math.round((iconWidth - (2 * barWidth))/3);
-
-      DOMutil.drawBar(x + 0.5*barWidth + offset    , y + fillHeight - bar1Height - 1, barWidth, bar1Height, this.className + ' bar', JSONcontainer, SVGcontainer);
-      DOMutil.drawBar(x + 1.5*barWidth + offset + 2, y + fillHeight - bar2Height - 1, barWidth, bar2Height, this.className + ' bar', JSONcontainer, SVGcontainer);
-    }
-  };
-
-  module.exports = GraphGroup;
-
-
-/***/ },
-/* 39 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var util = __webpack_require__(1);
-  var DOMutil = __webpack_require__(6);
-  var Component = __webpack_require__(22);
-
-  /**
-   * Legend for Graph2d
-   */
-  function Legend(body, options, side) {
-    this.body = body;
-    this.defaultOptions = {
-      enabled: true,
-      icons: true,
-      iconSize: 20,
-      iconSpacing: 6,
-      left: {
-        visible: true,
-        position: 'top-left' // top/bottom - left,center,right
-      },
-      right: {
-        visible: true,
-        position: 'top-left' // top/bottom - left,center,right
-      }
-    }
-    this.side = side;
-    this.options = util.extend({},this.defaultOptions);
-
-    this.svgElements = {};
-    this.dom = {};
-    this.groups = {};
-    this.amountOfGroups = 0;
-    this._create();
-
-    this.setOptions(options);
-  }
-
-  Legend.prototype = new Component();
-
-
-  Legend.prototype.addGroup = function(label, graphOptions) {
-    if (!this.groups.hasOwnProperty(label)) {
-      this.groups[label] = graphOptions;
-    }
-    this.amountOfGroups += 1;
-  };
-
-  Legend.prototype.updateGroup = function(label, graphOptions) {
-    this.groups[label] = graphOptions;
-  };
-
-  Legend.prototype.removeGroup = function(label) {
-    if (this.groups.hasOwnProperty(label)) {
-      delete this.groups[label];
-      this.amountOfGroups -= 1;
-    }
-  };
-
-  Legend.prototype._create = function() {
-    this.dom.frame = document.createElement('div');
-    this.dom.frame.className = 'legend';
-    this.dom.frame.style.position = "absolute";
-    this.dom.frame.style.top = "10px";
-    this.dom.frame.style.display = "block";
-
-    this.dom.textArea = document.createElement('div');
-    this.dom.textArea.className = 'legendText';
-    this.dom.textArea.style.position = "relative";
-    this.dom.textArea.style.top = "0px";
-
-    this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
-    this.svg.style.position = 'absolute';
-    this.svg.style.top = 0 +'px';
-    this.svg.style.width = this.options.iconSize + 5 + 'px';
-
-    this.dom.frame.appendChild(this.svg);
-    this.dom.frame.appendChild(this.dom.textArea);
-  };
-
-  /**
-   * Hide the component from the DOM
-   */
-  Legend.prototype.hide = function() {
-    // remove the frame containing the items
-    if (this.dom.frame.parentNode) {
-      this.dom.frame.parentNode.removeChild(this.dom.frame);
-    }
-  };
-
-  /**
-   * Show the component in the DOM (when not already visible).
-   * @return {Boolean} changed
-   */
-  Legend.prototype.show = function() {
-    // show frame containing the items
-    if (!this.dom.frame.parentNode) {
-      this.body.dom.center.appendChild(this.dom.frame);
-    }
-  };
-
-  Legend.prototype.setOptions = function(options) {
-    var fields = ['enabled','orientation','icons','left','right'];
-    util.selectiveDeepExtend(fields, this.options, options);
-  };
-
-  Legend.prototype.redraw = function() {
-    if (this.options[this.side].visible == false || this.amountOfGroups == 0 || this.options.enabled == false) {
-      this.hide();
-    }
-    else {
-      this.show();
-      if (this.options[this.side].position == 'top-left' || this.options[this.side].position == 'bottom-left') {
-        this.dom.frame.style.left = '4px';
-        this.dom.frame.style.textAlign = "left";
-        this.dom.textArea.style.textAlign = "left";
-        this.dom.textArea.style.left = (this.options.iconSize + 15) + 'px';
-        this.dom.textArea.style.right = '';
-        this.svg.style.left = 0 +'px';
-        this.svg.style.right = '';
-      }
-      else {
-        this.dom.frame.style.right = '4px';
-        this.dom.frame.style.textAlign = "right";
-        this.dom.textArea.style.textAlign = "right";
-        this.dom.textArea.style.right = (this.options.iconSize + 15) + 'px';
-        this.dom.textArea.style.left = '';
-        this.svg.style.right = 0 +'px';
-        this.svg.style.left = '';
-      }
-
-      if (this.options[this.side].position == 'top-left' || this.options[this.side].position == 'top-right') {
-        this.dom.frame.style.top = 4 - Number(this.body.dom.center.style.top.replace("px","")) + 'px';
-        this.dom.frame.style.bottom = '';
-      }
-      else {
-        this.dom.frame.style.bottom = 4 - Number(this.body.dom.center.style.top.replace("px","")) + 'px';
-        this.dom.frame.style.top = '';
-      }
-
-      if (this.options.icons == false) {
-        this.dom.frame.style.width = this.dom.textArea.offsetWidth + 10 + 'px';
-        this.dom.textArea.style.right = '';
-        this.dom.textArea.style.left = '';
-        this.svg.style.width = '0px';
-      }
-      else {
-        this.dom.frame.style.width = this.options.iconSize + 15 + this.dom.textArea.offsetWidth + 10 + 'px'
-        this.drawLegendIcons();
-      }
-
-      var content = '';
-      for (var groupId in this.groups) {
-        if (this.groups.hasOwnProperty(groupId)) {
-          content += this.groups[groupId].content + '<br />';
-        }
-      }
-      this.dom.textArea.innerHTML = content;
-      this.dom.textArea.style.lineHeight = ((0.75 * this.options.iconSize) + this.options.iconSpacing) + 'px';
-    }
-  };
-
-  Legend.prototype.drawLegendIcons = function() {
-    if (this.dom.frame.parentNode) {
-      DOMutil.prepareElements(this.svgElements);
-      var padding = window.getComputedStyle(this.dom.frame).paddingTop;
-      var iconOffset = Number(padding.replace('px',''));
-      var x = iconOffset;
-      var iconWidth = this.options.iconSize;
-      var iconHeight = 0.75 * this.options.iconSize;
-      var y = iconOffset + 0.5 * iconHeight + 3;
-
-      this.svg.style.width = iconWidth + 5 + iconOffset + 'px';
-
-      for (var groupId in this.groups) {
-        if (this.groups.hasOwnProperty(groupId)) {
-          this.groups[groupId].drawIcon(x, y, this.svgElements, this.svg, iconWidth, iconHeight);
-          y += iconHeight + this.options.iconSpacing;
-        }
-      }
-
-      DOMutil.cleanupElements(this.svgElements);
-    }
-  };
-
-  module.exports = Legend;
-
-
-/***/ },
-/* 40 */
-/***/ function(module, exports, __webpack_require__) {
-
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(6);
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(8);
   var Component = __webpack_require__(22);
   var DataAxis = __webpack_require__(37);
-  var GraphGroup = __webpack_require__(38);
-  var Legend = __webpack_require__(39);
+  var GraphGroup = __webpack_require__(39);
+  var Legend = __webpack_require__(40);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -18339,8 +17343,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
   LineGraph.prototype._updateAllGroupData = function () {
     if (this.itemsData != null) {
-      // ~450 ms @ 500k
-
       var groupsContent = {};
       for (var groupId in this.groups) {
         if (this.groups.hasOwnProperty(groupId)) {
@@ -18359,16 +17361,6 @@ return /******/ (function(modules) { // webpackBootstrap
           this.groups[groupId].setItems(groupsContent[groupId]);
         }
       }
-  //    // ~4500ms @ 500k
-  //    for (var groupId in this.groups) {
-  //      if (this.groups.hasOwnProperty(groupId)) {
-  //        this.groups[groupId].setItems(this.itemsData.get({filter:
-  //            function (item) {
-  //              return (item.group == groupId);
-  //            }, type:{x:"Date"}}
-  //        ));
-  //      }
-  //    }
     }
   };
 
@@ -18484,13 +17476,6 @@ return /******/ (function(modules) { // webpackBootstrap
   LineGraph.prototype._updateGraph = function () {
     // reset the svg elements
     DOMutil.prepareElements(this.svgElements);
-  //        // very slow...
-  //        groupData = group.itemsData.get({filter:
-  //          function (item) {
-  //            return (item.x > minDate && item.x < maxDate);
-  //          }}
-  //        );
-
 
     if (this.width != 0 && this.itemsData != null) {
       var group, groupData, preprocessedGroup, i;
@@ -18519,38 +17504,44 @@ return /******/ (function(modules) { // webpackBootstrap
       if (groupIds.length > 0) {
         for (i = 0; i < groupIds.length; i++) {
           group = this.groups[groupIds[i]];
-          groupData = [];
-          // optimization for sorted data
-          if (group.options.sort == true) {
-            var guess = Math.max(0,util.binarySearchGeneric(group.itemsData, minDate, 'x', 'before'));
+          if (group.visible == true) {
+            groupData = [];
+            // optimization for sorted data
+            if (group.options.sort == true) {
+              var guess = Math.max(0,util.binarySearchGeneric(group.itemsData, minDate, 'x', 'before'));
 
-            for (var j = guess; j < group.itemsData.length; j++) {
-              var item = group.itemsData[j];
-              if (item !== undefined) {
-                if (item.x > maxDate) {
-                 groupData.push(item);
-                 break;
-                }
-                else {
-                  groupData.push(item);
+              for (var j = guess; j < group.itemsData.length; j++) {
+                var item = group.itemsData[j];
+                if (item !== undefined) {
+                  if (item.x > maxDate) {
+                   groupData.push(item);
+                   break;
+                  }
+                  else {
+                    groupData.push(item);
+                  }
                 }
               }
             }
+            else {
+              for (var j = 0; j < group.itemsData.length; j++) {
+                var item = group.itemsData[j];
+                if (item !== undefined) {
+                  if (item.x > minDate && item.x < maxDate) {
+                    groupData.push(item);
+                  }
+                }
+              }
+            }
+            // preprocess, split into ranges and data
+            preprocessedGroup = this._preprocessData(groupData, group);
+            groupRanges.push({min: preprocessedGroup.min, max: preprocessedGroup.max});
+            preprocessedGroupData.push(preprocessedGroup.data);
           }
           else {
-            for (var j = 0; j < group.itemsData.length; j++) {
-              var item = group.itemsData[j];
-              if (item !== undefined) {
-                if (item.x > minDate && item.x < maxDate) {
-                  groupData.push(item);
-                }
-              }
-            }
+            groupRanges.push({});
+            preprocessedGroupData.push([]);
           }
-          // preprocess, split into ranges and data
-          preprocessedGroup = this._preprocessData(groupData, group);
-          groupRanges.push({min: preprocessedGroup.min, max: preprocessedGroup.max});
-          preprocessedGroupData.push(preprocessedGroup.data);
         }
 
         // update the Y axis first, we use this data to draw at the correct Y points
@@ -18571,11 +17562,13 @@ return /******/ (function(modules) { // webpackBootstrap
         // draw the groups
         for (i = 0; i < groupIds.length; i++) {
           group = this.groups[groupIds[i]];
-          if (group.options.style == 'line') {
-            this._drawLineGraph(processedGroupData[i], group);
-          }
-          else {
-            this._drawBarGraph (processedGroupData[i], group);
+          if (group.visible == true) {
+            if (group.options.style == 'line') {
+              this._drawLineGraph(processedGroupData[i], group);
+            }
+            else {
+              this._drawBarGraph (processedGroupData[i], group);
+            }
           }
         }
       }
@@ -18602,24 +17595,27 @@ return /******/ (function(modules) { // webpackBootstrap
       for (var i = 0; i < groupIds.length; i++) {
         orientation = 'left';
         var group = this.groups[groupIds[i]];
-        if (group.options.yAxisOrientation == 'right') {
-          orientation = 'right';
-        }
+        if (group.visible == true) {
+          if (group.options.yAxisOrientation == 'right') {
+            orientation = 'right';
+          }
 
-        minVal = groupRanges[i].min;
-        maxVal = groupRanges[i].max;
+          minVal = groupRanges[i].min;
+          maxVal = groupRanges[i].max;
 
-        if (orientation == 'left') {
-          yAxisLeftUsed = true;
-          minLeft = minLeft > minVal ? minVal : minLeft;
-          maxLeft = maxLeft < maxVal ? maxVal : maxLeft;
-        }
-        else {
-          yAxisRightUsed = true;
-          minRight = minRight > minVal ? minVal : minRight;
-          maxRight = maxRight < maxVal ? maxVal : maxRight;
+          if (orientation == 'left') {
+            yAxisLeftUsed = true;
+            minLeft = minLeft > minVal ? minVal : minLeft;
+            maxLeft = maxLeft < maxVal ? maxVal : maxLeft;
+          }
+          else {
+            yAxisRightUsed = true;
+            minRight = minRight > minVal ? minVal : minRight;
+            maxRight = maxRight < maxVal ? maxVal : maxRight;
+          }
         }
       }
+      console.log(yAxisRightUsed)
       if (yAxisLeftUsed == true) {
         this.yAxisLeft.setRange(minLeft, maxLeft);
       }
@@ -18643,9 +17639,9 @@ return /******/ (function(modules) { // webpackBootstrap
     this.yAxisRight.master = !yAxisLeftUsed;
 
     if (this.yAxisRight.master == false) {
-      if (yAxisRightUsed == true) {
-        this.yAxisLeft.lineOffset = this.yAxisRight.width;
-      }
+      if (yAxisRightUsed == true) {this.yAxisLeft.lineOffset = this.yAxisRight.width;}
+      else                        {this.yAxisLeft.lineOffset = 0;}
+
       changeCalled = this.yAxisLeft.redraw() || changeCalled;
       this.yAxisRight.stepPixelsForced = this.yAxisLeft.stepPixels;
       changeCalled = this.yAxisRight.redraw() || changeCalled;
@@ -18997,6 +17993,1067 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   module.exports = LineGraph;
+
+
+/***/ },
+/* 37 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var util = __webpack_require__(1);
+  var DOMutil = __webpack_require__(6);
+  var Component = __webpack_require__(22);
+  var DataStep = __webpack_require__(38);
+
+  /**
+   * A horizontal time axis
+   * @param {Object} [options]        See DataAxis.setOptions for the available
+   *                                  options.
+   * @constructor DataAxis
+   * @extends Component
+   * @param body
+   */
+  function DataAxis (body, options, svg) {
+    this.id = util.randomUUID();
+    this.body = body;
+
+    this.defaultOptions = {
+      orientation: 'left',  // supported: 'left', 'right'
+      showMinorLabels: true,
+      showMajorLabels: true,
+      icons: true,
+      majorLinesOffset: 7,
+      minorLinesOffset: 4,
+      labelOffsetX: 10,
+      labelOffsetY: 2,
+      iconWidth: 20,
+      width: '40px',
+      visible: true
+    };
+
+    this.linegraphSVG = svg;
+    this.props = {};
+    this.DOMelements = { // dynamic elements
+      lines: {},
+      labels: {}
+    };
+
+    this.dom = {};
+
+    this.range = {start:0, end:0};
+
+    this.options = util.extend({}, this.defaultOptions);
+    this.conversionFactor = 1;
+
+    this.setOptions(options);
+    this.width = Number(('' + this.options.width).replace("px",""));
+    this.minWidth = this.width;
+    this.height = this.linegraphSVG.offsetHeight;
+
+    this.stepPixels = 25;
+    this.stepPixelsForced = 25;
+    this.lineOffset = 0;
+    this.master = true;
+    this.svgElements = {};
+
+
+    this.groups = {};
+    this.amountOfGroups = 0;
+
+    // create the HTML DOM
+    this._create();
+  }
+
+  DataAxis.prototype = new Component();
+
+
+
+  DataAxis.prototype.addGroup = function(label, graphOptions) {
+    if (!this.groups.hasOwnProperty(label)) {
+      this.groups[label] = graphOptions;
+    }
+    this.amountOfGroups += 1;
+  };
+
+  DataAxis.prototype.updateGroup = function(label, graphOptions) {
+    this.groups[label] = graphOptions;
+  };
+
+  DataAxis.prototype.removeGroup = function(label) {
+    if (this.groups.hasOwnProperty(label)) {
+      delete this.groups[label];
+      this.amountOfGroups -= 1;
+    }
+  };
+
+
+  DataAxis.prototype.setOptions = function (options) {
+    if (options) {
+      var redraw = false;
+      if (this.options.orientation != options.orientation && options.orientation !== undefined) {
+        redraw = true;
+      }
+      var fields = [
+        'orientation',
+        'showMinorLabels',
+        'showMajorLabels',
+        'icons',
+        'majorLinesOffset',
+        'minorLinesOffset',
+        'labelOffsetX',
+        'labelOffsetY',
+        'iconWidth',
+        'width',
+        'visible'];
+      util.selectiveExtend(fields, this.options, options);
+
+      this.minWidth = Number(('' + this.options.width).replace("px",""));
+
+      if (redraw == true && this.dom.frame) {
+        this.hide();
+        this.show();
+      }
+    }
+  };
+
+
+  /**
+   * Create the HTML DOM for the DataAxis
+   */
+  DataAxis.prototype._create = function() {
+    this.dom.frame = document.createElement('div');
+    this.dom.frame.style.width = this.options.width;
+    this.dom.frame.style.height = this.height;
+
+    this.dom.lineContainer = document.createElement('div');
+    this.dom.lineContainer.style.width = '100%';
+    this.dom.lineContainer.style.height = this.height;
+
+    // create svg element for graph drawing.
+    this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
+    this.svg.style.position = "absolute";
+    this.svg.style.top = '0px';
+    this.svg.style.height = '100%';
+    this.svg.style.width = '100%';
+    this.svg.style.display = "block";
+    this.dom.frame.appendChild(this.svg);
+  };
+
+  DataAxis.prototype._redrawGroupIcons = function () {
+    DOMutil.prepareElements(this.svgElements);
+
+    var x;
+    var iconWidth = this.options.iconWidth;
+    var iconHeight = 15;
+    var iconOffset = 4;
+    var y = iconOffset + 0.5 * iconHeight;
+
+    if (this.options.orientation == 'left') {
+      x = iconOffset;
+    }
+    else {
+      x = this.width - iconWidth - iconOffset;
+    }
+
+    for (var groupId in this.groups) {
+      if (this.groups.hasOwnProperty(groupId)) {
+        if (this.groups[groupId].visible == true) {
+          this.groups[groupId].drawIcon(x, y, this.svgElements, this.svg, iconWidth, iconHeight);
+          y += iconHeight + iconOffset;
+        }
+      }
+    }
+
+    DOMutil.cleanupElements(this.svgElements);
+  };
+
+  /**
+   * Create the HTML DOM for the DataAxis
+   */
+  DataAxis.prototype.show = function() {
+    if (!this.dom.frame.parentNode) {
+      if (this.options.orientation == 'left') {
+        this.body.dom.left.appendChild(this.dom.frame);
+      }
+      else {
+        this.body.dom.right.appendChild(this.dom.frame);
+      }
+    }
+
+    if (!this.dom.lineContainer.parentNode) {
+      this.body.dom.backgroundHorizontal.appendChild(this.dom.lineContainer);
+    }
+  };
+
+  /**
+   * Create the HTML DOM for the DataAxis
+   */
+  DataAxis.prototype.hide = function() {
+    if (this.dom.frame.parentNode) {
+      this.dom.frame.parentNode.removeChild(this.dom.frame);
+    }
+
+    if (this.dom.lineContainer.parentNode) {
+      this.dom.lineContainer.parentNode.removeChild(this.dom.lineContainer);
+    }
+  };
+
+  /**
+   * Set a range (start and end)
+   * @param end
+   * @param start
+   * @param end
+   */
+  DataAxis.prototype.setRange = function (start, end) {
+    this.range.start = start;
+    this.range.end = end;
+  };
+
+  /**
+   * Repaint the component
+   * @return {boolean} Returns true if the component is resized
+   */
+  DataAxis.prototype.redraw = function () {
+    var changeCalled = false;
+    var activeGroups = 0;
+    for (var groupId in this.groups) {
+      if (this.groups.hasOwnProperty(groupId)) {
+        if (this.groups[groupId].visible == true) {
+          activeGroups++;
+        }
+      }
+    }
+    if (this.amountOfGroups == 0 || activeGroups == 0) {
+      this.hide();
+    }
+    else {
+      this.show();
+      this.height = Number(this.linegraphSVG.style.height.replace("px",""));
+      // svg offsetheight did not work in firefox and explorer...
+
+      this.dom.lineContainer.style.height = this.height + 'px';
+      this.width = this.options.visible == true ? Number(('' + this.options.width).replace("px","")) : 0;
+
+      var props = this.props;
+      var frame = this.dom.frame;
+
+      // update classname
+      frame.className = 'dataaxis';
+
+      // calculate character width and height
+      this._calculateCharSize();
+
+      var orientation = this.options.orientation;
+      var showMinorLabels = this.options.showMinorLabels;
+      var showMajorLabels = this.options.showMajorLabels;
+
+      // determine the width and height of the elemens for the axis
+      props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
+      props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
+
+      props.minorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2 * this.options.minorLinesOffset;
+      props.minorLineHeight = 1;
+      props.majorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2 * this.options.majorLinesOffset;
+      props.majorLineHeight = 1;
+
+      //  take frame offline while updating (is almost twice as fast)
+      if (orientation == 'left') {
+        frame.style.top = '0';
+        frame.style.left = '0';
+        frame.style.bottom = '';
+        frame.style.width = this.width + 'px';
+        frame.style.height = this.height + "px";
+      }
+      else { // right
+        frame.style.top = '';
+        frame.style.bottom = '0';
+        frame.style.left = '0';
+        frame.style.width = this.width + 'px';
+        frame.style.height = this.height + "px";
+      }
+      changeCalled = this._redrawLabels();
+      if (this.options.icons == true) {
+        this._redrawGroupIcons();
+      }
+    }
+    return changeCalled;
+  };
+
+  /**
+   * Repaint major and minor text labels and vertical grid lines
+   * @private
+   */
+  DataAxis.prototype._redrawLabels = function () {
+    DOMutil.prepareElements(this.DOMelements.lines);
+    DOMutil.prepareElements(this.DOMelements.labels);
+
+    var orientation = this.options['orientation'];
+
+    // calculate range and step (step such that we have space for 7 characters per label)
+    var minimumStep = this.master ? this.props.majorCharHeight || 10 : this.stepPixelsForced;
+    var step = new DataStep(this.range.start, this.range.end, minimumStep, this.dom.frame.offsetHeight);
+    this.step = step;
+    step.first();
+    // get the distance in pixels for a step
+    var stepPixels = this.dom.frame.offsetHeight / ((step.marginRange / step.step) + 1);
+    this.stepPixels = stepPixels;
+
+    var amountOfSteps = this.height / stepPixels;
+    var stepDifference = 0;
+
+    if (this.master == false) {
+      stepPixels = this.stepPixelsForced;
+      stepDifference = Math.round((this.height / stepPixels) - amountOfSteps);
+      for (var i = 0; i < 0.5 * stepDifference; i++) {
+        step.previous();
+      }
+      amountOfSteps = this.height / stepPixels;
+    }
+
+
+    this.valueAtZero = step.marginEnd;
+    var marginStartPos = 0;
+
+    // do not draw the first label
+    var max = 1;
+    step.next();
+
+    this.maxLabelSize = 0;
+    var y = 0;
+    while (max < Math.round(amountOfSteps)) {
+
+      y = Math.round(max * stepPixels);
+      marginStartPos = max * stepPixels;
+      var isMajor = step.isMajor();
+
+      if (this.options['showMinorLabels'] && isMajor == false || this.master == false && this.options['showMinorLabels'] == true) {
+        this._redrawLabel(y - 2, step.getCurrent(), orientation, 'yAxis minor', this.props.minorCharHeight);
+      }
+
+      if (isMajor && this.options['showMajorLabels'] && this.master == true ||
+          this.options['showMinorLabels'] == false && this.master == false && isMajor == true) {
+        if (y >= 0) {
+          this._redrawLabel(y - 2, step.getCurrent(), orientation, 'yAxis major', this.props.majorCharHeight);
+        }
+        this._redrawLine(y, orientation, 'grid horizontal major', this.options.majorLinesOffset, this.props.majorLineWidth);
+      }
+      else {
+        this._redrawLine(y, orientation, 'grid horizontal minor', this.options.minorLinesOffset, this.props.minorLineWidth);
+      }
+
+      step.next();
+      max++;
+    }
+
+    this.conversionFactor = marginStartPos/((amountOfSteps-1) * step.step);
+
+    var offset = this.options.icons == true ? this.options.iconWidth + this.options.labelOffsetX + 15 : this.options.labelOffsetX + 15;
+    // this will resize the yAxis to accomodate the labels.
+    if (this.maxLabelSize > (this.width - offset) && this.options.visible == true) {
+      this.width = this.maxLabelSize + offset;
+      this.options.width = this.width + "px";
+      DOMutil.cleanupElements(this.DOMelements.lines);
+      DOMutil.cleanupElements(this.DOMelements.labels);
+      this.redraw();
+      return true;
+    }
+    // this will resize the yAxis if it is too big for the labels.
+    else if (this.maxLabelSize < (this.width - offset) && this.options.visible == true && this.width > this.minWidth) {
+      this.width = Math.max(this.minWidth,this.maxLabelSize + offset);
+      this.options.width = this.width + "px";
+      DOMutil.cleanupElements(this.DOMelements.lines);
+      DOMutil.cleanupElements(this.DOMelements.labels);
+      this.redraw();
+      return true;
+    }
+    else {
+      DOMutil.cleanupElements(this.DOMelements.lines);
+      DOMutil.cleanupElements(this.DOMelements.labels);
+      return false;
+    }
+  };
+
+  /**
+   * Create a label for the axis at position x
+   * @private
+   * @param y
+   * @param text
+   * @param orientation
+   * @param className
+   * @param characterHeight
+   */
+  DataAxis.prototype._redrawLabel = function (y, text, orientation, className, characterHeight) {
+    // reuse redundant label
+    var label = DOMutil.getDOMElement('div',this.DOMelements.labels, this.dom.frame); //this.dom.redundant.labels.shift();
+    label.className = className;
+    label.innerHTML = text;
+    if (orientation == 'left') {
+      label.style.left = '-' + this.options.labelOffsetX + 'px';
+      label.style.textAlign = "right";
+    }
+    else {
+      label.style.right = '-' + this.options.labelOffsetX + 'px';
+      label.style.textAlign = "left";
+    }
+
+    label.style.top = y - 0.5 * characterHeight + this.options.labelOffsetY + 'px';
+
+    text += '';
+
+    var largestWidth = Math.max(this.props.majorCharWidth,this.props.minorCharWidth);
+    if (this.maxLabelSize < text.length * largestWidth) {
+      this.maxLabelSize = text.length * largestWidth;
+    }
+  };
+
+  /**
+   * Create a minor line for the axis at position y
+   * @param y
+   * @param orientation
+   * @param className
+   * @param offset
+   * @param width
+   */
+  DataAxis.prototype._redrawLine = function (y, orientation, className, offset, width) {
+    if (this.master == true) {
+      var line = DOMutil.getDOMElement('div',this.DOMelements.lines, this.dom.lineContainer);//this.dom.redundant.lines.shift();
+      line.className = className;
+      line.innerHTML = '';
+
+      if (orientation == 'left') {
+        line.style.left = (this.width - offset) + 'px';
+      }
+      else {
+        line.style.right = (this.width - offset) + 'px';
+      }
+
+      line.style.width = width + 'px';
+      line.style.top = y + 'px';
+    }
+  };
+
+
+  DataAxis.prototype.convertValue = function (value) {
+    var invertedValue = this.valueAtZero - value;
+    var convertedValue = invertedValue * this.conversionFactor;
+    return convertedValue; // the -2 is to compensate for the borders
+  };
+
+
+  /**
+   * Determine the size of text on the axis (both major and minor axis).
+   * The size is calculated only once and then cached in this.props.
+   * @private
+   */
+  DataAxis.prototype._calculateCharSize = function () {
+    // determine the char width and height on the minor axis
+    if (!('minorCharHeight' in this.props)) {
+      var textMinor = document.createTextNode('0');
+      var measureCharMinor = document.createElement('DIV');
+      measureCharMinor.className = 'yAxis minor measure';
+      measureCharMinor.appendChild(textMinor);
+      this.dom.frame.appendChild(measureCharMinor);
+
+      this.props.minorCharHeight = measureCharMinor.clientHeight;
+      this.props.minorCharWidth = measureCharMinor.clientWidth;
+
+      this.dom.frame.removeChild(measureCharMinor);
+    }
+
+    if (!('majorCharHeight' in this.props)) {
+      var textMajor = document.createTextNode('0');
+      var measureCharMajor = document.createElement('DIV');
+      measureCharMajor.className = 'yAxis major measure';
+      measureCharMajor.appendChild(textMajor);
+      this.dom.frame.appendChild(measureCharMajor);
+
+      this.props.majorCharHeight = measureCharMajor.clientHeight;
+      this.props.majorCharWidth = measureCharMajor.clientWidth;
+
+      this.dom.frame.removeChild(measureCharMajor);
+    }
+  };
+
+  /**
+   * Snap a date to a rounded value.
+   * The snap intervals are dependent on the current scale and step.
+   * @param {Date} date   the date to be snapped.
+   * @return {Date} snappedDate
+   */
+  DataAxis.prototype.snap = function(date) {
+    return this.step.snap(date);
+  };
+
+  module.exports = DataAxis;
+
+
+/***/ },
+/* 38 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * @constructor  DataStep
+   * The class DataStep is an iterator for data for the lineGraph. You provide a start data point and an
+   * end data point. The class itself determines the best scale (step size) based on the
+   * provided start Date, end Date, and minimumStep.
+   *
+   * If minimumStep is provided, the step size is chosen as close as possible
+   * to the minimumStep but larger than minimumStep. If minimumStep is not
+   * provided, the scale is set to 1 DAY.
+   * The minimumStep should correspond with the onscreen size of about 6 characters
+   *
+   * Alternatively, you can set a scale by hand.
+   * After creation, you can initialize the class by executing first(). Then you
+   * can iterate from the start date to the end date via next(). You can check if
+   * the end date is reached with the function hasNext(). After each step, you can
+   * retrieve the current date via getCurrent().
+   * The DataStep has scales ranging from milliseconds, seconds, minutes, hours,
+   * days, to years.
+   *
+   * Version: 1.2
+   *
+   * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
+   *                               or new Date(2010, 9, 21, 23, 45, 00)
+   * @param {Date} [end]           The end date
+   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
+   */
+  function DataStep(start, end, minimumStep, containerHeight, forcedStepSize) {
+    // variables
+    this.current = 0;
+
+    this.autoScale = true;
+    this.stepIndex = 0;
+    this.step = 1;
+    this.scale = 1;
+
+    this.marginStart;
+    this.marginEnd;
+
+    this.majorSteps = [1,     2,    5,  10];
+    this.minorSteps = [0.25,  0.5,  1,  2];
+
+    this.setRange(start, end, minimumStep, containerHeight, forcedStepSize);
+  }
+
+
+
+  /**
+   * Set a new range
+   * If minimumStep is provided, the step size is chosen as close as possible
+   * to the minimumStep but larger than minimumStep. If minimumStep is not
+   * provided, the scale is set to 1 DAY.
+   * The minimumStep should correspond with the onscreen size of about 6 characters
+   * @param {Number} [start]      The start date and time.
+   * @param {Number} [end]        The end date and time.
+   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
+   */
+  DataStep.prototype.setRange = function(start, end, minimumStep, containerHeight, forcedStepSize) {
+    this._start = start;
+    this._end = end;
+
+    if (start == end) {
+      this._start = start - 0.75;
+      this._end = end + 1;
+    }
+
+    if (this.autoScale) {
+      this.setMinimumStep(minimumStep, containerHeight, forcedStepSize);
+    }
+    this.setFirst();
+  };
+
+  /**
+   * Automatically determine the scale that bests fits the provided minimum step
+   * @param {Number} [minimumStep]  The minimum step size in milliseconds
+   */
+  DataStep.prototype.setMinimumStep = function(minimumStep, containerHeight) {
+    // round to floor
+    var size = this._end - this._start;
+    var safeSize = size * 1.1;
+    var minimumStepValue = minimumStep * (safeSize / containerHeight);
+    var orderOfMagnitude = Math.round(Math.log(safeSize)/Math.LN10);
+
+    var minorStepIdx = -1;
+    var magnitudefactor = Math.pow(10,orderOfMagnitude);
+
+    var start = 0;
+    if (orderOfMagnitude < 0) {
+      start = orderOfMagnitude;
+    }
+
+    var solutionFound = false;
+    for (var i = start; Math.abs(i) <= Math.abs(orderOfMagnitude); i++) {
+      magnitudefactor = Math.pow(10,i);
+      for (var j = 0; j < this.minorSteps.length; j++) {
+        var stepSize = magnitudefactor * this.minorSteps[j];
+        if (stepSize >= minimumStepValue) {
+          solutionFound = true;
+          minorStepIdx = j;
+          break;
+        }
+      }
+      if (solutionFound == true) {
+        break;
+      }
+    }
+    this.stepIndex = minorStepIdx;
+    this.scale = magnitudefactor;
+    this.step = magnitudefactor * this.minorSteps[minorStepIdx];
+  };
+
+
+  /**
+   * Set the range iterator to the start date.
+   */
+  DataStep.prototype.first = function() {
+    this.setFirst();
+  };
+
+  /**
+   * Round the current date to the first minor date value
+   * This must be executed once when the current date is set to start Date
+   */
+  DataStep.prototype.setFirst = function() {
+    var niceStart = this._start - (this.scale * this.minorSteps[this.stepIndex]);
+    var niceEnd = this._end + (this.scale * this.minorSteps[this.stepIndex]);
+
+    this.marginEnd = this.roundToMinor(niceEnd);
+    this.marginStart = this.roundToMinor(niceStart);
+    this.marginRange = this.marginEnd - this.marginStart;
+
+    this.current = this.marginEnd;
+
+  };
+
+  DataStep.prototype.roundToMinor = function(value) {
+    var rounded = value - (value % (this.scale * this.minorSteps[this.stepIndex]));
+    if (value % (this.scale * this.minorSteps[this.stepIndex]) > 0.5 * (this.scale * this.minorSteps[this.stepIndex])) {
+      return rounded + (this.scale * this.minorSteps[this.stepIndex]);
+    }
+    else {
+      return rounded;
+    }
+  }
+
+
+  /**
+   * Check if the there is a next step
+   * @return {boolean}  true if the current date has not passed the end date
+   */
+  DataStep.prototype.hasNext = function () {
+    return (this.current >= this.marginStart);
+  };
+
+  /**
+   * Do the next step
+   */
+  DataStep.prototype.next = function() {
+    var prev = this.current;
+    this.current -= this.step;
+
+    // safety mechanism: if current time is still unchanged, move to the end
+    if (this.current == prev) {
+      this.current = this._end;
+    }
+  };
+
+  /**
+   * Do the next step
+   */
+  DataStep.prototype.previous = function() {
+    this.current += this.step;
+    this.marginEnd += this.step;
+    this.marginRange = this.marginEnd - this.marginStart;
+  };
+
+
+
+  /**
+   * Get the current datetime
+   * @return {String}  current The current date
+   */
+  DataStep.prototype.getCurrent = function() {
+    var toPrecision = '' + Number(this.current).toPrecision(5);
+    for (var i = toPrecision.length-1; i > 0; i--) {
+      if (toPrecision[i] == "0") {
+        toPrecision = toPrecision.slice(0,i);
+      }
+      else if (toPrecision[i] == "." || toPrecision[i] == ",") {
+        toPrecision = toPrecision.slice(0,i);
+        break;
+      }
+      else{
+        break;
+      }
+    }
+
+    return toPrecision;
+  };
+
+
+
+  /**
+   * Snap a date to a rounded value.
+   * The snap intervals are dependent on the current scale and step.
+   * @param {Date} date   the date to be snapped.
+   * @return {Date} snappedDate
+   */
+  DataStep.prototype.snap = function(date) {
+
+  };
+
+  /**
+   * Check if the current value is a major value (for example when the step
+   * is DAY, a major value is each first day of the MONTH)
+   * @return {boolean} true if current date is major, else false.
+   */
+  DataStep.prototype.isMajor = function() {
+    return (this.current % (this.scale * this.majorSteps[this.stepIndex]) == 0);
+  };
+
+  module.exports = DataStep;
+
+
+/***/ },
+/* 39 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var util = __webpack_require__(1);
+  var DOMutil = __webpack_require__(6);
+
+  /**
+   * @constructor Group
+   * @param {Number | String} groupId
+   * @param {Object} data
+   * @param {ItemSet} itemSet
+   */
+  function GraphGroup (group, groupId, options, groupsUsingDefaultStyles) {
+    this.id = groupId;
+    var fields = ['sampling','style','sort','yAxisOrientation','barChart','drawPoints','shaded','catmullRom']
+    this.options = util.selectiveBridgeObject(fields,options);
+    this.usingDefaultStyle = group.className === undefined;
+    this.groupsUsingDefaultStyles = groupsUsingDefaultStyles;
+    this.zeroPosition = 0;
+    this.update(group);
+    if (this.usingDefaultStyle == true) {
+      this.groupsUsingDefaultStyles[0] += 1;
+    }
+    this.itemsData = [];
+    this.visible = group.visible === undefined ? true : group.visible;
+  }
+
+  GraphGroup.prototype.setItems = function(items) {
+    if (items != null) {
+      this.itemsData = items;
+      if (this.options.sort == true) {
+        this.itemsData.sort(function (a,b) {return a.x - b.x;})
+      }
+    }
+    else {
+      this.itemsData = [];
+    }
+  };
+
+  GraphGroup.prototype.setZeroPosition = function(pos) {
+    this.zeroPosition = pos;
+  };
+
+  GraphGroup.prototype.setOptions = function(options) {
+    if (options !== undefined) {
+      var fields = ['sampling','style','sort','yAxisOrientation','barChart'];
+      util.selectiveDeepExtend(fields, this.options, options);
+
+      util.mergeOptions(this.options, options,'catmullRom');
+      util.mergeOptions(this.options, options,'drawPoints');
+      util.mergeOptions(this.options, options,'shaded');
+
+      if (options.catmullRom) {
+        if (typeof options.catmullRom == 'object') {
+          if (options.catmullRom.parametrization) {
+            if (options.catmullRom.parametrization == 'uniform') {
+              this.options.catmullRom.alpha = 0;
+            }
+            else if (options.catmullRom.parametrization == 'chordal') {
+              this.options.catmullRom.alpha = 1.0;
+            }
+            else {
+              this.options.catmullRom.parametrization = 'centripetal';
+              this.options.catmullRom.alpha = 0.5;
+            }
+          }
+        }
+      }
+    }
+  };
+
+  GraphGroup.prototype.update = function(group) {
+    this.group = group;
+    this.content = group.content || 'graph';
+    this.className = group.className || this.className || "graphGroup" + this.groupsUsingDefaultStyles[0] % 10;
+    this.visible = group.visible === undefined ? true : group.visible;
+    this.setOptions(group.options);
+  };
+
+  GraphGroup.prototype.drawIcon = function(x, y, JSONcontainer, SVGcontainer, iconWidth, iconHeight) {
+    var fillHeight = iconHeight * 0.5;
+    var path, fillPath;
+
+    var outline = DOMutil.getSVGElement("rect", JSONcontainer, SVGcontainer);
+    outline.setAttributeNS(null, "x", x);
+    outline.setAttributeNS(null, "y", y - fillHeight);
+    outline.setAttributeNS(null, "width", iconWidth);
+    outline.setAttributeNS(null, "height", 2*fillHeight);
+    outline.setAttributeNS(null, "class", "outline");
+
+    if (this.options.style == 'line') {
+      path = DOMutil.getSVGElement("path", JSONcontainer, SVGcontainer);
+      path.setAttributeNS(null, "class", this.className);
+      path.setAttributeNS(null, "d", "M" + x + ","+y+" L" + (x + iconWidth) + ","+y+"");
+      if (this.options.shaded.enabled == true) {
+        fillPath = DOMutil.getSVGElement("path", JSONcontainer, SVGcontainer);
+        if (this.options.shaded.orientation == 'top') {
+          fillPath.setAttributeNS(null, "d", "M"+x+", " + (y - fillHeight) +
+            "L"+x+","+y+" L"+ (x + iconWidth) + ","+y+" L"+ (x + iconWidth) + "," + (y - fillHeight));
+        }
+        else {
+          fillPath.setAttributeNS(null, "d", "M"+x+","+y+" " +
+            "L"+x+"," + (y + fillHeight) + " " +
+            "L"+ (x + iconWidth) + "," + (y + fillHeight) +
+            "L"+ (x + iconWidth) + ","+y);
+        }
+        fillPath.setAttributeNS(null, "class", this.className + " iconFill");
+      }
+
+      if (this.options.drawPoints.enabled == true) {
+        DOMutil.drawPoint(x + 0.5 * iconWidth,y, this, JSONcontainer, SVGcontainer);
+      }
+    }
+    else {
+      var barWidth = Math.round(0.3 * iconWidth);
+      var bar1Height = Math.round(0.4 * iconHeight);
+      var bar2Height = Math.round(0.75 * iconHeight);
+
+      var offset = Math.round((iconWidth - (2 * barWidth))/3);
+
+      DOMutil.drawBar(x + 0.5*barWidth + offset    , y + fillHeight - bar1Height - 1, barWidth, bar1Height, this.className + ' bar', JSONcontainer, SVGcontainer);
+      DOMutil.drawBar(x + 1.5*barWidth + offset + 2, y + fillHeight - bar2Height - 1, barWidth, bar2Height, this.className + ' bar', JSONcontainer, SVGcontainer);
+    }
+  };
+
+  /**
+   *
+   * @param iconWidth
+   * @param iconHeight
+   * @returns {{icon: HTMLElement, label: (group.content|*|string), orientation: (.options.yAxisOrientation|*)}}
+   */
+  GraphGroup.prototype.getLegend = function(iconWidth, iconHeight) {
+    var svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
+    this.drawIcon(0,0.5*iconHeight,[],svg,iconWidth,iconHeight);
+    return {icon: svg, label: this.content, orientation:this.options.yAxisOrientation};
+  }
+
+  module.exports = GraphGroup;
+
+
+/***/ },
+/* 40 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var util = __webpack_require__(1);
+  var DOMutil = __webpack_require__(6);
+  var Component = __webpack_require__(22);
+
+  /**
+   * Legend for Graph2d
+   */
+  function Legend(body, options, side) {
+    this.body = body;
+    this.defaultOptions = {
+      enabled: true,
+      icons: true,
+      iconSize: 20,
+      iconSpacing: 6,
+      left: {
+        visible: true,
+        position: 'top-left' // top/bottom - left,center,right
+      },
+      right: {
+        visible: true,
+        position: 'top-left' // top/bottom - left,center,right
+      }
+    }
+    this.side = side;
+    this.options = util.extend({},this.defaultOptions);
+
+    this.svgElements = {};
+    this.dom = {};
+    this.groups = {};
+    this.amountOfGroups = 0;
+    this._create();
+
+    this.setOptions(options);
+  }
+
+  Legend.prototype = new Component();
+
+
+  Legend.prototype.addGroup = function(label, graphOptions) {
+    if (!this.groups.hasOwnProperty(label)) {
+      this.groups[label] = graphOptions;
+    }
+    this.amountOfGroups += 1;
+  };
+
+  Legend.prototype.updateGroup = function(label, graphOptions) {
+    this.groups[label] = graphOptions;
+  };
+
+  Legend.prototype.removeGroup = function(label) {
+    if (this.groups.hasOwnProperty(label)) {
+      delete this.groups[label];
+      this.amountOfGroups -= 1;
+    }
+  };
+
+  Legend.prototype._create = function() {
+    this.dom.frame = document.createElement('div');
+    this.dom.frame.className = 'legend';
+    this.dom.frame.style.position = "absolute";
+    this.dom.frame.style.top = "10px";
+    this.dom.frame.style.display = "block";
+
+    this.dom.textArea = document.createElement('div');
+    this.dom.textArea.className = 'legendText';
+    this.dom.textArea.style.position = "relative";
+    this.dom.textArea.style.top = "0px";
+
+    this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
+    this.svg.style.position = 'absolute';
+    this.svg.style.top = 0 +'px';
+    this.svg.style.width = this.options.iconSize + 5 + 'px';
+
+    this.dom.frame.appendChild(this.svg);
+    this.dom.frame.appendChild(this.dom.textArea);
+  };
+
+  /**
+   * Hide the component from the DOM
+   */
+  Legend.prototype.hide = function() {
+    // remove the frame containing the items
+    if (this.dom.frame.parentNode) {
+      this.dom.frame.parentNode.removeChild(this.dom.frame);
+    }
+  };
+
+  /**
+   * Show the component in the DOM (when not already visible).
+   * @return {Boolean} changed
+   */
+  Legend.prototype.show = function() {
+    // show frame containing the items
+    if (!this.dom.frame.parentNode) {
+      this.body.dom.center.appendChild(this.dom.frame);
+    }
+  };
+
+  Legend.prototype.setOptions = function(options) {
+    var fields = ['enabled','orientation','icons','left','right'];
+    util.selectiveDeepExtend(fields, this.options, options);
+  };
+
+  Legend.prototype.redraw = function() {
+    var activeGroups = 0;
+    for (var groupId in this.groups) {
+      if (this.groups.hasOwnProperty(groupId)) {
+        if (this.groups[groupId].visible == true) {
+          activeGroups++;
+        }
+      }
+    }
+
+    if (this.options[this.side].visible == false || this.amountOfGroups == 0 || this.options.enabled == false || activeGroups == 0) {
+      this.hide();
+    }
+    else {
+      this.show();
+      if (this.options[this.side].position == 'top-left' || this.options[this.side].position == 'bottom-left') {
+        this.dom.frame.style.left = '4px';
+        this.dom.frame.style.textAlign = "left";
+        this.dom.textArea.style.textAlign = "left";
+        this.dom.textArea.style.left = (this.options.iconSize + 15) + 'px';
+        this.dom.textArea.style.right = '';
+        this.svg.style.left = 0 +'px';
+        this.svg.style.right = '';
+      }
+      else {
+        this.dom.frame.style.right = '4px';
+        this.dom.frame.style.textAlign = "right";
+        this.dom.textArea.style.textAlign = "right";
+        this.dom.textArea.style.right = (this.options.iconSize + 15) + 'px';
+        this.dom.textArea.style.left = '';
+        this.svg.style.right = 0 +'px';
+        this.svg.style.left = '';
+      }
+
+      if (this.options[this.side].position == 'top-left' || this.options[this.side].position == 'top-right') {
+        this.dom.frame.style.top = 4 - Number(this.body.dom.center.style.top.replace("px","")) + 'px';
+        this.dom.frame.style.bottom = '';
+      }
+      else {
+        this.dom.frame.style.bottom = 4 - Number(this.body.dom.center.style.top.replace("px","")) + 'px';
+        this.dom.frame.style.top = '';
+      }
+
+      if (this.options.icons == false) {
+        this.dom.frame.style.width = this.dom.textArea.offsetWidth + 10 + 'px';
+        this.dom.textArea.style.right = '';
+        this.dom.textArea.style.left = '';
+        this.svg.style.width = '0px';
+      }
+      else {
+        this.dom.frame.style.width = this.options.iconSize + 15 + this.dom.textArea.offsetWidth + 10 + 'px'
+        this.drawLegendIcons();
+      }
+
+      var content = '';
+      for (var groupId in this.groups) {
+        if (this.groups.hasOwnProperty(groupId)) {
+          if (this.groups[groupId].visible == true) {
+            content += this.groups[groupId].content + '<br />';
+          }
+        }
+      }
+      this.dom.textArea.innerHTML = content;
+      this.dom.textArea.style.lineHeight = ((0.75 * this.options.iconSize) + this.options.iconSpacing) + 'px';
+    }
+  };
+
+  Legend.prototype.drawLegendIcons = function() {
+    if (this.dom.frame.parentNode) {
+      DOMutil.prepareElements(this.svgElements);
+      var padding = window.getComputedStyle(this.dom.frame).paddingTop;
+      var iconOffset = Number(padding.replace('px',''));
+      var x = iconOffset;
+      var iconWidth = this.options.iconSize;
+      var iconHeight = 0.75 * this.options.iconSize;
+      var y = iconOffset + 0.5 * iconHeight + 3;
+
+      this.svg.style.width = iconWidth + 5 + iconOffset + 'px';
+
+      for (var groupId in this.groups) {
+        if (this.groups.hasOwnProperty(groupId)) {
+          if (this.groups[groupId].visible == true) {
+            this.groups[groupId].drawIcon(x, y, this.svgElements, this.svg, iconWidth, iconHeight);
+            y += iconHeight + this.options.iconSpacing;
+          }
+        }
+      }
+
+      DOMutil.cleanupElements(this.svgElements);
+    }
+  };
+
+  module.exports = Legend;
 
 
 /***/ },

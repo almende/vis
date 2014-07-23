@@ -3,7 +3,14 @@ http://visjs.org
 
 ## not yet released, version 3.1.1
 
-(no changes yet)
+### General
+
+- Refactored Timeline and Graph2d to use the same core.
+
+### Graph2D
+
+- Added visible property to the groups.
+- Added getLegend() method.
 
 
 ## 2014-07-22, version 3.1.0
