@@ -53,9 +53,7 @@
                 edges: edges
             };
             var options = {
-                edges: {
-                    length: 80
-                },
+                physics: {barnesHut:{springLength:120}}, // this is the correct way to set the length of the springs
                 clustering: {
                     enabled: clusteringOn
                 },

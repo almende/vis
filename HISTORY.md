@@ -19,7 +19,16 @@ http://visjs.org
 
 - Fixed items in groups sometimes being displayed but not positioned correctly.
 
+### Network
 
+- Fixed mass = 0 for nodes.
+- Revamped the options system. You can globally set options (network.setOptions) to update
+settings of nodes and edges that have not been specifically defined by the individual nodes and edges.
+- Disabled inheritColor when color information is set on an edge.
+- Tweaked examples.
+- Removed the global length property for edges. The edgelength is part of the physics system. Therefore, you have to change
+the springLength of the physics system to change the edge length. Individual edge lengths can still be defined.
+- Removed global edge length definition form examples.
 
 
 ## 2014-07-22, version 3.1.0

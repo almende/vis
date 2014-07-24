@@ -1261,6 +1261,8 @@ var options = {
 
 <p>
   Edges can be configured with different length and styling. To configure edges, provide an object named <code>edges</code> in the <code>options</code> for the Network.
+  Because the length of an edge is a property of the physics simulation, you can change the length of the edge by changing the springLength in your selected physics solver.
+    To change the edge length of individual edges, you can use the <code>length</code> property in the <a href="Edges">edge definition</a>.
 </p>
 
 <p>
@@ -1352,12 +1354,6 @@ var options = {
     <td>5</td>
     <td>Default length of a gap in pixels on a dashed line.
       Only applicable when the line style is <code>dash-line</code>.</td>
-  </tr>
-  <tr>
-    <td>length</td>
-    <td>number</td>
-    <td>physics.[method].springLength</td>
-    <td>The resting length of the edge when modeled as a spring. By default the springLength determined by the physics is used. By using this setting you can make certain edges have different resting lengths.</td>
   </tr>
 
     <tr>
