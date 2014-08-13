@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.1.1-SNAPSHOT
- * @date    2014-07-24
+ * @date    2014-08-13
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -15353,11 +15353,11 @@ return /******/ (function(modules) { // webpackBootstrap
     if (content instanceof Element) {
       this.dom.inner.appendChild(content);
     }
-    else if (content != undefined) {
+    else if (content !== undefined && content !== null) {
       this.dom.inner.innerHTML = content;
     }
     else {
-      this.dom.inner.innerHTML = this.groupId;
+      this.dom.inner.innerHTML = this.groupId || ''; // groupId can be null
     }
 
     // update title
@@ -19731,7 +19731,7 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         }
       }
-      console.log(this.triggerFunctions)
+
       if (options.onAdd) {this.triggerFunctions.add = options.onAdd;}
       if (options.onEdit) {this.triggerFunctions.edit = options.onEdit;}
       if (options.onEditEdge) {this.triggerFunctions.editEdge = options.onEditEdge;}
@@ -25213,7 +25213,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   Edge.prototype.positionBezierNode = function() {
-    if (this.via !== null) {
+    if (this.via !== null && this.from !== null && this.to !== null) {
       this.via.x = 0.5 * (this.from.x + this.to.x);
       this.via.y = 0.5 * (this.from.y + this.to.y);
     }
