@@ -18,6 +18,7 @@ http://visjs.org
 ### Timeline
 
 - Fixed items in groups sometimes being displayed but not positioned correctly.
+- Fixed a group "null" being displayed in IE when not using groups.
 
 ### Network
 
