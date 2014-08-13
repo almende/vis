@@ -25,10 +25,6 @@ div.network-navigation:active {
     box-shadow: 0px 0px 1px 3px rgba(56, 207, 21, 0.95);
 }
 
-div.network-navigation.active {
-    box-shadow: 0px 0px 1px 3px rgba(56, 207, 21, 0.95);
-}
-
 div.network-navigation.up {
     background-image: url("img/network/upArrow.png");
     bottom:50px;

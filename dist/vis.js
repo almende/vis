@@ -30051,6 +30051,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
+  var Hammer = __webpack_require__(18);
 
   exports._cleanNavigation = function() {
     // clean up previous navigation items
@@ -30083,15 +30084,17 @@ return /******/ (function(modules) { // webpackBootstrap
     this.navigationDivs['wrapper'].style.height = this.frame.canvas.clientHeight + "px";
     this.containerElement.insertBefore(this.navigationDivs['wrapper'],this.frame);
 
+    var me = this;
     for (var i = 0; i < navigationDivs.length; i++) {
       this.navigationDivs[navigationDivs[i]] = document.createElement('div');
       this.navigationDivs[navigationDivs[i]].id = "network-navigation_" + navigationDivs[i];
       this.navigationDivs[navigationDivs[i]].className = "network-navigation " + navigationDivs[i];
       this.navigationDivs['wrapper'].appendChild(this.navigationDivs[navigationDivs[i]]);
-      this.navigationDivs[navigationDivs[i]].onmousedown = this[navigationDivActions[i]].bind(this);
+      var hammer = Hammer(this.navigationDivs[navigationDivs[i]], {prevent_default: true});
+      hammer.on("touch", me[navigationDivActions[i]].bind(me));
     }
-
-    document.onmouseup = this._stopMovement.bind(this);
+    var hammer = Hammer(document, {prevent_default: false});
+    hammer.on("release", me._stopMovement.bind(me));
   };
 
   /**
@@ -30117,10 +30120,6 @@ return /******/ (function(modules) { // webpackBootstrap
   exports._moveUp = function(event) {
     this.yIncrement = this.constants.keyboard.speed.y;
     this.start(); // if there is no node movement, the calculation wont be done
-    util.preventDefault(event);
-    if (this.navigationDivs) {
-      this.navigationDivs['up'].className += " active";
-    }
   };
 
 
@@ -30131,10 +30130,6 @@ return /******/ (function(modules) { // webpackBootstrap
   exports._moveDown = function(event) {
     this.yIncrement = -this.constants.keyboard.speed.y;
     this.start(); // if there is no node movement, the calculation wont be done
-    util.preventDefault(event);
-    if (this.navigationDivs) {
-      this.navigationDivs['down'].className += " active";
-    }
   };
 
 
@@ -30145,10 +30140,6 @@ return /******/ (function(modules) { // webpackBootstrap
   exports._moveLeft = function(event) {
     this.xIncrement = this.constants.keyboard.speed.x;
     this.start(); // if there is no node movement, the calculation wont be done
-    util.preventDefault(event);
-    if (this.navigationDivs) {
-      this.navigationDivs['left'].className += " active";
-    }
   };
 
 
@@ -30159,10 +30150,6 @@ return /******/ (function(modules) { // webpackBootstrap
   exports._moveRight = function(event) {
     this.xIncrement = -this.constants.keyboard.speed.y;
     this.start(); // if there is no node movement, the calculation wont be done
-    util.preventDefault(event);
-    if (this.navigationDivs) {
-      this.navigationDivs['right'].className += " active";
-    }
   };
 
 
@@ -30173,10 +30160,6 @@ return /******/ (function(modules) { // webpackBootstrap
   exports._zoomIn = function(event) {
     this.zoomIncrement = this.constants.keyboard.speed.zoom;
     this.start(); // if there is no node movement, the calculation wont be done
-    util.preventDefault(event);
-    if (this.navigationDivs) {
-      this.navigationDivs['zoomIn'].className += " active";
-    }
   };
 
 
@@ -30188,9 +30171,6 @@ return /******/ (function(modules) { // webpackBootstrap
     this.zoomIncrement = -this.constants.keyboard.speed.zoom;
     this.start(); // if there is no node movement, the calculation wont be done
     util.preventDefault(event);
-    if (this.navigationDivs) {
-      this.navigationDivs['zoomOut'].className += " active";
-    }
   };
 
 
@@ -30200,10 +30180,6 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   exports._stopZoom = function() {
     this.zoomIncrement = 0;
-    if (this.navigationDivs) {
-      this.navigationDivs['zoomIn'].className = this.navigationDivs['zoomIn'].className.replace(" active","");
-      this.navigationDivs['zoomOut'].className = this.navigationDivs['zoomOut'].className.replace(" active","");
-    }
   };
 
 
@@ -30213,10 +30189,6 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   exports._yStopMoving = function() {
     this.yIncrement = 0;
-    if (this.navigationDivs) {
-      this.navigationDivs['up'].className = this.navigationDivs['up'].className.replace(" active","");
-      this.navigationDivs['down'].className = this.navigationDivs['down'].className.replace(" active","");
-    }
   };
 
 
@@ -30226,10 +30198,6 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   exports._xStopMoving = function() {
     this.xIncrement = 0;
-    if (this.navigationDivs) {
-      this.navigationDivs['left'].className = this.navigationDivs['left'].className.replace(" active","");
-      this.navigationDivs['right'].className = this.navigationDivs['right'].className.replace(" active","");
-    }
   };
 
 
