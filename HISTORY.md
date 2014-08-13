@@ -30,6 +30,8 @@ settings of nodes and edges that have not been specifically defined by the indiv
 - Removed the global length property for edges. The edgelength is part of the physics system. Therefore, you have to change
 the springLength of the physics system to change the edge length. Individual edge lengths can still be defined.
 - Removed global edge length definition form examples.
+- Removed onclick and onrelease for navigation and switched to Hammer.js (fixing touchscreen interaction with navigation).
+- Fixed error on adding an edge without having created the nodes it should be connected to (in the case of dynamic smooth curves).
 
 
 ## 2014-07-22, version 3.1.0
