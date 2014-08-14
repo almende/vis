@@ -61,7 +61,6 @@
       options = {
         stabilize: false,
         edges: {
-          length: 120,
           width: 2,
           style: 'arrow',
           color: 'gray'
@@ -79,6 +78,7 @@
             }
           }
         },
+        physics: {barnesHut:{springLength:200}}, // this is the correct way to set the length of the springs
         groups: {
           black: {
             // defaults for nodes in this group

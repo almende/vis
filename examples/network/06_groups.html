@@ -64,8 +64,7 @@
             edges.push({
               from: from + nodeOffset,
               to: to + nodeOffset,
-              length: len,
-              color: color
+              length: len
             });
             connectionCount[from]++;
             connectionCount[to]++;
@@ -85,8 +84,7 @@
             edges.push({
               from: from + nodeOffset,
               to: to + nodeOffset,
-              length: len,
-              color: color
+              length: len
             });
             connectionCount[from]++;
             connectionCount[to]++;
@@ -112,8 +110,7 @@
           edges.push({
             from: from,
             to: to,
-            length: len,
-            color: color
+            length: len
           });
         }
 
@@ -135,9 +132,7 @@
         nodes: {
           shape: 'dot'
         },
-        edges: {
-          length: 50
-        }
+        physics: {barnesHut:{springLength: 200}}
       };
       network = new vis.Network(container, data, options);
     }
