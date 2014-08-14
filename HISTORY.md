@@ -1,7 +1,8 @@
 # vis.js history
 http://visjs.org
 
-## not yet released, version 3.1.1
+
+## 2014-08-14, version 3.2.0
 
 ### General
 
@@ -9,11 +10,11 @@ http://visjs.org
 
 ### Graph2D
 
-- Added visible property to the groups.
-- Added getLegend() method.
-- Added isGroupVisible() method.
+- Added `visible` property to the groups.
+- Added `getLegend()` method.
+- Added `isGroupVisible()` method.
 - Fixed empty group bug.
-- Added fit() and getItemRange() methods.
+- Added `fit()` and `getItemRange()` methods.
 
 ### Timeline
 
@@ -23,12 +24,10 @@ http://visjs.org
 ### Network
 
 - Fixed mass = 0 for nodes.
-- Revamped the options system. You can globally set options (network.setOptions) to update
-settings of nodes and edges that have not been specifically defined by the individual nodes and edges.
+- Revamped the options system. You can globally set options (network.setOptions) to update settings of nodes and edges that have not been specifically defined by the individual nodes and edges.
 - Disabled inheritColor when color information is set on an edge.
 - Tweaked examples.
-- Removed the global length property for edges. The edgelength is part of the physics system. Therefore, you have to change
-the springLength of the physics system to change the edge length. Individual edge lengths can still be defined.
+- Removed the global length property for edges. The edgelength is part of the physics system. Therefore, you have to change the springLength of the physics system to change the edge length. Individual edge lengths can still be defined.
 - Removed global edge length definition form examples.
 - Removed onclick and onrelease for navigation and switched to Hammer.js (fixing touchscreen interaction with navigation).
 - Fixed error on adding an edge without having created the nodes it should be connected to (in the case of dynamic smooth curves).
