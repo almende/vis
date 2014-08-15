@@ -10073,13 +10073,13 @@ function onClick(selectedItems) {
     else {
         var allEdges = edges.get();
 
-        // we clear the level of seperation in all nodes.
+        // we clear the level of separation in all nodes.
         clearLevelOfSeperation(allNodes);
 
         // we will now start to collect all the connected nodes we want to highlight.
         var connectedNodes = selectedItems.nodes;
 
-        // we can store them into levels of seperation and we could then later use this to define a color per level
+        // we can store them into levels of separation and we could then later use this to define a color per level
         // any data can be added to a node, this is just stored in the nodeObject.
         storeLevelOfSeperation(connectedNodes,0, allNodes);
         for (var i = 1; i < degrees + 1; i++) {
@@ -10126,7 +10126,7 @@ function onClick(selectedItems) {
 
 
 /**
- * update the allNodes object with the level of seperation.
+ * update the allNodes object with the level of separation.
  * Arrays are passed by reference, we do not need to return them because we are working in the same object.
  */
 function storeLevelOfSeperation(connectedNodes, level, allNodes) {
