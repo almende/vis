@@ -2,6 +2,19 @@
 http://visjs.org
 
 
+## not yet released, version 3.2.1
+
+### Timeline
+
+- Fixed the `change` event sometimes being fired twice on IE10.
+- Fixed canceling moving an item to another group did not move the item
+  back to the original group.
+
+### Network
+
+- A fix in reading group properties for a node.
+
+
 ## 2014-08-14, version 3.2.0
 
 ### General
