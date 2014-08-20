@@ -7,6 +7,8 @@ http://visjs.org
 ### Timeline
 
 - Fixed the `change` event sometimes being fired twice on IE10.
+- Fixed canceling moving an item to another group did not move the item
+  back to the original group.
 
 ### Network
 
