@@ -443,14 +443,14 @@ var options = {
     <td>locale</td>
     <td>String</td>
     <td>none</td>
-    <td>Select a locale for the Timeline. See section <a>Localization</a> for more information.</td>
+    <td>Select a locale for the Timeline. See section <a href="#Localization">Localization</a> for more information.</td>
 </tr>
 
 <tr>
     <td>locales</td>
     <td>Object</td>
     <td>none</td>
-    <td>A map with i18n locales. See section <a>Localization</a> for more information.</td>
+    <td>A map with i18n locales. See section <a href="#Localization">Localization</a> for more information.</td>
 </tr>
 
 <tr>
@@ -1025,7 +1025,7 @@ To load a locale into the Timeline not supported by default, one can add a new l
 
 <pre class="prettyprint lang-js">var options = {
   locales: {
-    // create a new locale
+    // create a new locale (text strings should be replaced with localized strings)
     mylocale: {
       current: 'current',
       time: 'time',
@@ -1039,7 +1039,9 @@ To load a locale into the Timeline not supported by default, one can add a new l
 
 <h3 id="available-locales">Available locales</h3>
 
-Timeline comes with support for the following locales:
+<p>
+  Timeline comes with support for the following locales:
+</p>
 
 <table>
   <tr><th>Language</th><th>Code</th></tr>
