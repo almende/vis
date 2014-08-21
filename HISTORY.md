@@ -9,6 +9,7 @@ http://visjs.org
 - Fixed the `change` event sometimes being fired twice on IE10.
 - Fixed canceling moving an item to another group did not move the item
   back to the original group.
+- Added localization support.
 
 ### Network
 
@@ -21,7 +22,7 @@ http://visjs.org
 - Added 'allowOverlap' option for barCharts.
 - Added two examples showing the two additions above.
 - Added 'customRange' for the Y axis and an example showing how it works.
-
+- Added localization support.
 
 ## 2014-08-14, version 3.2.0
 
