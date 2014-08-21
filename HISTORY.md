@@ -9,18 +9,20 @@ http://visjs.org
 - Fixed the `change` event sometimes being fired twice on IE10.
 - Fixed canceling moving an item to another group did not move the item
   back to the original group.
+- Added localization support.
 
 ### Network
 
 - A fix in reading group properties for a node.
 - Fixed physics solving stopping when a support node was not moving.
+- Added localization support.
 
 ### Graph2D
 
 - Added 'allowOverlap' option for barCharts.
 - Added two examples showing the two additions above.
 - Added 'customRange' for the Y axis and an example showing how it works.
-
+- Added localization support.
 
 ## 2014-08-14, version 3.2.0
 

@@ -43,6 +43,7 @@
   <li><a href="#Methods">Methods</a></li>
   <li><a href="#Events">Events</a></li>
   <li><a href="#Editing_Items">Editing Items</a></li>
+  <li><a href="#Localization">Localization</a></li>
   <li><a href="#Styles">Styles</a></li>
   <li><a href="#Data_Policy">Data Policy</a></li>
 </ul>
@@ -436,6 +437,20 @@ var options = {
         to prevent the timeline from getting too high in case of automatically
         calculated height.
     </td>
+</tr>
+
+<tr>
+    <td>locale</td>
+    <td>String</td>
+    <td>none</td>
+    <td>Select a locale for the Timeline. See section <a href="#Localization">Localization</a> for more information.</td>
+</tr>
+
+<tr>
+    <td>locales</td>
+    <td>Object</td>
+    <td>none</td>
+    <td>A map with i18n locales. See section <a href="#Localization">Localization</a> for more information.</td>
 </tr>
 
 <tr>
@@ -985,10 +1000,68 @@ var options = {
       callback(null); // cancel updating the item
     }
   }
-}
+};
 </pre>
 
 A full example is available here: <a href="../examples/timeline/08_edit_items.html">08_edit_items.html</a>.
+
+<h2 id="Localization">Localization</h2>
+<p>
+  Timeline can be localized. For localization, Timeline depends largely on the localization of <a href="http://momentjs.com">moment.js</a>. Locales are not included in vis.js by default. To enable localization, moment.js must be loaded with locales. Moment.js offers a bundle named "moment-with-locales.min.js" for this and there are various alternative ways to load locales.
+</p>
+
+<p>
+  To set a locale for the Timeline, specify the option <code>locale</code>:
+</p>
+
+<pre class="prettyprint lang-js">var options = {
+  locale: 'nl'
+};
+</pre>
+
+<h3>Create a new locale</h3>
+
+To load a locale into the Timeline not supported by default, one can add a new locale to the option <code>locales</code>:
+
+<pre class="prettyprint lang-js">var options = {
+  locales: {
+    // create a new locale (text strings should be replaced with localized strings)
+    mylocale: {
+      current: 'current',
+      time: 'time',
+    }
+  },
+
+  // use the new locale
+  locale: 'mylocale'
+};
+</pre>
+
+<h3 id="available-locales">Available locales</h3>
+
+<p>
+  Timeline comes with support for the following locales:
+</p>
+
+<table>
+  <tr><th>Language</th><th>Code</th></tr>
+  <tr>
+    <td>English</td>
+    <td>
+      <code>en</code><br>
+      <code>en_EN</code><br>
+      <code>en_US</code>
+    </td>
+  </tr>
+  <tr>
+    <td>Dutch</td>
+    <td>
+      <code>nl</code><br>
+      <code>nl_NL</code><br>
+      <code>nl_BE</code>
+    </td>
+  </tr>
+</table>
 
 
 <h2 id="Styles">Styles</h2>
@@ -1007,7 +1080,6 @@ A full example is available here: <a href="../examples/timeline/08_edit_items.ht
   }
 &lt;/style&gt;
 </pre>
-
 
 <h2 id="Data_Policy">Data Policy</h2>
 <p>

@@ -47,6 +47,8 @@
   </li>
   <li><a href="#Methods">Methods</a></li>
   <li><a href="#Events">Events</a></li>
+  <li><a href="#Localization">Localization</a></li>
+  <li><a href="#Styles">Styles</a></li>
   <li><a href="#Data_Policy">Data Policy</a></li>
 </ul>
 
@@ -90,7 +92,7 @@
       start: '2014-06-10',
       end: '2014-06-18'
   };
-  var graph2d = new vis.Graph2d(container, dataset, options);
+  var Graph2d = new vis.Graph2d(container, dataset, options);
 &lt;/script&gt;
 &lt;/body&gt;
 &lt;/html&gt;
@@ -278,7 +280,7 @@ The options colored in green can also be used as options for the groups. All opt
         <td class="greenField">yAxisOrientation</td>
         <td>String</td>
         <td>'left'</td>
-        <td>This defines with which axis, left or right, the graph is coupled. <a href="../examples/graph2d/05_bothAxis.html">Example 5</a> shows groups with different Y axis. If no groups are coupled
+        <td>This defines with which axis, left or right, the graph is coupled. <a href="../examples/Graph2d/05_bothAxis.html">Example 5</a> shows groups with different Y axis. If no groups are coupled
         with an axis, it will not be shown.</td>
     </tr>
     <tr>
@@ -298,7 +300,7 @@ The options colored in green can also be used as options for the groups. All opt
         <td class="greenField">sampling</td>
         <td>Boolean</td>
         <td>true</td>
-        <td>If sampling is enabled, graph2D will automatically determine the amount of points per pixel.
+        <td>If sampling is enabled, Graph2d will automatically determine the amount of points per pixel.
             If there are more than 1 point per pixel, not all points will be drawn. Disabling sampling will cause a decrease in performance.</td>
     </tr>
     <tr>
@@ -371,7 +373,7 @@ The options colored in green can also be used as options for the groups. All opt
         <td class="greenField">catmullRom.parametrization</td>
         <td>String</td>
         <td>'centripetal'</td>
-        <td>Define the type of parametrizaion. <a href="../examples/graph2d/07_scrollingAndSorting.html">Example 7</a> shows the different methods. The options are 'centripetal' (best results), 'chordal' and 'uniform'. Uniform is the computationally cheapest variant.
+        <td>Define the type of parametrizaion. <a href="../examples/Graph2d/07_scrollingAndSorting.html">Example 7</a> shows the different methods. The options are 'centripetal' (best results), 'chordal' and 'uniform'. Uniform is the computationally cheapest variant.
             If catmullRom is disabled, linear interpolation is used.</td>
     </tr>
     <tr>
@@ -475,174 +477,11 @@ The options colored in green can also be used as options for the groups. All opt
 <h3 id="timelineOptions">Timeline Options</h3>
 
 <p>
-  Graph2d is built upon the framework of the timeline. These options from the timeline can be used with graph2D.
-  All options are optional.
+  Graph2d is built upon the framework of the Timeline. All options from the Timeline can be used with Graph2d. The options available for the Timeline are listed here:
 </p>
-
-<table>
-<tr>
-    <th>Name</th>
-    <th>Type</th>
-    <th>Default</th>
-    <th>Description</th>
-</tr>
-
-<tr>
-    <td>autoResize</td>
-    <td>boolean</td>
-    <td>true</td>
-    <td>If true, the Timeline will automatically detect when its container is resized, and redraw itself accordingly. If false, the Timeline can be forced to repaint after its container has been resized using the function <code>redraw()</code>.</td>
-</tr>
-
-<tr>
-    <td>end</td>
-    <td>Date | Number | String</td>
-    <td>none</td>
-    <td>The initial end date for the axis of the timeline.
-        If not provided, the latest date present in the items set is taken as
-        end date.</td>
-</tr>
-
-<tr>
-    <td>height</td>
-    <td>Number | String</td>
-    <td>none</td>
-    <td>The height of the timeline in pixels or as a percentage.
-        When height is undefined or null, the height of the timeline is automatically
-        adjusted to fit the contents.
-        It is possible to set a maximum height using option <code>maxHeight</code>
-        to prevent the timeline from getting too high in case of automatically
-        calculated height.
-    </td>
-</tr>
-
-<tr>
-    <td>margin.axis</td>
-    <td>Number</td>
-    <td>20</td>
-    <td>The minimal margin in pixels between items and the time axis.</td>
-</tr>
-
-<tr>
-    <td>margin.item</td>
-    <td>Number</td>
-    <td>10</td>
-    <td>The minimal margin in pixels between items.</td>
-</tr>
-
-<tr>
-    <td>max</td>
-    <td>Date | Number | String</td>
-    <td>none</td>
-    <td>Set a maximum Date for the visible range.
-        It will not be possible to move beyond this maximum.
-    </td>
-</tr>
-
-<tr>
-    <td>maxHeight</td>
-    <td>Number | String</td>
-    <td>none</td>
-    <td>Specifies the maximum height for the Timeline. Can be a number in pixels or a string like "300px".</td>
-</tr>
-
-<tr>
-    <td>min</td>
-    <td>Date | Number | String</td>
-    <td>none</td>
-    <td>Set a minimum Date for the visible range.
-        It will not be possible to move beyond this minimum.
-    </td>
-</tr>
-
-<tr>
-    <td>minHeight</td>
-    <td>Number | String</td>
-    <td>none</td>
-    <td>Specifies the minimum height for the Timeline. Can be a number in pixels or a string like "300px".</td>
-</tr>
-
-<tr>
-    <td>orientation</td>
-    <td>String</td>
-    <td>'bottom'</td>
-    <td>Orientation of the timeline: 'top' or 'bottom' (default). If orientation is 'bottom', the time axis is drawn at the bottom, and if 'top', the axis is drawn on top.</td>
-</tr>
-
-<tr>
-    <td>showCurrentTime</td>
-    <td>boolean</td>
-    <td>true</td>
-    <td>Show a vertical bar at the current time.</td>
-</tr>
-
-<tr>
-    <td>showCustomTime</td>
-    <td>boolean</td>
-    <td>false</td>
-    <td>Show a vertical bar displaying a custom time. This line can be dragged by the user. The custom time can be utilized to show a state in the past or in the future. When the custom time bar is dragged by the user, the event <code>timechange</code> is fired repeatedly. After the bar is dragged, the event <code>timechanged</code> is fired once.</td>
-</tr>
-
-<tr>
-    <td>showMajorLabels</td>
-    <td>boolean</td>
-    <td>true</td>
-    <td>By default, the timeline shows both minor and major date labels on the
-        time axis.
-        For example the minor labels show minutes and the major labels show hours.
-        When <code>showMajorLabels</code> is <code>false</code>, no major labels
-        are shown.</td>
-</tr>
-
-<tr>
-    <td>showMinorLabels</td>
-    <td>boolean</td>
-    <td>true</td>
-    <td>By default, the timeline shows both minor and major date labels on the
-        time axis.
-        For example the minor labels show minutes and the major labels show hours.
-        When <code>showMinorLabels</code> is <code>false</code>, no minor labels
-        are shown. When both <code>showMajorLabels</code> and
-        <code>showMinorLabels</code> are false, no horizontal axis will be
-        visible.</td>
-</tr>
-
-<tr>
-    <td>start</td>
-    <td>Date | Number | String</td>
-    <td>none</td>
-    <td>The initial start date for the axis of the timeline.
-        If not provided, the earliest date present in the events is taken as start date.</td>
-</tr>
-
-<tr>
-    <td>width</td>
-    <td>String</td>
-    <td>'100%'</td>
-    <td>The width of the timeline in pixels or as a percentage.</td>
-</tr>
-
-<tr>
-    <td>zoomMax</td>
-    <td>Number</td>
-    <td>315360000000000</td>
-    <td>Set a maximum zoom interval for the visible range in milliseconds.
-        It will not be possible to zoom out further than this maximum.
-        Default value equals about 10000 years.
-    </td>
-</tr>
-
-<tr>
-    <td>zoomMin</td>
-    <td>Number</td>
-    <td>10</td>
-    <td>Set a minimum zoom interval for the visible range in milliseconds.
-        It will not be possible to zoom in further than this minimum.
-    </td>
-</tr>
-
-
-</table>
+<p>
+  <a href="timeline.html#Configuration_Options">timeline.html#Configuration_options</a>
+</p>
 
 
 <h2 id="Methods">Methods</h2>
@@ -880,16 +719,72 @@ Graph2d.off('rangechanged', onChange);
 
 </table>
 
+<h2 id="Localization">Localization</h2>
+<p>
+  Graph2d can be localized. For localization, Graph2d depends largely on the localization of <a href="http://momentjs.com">moment.js</a>. Locales are not included in vis.js by default. To enable localization, moment.js must be loaded with locales. Moment.js offers a bundle named "moment-with-locales.min.js" for this and there are various alternative ways to load locales.
+</p>
+
+<p>
+  To set a locale for the Graph2d, specify the option <code>locale</code>:
+</p>
+
+<pre class="prettyprint lang-js">var options = {
+  locale: 'nl'
+};
+</pre>
+
+<h3>Create a new locale</h3>
+
+To load a locale into the Graph2d not supported by default, one can add a new locale to the option <code>locales</code>:
+
+<pre class="prettyprint lang-js">var options = {
+  locales: {
+    // create a new locale
+    mylocale: {
+      current: 'current',
+      time: 'time',
+    }
+  },
+
+  // use the new locale
+  locale: 'mylocale'
+};
+</pre>
+
+<h3 id="available-locales">Available locales</h3>
+
+Graph2d comes with support for the following locales:
+
+<table>
+  <tr><th>Language</th><th>Code</th></tr>
+  <tr>
+    <td>English</td>
+    <td>
+      <code>en</code><br>
+      <code>en_EN</code><br>
+      <code>en_US</code>
+    </td>
+  </tr>
+  <tr>
+    <td>Dutch</td>
+    <td>
+      <code>nl</code><br>
+      <code>nl_NL</code><br>
+      <code>nl_BE</code>
+    </td>
+  </tr>
+</table>
+
 <h2 id="Styles">Styles</h2>
 <p>
-    All parts of the Graph2d have a class name and a default css style just like the Timeline.
+    All parts of the Graph2d have a class name and a default css style just like the Graph2d.
     The styles can be overwritten, which enables full customization of the layout
     of the Graph2d.
 </p>
 <p>
     Additionally, Graph2d has 10 preset styles for graphs, which are cycled through when loading groups. These styles can be overwritten
-    as well, along with defining your own classes to style the graphs! <a href="../examples/graph2d/04_rightAxis.html">Example 4</a> and
-    <a href="../examples/graph2d/05_bothAxis.html">example 5</a> show the usage of custom styles.
+    as well, along with defining your own classes to style the graphs! <a href="../examples/Graph2d/04_rightAxis.html">Example 4</a> and
+    <a href="../examples/Graph2d/05_bothAxis.html">example 5</a> show the usage of custom styles.
 </p>
 
 <h2 id="Data_Policy">Data Policy</h2>
