@@ -13,6 +13,13 @@ http://visjs.org
 ### Network
 
 - A fix in reading group properties for a node.
+- Fixed physics solving stopping when a support node was not moving.
+
+### Graph2D
+
+- Added 'slots' for groups when using barCharts.
+- Added 'allowOverlap' option for barCharts.
+- Added two examples showing the two additions above.
 
 
 ## 2014-08-14, version 3.2.0
