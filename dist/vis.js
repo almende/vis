@@ -102,7 +102,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.Timeline = __webpack_require__(17);
   exports.Graph2d = __webpack_require__(35);
   exports.timeline = {
-    DataStep: __webpack_require__(40),
+    DataStep: __webpack_require__(37),
     Range: __webpack_require__(20),
     stack: __webpack_require__(30),
     TimeStep: __webpack_require__(25),
@@ -118,11 +118,11 @@ return /******/ (function(modules) { // webpackBootstrap
       Component: __webpack_require__(22),
       CurrentTime: __webpack_require__(26),
       CustomTime: __webpack_require__(27),
-      DataAxis: __webpack_require__(37),
-      GraphGroup: __webpack_require__(38),
+      DataAxis: __webpack_require__(38),
+      GraphGroup: __webpack_require__(39),
       Group: __webpack_require__(29),
       ItemSet: __webpack_require__(28),
-      Legend: __webpack_require__(39),
+      Legend: __webpack_require__(40),
       LineGraph: __webpack_require__(36),
       TimeAxis: __webpack_require__(24)
     }
@@ -17025,9 +17025,9 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(8);
   var Component = __webpack_require__(22);
-  var DataAxis = __webpack_require__(37);
-  var GraphGroup = __webpack_require__(38);
-  var Legend = __webpack_require__(39);
+  var DataAxis = __webpack_require__(38);
+  var GraphGroup = __webpack_require__(39);
+  var Legend = __webpack_require__(40);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -17055,7 +17055,7 @@ return /******/ (function(modules) { // webpackBootstrap
       style: 'line', // line, bar
       barChart: {
         width: 50,
-        allowOverlap: true,
+        handleOverlap: 'overlap',
         align: 'center' // left, center, right
       },
       catmullRom: {
@@ -17571,79 +17571,36 @@ return /******/ (function(modules) { // webpackBootstrap
   LineGraph.prototype._updateGraph = function () {
     // reset the svg elements
     DOMutil.prepareElements(this.svgElements);
-
     if (this.width != 0 && this.itemsData != null) {
-      var group, groupData, preprocessedGroup, i;
-      var preprocessedGroupData = [];
-      var processedGroupData = [];
-      var groupRanges = [];
+      var group, i;
+      var preprocessedGroupData = {};
+      var processedGroupData = {};
+      var groupRanges = {};
       var changeCalled = false;
 
       // getting group Ids
       var groupIds = [];
       for (var groupId in this.groups) {
         if (this.groups.hasOwnProperty(groupId)) {
-          groupIds.push(groupId);
+          group = this.groups[groupId];
+          if (group.visible == true) {
+            groupIds.push(groupId);
+          }
         }
       }
-
-      // this is the range of the SVG canvas
-      var minDate = this.body.util.toGlobalTime(- this.body.domProps.root.width);
-      var maxDate = this.body.util.toGlobalTime(2 * this.body.domProps.root.width);
-
-      // first select and preprocess the data from the datasets.
-      // the groups have their preselection of data, we now loop over this data to see
-      // what data we need to draw. Sorted data is much faster.
-      // more optimization is possible by doing the sampling before and using the binary search
-      // to find the end date to determine the increment.
       if (groupIds.length > 0) {
+        // this is the range of the SVG canvas
+        var minDate = this.body.util.toGlobalTime(- this.body.domProps.root.width);
+        var maxDate = this.body.util.toGlobalTime(2 * this.body.domProps.root.width);
+        var groupsData = {};
+        // fill groups data
+        this._getRelevantData(groupIds, groupsData, minDate, maxDate);
+        // we transform the X coordinates to detect collisions
         for (i = 0; i < groupIds.length; i++) {
-          group = this.groups[groupIds[i]];
-          if (group.visible == true) {
-            groupData = [];
-            // optimization for sorted data
-            if (group.options.sort == true) {
-              var guess = Math.max(0,util.binarySearchGeneric(group.itemsData, minDate, 'x', 'before'));
-
-              for (var j = guess; j < group.itemsData.length; j++) {
-                var item = group.itemsData[j];
-                if (item !== undefined) {
-                  if (item.x > maxDate) {
-                   groupData.push(item);
-                   break;
-                  }
-                  else {
-                    groupData.push(item);
-                  }
-                }
-              }
-            }
-            else {
-              for (var j = 0; j < group.itemsData.length; j++) {
-                var item = group.itemsData[j];
-                if (item !== undefined) {
-                  if (item.x > minDate && item.x < maxDate) {
-                    groupData.push(item);
-                  }
-                }
-              }
-            }
-            // preprocess, split into ranges and data
-            if (groupData.length > 0) {
-              preprocessedGroup = this._preprocessData(groupData, group);
-              groupRanges.push({min: preprocessedGroup.min, max: preprocessedGroup.max});
-              preprocessedGroupData.push(preprocessedGroup.data);
-            }
-            else {
-              groupRanges.push({});
-              preprocessedGroupData.push([]);
-            }
-          }
-          else {
-            groupRanges.push({});
-            preprocessedGroupData.push([]);
-          }
+          preprocessedGroupData[groupIds[i]] = this._convertXcoordinates(groupsData[groupIds[i]]);
         }
+        // now all needed data has been collected we start the processing.
+        this._getYRanges(groupIds, preprocessedGroupData, groupRanges);
 
         // update the Y axis first, we use this data to draw at the correct Y points
         // changeCalled is required to clean the SVG on a change emit.
@@ -17654,30 +17611,195 @@ return /******/ (function(modules) { // webpackBootstrap
           return;
         }
 
-        // with the yAxis scaled correctly, use this to get the Y values of the points.
+        // With the yAxis scaled correctly, use this to get the Y values of the points.
         for (i = 0; i < groupIds.length; i++) {
           group = this.groups[groupIds[i]];
-          processedGroupData.push(this._convertYvalues(preprocessedGroupData[i],group))
+          processedGroupData[groupIds[i]] = this._convertYcoordinates(groupsData[groupIds[i]], group);
         }
+
 
         // draw the groups
         for (i = 0; i < groupIds.length; i++) {
           group = this.groups[groupIds[i]];
-          if (group.visible == true) {
-            if (group.options.style == 'line') {
-              this._drawLineGraph(processedGroupData[i], group);
-            }
-            else {
-              this._drawBarGraph (processedGroupData[i], group);
-            }
+          if (group.options.style == 'line') {
+            this._drawLineGraph(processedGroupData[groupIds[i]], group);
           }
         }
+        this._drawBarGraphs(groupIds, processedGroupData);
       }
     }
 
     // cleanup unused svg elements
     DOMutil.cleanupElements(this.svgElements);
   };
+
+
+  LineGraph.prototype._getRelevantData = function (groupIds, groupsData, minDate, maxDate) {
+    // first select and preprocess the data from the datasets.
+    // the groups have their preselection of data, we now loop over this data to see
+    // what data we need to draw. Sorted data is much faster.
+    // more optimization is possible by doing the sampling before and using the binary search
+    // to find the end date to determine the increment.
+    var group;
+    if (groupIds.length > 0) {
+      for (var i = 0; i < groupIds.length; i++) {
+        group = this.groups[groupIds[i]];
+        groupsData[groupIds[i]] = [];
+        var dataContainer = groupsData[groupIds[i]];
+        // optimization for sorted data
+        if (group.options.sort == true) {
+          var guess = Math.max(0, util.binarySearchGeneric(group.itemsData, minDate, 'x', 'before'));
+          for (var j = guess; j < group.itemsData.length; j++) {
+            var item = group.itemsData[j];
+            if (item !== undefined) {
+              if (item.x > maxDate) {
+                dataContainer.push(item);
+                break;
+              }
+              else {
+                dataContainer.push(item);
+              }
+            }
+          }
+        }
+        else {
+          for (var j = 0; j < group.itemsData.length; j++) {
+            var item = group.itemsData[j];
+            if (item !== undefined) {
+              if (item.x > minDate && item.x < maxDate) {
+                dataContainer.push(item);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    this._applySampling(groupIds, groupsData);
+  };
+
+  LineGraph.prototype._applySampling = function (groupIds, groupsData) {
+    var group;
+    if (groupIds.length > 0) {
+      for (var i = 0; i < groupIds.length; i++) {
+        group = this.groups[groupIds[i]];
+        if (group.options.sampling == true) {
+          var dataContainer = groupsData[groupIds[i]];
+          var increment = 1;
+          var amountOfPoints = dataContainer.length;
+
+          // the global screen is used because changing the width of the yAxis may affect the increment, resulting in an endless loop
+          // of width changing of the yAxis.
+          var xDistance = this.body.util.toGlobalScreen(dataContainer[dataContainer.length - 1].x) - this.body.util.toGlobalScreen(dataContainer[0].x);
+          var pointsPerPixel = amountOfPoints / xDistance;
+          increment = Math.min(Math.ceil(0.2 * amountOfPoints), Math.max(1, Math.round(pointsPerPixel)));
+
+          var sampledData = [];
+          for (var j = 0; j < amountOfPoints; j += increment) {
+            sampledData.push(dataContainer[j]);
+
+          }
+          groupsData[groupIds[i]] = sampledData;
+        }
+      }
+    }
+  };
+
+  LineGraph.prototype._getYRanges = function (groupIds, groupsData, groupRanges) {
+    var groupData, group;
+    var barCombinedDataLeft = [];
+    var barCombinedDataRight = [];
+    var barCombinedData;
+    if (groupIds.length > 0) {
+      for (var i = 0; i < groupIds.length; i++) {
+        groupData = groupsData[groupIds[i]];
+        group = this.groups[groupIds[i]];
+        if (group.options.style == 'line' || group.options.barChart.handleOverlap != "stack") {
+          var yMin = groupData[0].y;
+          var yMax = groupData[0].y;
+          for (var j = 0; j < groupData.length; j++) {
+            yMin = yMin > groupData[j].y ? groupData[j].y : yMin;
+            yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
+          }
+          groupRanges[groupIds[i]] = {min: yMin, max: yMax, yAxisOrientation: group.options.yAxisOrientation};
+        }
+        else if (group.options.style == 'bar') {
+          if (group.options.yAxisOrientation == 'left') {
+            barCombinedData = barCombinedDataLeft;
+          }
+          else {
+            barCombinedData = barCombinedDataRight;
+          }
+
+          groupRanges[groupIds[i]] = {min: 0, max: 0, yAxisOrientation: group.options.yAxisOrientation, ignore: true};
+
+          // combine data
+          for (var j = 0; j < groupData.length; j++) {
+            barCombinedData.push({
+              x: groupData[j].x,
+              y: groupData[j].y,
+              groupId: groupIds[i]
+            });
+          }
+        }
+      }
+      if (barCombinedDataLeft.length > 0) {
+        // sort by time and by group
+        barCombinedDataLeft.sort(function (a, b) {
+          if (a.x == b.x) {
+            return a.groupId - b.groupId;
+          } else {
+            return a.x - b.x;
+          }
+        })
+        var intersections = {};
+        this._getDataIntersections(intersections, barCombinedDataLeft);
+        groupRanges["__barchartLeft"] = this._getStackedBarYRange(intersections, barCombinedDataLeft);
+        groupRanges["__barchartLeft"].yAxisOrientation = "left";
+        groupIds.push("__barchartLeft");
+      }
+      if (barCombinedDataRight.length > 0) {
+        // sort by time and by group
+        barCombinedDataRight.sort(function (a, b) {
+          if (a.x == b.x) {
+            return a.groupId - b.groupId;
+          } else {
+            return a.x - b.x;
+          }
+        })
+        var intersections = {};
+        this._getDataIntersections(intersections, barCombinedDataRight);
+        groupRanges["__barchartRight"] = this._getStackedBarYRange(intersections, barCombinedDataRight);
+        groupRanges["__barchartRight"].yAxisOrientation = "right";
+        groupIds.push("__barchartRight");
+      }
+    }
+  };
+
+  LineGraph.prototype._getStackedBarYRange = function (intersections, combinedData) {
+    var key;
+    var yMin = combinedData[0].y;
+    var yMax = combinedData[0].y;
+    for (var i = 0; i < combinedData.length; i++) {
+      key = combinedData[i].x;
+      if (intersections[key] === undefined) {
+        yMin = yMin > combinedData[i].y ? combinedData[i].y : yMin;
+        yMax = yMax < combinedData[i].y ? combinedData[i].y : yMax;
+      }
+      else {
+        intersections[key].accumulated += combinedData[i].y;
+      }
+    }
+    for (var xpos in intersections) {
+      if (intersections.hasOwnProperty(xpos)) {
+        yMin = yMin > intersections[xpos].accumulated ? intersections[xpos].accumulated : yMin;
+        yMax = yMax < intersections[xpos].accumulated ? intersections[xpos].accumulated : yMax;
+      }
+    }
+
+    return {min: yMin, max: yMax};
+  };
+
 
   /**
    * this sets the Y ranges for the Y axis. It also determines which of the axis should be shown or hidden.
@@ -17689,22 +17811,15 @@ return /******/ (function(modules) { // webpackBootstrap
     var yAxisLeftUsed = false;
     var yAxisRightUsed = false;
     var minLeft = 1e9, minRight = 1e9, maxLeft = -1e9, maxRight = -1e9, minVal, maxVal;
-    var orientation = 'left';
 
     // if groups are present
     if (groupIds.length > 0) {
       for (var i = 0; i < groupIds.length; i++) {
-        orientation = 'left';
-        var group = this.groups[groupIds[i]];
-        if (group.visible == true) {
-          if (group.options.yAxisOrientation == 'right') {
-            orientation = 'right';
-          }
+        if (groupRanges[groupIds[i]].ignore !== true) {
+          minVal = groupRanges[groupIds[i]].min;
+          maxVal = groupRanges[groupIds[i]].max;
 
-          minVal = groupRanges[i].min;
-          maxVal = groupRanges[i].max;
-
-          if (orientation == 'left') {
+          if (groupRanges[groupIds[i]].yAxisOrientation == 'left') {
             yAxisLeftUsed = true;
             minLeft = minLeft > minVal ? minVal : minLeft;
             maxLeft = maxLeft < maxVal ? maxVal : maxLeft;
@@ -17716,6 +17831,7 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         }
       }
+
       if (yAxisLeftUsed == true) {
         this.yAxisLeft.setRange(minLeft, maxLeft);
       }
@@ -17749,6 +17865,15 @@ return /******/ (function(modules) { // webpackBootstrap
     else {
       changeCalled = this.yAxisRight.redraw() || changeCalled;
     }
+
+    // clean the accumulated lists
+    if (groupIds.indexOf("__barchartLeft") != -1) {
+      groupIds.splice(groupIds.indexOf("__barchartLeft"),1);
+    }
+    if (groupIds.indexOf("__barchartRight") != -1) {
+      groupIds.splice(groupIds.indexOf("__barchartRight"),1);
+    }
+
     return changeCalled;
   };
 
@@ -17783,61 +17908,108 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param datapoints
    * @param group
    */
-  LineGraph.prototype._drawBarGraph = function (dataset, group) {
-    if (dataset != null) {
-      if (dataset.length > 0) {
-        var coreDistance;
-        var minWidth = 0.1 * group.options.barChart.width;
-        var offset = 0;
+  LineGraph.prototype._drawBarGraphs = function (groupIds, processedGroupData) {
+    var combinedData = [];
+    var intersections = {};
+    var coreDistance;
+    var key;
+    var group;
+    var i,j;
+    var barPoints = 0;
 
-        // check for intersections
-        var intersections = {};
-
-        for (var i = 0; i < dataset.length; i++) {
-          if (i+1 < dataset.length) {coreDistance = Math.abs(dataset[i+1].x - dataset[i].x);}
-          if (i > 0)                {coreDistance = Math.min(coreDistance,Math.abs(dataset[i-1].x - dataset[i].x));}
-          if (coreDistance == 0) {
-            if (intersections[dataset[i].x] === undefined) {
-              intersections[dataset[i].x] = {amount:0, resolved:0};
-            }
-            intersections[dataset[i].x].amount += 1;
-          }
-        }
-
-        // plot the bargraph
-        var key;
-        for (var i = 0; i < dataset.length; i++) {
-          key = dataset[i].x;
-          if (intersections[key] === undefined) {
-            if (i+1 < dataset.length) {coreDistance = Math.abs(dataset[i+1].x - key);}
-            if (i > 0)                {coreDistance = Math.min(coreDistance,Math.abs(dataset[i-1].x - key));}
-            var drawData = this._getSafeDrawData(coreDistance, group, minWidth);
-          }
-          else {
-            var nextKey = i + (intersections[key].amount - intersections[key].resolved);
-            var prevKey = i - (intersections[key].resolved + 1);
-            if (nextKey < dataset.length) {coreDistance = Math.abs(dataset[nextKey].x - key);}
-            if (prevKey > 0)              {coreDistance = Math.min(coreDistance,Math.abs(dataset[prevKey].x - key));}
-            var drawData = this._getSafeDrawData(coreDistance, group, minWidth);
-            intersections[key].resolved += 1;
-
-            if (group.options.barChart.allowOverlap == false) {
-              drawData.width = drawData.width / intersections[key].amount;
-              drawData.offset += (intersections[key].resolved) * drawData.width - (0.5*drawData.width * (intersections[key].amount+1));
-              if (group.options.barChart.align == 'left')       {offset -= 0.5*drawData.width;}
-              else if (group.options.barChart.align == 'right') {offset += 0.5*drawData.width;}
-            }
-          }
-          DOMutil.drawBar(dataset[i].x + drawData.offset, dataset[i].y, drawData.width, group.zeroPosition - dataset[i].y, group.className + ' bar', this.svgElements, this.svg);
-
-          // draw points
-          if (group.options.drawPoints.enabled == true) {
-            DOMutil.drawPoint(dataset[i].x + drawData.offset, dataset[i].y, group, this.svgElements, this.svg);
+    // combine all barchart data
+    for (i = 0; i < groupIds.length; i++) {
+      group = this.groups[groupIds[i]];
+      if (group.options.style == 'bar') {
+        if (group.visible == true) {
+          for (j = 0; j < processedGroupData[groupIds[i]].length; j++) {
+            combinedData.push({
+              x: processedGroupData[groupIds[i]][j].x,
+              y: processedGroupData[groupIds[i]][j].y,
+              groupId: groupIds[i]
+            });
+            barPoints += 1;
           }
         }
       }
     }
+
+    if (barPoints == 0) {return;}
+
+    // sort by time and by group
+    combinedData.sort(function (a, b) {
+      if (a.x == b.x) {
+        return a.groupId - b.groupId;
+      } else {
+        return a.x - b.x;
+      }
+    });
+
+    // get intersections
+    this._getDataIntersections(intersections, combinedData);
+
+    // plot barchart
+    for (i = 0; i < combinedData.length; i++) {
+      group = this.groups[combinedData[i].groupId];
+      var minWidth = 0.1 * group.options.barChart.width;
+
+      key = combinedData[i].x;
+      var heightOffset = 0;
+      if (intersections[key] === undefined) {
+        if (i+1 < combinedData.length) {coreDistance = Math.abs(combinedData[i+1].x - key);}
+        if (i > 0)                     {coreDistance = Math.min(coreDistance,Math.abs(combinedData[i-1].x - key));}
+        var drawData = this._getSafeDrawData(coreDistance, group, minWidth);
+      }
+      else {
+        var nextKey = i + (intersections[key].amount - intersections[key].resolved);
+        var prevKey = i - (intersections[key].resolved + 1);
+        if (nextKey < combinedData.length) {coreDistance = Math.abs(combinedData[nextKey].x - key);}
+        if (prevKey > 0)                   {coreDistance = Math.min(coreDistance,Math.abs(combinedData[prevKey].x - key));}
+        var drawData = this._getSafeDrawData(coreDistance, group, minWidth);
+        intersections[key].resolved += 1;
+
+        if (group.options.barChart.handleOverlap == 'stack') {
+          heightOffset = intersections[key].accumulated;
+          intersections[key].accumulated += group.zeroPosition - combinedData[i].y;
+        }
+        else if (group.options.barChart.handleOverlap == 'sideBySide') {
+          drawData.width = drawData.width / intersections[key].amount;
+          drawData.offset += (intersections[key].resolved) * drawData.width - (0.5*drawData.width * (intersections[key].amount+1));
+          if (group.options.barChart.align == 'left')       {offset -= 0.5*drawData.width;}
+          else if (group.options.barChart.align == 'right') {offset += 0.5*drawData.width;}
+        }
+      }
+      DOMutil.drawBar(combinedData[i].x + drawData.offset, combinedData[i].y - heightOffset, drawData.width, group.zeroPosition - combinedData[i].y, group.className + ' bar', this.svgElements, this.svg);
+      // draw points
+      if (group.options.drawPoints.enabled == true) {
+        DOMutil.drawPoint(combinedData[i].x + drawData.offset, combinedData[i].y - heightOffset, group, this.svgElements, this.svg);
+      }
+    }
   };
+
+
+  LineGraph.prototype._getDataIntersections = function (intersections, combinedData) {
+    // get intersections
+    var coreDistance;
+    for (var i = 0; i < combinedData.length; i++) {
+      if (i + 1 < combinedData.length) {
+        coreDistance = Math.abs(combinedData[i + 1].x - combinedData[i].x);
+      }
+      if (i > 0) {
+        coreDistance = Math.min(coreDistance, Math.abs(combinedData[i - 1].x - combinedData[i].x));
+      }
+      if (coreDistance == 0) {
+        if (intersections[combinedData[i].x] === undefined) {
+          intersections[combinedData[i].x] = {amount: 0, resolved: 0, accumulated: 0};
+        }
+        intersections[combinedData[i].x].amount += 1;
+      }
+    }
+  };
+
+  //LineGraph.prototype._accumulate = function (intersections, combinedData) {
+
+
 
   LineGraph.prototype._getSafeDrawData = function (coreDistance, group, minWidth) {
     var width, offset;
@@ -17845,28 +18017,27 @@ return /******/ (function(modules) { // webpackBootstrap
       width = coreDistance < minWidth ? minWidth : coreDistance;
 
       offset = 0; // recalculate offset with the new width;
-      if (group.options.slots) {  // recalculate the shared width and offset if these options are set.
-        width = (width / group.options.slots.total);
-        offset = group.options.slots.slot * width - (0.5*width * (group.options.slots.total+1));
+      if (group.options.barChart.align == 'left') {
+        offset -= 0.5 * coreDistance;
       }
-      if (group.options.barChart.align == 'left')       {offset -= 0.5*coreDistance;}
-      else if (group.options.barChart.align == 'right') {offset += 0.5*coreDistance;}
+      else if (group.options.barChart.align == 'right') {
+        offset += 0.5 * coreDistance;
+      }
     }
     else {
       // no collisions, plot with default settings
       width = group.options.barChart.width;
       offset = 0;
-      if (group.options.slots) {
-        // if the groups are sharing the same points, this allows them to be plotted side by side
-        width = width / group.options.slots.total;
-        offset = group.options.slots.slot * width - (0.5*width * (group.options.slots.total+1));
+      if (group.options.barChart.align == 'left') {
+        offset -= 0.5 * group.options.barChart.width;
       }
-      if (group.options.barChart.align == 'left')       {offset -= 0.5*group.options.barChart.width;}
-      else if (group.options.barChart.align == 'right') {offset += 0.5*group.options.barChart.width;}
+      else if (group.options.barChart.align == 'right') {
+        offset += 0.5 * group.options.barChart.width;
+      }
     }
 
     return {width: width, offset: offset};
-  }
+  };
 
 
   /**
@@ -17941,68 +18112,51 @@ return /******/ (function(modules) { // webpackBootstrap
    * @returns {Array}
    * @private
    */
-  LineGraph.prototype._preprocessData = function (datapoints, group) {
+  LineGraph.prototype._convertXcoordinates = function (datapoints) {
     var extractedData = [];
     var xValue, yValue;
     var toScreen = this.body.util.toScreen;
 
-    var increment = 1;
-    var amountOfPoints = datapoints.length;
-
-    var yMin = datapoints[0].y;
-    var yMax = datapoints[0].y;
-
-    // the global screen is used because changing the width of the yAxis may affect the increment, resulting in an endless loop
-    // of width changing of the yAxis.
-    if (group.options.sampling == true) {
-      var xDistance = this.body.util.toGlobalScreen(datapoints[datapoints.length-1].x) - this.body.util.toGlobalScreen(datapoints[0].x);
-      var pointsPerPixel = amountOfPoints/xDistance;
-      increment = Math.min(Math.ceil(0.2 * amountOfPoints), Math.max(1,Math.round(pointsPerPixel)));
-    }
-
-    for (var i = 0; i < amountOfPoints; i += increment) {
+    for (var i = 0; i < datapoints.length; i++) {
       xValue = toScreen(datapoints[i].x) + this.width - 1;
       yValue = datapoints[i].y;
       extractedData.push({x: xValue, y: yValue});
-      yMin = yMin > yValue ? yValue : yMin;
-      yMax = yMax < yValue ? yValue : yMax;
     }
 
-    // extractedData.sort(function (a,b) {return a.x - b.x;});
-    return {min: yMin, max: yMax, data: extractedData};
+    return extractedData;
   };
 
+
+
   /**
-   * This uses the DataAxis object to generate the correct Y coordinate on the SVG window. It uses the
-   * util function toScreen to get the x coordinate from the timestamp.
+   * This uses the DataAxis object to generate the correct X coordinate on the SVG window. It uses the
+   * util function toScreen to get the x coordinate from the timestamp. It also pre-filters the data and get the minMax ranges for
+   * the yAxis.
    *
    * @param datapoints
-   * @param options
    * @returns {Array}
    * @private
    */
-  LineGraph.prototype._convertYvalues = function (datapoints, group) {
+  LineGraph.prototype._convertYcoordinates = function (datapoints, group) {
     var extractedData = [];
     var xValue, yValue;
+    var toScreen = this.body.util.toScreen;
     var axis = this.yAxisLeft;
     var svgHeight = Number(this.svg.style.height.replace("px",""));
-
     if (group.options.yAxisOrientation == 'right') {
       axis = this.yAxisRight;
     }
 
     for (var i = 0; i < datapoints.length; i++) {
-      xValue = datapoints[i].x;
+      xValue = toScreen(datapoints[i].x) + this.width - 1;
       yValue = Math.round(axis.convertValue(datapoints[i].y));
       extractedData.push({x: xValue, y: yValue});
     }
 
     group.setZeroPosition(Math.min(svgHeight, axis.convertValue(0)));
 
-    // extractedData.sort(function (a,b) {return a.x - b.x;});
     return extractedData;
   };
-
 
   /**
    * This uses an uniform parametrization of the CatmullRom algorithm:
@@ -18156,10 +18310,236 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
+  /**
+   * @constructor  DataStep
+   * The class DataStep is an iterator for data for the lineGraph. You provide a start data point and an
+   * end data point. The class itself determines the best scale (step size) based on the
+   * provided start Date, end Date, and minimumStep.
+   *
+   * If minimumStep is provided, the step size is chosen as close as possible
+   * to the minimumStep but larger than minimumStep. If minimumStep is not
+   * provided, the scale is set to 1 DAY.
+   * The minimumStep should correspond with the onscreen size of about 6 characters
+   *
+   * Alternatively, you can set a scale by hand.
+   * After creation, you can initialize the class by executing first(). Then you
+   * can iterate from the start date to the end date via next(). You can check if
+   * the end date is reached with the function hasNext(). After each step, you can
+   * retrieve the current date via getCurrent().
+   * The DataStep has scales ranging from milliseconds, seconds, minutes, hours,
+   * days, to years.
+   *
+   * Version: 1.2
+   *
+   * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
+   *                               or new Date(2010, 9, 21, 23, 45, 00)
+   * @param {Date} [end]           The end date
+   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
+   */
+  function DataStep(start, end, minimumStep, containerHeight, customRange) {
+    // variables
+    this.current = 0;
+
+    this.autoScale = true;
+    this.stepIndex = 0;
+    this.step = 1;
+    this.scale = 1;
+
+    this.marginStart;
+    this.marginEnd;
+    this.deadSpace = 0;
+
+    this.majorSteps = [1,     2,    5,  10];
+    this.minorSteps = [0.25,  0.5,  1,  2];
+
+    this.setRange(start, end, minimumStep, containerHeight, customRange);
+  }
+
+
+
+  /**
+   * Set a new range
+   * If minimumStep is provided, the step size is chosen as close as possible
+   * to the minimumStep but larger than minimumStep. If minimumStep is not
+   * provided, the scale is set to 1 DAY.
+   * The minimumStep should correspond with the onscreen size of about 6 characters
+   * @param {Number} [start]      The start date and time.
+   * @param {Number} [end]        The end date and time.
+   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
+   */
+  DataStep.prototype.setRange = function(start, end, minimumStep, containerHeight, customRange) {
+    this._start = customRange.min === undefined ? start : customRange.min;
+    this._end = customRange.max === undefined ? end : customRange.max;
+
+    if (start == end) {
+      this._start = start - 0.75;
+      this._end = end + 1;
+    }
+
+    if (this.autoScale) {
+      this.setMinimumStep(minimumStep, containerHeight);
+    }
+    this.setFirst(customRange);
+  };
+
+  /**
+   * Automatically determine the scale that bests fits the provided minimum step
+   * @param {Number} [minimumStep]  The minimum step size in milliseconds
+   */
+  DataStep.prototype.setMinimumStep = function(minimumStep, containerHeight) {
+    // round to floor
+    var size = this._end - this._start;
+    var safeSize = size * 1.2;
+    var minimumStepValue = minimumStep * (safeSize / containerHeight);
+    var orderOfMagnitude = Math.round(Math.log(safeSize)/Math.LN10);
+
+    var minorStepIdx = -1;
+    var magnitudefactor = Math.pow(10,orderOfMagnitude);
+
+    var start = 0;
+    if (orderOfMagnitude < 0) {
+      start = orderOfMagnitude;
+    }
+
+    var solutionFound = false;
+    for (var i = start; Math.abs(i) <= Math.abs(orderOfMagnitude); i++) {
+      magnitudefactor = Math.pow(10,i);
+      for (var j = 0; j < this.minorSteps.length; j++) {
+        var stepSize = magnitudefactor * this.minorSteps[j];
+        if (stepSize >= minimumStepValue) {
+          solutionFound = true;
+          minorStepIdx = j;
+          break;
+        }
+      }
+      if (solutionFound == true) {
+        break;
+      }
+    }
+    this.stepIndex = minorStepIdx;
+    this.scale = magnitudefactor;
+    this.step = magnitudefactor * this.minorSteps[minorStepIdx];
+  };
+
+
+
+  /**
+   * Round the current date to the first minor date value
+   * This must be executed once when the current date is set to start Date
+   */
+  DataStep.prototype.setFirst = function(customRange) {
+    if (customRange === undefined) {
+      customRange = {};
+    }
+    var niceStart = customRange.min === undefined ? this._start - (this.scale * 2 * this.minorSteps[this.stepIndex]) : customRange.min;
+    var niceEnd = customRange.max === undefined ? this._end + (this.scale * this.minorSteps[this.stepIndex]) : customRange.max;
+
+    this.marginEnd = customRange.max === undefined ? this.roundToMinor(niceEnd) : customRange.max;
+    this.marginStart = customRange.min === undefined ? this.roundToMinor(niceStart) : customRange.min;
+    this.deadSpace = this.roundToMinor(niceEnd) - niceEnd + this.roundToMinor(niceStart) - niceStart;
+    this.marginRange = this.marginEnd - this.marginStart;
+
+    this.current = this.marginEnd;
+
+  };
+
+  DataStep.prototype.roundToMinor = function(value) {
+    var rounded = value - (value % (this.scale * this.minorSteps[this.stepIndex]));
+    if (value % (this.scale * this.minorSteps[this.stepIndex]) > 0.5 * (this.scale * this.minorSteps[this.stepIndex])) {
+      return rounded + (this.scale * this.minorSteps[this.stepIndex]);
+    }
+    else {
+      return rounded;
+    }
+  }
+
+
+  /**
+   * Check if the there is a next step
+   * @return {boolean}  true if the current date has not passed the end date
+   */
+  DataStep.prototype.hasNext = function () {
+    return (this.current >= this.marginStart);
+  };
+
+  /**
+   * Do the next step
+   */
+  DataStep.prototype.next = function() {
+    var prev = this.current;
+    this.current -= this.step;
+
+    // safety mechanism: if current time is still unchanged, move to the end
+    if (this.current == prev) {
+      this.current = this._end;
+    }
+  };
+
+  /**
+   * Do the next step
+   */
+  DataStep.prototype.previous = function() {
+    this.current += this.step;
+    this.marginEnd += this.step;
+    this.marginRange = this.marginEnd - this.marginStart;
+  };
+
+
+
+  /**
+   * Get the current datetime
+   * @return {String}  current The current date
+   */
+  DataStep.prototype.getCurrent = function() {
+    var toPrecision = '' + Number(this.current).toPrecision(5);
+    for (var i = toPrecision.length-1; i > 0; i--) {
+      if (toPrecision[i] == "0") {
+        toPrecision = toPrecision.slice(0,i);
+      }
+      else if (toPrecision[i] == "." || toPrecision[i] == ",") {
+        toPrecision = toPrecision.slice(0,i);
+        break;
+      }
+      else{
+        break;
+      }
+    }
+
+    return toPrecision;
+  };
+
+
+
+  /**
+   * Snap a date to a rounded value.
+   * The snap intervals are dependent on the current scale and step.
+   * @param {Date} date   the date to be snapped.
+   * @return {Date} snappedDate
+   */
+  DataStep.prototype.snap = function(date) {
+
+  };
+
+  /**
+   * Check if the current value is a major value (for example when the step
+   * is DAY, a major value is each first day of the MONTH)
+   * @return {boolean} true if current date is major, else false.
+   */
+  DataStep.prototype.isMajor = function() {
+    return (this.current % (this.scale * this.majorSteps[this.stepIndex]) == 0);
+  };
+
+  module.exports = DataStep;
+
+
+/***/ },
+/* 38 */
+/***/ function(module, exports, __webpack_require__) {
+
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(6);
   var Component = __webpack_require__(22);
-  var DataStep = __webpack_require__(40);
+  var DataStep = __webpack_require__(37);
 
   /**
    * A horizontal time axis
@@ -18658,7 +19038,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 38 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -18672,7 +19052,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   function GraphGroup (group, groupId, options, groupsUsingDefaultStyles) {
     this.id = groupId;
-    var fields = ['sampling','style','sort','yAxisOrientation','barChart','drawPoints','shaded','catmullRom','slots']
+    var fields = ['sampling','style','sort','yAxisOrientation','barChart','drawPoints','shaded','catmullRom']
     this.options = util.selectiveBridgeObject(fields,options);
     this.usingDefaultStyle = group.className === undefined;
     this.groupsUsingDefaultStyles = groupsUsingDefaultStyles;
@@ -18703,7 +19083,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   GraphGroup.prototype.setOptions = function(options) {
     if (options !== undefined) {
-      var fields = ['sampling','style','sort','yAxisOrientation','barChart','slots'];
+      var fields = ['sampling','style','sort','yAxisOrientation','barChart'];
       util.selectiveDeepExtend(fields, this.options, options);
 
       util.mergeOptions(this.options, options,'catmullRom');
@@ -18799,7 +19179,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 39 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -18998,232 +19378,6 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   module.exports = Legend;
-
-
-/***/ },
-/* 40 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * @constructor  DataStep
-   * The class DataStep is an iterator for data for the lineGraph. You provide a start data point and an
-   * end data point. The class itself determines the best scale (step size) based on the
-   * provided start Date, end Date, and minimumStep.
-   *
-   * If minimumStep is provided, the step size is chosen as close as possible
-   * to the minimumStep but larger than minimumStep. If minimumStep is not
-   * provided, the scale is set to 1 DAY.
-   * The minimumStep should correspond with the onscreen size of about 6 characters
-   *
-   * Alternatively, you can set a scale by hand.
-   * After creation, you can initialize the class by executing first(). Then you
-   * can iterate from the start date to the end date via next(). You can check if
-   * the end date is reached with the function hasNext(). After each step, you can
-   * retrieve the current date via getCurrent().
-   * The DataStep has scales ranging from milliseconds, seconds, minutes, hours,
-   * days, to years.
-   *
-   * Version: 1.2
-   *
-   * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
-   *                               or new Date(2010, 9, 21, 23, 45, 00)
-   * @param {Date} [end]           The end date
-   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
-   */
-  function DataStep(start, end, minimumStep, containerHeight, customRange) {
-    // variables
-    this.current = 0;
-
-    this.autoScale = true;
-    this.stepIndex = 0;
-    this.step = 1;
-    this.scale = 1;
-
-    this.marginStart;
-    this.marginEnd;
-    this.deadSpace = 0;
-
-    this.majorSteps = [1,     2,    5,  10];
-    this.minorSteps = [0.25,  0.5,  1,  2];
-
-    this.setRange(start, end, minimumStep, containerHeight, customRange);
-  }
-
-
-
-  /**
-   * Set a new range
-   * If minimumStep is provided, the step size is chosen as close as possible
-   * to the minimumStep but larger than minimumStep. If minimumStep is not
-   * provided, the scale is set to 1 DAY.
-   * The minimumStep should correspond with the onscreen size of about 6 characters
-   * @param {Number} [start]      The start date and time.
-   * @param {Number} [end]        The end date and time.
-   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
-   */
-  DataStep.prototype.setRange = function(start, end, minimumStep, containerHeight, customRange) {
-    this._start = customRange.min === undefined ? start : customRange.min;
-    this._end = customRange.max === undefined ? end : customRange.max;
-
-    if (start == end) {
-      this._start = start - 0.75;
-      this._end = end + 1;
-    }
-
-    if (this.autoScale) {
-      this.setMinimumStep(minimumStep, containerHeight);
-    }
-    this.setFirst(customRange);
-  };
-
-  /**
-   * Automatically determine the scale that bests fits the provided minimum step
-   * @param {Number} [minimumStep]  The minimum step size in milliseconds
-   */
-  DataStep.prototype.setMinimumStep = function(minimumStep, containerHeight) {
-    // round to floor
-    var size = this._end - this._start;
-    var safeSize = size * 1.2;
-    var minimumStepValue = minimumStep * (safeSize / containerHeight);
-    var orderOfMagnitude = Math.round(Math.log(safeSize)/Math.LN10);
-
-    var minorStepIdx = -1;
-    var magnitudefactor = Math.pow(10,orderOfMagnitude);
-
-    var start = 0;
-    if (orderOfMagnitude < 0) {
-      start = orderOfMagnitude;
-    }
-
-    var solutionFound = false;
-    for (var i = start; Math.abs(i) <= Math.abs(orderOfMagnitude); i++) {
-      magnitudefactor = Math.pow(10,i);
-      for (var j = 0; j < this.minorSteps.length; j++) {
-        var stepSize = magnitudefactor * this.minorSteps[j];
-        if (stepSize >= minimumStepValue) {
-          solutionFound = true;
-          minorStepIdx = j;
-          break;
-        }
-      }
-      if (solutionFound == true) {
-        break;
-      }
-    }
-    this.stepIndex = minorStepIdx;
-    this.scale = magnitudefactor;
-    this.step = magnitudefactor * this.minorSteps[minorStepIdx];
-  };
-
-
-
-  /**
-   * Round the current date to the first minor date value
-   * This must be executed once when the current date is set to start Date
-   */
-  DataStep.prototype.setFirst = function(customRange) {
-    if (customRange === undefined) {
-      customRange = {};
-    }
-    var niceStart = customRange.min === undefined ? this._start - (this.scale * 2 * this.minorSteps[this.stepIndex]) : customRange.min;
-    var niceEnd = customRange.max === undefined ? this._end + (this.scale * this.minorSteps[this.stepIndex]) : customRange.max;
-
-    this.marginEnd = customRange.max === undefined ? this.roundToMinor(niceEnd) : customRange.max;
-    this.marginStart = customRange.min === undefined ? this.roundToMinor(niceStart) : customRange.min;
-    this.deadSpace = this.roundToMinor(niceEnd) - niceEnd + this.roundToMinor(niceStart) - niceStart;
-    this.marginRange = this.marginEnd - this.marginStart;
-
-    this.current = this.marginEnd;
-
-  };
-
-  DataStep.prototype.roundToMinor = function(value) {
-    var rounded = value - (value % (this.scale * this.minorSteps[this.stepIndex]));
-    if (value % (this.scale * this.minorSteps[this.stepIndex]) > 0.5 * (this.scale * this.minorSteps[this.stepIndex])) {
-      return rounded + (this.scale * this.minorSteps[this.stepIndex]);
-    }
-    else {
-      return rounded;
-    }
-  }
-
-
-  /**
-   * Check if the there is a next step
-   * @return {boolean}  true if the current date has not passed the end date
-   */
-  DataStep.prototype.hasNext = function () {
-    return (this.current >= this.marginStart);
-  };
-
-  /**
-   * Do the next step
-   */
-  DataStep.prototype.next = function() {
-    var prev = this.current;
-    this.current -= this.step;
-
-    // safety mechanism: if current time is still unchanged, move to the end
-    if (this.current == prev) {
-      this.current = this._end;
-    }
-  };
-
-  /**
-   * Do the next step
-   */
-  DataStep.prototype.previous = function() {
-    this.current += this.step;
-    this.marginEnd += this.step;
-    this.marginRange = this.marginEnd - this.marginStart;
-  };
-
-
-
-  /**
-   * Get the current datetime
-   * @return {String}  current The current date
-   */
-  DataStep.prototype.getCurrent = function() {
-    var toPrecision = '' + Number(this.current).toPrecision(5);
-    for (var i = toPrecision.length-1; i > 0; i--) {
-      if (toPrecision[i] == "0") {
-        toPrecision = toPrecision.slice(0,i);
-      }
-      else if (toPrecision[i] == "." || toPrecision[i] == ",") {
-        toPrecision = toPrecision.slice(0,i);
-        break;
-      }
-      else{
-        break;
-      }
-    }
-
-    return toPrecision;
-  };
-
-
-
-  /**
-   * Snap a date to a rounded value.
-   * The snap intervals are dependent on the current scale and step.
-   * @param {Date} date   the date to be snapped.
-   * @return {Date} snappedDate
-   */
-  DataStep.prototype.snap = function(date) {
-
-  };
-
-  /**
-   * Check if the current value is a major value (for example when the step
-   * is DAY, a major value is each first day of the MONTH)
-   * @return {boolean} true if current date is major, else false.
-   */
-  DataStep.prototype.isMajor = function() {
-    return (this.current % (this.scale * this.majorSteps[this.stepIndex]) == 0);
-  };
-
-  module.exports = DataStep;
 
 
 /***/ },
@@ -25237,18 +25391,15 @@ return /******/ (function(modules) { // webpackBootstrap
     }
     else {
       var x, y, dx, dy;
-      var radius = this.physics.springLength / 4;
+      var radius = 0.25 * this.physics.springLength;
       var node = this.from;
-      if (!node.width) {
-        node.resize(ctx);
-      }
       if (node.width > node.height) {
-        x = node.x + node.width / 2;
+        x = node.x + 0.5 * node.width;
         y = node.y - radius;
       }
       else {
         x = node.x + radius;
-        y = node.y - node.height / 2;
+        y = node.y - 0.5 * node.height;
       }
       dx = x - x3;
       dy = y - y3;

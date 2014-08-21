@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>Graph2d | Bar Graph Example</title>
+    <title>Graph2d | Bar Graphs Side by Side Example with Groups</title>
 
     <style type="text/css">
         body, html {
@@ -13,22 +13,18 @@
     <link href="../../dist/vis.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
-<h2>Graph2d | Bar Graphs Side by Side Example</h2>
+<h2>Graph2d | Bar Graphs Side by Side Example with Groups</h2>
 <div style="width:700px; font-size:14px; text-align: justify;">
-    When using Bar graphs, it can often be the case that there are multiple bars on the same timepoint. This may not always be the desired result. Since groups are plotted one at a time, the allowOverlap option does
-    not work here. For groups you can use the "slots" option.
-
-<pre class="prettyprint lang-js">
-var options = {
-    slots: {
-        slot: 1,
-        total:3
-    }
-};
-</pre>
+    When using Bar graphs, it can often be the case that there are multiple bars on the same timepoint. This may not always be the desired result. You can use the
+    barChart.handleOverlap option to automatically plot the bars next to eachother or stacked on top of eachother if they occupy the same timeslot. By default, this option is on, the bars overlap.
+    Use the dropdown box to experiment with the options. The stacked only really makes sense when using groups as is shown here.
 
     <br /><br />
-    The slots tell the group where to plot it's bar. Each group is given a slot and the total amount of slots. Using this, the bars are plotted side by side neatly.
+    Handle overlap: <select id="dropdownID">
+    <option value="overlap">overlap</option>
+    <option value="sideBySide" selected="selected">sideBySide</option>
+    <option value="stack">stack</option>
+    </select>
 </div>
 <br />
 
@@ -38,9 +34,9 @@ var options = {
 
     var container = document.getElementById('visualization');
     var groups = new vis.DataSet();
-    groups.add({id: 0, content: "group0", options: {slots:{slot:1,total:3}}})
-    groups.add({id: 1, content: "group1", options: {slots:{slot:2,total:3}}})
-    groups.add({id: 2, content: "group2", options: {slots:{slot:3,total:3}}})
+    groups.add({id: 0, content: "group0"})
+    groups.add({id: 1, content: "group1"})
+    groups.add({id: 2, content: "group2"})
 
     var items = [
         {x: '2014-06-11', y: 10, group:0},
@@ -66,8 +62,8 @@ var options = {
     var dataset = new vis.DataSet(items);
     var options = {
         style:'bar',
-        barChart: {width:50, align:'center'}, // align: left, center, right
-        drawPoints: true,
+        barChart: {width:50, align:'center', handleOverlap:'sideBySide'}, // align: left, center, right
+        drawPoints: false,
         dataAxis: {
             icons:true
         },
@@ -76,6 +72,15 @@ var options = {
         end: '2014-06-18'
     };
     var graph2d = new vis.Graph2d(container, items, options,groups);
+
+    var dropdown = document.getElementById("dropdownID");
+    dropdown.onchange = update;
+
+    function update() {
+        var options = {barChart:{handleOverlap:dropdown.value}};
+        graph2d.setOptions(options);
+    }
+
 
 </script>
 </body>

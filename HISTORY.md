@@ -17,7 +17,6 @@ http://visjs.org
 
 ### Graph2D
 
-- Added 'slots' for groups when using barCharts.
 - Added 'allowOverlap' option for barCharts.
 - Added two examples showing the two additions above.
 - Added 'customRange' for the Y axis and an example showing how it works.

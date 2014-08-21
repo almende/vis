@@ -37,7 +37,6 @@
     <ul>
         <li><a href="#items">Items</a></li>
         <li><a href="#groups">Groups</a></li>
-        <li><a href="#GroupOptions">Group-specific options</a></li>
     </ul>
   </li>
   <li><a href="#Configuration_Options">Configuration Options</a>
@@ -251,43 +250,6 @@ groups.add({
     </tr>
 </table>
 
-<h3 id="GroupOptions">Group-specific Options</h3>
-
-The groups have some options that only apply to groups and cannot be set globally. These are listed below.
-
-<pre class="prettyprint lang-js">
-var groups = new vis.DataSet();
-groups.add({
-    id: 1,
-    content: 'Group 1',
-    options: {
-        slots: { slot: 1, total: 3}
-    }
-});
-</pre>
-
-
-<table>
-    <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Required</th>
-        <th>Description</th>
-    </tr>
-    <tr>
-        <td>slots.slot</td>
-        <td>Number</td>
-        <td></td>
-        <td>The slot the bar chart is plotted in. This has to be used in combination with slots.total. See <a href="../examples/graph2d/11_barsSideBySideGroups.html">example 11</a> for more information.</td>
-    </tr>
-    <tr>
-        <td>slots.total</td>
-        <td>Number</td>
-        <td></td>
-        <td>The total amount of slots available. This has to be used in combination with slots.slot. See <a href="../examples/graph2d/11_barsSideBySideGroups.html">example 11</a> for more information.</td>
-    </tr>
-</table>
-
 <h2 id="Configuration_Options">Configuration Options</h2>
 
 <h3 id="graph2dOptions">Graph2d Options</h3>
@@ -384,10 +346,11 @@ The options colored in green can also be used as options for the groups. All opt
         <td>The alignment of the bars with regards to the coordinate. The options are 'left', 'right' or 'center'.</td>
     </tr>
     <tr>
-        <td class="greenField">barChart.allowOverlap</td>
-        <td>Boolean</td>
-        <td>true</td>
-        <td>When true, bars that have the same x coordinate are plotted on top of eachother (not stacking).
+        <td class="greenField">barChart.handleOverlap</td>
+        <td>String</td>
+        <td>'overlap'</td>
+        <td>You can choose how graph2d handles the case where barcharts are occupying the same datapoint. The possible options are:
+            <code>overlap, sideBySide, stack</code>.
             See <a href="../examples/graph2d/10_barsSideBySide.html">example 10</a> for more information.
             When using groups, see <a href="../examples/graph2d/11_barsSideBySideGroups.html">example 11</a>.
         </td>

@@ -42,9 +42,9 @@ var options = {
 
     var container = document.getElementById('visualization');
     var groups = new vis.DataSet();
-    groups.add({id: 0, content: "group0", options: {slots:{slot:1,total:3}}})
-    groups.add({id: 1, content: "group1", options: {slots:{slot:2,total:3}}})
-    groups.add({id: 2, content: "group2", options: {slots:{slot:3,total:3}, yAxisOrientation:'right'}})
+    groups.add({id: 0, content: "group0"})
+    groups.add({id: 1, content: "group1"})
+    groups.add({id: 2, content: "group2",options:{ yAxisOrientation:'right'}})
 
     var items = [
         {x: '2014-06-11', y: 10, group:0},
@@ -70,7 +70,7 @@ var options = {
     var dataset = new vis.DataSet(items);
     var options = {
         style:'bar',
-        barChart: {width:50, align:'center'}, // align: left, center, right
+        barChart: {width:50, align:'center', handleOverlap:"sideBySide"}, // align: left, center, right
         drawPoints: true,
         dataAxis: {
             customRange: {
