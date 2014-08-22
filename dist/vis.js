@@ -6553,7 +6553,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   Graph2d.prototype.isGroupVisible = function(groupId) {
     if (this.linegraph.groups[groupId] !== undefined) {
-      return this.linegraph.groups[groupId].visible;
+      return (this.linegraph.groups[groupId].visible && (this.options.groups.visibility[groupId] === undefined || this.options.groups.visibility[groupId] == true));
     }
     else {
       return false;
@@ -6827,7 +6827,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(44);
+  var hammerUtil = __webpack_require__(43);
   var moment = __webpack_require__(40);
   var Component = __webpack_require__(18);
 
@@ -8019,7 +8019,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(18);
   var moment = __webpack_require__(40);
-  var locales = __webpack_require__(43);
+  var locales = __webpack_require__(44);
 
   /**
    * A current time bar
@@ -8167,7 +8167,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(18);
   var moment = __webpack_require__(40);
-  var locales = __webpack_require__(43);
+  var locales = __webpack_require__(44);
 
   /**
    * A custom time bar
@@ -11116,6 +11116,9 @@ return /******/ (function(modules) { // webpackBootstrap
           visible: true,
           position: 'top-right' // top/bottom - left,right
         }
+      },
+      groups: {
+        visibility: {}
       }
     };
 
@@ -11226,7 +11229,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   LineGraph.prototype.setOptions = function(options) {
     if (options) {
-      var fields = ['sampling','defaultGroup','graphHeight','yAxisOrientation','style','barChart','dataAxis','sort'];
+      var fields = ['sampling','defaultGroup','graphHeight','yAxisOrientation','style','barChart','dataAxis','sort','groups'];
       util.selectiveDeepExtend(fields, this.options, options);
       util.mergeOptions(this.options, options,'catmullRom');
       util.mergeOptions(this.options, options,'drawPoints');
@@ -11599,7 +11602,7 @@ return /******/ (function(modules) { // webpackBootstrap
       for (var groupId in this.groups) {
         if (this.groups.hasOwnProperty(groupId)) {
           group = this.groups[groupId];
-          if (group.visible == true) {
+          if (group.visible == true && (this.options.groups.visibility[groupId] === undefined || this.options.groups.visibility[groupId] == true)) {
             groupIds.push(groupId);
           }
         }
@@ -11948,7 +11951,7 @@ return /******/ (function(modules) { // webpackBootstrap
     for (i = 0; i < groupIds.length; i++) {
       group = this.groups[groupIds[i]];
       if (group.options.style == 'bar') {
-        if (group.visible == true) {
+        if (group.visible == true && (this.options.groups.visibility[groupIds[i]] === undefined || this.options.groups.visibility[groupIds[i]] == true)) {
           for (j = 0; j < processedGroupData[groupIds[i]].length; j++) {
             combinedData.push({
               x: processedGroupData[groupIds[i]][j].x,
@@ -13661,9 +13664,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var Emitter = __webpack_require__(49);
   var Hammer = __webpack_require__(41);
-  var mousetrap = __webpack_require__(50);
+  var mousetrap = __webpack_require__(52);
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(44);
+  var hammerUtil = __webpack_require__(43);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var dotparser = __webpack_require__(38);
@@ -19236,7 +19239,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // Only load hammer.js when in a browser environment
   // (loading hammer.js in a node.js environment gives errors)
   if (typeof window !== 'undefined') {
-    module.exports = window['Hammer'] || __webpack_require__(52);
+    module.exports = window['Hammer'] || __webpack_require__(50);
   }
   else {
     module.exports = function () {
@@ -20003,27 +20006,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
-  // English
-  exports['en'] = {
-    current: 'current',
-    time: 'time'
-  };
-  exports['en_EN'] = exports['en'];
-  exports['en_US'] = exports['en'];
-
-  // Dutch
-  exports['nl'] = {
-    custom: 'aangepaste',
-    time: 'tijd'
-  };
-  exports['nl_NL'] = exports['nl'];
-  exports['nl_BE'] = exports['nl'];
-
-
-/***/ },
-/* 44 */
-/***/ function(module, exports, __webpack_require__) {
-
   var Hammer = __webpack_require__(41);
 
   /**
@@ -20052,6 +20034,27 @@ return /******/ (function(modules) { // webpackBootstrap
 
     return gesture;
   };
+
+
+/***/ },
+/* 44 */
+/***/ function(module, exports, __webpack_require__) {
+
+  // English
+  exports['en'] = {
+    current: 'current',
+    time: 'time'
+  };
+  exports['en_EN'] = exports['en'];
+  exports['en_US'] = exports['en'];
+
+  // Dutch
+  exports['nl'] = {
+    custom: 'aangepaste',
+    time: 'tijd'
+  };
+  exports['nl_NL'] = exports['nl'];
+  exports['nl_BE'] = exports['nl'];
 
 
 /***/ },
@@ -20534,7 +20537,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var mousetrap = __webpack_require__(50);
+  var mousetrap = __webpack_require__(52);
   var Emitter = __webpack_require__(49);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
@@ -20856,806 +20859,2168 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
+  var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v1.1.3 - 2014-05-20
+   * http://eightmedia.github.io/hammer.js
+   *
+   * Copyright (c) 2014 Jorik Tangelder <j.tangelder@gmail.com>;
+   * Licensed under the MIT license */
+
+  (function(window, undefined) {
+    'use strict';
+
   /**
-   * Copyright 2012 Craig Campbell
+   * @main
+   * @module hammer
    *
-   * Licensed under the Apache License, Version 2.0 (the "License");
-   * you may not use this file except in compliance with the License.
-   * You may obtain a copy of the License at
-   *
-   * http://www.apache.org/licenses/LICENSE-2.0
-   *
-   * Unless required by applicable law or agreed to in writing, software
-   * distributed under the License is distributed on an "AS IS" BASIS,
-   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   * See the License for the specific language governing permissions and
-   * limitations under the License.
-   *
-   * Mousetrap is a simple keyboard shortcut library for Javascript with
-   * no external dependencies
-   *
-   * @version 1.1.2
-   * @url craig.is/killing/mice
+   * @class Hammer
+   * @static
    */
 
-    /**
-     * mapping of special keycodes to their corresponding keys
-     *
-     * everything in this dictionary cannot use keypress events
-     * so it has to be here to map to the correct keycodes for
-     * keyup/keydown events
-     *
-     * @type {Object}
-     */
-    var _MAP = {
-            8: 'backspace',
-            9: 'tab',
-            13: 'enter',
-            16: 'shift',
-            17: 'ctrl',
-            18: 'alt',
-            20: 'capslock',
-            27: 'esc',
-            32: 'space',
-            33: 'pageup',
-            34: 'pagedown',
-            35: 'end',
-            36: 'home',
-            37: 'left',
-            38: 'up',
-            39: 'right',
-            40: 'down',
-            45: 'ins',
-            46: 'del',
-            91: 'meta',
-            93: 'meta',
-            224: 'meta'
-        },
-
-        /**
-         * mapping for special characters so they can support
-         *
-         * this dictionary is only used incase you want to bind a
-         * keyup or keydown event to one of these keys
-         *
-         * @type {Object}
-         */
-        _KEYCODE_MAP = {
-            106: '*',
-            107: '+',
-            109: '-',
-            110: '.',
-            111 : '/',
-            186: ';',
-            187: '=',
-            188: ',',
-            189: '-',
-            190: '.',
-            191: '/',
-            192: '`',
-            219: '[',
-            220: '\\',
-            221: ']',
-            222: '\''
-        },
-
-        /**
-         * this is a mapping of keys that require shift on a US keypad
-         * back to the non shift equivelents
-         *
-         * this is so you can use keyup events with these keys
-         *
-         * note that this will only work reliably on US keyboards
-         *
-         * @type {Object}
-         */
-        _SHIFT_MAP = {
-            '~': '`',
-            '!': '1',
-            '@': '2',
-            '#': '3',
-            '$': '4',
-            '%': '5',
-            '^': '6',
-            '&': '7',
-            '*': '8',
-            '(': '9',
-            ')': '0',
-            '_': '-',
-            '+': '=',
-            ':': ';',
-            '\"': '\'',
-            '<': ',',
-            '>': '.',
-            '?': '/',
-            '|': '\\'
-        },
-
-        /**
-         * this is a list of special strings you can use to map
-         * to modifier keys when you specify your keyboard shortcuts
-         *
-         * @type {Object}
-         */
-        _SPECIAL_ALIASES = {
-            'option': 'alt',
-            'command': 'meta',
-            'return': 'enter',
-            'escape': 'esc'
-        },
-
-        /**
-         * variable to store the flipped version of _MAP from above
-         * needed to check if we should use keypress or not when no action
-         * is specified
-         *
-         * @type {Object|undefined}
-         */
-        _REVERSE_MAP,
-
-        /**
-         * a list of all the callbacks setup via Mousetrap.bind()
-         *
-         * @type {Object}
-         */
-        _callbacks = {},
-
-        /**
-         * direct map of string combinations to callbacks used for trigger()
-         *
-         * @type {Object}
-         */
-        _direct_map = {},
-
-        /**
-         * keeps track of what level each sequence is at since multiple
-         * sequences can start out with the same sequence
-         *
-         * @type {Object}
-         */
-        _sequence_levels = {},
-
-        /**
-         * variable to store the setTimeout call
-         *
-         * @type {null|number}
-         */
-        _reset_timer,
-
-        /**
-         * temporary state where we will ignore the next keyup
-         *
-         * @type {boolean|string}
-         */
-        _ignore_next_keyup = false,
-
-        /**
-         * are we currently inside of a sequence?
-         * type of action ("keyup" or "keydown" or "keypress") or false
-         *
-         * @type {boolean|string}
-         */
-        _inside_sequence = false;
-
-    /**
-     * loop through the f keys, f1 to f19 and add them to the map
-     * programatically
-     */
-    for (var i = 1; i < 20; ++i) {
-        _MAP[111 + i] = 'f' + i;
-    }
-
-    /**
-     * loop through to map numbers on the numeric keypad
-     */
-    for (i = 0; i <= 9; ++i) {
-        _MAP[i + 96] = i;
-    }
-
-    /**
-     * cross browser add event method
-     *
-     * @param {Element|HTMLDocument} object
-     * @param {string} type
-     * @param {Function} callback
-     * @returns void
-     */
-    function _addEvent(object, type, callback) {
-        if (object.addEventListener) {
-            return object.addEventListener(type, callback, false);
-        }
-
-        object.attachEvent('on' + type, callback);
-    }
-
-    /**
-     * takes the event and returns the key character
-     *
-     * @param {Event} e
-     * @return {string}
-     */
-    function _characterFromEvent(e) {
-
-        // for keypress events we should return the character as is
-        if (e.type == 'keypress') {
-            return String.fromCharCode(e.which);
-        }
-
-        // for non keypress events the special maps are needed
-        if (_MAP[e.which]) {
-            return _MAP[e.which];
-        }
-
-        if (_KEYCODE_MAP[e.which]) {
-            return _KEYCODE_MAP[e.which];
-        }
-
-        // if it is not in the special map
-        return String.fromCharCode(e.which).toLowerCase();
-    }
-
-    /**
-     * should we stop this event before firing off callbacks
-     *
-     * @param {Event} e
-     * @return {boolean}
-     */
-    function _stop(e) {
-        var element = e.target || e.srcElement,
-            tag_name = element.tagName;
-
-        // if the element has the class "mousetrap" then no need to stop
-        if ((' ' + element.className + ' ').indexOf(' mousetrap ') > -1) {
-            return false;
-        }
-
-        // stop for input, select, and textarea
-        return tag_name == 'INPUT' || tag_name == 'SELECT' || tag_name == 'TEXTAREA' || (element.contentEditable && element.contentEditable == 'true');
-    }
-
-    /**
-     * checks if two arrays are equal
-     *
-     * @param {Array} modifiers1
-     * @param {Array} modifiers2
-     * @returns {boolean}
-     */
-    function _modifiersMatch(modifiers1, modifiers2) {
-        return modifiers1.sort().join(',') === modifiers2.sort().join(',');
-    }
-
-    /**
-     * resets all sequence counters except for the ones passed in
-     *
-     * @param {Object} do_not_reset
-     * @returns void
-     */
-    function _resetSequences(do_not_reset) {
-        do_not_reset = do_not_reset || {};
-
-        var active_sequences = false,
-            key;
-
-        for (key in _sequence_levels) {
-            if (do_not_reset[key]) {
-                active_sequences = true;
-                continue;
-            }
-            _sequence_levels[key] = 0;
-        }
-
-        if (!active_sequences) {
-            _inside_sequence = false;
-        }
-    }
-
-    /**
-     * finds all callbacks that match based on the keycode, modifiers,
-     * and action
-     *
-     * @param {string} character
-     * @param {Array} modifiers
-     * @param {string} action
-     * @param {boolean=} remove - should we remove any matches
-     * @param {string=} combination
-     * @returns {Array}
-     */
-    function _getMatches(character, modifiers, action, remove, combination) {
-        var i,
-            callback,
-            matches = [];
-
-        // if there are no events related to this keycode
-        if (!_callbacks[character]) {
-            return [];
-        }
-
-        // if a modifier key is coming up on its own we should allow it
-        if (action == 'keyup' && _isModifier(character)) {
-            modifiers = [character];
-        }
-
-        // loop through all callbacks for the key that was pressed
-        // and see if any of them match
-        for (i = 0; i < _callbacks[character].length; ++i) {
-            callback = _callbacks[character][i];
-
-            // if this is a sequence but it is not at the right level
-            // then move onto the next match
-            if (callback.seq && _sequence_levels[callback.seq] != callback.level) {
-                continue;
-            }
-
-            // if the action we are looking for doesn't match the action we got
-            // then we should keep going
-            if (action != callback.action) {
-                continue;
-            }
-
-            // if this is a keypress event that means that we need to only
-            // look at the character, otherwise check the modifiers as
-            // well
-            if (action == 'keypress' || _modifiersMatch(modifiers, callback.modifiers)) {
-
-                // remove is used so if you change your mind and call bind a
-                // second time with a new function the first one is overwritten
-                if (remove && callback.combo == combination) {
-                    _callbacks[character].splice(i, 1);
-                }
-
-                matches.push(callback);
-            }
-        }
-
-        return matches;
-    }
-
-    /**
-     * takes a key event and figures out what the modifiers are
-     *
-     * @param {Event} e
-     * @returns {Array}
-     */
-    function _eventModifiers(e) {
-        var modifiers = [];
-
-        if (e.shiftKey) {
-            modifiers.push('shift');
-        }
-
-        if (e.altKey) {
-            modifiers.push('alt');
-        }
-
-        if (e.ctrlKey) {
-            modifiers.push('ctrl');
-        }
-
-        if (e.metaKey) {
-            modifiers.push('meta');
-        }
-
-        return modifiers;
-    }
-
-    /**
-     * actually calls the callback function
-     *
-     * if your callback function returns false this will use the jquery
-     * convention - prevent default and stop propogation on the event
-     *
-     * @param {Function} callback
-     * @param {Event} e
-     * @returns void
-     */
-    function _fireCallback(callback, e) {
-        if (callback(e) === false) {
-            if (e.preventDefault) {
-                e.preventDefault();
-            }
-
-            if (e.stopPropagation) {
-                e.stopPropagation();
-            }
-
-            e.returnValue = false;
-            e.cancelBubble = true;
-        }
-    }
-
-    /**
-     * handles a character key event
-     *
-     * @param {string} character
-     * @param {Event} e
-     * @returns void
-     */
-    function _handleCharacter(character, e) {
-
-        // if this event should not happen stop here
-        if (_stop(e)) {
-            return;
-        }
-
-        var callbacks = _getMatches(character, _eventModifiers(e), e.type),
-            i,
-            do_not_reset = {},
-            processed_sequence_callback = false;
-
-        // loop through matching callbacks for this key event
-        for (i = 0; i < callbacks.length; ++i) {
-
-            // fire for all sequence callbacks
-            // this is because if for example you have multiple sequences
-            // bound such as "g i" and "g t" they both need to fire the
-            // callback for matching g cause otherwise you can only ever
-            // match the first one
-            if (callbacks[i].seq) {
-                processed_sequence_callback = true;
-
-                // keep a list of which sequences were matches for later
-                do_not_reset[callbacks[i].seq] = 1;
-                _fireCallback(callbacks[i].callback, e);
-                continue;
-            }
-
-            // if there were no sequence matches but we are still here
-            // that means this is a regular match so we should fire that
-            if (!processed_sequence_callback && !_inside_sequence) {
-                _fireCallback(callbacks[i].callback, e);
-            }
-        }
-
-        // if you are inside of a sequence and the key you are pressing
-        // is not a modifier key then we should reset all sequences
-        // that were not matched by this key event
-        if (e.type == _inside_sequence && !_isModifier(character)) {
-            _resetSequences(do_not_reset);
-        }
-    }
-
-    /**
-     * handles a keydown event
-     *
-     * @param {Event} e
-     * @returns void
-     */
-    function _handleKey(e) {
-
-        // normalize e.which for key events
-        // @see http://stackoverflow.com/questions/4285627/javascript-keycode-vs-charcode-utter-confusion
-        e.which = typeof e.which == "number" ? e.which : e.keyCode;
-
-        var character = _characterFromEvent(e);
-
-        // no character found then stop
-        if (!character) {
-            return;
-        }
-
-        if (e.type == 'keyup' && _ignore_next_keyup == character) {
-            _ignore_next_keyup = false;
-            return;
-        }
-
-        _handleCharacter(character, e);
-    }
-
-    /**
-     * determines if the keycode specified is a modifier key or not
-     *
-     * @param {string} key
-     * @returns {boolean}
-     */
-    function _isModifier(key) {
-        return key == 'shift' || key == 'ctrl' || key == 'alt' || key == 'meta';
-    }
-
-    /**
-     * called to set a 1 second timeout on the specified sequence
-     *
-     * this is so after each key press in the sequence you have 1 second
-     * to press the next key before you have to start over
-     *
-     * @returns void
-     */
-    function _resetSequenceTimer() {
-        clearTimeout(_reset_timer);
-        _reset_timer = setTimeout(_resetSequences, 1000);
-    }
-
-    /**
-     * reverses the map lookup so that we can look for specific keys
-     * to see what can and can't use keypress
-     *
-     * @return {Object}
-     */
-    function _getReverseMap() {
-        if (!_REVERSE_MAP) {
-            _REVERSE_MAP = {};
-            for (var key in _MAP) {
-
-                // pull out the numeric keypad from here cause keypress should
-                // be able to detect the keys from the character
-                if (key > 95 && key < 112) {
-                    continue;
-                }
-
-                if (_MAP.hasOwnProperty(key)) {
-                    _REVERSE_MAP[_MAP[key]] = key;
-                }
-            }
-        }
-        return _REVERSE_MAP;
-    }
-
-    /**
-     * picks the best action based on the key combination
-     *
-     * @param {string} key - character for key
-     * @param {Array} modifiers
-     * @param {string=} action passed in
-     */
-    function _pickBestAction(key, modifiers, action) {
-
-        // if no action was picked in we should try to pick the one
-        // that we think would work best for this key
-        if (!action) {
-            action = _getReverseMap()[key] ? 'keydown' : 'keypress';
-        }
-
-        // modifier keys don't work as expected with keypress,
-        // switch to keydown
-        if (action == 'keypress' && modifiers.length) {
-            action = 'keydown';
-        }
-
-        return action;
-    }
-
-    /**
-     * binds a key sequence to an event
-     *
-     * @param {string} combo - combo specified in bind call
-     * @param {Array} keys
-     * @param {Function} callback
-     * @param {string=} action
-     * @returns void
-     */
-    function _bindSequence(combo, keys, callback, action) {
-
-        // start off by adding a sequence level record for this combination
-        // and setting the level to 0
-        _sequence_levels[combo] = 0;
-
-        // if there is no action pick the best one for the first key
-        // in the sequence
-        if (!action) {
-            action = _pickBestAction(keys[0], []);
-        }
-
-        /**
-         * callback to increase the sequence level for this sequence and reset
-         * all other sequences that were active
-         *
-         * @param {Event} e
-         * @returns void
-         */
-        var _increaseSequence = function(e) {
-                _inside_sequence = action;
-                ++_sequence_levels[combo];
-                _resetSequenceTimer();
-            },
-
-            /**
-             * wraps the specified callback inside of another function in order
-             * to reset all sequence counters as soon as this sequence is done
-             *
-             * @param {Event} e
-             * @returns void
-             */
-            _callbackAndReset = function(e) {
-                _fireCallback(callback, e);
-
-                // we should ignore the next key up if the action is key down
-                // or keypress.  this is so if you finish a sequence and
-                // release the key the final key will not trigger a keyup
-                if (action !== 'keyup') {
-                    _ignore_next_keyup = _characterFromEvent(e);
-                }
-
-                // weird race condition if a sequence ends with the key
-                // another sequence begins with
-                setTimeout(_resetSequences, 10);
-            },
-            i;
-
-        // loop through keys one at a time and bind the appropriate callback
-        // function.  for any key leading up to the final one it should
-        // increase the sequence. after the final, it should reset all sequences
-        for (i = 0; i < keys.length; ++i) {
-            _bindSingle(keys[i], i < keys.length - 1 ? _increaseSequence : _callbackAndReset, action, combo, i);
-        }
-    }
-
-    /**
-     * binds a single keyboard combination
-     *
-     * @param {string} combination
-     * @param {Function} callback
-     * @param {string=} action
-     * @param {string=} sequence_name - name of sequence if part of sequence
-     * @param {number=} level - what part of the sequence the command is
-     * @returns void
-     */
-    function _bindSingle(combination, callback, action, sequence_name, level) {
-
-        // make sure multiple spaces in a row become a single space
-        combination = combination.replace(/\s+/g, ' ');
-
-        var sequence = combination.split(' '),
-            i,
-            key,
-            keys,
-            modifiers = [];
-
-        // if this pattern is a sequence of keys then run through this method
-        // to reprocess each pattern one key at a time
-        if (sequence.length > 1) {
-            return _bindSequence(combination, sequence, callback, action);
-        }
-
-        // take the keys from this pattern and figure out what the actual
-        // pattern is all about
-        keys = combination === '+' ? ['+'] : combination.split('+');
-
-        for (i = 0; i < keys.length; ++i) {
-            key = keys[i];
-
-            // normalize key names
-            if (_SPECIAL_ALIASES[key]) {
-                key = _SPECIAL_ALIASES[key];
-            }
-
-            // if this is not a keypress event then we should
-            // be smart about using shift keys
-            // this will only work for US keyboards however
-            if (action && action != 'keypress' && _SHIFT_MAP[key]) {
-                key = _SHIFT_MAP[key];
-                modifiers.push('shift');
-            }
-
-            // if this key is a modifier then add it to the list of modifiers
-            if (_isModifier(key)) {
-                modifiers.push(key);
-            }
-        }
-
-        // depending on what the key combination is
-        // we will try to pick the best event for it
-        action = _pickBestAction(key, modifiers, action);
-
-        // make sure to initialize array if this is the first time
-        // a callback is added for this key
-        if (!_callbacks[key]) {
-            _callbacks[key] = [];
-        }
-
-        // remove an existing match if there is one
-        _getMatches(key, modifiers, action, !sequence_name, combination);
-
-        // add this call back to the array
-        // if it is a sequence put it at the beginning
-        // if not put it at the end
-        //
-        // this is important because the way these are processed expects
-        // the sequence ones to come first
-        _callbacks[key][sequence_name ? 'unshift' : 'push']({
-            callback: callback,
-            modifiers: modifiers,
-            action: action,
-            seq: sequence_name,
-            level: level,
-            combo: combination
-        });
-    }
-
-    /**
-     * binds multiple combinations to the same callback
-     *
-     * @param {Array} combinations
-     * @param {Function} callback
-     * @param {string|undefined} action
-     * @returns void
-     */
-    function _bindMultiple(combinations, callback, action) {
-        for (var i = 0; i < combinations.length; ++i) {
-            _bindSingle(combinations[i], callback, action);
-        }
-    }
-
-    // start!
-    _addEvent(document, 'keypress', _handleKey);
-    _addEvent(document, 'keydown', _handleKey);
-    _addEvent(document, 'keyup', _handleKey);
-
-    var mousetrap = {
-
-        /**
-         * binds an event to mousetrap
-         *
-         * can be a single key, a combination of keys separated with +,
-         * a comma separated list of keys, an array of keys, or
-         * a sequence of keys separated by spaces
-         *
-         * be sure to list the modifier keys first to make sure that the
-         * correct key ends up getting bound (the last key in the pattern)
-         *
-         * @param {string|Array} keys
-         * @param {Function} callback
-         * @param {string=} action - 'keypress', 'keydown', or 'keyup'
-         * @returns void
-         */
-        bind: function(keys, callback, action) {
-            _bindMultiple(keys instanceof Array ? keys : [keys], callback, action);
-            _direct_map[keys + ':' + action] = callback;
-            return this;
-        },
-
-        /**
-         * unbinds an event to mousetrap
-         *
-         * the unbinding sets the callback function of the specified key combo
-         * to an empty function and deletes the corresponding key in the
-         * _direct_map dict.
-         *
-         * the keycombo+action has to be exactly the same as
-         * it was defined in the bind method
-         *
-         * TODO: actually remove this from the _callbacks dictionary instead
-         * of binding an empty function
-         *
-         * @param {string|Array} keys
-         * @param {string} action
-         * @returns void
-         */
-        unbind: function(keys, action) {
-            if (_direct_map[keys + ':' + action]) {
-                delete _direct_map[keys + ':' + action];
-                this.bind(keys, function() {}, action);
-            }
-            return this;
-        },
-
-        /**
-         * triggers an event that has already been bound
-         *
-         * @param {string} keys
-         * @param {string=} action
-         * @returns void
-         */
-        trigger: function(keys, action) {
-            _direct_map[keys + ':' + action]();
-            return this;
-        },
-
-        /**
-         * resets the library back to its initial state.  this is useful
-         * if you want to clear out the current keyboard shortcuts and bind
-         * new ones - for example if you switch to another page
-         *
-         * @returns void
-         */
-        reset: function() {
-            _callbacks = {};
-            _direct_map = {};
-            return this;
-        }
-    };
-
-  module.exports = mousetrap;
-
-
+  /**
+   * Hammer, use this to create instances
+   * ````
+   * var hammertime = new Hammer(myElement);
+   * ````
+   *
+   * @method Hammer
+   * @param {HTMLElement} element
+   * @param {Object} [options={}]
+   * @return {Hammer.Instance}
+   */
+  var Hammer = function Hammer(element, options) {
+      return new Hammer.Instance(element, options || {});
+  };
+
+  /**
+   * version, as defined in package.json
+   * the value will be set at each build
+   * @property VERSION
+   * @final
+   * @type {String}
+   */
+  Hammer.VERSION = '1.1.3';
+
+  /**
+   * default settings.
+   * more settings are defined per gesture at `/gestures`. Each gesture can be disabled/enabled
+   * by setting it's name (like `swipe`) to false.
+   * You can set the defaults for all instances by changing this object before creating an instance.
+   * @example
+   * ````
+   *  Hammer.defaults.drag = false;
+   *  Hammer.defaults.behavior.touchAction = 'pan-y';
+   *  delete Hammer.defaults.behavior.userSelect;
+   * ````
+   * @property defaults
+   * @type {Object}
+   */
+  Hammer.defaults = {
+      /**
+       * this setting object adds styles and attributes to the element to prevent the browser from doing
+       * its native behavior. The css properties are auto prefixed for the browsers when needed.
+       * @property defaults.behavior
+       * @type {Object}
+       */
+      behavior: {
+          /**
+           * Disables text selection to improve the dragging gesture. When the value is `none` it also sets
+           * `onselectstart=false` for IE on the element. Mainly for desktop browsers.
+           * @property defaults.behavior.userSelect
+           * @type {String}
+           * @default 'none'
+           */
+          userSelect: 'none',
+
+          /**
+           * Specifies whether and how a given region can be manipulated by the user (for instance, by panning or zooming).
+           * Used by Chrome 35> and IE10>. By default this makes the element blocking any touch event.
+           * @property defaults.behavior.touchAction
+           * @type {String}
+           * @default: 'pan-y'
+           */
+          touchAction: 'pan-y',
+
+          /**
+           * Disables the default callout shown when you touch and hold a touch target.
+           * On iOS, when you touch and hold a touch target such as a link, Safari displays
+           * a callout containing information about the link. This property allows you to disable that callout.
+           * @property defaults.behavior.touchCallout
+           * @type {String}
+           * @default 'none'
+           */
+          touchCallout: 'none',
+
+          /**
+           * Specifies whether zooming is enabled. Used by IE10>
+           * @property defaults.behavior.contentZooming
+           * @type {String}
+           * @default 'none'
+           */
+          contentZooming: 'none',
+
+          /**
+           * Specifies that an entire element should be draggable instead of its contents.
+           * Mainly for desktop browsers.
+           * @property defaults.behavior.userDrag
+           * @type {String}
+           * @default 'none'
+           */
+          userDrag: 'none',
+
+          /**
+           * Overrides the highlight color shown when the user taps a link or a JavaScript
+           * clickable element in Safari on iPhone. This property obeys the alpha value, if specified.
+           *
+           * If you don't specify an alpha value, Safari on iPhone applies a default alpha value
+           * to the color. To disable tap highlighting, set the alpha value to 0 (invisible).
+           * If you set the alpha value to 1.0 (opaque), the element is not visible when tapped.
+           * @property defaults.behavior.tapHighlightColor
+           * @type {String}
+           * @default 'rgba(0,0,0,0)'
+           */
+          tapHighlightColor: 'rgba(0,0,0,0)'
+      }
+  };
+
+  /**
+   * hammer document where the base events are added at
+   * @property DOCUMENT
+   * @type {HTMLElement}
+   * @default window.document
+   */
+  Hammer.DOCUMENT = document;
+
+  /**
+   * detect support for pointer events
+   * @property HAS_POINTEREVENTS
+   * @type {Boolean}
+   */
+  Hammer.HAS_POINTEREVENTS = navigator.pointerEnabled || navigator.msPointerEnabled;
+
+  /**
+   * detect support for touch events
+   * @property HAS_TOUCHEVENTS
+   * @type {Boolean}
+   */
+  Hammer.HAS_TOUCHEVENTS = ('ontouchstart' in window);
+
+  /**
+   * detect mobile browsers
+   * @property IS_MOBILE
+   * @type {Boolean}
+   */
+  Hammer.IS_MOBILE = /mobile|tablet|ip(ad|hone|od)|android|silk/i.test(navigator.userAgent);
+
+  /**
+   * detect if we want to support mouseevents at all
+   * @property NO_MOUSEEVENTS
+   * @type {Boolean}
+   */
+  Hammer.NO_MOUSEEVENTS = (Hammer.HAS_TOUCHEVENTS && Hammer.IS_MOBILE) || Hammer.HAS_POINTEREVENTS;
+
+  /**
+   * interval in which Hammer recalculates current velocity/direction/angle in ms
+   * @property CALCULATE_INTERVAL
+   * @type {Number}
+   * @default 25
+   */
+  Hammer.CALCULATE_INTERVAL = 25;
+
+  /**
+   * eventtypes per touchevent (start, move, end) are filled by `Event.determineEventTypes` on `setup`
+   * the object contains the DOM event names per type (`EVENT_START`, `EVENT_MOVE`, `EVENT_END`)
+   * @property EVENT_TYPES
+   * @private
+   * @writeOnce
+   * @type {Object}
+   */
+  var EVENT_TYPES = {};
+
+  /**
+   * direction strings, for safe comparisons
+   * @property DIRECTION_DOWN|LEFT|UP|RIGHT
+   * @final
+   * @type {String}
+   * @default 'down' 'left' 'up' 'right'
+   */
+  var DIRECTION_DOWN = Hammer.DIRECTION_DOWN = 'down';
+  var DIRECTION_LEFT = Hammer.DIRECTION_LEFT = 'left';
+  var DIRECTION_UP = Hammer.DIRECTION_UP = 'up';
+  var DIRECTION_RIGHT = Hammer.DIRECTION_RIGHT = 'right';
+
+  /**
+   * pointertype strings, for safe comparisons
+   * @property POINTER_MOUSE|TOUCH|PEN
+   * @final
+   * @type {String}
+   * @default 'mouse' 'touch' 'pen'
+   */
+  var POINTER_MOUSE = Hammer.POINTER_MOUSE = 'mouse';
+  var POINTER_TOUCH = Hammer.POINTER_TOUCH = 'touch';
+  var POINTER_PEN = Hammer.POINTER_PEN = 'pen';
+
+  /**
+   * eventtypes
+   * @property EVENT_START|MOVE|END|RELEASE|TOUCH
+   * @final
+   * @type {String}
+   * @default 'start' 'change' 'move' 'end' 'release' 'touch'
+   */
+  var EVENT_START = Hammer.EVENT_START = 'start';
+  var EVENT_MOVE = Hammer.EVENT_MOVE = 'move';
+  var EVENT_END = Hammer.EVENT_END = 'end';
+  var EVENT_RELEASE = Hammer.EVENT_RELEASE = 'release';
+  var EVENT_TOUCH = Hammer.EVENT_TOUCH = 'touch';
+
+  /**
+   * if the window events are set...
+   * @property READY
+   * @writeOnce
+   * @type {Boolean}
+   * @default false
+   */
+  Hammer.READY = false;
+
+  /**
+   * plugins namespace
+   * @property plugins
+   * @type {Object}
+   */
+  Hammer.plugins = Hammer.plugins || {};
+
+  /**
+   * gestures namespace
+   * see `/gestures` for the definitions
+   * @property gestures
+   * @type {Object}
+   */
+  Hammer.gestures = Hammer.gestures || {};
+
+  /**
+   * setup events to detect gestures on the document
+   * this function is called when creating an new instance
+   * @private
+   */
+  function setup() {
+      if(Hammer.READY) {
+          return;
+      }
+
+      // find what eventtypes we add listeners to
+      Event.determineEventTypes();
+
+      // Register all gestures inside Hammer.gestures
+      Utils.each(Hammer.gestures, function(gesture) {
+          Detection.register(gesture);
+      });
+
+      // Add touch events on the document
+      Event.onTouch(Hammer.DOCUMENT, EVENT_MOVE, Detection.detect);
+      Event.onTouch(Hammer.DOCUMENT, EVENT_END, Detection.detect);
+
+      // Hammer is ready...!
+      Hammer.READY = true;
+  }
+
+  /**
+   * @module hammer
+   *
+   * @class Utils
+   * @static
+   */
+  var Utils = Hammer.utils = {
+      /**
+       * extend method, could also be used for cloning when `dest` is an empty object.
+       * changes the dest object
+       * @method extend
+       * @param {Object} dest
+       * @param {Object} src
+       * @param {Boolean} [merge=false]  do a merge
+       * @return {Object} dest
+       */
+      extend: function extend(dest, src, merge) {
+          for(var key in src) {
+              if(!src.hasOwnProperty(key) || (dest[key] !== undefined && merge)) {
+                  continue;
+              }
+              dest[key] = src[key];
+          }
+          return dest;
+      },
+
+      /**
+       * simple addEventListener wrapper
+       * @method on
+       * @param {HTMLElement} element
+       * @param {String} type
+       * @param {Function} handler
+       */
+      on: function on(element, type, handler) {
+          element.addEventListener(type, handler, false);
+      },
+
+      /**
+       * simple removeEventListener wrapper
+       * @method off
+       * @param {HTMLElement} element
+       * @param {String} type
+       * @param {Function} handler
+       */
+      off: function off(element, type, handler) {
+          element.removeEventListener(type, handler, false);
+      },
+
+      /**
+       * forEach over arrays and objects
+       * @method each
+       * @param {Object|Array} obj
+       * @param {Function} iterator
+       * @param {any} iterator.item
+       * @param {Number} iterator.index
+       * @param {Object|Array} iterator.obj the source object
+       * @param {Object} context value to use as `this` in the iterator
+       */
+      each: function each(obj, iterator, context) {
+          var i, len;
+
+          // native forEach on arrays
+          if('forEach' in obj) {
+              obj.forEach(iterator, context);
+          // arrays
+          } else if(obj.length !== undefined) {
+              for(i = 0, len = obj.length; i < len; i++) {
+                  if(iterator.call(context, obj[i], i, obj) === false) {
+                      return;
+                  }
+              }
+          // objects
+          } else {
+              for(i in obj) {
+                  if(obj.hasOwnProperty(i) &&
+                      iterator.call(context, obj[i], i, obj) === false) {
+                      return;
+                  }
+              }
+          }
+      },
+
+      /**
+       * find if a string contains the string using indexOf
+       * @method inStr
+       * @param {String} src
+       * @param {String} find
+       * @return {Boolean} found
+       */
+      inStr: function inStr(src, find) {
+          return src.indexOf(find) > -1;
+      },
+
+      /**
+       * find if a array contains the object using indexOf or a simple polyfill
+       * @method inArray
+       * @param {String} src
+       * @param {String} find
+       * @return {Boolean|Number} false when not found, or the index
+       */
+      inArray: function inArray(src, find) {
+          if(src.indexOf) {
+              var index = src.indexOf(find);
+              return (index === -1) ? false : index;
+          } else {
+              for(var i = 0, len = src.length; i < len; i++) {
+                  if(src[i] === find) {
+                      return i;
+                  }
+              }
+              return false;
+          }
+      },
+
+      /**
+       * convert an array-like object (`arguments`, `touchlist`) to an array
+       * @method toArray
+       * @param {Object} obj
+       * @return {Array}
+       */
+      toArray: function toArray(obj) {
+          return Array.prototype.slice.call(obj, 0);
+      },
+
+      /**
+       * find if a node is in the given parent
+       * @method hasParent
+       * @param {HTMLElement} node
+       * @param {HTMLElement} parent
+       * @return {Boolean} found
+       */
+      hasParent: function hasParent(node, parent) {
+          while(node) {
+              if(node == parent) {
+                  return true;
+              }
+              node = node.parentNode;
+          }
+          return false;
+      },
+
+      /**
+       * get the center of all the touches
+       * @method getCenter
+       * @param {Array} touches
+       * @return {Object} center contains `pageX`, `pageY`, `clientX` and `clientY` properties
+       */
+      getCenter: function getCenter(touches) {
+          var pageX = [],
+              pageY = [],
+              clientX = [],
+              clientY = [],
+              min = Math.min,
+              max = Math.max;
+
+          // no need to loop when only one touch
+          if(touches.length === 1) {
+              return {
+                  pageX: touches[0].pageX,
+                  pageY: touches[0].pageY,
+                  clientX: touches[0].clientX,
+                  clientY: touches[0].clientY
+              };
+          }
+
+          Utils.each(touches, function(touch) {
+              pageX.push(touch.pageX);
+              pageY.push(touch.pageY);
+              clientX.push(touch.clientX);
+              clientY.push(touch.clientY);
+          });
+
+          return {
+              pageX: (min.apply(Math, pageX) + max.apply(Math, pageX)) / 2,
+              pageY: (min.apply(Math, pageY) + max.apply(Math, pageY)) / 2,
+              clientX: (min.apply(Math, clientX) + max.apply(Math, clientX)) / 2,
+              clientY: (min.apply(Math, clientY) + max.apply(Math, clientY)) / 2
+          };
+      },
+
+      /**
+       * calculate the velocity between two points. unit is in px per ms.
+       * @method getVelocity
+       * @param {Number} deltaTime
+       * @param {Number} deltaX
+       * @param {Number} deltaY
+       * @return {Object} velocity `x` and `y`
+       */
+      getVelocity: function getVelocity(deltaTime, deltaX, deltaY) {
+          return {
+              x: Math.abs(deltaX / deltaTime) || 0,
+              y: Math.abs(deltaY / deltaTime) || 0
+          };
+      },
+
+      /**
+       * calculate the angle between two coordinates
+       * @method getAngle
+       * @param {Touch} touch1
+       * @param {Touch} touch2
+       * @return {Number} angle
+       */
+      getAngle: function getAngle(touch1, touch2) {
+          var x = touch2.clientX - touch1.clientX,
+              y = touch2.clientY - touch1.clientY;
+
+          return Math.atan2(y, x) * 180 / Math.PI;
+      },
+
+      /**
+       * do a small comparision to get the direction between two touches.
+       * @method getDirection
+       * @param {Touch} touch1
+       * @param {Touch} touch2
+       * @return {String} direction matches `DIRECTION_LEFT|RIGHT|UP|DOWN`
+       */
+      getDirection: function getDirection(touch1, touch2) {
+          var x = Math.abs(touch1.clientX - touch2.clientX),
+              y = Math.abs(touch1.clientY - touch2.clientY);
+
+          if(x >= y) {
+              return touch1.clientX - touch2.clientX > 0 ? DIRECTION_LEFT : DIRECTION_RIGHT;
+          }
+          return touch1.clientY - touch2.clientY > 0 ? DIRECTION_UP : DIRECTION_DOWN;
+      },
+
+      /**
+       * calculate the distance between two touches
+       * @method getDistance
+       * @param {Touch}touch1
+       * @param {Touch} touch2
+       * @return {Number} distance
+       */
+      getDistance: function getDistance(touch1, touch2) {
+          var x = touch2.clientX - touch1.clientX,
+              y = touch2.clientY - touch1.clientY;
+
+          return Math.sqrt((x * x) + (y * y));
+      },
+
+      /**
+       * calculate the scale factor between two touchLists
+       * no scale is 1, and goes down to 0 when pinched together, and bigger when pinched out
+       * @method getScale
+       * @param {Array} start array of touches
+       * @param {Array} end array of touches
+       * @return {Number} scale
+       */
+      getScale: function getScale(start, end) {
+          // need two fingers...
+          if(start.length >= 2 && end.length >= 2) {
+              return this.getDistance(end[0], end[1]) / this.getDistance(start[0], start[1]);
+          }
+          return 1;
+      },
+
+      /**
+       * calculate the rotation degrees between two touchLists
+       * @method getRotation
+       * @param {Array} start array of touches
+       * @param {Array} end array of touches
+       * @return {Number} rotation
+       */
+      getRotation: function getRotation(start, end) {
+          // need two fingers
+          if(start.length >= 2 && end.length >= 2) {
+              return this.getAngle(end[1], end[0]) - this.getAngle(start[1], start[0]);
+          }
+          return 0;
+      },
+
+      /**
+       * find out if the direction is vertical   *
+       * @method isVertical
+       * @param {String} direction matches `DIRECTION_UP|DOWN`
+       * @return {Boolean} is_vertical
+       */
+      isVertical: function isVertical(direction) {
+          return direction == DIRECTION_UP || direction == DIRECTION_DOWN;
+      },
+
+      /**
+       * set css properties with their prefixes
+       * @param {HTMLElement} element
+       * @param {String} prop
+       * @param {String} value
+       * @param {Boolean} [toggle=true]
+       * @return {Boolean}
+       */
+      setPrefixedCss: function setPrefixedCss(element, prop, value, toggle) {
+          var prefixes = ['', 'Webkit', 'Moz', 'O', 'ms'];
+          prop = Utils.toCamelCase(prop);
+
+          for(var i = 0; i < prefixes.length; i++) {
+              var p = prop;
+              // prefixes
+              if(prefixes[i]) {
+                  p = prefixes[i] + p.slice(0, 1).toUpperCase() + p.slice(1);
+              }
+
+              // test the style
+              if(p in element.style) {
+                  element.style[p] = (toggle == null || toggle) && value || '';
+                  break;
+              }
+          }
+      },
+
+      /**
+       * toggle browser default behavior by setting css properties.
+       * `userSelect='none'` also sets `element.onselectstart` to false
+       * `userDrag='none'` also sets `element.ondragstart` to false
+       *
+       * @method toggleBehavior
+       * @param {HtmlElement} element
+       * @param {Object} props
+       * @param {Boolean} [toggle=true]
+       */
+      toggleBehavior: function toggleBehavior(element, props, toggle) {
+          if(!props || !element || !element.style) {
+              return;
+          }
+
+          // set the css properties
+          Utils.each(props, function(value, prop) {
+              Utils.setPrefixedCss(element, prop, value, toggle);
+          });
+
+          var falseFn = toggle && function() {
+              return false;
+          };
+
+          // also the disable onselectstart
+          if(props.userSelect == 'none') {
+              element.onselectstart = falseFn;
+          }
+          // and disable ondragstart
+          if(props.userDrag == 'none') {
+              element.ondragstart = falseFn;
+          }
+      },
+
+      /**
+       * convert a string with underscores to camelCase
+       * so prevent_default becomes preventDefault
+       * @param {String} str
+       * @return {String} camelCaseStr
+       */
+      toCamelCase: function toCamelCase(str) {
+          return str.replace(/[_-]([a-z])/g, function(s) {
+              return s[1].toUpperCase();
+          });
+      }
+  };
+
+
+  /**
+   * @module hammer
+   */
+  /**
+   * @class Event
+   * @static
+   */
+  var Event = Hammer.event = {
+      /**
+       * when touch events have been fired, this is true
+       * this is used to stop mouse events
+       * @property prevent_mouseevents
+       * @private
+       * @type {Boolean}
+       */
+      preventMouseEvents: false,
+
+      /**
+       * if EVENT_START has been fired
+       * @property started
+       * @private
+       * @type {Boolean}
+       */
+      started: false,
+
+      /**
+       * when the mouse is hold down, this is true
+       * @property should_detect
+       * @private
+       * @type {Boolean}
+       */
+      shouldDetect: false,
+
+      /**
+       * simple event binder with a hook and support for multiple types
+       * @method on
+       * @param {HTMLElement} element
+       * @param {String} type
+       * @param {Function} handler
+       * @param {Function} [hook]
+       * @param {Object} hook.type
+       */
+      on: function on(element, type, handler, hook) {
+          var types = type.split(' ');
+          Utils.each(types, function(type) {
+              Utils.on(element, type, handler);
+              hook && hook(type);
+          });
+      },
+
+      /**
+       * simple event unbinder with a hook and support for multiple types
+       * @method off
+       * @param {HTMLElement} element
+       * @param {String} type
+       * @param {Function} handler
+       * @param {Function} [hook]
+       * @param {Object} hook.type
+       */
+      off: function off(element, type, handler, hook) {
+          var types = type.split(' ');
+          Utils.each(types, function(type) {
+              Utils.off(element, type, handler);
+              hook && hook(type);
+          });
+      },
+
+      /**
+       * the core touch event handler.
+       * this finds out if we should to detect gestures
+       * @method onTouch
+       * @param {HTMLElement} element
+       * @param {String} eventType matches `EVENT_START|MOVE|END`
+       * @param {Function} handler
+       * @return onTouchHandler {Function} the core event handler
+       */
+      onTouch: function onTouch(element, eventType, handler) {
+          var self = this;
+
+          var onTouchHandler = function onTouchHandler(ev) {
+              var srcType = ev.type.toLowerCase(),
+                  isPointer = Hammer.HAS_POINTEREVENTS,
+                  isMouse = Utils.inStr(srcType, 'mouse'),
+                  triggerType;
+
+              // if we are in a mouseevent, but there has been a touchevent triggered in this session
+              // we want to do nothing. simply break out of the event.
+              if(isMouse && self.preventMouseEvents) {
+                  return;
+
+              // mousebutton must be down
+              } else if(isMouse && eventType == EVENT_START && ev.button === 0) {
+                  self.preventMouseEvents = false;
+                  self.shouldDetect = true;
+              } else if(isPointer && eventType == EVENT_START) {
+                  self.shouldDetect = (ev.buttons === 1 || PointerEvent.matchType(POINTER_TOUCH, ev));
+              // just a valid start event, but no mouse
+              } else if(!isMouse && eventType == EVENT_START) {
+                  self.preventMouseEvents = true;
+                  self.shouldDetect = true;
+              }
+
+              // update the pointer event before entering the detection
+              if(isPointer && eventType != EVENT_END) {
+                  PointerEvent.updatePointer(eventType, ev);
+              }
+
+              // we are in a touch/down state, so allowed detection of gestures
+              if(self.shouldDetect) {
+                  triggerType = self.doDetect.call(self, ev, eventType, element, handler);
+              }
+
+              // ...and we are done with the detection
+              // so reset everything to start each detection totally fresh
+              if(triggerType == EVENT_END) {
+                  self.preventMouseEvents = false;
+                  self.shouldDetect = false;
+                  PointerEvent.reset();
+              // update the pointerevent object after the detection
+              }
+
+              if(isPointer && eventType == EVENT_END) {
+                  PointerEvent.updatePointer(eventType, ev);
+              }
+          };
+
+          this.on(element, EVENT_TYPES[eventType], onTouchHandler);
+          return onTouchHandler;
+      },
+
+      /**
+       * the core detection method
+       * this finds out what hammer-touch-events to trigger
+       * @method doDetect
+       * @param {Object} ev
+       * @param {String} eventType matches `EVENT_START|MOVE|END`
+       * @param {HTMLElement} element
+       * @param {Function} handler
+       * @return {String} triggerType matches `EVENT_START|MOVE|END`
+       */
+      doDetect: function doDetect(ev, eventType, element, handler) {
+          var touchList = this.getTouchList(ev, eventType);
+          var touchListLength = touchList.length;
+          var triggerType = eventType;
+          var triggerChange = touchList.trigger; // used by fakeMultitouch plugin
+          var changedLength = touchListLength;
+
+          // at each touchstart-like event we want also want to trigger a TOUCH event...
+          if(eventType == EVENT_START) {
+              triggerChange = EVENT_TOUCH;
+          // ...the same for a touchend-like event
+          } else if(eventType == EVENT_END) {
+              triggerChange = EVENT_RELEASE;
+
+              // keep track of how many touches have been removed
+              changedLength = touchList.length - ((ev.changedTouches) ? ev.changedTouches.length : 1);
+          }
+
+          // after there are still touches on the screen,
+          // we just want to trigger a MOVE event. so change the START or END to a MOVE
+          // but only after detection has been started, the first time we actualy want a START
+          if(changedLength > 0 && this.started) {
+              triggerType = EVENT_MOVE;
+          }
+
+          // detection has been started, we keep track of this, see above
+          this.started = true;
+
+          // generate some event data, some basic information
+          var evData = this.collectEventData(element, triggerType, touchList, ev);
+
+          // trigger the triggerType event before the change (TOUCH, RELEASE) events
+          // but the END event should be at last
+          if(eventType != EVENT_END) {
+              handler.call(Detection, evData);
+          }
+
+          // trigger a change (TOUCH, RELEASE) event, this means the length of the touches changed
+          if(triggerChange) {
+              evData.changedLength = changedLength;
+              evData.eventType = triggerChange;
+
+              handler.call(Detection, evData);
+
+              evData.eventType = triggerType;
+              delete evData.changedLength;
+          }
+
+          // trigger the END event
+          if(triggerType == EVENT_END) {
+              handler.call(Detection, evData);
+
+              // ...and we are done with the detection
+              // so reset everything to start each detection totally fresh
+              this.started = false;
+          }
+
+          return triggerType;
+      },
+
+      /**
+       * we have different events for each device/browser
+       * determine what we need and set them in the EVENT_TYPES constant
+       * the `onTouch` method is bind to these properties.
+       * @method determineEventTypes
+       * @return {Object} events
+       */
+      determineEventTypes: function determineEventTypes() {
+          var types;
+          if(Hammer.HAS_POINTEREVENTS) {
+              if(window.PointerEvent) {
+                  types = [
+                      'pointerdown',
+                      'pointermove',
+                      'pointerup pointercancel lostpointercapture'
+                  ];
+              } else {
+                  types = [
+                      'MSPointerDown',
+                      'MSPointerMove',
+                      'MSPointerUp MSPointerCancel MSLostPointerCapture'
+                  ];
+              }
+          } else if(Hammer.NO_MOUSEEVENTS) {
+              types = [
+                  'touchstart',
+                  'touchmove',
+                  'touchend touchcancel'
+              ];
+          } else {
+              types = [
+                  'touchstart mousedown',
+                  'touchmove mousemove',
+                  'touchend touchcancel mouseup'
+              ];
+          }
+
+          EVENT_TYPES[EVENT_START] = types[0];
+          EVENT_TYPES[EVENT_MOVE] = types[1];
+          EVENT_TYPES[EVENT_END] = types[2];
+          return EVENT_TYPES;
+      },
+
+      /**
+       * create touchList depending on the event
+       * @method getTouchList
+       * @param {Object} ev
+       * @param {String} eventType
+       * @return {Array} touches
+       */
+      getTouchList: function getTouchList(ev, eventType) {
+          // get the fake pointerEvent touchlist
+          if(Hammer.HAS_POINTEREVENTS) {
+              return PointerEvent.getTouchList();
+          }
+
+          // get the touchlist
+          if(ev.touches) {
+              if(eventType == EVENT_MOVE) {
+                  return ev.touches;
+              }
+
+              var identifiers = [];
+              var concat = [].concat(Utils.toArray(ev.touches), Utils.toArray(ev.changedTouches));
+              var touchList = [];
+
+              Utils.each(concat, function(touch) {
+                  if(Utils.inArray(identifiers, touch.identifier) === false) {
+                      touchList.push(touch);
+                  }
+                  identifiers.push(touch.identifier);
+              });
+
+              return touchList;
+          }
+
+          // make fake touchList from mouse position
+          ev.identifier = 1;
+          return [ev];
+      },
+
+      /**
+       * collect basic event data
+       * @method collectEventData
+       * @param {HTMLElement} element
+       * @param {String} eventType matches `EVENT_START|MOVE|END`
+       * @param {Array} touches
+       * @param {Object} ev
+       * @return {Object} ev
+       */
+      collectEventData: function collectEventData(element, eventType, touches, ev) {
+          // find out pointerType
+          var pointerType = POINTER_TOUCH;
+          if(Utils.inStr(ev.type, 'mouse') || PointerEvent.matchType(POINTER_MOUSE, ev)) {
+              pointerType = POINTER_MOUSE;
+          } else if(PointerEvent.matchType(POINTER_PEN, ev)) {
+              pointerType = POINTER_PEN;
+          }
+
+          return {
+              center: Utils.getCenter(touches),
+              timeStamp: Date.now(),
+              target: ev.target,
+              touches: touches,
+              eventType: eventType,
+              pointerType: pointerType,
+              srcEvent: ev,
+
+              /**
+               * prevent the browser default actions
+               * mostly used to disable scrolling of the browser
+               */
+              preventDefault: function() {
+                  var srcEvent = this.srcEvent;
+                  srcEvent.preventManipulation && srcEvent.preventManipulation();
+                  srcEvent.preventDefault && srcEvent.preventDefault();
+              },
+
+              /**
+               * stop bubbling the event up to its parents
+               */
+              stopPropagation: function() {
+                  this.srcEvent.stopPropagation();
+              },
+
+              /**
+               * immediately stop gesture detection
+               * might be useful after a swipe was detected
+               * @return {*}
+               */
+              stopDetect: function() {
+                  return Detection.stopDetect();
+              }
+          };
+      }
+  };
+
+
+  /**
+   * @module hammer
+   *
+   * @class PointerEvent
+   * @static
+   */
+  var PointerEvent = Hammer.PointerEvent = {
+      /**
+       * holds all pointers, by `identifier`
+       * @property pointers
+       * @type {Object}
+       */
+      pointers: {},
+
+      /**
+       * get the pointers as an array
+       * @method getTouchList
+       * @return {Array} touchlist
+       */
+      getTouchList: function getTouchList() {
+          var touchlist = [];
+          // we can use forEach since pointerEvents only is in IE10
+          Utils.each(this.pointers, function(pointer) {
+              touchlist.push(pointer);
+          });
+          return touchlist;
+      },
+
+      /**
+       * update the position of a pointer
+       * @method updatePointer
+       * @param {String} eventType matches `EVENT_START|MOVE|END`
+       * @param {Object} pointerEvent
+       */
+      updatePointer: function updatePointer(eventType, pointerEvent) {
+          if(eventType == EVENT_END || (eventType != EVENT_END && pointerEvent.buttons !== 1)) {
+              delete this.pointers[pointerEvent.pointerId];
+          } else {
+              pointerEvent.identifier = pointerEvent.pointerId;
+              this.pointers[pointerEvent.pointerId] = pointerEvent;
+          }
+      },
+
+      /**
+       * check if ev matches pointertype
+       * @method matchType
+       * @param {String} pointerType matches `POINTER_MOUSE|TOUCH|PEN`
+       * @param {PointerEvent} ev
+       */
+      matchType: function matchType(pointerType, ev) {
+          if(!ev.pointerType) {
+              return false;
+          }
+
+          var pt = ev.pointerType,
+              types = {};
+
+          types[POINTER_MOUSE] = (pt === (ev.MSPOINTER_TYPE_MOUSE || POINTER_MOUSE));
+          types[POINTER_TOUCH] = (pt === (ev.MSPOINTER_TYPE_TOUCH || POINTER_TOUCH));
+          types[POINTER_PEN] = (pt === (ev.MSPOINTER_TYPE_PEN || POINTER_PEN));
+          return types[pointerType];
+      },
+
+      /**
+       * reset the stored pointers
+       * @method reset
+       */
+      reset: function resetList() {
+          this.pointers = {};
+      }
+  };
+
+
+  /**
+   * @module hammer
+   *
+   * @class Detection
+   * @static
+   */
+  var Detection = Hammer.detection = {
+      // contains all registred Hammer.gestures in the correct order
+      gestures: [],
+
+      // data of the current Hammer.gesture detection session
+      current: null,
+
+      // the previous Hammer.gesture session data
+      // is a full clone of the previous gesture.current object
+      previous: null,
+
+      // when this becomes true, no gestures are fired
+      stopped: false,
+
+      /**
+       * start Hammer.gesture detection
+       * @method startDetect
+       * @param {Hammer.Instance} inst
+       * @param {Object} eventData
+       */
+      startDetect: function startDetect(inst, eventData) {
+          // already busy with a Hammer.gesture detection on an element
+          if(this.current) {
+              return;
+          }
+
+          this.stopped = false;
+
+          // holds current session
+          this.current = {
+              inst: inst, // reference to HammerInstance we're working for
+              startEvent: Utils.extend({}, eventData), // start eventData for distances, timing etc
+              lastEvent: false, // last eventData
+              lastCalcEvent: false, // last eventData for calculations.
+              futureCalcEvent: false, // last eventData for calculations.
+              lastCalcData: {}, // last lastCalcData
+              name: '' // current gesture we're in/detected, can be 'tap', 'hold' etc
+          };
+
+          this.detect(eventData);
+      },
+
+      /**
+       * Hammer.gesture detection
+       * @method detect
+       * @param {Object} eventData
+       * @return {any}
+       */
+      detect: function detect(eventData) {
+          if(!this.current || this.stopped) {
+              return;
+          }
+
+          // extend event data with calculations about scale, distance etc
+          eventData = this.extendEventData(eventData);
+
+          // hammer instance and instance options
+          var inst = this.current.inst,
+              instOptions = inst.options;
+
+          // call Hammer.gesture handlers
+          Utils.each(this.gestures, function triggerGesture(gesture) {
+              // only when the instance options have enabled this gesture
+              if(!this.stopped && inst.enabled && instOptions[gesture.name]) {
+                  gesture.handler.call(gesture, eventData, inst);
+              }
+          }, this);
+
+          // store as previous event event
+          if(this.current) {
+              this.current.lastEvent = eventData;
+          }
+
+          if(eventData.eventType == EVENT_END) {
+              this.stopDetect();
+          }
+
+          return eventData;
+      },
+
+      /**
+       * clear the Hammer.gesture vars
+       * this is called on endDetect, but can also be used when a final Hammer.gesture has been detected
+       * to stop other Hammer.gestures from being fired
+       * @method stopDetect
+       */
+      stopDetect: function stopDetect() {
+          // clone current data to the store as the previous gesture
+          // used for the double tap gesture, since this is an other gesture detect session
+          this.previous = Utils.extend({}, this.current);
+
+          // reset the current
+          this.current = null;
+          this.stopped = true;
+      },
+
+      /**
+       * calculate velocity, angle and direction
+       * @method getVelocityData
+       * @param {Object} ev
+       * @param {Object} center
+       * @param {Number} deltaTime
+       * @param {Number} deltaX
+       * @param {Number} deltaY
+       */
+      getCalculatedData: function getCalculatedData(ev, center, deltaTime, deltaX, deltaY) {
+          var cur = this.current,
+              recalc = false,
+              calcEv = cur.lastCalcEvent,
+              calcData = cur.lastCalcData;
+
+          if(calcEv && ev.timeStamp - calcEv.timeStamp > Hammer.CALCULATE_INTERVAL) {
+              center = calcEv.center;
+              deltaTime = ev.timeStamp - calcEv.timeStamp;
+              deltaX = ev.center.clientX - calcEv.center.clientX;
+              deltaY = ev.center.clientY - calcEv.center.clientY;
+              recalc = true;
+          }
+
+          if(ev.eventType == EVENT_TOUCH || ev.eventType == EVENT_RELEASE) {
+              cur.futureCalcEvent = ev;
+          }
+
+          if(!cur.lastCalcEvent || recalc) {
+              calcData.velocity = Utils.getVelocity(deltaTime, deltaX, deltaY);
+              calcData.angle = Utils.getAngle(center, ev.center);
+              calcData.direction = Utils.getDirection(center, ev.center);
+
+              cur.lastCalcEvent = cur.futureCalcEvent || ev;
+              cur.futureCalcEvent = ev;
+          }
+
+          ev.velocityX = calcData.velocity.x;
+          ev.velocityY = calcData.velocity.y;
+          ev.interimAngle = calcData.angle;
+          ev.interimDirection = calcData.direction;
+      },
+
+      /**
+       * extend eventData for Hammer.gestures
+       * @method extendEventData
+       * @param {Object} ev
+       * @return {Object} ev
+       */
+      extendEventData: function extendEventData(ev) {
+          var cur = this.current,
+              startEv = cur.startEvent,
+              lastEv = cur.lastEvent || startEv;
+
+          // update the start touchlist to calculate the scale/rotation
+          if(ev.eventType == EVENT_TOUCH || ev.eventType == EVENT_RELEASE) {
+              startEv.touches = [];
+              Utils.each(ev.touches, function(touch) {
+                  startEv.touches.push({
+                      clientX: touch.clientX,
+                      clientY: touch.clientY
+                  });
+              });
+          }
+
+          var deltaTime = ev.timeStamp - startEv.timeStamp,
+              deltaX = ev.center.clientX - startEv.center.clientX,
+              deltaY = ev.center.clientY - startEv.center.clientY;
+
+          this.getCalculatedData(ev, lastEv.center, deltaTime, deltaX, deltaY);
+
+          Utils.extend(ev, {
+              startEvent: startEv,
+
+              deltaTime: deltaTime,
+              deltaX: deltaX,
+              deltaY: deltaY,
+
+              distance: Utils.getDistance(startEv.center, ev.center),
+              angle: Utils.getAngle(startEv.center, ev.center),
+              direction: Utils.getDirection(startEv.center, ev.center),
+              scale: Utils.getScale(startEv.touches, ev.touches),
+              rotation: Utils.getRotation(startEv.touches, ev.touches)
+          });
+
+          return ev;
+      },
+
+      /**
+       * register new gesture
+       * @method register
+       * @param {Object} gesture object, see `gestures/` for documentation
+       * @return {Array} gestures
+       */
+      register: function register(gesture) {
+          // add an enable gesture options if there is no given
+          var options = gesture.defaults || {};
+          if(options[gesture.name] === undefined) {
+              options[gesture.name] = true;
+          }
+
+          // extend Hammer default options with the Hammer.gesture options
+          Utils.extend(Hammer.defaults, options, true);
+
+          // set its index
+          gesture.index = gesture.index || 1000;
+
+          // add Hammer.gesture to the list
+          this.gestures.push(gesture);
+
+          // sort the list by index
+          this.gestures.sort(function(a, b) {
+              if(a.index < b.index) {
+                  return -1;
+              }
+              if(a.index > b.index) {
+                  return 1;
+              }
+              return 0;
+          });
+
+          return this.gestures;
+      }
+  };
+
+
+  /**
+   * @module hammer
+   */
+
+  /**
+   * create new hammer instance
+   * all methods should return the instance itself, so it is chainable.
+   *
+   * @class Instance
+   * @constructor
+   * @param {HTMLElement} element
+   * @param {Object} [options={}] options are merged with `Hammer.defaults`
+   * @return {Hammer.Instance}
+   */
+  Hammer.Instance = function(element, options) {
+      var self = this;
+
+      // setup HammerJS window events and register all gestures
+      // this also sets up the default options
+      setup();
+
+      /**
+       * @property element
+       * @type {HTMLElement}
+       */
+      this.element = element;
+
+      /**
+       * @property enabled
+       * @type {Boolean}
+       * @protected
+       */
+      this.enabled = true;
+
+      /**
+       * options, merged with the defaults
+       * options with an _ are converted to camelCase
+       * @property options
+       * @type {Object}
+       */
+      Utils.each(options, function(value, name) {
+          delete options[name];
+          options[Utils.toCamelCase(name)] = value;
+      });
+
+      this.options = Utils.extend(Utils.extend({}, Hammer.defaults), options || {});
+
+      // add some css to the element to prevent the browser from doing its native behavoir
+      if(this.options.behavior) {
+          Utils.toggleBehavior(this.element, this.options.behavior, true);
+      }
+
+      /**
+       * event start handler on the element to start the detection
+       * @property eventStartHandler
+       * @type {Object}
+       */
+      this.eventStartHandler = Event.onTouch(element, EVENT_START, function(ev) {
+          if(self.enabled && ev.eventType == EVENT_START) {
+              Detection.startDetect(self, ev);
+          } else if(ev.eventType == EVENT_TOUCH) {
+              Detection.detect(ev);
+          }
+      });
+
+      /**
+       * keep a list of user event handlers which needs to be removed when calling 'dispose'
+       * @property eventHandlers
+       * @type {Array}
+       */
+      this.eventHandlers = [];
+  };
+
+  Hammer.Instance.prototype = {
+      /**
+       * bind events to the instance
+       * @method on
+       * @chainable
+       * @param {String} gestures multiple gestures by splitting with a space
+       * @param {Function} handler
+       * @param {Object} handler.ev event object
+       */
+      on: function onEvent(gestures, handler) {
+          var self = this;
+          Event.on(self.element, gestures, handler, function(type) {
+              self.eventHandlers.push({ gesture: type, handler: handler });
+          });
+          return self;
+      },
+
+      /**
+       * unbind events to the instance
+       * @method off
+       * @chainable
+       * @param {String} gestures
+       * @param {Function} handler
+       */
+      off: function offEvent(gestures, handler) {
+          var self = this;
+
+          Event.off(self.element, gestures, handler, function(type) {
+              var index = Utils.inArray({ gesture: type, handler: handler });
+              if(index !== false) {
+                  self.eventHandlers.splice(index, 1);
+              }
+          });
+          return self;
+      },
+
+      /**
+       * trigger gesture event
+       * @method trigger
+       * @chainable
+       * @param {String} gesture
+       * @param {Object} [eventData]
+       */
+      trigger: function triggerEvent(gesture, eventData) {
+          // optional
+          if(!eventData) {
+              eventData = {};
+          }
+
+          // create DOM event
+          var event = Hammer.DOCUMENT.createEvent('Event');
+          event.initEvent(gesture, true, true);
+          event.gesture = eventData;
+
+          // trigger on the target if it is in the instance element,
+          // this is for event delegation tricks
+          var element = this.element;
+          if(Utils.hasParent(eventData.target, element)) {
+              element = eventData.target;
+          }
+
+          element.dispatchEvent(event);
+          return this;
+      },
+
+      /**
+       * enable of disable hammer.js detection
+       * @method enable
+       * @chainable
+       * @param {Boolean} state
+       */
+      enable: function enable(state) {
+          this.enabled = state;
+          return this;
+      },
+
+      /**
+       * dispose this hammer instance
+       * @method dispose
+       * @return {Null}
+       */
+      dispose: function dispose() {
+          var i, eh;
+
+          // undo all changes made by stop_browser_behavior
+          Utils.toggleBehavior(this.element, this.options.behavior, false);
+
+          // unbind all custom event handlers
+          for(i = -1; (eh = this.eventHandlers[++i]);) {
+              Utils.off(this.element, eh.gesture, eh.handler);
+          }
+
+          this.eventHandlers = [];
+
+          // unbind the start event listener
+          Event.off(this.element, EVENT_TYPES[EVENT_START], this.eventStartHandler);
+
+          return null;
+      }
+  };
+
+
+  /**
+   * @module gestures
+   */
+  /**
+   * Move with x fingers (default 1) around on the page.
+   * Preventing the default browser behavior is a good way to improve feel and working.
+   * ````
+   *  hammertime.on("drag", function(ev) {
+   *    console.log(ev);
+   *    ev.gesture.preventDefault();
+   *  });
+   * ````
+   *
+   * @class Drag
+   * @static
+   */
+  /**
+   * @event drag
+   * @param {Object} ev
+   */
+  /**
+   * @event dragstart
+   * @param {Object} ev
+   */
+  /**
+   * @event dragend
+   * @param {Object} ev
+   */
+  /**
+   * @event drapleft
+   * @param {Object} ev
+   */
+  /**
+   * @event dragright
+   * @param {Object} ev
+   */
+  /**
+   * @event dragup
+   * @param {Object} ev
+   */
+  /**
+   * @event dragdown
+   * @param {Object} ev
+   */
+
+  /**
+   * @param {String} name
+   */
+  (function(name) {
+      var triggered = false;
+
+      function dragGesture(ev, inst) {
+          var cur = Detection.current;
+
+          // max touches
+          if(inst.options.dragMaxTouches > 0 &&
+              ev.touches.length > inst.options.dragMaxTouches) {
+              return;
+          }
+
+          switch(ev.eventType) {
+              case EVENT_START:
+                  triggered = false;
+                  break;
+
+              case EVENT_MOVE:
+                  // when the distance we moved is too small we skip this gesture
+                  // or we can be already in dragging
+                  if(ev.distance < inst.options.dragMinDistance &&
+                      cur.name != name) {
+                      return;
+                  }
+
+                  var startCenter = cur.startEvent.center;
+
+                  // we are dragging!
+                  if(cur.name != name) {
+                      cur.name = name;
+                      if(inst.options.dragDistanceCorrection && ev.distance > 0) {
+                          // When a drag is triggered, set the event center to dragMinDistance pixels from the original event center.
+                          // Without this correction, the dragged distance would jumpstart at dragMinDistance pixels instead of at 0.
+                          // It might be useful to save the original start point somewhere
+                          var factor = Math.abs(inst.options.dragMinDistance / ev.distance);
+                          startCenter.pageX += ev.deltaX * factor;
+                          startCenter.pageY += ev.deltaY * factor;
+                          startCenter.clientX += ev.deltaX * factor;
+                          startCenter.clientY += ev.deltaY * factor;
+
+                          // recalculate event data using new start point
+                          ev = Detection.extendEventData(ev);
+                      }
+                  }
+
+                  // lock drag to axis?
+                  if(cur.lastEvent.dragLockToAxis ||
+                      ( inst.options.dragLockToAxis &&
+                          inst.options.dragLockMinDistance <= ev.distance
+                          )) {
+                      ev.dragLockToAxis = true;
+                  }
+
+                  // keep direction on the axis that the drag gesture started on
+                  var lastDirection = cur.lastEvent.direction;
+                  if(ev.dragLockToAxis && lastDirection !== ev.direction) {
+                      if(Utils.isVertical(lastDirection)) {
+                          ev.direction = (ev.deltaY < 0) ? DIRECTION_UP : DIRECTION_DOWN;
+                      } else {
+                          ev.direction = (ev.deltaX < 0) ? DIRECTION_LEFT : DIRECTION_RIGHT;
+                      }
+                  }
+
+                  // first time, trigger dragstart event
+                  if(!triggered) {
+                      inst.trigger(name + 'start', ev);
+                      triggered = true;
+                  }
+
+                  // trigger events
+                  inst.trigger(name, ev);
+                  inst.trigger(name + ev.direction, ev);
+
+                  var isVertical = Utils.isVertical(ev.direction);
+
+                  // block the browser events
+                  if((inst.options.dragBlockVertical && isVertical) ||
+                      (inst.options.dragBlockHorizontal && !isVertical)) {
+                      ev.preventDefault();
+                  }
+                  break;
+
+              case EVENT_RELEASE:
+                  if(triggered && ev.changedLength <= inst.options.dragMaxTouches) {
+                      inst.trigger(name + 'end', ev);
+                      triggered = false;
+                  }
+                  break;
+
+              case EVENT_END:
+                  triggered = false;
+                  break;
+          }
+      }
+
+      Hammer.gestures.Drag = {
+          name: name,
+          index: 50,
+          handler: dragGesture,
+          defaults: {
+              /**
+               * minimal movement that have to be made before the drag event gets triggered
+               * @property dragMinDistance
+               * @type {Number}
+               * @default 10
+               */
+              dragMinDistance: 10,
+
+              /**
+               * Set dragDistanceCorrection to true to make the starting point of the drag
+               * be calculated from where the drag was triggered, not from where the touch started.
+               * Useful to avoid a jerk-starting drag, which can make fine-adjustments
+               * through dragging difficult, and be visually unappealing.
+               * @property dragDistanceCorrection
+               * @type {Boolean}
+               * @default true
+               */
+              dragDistanceCorrection: true,
+
+              /**
+               * set 0 for unlimited, but this can conflict with transform
+               * @property dragMaxTouches
+               * @type {Number}
+               * @default 1
+               */
+              dragMaxTouches: 1,
+
+              /**
+               * prevent default browser behavior when dragging occurs
+               * be careful with it, it makes the element a blocking element
+               * when you are using the drag gesture, it is a good practice to set this true
+               * @property dragBlockHorizontal
+               * @type {Boolean}
+               * @default false
+               */
+              dragBlockHorizontal: false,
+
+              /**
+               * same as `dragBlockHorizontal`, but for vertical movement
+               * @property dragBlockVertical
+               * @type {Boolean}
+               * @default false
+               */
+              dragBlockVertical: false,
+
+              /**
+               * dragLockToAxis keeps the drag gesture on the axis that it started on,
+               * It disallows vertical directions if the initial direction was horizontal, and vice versa.
+               * @property dragLockToAxis
+               * @type {Boolean}
+               * @default false
+               */
+              dragLockToAxis: false,
+
+              /**
+               * drag lock only kicks in when distance > dragLockMinDistance
+               * This way, locking occurs only when the distance has become large enough to reliably determine the direction
+               * @property dragLockMinDistance
+               * @type {Number}
+               * @default 25
+               */
+              dragLockMinDistance: 25
+          }
+      };
+  })('drag');
+
+  /**
+   * @module gestures
+   */
+  /**
+   * trigger a simple gesture event, so you can do anything in your handler.
+   * only usable if you know what your doing...
+   *
+   * @class Gesture
+   * @static
+   */
+  /**
+   * @event gesture
+   * @param {Object} ev
+   */
+  Hammer.gestures.Gesture = {
+      name: 'gesture',
+      index: 1337,
+      handler: function releaseGesture(ev, inst) {
+          inst.trigger(this.name, ev);
+      }
+  };
+
+  /**
+   * @module gestures
+   */
+  /**
+   * Touch stays at the same place for x time
+   *
+   * @class Hold
+   * @static
+   */
+  /**
+   * @event hold
+   * @param {Object} ev
+   */
+
+  /**
+   * @param {String} name
+   */
+  (function(name) {
+      var timer;
+
+      function holdGesture(ev, inst) {
+          var options = inst.options,
+              current = Detection.current;
+
+          switch(ev.eventType) {
+              case EVENT_START:
+                  clearTimeout(timer);
+
+                  // set the gesture so we can check in the timeout if it still is
+                  current.name = name;
+
+                  // set timer and if after the timeout it still is hold,
+                  // we trigger the hold event
+                  timer = setTimeout(function() {
+                      if(current && current.name == name) {
+                          inst.trigger(name, ev);
+                      }
+                  }, options.holdTimeout);
+                  break;
+
+              case EVENT_MOVE:
+                  if(ev.distance > options.holdThreshold) {
+                      clearTimeout(timer);
+                  }
+                  break;
+
+              case EVENT_RELEASE:
+                  clearTimeout(timer);
+                  break;
+          }
+      }
+
+      Hammer.gestures.Hold = {
+          name: name,
+          index: 10,
+          defaults: {
+              /**
+               * @property holdTimeout
+               * @type {Number}
+               * @default 500
+               */
+              holdTimeout: 500,
+
+              /**
+               * movement allowed while holding
+               * @property holdThreshold
+               * @type {Number}
+               * @default 2
+               */
+              holdThreshold: 2
+          },
+          handler: holdGesture
+      };
+  })('hold');
+
+  /**
+   * @module gestures
+   */
+  /**
+   * when a touch is being released from the page
+   *
+   * @class Release
+   * @static
+   */
+  /**
+   * @event release
+   * @param {Object} ev
+   */
+  Hammer.gestures.Release = {
+      name: 'release',
+      index: Infinity,
+      handler: function releaseGesture(ev, inst) {
+          if(ev.eventType == EVENT_RELEASE) {
+              inst.trigger(this.name, ev);
+          }
+      }
+  };
+
+  /**
+   * @module gestures
+   */
+  /**
+   * triggers swipe events when the end velocity is above the threshold
+   * for best usage, set `preventDefault` (on the drag gesture) to `true`
+   * ````
+   *  hammertime.on("dragleft swipeleft", function(ev) {
+   *    console.log(ev);
+   *    ev.gesture.preventDefault();
+   *  });
+   * ````
+   *
+   * @class Swipe
+   * @static
+   */
+  /**
+   * @event swipe
+   * @param {Object} ev
+   */
+  /**
+   * @event swipeleft
+   * @param {Object} ev
+   */
+  /**
+   * @event swiperight
+   * @param {Object} ev
+   */
+  /**
+   * @event swipeup
+   * @param {Object} ev
+   */
+  /**
+   * @event swipedown
+   * @param {Object} ev
+   */
+  Hammer.gestures.Swipe = {
+      name: 'swipe',
+      index: 40,
+      defaults: {
+          /**
+           * @property swipeMinTouches
+           * @type {Number}
+           * @default 1
+           */
+          swipeMinTouches: 1,
+
+          /**
+           * @property swipeMaxTouches
+           * @type {Number}
+           * @default 1
+           */
+          swipeMaxTouches: 1,
+
+          /**
+           * horizontal swipe velocity
+           * @property swipeVelocityX
+           * @type {Number}
+           * @default 0.6
+           */
+          swipeVelocityX: 0.6,
+
+          /**
+           * vertical swipe velocity
+           * @property swipeVelocityY
+           * @type {Number}
+           * @default 0.6
+           */
+          swipeVelocityY: 0.6
+      },
+
+      handler: function swipeGesture(ev, inst) {
+          if(ev.eventType == EVENT_RELEASE) {
+              var touches = ev.touches.length,
+                  options = inst.options;
+
+              // max touches
+              if(touches < options.swipeMinTouches ||
+                  touches > options.swipeMaxTouches) {
+                  return;
+              }
+
+              // when the distance we moved is too small we skip this gesture
+              // or we can be already in dragging
+              if(ev.velocityX > options.swipeVelocityX ||
+                  ev.velocityY > options.swipeVelocityY) {
+                  // trigger swipe events
+                  inst.trigger(this.name, ev);
+                  inst.trigger(this.name + ev.direction, ev);
+              }
+          }
+      }
+  };
+
+  /**
+   * @module gestures
+   */
+  /**
+   * Single tap and a double tap on a place
+   *
+   * @class Tap
+   * @static
+   */
+  /**
+   * @event tap
+   * @param {Object} ev
+   */
+  /**
+   * @event doubletap
+   * @param {Object} ev
+   */
+
+  /**
+   * @param {String} name
+   */
+  (function(name) {
+      var hasMoved = false;
+
+      function tapGesture(ev, inst) {
+          var options = inst.options,
+              current = Detection.current,
+              prev = Detection.previous,
+              sincePrev,
+              didDoubleTap;
+
+          switch(ev.eventType) {
+              case EVENT_START:
+                  hasMoved = false;
+                  break;
+
+              case EVENT_MOVE:
+                  hasMoved = hasMoved || (ev.distance > options.tapMaxDistance);
+                  break;
+
+              case EVENT_END:
+                  if(!Utils.inStr(ev.srcEvent.type, 'cancel') && ev.deltaTime < options.tapMaxTime && !hasMoved) {
+                      // previous gesture, for the double tap since these are two different gesture detections
+                      sincePrev = prev && prev.lastEvent && ev.timeStamp - prev.lastEvent.timeStamp;
+                      didDoubleTap = false;
+
+                      // check if double tap
+                      if(prev && prev.name == name &&
+                          (sincePrev && sincePrev < options.doubleTapInterval) &&
+                          ev.distance < options.doubleTapDistance) {
+                          inst.trigger('doubletap', ev);
+                          didDoubleTap = true;
+                      }
+
+                      // do a single tap
+                      if(!didDoubleTap || options.tapAlways) {
+                          current.name = name;
+                          inst.trigger(current.name, ev);
+                      }
+                  }
+                  break;
+          }
+      }
+
+      Hammer.gestures.Tap = {
+          name: name,
+          index: 100,
+          handler: tapGesture,
+          defaults: {
+              /**
+               * max time of a tap, this is for the slow tappers
+               * @property tapMaxTime
+               * @type {Number}
+               * @default 250
+               */
+              tapMaxTime: 250,
+
+              /**
+               * max distance of movement of a tap, this is for the slow tappers
+               * @property tapMaxDistance
+               * @type {Number}
+               * @default 10
+               */
+              tapMaxDistance: 10,
+
+              /**
+               * always trigger the `tap` event, even while double-tapping
+               * @property tapAlways
+               * @type {Boolean}
+               * @default true
+               */
+              tapAlways: true,
+
+              /**
+               * max distance between two taps
+               * @property doubleTapDistance
+               * @type {Number}
+               * @default 20
+               */
+              doubleTapDistance: 20,
+
+              /**
+               * max time between two taps
+               * @property doubleTapInterval
+               * @type {Number}
+               * @default 300
+               */
+              doubleTapInterval: 300
+          }
+      };
+  })('tap');
+
+  /**
+   * @module gestures
+   */
+  /**
+   * when a touch is being touched at the page
+   *
+   * @class Touch
+   * @static
+   */
+  /**
+   * @event touch
+   * @param {Object} ev
+   */
+  Hammer.gestures.Touch = {
+      name: 'touch',
+      index: -Infinity,
+      defaults: {
+          /**
+           * call preventDefault at touchstart, and makes the element blocking by disabling the scrolling of the page,
+           * but it improves gestures like transforming and dragging.
+           * be careful with using this, it can be very annoying for users to be stuck on the page
+           * @property preventDefault
+           * @type {Boolean}
+           * @default false
+           */
+          preventDefault: false,
+
+          /**
+           * disable mouse events, so only touch (or pen!) input triggers events
+           * @property preventMouse
+           * @type {Boolean}
+           * @default false
+           */
+          preventMouse: false
+      },
+      handler: function touchGesture(ev, inst) {
+          if(inst.options.preventMouse && ev.pointerType == POINTER_MOUSE) {
+              ev.stopDetect();
+              return;
+          }
+
+          if(inst.options.preventDefault) {
+              ev.preventDefault();
+          }
+
+          if(ev.eventType == EVENT_TOUCH) {
+              inst.trigger('touch', ev);
+          }
+      }
+  };
+
+  /**
+   * @module gestures
+   */
+  /**
+   * User want to scale or rotate with 2 fingers
+   * Preventing the default browser behavior is a good way to improve feel and working. This can be done with the
+   * `preventDefault` option.
+   *
+   * @class Transform
+   * @static
+   */
+  /**
+   * @event transform
+   * @param {Object} ev
+   */
+  /**
+   * @event transformstart
+   * @param {Object} ev
+   */
+  /**
+   * @event transformend
+   * @param {Object} ev
+   */
+  /**
+   * @event pinchin
+   * @param {Object} ev
+   */
+  /**
+   * @event pinchout
+   * @param {Object} ev
+   */
+  /**
+   * @event rotate
+   * @param {Object} ev
+   */
+
+  /**
+   * @param {String} name
+   */
+  (function(name) {
+      var triggered = false;
+
+      function transformGesture(ev, inst) {
+          switch(ev.eventType) {
+              case EVENT_START:
+                  triggered = false;
+                  break;
+
+              case EVENT_MOVE:
+                  // at least multitouch
+                  if(ev.touches.length < 2) {
+                      return;
+                  }
+
+                  var scaleThreshold = Math.abs(1 - ev.scale);
+                  var rotationThreshold = Math.abs(ev.rotation);
+
+                  // when the distance we moved is too small we skip this gesture
+                  // or we can be already in dragging
+                  if(scaleThreshold < inst.options.transformMinScale &&
+                      rotationThreshold < inst.options.transformMinRotation) {
+                      return;
+                  }
+
+                  // we are transforming!
+                  Detection.current.name = name;
+
+                  // first time, trigger dragstart event
+                  if(!triggered) {
+                      inst.trigger(name + 'start', ev);
+                      triggered = true;
+                  }
+
+                  inst.trigger(name, ev); // basic transform event
+
+                  // trigger rotate event
+                  if(rotationThreshold > inst.options.transformMinRotation) {
+                      inst.trigger('rotate', ev);
+                  }
+
+                  // trigger pinch event
+                  if(scaleThreshold > inst.options.transformMinScale) {
+                      inst.trigger('pinch', ev);
+                      inst.trigger('pinch' + (ev.scale < 1 ? 'in' : 'out'), ev);
+                  }
+                  break;
+
+              case EVENT_RELEASE:
+                  if(triggered && ev.changedLength < 2) {
+                      inst.trigger(name + 'end', ev);
+                      triggered = false;
+                  }
+                  break;
+          }
+      }
+
+      Hammer.gestures.Transform = {
+          name: name,
+          index: 45,
+          defaults: {
+              /**
+               * minimal scale factor, no scale is 1, zoomin is to 0 and zoomout until higher then 1
+               * @property transformMinScale
+               * @type {Number}
+               * @default 0.01
+               */
+              transformMinScale: 0.01,
+
+              /**
+               * rotation in degrees
+               * @property transformMinRotation
+               * @type {Number}
+               * @default 1
+               */
+              transformMinRotation: 1
+          },
+
+          handler: transformGesture
+      };
+  })('transform');
+
+  /**
+   * @module hammer
+   */
+
+  // AMD export
+  if(true) {
+      !(__WEBPACK_AMD_DEFINE_RESULT__ = (function() {
+          return Hammer;
+      }.call(exports, __webpack_require__, exports, module)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+  // commonjs export
+  } else if(typeof module !== 'undefined' && module.exports) {
+      module.exports = Hammer;
+  // browser export
+  } else {
+      window.Hammer = Hammer;
+  }
+
+  })(window);
 
 /***/ },
 /* 51 */
@@ -24278,2168 +25643,806 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v1.1.3 - 2014-05-20
-   * http://eightmedia.github.io/hammer.js
+  /**
+   * Copyright 2012 Craig Campbell
    *
-   * Copyright (c) 2014 Jorik Tangelder <j.tangelder@gmail.com>;
-   * Licensed under the MIT license */
-
-  (function(window, undefined) {
-    'use strict';
-
-  /**
-   * @main
-   * @module hammer
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
    *
-   * @class Hammer
-   * @static
-   */
-
-  /**
-   * Hammer, use this to create instances
-   * ````
-   * var hammertime = new Hammer(myElement);
-   * ````
+   * http://www.apache.org/licenses/LICENSE-2.0
    *
-   * @method Hammer
-   * @param {HTMLElement} element
-   * @param {Object} [options={}]
-   * @return {Hammer.Instance}
-   */
-  var Hammer = function Hammer(element, options) {
-      return new Hammer.Instance(element, options || {});
-  };
-
-  /**
-   * version, as defined in package.json
-   * the value will be set at each build
-   * @property VERSION
-   * @final
-   * @type {String}
-   */
-  Hammer.VERSION = '1.1.3';
-
-  /**
-   * default settings.
-   * more settings are defined per gesture at `/gestures`. Each gesture can be disabled/enabled
-   * by setting it's name (like `swipe`) to false.
-   * You can set the defaults for all instances by changing this object before creating an instance.
-   * @example
-   * ````
-   *  Hammer.defaults.drag = false;
-   *  Hammer.defaults.behavior.touchAction = 'pan-y';
-   *  delete Hammer.defaults.behavior.userSelect;
-   * ````
-   * @property defaults
-   * @type {Object}
-   */
-  Hammer.defaults = {
-      /**
-       * this setting object adds styles and attributes to the element to prevent the browser from doing
-       * its native behavior. The css properties are auto prefixed for the browsers when needed.
-       * @property defaults.behavior
-       * @type {Object}
-       */
-      behavior: {
-          /**
-           * Disables text selection to improve the dragging gesture. When the value is `none` it also sets
-           * `onselectstart=false` for IE on the element. Mainly for desktop browsers.
-           * @property defaults.behavior.userSelect
-           * @type {String}
-           * @default 'none'
-           */
-          userSelect: 'none',
-
-          /**
-           * Specifies whether and how a given region can be manipulated by the user (for instance, by panning or zooming).
-           * Used by Chrome 35> and IE10>. By default this makes the element blocking any touch event.
-           * @property defaults.behavior.touchAction
-           * @type {String}
-           * @default: 'pan-y'
-           */
-          touchAction: 'pan-y',
-
-          /**
-           * Disables the default callout shown when you touch and hold a touch target.
-           * On iOS, when you touch and hold a touch target such as a link, Safari displays
-           * a callout containing information about the link. This property allows you to disable that callout.
-           * @property defaults.behavior.touchCallout
-           * @type {String}
-           * @default 'none'
-           */
-          touchCallout: 'none',
-
-          /**
-           * Specifies whether zooming is enabled. Used by IE10>
-           * @property defaults.behavior.contentZooming
-           * @type {String}
-           * @default 'none'
-           */
-          contentZooming: 'none',
-
-          /**
-           * Specifies that an entire element should be draggable instead of its contents.
-           * Mainly for desktop browsers.
-           * @property defaults.behavior.userDrag
-           * @type {String}
-           * @default 'none'
-           */
-          userDrag: 'none',
-
-          /**
-           * Overrides the highlight color shown when the user taps a link or a JavaScript
-           * clickable element in Safari on iPhone. This property obeys the alpha value, if specified.
-           *
-           * If you don't specify an alpha value, Safari on iPhone applies a default alpha value
-           * to the color. To disable tap highlighting, set the alpha value to 0 (invisible).
-           * If you set the alpha value to 1.0 (opaque), the element is not visible when tapped.
-           * @property defaults.behavior.tapHighlightColor
-           * @type {String}
-           * @default 'rgba(0,0,0,0)'
-           */
-          tapHighlightColor: 'rgba(0,0,0,0)'
-      }
-  };
-
-  /**
-   * hammer document where the base events are added at
-   * @property DOCUMENT
-   * @type {HTMLElement}
-   * @default window.document
-   */
-  Hammer.DOCUMENT = document;
-
-  /**
-   * detect support for pointer events
-   * @property HAS_POINTEREVENTS
-   * @type {Boolean}
-   */
-  Hammer.HAS_POINTEREVENTS = navigator.pointerEnabled || navigator.msPointerEnabled;
-
-  /**
-   * detect support for touch events
-   * @property HAS_TOUCHEVENTS
-   * @type {Boolean}
-   */
-  Hammer.HAS_TOUCHEVENTS = ('ontouchstart' in window);
-
-  /**
-   * detect mobile browsers
-   * @property IS_MOBILE
-   * @type {Boolean}
-   */
-  Hammer.IS_MOBILE = /mobile|tablet|ip(ad|hone|od)|android|silk/i.test(navigator.userAgent);
-
-  /**
-   * detect if we want to support mouseevents at all
-   * @property NO_MOUSEEVENTS
-   * @type {Boolean}
-   */
-  Hammer.NO_MOUSEEVENTS = (Hammer.HAS_TOUCHEVENTS && Hammer.IS_MOBILE) || Hammer.HAS_POINTEREVENTS;
-
-  /**
-   * interval in which Hammer recalculates current velocity/direction/angle in ms
-   * @property CALCULATE_INTERVAL
-   * @type {Number}
-   * @default 25
-   */
-  Hammer.CALCULATE_INTERVAL = 25;
-
-  /**
-   * eventtypes per touchevent (start, move, end) are filled by `Event.determineEventTypes` on `setup`
-   * the object contains the DOM event names per type (`EVENT_START`, `EVENT_MOVE`, `EVENT_END`)
-   * @property EVENT_TYPES
-   * @private
-   * @writeOnce
-   * @type {Object}
-   */
-  var EVENT_TYPES = {};
-
-  /**
-   * direction strings, for safe comparisons
-   * @property DIRECTION_DOWN|LEFT|UP|RIGHT
-   * @final
-   * @type {String}
-   * @default 'down' 'left' 'up' 'right'
-   */
-  var DIRECTION_DOWN = Hammer.DIRECTION_DOWN = 'down';
-  var DIRECTION_LEFT = Hammer.DIRECTION_LEFT = 'left';
-  var DIRECTION_UP = Hammer.DIRECTION_UP = 'up';
-  var DIRECTION_RIGHT = Hammer.DIRECTION_RIGHT = 'right';
-
-  /**
-   * pointertype strings, for safe comparisons
-   * @property POINTER_MOUSE|TOUCH|PEN
-   * @final
-   * @type {String}
-   * @default 'mouse' 'touch' 'pen'
-   */
-  var POINTER_MOUSE = Hammer.POINTER_MOUSE = 'mouse';
-  var POINTER_TOUCH = Hammer.POINTER_TOUCH = 'touch';
-  var POINTER_PEN = Hammer.POINTER_PEN = 'pen';
-
-  /**
-   * eventtypes
-   * @property EVENT_START|MOVE|END|RELEASE|TOUCH
-   * @final
-   * @type {String}
-   * @default 'start' 'change' 'move' 'end' 'release' 'touch'
-   */
-  var EVENT_START = Hammer.EVENT_START = 'start';
-  var EVENT_MOVE = Hammer.EVENT_MOVE = 'move';
-  var EVENT_END = Hammer.EVENT_END = 'end';
-  var EVENT_RELEASE = Hammer.EVENT_RELEASE = 'release';
-  var EVENT_TOUCH = Hammer.EVENT_TOUCH = 'touch';
-
-  /**
-   * if the window events are set...
-   * @property READY
-   * @writeOnce
-   * @type {Boolean}
-   * @default false
-   */
-  Hammer.READY = false;
-
-  /**
-   * plugins namespace
-   * @property plugins
-   * @type {Object}
-   */
-  Hammer.plugins = Hammer.plugins || {};
-
-  /**
-   * gestures namespace
-   * see `/gestures` for the definitions
-   * @property gestures
-   * @type {Object}
-   */
-  Hammer.gestures = Hammer.gestures || {};
-
-  /**
-   * setup events to detect gestures on the document
-   * this function is called when creating an new instance
-   * @private
-   */
-  function setup() {
-      if(Hammer.READY) {
-          return;
-      }
-
-      // find what eventtypes we add listeners to
-      Event.determineEventTypes();
-
-      // Register all gestures inside Hammer.gestures
-      Utils.each(Hammer.gestures, function(gesture) {
-          Detection.register(gesture);
-      });
-
-      // Add touch events on the document
-      Event.onTouch(Hammer.DOCUMENT, EVENT_MOVE, Detection.detect);
-      Event.onTouch(Hammer.DOCUMENT, EVENT_END, Detection.detect);
-
-      // Hammer is ready...!
-      Hammer.READY = true;
-  }
-
-  /**
-   * @module hammer
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
    *
-   * @class Utils
-   * @static
-   */
-  var Utils = Hammer.utils = {
-      /**
-       * extend method, could also be used for cloning when `dest` is an empty object.
-       * changes the dest object
-       * @method extend
-       * @param {Object} dest
-       * @param {Object} src
-       * @param {Boolean} [merge=false]  do a merge
-       * @return {Object} dest
-       */
-      extend: function extend(dest, src, merge) {
-          for(var key in src) {
-              if(!src.hasOwnProperty(key) || (dest[key] !== undefined && merge)) {
-                  continue;
-              }
-              dest[key] = src[key];
-          }
-          return dest;
-      },
-
-      /**
-       * simple addEventListener wrapper
-       * @method on
-       * @param {HTMLElement} element
-       * @param {String} type
-       * @param {Function} handler
-       */
-      on: function on(element, type, handler) {
-          element.addEventListener(type, handler, false);
-      },
-
-      /**
-       * simple removeEventListener wrapper
-       * @method off
-       * @param {HTMLElement} element
-       * @param {String} type
-       * @param {Function} handler
-       */
-      off: function off(element, type, handler) {
-          element.removeEventListener(type, handler, false);
-      },
-
-      /**
-       * forEach over arrays and objects
-       * @method each
-       * @param {Object|Array} obj
-       * @param {Function} iterator
-       * @param {any} iterator.item
-       * @param {Number} iterator.index
-       * @param {Object|Array} iterator.obj the source object
-       * @param {Object} context value to use as `this` in the iterator
-       */
-      each: function each(obj, iterator, context) {
-          var i, len;
-
-          // native forEach on arrays
-          if('forEach' in obj) {
-              obj.forEach(iterator, context);
-          // arrays
-          } else if(obj.length !== undefined) {
-              for(i = 0, len = obj.length; i < len; i++) {
-                  if(iterator.call(context, obj[i], i, obj) === false) {
-                      return;
-                  }
-              }
-          // objects
-          } else {
-              for(i in obj) {
-                  if(obj.hasOwnProperty(i) &&
-                      iterator.call(context, obj[i], i, obj) === false) {
-                      return;
-                  }
-              }
-          }
-      },
-
-      /**
-       * find if a string contains the string using indexOf
-       * @method inStr
-       * @param {String} src
-       * @param {String} find
-       * @return {Boolean} found
-       */
-      inStr: function inStr(src, find) {
-          return src.indexOf(find) > -1;
-      },
-
-      /**
-       * find if a array contains the object using indexOf or a simple polyfill
-       * @method inArray
-       * @param {String} src
-       * @param {String} find
-       * @return {Boolean|Number} false when not found, or the index
-       */
-      inArray: function inArray(src, find) {
-          if(src.indexOf) {
-              var index = src.indexOf(find);
-              return (index === -1) ? false : index;
-          } else {
-              for(var i = 0, len = src.length; i < len; i++) {
-                  if(src[i] === find) {
-                      return i;
-                  }
-              }
-              return false;
-          }
-      },
-
-      /**
-       * convert an array-like object (`arguments`, `touchlist`) to an array
-       * @method toArray
-       * @param {Object} obj
-       * @return {Array}
-       */
-      toArray: function toArray(obj) {
-          return Array.prototype.slice.call(obj, 0);
-      },
-
-      /**
-       * find if a node is in the given parent
-       * @method hasParent
-       * @param {HTMLElement} node
-       * @param {HTMLElement} parent
-       * @return {Boolean} found
-       */
-      hasParent: function hasParent(node, parent) {
-          while(node) {
-              if(node == parent) {
-                  return true;
-              }
-              node = node.parentNode;
-          }
-          return false;
-      },
-
-      /**
-       * get the center of all the touches
-       * @method getCenter
-       * @param {Array} touches
-       * @return {Object} center contains `pageX`, `pageY`, `clientX` and `clientY` properties
-       */
-      getCenter: function getCenter(touches) {
-          var pageX = [],
-              pageY = [],
-              clientX = [],
-              clientY = [],
-              min = Math.min,
-              max = Math.max;
-
-          // no need to loop when only one touch
-          if(touches.length === 1) {
-              return {
-                  pageX: touches[0].pageX,
-                  pageY: touches[0].pageY,
-                  clientX: touches[0].clientX,
-                  clientY: touches[0].clientY
-              };
-          }
-
-          Utils.each(touches, function(touch) {
-              pageX.push(touch.pageX);
-              pageY.push(touch.pageY);
-              clientX.push(touch.clientX);
-              clientY.push(touch.clientY);
-          });
-
-          return {
-              pageX: (min.apply(Math, pageX) + max.apply(Math, pageX)) / 2,
-              pageY: (min.apply(Math, pageY) + max.apply(Math, pageY)) / 2,
-              clientX: (min.apply(Math, clientX) + max.apply(Math, clientX)) / 2,
-              clientY: (min.apply(Math, clientY) + max.apply(Math, clientY)) / 2
-          };
-      },
-
-      /**
-       * calculate the velocity between two points. unit is in px per ms.
-       * @method getVelocity
-       * @param {Number} deltaTime
-       * @param {Number} deltaX
-       * @param {Number} deltaY
-       * @return {Object} velocity `x` and `y`
-       */
-      getVelocity: function getVelocity(deltaTime, deltaX, deltaY) {
-          return {
-              x: Math.abs(deltaX / deltaTime) || 0,
-              y: Math.abs(deltaY / deltaTime) || 0
-          };
-      },
-
-      /**
-       * calculate the angle between two coordinates
-       * @method getAngle
-       * @param {Touch} touch1
-       * @param {Touch} touch2
-       * @return {Number} angle
-       */
-      getAngle: function getAngle(touch1, touch2) {
-          var x = touch2.clientX - touch1.clientX,
-              y = touch2.clientY - touch1.clientY;
-
-          return Math.atan2(y, x) * 180 / Math.PI;
-      },
-
-      /**
-       * do a small comparision to get the direction between two touches.
-       * @method getDirection
-       * @param {Touch} touch1
-       * @param {Touch} touch2
-       * @return {String} direction matches `DIRECTION_LEFT|RIGHT|UP|DOWN`
-       */
-      getDirection: function getDirection(touch1, touch2) {
-          var x = Math.abs(touch1.clientX - touch2.clientX),
-              y = Math.abs(touch1.clientY - touch2.clientY);
-
-          if(x >= y) {
-              return touch1.clientX - touch2.clientX > 0 ? DIRECTION_LEFT : DIRECTION_RIGHT;
-          }
-          return touch1.clientY - touch2.clientY > 0 ? DIRECTION_UP : DIRECTION_DOWN;
-      },
-
-      /**
-       * calculate the distance between two touches
-       * @method getDistance
-       * @param {Touch}touch1
-       * @param {Touch} touch2
-       * @return {Number} distance
-       */
-      getDistance: function getDistance(touch1, touch2) {
-          var x = touch2.clientX - touch1.clientX,
-              y = touch2.clientY - touch1.clientY;
-
-          return Math.sqrt((x * x) + (y * y));
-      },
-
-      /**
-       * calculate the scale factor between two touchLists
-       * no scale is 1, and goes down to 0 when pinched together, and bigger when pinched out
-       * @method getScale
-       * @param {Array} start array of touches
-       * @param {Array} end array of touches
-       * @return {Number} scale
-       */
-      getScale: function getScale(start, end) {
-          // need two fingers...
-          if(start.length >= 2 && end.length >= 2) {
-              return this.getDistance(end[0], end[1]) / this.getDistance(start[0], start[1]);
-          }
-          return 1;
-      },
-
-      /**
-       * calculate the rotation degrees between two touchLists
-       * @method getRotation
-       * @param {Array} start array of touches
-       * @param {Array} end array of touches
-       * @return {Number} rotation
-       */
-      getRotation: function getRotation(start, end) {
-          // need two fingers
-          if(start.length >= 2 && end.length >= 2) {
-              return this.getAngle(end[1], end[0]) - this.getAngle(start[1], start[0]);
-          }
-          return 0;
-      },
-
-      /**
-       * find out if the direction is vertical   *
-       * @method isVertical
-       * @param {String} direction matches `DIRECTION_UP|DOWN`
-       * @return {Boolean} is_vertical
-       */
-      isVertical: function isVertical(direction) {
-          return direction == DIRECTION_UP || direction == DIRECTION_DOWN;
-      },
-
-      /**
-       * set css properties with their prefixes
-       * @param {HTMLElement} element
-       * @param {String} prop
-       * @param {String} value
-       * @param {Boolean} [toggle=true]
-       * @return {Boolean}
-       */
-      setPrefixedCss: function setPrefixedCss(element, prop, value, toggle) {
-          var prefixes = ['', 'Webkit', 'Moz', 'O', 'ms'];
-          prop = Utils.toCamelCase(prop);
-
-          for(var i = 0; i < prefixes.length; i++) {
-              var p = prop;
-              // prefixes
-              if(prefixes[i]) {
-                  p = prefixes[i] + p.slice(0, 1).toUpperCase() + p.slice(1);
-              }
-
-              // test the style
-              if(p in element.style) {
-                  element.style[p] = (toggle == null || toggle) && value || '';
-                  break;
-              }
-          }
-      },
-
-      /**
-       * toggle browser default behavior by setting css properties.
-       * `userSelect='none'` also sets `element.onselectstart` to false
-       * `userDrag='none'` also sets `element.ondragstart` to false
-       *
-       * @method toggleBehavior
-       * @param {HtmlElement} element
-       * @param {Object} props
-       * @param {Boolean} [toggle=true]
-       */
-      toggleBehavior: function toggleBehavior(element, props, toggle) {
-          if(!props || !element || !element.style) {
-              return;
-          }
-
-          // set the css properties
-          Utils.each(props, function(value, prop) {
-              Utils.setPrefixedCss(element, prop, value, toggle);
-          });
-
-          var falseFn = toggle && function() {
-              return false;
-          };
-
-          // also the disable onselectstart
-          if(props.userSelect == 'none') {
-              element.onselectstart = falseFn;
-          }
-          // and disable ondragstart
-          if(props.userDrag == 'none') {
-              element.ondragstart = falseFn;
-          }
-      },
-
-      /**
-       * convert a string with underscores to camelCase
-       * so prevent_default becomes preventDefault
-       * @param {String} str
-       * @return {String} camelCaseStr
-       */
-      toCamelCase: function toCamelCase(str) {
-          return str.replace(/[_-]([a-z])/g, function(s) {
-              return s[1].toUpperCase();
-          });
-      }
-  };
-
-
-  /**
-   * @module hammer
-   */
-  /**
-   * @class Event
-   * @static
-   */
-  var Event = Hammer.event = {
-      /**
-       * when touch events have been fired, this is true
-       * this is used to stop mouse events
-       * @property prevent_mouseevents
-       * @private
-       * @type {Boolean}
-       */
-      preventMouseEvents: false,
-
-      /**
-       * if EVENT_START has been fired
-       * @property started
-       * @private
-       * @type {Boolean}
-       */
-      started: false,
-
-      /**
-       * when the mouse is hold down, this is true
-       * @property should_detect
-       * @private
-       * @type {Boolean}
-       */
-      shouldDetect: false,
-
-      /**
-       * simple event binder with a hook and support for multiple types
-       * @method on
-       * @param {HTMLElement} element
-       * @param {String} type
-       * @param {Function} handler
-       * @param {Function} [hook]
-       * @param {Object} hook.type
-       */
-      on: function on(element, type, handler, hook) {
-          var types = type.split(' ');
-          Utils.each(types, function(type) {
-              Utils.on(element, type, handler);
-              hook && hook(type);
-          });
-      },
-
-      /**
-       * simple event unbinder with a hook and support for multiple types
-       * @method off
-       * @param {HTMLElement} element
-       * @param {String} type
-       * @param {Function} handler
-       * @param {Function} [hook]
-       * @param {Object} hook.type
-       */
-      off: function off(element, type, handler, hook) {
-          var types = type.split(' ');
-          Utils.each(types, function(type) {
-              Utils.off(element, type, handler);
-              hook && hook(type);
-          });
-      },
-
-      /**
-       * the core touch event handler.
-       * this finds out if we should to detect gestures
-       * @method onTouch
-       * @param {HTMLElement} element
-       * @param {String} eventType matches `EVENT_START|MOVE|END`
-       * @param {Function} handler
-       * @return onTouchHandler {Function} the core event handler
-       */
-      onTouch: function onTouch(element, eventType, handler) {
-          var self = this;
-
-          var onTouchHandler = function onTouchHandler(ev) {
-              var srcType = ev.type.toLowerCase(),
-                  isPointer = Hammer.HAS_POINTEREVENTS,
-                  isMouse = Utils.inStr(srcType, 'mouse'),
-                  triggerType;
-
-              // if we are in a mouseevent, but there has been a touchevent triggered in this session
-              // we want to do nothing. simply break out of the event.
-              if(isMouse && self.preventMouseEvents) {
-                  return;
-
-              // mousebutton must be down
-              } else if(isMouse && eventType == EVENT_START && ev.button === 0) {
-                  self.preventMouseEvents = false;
-                  self.shouldDetect = true;
-              } else if(isPointer && eventType == EVENT_START) {
-                  self.shouldDetect = (ev.buttons === 1 || PointerEvent.matchType(POINTER_TOUCH, ev));
-              // just a valid start event, but no mouse
-              } else if(!isMouse && eventType == EVENT_START) {
-                  self.preventMouseEvents = true;
-                  self.shouldDetect = true;
-              }
-
-              // update the pointer event before entering the detection
-              if(isPointer && eventType != EVENT_END) {
-                  PointerEvent.updatePointer(eventType, ev);
-              }
-
-              // we are in a touch/down state, so allowed detection of gestures
-              if(self.shouldDetect) {
-                  triggerType = self.doDetect.call(self, ev, eventType, element, handler);
-              }
-
-              // ...and we are done with the detection
-              // so reset everything to start each detection totally fresh
-              if(triggerType == EVENT_END) {
-                  self.preventMouseEvents = false;
-                  self.shouldDetect = false;
-                  PointerEvent.reset();
-              // update the pointerevent object after the detection
-              }
-
-              if(isPointer && eventType == EVENT_END) {
-                  PointerEvent.updatePointer(eventType, ev);
-              }
-          };
-
-          this.on(element, EVENT_TYPES[eventType], onTouchHandler);
-          return onTouchHandler;
-      },
-
-      /**
-       * the core detection method
-       * this finds out what hammer-touch-events to trigger
-       * @method doDetect
-       * @param {Object} ev
-       * @param {String} eventType matches `EVENT_START|MOVE|END`
-       * @param {HTMLElement} element
-       * @param {Function} handler
-       * @return {String} triggerType matches `EVENT_START|MOVE|END`
-       */
-      doDetect: function doDetect(ev, eventType, element, handler) {
-          var touchList = this.getTouchList(ev, eventType);
-          var touchListLength = touchList.length;
-          var triggerType = eventType;
-          var triggerChange = touchList.trigger; // used by fakeMultitouch plugin
-          var changedLength = touchListLength;
-
-          // at each touchstart-like event we want also want to trigger a TOUCH event...
-          if(eventType == EVENT_START) {
-              triggerChange = EVENT_TOUCH;
-          // ...the same for a touchend-like event
-          } else if(eventType == EVENT_END) {
-              triggerChange = EVENT_RELEASE;
-
-              // keep track of how many touches have been removed
-              changedLength = touchList.length - ((ev.changedTouches) ? ev.changedTouches.length : 1);
-          }
-
-          // after there are still touches on the screen,
-          // we just want to trigger a MOVE event. so change the START or END to a MOVE
-          // but only after detection has been started, the first time we actualy want a START
-          if(changedLength > 0 && this.started) {
-              triggerType = EVENT_MOVE;
-          }
-
-          // detection has been started, we keep track of this, see above
-          this.started = true;
-
-          // generate some event data, some basic information
-          var evData = this.collectEventData(element, triggerType, touchList, ev);
-
-          // trigger the triggerType event before the change (TOUCH, RELEASE) events
-          // but the END event should be at last
-          if(eventType != EVENT_END) {
-              handler.call(Detection, evData);
-          }
-
-          // trigger a change (TOUCH, RELEASE) event, this means the length of the touches changed
-          if(triggerChange) {
-              evData.changedLength = changedLength;
-              evData.eventType = triggerChange;
-
-              handler.call(Detection, evData);
-
-              evData.eventType = triggerType;
-              delete evData.changedLength;
-          }
-
-          // trigger the END event
-          if(triggerType == EVENT_END) {
-              handler.call(Detection, evData);
-
-              // ...and we are done with the detection
-              // so reset everything to start each detection totally fresh
-              this.started = false;
-          }
-
-          return triggerType;
-      },
-
-      /**
-       * we have different events for each device/browser
-       * determine what we need and set them in the EVENT_TYPES constant
-       * the `onTouch` method is bind to these properties.
-       * @method determineEventTypes
-       * @return {Object} events
-       */
-      determineEventTypes: function determineEventTypes() {
-          var types;
-          if(Hammer.HAS_POINTEREVENTS) {
-              if(window.PointerEvent) {
-                  types = [
-                      'pointerdown',
-                      'pointermove',
-                      'pointerup pointercancel lostpointercapture'
-                  ];
-              } else {
-                  types = [
-                      'MSPointerDown',
-                      'MSPointerMove',
-                      'MSPointerUp MSPointerCancel MSLostPointerCapture'
-                  ];
-              }
-          } else if(Hammer.NO_MOUSEEVENTS) {
-              types = [
-                  'touchstart',
-                  'touchmove',
-                  'touchend touchcancel'
-              ];
-          } else {
-              types = [
-                  'touchstart mousedown',
-                  'touchmove mousemove',
-                  'touchend touchcancel mouseup'
-              ];
-          }
-
-          EVENT_TYPES[EVENT_START] = types[0];
-          EVENT_TYPES[EVENT_MOVE] = types[1];
-          EVENT_TYPES[EVENT_END] = types[2];
-          return EVENT_TYPES;
-      },
-
-      /**
-       * create touchList depending on the event
-       * @method getTouchList
-       * @param {Object} ev
-       * @param {String} eventType
-       * @return {Array} touches
-       */
-      getTouchList: function getTouchList(ev, eventType) {
-          // get the fake pointerEvent touchlist
-          if(Hammer.HAS_POINTEREVENTS) {
-              return PointerEvent.getTouchList();
-          }
-
-          // get the touchlist
-          if(ev.touches) {
-              if(eventType == EVENT_MOVE) {
-                  return ev.touches;
-              }
-
-              var identifiers = [];
-              var concat = [].concat(Utils.toArray(ev.touches), Utils.toArray(ev.changedTouches));
-              var touchList = [];
-
-              Utils.each(concat, function(touch) {
-                  if(Utils.inArray(identifiers, touch.identifier) === false) {
-                      touchList.push(touch);
-                  }
-                  identifiers.push(touch.identifier);
-              });
-
-              return touchList;
-          }
-
-          // make fake touchList from mouse position
-          ev.identifier = 1;
-          return [ev];
-      },
-
-      /**
-       * collect basic event data
-       * @method collectEventData
-       * @param {HTMLElement} element
-       * @param {String} eventType matches `EVENT_START|MOVE|END`
-       * @param {Array} touches
-       * @param {Object} ev
-       * @return {Object} ev
-       */
-      collectEventData: function collectEventData(element, eventType, touches, ev) {
-          // find out pointerType
-          var pointerType = POINTER_TOUCH;
-          if(Utils.inStr(ev.type, 'mouse') || PointerEvent.matchType(POINTER_MOUSE, ev)) {
-              pointerType = POINTER_MOUSE;
-          } else if(PointerEvent.matchType(POINTER_PEN, ev)) {
-              pointerType = POINTER_PEN;
-          }
-
-          return {
-              center: Utils.getCenter(touches),
-              timeStamp: Date.now(),
-              target: ev.target,
-              touches: touches,
-              eventType: eventType,
-              pointerType: pointerType,
-              srcEvent: ev,
-
-              /**
-               * prevent the browser default actions
-               * mostly used to disable scrolling of the browser
-               */
-              preventDefault: function() {
-                  var srcEvent = this.srcEvent;
-                  srcEvent.preventManipulation && srcEvent.preventManipulation();
-                  srcEvent.preventDefault && srcEvent.preventDefault();
-              },
-
-              /**
-               * stop bubbling the event up to its parents
-               */
-              stopPropagation: function() {
-                  this.srcEvent.stopPropagation();
-              },
-
-              /**
-               * immediately stop gesture detection
-               * might be useful after a swipe was detected
-               * @return {*}
-               */
-              stopDetect: function() {
-                  return Detection.stopDetect();
-              }
-          };
-      }
-  };
-
-
-  /**
-   * @module hammer
+   * Mousetrap is a simple keyboard shortcut library for Javascript with
+   * no external dependencies
    *
-   * @class PointerEvent
-   * @static
-   */
-  var PointerEvent = Hammer.PointerEvent = {
-      /**
-       * holds all pointers, by `identifier`
-       * @property pointers
-       * @type {Object}
-       */
-      pointers: {},
-
-      /**
-       * get the pointers as an array
-       * @method getTouchList
-       * @return {Array} touchlist
-       */
-      getTouchList: function getTouchList() {
-          var touchlist = [];
-          // we can use forEach since pointerEvents only is in IE10
-          Utils.each(this.pointers, function(pointer) {
-              touchlist.push(pointer);
-          });
-          return touchlist;
-      },
-
-      /**
-       * update the position of a pointer
-       * @method updatePointer
-       * @param {String} eventType matches `EVENT_START|MOVE|END`
-       * @param {Object} pointerEvent
-       */
-      updatePointer: function updatePointer(eventType, pointerEvent) {
-          if(eventType == EVENT_END || (eventType != EVENT_END && pointerEvent.buttons !== 1)) {
-              delete this.pointers[pointerEvent.pointerId];
-          } else {
-              pointerEvent.identifier = pointerEvent.pointerId;
-              this.pointers[pointerEvent.pointerId] = pointerEvent;
-          }
-      },
-
-      /**
-       * check if ev matches pointertype
-       * @method matchType
-       * @param {String} pointerType matches `POINTER_MOUSE|TOUCH|PEN`
-       * @param {PointerEvent} ev
-       */
-      matchType: function matchType(pointerType, ev) {
-          if(!ev.pointerType) {
-              return false;
-          }
-
-          var pt = ev.pointerType,
-              types = {};
-
-          types[POINTER_MOUSE] = (pt === (ev.MSPOINTER_TYPE_MOUSE || POINTER_MOUSE));
-          types[POINTER_TOUCH] = (pt === (ev.MSPOINTER_TYPE_TOUCH || POINTER_TOUCH));
-          types[POINTER_PEN] = (pt === (ev.MSPOINTER_TYPE_PEN || POINTER_PEN));
-          return types[pointerType];
-      },
-
-      /**
-       * reset the stored pointers
-       * @method reset
-       */
-      reset: function resetList() {
-          this.pointers = {};
-      }
-  };
-
-
-  /**
-   * @module hammer
-   *
-   * @class Detection
-   * @static
-   */
-  var Detection = Hammer.detection = {
-      // contains all registred Hammer.gestures in the correct order
-      gestures: [],
-
-      // data of the current Hammer.gesture detection session
-      current: null,
-
-      // the previous Hammer.gesture session data
-      // is a full clone of the previous gesture.current object
-      previous: null,
-
-      // when this becomes true, no gestures are fired
-      stopped: false,
-
-      /**
-       * start Hammer.gesture detection
-       * @method startDetect
-       * @param {Hammer.Instance} inst
-       * @param {Object} eventData
-       */
-      startDetect: function startDetect(inst, eventData) {
-          // already busy with a Hammer.gesture detection on an element
-          if(this.current) {
-              return;
-          }
-
-          this.stopped = false;
-
-          // holds current session
-          this.current = {
-              inst: inst, // reference to HammerInstance we're working for
-              startEvent: Utils.extend({}, eventData), // start eventData for distances, timing etc
-              lastEvent: false, // last eventData
-              lastCalcEvent: false, // last eventData for calculations.
-              futureCalcEvent: false, // last eventData for calculations.
-              lastCalcData: {}, // last lastCalcData
-              name: '' // current gesture we're in/detected, can be 'tap', 'hold' etc
-          };
-
-          this.detect(eventData);
-      },
-
-      /**
-       * Hammer.gesture detection
-       * @method detect
-       * @param {Object} eventData
-       * @return {any}
-       */
-      detect: function detect(eventData) {
-          if(!this.current || this.stopped) {
-              return;
-          }
-
-          // extend event data with calculations about scale, distance etc
-          eventData = this.extendEventData(eventData);
-
-          // hammer instance and instance options
-          var inst = this.current.inst,
-              instOptions = inst.options;
-
-          // call Hammer.gesture handlers
-          Utils.each(this.gestures, function triggerGesture(gesture) {
-              // only when the instance options have enabled this gesture
-              if(!this.stopped && inst.enabled && instOptions[gesture.name]) {
-                  gesture.handler.call(gesture, eventData, inst);
-              }
-          }, this);
-
-          // store as previous event event
-          if(this.current) {
-              this.current.lastEvent = eventData;
-          }
-
-          if(eventData.eventType == EVENT_END) {
-              this.stopDetect();
-          }
-
-          return eventData;
-      },
-
-      /**
-       * clear the Hammer.gesture vars
-       * this is called on endDetect, but can also be used when a final Hammer.gesture has been detected
-       * to stop other Hammer.gestures from being fired
-       * @method stopDetect
-       */
-      stopDetect: function stopDetect() {
-          // clone current data to the store as the previous gesture
-          // used for the double tap gesture, since this is an other gesture detect session
-          this.previous = Utils.extend({}, this.current);
-
-          // reset the current
-          this.current = null;
-          this.stopped = true;
-      },
-
-      /**
-       * calculate velocity, angle and direction
-       * @method getVelocityData
-       * @param {Object} ev
-       * @param {Object} center
-       * @param {Number} deltaTime
-       * @param {Number} deltaX
-       * @param {Number} deltaY
-       */
-      getCalculatedData: function getCalculatedData(ev, center, deltaTime, deltaX, deltaY) {
-          var cur = this.current,
-              recalc = false,
-              calcEv = cur.lastCalcEvent,
-              calcData = cur.lastCalcData;
-
-          if(calcEv && ev.timeStamp - calcEv.timeStamp > Hammer.CALCULATE_INTERVAL) {
-              center = calcEv.center;
-              deltaTime = ev.timeStamp - calcEv.timeStamp;
-              deltaX = ev.center.clientX - calcEv.center.clientX;
-              deltaY = ev.center.clientY - calcEv.center.clientY;
-              recalc = true;
-          }
-
-          if(ev.eventType == EVENT_TOUCH || ev.eventType == EVENT_RELEASE) {
-              cur.futureCalcEvent = ev;
-          }
-
-          if(!cur.lastCalcEvent || recalc) {
-              calcData.velocity = Utils.getVelocity(deltaTime, deltaX, deltaY);
-              calcData.angle = Utils.getAngle(center, ev.center);
-              calcData.direction = Utils.getDirection(center, ev.center);
-
-              cur.lastCalcEvent = cur.futureCalcEvent || ev;
-              cur.futureCalcEvent = ev;
-          }
-
-          ev.velocityX = calcData.velocity.x;
-          ev.velocityY = calcData.velocity.y;
-          ev.interimAngle = calcData.angle;
-          ev.interimDirection = calcData.direction;
-      },
-
-      /**
-       * extend eventData for Hammer.gestures
-       * @method extendEventData
-       * @param {Object} ev
-       * @return {Object} ev
-       */
-      extendEventData: function extendEventData(ev) {
-          var cur = this.current,
-              startEv = cur.startEvent,
-              lastEv = cur.lastEvent || startEv;
-
-          // update the start touchlist to calculate the scale/rotation
-          if(ev.eventType == EVENT_TOUCH || ev.eventType == EVENT_RELEASE) {
-              startEv.touches = [];
-              Utils.each(ev.touches, function(touch) {
-                  startEv.touches.push({
-                      clientX: touch.clientX,
-                      clientY: touch.clientY
-                  });
-              });
-          }
-
-          var deltaTime = ev.timeStamp - startEv.timeStamp,
-              deltaX = ev.center.clientX - startEv.center.clientX,
-              deltaY = ev.center.clientY - startEv.center.clientY;
-
-          this.getCalculatedData(ev, lastEv.center, deltaTime, deltaX, deltaY);
-
-          Utils.extend(ev, {
-              startEvent: startEv,
-
-              deltaTime: deltaTime,
-              deltaX: deltaX,
-              deltaY: deltaY,
-
-              distance: Utils.getDistance(startEv.center, ev.center),
-              angle: Utils.getAngle(startEv.center, ev.center),
-              direction: Utils.getDirection(startEv.center, ev.center),
-              scale: Utils.getScale(startEv.touches, ev.touches),
-              rotation: Utils.getRotation(startEv.touches, ev.touches)
-          });
-
-          return ev;
-      },
-
-      /**
-       * register new gesture
-       * @method register
-       * @param {Object} gesture object, see `gestures/` for documentation
-       * @return {Array} gestures
-       */
-      register: function register(gesture) {
-          // add an enable gesture options if there is no given
-          var options = gesture.defaults || {};
-          if(options[gesture.name] === undefined) {
-              options[gesture.name] = true;
-          }
-
-          // extend Hammer default options with the Hammer.gesture options
-          Utils.extend(Hammer.defaults, options, true);
-
-          // set its index
-          gesture.index = gesture.index || 1000;
-
-          // add Hammer.gesture to the list
-          this.gestures.push(gesture);
-
-          // sort the list by index
-          this.gestures.sort(function(a, b) {
-              if(a.index < b.index) {
-                  return -1;
-              }
-              if(a.index > b.index) {
-                  return 1;
-              }
-              return 0;
-          });
-
-          return this.gestures;
-      }
-  };
-
-
-  /**
-   * @module hammer
+   * @version 1.1.2
+   * @url craig.is/killing/mice
    */
 
-  /**
-   * create new hammer instance
-   * all methods should return the instance itself, so it is chainable.
-   *
-   * @class Instance
-   * @constructor
-   * @param {HTMLElement} element
-   * @param {Object} [options={}] options are merged with `Hammer.defaults`
-   * @return {Hammer.Instance}
-   */
-  Hammer.Instance = function(element, options) {
-      var self = this;
-
-      // setup HammerJS window events and register all gestures
-      // this also sets up the default options
-      setup();
-
-      /**
-       * @property element
-       * @type {HTMLElement}
-       */
-      this.element = element;
-
-      /**
-       * @property enabled
-       * @type {Boolean}
-       * @protected
-       */
-      this.enabled = true;
-
-      /**
-       * options, merged with the defaults
-       * options with an _ are converted to camelCase
-       * @property options
-       * @type {Object}
-       */
-      Utils.each(options, function(value, name) {
-          delete options[name];
-          options[Utils.toCamelCase(name)] = value;
-      });
-
-      this.options = Utils.extend(Utils.extend({}, Hammer.defaults), options || {});
-
-      // add some css to the element to prevent the browser from doing its native behavoir
-      if(this.options.behavior) {
-          Utils.toggleBehavior(this.element, this.options.behavior, true);
-      }
-
-      /**
-       * event start handler on the element to start the detection
-       * @property eventStartHandler
-       * @type {Object}
-       */
-      this.eventStartHandler = Event.onTouch(element, EVENT_START, function(ev) {
-          if(self.enabled && ev.eventType == EVENT_START) {
-              Detection.startDetect(self, ev);
-          } else if(ev.eventType == EVENT_TOUCH) {
-              Detection.detect(ev);
-          }
-      });
-
-      /**
-       * keep a list of user event handlers which needs to be removed when calling 'dispose'
-       * @property eventHandlers
-       * @type {Array}
-       */
-      this.eventHandlers = [];
-  };
-
-  Hammer.Instance.prototype = {
-      /**
-       * bind events to the instance
-       * @method on
-       * @chainable
-       * @param {String} gestures multiple gestures by splitting with a space
-       * @param {Function} handler
-       * @param {Object} handler.ev event object
-       */
-      on: function onEvent(gestures, handler) {
-          var self = this;
-          Event.on(self.element, gestures, handler, function(type) {
-              self.eventHandlers.push({ gesture: type, handler: handler });
-          });
-          return self;
-      },
-
-      /**
-       * unbind events to the instance
-       * @method off
-       * @chainable
-       * @param {String} gestures
-       * @param {Function} handler
-       */
-      off: function offEvent(gestures, handler) {
-          var self = this;
-
-          Event.off(self.element, gestures, handler, function(type) {
-              var index = Utils.inArray({ gesture: type, handler: handler });
-              if(index !== false) {
-                  self.eventHandlers.splice(index, 1);
-              }
-          });
-          return self;
-      },
-
-      /**
-       * trigger gesture event
-       * @method trigger
-       * @chainable
-       * @param {String} gesture
-       * @param {Object} [eventData]
-       */
-      trigger: function triggerEvent(gesture, eventData) {
-          // optional
-          if(!eventData) {
-              eventData = {};
-          }
-
-          // create DOM event
-          var event = Hammer.DOCUMENT.createEvent('Event');
-          event.initEvent(gesture, true, true);
-          event.gesture = eventData;
-
-          // trigger on the target if it is in the instance element,
-          // this is for event delegation tricks
-          var element = this.element;
-          if(Utils.hasParent(eventData.target, element)) {
-              element = eventData.target;
-          }
-
-          element.dispatchEvent(event);
-          return this;
-      },
-
-      /**
-       * enable of disable hammer.js detection
-       * @method enable
-       * @chainable
-       * @param {Boolean} state
-       */
-      enable: function enable(state) {
-          this.enabled = state;
-          return this;
-      },
-
-      /**
-       * dispose this hammer instance
-       * @method dispose
-       * @return {Null}
-       */
-      dispose: function dispose() {
-          var i, eh;
-
-          // undo all changes made by stop_browser_behavior
-          Utils.toggleBehavior(this.element, this.options.behavior, false);
-
-          // unbind all custom event handlers
-          for(i = -1; (eh = this.eventHandlers[++i]);) {
-              Utils.off(this.element, eh.gesture, eh.handler);
-          }
-
-          this.eventHandlers = [];
-
-          // unbind the start event listener
-          Event.off(this.element, EVENT_TYPES[EVENT_START], this.eventStartHandler);
-
-          return null;
-      }
-  };
-
-
-  /**
-   * @module gestures
-   */
-  /**
-   * Move with x fingers (default 1) around on the page.
-   * Preventing the default browser behavior is a good way to improve feel and working.
-   * ````
-   *  hammertime.on("drag", function(ev) {
-   *    console.log(ev);
-   *    ev.gesture.preventDefault();
-   *  });
-   * ````
-   *
-   * @class Drag
-   * @static
-   */
-  /**
-   * @event drag
-   * @param {Object} ev
-   */
-  /**
-   * @event dragstart
-   * @param {Object} ev
-   */
-  /**
-   * @event dragend
-   * @param {Object} ev
-   */
-  /**
-   * @event drapleft
-   * @param {Object} ev
-   */
-  /**
-   * @event dragright
-   * @param {Object} ev
-   */
-  /**
-   * @event dragup
-   * @param {Object} ev
-   */
-  /**
-   * @event dragdown
-   * @param {Object} ev
-   */
-
-  /**
-   * @param {String} name
-   */
-  (function(name) {
-      var triggered = false;
-
-      function dragGesture(ev, inst) {
-          var cur = Detection.current;
-
-          // max touches
-          if(inst.options.dragMaxTouches > 0 &&
-              ev.touches.length > inst.options.dragMaxTouches) {
-              return;
-          }
-
-          switch(ev.eventType) {
-              case EVENT_START:
-                  triggered = false;
-                  break;
-
-              case EVENT_MOVE:
-                  // when the distance we moved is too small we skip this gesture
-                  // or we can be already in dragging
-                  if(ev.distance < inst.options.dragMinDistance &&
-                      cur.name != name) {
-                      return;
-                  }
-
-                  var startCenter = cur.startEvent.center;
-
-                  // we are dragging!
-                  if(cur.name != name) {
-                      cur.name = name;
-                      if(inst.options.dragDistanceCorrection && ev.distance > 0) {
-                          // When a drag is triggered, set the event center to dragMinDistance pixels from the original event center.
-                          // Without this correction, the dragged distance would jumpstart at dragMinDistance pixels instead of at 0.
-                          // It might be useful to save the original start point somewhere
-                          var factor = Math.abs(inst.options.dragMinDistance / ev.distance);
-                          startCenter.pageX += ev.deltaX * factor;
-                          startCenter.pageY += ev.deltaY * factor;
-                          startCenter.clientX += ev.deltaX * factor;
-                          startCenter.clientY += ev.deltaY * factor;
-
-                          // recalculate event data using new start point
-                          ev = Detection.extendEventData(ev);
-                      }
-                  }
-
-                  // lock drag to axis?
-                  if(cur.lastEvent.dragLockToAxis ||
-                      ( inst.options.dragLockToAxis &&
-                          inst.options.dragLockMinDistance <= ev.distance
-                          )) {
-                      ev.dragLockToAxis = true;
-                  }
-
-                  // keep direction on the axis that the drag gesture started on
-                  var lastDirection = cur.lastEvent.direction;
-                  if(ev.dragLockToAxis && lastDirection !== ev.direction) {
-                      if(Utils.isVertical(lastDirection)) {
-                          ev.direction = (ev.deltaY < 0) ? DIRECTION_UP : DIRECTION_DOWN;
-                      } else {
-                          ev.direction = (ev.deltaX < 0) ? DIRECTION_LEFT : DIRECTION_RIGHT;
-                      }
-                  }
-
-                  // first time, trigger dragstart event
-                  if(!triggered) {
-                      inst.trigger(name + 'start', ev);
-                      triggered = true;
-                  }
-
-                  // trigger events
-                  inst.trigger(name, ev);
-                  inst.trigger(name + ev.direction, ev);
-
-                  var isVertical = Utils.isVertical(ev.direction);
-
-                  // block the browser events
-                  if((inst.options.dragBlockVertical && isVertical) ||
-                      (inst.options.dragBlockHorizontal && !isVertical)) {
-                      ev.preventDefault();
-                  }
-                  break;
-
-              case EVENT_RELEASE:
-                  if(triggered && ev.changedLength <= inst.options.dragMaxTouches) {
-                      inst.trigger(name + 'end', ev);
-                      triggered = false;
-                  }
-                  break;
-
-              case EVENT_END:
-                  triggered = false;
-                  break;
-          }
-      }
-
-      Hammer.gestures.Drag = {
-          name: name,
-          index: 50,
-          handler: dragGesture,
-          defaults: {
-              /**
-               * minimal movement that have to be made before the drag event gets triggered
-               * @property dragMinDistance
-               * @type {Number}
-               * @default 10
-               */
-              dragMinDistance: 10,
-
-              /**
-               * Set dragDistanceCorrection to true to make the starting point of the drag
-               * be calculated from where the drag was triggered, not from where the touch started.
-               * Useful to avoid a jerk-starting drag, which can make fine-adjustments
-               * through dragging difficult, and be visually unappealing.
-               * @property dragDistanceCorrection
-               * @type {Boolean}
-               * @default true
-               */
-              dragDistanceCorrection: true,
-
-              /**
-               * set 0 for unlimited, but this can conflict with transform
-               * @property dragMaxTouches
-               * @type {Number}
-               * @default 1
-               */
-              dragMaxTouches: 1,
-
-              /**
-               * prevent default browser behavior when dragging occurs
-               * be careful with it, it makes the element a blocking element
-               * when you are using the drag gesture, it is a good practice to set this true
-               * @property dragBlockHorizontal
-               * @type {Boolean}
-               * @default false
-               */
-              dragBlockHorizontal: false,
-
-              /**
-               * same as `dragBlockHorizontal`, but for vertical movement
-               * @property dragBlockVertical
-               * @type {Boolean}
-               * @default false
-               */
-              dragBlockVertical: false,
-
-              /**
-               * dragLockToAxis keeps the drag gesture on the axis that it started on,
-               * It disallows vertical directions if the initial direction was horizontal, and vice versa.
-               * @property dragLockToAxis
-               * @type {Boolean}
-               * @default false
-               */
-              dragLockToAxis: false,
-
-              /**
-               * drag lock only kicks in when distance > dragLockMinDistance
-               * This way, locking occurs only when the distance has become large enough to reliably determine the direction
-               * @property dragLockMinDistance
-               * @type {Number}
-               * @default 25
-               */
-              dragLockMinDistance: 25
-          }
-      };
-  })('drag');
-
-  /**
-   * @module gestures
-   */
-  /**
-   * trigger a simple gesture event, so you can do anything in your handler.
-   * only usable if you know what your doing...
-   *
-   * @class Gesture
-   * @static
-   */
-  /**
-   * @event gesture
-   * @param {Object} ev
-   */
-  Hammer.gestures.Gesture = {
-      name: 'gesture',
-      index: 1337,
-      handler: function releaseGesture(ev, inst) {
-          inst.trigger(this.name, ev);
-      }
-  };
-
-  /**
-   * @module gestures
-   */
-  /**
-   * Touch stays at the same place for x time
-   *
-   * @class Hold
-   * @static
-   */
-  /**
-   * @event hold
-   * @param {Object} ev
-   */
-
-  /**
-   * @param {String} name
-   */
-  (function(name) {
-      var timer;
-
-      function holdGesture(ev, inst) {
-          var options = inst.options,
-              current = Detection.current;
-
-          switch(ev.eventType) {
-              case EVENT_START:
-                  clearTimeout(timer);
-
-                  // set the gesture so we can check in the timeout if it still is
-                  current.name = name;
-
-                  // set timer and if after the timeout it still is hold,
-                  // we trigger the hold event
-                  timer = setTimeout(function() {
-                      if(current && current.name == name) {
-                          inst.trigger(name, ev);
-                      }
-                  }, options.holdTimeout);
-                  break;
-
-              case EVENT_MOVE:
-                  if(ev.distance > options.holdThreshold) {
-                      clearTimeout(timer);
-                  }
-                  break;
-
-              case EVENT_RELEASE:
-                  clearTimeout(timer);
-                  break;
-          }
-      }
-
-      Hammer.gestures.Hold = {
-          name: name,
-          index: 10,
-          defaults: {
-              /**
-               * @property holdTimeout
-               * @type {Number}
-               * @default 500
-               */
-              holdTimeout: 500,
-
-              /**
-               * movement allowed while holding
-               * @property holdThreshold
-               * @type {Number}
-               * @default 2
-               */
-              holdThreshold: 2
-          },
-          handler: holdGesture
-      };
-  })('hold');
-
-  /**
-   * @module gestures
-   */
-  /**
-   * when a touch is being released from the page
-   *
-   * @class Release
-   * @static
-   */
-  /**
-   * @event release
-   * @param {Object} ev
-   */
-  Hammer.gestures.Release = {
-      name: 'release',
-      index: Infinity,
-      handler: function releaseGesture(ev, inst) {
-          if(ev.eventType == EVENT_RELEASE) {
-              inst.trigger(this.name, ev);
-          }
-      }
-  };
-
-  /**
-   * @module gestures
-   */
-  /**
-   * triggers swipe events when the end velocity is above the threshold
-   * for best usage, set `preventDefault` (on the drag gesture) to `true`
-   * ````
-   *  hammertime.on("dragleft swipeleft", function(ev) {
-   *    console.log(ev);
-   *    ev.gesture.preventDefault();
-   *  });
-   * ````
-   *
-   * @class Swipe
-   * @static
-   */
-  /**
-   * @event swipe
-   * @param {Object} ev
-   */
-  /**
-   * @event swipeleft
-   * @param {Object} ev
-   */
-  /**
-   * @event swiperight
-   * @param {Object} ev
-   */
-  /**
-   * @event swipeup
-   * @param {Object} ev
-   */
-  /**
-   * @event swipedown
-   * @param {Object} ev
-   */
-  Hammer.gestures.Swipe = {
-      name: 'swipe',
-      index: 40,
-      defaults: {
-          /**
-           * @property swipeMinTouches
-           * @type {Number}
-           * @default 1
-           */
-          swipeMinTouches: 1,
-
-          /**
-           * @property swipeMaxTouches
-           * @type {Number}
-           * @default 1
-           */
-          swipeMaxTouches: 1,
-
-          /**
-           * horizontal swipe velocity
-           * @property swipeVelocityX
-           * @type {Number}
-           * @default 0.6
-           */
-          swipeVelocityX: 0.6,
-
-          /**
-           * vertical swipe velocity
-           * @property swipeVelocityY
-           * @type {Number}
-           * @default 0.6
-           */
-          swipeVelocityY: 0.6
-      },
-
-      handler: function swipeGesture(ev, inst) {
-          if(ev.eventType == EVENT_RELEASE) {
-              var touches = ev.touches.length,
-                  options = inst.options;
-
-              // max touches
-              if(touches < options.swipeMinTouches ||
-                  touches > options.swipeMaxTouches) {
-                  return;
-              }
-
-              // when the distance we moved is too small we skip this gesture
-              // or we can be already in dragging
-              if(ev.velocityX > options.swipeVelocityX ||
-                  ev.velocityY > options.swipeVelocityY) {
-                  // trigger swipe events
-                  inst.trigger(this.name, ev);
-                  inst.trigger(this.name + ev.direction, ev);
-              }
-          }
-      }
-  };
-
-  /**
-   * @module gestures
-   */
-  /**
-   * Single tap and a double tap on a place
-   *
-   * @class Tap
-   * @static
-   */
-  /**
-   * @event tap
-   * @param {Object} ev
-   */
-  /**
-   * @event doubletap
-   * @param {Object} ev
-   */
-
-  /**
-   * @param {String} name
-   */
-  (function(name) {
-      var hasMoved = false;
-
-      function tapGesture(ev, inst) {
-          var options = inst.options,
-              current = Detection.current,
-              prev = Detection.previous,
-              sincePrev,
-              didDoubleTap;
-
-          switch(ev.eventType) {
-              case EVENT_START:
-                  hasMoved = false;
-                  break;
-
-              case EVENT_MOVE:
-                  hasMoved = hasMoved || (ev.distance > options.tapMaxDistance);
-                  break;
-
-              case EVENT_END:
-                  if(!Utils.inStr(ev.srcEvent.type, 'cancel') && ev.deltaTime < options.tapMaxTime && !hasMoved) {
-                      // previous gesture, for the double tap since these are two different gesture detections
-                      sincePrev = prev && prev.lastEvent && ev.timeStamp - prev.lastEvent.timeStamp;
-                      didDoubleTap = false;
-
-                      // check if double tap
-                      if(prev && prev.name == name &&
-                          (sincePrev && sincePrev < options.doubleTapInterval) &&
-                          ev.distance < options.doubleTapDistance) {
-                          inst.trigger('doubletap', ev);
-                          didDoubleTap = true;
-                      }
-
-                      // do a single tap
-                      if(!didDoubleTap || options.tapAlways) {
-                          current.name = name;
-                          inst.trigger(current.name, ev);
-                      }
-                  }
-                  break;
-          }
-      }
-
-      Hammer.gestures.Tap = {
-          name: name,
-          index: 100,
-          handler: tapGesture,
-          defaults: {
-              /**
-               * max time of a tap, this is for the slow tappers
-               * @property tapMaxTime
-               * @type {Number}
-               * @default 250
-               */
-              tapMaxTime: 250,
-
-              /**
-               * max distance of movement of a tap, this is for the slow tappers
-               * @property tapMaxDistance
-               * @type {Number}
-               * @default 10
-               */
-              tapMaxDistance: 10,
-
-              /**
-               * always trigger the `tap` event, even while double-tapping
-               * @property tapAlways
-               * @type {Boolean}
-               * @default true
-               */
-              tapAlways: true,
-
-              /**
-               * max distance between two taps
-               * @property doubleTapDistance
-               * @type {Number}
-               * @default 20
-               */
-              doubleTapDistance: 20,
-
-              /**
-               * max time between two taps
-               * @property doubleTapInterval
-               * @type {Number}
-               * @default 300
-               */
-              doubleTapInterval: 300
-          }
-      };
-  })('tap');
-
-  /**
-   * @module gestures
-   */
-  /**
-   * when a touch is being touched at the page
-   *
-   * @class Touch
-   * @static
-   */
-  /**
-   * @event touch
-   * @param {Object} ev
-   */
-  Hammer.gestures.Touch = {
-      name: 'touch',
-      index: -Infinity,
-      defaults: {
-          /**
-           * call preventDefault at touchstart, and makes the element blocking by disabling the scrolling of the page,
-           * but it improves gestures like transforming and dragging.
-           * be careful with using this, it can be very annoying for users to be stuck on the page
-           * @property preventDefault
-           * @type {Boolean}
-           * @default false
-           */
-          preventDefault: false,
-
-          /**
-           * disable mouse events, so only touch (or pen!) input triggers events
-           * @property preventMouse
-           * @type {Boolean}
-           * @default false
-           */
-          preventMouse: false
-      },
-      handler: function touchGesture(ev, inst) {
-          if(inst.options.preventMouse && ev.pointerType == POINTER_MOUSE) {
-              ev.stopDetect();
-              return;
-          }
-
-          if(inst.options.preventDefault) {
-              ev.preventDefault();
-          }
-
-          if(ev.eventType == EVENT_TOUCH) {
-              inst.trigger('touch', ev);
-          }
-      }
-  };
-
-  /**
-   * @module gestures
-   */
-  /**
-   * User want to scale or rotate with 2 fingers
-   * Preventing the default browser behavior is a good way to improve feel and working. This can be done with the
-   * `preventDefault` option.
-   *
-   * @class Transform
-   * @static
-   */
-  /**
-   * @event transform
-   * @param {Object} ev
-   */
-  /**
-   * @event transformstart
-   * @param {Object} ev
-   */
-  /**
-   * @event transformend
-   * @param {Object} ev
-   */
-  /**
-   * @event pinchin
-   * @param {Object} ev
-   */
-  /**
-   * @event pinchout
-   * @param {Object} ev
-   */
-  /**
-   * @event rotate
-   * @param {Object} ev
-   */
-
-  /**
-   * @param {String} name
-   */
-  (function(name) {
-      var triggered = false;
-
-      function transformGesture(ev, inst) {
-          switch(ev.eventType) {
-              case EVENT_START:
-                  triggered = false;
-                  break;
-
-              case EVENT_MOVE:
-                  // at least multitouch
-                  if(ev.touches.length < 2) {
-                      return;
-                  }
-
-                  var scaleThreshold = Math.abs(1 - ev.scale);
-                  var rotationThreshold = Math.abs(ev.rotation);
-
-                  // when the distance we moved is too small we skip this gesture
-                  // or we can be already in dragging
-                  if(scaleThreshold < inst.options.transformMinScale &&
-                      rotationThreshold < inst.options.transformMinRotation) {
-                      return;
-                  }
-
-                  // we are transforming!
-                  Detection.current.name = name;
-
-                  // first time, trigger dragstart event
-                  if(!triggered) {
-                      inst.trigger(name + 'start', ev);
-                      triggered = true;
-                  }
-
-                  inst.trigger(name, ev); // basic transform event
-
-                  // trigger rotate event
-                  if(rotationThreshold > inst.options.transformMinRotation) {
-                      inst.trigger('rotate', ev);
-                  }
-
-                  // trigger pinch event
-                  if(scaleThreshold > inst.options.transformMinScale) {
-                      inst.trigger('pinch', ev);
-                      inst.trigger('pinch' + (ev.scale < 1 ? 'in' : 'out'), ev);
-                  }
-                  break;
-
-              case EVENT_RELEASE:
-                  if(triggered && ev.changedLength < 2) {
-                      inst.trigger(name + 'end', ev);
-                      triggered = false;
-                  }
-                  break;
-          }
-      }
-
-      Hammer.gestures.Transform = {
-          name: name,
-          index: 45,
-          defaults: {
-              /**
-               * minimal scale factor, no scale is 1, zoomin is to 0 and zoomout until higher then 1
-               * @property transformMinScale
-               * @type {Number}
-               * @default 0.01
-               */
-              transformMinScale: 0.01,
-
-              /**
-               * rotation in degrees
-               * @property transformMinRotation
-               * @type {Number}
-               * @default 1
-               */
-              transformMinRotation: 1
-          },
-
-          handler: transformGesture
-      };
-  })('transform');
-
-  /**
-   * @module hammer
-   */
-
-  // AMD export
-  if(true) {
-      !(__WEBPACK_AMD_DEFINE_RESULT__ = (function() {
-          return Hammer;
-      }.call(exports, __webpack_require__, exports, module)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-  // commonjs export
-  } else if(typeof module !== 'undefined' && module.exports) {
-      module.exports = Hammer;
-  // browser export
-  } else {
-      window.Hammer = Hammer;
-  }
-
-  })(window);
+    /**
+     * mapping of special keycodes to their corresponding keys
+     *
+     * everything in this dictionary cannot use keypress events
+     * so it has to be here to map to the correct keycodes for
+     * keyup/keydown events
+     *
+     * @type {Object}
+     */
+    var _MAP = {
+            8: 'backspace',
+            9: 'tab',
+            13: 'enter',
+            16: 'shift',
+            17: 'ctrl',
+            18: 'alt',
+            20: 'capslock',
+            27: 'esc',
+            32: 'space',
+            33: 'pageup',
+            34: 'pagedown',
+            35: 'end',
+            36: 'home',
+            37: 'left',
+            38: 'up',
+            39: 'right',
+            40: 'down',
+            45: 'ins',
+            46: 'del',
+            91: 'meta',
+            93: 'meta',
+            224: 'meta'
+        },
+
+        /**
+         * mapping for special characters so they can support
+         *
+         * this dictionary is only used incase you want to bind a
+         * keyup or keydown event to one of these keys
+         *
+         * @type {Object}
+         */
+        _KEYCODE_MAP = {
+            106: '*',
+            107: '+',
+            109: '-',
+            110: '.',
+            111 : '/',
+            186: ';',
+            187: '=',
+            188: ',',
+            189: '-',
+            190: '.',
+            191: '/',
+            192: '`',
+            219: '[',
+            220: '\\',
+            221: ']',
+            222: '\''
+        },
+
+        /**
+         * this is a mapping of keys that require shift on a US keypad
+         * back to the non shift equivelents
+         *
+         * this is so you can use keyup events with these keys
+         *
+         * note that this will only work reliably on US keyboards
+         *
+         * @type {Object}
+         */
+        _SHIFT_MAP = {
+            '~': '`',
+            '!': '1',
+            '@': '2',
+            '#': '3',
+            '$': '4',
+            '%': '5',
+            '^': '6',
+            '&': '7',
+            '*': '8',
+            '(': '9',
+            ')': '0',
+            '_': '-',
+            '+': '=',
+            ':': ';',
+            '\"': '\'',
+            '<': ',',
+            '>': '.',
+            '?': '/',
+            '|': '\\'
+        },
+
+        /**
+         * this is a list of special strings you can use to map
+         * to modifier keys when you specify your keyboard shortcuts
+         *
+         * @type {Object}
+         */
+        _SPECIAL_ALIASES = {
+            'option': 'alt',
+            'command': 'meta',
+            'return': 'enter',
+            'escape': 'esc'
+        },
+
+        /**
+         * variable to store the flipped version of _MAP from above
+         * needed to check if we should use keypress or not when no action
+         * is specified
+         *
+         * @type {Object|undefined}
+         */
+        _REVERSE_MAP,
+
+        /**
+         * a list of all the callbacks setup via Mousetrap.bind()
+         *
+         * @type {Object}
+         */
+        _callbacks = {},
+
+        /**
+         * direct map of string combinations to callbacks used for trigger()
+         *
+         * @type {Object}
+         */
+        _direct_map = {},
+
+        /**
+         * keeps track of what level each sequence is at since multiple
+         * sequences can start out with the same sequence
+         *
+         * @type {Object}
+         */
+        _sequence_levels = {},
+
+        /**
+         * variable to store the setTimeout call
+         *
+         * @type {null|number}
+         */
+        _reset_timer,
+
+        /**
+         * temporary state where we will ignore the next keyup
+         *
+         * @type {boolean|string}
+         */
+        _ignore_next_keyup = false,
+
+        /**
+         * are we currently inside of a sequence?
+         * type of action ("keyup" or "keydown" or "keypress") or false
+         *
+         * @type {boolean|string}
+         */
+        _inside_sequence = false;
+
+    /**
+     * loop through the f keys, f1 to f19 and add them to the map
+     * programatically
+     */
+    for (var i = 1; i < 20; ++i) {
+        _MAP[111 + i] = 'f' + i;
+    }
+
+    /**
+     * loop through to map numbers on the numeric keypad
+     */
+    for (i = 0; i <= 9; ++i) {
+        _MAP[i + 96] = i;
+    }
+
+    /**
+     * cross browser add event method
+     *
+     * @param {Element|HTMLDocument} object
+     * @param {string} type
+     * @param {Function} callback
+     * @returns void
+     */
+    function _addEvent(object, type, callback) {
+        if (object.addEventListener) {
+            return object.addEventListener(type, callback, false);
+        }
+
+        object.attachEvent('on' + type, callback);
+    }
+
+    /**
+     * takes the event and returns the key character
+     *
+     * @param {Event} e
+     * @return {string}
+     */
+    function _characterFromEvent(e) {
+
+        // for keypress events we should return the character as is
+        if (e.type == 'keypress') {
+            return String.fromCharCode(e.which);
+        }
+
+        // for non keypress events the special maps are needed
+        if (_MAP[e.which]) {
+            return _MAP[e.which];
+        }
+
+        if (_KEYCODE_MAP[e.which]) {
+            return _KEYCODE_MAP[e.which];
+        }
+
+        // if it is not in the special map
+        return String.fromCharCode(e.which).toLowerCase();
+    }
+
+    /**
+     * should we stop this event before firing off callbacks
+     *
+     * @param {Event} e
+     * @return {boolean}
+     */
+    function _stop(e) {
+        var element = e.target || e.srcElement,
+            tag_name = element.tagName;
+
+        // if the element has the class "mousetrap" then no need to stop
+        if ((' ' + element.className + ' ').indexOf(' mousetrap ') > -1) {
+            return false;
+        }
+
+        // stop for input, select, and textarea
+        return tag_name == 'INPUT' || tag_name == 'SELECT' || tag_name == 'TEXTAREA' || (element.contentEditable && element.contentEditable == 'true');
+    }
+
+    /**
+     * checks if two arrays are equal
+     *
+     * @param {Array} modifiers1
+     * @param {Array} modifiers2
+     * @returns {boolean}
+     */
+    function _modifiersMatch(modifiers1, modifiers2) {
+        return modifiers1.sort().join(',') === modifiers2.sort().join(',');
+    }
+
+    /**
+     * resets all sequence counters except for the ones passed in
+     *
+     * @param {Object} do_not_reset
+     * @returns void
+     */
+    function _resetSequences(do_not_reset) {
+        do_not_reset = do_not_reset || {};
+
+        var active_sequences = false,
+            key;
+
+        for (key in _sequence_levels) {
+            if (do_not_reset[key]) {
+                active_sequences = true;
+                continue;
+            }
+            _sequence_levels[key] = 0;
+        }
+
+        if (!active_sequences) {
+            _inside_sequence = false;
+        }
+    }
+
+    /**
+     * finds all callbacks that match based on the keycode, modifiers,
+     * and action
+     *
+     * @param {string} character
+     * @param {Array} modifiers
+     * @param {string} action
+     * @param {boolean=} remove - should we remove any matches
+     * @param {string=} combination
+     * @returns {Array}
+     */
+    function _getMatches(character, modifiers, action, remove, combination) {
+        var i,
+            callback,
+            matches = [];
+
+        // if there are no events related to this keycode
+        if (!_callbacks[character]) {
+            return [];
+        }
+
+        // if a modifier key is coming up on its own we should allow it
+        if (action == 'keyup' && _isModifier(character)) {
+            modifiers = [character];
+        }
+
+        // loop through all callbacks for the key that was pressed
+        // and see if any of them match
+        for (i = 0; i < _callbacks[character].length; ++i) {
+            callback = _callbacks[character][i];
+
+            // if this is a sequence but it is not at the right level
+            // then move onto the next match
+            if (callback.seq && _sequence_levels[callback.seq] != callback.level) {
+                continue;
+            }
+
+            // if the action we are looking for doesn't match the action we got
+            // then we should keep going
+            if (action != callback.action) {
+                continue;
+            }
+
+            // if this is a keypress event that means that we need to only
+            // look at the character, otherwise check the modifiers as
+            // well
+            if (action == 'keypress' || _modifiersMatch(modifiers, callback.modifiers)) {
+
+                // remove is used so if you change your mind and call bind a
+                // second time with a new function the first one is overwritten
+                if (remove && callback.combo == combination) {
+                    _callbacks[character].splice(i, 1);
+                }
+
+                matches.push(callback);
+            }
+        }
+
+        return matches;
+    }
+
+    /**
+     * takes a key event and figures out what the modifiers are
+     *
+     * @param {Event} e
+     * @returns {Array}
+     */
+    function _eventModifiers(e) {
+        var modifiers = [];
+
+        if (e.shiftKey) {
+            modifiers.push('shift');
+        }
+
+        if (e.altKey) {
+            modifiers.push('alt');
+        }
+
+        if (e.ctrlKey) {
+            modifiers.push('ctrl');
+        }
+
+        if (e.metaKey) {
+            modifiers.push('meta');
+        }
+
+        return modifiers;
+    }
+
+    /**
+     * actually calls the callback function
+     *
+     * if your callback function returns false this will use the jquery
+     * convention - prevent default and stop propogation on the event
+     *
+     * @param {Function} callback
+     * @param {Event} e
+     * @returns void
+     */
+    function _fireCallback(callback, e) {
+        if (callback(e) === false) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+
+            e.returnValue = false;
+            e.cancelBubble = true;
+        }
+    }
+
+    /**
+     * handles a character key event
+     *
+     * @param {string} character
+     * @param {Event} e
+     * @returns void
+     */
+    function _handleCharacter(character, e) {
+
+        // if this event should not happen stop here
+        if (_stop(e)) {
+            return;
+        }
+
+        var callbacks = _getMatches(character, _eventModifiers(e), e.type),
+            i,
+            do_not_reset = {},
+            processed_sequence_callback = false;
+
+        // loop through matching callbacks for this key event
+        for (i = 0; i < callbacks.length; ++i) {
+
+            // fire for all sequence callbacks
+            // this is because if for example you have multiple sequences
+            // bound such as "g i" and "g t" they both need to fire the
+            // callback for matching g cause otherwise you can only ever
+            // match the first one
+            if (callbacks[i].seq) {
+                processed_sequence_callback = true;
+
+                // keep a list of which sequences were matches for later
+                do_not_reset[callbacks[i].seq] = 1;
+                _fireCallback(callbacks[i].callback, e);
+                continue;
+            }
+
+            // if there were no sequence matches but we are still here
+            // that means this is a regular match so we should fire that
+            if (!processed_sequence_callback && !_inside_sequence) {
+                _fireCallback(callbacks[i].callback, e);
+            }
+        }
+
+        // if you are inside of a sequence and the key you are pressing
+        // is not a modifier key then we should reset all sequences
+        // that were not matched by this key event
+        if (e.type == _inside_sequence && !_isModifier(character)) {
+            _resetSequences(do_not_reset);
+        }
+    }
+
+    /**
+     * handles a keydown event
+     *
+     * @param {Event} e
+     * @returns void
+     */
+    function _handleKey(e) {
+
+        // normalize e.which for key events
+        // @see http://stackoverflow.com/questions/4285627/javascript-keycode-vs-charcode-utter-confusion
+        e.which = typeof e.which == "number" ? e.which : e.keyCode;
+
+        var character = _characterFromEvent(e);
+
+        // no character found then stop
+        if (!character) {
+            return;
+        }
+
+        if (e.type == 'keyup' && _ignore_next_keyup == character) {
+            _ignore_next_keyup = false;
+            return;
+        }
+
+        _handleCharacter(character, e);
+    }
+
+    /**
+     * determines if the keycode specified is a modifier key or not
+     *
+     * @param {string} key
+     * @returns {boolean}
+     */
+    function _isModifier(key) {
+        return key == 'shift' || key == 'ctrl' || key == 'alt' || key == 'meta';
+    }
+
+    /**
+     * called to set a 1 second timeout on the specified sequence
+     *
+     * this is so after each key press in the sequence you have 1 second
+     * to press the next key before you have to start over
+     *
+     * @returns void
+     */
+    function _resetSequenceTimer() {
+        clearTimeout(_reset_timer);
+        _reset_timer = setTimeout(_resetSequences, 1000);
+    }
+
+    /**
+     * reverses the map lookup so that we can look for specific keys
+     * to see what can and can't use keypress
+     *
+     * @return {Object}
+     */
+    function _getReverseMap() {
+        if (!_REVERSE_MAP) {
+            _REVERSE_MAP = {};
+            for (var key in _MAP) {
+
+                // pull out the numeric keypad from here cause keypress should
+                // be able to detect the keys from the character
+                if (key > 95 && key < 112) {
+                    continue;
+                }
+
+                if (_MAP.hasOwnProperty(key)) {
+                    _REVERSE_MAP[_MAP[key]] = key;
+                }
+            }
+        }
+        return _REVERSE_MAP;
+    }
+
+    /**
+     * picks the best action based on the key combination
+     *
+     * @param {string} key - character for key
+     * @param {Array} modifiers
+     * @param {string=} action passed in
+     */
+    function _pickBestAction(key, modifiers, action) {
+
+        // if no action was picked in we should try to pick the one
+        // that we think would work best for this key
+        if (!action) {
+            action = _getReverseMap()[key] ? 'keydown' : 'keypress';
+        }
+
+        // modifier keys don't work as expected with keypress,
+        // switch to keydown
+        if (action == 'keypress' && modifiers.length) {
+            action = 'keydown';
+        }
+
+        return action;
+    }
+
+    /**
+     * binds a key sequence to an event
+     *
+     * @param {string} combo - combo specified in bind call
+     * @param {Array} keys
+     * @param {Function} callback
+     * @param {string=} action
+     * @returns void
+     */
+    function _bindSequence(combo, keys, callback, action) {
+
+        // start off by adding a sequence level record for this combination
+        // and setting the level to 0
+        _sequence_levels[combo] = 0;
+
+        // if there is no action pick the best one for the first key
+        // in the sequence
+        if (!action) {
+            action = _pickBestAction(keys[0], []);
+        }
+
+        /**
+         * callback to increase the sequence level for this sequence and reset
+         * all other sequences that were active
+         *
+         * @param {Event} e
+         * @returns void
+         */
+        var _increaseSequence = function(e) {
+                _inside_sequence = action;
+                ++_sequence_levels[combo];
+                _resetSequenceTimer();
+            },
+
+            /**
+             * wraps the specified callback inside of another function in order
+             * to reset all sequence counters as soon as this sequence is done
+             *
+             * @param {Event} e
+             * @returns void
+             */
+            _callbackAndReset = function(e) {
+                _fireCallback(callback, e);
+
+                // we should ignore the next key up if the action is key down
+                // or keypress.  this is so if you finish a sequence and
+                // release the key the final key will not trigger a keyup
+                if (action !== 'keyup') {
+                    _ignore_next_keyup = _characterFromEvent(e);
+                }
+
+                // weird race condition if a sequence ends with the key
+                // another sequence begins with
+                setTimeout(_resetSequences, 10);
+            },
+            i;
+
+        // loop through keys one at a time and bind the appropriate callback
+        // function.  for any key leading up to the final one it should
+        // increase the sequence. after the final, it should reset all sequences
+        for (i = 0; i < keys.length; ++i) {
+            _bindSingle(keys[i], i < keys.length - 1 ? _increaseSequence : _callbackAndReset, action, combo, i);
+        }
+    }
+
+    /**
+     * binds a single keyboard combination
+     *
+     * @param {string} combination
+     * @param {Function} callback
+     * @param {string=} action
+     * @param {string=} sequence_name - name of sequence if part of sequence
+     * @param {number=} level - what part of the sequence the command is
+     * @returns void
+     */
+    function _bindSingle(combination, callback, action, sequence_name, level) {
+
+        // make sure multiple spaces in a row become a single space
+        combination = combination.replace(/\s+/g, ' ');
+
+        var sequence = combination.split(' '),
+            i,
+            key,
+            keys,
+            modifiers = [];
+
+        // if this pattern is a sequence of keys then run through this method
+        // to reprocess each pattern one key at a time
+        if (sequence.length > 1) {
+            return _bindSequence(combination, sequence, callback, action);
+        }
+
+        // take the keys from this pattern and figure out what the actual
+        // pattern is all about
+        keys = combination === '+' ? ['+'] : combination.split('+');
+
+        for (i = 0; i < keys.length; ++i) {
+            key = keys[i];
+
+            // normalize key names
+            if (_SPECIAL_ALIASES[key]) {
+                key = _SPECIAL_ALIASES[key];
+            }
+
+            // if this is not a keypress event then we should
+            // be smart about using shift keys
+            // this will only work for US keyboards however
+            if (action && action != 'keypress' && _SHIFT_MAP[key]) {
+                key = _SHIFT_MAP[key];
+                modifiers.push('shift');
+            }
+
+            // if this key is a modifier then add it to the list of modifiers
+            if (_isModifier(key)) {
+                modifiers.push(key);
+            }
+        }
+
+        // depending on what the key combination is
+        // we will try to pick the best event for it
+        action = _pickBestAction(key, modifiers, action);
+
+        // make sure to initialize array if this is the first time
+        // a callback is added for this key
+        if (!_callbacks[key]) {
+            _callbacks[key] = [];
+        }
+
+        // remove an existing match if there is one
+        _getMatches(key, modifiers, action, !sequence_name, combination);
+
+        // add this call back to the array
+        // if it is a sequence put it at the beginning
+        // if not put it at the end
+        //
+        // this is important because the way these are processed expects
+        // the sequence ones to come first
+        _callbacks[key][sequence_name ? 'unshift' : 'push']({
+            callback: callback,
+            modifiers: modifiers,
+            action: action,
+            seq: sequence_name,
+            level: level,
+            combo: combination
+        });
+    }
+
+    /**
+     * binds multiple combinations to the same callback
+     *
+     * @param {Array} combinations
+     * @param {Function} callback
+     * @param {string|undefined} action
+     * @returns void
+     */
+    function _bindMultiple(combinations, callback, action) {
+        for (var i = 0; i < combinations.length; ++i) {
+            _bindSingle(combinations[i], callback, action);
+        }
+    }
+
+    // start!
+    _addEvent(document, 'keypress', _handleKey);
+    _addEvent(document, 'keydown', _handleKey);
+    _addEvent(document, 'keyup', _handleKey);
+
+    var mousetrap = {
+
+        /**
+         * binds an event to mousetrap
+         *
+         * can be a single key, a combination of keys separated with +,
+         * a comma separated list of keys, an array of keys, or
+         * a sequence of keys separated by spaces
+         *
+         * be sure to list the modifier keys first to make sure that the
+         * correct key ends up getting bound (the last key in the pattern)
+         *
+         * @param {string|Array} keys
+         * @param {Function} callback
+         * @param {string=} action - 'keypress', 'keydown', or 'keyup'
+         * @returns void
+         */
+        bind: function(keys, callback, action) {
+            _bindMultiple(keys instanceof Array ? keys : [keys], callback, action);
+            _direct_map[keys + ':' + action] = callback;
+            return this;
+        },
+
+        /**
+         * unbinds an event to mousetrap
+         *
+         * the unbinding sets the callback function of the specified key combo
+         * to an empty function and deletes the corresponding key in the
+         * _direct_map dict.
+         *
+         * the keycombo+action has to be exactly the same as
+         * it was defined in the bind method
+         *
+         * TODO: actually remove this from the _callbacks dictionary instead
+         * of binding an empty function
+         *
+         * @param {string|Array} keys
+         * @param {string} action
+         * @returns void
+         */
+        unbind: function(keys, action) {
+            if (_direct_map[keys + ':' + action]) {
+                delete _direct_map[keys + ':' + action];
+                this.bind(keys, function() {}, action);
+            }
+            return this;
+        },
+
+        /**
+         * triggers an event that has already been bound
+         *
+         * @param {string} keys
+         * @param {string=} action
+         * @returns void
+         */
+        trigger: function(keys, action) {
+            _direct_map[keys + ':' + action]();
+            return this;
+        },
+
+        /**
+         * resets the library back to its initial state.  this is useful
+         * if you want to clear out the current keyboard shortcuts and bind
+         * new ones - for example if you switch to another page
+         *
+         * @returns void
+         */
+        reset: function() {
+            _callbacks = {};
+            _direct_map = {};
+            return this;
+        }
+    };
+
+  module.exports = mousetrap;
+
+
 
 /***/ },
 /* 53 */
