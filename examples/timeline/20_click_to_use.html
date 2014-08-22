@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-  <title>Timeline | Activatable</title>
+  <title>Timeline | Click to use</title>
 
   <style>
     body, html {
@@ -22,9 +22,9 @@
 </head>
 <body>
 <div id="main">
-  <h1>Activatable timeline</h1>
+  <h1>Timeline click to use</h1>
   <p>
-    The following timelines are <code>activatable</code>: before you can scroll and drag in the timeline, you first have to click in the timeline to activate.
+    This example demonstrates how to use the <code>clickToUse</code> option: before you can scroll and drag in the timeline, you first have to click in the timeline to activate.
   </p>
 </div>
 
@@ -55,7 +55,7 @@
 
     var options = {
       editable: true,
-      activatable: true
+      clickToUse: true
     };
 
     return new vis.Timeline(container, items, options);

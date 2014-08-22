@@ -10,14 +10,14 @@ http://visjs.org
 - Fixed canceling moving an item to another group did not move the item
   back to the original group.
 - Added localization support.
-- Implemented option `activatable`.
+- Implemented option `clickToUse`.
 
 ### Network
 
 - A fix in reading group properties for a node.
 - Fixed physics solving stopping when a support node was not moving.
 - Added localization support.
-- Implemented option `activatable`.
+- Implemented option `clickToUse`.
 - Fixed page scroll event not being blocked when moving around in Network
   using arrow keys.
 
@@ -27,7 +27,7 @@ http://visjs.org
 - Added two examples showing the two additions above.
 - Added 'customRange' for the Y axis and an example showing how it works.
 - Added localization support.
-- Implemented option `activatable`.
+- Implemented option `clickToUse`.
 
 ## 2014-08-14, version 3.2.0
 
