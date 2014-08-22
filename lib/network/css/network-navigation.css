@@ -1,7 +1,6 @@
 div.network-navigation {
     width:34px;
     height:34px;
-    z-index:10;
     -moz-border-radius: 17px;
     border-radius: 17px;
     position:absolute;
