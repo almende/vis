@@ -12,7 +12,9 @@
 .vis.timeline .item.selected {
   border-color: #FFC200;
   background-color: #FFF785;
-  z-index: 999;
+
+  /* z-index must be higher than the z-index of custom time bar and current time bar */
+  z-index: 2;
 }
 
 .vis.timeline .editable .item.selected {
@@ -88,7 +90,6 @@
   left: -4px;
 
   cursor: w-resize;
-  z-index: 10000;
 }
 
 .vis.timeline .item.range .drag-right {
@@ -99,5 +100,4 @@
   right: -4px;
 
   cursor: e-resize;
-  z-index: 10001; /* a little higher z-index than .drag-left */
 }
