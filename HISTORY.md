@@ -17,6 +17,7 @@ http://visjs.org
 - A fix in reading group properties for a node.
 - Fixed physics solving stopping when a support node was not moving.
 - Added localization support.
+- Implemented option `activatable`.
 
 ### Graph2D
 
