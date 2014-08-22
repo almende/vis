@@ -6243,20 +6243,18 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Set selected items by their id. Replaces the current selection
    * Unknown id's are silently ignored.
-   * @param {Array} [ids] An array with zero or more id's of the items to be
-   *                      selected. If ids is an empty array, all items will be
-   *                      unselected.
-   * @param {Object} [options]  Available options:
-   *                            `focus: boolean`  If true, focus will be set
-   *                            to the selected item(s)
+   * @param {string[] | string} [ids]  An array with zero or more id's of the items to be
+   *                                selected. If ids is an empty array, all items will be
+   *                                unselected.
+   * @param {Object} [options]      Available options:
+   *                                `focus: boolean`  If true, focus will be set
+   *                                to the selected item(s)
    */
   Timeline.prototype.setSelection = function(ids, options) {
     this.itemSet && this.itemSet.setSelection(ids);
 
-    if (ids && options) {
-      if (options.focus) {
-        this.focus(ids);
-      }
+    if (options && options.focus) {
+      this.focus(ids);
     }
   };
 
@@ -6274,27 +6272,24 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {String | String[]} id     An item id or array with item ids
    */
   Timeline.prototype.focus = function(id) {
-    if (!this.itemsData) return;
+    if (!this.itemsData || id == undefined) return;
+
+    var ids = Array.isArray(id) ? id : [id];
 
     // get the specified item(s)
-    var itemsData = this.itemsData.getDataSet().get(id, {
+    var itemsData = this.itemsData.getDataSet().get(ids, {
       type: {
         start: 'Date',
         end: 'Date'
       }
     });
 
-    // turn into an array in case of a single item
-    if (!Array.isArray(itemsData)) {
-      itemsData = [itemsData];
-    }
-
     // calculate minimum start and maximum end of specified items
     var start = null;
     var end = null;
     itemsData.forEach(function (itemData) {
       var s = itemData.start.valueOf();
-      var e = 'end' in itemData ? itemData.end.valueOf() :itemData.start.valueOf();
+      var e = 'end' in itemData ? itemData.end.valueOf() : itemData.start.valueOf();
 
       if (start === null || s < start) {
         start = s;
@@ -6553,7 +6548,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   Graph2d.prototype.isGroupVisible = function(groupId) {
     if (this.linegraph.groups[groupId] !== undefined) {
-      return this.linegraph.groups[groupId].visible;
+      return (this.linegraph.groups[groupId].visible && (this.options.groups.visibility[groupId] === undefined || this.options.groups.visibility[groupId] == true));
     }
     else {
       return false;
@@ -6827,7 +6822,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(44);
+  var hammerUtil = __webpack_require__(43);
   var moment = __webpack_require__(40);
   var Component = __webpack_require__(18);
 
@@ -8019,7 +8014,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(18);
   var moment = __webpack_require__(40);
-  var locales = __webpack_require__(43);
+  var locales = __webpack_require__(44);
 
   /**
    * A current time bar
@@ -8167,7 +8162,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(18);
   var moment = __webpack_require__(40);
-  var locales = __webpack_require__(43);
+  var locales = __webpack_require__(44);
 
   /**
    * A custom time bar
@@ -9819,34 +9814,31 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Set selected items by their id. Replaces the current selection
    * Unknown id's are silently ignored.
-   * @param {Array} [ids] An array with zero or more id's of the items to be
-   *                      selected. If ids is an empty array, all items will be
-   *                      unselected.
+   * @param {string[] | string} [ids] An array with zero or more id's of the items to be
+   *                                  selected, or a single item id. If ids is undefined
+   *                                  or an empty array, all items will be unselected.
    */
   ItemSet.prototype.setSelection = function(ids) {
     var i, ii, id, item;
 
-    if (ids) {
-      if (!Array.isArray(ids)) {
-        throw new TypeError('Array expected');
-      }
+    if (ids == undefined) ids = [];
+    if (!Array.isArray(ids)) ids = [ids];
 
-      // unselect currently selected items
-      for (i = 0, ii = this.selection.length; i < ii; i++) {
-        id = this.selection[i];
-        item = this.items[id];
-        if (item) item.unselect();
-      }
+    // unselect currently selected items
+    for (i = 0, ii = this.selection.length; i < ii; i++) {
+      id = this.selection[i];
+      item = this.items[id];
+      if (item) item.unselect();
+    }
 
-      // select items
-      this.selection = [];
-      for (i = 0, ii = ids.length; i < ii; i++) {
-        id = ids[i];
-        item = this.items[id];
-        if (item) {
-          this.selection.push(id);
-          item.select();
-        }
+    // select items
+    this.selection = [];
+    for (i = 0, ii = ids.length; i < ii; i++) {
+      id = ids[i];
+      item = this.items[id];
+      if (item) {
+        this.selection.push(id);
+        item.select();
       }
     }
   };
@@ -11116,6 +11108,9 @@ return /******/ (function(modules) { // webpackBootstrap
           visible: true,
           position: 'top-right' // top/bottom - left,right
         }
+      },
+      groups: {
+        visibility: {}
       }
     };
 
@@ -11226,7 +11221,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   LineGraph.prototype.setOptions = function(options) {
     if (options) {
-      var fields = ['sampling','defaultGroup','graphHeight','yAxisOrientation','style','barChart','dataAxis','sort'];
+      var fields = ['sampling','defaultGroup','graphHeight','yAxisOrientation','style','barChart','dataAxis','sort','groups'];
       util.selectiveDeepExtend(fields, this.options, options);
       util.mergeOptions(this.options, options,'catmullRom');
       util.mergeOptions(this.options, options,'drawPoints');
@@ -11599,7 +11594,7 @@ return /******/ (function(modules) { // webpackBootstrap
       for (var groupId in this.groups) {
         if (this.groups.hasOwnProperty(groupId)) {
           group = this.groups[groupId];
-          if (group.visible == true) {
+          if (group.visible == true && (this.options.groups.visibility[groupId] === undefined || this.options.groups.visibility[groupId] == true)) {
             groupIds.push(groupId);
           }
         }
@@ -11948,7 +11943,7 @@ return /******/ (function(modules) { // webpackBootstrap
     for (i = 0; i < groupIds.length; i++) {
       group = this.groups[groupIds[i]];
       if (group.options.style == 'bar') {
-        if (group.visible == true) {
+        if (group.visible == true && (this.options.groups.visibility[groupIds[i]] === undefined || this.options.groups.visibility[groupIds[i]] == true)) {
           for (j = 0; j < processedGroupData[groupIds[i]].length; j++) {
             combinedData.push({
               x: processedGroupData[groupIds[i]][j].x,
@@ -13663,7 +13658,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var Hammer = __webpack_require__(41);
   var mousetrap = __webpack_require__(50);
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(44);
+  var hammerUtil = __webpack_require__(43);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var dotparser = __webpack_require__(38);
@@ -20003,27 +19998,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
-  // English
-  exports['en'] = {
-    current: 'current',
-    time: 'time'
-  };
-  exports['en_EN'] = exports['en'];
-  exports['en_US'] = exports['en'];
-
-  // Dutch
-  exports['nl'] = {
-    custom: 'aangepaste',
-    time: 'tijd'
-  };
-  exports['nl_NL'] = exports['nl'];
-  exports['nl_BE'] = exports['nl'];
-
-
-/***/ },
-/* 44 */
-/***/ function(module, exports, __webpack_require__) {
-
   var Hammer = __webpack_require__(41);
 
   /**
@@ -20052,6 +20026,27 @@ return /******/ (function(modules) { // webpackBootstrap
 
     return gesture;
   };
+
+
+/***/ },
+/* 44 */
+/***/ function(module, exports, __webpack_require__) {
+
+  // English
+  exports['en'] = {
+    current: 'current',
+    time: 'time'
+  };
+  exports['en_EN'] = exports['en'];
+  exports['en_US'] = exports['en'];
+
+  // Dutch
+  exports['nl'] = {
+    custom: 'aangepaste',
+    time: 'tijd'
+  };
+  exports['nl_NL'] = exports['nl'];
+  exports['nl_BE'] = exports['nl'];
 
 
 /***/ },

@@ -27,11 +27,13 @@ http://visjs.org
 
 ### Graph2D
 
-- Added 'allowOverlap' option for barCharts.
-- Added two examples showing the two additions above.
+- Added 'handleOverlap' to support overlap, sideBySide and stack.
+- Added two examples showing the 'handleOverlap' functionality.
 - Added 'customRange' for the Y axis and an example showing how it works.
 - Added localization support.
 - Implemented option `clickToUse`.
+- Fixed bugs.
+- Added groups.visibility functionality and an example showing how it works.
 
 ## 2014-08-14, version 3.2.0
 
