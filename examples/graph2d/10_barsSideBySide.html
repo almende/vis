@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>Graph2d | Bar Graph Example</title>
+    <title>Graph2d | Bar Graphs Side by Side Example</title>
 
     <style type="text/css">
         body, html {
@@ -15,12 +15,16 @@
 <body>
 <h2>Graph2d | Bar Graphs Side by Side Example</h2>
 <div style="width:700px; font-size:14px; text-align: justify;">
-    When using Bar graphs, it can often be the case that there are multiple bars on the same timepoint. This may not always be the desired result. If you're not using groups, you can use the
-    barChart.allowOverlap option to automatically plot the bars next to eachother if they occupy the same timeslot. By default, this option is on, making the bars overlap. If the option is disabled, the overlapping
-    bars are plotted side by side. Use the toggle below to switch between settings.
+    When using Bar graphs, it can often be the case that there are multiple bars on the same timepoint. This may not always be the desired result. You can use the
+    barChart.handleOverlap option to automatically plot the bars next to eachother or stacked on top of eachother if they occupy the same timeslot. By default, this option is on, the bars overlap.
+    Use the dropdown box to experiment with the options. The stacked only really makes sense when using groups as is shown in the <a href="./11_barsSideBySideGroups.html">next example</a>.
 
     <br /><br />
-    Allow overlap: <input type="checkbox"  id="allowOverlap" checked="checked">
+    Handle overlap: <select id="dropdownID">
+    <option value="overlap">overlap</option>
+    <option value="sideBySide">sideBySide</option>
+    <option value="stack">stack</option>
+</select><br/>
 </div>
 <br />
 
@@ -29,8 +33,6 @@
 <script type="text/javascript">
 
     var container = document.getElementById('visualization');
-    var checkbox = document.getElementById('allowOverlap');
-
     var items = [
         {x: '2014-06-11', y: 10},
         {x: '2014-06-12', y: 25},
@@ -58,10 +60,12 @@
     };
     var graph2d = new vis.Graph2d(container, items, options);
 
-    checkbox.onchange = toggleOption;
 
-    function toggleOption() {
-        var options = {barChart:{allowOverlap:checkbox.checked}};
+    var dropdown = document.getElementById("dropdownID");
+    dropdown.onchange = update;
+
+    function update() {
+        var options = {barChart:{handleOverlap:dropdown.value}};
         graph2d.setOptions(options);
     }
 

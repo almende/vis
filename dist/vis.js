@@ -6079,7 +6079,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(15);
-  var Core = __webpack_require__(42);
+  var Core = __webpack_require__(43);
   var TimeAxis = __webpack_require__(27);
   var CurrentTime = __webpack_require__(19);
   var CustomTime = __webpack_require__(20);
@@ -6367,7 +6367,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(15);
-  var Core = __webpack_require__(42);
+  var Core = __webpack_require__(43);
   var TimeAxis = __webpack_require__(27);
   var CurrentTime = __webpack_require__(19);
   var CustomTime = __webpack_require__(20);
@@ -6879,7 +6879,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(43);
+  var hammerUtil = __webpack_require__(44);
   var moment = __webpack_require__(40);
   var Component = __webpack_require__(18);
 
@@ -8071,7 +8071,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(18);
   var moment = __webpack_require__(40);
-  var locales = __webpack_require__(44);
+  var locales = __webpack_require__(42);
 
   /**
    * A current time bar
@@ -8219,7 +8219,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(18);
   var moment = __webpack_require__(40);
-  var locales = __webpack_require__(44);
+  var locales = __webpack_require__(42);
 
   /**
    * A custom time bar
@@ -8933,7 +8933,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   function GraphGroup (group, groupId, options, groupsUsingDefaultStyles) {
     this.id = groupId;
-    var fields = ['sampling','style','sort','yAxisOrientation','barChart','drawPoints','shaded','catmullRom','slots']
+    var fields = ['sampling','style','sort','yAxisOrientation','barChart','drawPoints','shaded','catmullRom']
     this.options = util.selectiveBridgeObject(fields,options);
     this.usingDefaultStyle = group.className === undefined;
     this.groupsUsingDefaultStyles = groupsUsingDefaultStyles;
@@ -8964,7 +8964,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   GraphGroup.prototype.setOptions = function(options) {
     if (options !== undefined) {
-      var fields = ['sampling','style','sort','yAxisOrientation','barChart','slots'];
+      var fields = ['sampling','style','sort','yAxisOrientation','barChart'];
       util.selectiveDeepExtend(fields, this.options, options);
 
       util.mergeOptions(this.options, options,'catmullRom');
@@ -11133,7 +11133,7 @@ return /******/ (function(modules) { // webpackBootstrap
       style: 'line', // line, bar
       barChart: {
         width: 50,
-        allowOverlap: true,
+        handleOverlap: 'overlap',
         align: 'center' // left, center, right
       },
       catmullRom: {
@@ -11649,79 +11649,36 @@ return /******/ (function(modules) { // webpackBootstrap
   LineGraph.prototype._updateGraph = function () {
     // reset the svg elements
     DOMutil.prepareElements(this.svgElements);
-
     if (this.width != 0 && this.itemsData != null) {
-      var group, groupData, preprocessedGroup, i;
-      var preprocessedGroupData = [];
-      var processedGroupData = [];
-      var groupRanges = [];
+      var group, i;
+      var preprocessedGroupData = {};
+      var processedGroupData = {};
+      var groupRanges = {};
       var changeCalled = false;
 
       // getting group Ids
       var groupIds = [];
       for (var groupId in this.groups) {
         if (this.groups.hasOwnProperty(groupId)) {
-          groupIds.push(groupId);
+          group = this.groups[groupId];
+          if (group.visible == true) {
+            groupIds.push(groupId);
+          }
         }
       }
-
-      // this is the range of the SVG canvas
-      var minDate = this.body.util.toGlobalTime(- this.body.domProps.root.width);
-      var maxDate = this.body.util.toGlobalTime(2 * this.body.domProps.root.width);
-
-      // first select and preprocess the data from the datasets.
-      // the groups have their preselection of data, we now loop over this data to see
-      // what data we need to draw. Sorted data is much faster.
-      // more optimization is possible by doing the sampling before and using the binary search
-      // to find the end date to determine the increment.
       if (groupIds.length > 0) {
+        // this is the range of the SVG canvas
+        var minDate = this.body.util.toGlobalTime(- this.body.domProps.root.width);
+        var maxDate = this.body.util.toGlobalTime(2 * this.body.domProps.root.width);
+        var groupsData = {};
+        // fill groups data
+        this._getRelevantData(groupIds, groupsData, minDate, maxDate);
+        // we transform the X coordinates to detect collisions
         for (i = 0; i < groupIds.length; i++) {
-          group = this.groups[groupIds[i]];
-          if (group.visible == true) {
-            groupData = [];
-            // optimization for sorted data
-            if (group.options.sort == true) {
-              var guess = Math.max(0,util.binarySearchGeneric(group.itemsData, minDate, 'x', 'before'));
-
-              for (var j = guess; j < group.itemsData.length; j++) {
-                var item = group.itemsData[j];
-                if (item !== undefined) {
-                  if (item.x > maxDate) {
-                   groupData.push(item);
-                   break;
-                  }
-                  else {
-                    groupData.push(item);
-                  }
-                }
-              }
-            }
-            else {
-              for (var j = 0; j < group.itemsData.length; j++) {
-                var item = group.itemsData[j];
-                if (item !== undefined) {
-                  if (item.x > minDate && item.x < maxDate) {
-                    groupData.push(item);
-                  }
-                }
-              }
-            }
-            // preprocess, split into ranges and data
-            if (groupData.length > 0) {
-              preprocessedGroup = this._preprocessData(groupData, group);
-              groupRanges.push({min: preprocessedGroup.min, max: preprocessedGroup.max});
-              preprocessedGroupData.push(preprocessedGroup.data);
-            }
-            else {
-              groupRanges.push({});
-              preprocessedGroupData.push([]);
-            }
-          }
-          else {
-            groupRanges.push({});
-            preprocessedGroupData.push([]);
-          }
+          preprocessedGroupData[groupIds[i]] = this._convertXcoordinates(groupsData[groupIds[i]]);
         }
+        // now all needed data has been collected we start the processing.
+        this._getYRanges(groupIds, preprocessedGroupData, groupRanges);
 
         // update the Y axis first, we use this data to draw at the correct Y points
         // changeCalled is required to clean the SVG on a change emit.
@@ -11732,30 +11689,195 @@ return /******/ (function(modules) { // webpackBootstrap
           return;
         }
 
-        // with the yAxis scaled correctly, use this to get the Y values of the points.
+        // With the yAxis scaled correctly, use this to get the Y values of the points.
         for (i = 0; i < groupIds.length; i++) {
           group = this.groups[groupIds[i]];
-          processedGroupData.push(this._convertYvalues(preprocessedGroupData[i],group))
+          processedGroupData[groupIds[i]] = this._convertYcoordinates(groupsData[groupIds[i]], group);
         }
+
 
         // draw the groups
         for (i = 0; i < groupIds.length; i++) {
           group = this.groups[groupIds[i]];
-          if (group.visible == true) {
-            if (group.options.style == 'line') {
-              this._drawLineGraph(processedGroupData[i], group);
-            }
-            else {
-              this._drawBarGraph (processedGroupData[i], group);
-            }
+          if (group.options.style == 'line') {
+            this._drawLineGraph(processedGroupData[groupIds[i]], group);
           }
         }
+        this._drawBarGraphs(groupIds, processedGroupData);
       }
     }
 
     // cleanup unused svg elements
     DOMutil.cleanupElements(this.svgElements);
   };
+
+
+  LineGraph.prototype._getRelevantData = function (groupIds, groupsData, minDate, maxDate) {
+    // first select and preprocess the data from the datasets.
+    // the groups have their preselection of data, we now loop over this data to see
+    // what data we need to draw. Sorted data is much faster.
+    // more optimization is possible by doing the sampling before and using the binary search
+    // to find the end date to determine the increment.
+    var group;
+    if (groupIds.length > 0) {
+      for (var i = 0; i < groupIds.length; i++) {
+        group = this.groups[groupIds[i]];
+        groupsData[groupIds[i]] = [];
+        var dataContainer = groupsData[groupIds[i]];
+        // optimization for sorted data
+        if (group.options.sort == true) {
+          var guess = Math.max(0, util.binarySearchGeneric(group.itemsData, minDate, 'x', 'before'));
+          for (var j = guess; j < group.itemsData.length; j++) {
+            var item = group.itemsData[j];
+            if (item !== undefined) {
+              if (item.x > maxDate) {
+                dataContainer.push(item);
+                break;
+              }
+              else {
+                dataContainer.push(item);
+              }
+            }
+          }
+        }
+        else {
+          for (var j = 0; j < group.itemsData.length; j++) {
+            var item = group.itemsData[j];
+            if (item !== undefined) {
+              if (item.x > minDate && item.x < maxDate) {
+                dataContainer.push(item);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    this._applySampling(groupIds, groupsData);
+  };
+
+  LineGraph.prototype._applySampling = function (groupIds, groupsData) {
+    var group;
+    if (groupIds.length > 0) {
+      for (var i = 0; i < groupIds.length; i++) {
+        group = this.groups[groupIds[i]];
+        if (group.options.sampling == true) {
+          var dataContainer = groupsData[groupIds[i]];
+          var increment = 1;
+          var amountOfPoints = dataContainer.length;
+
+          // the global screen is used because changing the width of the yAxis may affect the increment, resulting in an endless loop
+          // of width changing of the yAxis.
+          var xDistance = this.body.util.toGlobalScreen(dataContainer[dataContainer.length - 1].x) - this.body.util.toGlobalScreen(dataContainer[0].x);
+          var pointsPerPixel = amountOfPoints / xDistance;
+          increment = Math.min(Math.ceil(0.2 * amountOfPoints), Math.max(1, Math.round(pointsPerPixel)));
+
+          var sampledData = [];
+          for (var j = 0; j < amountOfPoints; j += increment) {
+            sampledData.push(dataContainer[j]);
+
+          }
+          groupsData[groupIds[i]] = sampledData;
+        }
+      }
+    }
+  };
+
+  LineGraph.prototype._getYRanges = function (groupIds, groupsData, groupRanges) {
+    var groupData, group;
+    var barCombinedDataLeft = [];
+    var barCombinedDataRight = [];
+    var barCombinedData;
+    if (groupIds.length > 0) {
+      for (var i = 0; i < groupIds.length; i++) {
+        groupData = groupsData[groupIds[i]];
+        group = this.groups[groupIds[i]];
+        if (group.options.style == 'line' || group.options.barChart.handleOverlap != "stack") {
+          var yMin = groupData[0].y;
+          var yMax = groupData[0].y;
+          for (var j = 0; j < groupData.length; j++) {
+            yMin = yMin > groupData[j].y ? groupData[j].y : yMin;
+            yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
+          }
+          groupRanges[groupIds[i]] = {min: yMin, max: yMax, yAxisOrientation: group.options.yAxisOrientation};
+        }
+        else if (group.options.style == 'bar') {
+          if (group.options.yAxisOrientation == 'left') {
+            barCombinedData = barCombinedDataLeft;
+          }
+          else {
+            barCombinedData = barCombinedDataRight;
+          }
+
+          groupRanges[groupIds[i]] = {min: 0, max: 0, yAxisOrientation: group.options.yAxisOrientation, ignore: true};
+
+          // combine data
+          for (var j = 0; j < groupData.length; j++) {
+            barCombinedData.push({
+              x: groupData[j].x,
+              y: groupData[j].y,
+              groupId: groupIds[i]
+            });
+          }
+        }
+      }
+      if (barCombinedDataLeft.length > 0) {
+        // sort by time and by group
+        barCombinedDataLeft.sort(function (a, b) {
+          if (a.x == b.x) {
+            return a.groupId - b.groupId;
+          } else {
+            return a.x - b.x;
+          }
+        })
+        var intersections = {};
+        this._getDataIntersections(intersections, barCombinedDataLeft);
+        groupRanges["__barchartLeft"] = this._getStackedBarYRange(intersections, barCombinedDataLeft);
+        groupRanges["__barchartLeft"].yAxisOrientation = "left";
+        groupIds.push("__barchartLeft");
+      }
+      if (barCombinedDataRight.length > 0) {
+        // sort by time and by group
+        barCombinedDataRight.sort(function (a, b) {
+          if (a.x == b.x) {
+            return a.groupId - b.groupId;
+          } else {
+            return a.x - b.x;
+          }
+        })
+        var intersections = {};
+        this._getDataIntersections(intersections, barCombinedDataRight);
+        groupRanges["__barchartRight"] = this._getStackedBarYRange(intersections, barCombinedDataRight);
+        groupRanges["__barchartRight"].yAxisOrientation = "right";
+        groupIds.push("__barchartRight");
+      }
+    }
+  };
+
+  LineGraph.prototype._getStackedBarYRange = function (intersections, combinedData) {
+    var key;
+    var yMin = combinedData[0].y;
+    var yMax = combinedData[0].y;
+    for (var i = 0; i < combinedData.length; i++) {
+      key = combinedData[i].x;
+      if (intersections[key] === undefined) {
+        yMin = yMin > combinedData[i].y ? combinedData[i].y : yMin;
+        yMax = yMax < combinedData[i].y ? combinedData[i].y : yMax;
+      }
+      else {
+        intersections[key].accumulated += combinedData[i].y;
+      }
+    }
+    for (var xpos in intersections) {
+      if (intersections.hasOwnProperty(xpos)) {
+        yMin = yMin > intersections[xpos].accumulated ? intersections[xpos].accumulated : yMin;
+        yMax = yMax < intersections[xpos].accumulated ? intersections[xpos].accumulated : yMax;
+      }
+    }
+
+    return {min: yMin, max: yMax};
+  };
+
 
   /**
    * this sets the Y ranges for the Y axis. It also determines which of the axis should be shown or hidden.
@@ -11767,22 +11889,15 @@ return /******/ (function(modules) { // webpackBootstrap
     var yAxisLeftUsed = false;
     var yAxisRightUsed = false;
     var minLeft = 1e9, minRight = 1e9, maxLeft = -1e9, maxRight = -1e9, minVal, maxVal;
-    var orientation = 'left';
 
     // if groups are present
     if (groupIds.length > 0) {
       for (var i = 0; i < groupIds.length; i++) {
-        orientation = 'left';
-        var group = this.groups[groupIds[i]];
-        if (group.visible == true) {
-          if (group.options.yAxisOrientation == 'right') {
-            orientation = 'right';
-          }
+        if (groupRanges[groupIds[i]].ignore !== true) {
+          minVal = groupRanges[groupIds[i]].min;
+          maxVal = groupRanges[groupIds[i]].max;
 
-          minVal = groupRanges[i].min;
-          maxVal = groupRanges[i].max;
-
-          if (orientation == 'left') {
+          if (groupRanges[groupIds[i]].yAxisOrientation == 'left') {
             yAxisLeftUsed = true;
             minLeft = minLeft > minVal ? minVal : minLeft;
             maxLeft = maxLeft < maxVal ? maxVal : maxLeft;
@@ -11794,6 +11909,7 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         }
       }
+
       if (yAxisLeftUsed == true) {
         this.yAxisLeft.setRange(minLeft, maxLeft);
       }
@@ -11827,6 +11943,15 @@ return /******/ (function(modules) { // webpackBootstrap
     else {
       changeCalled = this.yAxisRight.redraw() || changeCalled;
     }
+
+    // clean the accumulated lists
+    if (groupIds.indexOf("__barchartLeft") != -1) {
+      groupIds.splice(groupIds.indexOf("__barchartLeft"),1);
+    }
+    if (groupIds.indexOf("__barchartRight") != -1) {
+      groupIds.splice(groupIds.indexOf("__barchartRight"),1);
+    }
+
     return changeCalled;
   };
 
@@ -11861,61 +11986,108 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param datapoints
    * @param group
    */
-  LineGraph.prototype._drawBarGraph = function (dataset, group) {
-    if (dataset != null) {
-      if (dataset.length > 0) {
-        var coreDistance;
-        var minWidth = 0.1 * group.options.barChart.width;
-        var offset = 0;
+  LineGraph.prototype._drawBarGraphs = function (groupIds, processedGroupData) {
+    var combinedData = [];
+    var intersections = {};
+    var coreDistance;
+    var key;
+    var group;
+    var i,j;
+    var barPoints = 0;
 
-        // check for intersections
-        var intersections = {};
-
-        for (var i = 0; i < dataset.length; i++) {
-          if (i+1 < dataset.length) {coreDistance = Math.abs(dataset[i+1].x - dataset[i].x);}
-          if (i > 0)                {coreDistance = Math.min(coreDistance,Math.abs(dataset[i-1].x - dataset[i].x));}
-          if (coreDistance == 0) {
-            if (intersections[dataset[i].x] === undefined) {
-              intersections[dataset[i].x] = {amount:0, resolved:0};
-            }
-            intersections[dataset[i].x].amount += 1;
-          }
-        }
-
-        // plot the bargraph
-        var key;
-        for (var i = 0; i < dataset.length; i++) {
-          key = dataset[i].x;
-          if (intersections[key] === undefined) {
-            if (i+1 < dataset.length) {coreDistance = Math.abs(dataset[i+1].x - key);}
-            if (i > 0)                {coreDistance = Math.min(coreDistance,Math.abs(dataset[i-1].x - key));}
-            var drawData = this._getSafeDrawData(coreDistance, group, minWidth);
-          }
-          else {
-            var nextKey = i + (intersections[key].amount - intersections[key].resolved);
-            var prevKey = i - (intersections[key].resolved + 1);
-            if (nextKey < dataset.length) {coreDistance = Math.abs(dataset[nextKey].x - key);}
-            if (prevKey > 0)              {coreDistance = Math.min(coreDistance,Math.abs(dataset[prevKey].x - key));}
-            var drawData = this._getSafeDrawData(coreDistance, group, minWidth);
-            intersections[key].resolved += 1;
-
-            if (group.options.barChart.allowOverlap == false) {
-              drawData.width = drawData.width / intersections[key].amount;
-              drawData.offset += (intersections[key].resolved) * drawData.width - (0.5*drawData.width * (intersections[key].amount+1));
-              if (group.options.barChart.align == 'left')       {offset -= 0.5*drawData.width;}
-              else if (group.options.barChart.align == 'right') {offset += 0.5*drawData.width;}
-            }
-          }
-          DOMutil.drawBar(dataset[i].x + drawData.offset, dataset[i].y, drawData.width, group.zeroPosition - dataset[i].y, group.className + ' bar', this.svgElements, this.svg);
-
-          // draw points
-          if (group.options.drawPoints.enabled == true) {
-            DOMutil.drawPoint(dataset[i].x + drawData.offset, dataset[i].y, group, this.svgElements, this.svg);
+    // combine all barchart data
+    for (i = 0; i < groupIds.length; i++) {
+      group = this.groups[groupIds[i]];
+      if (group.options.style == 'bar') {
+        if (group.visible == true) {
+          for (j = 0; j < processedGroupData[groupIds[i]].length; j++) {
+            combinedData.push({
+              x: processedGroupData[groupIds[i]][j].x,
+              y: processedGroupData[groupIds[i]][j].y,
+              groupId: groupIds[i]
+            });
+            barPoints += 1;
           }
         }
       }
     }
+
+    if (barPoints == 0) {return;}
+
+    // sort by time and by group
+    combinedData.sort(function (a, b) {
+      if (a.x == b.x) {
+        return a.groupId - b.groupId;
+      } else {
+        return a.x - b.x;
+      }
+    });
+
+    // get intersections
+    this._getDataIntersections(intersections, combinedData);
+
+    // plot barchart
+    for (i = 0; i < combinedData.length; i++) {
+      group = this.groups[combinedData[i].groupId];
+      var minWidth = 0.1 * group.options.barChart.width;
+
+      key = combinedData[i].x;
+      var heightOffset = 0;
+      if (intersections[key] === undefined) {
+        if (i+1 < combinedData.length) {coreDistance = Math.abs(combinedData[i+1].x - key);}
+        if (i > 0)                     {coreDistance = Math.min(coreDistance,Math.abs(combinedData[i-1].x - key));}
+        var drawData = this._getSafeDrawData(coreDistance, group, minWidth);
+      }
+      else {
+        var nextKey = i + (intersections[key].amount - intersections[key].resolved);
+        var prevKey = i - (intersections[key].resolved + 1);
+        if (nextKey < combinedData.length) {coreDistance = Math.abs(combinedData[nextKey].x - key);}
+        if (prevKey > 0)                   {coreDistance = Math.min(coreDistance,Math.abs(combinedData[prevKey].x - key));}
+        var drawData = this._getSafeDrawData(coreDistance, group, minWidth);
+        intersections[key].resolved += 1;
+
+        if (group.options.barChart.handleOverlap == 'stack') {
+          heightOffset = intersections[key].accumulated;
+          intersections[key].accumulated += group.zeroPosition - combinedData[i].y;
+        }
+        else if (group.options.barChart.handleOverlap == 'sideBySide') {
+          drawData.width = drawData.width / intersections[key].amount;
+          drawData.offset += (intersections[key].resolved) * drawData.width - (0.5*drawData.width * (intersections[key].amount+1));
+          if (group.options.barChart.align == 'left')       {offset -= 0.5*drawData.width;}
+          else if (group.options.barChart.align == 'right') {offset += 0.5*drawData.width;}
+        }
+      }
+      DOMutil.drawBar(combinedData[i].x + drawData.offset, combinedData[i].y - heightOffset, drawData.width, group.zeroPosition - combinedData[i].y, group.className + ' bar', this.svgElements, this.svg);
+      // draw points
+      if (group.options.drawPoints.enabled == true) {
+        DOMutil.drawPoint(combinedData[i].x + drawData.offset, combinedData[i].y - heightOffset, group, this.svgElements, this.svg);
+      }
+    }
   };
+
+
+  LineGraph.prototype._getDataIntersections = function (intersections, combinedData) {
+    // get intersections
+    var coreDistance;
+    for (var i = 0; i < combinedData.length; i++) {
+      if (i + 1 < combinedData.length) {
+        coreDistance = Math.abs(combinedData[i + 1].x - combinedData[i].x);
+      }
+      if (i > 0) {
+        coreDistance = Math.min(coreDistance, Math.abs(combinedData[i - 1].x - combinedData[i].x));
+      }
+      if (coreDistance == 0) {
+        if (intersections[combinedData[i].x] === undefined) {
+          intersections[combinedData[i].x] = {amount: 0, resolved: 0, accumulated: 0};
+        }
+        intersections[combinedData[i].x].amount += 1;
+      }
+    }
+  };
+
+  //LineGraph.prototype._accumulate = function (intersections, combinedData) {
+
+
 
   LineGraph.prototype._getSafeDrawData = function (coreDistance, group, minWidth) {
     var width, offset;
@@ -11923,28 +12095,27 @@ return /******/ (function(modules) { // webpackBootstrap
       width = coreDistance < minWidth ? minWidth : coreDistance;
 
       offset = 0; // recalculate offset with the new width;
-      if (group.options.slots) {  // recalculate the shared width and offset if these options are set.
-        width = (width / group.options.slots.total);
-        offset = group.options.slots.slot * width - (0.5*width * (group.options.slots.total+1));
+      if (group.options.barChart.align == 'left') {
+        offset -= 0.5 * coreDistance;
       }
-      if (group.options.barChart.align == 'left')       {offset -= 0.5*coreDistance;}
-      else if (group.options.barChart.align == 'right') {offset += 0.5*coreDistance;}
+      else if (group.options.barChart.align == 'right') {
+        offset += 0.5 * coreDistance;
+      }
     }
     else {
       // no collisions, plot with default settings
       width = group.options.barChart.width;
       offset = 0;
-      if (group.options.slots) {
-        // if the groups are sharing the same points, this allows them to be plotted side by side
-        width = width / group.options.slots.total;
-        offset = group.options.slots.slot * width - (0.5*width * (group.options.slots.total+1));
+      if (group.options.barChart.align == 'left') {
+        offset -= 0.5 * group.options.barChart.width;
       }
-      if (group.options.barChart.align == 'left')       {offset -= 0.5*group.options.barChart.width;}
-      else if (group.options.barChart.align == 'right') {offset += 0.5*group.options.barChart.width;}
+      else if (group.options.barChart.align == 'right') {
+        offset += 0.5 * group.options.barChart.width;
+      }
     }
 
     return {width: width, offset: offset};
-  }
+  };
 
 
   /**
@@ -12019,68 +12190,51 @@ return /******/ (function(modules) { // webpackBootstrap
    * @returns {Array}
    * @private
    */
-  LineGraph.prototype._preprocessData = function (datapoints, group) {
+  LineGraph.prototype._convertXcoordinates = function (datapoints) {
     var extractedData = [];
     var xValue, yValue;
     var toScreen = this.body.util.toScreen;
 
-    var increment = 1;
-    var amountOfPoints = datapoints.length;
-
-    var yMin = datapoints[0].y;
-    var yMax = datapoints[0].y;
-
-    // the global screen is used because changing the width of the yAxis may affect the increment, resulting in an endless loop
-    // of width changing of the yAxis.
-    if (group.options.sampling == true) {
-      var xDistance = this.body.util.toGlobalScreen(datapoints[datapoints.length-1].x) - this.body.util.toGlobalScreen(datapoints[0].x);
-      var pointsPerPixel = amountOfPoints/xDistance;
-      increment = Math.min(Math.ceil(0.2 * amountOfPoints), Math.max(1,Math.round(pointsPerPixel)));
-    }
-
-    for (var i = 0; i < amountOfPoints; i += increment) {
+    for (var i = 0; i < datapoints.length; i++) {
       xValue = toScreen(datapoints[i].x) + this.width - 1;
       yValue = datapoints[i].y;
       extractedData.push({x: xValue, y: yValue});
-      yMin = yMin > yValue ? yValue : yMin;
-      yMax = yMax < yValue ? yValue : yMax;
     }
 
-    // extractedData.sort(function (a,b) {return a.x - b.x;});
-    return {min: yMin, max: yMax, data: extractedData};
+    return extractedData;
   };
 
+
+
   /**
-   * This uses the DataAxis object to generate the correct Y coordinate on the SVG window. It uses the
-   * util function toScreen to get the x coordinate from the timestamp.
+   * This uses the DataAxis object to generate the correct X coordinate on the SVG window. It uses the
+   * util function toScreen to get the x coordinate from the timestamp. It also pre-filters the data and get the minMax ranges for
+   * the yAxis.
    *
    * @param datapoints
-   * @param options
    * @returns {Array}
    * @private
    */
-  LineGraph.prototype._convertYvalues = function (datapoints, group) {
+  LineGraph.prototype._convertYcoordinates = function (datapoints, group) {
     var extractedData = [];
     var xValue, yValue;
+    var toScreen = this.body.util.toScreen;
     var axis = this.yAxisLeft;
     var svgHeight = Number(this.svg.style.height.replace("px",""));
-
     if (group.options.yAxisOrientation == 'right') {
       axis = this.yAxisRight;
     }
 
     for (var i = 0; i < datapoints.length; i++) {
-      xValue = datapoints[i].x;
+      xValue = toScreen(datapoints[i].x) + this.width - 1;
       yValue = Math.round(axis.convertValue(datapoints[i].y));
       extractedData.push({x: xValue, y: yValue});
     }
 
     group.setZeroPosition(Math.min(svgHeight, axis.convertValue(0)));
 
-    // extractedData.sort(function (a,b) {return a.x - b.x;});
     return extractedData;
   };
-
 
   /**
    * This uses an uniform parametrization of the CatmullRom algorithm:
@@ -13547,9 +13701,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var Emitter = __webpack_require__(48);
   var Hammer = __webpack_require__(41);
-  var mousetrap = __webpack_require__(51);
+  var mousetrap = __webpack_require__(49);
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(43);
+  var hammerUtil = __webpack_require__(44);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var dotparser = __webpack_require__(38);
@@ -16730,18 +16884,15 @@ return /******/ (function(modules) { // webpackBootstrap
     }
     else {
       var x, y, dx, dy;
-      var radius = this.physics.springLength / 4;
+      var radius = 0.25 * this.physics.springLength;
       var node = this.from;
-      if (!node.width) {
-        node.resize(ctx);
-      }
       if (node.width > node.height) {
-        x = node.x + node.width / 2;
+        x = node.x + 0.5 * node.width;
         y = node.y - radius;
       }
       else {
         x = node.x + radius;
-        y = node.y - node.height / 2;
+        y = node.y - 0.5 * node.height;
       }
       dx = x - x3;
       dy = y - y3;
@@ -19104,7 +19255,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // first check if moment.js is already loaded in the browser window, if so,
   // use this instance. Else, load via commonjs.
-  module.exports = (typeof window !== 'undefined') && window['moment'] || __webpack_require__(50);
+  module.exports = (typeof window !== 'undefined') && window['moment'] || __webpack_require__(51);
 
 
 /***/ },
@@ -19114,7 +19265,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // Only load hammer.js when in a browser environment
   // (loading hammer.js in a node.js environment gives errors)
   if (typeof window !== 'undefined') {
-    module.exports = window['Hammer'] || __webpack_require__(49);
+    module.exports = window['Hammer'] || __webpack_require__(50);
   }
   else {
     module.exports = function () {
@@ -19125,6 +19276,27 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 42 */
+/***/ function(module, exports, __webpack_require__) {
+
+  // English
+  exports['en'] = {
+    current: 'current',
+    time: 'time'
+  };
+  exports['en_EN'] = exports['en'];
+  exports['en_US'] = exports['en'];
+
+  // Dutch
+  exports['nl'] = {
+    custom: 'aangepaste',
+    time: 'tijd'
+  };
+  exports['nl_NL'] = exports['nl'];
+  exports['nl_BE'] = exports['nl'];
+
+
+/***/ },
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Emitter = __webpack_require__(48);
@@ -19792,7 +19964,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 43 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Hammer = __webpack_require__(41);
@@ -19823,27 +19995,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
     return gesture;
   };
-
-
-/***/ },
-/* 44 */
-/***/ function(module, exports, __webpack_require__) {
-
-  // English
-  exports['en'] = {
-    current: 'current',
-    time: 'time'
-  };
-  exports['en_EN'] = exports['en'];
-  exports['en_US'] = exports['en'];
-
-  // Dutch
-  exports['nl'] = {
-    custom: 'aangepaste',
-    time: 'tijd'
-  };
-  exports['nl_NL'] = exports['nl'];
-  exports['nl_BE'] = exports['nl'];
 
 
 /***/ },
@@ -20494,6 +20645,811 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 49 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Copyright 2012 Craig Campbell
+   *
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   * http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   *
+   * Mousetrap is a simple keyboard shortcut library for Javascript with
+   * no external dependencies
+   *
+   * @version 1.1.2
+   * @url craig.is/killing/mice
+   */
+
+    /**
+     * mapping of special keycodes to their corresponding keys
+     *
+     * everything in this dictionary cannot use keypress events
+     * so it has to be here to map to the correct keycodes for
+     * keyup/keydown events
+     *
+     * @type {Object}
+     */
+    var _MAP = {
+            8: 'backspace',
+            9: 'tab',
+            13: 'enter',
+            16: 'shift',
+            17: 'ctrl',
+            18: 'alt',
+            20: 'capslock',
+            27: 'esc',
+            32: 'space',
+            33: 'pageup',
+            34: 'pagedown',
+            35: 'end',
+            36: 'home',
+            37: 'left',
+            38: 'up',
+            39: 'right',
+            40: 'down',
+            45: 'ins',
+            46: 'del',
+            91: 'meta',
+            93: 'meta',
+            224: 'meta'
+        },
+
+        /**
+         * mapping for special characters so they can support
+         *
+         * this dictionary is only used incase you want to bind a
+         * keyup or keydown event to one of these keys
+         *
+         * @type {Object}
+         */
+        _KEYCODE_MAP = {
+            106: '*',
+            107: '+',
+            109: '-',
+            110: '.',
+            111 : '/',
+            186: ';',
+            187: '=',
+            188: ',',
+            189: '-',
+            190: '.',
+            191: '/',
+            192: '`',
+            219: '[',
+            220: '\\',
+            221: ']',
+            222: '\''
+        },
+
+        /**
+         * this is a mapping of keys that require shift on a US keypad
+         * back to the non shift equivelents
+         *
+         * this is so you can use keyup events with these keys
+         *
+         * note that this will only work reliably on US keyboards
+         *
+         * @type {Object}
+         */
+        _SHIFT_MAP = {
+            '~': '`',
+            '!': '1',
+            '@': '2',
+            '#': '3',
+            '$': '4',
+            '%': '5',
+            '^': '6',
+            '&': '7',
+            '*': '8',
+            '(': '9',
+            ')': '0',
+            '_': '-',
+            '+': '=',
+            ':': ';',
+            '\"': '\'',
+            '<': ',',
+            '>': '.',
+            '?': '/',
+            '|': '\\'
+        },
+
+        /**
+         * this is a list of special strings you can use to map
+         * to modifier keys when you specify your keyboard shortcuts
+         *
+         * @type {Object}
+         */
+        _SPECIAL_ALIASES = {
+            'option': 'alt',
+            'command': 'meta',
+            'return': 'enter',
+            'escape': 'esc'
+        },
+
+        /**
+         * variable to store the flipped version of _MAP from above
+         * needed to check if we should use keypress or not when no action
+         * is specified
+         *
+         * @type {Object|undefined}
+         */
+        _REVERSE_MAP,
+
+        /**
+         * a list of all the callbacks setup via Mousetrap.bind()
+         *
+         * @type {Object}
+         */
+        _callbacks = {},
+
+        /**
+         * direct map of string combinations to callbacks used for trigger()
+         *
+         * @type {Object}
+         */
+        _direct_map = {},
+
+        /**
+         * keeps track of what level each sequence is at since multiple
+         * sequences can start out with the same sequence
+         *
+         * @type {Object}
+         */
+        _sequence_levels = {},
+
+        /**
+         * variable to store the setTimeout call
+         *
+         * @type {null|number}
+         */
+        _reset_timer,
+
+        /**
+         * temporary state where we will ignore the next keyup
+         *
+         * @type {boolean|string}
+         */
+        _ignore_next_keyup = false,
+
+        /**
+         * are we currently inside of a sequence?
+         * type of action ("keyup" or "keydown" or "keypress") or false
+         *
+         * @type {boolean|string}
+         */
+        _inside_sequence = false;
+
+    /**
+     * loop through the f keys, f1 to f19 and add them to the map
+     * programatically
+     */
+    for (var i = 1; i < 20; ++i) {
+        _MAP[111 + i] = 'f' + i;
+    }
+
+    /**
+     * loop through to map numbers on the numeric keypad
+     */
+    for (i = 0; i <= 9; ++i) {
+        _MAP[i + 96] = i;
+    }
+
+    /**
+     * cross browser add event method
+     *
+     * @param {Element|HTMLDocument} object
+     * @param {string} type
+     * @param {Function} callback
+     * @returns void
+     */
+    function _addEvent(object, type, callback) {
+        if (object.addEventListener) {
+            return object.addEventListener(type, callback, false);
+        }
+
+        object.attachEvent('on' + type, callback);
+    }
+
+    /**
+     * takes the event and returns the key character
+     *
+     * @param {Event} e
+     * @return {string}
+     */
+    function _characterFromEvent(e) {
+
+        // for keypress events we should return the character as is
+        if (e.type == 'keypress') {
+            return String.fromCharCode(e.which);
+        }
+
+        // for non keypress events the special maps are needed
+        if (_MAP[e.which]) {
+            return _MAP[e.which];
+        }
+
+        if (_KEYCODE_MAP[e.which]) {
+            return _KEYCODE_MAP[e.which];
+        }
+
+        // if it is not in the special map
+        return String.fromCharCode(e.which).toLowerCase();
+    }
+
+    /**
+     * should we stop this event before firing off callbacks
+     *
+     * @param {Event} e
+     * @return {boolean}
+     */
+    function _stop(e) {
+        var element = e.target || e.srcElement,
+            tag_name = element.tagName;
+
+        // if the element has the class "mousetrap" then no need to stop
+        if ((' ' + element.className + ' ').indexOf(' mousetrap ') > -1) {
+            return false;
+        }
+
+        // stop for input, select, and textarea
+        return tag_name == 'INPUT' || tag_name == 'SELECT' || tag_name == 'TEXTAREA' || (element.contentEditable && element.contentEditable == 'true');
+    }
+
+    /**
+     * checks if two arrays are equal
+     *
+     * @param {Array} modifiers1
+     * @param {Array} modifiers2
+     * @returns {boolean}
+     */
+    function _modifiersMatch(modifiers1, modifiers2) {
+        return modifiers1.sort().join(',') === modifiers2.sort().join(',');
+    }
+
+    /**
+     * resets all sequence counters except for the ones passed in
+     *
+     * @param {Object} do_not_reset
+     * @returns void
+     */
+    function _resetSequences(do_not_reset) {
+        do_not_reset = do_not_reset || {};
+
+        var active_sequences = false,
+            key;
+
+        for (key in _sequence_levels) {
+            if (do_not_reset[key]) {
+                active_sequences = true;
+                continue;
+            }
+            _sequence_levels[key] = 0;
+        }
+
+        if (!active_sequences) {
+            _inside_sequence = false;
+        }
+    }
+
+    /**
+     * finds all callbacks that match based on the keycode, modifiers,
+     * and action
+     *
+     * @param {string} character
+     * @param {Array} modifiers
+     * @param {string} action
+     * @param {boolean=} remove - should we remove any matches
+     * @param {string=} combination
+     * @returns {Array}
+     */
+    function _getMatches(character, modifiers, action, remove, combination) {
+        var i,
+            callback,
+            matches = [];
+
+        // if there are no events related to this keycode
+        if (!_callbacks[character]) {
+            return [];
+        }
+
+        // if a modifier key is coming up on its own we should allow it
+        if (action == 'keyup' && _isModifier(character)) {
+            modifiers = [character];
+        }
+
+        // loop through all callbacks for the key that was pressed
+        // and see if any of them match
+        for (i = 0; i < _callbacks[character].length; ++i) {
+            callback = _callbacks[character][i];
+
+            // if this is a sequence but it is not at the right level
+            // then move onto the next match
+            if (callback.seq && _sequence_levels[callback.seq] != callback.level) {
+                continue;
+            }
+
+            // if the action we are looking for doesn't match the action we got
+            // then we should keep going
+            if (action != callback.action) {
+                continue;
+            }
+
+            // if this is a keypress event that means that we need to only
+            // look at the character, otherwise check the modifiers as
+            // well
+            if (action == 'keypress' || _modifiersMatch(modifiers, callback.modifiers)) {
+
+                // remove is used so if you change your mind and call bind a
+                // second time with a new function the first one is overwritten
+                if (remove && callback.combo == combination) {
+                    _callbacks[character].splice(i, 1);
+                }
+
+                matches.push(callback);
+            }
+        }
+
+        return matches;
+    }
+
+    /**
+     * takes a key event and figures out what the modifiers are
+     *
+     * @param {Event} e
+     * @returns {Array}
+     */
+    function _eventModifiers(e) {
+        var modifiers = [];
+
+        if (e.shiftKey) {
+            modifiers.push('shift');
+        }
+
+        if (e.altKey) {
+            modifiers.push('alt');
+        }
+
+        if (e.ctrlKey) {
+            modifiers.push('ctrl');
+        }
+
+        if (e.metaKey) {
+            modifiers.push('meta');
+        }
+
+        return modifiers;
+    }
+
+    /**
+     * actually calls the callback function
+     *
+     * if your callback function returns false this will use the jquery
+     * convention - prevent default and stop propogation on the event
+     *
+     * @param {Function} callback
+     * @param {Event} e
+     * @returns void
+     */
+    function _fireCallback(callback, e) {
+        if (callback(e) === false) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+
+            e.returnValue = false;
+            e.cancelBubble = true;
+        }
+    }
+
+    /**
+     * handles a character key event
+     *
+     * @param {string} character
+     * @param {Event} e
+     * @returns void
+     */
+    function _handleCharacter(character, e) {
+
+        // if this event should not happen stop here
+        if (_stop(e)) {
+            return;
+        }
+
+        var callbacks = _getMatches(character, _eventModifiers(e), e.type),
+            i,
+            do_not_reset = {},
+            processed_sequence_callback = false;
+
+        // loop through matching callbacks for this key event
+        for (i = 0; i < callbacks.length; ++i) {
+
+            // fire for all sequence callbacks
+            // this is because if for example you have multiple sequences
+            // bound such as "g i" and "g t" they both need to fire the
+            // callback for matching g cause otherwise you can only ever
+            // match the first one
+            if (callbacks[i].seq) {
+                processed_sequence_callback = true;
+
+                // keep a list of which sequences were matches for later
+                do_not_reset[callbacks[i].seq] = 1;
+                _fireCallback(callbacks[i].callback, e);
+                continue;
+            }
+
+            // if there were no sequence matches but we are still here
+            // that means this is a regular match so we should fire that
+            if (!processed_sequence_callback && !_inside_sequence) {
+                _fireCallback(callbacks[i].callback, e);
+            }
+        }
+
+        // if you are inside of a sequence and the key you are pressing
+        // is not a modifier key then we should reset all sequences
+        // that were not matched by this key event
+        if (e.type == _inside_sequence && !_isModifier(character)) {
+            _resetSequences(do_not_reset);
+        }
+    }
+
+    /**
+     * handles a keydown event
+     *
+     * @param {Event} e
+     * @returns void
+     */
+    function _handleKey(e) {
+
+        // normalize e.which for key events
+        // @see http://stackoverflow.com/questions/4285627/javascript-keycode-vs-charcode-utter-confusion
+        e.which = typeof e.which == "number" ? e.which : e.keyCode;
+
+        var character = _characterFromEvent(e);
+
+        // no character found then stop
+        if (!character) {
+            return;
+        }
+
+        if (e.type == 'keyup' && _ignore_next_keyup == character) {
+            _ignore_next_keyup = false;
+            return;
+        }
+
+        _handleCharacter(character, e);
+    }
+
+    /**
+     * determines if the keycode specified is a modifier key or not
+     *
+     * @param {string} key
+     * @returns {boolean}
+     */
+    function _isModifier(key) {
+        return key == 'shift' || key == 'ctrl' || key == 'alt' || key == 'meta';
+    }
+
+    /**
+     * called to set a 1 second timeout on the specified sequence
+     *
+     * this is so after each key press in the sequence you have 1 second
+     * to press the next key before you have to start over
+     *
+     * @returns void
+     */
+    function _resetSequenceTimer() {
+        clearTimeout(_reset_timer);
+        _reset_timer = setTimeout(_resetSequences, 1000);
+    }
+
+    /**
+     * reverses the map lookup so that we can look for specific keys
+     * to see what can and can't use keypress
+     *
+     * @return {Object}
+     */
+    function _getReverseMap() {
+        if (!_REVERSE_MAP) {
+            _REVERSE_MAP = {};
+            for (var key in _MAP) {
+
+                // pull out the numeric keypad from here cause keypress should
+                // be able to detect the keys from the character
+                if (key > 95 && key < 112) {
+                    continue;
+                }
+
+                if (_MAP.hasOwnProperty(key)) {
+                    _REVERSE_MAP[_MAP[key]] = key;
+                }
+            }
+        }
+        return _REVERSE_MAP;
+    }
+
+    /**
+     * picks the best action based on the key combination
+     *
+     * @param {string} key - character for key
+     * @param {Array} modifiers
+     * @param {string=} action passed in
+     */
+    function _pickBestAction(key, modifiers, action) {
+
+        // if no action was picked in we should try to pick the one
+        // that we think would work best for this key
+        if (!action) {
+            action = _getReverseMap()[key] ? 'keydown' : 'keypress';
+        }
+
+        // modifier keys don't work as expected with keypress,
+        // switch to keydown
+        if (action == 'keypress' && modifiers.length) {
+            action = 'keydown';
+        }
+
+        return action;
+    }
+
+    /**
+     * binds a key sequence to an event
+     *
+     * @param {string} combo - combo specified in bind call
+     * @param {Array} keys
+     * @param {Function} callback
+     * @param {string=} action
+     * @returns void
+     */
+    function _bindSequence(combo, keys, callback, action) {
+
+        // start off by adding a sequence level record for this combination
+        // and setting the level to 0
+        _sequence_levels[combo] = 0;
+
+        // if there is no action pick the best one for the first key
+        // in the sequence
+        if (!action) {
+            action = _pickBestAction(keys[0], []);
+        }
+
+        /**
+         * callback to increase the sequence level for this sequence and reset
+         * all other sequences that were active
+         *
+         * @param {Event} e
+         * @returns void
+         */
+        var _increaseSequence = function(e) {
+                _inside_sequence = action;
+                ++_sequence_levels[combo];
+                _resetSequenceTimer();
+            },
+
+            /**
+             * wraps the specified callback inside of another function in order
+             * to reset all sequence counters as soon as this sequence is done
+             *
+             * @param {Event} e
+             * @returns void
+             */
+            _callbackAndReset = function(e) {
+                _fireCallback(callback, e);
+
+                // we should ignore the next key up if the action is key down
+                // or keypress.  this is so if you finish a sequence and
+                // release the key the final key will not trigger a keyup
+                if (action !== 'keyup') {
+                    _ignore_next_keyup = _characterFromEvent(e);
+                }
+
+                // weird race condition if a sequence ends with the key
+                // another sequence begins with
+                setTimeout(_resetSequences, 10);
+            },
+            i;
+
+        // loop through keys one at a time and bind the appropriate callback
+        // function.  for any key leading up to the final one it should
+        // increase the sequence. after the final, it should reset all sequences
+        for (i = 0; i < keys.length; ++i) {
+            _bindSingle(keys[i], i < keys.length - 1 ? _increaseSequence : _callbackAndReset, action, combo, i);
+        }
+    }
+
+    /**
+     * binds a single keyboard combination
+     *
+     * @param {string} combination
+     * @param {Function} callback
+     * @param {string=} action
+     * @param {string=} sequence_name - name of sequence if part of sequence
+     * @param {number=} level - what part of the sequence the command is
+     * @returns void
+     */
+    function _bindSingle(combination, callback, action, sequence_name, level) {
+
+        // make sure multiple spaces in a row become a single space
+        combination = combination.replace(/\s+/g, ' ');
+
+        var sequence = combination.split(' '),
+            i,
+            key,
+            keys,
+            modifiers = [];
+
+        // if this pattern is a sequence of keys then run through this method
+        // to reprocess each pattern one key at a time
+        if (sequence.length > 1) {
+            return _bindSequence(combination, sequence, callback, action);
+        }
+
+        // take the keys from this pattern and figure out what the actual
+        // pattern is all about
+        keys = combination === '+' ? ['+'] : combination.split('+');
+
+        for (i = 0; i < keys.length; ++i) {
+            key = keys[i];
+
+            // normalize key names
+            if (_SPECIAL_ALIASES[key]) {
+                key = _SPECIAL_ALIASES[key];
+            }
+
+            // if this is not a keypress event then we should
+            // be smart about using shift keys
+            // this will only work for US keyboards however
+            if (action && action != 'keypress' && _SHIFT_MAP[key]) {
+                key = _SHIFT_MAP[key];
+                modifiers.push('shift');
+            }
+
+            // if this key is a modifier then add it to the list of modifiers
+            if (_isModifier(key)) {
+                modifiers.push(key);
+            }
+        }
+
+        // depending on what the key combination is
+        // we will try to pick the best event for it
+        action = _pickBestAction(key, modifiers, action);
+
+        // make sure to initialize array if this is the first time
+        // a callback is added for this key
+        if (!_callbacks[key]) {
+            _callbacks[key] = [];
+        }
+
+        // remove an existing match if there is one
+        _getMatches(key, modifiers, action, !sequence_name, combination);
+
+        // add this call back to the array
+        // if it is a sequence put it at the beginning
+        // if not put it at the end
+        //
+        // this is important because the way these are processed expects
+        // the sequence ones to come first
+        _callbacks[key][sequence_name ? 'unshift' : 'push']({
+            callback: callback,
+            modifiers: modifiers,
+            action: action,
+            seq: sequence_name,
+            level: level,
+            combo: combination
+        });
+    }
+
+    /**
+     * binds multiple combinations to the same callback
+     *
+     * @param {Array} combinations
+     * @param {Function} callback
+     * @param {string|undefined} action
+     * @returns void
+     */
+    function _bindMultiple(combinations, callback, action) {
+        for (var i = 0; i < combinations.length; ++i) {
+            _bindSingle(combinations[i], callback, action);
+        }
+    }
+
+    // start!
+    _addEvent(document, 'keypress', _handleKey);
+    _addEvent(document, 'keydown', _handleKey);
+    _addEvent(document, 'keyup', _handleKey);
+
+    var mousetrap = {
+
+        /**
+         * binds an event to mousetrap
+         *
+         * can be a single key, a combination of keys separated with +,
+         * a comma separated list of keys, an array of keys, or
+         * a sequence of keys separated by spaces
+         *
+         * be sure to list the modifier keys first to make sure that the
+         * correct key ends up getting bound (the last key in the pattern)
+         *
+         * @param {string|Array} keys
+         * @param {Function} callback
+         * @param {string=} action - 'keypress', 'keydown', or 'keyup'
+         * @returns void
+         */
+        bind: function(keys, callback, action) {
+            _bindMultiple(keys instanceof Array ? keys : [keys], callback, action);
+            _direct_map[keys + ':' + action] = callback;
+            return this;
+        },
+
+        /**
+         * unbinds an event to mousetrap
+         *
+         * the unbinding sets the callback function of the specified key combo
+         * to an empty function and deletes the corresponding key in the
+         * _direct_map dict.
+         *
+         * the keycombo+action has to be exactly the same as
+         * it was defined in the bind method
+         *
+         * TODO: actually remove this from the _callbacks dictionary instead
+         * of binding an empty function
+         *
+         * @param {string|Array} keys
+         * @param {string} action
+         * @returns void
+         */
+        unbind: function(keys, action) {
+            if (_direct_map[keys + ':' + action]) {
+                delete _direct_map[keys + ':' + action];
+                this.bind(keys, function() {}, action);
+            }
+            return this;
+        },
+
+        /**
+         * triggers an event that has already been bound
+         *
+         * @param {string} keys
+         * @param {string=} action
+         * @returns void
+         */
+        trigger: function(keys, action) {
+            _direct_map[keys + ':' + action]();
+            return this;
+        },
+
+        /**
+         * resets the library back to its initial state.  this is useful
+         * if you want to clear out the current keyboard shortcuts and bind
+         * new ones - for example if you switch to another page
+         *
+         * @returns void
+         */
+        reset: function() {
+            _callbacks = {};
+            _direct_map = {};
+            return this;
+        }
+    };
+
+  module.exports = mousetrap;
+
+
+
+/***/ },
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v1.1.3 - 2014-05-20
@@ -22660,22 +23616,23 @@ return /******/ (function(modules) { // webpackBootstrap
   })(window);
 
 /***/ },
-/* 50 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global, module) {//! moment.js
-  //! version : 2.8.1
+  //! version : 2.7.0
   //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
   //! license : MIT
   //! momentjs.com
 
   (function (undefined) {
+
       /************************************
           Constants
       ************************************/
 
       var moment,
-          VERSION = '2.8.1',
+          VERSION = "2.7.0",
           // the global-scope this is NOT the global object in Node.js
           globalScope = typeof global !== 'undefined' ? global : this,
           oldGlobalMoment,
@@ -22690,11 +23647,22 @@ return /******/ (function(modules) { // webpackBootstrap
           SECOND = 5,
           MILLISECOND = 6,
 
-          // internal storage for locale config files
-          locales = {},
+          // internal storage for language config files
+          languages = {},
 
-          // extra moment internal properties (plugins register props here)
-          momentProperties = [],
+          // moment internal properties
+          momentProperties = {
+              _isAMomentObject: null,
+              _i : null,
+              _f : null,
+              _l : null,
+              _strict : null,
+              _tzm : null,
+              _isUTC : null,
+              _offset : null,  // optional. Combine with _isUTC
+              _pf : null,
+              _lang : null  // optional
+          },
 
           // check for nodeJS
           hasModule = (typeof module !== 'undefined' && module.exports),
@@ -22800,11 +23768,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
           // default relative time thresholds
           relativeTimeThresholds = {
-              s: 45,  // seconds to minute
-              m: 45,  // minutes to hour
-              h: 22,  // hours to day
-              d: 26,  // days to month
-              M: 11   // months to year
+            s: 45,   //seconds to minutes
+            m: 45,   //minutes to hours
+            h: 22,   //hours to days
+            dd: 25,  //days to month (month == 1)
+            dm: 45,  //days to months (months > 1)
+            dy: 345  //days to year
           },
 
           // tokens to ordinalize and pad
@@ -22816,10 +23785,10 @@ return /******/ (function(modules) { // webpackBootstrap
                   return this.month() + 1;
               },
               MMM  : function (format) {
-                  return this.localeData().monthsShort(this, format);
+                  return this.lang().monthsShort(this, format);
               },
               MMMM : function (format) {
-                  return this.localeData().months(this, format);
+                  return this.lang().months(this, format);
               },
               D    : function () {
                   return this.date();
@@ -22831,13 +23800,13 @@ return /******/ (function(modules) { // webpackBootstrap
                   return this.day();
               },
               dd   : function (format) {
-                  return this.localeData().weekdaysMin(this, format);
+                  return this.lang().weekdaysMin(this, format);
               },
               ddd  : function (format) {
-                  return this.localeData().weekdaysShort(this, format);
+                  return this.lang().weekdaysShort(this, format);
               },
               dddd : function (format) {
-                  return this.localeData().weekdays(this, format);
+                  return this.lang().weekdays(this, format);
               },
               w    : function () {
                   return this.week();
@@ -22883,10 +23852,10 @@ return /******/ (function(modules) { // webpackBootstrap
                   return this.isoWeekday();
               },
               a    : function () {
-                  return this.localeData().meridiem(this.hours(), this.minutes(), true);
+                  return this.lang().meridiem(this.hours(), this.minutes(), true);
               },
               A    : function () {
-                  return this.localeData().meridiem(this.hours(), this.minutes(), false);
+                  return this.lang().meridiem(this.hours(), this.minutes(), false);
               },
               H    : function () {
                   return this.hours();
@@ -22914,19 +23883,19 @@ return /******/ (function(modules) { // webpackBootstrap
               },
               Z    : function () {
                   var a = -this.zone(),
-                      b = '+';
+                      b = "+";
                   if (a < 0) {
                       a = -a;
-                      b = '-';
+                      b = "-";
                   }
-                  return b + leftZeroFill(toInt(a / 60), 2) + ':' + leftZeroFill(toInt(a) % 60, 2);
+                  return b + leftZeroFill(toInt(a / 60), 2) + ":" + leftZeroFill(toInt(a) % 60, 2);
               },
               ZZ   : function () {
                   var a = -this.zone(),
-                      b = '+';
+                      b = "+";
                   if (a < 0) {
                       a = -a;
-                      b = '-';
+                      b = "-";
                   }
                   return b + leftZeroFill(toInt(a / 60), 2) + leftZeroFill(toInt(a) % 60, 2);
               },
@@ -22944,8 +23913,6 @@ return /******/ (function(modules) { // webpackBootstrap
               }
           },
 
-          deprecations = {},
-
           lists = ['months', 'monthsShort', 'weekdays', 'weekdaysShort', 'weekdaysMin'];
 
       // Pick the first defined of two or three arguments. dfl comes from
@@ -22954,7 +23921,7 @@ return /******/ (function(modules) { // webpackBootstrap
           switch (arguments.length) {
               case 2: return a != null ? a : b;
               case 3: return a != null ? a : b != null ? b : c;
-              default: throw new Error('Implement me');
+              default: throw new Error("Implement me");
           }
       }
 
@@ -22975,29 +23942,21 @@ return /******/ (function(modules) { // webpackBootstrap
           };
       }
 
-      function printMsg(msg) {
-          if (moment.suppressDeprecationWarnings === false &&
-                  typeof console !== 'undefined' && console.warn) {
-              console.warn("Deprecation warning: " + msg);
-          }
-      }
-
       function deprecate(msg, fn) {
           var firstTime = true;
+          function printMsg() {
+              if (moment.suppressDeprecationWarnings === false &&
+                      typeof console !== 'undefined' && console.warn) {
+                  console.warn("Deprecation warning: " + msg);
+              }
+          }
           return extend(function () {
               if (firstTime) {
-                  printMsg(msg);
+                  printMsg();
                   firstTime = false;
               }
               return fn.apply(this, arguments);
           }, fn);
-      }
-
-      function deprecateSimple(name, msg) {
-          if (!deprecations[name]) {
-              printMsg(msg);
-              deprecations[name] = true;
-          }
       }
 
       function padToken(func, count) {
@@ -23007,7 +23966,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
       function ordinalizeToken(func, period) {
           return function (a) {
-              return this.localeData().ordinal(func.call(this, a), period);
+              return this.lang().ordinal(func.call(this, a), period);
           };
       }
 
@@ -23026,16 +23985,14 @@ return /******/ (function(modules) { // webpackBootstrap
           Constructors
       ************************************/
 
-      function Locale() {
+      function Language() {
+
       }
 
       // Moment prototype object
-      function Moment(config, skipOverflow) {
-          if (skipOverflow !== false) {
-              checkOverflow(config);
-          }
-          copyConfig(this, config);
-          this._d = new Date(+config._d);
+      function Moment(config) {
+          checkOverflow(config);
+          extend(this, config);
       }
 
       // Duration Constructor
@@ -23069,8 +24026,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
           this._data = {};
 
-          this._locale = moment.localeData();
-
           this._bubble();
       }
 
@@ -23086,62 +24041,26 @@ return /******/ (function(modules) { // webpackBootstrap
               }
           }
 
-          if (b.hasOwnProperty('toString')) {
+          if (b.hasOwnProperty("toString")) {
               a.toString = b.toString;
           }
 
-          if (b.hasOwnProperty('valueOf')) {
+          if (b.hasOwnProperty("valueOf")) {
               a.valueOf = b.valueOf;
           }
 
           return a;
       }
 
-      function copyConfig(to, from) {
-          var i, prop, val;
-
-          if (typeof from._isAMomentObject !== 'undefined') {
-              to._isAMomentObject = from._isAMomentObject;
-          }
-          if (typeof from._i !== 'undefined') {
-              to._i = from._i;
-          }
-          if (typeof from._f !== 'undefined') {
-              to._f = from._f;
-          }
-          if (typeof from._l !== 'undefined') {
-              to._l = from._l;
-          }
-          if (typeof from._strict !== 'undefined') {
-              to._strict = from._strict;
-          }
-          if (typeof from._tzm !== 'undefined') {
-              to._tzm = from._tzm;
-          }
-          if (typeof from._isUTC !== 'undefined') {
-              to._isUTC = from._isUTC;
-          }
-          if (typeof from._offset !== 'undefined') {
-              to._offset = from._offset;
-          }
-          if (typeof from._pf !== 'undefined') {
-              to._pf = from._pf;
-          }
-          if (typeof from._locale !== 'undefined') {
-              to._locale = from._locale;
-          }
-
-          if (momentProperties.length > 0) {
-              for (i in momentProperties) {
-                  prop = momentProperties[i];
-                  val = from[prop];
-                  if (typeof val !== 'undefined') {
-                      to[prop] = val;
-                  }
+      function cloneMoment(m) {
+          var result = {}, i;
+          for (i in m) {
+              if (m.hasOwnProperty(i) && momentProperties.hasOwnProperty(i)) {
+                  result[i] = m[i];
               }
           }
 
-          return to;
+          return result;
       }
 
       function absRound(number) {
@@ -23164,51 +24083,7 @@ return /******/ (function(modules) { // webpackBootstrap
           return (sign ? (forceSign ? '+' : '') : '-') + output;
       }
 
-      function positiveMomentsDifference(base, other) {
-          var res = {milliseconds: 0, months: 0};
-
-          res.months = other.month() - base.month() +
-              (other.year() - base.year()) * 12;
-          if (base.clone().add(res.months, 'M').isAfter(other)) {
-              --res.months;
-          }
-
-          res.milliseconds = +other - +(base.clone().add(res.months, 'M'));
-
-          return res;
-      }
-
-      function momentsDifference(base, other) {
-          var res;
-          other = makeAs(other, base);
-          if (base.isBefore(other)) {
-              res = positiveMomentsDifference(base, other);
-          } else {
-              res = positiveMomentsDifference(other, base);
-              res.milliseconds = -res.milliseconds;
-              res.months = -res.months;
-          }
-
-          return res;
-      }
-
-      // TODO: remove 'name' arg after deprecation is removed
-      function createAdder(direction, name) {
-          return function (val, period) {
-              var dur, tmp;
-              //invert the arguments, but complain about it
-              if (period !== null && !isNaN(+period)) {
-                  deprecateSimple(name, "moment()." + name  + "(period, number) is deprecated. Please use moment()." + name + "(number, period).");
-                  tmp = val; val = period; period = tmp;
-              }
-
-              val = typeof val === 'string' ? +val : val;
-              dur = moment.duration(val, period);
-              addOrSubtractDurationFromMoment(this, dur, direction);
-              return this;
-          };
-      }
-
+      // helper function for _.addTime and _.subtractTime
       function addOrSubtractDurationFromMoment(mom, duration, isAdding, updateOffset) {
           var milliseconds = duration._milliseconds,
               days = duration._days,
@@ -23235,8 +24110,8 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       function isDate(input) {
-          return Object.prototype.toString.call(input) === '[object Date]' ||
-              input instanceof Date;
+          return  Object.prototype.toString.call(input) === '[object Date]' ||
+                  input instanceof Date;
       }
 
       // compare two arrays, return the number of differences
@@ -23296,7 +24171,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
           moment[field] = function (format, index) {
               var i, getter,
-                  method = moment._locale[field],
+                  method = moment.fn._lang[field],
                   results = [];
 
               if (typeof format === 'number') {
@@ -23306,7 +24181,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
               getter = function (i) {
                   var m = moment().utc().set(setter, i);
-                  return method.call(moment._locale, m, format || '');
+                  return method.call(moment.fn._lang, m, format || '');
               };
 
               if (index != null) {
@@ -23391,48 +24266,8 @@ return /******/ (function(modules) { // webpackBootstrap
           return m._isValid;
       }
 
-      function normalizeLocale(key) {
+      function normalizeLanguage(key) {
           return key ? key.toLowerCase().replace('_', '-') : key;
-      }
-
-      // pick the locale from the array
-      // try ['en-au', 'en-gb'] as 'en-au', 'en-gb', 'en', as in move through the list trying each
-      // substring from most specific to least, but move to the next array item if it's a more specific variant than the current root
-      function chooseLocale(names) {
-          var i = 0, j, next, locale, split;
-
-          while (i < names.length) {
-              split = normalizeLocale(names[i]).split('-');
-              j = split.length;
-              next = normalizeLocale(names[i + 1]);
-              next = next ? next.split('-') : null;
-              while (j > 0) {
-                  locale = loadLocale(split.slice(0, j).join('-'));
-                  if (locale) {
-                      return locale;
-                  }
-                  if (next && next.length >= j && compareArrays(split, next, true) >= j - 1) {
-                      //the next array item is better than a shallower substring of this one
-                      break;
-                  }
-                  j--;
-              }
-              i++;
-          }
-          return null;
-      }
-
-      function loadLocale(name) {
-          var oldLocale = null;
-          if (!locales[name] && hasModule) {
-              try {
-                  oldLocale = moment.locale();
-                  !(function webpackMissingModule() { var e = new Error("Cannot find module \"./locale\""); e.code = 'MODULE_NOT_FOUND'; throw e; }());
-                  // because defineLocale currently also sets the global locale, we want to undo that for lazy loaded locales
-                  moment.locale(oldLocale);
-              } catch (e) { }
-          }
-          return locales[name];
       }
 
       // Return a moment from input, that is local/utc/zone equivalent to model.
@@ -23442,11 +24277,11 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       /************************************
-          Locale
+          Languages
       ************************************/
 
 
-      extend(Locale.prototype, {
+      extend(Language.prototype, {
 
           set : function (config) {
               var prop, i;
@@ -23460,12 +24295,12 @@ return /******/ (function(modules) { // webpackBootstrap
               }
           },
 
-          _months : 'January_February_March_April_May_June_July_August_September_October_November_December'.split('_'),
+          _months : "January_February_March_April_May_June_July_August_September_October_November_December".split("_"),
           months : function (m) {
               return this._months[m.month()];
           },
 
-          _monthsShort : 'Jan_Feb_Mar_Apr_May_Jun_Jul_Aug_Sep_Oct_Nov_Dec'.split('_'),
+          _monthsShort : "Jan_Feb_Mar_Apr_May_Jun_Jul_Aug_Sep_Oct_Nov_Dec".split("_"),
           monthsShort : function (m) {
               return this._monthsShort[m.month()];
           },
@@ -23491,17 +24326,17 @@ return /******/ (function(modules) { // webpackBootstrap
               }
           },
 
-          _weekdays : 'Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday'.split('_'),
+          _weekdays : "Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday".split("_"),
           weekdays : function (m) {
               return this._weekdays[m.day()];
           },
 
-          _weekdaysShort : 'Sun_Mon_Tue_Wed_Thu_Fri_Sat'.split('_'),
+          _weekdaysShort : "Sun_Mon_Tue_Wed_Thu_Fri_Sat".split("_"),
           weekdaysShort : function (m) {
               return this._weekdaysShort[m.day()];
           },
 
-          _weekdaysMin : 'Su_Mo_Tu_We_Th_Fr_Sa'.split('_'),
+          _weekdaysMin : "Su_Mo_Tu_We_Th_Fr_Sa".split("_"),
           weekdaysMin : function (m) {
               return this._weekdaysMin[m.day()];
           },
@@ -23528,11 +24363,11 @@ return /******/ (function(modules) { // webpackBootstrap
           },
 
           _longDateFormat : {
-              LT : 'h:mm A',
-              L : 'MM/DD/YYYY',
-              LL : 'MMMM D, YYYY',
-              LLL : 'MMMM D, YYYY LT',
-              LLLL : 'dddd, MMMM D, YYYY LT'
+              LT : "h:mm A",
+              L : "MM/DD/YYYY",
+              LL : "MMMM D YYYY",
+              LLL : "MMMM D YYYY LT",
+              LLLL : "dddd, MMMM D YYYY LT"
           },
           longDateFormat : function (key) {
               var output = this._longDateFormat[key];
@@ -23574,37 +24409,35 @@ return /******/ (function(modules) { // webpackBootstrap
           },
 
           _relativeTime : {
-              future : 'in %s',
-              past : '%s ago',
-              s : 'a few seconds',
-              m : 'a minute',
-              mm : '%d minutes',
-              h : 'an hour',
-              hh : '%d hours',
-              d : 'a day',
-              dd : '%d days',
-              M : 'a month',
-              MM : '%d months',
-              y : 'a year',
-              yy : '%d years'
+              future : "in %s",
+              past : "%s ago",
+              s : "a few seconds",
+              m : "a minute",
+              mm : "%d minutes",
+              h : "an hour",
+              hh : "%d hours",
+              d : "a day",
+              dd : "%d days",
+              M : "a month",
+              MM : "%d months",
+              y : "a year",
+              yy : "%d years"
           },
-
           relativeTime : function (number, withoutSuffix, string, isFuture) {
               var output = this._relativeTime[string];
               return (typeof output === 'function') ?
                   output(number, withoutSuffix, string, isFuture) :
                   output.replace(/%d/i, number);
           },
-
           pastFuture : function (diff, output) {
               var format = this._relativeTime[diff > 0 ? 'future' : 'past'];
               return typeof format === 'function' ? format(output) : format.replace(/%s/i, output);
           },
 
           ordinal : function (number) {
-              return this._ordinal.replace('%d', number);
+              return this._ordinal.replace("%d", number);
           },
-          _ordinal : '%d',
+          _ordinal : "%d",
 
           preparse : function (string) {
               return string;
@@ -23629,6 +24462,78 @@ return /******/ (function(modules) { // webpackBootstrap
           }
       });
 
+      // Loads a language definition into the `languages` cache.  The function
+      // takes a key and optionally values.  If not in the browser and no values
+      // are provided, it will load the language file module.  As a convenience,
+      // this function also returns the language values.
+      function loadLang(key, values) {
+          values.abbr = key;
+          if (!languages[key]) {
+              languages[key] = new Language();
+          }
+          languages[key].set(values);
+          return languages[key];
+      }
+
+      // Remove a language from the `languages` cache. Mostly useful in tests.
+      function unloadLang(key) {
+          delete languages[key];
+      }
+
+      // Determines which language definition to use and returns it.
+      //
+      // With no parameters, it will return the global language.  If you
+      // pass in a language key, such as 'en', it will return the
+      // definition for 'en', so long as 'en' has already been loaded using
+      // moment.lang.
+      function getLangDefinition(key) {
+          var i = 0, j, lang, next, split,
+              get = function (k) {
+                  if (!languages[k] && hasModule) {
+                      try {
+                          __webpack_require__(59)("./" + k);
+                      } catch (e) { }
+                  }
+                  return languages[k];
+              };
+
+          if (!key) {
+              return moment.fn._lang;
+          }
+
+          if (!isArray(key)) {
+              //short-circuit everything else
+              lang = get(key);
+              if (lang) {
+                  return lang;
+              }
+              key = [key];
+          }
+
+          //pick the language from the array
+          //try ['en-au', 'en-gb'] as 'en-au', 'en-gb', 'en', as in move through the list trying each
+          //substring from most specific to least, but move to the next array item if it's a more specific variant than the current root
+          while (i < key.length) {
+              split = normalizeLanguage(key[i]).split('-');
+              j = split.length;
+              next = normalizeLanguage(key[i + 1]);
+              next = next ? next.split('-') : null;
+              while (j > 0) {
+                  lang = get(split.slice(0, j).join('-'));
+                  if (lang) {
+                      return lang;
+                  }
+                  if (next && next.length >= j && compareArrays(split, next, true) >= j - 1) {
+                      //the next array item is better than a shallower substring of this one
+                      break;
+                  }
+                  j--;
+              }
+              i++;
+          }
+          return moment.fn._lang;
+      }
+
       /************************************
           Formatting
       ************************************/
@@ -23636,9 +24541,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
       function removeFormattingTokens(input) {
           if (input.match(/\[[\s\S]/)) {
-              return input.replace(/^\[|\]$/g, '');
+              return input.replace(/^\[|\]$/g, "");
           }
-          return input.replace(/\\/g, '');
+          return input.replace(/\\/g, "");
       }
 
       function makeFormatFunction(format) {
@@ -23653,7 +24558,7 @@ return /******/ (function(modules) { // webpackBootstrap
           }
 
           return function (mom) {
-              var output = '';
+              var output = "";
               for (i = 0; i < length; i++) {
                   output += array[i] instanceof Function ? array[i].call(mom, format) : array[i];
               }
@@ -23663,11 +24568,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // format date using native date object
       function formatMoment(m, format) {
+
           if (!m.isValid()) {
-              return m.localeData().invalidDate();
+              return m.lang().invalidDate();
           }
 
-          format = expandFormat(format, m.localeData());
+          format = expandFormat(format, m.lang());
 
           if (!formatFunctions[format]) {
               formatFunctions[format] = makeFormatFunction(format);
@@ -23676,11 +24582,11 @@ return /******/ (function(modules) { // webpackBootstrap
           return formatFunctions[format](m);
       }
 
-      function expandFormat(format, locale) {
+      function expandFormat(format, lang) {
           var i = 5;
 
           function replaceLongDateFormatTokens(input) {
-              return locale.longDateFormat(input) || input;
+              return lang.longDateFormat(input) || input;
           }
 
           localFormattingTokens.lastIndex = 0;
@@ -23721,19 +24627,13 @@ return /******/ (function(modules) { // webpackBootstrap
           case 'ggggg':
               return strict ? parseTokenSixDigits : parseTokenOneToSixDigits;
           case 'S':
-              if (strict) {
-                  return parseTokenOneDigit;
-              }
+              if (strict) { return parseTokenOneDigit; }
               /* falls through */
           case 'SS':
-              if (strict) {
-                  return parseTokenTwoDigits;
-              }
+              if (strict) { return parseTokenTwoDigits; }
               /* falls through */
           case 'SSS':
-              if (strict) {
-                  return parseTokenThreeDigits;
-              }
+              if (strict) { return parseTokenThreeDigits; }
               /* falls through */
           case 'DDD':
               return parseTokenOneToThreeDigits;
@@ -23745,7 +24645,7 @@ return /******/ (function(modules) { // webpackBootstrap
               return parseTokenWord;
           case 'a':
           case 'A':
-              return config._locale._meridiemParse;
+              return getLangDefinition(config._l)._meridiemParse;
           case 'X':
               return parseTokenTimestampMs;
           case 'Z':
@@ -23782,13 +24682,13 @@ return /******/ (function(modules) { // webpackBootstrap
           case 'Do':
               return parseTokenOrdinal;
           default :
-              a = new RegExp(regexpEscape(unescapeFormat(token.replace('\\', '')), 'i'));
+              a = new RegExp(regexpEscape(unescapeFormat(token.replace('\\', '')), "i"));
               return a;
           }
       }
 
       function timezoneMinutesFromString(string) {
-          string = string || '';
+          string = string || "";
           var possibleTzMatches = (string.match(parseTokenTimezone) || []),
               tzChunk = possibleTzMatches[possibleTzMatches.length - 1] || [],
               parts = (tzChunk + '').match(parseTimezoneChunker) || ['-', 0, 0],
@@ -23817,7 +24717,7 @@ return /******/ (function(modules) { // webpackBootstrap
               break;
           case 'MMM' : // fall through to MMMM
           case 'MMMM' :
-              a = config._locale.monthsParse(input);
+              a = getLangDefinition(config._l).monthsParse(input);
               // if we didn't find a month name, mark the date as invalid.
               if (a != null) {
                   datePartArray[MONTH] = a;
@@ -23857,7 +24757,7 @@ return /******/ (function(modules) { // webpackBootstrap
           // AM / PM
           case 'a' : // fall through to A
           case 'A' :
-              config._isPm = config._locale.isPM(input);
+              config._isPm = getLangDefinition(config._l).isPM(input);
               break;
           // 24 HOUR
           case 'H' : // fall through to hh
@@ -23897,7 +24797,7 @@ return /******/ (function(modules) { // webpackBootstrap
           case 'dd':
           case 'ddd':
           case 'dddd':
-              a = config._locale.weekdaysParse(input);
+              a = getLangDefinition(config._l).weekdaysParse(input);
               // if we didn't get a weekday name, mark the date as invalid
               if (a != null) {
                   config._w = config._w || {};
@@ -23933,7 +24833,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       function dayOfYearFromWeekInfo(config) {
-          var w, weekYear, week, weekday, dow, doy, temp;
+          var w, weekYear, week, weekday, dow, doy, temp, lang;
 
           w = config._w;
           if (w.GG != null || w.W != null || w.E != null) {
@@ -23948,8 +24848,9 @@ return /******/ (function(modules) { // webpackBootstrap
               week = dfl(w.W, 1);
               weekday = dfl(w.E, 1);
           } else {
-              dow = config._locale._week.dow;
-              doy = config._locale._week.doy;
+              lang = getLangDefinition(config._l);
+              dow = lang._week.dow;
+              doy = lang._week.doy;
 
               weekYear = dfl(w.gg, config._a[YEAR], weekOfYear(moment(), dow, doy).year);
               week = dfl(w.w, 1);
@@ -24063,6 +24964,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // date from string and format string
       function makeDateFromStringAndFormat(config) {
+
           if (config._f === moment.ISO_8601) {
               parseISO(config);
               return;
@@ -24072,12 +24974,13 @@ return /******/ (function(modules) { // webpackBootstrap
           config._pf.empty = true;
 
           // This array is used to make a Date, either with `new Date` or `Date.UTC`
-          var string = '' + config._i,
+          var lang = getLangDefinition(config._l),
+              string = '' + config._i,
               i, parsedInput, tokens, token, skipped,
               stringLength = string.length,
               totalParsedInputLength = 0;
 
-          tokens = expandFormat(config._f, config._locale).match(formattingTokens) || [];
+          tokens = expandFormat(config._f, lang).match(formattingTokens) || [];
 
           for (i = 0; i < tokens.length; i++) {
               token = tokens[i];
@@ -24152,7 +25055,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
           for (i = 0; i < config._f.length; i++) {
               currentScore = 0;
-              tempConfig = copyConfig({}, config);
+              tempConfig = extend({}, config);
               tempConfig._pf = defaultParsingFlags();
               tempConfig._f = config._f[i];
               makeDateFromStringAndFormat(tempConfig);
@@ -24189,7 +25092,7 @@ return /******/ (function(modules) { // webpackBootstrap
               for (i = 0, l = isoDates.length; i < l; i++) {
                   if (isoDates[i][1].exec(string)) {
                       // match[5] should be "T" or undefined
-                      config._f = isoDates[i][0] + (match[6] || ' ');
+                      config._f = isoDates[i][0] + (match[6] || " ");
                       break;
                   }
               }
@@ -24200,7 +25103,7 @@ return /******/ (function(modules) { // webpackBootstrap
                   }
               }
               if (string.match(parseTokenTimezone)) {
-                  config._f += 'Z';
+                  config._f += "Z";
               }
               makeDateFromStringAndFormat(config);
           } else {
@@ -24218,18 +25121,20 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       function makeDateFromInput(config) {
-          var input = config._i, matched;
+          var input = config._i,
+              matched = aspNetJsonRegex.exec(input);
+
           if (input === undefined) {
               config._d = new Date();
-          } else if (isDate(input)) {
-              config._d = new Date(+input);
-          } else if ((matched = aspNetJsonRegex.exec(input)) !== null) {
+          } else if (matched) {
               config._d = new Date(+matched[1]);
           } else if (typeof input === 'string') {
               makeDateFromString(config);
           } else if (isArray(input)) {
               config._a = input.slice(0);
               dateFromConfig(config);
+          } else if (isDate(input)) {
+              config._d = new Date(+input);
           } else if (typeof(input) === 'object') {
               dateFromObject(config);
           } else if (typeof(input) === 'number') {
@@ -24260,13 +25165,13 @@ return /******/ (function(modules) { // webpackBootstrap
           return date;
       }
 
-      function parseWeekday(input, locale) {
+      function parseWeekday(input, language) {
           if (typeof input === 'string') {
               if (!isNaN(input)) {
                   input = parseInt(input, 10);
               }
               else {
-                  input = locale.weekdaysParse(input);
+                  input = language.weekdaysParse(input);
                   if (typeof input !== 'number') {
                       return null;
                   }
@@ -24281,33 +25186,29 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
       // helper function for moment.fn.from, moment.fn.fromNow, and moment.duration.fn.humanize
-      function substituteTimeAgo(string, number, withoutSuffix, isFuture, locale) {
-          return locale.relativeTime(number || 1, !!withoutSuffix, string, isFuture);
+      function substituteTimeAgo(string, number, withoutSuffix, isFuture, lang) {
+          return lang.relativeTime(number || 1, !!withoutSuffix, string, isFuture);
       }
 
-      function relativeTime(posNegDuration, withoutSuffix, locale) {
-          var duration = moment.duration(posNegDuration).abs(),
-              seconds = round(duration.as('s')),
-              minutes = round(duration.as('m')),
-              hours = round(duration.as('h')),
-              days = round(duration.as('d')),
-              months = round(duration.as('M')),
-              years = round(duration.as('y')),
-
-              args = seconds < relativeTimeThresholds.s && ['s', seconds] ||
+      function relativeTime(milliseconds, withoutSuffix, lang) {
+          var seconds = round(Math.abs(milliseconds) / 1000),
+              minutes = round(seconds / 60),
+              hours = round(minutes / 60),
+              days = round(hours / 24),
+              years = round(days / 365),
+              args = seconds < relativeTimeThresholds.s  && ['s', seconds] ||
                   minutes === 1 && ['m'] ||
                   minutes < relativeTimeThresholds.m && ['mm', minutes] ||
                   hours === 1 && ['h'] ||
                   hours < relativeTimeThresholds.h && ['hh', hours] ||
                   days === 1 && ['d'] ||
-                  days < relativeTimeThresholds.d && ['dd', days] ||
-                  months === 1 && ['M'] ||
-                  months < relativeTimeThresholds.M && ['MM', months] ||
+                  days <= relativeTimeThresholds.dd && ['dd', days] ||
+                  days <= relativeTimeThresholds.dm && ['M'] ||
+                  days < relativeTimeThresholds.dy && ['MM', round(days / 30)] ||
                   years === 1 && ['y'] || ['yy', years];
-
           args[2] = withoutSuffix;
-          args[3] = +posNegDuration > 0;
-          args[4] = locale;
+          args[3] = milliseconds > 0;
+          args[4] = lang;
           return substituteTimeAgo.apply({}, args);
       }
 
@@ -24338,7 +25239,7 @@ return /******/ (function(modules) { // webpackBootstrap
               daysToDayOfWeek += 7;
           }
 
-          adjustedMoment = moment(mom).add(daysToDayOfWeek, 'd');
+          adjustedMoment = moment(mom).add('d', daysToDayOfWeek);
           return {
               week: Math.ceil(adjustedMoment.dayOfYear() / 7),
               year: adjustedMoment.year()
@@ -24368,18 +25269,18 @@ return /******/ (function(modules) { // webpackBootstrap
           var input = config._i,
               format = config._f;
 
-          config._locale = config._locale || moment.localeData(config._l);
-
           if (input === null || (format === undefined && input === '')) {
               return moment.invalid({nullInput: true});
           }
 
           if (typeof input === 'string') {
-              config._i = input = config._locale.preparse(input);
+              config._i = input = getLangDefinition().preparse(input);
           }
 
           if (moment.isMoment(input)) {
-              return new Moment(input, true);
+              config = cloneMoment(input);
+
+              config._d = new Date(+input._d);
           } else if (format) {
               if (isArray(format)) {
                   makeDateFromStringAndArray(config);
@@ -24393,12 +25294,12 @@ return /******/ (function(modules) { // webpackBootstrap
           return new Moment(config);
       }
 
-      moment = function (input, format, locale, strict) {
+      moment = function (input, format, lang, strict) {
           var c;
 
-          if (typeof(locale) === "boolean") {
-              strict = locale;
-              locale = undefined;
+          if (typeof(lang) === "boolean") {
+              strict = lang;
+              lang = undefined;
           }
           // object construction must be done this way.
           // https://github.com/moment/moment/issues/1423
@@ -24406,7 +25307,7 @@ return /******/ (function(modules) { // webpackBootstrap
           c._isAMomentObject = true;
           c._i = input;
           c._f = format;
-          c._l = locale;
+          c._l = lang;
           c._strict = strict;
           c._isUTC = false;
           c._pf = defaultParsingFlags();
@@ -24417,14 +25318,13 @@ return /******/ (function(modules) { // webpackBootstrap
       moment.suppressDeprecationWarnings = false;
 
       moment.createFromInputFallback = deprecate(
-          'moment construction falls back to js Date. This is ' +
-          'discouraged and will be removed in upcoming major ' +
-          'release. Please refer to ' +
-          'https://github.com/moment/moment/issues/1407 for more info.',
-          function (config) {
-              config._d = new Date(config._i);
-          }
-      );
+              "moment construction falls back to js Date. This is " +
+              "discouraged and will be removed in upcoming major " +
+              "release. Please refer to " +
+              "https://github.com/moment/moment/issues/1407 for more info.",
+              function (config) {
+          config._d = new Date(config._i);
+      });
 
       // Pick a moment m from moments so that m[fn](other) is true for all
       // other. This relies on the function fn to be transitive.
@@ -24461,12 +25361,12 @@ return /******/ (function(modules) { // webpackBootstrap
       };
 
       // creating with utc
-      moment.utc = function (input, format, locale, strict) {
+      moment.utc = function (input, format, lang, strict) {
           var c;
 
-          if (typeof(locale) === "boolean") {
-              strict = locale;
-              locale = undefined;
+          if (typeof(lang) === "boolean") {
+              strict = lang;
+              lang = undefined;
           }
           // object construction must be done this way.
           // https://github.com/moment/moment/issues/1423
@@ -24474,7 +25374,7 @@ return /******/ (function(modules) { // webpackBootstrap
           c._isAMomentObject = true;
           c._useUTC = true;
           c._isUTC = true;
-          c._l = locale;
+          c._l = lang;
           c._i = input;
           c._f = format;
           c._strict = strict;
@@ -24495,8 +25395,7 @@ return /******/ (function(modules) { // webpackBootstrap
               match = null,
               sign,
               ret,
-              parseIso,
-              diffRes;
+              parseIso;
 
           if (moment.isDuration(input)) {
               duration = {
@@ -24512,7 +25411,7 @@ return /******/ (function(modules) { // webpackBootstrap
                   duration.milliseconds = input;
               }
           } else if (!!(match = aspNetTimeSpanJsonRegex.exec(input))) {
-              sign = (match[1] === '-') ? -1 : 1;
+              sign = (match[1] === "-") ? -1 : 1;
               duration = {
                   y: 0,
                   d: toInt(match[DATE]) * sign,
@@ -24522,7 +25421,7 @@ return /******/ (function(modules) { // webpackBootstrap
                   ms: toInt(match[MILLISECOND]) * sign
               };
           } else if (!!(match = isoDurationRegex.exec(input))) {
-              sign = (match[1] === '-') ? -1 : 1;
+              sign = (match[1] === "-") ? -1 : 1;
               parseIso = function (inp) {
                   // We'd normally use ~~inp for this, but unfortunately it also
                   // converts floats to ints.
@@ -24540,19 +25439,12 @@ return /******/ (function(modules) { // webpackBootstrap
                   s: parseIso(match[7]),
                   w: parseIso(match[8])
               };
-          } else if (typeof duration === 'object' &&
-                  ('from' in duration || 'to' in duration)) {
-              diffRes = momentsDifference(moment(duration.from), moment(duration.to));
-
-              duration = {};
-              duration.ms = diffRes.milliseconds;
-              duration.M = diffRes.months;
           }
 
           ret = new Duration(duration);
 
-          if (moment.isDuration(input) && input.hasOwnProperty('_locale')) {
-              ret._locale = input._locale;
+          if (moment.isDuration(input) && input.hasOwnProperty('_lang')) {
+              ret._lang = input._lang;
           }
 
           return ret;
@@ -24576,93 +25468,40 @@ return /******/ (function(modules) { // webpackBootstrap
       moment.updateOffset = function () {};
 
       // This function allows you to set a threshold for relative time strings
-      moment.relativeTimeThreshold = function (threshold, limit) {
-          if (relativeTimeThresholds[threshold] === undefined) {
-              return false;
-          }
-          if (limit === undefined) {
-              return relativeTimeThresholds[threshold];
-          }
-          relativeTimeThresholds[threshold] = limit;
-          return true;
+      moment.relativeTimeThreshold = function(threshold, limit) {
+        if (relativeTimeThresholds[threshold] === undefined) {
+          return false;
+        }
+        relativeTimeThresholds[threshold] = limit;
+        return true;
       };
 
-      moment.lang = deprecate(
-          "moment.lang is deprecated. Use moment.locale instead.",
-          function (key, value) {
-              return moment.locale(key, value);
-          }
-      );
-
-      // This function will load locale and then set the global locale.  If
+      // This function will load languages and then set the global language.  If
       // no arguments are passed in, it will simply return the current global
-      // locale key.
-      moment.locale = function (key, values) {
-          var data;
-          if (key) {
-              if (typeof(values) !== "undefined") {
-                  data = moment.defineLocale(key, values);
-              }
-              else {
-                  data = moment.localeData(key);
-              }
-
-              if (data) {
-                  moment.duration._locale = moment._locale = data;
-              }
-          }
-
-          return moment._locale._abbr;
-      };
-
-      moment.defineLocale = function (name, values) {
-          if (values !== null) {
-              values.abbr = name;
-              if (!locales[name]) {
-                  locales[name] = new Locale();
-              }
-              locales[name].set(values);
-
-              // backwards compat for now: also set the locale
-              moment.locale(name);
-
-              return locales[name];
-          } else {
-              // useful for testing
-              delete locales[name];
-              return null;
-          }
-      };
-
-      moment.langData = deprecate(
-          "moment.langData is deprecated. Use moment.localeData instead.",
-          function (key) {
-              return moment.localeData(key);
-          }
-      );
-
-      // returns locale data
-      moment.localeData = function (key) {
-          var locale;
-
-          if (key && key._locale && key._locale._abbr) {
-              key = key._locale._abbr;
-          }
-
+      // language key.
+      moment.lang = function (key, values) {
+          var r;
           if (!key) {
-              return moment._locale;
+              return moment.fn._lang._abbr;
           }
-
-          if (!isArray(key)) {
-              //short-circuit everything else
-              locale = loadLocale(key);
-              if (locale) {
-                  return locale;
-              }
-              key = [key];
+          if (values) {
+              loadLang(normalizeLanguage(key), values);
+          } else if (values === null) {
+              unloadLang(key);
+              key = 'en';
+          } else if (!languages[key]) {
+              getLangDefinition(key);
           }
+          r = moment.duration.fn._lang = moment.fn._lang = getLangDefinition(key);
+          return r._abbr;
+      };
 
-          return chooseLocale(key);
+      // returns language data
+      moment.langData = function (key) {
+          if (key && key._lang && key._lang._abbr) {
+              key = key._lang._abbr;
+          }
+          return getLangDefinition(key);
       };
 
       // compare moment object
@@ -24724,7 +25563,7 @@ return /******/ (function(modules) { // webpackBootstrap
           },
 
           toString : function () {
-              return this.clone().locale('en').format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ");
+              return this.clone().lang('en').format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ");
           },
 
           toDate : function () {
@@ -24758,6 +25597,7 @@ return /******/ (function(modules) { // webpackBootstrap
           },
 
           isDSTShifted : function () {
+
               if (this._a) {
                   return this.isValid() && compareArrays(this._a, (this._isUTC ? moment.utc(this._a) : moment(this._a)).toArray()) > 0;
               }
@@ -24773,30 +25613,48 @@ return /******/ (function(modules) { // webpackBootstrap
               return this._pf.overflow;
           },
 
-          utc : function (keepLocalTime) {
-              return this.zone(0, keepLocalTime);
+          utc : function () {
+              return this.zone(0);
           },
 
-          local : function (keepLocalTime) {
-              if (this._isUTC) {
-                  this.zone(0, keepLocalTime);
-                  this._isUTC = false;
-
-                  if (keepLocalTime) {
-                      this.add(this._d.getTimezoneOffset(), 'm');
-                  }
-              }
+          local : function () {
+              this.zone(0);
+              this._isUTC = false;
               return this;
           },
 
           format : function (inputString) {
               var output = formatMoment(this, inputString || moment.defaultFormat);
-              return this.localeData().postformat(output);
+              return this.lang().postformat(output);
           },
 
-          add : createAdder(1, 'add'),
+          add : function (input, val) {
+              var dur;
+              // switch args to support add('s', 1) and add(1, 's')
+              if (typeof input === 'string' && typeof val === 'string') {
+                  dur = moment.duration(isNaN(+val) ? +input : +val, isNaN(+val) ? val : input);
+              } else if (typeof input === 'string') {
+                  dur = moment.duration(+val, input);
+              } else {
+                  dur = moment.duration(input, val);
+              }
+              addOrSubtractDurationFromMoment(this, dur, 1);
+              return this;
+          },
 
-          subtract : createAdder(-1, 'subtract'),
+          subtract : function (input, val) {
+              var dur;
+              // switch args to support subtract('s', 1) and subtract(1, 's')
+              if (typeof input === 'string' && typeof val === 'string') {
+                  dur = moment.duration(isNaN(+val) ? +input : +val, isNaN(+val) ? val : input);
+              } else if (typeof input === 'string') {
+                  dur = moment.duration(+val, input);
+              } else {
+                  dur = moment.duration(input, val);
+              }
+              addOrSubtractDurationFromMoment(this, dur, -1);
+              return this;
+          },
 
           diff : function (input, units, asFloat) {
               var that = makeAs(input, this),
@@ -24833,7 +25691,7 @@ return /******/ (function(modules) { // webpackBootstrap
           },
 
           from : function (time, withoutSuffix) {
-              return moment.duration({to: this, from: time}).locale(this.locale()).humanize(!withoutSuffix);
+              return moment.duration(this.diff(time)).lang(this.lang()._abbr).humanize(!withoutSuffix);
           },
 
           fromNow : function (withoutSuffix) {
@@ -24852,7 +25710,7 @@ return /******/ (function(modules) { // webpackBootstrap
                       diff < 1 ? 'sameDay' :
                       diff < 2 ? 'nextDay' :
                       diff < 7 ? 'nextWeek' : 'sameElse';
-              return this.format(this.localeData().calendar(format, this));
+              return this.format(this.lang().calendar(format, this));
           },
 
           isLeapYear : function () {
@@ -24867,8 +25725,8 @@ return /******/ (function(modules) { // webpackBootstrap
           day : function (input) {
               var day = this._isUTC ? this._d.getUTCDay() : this._d.getDay();
               if (input != null) {
-                  input = parseWeekday(input, this.localeData());
-                  return this.add(input - day, 'd');
+                  input = parseWeekday(input, this.lang());
+                  return this.add({ d : input - day });
               } else {
                   return day;
               }
@@ -24876,7 +25734,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
           month : makeAccessor('Month', true),
 
-          startOf : function (units) {
+          startOf: function (units) {
               units = normalizeUnits(units);
               // the following switch intentionally omits break keywords
               // to utilize falling through the cases.
@@ -24921,7 +25779,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
           endOf: function (units) {
               units = normalizeUnits(units);
-              return this.startOf(units).add(1, (units === 'isoWeek' ? 'week' : units)).subtract(1, 'ms');
+              return this.startOf(units).add((units === 'isoWeek' ? 'week' : units), 1).subtract('ms', 1);
           },
 
           isAfter: function (input, units) {
@@ -24940,7 +25798,7 @@ return /******/ (function(modules) { // webpackBootstrap
           },
 
           min: deprecate(
-                   'moment().min is deprecated, use moment.min instead. https://github.com/moment/moment/issues/1548',
+                   "moment().min is deprecated, use moment.min instead. https://github.com/moment/moment/issues/1548",
                    function (other) {
                        other = moment.apply(null, arguments);
                        return other < this ? this : other;
@@ -24948,43 +25806,36 @@ return /******/ (function(modules) { // webpackBootstrap
            ),
 
           max: deprecate(
-                  'moment().max is deprecated, use moment.max instead. https://github.com/moment/moment/issues/1548',
+                  "moment().max is deprecated, use moment.max instead. https://github.com/moment/moment/issues/1548",
                   function (other) {
                       other = moment.apply(null, arguments);
                       return other > this ? this : other;
                   }
           ),
 
-          // keepLocalTime = true means only change the timezone, without
-          // affecting the local hour. So 5:31:26 +0300 --[zone(2, true)]-->
-          // 5:31:26 +0200 It is possible that 5:31:26 doesn't exist int zone
-          // +0200, so we adjust the time as needed, to be valid.
+          // keepTime = true means only change the timezone, without affecting
+          // the local hour. So 5:31:26 +0300 --[zone(2, true)]--> 5:31:26 +0200
+          // It is possible that 5:31:26 doesn't exist int zone +0200, so we
+          // adjust the time as needed, to be valid.
           //
           // Keeping the time actually adds/subtracts (one hour)
           // from the actual represented time. That is why we call updateOffset
           // a second time. In case it wants us to change the offset again
           // _changeInProgress == true case, then we have to adjust, because
           // there is no such time in the given timezone.
-          zone : function (input, keepLocalTime) {
-              var offset = this._offset || 0,
-                  localAdjust;
+          zone : function (input, keepTime) {
+              var offset = this._offset || 0;
               if (input != null) {
-                  if (typeof input === 'string') {
+                  if (typeof input === "string") {
                       input = timezoneMinutesFromString(input);
                   }
                   if (Math.abs(input) < 16) {
                       input = input * 60;
                   }
-                  if (!this._isUTC && keepLocalTime) {
-                      localAdjust = this._d.getTimezoneOffset();
-                  }
                   this._offset = input;
                   this._isUTC = true;
-                  if (localAdjust != null) {
-                      this.subtract(localAdjust, 'm');
-                  }
                   if (offset !== input) {
-                      if (!keepLocalTime || this._changeInProgress) {
+                      if (!keepTime || this._changeInProgress) {
                           addOrSubtractDurationFromMoment(this,
                                   moment.duration(offset - input, 'm'), 1, false);
                       } else if (!this._changeInProgress) {
@@ -25000,11 +25851,11 @@ return /******/ (function(modules) { // webpackBootstrap
           },
 
           zoneAbbr : function () {
-              return this._isUTC ? 'UTC' : '';
+              return this._isUTC ? "UTC" : "";
           },
 
           zoneName : function () {
-              return this._isUTC ? 'Coordinated Universal Time' : '';
+              return this._isUTC ? "Coordinated Universal Time" : "";
           },
 
           parseZone : function () {
@@ -25033,7 +25884,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
           dayOfYear : function (input) {
               var dayOfYear = round((moment(this).startOf('day') - moment(this).startOf('year')) / 864e5) + 1;
-              return input == null ? dayOfYear : this.add((input - dayOfYear), 'd');
+              return input == null ? dayOfYear : this.add("d", (input - dayOfYear));
           },
 
           quarter : function (input) {
@@ -25041,28 +25892,28 @@ return /******/ (function(modules) { // webpackBootstrap
           },
 
           weekYear : function (input) {
-              var year = weekOfYear(this, this.localeData()._week.dow, this.localeData()._week.doy).year;
-              return input == null ? year : this.add((input - year), 'y');
+              var year = weekOfYear(this, this.lang()._week.dow, this.lang()._week.doy).year;
+              return input == null ? year : this.add("y", (input - year));
           },
 
           isoWeekYear : function (input) {
               var year = weekOfYear(this, 1, 4).year;
-              return input == null ? year : this.add((input - year), 'y');
+              return input == null ? year : this.add("y", (input - year));
           },
 
           week : function (input) {
-              var week = this.localeData().week(this);
-              return input == null ? week : this.add((input - week) * 7, 'd');
+              var week = this.lang().week(this);
+              return input == null ? week : this.add("d", (input - week) * 7);
           },
 
           isoWeek : function (input) {
               var week = weekOfYear(this, 1, 4).week;
-              return input == null ? week : this.add((input - week) * 7, 'd');
+              return input == null ? week : this.add("d", (input - week) * 7);
           },
 
           weekday : function (input) {
-              var weekday = (this.day() + 7 - this.localeData()._week.dow) % 7;
-              return input == null ? weekday : this.add(input - weekday, 'd');
+              var weekday = (this.day() + 7 - this.lang()._week.dow) % 7;
+              return input == null ? weekday : this.add("d", input - weekday);
           },
 
           isoWeekday : function (input) {
@@ -25077,7 +25928,7 @@ return /******/ (function(modules) { // webpackBootstrap
           },
 
           weeksInYear : function () {
-              var weekInfo = this.localeData()._week;
+              var weekInfo = this._lang._week;
               return weeksInYear(this.year(), weekInfo.dow, weekInfo.doy);
           },
 
@@ -25094,32 +25945,16 @@ return /******/ (function(modules) { // webpackBootstrap
               return this;
           },
 
-          // If passed a locale key, it will set the locale for this
-          // instance.  Otherwise, it will return the locale configuration
+          // If passed a language key, it will set the language for this
+          // instance.  Otherwise, it will return the language configuration
           // variables for this instance.
-          locale : function (key) {
+          lang : function (key) {
               if (key === undefined) {
-                  return this._locale._abbr;
+                  return this._lang;
               } else {
-                  this._locale = moment.localeData(key);
+                  this._lang = getLangDefinition(key);
                   return this;
               }
-          },
-
-          lang : deprecate(
-              "moment().lang() is deprecated. Use moment().localeData() instead.",
-              function (key) {
-                  if (key === undefined) {
-                      return this.localeData();
-                  } else {
-                      this._locale = moment.localeData(key);
-                      return this;
-                  }
-              }
-          ),
-
-          localeData : function () {
-              return this._locale;
           }
       });
 
@@ -25128,7 +25963,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
           // TODO: Move this out of here!
           if (typeof value === 'string') {
-              value = mom.localeData().monthsParse(value);
+              value = mom.lang().monthsParse(value);
               // TODO: Another silent failure?
               if (typeof value !== 'number') {
                   return mom;
@@ -25175,9 +26010,9 @@ return /******/ (function(modules) { // webpackBootstrap
       moment.fn.hour = moment.fn.hours = makeAccessor('Hours', true);
       // moment.fn.month is defined separately
       moment.fn.date = makeAccessor('Date', true);
-      moment.fn.dates = deprecate('dates accessor is deprecated. Use date instead.', makeAccessor('Date', true));
+      moment.fn.dates = deprecate("dates accessor is deprecated. Use date instead.", makeAccessor('Date', true));
       moment.fn.year = makeAccessor('FullYear', true);
-      moment.fn.years = deprecate('years accessor is deprecated. Use year instead.', makeAccessor('FullYear', true));
+      moment.fn.years = deprecate("years accessor is deprecated. Use year instead.", makeAccessor('FullYear', true));
 
       // add plural methods
       moment.fn.days = moment.fn.day;
@@ -25194,17 +26029,6 @@ return /******/ (function(modules) { // webpackBootstrap
       ************************************/
 
 
-      function daysToYears (days) {
-          // 400 years have 146097 days (taking into account leap year rules)
-          return days * 400 / 146097;
-      }
-
-      function yearsToDays (years) {
-          // years * 365 + absRound(years / 4) -
-          //     absRound(years / 100) + absRound(years / 400);
-          return years * 146097 / 400;
-      }
-
       extend(moment.duration.fn = Duration.prototype, {
 
           _bubble : function () {
@@ -25212,7 +26036,7 @@ return /******/ (function(modules) { // webpackBootstrap
                   days = this._days,
                   months = this._months,
                   data = this._data,
-                  seconds, minutes, hours, years = 0;
+                  seconds, minutes, hours, years;
 
               // The following code bubbles up values, see the tests for
               // examples of what that means.
@@ -25228,38 +26052,13 @@ return /******/ (function(modules) { // webpackBootstrap
               data.hours = hours % 24;
 
               days += absRound(hours / 24);
+              data.days = days % 30;
 
-              // Accurately convert days to years, assume start from year 0.
-              years = absRound(daysToYears(days));
-              days -= absRound(yearsToDays(years));
-
-              // 30 days to a month
-              // TODO (iskren): Use anchor date (like 1st Jan) to compute this.
               months += absRound(days / 30);
-              days %= 30;
+              data.months = months % 12;
 
-              // 12 months -> 1 year
-              years += absRound(months / 12);
-              months %= 12;
-
-              data.days = days;
-              data.months = months;
+              years = absRound(months / 12);
               data.years = years;
-          },
-
-          abs : function () {
-              this._milliseconds = Math.abs(this._milliseconds);
-              this._days = Math.abs(this._days);
-              this._months = Math.abs(this._months);
-
-              this._data.milliseconds = Math.abs(this._data.milliseconds);
-              this._data.seconds = Math.abs(this._data.seconds);
-              this._data.minutes = Math.abs(this._data.minutes);
-              this._data.hours = Math.abs(this._data.hours);
-              this._data.months = Math.abs(this._data.months);
-              this._data.years = Math.abs(this._data.years);
-
-              return this;
           },
 
           weeks : function () {
@@ -25274,13 +26073,14 @@ return /******/ (function(modules) { // webpackBootstrap
           },
 
           humanize : function (withSuffix) {
-              var output = relativeTime(this, !withSuffix, this.localeData());
+              var difference = +this,
+                  output = relativeTime(difference, !withSuffix, this.lang());
 
               if (withSuffix) {
-                  output = this.localeData().pastFuture(+this, output);
+                  output = this.lang().pastFuture(difference, output);
               }
 
-              return this.localeData().postformat(output);
+              return this.lang().postformat(output);
           },
 
           add : function (input, val) {
@@ -25314,39 +26114,13 @@ return /******/ (function(modules) { // webpackBootstrap
           },
 
           as : function (units) {
-              var days, months;
               units = normalizeUnits(units);
-
-              days = this._days + this._milliseconds / 864e5;
-              if (units === 'month' || units === 'year') {
-                  months = this._months + daysToYears(days) * 12;
-                  return units === 'month' ? months : months / 12;
-              } else {
-                  days += yearsToDays(this._months / 12);
-                  switch (units) {
-                      case 'week': return days / 7;
-                      case 'day': return days;
-                      case 'hour': return days * 24;
-                      case 'minute': return days * 24 * 60;
-                      case 'second': return days * 24 * 60 * 60;
-                      case 'millisecond': return days * 24 * 60 * 60 * 1000;
-                      default: throw new Error('Unknown unit ' + units);
-                  }
-              }
+              return this['as' + units.charAt(0).toUpperCase() + units.slice(1) + 's']();
           },
 
           lang : moment.fn.lang,
-          locale : moment.fn.locale,
 
-          toIsoString : deprecate(
-              "toIsoString() is deprecated. Please use toISOString() instead " +
-              "(notice the capitals)",
-              function () {
-                  return this.toISOString();
-              }
-          ),
-
-          toISOString : function () {
+          toIsoString : function () {
               // inspired by https://github.com/dordille/moment-isoduration/blob/master/moment.isoduration.js
               var years = Math.abs(this.years()),
                   months = Math.abs(this.months()),
@@ -25370,10 +26144,6 @@ return /******/ (function(modules) { // webpackBootstrap
                   (hours ? hours + 'H' : '') +
                   (minutes ? minutes + 'M' : '') +
                   (seconds ? seconds + 'S' : '');
-          },
-
-          localeData : function () {
-              return this._locale;
           }
       });
 
@@ -25383,44 +26153,32 @@ return /******/ (function(modules) { // webpackBootstrap
           };
       }
 
+      function makeDurationAsGetter(name, factor) {
+          moment.duration.fn['as' + name] = function () {
+              return +this / factor;
+          };
+      }
+
       for (i in unitMillisecondFactors) {
           if (unitMillisecondFactors.hasOwnProperty(i)) {
+              makeDurationAsGetter(i, unitMillisecondFactors[i]);
               makeDurationGetter(i.toLowerCase());
           }
       }
 
-      moment.duration.fn.asMilliseconds = function () {
-          return this.as('ms');
-      };
-      moment.duration.fn.asSeconds = function () {
-          return this.as('s');
-      };
-      moment.duration.fn.asMinutes = function () {
-          return this.as('m');
-      };
-      moment.duration.fn.asHours = function () {
-          return this.as('h');
-      };
-      moment.duration.fn.asDays = function () {
-          return this.as('d');
-      };
-      moment.duration.fn.asWeeks = function () {
-          return this.as('weeks');
-      };
+      makeDurationAsGetter('Weeks', 6048e5);
       moment.duration.fn.asMonths = function () {
-          return this.as('M');
-      };
-      moment.duration.fn.asYears = function () {
-          return this.as('y');
+          return (+this - this.years() * 31536e6) / 2592e6 + this.years() * 12;
       };
 
+
       /************************************
-          Default Locale
+          Default Lang
       ************************************/
 
 
-      // Set default locale, other locale will inherit from English.
-      moment.locale('en', {
+      // Set default language, other languages will inherit from English.
+      moment.lang('en', {
           ordinal : function (number) {
               var b = number % 10,
                   output = (toInt(number % 100 / 10) === 1) ? 'th' :
@@ -25431,7 +26189,7 @@ return /******/ (function(modules) { // webpackBootstrap
           }
       });
 
-      /* EMBED_LOCALES */
+      /* EMBED_LANGUAGES */
 
       /************************************
           Exposing Moment
@@ -25445,9 +26203,9 @@ return /******/ (function(modules) { // webpackBootstrap
           oldGlobalMoment = globalScope.moment;
           if (shouldDeprecate) {
               globalScope.moment = deprecate(
-                      'Accessing Moment through the global scope is ' +
-                      'deprecated, and will be removed in an upcoming ' +
-                      'release.',
+                      "Accessing Moment through the global scope is " +
+                      "deprecated, and will be removed in an upcoming " +
+                      "release.",
                       moment);
           } else {
               globalScope.moment = moment;
@@ -25473,811 +26231,6 @@ return /******/ (function(modules) { // webpackBootstrap
   }).call(this);
   
   /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(63)(module)))
-
-/***/ },
-/* 51 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * Copyright 2012 Craig Campbell
-   *
-   * Licensed under the Apache License, Version 2.0 (the "License");
-   * you may not use this file except in compliance with the License.
-   * You may obtain a copy of the License at
-   *
-   * http://www.apache.org/licenses/LICENSE-2.0
-   *
-   * Unless required by applicable law or agreed to in writing, software
-   * distributed under the License is distributed on an "AS IS" BASIS,
-   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   * See the License for the specific language governing permissions and
-   * limitations under the License.
-   *
-   * Mousetrap is a simple keyboard shortcut library for Javascript with
-   * no external dependencies
-   *
-   * @version 1.1.2
-   * @url craig.is/killing/mice
-   */
-
-    /**
-     * mapping of special keycodes to their corresponding keys
-     *
-     * everything in this dictionary cannot use keypress events
-     * so it has to be here to map to the correct keycodes for
-     * keyup/keydown events
-     *
-     * @type {Object}
-     */
-    var _MAP = {
-            8: 'backspace',
-            9: 'tab',
-            13: 'enter',
-            16: 'shift',
-            17: 'ctrl',
-            18: 'alt',
-            20: 'capslock',
-            27: 'esc',
-            32: 'space',
-            33: 'pageup',
-            34: 'pagedown',
-            35: 'end',
-            36: 'home',
-            37: 'left',
-            38: 'up',
-            39: 'right',
-            40: 'down',
-            45: 'ins',
-            46: 'del',
-            91: 'meta',
-            93: 'meta',
-            224: 'meta'
-        },
-
-        /**
-         * mapping for special characters so they can support
-         *
-         * this dictionary is only used incase you want to bind a
-         * keyup or keydown event to one of these keys
-         *
-         * @type {Object}
-         */
-        _KEYCODE_MAP = {
-            106: '*',
-            107: '+',
-            109: '-',
-            110: '.',
-            111 : '/',
-            186: ';',
-            187: '=',
-            188: ',',
-            189: '-',
-            190: '.',
-            191: '/',
-            192: '`',
-            219: '[',
-            220: '\\',
-            221: ']',
-            222: '\''
-        },
-
-        /**
-         * this is a mapping of keys that require shift on a US keypad
-         * back to the non shift equivelents
-         *
-         * this is so you can use keyup events with these keys
-         *
-         * note that this will only work reliably on US keyboards
-         *
-         * @type {Object}
-         */
-        _SHIFT_MAP = {
-            '~': '`',
-            '!': '1',
-            '@': '2',
-            '#': '3',
-            '$': '4',
-            '%': '5',
-            '^': '6',
-            '&': '7',
-            '*': '8',
-            '(': '9',
-            ')': '0',
-            '_': '-',
-            '+': '=',
-            ':': ';',
-            '\"': '\'',
-            '<': ',',
-            '>': '.',
-            '?': '/',
-            '|': '\\'
-        },
-
-        /**
-         * this is a list of special strings you can use to map
-         * to modifier keys when you specify your keyboard shortcuts
-         *
-         * @type {Object}
-         */
-        _SPECIAL_ALIASES = {
-            'option': 'alt',
-            'command': 'meta',
-            'return': 'enter',
-            'escape': 'esc'
-        },
-
-        /**
-         * variable to store the flipped version of _MAP from above
-         * needed to check if we should use keypress or not when no action
-         * is specified
-         *
-         * @type {Object|undefined}
-         */
-        _REVERSE_MAP,
-
-        /**
-         * a list of all the callbacks setup via Mousetrap.bind()
-         *
-         * @type {Object}
-         */
-        _callbacks = {},
-
-        /**
-         * direct map of string combinations to callbacks used for trigger()
-         *
-         * @type {Object}
-         */
-        _direct_map = {},
-
-        /**
-         * keeps track of what level each sequence is at since multiple
-         * sequences can start out with the same sequence
-         *
-         * @type {Object}
-         */
-        _sequence_levels = {},
-
-        /**
-         * variable to store the setTimeout call
-         *
-         * @type {null|number}
-         */
-        _reset_timer,
-
-        /**
-         * temporary state where we will ignore the next keyup
-         *
-         * @type {boolean|string}
-         */
-        _ignore_next_keyup = false,
-
-        /**
-         * are we currently inside of a sequence?
-         * type of action ("keyup" or "keydown" or "keypress") or false
-         *
-         * @type {boolean|string}
-         */
-        _inside_sequence = false;
-
-    /**
-     * loop through the f keys, f1 to f19 and add them to the map
-     * programatically
-     */
-    for (var i = 1; i < 20; ++i) {
-        _MAP[111 + i] = 'f' + i;
-    }
-
-    /**
-     * loop through to map numbers on the numeric keypad
-     */
-    for (i = 0; i <= 9; ++i) {
-        _MAP[i + 96] = i;
-    }
-
-    /**
-     * cross browser add event method
-     *
-     * @param {Element|HTMLDocument} object
-     * @param {string} type
-     * @param {Function} callback
-     * @returns void
-     */
-    function _addEvent(object, type, callback) {
-        if (object.addEventListener) {
-            return object.addEventListener(type, callback, false);
-        }
-
-        object.attachEvent('on' + type, callback);
-    }
-
-    /**
-     * takes the event and returns the key character
-     *
-     * @param {Event} e
-     * @return {string}
-     */
-    function _characterFromEvent(e) {
-
-        // for keypress events we should return the character as is
-        if (e.type == 'keypress') {
-            return String.fromCharCode(e.which);
-        }
-
-        // for non keypress events the special maps are needed
-        if (_MAP[e.which]) {
-            return _MAP[e.which];
-        }
-
-        if (_KEYCODE_MAP[e.which]) {
-            return _KEYCODE_MAP[e.which];
-        }
-
-        // if it is not in the special map
-        return String.fromCharCode(e.which).toLowerCase();
-    }
-
-    /**
-     * should we stop this event before firing off callbacks
-     *
-     * @param {Event} e
-     * @return {boolean}
-     */
-    function _stop(e) {
-        var element = e.target || e.srcElement,
-            tag_name = element.tagName;
-
-        // if the element has the class "mousetrap" then no need to stop
-        if ((' ' + element.className + ' ').indexOf(' mousetrap ') > -1) {
-            return false;
-        }
-
-        // stop for input, select, and textarea
-        return tag_name == 'INPUT' || tag_name == 'SELECT' || tag_name == 'TEXTAREA' || (element.contentEditable && element.contentEditable == 'true');
-    }
-
-    /**
-     * checks if two arrays are equal
-     *
-     * @param {Array} modifiers1
-     * @param {Array} modifiers2
-     * @returns {boolean}
-     */
-    function _modifiersMatch(modifiers1, modifiers2) {
-        return modifiers1.sort().join(',') === modifiers2.sort().join(',');
-    }
-
-    /**
-     * resets all sequence counters except for the ones passed in
-     *
-     * @param {Object} do_not_reset
-     * @returns void
-     */
-    function _resetSequences(do_not_reset) {
-        do_not_reset = do_not_reset || {};
-
-        var active_sequences = false,
-            key;
-
-        for (key in _sequence_levels) {
-            if (do_not_reset[key]) {
-                active_sequences = true;
-                continue;
-            }
-            _sequence_levels[key] = 0;
-        }
-
-        if (!active_sequences) {
-            _inside_sequence = false;
-        }
-    }
-
-    /**
-     * finds all callbacks that match based on the keycode, modifiers,
-     * and action
-     *
-     * @param {string} character
-     * @param {Array} modifiers
-     * @param {string} action
-     * @param {boolean=} remove - should we remove any matches
-     * @param {string=} combination
-     * @returns {Array}
-     */
-    function _getMatches(character, modifiers, action, remove, combination) {
-        var i,
-            callback,
-            matches = [];
-
-        // if there are no events related to this keycode
-        if (!_callbacks[character]) {
-            return [];
-        }
-
-        // if a modifier key is coming up on its own we should allow it
-        if (action == 'keyup' && _isModifier(character)) {
-            modifiers = [character];
-        }
-
-        // loop through all callbacks for the key that was pressed
-        // and see if any of them match
-        for (i = 0; i < _callbacks[character].length; ++i) {
-            callback = _callbacks[character][i];
-
-            // if this is a sequence but it is not at the right level
-            // then move onto the next match
-            if (callback.seq && _sequence_levels[callback.seq] != callback.level) {
-                continue;
-            }
-
-            // if the action we are looking for doesn't match the action we got
-            // then we should keep going
-            if (action != callback.action) {
-                continue;
-            }
-
-            // if this is a keypress event that means that we need to only
-            // look at the character, otherwise check the modifiers as
-            // well
-            if (action == 'keypress' || _modifiersMatch(modifiers, callback.modifiers)) {
-
-                // remove is used so if you change your mind and call bind a
-                // second time with a new function the first one is overwritten
-                if (remove && callback.combo == combination) {
-                    _callbacks[character].splice(i, 1);
-                }
-
-                matches.push(callback);
-            }
-        }
-
-        return matches;
-    }
-
-    /**
-     * takes a key event and figures out what the modifiers are
-     *
-     * @param {Event} e
-     * @returns {Array}
-     */
-    function _eventModifiers(e) {
-        var modifiers = [];
-
-        if (e.shiftKey) {
-            modifiers.push('shift');
-        }
-
-        if (e.altKey) {
-            modifiers.push('alt');
-        }
-
-        if (e.ctrlKey) {
-            modifiers.push('ctrl');
-        }
-
-        if (e.metaKey) {
-            modifiers.push('meta');
-        }
-
-        return modifiers;
-    }
-
-    /**
-     * actually calls the callback function
-     *
-     * if your callback function returns false this will use the jquery
-     * convention - prevent default and stop propogation on the event
-     *
-     * @param {Function} callback
-     * @param {Event} e
-     * @returns void
-     */
-    function _fireCallback(callback, e) {
-        if (callback(e) === false) {
-            if (e.preventDefault) {
-                e.preventDefault();
-            }
-
-            if (e.stopPropagation) {
-                e.stopPropagation();
-            }
-
-            e.returnValue = false;
-            e.cancelBubble = true;
-        }
-    }
-
-    /**
-     * handles a character key event
-     *
-     * @param {string} character
-     * @param {Event} e
-     * @returns void
-     */
-    function _handleCharacter(character, e) {
-
-        // if this event should not happen stop here
-        if (_stop(e)) {
-            return;
-        }
-
-        var callbacks = _getMatches(character, _eventModifiers(e), e.type),
-            i,
-            do_not_reset = {},
-            processed_sequence_callback = false;
-
-        // loop through matching callbacks for this key event
-        for (i = 0; i < callbacks.length; ++i) {
-
-            // fire for all sequence callbacks
-            // this is because if for example you have multiple sequences
-            // bound such as "g i" and "g t" they both need to fire the
-            // callback for matching g cause otherwise you can only ever
-            // match the first one
-            if (callbacks[i].seq) {
-                processed_sequence_callback = true;
-
-                // keep a list of which sequences were matches for later
-                do_not_reset[callbacks[i].seq] = 1;
-                _fireCallback(callbacks[i].callback, e);
-                continue;
-            }
-
-            // if there were no sequence matches but we are still here
-            // that means this is a regular match so we should fire that
-            if (!processed_sequence_callback && !_inside_sequence) {
-                _fireCallback(callbacks[i].callback, e);
-            }
-        }
-
-        // if you are inside of a sequence and the key you are pressing
-        // is not a modifier key then we should reset all sequences
-        // that were not matched by this key event
-        if (e.type == _inside_sequence && !_isModifier(character)) {
-            _resetSequences(do_not_reset);
-        }
-    }
-
-    /**
-     * handles a keydown event
-     *
-     * @param {Event} e
-     * @returns void
-     */
-    function _handleKey(e) {
-
-        // normalize e.which for key events
-        // @see http://stackoverflow.com/questions/4285627/javascript-keycode-vs-charcode-utter-confusion
-        e.which = typeof e.which == "number" ? e.which : e.keyCode;
-
-        var character = _characterFromEvent(e);
-
-        // no character found then stop
-        if (!character) {
-            return;
-        }
-
-        if (e.type == 'keyup' && _ignore_next_keyup == character) {
-            _ignore_next_keyup = false;
-            return;
-        }
-
-        _handleCharacter(character, e);
-    }
-
-    /**
-     * determines if the keycode specified is a modifier key or not
-     *
-     * @param {string} key
-     * @returns {boolean}
-     */
-    function _isModifier(key) {
-        return key == 'shift' || key == 'ctrl' || key == 'alt' || key == 'meta';
-    }
-
-    /**
-     * called to set a 1 second timeout on the specified sequence
-     *
-     * this is so after each key press in the sequence you have 1 second
-     * to press the next key before you have to start over
-     *
-     * @returns void
-     */
-    function _resetSequenceTimer() {
-        clearTimeout(_reset_timer);
-        _reset_timer = setTimeout(_resetSequences, 1000);
-    }
-
-    /**
-     * reverses the map lookup so that we can look for specific keys
-     * to see what can and can't use keypress
-     *
-     * @return {Object}
-     */
-    function _getReverseMap() {
-        if (!_REVERSE_MAP) {
-            _REVERSE_MAP = {};
-            for (var key in _MAP) {
-
-                // pull out the numeric keypad from here cause keypress should
-                // be able to detect the keys from the character
-                if (key > 95 && key < 112) {
-                    continue;
-                }
-
-                if (_MAP.hasOwnProperty(key)) {
-                    _REVERSE_MAP[_MAP[key]] = key;
-                }
-            }
-        }
-        return _REVERSE_MAP;
-    }
-
-    /**
-     * picks the best action based on the key combination
-     *
-     * @param {string} key - character for key
-     * @param {Array} modifiers
-     * @param {string=} action passed in
-     */
-    function _pickBestAction(key, modifiers, action) {
-
-        // if no action was picked in we should try to pick the one
-        // that we think would work best for this key
-        if (!action) {
-            action = _getReverseMap()[key] ? 'keydown' : 'keypress';
-        }
-
-        // modifier keys don't work as expected with keypress,
-        // switch to keydown
-        if (action == 'keypress' && modifiers.length) {
-            action = 'keydown';
-        }
-
-        return action;
-    }
-
-    /**
-     * binds a key sequence to an event
-     *
-     * @param {string} combo - combo specified in bind call
-     * @param {Array} keys
-     * @param {Function} callback
-     * @param {string=} action
-     * @returns void
-     */
-    function _bindSequence(combo, keys, callback, action) {
-
-        // start off by adding a sequence level record for this combination
-        // and setting the level to 0
-        _sequence_levels[combo] = 0;
-
-        // if there is no action pick the best one for the first key
-        // in the sequence
-        if (!action) {
-            action = _pickBestAction(keys[0], []);
-        }
-
-        /**
-         * callback to increase the sequence level for this sequence and reset
-         * all other sequences that were active
-         *
-         * @param {Event} e
-         * @returns void
-         */
-        var _increaseSequence = function(e) {
-                _inside_sequence = action;
-                ++_sequence_levels[combo];
-                _resetSequenceTimer();
-            },
-
-            /**
-             * wraps the specified callback inside of another function in order
-             * to reset all sequence counters as soon as this sequence is done
-             *
-             * @param {Event} e
-             * @returns void
-             */
-            _callbackAndReset = function(e) {
-                _fireCallback(callback, e);
-
-                // we should ignore the next key up if the action is key down
-                // or keypress.  this is so if you finish a sequence and
-                // release the key the final key will not trigger a keyup
-                if (action !== 'keyup') {
-                    _ignore_next_keyup = _characterFromEvent(e);
-                }
-
-                // weird race condition if a sequence ends with the key
-                // another sequence begins with
-                setTimeout(_resetSequences, 10);
-            },
-            i;
-
-        // loop through keys one at a time and bind the appropriate callback
-        // function.  for any key leading up to the final one it should
-        // increase the sequence. after the final, it should reset all sequences
-        for (i = 0; i < keys.length; ++i) {
-            _bindSingle(keys[i], i < keys.length - 1 ? _increaseSequence : _callbackAndReset, action, combo, i);
-        }
-    }
-
-    /**
-     * binds a single keyboard combination
-     *
-     * @param {string} combination
-     * @param {Function} callback
-     * @param {string=} action
-     * @param {string=} sequence_name - name of sequence if part of sequence
-     * @param {number=} level - what part of the sequence the command is
-     * @returns void
-     */
-    function _bindSingle(combination, callback, action, sequence_name, level) {
-
-        // make sure multiple spaces in a row become a single space
-        combination = combination.replace(/\s+/g, ' ');
-
-        var sequence = combination.split(' '),
-            i,
-            key,
-            keys,
-            modifiers = [];
-
-        // if this pattern is a sequence of keys then run through this method
-        // to reprocess each pattern one key at a time
-        if (sequence.length > 1) {
-            return _bindSequence(combination, sequence, callback, action);
-        }
-
-        // take the keys from this pattern and figure out what the actual
-        // pattern is all about
-        keys = combination === '+' ? ['+'] : combination.split('+');
-
-        for (i = 0; i < keys.length; ++i) {
-            key = keys[i];
-
-            // normalize key names
-            if (_SPECIAL_ALIASES[key]) {
-                key = _SPECIAL_ALIASES[key];
-            }
-
-            // if this is not a keypress event then we should
-            // be smart about using shift keys
-            // this will only work for US keyboards however
-            if (action && action != 'keypress' && _SHIFT_MAP[key]) {
-                key = _SHIFT_MAP[key];
-                modifiers.push('shift');
-            }
-
-            // if this key is a modifier then add it to the list of modifiers
-            if (_isModifier(key)) {
-                modifiers.push(key);
-            }
-        }
-
-        // depending on what the key combination is
-        // we will try to pick the best event for it
-        action = _pickBestAction(key, modifiers, action);
-
-        // make sure to initialize array if this is the first time
-        // a callback is added for this key
-        if (!_callbacks[key]) {
-            _callbacks[key] = [];
-        }
-
-        // remove an existing match if there is one
-        _getMatches(key, modifiers, action, !sequence_name, combination);
-
-        // add this call back to the array
-        // if it is a sequence put it at the beginning
-        // if not put it at the end
-        //
-        // this is important because the way these are processed expects
-        // the sequence ones to come first
-        _callbacks[key][sequence_name ? 'unshift' : 'push']({
-            callback: callback,
-            modifiers: modifiers,
-            action: action,
-            seq: sequence_name,
-            level: level,
-            combo: combination
-        });
-    }
-
-    /**
-     * binds multiple combinations to the same callback
-     *
-     * @param {Array} combinations
-     * @param {Function} callback
-     * @param {string|undefined} action
-     * @returns void
-     */
-    function _bindMultiple(combinations, callback, action) {
-        for (var i = 0; i < combinations.length; ++i) {
-            _bindSingle(combinations[i], callback, action);
-        }
-    }
-
-    // start!
-    _addEvent(document, 'keypress', _handleKey);
-    _addEvent(document, 'keydown', _handleKey);
-    _addEvent(document, 'keyup', _handleKey);
-
-    var mousetrap = {
-
-        /**
-         * binds an event to mousetrap
-         *
-         * can be a single key, a combination of keys separated with +,
-         * a comma separated list of keys, an array of keys, or
-         * a sequence of keys separated by spaces
-         *
-         * be sure to list the modifier keys first to make sure that the
-         * correct key ends up getting bound (the last key in the pattern)
-         *
-         * @param {string|Array} keys
-         * @param {Function} callback
-         * @param {string=} action - 'keypress', 'keydown', or 'keyup'
-         * @returns void
-         */
-        bind: function(keys, callback, action) {
-            _bindMultiple(keys instanceof Array ? keys : [keys], callback, action);
-            _direct_map[keys + ':' + action] = callback;
-            return this;
-        },
-
-        /**
-         * unbinds an event to mousetrap
-         *
-         * the unbinding sets the callback function of the specified key combo
-         * to an empty function and deletes the corresponding key in the
-         * _direct_map dict.
-         *
-         * the keycombo+action has to be exactly the same as
-         * it was defined in the bind method
-         *
-         * TODO: actually remove this from the _callbacks dictionary instead
-         * of binding an empty function
-         *
-         * @param {string|Array} keys
-         * @param {string} action
-         * @returns void
-         */
-        unbind: function(keys, action) {
-            if (_direct_map[keys + ':' + action]) {
-                delete _direct_map[keys + ':' + action];
-                this.bind(keys, function() {}, action);
-            }
-            return this;
-        },
-
-        /**
-         * triggers an event that has already been bound
-         *
-         * @param {string} keys
-         * @param {string=} action
-         * @returns void
-         */
-        trigger: function(keys, action) {
-            _direct_map[keys + ':' + action]();
-            return this;
-        },
-
-        /**
-         * resets the library back to its initial state.  this is useful
-         * if you want to clear out the current keyboard shortcuts and bind
-         * new ones - for example if you switch to another page
-         *
-         * @returns void
-         */
-        reset: function() {
-            _callbacks = {};
-            _direct_map = {};
-            return this;
-        }
-    };
-
-  module.exports = mousetrap;
-
-
 
 /***/ },
 /* 52 */
@@ -30480,11 +30433,17 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
+  var map = {};
   function webpackContext(req) {
-  	throw new Error("Cannot find module '" + req + "'.");
-  }
-  webpackContext.resolve = webpackContext;
-  webpackContext.keys = function() { return []; };
+  	return __webpack_require__(webpackContextResolve(req));
+  };
+  function webpackContextResolve(req) {
+  	return map[req] || (function() { throw new Error("Cannot find module '" + req + "'.") }());
+  };
+  webpackContext.keys = function webpackContextKeys() {
+  	return Object.keys(map);
+  };
+  webpackContext.resolve = webpackContextResolve;
   module.exports = webpackContext;
 
 
@@ -31134,4 +31093,4 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ }
 /******/ ])
-});
+})
