@@ -10,6 +10,7 @@ http://visjs.org
 - Fixed canceling moving an item to another group did not move the item
   back to the original group.
 - Added localization support.
+- Implemented option `activatable`.
 
 ### Network
 
@@ -23,6 +24,7 @@ http://visjs.org
 - Added two examples showing the two additions above.
 - Added 'customRange' for the Y axis and an example showing how it works.
 - Added localization support.
+- Implemented option `activatable`.
 
 ## 2014-08-14, version 3.2.0
 
