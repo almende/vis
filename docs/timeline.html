@@ -739,7 +739,14 @@ timeline.clear({options: true}); // clear options only
   <tr>
     <td>fit()</td>
     <td>none</td>
-    <td>Adjust the visible window such that it fits all items.
+    <td>Adjust the visible window such that it fits all items. See also function <code>focus(id)</code>.
+    </td>
+  </tr>
+
+  <tr>
+    <td>focus(id | ids)</td>
+    <td>none</td>
+    <td>Adjust the visible window such that the selected item (or multiple items) are centered on screen. See also function <code>fit()</code>.
     </td>
   </tr>
 
@@ -822,9 +829,12 @@ timeline.clear({options: true}); // clear options only
   </tr>
 
   <tr>
-    <td>setSelection([ids])</td>
+    <td>setSelection([ids [, options]])</td>
     <td>none</td>
-    <td>Select one or multiple items by their id. The currently selected items will be unselected. To unselect all selected items, call `setSelection([])`.
+    <td>Select one or multiple items by their id. The currently selected items will be unselected. To unselect all selected items, call `setSelection([])`. Available options:
+      <ul>
+        <li><code>focus: boolean</code>. If true, focus will be set to the selected item(s)</li>
+      </ul>
     </td>
   </tr>
 

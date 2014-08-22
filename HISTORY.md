@@ -11,6 +11,10 @@ http://visjs.org
   back to the original group.
 - Added localization support.
 - Implemented option `clickToUse`.
+- Implemented function `focus(id)` to center a specific item (or multiple items)
+  on screen.
+- Implemented an option `focus` for `setSelection(ids, options)`, to immediately
+  focus selected nodes.
 
 ### Network
 
