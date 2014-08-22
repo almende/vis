@@ -18,6 +18,8 @@ http://visjs.org
 - Fixed physics solving stopping when a support node was not moving.
 - Added localization support.
 - Implemented option `activatable`.
+- Fixed page scroll event not being blocked when moving around in Network
+  using arrow keys.
 
 ### Graph2D
 
