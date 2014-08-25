@@ -710,21 +710,6 @@ Graph2d.clear({options: true}); // clear options only
   </tr>
 
   <tr>
-    <td>setCurrentTime(time)</td>
-    <td>none</td>
-    <td>Set a current time. This can be used for example to ensure that a client's time is synchronized with a shared server time.
-      <code>time</code> can be a Date object, numeric timestamp, or ISO date string.
-      Only applicable when option <code>showCurrentTime</code> is true.</td>
-  </tr>
-
-  <tr>
-    <td>setCustomTime(time)</td>
-    <td>none</td>
-    <td>Adjust the custom time bar. Only applicable when the option <code>showCustomTime</code> is true. <code>time</code> can be a Date object, numeric timestamp, or ISO date string.
-    </td>
-  </tr>
-
-  <tr>
     <td>getLegend(groupId, iconWidth, iconHeight)</td>
     <td>SVGelement, String, String</td>
     <td>Returns an object containing an SVG element with the icon of the group (size determined by iconWidth and iconHeight), the label of the group (content) and the yAxisOrientation of the group (left or right).
@@ -751,6 +736,23 @@ Graph2d.clear({options: true}); // clear options only
   </tr>
 
   <tr>
+    <td>isGroupVisible(groupId)</td>
+    <td>Boolean</td>
+    <td>This checks if the visible option of the supplied group (by ID) is true or false.
+    </td>
+  </tr>
+
+  <tr>
+    <td>moveTo(time [, options])</td>
+    <td>none</td>
+    <td>Move the window such that given time is centered on screen. Parameter <code>time</code> can be a <code>Date</code>, <code>Number</code>, or <code>String</code>. Available options:
+      <ul>
+        <li><code>animate: boolean | number</code><br>If true (default), the range is animated smoothly to the new window. If a number, the number is taken as duration for the animation. Default duration is 500 ms.</li>
+      </ul>
+    </td>
+  </tr>
+
+  <tr>
     <td>on(event, callback)</td>
     <td>none</td>
     <td>Create an event listener. The callback function is invoked every time the event is triggered. Avialable events: <code>rangechange</code>, <code>rangechanged</code>, <code>select</code>. The callback function is invoked as <code>callback(properties)</code>, where <code>properties</code> is an object containing event specific properties. See section <a href="#Events">Events for more information</a>.</td>
@@ -770,9 +772,17 @@ Graph2d.clear({options: true}); // clear options only
   </tr>
 
   <tr>
-    <td>isGroupVisible(groupId)</td>
-    <td>Boolean</td>
-    <td>This checks if the visible option of the supplied group (by ID) is true or false.
+    <td>setCurrentTime(time)</td>
+    <td>none</td>
+    <td>Set a current time. This can be used for example to ensure that a client's time is synchronized with a shared server time.
+      <code>time</code> can be a Date object, numeric timestamp, or ISO date string.
+      Only applicable when option <code>showCurrentTime</code> is true.</td>
+  </tr>
+
+  <tr>
+    <td>setCustomTime(time)</td>
+    <td>none</td>
+    <td>Adjust the custom time bar. Only applicable when the option <code>showCustomTime</code> is true. <code>time</code> can be a Date object, numeric timestamp, or ISO date string.
     </td>
   </tr>
 
