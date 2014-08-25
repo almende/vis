@@ -15,6 +15,8 @@ http://visjs.org
   on screen.
 - Implemented an option `focus` for `setSelection(ids, options)`, to immediately
   focus selected nodes.
+- Implemented animated range change for functions `fit`, `focus`, `setSelection`,
+  and `setWindow`.
 
 ### Network
 
