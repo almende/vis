@@ -1506,7 +1506,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @returns {*}
    * @private
    */
-  exports.getDOMElement = function (elementType, JSONcontainer, DOMContainer) {
+  exports.getDOMElement = function (elementType, JSONcontainer, DOMContainer, insertBefore) {
     var element;
     // allocate DOM element, if it doesnt yet exist, create one.
     if (JSONcontainer.hasOwnProperty(elementType)) { // this element has been created before
@@ -1518,14 +1518,24 @@ return /******/ (function(modules) { // webpackBootstrap
       else {
         // create a new element and add it to the SVG
         element = document.createElement(elementType);
-        DOMContainer.appendChild(element);
+        if (insertBefore !== undefined) {
+          DOMContainer.insertBefore(element, insertBefore);
+        }
+        else {
+          DOMContainer.appendChild(element);
+        }
       }
     }
     else {
       // create a new element and add it to the SVG, also create a new object in the svgElements to keep track of it.
       element = document.createElement(elementType);
       JSONcontainer[elementType] = {used: [], redundant: []};
-      DOMContainer.appendChild(element);
+      if (insertBefore !== undefined) {
+        DOMContainer.insertBefore(element, insertBefore);
+      }
+      else {
+        DOMContainer.appendChild(element);
+      }
     }
     JSONcontainer[elementType].used.push(element);
     return element;
