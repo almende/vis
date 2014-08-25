@@ -6,9 +6,6 @@ http://visjs.org
 
 ### Timeline
 
-- Fixed the `change` event sometimes being fired twice on IE10.
-- Fixed canceling moving an item to another group did not move the item
-  back to the original group.
 - Added localization support.
 - Implemented option `clickToUse`.
 - Implemented function `focus(id)` to center a specific item (or multiple items)
@@ -17,6 +14,10 @@ http://visjs.org
   focus selected nodes.
 - Implemented animated range change for functions `fit`, `focus`, `setSelection`,
   and `setWindow`.
+- Implemented functions `setCurrentTime(date)` and `getCurrentTime()`.
+- Fixed the `change` event sometimes being fired twice on IE10.
+- Fixed canceling moving an item to another group did not move the item
+  back to the original group.
 
 ### Network
 
@@ -34,6 +35,7 @@ http://visjs.org
 - Added 'customRange' for the Y axis and an example showing how it works.
 - Added localization support.
 - Implemented option `clickToUse`.
+- Implemented functions `setCurrentTime(date)` and `getCurrentTime()`.
 
 ## 2014-08-14, version 3.2.0
 
