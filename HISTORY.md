@@ -15,6 +15,7 @@ http://visjs.org
   on screen.
 - Implemented an option `focus` for `setSelection(ids, options)`, to immediately
   focus selected nodes.
+- Implemented function `moveTo(time, options)`.
 - Implemented animated range change for functions `fit`, `focus`, `setSelection`,
   and `setWindow`.
 - Implemented functions `setCurrentTime(date)` and `getCurrentTime()`.
@@ -26,19 +27,20 @@ http://visjs.org
 
 - A fix in reading group properties for a node.
 - Fixed physics solving stopping when a support node was not moving.
-- Added localization support.
+- Implemented localization support.
 - Implemented option `clickToUse`.
 - Fixed page scroll event not being blocked when moving around in Network
   using arrow keys.
 
 ### Graph2D
 
-- Added 'handleOverlap' to support overlap, sideBySide and stack.
-- Added two examples showing the 'handleOverlap' functionality.
-- Added 'customRange' for the Y axis and an example showing how it works.
-- Added localization support.
+- Implemented option `handleOverlap` to support overlap, sideBySide and stack.
+- Implemented two examples showing the `handleOverlap` functionality.
+- Implemented `customRange` for the Y axis and an example showing how it works.
+- Implemented localization support.
 - Implemented option `clickToUse`.
 - Implemented functions `setCurrentTime(date)` and `getCurrentTime()`.
+- Implemented function `moveTo(time, options)`.
 - Fixed bugs.
 - Added groups.visibility functionality and an example showing how it works.
 
