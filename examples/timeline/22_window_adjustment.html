@@ -24,6 +24,7 @@
 <input type="button" id="focus1" value="Focus item 2"><br>
 <input type="button" id="focus2" value="Focus items 5 and 6 (slow animation)"><br>
 <input type="button" id="focus3" value="Focus current selection"><br>
+<input type="button" id="moveTo" value="Move to 2014-02-01"><br>
 
 <div id="visualization"></div>
 
@@ -83,6 +84,9 @@
   document.getElementById('focus3').onclick = function() {
     var selection = timeline.getSelection();
     timeline.focus(selection);
+  };
+  document.getElementById('moveTo').onclick = function() {
+    timeline.moveTo('2014-02-01');
   };
 
 </script>
