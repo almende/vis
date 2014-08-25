@@ -696,6 +696,13 @@ Graph2d.clear({options: true}); // clear options only
   </tr>
 
   <tr>
+    <td>getCurrentTime()</td>
+    <td>Date</td>
+    <td>Get the current time. Only applicable when option <code>showCurrentTime</code> is true.
+    </td>
+  </tr>
+
+  <tr>
     <td>getCustomTime()</td>
     <td>Date</td>
     <td>Retrieve the custom time. Only applicable when the option <code>showCustomTime</code> is true.
@@ -703,9 +710,17 @@ Graph2d.clear({options: true}); // clear options only
   </tr>
 
   <tr>
+    <td>setCurrentTime(time)</td>
+    <td>none</td>
+    <td>Set a current time. This can be used for example to ensure that a client's time is synchronized with a shared server time.
+      <code>time</code> can be a Date object, numeric timestamp, or ISO date string.
+      Only applicable when option <code>showCurrentTime</code> is true.</td>
+  </tr>
+
+  <tr>
     <td>setCustomTime(time)</td>
     <td>none</td>
-    <td>Adjust the custom time bar. Only applicable when the option <code>showCustomTime</code> is true. <code>time</code> is a Date object.
+    <td>Adjust the custom time bar. Only applicable when the option <code>showCustomTime</code> is true. <code>time</code> can be a Date object, numeric timestamp, or ISO date string.
     </td>
   </tr>
 
