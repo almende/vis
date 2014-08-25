@@ -57,7 +57,7 @@
   // create a dataset with items
   var items = new vis.DataSet();
   for (var i = 0; i < itemCount; i++) {
-    var start = now.clone().add('hours', Math.random() * 200);
+    var start = now.clone().add(Math.random() * 200, 'hours');
     var group = Math.floor(Math.random() * groupCount);
     items.add({
       id: i,
@@ -80,6 +80,57 @@
       updateTime: true,
       updateGroup: true
     },
+
+
+    onAdd: function (item, callback) {
+      item.content = prompt('Enter text content for new item:', item.content);
+      if (item.content != null) {
+        callback(item); // send back adjusted new item
+      }
+      else {
+        callback(null); // cancel item creation
+      }
+    },
+
+    onMove: function (item, callback) {
+      if (confirm('Do you really want to move the item to\n' +
+          'start: ' + item.start + '\n' +
+          'end: ' + item.end + '?')) {
+        callback(item); // send back item as confirmation (can be changed)
+      }
+      else {
+        callback(null); // cancel editing item
+      }
+    },
+
+    onMoving: function (item, callback) {
+      var min = moment().minutes(0).seconds(0).milliseconds(0).add(2, 'day').toDate();
+      if (item.start < min) {
+        item.start = min;
+      }
+
+      callback(item); // send back item as confirmation (can be changed)
+    },
+
+    onUpdate: function (item, callback) {
+      item.content = prompt('Edit items text:', item.content);
+      if (item.content != null) {
+        callback(item); // send back adjusted item
+      }
+      else {
+        callback(null); // cancel updating the item
+      }
+    },
+
+    onRemove: function (item, callback) {
+      if (confirm('Remove item ' + item.content + '?')) {
+        callback(item); // confirm deletion
+      }
+      else {
+        callback(null); // cancel deletion
+      }
+    },
+
     //stack: false,
     //height: 200,
     groupOrder: 'content'
