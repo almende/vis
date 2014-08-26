@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.2.1-SNAPSHOT
- * @date    2014-08-25
+ * @date    2014-08-26
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -14069,6 +14069,8 @@ return /******/ (function(modules) { // webpackBootstrap
     // other vars
     this.freezeSimulation = false;// freeze the simulation
     this.cachedFunctions = {};
+    this.stabilized = false;
+    this.stabilizationIterations = null;
 
     // containers for nodes and edges
     this.calculationNodes = {};
@@ -14351,12 +14353,9 @@ return /******/ (function(modules) { // webpackBootstrap
     if (!disableStart) {
       // find a stable position or start animating to a stable position
       if (this.constants.stabilize) {
-        var me = this;
-        setTimeout(function() {me._stabilize(); me.start();},0)
+        this._stabilize();
       }
-      else {
-        this.start();
-      }
+      this.start();
     }
   };
 
@@ -15696,7 +15695,6 @@ return /******/ (function(modules) { // webpackBootstrap
     if (this.constants.freezeForStabilization == true) {
       this._restoreFrozenNodes();
     }
-    this.emit("stabilized",{iterations:count});
   };
 
   /**
@@ -15790,11 +15788,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
       else {
         this.moving = this._isMoving(vminCorrected);
-        if (this.moving == false) {
-          this.emit("stabilized",{iterations:null});
-        }
         this.moving = this.moving || this.configurePhysics;
-
       }
     }
   };
@@ -15813,6 +15807,10 @@ return /******/ (function(modules) { // webpackBootstrap
           this._doInSupportSector("_discreteStepNodes", false);
         }
         this._findCenter(this._getRange())
+
+        if (!this.stabilized) {
+          this.stabilizationIterations++;
+        }
       }
     }
   };
@@ -15883,6 +15881,20 @@ return /******/ (function(modules) { // webpackBootstrap
     }
     else {
       this._redraw();
+
+      if (!this.stabilized) {
+        // trigger the "stabilized" event.
+        // The event is triggered on the next tick, to prevent the case that
+        // it is fired while initializing the Network, in which case you would not
+        // be able to catch it
+        this.stabilized = true;
+        var me = this;
+        setTimeout(function () {
+          me.emit("stabilized",{
+            iterations: me.stabilizationIterations
+          });
+        }, 0);
+      }
     }
   };
 

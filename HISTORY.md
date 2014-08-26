@@ -32,6 +32,9 @@ http://visjs.org
 - Implemented option `clickToUse`.
 - Fixed page scroll event not being blocked when moving around in Network
   using arrow keys.
+- Fixed the `'stabilized'` event, it's now guaranteed to fire only once and
+  fire after the graph is fully stabilized.
+- Fixed an initial rendering before the graph has been stabilized.
 
 ### Graph2D
 
