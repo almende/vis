@@ -15806,11 +15806,8 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.constants.smoothCurves.enabled == true && this.constants.smoothCurves.dynamic == true) {
           this._doInSupportSector("_discreteStepNodes", false);
         }
-        this._findCenter(this._getRange())
 
-        if (!this.stabilized) {
-          this.stabilizationIterations++;
-        }
+         this.stabilizationIterations++;
       }
     }
   };
@@ -15882,17 +15879,18 @@ return /******/ (function(modules) { // webpackBootstrap
     else {
       this._redraw();
 
-      if (!this.stabilized) {
+      if (this.stabilizationIterations > 0) {
         // trigger the "stabilized" event.
         // The event is triggered on the next tick, to prevent the case that
         // it is fired while initializing the Network, in which case you would not
         // be able to catch it
-        this.stabilized = true;
         var me = this;
+        var params = {
+          iterations: me.stabilizationIterations
+        };
+        me.stabilizationIterations = 0;
         setTimeout(function () {
-          me.emit("stabilized",{
-            iterations: me.stabilizationIterations
-          });
+          me.emit("stabilized", params);
         }, 0);
       }
     }

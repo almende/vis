@@ -30,10 +30,10 @@ http://visjs.org
 - Fixed physics solving stopping when a support node was not moving.
 - Implemented localization support.
 - Implemented option `clickToUse`.
+- Improved the `'stabilized'` event, it's now firing after every stabilization
+  with iteration count as parameter.
 - Fixed page scroll event not being blocked when moving around in Network
   using arrow keys.
-- Fixed the `'stabilized'` event, it's now guaranteed to fire only once and
-  fire after the graph is fully stabilized.
 - Fixed an initial rendering before the graph has been stabilized.
 
 ### Graph2D
