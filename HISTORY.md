@@ -35,6 +35,7 @@ http://visjs.org
 - Fixed page scroll event not being blocked when moving around in Network
   using arrow keys.
 - Fixed an initial rendering before the graph has been stabilized.
+- Fixed bug where loading hierarchical data after initialization crashed network.
 
 ### Graph2D
 
