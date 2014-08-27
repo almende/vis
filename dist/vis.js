@@ -22605,7 +22605,7 @@ return /******/ (function(modules) { // webpackBootstrap
    *
    * @private
    */
-  Network.prototype._discreteStepNodes = function(checkMovement) {
+  Network.prototype._discreteStepNodes = function() {
     var interval = this.physicsDiscreteStepsize;
     var nodes = this.nodes;
     var nodeId;
@@ -22628,16 +22628,16 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     }
 
-    if (nodesPresent == true && (checkMovement === undefined || checkMovement == true)) {
+    if (nodesPresent == true) {
       var vminCorrected = this.constants.minVelocity / Math.max(this.scale,0.05);
       if (vminCorrected > 0.5*this.constants.maxVelocity) {
-        this.moving = true;
+        return true;
       }
       else {
-        this.moving = this._isMoving(vminCorrected);
-        this.moving = this.moving || this.configurePhysics;
+        return this._isMoving(vminCorrected);
       }
     }
+    return false;
   };
 
   /**
@@ -22648,13 +22648,21 @@ return /******/ (function(modules) { // webpackBootstrap
   Network.prototype._physicsTick = function() {
     if (!this.freezeSimulation) {
       if (this.moving == true) {
-        this._doInAllActiveSectors("_initializeForceCalculation");
-        this._doInAllActiveSectors("_discreteStepNodes");
-        if (this.constants.smoothCurves.enabled == true && this.constants.smoothCurves.dynamic == true) {
-          this._doInSupportSector("_discreteStepNodes", false);
-        }
+        var mainMovingStatus = false;
+        var supportMovingStatus = false;
 
-         this.stabilizationIterations++;
+        this._doInAllActiveSectors("_initializeForceCalculation");
+        var mainMoving = this._doInAllActiveSectors("_discreteStepNodes");
+        if (this.constants.smoothCurves.enabled == true && this.constants.smoothCurves.dynamic == true) {
+          supportMovingStatus = this._doInSupportSector("_discreteStepNodes");
+        }
+        // gather movement data from all sectors, if one moves, we are NOT stabilzied
+        for (var i = 0; i < mainMoving.length; i++) {mainMovingStatus = mainMoving[0] || mainMovingStatus;}
+
+        // determine if the network has stabilzied
+        this.moving = mainMovingStatus || supportMovingStatus;
+
+        this.stabilizationIterations++;
       }
     }
   };
@@ -29293,12 +29301,13 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   exports._doInAllActiveSectors = function(runFunction,argument) {
+    var returnValues = [];
     if (argument === undefined) {
       for (var sector in this.sectors["active"]) {
         if (this.sectors["active"].hasOwnProperty(sector)) {
           // switch the global references to those of this sector
           this._switchToActiveSector(sector);
-          this[runFunction]();
+          returnValues.push( this[runFunction]() );
         }
       }
     }
@@ -29309,16 +29318,17 @@ return /******/ (function(modules) { // webpackBootstrap
           this._switchToActiveSector(sector);
           var args = Array.prototype.splice.call(arguments, 1);
           if (args.length > 1) {
-            this[runFunction](args[0],args[1]);
+            returnValues.push( this[runFunction](args[0],args[1]) );
           }
           else {
-            this[runFunction](argument);
+            returnValues.push( this[runFunction](argument) );
           }
         }
       }
     }
     // we revert the global references back to our active sector
     this._loadLatestSector();
+    return returnValues;
   };
 
 
@@ -29332,22 +29342,24 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   exports._doInSupportSector = function(runFunction,argument) {
+    var returnValues = false;
     if (argument === undefined) {
       this._switchToSupportSector();
-      this[runFunction]();
+      returnValues = this[runFunction]();
     }
     else {
       this._switchToSupportSector();
       var args = Array.prototype.splice.call(arguments, 1);
       if (args.length > 1) {
-        this[runFunction](args[0],args[1]);
+        returnValues = this[runFunction](args[0],args[1]);
       }
       else {
-        this[runFunction](argument);
+        returnValues = this[runFunction](argument);
       }
     }
     // we revert the global references back to our active sector
     this._loadLatestSector();
+    return returnValues;
   };
 
 

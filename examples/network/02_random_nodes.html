@@ -88,7 +88,7 @@
         document.getElementById('selection').innerHTML = 'Selection: ' + params.nodes;
       });
       network.on('stabilized', function (params) {
-        console.log('stabilized after ' + params.iterations + ' iterations');
+          document.getElementById('stabilization').innerHTML = 'Stabilization took ' + params.iterations + ' iterations.';
       });
     }
   </script>
@@ -106,5 +106,6 @@
 <div id="mynetwork"></div>
 
 <p id="selection"></p>
+<p id="stabilization"></p>
 </body>
 </html>
