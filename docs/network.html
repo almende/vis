@@ -33,7 +33,7 @@
 <p>
   Every dataset is different. Nodes can have different sizes based on content, interconnectivity can be high or low etc. Because of this, network has a special option
   that the user can use to explore which settings may be good for you. Use configurePhysics as described in the <u><a href="#PhysicsConfiguration">Physics</a></u> section or by
-  <u><a href="../examples/Network/25_physics_configuration.html">example 25</a></u>.
+  <u><a href="../examples/network/25_physics_configuration.html">example 25</a></u>.
 </p>
 
 <p>
@@ -765,7 +765,7 @@ var network = new vis.Network(container, data);
 <p>
   network can import data straight from an exported json file from gephi. You can get the JSON exporter here:
   <a href="https://marketplace.gephi.org/plugin/json-exporter/" target="_blank">https://marketplace.gephi.org/plugin/json-exporter/</a>.
-  An example exists showing how to get a JSON file into Vis: <a href="../examples/Network/30_importing_from_gephi.html">30_importing_from_gephi</a>.
+  An example exists showing how to get a JSON file into Vis: <a href="../examples/network/30_importing_from_gephi.html">30_importing_from_gephi</a>.
 </p>
 
 <p>
@@ -1037,7 +1037,7 @@ var options = {
   <td>String</td>
   <td>"continuous"</td>
   <td>This option only affects NONdynamic smooth curves. The supported types are: <code>continuous, discrete, diagonalCross, straightCross, horizontal, vertical</code>. The effects of these types
-    are shown in examples <a href="../examples/Network/26_staticSmoothCurves.html">26</a> and <a href="../examples/Network/27_world_cup_network.html">27</a></td>
+    are shown in examples <a href="../examples/network/26_staticSmoothCurves.html">26</a> and <a href="../examples/network/27_world_cup_network.html">27</a></td>
 </tr>
 <tr>
   <td>smoothCurves.roundness</td>
@@ -1538,7 +1538,7 @@ var nodes = [
   If no options for the physics system are supplied, the Barnes-Hut method will be used with the default parameters. If you want to customize the physics system easily, you can use the configurePhysics option. <br/>
   When using the hierarchical display option, hierarchicalRepulsion is automatically used as the physics solver. Similarly, if you use the hierarchicalRepulsion physics option, hierarchical display is automatically turned on with default settings.
 
-<p class="important_note">Note: if the behaviour of your network is not the way you want it, use configurePhysics as described <u><a href="#PhysicsConfiguration">below</a></u> or by <u><a href="../examples/Network/25_physics_configuration.html">example 25</a></u>.</p>
+<p class="important_note">Note: if the behaviour of your network is not the way you want it, use configurePhysics as described <u><a href="#PhysicsConfiguration">below</a></u> or by <u><a href="../examples/network/25_physics_configuration.html">example 25</a></u>.</p>
 </p>
 <pre class="prettyprint">
 // These variables must be defined in an options object named physics.
@@ -1716,7 +1716,7 @@ var options = {
 <p>
   By using the data manipulation feature of the network you can dynamically create nodes, connect nodes with edges, edit nodes or delete nodes and edges.
   The toolbar is fully HTML and CSS so the user can style this to their preference. To control the behaviour of the data manipulation, users can insert custom functions
-  into the data manipulation process. For example, an injected function can show an detailed pop-up when a user wants to add a node. In <a href="../examples/Network/21_data_manipulation.html">example 21</a>,
+  into the data manipulation process. For example, an injected function can show an detailed pop-up when a user wants to add a node. In <a href="../examples/network/21_data_manipulation.html">example 21</a>,
   two functions have been injected into the add and edit functionality. This is described in more detail in the next subsection. To correctly display the manipulation icons, the <b>vis.css</b> file must be included.
   The user is free to alter or overload the CSS classes but without them the navigation icons are not visible.
 </p>
@@ -1759,7 +1759,7 @@ var options: {
 <h4 id="Data_manipulation_custom">Data manipulation: custom functionality</h4>
 <p>
   Users can insert custom functions into the add node, edit node, connect nodes, and delete selected operations. This is done by supplying them in the options.
-  If the callback is NOT called, nothing happens. <a href="../examples/Network/21_data_manipulation.html">Example 21</a> has two working examples
+  If the callback is NOT called, nothing happens. <a href="../examples/network/21_data_manipulation.html">Example 21</a> has two working examples
   for the add and edit functions. The data the user is supplied with in these functions has been described in the code below.
   For the add data, you can add any and all options that are accepted for node creation as described above. The same goes for edit, however only the fields described
   in the code below contain information on the selected node. The callback for connect accepts any options that are used for edge creation. Only the callback for delete selected
@@ -2092,7 +2092,7 @@ var options: {
 <p>
   The network can be used to display nodes in a hierarchical way. This can be determined automatically, based on the amount of edges connected to each node, or defined by the user.
   If the user wants to manually determine the hierarchy, each node has to be supplied with a level (from 0 being heighest to n). The automatic method
-  is shown in <a href="../examples/Network/23_hierarchical_layout.html">example 23</a> and the user-defined method is shown in <a href="../examples/network/24_hierarchical_layout_userdefined.html">example 24</a>.
+  is shown in <a href="../examples/network/23_hierarchical_layout.html">example 23</a> and the user-defined method is shown in <a href="../examples/network/24_hierarchical_layout_userdefined.html">example 24</a>.
   This layout method does not support smooth curves or clustering. It automatically turns these features off.
 </p>
 
@@ -2108,7 +2108,8 @@ var options: {
       enabled:false,
       levelSeparation: 150,
       nodeSpacing: 100,
-      direction: "UD"
+      direction: "UD",
+      layout: "hubsize"
     }
 }
 // partial configuration automatically sets enabled to true
@@ -2154,6 +2155,13 @@ var options: {
     <td>UD</td>
     <td>This defines the direction the network is drawn in. The supported directions are: Up-Down (UD), Down-Up (DU), Left-Right (LR) and Right-Left (RL).
       These need to be supplied by the acronyms in parentheses.</td>
+  </tr>
+  <tr>
+    <td>layout</td>
+    <td>String</td>
+    <td>hubsize</td>
+    <td>This defines the way the nodes are distributed. Available options are <code>hubsize</code> and <code>direction</code>. The default value is hubsize, meaning the node with the most edges connected to it (largest hub) is on top.
+        Alternatively, direction arranges the nodes based on the direction of the edges. See <a href="../examples/network/32_hierarchicaLayoutMethods.html">example 32</a> for more information.</td>
   </tr>
 </table>
 

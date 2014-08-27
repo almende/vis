@@ -36,6 +36,7 @@ http://visjs.org
   using arrow keys.
 - Fixed an initial rendering before the graph has been stabilized.
 - Fixed bug where loading hierarchical data after initialization crashed network.
+- Added different layout method to the hierarchical system based on the direction of the edges.
 
 ### Graph2D
 

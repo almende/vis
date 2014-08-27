@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-  <title>Network | Random nodes</title>
+  <title>Network | Hierarchical Layout, userDefined</title>
 
   <style type="text/css">
     body {
@@ -28,17 +28,17 @@
       edges = [];
       var connectionCount = [];
 
-      // randomly create some nodes and edges
-      for (var i = 0; i < 15; i++) {
-        nodes.push({
-          id: i,
-          label: String(i)
+        // randomly create some nodes and edges
+        for (var i = 0; i < 15; i++) {
+            nodes.push({
+                id: i,
+                label: String(i)
+            });
+        }
+        edges.push({
+            from: 0,
+            to: 1
         });
-      }
-      edges.push({
-        from: 0,
-        to: 1
-      });
         edges.push({
             from: 0,
             to: 6
