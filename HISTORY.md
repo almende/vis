@@ -11,6 +11,7 @@ http://visjs.org
 ### Network
 
 - Fixed some positioning issues with the close button of the manipulation menu.
+- Added fontFill to Nodes as it is in Edges.
 
 ### Timeline
 
