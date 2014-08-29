@@ -43,6 +43,7 @@
   <li><a href="#Methods">Methods</a></li>
   <li><a href="#Events">Events</a></li>
   <li><a href="#Editing_Items">Editing Items</a></li>
+  <li><a href="#Localization">Localization</a></li>
   <li><a href="#Styles">Styles</a></li>
   <li><a href="#Data_Policy">Data Policy</a></li>
 </ul>
@@ -359,8 +360,7 @@ var options = {
     <td>align</td>
     <td>String</td>
     <td>"center"</td>
-    <td>Alignment of items with type 'box'. Available values are
-        'center' (default), 'left', or 'right').</td>
+    <td>Alignment of items with type 'box' and 'range'. Available values are 'auto' (default), 'center', 'left', or 'right'. For 'box' items, the 'auto' alignment is 'center'. For 'range' items, the auto alignment is dynamic: positioned left and shifted such that the contents is always visible on screen.</td>
 </tr>
 
 <tr>
@@ -368,6 +368,14 @@ var options = {
     <td>boolean</td>
     <td>true</td>
     <td>If true, the Timeline will automatically detect when its container is resized, and redraw itself accordingly. If false, the Timeline can be forced to repaint after its container has been resized using the function <code>redraw()</code>.</td>
+</tr>
+
+<tr>
+  <td>clickToUse</td>
+  <td>boolean</td>
+  <td>false</td>
+  <td>When a Timeline is configured to be <code>clickToUse</code>, it will react to mouse and touch events only when active.
+    When active, a blue shadow border is displayed around the Timeline. The Timeline is set active by clicking on it, and is changed to inactive again by clicking outside the Timeline or by pressing the ESC key.</td>
 </tr>
 
 <tr>
@@ -436,6 +444,20 @@ var options = {
         to prevent the timeline from getting too high in case of automatically
         calculated height.
     </td>
+</tr>
+
+<tr>
+    <td>locale</td>
+    <td>String</td>
+    <td>none</td>
+    <td>Select a locale for the Timeline. See section <a href="#Localization">Localization</a> for more information.</td>
+</tr>
+
+<tr>
+    <td>locales</td>
+    <td>Object</td>
+    <td>none</td>
+    <td>A map with i18n locales. See section <a href="#Localization">Localization</a> for more information.</td>
 </tr>
 
 <tr>
@@ -714,9 +736,30 @@ timeline.clear({options: true}); // clear options only
   </tr>
 
   <tr>
-    <td>fit()</td>
+    <td>fit([options])</td>
     <td>none</td>
-    <td>Adjust the visible window such that it fits all items.
+    <td>Adjust the visible window such that it fits all items. See also function <code>focus(id)</code>.
+      Available options:
+      <ul>
+        <li><code>animate: boolean | number</code><br>If true (default), the range is animated smoothly to the new window. If a number, the number is taken as duration for the animation. Default duration is 500 ms.</li>
+      </ul>
+    </td>
+  </tr>
+
+  <tr>
+    <td>focus(id | ids [, options])</td>
+    <td>none</td>
+    <td>Adjust the visible window such that the selected item (or multiple items) are centered on screen. See also function <code>fit()</code>. Available options:
+      <ul>
+        <li><code>animate: boolean | number</code><br>If true (default), the range is animated smoothly to the new window. If a number, the number is taken as duration for the animation. Default duration is 500 ms.</li>
+      </ul>
+    </td>
+  </tr>
+
+  <tr>
+    <td>getCurrentTime()</td>
+    <td>Date</td>
+    <td>Get the current time. Only applicable when option <code>showCurrentTime</code> is true.
     </td>
   </tr>
 
@@ -724,13 +767,6 @@ timeline.clear({options: true}); // clear options only
     <td>getCustomTime()</td>
     <td>Date</td>
     <td>Retrieve the custom time. Only applicable when the option <code>showCustomTime</code> is true.
-    </td>
-  </tr>
-
-  <tr>
-    <td>setCustomTime(time)</td>
-    <td>none</td>
-    <td>Adjust the custom time bar. Only applicable when the option <code>showCustomTime</code> is true. <code>time</code> is a Date object.
     </td>
   </tr>
 
@@ -753,6 +789,16 @@ timeline.clear({options: true}); // clear options only
   </tr>
 
   <tr>
+    <td>moveTo(time [, options])</td>
+    <td>none</td>
+    <td>Move the window such that given time is centered on screen. Parameter <code>time</code> can be a <code>Date</code>, <code>Number</code>, or <code>String</code>. Available options:
+      <ul>
+        <li><code>animate: boolean | number</code><br>If true (default), the range is animated smoothly to the new window. If a number, the number is taken as duration for the animation. Default duration is 500 ms.</li>
+      </ul>
+    </td>
+  </tr>
+
+  <tr>
     <td>on(event, callback)</td>
     <td>none</td>
     <td>Create an event listener. The callback function is invoked every time the event is triggered. Avialable events: <code>rangechange</code>, <code>rangechanged</code>, <code>select</code>. The callback function is invoked as <code>callback(properties)</code>, where <code>properties</code> is an object containing event specific properties. See section <a href="#Events">Events for more information</a>.</td>
@@ -768,6 +814,21 @@ timeline.clear({options: true}); // clear options only
     <td>redraw()</td>
     <td>none</td>
     <td>Force a redraw of the Timeline. Can be useful to manually redraw when option autoResize=false.
+    </td>
+  </tr>
+
+  <tr>
+    <td>setCurrentTime(time)</td>
+    <td>none</td>
+    <td>Set a current time. This can be used for example to ensure that a client's time is synchronized with a shared server time.
+      <code>time</code> can be a Date object, numeric timestamp, or ISO date string.
+      Only applicable when option <code>showCurrentTime</code> is true.</td>
+  </tr>
+
+  <tr>
+    <td>setCustomTime(time)</td>
+    <td>none</td>
+    <td>Adjust the custom time bar. Only applicable when the option <code>showCustomTime</code> is true. <code>time</code> can be a Date object, numeric timestamp, or ISO date string.
     </td>
   </tr>
 
@@ -799,16 +860,24 @@ timeline.clear({options: true}); // clear options only
   </tr>
 
   <tr>
-    <td>setSelection([ids])</td>
+    <td>setSelection(id | ids [, options])</td>
     <td>none</td>
-    <td>Select or deselect items. Currently selected items will be unselected.
+    <td>Select one or multiple items by their id. The currently selected items will be unselected. To unselect all selected items, call `setSelection([])`. Available options:
+      <ul>
+        <li><code>focus: boolean</code><br>If true, focus will be set to the selected item(s)</li>
+        <li><code>animate: boolean | number</code><br>If true (default), the range is animated smoothly to the new window. If a number, the number is taken as duration for the animation. Default duration is 500 ms. Only applicable when option focus is true.</li>
+      </ul>
     </td>
   </tr>
 
   <tr>
-    <td>setWindow(start, end)</td>
+    <td>setWindow(start, end [, options])</td>
     <td>none</td>
-    <td>Set the current visible window. The parameters <code>start</code> and <code>end</code> can be a <code>Date</code>, <code>Number</code>, or <code>String</code>. If the parameter value of <code>start</code> or <code>end</code> is null, the parameter will be left unchanged.</td>
+    <td>Set the current visible window. The parameters <code>start</code> and <code>end</code> can be a <code>Date</code>, <code>Number</code>, or <code>String</code>. If the parameter value of <code>start</code> or <code>end</code> is null, the parameter will be left unchanged. Available options:
+      <ul>
+        <li><code>animate: boolean | number</code><br>If true (default), the range is animated smoothly to the new window. If a number, the number is taken as duration for the animation. Default duration is 500 ms.</li>
+      </ul>
+    </td>
   </tr>
 
 </table>
@@ -960,6 +1029,7 @@ var options = {
   <li><code>onAdd(item, callback)</code> Fired when a new item is about to be added. If not implemented, the item will be added with default text contents.</li>
   <li><code>onUpdate(item, callback)</code> Fired when an item is about to be updated. This function typically has to show a dialog where the user change the item. If not implemented, nothing happens.</li>
   <li><code>onMove(item, callback)</code> Fired when an item has been moved. If not implemented, the move action will be accepted.</li>
+  <li><code>onMoving(item, callback)</code> Fired repeatedly while an item is being moved (dragged). Can be used to adjust the items start, end, and/or group to allowed regions.</li>
   <li><code>onRemove(item, callback)</code> Fired when an item is about to be deleted. If not implemented, the item will be always removed.</li>
 </ul>
 
@@ -985,10 +1055,68 @@ var options = {
       callback(null); // cancel updating the item
     }
   }
-}
+};
 </pre>
 
 A full example is available here: <a href="../examples/timeline/08_edit_items.html">08_edit_items.html</a>.
+
+<h2 id="Localization">Localization</h2>
+<p>
+  Timeline can be localized. For localization, Timeline depends largely on the localization of <a href="http://momentjs.com">moment.js</a>. Locales are not included in vis.js by default. To enable localization, moment.js must be loaded with locales. Moment.js offers a bundle named "moment-with-locales.min.js" for this and there are various alternative ways to load locales.
+</p>
+
+<p>
+  To set a locale for the Timeline, specify the option <code>locale</code>:
+</p>
+
+<pre class="prettyprint lang-js">var options = {
+  locale: 'nl'
+};
+</pre>
+
+<h3>Create a new locale</h3>
+
+To load a locale into the Timeline not supported by default, one can add a new locale to the option <code>locales</code>:
+
+<pre class="prettyprint lang-js">var options = {
+  locales: {
+    // create a new locale (text strings should be replaced with localized strings)
+    mylocale: {
+      current: 'current',
+      time: 'time',
+    }
+  },
+
+  // use the new locale
+  locale: 'mylocale'
+};
+</pre>
+
+<h3 id="available-locales">Available locales</h3>
+
+<p>
+  Timeline comes with support for the following locales:
+</p>
+
+<table>
+  <tr><th>Language</th><th>Code</th></tr>
+  <tr>
+    <td>English</td>
+    <td>
+      <code>en</code><br>
+      <code>en_EN</code><br>
+      <code>en_US</code>
+    </td>
+  </tr>
+  <tr>
+    <td>Dutch</td>
+    <td>
+      <code>nl</code><br>
+      <code>nl_NL</code><br>
+      <code>nl_BE</code>
+    </td>
+  </tr>
+</table>
 
 
 <h2 id="Styles">Styles</h2>
@@ -1007,7 +1135,6 @@ A full example is available here: <a href="../examples/timeline/08_edit_items.ht
   }
 &lt;/style&gt;
 </pre>
-
 
 <h2 id="Data_Policy">Data Policy</h2>
 <p>

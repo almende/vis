@@ -4,29 +4,33 @@
 <head>
   <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
   <meta content="utf-8" http-equiv="encoding">
-  <title>Graph2d | Basic Example</title>
+  <title>Graph2d | Localization</title>
 
   <style type="text/css">
-    body, html {
+    body, html, select {
       font-family: sans-serif;
+      font-size: 11pt;
     }
   </style>
 
+  <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.7.0/moment-with-langs.min.js"></script>
   <script src="../../dist/vis.js"></script>
   <link href="../../dist/vis.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
-<h2>Graph2d | Basic Example</h2>
-<div style="width:700px; font-size:14px; text-align: justify;">
-  This example shows the most basic functionality of the vis.js Graph2d module. An array or a vis.Dataset can be used as input.
-  In the following examples we'll explore the options Graph2d offest for customization. This example uses all default settings.
-  There are 10 predefined styles that will be cycled through automatically when you add different groups. Alternatively you can
-  create your own styling.
-  <br /><br />
-  Graph2d is built upon the framework of the newly refactored timeline. A lot of the timeline options will also apply to Graph2d.
-  In these examples however, we will focus on what's new in Graph2d!
-</div>
-<br />
+<h2>Graph2d | Localization</h2>
+<p>
+  To localize Graph2d, one has to load a version of moment.js including locales. To set a locale, specify option <code>{locale: STRING}</code>.
+</p>
+
+<p>
+  <label for="locale">Select a locale:</label>
+  <select id="locale">
+    <option value="en" selected>en</option>
+    <option value="nl">nl</option>
+  </select>
+</p>
+
 <div id="visualization"></div>
 
 <script type="text/javascript">
@@ -48,6 +52,14 @@
   };
   var graph2d = new vis.Graph2d(container, dataset, options);
 
+  // update the locale when changing the select box value
+  var select = document.getElementById('locale');
+  select.onchange = function () {
+    graph2d.setOptions({
+      locale: this.value
+    });
+  };
+  select.onchange();
 </script>
 </body>
 </html>
