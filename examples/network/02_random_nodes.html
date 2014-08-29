@@ -8,8 +8,6 @@
       font: 10pt sans;
     }
     #mynetwork {
-      width: 600px;
-      height: 600px;
       border: 1px solid lightgray;
     }
   </style>
@@ -78,8 +76,6 @@
       };
 
       var options = {
-        edges: {
-        }
       };
       network = new vis.Network(container, data, options);
 
@@ -90,7 +86,9 @@
       network.on('stabilized', function (params) {
           document.getElementById('stabilization').innerHTML = 'Stabilization took ' + params.iterations + ' iterations.';
       });
+
     }
+
   </script>
 </head>
 
