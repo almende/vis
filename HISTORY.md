@@ -6,9 +6,6 @@ http://visjs.org
 
 ### Timeline
 
-- Fixed the `change` event sometimes being fired twice on IE10.
-- Fixed canceling moving an item to another group did not move the item
-  back to the original group.
 - Added localization support.
 - Implemented option `clickToUse`.
 - Implemented function `focus(id)` to center a specific item (or multiple items)
@@ -20,6 +17,10 @@ http://visjs.org
   and `setWindow`.
 - Implemented functions `setCurrentTime(date)` and `getCurrentTime()`.
 - Implemented a new callback function `onMoving(item, callback)`.
+- Implemented support for option `align` for range items.
+- Fixed the `change` event sometimes being fired twice on IE10.
+- Fixed canceling moving an item to another group did not move the item
+  back to the original group.
 - Fixed the `change` event sometimes being fired twice on IE10.
 - Fixed canceling moving an item to another group did not move the item
   back to the original group.
