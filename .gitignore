@@ -7,4 +7,3 @@ node_modules
 .settings/org.eclipse.wst.jsdt.ui.superType.name
 npm-debug.log
 examples/graph/24_hierarchical_layout_userdefined2.html
-.DS_Store
