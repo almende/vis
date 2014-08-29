@@ -2,7 +2,7 @@
 http://visjs.org
 
 
-## not yet released, version 3.2.1
+## 2014-08-29, version 3.3.0
 
 ### Timeline
 
@@ -50,6 +50,7 @@ http://visjs.org
 - Implemented function `moveTo(time, options)`.
 - Fixed bugs.
 - Added groups.visibility functionality and an example showing how it works.
+
 
 ## 2014-08-14, version 3.2.0
 

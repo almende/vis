@@ -4,7 +4,7 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 3.2.1-SNAPSHOT
+ * @version 3.3.0
  * @date    2014-08-29
  *
  * @license
@@ -11688,7 +11688,6 @@ return /******/ (function(modules) { // webpackBootstrap
    * @return {boolean} Returns true if the component is resized
    */
   LineGraph.prototype.redraw = function() {
-    console.log('redraw')
     var resized = false;
 
     this.svg.style.height = ('' + this.options.graphHeight).replace('px','') + 'px';
@@ -21926,7 +21925,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global, module) {//! moment.js
-  //! version : 2.8.1
+  //! version : 2.8.2
   //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
   //! license : MIT
   //! momentjs.com
@@ -21937,11 +21936,12 @@ return /******/ (function(modules) { // webpackBootstrap
       ************************************/
 
       var moment,
-          VERSION = '2.8.1',
+          VERSION = '2.8.2',
           // the global-scope this is NOT the global object in Node.js
           globalScope = typeof global !== 'undefined' ? global : this,
           oldGlobalMoment,
           round = Math.round,
+          hasOwnProperty = Object.prototype.hasOwnProperty,
           i,
 
           YEAR = 0,
@@ -22015,7 +22015,7 @@ return /******/ (function(modules) { // webpackBootstrap
               ['HH', /(T| )\d\d/]
           ],
 
-          // timezone chunker "+10:00" > ["10", "00"] or "-1530" > ["-15", "30"]
+          // timezone chunker '+10:00' > ['10', '00'] or '-1530' > ['-15', '30']
           parseTimezoneChunker = /([\+\-]|\d\d)/gi,
 
           // getter and setter names
@@ -22220,6 +22220,10 @@ return /******/ (function(modules) { // webpackBootstrap
           }
       }
 
+      function hasOwnProp(a, b) {
+          return hasOwnProperty.call(a, b);
+      }
+
       function defaultParsingFlags() {
           // We need to deep clone this object, and es5 standard is not very
           // helpful.
@@ -22240,7 +22244,7 @@ return /******/ (function(modules) { // webpackBootstrap
       function printMsg(msg) {
           if (moment.suppressDeprecationWarnings === false &&
                   typeof console !== 'undefined' && console.warn) {
-              console.warn("Deprecation warning: " + msg);
+              console.warn('Deprecation warning: ' + msg);
           }
       }
 
@@ -22343,16 +22347,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
       function extend(a, b) {
           for (var i in b) {
-              if (b.hasOwnProperty(i)) {
+              if (hasOwnProp(b, i)) {
                   a[i] = b[i];
               }
           }
 
-          if (b.hasOwnProperty('toString')) {
+          if (hasOwnProp(b, 'toString')) {
               a.toString = b.toString;
           }
 
-          if (b.hasOwnProperty('valueOf')) {
+          if (hasOwnProp(b, 'valueOf')) {
               a.valueOf = b.valueOf;
           }
 
@@ -22460,7 +22464,7 @@ return /******/ (function(modules) { // webpackBootstrap
               var dur, tmp;
               //invert the arguments, but complain about it
               if (period !== null && !isNaN(+period)) {
-                  deprecateSimple(name, "moment()." + name  + "(period, number) is deprecated. Please use moment()." + name + "(number, period).");
+                  deprecateSimple(name, 'moment().' + name  + '(period, number) is deprecated. Please use moment().' + name + '(number, period).');
                   tmp = val; val = period; period = tmp;
               }
 
@@ -22530,7 +22534,7 @@ return /******/ (function(modules) { // webpackBootstrap
               prop;
 
           for (prop in inputObject) {
-              if (inputObject.hasOwnProperty(prop)) {
+              if (hasOwnProp(inputObject, prop)) {
                   normalizedProp = normalizeUnits(prop);
                   if (normalizedProp) {
                       normalizedInput[normalizedProp] = inputObject[prop];
@@ -23450,7 +23454,7 @@ return /******/ (function(modules) { // webpackBootstrap
               config._pf.iso = true;
               for (i = 0, l = isoDates.length; i < l; i++) {
                   if (isoDates[i][1].exec(string)) {
-                      // match[5] should be "T" or undefined
+                      // match[5] should be 'T' or undefined
                       config._f = isoDates[i][0] + (match[6] || ' ');
                       break;
                   }
@@ -23658,7 +23662,7 @@ return /******/ (function(modules) { // webpackBootstrap
       moment = function (input, format, locale, strict) {
           var c;
 
-          if (typeof(locale) === "boolean") {
+          if (typeof(locale) === 'boolean') {
               strict = locale;
               locale = undefined;
           }
@@ -23726,7 +23730,7 @@ return /******/ (function(modules) { // webpackBootstrap
       moment.utc = function (input, format, locale, strict) {
           var c;
 
-          if (typeof(locale) === "boolean") {
+          if (typeof(locale) === 'boolean') {
               strict = locale;
               locale = undefined;
           }
@@ -23813,7 +23817,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
           ret = new Duration(duration);
 
-          if (moment.isDuration(input) && input.hasOwnProperty('_locale')) {
+          if (moment.isDuration(input) && hasOwnProp(input, '_locale')) {
               ret._locale = input._locale;
           }
 
@@ -23850,7 +23854,7 @@ return /******/ (function(modules) { // webpackBootstrap
       };
 
       moment.lang = deprecate(
-          "moment.lang is deprecated. Use moment.locale instead.",
+          'moment.lang is deprecated. Use moment.locale instead.',
           function (key, value) {
               return moment.locale(key, value);
           }
@@ -23862,7 +23866,7 @@ return /******/ (function(modules) { // webpackBootstrap
       moment.locale = function (key, values) {
           var data;
           if (key) {
-              if (typeof(values) !== "undefined") {
+              if (typeof(values) !== 'undefined') {
                   data = moment.defineLocale(key, values);
               }
               else {
@@ -23897,7 +23901,7 @@ return /******/ (function(modules) { // webpackBootstrap
       };
 
       moment.langData = deprecate(
-          "moment.langData is deprecated. Use moment.localeData instead.",
+          'moment.langData is deprecated. Use moment.localeData instead.',
           function (key) {
               return moment.localeData(key);
           }
@@ -23930,7 +23934,7 @@ return /******/ (function(modules) { // webpackBootstrap
       // compare moment object
       moment.isMoment = function (obj) {
           return obj instanceof Moment ||
-              (obj != null &&  obj.hasOwnProperty('_isAMomentObject'));
+              (obj != null && hasOwnProp(obj, '_isAMomentObject'));
       };
 
       // for typechecking Duration objects
@@ -23986,7 +23990,7 @@ return /******/ (function(modules) { // webpackBootstrap
           },
 
           toString : function () {
-              return this.clone().locale('en').format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ");
+              return this.clone().locale('en').format('ddd MMM DD YYYY HH:mm:ss [GMT]ZZ');
           },
 
           toDate : function () {
@@ -24369,7 +24373,7 @@ return /******/ (function(modules) { // webpackBootstrap
           },
 
           lang : deprecate(
-              "moment().lang() is deprecated. Use moment().localeData() instead.",
+              'moment().lang() is deprecated. Use moment().localeData() instead.',
               function (key) {
                   if (key === undefined) {
                       return this.localeData();
@@ -24601,8 +24605,8 @@ return /******/ (function(modules) { // webpackBootstrap
           locale : moment.fn.locale,
 
           toIsoString : deprecate(
-              "toIsoString() is deprecated. Please use toISOString() instead " +
-              "(notice the capitals)",
+              'toIsoString() is deprecated. Please use toISOString() instead ' +
+              '(notice the capitals)',
               function () {
                   return this.toISOString();
               }
@@ -24639,6 +24643,8 @@ return /******/ (function(modules) { // webpackBootstrap
           }
       });
 
+      moment.duration.fn.toString = moment.duration.fn.toISOString;
+
       function makeDurationGetter(name) {
           moment.duration.fn[name] = function () {
               return this._data[name];
@@ -24646,7 +24652,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       for (i in unitMillisecondFactors) {
-          if (unitMillisecondFactors.hasOwnProperty(i)) {
+          if (hasOwnProp(unitMillisecondFactors, i)) {
               makeDurationGetter(i.toLowerCase());
           }
       }
@@ -24720,14 +24726,14 @@ return /******/ (function(modules) { // webpackBootstrap
       if (hasModule) {
           module.exports = moment;
       } else if (true) {
-          !(__WEBPACK_AMD_DEFINE_RESULT__ = (function (require, exports, module) {
+          !(__WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, module) {
               if (module.config && module.config() && module.config().noGlobal === true) {
                   // release the global variable
                   globalScope.moment = oldGlobalMoment;
               }
 
               return moment;
-          }.call(exports, __webpack_require__, exports, module)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+          }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
           makeGlobal(true);
       } else {
           makeGlobal();
@@ -26890,9 +26896,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // AMD export
   if(true) {
-      !(__WEBPACK_AMD_DEFINE_RESULT__ = (function() {
+      !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
           return Hammer;
-      }.call(exports, __webpack_require__, exports, module)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+      }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
   // commonjs export
   } else if(typeof module !== 'undefined' && module.exports) {
       module.exports = Hammer;
