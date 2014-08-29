@@ -2,6 +2,22 @@
 http://visjs.org
 
 
+## not yet released, version 3.3.1
+
+### Graph2d
+
+- Fixed moment.js url in localization example.
+
+### Network
+
+- Fixed some positioning issues with the close button of the manipulation menu.
+
+### Timeline
+
+- Fixed moment.js url in localization example.
+
+
+
 ## 2014-08-29, version 3.3.0
 
 ### Timeline
@@ -39,7 +55,7 @@ http://visjs.org
 - Fixed bug where loading hierarchical data after initialization crashed network.
 - Added different layout method to the hierarchical system based on the direction of the edges.
 
-### Graph2D
+### Graph2d
 
 - Implemented option `handleOverlap` to support overlap, sideBySide and stack.
 - Implemented two examples showing the `handleOverlap` functionality.
@@ -58,7 +74,7 @@ http://visjs.org
 
 - Refactored Timeline and Graph2d to use the same core.
 
-### Graph2D
+### Graph2d
 
 - Added `visible` property to the groups.
 - Added `getLegend()` method.
