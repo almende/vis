@@ -8,6 +8,8 @@
       font: 10pt sans;
     }
     #mynetwork {
+        width: 600px;
+        height: 600px;
       border: 1px solid lightgray;
     }
   </style>
@@ -74,9 +76,7 @@
         nodes: nodes,
         edges: edges
       };
-
-      var options = {
-      };
+      var options = {};
       network = new vis.Network(container, data, options);
 
       // add event listeners
