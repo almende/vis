@@ -12,6 +12,7 @@ http://visjs.org
 
 - Fixed some positioning issues with the close button of the manipulation menu.
 - Added fontFill to Nodes as it is in Edges.
+- Implemented support for broken image fallback. Thanks @sfairgrieve.
 
 ### Timeline
 
