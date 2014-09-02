@@ -10892,7 +10892,7 @@ return /******/ (function(modules) { // webpackBootstrap
       // execute async handler to customize (or cancel) adding an item
       this.options.onAdd(newItem, function (item) {
         if (item) {
-          me.itemsData.add(newItem);
+          me.itemsData.add(item);
           // TODO: need to trigger a redraw?
         }
       });

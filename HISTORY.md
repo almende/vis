@@ -19,6 +19,7 @@ http://visjs.org
 - Fixed moment.js url in localization example.
 - Fixed `className` of groups not being updated when changed.
 - Fixed the `id` field of a new item not correctly generated.
+- Fixed newly added item ignored when returning an other object instance.
 
 
 ## 2014-08-29, version 3.3.0
