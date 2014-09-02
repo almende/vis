@@ -10882,7 +10882,7 @@ return /******/ (function(modules) { // webpackBootstrap
         newItem.end = snap ? snap(end) : end;
       }
 
-      newItem[this.itemsData.fieldId] = util.randomUUID();
+      newItem[this.itemsData._fieldId] = util.randomUUID();
 
       var group = ItemSet.groupFromTarget(event);
       if (group) {
