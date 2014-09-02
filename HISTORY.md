@@ -17,7 +17,7 @@ http://visjs.org
 ### Timeline
 
 - Fixed moment.js url in localization example.
-
+- Fixed `className` of groups not being updated when changed.
 
 
 ## 2014-08-29, version 3.3.0
