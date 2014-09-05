@@ -16,7 +16,7 @@ http://visjs.org
 
 ### Timeline
 
-- Implemented support for attaching HTML attributes to items.
+- Implemented support for attaching HTML attributes to items. Thanks @dturkenk.
 - Fixed moment.js url in localization example.
 - Fixed `className` of groups not being updated when changed.
 - Fixed the `id` field of a new item not correctly generated.
