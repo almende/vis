@@ -242,8 +242,8 @@ var items = [
     <td>type</td>
     <td>String</td>
     <td>'box'</td>
-    <td>The type of the item. Can be 'box' (default), 'point', or 'range'.
-      Types 'box' and 'point' need a start date, and type 'range' needs both a start and end date.
+    <td>The type of the item. Can be 'box' (default), 'point', 'range', or 'background'.
+      Types 'box' and 'point' need a start date, the types 'range' and 'background' needs both a start and end date.
     </td>
   </tr>
 </table>
@@ -360,7 +360,7 @@ var options = {
     <td>align</td>
     <td>String</td>
     <td>"center"</td>
-    <td>Alignment of items with type 'box' and 'range'. Available values are 'auto' (default), 'center', 'left', or 'right'. For 'box' items, the 'auto' alignment is 'center'. For 'range' items, the auto alignment is dynamic: positioned left and shifted such that the contents is always visible on screen.</td>
+    <td>Alignment of items with type 'box', 'range', and 'background'. Available values are 'auto' (default), 'center', 'left', or 'right'. For 'box' items, the 'auto' alignment is 'center'. For 'range' items, the auto alignment is dynamic: positioned left and shifted such that the contents is always visible on screen.</td>
 </tr>
 
 <tr>
@@ -668,7 +668,7 @@ var options = {
     <td>type</td>
     <td>String</td>
     <td>none</td>
-    <td>Specifies the default type for the timeline items. Choose from 'box', 'point', and 'range'. Note that individual items can override this default type. If undefined, the Timeline will auto detect the type from the items data: if a start and end date is available, a 'range' will be created, and else, a 'box' is created.
+    <td>Specifies the default type for the timeline items. Choose from 'box', 'point', 'range', and 'background'. Note that individual items can override this default type. If undefined, the Timeline will auto detect the type from the items data: if a start and end date is available, a 'range' will be created, and else, a 'box' is created. Items of type 'background' are not editable.
     </td>
 </tr>
 

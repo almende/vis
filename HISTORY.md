@@ -16,6 +16,8 @@ http://visjs.org
 
 ### Timeline
 
+- Implemented a new item type: `'background'`. This can be used to mark periods
+  with a background color and label.
 - Implemented support for attaching HTML attributes to items. Thanks @dturkenk.
 - Fixed moment.js url in localization example.
 - Fixed `className` of groups not being updated when changed.

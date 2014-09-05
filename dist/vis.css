@@ -208,14 +208,28 @@
   box-sizing: border-box;
 }
 
-.vis.timeline .item.range .content {
-  position: relative;
-  display: inline-block;
+.vis.timeline .item.background {
+  overflow: hidden;
+  border: none;
+  background-color: rgba(213, 221, 246, 0.4);
+  box-sizing: border-box;
+  top: 0;
+  bottom: 0;
 }
 
 .vis.timeline .item.range .content {
+  position: relative;
+  display: inline-block;
   overflow: hidden;
   max-width: 100%;
+}
+
+.vis.timeline .item.background .content {
+  position: absolute;
+  display: inline-block;
+  overflow: hidden;
+  max-width: 100%;
+  margin: 5px;
 }
 
 .vis.timeline .item.line {
