@@ -29,10 +29,10 @@ exports.timeline = {
   components: {
     items: {
       Item: require('./lib/timeline/component/item/Item'),
-      ItemBackground: require('./lib/timeline/component/item/ItemBackground'),
-      ItemBox: require('./lib/timeline/component/item/ItemBox'),
-      ItemPoint: require('./lib/timeline/component/item/ItemPoint'),
-      ItemRange: require('./lib/timeline/component/item/ItemRange')
+      BackgroundItem: require('./lib/timeline/component/item/BackgroundItem'),
+      BoxItem: require('./lib/timeline/component/item/BoxItem'),
+      PointItem: require('./lib/timeline/component/item/PointItem'),
+      RangeItem: require('./lib/timeline/component/item/RangeItem')
     },
 
     Component: require('./lib/timeline/component/Component'),

@@ -110,10 +110,10 @@ return /******/ (function(modules) { // webpackBootstrap
     components: {
       items: {
         Item: __webpack_require__(28),
-        ItemBackground: __webpack_require__(29),
-        ItemBox: __webpack_require__(30),
-        ItemPoint: __webpack_require__(31),
-        ItemRange: __webpack_require__(32)
+        BackgroundItem: __webpack_require__(29),
+        BoxItem: __webpack_require__(30),
+        PointItem: __webpack_require__(31),
+        RangeItem: __webpack_require__(32)
       },
 
       Component: __webpack_require__(18),
@@ -1243,7 +1243,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * This is done to be able to select the correct if statement (we do not want to check if an item is visible, we want to check
    * if the time we selected (start or end) is within the current range).
    *
-   * The trick is that every interval has to either enter the screen at the initial load or by dragging. The case of the ItemRange that is
+   * The trick is that every interval has to either enter the screen at the initial load or by dragging. The case of the RangeItem that is
    * before and after the current range is handled by simply checking if it was in view before and if it is again. For all the rest,
    * either the start OR end time has to be in the range.
    *
@@ -1319,7 +1319,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * This is done to be able to select the correct if statement (we do not want to check if an item is visible, we want to check
    * if the time we selected (start or end) is within the current range).
    *
-   * The trick is that every interval has to either enter the screen at the initial load or by dragging. The case of the ItemRange that is
+   * The trick is that every interval has to either enter the screen at the initial load or by dragging. The case of the RangeItem that is
    * before and after the current range is handled by simply checking if it was in view before and if it is again. For all the rest,
    * either the start OR end time has to be in the range.
    *
@@ -9138,7 +9138,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var stack = __webpack_require__(16);
-  var ItemRange = __webpack_require__(32);
+  var RangeItem = __webpack_require__(32);
 
   /**
    * @constructor Group
@@ -9441,14 +9441,14 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Create an array containing all items being a range (having an end date)
    * @param {Item[]} array
-   * @returns {ItemRange[]}
+   * @returns {RangeItem[]}
    * @private
    */
   Group.prototype._constructByEndArray = function(array) {
     var endArray = [];
 
     for (var i = 0; i < array.length; i++) {
-      if (array[i] instanceof ItemRange) {
+      if (array[i] instanceof RangeItem) {
         endArray.push(array[i]);
       }
     }
@@ -9469,14 +9469,14 @@ return /******/ (function(modules) { // webpackBootstrap
         i;
 
     // first check if the items that were in view previously are still in view.
-    // this handles the case for the ItemRange that is both before and after the current one.
+    // this handles the case for the RangeItem that is both before and after the current one.
     if (visibleItems.length > 0) {
       for (i = 0; i < visibleItems.length; i++) {
         this._checkIfVisible(visibleItems[i], newVisibleItems, range);
       }
     }
 
-    // If there were no visible items previously, use binarySearch to find a visible ItemPoint or ItemRange (based on startTime)
+    // If there were no visible items previously, use binarySearch to find a visible PointItem or RangeItem (based on startTime)
     if (newVisibleItems.length == 0) {
       initialPosByStart = util.binarySearch(orderedItems.byStart, range, 'data','start');
     }
@@ -9484,7 +9484,7 @@ return /******/ (function(modules) { // webpackBootstrap
       initialPosByStart = orderedItems.byStart.indexOf(newVisibleItems[0]);
     }
 
-    // use visible search to find a visible ItemRange (only based on endTime)
+    // use visible search to find a visible RangeItem (only based on endTime)
     var initialPosByEnd = util.binarySearch(orderedItems.byEnd, range, 'data','end');
 
     // if we found a initial ID to use, trace it up and down until we meet an invisible item.
@@ -9573,10 +9573,10 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataView = __webpack_require__(4);
   var Component = __webpack_require__(18);
   var Group = __webpack_require__(23);
-  var ItemBox = __webpack_require__(30);
-  var ItemPoint = __webpack_require__(31);
-  var ItemRange = __webpack_require__(32);
-  var ItemBackground = __webpack_require__(29);
+  var BoxItem = __webpack_require__(30);
+  var PointItem = __webpack_require__(31);
+  var RangeItem = __webpack_require__(32);
+  var BackgroundItem = __webpack_require__(29);
 
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
@@ -9697,10 +9697,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // available item types will be registered here
   ItemSet.types = {
-    background: ItemBackground,
-    box: ItemBox,
-    range: ItemRange,
-    point: ItemPoint
+    background: BackgroundItem,
+    box: BoxItem,
+    range: RangeItem,
+    point: PointItem
   };
 
   /**
@@ -9774,7 +9774,7 @@ return /******/ (function(modules) { // webpackBootstrap
    *                              individual items.
    *                           {String} align
    *                              Alignment for the items, only applicable for
-   *                              ItemBox. Choose 'center' (default), 'left', or
+   *                              BoxItem. Choose 'center' (default), 'left', or
    *                              'right'.
    *                           {String} orientation
    *                              Orientation of the item set. Choose 'top' or
@@ -10568,7 +10568,7 @@ return /******/ (function(modules) { // webpackBootstrap
     var endArray = [];
 
     for (var i = 0; i < array.length; i++) {
-      if (array[i] instanceof ItemRange) {
+      if (array[i] instanceof RangeItem) {
         endArray.push(array[i]);
       }
     }
@@ -13137,10 +13137,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var Hammer = __webpack_require__(42);
   var Item = __webpack_require__(28);
-  var ItemRange = __webpack_require__(32);
+  var RangeItem = __webpack_require__(32);
 
   /**
-   * @constructor ItemBackground
+   * @constructor BackgroundItem
    * @extends Item
    * @param {Object} data             Object containing parameters start, end
    *                                  content, className.
@@ -13149,7 +13149,8 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {Object} [options]        Configuration options
    *                                  // TODO: describe options
    */
-  function ItemBackground (data, conversion, options) {
+  // TODO: implement support for the BackgroundItem just having a start, then being displayed as a sort of an annotation
+  function BackgroundItem (data, conversion, options) {
     this.props = {
       content: {
         width: 0
@@ -13162,21 +13163,24 @@ return /******/ (function(modules) { // webpackBootstrap
       if (data.start == undefined) {
         throw new Error('Property "start" missing in item ' + data.id);
       }
+      if (data.end == undefined) {
+        throw new Error('Property "end" missing in item ' + data.id);
+      }
     }
 
     Item.call(this, data, conversion, options);
   }
 
-  ItemBackground.prototype = new Item (null, null, null);
+  BackgroundItem.prototype = new Item (null, null, null);
 
-  ItemBackground.prototype.baseClassName = 'item background';
+  BackgroundItem.prototype.baseClassName = 'item background';
 
   /**
    * Check whether this item is visible inside given range
    * @returns {{start: Number, end: Number}} range with a timestamp for start and end
    * @returns {boolean} True if visible
    */
-  ItemBackground.prototype.isVisible = function(range) {
+  BackgroundItem.prototype.isVisible = function(range) {
     // determine visibility
     return (this.data.start < range.end) && (this.data.end > range.start);
   };
@@ -13184,7 +13188,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Repaint the item
    */
-  ItemBackground.prototype.redraw = function() {
+  BackgroundItem.prototype.redraw = function() {
     var dom = this.dom;
     if (!dom) {
       // create DOM
@@ -13248,31 +13252,31 @@ return /******/ (function(modules) { // webpackBootstrap
    * Show the item in the DOM (when not already visible). The items DOM will
    * be created when needed.
    */
-  ItemBackground.prototype.show = ItemRange.prototype.show;
+  BackgroundItem.prototype.show = RangeItem.prototype.show;
 
   /**
    * Hide the item from the DOM (when visible)
    * @return {Boolean} changed
    */
-  ItemBackground.prototype.hide = ItemRange.prototype.hide;
+  BackgroundItem.prototype.hide = RangeItem.prototype.hide;
 
   /**
    * Reposition the item horizontally
    * @Override
    */
-  ItemBackground.prototype.repositionX = ItemRange.prototype.repositionX;
+  BackgroundItem.prototype.repositionX = RangeItem.prototype.repositionX;
 
   /**
    * Reposition the item vertically
    * @Override
    */
-  ItemBackground.prototype.repositionY = function() {
+  BackgroundItem.prototype.repositionY = function() {
     var onTop = this.options.orientation === 'top';
     this.dom.content.style.top = onTop ? '' : '0';
     this.dom.content.style.bottom = onTop ? '0' : '';
   };
 
-  module.exports = ItemBackground;
+  module.exports = BackgroundItem;
 
 
 /***/ },
@@ -13282,7 +13286,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var Item = __webpack_require__(28);
 
   /**
-   * @constructor ItemBox
+   * @constructor BoxItem
    * @extends Item
    * @param {Object} data             Object containing parameters start
    *                                  content, className.
@@ -13291,7 +13295,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {Object} [options]        Configuration options
    *                                  // TODO: describe available options
    */
-  function ItemBox (data, conversion, options) {
+  function BoxItem (data, conversion, options) {
     this.props = {
       dot: {
         width: 0,
@@ -13313,14 +13317,14 @@ return /******/ (function(modules) { // webpackBootstrap
     Item.call(this, data, conversion, options);
   }
 
-  ItemBox.prototype = new Item (null, null, null);
+  BoxItem.prototype = new Item (null, null, null);
 
   /**
    * Check whether this item is visible inside given range
    * @returns {{start: Number, end: Number}} range with a timestamp for start and end
    * @returns {boolean} True if visible
    */
-  ItemBox.prototype.isVisible = function(range) {
+  BoxItem.prototype.isVisible = function(range) {
     // determine visibility
     // TODO: account for the real width of the item. Right now we just add 1/4 to the window
     var interval = (range.end - range.start) / 4;
@@ -13330,7 +13334,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Repaint the item
    */
-  ItemBox.prototype.redraw = function() {
+  BoxItem.prototype.redraw = function() {
     var dom = this.dom;
     if (!dom) {
       // create DOM
@@ -13413,7 +13417,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Show the item in the DOM (when not already displayed). The items DOM will
    * be created when needed.
    */
-  ItemBox.prototype.show = function() {
+  BoxItem.prototype.show = function() {
     if (!this.displayed) {
       this.redraw();
     }
@@ -13422,7 +13426,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Hide the item from the DOM (when visible)
    */
-  ItemBox.prototype.hide = function() {
+  BoxItem.prototype.hide = function() {
     if (this.displayed) {
       var dom = this.dom;
 
@@ -13441,7 +13445,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Reposition the item horizontally
    * @Override
    */
-  ItemBox.prototype.repositionX = function() {
+  BoxItem.prototype.repositionX = function() {
     var start = this.conversion.toScreen(this.data.start);
     var align = this.options.align;
     var left;
@@ -13475,7 +13479,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Reposition the item vertically
    * @Override
    */
-  ItemBox.prototype.repositionY = function() {
+  BoxItem.prototype.repositionY = function() {
     var orientation = this.options.orientation;
     var box = this.dom.box;
     var line = this.dom.line;
@@ -13500,7 +13504,7 @@ return /******/ (function(modules) { // webpackBootstrap
     dot.style.top = (-this.props.dot.height / 2) + 'px';
   };
 
-  module.exports = ItemBox;
+  module.exports = BoxItem;
 
 
 /***/ },
@@ -13510,7 +13514,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var Item = __webpack_require__(28);
 
   /**
-   * @constructor ItemPoint
+   * @constructor PointItem
    * @extends Item
    * @param {Object} data             Object containing parameters start
    *                                  content, className.
@@ -13519,7 +13523,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {Object} [options]        Configuration options
    *                                  // TODO: describe available options
    */
-  function ItemPoint (data, conversion, options) {
+  function PointItem (data, conversion, options) {
     this.props = {
       dot: {
         top: 0,
@@ -13542,14 +13546,14 @@ return /******/ (function(modules) { // webpackBootstrap
     Item.call(this, data, conversion, options);
   }
 
-  ItemPoint.prototype = new Item (null, null, null);
+  PointItem.prototype = new Item (null, null, null);
 
   /**
    * Check whether this item is visible inside given range
    * @returns {{start: Number, end: Number}} range with a timestamp for start and end
    * @returns {boolean} True if visible
    */
-  ItemPoint.prototype.isVisible = function(range) {
+  PointItem.prototype.isVisible = function(range) {
     // determine visibility
     // TODO: account for the real width of the item. Right now we just add 1/4 to the window
     var interval = (range.end - range.start) / 4;
@@ -13559,7 +13563,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Repaint the item
    */
-  ItemPoint.prototype.redraw = function() {
+  PointItem.prototype.redraw = function() {
     var dom = this.dom;
     if (!dom) {
       // create DOM
@@ -13637,7 +13641,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Show the item in the DOM (when not already visible). The items DOM will
    * be created when needed.
    */
-  ItemPoint.prototype.show = function() {
+  PointItem.prototype.show = function() {
     if (!this.displayed) {
       this.redraw();
     }
@@ -13646,7 +13650,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Hide the item from the DOM (when visible)
    */
-  ItemPoint.prototype.hide = function() {
+  PointItem.prototype.hide = function() {
     if (this.displayed) {
       if (this.dom.point.parentNode) {
         this.dom.point.parentNode.removeChild(this.dom.point);
@@ -13663,7 +13667,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Reposition the item horizontally
    * @Override
    */
-  ItemPoint.prototype.repositionX = function() {
+  PointItem.prototype.repositionX = function() {
     var start = this.conversion.toScreen(this.data.start);
 
     this.left = start - this.props.dot.width;
@@ -13676,7 +13680,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Reposition the item vertically
    * @Override
    */
-  ItemPoint.prototype.repositionY = function() {
+  PointItem.prototype.repositionY = function() {
     var orientation = this.options.orientation,
         point = this.dom.point;
 
@@ -13688,7 +13692,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   };
 
-  module.exports = ItemPoint;
+  module.exports = PointItem;
 
 
 /***/ },
@@ -13699,7 +13703,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var Item = __webpack_require__(28);
 
   /**
-   * @constructor ItemRange
+   * @constructor RangeItem
    * @extends Item
    * @param {Object} data             Object containing parameters start, end
    *                                  content, className.
@@ -13708,7 +13712,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {Object} [options]        Configuration options
    *                                  // TODO: describe options
    */
-  function ItemRange (data, conversion, options) {
+  function RangeItem (data, conversion, options) {
     this.props = {
       content: {
         width: 0
@@ -13729,16 +13733,16 @@ return /******/ (function(modules) { // webpackBootstrap
     Item.call(this, data, conversion, options);
   }
 
-  ItemRange.prototype = new Item (null, null, null);
+  RangeItem.prototype = new Item (null, null, null);
 
-  ItemRange.prototype.baseClassName = 'item range';
+  RangeItem.prototype.baseClassName = 'item range';
 
   /**
    * Check whether this item is visible inside given range
    * @returns {{start: Number, end: Number}} range with a timestamp for start and end
    * @returns {boolean} True if visible
    */
-  ItemRange.prototype.isVisible = function(range) {
+  RangeItem.prototype.isVisible = function(range) {
     // determine visibility
     return (this.data.start < range.end) && (this.data.end > range.start);
   };
@@ -13746,7 +13750,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Repaint the item
    */
-  ItemRange.prototype.redraw = function() {
+  RangeItem.prototype.redraw = function() {
     var dom = this.dom;
     if (!dom) {
       // create DOM
@@ -13814,7 +13818,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Show the item in the DOM (when not already visible). The items DOM will
    * be created when needed.
    */
-  ItemRange.prototype.show = function() {
+  RangeItem.prototype.show = function() {
     if (!this.displayed) {
       this.redraw();
     }
@@ -13824,7 +13828,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Hide the item from the DOM (when visible)
    * @return {Boolean} changed
    */
-  ItemRange.prototype.hide = function() {
+  RangeItem.prototype.hide = function() {
     if (this.displayed) {
       var box = this.dom.box;
 
@@ -13843,7 +13847,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Reposition the item horizontally
    * @Override
    */
-  ItemRange.prototype.repositionX = function() {
+  RangeItem.prototype.repositionX = function() {
     var parentWidth = this.parent.width;
     var start = this.conversion.toScreen(this.data.start);
     var end = this.conversion.toScreen(this.data.end);
@@ -13914,7 +13918,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Reposition the item vertically
    * @Override
    */
-  ItemRange.prototype.repositionY = function() {
+  RangeItem.prototype.repositionY = function() {
     var orientation = this.options.orientation,
         box = this.dom.box;
 
@@ -13930,7 +13934,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Repaint a drag area on the left side of the range when the range is selected
    * @protected
    */
-  ItemRange.prototype._repaintDragLeft = function () {
+  RangeItem.prototype._repaintDragLeft = function () {
     if (this.selected && this.options.editable.updateTime && !this.dom.dragLeft) {
       // create and show drag area
       var dragLeft = document.createElement('div');
@@ -13960,7 +13964,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Repaint a drag area on the right side of the range when the range is selected
    * @protected
    */
-  ItemRange.prototype._repaintDragRight = function () {
+  RangeItem.prototype._repaintDragRight = function () {
     if (this.selected && this.options.editable.updateTime && !this.dom.dragRight) {
       // create and show drag area
       var dragRight = document.createElement('div');
@@ -13986,7 +13990,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   };
 
-  module.exports = ItemRange;
+  module.exports = RangeItem;
 
 
 /***/ },
@@ -13995,7 +13999,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var Emitter = __webpack_require__(50);
   var Hammer = __webpack_require__(42);
-  var mousetrap = __webpack_require__(53);
+  var mousetrap = __webpack_require__(51);
   var util = __webpack_require__(1);
   var hammerUtil = __webpack_require__(44);
   var DataSet = __webpack_require__(3);
@@ -19625,7 +19629,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // first check if moment.js is already loaded in the browser window, if so,
   // use this instance. Else, load via commonjs.
-  module.exports = (typeof window !== 'undefined') && window['moment'] || __webpack_require__(52);
+  module.exports = (typeof window !== 'undefined') && window['moment'] || __webpack_require__(53);
 
 
 /***/ },
@@ -19635,7 +19639,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // Only load hammer.js when in a browser environment
   // (loading hammer.js in a node.js environment gives errors)
   if (typeof window !== 'undefined') {
-    module.exports = window['Hammer'] || __webpack_require__(51);
+    module.exports = window['Hammer'] || __webpack_require__(52);
   }
   else {
     module.exports = function () {
@@ -20998,7 +21002,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var mousetrap = __webpack_require__(53);
+  var mousetrap = __webpack_require__(51);
   var Emitter = __webpack_require__(50);
   var Hammer = __webpack_require__(42);
   var util = __webpack_require__(1);
@@ -21318,6 +21322,811 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 51 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Copyright 2012 Craig Campbell
+   *
+   * Licensed under the Apache License, Version 2.0 (the "License");
+   * you may not use this file except in compliance with the License.
+   * You may obtain a copy of the License at
+   *
+   * http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS,
+   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   * See the License for the specific language governing permissions and
+   * limitations under the License.
+   *
+   * Mousetrap is a simple keyboard shortcut library for Javascript with
+   * no external dependencies
+   *
+   * @version 1.1.2
+   * @url craig.is/killing/mice
+   */
+
+    /**
+     * mapping of special keycodes to their corresponding keys
+     *
+     * everything in this dictionary cannot use keypress events
+     * so it has to be here to map to the correct keycodes for
+     * keyup/keydown events
+     *
+     * @type {Object}
+     */
+    var _MAP = {
+            8: 'backspace',
+            9: 'tab',
+            13: 'enter',
+            16: 'shift',
+            17: 'ctrl',
+            18: 'alt',
+            20: 'capslock',
+            27: 'esc',
+            32: 'space',
+            33: 'pageup',
+            34: 'pagedown',
+            35: 'end',
+            36: 'home',
+            37: 'left',
+            38: 'up',
+            39: 'right',
+            40: 'down',
+            45: 'ins',
+            46: 'del',
+            91: 'meta',
+            93: 'meta',
+            224: 'meta'
+        },
+
+        /**
+         * mapping for special characters so they can support
+         *
+         * this dictionary is only used incase you want to bind a
+         * keyup or keydown event to one of these keys
+         *
+         * @type {Object}
+         */
+        _KEYCODE_MAP = {
+            106: '*',
+            107: '+',
+            109: '-',
+            110: '.',
+            111 : '/',
+            186: ';',
+            187: '=',
+            188: ',',
+            189: '-',
+            190: '.',
+            191: '/',
+            192: '`',
+            219: '[',
+            220: '\\',
+            221: ']',
+            222: '\''
+        },
+
+        /**
+         * this is a mapping of keys that require shift on a US keypad
+         * back to the non shift equivelents
+         *
+         * this is so you can use keyup events with these keys
+         *
+         * note that this will only work reliably on US keyboards
+         *
+         * @type {Object}
+         */
+        _SHIFT_MAP = {
+            '~': '`',
+            '!': '1',
+            '@': '2',
+            '#': '3',
+            '$': '4',
+            '%': '5',
+            '^': '6',
+            '&': '7',
+            '*': '8',
+            '(': '9',
+            ')': '0',
+            '_': '-',
+            '+': '=',
+            ':': ';',
+            '\"': '\'',
+            '<': ',',
+            '>': '.',
+            '?': '/',
+            '|': '\\'
+        },
+
+        /**
+         * this is a list of special strings you can use to map
+         * to modifier keys when you specify your keyboard shortcuts
+         *
+         * @type {Object}
+         */
+        _SPECIAL_ALIASES = {
+            'option': 'alt',
+            'command': 'meta',
+            'return': 'enter',
+            'escape': 'esc'
+        },
+
+        /**
+         * variable to store the flipped version of _MAP from above
+         * needed to check if we should use keypress or not when no action
+         * is specified
+         *
+         * @type {Object|undefined}
+         */
+        _REVERSE_MAP,
+
+        /**
+         * a list of all the callbacks setup via Mousetrap.bind()
+         *
+         * @type {Object}
+         */
+        _callbacks = {},
+
+        /**
+         * direct map of string combinations to callbacks used for trigger()
+         *
+         * @type {Object}
+         */
+        _direct_map = {},
+
+        /**
+         * keeps track of what level each sequence is at since multiple
+         * sequences can start out with the same sequence
+         *
+         * @type {Object}
+         */
+        _sequence_levels = {},
+
+        /**
+         * variable to store the setTimeout call
+         *
+         * @type {null|number}
+         */
+        _reset_timer,
+
+        /**
+         * temporary state where we will ignore the next keyup
+         *
+         * @type {boolean|string}
+         */
+        _ignore_next_keyup = false,
+
+        /**
+         * are we currently inside of a sequence?
+         * type of action ("keyup" or "keydown" or "keypress") or false
+         *
+         * @type {boolean|string}
+         */
+        _inside_sequence = false;
+
+    /**
+     * loop through the f keys, f1 to f19 and add them to the map
+     * programatically
+     */
+    for (var i = 1; i < 20; ++i) {
+        _MAP[111 + i] = 'f' + i;
+    }
+
+    /**
+     * loop through to map numbers on the numeric keypad
+     */
+    for (i = 0; i <= 9; ++i) {
+        _MAP[i + 96] = i;
+    }
+
+    /**
+     * cross browser add event method
+     *
+     * @param {Element|HTMLDocument} object
+     * @param {string} type
+     * @param {Function} callback
+     * @returns void
+     */
+    function _addEvent(object, type, callback) {
+        if (object.addEventListener) {
+            return object.addEventListener(type, callback, false);
+        }
+
+        object.attachEvent('on' + type, callback);
+    }
+
+    /**
+     * takes the event and returns the key character
+     *
+     * @param {Event} e
+     * @return {string}
+     */
+    function _characterFromEvent(e) {
+
+        // for keypress events we should return the character as is
+        if (e.type == 'keypress') {
+            return String.fromCharCode(e.which);
+        }
+
+        // for non keypress events the special maps are needed
+        if (_MAP[e.which]) {
+            return _MAP[e.which];
+        }
+
+        if (_KEYCODE_MAP[e.which]) {
+            return _KEYCODE_MAP[e.which];
+        }
+
+        // if it is not in the special map
+        return String.fromCharCode(e.which).toLowerCase();
+    }
+
+    /**
+     * should we stop this event before firing off callbacks
+     *
+     * @param {Event} e
+     * @return {boolean}
+     */
+    function _stop(e) {
+        var element = e.target || e.srcElement,
+            tag_name = element.tagName;
+
+        // if the element has the class "mousetrap" then no need to stop
+        if ((' ' + element.className + ' ').indexOf(' mousetrap ') > -1) {
+            return false;
+        }
+
+        // stop for input, select, and textarea
+        return tag_name == 'INPUT' || tag_name == 'SELECT' || tag_name == 'TEXTAREA' || (element.contentEditable && element.contentEditable == 'true');
+    }
+
+    /**
+     * checks if two arrays are equal
+     *
+     * @param {Array} modifiers1
+     * @param {Array} modifiers2
+     * @returns {boolean}
+     */
+    function _modifiersMatch(modifiers1, modifiers2) {
+        return modifiers1.sort().join(',') === modifiers2.sort().join(',');
+    }
+
+    /**
+     * resets all sequence counters except for the ones passed in
+     *
+     * @param {Object} do_not_reset
+     * @returns void
+     */
+    function _resetSequences(do_not_reset) {
+        do_not_reset = do_not_reset || {};
+
+        var active_sequences = false,
+            key;
+
+        for (key in _sequence_levels) {
+            if (do_not_reset[key]) {
+                active_sequences = true;
+                continue;
+            }
+            _sequence_levels[key] = 0;
+        }
+
+        if (!active_sequences) {
+            _inside_sequence = false;
+        }
+    }
+
+    /**
+     * finds all callbacks that match based on the keycode, modifiers,
+     * and action
+     *
+     * @param {string} character
+     * @param {Array} modifiers
+     * @param {string} action
+     * @param {boolean=} remove - should we remove any matches
+     * @param {string=} combination
+     * @returns {Array}
+     */
+    function _getMatches(character, modifiers, action, remove, combination) {
+        var i,
+            callback,
+            matches = [];
+
+        // if there are no events related to this keycode
+        if (!_callbacks[character]) {
+            return [];
+        }
+
+        // if a modifier key is coming up on its own we should allow it
+        if (action == 'keyup' && _isModifier(character)) {
+            modifiers = [character];
+        }
+
+        // loop through all callbacks for the key that was pressed
+        // and see if any of them match
+        for (i = 0; i < _callbacks[character].length; ++i) {
+            callback = _callbacks[character][i];
+
+            // if this is a sequence but it is not at the right level
+            // then move onto the next match
+            if (callback.seq && _sequence_levels[callback.seq] != callback.level) {
+                continue;
+            }
+
+            // if the action we are looking for doesn't match the action we got
+            // then we should keep going
+            if (action != callback.action) {
+                continue;
+            }
+
+            // if this is a keypress event that means that we need to only
+            // look at the character, otherwise check the modifiers as
+            // well
+            if (action == 'keypress' || _modifiersMatch(modifiers, callback.modifiers)) {
+
+                // remove is used so if you change your mind and call bind a
+                // second time with a new function the first one is overwritten
+                if (remove && callback.combo == combination) {
+                    _callbacks[character].splice(i, 1);
+                }
+
+                matches.push(callback);
+            }
+        }
+
+        return matches;
+    }
+
+    /**
+     * takes a key event and figures out what the modifiers are
+     *
+     * @param {Event} e
+     * @returns {Array}
+     */
+    function _eventModifiers(e) {
+        var modifiers = [];
+
+        if (e.shiftKey) {
+            modifiers.push('shift');
+        }
+
+        if (e.altKey) {
+            modifiers.push('alt');
+        }
+
+        if (e.ctrlKey) {
+            modifiers.push('ctrl');
+        }
+
+        if (e.metaKey) {
+            modifiers.push('meta');
+        }
+
+        return modifiers;
+    }
+
+    /**
+     * actually calls the callback function
+     *
+     * if your callback function returns false this will use the jquery
+     * convention - prevent default and stop propogation on the event
+     *
+     * @param {Function} callback
+     * @param {Event} e
+     * @returns void
+     */
+    function _fireCallback(callback, e) {
+        if (callback(e) === false) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+
+            e.returnValue = false;
+            e.cancelBubble = true;
+        }
+    }
+
+    /**
+     * handles a character key event
+     *
+     * @param {string} character
+     * @param {Event} e
+     * @returns void
+     */
+    function _handleCharacter(character, e) {
+
+        // if this event should not happen stop here
+        if (_stop(e)) {
+            return;
+        }
+
+        var callbacks = _getMatches(character, _eventModifiers(e), e.type),
+            i,
+            do_not_reset = {},
+            processed_sequence_callback = false;
+
+        // loop through matching callbacks for this key event
+        for (i = 0; i < callbacks.length; ++i) {
+
+            // fire for all sequence callbacks
+            // this is because if for example you have multiple sequences
+            // bound such as "g i" and "g t" they both need to fire the
+            // callback for matching g cause otherwise you can only ever
+            // match the first one
+            if (callbacks[i].seq) {
+                processed_sequence_callback = true;
+
+                // keep a list of which sequences were matches for later
+                do_not_reset[callbacks[i].seq] = 1;
+                _fireCallback(callbacks[i].callback, e);
+                continue;
+            }
+
+            // if there were no sequence matches but we are still here
+            // that means this is a regular match so we should fire that
+            if (!processed_sequence_callback && !_inside_sequence) {
+                _fireCallback(callbacks[i].callback, e);
+            }
+        }
+
+        // if you are inside of a sequence and the key you are pressing
+        // is not a modifier key then we should reset all sequences
+        // that were not matched by this key event
+        if (e.type == _inside_sequence && !_isModifier(character)) {
+            _resetSequences(do_not_reset);
+        }
+    }
+
+    /**
+     * handles a keydown event
+     *
+     * @param {Event} e
+     * @returns void
+     */
+    function _handleKey(e) {
+
+        // normalize e.which for key events
+        // @see http://stackoverflow.com/questions/4285627/javascript-keycode-vs-charcode-utter-confusion
+        e.which = typeof e.which == "number" ? e.which : e.keyCode;
+
+        var character = _characterFromEvent(e);
+
+        // no character found then stop
+        if (!character) {
+            return;
+        }
+
+        if (e.type == 'keyup' && _ignore_next_keyup == character) {
+            _ignore_next_keyup = false;
+            return;
+        }
+
+        _handleCharacter(character, e);
+    }
+
+    /**
+     * determines if the keycode specified is a modifier key or not
+     *
+     * @param {string} key
+     * @returns {boolean}
+     */
+    function _isModifier(key) {
+        return key == 'shift' || key == 'ctrl' || key == 'alt' || key == 'meta';
+    }
+
+    /**
+     * called to set a 1 second timeout on the specified sequence
+     *
+     * this is so after each key press in the sequence you have 1 second
+     * to press the next key before you have to start over
+     *
+     * @returns void
+     */
+    function _resetSequenceTimer() {
+        clearTimeout(_reset_timer);
+        _reset_timer = setTimeout(_resetSequences, 1000);
+    }
+
+    /**
+     * reverses the map lookup so that we can look for specific keys
+     * to see what can and can't use keypress
+     *
+     * @return {Object}
+     */
+    function _getReverseMap() {
+        if (!_REVERSE_MAP) {
+            _REVERSE_MAP = {};
+            for (var key in _MAP) {
+
+                // pull out the numeric keypad from here cause keypress should
+                // be able to detect the keys from the character
+                if (key > 95 && key < 112) {
+                    continue;
+                }
+
+                if (_MAP.hasOwnProperty(key)) {
+                    _REVERSE_MAP[_MAP[key]] = key;
+                }
+            }
+        }
+        return _REVERSE_MAP;
+    }
+
+    /**
+     * picks the best action based on the key combination
+     *
+     * @param {string} key - character for key
+     * @param {Array} modifiers
+     * @param {string=} action passed in
+     */
+    function _pickBestAction(key, modifiers, action) {
+
+        // if no action was picked in we should try to pick the one
+        // that we think would work best for this key
+        if (!action) {
+            action = _getReverseMap()[key] ? 'keydown' : 'keypress';
+        }
+
+        // modifier keys don't work as expected with keypress,
+        // switch to keydown
+        if (action == 'keypress' && modifiers.length) {
+            action = 'keydown';
+        }
+
+        return action;
+    }
+
+    /**
+     * binds a key sequence to an event
+     *
+     * @param {string} combo - combo specified in bind call
+     * @param {Array} keys
+     * @param {Function} callback
+     * @param {string=} action
+     * @returns void
+     */
+    function _bindSequence(combo, keys, callback, action) {
+
+        // start off by adding a sequence level record for this combination
+        // and setting the level to 0
+        _sequence_levels[combo] = 0;
+
+        // if there is no action pick the best one for the first key
+        // in the sequence
+        if (!action) {
+            action = _pickBestAction(keys[0], []);
+        }
+
+        /**
+         * callback to increase the sequence level for this sequence and reset
+         * all other sequences that were active
+         *
+         * @param {Event} e
+         * @returns void
+         */
+        var _increaseSequence = function(e) {
+                _inside_sequence = action;
+                ++_sequence_levels[combo];
+                _resetSequenceTimer();
+            },
+
+            /**
+             * wraps the specified callback inside of another function in order
+             * to reset all sequence counters as soon as this sequence is done
+             *
+             * @param {Event} e
+             * @returns void
+             */
+            _callbackAndReset = function(e) {
+                _fireCallback(callback, e);
+
+                // we should ignore the next key up if the action is key down
+                // or keypress.  this is so if you finish a sequence and
+                // release the key the final key will not trigger a keyup
+                if (action !== 'keyup') {
+                    _ignore_next_keyup = _characterFromEvent(e);
+                }
+
+                // weird race condition if a sequence ends with the key
+                // another sequence begins with
+                setTimeout(_resetSequences, 10);
+            },
+            i;
+
+        // loop through keys one at a time and bind the appropriate callback
+        // function.  for any key leading up to the final one it should
+        // increase the sequence. after the final, it should reset all sequences
+        for (i = 0; i < keys.length; ++i) {
+            _bindSingle(keys[i], i < keys.length - 1 ? _increaseSequence : _callbackAndReset, action, combo, i);
+        }
+    }
+
+    /**
+     * binds a single keyboard combination
+     *
+     * @param {string} combination
+     * @param {Function} callback
+     * @param {string=} action
+     * @param {string=} sequence_name - name of sequence if part of sequence
+     * @param {number=} level - what part of the sequence the command is
+     * @returns void
+     */
+    function _bindSingle(combination, callback, action, sequence_name, level) {
+
+        // make sure multiple spaces in a row become a single space
+        combination = combination.replace(/\s+/g, ' ');
+
+        var sequence = combination.split(' '),
+            i,
+            key,
+            keys,
+            modifiers = [];
+
+        // if this pattern is a sequence of keys then run through this method
+        // to reprocess each pattern one key at a time
+        if (sequence.length > 1) {
+            return _bindSequence(combination, sequence, callback, action);
+        }
+
+        // take the keys from this pattern and figure out what the actual
+        // pattern is all about
+        keys = combination === '+' ? ['+'] : combination.split('+');
+
+        for (i = 0; i < keys.length; ++i) {
+            key = keys[i];
+
+            // normalize key names
+            if (_SPECIAL_ALIASES[key]) {
+                key = _SPECIAL_ALIASES[key];
+            }
+
+            // if this is not a keypress event then we should
+            // be smart about using shift keys
+            // this will only work for US keyboards however
+            if (action && action != 'keypress' && _SHIFT_MAP[key]) {
+                key = _SHIFT_MAP[key];
+                modifiers.push('shift');
+            }
+
+            // if this key is a modifier then add it to the list of modifiers
+            if (_isModifier(key)) {
+                modifiers.push(key);
+            }
+        }
+
+        // depending on what the key combination is
+        // we will try to pick the best event for it
+        action = _pickBestAction(key, modifiers, action);
+
+        // make sure to initialize array if this is the first time
+        // a callback is added for this key
+        if (!_callbacks[key]) {
+            _callbacks[key] = [];
+        }
+
+        // remove an existing match if there is one
+        _getMatches(key, modifiers, action, !sequence_name, combination);
+
+        // add this call back to the array
+        // if it is a sequence put it at the beginning
+        // if not put it at the end
+        //
+        // this is important because the way these are processed expects
+        // the sequence ones to come first
+        _callbacks[key][sequence_name ? 'unshift' : 'push']({
+            callback: callback,
+            modifiers: modifiers,
+            action: action,
+            seq: sequence_name,
+            level: level,
+            combo: combination
+        });
+    }
+
+    /**
+     * binds multiple combinations to the same callback
+     *
+     * @param {Array} combinations
+     * @param {Function} callback
+     * @param {string|undefined} action
+     * @returns void
+     */
+    function _bindMultiple(combinations, callback, action) {
+        for (var i = 0; i < combinations.length; ++i) {
+            _bindSingle(combinations[i], callback, action);
+        }
+    }
+
+    // start!
+    _addEvent(document, 'keypress', _handleKey);
+    _addEvent(document, 'keydown', _handleKey);
+    _addEvent(document, 'keyup', _handleKey);
+
+    var mousetrap = {
+
+        /**
+         * binds an event to mousetrap
+         *
+         * can be a single key, a combination of keys separated with +,
+         * a comma separated list of keys, an array of keys, or
+         * a sequence of keys separated by spaces
+         *
+         * be sure to list the modifier keys first to make sure that the
+         * correct key ends up getting bound (the last key in the pattern)
+         *
+         * @param {string|Array} keys
+         * @param {Function} callback
+         * @param {string=} action - 'keypress', 'keydown', or 'keyup'
+         * @returns void
+         */
+        bind: function(keys, callback, action) {
+            _bindMultiple(keys instanceof Array ? keys : [keys], callback, action);
+            _direct_map[keys + ':' + action] = callback;
+            return this;
+        },
+
+        /**
+         * unbinds an event to mousetrap
+         *
+         * the unbinding sets the callback function of the specified key combo
+         * to an empty function and deletes the corresponding key in the
+         * _direct_map dict.
+         *
+         * the keycombo+action has to be exactly the same as
+         * it was defined in the bind method
+         *
+         * TODO: actually remove this from the _callbacks dictionary instead
+         * of binding an empty function
+         *
+         * @param {string|Array} keys
+         * @param {string} action
+         * @returns void
+         */
+        unbind: function(keys, action) {
+            if (_direct_map[keys + ':' + action]) {
+                delete _direct_map[keys + ':' + action];
+                this.bind(keys, function() {}, action);
+            }
+            return this;
+        },
+
+        /**
+         * triggers an event that has already been bound
+         *
+         * @param {string} keys
+         * @param {string=} action
+         * @returns void
+         */
+        trigger: function(keys, action) {
+            _direct_map[keys + ':' + action]();
+            return this;
+        },
+
+        /**
+         * resets the library back to its initial state.  this is useful
+         * if you want to clear out the current keyboard shortcuts and bind
+         * new ones - for example if you switch to another page
+         *
+         * @returns void
+         */
+        reset: function() {
+            _callbacks = {};
+            _direct_map = {};
+            return this;
+        }
+    };
+
+  module.exports = mousetrap;
+
+
+
+/***/ },
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v1.1.3 - 2014-05-20
@@ -23484,7 +24293,7 @@ return /******/ (function(modules) { // webpackBootstrap
   })(window);
 
 /***/ },
-/* 52 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global, module) {//! moment.js
@@ -26304,811 +27113,6 @@ return /******/ (function(modules) { // webpackBootstrap
   }).call(this);
   
   /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(65)(module)))
-
-/***/ },
-/* 53 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * Copyright 2012 Craig Campbell
-   *
-   * Licensed under the Apache License, Version 2.0 (the "License");
-   * you may not use this file except in compliance with the License.
-   * You may obtain a copy of the License at
-   *
-   * http://www.apache.org/licenses/LICENSE-2.0
-   *
-   * Unless required by applicable law or agreed to in writing, software
-   * distributed under the License is distributed on an "AS IS" BASIS,
-   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   * See the License for the specific language governing permissions and
-   * limitations under the License.
-   *
-   * Mousetrap is a simple keyboard shortcut library for Javascript with
-   * no external dependencies
-   *
-   * @version 1.1.2
-   * @url craig.is/killing/mice
-   */
-
-    /**
-     * mapping of special keycodes to their corresponding keys
-     *
-     * everything in this dictionary cannot use keypress events
-     * so it has to be here to map to the correct keycodes for
-     * keyup/keydown events
-     *
-     * @type {Object}
-     */
-    var _MAP = {
-            8: 'backspace',
-            9: 'tab',
-            13: 'enter',
-            16: 'shift',
-            17: 'ctrl',
-            18: 'alt',
-            20: 'capslock',
-            27: 'esc',
-            32: 'space',
-            33: 'pageup',
-            34: 'pagedown',
-            35: 'end',
-            36: 'home',
-            37: 'left',
-            38: 'up',
-            39: 'right',
-            40: 'down',
-            45: 'ins',
-            46: 'del',
-            91: 'meta',
-            93: 'meta',
-            224: 'meta'
-        },
-
-        /**
-         * mapping for special characters so they can support
-         *
-         * this dictionary is only used incase you want to bind a
-         * keyup or keydown event to one of these keys
-         *
-         * @type {Object}
-         */
-        _KEYCODE_MAP = {
-            106: '*',
-            107: '+',
-            109: '-',
-            110: '.',
-            111 : '/',
-            186: ';',
-            187: '=',
-            188: ',',
-            189: '-',
-            190: '.',
-            191: '/',
-            192: '`',
-            219: '[',
-            220: '\\',
-            221: ']',
-            222: '\''
-        },
-
-        /**
-         * this is a mapping of keys that require shift on a US keypad
-         * back to the non shift equivelents
-         *
-         * this is so you can use keyup events with these keys
-         *
-         * note that this will only work reliably on US keyboards
-         *
-         * @type {Object}
-         */
-        _SHIFT_MAP = {
-            '~': '`',
-            '!': '1',
-            '@': '2',
-            '#': '3',
-            '$': '4',
-            '%': '5',
-            '^': '6',
-            '&': '7',
-            '*': '8',
-            '(': '9',
-            ')': '0',
-            '_': '-',
-            '+': '=',
-            ':': ';',
-            '\"': '\'',
-            '<': ',',
-            '>': '.',
-            '?': '/',
-            '|': '\\'
-        },
-
-        /**
-         * this is a list of special strings you can use to map
-         * to modifier keys when you specify your keyboard shortcuts
-         *
-         * @type {Object}
-         */
-        _SPECIAL_ALIASES = {
-            'option': 'alt',
-            'command': 'meta',
-            'return': 'enter',
-            'escape': 'esc'
-        },
-
-        /**
-         * variable to store the flipped version of _MAP from above
-         * needed to check if we should use keypress or not when no action
-         * is specified
-         *
-         * @type {Object|undefined}
-         */
-        _REVERSE_MAP,
-
-        /**
-         * a list of all the callbacks setup via Mousetrap.bind()
-         *
-         * @type {Object}
-         */
-        _callbacks = {},
-
-        /**
-         * direct map of string combinations to callbacks used for trigger()
-         *
-         * @type {Object}
-         */
-        _direct_map = {},
-
-        /**
-         * keeps track of what level each sequence is at since multiple
-         * sequences can start out with the same sequence
-         *
-         * @type {Object}
-         */
-        _sequence_levels = {},
-
-        /**
-         * variable to store the setTimeout call
-         *
-         * @type {null|number}
-         */
-        _reset_timer,
-
-        /**
-         * temporary state where we will ignore the next keyup
-         *
-         * @type {boolean|string}
-         */
-        _ignore_next_keyup = false,
-
-        /**
-         * are we currently inside of a sequence?
-         * type of action ("keyup" or "keydown" or "keypress") or false
-         *
-         * @type {boolean|string}
-         */
-        _inside_sequence = false;
-
-    /**
-     * loop through the f keys, f1 to f19 and add them to the map
-     * programatically
-     */
-    for (var i = 1; i < 20; ++i) {
-        _MAP[111 + i] = 'f' + i;
-    }
-
-    /**
-     * loop through to map numbers on the numeric keypad
-     */
-    for (i = 0; i <= 9; ++i) {
-        _MAP[i + 96] = i;
-    }
-
-    /**
-     * cross browser add event method
-     *
-     * @param {Element|HTMLDocument} object
-     * @param {string} type
-     * @param {Function} callback
-     * @returns void
-     */
-    function _addEvent(object, type, callback) {
-        if (object.addEventListener) {
-            return object.addEventListener(type, callback, false);
-        }
-
-        object.attachEvent('on' + type, callback);
-    }
-
-    /**
-     * takes the event and returns the key character
-     *
-     * @param {Event} e
-     * @return {string}
-     */
-    function _characterFromEvent(e) {
-
-        // for keypress events we should return the character as is
-        if (e.type == 'keypress') {
-            return String.fromCharCode(e.which);
-        }
-
-        // for non keypress events the special maps are needed
-        if (_MAP[e.which]) {
-            return _MAP[e.which];
-        }
-
-        if (_KEYCODE_MAP[e.which]) {
-            return _KEYCODE_MAP[e.which];
-        }
-
-        // if it is not in the special map
-        return String.fromCharCode(e.which).toLowerCase();
-    }
-
-    /**
-     * should we stop this event before firing off callbacks
-     *
-     * @param {Event} e
-     * @return {boolean}
-     */
-    function _stop(e) {
-        var element = e.target || e.srcElement,
-            tag_name = element.tagName;
-
-        // if the element has the class "mousetrap" then no need to stop
-        if ((' ' + element.className + ' ').indexOf(' mousetrap ') > -1) {
-            return false;
-        }
-
-        // stop for input, select, and textarea
-        return tag_name == 'INPUT' || tag_name == 'SELECT' || tag_name == 'TEXTAREA' || (element.contentEditable && element.contentEditable == 'true');
-    }
-
-    /**
-     * checks if two arrays are equal
-     *
-     * @param {Array} modifiers1
-     * @param {Array} modifiers2
-     * @returns {boolean}
-     */
-    function _modifiersMatch(modifiers1, modifiers2) {
-        return modifiers1.sort().join(',') === modifiers2.sort().join(',');
-    }
-
-    /**
-     * resets all sequence counters except for the ones passed in
-     *
-     * @param {Object} do_not_reset
-     * @returns void
-     */
-    function _resetSequences(do_not_reset) {
-        do_not_reset = do_not_reset || {};
-
-        var active_sequences = false,
-            key;
-
-        for (key in _sequence_levels) {
-            if (do_not_reset[key]) {
-                active_sequences = true;
-                continue;
-            }
-            _sequence_levels[key] = 0;
-        }
-
-        if (!active_sequences) {
-            _inside_sequence = false;
-        }
-    }
-
-    /**
-     * finds all callbacks that match based on the keycode, modifiers,
-     * and action
-     *
-     * @param {string} character
-     * @param {Array} modifiers
-     * @param {string} action
-     * @param {boolean=} remove - should we remove any matches
-     * @param {string=} combination
-     * @returns {Array}
-     */
-    function _getMatches(character, modifiers, action, remove, combination) {
-        var i,
-            callback,
-            matches = [];
-
-        // if there are no events related to this keycode
-        if (!_callbacks[character]) {
-            return [];
-        }
-
-        // if a modifier key is coming up on its own we should allow it
-        if (action == 'keyup' && _isModifier(character)) {
-            modifiers = [character];
-        }
-
-        // loop through all callbacks for the key that was pressed
-        // and see if any of them match
-        for (i = 0; i < _callbacks[character].length; ++i) {
-            callback = _callbacks[character][i];
-
-            // if this is a sequence but it is not at the right level
-            // then move onto the next match
-            if (callback.seq && _sequence_levels[callback.seq] != callback.level) {
-                continue;
-            }
-
-            // if the action we are looking for doesn't match the action we got
-            // then we should keep going
-            if (action != callback.action) {
-                continue;
-            }
-
-            // if this is a keypress event that means that we need to only
-            // look at the character, otherwise check the modifiers as
-            // well
-            if (action == 'keypress' || _modifiersMatch(modifiers, callback.modifiers)) {
-
-                // remove is used so if you change your mind and call bind a
-                // second time with a new function the first one is overwritten
-                if (remove && callback.combo == combination) {
-                    _callbacks[character].splice(i, 1);
-                }
-
-                matches.push(callback);
-            }
-        }
-
-        return matches;
-    }
-
-    /**
-     * takes a key event and figures out what the modifiers are
-     *
-     * @param {Event} e
-     * @returns {Array}
-     */
-    function _eventModifiers(e) {
-        var modifiers = [];
-
-        if (e.shiftKey) {
-            modifiers.push('shift');
-        }
-
-        if (e.altKey) {
-            modifiers.push('alt');
-        }
-
-        if (e.ctrlKey) {
-            modifiers.push('ctrl');
-        }
-
-        if (e.metaKey) {
-            modifiers.push('meta');
-        }
-
-        return modifiers;
-    }
-
-    /**
-     * actually calls the callback function
-     *
-     * if your callback function returns false this will use the jquery
-     * convention - prevent default and stop propogation on the event
-     *
-     * @param {Function} callback
-     * @param {Event} e
-     * @returns void
-     */
-    function _fireCallback(callback, e) {
-        if (callback(e) === false) {
-            if (e.preventDefault) {
-                e.preventDefault();
-            }
-
-            if (e.stopPropagation) {
-                e.stopPropagation();
-            }
-
-            e.returnValue = false;
-            e.cancelBubble = true;
-        }
-    }
-
-    /**
-     * handles a character key event
-     *
-     * @param {string} character
-     * @param {Event} e
-     * @returns void
-     */
-    function _handleCharacter(character, e) {
-
-        // if this event should not happen stop here
-        if (_stop(e)) {
-            return;
-        }
-
-        var callbacks = _getMatches(character, _eventModifiers(e), e.type),
-            i,
-            do_not_reset = {},
-            processed_sequence_callback = false;
-
-        // loop through matching callbacks for this key event
-        for (i = 0; i < callbacks.length; ++i) {
-
-            // fire for all sequence callbacks
-            // this is because if for example you have multiple sequences
-            // bound such as "g i" and "g t" they both need to fire the
-            // callback for matching g cause otherwise you can only ever
-            // match the first one
-            if (callbacks[i].seq) {
-                processed_sequence_callback = true;
-
-                // keep a list of which sequences were matches for later
-                do_not_reset[callbacks[i].seq] = 1;
-                _fireCallback(callbacks[i].callback, e);
-                continue;
-            }
-
-            // if there were no sequence matches but we are still here
-            // that means this is a regular match so we should fire that
-            if (!processed_sequence_callback && !_inside_sequence) {
-                _fireCallback(callbacks[i].callback, e);
-            }
-        }
-
-        // if you are inside of a sequence and the key you are pressing
-        // is not a modifier key then we should reset all sequences
-        // that were not matched by this key event
-        if (e.type == _inside_sequence && !_isModifier(character)) {
-            _resetSequences(do_not_reset);
-        }
-    }
-
-    /**
-     * handles a keydown event
-     *
-     * @param {Event} e
-     * @returns void
-     */
-    function _handleKey(e) {
-
-        // normalize e.which for key events
-        // @see http://stackoverflow.com/questions/4285627/javascript-keycode-vs-charcode-utter-confusion
-        e.which = typeof e.which == "number" ? e.which : e.keyCode;
-
-        var character = _characterFromEvent(e);
-
-        // no character found then stop
-        if (!character) {
-            return;
-        }
-
-        if (e.type == 'keyup' && _ignore_next_keyup == character) {
-            _ignore_next_keyup = false;
-            return;
-        }
-
-        _handleCharacter(character, e);
-    }
-
-    /**
-     * determines if the keycode specified is a modifier key or not
-     *
-     * @param {string} key
-     * @returns {boolean}
-     */
-    function _isModifier(key) {
-        return key == 'shift' || key == 'ctrl' || key == 'alt' || key == 'meta';
-    }
-
-    /**
-     * called to set a 1 second timeout on the specified sequence
-     *
-     * this is so after each key press in the sequence you have 1 second
-     * to press the next key before you have to start over
-     *
-     * @returns void
-     */
-    function _resetSequenceTimer() {
-        clearTimeout(_reset_timer);
-        _reset_timer = setTimeout(_resetSequences, 1000);
-    }
-
-    /**
-     * reverses the map lookup so that we can look for specific keys
-     * to see what can and can't use keypress
-     *
-     * @return {Object}
-     */
-    function _getReverseMap() {
-        if (!_REVERSE_MAP) {
-            _REVERSE_MAP = {};
-            for (var key in _MAP) {
-
-                // pull out the numeric keypad from here cause keypress should
-                // be able to detect the keys from the character
-                if (key > 95 && key < 112) {
-                    continue;
-                }
-
-                if (_MAP.hasOwnProperty(key)) {
-                    _REVERSE_MAP[_MAP[key]] = key;
-                }
-            }
-        }
-        return _REVERSE_MAP;
-    }
-
-    /**
-     * picks the best action based on the key combination
-     *
-     * @param {string} key - character for key
-     * @param {Array} modifiers
-     * @param {string=} action passed in
-     */
-    function _pickBestAction(key, modifiers, action) {
-
-        // if no action was picked in we should try to pick the one
-        // that we think would work best for this key
-        if (!action) {
-            action = _getReverseMap()[key] ? 'keydown' : 'keypress';
-        }
-
-        // modifier keys don't work as expected with keypress,
-        // switch to keydown
-        if (action == 'keypress' && modifiers.length) {
-            action = 'keydown';
-        }
-
-        return action;
-    }
-
-    /**
-     * binds a key sequence to an event
-     *
-     * @param {string} combo - combo specified in bind call
-     * @param {Array} keys
-     * @param {Function} callback
-     * @param {string=} action
-     * @returns void
-     */
-    function _bindSequence(combo, keys, callback, action) {
-
-        // start off by adding a sequence level record for this combination
-        // and setting the level to 0
-        _sequence_levels[combo] = 0;
-
-        // if there is no action pick the best one for the first key
-        // in the sequence
-        if (!action) {
-            action = _pickBestAction(keys[0], []);
-        }
-
-        /**
-         * callback to increase the sequence level for this sequence and reset
-         * all other sequences that were active
-         *
-         * @param {Event} e
-         * @returns void
-         */
-        var _increaseSequence = function(e) {
-                _inside_sequence = action;
-                ++_sequence_levels[combo];
-                _resetSequenceTimer();
-            },
-
-            /**
-             * wraps the specified callback inside of another function in order
-             * to reset all sequence counters as soon as this sequence is done
-             *
-             * @param {Event} e
-             * @returns void
-             */
-            _callbackAndReset = function(e) {
-                _fireCallback(callback, e);
-
-                // we should ignore the next key up if the action is key down
-                // or keypress.  this is so if you finish a sequence and
-                // release the key the final key will not trigger a keyup
-                if (action !== 'keyup') {
-                    _ignore_next_keyup = _characterFromEvent(e);
-                }
-
-                // weird race condition if a sequence ends with the key
-                // another sequence begins with
-                setTimeout(_resetSequences, 10);
-            },
-            i;
-
-        // loop through keys one at a time and bind the appropriate callback
-        // function.  for any key leading up to the final one it should
-        // increase the sequence. after the final, it should reset all sequences
-        for (i = 0; i < keys.length; ++i) {
-            _bindSingle(keys[i], i < keys.length - 1 ? _increaseSequence : _callbackAndReset, action, combo, i);
-        }
-    }
-
-    /**
-     * binds a single keyboard combination
-     *
-     * @param {string} combination
-     * @param {Function} callback
-     * @param {string=} action
-     * @param {string=} sequence_name - name of sequence if part of sequence
-     * @param {number=} level - what part of the sequence the command is
-     * @returns void
-     */
-    function _bindSingle(combination, callback, action, sequence_name, level) {
-
-        // make sure multiple spaces in a row become a single space
-        combination = combination.replace(/\s+/g, ' ');
-
-        var sequence = combination.split(' '),
-            i,
-            key,
-            keys,
-            modifiers = [];
-
-        // if this pattern is a sequence of keys then run through this method
-        // to reprocess each pattern one key at a time
-        if (sequence.length > 1) {
-            return _bindSequence(combination, sequence, callback, action);
-        }
-
-        // take the keys from this pattern and figure out what the actual
-        // pattern is all about
-        keys = combination === '+' ? ['+'] : combination.split('+');
-
-        for (i = 0; i < keys.length; ++i) {
-            key = keys[i];
-
-            // normalize key names
-            if (_SPECIAL_ALIASES[key]) {
-                key = _SPECIAL_ALIASES[key];
-            }
-
-            // if this is not a keypress event then we should
-            // be smart about using shift keys
-            // this will only work for US keyboards however
-            if (action && action != 'keypress' && _SHIFT_MAP[key]) {
-                key = _SHIFT_MAP[key];
-                modifiers.push('shift');
-            }
-
-            // if this key is a modifier then add it to the list of modifiers
-            if (_isModifier(key)) {
-                modifiers.push(key);
-            }
-        }
-
-        // depending on what the key combination is
-        // we will try to pick the best event for it
-        action = _pickBestAction(key, modifiers, action);
-
-        // make sure to initialize array if this is the first time
-        // a callback is added for this key
-        if (!_callbacks[key]) {
-            _callbacks[key] = [];
-        }
-
-        // remove an existing match if there is one
-        _getMatches(key, modifiers, action, !sequence_name, combination);
-
-        // add this call back to the array
-        // if it is a sequence put it at the beginning
-        // if not put it at the end
-        //
-        // this is important because the way these are processed expects
-        // the sequence ones to come first
-        _callbacks[key][sequence_name ? 'unshift' : 'push']({
-            callback: callback,
-            modifiers: modifiers,
-            action: action,
-            seq: sequence_name,
-            level: level,
-            combo: combination
-        });
-    }
-
-    /**
-     * binds multiple combinations to the same callback
-     *
-     * @param {Array} combinations
-     * @param {Function} callback
-     * @param {string|undefined} action
-     * @returns void
-     */
-    function _bindMultiple(combinations, callback, action) {
-        for (var i = 0; i < combinations.length; ++i) {
-            _bindSingle(combinations[i], callback, action);
-        }
-    }
-
-    // start!
-    _addEvent(document, 'keypress', _handleKey);
-    _addEvent(document, 'keydown', _handleKey);
-    _addEvent(document, 'keyup', _handleKey);
-
-    var mousetrap = {
-
-        /**
-         * binds an event to mousetrap
-         *
-         * can be a single key, a combination of keys separated with +,
-         * a comma separated list of keys, an array of keys, or
-         * a sequence of keys separated by spaces
-         *
-         * be sure to list the modifier keys first to make sure that the
-         * correct key ends up getting bound (the last key in the pattern)
-         *
-         * @param {string|Array} keys
-         * @param {Function} callback
-         * @param {string=} action - 'keypress', 'keydown', or 'keyup'
-         * @returns void
-         */
-        bind: function(keys, callback, action) {
-            _bindMultiple(keys instanceof Array ? keys : [keys], callback, action);
-            _direct_map[keys + ':' + action] = callback;
-            return this;
-        },
-
-        /**
-         * unbinds an event to mousetrap
-         *
-         * the unbinding sets the callback function of the specified key combo
-         * to an empty function and deletes the corresponding key in the
-         * _direct_map dict.
-         *
-         * the keycombo+action has to be exactly the same as
-         * it was defined in the bind method
-         *
-         * TODO: actually remove this from the _callbacks dictionary instead
-         * of binding an empty function
-         *
-         * @param {string|Array} keys
-         * @param {string} action
-         * @returns void
-         */
-        unbind: function(keys, action) {
-            if (_direct_map[keys + ':' + action]) {
-                delete _direct_map[keys + ':' + action];
-                this.bind(keys, function() {}, action);
-            }
-            return this;
-        },
-
-        /**
-         * triggers an event that has already been bound
-         *
-         * @param {string} keys
-         * @param {string=} action
-         * @returns void
-         */
-        trigger: function(keys, action) {
-            _direct_map[keys + ':' + action]();
-            return this;
-        },
-
-        /**
-         * resets the library back to its initial state.  this is useful
-         * if you want to clear out the current keyboard shortcuts and bind
-         * new ones - for example if you switch to another page
-         *
-         * @returns void
-         */
-        reset: function() {
-            _callbacks = {};
-            _direct_map = {};
-            return this;
-        }
-    };
-
-  module.exports = mousetrap;
-
-
 
 /***/ },
 /* 54 */
