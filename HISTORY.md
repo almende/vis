@@ -2,7 +2,7 @@
 http://visjs.org
 
 
-## not yet released, version 3.3.1
+## not yet released, version 3.4.0
 
 ### Graph2d
 
@@ -13,7 +13,8 @@ http://visjs.org
 - Fixed some positioning issues with the close button of the manipulation menu.
 - Added fontFill to Nodes as it is in Edges.
 - Implemented support for broken image fallback. Thanks @sfairgrieve.
-- Added multiline labels to edges as they are implemented in nodes. Updated multiline example to show this.
+- Added multiline labels to edges as they are implemented in nodes. Updated 
+  multiline example to show this.
 
 ### Timeline
 
@@ -26,6 +27,9 @@ http://visjs.org
 - Fixed newly added item ignored when returning an other object instance.
 - Fixed option `autoResize` not working on IE in case of changing visibility
   of the Timeline container element.
+- Fixed an overflow issue with the dots of BoxItems when using groups.
+- Fixed a horizontal 1-pixel offset in the items (border width wasn't taken into 
+  account).
 - Renamed internal items from `ItemBox`, `ItemRange`, and `ItemPoint` to
   respectively `BoxItem`, `RangeItem`, and `PointItem`.
 
