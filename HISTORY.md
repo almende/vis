@@ -13,6 +13,7 @@ http://visjs.org
 - Fixed some positioning issues with the close button of the manipulation menu.
 - Added fontFill to Nodes as it is in Edges.
 - Implemented support for broken image fallback. Thanks @sfairgrieve.
+- Added multiline labels to edges as they are implemented in nodes. Updated multiline example to show this.
 
 ### Timeline
 
