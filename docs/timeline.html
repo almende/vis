@@ -43,6 +43,7 @@
   <li><a href="#Methods">Methods</a></li>
   <li><a href="#Events">Events</a></li>
   <li><a href="#Editing_Items">Editing Items</a></li>
+  <li><a href="#Templates">Templates</a></li>
   <li><a href="#Localization">Localization</a></li>
   <li><a href="#Styles">Styles</a></li>
   <li><a href="#Data_Policy">Data Policy</a></li>
@@ -665,6 +666,13 @@ var options = {
 </tr>
 
 <tr>
+    <td>template</td>
+    <td>Function</td>
+    <td>none</td>
+    <td>A template function used to generate the contents of the items. The function is called by the Timeline with an items data as argument, and must return HTML code as result. When the option template is specified, the items do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
+</tr>
+
+<tr>
     <td>type</td>
     <td>String</td>
     <td>none</td>
@@ -1067,6 +1075,80 @@ var options = {
 </pre>
 
 A full example is available here: <a href="../examples/timeline/08_edit_items.html">08_edit_items.html</a>.
+
+
+<h2 id="Templates">Templates</h2>
+
+<p>
+  Timeline supports templates to format item contents. Any template engine (such as <a href="http://handlebarsjs.com/">handlebars</a> or <a href="http://mustache.github.io/">mustache</a>) can be used, and one can also manually build HTML. In the options, one can provide a template handler. This handler is a function accepting an items data as argument, and outputs formatted HTML:
+</p>
+
+<pre class="prettyprint lang-js">var options = {
+  template: function (item) {
+    var html = ... // generate HTML markup for this item
+    return html;
+  }
+};
+</pre>
+
+<h3>Create HTML manually</h3>
+
+The HTML for an item can be created manually:
+
+<pre class="prettyprint lang-js">var options = {
+  template: function (item) {
+    return '&lt;h1&gt;' + item.header + '&lt;/h1&gt;&lt;p&gt;' + item.description + '&lt;/p&gt;';
+  }
+};
+</pre>
+
+<h3>Using a template engine</h3>
+
+Using <a href="http://handlebarsjs.com/">handlebars</a>, one can write the template in HTML:
+
+<pre class="prettyprint lang-html">
+&lt;script id="item-template" type="text/x-handlebars-template"&gt;
+  &lt;h1&gt;{{header}}&lt;/h1&gt;
+  &lt;p&gt;{{description}}&lt;/p&gt;
+&lt;/script&gt;
+</pre>
+
+Compile the template:
+
+<pre class="prettyprint lang-js">
+var source = document.getElementById('item-template').innerHTML;
+var template = Handlebars.compile(source);
+</pre>
+
+And then specify the template in the Timeline options
+
+<pre class="prettyprint lang-js">var options = {
+  template: template
+};
+</pre>
+
+<h3>Multiple templates</h3>
+
+In order to support multiple templates, the template handler can be extended to switch between different templates, depending on a specific item property:
+
+<pre class="prettyprint lang-js">
+var templates = {
+  template1: Handlebars.compile(...),
+  template2: Handlebars.compile(...),
+  template2: Handlebars.compile(...),
+  ...
+};
+
+var options = {
+  template: function (item) {
+    var template = templates[item.template];  // choose the right template
+    return template(item);                    // execute the template
+  }
+};
+</pre>
+
+Now the items can be extended with a property <code>template</code>, specifying which template to use for the item.
+
 
 <h2 id="Localization">Localization</h2>
 <p>

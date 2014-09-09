@@ -18,6 +18,7 @@ http://visjs.org
 
 ### Timeline
 
+- Implemented support for templates.
 - Implemented a new item type: `'background'`. This can be used to mark periods
   with a background color and label.
 - Implemented support for attaching HTML attributes to items. Thanks @dturkenk.
