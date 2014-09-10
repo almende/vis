@@ -1020,7 +1020,7 @@ All options defined per-node override these global settings.
 <p>
   Edges can be configured with different length and styling. To configure edges, provide an object named <code>edges</code> in the <code>options</code> for the Network.
   Because the length of an edge is a property of the physics simulation, you can change the length of the edge by changing the springLength in your selected physics solver.
-  To change the edge length of individual edges, you can use the <code>length</code> property in the <a href="Edges">edge definition</a>.
+  To change the edge length of individual edges, you can use the <code>length</code> property in the <a href="#Edges">edge definition</a>.
 </p>
 
 <p>
@@ -2146,10 +2146,20 @@ var options: {
     </td>
   </tr>
   <tr>
-    <td>focusOnNode(nodeId, [zoomLevel])</td>
+    <td>focusOnNode(nodeId, [options])</td>
     <td>none</td>
-    <td>This function will move the view to center on the specified node. An optional zoomLevel can be passed where 1.0 is 100&#37;, between 0.0 and 1.0 is zooming out and > 1.0 is zooming in. Generally, close to 1.0 is sufficient.
-      If this argument is not passed the view will only move, not zoom.
+    <td>This function will move the view to center on the specified node. An optional options object can submitted where you can define the animation properties. <br />
+        The options that can be defined are:<br />
+        <b><code>scale:Number</code></b><br /> - to zoom to that scale,<br />
+        <b><code>offset:{x:Number, y:Number}</code></b><br /> - to offset the position from the center of the canvas (in DOM units),<br />
+        <b><code>animation: Object || Boolean</code></b><br /> - to define the specifics of the animation. True is animated with default settings, false is not animated.<br />
+        <br />
+        The animation object can consist of:<br />
+        <b><code>duration: Number</code></b><br /> - the duration of the animation in milliseconds,<br />
+        <b><code>easingFunction: String</code></b><br /> - the easing function of the animation, available are:<br />
+        <code>linear, easeInQuad, easeOutQuad, easeInOutQuad, easeInCubic, easeOutCubic, easeInOutCubic,
+            easeInQuart, easeOutQuart, easeInOutQuart,
+            easeInQuint, easeOutQuint, easeInOutQuint </code> <br /><br />
     </td>
   </tr>
   <tr>
@@ -2171,7 +2181,27 @@ var options: {
     <td>This function converts canvas coordinates to coordinates on the DOM. Input and output are in the form of {x:xpos,y:ypos}. The DOM values are relative to the network container.
     </td>
   </tr>
-  <tr>
+    <tr>
+        <td>moveTo(options)</td>
+        <td>object</td>
+        <td>This function allows you to programmatically move the view. The options that can be defined are:<br />
+            <b><code>position:{x:Number, y:Number}</code></b><br /> - to move to that position (in canvas units), <br />
+            <b><code>scale:Number</code></b><br /> - to zoom to that scale,<br />
+            <b><code>offset:{x:Number, y:Number}</code></b><br /> - to offset the position from the center of the canvas (in DOM units),<br />
+            <b><code>animation: Object || Boolean</code></b><br /> - to define the specifics of the animation.<br />
+            <br />
+            The animation object can consist of:<br />
+            <b><code>duration: Number</code></b><br /> - the duration of the animation in milliseconds,<br />
+            <b><code>easingFunction: String</code></b><br /> - the easing function of the animation, available are:<br />
+            <code>linear, easeInQuad, easeOutQuad, easeInOutQuad, easeInCubic, easeOutCubic, easeInOutCubic,
+            easeInQuart, easeOutQuart, easeInOutQuart,
+            easeInQuint, easeOutQuint, easeInOutQuint </code> <br /><br />
+
+            <i>You will have to define at least a scale or a position. Otherwise, there is nothing to move to.</i>
+        </td>
+    </tr>
+
+    <tr>
     <td>on(event, callback)</td>
     <td>none</td>
     <td>Create an event listener. The callback function is invoked every time the event is triggered. Avialable events: <code>select</code>. The callback function is invoked as <code>callback(properties)</code>, where <code>properties</code> is an object containing event specific properties. See section <a href="#Events">Events</a> for more information.</td>
@@ -2248,9 +2278,18 @@ var options: {
   </tr>
 
   <tr>
-    <td>zoomExtent()</td>
+    <td>zoomExtent([options])</td>
     <td>none</td>
-    <td>Scales the network so all the nodes are in center view.</td>
+    <td>Scales the network so all the nodes are in center view. Optionally you can supply options for animation. These
+    options can just be a boolean. When true, the zoom is animated, when false there is no animation.
+        Alternatively, you can supply an object.
+        <br /><br /> The object can consist of:<br />
+        <b><code>duration: Number</code></b><br /> - the duration of the animation in milliseconds,<br />
+        <b><code>easingFunction: String</code></b><br /> - the easing function of the animation, available are:<br />
+        <code>linear, easeInQuad, easeOutQuad, easeInOutQuad, easeInCubic, easeOutCubic, easeInOutCubic,
+            easeInQuart, easeOutQuart, easeInOutQuart,
+            easeInQuint, easeOutQuint, easeInOutQuint </code>
+    </td>
   </tr>
 
 </table>
@@ -2301,6 +2340,14 @@ network.off('select', onSelect);
     <th>Properties</th>
   </tr>
 
+  <tr>
+      <td>animationFinished</td>
+      <td>Fired after an animation is finished.
+      </td>
+      <td>
+          none
+      </td>
+  </tr>
   <tr>
     <td>select</td>
     <td>Fired after the user selects or deselects a node by clicking it.

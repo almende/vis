@@ -15,6 +15,9 @@ http://visjs.org
 - Implemented support for broken image fallback. Thanks @sfairgrieve.
 - Added multiline labels to edges as they are implemented in nodes. Updated 
   multiline example to show this.
+- Added animation and camera controls by the method .moveTo()
+- Added new event that fires when the animation is finished.
+- Added new example showing the new features of animation.
 
 ### Timeline
 
