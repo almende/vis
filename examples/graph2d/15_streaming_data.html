@@ -40,8 +40,16 @@
   // create a graph2d with an (currently empty) dataset
   var container = document.getElementById('visualization');
   var dataset = new vis.DataSet();
+  var now = vis.moment();
+
+  // added initial set so you don't think the graph is empty
+  dataset.add({x: now-2000,y: y((now-2000) / 1000)});
+  dataset.add({x: now-1000,y: y((now-1000) / 1000)});
+  dataset.add({x: now,y: y((now) / 1000)});
+  dataset.add({x: now+1000,y: y((now+1000) / 1000)});
+
   var options = {
-    start: vis.moment().add(-60, 'seconds'),
+    start: vis.moment().add(-30, 'seconds'), // changed so its faster
     end: vis.moment(),
     dataAxis: {
       customRange: {
@@ -93,15 +101,16 @@
     // add a new data point to the dataset
     var now = vis.moment();
     dataset.add({
-      x: now,
+      x: now+2000, // changed so you dont see them appearing
       y: y(now / 1000)
     });
 
     // remove all data points which are no longer visible
     var range = graph2d.getWindow();
+    var interval = range.end - range.start;
     var oldIds = dataset.getIds({
       filter: function (item) {
-        return item.x < range.start;
+        return item.x < range.start - interval; // changed so you don't see them disappearing
       }
     });
     dataset.remove(oldIds);
