@@ -36,6 +36,7 @@ http://visjs.org
   account).
 - Renamed internal items from `ItemBox`, `ItemRange`, and `ItemPoint` to
   respectively `BoxItem`, `RangeItem`, and `PointItem`.
+- Fixed an error thrown when calling `destroy()`.
 
 
 ## 2014-08-29, version 3.3.0
