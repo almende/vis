@@ -24,14 +24,17 @@
 <p>
   <label for="strategy">Strategy:</label>
   <select id="strategy">
-    <option value="continuous" selected>Continuous</option>
+    <option value="continuous" selected>Continuous (CPU intensive)</option>
     <option value="discrete">Discrete</option>
+    <option value="static">Static</option>
   </select>
 </p>
 
 <div id="visualization"></div>
 
 <script type="text/javascript">
+  var DELAY = 1000; // delay in ms to add new data points
+
   var strategy = document.getElementById('strategy');
 
   // create a graph2d with an (currently empty) dataset
@@ -39,7 +42,14 @@
   var dataset = new vis.DataSet();
   var options = {
     start: vis.moment().add(-60, 'seconds'),
-    end: vis.moment()
+    end: vis.moment(),
+    dataAxis: {
+      customRange: {
+        left: {
+          min:-10, max: 10
+        }
+      }
+    }
   };
   var graph2d = new vis.Graph2d(container, dataset, options);
 
@@ -48,15 +58,7 @@
     return (Math.sin(x / 2) + Math.cos(x / 4)) * 5;
   }
 
-  /**
-   * Append a new data point to the graph
-   * @param {Date} x
-   * @param {Number} y
-   */
-  function add (x, y) {
-    // add a new data point to the dataset
-    dataset.add({x: x, y: y});
-
+  function renderStep() {
     // move the window (you can think of different strategies).
     var now = vis.moment();
     var range = graph2d.getWindow();
@@ -65,34 +67,48 @@
       case 'continuous':
         // continuously move the window
         graph2d.setWindow(now - interval, now, {animate: false});
+        requestAnimationFrame(renderStep);
         break;
 
-      default: // 'discrete'
+      case 'discrete':
+        graph2d.setWindow(now - interval, now, {animate: false});
+        setTimeout(renderStep, DELAY);
+        break;
+
+      default: // 'static'
         // move the window 90% to the left when now is larger than the end of the window
         if (now > range.end) {
           graph2d.setWindow(now - 0.1 * interval, now + 0.9 * interval);
         }
+        setTimeout(renderStep, DELAY);
         break;
     }
+  }
+  renderStep();
+
+  /**
+   * Add a new datapoint to the graph
+   */
+  function addDataPoint() {
+    // add a new data point to the dataset
+    var now = vis.moment();
+    dataset.add({
+      x: now,
+      y: y(now / 1000)
+    });
 
     // remove all data points which are no longer visible
+    var range = graph2d.getWindow();
     var oldIds = dataset.getIds({
       filter: function (item) {
         return item.x < range.start;
       }
     });
     dataset.remove(oldIds);
-  }
 
-  var delay = 500; // delay in ms
-  function next() {
-    // add a new data point
-    var now = vis.moment();
-    add(now, y(now / 1000));
-
-    setTimeout(next, delay);
+    setTimeout(addDataPoint, DELAY);
   }
-  next();
+  addDataPoint();
 </script>
 </body>
 </html>
