@@ -18,6 +18,7 @@ http://visjs.org
 - Added animation and camera controls by the method .moveTo()
 - Added new event that fires when the animation is finished.
 - Added new example showing the new features of animation.
+- Added getScale() method.
 
 ### Timeline
 
