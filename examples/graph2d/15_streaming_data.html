@@ -17,8 +17,8 @@
 </head>
 <body>
 <h2>Graph2d | Streaming data</h2>
-<p>
-  This example demonstrates how to apply streaming data input to the Graph2d.<br>
+<p style="max-width: 700px;">
+  This example demonstrates how to apply streaming data input to the Graph2d. The example shows two different ways to let the window move along with the new data, and there are more strategies for that. Note also that it is possible to disable moving and/or zooming the graph by setting options <code>moveable</code> and <code>zoomable</code> false.
 </p>
 
 <p>
@@ -48,19 +48,17 @@
     return (Math.sin(x / 2) + Math.cos(x / 4)) * 5;
   }
 
-  var delay = 500; // delay in ms
-  var x = 0;
-  function next() {
-    var now = vis.moment();
-
-    // add a new data point to the data
-    dataset.add({
-      x: now,
-      y: y(now / 1000)
-    });
-    x += 0.1;
+  /**
+   * Append a new data point to the graph
+   * @param {Date} x
+   * @param {Number} y
+   */
+  function add (x, y) {
+    // add a new data point to the dataset
+    dataset.add({x: x, y: y});
 
     // move the window (you can think of different strategies).
+    var now = vis.moment();
     var range = graph2d.getWindow();
     var interval = range.end - range.start;
     switch (strategy.value) {
@@ -70,21 +68,27 @@
         break;
 
       default: // 'discrete'
-        // move the window 90% to the left when now is larger than the visible end
+        // move the window 90% to the left when now is larger than the end of the window
         if (now > range.end) {
           graph2d.setWindow(now - 0.1 * interval, now + 0.9 * interval);
         }
         break;
     }
 
-    // remove all data points older than 1 minute
-    var min = now.add(-60, 'seconds');
+    // remove all data points which are no longer visible
     var oldIds = dataset.getIds({
       filter: function (item) {
-        return item.x < min;
+        return item.x < range.start;
       }
     });
-    if (oldIds.length > 0) dataset.remove(oldIds);
+    dataset.remove(oldIds);
+  }
+
+  var delay = 500; // delay in ms
+  function next() {
+    // add a new data point
+    var now = vis.moment();
+    add(now, y(now / 1000));
 
     setTimeout(next, delay);
   }
