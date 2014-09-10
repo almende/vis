@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 3.3.0
- * @date    2014-08-29
+ * @version 3.4.0
+ * @date    2014-09-10
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -110,9 +110,10 @@ return /******/ (function(modules) { // webpackBootstrap
     components: {
       items: {
         Item: __webpack_require__(28),
-        ItemBox: __webpack_require__(29),
-        ItemPoint: __webpack_require__(30),
-        ItemRange: __webpack_require__(31)
+        BackgroundItem: __webpack_require__(29),
+        BoxItem: __webpack_require__(30),
+        PointItem: __webpack_require__(31),
+        RangeItem: __webpack_require__(32)
       },
 
       Component: __webpack_require__(18),
@@ -129,15 +130,15 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   // Network
-  exports.Network = __webpack_require__(32);
+  exports.Network = __webpack_require__(33);
   exports.network = {
-    Edge: __webpack_require__(33),
-    Groups: __webpack_require__(34),
-    Images: __webpack_require__(35),
-    Node: __webpack_require__(36),
-    Popup: __webpack_require__(37),
-    dotparser: __webpack_require__(38),
-    gephiParser: __webpack_require__(39)
+    Edge: __webpack_require__(34),
+    Groups: __webpack_require__(35),
+    Images: __webpack_require__(36),
+    Node: __webpack_require__(37),
+    Popup: __webpack_require__(38),
+    dotparser: __webpack_require__(39),
+    gephiParser: __webpack_require__(40)
   };
 
   // Deprecated since v3.0.0
@@ -146,8 +147,8 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   // bundled external libraries
-  exports.moment = __webpack_require__(40);
-  exports.hammer = __webpack_require__(41);
+  exports.moment = __webpack_require__(41);
+  exports.hammer = __webpack_require__(42);
 
 
 /***/ },
@@ -158,7 +159,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // first check if moment.js is already loaded in the browser window, if so,
   // use this instance. Else, load via commonjs.
-  var moment = __webpack_require__(40);
+  var moment = __webpack_require__(41);
 
   /**
    * Test whether given object is a number
@@ -1242,7 +1243,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * This is done to be able to select the correct if statement (we do not want to check if an item is visible, we want to check
    * if the time we selected (start or end) is within the current range).
    *
-   * The trick is that every interval has to either enter the screen at the initial load or by dragging. The case of the ItemRange that is
+   * The trick is that every interval has to either enter the screen at the initial load or by dragging. The case of the RangeItem that is
    * before and after the current range is handled by simply checking if it was in view before and if it is again. For all the rest,
    * either the start OR end time has to be in the range.
    *
@@ -1318,7 +1319,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * This is done to be able to select the correct if statement (we do not want to check if an item is visible, we want to check
    * if the time we selected (start or end) is within the current range).
    *
-   * The trick is that every interval has to either enter the screen at the initial load or by dragging. The case of the ItemRange that is
+   * The trick is that every interval has to either enter the screen at the initial load or by dragging. The case of the RangeItem that is
    * before and after the current range is handled by simply checking if it was in view before and if it is again. For all the rest,
    * either the start OR end time has to be in the range.
    *
@@ -2856,7 +2857,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(49);
+  var Emitter = __webpack_require__(50);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var util = __webpack_require__(1);
@@ -6100,13 +6101,13 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(49);
-  var Hammer = __webpack_require__(41);
+  var Emitter = __webpack_require__(50);
+  var Hammer = __webpack_require__(42);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(15);
-  var Core = __webpack_require__(42);
+  var Core = __webpack_require__(43);
   var TimeAxis = __webpack_require__(27);
   var CurrentTime = __webpack_require__(19);
   var CustomTime = __webpack_require__(20);
@@ -6401,13 +6402,13 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(49);
-  var Hammer = __webpack_require__(41);
+  var Emitter = __webpack_require__(50);
+  var Hammer = __webpack_require__(42);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(15);
-  var Core = __webpack_require__(42);
+  var Core = __webpack_require__(43);
   var TimeAxis = __webpack_require__(27);
   var CurrentTime = __webpack_require__(19);
   var CustomTime = __webpack_require__(20);
@@ -6701,9 +6702,9 @@ return /******/ (function(modules) { // webpackBootstrap
     this._start = customRange.min === undefined ? start : customRange.min;
     this._end = customRange.max === undefined ? end : customRange.max;
 
-    if (start == end) {
-      this._start = start - 0.75;
-      this._end = end + 1;
+    if (this._start == this._end) {
+      this._start -= 0.75;
+      this._end += 1;
     }
 
     if (this.autoScale) {
@@ -6867,8 +6868,8 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(43);
-  var moment = __webpack_require__(40);
+  var hammerUtil = __webpack_require__(44);
+  var moment = __webpack_require__(41);
   var Component = __webpack_require__(18);
 
   /**
@@ -7228,14 +7229,18 @@ return /******/ (function(modules) { // webpackBootstrap
     if (!this.options.moveable) return;
     var direction = this.options.direction;
     validateDirection(direction);
+
     // refuse to drag when we where pinching to prevent the timeline make a jump
     // when releasing the fingers in opposite order from the touch screen
     if (!this.props.touch.allowDragging) return;
-    var delta = (direction == 'horizontal') ? event.gesture.deltaX : event.gesture.deltaY,
-        interval = (this.props.touch.end - this.props.touch.start),
-        width = (direction == 'horizontal') ? this.body.domProps.center.width : this.body.domProps.center.height,
-        diffRange = -delta / width * interval;
+
+    var delta = (direction == 'horizontal') ? event.gesture.deltaX : event.gesture.deltaY;
+    var interval = (this.props.touch.end - this.props.touch.start);
+    var width = (direction == 'horizontal') ? this.body.domProps.center.width : this.body.domProps.center.height;
+    var diffRange = -delta / width * interval;
     this._applyRange(this.props.touch.start + diffRange, this.props.touch.end + diffRange);
+
+    // fire a rangechange event
     this.body.emitter.emit('rangechange', {
       start: new Date(this.start),
       end:   new Date(this.end)
@@ -7581,7 +7586,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var moment = __webpack_require__(40);
+  var moment = __webpack_require__(41);
 
   /**
    * @constructor  TimeStep
@@ -8119,8 +8124,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var Component = __webpack_require__(18);
-  var moment = __webpack_require__(40);
-  var locales = __webpack_require__(44);
+  var moment = __webpack_require__(41);
+  var locales = __webpack_require__(45);
 
   /**
    * A current time bar
@@ -8286,11 +8291,11 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(41);
+  var Hammer = __webpack_require__(42);
   var util = __webpack_require__(1);
   var Component = __webpack_require__(18);
-  var moment = __webpack_require__(40);
-  var locales = __webpack_require__(44);
+  var moment = __webpack_require__(41);
+  var locales = __webpack_require__(45);
 
   /**
    * A custom time bar
@@ -8786,6 +8791,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // calculate range and step (step such that we have space for 7 characters per label)
     var minimumStep = this.master ? this.props.majorCharHeight || 10 : this.stepPixelsForced;
+
     var step = new DataStep(this.range.start, this.range.end, minimumStep, this.dom.frame.offsetHeight, this.options.customRange[this.options.orientation]);
     this.step = step;
     // get the distance in pixels for a step
@@ -9137,7 +9143,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var stack = __webpack_require__(16);
-  var ItemRange = __webpack_require__(31);
+  var RangeItem = __webpack_require__(32);
 
   /**
    * @constructor Group
@@ -9236,15 +9242,16 @@ return /******/ (function(modules) { // webpackBootstrap
     var className = data && data.className || null;
     if (className != this.className) {
       if (this.className) {
-        util.removeClassName(this.dom.label, className);
-        util.removeClassName(this.dom.foreground, className);
-        util.removeClassName(this.dom.background, className);
-        util.removeClassName(this.dom.axis, className);
+        util.removeClassName(this.dom.label, this.className);
+        util.removeClassName(this.dom.foreground, this.className);
+        util.removeClassName(this.dom.background, this.className);
+        util.removeClassName(this.dom.axis, this.className);
       }
       util.addClassName(this.dom.label, className);
       util.addClassName(this.dom.foreground, className);
       util.addClassName(this.dom.background, className);
       util.addClassName(this.dom.axis, className);
+      this.className = className;
     }
   };
 
@@ -9439,14 +9446,14 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Create an array containing all items being a range (having an end date)
    * @param {Item[]} array
-   * @returns {ItemRange[]}
+   * @returns {RangeItem[]}
    * @private
    */
   Group.prototype._constructByEndArray = function(array) {
     var endArray = [];
 
     for (var i = 0; i < array.length; i++) {
-      if (array[i] instanceof ItemRange) {
+      if (array[i] instanceof RangeItem) {
         endArray.push(array[i]);
       }
     }
@@ -9467,14 +9474,14 @@ return /******/ (function(modules) { // webpackBootstrap
         i;
 
     // first check if the items that were in view previously are still in view.
-    // this handles the case for the ItemRange that is both before and after the current one.
+    // this handles the case for the RangeItem that is both before and after the current one.
     if (visibleItems.length > 0) {
       for (i = 0; i < visibleItems.length; i++) {
         this._checkIfVisible(visibleItems[i], newVisibleItems, range);
       }
     }
 
-    // If there were no visible items previously, use binarySearch to find a visible ItemPoint or ItemRange (based on startTime)
+    // If there were no visible items previously, use binarySearch to find a visible PointItem or RangeItem (based on startTime)
     if (newVisibleItems.length == 0) {
       initialPosByStart = util.binarySearch(orderedItems.byStart, range, 'data','start');
     }
@@ -9482,7 +9489,7 @@ return /******/ (function(modules) { // webpackBootstrap
       initialPosByStart = orderedItems.byStart.indexOf(newVisibleItems[0]);
     }
 
-    // use visible search to find a visible ItemRange (only based on endTime)
+    // use visible search to find a visible RangeItem (only based on endTime)
     var initialPosByEnd = util.binarySearch(orderedItems.byEnd, range, 'data','end');
 
     // if we found a initial ID to use, trace it up and down until we meet an invisible item.
@@ -9565,15 +9572,16 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(41);
+  var Hammer = __webpack_require__(42);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Component = __webpack_require__(18);
   var Group = __webpack_require__(23);
-  var ItemBox = __webpack_require__(29);
-  var ItemPoint = __webpack_require__(30);
-  var ItemRange = __webpack_require__(31);
+  var BoxItem = __webpack_require__(30);
+  var PointItem = __webpack_require__(31);
+  var RangeItem = __webpack_require__(32);
+  var BackgroundItem = __webpack_require__(29);
 
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
@@ -9591,7 +9599,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.body = body;
 
     this.defaultOptions = {
-      type: null,  // 'box', 'point', 'range'
+      type: null,  // 'box', 'point', 'range', 'background'
       orientation: 'bottom',  // 'top' or 'bottom'
       align: 'auto', // alignment of box items
       stack: true,
@@ -9614,8 +9622,10 @@ return /******/ (function(modules) { // webpackBootstrap
       onMove: function (item, callback) {
         callback(item);
       },
-      onMoving: null,
       onRemove: function (item, callback) {
+        callback(item);
+      },
+      onMoving: function (item, callback) {
         callback(item);
       },
 
@@ -9694,9 +9704,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // available item types will be registered here
   ItemSet.types = {
-    box: ItemBox,
-    range: ItemRange,
-    point: ItemPoint
+    background: BackgroundItem,
+    box: BoxItem,
+    range: RangeItem,
+    point: PointItem
   };
 
   /**
@@ -9765,11 +9776,12 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {Object} [options] The following options are available:
    *                           {String} type
    *                              Default type for the items. Choose from 'box'
-   *                              (default), 'point', or 'range'. The default
-   *                              Style can be overwritten by individual items.
+   *                              (default), 'point', 'range', or 'background'.
+   *                              The default style can be overwritten by
+   *                              individual items.
    *                           {String} align
    *                              Alignment for the items, only applicable for
-   *                              ItemBox. Choose 'center' (default), 'left', or
+   *                              BoxItem. Choose 'center' (default), 'left', or
    *                              'right'.
    *                           {String} orientation
    *                              Orientation of the item set. Choose 'top' or
@@ -9826,7 +9838,7 @@ return /******/ (function(modules) { // webpackBootstrap
   ItemSet.prototype.setOptions = function(options) {
     if (options) {
       // copy all options that we know
-      var fields = ['type', 'align', 'orientation', 'padding', 'stack', 'selectable', 'groupOrder'];
+      var fields = ['type', 'align', 'orientation', 'padding', 'stack', 'selectable', 'groupOrder', 'dataAttributes', 'template'];
       util.selectiveExtend(fields, this.options, options);
 
       if ('margin' in options) {
@@ -9863,8 +9875,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // callback functions
       var addCallback = (function (name) {
-        if (name in options) {
-          var fn = options[name];
+        var fn = options[name];
+        if (fn) {
           if (!(fn instanceof Function)) {
             throw new Error('option ' + name + ' must be a function ' + name + '(item, callback)');
           }
@@ -9932,7 +9944,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // show axis with dots
     if (!this.dom.axis.parentNode) {
-      this.body.dom.top.appendChild(this.dom.axis);
+      this.body.dom.backgroundVertical.appendChild(this.dom.axis);
     }
 
     // show labelset containing labels
@@ -10040,6 +10052,10 @@ return /******/ (function(modules) { // webpackBootstrap
         frame = this.dom.frame,
         editable = options.editable.updateTime || options.editable.updateGroup;
 
+    // recalculate absolute position (before redrawing groups)
+    this.props.top = this.body.domProps.top.height + this.body.domProps.border.top;
+    this.props.left = this.body.domProps.left.width + this.body.domProps.border.left;
+
     // update class name
     frame.className = 'itemset' + (editable ? ' editable' : '');
 
@@ -10079,11 +10095,11 @@ return /******/ (function(modules) { // webpackBootstrap
     // update frame height
     frame.style.height  = asSize(height);
 
-    // calculate actual size and position
-    this.props.top = frame.offsetTop;
-    this.props.left = frame.offsetLeft;
+    // calculate actual size
     this.props.width = frame.offsetWidth;
     this.props.height = height;
+
+    // reposition axis
 
     // reposition axis
     this.dom.axis.style.top = asSize((orientation == 'top') ?
@@ -10516,10 +10532,8 @@ return /******/ (function(modules) { // webpackBootstrap
   ItemSet.prototype._updateItem = function(item, itemData) {
     var oldGroupId = item.data.group;
 
-    item.data = itemData;
-    if (item.displayed) {
-      item.redraw();
-    }
+    // update the items data (will redraw the item when displayed)
+    item.setData(itemData);
 
     // update group
     if (oldGroupId != item.data.group) {
@@ -10565,7 +10579,7 @@ return /******/ (function(modules) { // webpackBootstrap
     var endArray = [];
 
     for (var i = 0; i < array.length; i++) {
-      if (array[i] instanceof ItemRange) {
+      if (array[i] instanceof RangeItem) {
         endArray.push(array[i]);
       }
     }
@@ -10689,21 +10703,14 @@ return /******/ (function(modules) { // webpackBootstrap
           newProps.group = group && group.groupId;
         }
 
-        if (me.options.onMoving) {
-          var itemData = util.extend({}, props.item.data, newProps);
-
-          me.options.onMoving(itemData, function (itemData) {
-            if (itemData) {
-              me._updateItemProps(props.item, itemData);
-            }
-          });
-        }
-        else {
-          me._updateItemProps(props.item, newProps);
-        }
+        // confirm moving the item
+        var itemData = util.extend({}, props.item.data, newProps);
+        me.options.onMoving(itemData, function (itemData) {
+          if (itemData) {
+            me._updateItemProps(props.item, itemData);
+          }
+        });
       });
-
-      // TODO: implement onMoving handler
 
       this.stackDirty = true; // force re-stacking of all items next redraw
       this.body.emitter.emit('change');
@@ -10719,6 +10726,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   ItemSet.prototype._updateItemProps = function(item, props) {
+    // TODO: copy all properties from props to item? (also new ones)
     if ('start' in props) item.data.start = props.start;
     if ('end' in props)   item.data.end   = props.end;
     if ('group' in props && item.data.group != props.group) {
@@ -10881,7 +10889,7 @@ return /******/ (function(modules) { // webpackBootstrap
         newItem.end = snap ? snap(end) : end;
       }
 
-      newItem[this.itemsData.fieldId] = util.randomUUID();
+      newItem[this.itemsData._fieldId] = util.randomUUID();
 
       var group = ItemSet.groupFromTarget(event);
       if (group) {
@@ -10891,7 +10899,7 @@ return /******/ (function(modules) { // webpackBootstrap
       // execute async handler to customize (or cancel) adding an item
       this.options.onAdd(newItem, function (item) {
         if (item) {
-          me.itemsData.add(newItem);
+          me.itemsData.add(item);
           // TODO: need to trigger a redraw?
         }
       });
@@ -12311,7 +12319,7 @@ return /******/ (function(modules) { // webpackBootstrap
     var toScreen = this.body.util.toScreen;
 
     for (var i = 0; i < datapoints.length; i++) {
-      xValue = toScreen(datapoints[i].x) + this.width - 1;
+      xValue = toScreen(datapoints[i].x) + this.width;
       yValue = datapoints[i].y;
       extractedData.push({x: xValue, y: yValue});
     }
@@ -12341,7 +12349,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     for (var i = 0; i < datapoints.length; i++) {
-      xValue = toScreen(datapoints[i].x) + this.width - 1;
+      xValue = toScreen(datapoints[i].x) + this.width;
       yValue = Math.round(axis.convertValue(datapoints[i].y));
       extractedData.push({x: xValue, y: yValue});
     }
@@ -12506,7 +12514,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(18);
   var TimeStep = __webpack_require__(17);
-  var moment = __webpack_require__(40);
+  var moment = __webpack_require__(41);
 
   /**
    * A horizontal time axis
@@ -12917,7 +12925,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(41);
+  var Hammer = __webpack_require__(42);
 
   /**
    * @constructor Item
@@ -12951,6 +12959,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   Item.prototype.select = function() {
     this.selected = true;
+    this.dirty = true;
     if (this.displayed) this.redraw();
   };
 
@@ -12959,6 +12968,18 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   Item.prototype.unselect = function() {
     this.selected = false;
+    this.dirty = true;
+    if (this.displayed) this.redraw();
+  };
+
+  /**
+   * Set data for the item. Existing data will be updated. The id should not
+   * be changed. When the item is displayed, it will be redrawn immediately.
+   * @param {Object} data
+   */
+  Item.prototype.setData = function(data) {
+    this.data = data;
+    this.dirty = true;
     if (this.displayed) this.redraw();
   };
 
@@ -13059,6 +13080,68 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   };
 
+  /**
+   * Set HTML contents for the item
+   * @param {Element} element   HTML element to fill with the contents
+   * @private
+   */
+  Item.prototype._updateContents = function (element) {
+    var content;
+    if (this.options.template) {
+      var itemData = this.parent.itemSet.itemsData.get(this.id); // get a clone of the data from the dataset
+      content = this.options.template(itemData);
+    }
+    else {
+      content = this.data.content;
+    }
+
+    if (content instanceof Element) {
+      element.innerHTML = '';
+      element.appendChild(content);
+    }
+    else if (content != undefined) {
+      element.innerHTML = content;
+    }
+    else {
+      throw new Error('Property "content" missing in item ' + this.data.id);
+    }
+  };
+
+  /**
+   * Set HTML contents for the item
+   * @param {Element} element   HTML element to fill with the contents
+   * @private
+   */
+  Item.prototype._updateTitle = function (element) {
+    if (this.data.title != null) {
+      element.title = this.data.title || '';
+    }
+    else {
+      element.removeAttribute('title');
+    }
+  };
+
+  /**
+   * Process dataAttributes timeline option and set as data- attributes on dom.content
+   * @param {Element} element   HTML element to which the attributes will be attached
+   * @private
+   */
+   Item.prototype._updateDataAttributes = function(element) {
+    if (this.options.dataAttributes && this.options.dataAttributes.length > 0) {
+      for (var i = 0; i < this.options.dataAttributes.length; i++) {
+        var name = this.options.dataAttributes[i];
+        var value = this.data[name];
+
+        if (value != null) {
+          element.setAttribute('data-' + name, value);
+        }
+        else {
+          element.removeAttribute('data-' + name);
+        }
+      }
+    }
+  };
+
   module.exports = Item;
 
 
@@ -13066,10 +13149,158 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
+  var Hammer = __webpack_require__(42);
+  var Item = __webpack_require__(28);
+  var RangeItem = __webpack_require__(32);
+
+  /**
+   * @constructor BackgroundItem
+   * @extends Item
+   * @param {Object} data             Object containing parameters start, end
+   *                                  content, className.
+   * @param {{toScreen: function, toTime: function}} conversion
+   *                                  Conversion functions from time to screen and vice versa
+   * @param {Object} [options]        Configuration options
+   *                                  // TODO: describe options
+   */
+  // TODO: implement support for the BackgroundItem just having a start, then being displayed as a sort of an annotation
+  function BackgroundItem (data, conversion, options) {
+    this.props = {
+      content: {
+        width: 0
+      }
+    };
+    this.overflow = false; // if contents can overflow (css styling), this flag is set to true
+
+    // validate data
+    if (data) {
+      if (data.start == undefined) {
+        throw new Error('Property "start" missing in item ' + data.id);
+      }
+      if (data.end == undefined) {
+        throw new Error('Property "end" missing in item ' + data.id);
+      }
+    }
+
+    Item.call(this, data, conversion, options);
+  }
+
+  BackgroundItem.prototype = new Item (null, null, null);
+
+  BackgroundItem.prototype.baseClassName = 'item background';
+
+  /**
+   * Check whether this item is visible inside given range
+   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+   * @returns {boolean} True if visible
+   */
+  BackgroundItem.prototype.isVisible = function(range) {
+    // determine visibility
+    return (this.data.start < range.end) && (this.data.end > range.start);
+  };
+
+  /**
+   * Repaint the item
+   */
+  BackgroundItem.prototype.redraw = function() {
+    var dom = this.dom;
+    if (!dom) {
+      // create DOM
+      this.dom = {};
+      dom = this.dom;
+
+        // background box
+      dom.box = document.createElement('div');
+      // className is updated in redraw()
+
+      // contents box
+      dom.content = document.createElement('div');
+      dom.content.className = 'content';
+      dom.box.appendChild(dom.content);
+
+      // attach this item as attribute
+      dom.box['timeline-item'] = this;
+
+      this.dirty = true;
+    }
+
+    // append DOM to parent DOM
+    if (!this.parent) {
+      throw new Error('Cannot redraw item: no parent attached');
+    }
+    if (!dom.box.parentNode) {
+      var background = this.parent.dom.background;
+      if (!background) {
+        throw new Error('Cannot redraw time axis: parent has no background container element');
+      }
+      background.appendChild(dom.box);
+    }
+    this.displayed = true;
+
+    // Update DOM when item is marked dirty. An item is marked dirty when:
+    // - the item is not yet rendered
+    // - the item's data is changed
+    // - the item is selected/deselected
+    if (this.dirty) {
+      this._updateContents(this.dom.content);
+      this._updateTitle(this.dom.content);
+      this._updateDataAttributes(this.dom.content);
+
+      // update class
+      var className = (this.data.className ? (' ' + this.data.className) : '') +
+          (this.selected ? ' selected' : '');
+      dom.box.className = this.baseClassName + className;
+
+      // determine from css whether this box has overflow
+      this.overflow = window.getComputedStyle(dom.content).overflow !== 'hidden';
+
+      // recalculate size
+      this.props.content.width = this.dom.content.offsetWidth;
+      this.height = 0; // set height zero, so this item will be ignored when stacking items
+
+      this.dirty = false;
+    }
+  };
+
+  /**
+   * Show the item in the DOM (when not already visible). The items DOM will
+   * be created when needed.
+   */
+  BackgroundItem.prototype.show = RangeItem.prototype.show;
+
+  /**
+   * Hide the item from the DOM (when visible)
+   * @return {Boolean} changed
+   */
+  BackgroundItem.prototype.hide = RangeItem.prototype.hide;
+
+  /**
+   * Reposition the item horizontally
+   * @Override
+   */
+  BackgroundItem.prototype.repositionX = RangeItem.prototype.repositionX;
+
+  /**
+   * Reposition the item vertically
+   * @Override
+   */
+  BackgroundItem.prototype.repositionY = function() {
+    var onTop = this.options.orientation === 'top';
+    this.dom.content.style.top = onTop ? '' : '0';
+    this.dom.content.style.bottom = onTop ? '0' : '';
+  };
+
+  module.exports = BackgroundItem;
+
+
+/***/ },
+/* 30 */
+/***/ function(module, exports, __webpack_require__) {
+
   var Item = __webpack_require__(28);
 
   /**
-   * @constructor ItemBox
+   * @constructor BoxItem
    * @extends Item
    * @param {Object} data             Object containing parameters start
    *                                  content, className.
@@ -13078,7 +13309,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {Object} [options]        Configuration options
    *                                  // TODO: describe available options
    */
-  function ItemBox (data, conversion, options) {
+  function BoxItem (data, conversion, options) {
     this.props = {
       dot: {
         width: 0,
@@ -13100,14 +13331,14 @@ return /******/ (function(modules) { // webpackBootstrap
     Item.call(this, data, conversion, options);
   }
 
-  ItemBox.prototype = new Item (null, null, null);
+  BoxItem.prototype = new Item (null, null, null);
 
   /**
    * Check whether this item is visible inside given range
    * @returns {{start: Number, end: Number}} range with a timestamp for start and end
    * @returns {boolean} True if visible
    */
-  ItemBox.prototype.isVisible = function(range) {
+  BoxItem.prototype.isVisible = function(range) {
     // determine visibility
     // TODO: account for the real width of the item. Right now we just add 1/4 to the window
     var interval = (range.end - range.start) / 4;
@@ -13117,7 +13348,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Repaint the item
    */
-  ItemBox.prototype.redraw = function() {
+  BoxItem.prototype.redraw = function() {
     var dom = this.dom;
     if (!dom) {
       // create DOM
@@ -13142,6 +13373,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // attach this item as attribute
       dom.box['timeline-item'] = this;
+
+      this.dirty = true;
     }
 
     // append DOM to parent DOM
@@ -13165,43 +13398,23 @@ return /******/ (function(modules) { // webpackBootstrap
     }
     this.displayed = true;
 
-    // update contents
-    if (this.data.content != this.content) {
-      this.content = this.data.content;
-      if (this.content instanceof Element) {
-        dom.content.innerHTML = '';
-        dom.content.appendChild(this.content);
-      }
-      else if (this.data.content != undefined) {
-        dom.content.innerHTML = this.content;
-      }
-      else {
-        throw new Error('Property "content" missing in item ' + this.data.id);
-      }
+    // Update DOM when item is marked dirty. An item is marked dirty when:
+    // - the item is not yet rendered
+    // - the item's data is changed
+    // - the item is selected/deselected
+    if (this.dirty) {
+      this._updateContents(this.dom.content);
+      this._updateTitle(this.dom.box);
+      this._updateDataAttributes(this.dom.box);
 
-      this.dirty = true;
-    }
-
-    // update title
-    if (this.data.title != this.title) {
-      dom.box.title = this.data.title;
-      this.title = this.data.title;
-    }
-
-    // update class
-    var className = (this.data.className? ' ' + this.data.className : '') +
-        (this.selected ? ' selected' : '');
-    if (this.className != className) {
-      this.className = className;
+      // update class
+      var className = (this.data.className? ' ' + this.data.className : '') +
+          (this.selected ? ' selected' : '');
       dom.box.className = 'item box' + className;
       dom.line.className = 'item line' + className;
       dom.dot.className  = 'item dot' + className;
 
-      this.dirty = true;
-    }
-
-    // recalculate size
-    if (this.dirty) {
+      // recalculate size
       this.props.dot.height = dom.dot.offsetHeight;
       this.props.dot.width = dom.dot.offsetWidth;
       this.props.line.width = dom.line.offsetWidth;
@@ -13218,7 +13431,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Show the item in the DOM (when not already displayed). The items DOM will
    * be created when needed.
    */
-  ItemBox.prototype.show = function() {
+  BoxItem.prototype.show = function() {
     if (!this.displayed) {
       this.redraw();
     }
@@ -13227,7 +13440,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Hide the item from the DOM (when visible)
    */
-  ItemBox.prototype.hide = function() {
+  BoxItem.prototype.hide = function() {
     if (this.displayed) {
       var dom = this.dom;
 
@@ -13246,7 +13459,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Reposition the item horizontally
    * @Override
    */
-  ItemBox.prototype.repositionX = function() {
+  BoxItem.prototype.repositionX = function() {
     var start = this.conversion.toScreen(this.data.start);
     var align = this.options.align;
     var left;
@@ -13280,7 +13493,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Reposition the item vertically
    * @Override
    */
-  ItemBox.prototype.repositionY = function() {
+  BoxItem.prototype.repositionY = function() {
     var orientation = this.options.orientation;
     var box = this.dom.box;
     var line = this.dom.line;
@@ -13305,17 +13518,17 @@ return /******/ (function(modules) { // webpackBootstrap
     dot.style.top = (-this.props.dot.height / 2) + 'px';
   };
 
-  module.exports = ItemBox;
+  module.exports = BoxItem;
 
 
 /***/ },
-/* 30 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Item = __webpack_require__(28);
 
   /**
-   * @constructor ItemPoint
+   * @constructor PointItem
    * @extends Item
    * @param {Object} data             Object containing parameters start
    *                                  content, className.
@@ -13324,7 +13537,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {Object} [options]        Configuration options
    *                                  // TODO: describe available options
    */
-  function ItemPoint (data, conversion, options) {
+  function PointItem (data, conversion, options) {
     this.props = {
       dot: {
         top: 0,
@@ -13347,14 +13560,14 @@ return /******/ (function(modules) { // webpackBootstrap
     Item.call(this, data, conversion, options);
   }
 
-  ItemPoint.prototype = new Item (null, null, null);
+  PointItem.prototype = new Item (null, null, null);
 
   /**
    * Check whether this item is visible inside given range
    * @returns {{start: Number, end: Number}} range with a timestamp for start and end
    * @returns {boolean} True if visible
    */
-  ItemPoint.prototype.isVisible = function(range) {
+  PointItem.prototype.isVisible = function(range) {
     // determine visibility
     // TODO: account for the real width of the item. Right now we just add 1/4 to the window
     var interval = (range.end - range.start) / 4;
@@ -13364,7 +13577,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Repaint the item
    */
-  ItemPoint.prototype.redraw = function() {
+  PointItem.prototype.redraw = function() {
     var dom = this.dom;
     if (!dom) {
       // create DOM
@@ -13386,6 +13599,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // attach this item as attribute
       dom.point['timeline-item'] = this;
+
+      this.dirty = true;
     }
 
     // append DOM to parent DOM
@@ -13401,42 +13616,22 @@ return /******/ (function(modules) { // webpackBootstrap
     }
     this.displayed = true;
 
-    // update contents
-    if (this.data.content != this.content) {
-      this.content = this.data.content;
-      if (this.content instanceof Element) {
-        dom.content.innerHTML = '';
-        dom.content.appendChild(this.content);
-      }
-      else if (this.data.content != undefined) {
-        dom.content.innerHTML = this.content;
-      }
-      else {
-        throw new Error('Property "content" missing in item ' + this.data.id);
-      }
+    // Update DOM when item is marked dirty. An item is marked dirty when:
+    // - the item is not yet rendered
+    // - the item's data is changed
+    // - the item is selected/deselected
+    if (this.dirty) {
+      this._updateContents(this.dom.content);
+      this._updateTitle(this.dom.point);
+      this._updateDataAttributes(this.dom.point);
 
-      this.dirty = true;
-    }
-
-    // update title
-    if (this.data.title != this.title) {
-      dom.point.title = this.data.title;
-      this.title = this.data.title;
-    }
-
-    // update class
-    var className = (this.data.className? ' ' + this.data.className : '') +
-        (this.selected ? ' selected' : '');
-    if (this.className != className) {
-      this.className = className;
+      // update class
+      var className = (this.data.className? ' ' + this.data.className : '') +
+          (this.selected ? ' selected' : '');
       dom.point.className  = 'item point' + className;
       dom.dot.className  = 'item dot' + className;
 
-      this.dirty = true;
-    }
-
-    // recalculate size
-    if (this.dirty) {
+      // recalculate size
       this.width = dom.point.offsetWidth;
       this.height = dom.point.offsetHeight;
       this.props.dot.width = dom.dot.offsetWidth;
@@ -13460,7 +13655,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Show the item in the DOM (when not already visible). The items DOM will
    * be created when needed.
    */
-  ItemPoint.prototype.show = function() {
+  PointItem.prototype.show = function() {
     if (!this.displayed) {
       this.redraw();
     }
@@ -13469,7 +13664,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Hide the item from the DOM (when visible)
    */
-  ItemPoint.prototype.hide = function() {
+  PointItem.prototype.hide = function() {
     if (this.displayed) {
       if (this.dom.point.parentNode) {
         this.dom.point.parentNode.removeChild(this.dom.point);
@@ -13486,7 +13681,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Reposition the item horizontally
    * @Override
    */
-  ItemPoint.prototype.repositionX = function() {
+  PointItem.prototype.repositionX = function() {
     var start = this.conversion.toScreen(this.data.start);
 
     this.left = start - this.props.dot.width;
@@ -13499,7 +13694,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Reposition the item vertically
    * @Override
    */
-  ItemPoint.prototype.repositionY = function() {
+  PointItem.prototype.repositionY = function() {
     var orientation = this.options.orientation,
         point = this.dom.point;
 
@@ -13511,18 +13706,18 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   };
 
-  module.exports = ItemPoint;
+  module.exports = PointItem;
 
 
 /***/ },
-/* 31 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(41);
+  var Hammer = __webpack_require__(42);
   var Item = __webpack_require__(28);
 
   /**
-   * @constructor ItemRange
+   * @constructor RangeItem
    * @extends Item
    * @param {Object} data             Object containing parameters start, end
    *                                  content, className.
@@ -13531,7 +13726,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {Object} [options]        Configuration options
    *                                  // TODO: describe options
    */
-  function ItemRange (data, conversion, options) {
+  function RangeItem (data, conversion, options) {
     this.props = {
       content: {
         width: 0
@@ -13552,16 +13747,16 @@ return /******/ (function(modules) { // webpackBootstrap
     Item.call(this, data, conversion, options);
   }
 
-  ItemRange.prototype = new Item (null, null, null);
+  RangeItem.prototype = new Item (null, null, null);
 
-  ItemRange.prototype.baseClassName = 'item range';
+  RangeItem.prototype.baseClassName = 'item range';
 
   /**
    * Check whether this item is visible inside given range
    * @returns {{start: Number, end: Number}} range with a timestamp for start and end
    * @returns {boolean} True if visible
    */
-  ItemRange.prototype.isVisible = function(range) {
+  RangeItem.prototype.isVisible = function(range) {
     // determine visibility
     return (this.data.start < range.end) && (this.data.end > range.start);
   };
@@ -13569,7 +13764,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Repaint the item
    */
-  ItemRange.prototype.redraw = function() {
+  RangeItem.prototype.redraw = function() {
     var dom = this.dom;
     if (!dom) {
       // create DOM
@@ -13587,6 +13782,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // attach this item as attribute
       dom.box['timeline-item'] = this;
+
+      this.dirty = true;
     }
 
     // append DOM to parent DOM
@@ -13602,44 +13799,24 @@ return /******/ (function(modules) { // webpackBootstrap
     }
     this.displayed = true;
 
-    // update contents
-    if (this.data.content != this.content) {
-      this.content = this.data.content;
-      if (this.content instanceof Element) {
-        dom.content.innerHTML = '';
-        dom.content.appendChild(this.content);
-      }
-      else if (this.data.content != undefined) {
-        dom.content.innerHTML = this.content;
-      }
-      else {
-        throw new Error('Property "content" missing in item ' + this.data.id);
-      }
+    // Update DOM when item is marked dirty. An item is marked dirty when:
+    // - the item is not yet rendered
+    // - the item's data is changed
+    // - the item is selected/deselected
+    if (this.dirty) {
+      this._updateContents(this.dom.content);
+      this._updateTitle(this.dom.box);
+      this._updateDataAttributes(this.dom.box);
 
-      this.dirty = true;
-    }
-
-    // update title
-    if (this.data.title != this.title) {
-      dom.box.title = this.data.title;
-      this.title = this.data.title;
-    }
-
-    // update class
-    var className = (this.data.className ? (' ' + this.data.className) : '') +
-        (this.selected ? ' selected' : '');
-    if (this.className != className) {
-      this.className = className;
+      // update class
+      var className = (this.data.className ? (' ' + this.data.className) : '') +
+          (this.selected ? ' selected' : '');
       dom.box.className = this.baseClassName + className;
 
-      this.dirty = true;
-    }
-
-    // recalculate size
-    if (this.dirty) {
       // determine from css whether this box has overflow
       this.overflow = window.getComputedStyle(dom.content).overflow !== 'hidden';
 
+      // recalculate size
       this.props.content.width = this.dom.content.offsetWidth;
       this.height = this.dom.box.offsetHeight;
 
@@ -13655,7 +13832,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Show the item in the DOM (when not already visible). The items DOM will
    * be created when needed.
    */
-  ItemRange.prototype.show = function() {
+  RangeItem.prototype.show = function() {
     if (!this.displayed) {
       this.redraw();
     }
@@ -13665,7 +13842,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Hide the item from the DOM (when visible)
    * @return {Boolean} changed
    */
-  ItemRange.prototype.hide = function() {
+  RangeItem.prototype.hide = function() {
     if (this.displayed) {
       var box = this.dom.box;
 
@@ -13684,7 +13861,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Reposition the item horizontally
    * @Override
    */
-  ItemRange.prototype.repositionX = function() {
+  RangeItem.prototype.repositionX = function() {
     var parentWidth = this.parent.width;
     var start = this.conversion.toScreen(this.data.start);
     var end = this.conversion.toScreen(this.data.end);
@@ -13755,7 +13932,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Reposition the item vertically
    * @Override
    */
-  ItemRange.prototype.repositionY = function() {
+  RangeItem.prototype.repositionY = function() {
     var orientation = this.options.orientation,
         box = this.dom.box;
 
@@ -13771,7 +13948,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Repaint a drag area on the left side of the range when the range is selected
    * @protected
    */
-  ItemRange.prototype._repaintDragLeft = function () {
+  RangeItem.prototype._repaintDragLeft = function () {
     if (this.selected && this.options.editable.updateTime && !this.dom.dragLeft) {
       // create and show drag area
       var dragLeft = document.createElement('div');
@@ -13801,7 +13978,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Repaint a drag area on the right side of the range when the range is selected
    * @protected
    */
-  ItemRange.prototype._repaintDragRight = function () {
+  RangeItem.prototype._repaintDragRight = function () {
     if (this.selected && this.options.editable.updateTime && !this.dom.dragRight) {
       // create and show drag area
       var dragRight = document.createElement('div');
@@ -13827,33 +14004,33 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   };
 
-  module.exports = ItemRange;
+  module.exports = RangeItem;
 
 
 /***/ },
-/* 32 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(49);
-  var Hammer = __webpack_require__(41);
-  var mousetrap = __webpack_require__(50);
+  var Emitter = __webpack_require__(50);
+  var Hammer = __webpack_require__(42);
+  var mousetrap = __webpack_require__(51);
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(43);
+  var hammerUtil = __webpack_require__(44);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
-  var dotparser = __webpack_require__(38);
-  var gephiParser = __webpack_require__(39);
-  var Groups = __webpack_require__(34);
-  var Images = __webpack_require__(35);
-  var Node = __webpack_require__(36);
-  var Edge = __webpack_require__(33);
-  var Popup = __webpack_require__(37);
-  var MixinLoader = __webpack_require__(47);
-  var Activator = __webpack_require__(48);
-  var locales = __webpack_require__(45);
+  var dotparser = __webpack_require__(39);
+  var gephiParser = __webpack_require__(40);
+  var Groups = __webpack_require__(35);
+  var Images = __webpack_require__(36);
+  var Node = __webpack_require__(37);
+  var Edge = __webpack_require__(34);
+  var Popup = __webpack_require__(38);
+  var MixinLoader = __webpack_require__(48);
+  var Activator = __webpack_require__(49);
+  var locales = __webpack_require__(46);
 
   // Load custom shapes into CanvasRenderingContext2D
-  __webpack_require__(46);
+  __webpack_require__(47);
 
   /**
    * @constructor Network
@@ -13898,10 +14075,10 @@ return /******/ (function(modules) { // webpackBootstrap
         image: undefined,
         widthMin: 16, // px
         widthMax: 64, // px
-        fixed: false,
         fontColor: 'black',
         fontSize: 14, // px
         fontFace: 'verdana',
+        fontFill: undefined,
         level: -1,
         color: {
             border: '#2B7CE9',
@@ -13919,11 +14096,12 @@ return /******/ (function(modules) { // webpackBootstrap
         backgroundColor: '#97C2FC',
         highlightColor: '#D2E5FF',
         group: undefined,
-        borderWidth: 1
+        borderWidth: 1,
+        borderWidthSelected: undefined
       },
       edges: {
-        widthMin: 1,
-        widthMax: 15,
+        widthMin: 1, //
+        widthMax: 15,//
         width: 1,
         widthSelectionMultiplier: 2,
         hoverWidth: 1.5,
@@ -14054,6 +14232,15 @@ return /******/ (function(modules) { // webpackBootstrap
     this.hoverObj = {nodes:{},edges:{}};
     this.controlNodesActive = false;
 
+    // animation properties
+    this.animationSpeed = 1/this.renderRefreshRate;
+    this.animationEasingFunction = "easeInOutQuint";
+    this.easingTime = 0;
+    this.sourceScale = 0;
+    this.targetScale = 0;
+    this.sourceTranslation = 0;
+    this.targetTranslation = 0;
+
     // Node variables
     var network = this;
     this.groups = new Groups(); // object with groups
@@ -14080,6 +14267,66 @@ return /******/ (function(modules) { // webpackBootstrap
     this._loadSelectionSystem();
     // load the selection system. (mandatory, required by Network)
     this._loadHierarchySystem();
+
+    /*
+     * Easing Functions - inspired from http://gizma.com/easing/
+     * only considering the t value for the range [0, 1] => [0, 1]
+     * https://gist.github.com/gre/1650294
+     */
+    this.easingFunctions = {
+      // no easing, no acceleration
+      linear: function (t) {
+        return t
+      },
+      // accelerating from zero velocity
+      easeInQuad: function (t) {
+        return t * t
+      },
+      // decelerating to zero velocity
+      easeOutQuad: function (t) {
+        return t * (2 - t)
+      },
+      // acceleration until halfway, then deceleration
+      easeInOutQuad: function (t) {
+        return t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t
+      },
+      // accelerating from zero velocity
+      easeInCubic: function (t) {
+        return t * t * t
+      },
+      // decelerating to zero velocity
+      easeOutCubic: function (t) {
+        return (--t) * t * t + 1
+      },
+      // acceleration until halfway, then deceleration
+      easeInOutCubic: function (t) {
+        return t < .5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1
+      },
+      // accelerating from zero velocity
+      easeInQuart: function (t) {
+        return t * t * t * t
+      },
+      // decelerating to zero velocity
+      easeOutQuart: function (t) {
+        return 1 - (--t) * t * t * t
+      },
+      // acceleration until halfway, then deceleration
+      easeInOutQuart: function (t) {
+        return t < .5 ? 8 * t * t * t * t : 1 - 8 * (--t) * t * t * t
+      },
+      // accelerating from zero velocity
+      easeInQuint: function (t) {
+        return t * t * t * t * t
+      },
+      // decelerating to zero velocity
+      easeOutQuint: function (t) {
+        return 1 + (--t) * t * t * t * t
+      },
+      // acceleration until halfway, then deceleration
+      easeInOutQuint: function (t) {
+        return t < .5 ? 16 * t * t * t * t * t : 1 + 16 * (--t) * t * t * t * t
+      }
+    };
 
     // apply options
     this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
@@ -14156,7 +14403,7 @@ return /******/ (function(modules) { // webpackBootstrap
     else {
       // zoom so all data will fit on the screen, if clustering is enabled, we do not want start to be called here.
       if (this.constants.stabilize == false) {
-        this.zoomExtent(true,this.constants.clustering.enabled);
+        this.zoomExtent(undefined, true,this.constants.clustering.enabled);
       }
     }
 
@@ -14227,37 +14474,24 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
   /**
-   * center the network
-   *
-   * @param {object} range = {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
-   */
-  Network.prototype._centerNetwork = function(range) {
-    var center = this._findCenter(range);
-
-    center.x *= this.scale;
-    center.y *= this.scale;
-    center.x -= 0.5 * this.frame.canvas.clientWidth;
-    center.y -= 0.5 * this.frame.canvas.clientHeight;
-
-    this._setTranslation(-center.x,-center.y); // set at 0,0
-  };
-
-
-  /**
    * This function zooms out to fit all data on screen based on amount of nodes
    *
    * @param {Boolean} [initialZoom]  | zoom based on fitted formula or range, true = fitted, default = false;
    * @param {Boolean} [disableStart] | If true, start is not called.
    */
-  Network.prototype.zoomExtent = function(initialZoom, disableStart) {
+  Network.prototype.zoomExtent = function(animationOptions, initialZoom, disableStart) {
     if (initialZoom === undefined) {
       initialZoom = false;
     }
     if (disableStart === undefined) {
       disableStart = false;
     }
+    if (animationOptions === undefined) {
+      animationOptions = false;
+    }
 
     var range = this._getRange();
+    var scale = this._getScale();
     var zoomLevel;
 
     if (initialZoom == true) {
@@ -14300,11 +14534,20 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
 
-    this._setScale(zoomLevel);
-    this._centerNetwork(range);
+    var center = this._findCenter(range);
     if (disableStart == false) {
+      var options = {position: center, scale: zoomLevel, animation: animationOptions};
+      this.moveTo(options);
       this.moving = true;
       this.start();
+    }
+    else {
+      center.x *= zoomLevel;
+      center.y *= zoomLevel;
+      center.x -= 0.5 * this.frame.canvas.clientWidth;
+      center.y -= 0.5 * this.frame.canvas.clientHeight;
+      this._setScale(zoomLevel);
+      this._setTranslation(-center.x,-center.y);
     }
   };
 
@@ -15113,16 +15356,39 @@ return /******/ (function(modules) { // webpackBootstrap
    *                         or '30%')
    */
   Network.prototype.setSize = function(width, height) {
-    this.frame.style.width = width;
-    this.frame.style.height = height;
+    var emitEvent = false;
+    if (width != this.constants.width || height != this.constants.height || this.frame.style.width != width || this.frame.style.height != height) {
+      this.frame.style.width = width;
+      this.frame.style.height = height;
 
-    this.frame.canvas.style.width = '100%';
-    this.frame.canvas.style.height = '100%';
+      this.frame.canvas.style.width = '100%';
+      this.frame.canvas.style.height = '100%';
 
-    this.frame.canvas.width = this.frame.canvas.clientWidth;
-    this.frame.canvas.height = this.frame.canvas.clientHeight;
+      this.frame.canvas.width = this.frame.canvas.clientWidth;
+      this.frame.canvas.height = this.frame.canvas.clientHeight;
 
-    this.emit('resize', {width:this.frame.canvas.width,height:this.frame.canvas.height});
+      this.constants.width = width;
+      this.constants.height = height;
+
+      emitEvent = true;
+    }
+    else {
+      // this would adapt the width of the canvas to the width from 100% if and only if
+      // there is a change.
+
+      if (this.frame.canvas.width != this.frame.canvas.clientWidth) {
+        this.frame.canvas.width = this.frame.canvas.clientWidth;
+        emitEvent = true;
+      }
+      if (this.frame.canvas.height != this.frame.canvas.clientHeight) {
+        this.frame.canvas.height = this.frame.canvas.clientHeight;
+        emitEvent = true;
+      }
+    }
+
+    if (emitEvent == true) {
+      this.emit('resize', {width:this.frame.canvas.width,height:this.frame.canvas.height});
+    }
   };
 
   /**
@@ -15616,9 +15882,9 @@ return /******/ (function(modules) { // webpackBootstrap
    * @returns {{x: number, y: number}}
    * @constructor
    */
-  Network.prototype.canvasToDOM = function(pos) {
-    return {x:this._XconvertCanvasToDOM(pos.x),y:this._YconvertCanvasToDOM(pos.y)};
-  }
+  Network.prototype.canvasToDOM = function (pos) {
+    return {x: this._XconvertCanvasToDOM(pos.x), y: this._YconvertCanvasToDOM(pos.y)};
+  };
 
   /**
    *
@@ -15626,9 +15892,9 @@ return /******/ (function(modules) { // webpackBootstrap
    * @returns {{x: number, y: number}}
    * @constructor
    */
-  Network.prototype.DOMtoCanvas = function(pos) {
-    return {x:this._XconvertDOMtoCanvas(pos.x),y:this._YconvertDOMtoCanvas(pos.y)};
-  }
+  Network.prototype.DOMtoCanvas = function (pos) {
+    return {x: this._XconvertDOMtoCanvas(pos.x), y: this._YconvertDOMtoCanvas(pos.y)};
+  };
 
   /**
    * Redraw all nodes
@@ -15717,7 +15983,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this._physicsTick();
       count++;
     }
-    this.zoomExtent(false,true);
+    this.zoomExtent(undefined,false,true);
     if (this.constants.freezeForStabilization == true) {
       this._restoreFrozenNodes();
     }
@@ -16070,27 +16336,17 @@ return /******/ (function(modules) { // webpackBootstrap
    * Center a node in view.
    *
    * @param {Number} nodeId
-   * @param {Number} [zoomLevel]
+   * @param {Number} [options]
    */
-  Network.prototype.focusOnNode = function (nodeId, zoomLevel) {
+  Network.prototype.focusOnNode = function (nodeId, options) {
     if (this.nodes.hasOwnProperty(nodeId)) {
-      if (zoomLevel === undefined) {
-        zoomLevel = this._getScale();
+      if (options === undefined) {
+        options = {};
       }
-      var nodePosition= {x: this.nodes[nodeId].x, y: this.nodes[nodeId].y};
+      var nodePosition = {x: this.nodes[nodeId].x, y: this.nodes[nodeId].y};
+      options.position = nodePosition;
 
-      var requiredScale = zoomLevel;
-      this._setScale(requiredScale);
-
-      var canvasCenter = this.DOMtoCanvas({x:0.5 * this.frame.canvas.width,y:0.5 * this.frame.canvas.height});
-      var translation = this._getTranslation();
-
-      var distanceFromCenter = {x:canvasCenter.x - nodePosition.x,
-                                y:canvasCenter.y - nodePosition.y};
-
-      this._setTranslation(translation.x + requiredScale * distanceFromCenter.x,
-                           translation.y + requiredScale * distanceFromCenter.y);
-      this.redraw();
+      this.moveTo(options)
     }
     else {
       console.log("This nodeId cannot be found.");
@@ -16098,22 +16354,156 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   /**
-   * Returns true when the Timeline is active.
+   *
+   * @param {Object} options  |  options.offset   = {x:Number, y:Number}   // offset from the center in DOM pixels
+   *                          |  options.scale    = Number                 // scale to move to
+   *                          |  options.position = {x:Number, y:Number}   // position to move to
+   *                          |  options.animation = {duration:Number, easingFunction:String} || Boolean   // position to move to
+   */
+  Network.prototype.moveTo = function (options) {
+    if (options === undefined) {
+      options = {};
+      return;
+    }
+    if (options.offset    === undefined)           {options.offset    = {x: 0, y: 0};          }
+    if (options.offset.x  === undefined)           {options.offset.x  = 0;                     }
+    if (options.offset.y  === undefined)           {options.offset.y  = 0;                     }
+    if (options.scale     === undefined)           {options.scale     = this._getScale();      }
+    if (options.position  === undefined)           {options.position  = this._getTranslation();}
+    if (options.animation === undefined)           {options.animation = {duration:0};          }
+    if (options.animation === false    )           {options.animation = {duration:0};          }
+    if (options.animation === true     )           {options.animation = {};                    }
+    if (options.animation.duration === undefined)  {options.animation.duration = 1000;         }  // default duration
+    if (options.animation.easingFunction === undefined)  {options.animation.easingFunction = "easeInOutQuad";  } // default easing function
+
+    this.animateView(options);
+  };
+
+  /**
+   *
+   * @param {Object} options  |  options.offset   = {x:Number, y:Number}   // offset from the center in DOM pixels
+   *                          |  options.time     = Number                 // animation time in milliseconds
+   *                          |  options.scale    = Number                 // scale to animate to
+   *                          |  options.position = {x:Number, y:Number}   // position to animate to
+   *                          |  options.easingFunction = String           // linear, easeInQuad, easeOutQuad, easeInOutQuad,
+   *                                                                       // easeInCubic, easeOutCubic, easeInOutCubic,
+   *                                                                       // easeInQuart, easeOutQuart, easeInOutQuart,
+   *                                                                       // easeInQuint, easeOutQuint, easeInOutQuint
+   */
+  Network.prototype.animateView = function (options) {
+    if (options === undefined) {
+      options = {};
+      return;
+    }
+
+    // forcefully complete the old animation if it was still running
+    if (this.easingTime != 0) {
+      this._transitionRedraw(1); // by setting easingtime to 1, we finish the animation.
+    }
+
+    this.sourceScale = this._getScale();
+    this.sourceTranslation = this._getTranslation();
+    this.targetScale = options.scale;
+
+    // set the scale so the viewCenter is based on the correct zoom level. This is overridden in the transitionRedraw
+    // but at least then we'll have the target transition
+    this._setScale(this.targetScale);
+    var viewCenter = this.DOMtoCanvas({x: 0.5 * this.frame.canvas.clientWidth, y: 0.5 * this.frame.canvas.clientHeight});
+    var distanceFromCenter = { // offset from view, distance view has to change by these x and y to center the node
+      x: viewCenter.x - options.position.x,
+      y: viewCenter.y - options.position.y
+    };
+    this.targetTranslation = {
+      x: this.sourceTranslation.x + distanceFromCenter.x * this.targetScale + options.offset.x,
+      y: this.sourceTranslation.y + distanceFromCenter.y * this.targetScale + options.offset.y
+    };
+
+    // if the time is set to 0, don't do an animation
+    if (options.animation.duration == 0) {
+      this._setScale(this.targetScale);
+      this._setTranslation(this.targetTranslation.x, this.targetTranslation.y);
+      this._redraw();
+    }
+    else {
+      this.animationSpeed = 1 / (this.renderRefreshRate * options.animation.duration * 0.001) || 1 / this.renderRefreshRate;
+      this.animationEasingFunction = options.animation.easingFunction;
+      this._classicRedraw = this._redraw;
+      this._redraw = this._transitionRedraw;
+      this.moving = true;
+      this.start();
+    }
+  };
+
+
+  /**
+   *
+   * @param easingTime
+   * @private
+   */
+  Network.prototype._transitionRedraw = function (easingTime) {
+    this.easingTime = easingTime || this.easingTime + this.animationSpeed;
+    this.easingTime += this.animationSpeed;
+
+    var progress = this.easingFunctions[this.animationEasingFunction](this.easingTime);
+
+    this._setScale(this.sourceScale + (this.targetScale - this.sourceScale) * progress);
+    this._setTranslation(
+      this.sourceTranslation.x + (this.targetTranslation.x - this.sourceTranslation.x) * progress,
+      this.sourceTranslation.y + (this.targetTranslation.y - this.sourceTranslation.y) * progress
+    );
+
+    this._classicRedraw();
+    this.moving = true;
+
+    // cleanup
+    if (this.easingTime >= 1.0) {
+      this.easingTime = 0;
+      this._redraw = this._classicRedraw;
+      this.emit("animationFinished");
+    }
+  };
+
+  Network.prototype._classicRedraw = function () {
+    // placeholder function to be overloaded by animations;
+  };
+
+  /**
+   * Returns true when the Network is active.
    * @returns {boolean}
    */
   Network.prototype.isActive = function () {
     return !this.activator || this.activator.active;
   };
 
+
+  /**
+   * Sets the scale
+   * @returns {Number}
+   */
+  Network.prototype.setScale = function () {
+    return this._setScale();
+  };
+
+
+  /**
+   * Returns the scale
+   * @returns {Number}
+   */
+  Network.prototype.getScale = function () {
+    return this._getScale();
+  };
+
+
+
   module.exports = Network;
 
 
 /***/ },
-/* 33 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Node = __webpack_require__(36);
+  var Node = __webpack_require__(37);
 
   /**
    * @class Edge
@@ -16185,7 +16575,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     var fields = ['style','fontSize','fontFace','fontColor','fontFill','width',
-      'widthSelectionMultiplier','hoverWidth','arrowScaleFactor','dash'
+      'widthSelectionMultiplier','hoverWidth','arrowScaleFactor','dash','inheritColor'
     ];
     util.selectiveDeepExtend(fields, this.options, properties);
 
@@ -16198,11 +16588,6 @@ return /******/ (function(modules) { // webpackBootstrap
     if (properties.title !== undefined)        {this.title = properties.title;}
     if (properties.value !== undefined)        {this.value = properties.value;}
     if (properties.length !== undefined)       {this.physics.springLength = properties.length;}
-
-    // scale the arrow
-    if (properties.arrowScaleFactor !== undefined)       {this.options.arrowScaleFactor = properties.arrowScaleFactor;}
-
-    if (properties.inheritColor !== undefined)       {this.options.inheritColor = properties.inheritColor;}
 
     if (properties.color !== undefined) {
       this.options.inheritColor = false;
@@ -16667,18 +17052,33 @@ return /******/ (function(modules) { // webpackBootstrap
       ctx.font = ((this.from.selected || this.to.selected) ? "bold " : "") +
           this.options.fontSize + "px " + this.options.fontFace;
       ctx.fillStyle = this.options.fontFill;
-      var width = ctx.measureText(text).width;
-      var height = this.options.fontSize;
-      var left = x - width / 2;
-      var top = y - height / 2;
 
-      ctx.fillRect(left, top, width, height);
+      var lines = String(text).split('\n');
+      var lineCount = lines.length;
+      var fontSize = (Number(this.options.fontSize) + 4);
+      var yLine = y + (1 - lineCount) / 2 * fontSize;
+
+      if (this.options.fontFill !== undefined && this.options.fontFill !== null && this.options.fontFill !== "none") {
+        var width = ctx.measureText(lines[0]).width;
+        for (var i = 1; i < lineCount; i++) {
+          var lineWidth = ctx.measureText(lines[i]).width;
+          width = lineWidth > width ? lineWidth : width;
+        }
+        var height = this.options.fontSize * lineCount;
+        var left = x - width / 2;
+        var top = y - height / 2;
+        ctx.fillRect(left, top, width, height);
+      }
 
       // draw text
       ctx.fillStyle = this.options.fontColor || "black";
-      ctx.textAlign = "left";
-      ctx.textBaseline = "top";
-      ctx.fillText(text, left, top);
+      ctx.textAlign = "center";
+      ctx.textBaseline =  "middle";
+
+      for (var i = 0; i < lineCount; i++) {
+        ctx.fillText(lines[i], x, yLine);
+        yLine += fontSize;
+      }
     }
   };
 
@@ -17275,7 +17675,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Edge;
 
 /***/ },
-/* 34 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -17364,7 +17764,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 35 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -17389,9 +17789,10 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    *
    * @param {string} url          Url of the image
+   * @param {string} url          Url of an image to use if the url image is not found
    * @return {Image} img          The image object
    */
-  Images.prototype.load = function(url) {
+  Images.prototype.load = function(url, brokenUrl) {
     var img = this.images[url];
     if (img == undefined) {
       // create the image
@@ -17403,6 +17804,14 @@ return /******/ (function(modules) { // webpackBootstrap
           images.callback(this);
         }
       };
+      
+      img.onerror = function () {
+  	  this.src = brokenUrl;
+  	  if (images.callback) {
+  		images.callback(this);
+  	  }
+  	};
+  	
       img.src = url;
     }
 
@@ -17413,7 +17822,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 36 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -17553,8 +17962,8 @@ return /******/ (function(modules) { // webpackBootstrap
       return;
     }
 
-    var fields = ['borderWidth','borderWidthSelected','shape','image','radius','fontColor',
-      'fontSize','fontFace','group','mass'
+    var fields = ['borderWidth','borderWidthSelected','shape','image','brokenImage','radius','fontColor',
+      'fontSize','fontFace','fontFill','group','mass'
     ];
     util.selectiveDeepExtend(fields, this.options, properties);
 
@@ -17594,7 +18003,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     if (this.options.image!== undefined && this.options.image!= "") {
       if (this.imagelist) {
-        this.imageObj = this.imagelist.load(this.options.image);
+        this.imageObj = this.imagelist.load(this.options.image, this.options.brokenImage);
       }
       else {
         throw "No imagelist provided";
@@ -18262,7 +18671,6 @@ return /******/ (function(modules) { // webpackBootstrap
   Node.prototype._label = function (ctx, text, x, y, align, baseline, labelUnderNode) {
     if (text && Number(this.options.fontSize) * this.networkScale > this.fontDrawThreshold) {
       ctx.font = (this.selected ? "bold " : "") + this.options.fontSize + "px " + this.options.fontFace;
-      ctx.fillStyle = this.options.fontColor || "black";
       ctx.textAlign = align || "center";
       ctx.textBaseline = baseline || "middle";
 
@@ -18274,6 +18682,22 @@ return /******/ (function(modules) { // webpackBootstrap
         yLine = y + (1 - lineCount) / (2 * fontSize);
       }
 
+      // font fill from edges now for nodes!
+      if (this.options.fontFill !== undefined && this.options.fontFill !== null && this.options.fontFill !== "none") {
+        var width = ctx.measureText(lines[0]).width;
+        for (var i = 1; i < lineCount; i++) {
+          var lineWidth = ctx.measureText(lines[i]).width;
+          width = lineWidth > width ? lineWidth : width;
+        }
+        var height = this.options.fontSize * lineCount;
+        var left = x - width / 2;
+        var top = y - height / 2;
+        ctx.fillStyle = this.options.fontFill;
+        ctx.fillRect(left, top, width, height);
+      }
+
+      // draw text
+      ctx.fillStyle = this.options.fontColor || "black";
       for (var i = 0; i < lineCount; i++) {
         ctx.fillText(lines[i], x, yLine);
         yLine += fontSize;
@@ -18385,7 +18809,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 37 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -18525,7 +18949,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 38 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -19357,7 +19781,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 39 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
   
@@ -19422,22 +19846,22 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.parseGephi = parseGephi;
 
 /***/ },
-/* 40 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
   // first check if moment.js is already loaded in the browser window, if so,
   // use this instance. Else, load via commonjs.
-  module.exports = (typeof window !== 'undefined') && window['moment'] || __webpack_require__(51);
+  module.exports = (typeof window !== 'undefined') && window['moment'] || __webpack_require__(52);
 
 
 /***/ },
-/* 41 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Only load hammer.js when in a browser environment
   // (loading hammer.js in a node.js environment gives errors)
   if (typeof window !== 'undefined') {
-    module.exports = window['Hammer'] || __webpack_require__(52);
+    module.exports = window['Hammer'] || __webpack_require__(53);
   }
   else {
     module.exports = function () {
@@ -19447,11 +19871,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 42 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(49);
-  var Hammer = __webpack_require__(41);
+  var Emitter = __webpack_require__(50);
+  var Hammer = __webpack_require__(42);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
@@ -19460,7 +19884,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var CurrentTime = __webpack_require__(19);
   var CustomTime = __webpack_require__(20);
   var ItemSet = __webpack_require__(24);
-  var Activator = __webpack_require__(48);
+  var Activator = __webpack_require__(49);
 
   /**
    * Create a timeline visualization
@@ -19552,7 +19976,7 @@ return /******/ (function(modules) { // webpackBootstrap
     // create event listeners for all interesting events, these events will be
     // emitted via emitter
     this.hammer = Hammer(this.dom.root, {
-      prevent_default: true
+      preventDefault: true
     });
     this.listeners = {};
 
@@ -19625,7 +20049,7 @@ return /******/ (function(modules) { // webpackBootstrap
   Core.prototype.setOptions = function (options) {
     if (options) {
       // copy the known options
-      var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'orientation', 'clickToUse'];
+      var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'orientation', 'clickToUse', 'dataAttributes'];
       util.selectiveExtend(fields, this.options, options);
 
       if ('clickToUse' in options) {
@@ -19965,7 +20389,7 @@ return /******/ (function(modules) { // webpackBootstrap
     // reposition the panels
     dom.background.style.left           = '0';
     dom.background.style.top            = '0';
-    dom.backgroundVertical.style.left   = props.left.width + 'px';
+    dom.backgroundVertical.style.left   = (props.left.width + props.border.left) + 'px';
     dom.backgroundVertical.style.top    = '0';
     dom.backgroundHorizontal.style.left = '0';
     dom.backgroundHorizontal.style.top  = props.top.height + 'px';
@@ -20136,10 +20560,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
       if (me.dom.root) {
         // check whether the frame is resized
-        if ((me.dom.root.clientWidth != me.props.lastWidth) ||
-          (me.dom.root.clientHeight != me.props.lastHeight)) {
-          me.props.lastWidth = me.dom.root.clientWidth;
-          me.props.lastHeight = me.dom.root.clientHeight;
+        // Note: we compare offsetWidth here, not clientWidth. For some reason,
+        // IE does not restore the clientWidth from 0 to the actual width after
+        // changing the timeline's container display style from none to visible
+        if ((me.dom.root.offsetWidth != me.props.lastWidth) ||
+          (me.dom.root.offsetHeight != me.props.lastHeight)) {
+          me.props.lastWidth = me.dom.root.offsetWidth;
+          me.props.lastHeight = me.dom.root.offsetHeight;
 
           me.emit('change');
         }
@@ -20263,10 +20690,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 43 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(41);
+  var Hammer = __webpack_require__(42);
 
   /**
    * Fake a hammer.js gesture. Event can be a ScrollEvent or MouseMoveEvent
@@ -20297,7 +20724,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 44 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -20318,7 +20745,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 45 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -20359,7 +20786,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 46 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -20590,16 +21017,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 47 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var PhysicsMixin = __webpack_require__(59);
-  var ClusterMixin = __webpack_require__(53);
-  var SectorsMixin = __webpack_require__(54);
-  var SelectionMixin = __webpack_require__(55);
-  var ManipulationMixin = __webpack_require__(56);
-  var NavigationMixin = __webpack_require__(57);
-  var HierarchicalLayoutMixin = __webpack_require__(58);
+  var PhysicsMixin = __webpack_require__(60);
+  var ClusterMixin = __webpack_require__(54);
+  var SectorsMixin = __webpack_require__(55);
+  var SelectionMixin = __webpack_require__(56);
+  var ManipulationMixin = __webpack_require__(57);
+  var NavigationMixin = __webpack_require__(58);
+  var HierarchicalLayoutMixin = __webpack_require__(59);
 
   /**
    * Load a mixin into the network object
@@ -20794,12 +21221,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 48 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var mousetrap = __webpack_require__(50);
-  var Emitter = __webpack_require__(49);
-  var Hammer = __webpack_require__(41);
+  var mousetrap = __webpack_require__(51);
+  var Emitter = __webpack_require__(50);
+  var Hammer = __webpack_require__(42);
   var util = __webpack_require__(1);
 
   /**
@@ -20946,7 +21373,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 49 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   
@@ -21116,7 +21543,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 50 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -21921,11 +22348,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 51 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global, module) {//! moment.js
-  //! version : 2.8.2
+  //! version : 2.8.3
   //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
   //! license : MIT
   //! momentjs.com
@@ -21936,7 +22363,7 @@ return /******/ (function(modules) { // webpackBootstrap
       ************************************/
 
       var moment,
-          VERSION = '2.8.2',
+          VERSION = '2.8.3',
           // the global-scope this is NOT the global object in Node.js
           globalScope = typeof global !== 'undefined' ? global : this,
           oldGlobalMoment,
@@ -23419,6 +23846,9 @@ return /******/ (function(modules) { // webpackBootstrap
           for (i = 0; i < config._f.length; i++) {
               currentScore = 0;
               tempConfig = copyConfig({}, config);
+              if (config._useUTC != null) {
+                  tempConfig._useUTC = config._useUTC;
+              }
               tempConfig._pf = defaultParsingFlags();
               tempConfig._f = config._f[i];
               makeDateFromStringAndFormat(tempConfig);
@@ -23483,6 +23913,14 @@ return /******/ (function(modules) { // webpackBootstrap
           }
       }
 
+      function map(arr, fn) {
+          var res = [], i;
+          for (i = 0; i < arr.length; ++i) {
+              res.push(fn(arr[i], i));
+          }
+          return res;
+      }
+
       function makeDateFromInput(config) {
           var input = config._i, matched;
           if (input === undefined) {
@@ -23494,7 +23932,9 @@ return /******/ (function(modules) { // webpackBootstrap
           } else if (typeof input === 'string') {
               makeDateFromString(config);
           } else if (isArray(input)) {
-              config._a = input.slice(0);
+              config._a = map(input.slice(0), function (obj) {
+                  return parseInt(obj, 10);
+              });
               dateFromConfig(config);
           } else if (typeof(input) === 'object') {
               dateFromObject(config);
@@ -24049,7 +24489,7 @@ return /******/ (function(modules) { // webpackBootstrap
                   this._isUTC = false;
 
                   if (keepLocalTime) {
-                      this.add(this._d.getTimezoneOffset(), 'm');
+                      this.add(this._dateTzOffset(), 'm');
                   }
               }
               return this;
@@ -24067,7 +24507,7 @@ return /******/ (function(modules) { // webpackBootstrap
           diff : function (input, units, asFloat) {
               var that = makeAs(input, this),
                   zoneDiff = (this.zone() - that.zone()) * 6e4,
-                  diff, output;
+                  diff, output, daysAdjust;
 
               units = normalizeUnits(units);
 
@@ -24078,11 +24518,12 @@ return /******/ (function(modules) { // webpackBootstrap
                   output = ((this.year() - that.year()) * 12) + (this.month() - that.month());
                   // adjust by taking difference in days, average number of days
                   // and dst in the given months.
-                  output += ((this - moment(this).startOf('month')) -
-                          (that - moment(that).startOf('month'))) / diff;
+                  daysAdjust = (this - moment(this).startOf('month')) -
+                      (that - moment(that).startOf('month'));
                   // same as above but with zones, to negate all dst
-                  output -= ((this.zone() - moment(this).startOf('month').zone()) -
-                          (that.zone() - moment(that).startOf('month').zone())) * 6e4 / diff;
+                  daysAdjust -= ((this.zone() - moment(this).startOf('month').zone()) -
+                          (that.zone() - moment(that).startOf('month').zone())) * 6e4;
+                  output += daysAdjust / diff;
                   if (units === 'year') {
                       output = output / 12;
                   }
@@ -24191,18 +24632,33 @@ return /******/ (function(modules) { // webpackBootstrap
           },
 
           isAfter: function (input, units) {
-              units = typeof units !== 'undefined' ? units : 'millisecond';
-              return +this.clone().startOf(units) > +moment(input).startOf(units);
+              units = normalizeUnits(typeof units !== 'undefined' ? units : 'millisecond');
+              if (units === 'millisecond') {
+                  input = moment.isMoment(input) ? input : moment(input);
+                  return +this > +input;
+              } else {
+                  return +this.clone().startOf(units) > +moment(input).startOf(units);
+              }
           },
 
           isBefore: function (input, units) {
-              units = typeof units !== 'undefined' ? units : 'millisecond';
-              return +this.clone().startOf(units) < +moment(input).startOf(units);
+              units = normalizeUnits(typeof units !== 'undefined' ? units : 'millisecond');
+              if (units === 'millisecond') {
+                  input = moment.isMoment(input) ? input : moment(input);
+                  return +this < +input;
+              } else {
+                  return +this.clone().startOf(units) < +moment(input).startOf(units);
+              }
           },
 
           isSame: function (input, units) {
-              units = units || 'ms';
-              return +this.clone().startOf(units) === +makeAs(input, this).startOf(units);
+              units = normalizeUnits(units || 'millisecond');
+              if (units === 'millisecond') {
+                  input = moment.isMoment(input) ? input : moment(input);
+                  return +this === +input;
+              } else {
+                  return +this.clone().startOf(units) === +makeAs(input, this).startOf(units);
+              }
           },
 
           min: deprecate(
@@ -24242,7 +24698,7 @@ return /******/ (function(modules) { // webpackBootstrap
                       input = input * 60;
                   }
                   if (!this._isUTC && keepLocalTime) {
-                      localAdjust = this._d.getTimezoneOffset();
+                      localAdjust = this._dateTzOffset();
                   }
                   this._offset = input;
                   this._isUTC = true;
@@ -24260,7 +24716,7 @@ return /******/ (function(modules) { // webpackBootstrap
                       }
                   }
               } else {
-                  return this._isUTC ? offset : this._d.getTimezoneOffset();
+                  return this._isUTC ? offset : this._dateTzOffset();
               }
               return this;
           },
@@ -24364,10 +24820,15 @@ return /******/ (function(modules) { // webpackBootstrap
           // instance.  Otherwise, it will return the locale configuration
           // variables for this instance.
           locale : function (key) {
+              var newLocaleData;
+
               if (key === undefined) {
                   return this._locale._abbr;
               } else {
-                  this._locale = moment.localeData(key);
+                  newLocaleData = moment.localeData(key);
+                  if (newLocaleData != null) {
+                      this._locale = newLocaleData;
+                  }
                   return this;
               }
           },
@@ -24378,14 +24839,19 @@ return /******/ (function(modules) { // webpackBootstrap
                   if (key === undefined) {
                       return this.localeData();
                   } else {
-                      this._locale = moment.localeData(key);
-                      return this;
+                      return this.locale(key);
                   }
               }
           ),
 
           localeData : function () {
               return this._locale;
+          },
+
+          _dateTzOffset : function () {
+              // On Firefox.24 Date#getTimezoneOffset returns a floating point.
+              // https://github.com/moment/moment/pull/1871
+              return Math.round(this._d.getTimezoneOffset() / 15) * 15;
           }
       });
 
@@ -24583,19 +25049,21 @@ return /******/ (function(modules) { // webpackBootstrap
               var days, months;
               units = normalizeUnits(units);
 
-              days = this._days + this._milliseconds / 864e5;
               if (units === 'month' || units === 'year') {
+                  days = this._days + this._milliseconds / 864e5;
                   months = this._months + daysToYears(days) * 12;
                   return units === 'month' ? months : months / 12;
               } else {
-                  days += yearsToDays(this._months / 12);
+                  // handle milliseconds separately because of floating point math errors (issue #1867)
+                  days = this._days + yearsToDays(this._months / 12);
                   switch (units) {
-                      case 'week': return days / 7;
-                      case 'day': return days;
-                      case 'hour': return days * 24;
-                      case 'minute': return days * 24 * 60;
-                      case 'second': return days * 24 * 60 * 60;
-                      case 'millisecond': return days * 24 * 60 * 60 * 1000;
+                      case 'week': return days / 7 + this._milliseconds / 6048e5;
+                      case 'day': return days + this._milliseconds / 864e5;
+                      case 'hour': return days * 24 + this._milliseconds / 36e5;
+                      case 'minute': return days * 24 * 60 + this._milliseconds / 6e4;
+                      case 'second': return days * 24 * 60 * 60 + this._milliseconds / 1000;
+                      // Math.floor prevents floating point math errors here
+                      case 'millisecond': return Math.floor(days * 24 * 60 * 60 * 1000) + this._milliseconds;
                       default: throw new Error('Unknown unit ' + units);
                   }
               }
@@ -24740,10 +25208,10 @@ return /******/ (function(modules) { // webpackBootstrap
       }
   }).call(this);
   
-  /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(64)(module)))
+  /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(65)(module)))
 
 /***/ },
-/* 52 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v1.1.3 - 2014-05-20
@@ -26910,7 +27378,7 @@ return /******/ (function(modules) { // webpackBootstrap
   })(window);
 
 /***/ },
-/* 53 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -28053,7 +28521,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 54 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -28611,10 +29079,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 55 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Node = __webpack_require__(36);
+  var Node = __webpack_require__(37);
 
   /**
    * This function can be called from the _doInAllSectors function
@@ -29322,12 +29790,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 56 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Node = __webpack_require__(36);
-  var Edge = __webpack_require__(33);
+  var Node = __webpack_require__(37);
+  var Edge = __webpack_require__(34);
 
   /**
    * clears the toolbar div element of children
@@ -29664,6 +30132,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports._handleConnect = function(pointer) {
     if (this._getSelectedNodeCount() == 0) {
       var node = this._getNodeAt(pointer);
+      var supportNodes, targetNode, targetViaNode, connectionEdge;
 
       if (node != null) {
         if (node.clusterSize > 1) {
@@ -29671,31 +30140,35 @@ return /******/ (function(modules) { // webpackBootstrap
         }
         else {
           this._selectObject(node,false);
-          // create a node the temporary line can look at
-          this.sectors['support']['nodes']['targetNode'] = new Node({id:'targetNode'},{},{},this.constants);
-          this.sectors['support']['nodes']['targetNode'].x = node.x;
-          this.sectors['support']['nodes']['targetNode'].y = node.y;
-          this.sectors['support']['nodes']['targetViaNode'] = new Node({id:'targetViaNode'},{},{},this.constants);
-          this.sectors['support']['nodes']['targetViaNode'].x = node.x;
-          this.sectors['support']['nodes']['targetViaNode'].y = node.y;
-          this.sectors['support']['nodes']['targetViaNode'].parentEdgeId = "connectionEdge";
+          supportNodes = this.sectors['support']['nodes'];
+
+            // create a node the temporary line can look at
+          supportNodes['targetNode'] = targetNode = new Node({id:'targetNode'},{},{},this.constants);
+          targetNode.x = node.x;
+          targetNode.y = node.y;
+
+          supportNodes['targetViaNode'] = targetViaNode = new Node({id:'targetViaNode'},{},{},this.constants);
+          targetViaNode.x = node.x;
+          targetViaNode.y = node.y;
+          targetViaNode.parentEdgeId = "connectionEdge";
 
           // create a temporary edge
-          this.edges['connectionEdge'] = new Edge({id:"connectionEdge",from:node.id,to:this.sectors['support']['nodes']['targetNode'].id}, this, this.constants);
-          this.edges['connectionEdge'].from = node;
-          this.edges['connectionEdge'].connected = true;
-          this.edges['connectionEdge'].smooth = true;
-          this.edges['connectionEdge'].selected = true;
-          this.edges['connectionEdge'].to = this.sectors['support']['nodes']['targetNode'];
-          this.edges['connectionEdge'].via = this.sectors['support']['nodes']['targetViaNode'];
+          this.edges['connectionEdge'] = connectionEdge = new Edge({id:"connectionEdge",from:node.id,to:targetNode.id}, this, this.constants);
+          connectionEdge.from = node;
+          connectionEdge.connected = true;
+          connectionEdge.smooth = true;
+          connectionEdge.selected = true;
+          connectionEdge.to = targetNode;
+          connectionEdge.via = targetViaNode;
 
           this.cachedFunctions["_handleOnDrag"] = this._handleOnDrag;
           this._handleOnDrag = function(event) {
             var pointer = this._getPointer(event.gesture.center);
-            this.sectors['support']['nodes']['targetNode'].x = this._XconvertDOMtoCanvas(pointer.x);
-            this.sectors['support']['nodes']['targetNode'].y = this._YconvertDOMtoCanvas(pointer.y);
-            this.sectors['support']['nodes']['targetViaNode'].x = 0.5 * (this._XconvertDOMtoCanvas(pointer.x) + this.edges['connectionEdge'].from.x);
-            this.sectors['support']['nodes']['targetViaNode'].y = this._YconvertDOMtoCanvas(pointer.y);
+            var supportNodes = this.sectors['support']['nodes'];
+            supportNodes['targetNode'].x = this._XconvertDOMtoCanvas(pointer.x);
+            supportNodes['targetNode'].y = this._YconvertDOMtoCanvas(pointer.y);
+            supportNodes['targetViaNode'].x = 0.5 * (this._XconvertDOMtoCanvas(pointer.x) + this.edges['connectionEdge'].from.x);
+            supportNodes['targetViaNode'].y = this._YconvertDOMtoCanvas(pointer.y);
           };
 
           this.moving = true;
@@ -29914,11 +30387,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 57 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Hammer = __webpack_require__(41);
+  var Hammer = __webpack_require__(42);
 
   exports._cleanNavigation = function() {
     // clean up previous navigation items
@@ -30074,7 +30547,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 58 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   exports._resetLevels = function() {
@@ -30138,7 +30611,7 @@ return /******/ (function(modules) { // webpackBootstrap
       // if the user defined some levels but not all, alert and run without hierarchical layout
       if (undefinedLevel == true && definedLevel == true) {
         throw new Error("To use the hierarchical layout, nodes require either no predefined levels or levels have to be defined for all nodes.");
-        this.zoomExtent(true,this.constants.clustering.enabled);
+        this.zoomExtent(undefined,true,this.constants.clustering.enabled);
         if (!this.constants.clustering.enabled) {
           this.start();
         }
@@ -30491,13 +30964,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 59 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var RepulsionMixin = __webpack_require__(61);
-  var HierarchialRepulsionMixin = __webpack_require__(62);
-  var BarnesHutMixin = __webpack_require__(63);
+  var RepulsionMixin = __webpack_require__(62);
+  var HierarchialRepulsionMixin = __webpack_require__(63);
+  var BarnesHutMixin = __webpack_require__(64);
 
   /**
    * Toggling barnes Hut calculation on and off.
@@ -31205,7 +31678,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 60 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   function webpackContext(req) {
@@ -31217,7 +31690,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 61 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -31281,7 +31754,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 62 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -31440,7 +31913,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 63 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -31845,7 +32318,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 64 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   module.exports = function(module) {

@@ -145,6 +145,7 @@
   width: 100%;
   height: 0;
   left: 0;
+  z-index: 1;
 }
 
 .vis.timeline  .foreground .group {
@@ -208,14 +209,28 @@
   box-sizing: border-box;
 }
 
-.vis.timeline .item.range .content {
-  position: relative;
-  display: inline-block;
+.vis.timeline .item.background {
+  overflow: hidden;
+  border: none;
+  background-color: rgba(213, 221, 246, 0.4);
+  box-sizing: border-box;
+  top: 0;
+  bottom: 0;
 }
 
 .vis.timeline .item.range .content {
+  position: relative;
+  display: inline-block;
   overflow: hidden;
   max-width: 100%;
+}
+
+.vis.timeline .item.background .content {
+  position: absolute;
+  display: inline-block;
+  overflow: hidden;
+  max-width: 100%;
+  margin: 5px;
 }
 
 .vis.timeline .item.line {
@@ -555,14 +570,12 @@ div.network-manipulation-editMode {
 
 div.network-manipulation-closeDiv {
   position:absolute;
-  left: 0;
+  right: 0;
   top: 0;
   width: 30px;
   height: 30px;
 
-  margin-top: 3px;
-  margin-left: 590px;
-  background-position: 0px 0px;
+  background-position: 20px 3px;
   background-repeat: no-repeat;
   background-image: url("img/network/cross.png");
   cursor: pointer;
@@ -572,6 +585,10 @@ div.network-manipulation-closeDiv {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+
+div.network-manipulation-closeDiv:hover {
+  opacity: 0.6;
 }
 
 span.network-manipulationUI {
@@ -615,7 +632,7 @@ span.network-manipulationUI.none:active {
   box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.0);
 }
 span.network-manipulationUI.none {
-  padding: 0px 0px 0px 0px;
+  padding: 0;
 }
 span.network-manipulationUI.notification{
   margin: 2px;
