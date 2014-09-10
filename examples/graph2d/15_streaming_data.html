@@ -1,0 +1,94 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+  <meta content="utf-8" http-equiv="encoding">
+  <title>Graph2d | Streaming data</title>
+
+  <style type="text/css">
+    body, html, select {
+      font: 10pt sans-serif;
+    }
+  </style>
+
+  <script src="../../dist/vis.js"></script>
+  <link href="../../dist/vis.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<h2>Graph2d | Streaming data</h2>
+<p>
+  This example demonstrates how to apply streaming data input to the Graph2d.<br>
+</p>
+
+<p>
+  <label for="strategy">Strategy:</label>
+  <select id="strategy">
+    <option value="continuous" selected>Continuous</option>
+    <option value="discrete">Discrete</option>
+  </select>
+</p>
+
+<div id="visualization"></div>
+
+<script type="text/javascript">
+  var strategy = document.getElementById('strategy');
+
+  // create a graph2d with an (currently empty) dataset
+  var container = document.getElementById('visualization');
+  var dataset = new vis.DataSet();
+  var options = {
+    start: vis.moment().add(-60, 'seconds'),
+    end: vis.moment()
+  };
+  var graph2d = new vis.Graph2d(container, dataset, options);
+
+  // a function to generate data points
+  function y(x) {
+    return (Math.sin(x / 2) + Math.cos(x / 4)) * 5;
+  }
+
+  var delay = 500; // delay in ms
+  var x = 0;
+  function next() {
+    var now = vis.moment();
+
+    // add a new data point to the data
+    dataset.add({
+      x: now,
+      y: y(now / 1000)
+    });
+    x += 0.1;
+
+    // move the window (you can think of different strategies).
+    var range = graph2d.getWindow();
+    var interval = range.end - range.start;
+    switch (strategy.value) {
+      case 'continuous':
+        // continuously move the window
+        graph2d.setWindow(now - interval, now, {animate: false});
+        break;
+
+      default: // 'discrete'
+        // move the window 90% to the left when now is larger than the visible end
+        if (now > range.end) {
+          graph2d.setWindow(now - 0.1 * interval, now + 0.9 * interval);
+        }
+        break;
+    }
+
+    // remove all data points older than 1 minute
+    var min = now.add(-60, 'seconds');
+    var oldIds = dataset.getIds({
+      filter: function (item) {
+        return item.x < min;
+      }
+    });
+    if (oldIds.length > 0) dataset.remove(oldIds);
+
+    setTimeout(next, delay);
+  }
+  next();
+</script>
+</body>
+</html>
