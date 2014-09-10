@@ -134,11 +134,11 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.network = {
     Edge: __webpack_require__(34),
     Groups: __webpack_require__(35),
-    Images: __webpack_require__(36),
-    Node: __webpack_require__(37),
-    Popup: __webpack_require__(38),
-    dotparser: __webpack_require__(39),
-    gephiParser: __webpack_require__(40)
+    Images: __webpack_require__(40),
+    Node: __webpack_require__(36),
+    Popup: __webpack_require__(37),
+    dotparser: __webpack_require__(38),
+    gephiParser: __webpack_require__(39)
   };
 
   // Deprecated since v3.0.0
@@ -6107,7 +6107,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(15);
-  var Core = __webpack_require__(43);
+  var Core = __webpack_require__(44);
   var TimeAxis = __webpack_require__(27);
   var CurrentTime = __webpack_require__(19);
   var CustomTime = __webpack_require__(20);
@@ -6408,7 +6408,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(15);
-  var Core = __webpack_require__(43);
+  var Core = __webpack_require__(44);
   var TimeAxis = __webpack_require__(27);
   var CurrentTime = __webpack_require__(19);
   var CustomTime = __webpack_require__(20);
@@ -6868,7 +6868,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(44);
+  var hammerUtil = __webpack_require__(43);
   var moment = __webpack_require__(41);
   var Component = __webpack_require__(18);
 
@@ -14014,16 +14014,16 @@ return /******/ (function(modules) { // webpackBootstrap
   var Hammer = __webpack_require__(42);
   var mousetrap = __webpack_require__(51);
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(44);
+  var hammerUtil = __webpack_require__(43);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
-  var dotparser = __webpack_require__(39);
-  var gephiParser = __webpack_require__(40);
+  var dotparser = __webpack_require__(38);
+  var gephiParser = __webpack_require__(39);
   var Groups = __webpack_require__(35);
-  var Images = __webpack_require__(36);
-  var Node = __webpack_require__(37);
+  var Images = __webpack_require__(40);
+  var Node = __webpack_require__(36);
   var Edge = __webpack_require__(34);
-  var Popup = __webpack_require__(38);
+  var Popup = __webpack_require__(37);
   var MixinLoader = __webpack_require__(48);
   var Activator = __webpack_require__(49);
   var locales = __webpack_require__(46);
@@ -16467,11 +16467,29 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   /**
-   * Returns true when the Timeline is active.
+   * Returns true when the Network is active.
    * @returns {boolean}
    */
   Network.prototype.isActive = function () {
     return !this.activator || this.activator.active;
+  };
+
+
+  /**
+   * Sets the scale
+   * @returns {Number}
+   */
+  Network.prototype.setScale = function () {
+    return this._setScale();
+  };
+
+
+  /**
+   * Returns the scale
+   * @returns {Number}
+   */
+  Network.prototype.getScale = function () {
+    return this._getScale();
   };
 
 
@@ -16484,7 +16502,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Node = __webpack_require__(37);
+  var Node = __webpack_require__(36);
 
   /**
    * @class Edge
@@ -17748,64 +17766,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
-  /**
-   * @class Images
-   * This class loads images and keeps them stored.
-   */
-  function Images() {
-    this.images = {};
-
-    this.callback = undefined;
-  }
-
-  /**
-   * Set an onload callback function. This will be called each time an image
-   * is loaded
-   * @param {function} callback
-   */
-  Images.prototype.setOnloadCallback = function(callback) {
-    this.callback = callback;
-  };
-
-  /**
-   *
-   * @param {string} url          Url of the image
-   * @param {string} url          Url of an image to use if the url image is not found
-   * @return {Image} img          The image object
-   */
-  Images.prototype.load = function(url, brokenUrl) {
-    var img = this.images[url];
-    if (img == undefined) {
-      // create the image
-      var images = this;
-      img = new Image();
-      this.images[url] = img;
-      img.onload = function() {
-        if (images.callback) {
-          images.callback(this);
-        }
-      };
-      
-      img.onerror = function () {
-  	  this.src = brokenUrl;
-  	  if (images.callback) {
-  		images.callback(this);
-  	  }
-  	};
-  	
-      img.src = url;
-    }
-
-    return img;
-  };
-
-  module.exports = Images;
-
-
-/***/ },
-/* 37 */
-/***/ function(module, exports, __webpack_require__) {
-
   var util = __webpack_require__(1);
 
   /**
@@ -18790,7 +18750,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 38 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -18930,7 +18890,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 39 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -19762,7 +19722,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 40 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
   
@@ -19827,6 +19787,64 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.parseGephi = parseGephi;
 
 /***/ },
+/* 40 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * @class Images
+   * This class loads images and keeps them stored.
+   */
+  function Images() {
+    this.images = {};
+
+    this.callback = undefined;
+  }
+
+  /**
+   * Set an onload callback function. This will be called each time an image
+   * is loaded
+   * @param {function} callback
+   */
+  Images.prototype.setOnloadCallback = function(callback) {
+    this.callback = callback;
+  };
+
+  /**
+   *
+   * @param {string} url          Url of the image
+   * @param {string} url          Url of an image to use if the url image is not found
+   * @return {Image} img          The image object
+   */
+  Images.prototype.load = function(url, brokenUrl) {
+    var img = this.images[url];
+    if (img == undefined) {
+      // create the image
+      var images = this;
+      img = new Image();
+      this.images[url] = img;
+      img.onload = function() {
+        if (images.callback) {
+          images.callback(this);
+        }
+      };
+      
+      img.onerror = function () {
+  	  this.src = brokenUrl;
+  	  if (images.callback) {
+  		images.callback(this);
+  	  }
+  	};
+  	
+      img.src = url;
+    }
+
+    return img;
+  };
+
+  module.exports = Images;
+
+
+/***/ },
 /* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -19842,7 +19860,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // Only load hammer.js when in a browser environment
   // (loading hammer.js in a node.js environment gives errors)
   if (typeof window !== 'undefined') {
-    module.exports = window['Hammer'] || __webpack_require__(53);
+    module.exports = window['Hammer'] || __webpack_require__(59);
   }
   else {
     module.exports = function () {
@@ -19853,6 +19871,40 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 43 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var Hammer = __webpack_require__(42);
+
+  /**
+   * Fake a hammer.js gesture. Event can be a ScrollEvent or MouseMoveEvent
+   * @param {Element} element
+   * @param {Event} event
+   */
+  exports.fakeGesture = function(element, event) {
+    var eventType = null;
+
+    // for hammer.js 1.0.5
+    // var gesture = Hammer.event.collectEventData(this, eventType, event);
+
+    // for hammer.js 1.0.6+
+    var touches = Hammer.event.getTouchList(event, eventType);
+    var gesture = Hammer.event.collectEventData(this, eventType, touches, event);
+
+    // on IE in standards mode, no touches are recognized by hammer.js,
+    // resulting in NaN values for center.pageX and center.pageY
+    if (isNaN(gesture.center.pageX)) {
+      gesture.center.pageX = event.pageX;
+    }
+    if (isNaN(gesture.center.pageY)) {
+      gesture.center.pageY = event.pageY;
+    }
+
+    return gesture;
+  };
+
+
+/***/ },
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Emitter = __webpack_require__(50);
@@ -20671,40 +20723,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 44 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var Hammer = __webpack_require__(42);
-
-  /**
-   * Fake a hammer.js gesture. Event can be a ScrollEvent or MouseMoveEvent
-   * @param {Element} element
-   * @param {Event} event
-   */
-  exports.fakeGesture = function(element, event) {
-    var eventType = null;
-
-    // for hammer.js 1.0.5
-    // var gesture = Hammer.event.collectEventData(this, eventType, event);
-
-    // for hammer.js 1.0.6+
-    var touches = Hammer.event.getTouchList(event, eventType);
-    var gesture = Hammer.event.collectEventData(this, eventType, touches, event);
-
-    // on IE in standards mode, no touches are recognized by hammer.js,
-    // resulting in NaN values for center.pageX and center.pageY
-    if (isNaN(gesture.center.pageX)) {
-      gesture.center.pageX = event.pageX;
-    }
-    if (isNaN(gesture.center.pageY)) {
-      gesture.center.pageY = event.pageY;
-    }
-
-    return gesture;
-  };
-
-
-/***/ },
 /* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -21002,12 +21020,12 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var PhysicsMixin = __webpack_require__(60);
-  var ClusterMixin = __webpack_require__(54);
-  var SectorsMixin = __webpack_require__(55);
-  var SelectionMixin = __webpack_require__(56);
-  var ManipulationMixin = __webpack_require__(57);
-  var NavigationMixin = __webpack_require__(58);
-  var HierarchicalLayoutMixin = __webpack_require__(59);
+  var ClusterMixin = __webpack_require__(53);
+  var SectorsMixin = __webpack_require__(54);
+  var SelectionMixin = __webpack_require__(55);
+  var ManipulationMixin = __webpack_require__(56);
+  var NavigationMixin = __webpack_require__(57);
+  var HierarchicalLayoutMixin = __webpack_require__(58);
 
   /**
    * Load a mixin into the network object
@@ -22333,23 +22351,23 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global, module) {//! moment.js
-  //! version : 2.8.2
+  //! version : 2.7.0
   //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
   //! license : MIT
   //! momentjs.com
 
   (function (undefined) {
+
       /************************************
           Constants
       ************************************/
 
       var moment,
-          VERSION = '2.8.2',
+          VERSION = "2.7.0",
           // the global-scope this is NOT the global object in Node.js
           globalScope = typeof global !== 'undefined' ? global : this,
           oldGlobalMoment,
           round = Math.round,
-          hasOwnProperty = Object.prototype.hasOwnProperty,
           i,
 
           YEAR = 0,
@@ -22360,11 +22378,22 @@ return /******/ (function(modules) { // webpackBootstrap
           SECOND = 5,
           MILLISECOND = 6,
 
-          // internal storage for locale config files
-          locales = {},
+          // internal storage for language config files
+          languages = {},
 
-          // extra moment internal properties (plugins register props here)
-          momentProperties = [],
+          // moment internal properties
+          momentProperties = {
+              _isAMomentObject: null,
+              _i : null,
+              _f : null,
+              _l : null,
+              _strict : null,
+              _tzm : null,
+              _isUTC : null,
+              _offset : null,  // optional. Combine with _isUTC
+              _pf : null,
+              _lang : null  // optional
+          },
 
           // check for nodeJS
           hasModule = (typeof module !== 'undefined' && module.exports),
@@ -22423,7 +22452,7 @@ return /******/ (function(modules) { // webpackBootstrap
               ['HH', /(T| )\d\d/]
           ],
 
-          // timezone chunker '+10:00' > ['10', '00'] or '-1530' > ['-15', '30']
+          // timezone chunker "+10:00" > ["10", "00"] or "-1530" > ["-15", "30"]
           parseTimezoneChunker = /([\+\-]|\d\d)/gi,
 
           // getter and setter names
@@ -22470,11 +22499,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
           // default relative time thresholds
           relativeTimeThresholds = {
-              s: 45,  // seconds to minute
-              m: 45,  // minutes to hour
-              h: 22,  // hours to day
-              d: 26,  // days to month
-              M: 11   // months to year
+            s: 45,   //seconds to minutes
+            m: 45,   //minutes to hours
+            h: 22,   //hours to days
+            dd: 25,  //days to month (month == 1)
+            dm: 45,  //days to months (months > 1)
+            dy: 345  //days to year
           },
 
           // tokens to ordinalize and pad
@@ -22486,10 +22516,10 @@ return /******/ (function(modules) { // webpackBootstrap
                   return this.month() + 1;
               },
               MMM  : function (format) {
-                  return this.localeData().monthsShort(this, format);
+                  return this.lang().monthsShort(this, format);
               },
               MMMM : function (format) {
-                  return this.localeData().months(this, format);
+                  return this.lang().months(this, format);
               },
               D    : function () {
                   return this.date();
@@ -22501,13 +22531,13 @@ return /******/ (function(modules) { // webpackBootstrap
                   return this.day();
               },
               dd   : function (format) {
-                  return this.localeData().weekdaysMin(this, format);
+                  return this.lang().weekdaysMin(this, format);
               },
               ddd  : function (format) {
-                  return this.localeData().weekdaysShort(this, format);
+                  return this.lang().weekdaysShort(this, format);
               },
               dddd : function (format) {
-                  return this.localeData().weekdays(this, format);
+                  return this.lang().weekdays(this, format);
               },
               w    : function () {
                   return this.week();
@@ -22553,10 +22583,10 @@ return /******/ (function(modules) { // webpackBootstrap
                   return this.isoWeekday();
               },
               a    : function () {
-                  return this.localeData().meridiem(this.hours(), this.minutes(), true);
+                  return this.lang().meridiem(this.hours(), this.minutes(), true);
               },
               A    : function () {
-                  return this.localeData().meridiem(this.hours(), this.minutes(), false);
+                  return this.lang().meridiem(this.hours(), this.minutes(), false);
               },
               H    : function () {
                   return this.hours();
@@ -22584,19 +22614,19 @@ return /******/ (function(modules) { // webpackBootstrap
               },
               Z    : function () {
                   var a = -this.zone(),
-                      b = '+';
+                      b = "+";
                   if (a < 0) {
                       a = -a;
-                      b = '-';
+                      b = "-";
                   }
-                  return b + leftZeroFill(toInt(a / 60), 2) + ':' + leftZeroFill(toInt(a) % 60, 2);
+                  return b + leftZeroFill(toInt(a / 60), 2) + ":" + leftZeroFill(toInt(a) % 60, 2);
               },
               ZZ   : function () {
                   var a = -this.zone(),
-                      b = '+';
+                      b = "+";
                   if (a < 0) {
                       a = -a;
-                      b = '-';
+                      b = "-";
                   }
                   return b + leftZeroFill(toInt(a / 60), 2) + leftZeroFill(toInt(a) % 60, 2);
               },
@@ -22614,8 +22644,6 @@ return /******/ (function(modules) { // webpackBootstrap
               }
           },
 
-          deprecations = {},
-
           lists = ['months', 'monthsShort', 'weekdays', 'weekdaysShort', 'weekdaysMin'];
 
       // Pick the first defined of two or three arguments. dfl comes from
@@ -22624,12 +22652,8 @@ return /******/ (function(modules) { // webpackBootstrap
           switch (arguments.length) {
               case 2: return a != null ? a : b;
               case 3: return a != null ? a : b != null ? b : c;
-              default: throw new Error('Implement me');
+              default: throw new Error("Implement me");
           }
-      }
-
-      function hasOwnProp(a, b) {
-          return hasOwnProperty.call(a, b);
       }
 
       function defaultParsingFlags() {
@@ -22649,29 +22673,21 @@ return /******/ (function(modules) { // webpackBootstrap
           };
       }
 
-      function printMsg(msg) {
-          if (moment.suppressDeprecationWarnings === false &&
-                  typeof console !== 'undefined' && console.warn) {
-              console.warn('Deprecation warning: ' + msg);
-          }
-      }
-
       function deprecate(msg, fn) {
           var firstTime = true;
+          function printMsg() {
+              if (moment.suppressDeprecationWarnings === false &&
+                      typeof console !== 'undefined' && console.warn) {
+                  console.warn("Deprecation warning: " + msg);
+              }
+          }
           return extend(function () {
               if (firstTime) {
-                  printMsg(msg);
+                  printMsg();
                   firstTime = false;
               }
               return fn.apply(this, arguments);
           }, fn);
-      }
-
-      function deprecateSimple(name, msg) {
-          if (!deprecations[name]) {
-              printMsg(msg);
-              deprecations[name] = true;
-          }
       }
 
       function padToken(func, count) {
@@ -22681,7 +22697,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
       function ordinalizeToken(func, period) {
           return function (a) {
-              return this.localeData().ordinal(func.call(this, a), period);
+              return this.lang().ordinal(func.call(this, a), period);
           };
       }
 
@@ -22700,16 +22716,14 @@ return /******/ (function(modules) { // webpackBootstrap
           Constructors
       ************************************/
 
-      function Locale() {
+      function Language() {
+
       }
 
       // Moment prototype object
-      function Moment(config, skipOverflow) {
-          if (skipOverflow !== false) {
-              checkOverflow(config);
-          }
-          copyConfig(this, config);
-          this._d = new Date(+config._d);
+      function Moment(config) {
+          checkOverflow(config);
+          extend(this, config);
       }
 
       // Duration Constructor
@@ -22743,8 +22757,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
           this._data = {};
 
-          this._locale = moment.localeData();
-
           this._bubble();
       }
 
@@ -22755,67 +22767,31 @@ return /******/ (function(modules) { // webpackBootstrap
 
       function extend(a, b) {
           for (var i in b) {
-              if (hasOwnProp(b, i)) {
+              if (b.hasOwnProperty(i)) {
                   a[i] = b[i];
               }
           }
 
-          if (hasOwnProp(b, 'toString')) {
+          if (b.hasOwnProperty("toString")) {
               a.toString = b.toString;
           }
 
-          if (hasOwnProp(b, 'valueOf')) {
+          if (b.hasOwnProperty("valueOf")) {
               a.valueOf = b.valueOf;
           }
 
           return a;
       }
 
-      function copyConfig(to, from) {
-          var i, prop, val;
-
-          if (typeof from._isAMomentObject !== 'undefined') {
-              to._isAMomentObject = from._isAMomentObject;
-          }
-          if (typeof from._i !== 'undefined') {
-              to._i = from._i;
-          }
-          if (typeof from._f !== 'undefined') {
-              to._f = from._f;
-          }
-          if (typeof from._l !== 'undefined') {
-              to._l = from._l;
-          }
-          if (typeof from._strict !== 'undefined') {
-              to._strict = from._strict;
-          }
-          if (typeof from._tzm !== 'undefined') {
-              to._tzm = from._tzm;
-          }
-          if (typeof from._isUTC !== 'undefined') {
-              to._isUTC = from._isUTC;
-          }
-          if (typeof from._offset !== 'undefined') {
-              to._offset = from._offset;
-          }
-          if (typeof from._pf !== 'undefined') {
-              to._pf = from._pf;
-          }
-          if (typeof from._locale !== 'undefined') {
-              to._locale = from._locale;
-          }
-
-          if (momentProperties.length > 0) {
-              for (i in momentProperties) {
-                  prop = momentProperties[i];
-                  val = from[prop];
-                  if (typeof val !== 'undefined') {
-                      to[prop] = val;
-                  }
+      function cloneMoment(m) {
+          var result = {}, i;
+          for (i in m) {
+              if (m.hasOwnProperty(i) && momentProperties.hasOwnProperty(i)) {
+                  result[i] = m[i];
               }
           }
 
-          return to;
+          return result;
       }
 
       function absRound(number) {
@@ -22838,51 +22814,7 @@ return /******/ (function(modules) { // webpackBootstrap
           return (sign ? (forceSign ? '+' : '') : '-') + output;
       }
 
-      function positiveMomentsDifference(base, other) {
-          var res = {milliseconds: 0, months: 0};
-
-          res.months = other.month() - base.month() +
-              (other.year() - base.year()) * 12;
-          if (base.clone().add(res.months, 'M').isAfter(other)) {
-              --res.months;
-          }
-
-          res.milliseconds = +other - +(base.clone().add(res.months, 'M'));
-
-          return res;
-      }
-
-      function momentsDifference(base, other) {
-          var res;
-          other = makeAs(other, base);
-          if (base.isBefore(other)) {
-              res = positiveMomentsDifference(base, other);
-          } else {
-              res = positiveMomentsDifference(other, base);
-              res.milliseconds = -res.milliseconds;
-              res.months = -res.months;
-          }
-
-          return res;
-      }
-
-      // TODO: remove 'name' arg after deprecation is removed
-      function createAdder(direction, name) {
-          return function (val, period) {
-              var dur, tmp;
-              //invert the arguments, but complain about it
-              if (period !== null && !isNaN(+period)) {
-                  deprecateSimple(name, 'moment().' + name  + '(period, number) is deprecated. Please use moment().' + name + '(number, period).');
-                  tmp = val; val = period; period = tmp;
-              }
-
-              val = typeof val === 'string' ? +val : val;
-              dur = moment.duration(val, period);
-              addOrSubtractDurationFromMoment(this, dur, direction);
-              return this;
-          };
-      }
-
+      // helper function for _.addTime and _.subtractTime
       function addOrSubtractDurationFromMoment(mom, duration, isAdding, updateOffset) {
           var milliseconds = duration._milliseconds,
               days = duration._days,
@@ -22909,8 +22841,8 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       function isDate(input) {
-          return Object.prototype.toString.call(input) === '[object Date]' ||
-              input instanceof Date;
+          return  Object.prototype.toString.call(input) === '[object Date]' ||
+                  input instanceof Date;
       }
 
       // compare two arrays, return the number of differences
@@ -22942,7 +22874,7 @@ return /******/ (function(modules) { // webpackBootstrap
               prop;
 
           for (prop in inputObject) {
-              if (hasOwnProp(inputObject, prop)) {
+              if (inputObject.hasOwnProperty(prop)) {
                   normalizedProp = normalizeUnits(prop);
                   if (normalizedProp) {
                       normalizedInput[normalizedProp] = inputObject[prop];
@@ -22970,7 +22902,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
           moment[field] = function (format, index) {
               var i, getter,
-                  method = moment._locale[field],
+                  method = moment.fn._lang[field],
                   results = [];
 
               if (typeof format === 'number') {
@@ -22980,7 +22912,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
               getter = function (i) {
                   var m = moment().utc().set(setter, i);
-                  return method.call(moment._locale, m, format || '');
+                  return method.call(moment.fn._lang, m, format || '');
               };
 
               if (index != null) {
@@ -23065,48 +22997,8 @@ return /******/ (function(modules) { // webpackBootstrap
           return m._isValid;
       }
 
-      function normalizeLocale(key) {
+      function normalizeLanguage(key) {
           return key ? key.toLowerCase().replace('_', '-') : key;
-      }
-
-      // pick the locale from the array
-      // try ['en-au', 'en-gb'] as 'en-au', 'en-gb', 'en', as in move through the list trying each
-      // substring from most specific to least, but move to the next array item if it's a more specific variant than the current root
-      function chooseLocale(names) {
-          var i = 0, j, next, locale, split;
-
-          while (i < names.length) {
-              split = normalizeLocale(names[i]).split('-');
-              j = split.length;
-              next = normalizeLocale(names[i + 1]);
-              next = next ? next.split('-') : null;
-              while (j > 0) {
-                  locale = loadLocale(split.slice(0, j).join('-'));
-                  if (locale) {
-                      return locale;
-                  }
-                  if (next && next.length >= j && compareArrays(split, next, true) >= j - 1) {
-                      //the next array item is better than a shallower substring of this one
-                      break;
-                  }
-                  j--;
-              }
-              i++;
-          }
-          return null;
-      }
-
-      function loadLocale(name) {
-          var oldLocale = null;
-          if (!locales[name] && hasModule) {
-              try {
-                  oldLocale = moment.locale();
-                  !(function webpackMissingModule() { var e = new Error("Cannot find module \"./locale\""); e.code = 'MODULE_NOT_FOUND'; throw e; }());
-                  // because defineLocale currently also sets the global locale, we want to undo that for lazy loaded locales
-                  moment.locale(oldLocale);
-              } catch (e) { }
-          }
-          return locales[name];
       }
 
       // Return a moment from input, that is local/utc/zone equivalent to model.
@@ -23116,11 +23008,11 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       /************************************
-          Locale
+          Languages
       ************************************/
 
 
-      extend(Locale.prototype, {
+      extend(Language.prototype, {
 
           set : function (config) {
               var prop, i;
@@ -23134,12 +23026,12 @@ return /******/ (function(modules) { // webpackBootstrap
               }
           },
 
-          _months : 'January_February_March_April_May_June_July_August_September_October_November_December'.split('_'),
+          _months : "January_February_March_April_May_June_July_August_September_October_November_December".split("_"),
           months : function (m) {
               return this._months[m.month()];
           },
 
-          _monthsShort : 'Jan_Feb_Mar_Apr_May_Jun_Jul_Aug_Sep_Oct_Nov_Dec'.split('_'),
+          _monthsShort : "Jan_Feb_Mar_Apr_May_Jun_Jul_Aug_Sep_Oct_Nov_Dec".split("_"),
           monthsShort : function (m) {
               return this._monthsShort[m.month()];
           },
@@ -23165,17 +23057,17 @@ return /******/ (function(modules) { // webpackBootstrap
               }
           },
 
-          _weekdays : 'Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday'.split('_'),
+          _weekdays : "Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday".split("_"),
           weekdays : function (m) {
               return this._weekdays[m.day()];
           },
 
-          _weekdaysShort : 'Sun_Mon_Tue_Wed_Thu_Fri_Sat'.split('_'),
+          _weekdaysShort : "Sun_Mon_Tue_Wed_Thu_Fri_Sat".split("_"),
           weekdaysShort : function (m) {
               return this._weekdaysShort[m.day()];
           },
 
-          _weekdaysMin : 'Su_Mo_Tu_We_Th_Fr_Sa'.split('_'),
+          _weekdaysMin : "Su_Mo_Tu_We_Th_Fr_Sa".split("_"),
           weekdaysMin : function (m) {
               return this._weekdaysMin[m.day()];
           },
@@ -23202,11 +23094,11 @@ return /******/ (function(modules) { // webpackBootstrap
           },
 
           _longDateFormat : {
-              LT : 'h:mm A',
-              L : 'MM/DD/YYYY',
-              LL : 'MMMM D, YYYY',
-              LLL : 'MMMM D, YYYY LT',
-              LLLL : 'dddd, MMMM D, YYYY LT'
+              LT : "h:mm A",
+              L : "MM/DD/YYYY",
+              LL : "MMMM D YYYY",
+              LLL : "MMMM D YYYY LT",
+              LLLL : "dddd, MMMM D YYYY LT"
           },
           longDateFormat : function (key) {
               var output = this._longDateFormat[key];
@@ -23248,37 +23140,35 @@ return /******/ (function(modules) { // webpackBootstrap
           },
 
           _relativeTime : {
-              future : 'in %s',
-              past : '%s ago',
-              s : 'a few seconds',
-              m : 'a minute',
-              mm : '%d minutes',
-              h : 'an hour',
-              hh : '%d hours',
-              d : 'a day',
-              dd : '%d days',
-              M : 'a month',
-              MM : '%d months',
-              y : 'a year',
-              yy : '%d years'
+              future : "in %s",
+              past : "%s ago",
+              s : "a few seconds",
+              m : "a minute",
+              mm : "%d minutes",
+              h : "an hour",
+              hh : "%d hours",
+              d : "a day",
+              dd : "%d days",
+              M : "a month",
+              MM : "%d months",
+              y : "a year",
+              yy : "%d years"
           },
-
           relativeTime : function (number, withoutSuffix, string, isFuture) {
               var output = this._relativeTime[string];
               return (typeof output === 'function') ?
                   output(number, withoutSuffix, string, isFuture) :
                   output.replace(/%d/i, number);
           },
-
           pastFuture : function (diff, output) {
               var format = this._relativeTime[diff > 0 ? 'future' : 'past'];
               return typeof format === 'function' ? format(output) : format.replace(/%s/i, output);
           },
 
           ordinal : function (number) {
-              return this._ordinal.replace('%d', number);
+              return this._ordinal.replace("%d", number);
           },
-          _ordinal : '%d',
+          _ordinal : "%d",
 
           preparse : function (string) {
               return string;
@@ -23303,6 +23193,78 @@ return /******/ (function(modules) { // webpackBootstrap
           }
       });
 
+      // Loads a language definition into the `languages` cache.  The function
+      // takes a key and optionally values.  If not in the browser and no values
+      // are provided, it will load the language file module.  As a convenience,
+      // this function also returns the language values.
+      function loadLang(key, values) {
+          values.abbr = key;
+          if (!languages[key]) {
+              languages[key] = new Language();
+          }
+          languages[key].set(values);
+          return languages[key];
+      }
+
+      // Remove a language from the `languages` cache. Mostly useful in tests.
+      function unloadLang(key) {
+          delete languages[key];
+      }
+
+      // Determines which language definition to use and returns it.
+      //
+      // With no parameters, it will return the global language.  If you
+      // pass in a language key, such as 'en', it will return the
+      // definition for 'en', so long as 'en' has already been loaded using
+      // moment.lang.
+      function getLangDefinition(key) {
+          var i = 0, j, lang, next, split,
+              get = function (k) {
+                  if (!languages[k] && hasModule) {
+                      try {
+                          __webpack_require__(61)("./" + k);
+                      } catch (e) { }
+                  }
+                  return languages[k];
+              };
+
+          if (!key) {
+              return moment.fn._lang;
+          }
+
+          if (!isArray(key)) {
+              //short-circuit everything else
+              lang = get(key);
+              if (lang) {
+                  return lang;
+              }
+              key = [key];
+          }
+
+          //pick the language from the array
+          //try ['en-au', 'en-gb'] as 'en-au', 'en-gb', 'en', as in move through the list trying each
+          //substring from most specific to least, but move to the next array item if it's a more specific variant than the current root
+          while (i < key.length) {
+              split = normalizeLanguage(key[i]).split('-');
+              j = split.length;
+              next = normalizeLanguage(key[i + 1]);
+              next = next ? next.split('-') : null;
+              while (j > 0) {
+                  lang = get(split.slice(0, j).join('-'));
+                  if (lang) {
+                      return lang;
+                  }
+                  if (next && next.length >= j && compareArrays(split, next, true) >= j - 1) {
+                      //the next array item is better than a shallower substring of this one
+                      break;
+                  }
+                  j--;
+              }
+              i++;
+          }
+          return moment.fn._lang;
+      }
+
       /************************************
           Formatting
       ************************************/
@@ -23310,9 +23272,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
       function removeFormattingTokens(input) {
           if (input.match(/\[[\s\S]/)) {
-              return input.replace(/^\[|\]$/g, '');
+              return input.replace(/^\[|\]$/g, "");
           }
-          return input.replace(/\\/g, '');
+          return input.replace(/\\/g, "");
       }
 
       function makeFormatFunction(format) {
@@ -23327,7 +23289,7 @@ return /******/ (function(modules) { // webpackBootstrap
           }
 
           return function (mom) {
-              var output = '';
+              var output = "";
               for (i = 0; i < length; i++) {
                   output += array[i] instanceof Function ? array[i].call(mom, format) : array[i];
               }
@@ -23337,11 +23299,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // format date using native date object
       function formatMoment(m, format) {
+
           if (!m.isValid()) {
-              return m.localeData().invalidDate();
+              return m.lang().invalidDate();
           }
 
-          format = expandFormat(format, m.localeData());
+          format = expandFormat(format, m.lang());
 
           if (!formatFunctions[format]) {
               formatFunctions[format] = makeFormatFunction(format);
@@ -23350,11 +23313,11 @@ return /******/ (function(modules) { // webpackBootstrap
           return formatFunctions[format](m);
       }
 
-      function expandFormat(format, locale) {
+      function expandFormat(format, lang) {
           var i = 5;
 
           function replaceLongDateFormatTokens(input) {
-              return locale.longDateFormat(input) || input;
+              return lang.longDateFormat(input) || input;
           }
 
           localFormattingTokens.lastIndex = 0;
@@ -23395,19 +23358,13 @@ return /******/ (function(modules) { // webpackBootstrap
           case 'ggggg':
               return strict ? parseTokenSixDigits : parseTokenOneToSixDigits;
           case 'S':
-              if (strict) {
-                  return parseTokenOneDigit;
-              }
+              if (strict) { return parseTokenOneDigit; }
               /* falls through */
           case 'SS':
-              if (strict) {
-                  return parseTokenTwoDigits;
-              }
+              if (strict) { return parseTokenTwoDigits; }
               /* falls through */
           case 'SSS':
-              if (strict) {
-                  return parseTokenThreeDigits;
-              }
+              if (strict) { return parseTokenThreeDigits; }
               /* falls through */
           case 'DDD':
               return parseTokenOneToThreeDigits;
@@ -23419,7 +23376,7 @@ return /******/ (function(modules) { // webpackBootstrap
               return parseTokenWord;
           case 'a':
           case 'A':
-              return config._locale._meridiemParse;
+              return getLangDefinition(config._l)._meridiemParse;
           case 'X':
               return parseTokenTimestampMs;
           case 'Z':
@@ -23456,13 +23413,13 @@ return /******/ (function(modules) { // webpackBootstrap
           case 'Do':
               return parseTokenOrdinal;
           default :
-              a = new RegExp(regexpEscape(unescapeFormat(token.replace('\\', '')), 'i'));
+              a = new RegExp(regexpEscape(unescapeFormat(token.replace('\\', '')), "i"));
               return a;
           }
       }
 
       function timezoneMinutesFromString(string) {
-          string = string || '';
+          string = string || "";
           var possibleTzMatches = (string.match(parseTokenTimezone) || []),
               tzChunk = possibleTzMatches[possibleTzMatches.length - 1] || [],
               parts = (tzChunk + '').match(parseTimezoneChunker) || ['-', 0, 0],
@@ -23491,7 +23448,7 @@ return /******/ (function(modules) { // webpackBootstrap
               break;
           case 'MMM' : // fall through to MMMM
           case 'MMMM' :
-              a = config._locale.monthsParse(input);
+              a = getLangDefinition(config._l).monthsParse(input);
               // if we didn't find a month name, mark the date as invalid.
               if (a != null) {
                   datePartArray[MONTH] = a;
@@ -23531,7 +23488,7 @@ return /******/ (function(modules) { // webpackBootstrap
           // AM / PM
           case 'a' : // fall through to A
           case 'A' :
-              config._isPm = config._locale.isPM(input);
+              config._isPm = getLangDefinition(config._l).isPM(input);
               break;
           // 24 HOUR
           case 'H' : // fall through to hh
@@ -23571,7 +23528,7 @@ return /******/ (function(modules) { // webpackBootstrap
           case 'dd':
           case 'ddd':
           case 'dddd':
-              a = config._locale.weekdaysParse(input);
+              a = getLangDefinition(config._l).weekdaysParse(input);
               // if we didn't get a weekday name, mark the date as invalid
               if (a != null) {
                   config._w = config._w || {};
@@ -23607,7 +23564,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       function dayOfYearFromWeekInfo(config) {
-          var w, weekYear, week, weekday, dow, doy, temp;
+          var w, weekYear, week, weekday, dow, doy, temp, lang;
 
           w = config._w;
           if (w.GG != null || w.W != null || w.E != null) {
@@ -23622,8 +23579,9 @@ return /******/ (function(modules) { // webpackBootstrap
               week = dfl(w.W, 1);
               weekday = dfl(w.E, 1);
           } else {
-              dow = config._locale._week.dow;
-              doy = config._locale._week.doy;
+              lang = getLangDefinition(config._l);
+              dow = lang._week.dow;
+              doy = lang._week.doy;
 
               weekYear = dfl(w.gg, config._a[YEAR], weekOfYear(moment(), dow, doy).year);
               week = dfl(w.w, 1);
@@ -23737,6 +23695,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // date from string and format string
       function makeDateFromStringAndFormat(config) {
+
           if (config._f === moment.ISO_8601) {
               parseISO(config);
               return;
@@ -23746,12 +23705,13 @@ return /******/ (function(modules) { // webpackBootstrap
           config._pf.empty = true;
 
           // This array is used to make a Date, either with `new Date` or `Date.UTC`
-          var string = '' + config._i,
+          var lang = getLangDefinition(config._l),
+              string = '' + config._i,
               i, parsedInput, tokens, token, skipped,
               stringLength = string.length,
               totalParsedInputLength = 0;
 
-          tokens = expandFormat(config._f, config._locale).match(formattingTokens) || [];
+          tokens = expandFormat(config._f, lang).match(formattingTokens) || [];
 
           for (i = 0; i < tokens.length; i++) {
               token = tokens[i];
@@ -23826,7 +23786,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
           for (i = 0; i < config._f.length; i++) {
               currentScore = 0;
-              tempConfig = copyConfig({}, config);
+              tempConfig = extend({}, config);
               tempConfig._pf = defaultParsingFlags();
               tempConfig._f = config._f[i];
               makeDateFromStringAndFormat(tempConfig);
@@ -23862,8 +23822,8 @@ return /******/ (function(modules) { // webpackBootstrap
               config._pf.iso = true;
               for (i = 0, l = isoDates.length; i < l; i++) {
                   if (isoDates[i][1].exec(string)) {
-                      // match[5] should be 'T' or undefined
-                      config._f = isoDates[i][0] + (match[6] || ' ');
+                      // match[5] should be "T" or undefined
+                      config._f = isoDates[i][0] + (match[6] || " ");
                       break;
                   }
               }
@@ -23874,7 +23834,7 @@ return /******/ (function(modules) { // webpackBootstrap
                   }
               }
               if (string.match(parseTokenTimezone)) {
-                  config._f += 'Z';
+                  config._f += "Z";
               }
               makeDateFromStringAndFormat(config);
           } else {
@@ -23892,18 +23852,20 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       function makeDateFromInput(config) {
-          var input = config._i, matched;
+          var input = config._i,
+              matched = aspNetJsonRegex.exec(input);
+
           if (input === undefined) {
               config._d = new Date();
-          } else if (isDate(input)) {
-              config._d = new Date(+input);
-          } else if ((matched = aspNetJsonRegex.exec(input)) !== null) {
+          } else if (matched) {
               config._d = new Date(+matched[1]);
           } else if (typeof input === 'string') {
               makeDateFromString(config);
           } else if (isArray(input)) {
               config._a = input.slice(0);
               dateFromConfig(config);
+          } else if (isDate(input)) {
+              config._d = new Date(+input);
           } else if (typeof(input) === 'object') {
               dateFromObject(config);
           } else if (typeof(input) === 'number') {
@@ -23934,13 +23896,13 @@ return /******/ (function(modules) { // webpackBootstrap
           return date;
       }
 
-      function parseWeekday(input, locale) {
+      function parseWeekday(input, language) {
           if (typeof input === 'string') {
               if (!isNaN(input)) {
                   input = parseInt(input, 10);
               }
               else {
-                  input = locale.weekdaysParse(input);
+                  input = language.weekdaysParse(input);
                   if (typeof input !== 'number') {
                       return null;
                   }
@@ -23955,33 +23917,29 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
       // helper function for moment.fn.from, moment.fn.fromNow, and moment.duration.fn.humanize
-      function substituteTimeAgo(string, number, withoutSuffix, isFuture, locale) {
-          return locale.relativeTime(number || 1, !!withoutSuffix, string, isFuture);
+      function substituteTimeAgo(string, number, withoutSuffix, isFuture, lang) {
+          return lang.relativeTime(number || 1, !!withoutSuffix, string, isFuture);
       }
 
-      function relativeTime(posNegDuration, withoutSuffix, locale) {
-          var duration = moment.duration(posNegDuration).abs(),
-              seconds = round(duration.as('s')),
-              minutes = round(duration.as('m')),
-              hours = round(duration.as('h')),
-              days = round(duration.as('d')),
-              months = round(duration.as('M')),
-              years = round(duration.as('y')),
-
-              args = seconds < relativeTimeThresholds.s && ['s', seconds] ||
+      function relativeTime(milliseconds, withoutSuffix, lang) {
+          var seconds = round(Math.abs(milliseconds) / 1000),
+              minutes = round(seconds / 60),
+              hours = round(minutes / 60),
+              days = round(hours / 24),
+              years = round(days / 365),
+              args = seconds < relativeTimeThresholds.s  && ['s', seconds] ||
                   minutes === 1 && ['m'] ||
                   minutes < relativeTimeThresholds.m && ['mm', minutes] ||
                   hours === 1 && ['h'] ||
                   hours < relativeTimeThresholds.h && ['hh', hours] ||
                   days === 1 && ['d'] ||
-                  days < relativeTimeThresholds.d && ['dd', days] ||
-                  months === 1 && ['M'] ||
-                  months < relativeTimeThresholds.M && ['MM', months] ||
+                  days <= relativeTimeThresholds.dd && ['dd', days] ||
+                  days <= relativeTimeThresholds.dm && ['M'] ||
+                  days < relativeTimeThresholds.dy && ['MM', round(days / 30)] ||
                   years === 1 && ['y'] || ['yy', years];
-
           args[2] = withoutSuffix;
-          args[3] = +posNegDuration > 0;
-          args[4] = locale;
+          args[3] = milliseconds > 0;
+          args[4] = lang;
           return substituteTimeAgo.apply({}, args);
       }
 
@@ -24012,7 +23970,7 @@ return /******/ (function(modules) { // webpackBootstrap
               daysToDayOfWeek += 7;
           }
 
-          adjustedMoment = moment(mom).add(daysToDayOfWeek, 'd');
+          adjustedMoment = moment(mom).add('d', daysToDayOfWeek);
           return {
               week: Math.ceil(adjustedMoment.dayOfYear() / 7),
               year: adjustedMoment.year()
@@ -24042,18 +24000,18 @@ return /******/ (function(modules) { // webpackBootstrap
           var input = config._i,
               format = config._f;
 
-          config._locale = config._locale || moment.localeData(config._l);
-
           if (input === null || (format === undefined && input === '')) {
               return moment.invalid({nullInput: true});
           }
 
           if (typeof input === 'string') {
-              config._i = input = config._locale.preparse(input);
+              config._i = input = getLangDefinition().preparse(input);
           }
 
           if (moment.isMoment(input)) {
-              return new Moment(input, true);
+              config = cloneMoment(input);
+
+              config._d = new Date(+input._d);
           } else if (format) {
               if (isArray(format)) {
                   makeDateFromStringAndArray(config);
@@ -24067,12 +24025,12 @@ return /******/ (function(modules) { // webpackBootstrap
           return new Moment(config);
       }
 
-      moment = function (input, format, locale, strict) {
+      moment = function (input, format, lang, strict) {
           var c;
 
-          if (typeof(locale) === 'boolean') {
-              strict = locale;
-              locale = undefined;
+          if (typeof(lang) === "boolean") {
+              strict = lang;
+              lang = undefined;
           }
           // object construction must be done this way.
           // https://github.com/moment/moment/issues/1423
@@ -24080,7 +24038,7 @@ return /******/ (function(modules) { // webpackBootstrap
           c._isAMomentObject = true;
           c._i = input;
           c._f = format;
-          c._l = locale;
+          c._l = lang;
           c._strict = strict;
           c._isUTC = false;
           c._pf = defaultParsingFlags();
@@ -24091,14 +24049,13 @@ return /******/ (function(modules) { // webpackBootstrap
       moment.suppressDeprecationWarnings = false;
 
       moment.createFromInputFallback = deprecate(
-          'moment construction falls back to js Date. This is ' +
-          'discouraged and will be removed in upcoming major ' +
-          'release. Please refer to ' +
-          'https://github.com/moment/moment/issues/1407 for more info.',
-          function (config) {
-              config._d = new Date(config._i);
-          }
-      );
+              "moment construction falls back to js Date. This is " +
+              "discouraged and will be removed in upcoming major " +
+              "release. Please refer to " +
+              "https://github.com/moment/moment/issues/1407 for more info.",
+              function (config) {
+          config._d = new Date(config._i);
+      });
 
       // Pick a moment m from moments so that m[fn](other) is true for all
       // other. This relies on the function fn to be transitive.
@@ -24135,12 +24092,12 @@ return /******/ (function(modules) { // webpackBootstrap
       };
 
       // creating with utc
-      moment.utc = function (input, format, locale, strict) {
+      moment.utc = function (input, format, lang, strict) {
           var c;
 
-          if (typeof(locale) === 'boolean') {
-              strict = locale;
-              locale = undefined;
+          if (typeof(lang) === "boolean") {
+              strict = lang;
+              lang = undefined;
           }
           // object construction must be done this way.
           // https://github.com/moment/moment/issues/1423
@@ -24148,7 +24105,7 @@ return /******/ (function(modules) { // webpackBootstrap
           c._isAMomentObject = true;
           c._useUTC = true;
           c._isUTC = true;
-          c._l = locale;
+          c._l = lang;
           c._i = input;
           c._f = format;
           c._strict = strict;
@@ -24169,8 +24126,7 @@ return /******/ (function(modules) { // webpackBootstrap
               match = null,
               sign,
               ret,
-              parseIso,
-              diffRes;
+              parseIso;
 
           if (moment.isDuration(input)) {
               duration = {
@@ -24186,7 +24142,7 @@ return /******/ (function(modules) { // webpackBootstrap
                   duration.milliseconds = input;
               }
           } else if (!!(match = aspNetTimeSpanJsonRegex.exec(input))) {
-              sign = (match[1] === '-') ? -1 : 1;
+              sign = (match[1] === "-") ? -1 : 1;
               duration = {
                   y: 0,
                   d: toInt(match[DATE]) * sign,
@@ -24196,7 +24152,7 @@ return /******/ (function(modules) { // webpackBootstrap
                   ms: toInt(match[MILLISECOND]) * sign
               };
           } else if (!!(match = isoDurationRegex.exec(input))) {
-              sign = (match[1] === '-') ? -1 : 1;
+              sign = (match[1] === "-") ? -1 : 1;
               parseIso = function (inp) {
                   // We'd normally use ~~inp for this, but unfortunately it also
                   // converts floats to ints.
@@ -24214,19 +24170,12 @@ return /******/ (function(modules) { // webpackBootstrap
                   s: parseIso(match[7]),
                   w: parseIso(match[8])
               };
-          } else if (typeof duration === 'object' &&
-                  ('from' in duration || 'to' in duration)) {
-              diffRes = momentsDifference(moment(duration.from), moment(duration.to));
-
-              duration = {};
-              duration.ms = diffRes.milliseconds;
-              duration.M = diffRes.months;
           }
 
           ret = new Duration(duration);
 
-          if (moment.isDuration(input) && hasOwnProp(input, '_locale')) {
-              ret._locale = input._locale;
+          if (moment.isDuration(input) && input.hasOwnProperty('_lang')) {
+              ret._lang = input._lang;
           }
 
           return ret;
@@ -24250,99 +24199,46 @@ return /******/ (function(modules) { // webpackBootstrap
       moment.updateOffset = function () {};
 
       // This function allows you to set a threshold for relative time strings
-      moment.relativeTimeThreshold = function (threshold, limit) {
-          if (relativeTimeThresholds[threshold] === undefined) {
-              return false;
-          }
-          if (limit === undefined) {
-              return relativeTimeThresholds[threshold];
-          }
-          relativeTimeThresholds[threshold] = limit;
-          return true;
+      moment.relativeTimeThreshold = function(threshold, limit) {
+        if (relativeTimeThresholds[threshold] === undefined) {
+          return false;
+        }
+        relativeTimeThresholds[threshold] = limit;
+        return true;
       };
 
-      moment.lang = deprecate(
-          'moment.lang is deprecated. Use moment.locale instead.',
-          function (key, value) {
-              return moment.locale(key, value);
-          }
-      );
-
-      // This function will load locale and then set the global locale.  If
+      // This function will load languages and then set the global language.  If
       // no arguments are passed in, it will simply return the current global
-      // locale key.
-      moment.locale = function (key, values) {
-          var data;
-          if (key) {
-              if (typeof(values) !== 'undefined') {
-                  data = moment.defineLocale(key, values);
-              }
-              else {
-                  data = moment.localeData(key);
-              }
-
-              if (data) {
-                  moment.duration._locale = moment._locale = data;
-              }
-          }
-
-          return moment._locale._abbr;
-      };
-
-      moment.defineLocale = function (name, values) {
-          if (values !== null) {
-              values.abbr = name;
-              if (!locales[name]) {
-                  locales[name] = new Locale();
-              }
-              locales[name].set(values);
-
-              // backwards compat for now: also set the locale
-              moment.locale(name);
-
-              return locales[name];
-          } else {
-              // useful for testing
-              delete locales[name];
-              return null;
-          }
-      };
-
-      moment.langData = deprecate(
-          'moment.langData is deprecated. Use moment.localeData instead.',
-          function (key) {
-              return moment.localeData(key);
-          }
-      );
-
-      // returns locale data
-      moment.localeData = function (key) {
-          var locale;
-
-          if (key && key._locale && key._locale._abbr) {
-              key = key._locale._abbr;
-          }
-
+      // language key.
+      moment.lang = function (key, values) {
+          var r;
           if (!key) {
-              return moment._locale;
+              return moment.fn._lang._abbr;
           }
-
-          if (!isArray(key)) {
-              //short-circuit everything else
-              locale = loadLocale(key);
-              if (locale) {
-                  return locale;
-              }
-              key = [key];
+          if (values) {
+              loadLang(normalizeLanguage(key), values);
+          } else if (values === null) {
+              unloadLang(key);
+              key = 'en';
+          } else if (!languages[key]) {
+              getLangDefinition(key);
           }
+          r = moment.duration.fn._lang = moment.fn._lang = getLangDefinition(key);
+          return r._abbr;
+      };
 
-          return chooseLocale(key);
+      // returns language data
+      moment.langData = function (key) {
+          if (key && key._lang && key._lang._abbr) {
+              key = key._lang._abbr;
+          }
+          return getLangDefinition(key);
       };
 
       // compare moment object
       moment.isMoment = function (obj) {
           return obj instanceof Moment ||
-              (obj != null && hasOwnProp(obj, '_isAMomentObject'));
+              (obj != null &&  obj.hasOwnProperty('_isAMomentObject'));
       };
 
       // for typechecking Duration objects
@@ -24398,7 +24294,7 @@ return /******/ (function(modules) { // webpackBootstrap
           },
 
           toString : function () {
-              return this.clone().locale('en').format('ddd MMM DD YYYY HH:mm:ss [GMT]ZZ');
+              return this.clone().lang('en').format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ");
           },
 
           toDate : function () {
@@ -24432,6 +24328,7 @@ return /******/ (function(modules) { // webpackBootstrap
           },
 
           isDSTShifted : function () {
+
               if (this._a) {
                   return this.isValid() && compareArrays(this._a, (this._isUTC ? moment.utc(this._a) : moment(this._a)).toArray()) > 0;
               }
@@ -24447,30 +24344,48 @@ return /******/ (function(modules) { // webpackBootstrap
               return this._pf.overflow;
           },
 
-          utc : function (keepLocalTime) {
-              return this.zone(0, keepLocalTime);
+          utc : function () {
+              return this.zone(0);
           },
 
-          local : function (keepLocalTime) {
-              if (this._isUTC) {
-                  this.zone(0, keepLocalTime);
-                  this._isUTC = false;
-
-                  if (keepLocalTime) {
-                      this.add(this._d.getTimezoneOffset(), 'm');
-                  }
-              }
+          local : function () {
+              this.zone(0);
+              this._isUTC = false;
               return this;
           },
 
           format : function (inputString) {
               var output = formatMoment(this, inputString || moment.defaultFormat);
-              return this.localeData().postformat(output);
+              return this.lang().postformat(output);
           },
 
-          add : createAdder(1, 'add'),
+          add : function (input, val) {
+              var dur;
+              // switch args to support add('s', 1) and add(1, 's')
+              if (typeof input === 'string' && typeof val === 'string') {
+                  dur = moment.duration(isNaN(+val) ? +input : +val, isNaN(+val) ? val : input);
+              } else if (typeof input === 'string') {
+                  dur = moment.duration(+val, input);
+              } else {
+                  dur = moment.duration(input, val);
+              }
+              addOrSubtractDurationFromMoment(this, dur, 1);
+              return this;
+          },
 
-          subtract : createAdder(-1, 'subtract'),
+          subtract : function (input, val) {
+              var dur;
+              // switch args to support subtract('s', 1) and subtract(1, 's')
+              if (typeof input === 'string' && typeof val === 'string') {
+                  dur = moment.duration(isNaN(+val) ? +input : +val, isNaN(+val) ? val : input);
+              } else if (typeof input === 'string') {
+                  dur = moment.duration(+val, input);
+              } else {
+                  dur = moment.duration(input, val);
+              }
+              addOrSubtractDurationFromMoment(this, dur, -1);
+              return this;
+          },
 
           diff : function (input, units, asFloat) {
               var that = makeAs(input, this),
@@ -24507,7 +24422,7 @@ return /******/ (function(modules) { // webpackBootstrap
           },
 
           from : function (time, withoutSuffix) {
-              return moment.duration({to: this, from: time}).locale(this.locale()).humanize(!withoutSuffix);
+              return moment.duration(this.diff(time)).lang(this.lang()._abbr).humanize(!withoutSuffix);
           },
 
           fromNow : function (withoutSuffix) {
@@ -24526,7 +24441,7 @@ return /******/ (function(modules) { // webpackBootstrap
                       diff < 1 ? 'sameDay' :
                       diff < 2 ? 'nextDay' :
                       diff < 7 ? 'nextWeek' : 'sameElse';
-              return this.format(this.localeData().calendar(format, this));
+              return this.format(this.lang().calendar(format, this));
           },
 
           isLeapYear : function () {
@@ -24541,8 +24456,8 @@ return /******/ (function(modules) { // webpackBootstrap
           day : function (input) {
               var day = this._isUTC ? this._d.getUTCDay() : this._d.getDay();
               if (input != null) {
-                  input = parseWeekday(input, this.localeData());
-                  return this.add(input - day, 'd');
+                  input = parseWeekday(input, this.lang());
+                  return this.add({ d : input - day });
               } else {
                   return day;
               }
@@ -24550,7 +24465,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
           month : makeAccessor('Month', true),
 
-          startOf : function (units) {
+          startOf: function (units) {
               units = normalizeUnits(units);
               // the following switch intentionally omits break keywords
               // to utilize falling through the cases.
@@ -24595,7 +24510,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
           endOf: function (units) {
               units = normalizeUnits(units);
-              return this.startOf(units).add(1, (units === 'isoWeek' ? 'week' : units)).subtract(1, 'ms');
+              return this.startOf(units).add((units === 'isoWeek' ? 'week' : units), 1).subtract('ms', 1);
           },
 
           isAfter: function (input, units) {
@@ -24614,7 +24529,7 @@ return /******/ (function(modules) { // webpackBootstrap
           },
 
           min: deprecate(
-                   'moment().min is deprecated, use moment.min instead. https://github.com/moment/moment/issues/1548',
+                   "moment().min is deprecated, use moment.min instead. https://github.com/moment/moment/issues/1548",
                    function (other) {
                        other = moment.apply(null, arguments);
                        return other < this ? this : other;
@@ -24622,43 +24537,36 @@ return /******/ (function(modules) { // webpackBootstrap
            ),
 
           max: deprecate(
-                  'moment().max is deprecated, use moment.max instead. https://github.com/moment/moment/issues/1548',
+                  "moment().max is deprecated, use moment.max instead. https://github.com/moment/moment/issues/1548",
                   function (other) {
                       other = moment.apply(null, arguments);
                       return other > this ? this : other;
                   }
           ),
 
-          // keepLocalTime = true means only change the timezone, without
-          // affecting the local hour. So 5:31:26 +0300 --[zone(2, true)]-->
-          // 5:31:26 +0200 It is possible that 5:31:26 doesn't exist int zone
-          // +0200, so we adjust the time as needed, to be valid.
+          // keepTime = true means only change the timezone, without affecting
+          // the local hour. So 5:31:26 +0300 --[zone(2, true)]--> 5:31:26 +0200
+          // It is possible that 5:31:26 doesn't exist int zone +0200, so we
+          // adjust the time as needed, to be valid.
           //
           // Keeping the time actually adds/subtracts (one hour)
           // from the actual represented time. That is why we call updateOffset
           // a second time. In case it wants us to change the offset again
           // _changeInProgress == true case, then we have to adjust, because
           // there is no such time in the given timezone.
-          zone : function (input, keepLocalTime) {
-              var offset = this._offset || 0,
-                  localAdjust;
+          zone : function (input, keepTime) {
+              var offset = this._offset || 0;
               if (input != null) {
-                  if (typeof input === 'string') {
+                  if (typeof input === "string") {
                       input = timezoneMinutesFromString(input);
                   }
                   if (Math.abs(input) < 16) {
                       input = input * 60;
                   }
-                  if (!this._isUTC && keepLocalTime) {
-                      localAdjust = this._d.getTimezoneOffset();
-                  }
                   this._offset = input;
                   this._isUTC = true;
-                  if (localAdjust != null) {
-                      this.subtract(localAdjust, 'm');
-                  }
                   if (offset !== input) {
-                      if (!keepLocalTime || this._changeInProgress) {
+                      if (!keepTime || this._changeInProgress) {
                           addOrSubtractDurationFromMoment(this,
                                   moment.duration(offset - input, 'm'), 1, false);
                       } else if (!this._changeInProgress) {
@@ -24674,11 +24582,11 @@ return /******/ (function(modules) { // webpackBootstrap
           },
 
           zoneAbbr : function () {
-              return this._isUTC ? 'UTC' : '';
+              return this._isUTC ? "UTC" : "";
           },
 
           zoneName : function () {
-              return this._isUTC ? 'Coordinated Universal Time' : '';
+              return this._isUTC ? "Coordinated Universal Time" : "";
           },
 
           parseZone : function () {
@@ -24707,7 +24615,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
           dayOfYear : function (input) {
               var dayOfYear = round((moment(this).startOf('day') - moment(this).startOf('year')) / 864e5) + 1;
-              return input == null ? dayOfYear : this.add((input - dayOfYear), 'd');
+              return input == null ? dayOfYear : this.add("d", (input - dayOfYear));
           },
 
           quarter : function (input) {
@@ -24715,28 +24623,28 @@ return /******/ (function(modules) { // webpackBootstrap
           },
 
           weekYear : function (input) {
-              var year = weekOfYear(this, this.localeData()._week.dow, this.localeData()._week.doy).year;
-              return input == null ? year : this.add((input - year), 'y');
+              var year = weekOfYear(this, this.lang()._week.dow, this.lang()._week.doy).year;
+              return input == null ? year : this.add("y", (input - year));
           },
 
           isoWeekYear : function (input) {
               var year = weekOfYear(this, 1, 4).year;
-              return input == null ? year : this.add((input - year), 'y');
+              return input == null ? year : this.add("y", (input - year));
           },
 
           week : function (input) {
-              var week = this.localeData().week(this);
-              return input == null ? week : this.add((input - week) * 7, 'd');
+              var week = this.lang().week(this);
+              return input == null ? week : this.add("d", (input - week) * 7);
           },
 
           isoWeek : function (input) {
               var week = weekOfYear(this, 1, 4).week;
-              return input == null ? week : this.add((input - week) * 7, 'd');
+              return input == null ? week : this.add("d", (input - week) * 7);
           },
 
           weekday : function (input) {
-              var weekday = (this.day() + 7 - this.localeData()._week.dow) % 7;
-              return input == null ? weekday : this.add(input - weekday, 'd');
+              var weekday = (this.day() + 7 - this.lang()._week.dow) % 7;
+              return input == null ? weekday : this.add("d", input - weekday);
           },
 
           isoWeekday : function (input) {
@@ -24751,7 +24659,7 @@ return /******/ (function(modules) { // webpackBootstrap
           },
 
           weeksInYear : function () {
-              var weekInfo = this.localeData()._week;
+              var weekInfo = this._lang._week;
               return weeksInYear(this.year(), weekInfo.dow, weekInfo.doy);
           },
 
@@ -24768,32 +24676,16 @@ return /******/ (function(modules) { // webpackBootstrap
               return this;
           },
 
-          // If passed a locale key, it will set the locale for this
-          // instance.  Otherwise, it will return the locale configuration
+          // If passed a language key, it will set the language for this
+          // instance.  Otherwise, it will return the language configuration
           // variables for this instance.
-          locale : function (key) {
+          lang : function (key) {
               if (key === undefined) {
-                  return this._locale._abbr;
+                  return this._lang;
               } else {
-                  this._locale = moment.localeData(key);
+                  this._lang = getLangDefinition(key);
                   return this;
               }
-          },
-
-          lang : deprecate(
-              'moment().lang() is deprecated. Use moment().localeData() instead.',
-              function (key) {
-                  if (key === undefined) {
-                      return this.localeData();
-                  } else {
-                      this._locale = moment.localeData(key);
-                      return this;
-                  }
-              }
-          ),
-
-          localeData : function () {
-              return this._locale;
           }
       });
 
@@ -24802,7 +24694,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
           // TODO: Move this out of here!
           if (typeof value === 'string') {
-              value = mom.localeData().monthsParse(value);
+              value = mom.lang().monthsParse(value);
               // TODO: Another silent failure?
               if (typeof value !== 'number') {
                   return mom;
@@ -24849,9 +24741,9 @@ return /******/ (function(modules) { // webpackBootstrap
       moment.fn.hour = moment.fn.hours = makeAccessor('Hours', true);
       // moment.fn.month is defined separately
       moment.fn.date = makeAccessor('Date', true);
-      moment.fn.dates = deprecate('dates accessor is deprecated. Use date instead.', makeAccessor('Date', true));
+      moment.fn.dates = deprecate("dates accessor is deprecated. Use date instead.", makeAccessor('Date', true));
       moment.fn.year = makeAccessor('FullYear', true);
-      moment.fn.years = deprecate('years accessor is deprecated. Use year instead.', makeAccessor('FullYear', true));
+      moment.fn.years = deprecate("years accessor is deprecated. Use year instead.", makeAccessor('FullYear', true));
 
       // add plural methods
       moment.fn.days = moment.fn.day;
@@ -24868,17 +24760,6 @@ return /******/ (function(modules) { // webpackBootstrap
       ************************************/
 
 
-      function daysToYears (days) {
-          // 400 years have 146097 days (taking into account leap year rules)
-          return days * 400 / 146097;
-      }
-
-      function yearsToDays (years) {
-          // years * 365 + absRound(years / 4) -
-          //     absRound(years / 100) + absRound(years / 400);
-          return years * 146097 / 400;
-      }
-
       extend(moment.duration.fn = Duration.prototype, {
 
           _bubble : function () {
@@ -24886,7 +24767,7 @@ return /******/ (function(modules) { // webpackBootstrap
                   days = this._days,
                   months = this._months,
                   data = this._data,
-                  seconds, minutes, hours, years = 0;
+                  seconds, minutes, hours, years;
 
               // The following code bubbles up values, see the tests for
               // examples of what that means.
@@ -24902,38 +24783,13 @@ return /******/ (function(modules) { // webpackBootstrap
               data.hours = hours % 24;
 
               days += absRound(hours / 24);
+              data.days = days % 30;
 
-              // Accurately convert days to years, assume start from year 0.
-              years = absRound(daysToYears(days));
-              days -= absRound(yearsToDays(years));
-
-              // 30 days to a month
-              // TODO (iskren): Use anchor date (like 1st Jan) to compute this.
               months += absRound(days / 30);
-              days %= 30;
+              data.months = months % 12;
 
-              // 12 months -> 1 year
-              years += absRound(months / 12);
-              months %= 12;
-
-              data.days = days;
-              data.months = months;
+              years = absRound(months / 12);
               data.years = years;
-          },
-
-          abs : function () {
-              this._milliseconds = Math.abs(this._milliseconds);
-              this._days = Math.abs(this._days);
-              this._months = Math.abs(this._months);
-
-              this._data.milliseconds = Math.abs(this._data.milliseconds);
-              this._data.seconds = Math.abs(this._data.seconds);
-              this._data.minutes = Math.abs(this._data.minutes);
-              this._data.hours = Math.abs(this._data.hours);
-              this._data.months = Math.abs(this._data.months);
-              this._data.years = Math.abs(this._data.years);
-
-              return this;
           },
 
           weeks : function () {
@@ -24948,13 +24804,14 @@ return /******/ (function(modules) { // webpackBootstrap
           },
 
           humanize : function (withSuffix) {
-              var output = relativeTime(this, !withSuffix, this.localeData());
+              var difference = +this,
+                  output = relativeTime(difference, !withSuffix, this.lang());
 
               if (withSuffix) {
-                  output = this.localeData().pastFuture(+this, output);
+                  output = this.lang().pastFuture(difference, output);
               }
 
-              return this.localeData().postformat(output);
+              return this.lang().postformat(output);
           },
 
           add : function (input, val) {
@@ -24988,39 +24845,13 @@ return /******/ (function(modules) { // webpackBootstrap
           },
 
           as : function (units) {
-              var days, months;
               units = normalizeUnits(units);
-
-              days = this._days + this._milliseconds / 864e5;
-              if (units === 'month' || units === 'year') {
-                  months = this._months + daysToYears(days) * 12;
-                  return units === 'month' ? months : months / 12;
-              } else {
-                  days += yearsToDays(this._months / 12);
-                  switch (units) {
-                      case 'week': return days / 7;
-                      case 'day': return days;
-                      case 'hour': return days * 24;
-                      case 'minute': return days * 24 * 60;
-                      case 'second': return days * 24 * 60 * 60;
-                      case 'millisecond': return days * 24 * 60 * 60 * 1000;
-                      default: throw new Error('Unknown unit ' + units);
-                  }
-              }
+              return this['as' + units.charAt(0).toUpperCase() + units.slice(1) + 's']();
           },
 
           lang : moment.fn.lang,
-          locale : moment.fn.locale,
 
-          toIsoString : deprecate(
-              'toIsoString() is deprecated. Please use toISOString() instead ' +
-              '(notice the capitals)',
-              function () {
-                  return this.toISOString();
-              }
-          ),
-
-          toISOString : function () {
+          toIsoString : function () {
               // inspired by https://github.com/dordille/moment-isoduration/blob/master/moment.isoduration.js
               var years = Math.abs(this.years()),
                   months = Math.abs(this.months()),
@@ -25044,14 +24875,8 @@ return /******/ (function(modules) { // webpackBootstrap
                   (hours ? hours + 'H' : '') +
                   (minutes ? minutes + 'M' : '') +
                   (seconds ? seconds + 'S' : '');
-          },
-
-          localeData : function () {
-              return this._locale;
           }
       });
-
-      moment.duration.fn.toString = moment.duration.fn.toISOString;
 
       function makeDurationGetter(name) {
           moment.duration.fn[name] = function () {
@@ -25059,44 +24884,32 @@ return /******/ (function(modules) { // webpackBootstrap
           };
       }
 
+      function makeDurationAsGetter(name, factor) {
+          moment.duration.fn['as' + name] = function () {
+              return +this / factor;
+          };
+      }
+
       for (i in unitMillisecondFactors) {
-          if (hasOwnProp(unitMillisecondFactors, i)) {
+          if (unitMillisecondFactors.hasOwnProperty(i)) {
+              makeDurationAsGetter(i, unitMillisecondFactors[i]);
               makeDurationGetter(i.toLowerCase());
           }
       }
 
-      moment.duration.fn.asMilliseconds = function () {
-          return this.as('ms');
-      };
-      moment.duration.fn.asSeconds = function () {
-          return this.as('s');
-      };
-      moment.duration.fn.asMinutes = function () {
-          return this.as('m');
-      };
-      moment.duration.fn.asHours = function () {
-          return this.as('h');
-      };
-      moment.duration.fn.asDays = function () {
-          return this.as('d');
-      };
-      moment.duration.fn.asWeeks = function () {
-          return this.as('weeks');
-      };
+      makeDurationAsGetter('Weeks', 6048e5);
       moment.duration.fn.asMonths = function () {
-          return this.as('M');
-      };
-      moment.duration.fn.asYears = function () {
-          return this.as('y');
+          return (+this - this.years() * 31536e6) / 2592e6 + this.years() * 12;
       };
 
+
       /************************************
-          Default Locale
+          Default Lang
       ************************************/
 
 
-      // Set default locale, other locale will inherit from English.
-      moment.locale('en', {
+      // Set default language, other languages will inherit from English.
+      moment.lang('en', {
           ordinal : function (number) {
               var b = number % 10,
                   output = (toInt(number % 100 / 10) === 1) ? 'th' :
@@ -25107,7 +24920,7 @@ return /******/ (function(modules) { // webpackBootstrap
           }
       });
 
-      /* EMBED_LOCALES */
+      /* EMBED_LANGUAGES */
 
       /************************************
           Exposing Moment
@@ -25121,9 +24934,9 @@ return /******/ (function(modules) { // webpackBootstrap
           oldGlobalMoment = globalScope.moment;
           if (shouldDeprecate) {
               globalScope.moment = deprecate(
-                      'Accessing Moment through the global scope is ' +
-                      'deprecated, and will be removed in an upcoming ' +
-                      'release.',
+                      "Accessing Moment through the global scope is " +
+                      "deprecated, and will be removed in an upcoming " +
+                      "release.",
                       moment);
           } else {
               globalScope.moment = moment;
@@ -25134,14 +24947,14 @@ return /******/ (function(modules) { // webpackBootstrap
       if (hasModule) {
           module.exports = moment;
       } else if (true) {
-          !(__WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, module) {
+          !(__WEBPACK_AMD_DEFINE_RESULT__ = (function (require, exports, module) {
               if (module.config && module.config() && module.config().noGlobal === true) {
                   // release the global variable
                   globalScope.moment = oldGlobalMoment;
               }
 
               return moment;
-          }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+          }.call(exports, __webpack_require__, exports, module)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
           makeGlobal(true);
       } else {
           makeGlobal();
@@ -25152,6 +24965,3592 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 53 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Creation of the ClusterMixin var.
+   *
+   * This contains all the functions the Network object can use to employ clustering
+   */
+
+  /**
+  * This is only called in the constructor of the network object
+  *
+  */
+  exports.startWithClustering = function() {
+   // cluster if the data set is big
+   this.clusterToFit(this.constants.clustering.initialMaxNodes, true);
+
+   // updates the lables after clustering
+   this.updateLabels();
+
+   // this is called here because if clusterin is disabled, the start and stabilize are called in
+   // the setData function.
+   if (this.stabilize) {
+     this._stabilize();
+   }
+   this.start();
+  };
+
+  /**
+   * This function clusters until the initialMaxNodes has been reached
+   *
+   * @param {Number}  maxNumberOfNodes
+   * @param {Boolean} reposition
+   */
+  exports.clusterToFit = function(maxNumberOfNodes, reposition) {
+    var numberOfNodes = this.nodeIndices.length;
+
+    var maxLevels = 50;
+    var level = 0;
+
+    // we first cluster the hubs, then we pull in the outliers, repeat
+    while (numberOfNodes > maxNumberOfNodes && level < maxLevels) {
+      if (level % 3 == 0) {
+        this.forceAggregateHubs(true);
+        this.normalizeClusterLevels();
+      }
+      else {
+        this.increaseClusterLevel(); // this also includes a cluster normalization
+      }
+
+      numberOfNodes = this.nodeIndices.length;
+      level += 1;
+    }
+
+    // after the clustering we reposition the nodes to reduce the initial chaos
+    if (level > 0 && reposition == true) {
+      this.repositionNodes();
+    }
+    this._updateCalculationNodes();
+  };
+
+  /**
+   * This function can be called to open up a specific cluster. It is only called by
+   * It will unpack the cluster back one level.
+   *
+   * @param node    | Node object: cluster to open.
+   */
+  exports.openCluster = function(node) {
+    var isMovingBeforeClustering = this.moving;
+    if (node.clusterSize > this.constants.clustering.sectorThreshold && this._nodeInActiveArea(node) &&
+      !(this._sector() == "default" && this.nodeIndices.length == 1)) {
+      // this loads a new sector, loads the nodes and edges and nodeIndices of it.
+      this._addSector(node);
+      var level = 0;
+
+      // we decluster until we reach a decent number of nodes
+      while ((this.nodeIndices.length < this.constants.clustering.initialMaxNodes) && (level < 10)) {
+        this.decreaseClusterLevel();
+        level += 1;
+      }
+
+    }
+    else {
+      this._expandClusterNode(node,false,true);
+
+      // update the index list, dynamic edges and labels
+      this._updateNodeIndexList();
+      this._updateDynamicEdges();
+      this._updateCalculationNodes();
+      this.updateLabels();
+    }
+
+    // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
+    if (this.moving != isMovingBeforeClustering) {
+      this.start();
+    }
+  };
+
+
+  /**
+   * This calls the updateClustes with default arguments
+   */
+  exports.updateClustersDefault = function() {
+    if (this.constants.clustering.enabled == true) {
+      this.updateClusters(0,false,false);
+    }
+  };
+
+
+  /**
+   * This function can be called to increase the cluster level. This means that the nodes with only one edge connection will
+   * be clustered with their connected node. This can be repeated as many times as needed.
+   * This can be called externally (by a keybind for instance) to reduce the complexity of big datasets.
+   */
+  exports.increaseClusterLevel = function() {
+    this.updateClusters(-1,false,true);
+  };
+
+
+  /**
+   * This function can be called to decrease the cluster level. This means that the nodes with only one edge connection will
+   * be unpacked if they are a cluster. This can be repeated as many times as needed.
+   * This can be called externally (by a key-bind for instance) to look into clusters without zooming.
+   */
+  exports.decreaseClusterLevel = function() {
+    this.updateClusters(1,false,true);
+  };
+
+
+  /**
+   * This is the main clustering function. It clusters and declusters on zoom or forced
+   * This function clusters on zoom, it can be called with a predefined zoom direction
+   * If out, check if we can form clusters, if in, check if we can open clusters.
+   * This function is only called from _zoom()
+   *
+   * @param {Number} zoomDirection  | -1 / 0 / +1   for  zoomOut / determineByZoom / zoomIn
+   * @param {Boolean} recursive     | enabled or disable recursive calling of the opening of clusters
+   * @param {Boolean} force         | enabled or disable forcing
+   * @param {Boolean} doNotStart    | if true do not call start
+   *
+   */
+  exports.updateClusters = function(zoomDirection,recursive,force,doNotStart) {
+    var isMovingBeforeClustering = this.moving;
+    var amountOfNodes = this.nodeIndices.length;
+
+    // on zoom out collapse the sector if the scale is at the level the sector was made
+    if (this.previousScale > this.scale && zoomDirection == 0) {
+      this._collapseSector();
+    }
+
+    // check if we zoom in or out
+    if (this.previousScale > this.scale || zoomDirection == -1) { // zoom out
+      // forming clusters when forced pulls outliers in. When not forced, the edge length of the
+      // outer nodes determines if it is being clustered
+      this._formClusters(force);
+    }
+    else if (this.previousScale < this.scale || zoomDirection == 1) { // zoom in
+      if (force == true) {
+        // _openClusters checks for each node if the formationScale of the cluster is smaller than
+        // the current scale and if so, declusters. When forced, all clusters are reduced by one step
+        this._openClusters(recursive,force);
+      }
+      else {
+        // if a cluster takes up a set percentage of the active window
+        this._openClustersBySize();
+      }
+    }
+    this._updateNodeIndexList();
+
+    // if a cluster was NOT formed and the user zoomed out, we try clustering by hubs
+    if (this.nodeIndices.length == amountOfNodes && (this.previousScale > this.scale || zoomDirection == -1))  {
+      this._aggregateHubs(force);
+      this._updateNodeIndexList();
+    }
+
+    // we now reduce chains.
+    if (this.previousScale > this.scale || zoomDirection == -1) { // zoom out
+      this.handleChains();
+      this._updateNodeIndexList();
+    }
+
+    this.previousScale = this.scale;
+
+    // rest of the update the index list, dynamic edges and labels
+    this._updateDynamicEdges();
+    this.updateLabels();
+
+    // if a cluster was formed, we increase the clusterSession
+    if (this.nodeIndices.length < amountOfNodes) { // this means a clustering operation has taken place
+      this.clusterSession += 1;
+      // if clusters have been made, we normalize the cluster level
+      this.normalizeClusterLevels();
+    }
+
+    if (doNotStart == false || doNotStart === undefined) {
+      // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
+      if (this.moving != isMovingBeforeClustering) {
+        this.start();
+      }
+    }
+
+    this._updateCalculationNodes();
+  };
+
+  /**
+   * This function handles the chains. It is called on every updateClusters().
+   */
+  exports.handleChains = function() {
+    // after clustering we check how many chains there are
+    var chainPercentage = this._getChainFraction();
+    if (chainPercentage > this.constants.clustering.chainThreshold) {
+      this._reduceAmountOfChains(1 - this.constants.clustering.chainThreshold / chainPercentage)
+
+    }
+  };
+
+  /**
+   * this functions starts clustering by hubs
+   * The minimum hub threshold is set globally
+   *
+   * @private
+   */
+  exports._aggregateHubs = function(force) {
+    this._getHubSize();
+    this._formClustersByHub(force,false);
+  };
+
+
+  /**
+   * This function is fired by keypress. It forces hubs to form.
+   *
+   */
+  exports.forceAggregateHubs = function(doNotStart) {
+    var isMovingBeforeClustering = this.moving;
+    var amountOfNodes = this.nodeIndices.length;
+
+    this._aggregateHubs(true);
+
+    // update the index list, dynamic edges and labels
+    this._updateNodeIndexList();
+    this._updateDynamicEdges();
+    this.updateLabels();
+
+    // if a cluster was formed, we increase the clusterSession
+    if (this.nodeIndices.length != amountOfNodes) {
+      this.clusterSession += 1;
+    }
+
+    if (doNotStart == false || doNotStart === undefined) {
+      // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
+      if (this.moving != isMovingBeforeClustering) {
+        this.start();
+      }
+    }
+  };
+
+  /**
+   * If a cluster takes up more than a set percentage of the screen, open the cluster
+   *
+   * @private
+   */
+  exports._openClustersBySize = function() {
+    for (var nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        var node = this.nodes[nodeId];
+        if (node.inView() == true) {
+          if ((node.width*this.scale > this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientWidth) ||
+              (node.height*this.scale > this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientHeight)) {
+            this.openCluster(node);
+          }
+        }
+      }
+    }
+  };
+
+
+  /**
+   * This function loops over all nodes in the nodeIndices list. For each node it checks if it is a cluster and if it
+   * has to be opened based on the current zoom level.
+   *
+   * @private
+   */
+  exports._openClusters = function(recursive,force) {
+    for (var i = 0; i < this.nodeIndices.length; i++) {
+      var node = this.nodes[this.nodeIndices[i]];
+      this._expandClusterNode(node,recursive,force);
+      this._updateCalculationNodes();
+    }
+  };
+
+  /**
+   * This function checks if a node has to be opened. This is done by checking the zoom level.
+   * If the node contains child nodes, this function is recursively called on the child nodes as well.
+   * This recursive behaviour is optional and can be set by the recursive argument.
+   *
+   * @param {Node}    parentNode    | to check for cluster and expand
+   * @param {Boolean} recursive     | enabled or disable recursive calling
+   * @param {Boolean} force         | enabled or disable forcing
+   * @param {Boolean} [openAll]     | This will recursively force all nodes in the parent to be released
+   * @private
+   */
+  exports._expandClusterNode = function(parentNode, recursive, force, openAll) {
+    // first check if node is a cluster
+    if (parentNode.clusterSize > 1) {
+      // this means that on a double tap event or a zoom event, the cluster fully unpacks if it is smaller than 20
+      if (parentNode.clusterSize < this.constants.clustering.sectorThreshold) {
+        openAll = true;
+      }
+      recursive = openAll ? true : recursive;
+
+      // if the last child has been added on a smaller scale than current scale decluster
+      if (parentNode.formationScale < this.scale || force == true) {
+        // we will check if any of the contained child nodes should be removed from the cluster
+        for (var containedNodeId in parentNode.containedNodes) {
+          if (parentNode.containedNodes.hasOwnProperty(containedNodeId)) {
+            var childNode = parentNode.containedNodes[containedNodeId];
+
+            // force expand will expand the largest cluster size clusters. Since we cluster from outside in, we assume that
+            // the largest cluster is the one that comes from outside
+            if (force == true) {
+              if (childNode.clusterSession == parentNode.clusterSessions[parentNode.clusterSessions.length-1]
+                  || openAll) {
+                this._expelChildFromParent(parentNode,containedNodeId,recursive,force,openAll);
+              }
+            }
+            else {
+              if (this._nodeInActiveArea(parentNode)) {
+                this._expelChildFromParent(parentNode,containedNodeId,recursive,force,openAll);
+              }
+            }
+          }
+        }
+      }
+    }
+  };
+
+  /**
+   * ONLY CALLED FROM _expandClusterNode
+   *
+   * This function will expel a child_node from a parent_node. This is to de-cluster the node. This function will remove
+   * the child node from the parent contained_node object and put it back into the global nodes object.
+   * The same holds for the edge that was connected to the child node. It is moved back into the global edges object.
+   *
+   * @param {Node}    parentNode        | the parent node
+   * @param {String}  containedNodeId   | child_node id as it is contained in the containedNodes object of the parent node
+   * @param {Boolean} recursive         | This will also check if the child needs to be expanded.
+   *                                      With force and recursive both true, the entire cluster is unpacked
+   * @param {Boolean} force             | This will disregard the zoom level and will expel this child from the parent
+   * @param {Boolean} openAll           | This will recursively force all nodes in the parent to be released
+   * @private
+   */
+  exports._expelChildFromParent = function(parentNode, containedNodeId, recursive, force, openAll) {
+    var childNode = parentNode.containedNodes[containedNodeId];
+
+    // if child node has been added on smaller scale than current, kick out
+    if (childNode.formationScale < this.scale || force == true) {
+      // unselect all selected items
+      this._unselectAll();
+
+      // put the child node back in the global nodes object
+      this.nodes[containedNodeId] = childNode;
+
+      // release the contained edges from this childNode back into the global edges
+      this._releaseContainedEdges(parentNode,childNode);
+
+      // reconnect rerouted edges to the childNode
+      this._connectEdgeBackToChild(parentNode,childNode);
+
+      // validate all edges in dynamicEdges
+      this._validateEdges(parentNode);
+
+      // undo the changes from the clustering operation on the parent node
+      parentNode.options.mass -= childNode.options.mass;
+      parentNode.clusterSize -= childNode.clusterSize;
+      parentNode.options.fontSize = Math.min(this.constants.clustering.maxFontSize, this.constants.nodes.fontSize + this.constants.clustering.fontSizeMultiplier*parentNode.clusterSize);
+      parentNode.dynamicEdgesLength = parentNode.dynamicEdges.length;
+
+      // place the child node near the parent, not at the exact same location to avoid chaos in the system
+      childNode.x = parentNode.x + parentNode.growthIndicator * (0.5 - Math.random());
+      childNode.y = parentNode.y + parentNode.growthIndicator * (0.5 - Math.random());
+
+      // remove node from the list
+      delete parentNode.containedNodes[containedNodeId];
+
+      // check if there are other childs with this clusterSession in the parent.
+      var othersPresent = false;
+      for (var childNodeId in parentNode.containedNodes) {
+        if (parentNode.containedNodes.hasOwnProperty(childNodeId)) {
+          if (parentNode.containedNodes[childNodeId].clusterSession == childNode.clusterSession) {
+            othersPresent = true;
+            break;
+          }
+        }
+      }
+      // if there are no others, remove the cluster session from the list
+      if (othersPresent == false) {
+        parentNode.clusterSessions.pop();
+      }
+
+      this._repositionBezierNodes(childNode);
+  //      this._repositionBezierNodes(parentNode);
+
+      // remove the clusterSession from the child node
+      childNode.clusterSession = 0;
+
+      // recalculate the size of the node on the next time the node is rendered
+      parentNode.clearSizeCache();
+
+      // restart the simulation to reorganise all nodes
+      this.moving = true;
+    }
+
+    // check if a further expansion step is possible if recursivity is enabled
+    if (recursive == true) {
+      this._expandClusterNode(childNode,recursive,force,openAll);
+    }
+  };
+
+
+  /**
+   * position the bezier nodes at the center of the edges
+   *
+   * @param node
+   * @private
+   */
+  exports._repositionBezierNodes = function(node) {
+    for (var i = 0; i < node.dynamicEdges.length; i++) {
+      node.dynamicEdges[i].positionBezierNode();
+    }
+  };
+
+
+  /**
+   * This function checks if any nodes at the end of their trees have edges below a threshold length
+   * This function is called only from updateClusters()
+   * forceLevelCollapse ignores the length of the edge and collapses one level
+   * This means that a node with only one edge will be clustered with its connected node
+   *
+   * @private
+   * @param {Boolean} force
+   */
+  exports._formClusters = function(force) {
+    if (force == false) {
+      this._formClustersByZoom();
+    }
+    else {
+      this._forceClustersByZoom();
+    }
+  };
+
+
+  /**
+   * This function handles the clustering by zooming out, this is based on a minimum edge distance
+   *
+   * @private
+   */
+  exports._formClustersByZoom = function() {
+    var dx,dy,length,
+        minLength = this.constants.clustering.clusterEdgeThreshold/this.scale;
+
+    // check if any edges are shorter than minLength and start the clustering
+    // the clustering favours the node with the larger mass
+    for (var edgeId in this.edges) {
+      if (this.edges.hasOwnProperty(edgeId)) {
+        var edge = this.edges[edgeId];
+        if (edge.connected) {
+          if (edge.toId != edge.fromId) {
+            dx = (edge.to.x - edge.from.x);
+            dy = (edge.to.y - edge.from.y);
+            length = Math.sqrt(dx * dx + dy * dy);
+
+
+            if (length < minLength) {
+              // first check which node is larger
+              var parentNode = edge.from;
+              var childNode = edge.to;
+              if (edge.to.options.mass > edge.from.options.mass) {
+                parentNode = edge.to;
+                childNode = edge.from;
+              }
+
+              if (childNode.dynamicEdgesLength == 1) {
+                this._addToCluster(parentNode,childNode,false);
+              }
+              else if (parentNode.dynamicEdgesLength == 1) {
+                this._addToCluster(childNode,parentNode,false);
+              }
+            }
+          }
+        }
+      }
+    }
+  };
+
+  /**
+   * This function forces the network to cluster all nodes with only one connecting edge to their
+   * connected node.
+   *
+   * @private
+   */
+  exports._forceClustersByZoom = function() {
+    for (var nodeId in this.nodes) {
+      // another node could have absorbed this child.
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        var childNode = this.nodes[nodeId];
+
+        // the edges can be swallowed by another decrease
+        if (childNode.dynamicEdgesLength == 1 && childNode.dynamicEdges.length != 0) {
+          var edge = childNode.dynamicEdges[0];
+          var parentNode = (edge.toId == childNode.id) ? this.nodes[edge.fromId] : this.nodes[edge.toId];
+
+          // group to the largest node
+          if (childNode.id != parentNode.id) {
+            if (parentNode.options.mass > childNode.options.mass) {
+              this._addToCluster(parentNode,childNode,true);
+            }
+            else {
+              this._addToCluster(childNode,parentNode,true);
+            }
+          }
+        }
+      }
+    }
+  };
+
+
+  /**
+   * To keep the nodes of roughly equal size we normalize the cluster levels.
+   * This function clusters a node to its smallest connected neighbour.
+   *
+   * @param node
+   * @private
+   */
+  exports._clusterToSmallestNeighbour = function(node) {
+    var smallestNeighbour = -1;
+    var smallestNeighbourNode = null;
+    for (var i = 0; i < node.dynamicEdges.length; i++) {
+      if (node.dynamicEdges[i] !== undefined) {
+        var neighbour = null;
+        if (node.dynamicEdges[i].fromId != node.id) {
+          neighbour = node.dynamicEdges[i].from;
+        }
+        else if (node.dynamicEdges[i].toId != node.id) {
+          neighbour = node.dynamicEdges[i].to;
+        }
+
+
+        if (neighbour != null && smallestNeighbour > neighbour.clusterSessions.length) {
+          smallestNeighbour = neighbour.clusterSessions.length;
+          smallestNeighbourNode = neighbour;
+        }
+      }
+    }
+
+    if (neighbour != null && this.nodes[neighbour.id] !== undefined) {
+      this._addToCluster(neighbour, node, true);
+    }
+  };
+
+
+  /**
+   * This function forms clusters from hubs, it loops over all nodes
+   *
+   * @param {Boolean} force         |   Disregard zoom level
+   * @param {Boolean} onlyEqual     |   This only clusters a hub with a specific number of edges
+   * @private
+   */
+  exports._formClustersByHub = function(force, onlyEqual) {
+    // we loop over all nodes in the list
+    for (var nodeId in this.nodes) {
+      // we check if it is still available since it can be used by the clustering in this loop
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        this._formClusterFromHub(this.nodes[nodeId],force,onlyEqual);
+      }
+    }
+  };
+
+  /**
+   * This function forms a cluster from a specific preselected hub node
+   *
+   * @param {Node}    hubNode       |   the node we will cluster as a hub
+   * @param {Boolean} force         |   Disregard zoom level
+   * @param {Boolean} onlyEqual     |   This only clusters a hub with a specific number of edges
+   * @param {Number} [absorptionSizeOffset] |
+   * @private
+   */
+  exports._formClusterFromHub = function(hubNode, force, onlyEqual, absorptionSizeOffset) {
+    if (absorptionSizeOffset === undefined) {
+      absorptionSizeOffset = 0;
+    }
+    // we decide if the node is a hub
+    if ((hubNode.dynamicEdgesLength >= this.hubThreshold && onlyEqual == false) ||
+      (hubNode.dynamicEdgesLength == this.hubThreshold && onlyEqual == true)) {
+      // initialize variables
+      var dx,dy,length;
+      var minLength = this.constants.clustering.clusterEdgeThreshold/this.scale;
+      var allowCluster = false;
+
+      // we create a list of edges because the dynamicEdges change over the course of this loop
+      var edgesIdarray = [];
+      var amountOfInitialEdges = hubNode.dynamicEdges.length;
+      for (var j = 0; j < amountOfInitialEdges; j++) {
+        edgesIdarray.push(hubNode.dynamicEdges[j].id);
+      }
+
+      // if the hub clustering is not forces, we check if one of the edges connected
+      // to a cluster is small enough based on the constants.clustering.clusterEdgeThreshold
+      if (force == false) {
+        allowCluster = false;
+        for (j = 0; j < amountOfInitialEdges; j++) {
+          var edge = this.edges[edgesIdarray[j]];
+          if (edge !== undefined) {
+            if (edge.connected) {
+              if (edge.toId != edge.fromId) {
+                dx = (edge.to.x - edge.from.x);
+                dy = (edge.to.y - edge.from.y);
+                length = Math.sqrt(dx * dx + dy * dy);
+
+                if (length < minLength) {
+                  allowCluster = true;
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // start the clustering if allowed
+      if ((!force && allowCluster) || force) {
+        // we loop over all edges INITIALLY connected to this hub
+        for (j = 0; j < amountOfInitialEdges; j++) {
+          edge = this.edges[edgesIdarray[j]];
+          // the edge can be clustered by this function in a previous loop
+          if (edge !== undefined) {
+            var childNode = this.nodes[(edge.fromId == hubNode.id) ? edge.toId : edge.fromId];
+            // we do not want hubs to merge with other hubs nor do we want to cluster itself.
+            if ((childNode.dynamicEdges.length <= (this.hubThreshold + absorptionSizeOffset)) &&
+                (childNode.id != hubNode.id)) {
+              this._addToCluster(hubNode,childNode,force);
+            }
+          }
+        }
+      }
+    }
+  };
+
+
+
+  /**
+   * This function adds the child node to the parent node, creating a cluster if it is not already.
+   *
+   * @param {Node} parentNode           | this is the node that will house the child node
+   * @param {Node} childNode            | this node will be deleted from the global this.nodes and stored in the parent node
+   * @param {Boolean} force             | true will only update the remainingEdges at the very end of the clustering, ensuring single level collapse
+   * @private
+   */
+  exports._addToCluster = function(parentNode, childNode, force) {
+    // join child node in the parent node
+    parentNode.containedNodes[childNode.id] = childNode;
+
+    // manage all the edges connected to the child and parent nodes
+    for (var i = 0; i < childNode.dynamicEdges.length; i++) {
+      var edge = childNode.dynamicEdges[i];
+      if (edge.toId == parentNode.id || edge.fromId == parentNode.id) { // edge connected to parentNode
+        this._addToContainedEdges(parentNode,childNode,edge);
+      }
+      else {
+        this._connectEdgeToCluster(parentNode,childNode,edge);
+      }
+    }
+    // a contained node has no dynamic edges.
+    childNode.dynamicEdges = [];
+
+    // remove circular edges from clusters
+    this._containCircularEdgesFromNode(parentNode,childNode);
+
+
+    // remove the childNode from the global nodes object
+    delete this.nodes[childNode.id];
+
+    // update the properties of the child and parent
+    var massBefore = parentNode.options.mass;
+    childNode.clusterSession = this.clusterSession;
+    parentNode.options.mass += childNode.options.mass;
+    parentNode.clusterSize += childNode.clusterSize;
+    parentNode.options.fontSize = Math.min(this.constants.clustering.maxFontSize, this.constants.nodes.fontSize + this.constants.clustering.fontSizeMultiplier*parentNode.clusterSize);
+
+    // keep track of the clustersessions so we can open the cluster up as it has been formed.
+    if (parentNode.clusterSessions[parentNode.clusterSessions.length - 1] != this.clusterSession) {
+      parentNode.clusterSessions.push(this.clusterSession);
+    }
+
+    // forced clusters only open from screen size and double tap
+    if (force == true) {
+      // parentNode.formationScale = Math.pow(1 - (1.0/11.0),this.clusterSession+3);
+      parentNode.formationScale = 0;
+    }
+    else {
+      parentNode.formationScale = this.scale; // The latest child has been added on this scale
+    }
+
+    // recalculate the size of the node on the next time the node is rendered
+    parentNode.clearSizeCache();
+
+    // set the pop-out scale for the childnode
+    parentNode.containedNodes[childNode.id].formationScale = parentNode.formationScale;
+
+    // nullify the movement velocity of the child, this is to avoid hectic behaviour
+    childNode.clearVelocity();
+
+    // the mass has altered, preservation of energy dictates the velocity to be updated
+    parentNode.updateVelocity(massBefore);
+
+    // restart the simulation to reorganise all nodes
+    this.moving = true;
+  };
+
+
+  /**
+   * This function will apply the changes made to the remainingEdges during the formation of the clusters.
+   * This is a seperate function to allow for level-wise collapsing of the node barnesHutTree.
+   * It has to be called if a level is collapsed. It is called by _formClusters().
+   * @private
+   */
+  exports._updateDynamicEdges = function() {
+    for (var i = 0; i < this.nodeIndices.length; i++) {
+      var node = this.nodes[this.nodeIndices[i]];
+      node.dynamicEdgesLength = node.dynamicEdges.length;
+
+      // this corrects for multiple edges pointing at the same other node
+      var correction = 0;
+      if (node.dynamicEdgesLength > 1) {
+        for (var j = 0; j < node.dynamicEdgesLength - 1; j++) {
+          var edgeToId = node.dynamicEdges[j].toId;
+          var edgeFromId = node.dynamicEdges[j].fromId;
+          for (var k = j+1; k < node.dynamicEdgesLength; k++) {
+            if ((node.dynamicEdges[k].toId == edgeToId && node.dynamicEdges[k].fromId == edgeFromId) ||
+                (node.dynamicEdges[k].fromId == edgeToId && node.dynamicEdges[k].toId == edgeFromId)) {
+              correction += 1;
+            }
+          }
+        }
+      }
+      node.dynamicEdgesLength -= correction;
+    }
+  };
+
+
+  /**
+   * This adds an edge from the childNode to the contained edges of the parent node
+   *
+   * @param parentNode    | Node object
+   * @param childNode     | Node object
+   * @param edge          | Edge object
+   * @private
+   */
+  exports._addToContainedEdges = function(parentNode, childNode, edge) {
+    // create an array object if it does not yet exist for this childNode
+    if (!(parentNode.containedEdges.hasOwnProperty(childNode.id))) {
+      parentNode.containedEdges[childNode.id] = []
+    }
+    // add this edge to the list
+    parentNode.containedEdges[childNode.id].push(edge);
+
+    // remove the edge from the global edges object
+    delete this.edges[edge.id];
+
+    // remove the edge from the parent object
+    for (var i = 0; i < parentNode.dynamicEdges.length; i++) {
+      if (parentNode.dynamicEdges[i].id == edge.id) {
+        parentNode.dynamicEdges.splice(i,1);
+        break;
+      }
+    }
+  };
+
+  /**
+   * This function connects an edge that was connected to a child node to the parent node.
+   * It keeps track of which nodes it has been connected to with the originalId array.
+   *
+   * @param {Node} parentNode    | Node object
+   * @param {Node} childNode     | Node object
+   * @param {Edge} edge          | Edge object
+   * @private
+   */
+  exports._connectEdgeToCluster = function(parentNode, childNode, edge) {
+    // handle circular edges
+    if (edge.toId == edge.fromId) {
+      this._addToContainedEdges(parentNode, childNode, edge);
+    }
+    else {
+      if (edge.toId == childNode.id) {    // edge connected to other node on the "to" side
+        edge.originalToId.push(childNode.id);
+        edge.to = parentNode;
+        edge.toId = parentNode.id;
+      }
+      else {          // edge connected to other node with the "from" side
+
+        edge.originalFromId.push(childNode.id);
+        edge.from = parentNode;
+        edge.fromId = parentNode.id;
+      }
+
+      this._addToReroutedEdges(parentNode,childNode,edge);
+    }
+  };
+
+
+  /**
+   * If a node is connected to itself, a circular edge is drawn. When clustering we want to contain
+   * these edges inside of the cluster.
+   *
+   * @param parentNode
+   * @param childNode
+   * @private
+   */
+  exports._containCircularEdgesFromNode = function(parentNode, childNode) {
+    // manage all the edges connected to the child and parent nodes
+    for (var i = 0; i < parentNode.dynamicEdges.length; i++) {
+      var edge = parentNode.dynamicEdges[i];
+      // handle circular edges
+      if (edge.toId == edge.fromId) {
+        this._addToContainedEdges(parentNode, childNode, edge);
+      }
+    }
+  };
+
+
+  /**
+   * This adds an edge from the childNode to the rerouted edges of the parent node
+   *
+   * @param parentNode    | Node object
+   * @param childNode     | Node object
+   * @param edge          | Edge object
+   * @private
+   */
+  exports._addToReroutedEdges = function(parentNode, childNode, edge) {
+    // create an array object if it does not yet exist for this childNode
+    // we store the edge in the rerouted edges so we can restore it when the cluster pops open
+    if (!(parentNode.reroutedEdges.hasOwnProperty(childNode.id))) {
+      parentNode.reroutedEdges[childNode.id] = [];
+    }
+    parentNode.reroutedEdges[childNode.id].push(edge);
+
+    // this edge becomes part of the dynamicEdges of the cluster node
+    parentNode.dynamicEdges.push(edge);
+   };
+
+
+
+  /**
+   * This function connects an edge that was connected to a cluster node back to the child node.
+   *
+   * @param parentNode    | Node object
+   * @param childNode     | Node object
+   * @private
+   */
+  exports._connectEdgeBackToChild = function(parentNode, childNode) {
+    if (parentNode.reroutedEdges.hasOwnProperty(childNode.id)) {
+      for (var i = 0; i < parentNode.reroutedEdges[childNode.id].length; i++) {
+        var edge = parentNode.reroutedEdges[childNode.id][i];
+        if (edge.originalFromId[edge.originalFromId.length-1] == childNode.id) {
+          edge.originalFromId.pop();
+          edge.fromId = childNode.id;
+          edge.from = childNode;
+        }
+        else {
+          edge.originalToId.pop();
+          edge.toId = childNode.id;
+          edge.to = childNode;
+        }
+
+        // append this edge to the list of edges connecting to the childnode
+        childNode.dynamicEdges.push(edge);
+
+        // remove the edge from the parent object
+        for (var j = 0; j < parentNode.dynamicEdges.length; j++) {
+          if (parentNode.dynamicEdges[j].id == edge.id) {
+            parentNode.dynamicEdges.splice(j,1);
+            break;
+          }
+        }
+      }
+      // remove the entry from the rerouted edges
+      delete parentNode.reroutedEdges[childNode.id];
+    }
+  };
+
+
+  /**
+   * When loops are clustered, an edge can be both in the rerouted array and the contained array.
+   * This function is called last to verify that all edges in dynamicEdges are in fact connected to the
+   * parentNode
+   *
+   * @param parentNode    | Node object
+   * @private
+   */
+  exports._validateEdges = function(parentNode) {
+    for (var i = 0; i < parentNode.dynamicEdges.length; i++) {
+      var edge = parentNode.dynamicEdges[i];
+      if (parentNode.id != edge.toId && parentNode.id != edge.fromId) {
+        parentNode.dynamicEdges.splice(i,1);
+      }
+    }
+  };
+
+
+  /**
+   * This function released the contained edges back into the global domain and puts them back into the
+   * dynamic edges of both parent and child.
+   *
+   * @param {Node} parentNode    |
+   * @param {Node} childNode     |
+   * @private
+   */
+  exports._releaseContainedEdges = function(parentNode, childNode) {
+    for (var i = 0; i < parentNode.containedEdges[childNode.id].length; i++) {
+      var edge = parentNode.containedEdges[childNode.id][i];
+
+      // put the edge back in the global edges object
+      this.edges[edge.id] = edge;
+
+      // put the edge back in the dynamic edges of the child and parent
+      childNode.dynamicEdges.push(edge);
+      parentNode.dynamicEdges.push(edge);
+    }
+    // remove the entry from the contained edges
+    delete parentNode.containedEdges[childNode.id];
+
+  };
+
+
+
+
+  // ------------------- UTILITY FUNCTIONS ---------------------------- //
+
+
+  /**
+   * This updates the node labels for all nodes (for debugging purposes)
+   */
+  exports.updateLabels = function() {
+    var nodeId;
+    // update node labels
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        var node = this.nodes[nodeId];
+        if (node.clusterSize > 1) {
+          node.label = "[".concat(String(node.clusterSize),"]");
+        }
+      }
+    }
+
+    // update node labels
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        node = this.nodes[nodeId];
+        if (node.clusterSize == 1) {
+          if (node.originalLabel !== undefined) {
+            node.label = node.originalLabel;
+          }
+          else {
+            node.label = String(node.id);
+          }
+        }
+      }
+    }
+
+  //    /* Debug Override */
+  //    for (nodeId in this.nodes) {
+  //      if (this.nodes.hasOwnProperty(nodeId)) {
+  //        node = this.nodes[nodeId];
+  //        node.label = String(node.level);
+  //      }
+  //    }
+
+  };
+
+
+  /**
+   * We want to keep the cluster level distribution rather small. This means we do not want unclustered nodes
+   * if the rest of the nodes are already a few cluster levels in.
+   * To fix this we use this function. It determines the min and max cluster level and sends nodes that have not
+   * clustered enough to the clusterToSmallestNeighbours function.
+   */
+  exports.normalizeClusterLevels = function() {
+    var maxLevel = 0;
+    var minLevel = 1e9;
+    var clusterLevel = 0;
+    var nodeId;
+
+    // we loop over all nodes in the list
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        clusterLevel = this.nodes[nodeId].clusterSessions.length;
+        if (maxLevel < clusterLevel) {maxLevel = clusterLevel;}
+        if (minLevel > clusterLevel) {minLevel = clusterLevel;}
+      }
+    }
+
+    if (maxLevel - minLevel > this.constants.clustering.clusterLevelDifference) {
+      var amountOfNodes = this.nodeIndices.length;
+      var targetLevel = maxLevel - this.constants.clustering.clusterLevelDifference;
+      // we loop over all nodes in the list
+      for (nodeId in this.nodes) {
+        if (this.nodes.hasOwnProperty(nodeId)) {
+          if (this.nodes[nodeId].clusterSessions.length < targetLevel) {
+            this._clusterToSmallestNeighbour(this.nodes[nodeId]);
+          }
+        }
+      }
+      this._updateNodeIndexList();
+      this._updateDynamicEdges();
+      // if a cluster was formed, we increase the clusterSession
+      if (this.nodeIndices.length != amountOfNodes) {
+        this.clusterSession += 1;
+      }
+    }
+  };
+
+
+
+  /**
+   * This function determines if the cluster we want to decluster is in the active area
+   * this means around the zoom center
+   *
+   * @param {Node} node
+   * @returns {boolean}
+   * @private
+   */
+  exports._nodeInActiveArea = function(node) {
+    return (
+      Math.abs(node.x - this.areaCenter.x) <= this.constants.clustering.activeAreaBoxSize/this.scale
+        &&
+      Math.abs(node.y - this.areaCenter.y) <= this.constants.clustering.activeAreaBoxSize/this.scale
+      )
+  };
+
+
+  /**
+   * This is an adaptation of the original repositioning function. This is called if the system is clustered initially
+   * It puts large clusters away from the center and randomizes the order.
+   *
+   */
+  exports.repositionNodes = function() {
+    for (var i = 0; i < this.nodeIndices.length; i++) {
+      var node = this.nodes[this.nodeIndices[i]];
+      if ((node.xFixed == false || node.yFixed == false)) {
+        var radius = 10 * 0.1*this.nodeIndices.length * Math.min(100,node.options.mass);
+        var angle = 2 * Math.PI * Math.random();
+        if (node.xFixed == false) {node.x = radius * Math.cos(angle);}
+        if (node.yFixed == false) {node.y = radius * Math.sin(angle);}
+        this._repositionBezierNodes(node);
+      }
+    }
+  };
+
+
+  /**
+   * We determine how many connections denote an important hub.
+   * We take the mean + 2*std as the important hub size. (Assuming a normal distribution of data, ~2.2%)
+   *
+   * @private
+   */
+  exports._getHubSize = function() {
+    var average = 0;
+    var averageSquared = 0;
+    var hubCounter = 0;
+    var largestHub = 0;
+
+    for (var i = 0; i < this.nodeIndices.length; i++) {
+
+      var node = this.nodes[this.nodeIndices[i]];
+      if (node.dynamicEdgesLength > largestHub) {
+        largestHub = node.dynamicEdgesLength;
+      }
+      average += node.dynamicEdgesLength;
+      averageSquared += Math.pow(node.dynamicEdgesLength,2);
+      hubCounter += 1;
+    }
+    average = average / hubCounter;
+    averageSquared = averageSquared / hubCounter;
+
+    var variance = averageSquared - Math.pow(average,2);
+
+    var standardDeviation = Math.sqrt(variance);
+
+    this.hubThreshold = Math.floor(average + 2*standardDeviation);
+
+    // always have at least one to cluster
+    if (this.hubThreshold > largestHub) {
+      this.hubThreshold = largestHub;
+    }
+
+  //  console.log("average",average,"averageSQ",averageSquared,"var",variance,"std",standardDeviation);
+  //  console.log("hubThreshold:",this.hubThreshold);
+  };
+
+
+  /**
+   * We reduce the amount of "extension nodes" or chains. These are not quickly clustered with the outliers and hubs methods
+   * with this amount we can cluster specifically on these chains.
+   *
+   * @param   {Number} fraction     | between 0 and 1, the percentage of chains to reduce
+   * @private
+   */
+  exports._reduceAmountOfChains = function(fraction) {
+    this.hubThreshold = 2;
+    var reduceAmount = Math.floor(this.nodeIndices.length * fraction);
+    for (var nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        if (this.nodes[nodeId].dynamicEdgesLength == 2 && this.nodes[nodeId].dynamicEdges.length >= 2) {
+          if (reduceAmount > 0) {
+            this._formClusterFromHub(this.nodes[nodeId],true,true,1);
+            reduceAmount -= 1;
+          }
+        }
+      }
+    }
+  };
+
+  /**
+   * We get the amount of "extension nodes" or chains. These are not quickly clustered with the outliers and hubs methods
+   * with this amount we can cluster specifically on these chains.
+   *
+   * @private
+   */
+  exports._getChainFraction = function() {
+    var chains = 0;
+    var total = 0;
+    for (var nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        if (this.nodes[nodeId].dynamicEdgesLength == 2 && this.nodes[nodeId].dynamicEdges.length >= 2) {
+          chains += 1;
+        }
+        total += 1;
+      }
+    }
+    return chains/total;
+  };
+
+
+/***/ },
+/* 54 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var util = __webpack_require__(1);
+
+  /**
+   * Creation of the SectorMixin var.
+   *
+   * This contains all the functions the Network object can use to employ the sector system.
+   * The sector system is always used by Network, though the benefits only apply to the use of clustering.
+   * If clustering is not used, there is no overhead except for a duplicate object with references to nodes and edges.
+   */
+
+  /**
+   * This function is only called by the setData function of the Network object.
+   * This loads the global references into the active sector. This initializes the sector.
+   *
+   * @private
+   */
+  exports._putDataInSector = function() {
+    this.sectors["active"][this._sector()].nodes = this.nodes;
+    this.sectors["active"][this._sector()].edges = this.edges;
+    this.sectors["active"][this._sector()].nodeIndices = this.nodeIndices;
+  };
+
+
+  /**
+   *  /**
+   * This function sets the global references to nodes, edges and nodeIndices back to
+   * those of the supplied (active) sector. If a type is defined, do the specific type
+   *
+   * @param {String} sectorId
+   * @param {String} [sectorType] | "active" or "frozen"
+   * @private
+   */
+  exports._switchToSector = function(sectorId, sectorType) {
+    if (sectorType === undefined || sectorType == "active") {
+      this._switchToActiveSector(sectorId);
+    }
+    else {
+      this._switchToFrozenSector(sectorId);
+    }
+  };
+
+
+  /**
+   * This function sets the global references to nodes, edges and nodeIndices back to
+   * those of the supplied active sector.
+   *
+   * @param sectorId
+   * @private
+   */
+  exports._switchToActiveSector = function(sectorId) {
+    this.nodeIndices = this.sectors["active"][sectorId]["nodeIndices"];
+    this.nodes       = this.sectors["active"][sectorId]["nodes"];
+    this.edges       = this.sectors["active"][sectorId]["edges"];
+  };
+
+
+  /**
+   * This function sets the global references to nodes, edges and nodeIndices back to
+   * those of the supplied active sector.
+   *
+   * @private
+   */
+  exports._switchToSupportSector = function() {
+    this.nodeIndices = this.sectors["support"]["nodeIndices"];
+    this.nodes       = this.sectors["support"]["nodes"];
+    this.edges       = this.sectors["support"]["edges"];
+  };
+
+
+  /**
+   * This function sets the global references to nodes, edges and nodeIndices back to
+   * those of the supplied frozen sector.
+   *
+   * @param sectorId
+   * @private
+   */
+  exports._switchToFrozenSector = function(sectorId) {
+    this.nodeIndices = this.sectors["frozen"][sectorId]["nodeIndices"];
+    this.nodes       = this.sectors["frozen"][sectorId]["nodes"];
+    this.edges       = this.sectors["frozen"][sectorId]["edges"];
+  };
+
+
+  /**
+   * This function sets the global references to nodes, edges and nodeIndices back to
+   * those of the currently active sector.
+   *
+   * @private
+   */
+  exports._loadLatestSector = function() {
+    this._switchToSector(this._sector());
+  };
+
+
+  /**
+   * This function returns the currently active sector Id
+   *
+   * @returns {String}
+   * @private
+   */
+  exports._sector = function() {
+    return this.activeSector[this.activeSector.length-1];
+  };
+
+
+  /**
+   * This function returns the previously active sector Id
+   *
+   * @returns {String}
+   * @private
+   */
+  exports._previousSector = function() {
+    if (this.activeSector.length > 1) {
+      return this.activeSector[this.activeSector.length-2];
+    }
+    else {
+      throw new TypeError('there are not enough sectors in the this.activeSector array.');
+    }
+  };
+
+
+  /**
+   * We add the active sector at the end of the this.activeSector array
+   * This ensures it is the currently active sector returned by _sector() and it reaches the top
+   * of the activeSector stack. When we reverse our steps we move from the end to the beginning of this stack.
+   *
+   * @param newId
+   * @private
+   */
+  exports._setActiveSector = function(newId) {
+    this.activeSector.push(newId);
+  };
+
+
+  /**
+   * We remove the currently active sector id from the active sector stack. This happens when
+   * we reactivate the previously active sector
+   *
+   * @private
+   */
+  exports._forgetLastSector = function() {
+    this.activeSector.pop();
+  };
+
+
+  /**
+   * This function creates a new active sector with the supplied newId. This newId
+   * is the expanding node id.
+   *
+   * @param {String} newId   | Id of the new active sector
+   * @private
+   */
+  exports._createNewSector = function(newId) {
+    // create the new sector
+    this.sectors["active"][newId] = {"nodes":{},
+                                     "edges":{},
+                                     "nodeIndices":[],
+                                     "formationScale": this.scale,
+                                     "drawingNode": undefined};
+
+    // create the new sector render node. This gives visual feedback that you are in a new sector.
+    this.sectors["active"][newId]['drawingNode'] = new Node(
+        {id:newId,
+          color: {
+            background: "#eaefef",
+            border: "495c5e"
+          }
+        },{},{},this.constants);
+    this.sectors["active"][newId]['drawingNode'].clusterSize = 2;
+  };
+
+
+  /**
+   * This function removes the currently active sector. This is called when we create a new
+   * active sector.
+   *
+   * @param {String} sectorId   | Id of the active sector that will be removed
+   * @private
+   */
+  exports._deleteActiveSector = function(sectorId) {
+    delete this.sectors["active"][sectorId];
+  };
+
+
+  /**
+   * This function removes the currently active sector. This is called when we reactivate
+   * the previously active sector.
+   *
+   * @param {String} sectorId   | Id of the active sector that will be removed
+   * @private
+   */
+  exports._deleteFrozenSector = function(sectorId) {
+    delete this.sectors["frozen"][sectorId];
+  };
+
+
+  /**
+   * Freezing an active sector means moving it from the "active" object to the "frozen" object.
+   * We copy the references, then delete the active entree.
+   *
+   * @param sectorId
+   * @private
+   */
+  exports._freezeSector = function(sectorId) {
+    // we move the set references from the active to the frozen stack.
+    this.sectors["frozen"][sectorId] = this.sectors["active"][sectorId];
+
+    // we have moved the sector data into the frozen set, we now remove it from the active set
+    this._deleteActiveSector(sectorId);
+  };
+
+
+  /**
+   * This is the reverse operation of _freezeSector. Activating means moving the sector from the "frozen"
+   * object to the "active" object.
+   *
+   * @param sectorId
+   * @private
+   */
+  exports._activateSector = function(sectorId) {
+    // we move the set references from the frozen to the active stack.
+    this.sectors["active"][sectorId] = this.sectors["frozen"][sectorId];
+
+    // we have moved the sector data into the active set, we now remove it from the frozen stack
+    this._deleteFrozenSector(sectorId);
+  };
+
+
+  /**
+   * This function merges the data from the currently active sector with a frozen sector. This is used
+   * in the process of reverting back to the previously active sector.
+   * The data that is placed in the frozen (the previously active) sector is the node that has been removed from it
+   * upon the creation of a new active sector.
+   *
+   * @param sectorId
+   * @private
+   */
+  exports._mergeThisWithFrozen = function(sectorId) {
+    // copy all nodes
+    for (var nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        this.sectors["frozen"][sectorId]["nodes"][nodeId] = this.nodes[nodeId];
+      }
+    }
+
+    // copy all edges (if not fully clustered, else there are no edges)
+    for (var edgeId in this.edges) {
+      if (this.edges.hasOwnProperty(edgeId)) {
+        this.sectors["frozen"][sectorId]["edges"][edgeId] = this.edges[edgeId];
+      }
+    }
+
+    // merge the nodeIndices
+    for (var i = 0; i < this.nodeIndices.length; i++) {
+      this.sectors["frozen"][sectorId]["nodeIndices"].push(this.nodeIndices[i]);
+    }
+  };
+
+
+  /**
+   * This clusters the sector to one cluster. It was a single cluster before this process started so
+   * we revert to that state. The clusterToFit function with a maximum size of 1 node does this.
+   *
+   * @private
+   */
+  exports._collapseThisToSingleCluster = function() {
+    this.clusterToFit(1,false);
+  };
+
+
+  /**
+   * We create a new active sector from the node that we want to open.
+   *
+   * @param node
+   * @private
+   */
+  exports._addSector = function(node) {
+    // this is the currently active sector
+    var sector = this._sector();
+
+  //    // this should allow me to select nodes from a frozen set.
+  //    if (this.sectors['active'][sector]["nodes"].hasOwnProperty(node.id)) {
+  //      console.log("the node is part of the active sector");
+  //    }
+  //    else {
+  //      console.log("I dont know what the fuck happened!!");
+  //    }
+
+    // when we switch to a new sector, we remove the node that will be expanded from the current nodes list.
+    delete this.nodes[node.id];
+
+    var unqiueIdentifier = util.randomUUID();
+
+    // we fully freeze the currently active sector
+    this._freezeSector(sector);
+
+    // we create a new active sector. This sector has the Id of the node to ensure uniqueness
+    this._createNewSector(unqiueIdentifier);
+
+    // we add the active sector to the sectors array to be able to revert these steps later on
+    this._setActiveSector(unqiueIdentifier);
+
+    // we redirect the global references to the new sector's references. this._sector() now returns unqiueIdentifier
+    this._switchToSector(this._sector());
+
+    // finally we add the node we removed from our previous active sector to the new active sector
+    this.nodes[node.id] = node;
+  };
+
+
+  /**
+   * We close the sector that is currently open and revert back to the one before.
+   * If the active sector is the "default" sector, nothing happens.
+   *
+   * @private
+   */
+  exports._collapseSector = function() {
+    // the currently active sector
+    var sector = this._sector();
+
+    // we cannot collapse the default sector
+    if (sector != "default") {
+      if ((this.nodeIndices.length == 1) ||
+       (this.sectors["active"][sector]["drawingNode"].width*this.scale < this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientWidth) ||
+       (this.sectors["active"][sector]["drawingNode"].height*this.scale < this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientHeight)) {
+        var previousSector = this._previousSector();
+
+        // we collapse the sector back to a single cluster
+        this._collapseThisToSingleCluster();
+
+        // we move the remaining nodes, edges and nodeIndices to the previous sector.
+        // This previous sector is the one we will reactivate
+        this._mergeThisWithFrozen(previousSector);
+
+        // the previously active (frozen) sector now has all the data from the currently active sector.
+        // we can now delete the active sector.
+        this._deleteActiveSector(sector);
+
+        // we activate the previously active (and currently frozen) sector.
+        this._activateSector(previousSector);
+
+        // we load the references from the newly active sector into the global references
+        this._switchToSector(previousSector);
+
+        // we forget the previously active sector because we reverted to the one before
+        this._forgetLastSector();
+
+        // finally, we update the node index list.
+        this._updateNodeIndexList();
+
+        // we refresh the list with calulation nodes and calculation node indices.
+        this._updateCalculationNodes();
+      }
+    }
+  };
+
+
+  /**
+   * This runs a function in all active sectors. This is used in _redraw() and the _initializeForceCalculation().
+   *
+   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
+   *                              |   we dont pass the function itself because then the "this" is the window object
+   *                              |   instead of the Network object
+   * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
+   * @private
+   */
+  exports._doInAllActiveSectors = function(runFunction,argument) {
+    var returnValues = [];
+    if (argument === undefined) {
+      for (var sector in this.sectors["active"]) {
+        if (this.sectors["active"].hasOwnProperty(sector)) {
+          // switch the global references to those of this sector
+          this._switchToActiveSector(sector);
+          returnValues.push( this[runFunction]() );
+        }
+      }
+    }
+    else {
+      for (var sector in this.sectors["active"]) {
+        if (this.sectors["active"].hasOwnProperty(sector)) {
+          // switch the global references to those of this sector
+          this._switchToActiveSector(sector);
+          var args = Array.prototype.splice.call(arguments, 1);
+          if (args.length > 1) {
+            returnValues.push( this[runFunction](args[0],args[1]) );
+          }
+          else {
+            returnValues.push( this[runFunction](argument) );
+          }
+        }
+      }
+    }
+    // we revert the global references back to our active sector
+    this._loadLatestSector();
+    return returnValues;
+  };
+
+
+  /**
+   * This runs a function in all active sectors. This is used in _redraw() and the _initializeForceCalculation().
+   *
+   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
+   *                              |   we dont pass the function itself because then the "this" is the window object
+   *                              |   instead of the Network object
+   * @param {*} [argument]        |   Optional: arguments to pass to the runFunction
+   * @private
+   */
+  exports._doInSupportSector = function(runFunction,argument) {
+    var returnValues = false;
+    if (argument === undefined) {
+      this._switchToSupportSector();
+      returnValues = this[runFunction]();
+    }
+    else {
+      this._switchToSupportSector();
+      var args = Array.prototype.splice.call(arguments, 1);
+      if (args.length > 1) {
+        returnValues = this[runFunction](args[0],args[1]);
+      }
+      else {
+        returnValues = this[runFunction](argument);
+      }
+    }
+    // we revert the global references back to our active sector
+    this._loadLatestSector();
+    return returnValues;
+  };
+
+
+  /**
+   * This runs a function in all frozen sectors. This is used in the _redraw().
+   *
+   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
+   *                              |   we don't pass the function itself because then the "this" is the window object
+   *                              |   instead of the Network object
+   * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
+   * @private
+   */
+  exports._doInAllFrozenSectors = function(runFunction,argument) {
+    if (argument === undefined) {
+      for (var sector in this.sectors["frozen"]) {
+        if (this.sectors["frozen"].hasOwnProperty(sector)) {
+          // switch the global references to those of this sector
+          this._switchToFrozenSector(sector);
+          this[runFunction]();
+        }
+      }
+    }
+    else {
+      for (var sector in this.sectors["frozen"]) {
+        if (this.sectors["frozen"].hasOwnProperty(sector)) {
+          // switch the global references to those of this sector
+          this._switchToFrozenSector(sector);
+          var args = Array.prototype.splice.call(arguments, 1);
+          if (args.length > 1) {
+            this[runFunction](args[0],args[1]);
+          }
+          else {
+            this[runFunction](argument);
+          }
+        }
+      }
+    }
+    this._loadLatestSector();
+  };
+
+
+  /**
+   * This runs a function in all sectors. This is used in the _redraw().
+   *
+   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
+   *                              |   we don't pass the function itself because then the "this" is the window object
+   *                              |   instead of the Network object
+   * @param {*} [argument]        |   Optional: arguments to pass to the runFunction
+   * @private
+   */
+  exports._doInAllSectors = function(runFunction,argument) {
+    var args = Array.prototype.splice.call(arguments, 1);
+    if (argument === undefined) {
+      this._doInAllActiveSectors(runFunction);
+      this._doInAllFrozenSectors(runFunction);
+    }
+    else {
+      if (args.length > 1) {
+        this._doInAllActiveSectors(runFunction,args[0],args[1]);
+        this._doInAllFrozenSectors(runFunction,args[0],args[1]);
+      }
+      else {
+        this._doInAllActiveSectors(runFunction,argument);
+        this._doInAllFrozenSectors(runFunction,argument);
+      }
+    }
+  };
+
+
+  /**
+   * This clears the nodeIndices list. We cannot use this.nodeIndices = [] because we would break the link with the
+   * active sector. Thus we clear the nodeIndices in the active sector, then reconnect the this.nodeIndices to it.
+   *
+   * @private
+   */
+  exports._clearNodeIndexList = function() {
+    var sector = this._sector();
+    this.sectors["active"][sector]["nodeIndices"] = [];
+    this.nodeIndices = this.sectors["active"][sector]["nodeIndices"];
+  };
+
+
+  /**
+   * Draw the encompassing sector node
+   *
+   * @param ctx
+   * @param sectorType
+   * @private
+   */
+  exports._drawSectorNodes = function(ctx,sectorType) {
+    var minY = 1e9, maxY = -1e9, minX = 1e9, maxX = -1e9, node;
+    for (var sector in this.sectors[sectorType]) {
+      if (this.sectors[sectorType].hasOwnProperty(sector)) {
+        if (this.sectors[sectorType][sector]["drawingNode"] !== undefined) {
+
+          this._switchToSector(sector,sectorType);
+
+          minY = 1e9; maxY = -1e9; minX = 1e9; maxX = -1e9;
+          for (var nodeId in this.nodes) {
+            if (this.nodes.hasOwnProperty(nodeId)) {
+              node = this.nodes[nodeId];
+              node.resize(ctx);
+              if (minX > node.x - 0.5 * node.width) {minX = node.x - 0.5 * node.width;}
+              if (maxX < node.x + 0.5 * node.width) {maxX = node.x + 0.5 * node.width;}
+              if (minY > node.y - 0.5 * node.height) {minY = node.y - 0.5 * node.height;}
+              if (maxY < node.y + 0.5 * node.height) {maxY = node.y + 0.5 * node.height;}
+            }
+          }
+          node = this.sectors[sectorType][sector]["drawingNode"];
+          node.x = 0.5 * (maxX + minX);
+          node.y = 0.5 * (maxY + minY);
+          node.width = 2 * (node.x - minX);
+          node.height = 2 * (node.y - minY);
+          node.radius = Math.sqrt(Math.pow(0.5*node.width,2) + Math.pow(0.5*node.height,2));
+          node.setScale(this.scale);
+          node._drawCircle(ctx);
+        }
+      }
+    }
+  };
+
+  exports._drawAllSectorNodes = function(ctx) {
+    this._drawSectorNodes(ctx,"frozen");
+    this._drawSectorNodes(ctx,"active");
+    this._loadLatestSector();
+  };
+
+
+/***/ },
+/* 55 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var Node = __webpack_require__(36);
+
+  /**
+   * This function can be called from the _doInAllSectors function
+   *
+   * @param object
+   * @param overlappingNodes
+   * @private
+   */
+  exports._getNodesOverlappingWith = function(object, overlappingNodes) {
+    var nodes = this.nodes;
+    for (var nodeId in nodes) {
+      if (nodes.hasOwnProperty(nodeId)) {
+        if (nodes[nodeId].isOverlappingWith(object)) {
+          overlappingNodes.push(nodeId);
+        }
+      }
+    }
+  };
+
+  /**
+   * retrieve all nodes overlapping with given object
+   * @param {Object} object  An object with parameters left, top, right, bottom
+   * @return {Number[]}   An array with id's of the overlapping nodes
+   * @private
+   */
+  exports._getAllNodesOverlappingWith = function (object) {
+    var overlappingNodes = [];
+    this._doInAllActiveSectors("_getNodesOverlappingWith",object,overlappingNodes);
+    return overlappingNodes;
+  };
+
+
+  /**
+   * Return a position object in canvasspace from a single point in screenspace
+   *
+   * @param pointer
+   * @returns {{left: number, top: number, right: number, bottom: number}}
+   * @private
+   */
+  exports._pointerToPositionObject = function(pointer) {
+    var x = this._XconvertDOMtoCanvas(pointer.x);
+    var y = this._YconvertDOMtoCanvas(pointer.y);
+
+    return {
+      left:   x,
+      top:    y,
+      right:  x,
+      bottom: y
+    };
+  };
+
+
+  /**
+   * Get the top node at the a specific point (like a click)
+   *
+   * @param {{x: Number, y: Number}} pointer
+   * @return {Node | null} node
+   * @private
+   */
+  exports._getNodeAt = function (pointer) {
+    // we first check if this is an navigation controls element
+    var positionObject = this._pointerToPositionObject(pointer);
+    var overlappingNodes = this._getAllNodesOverlappingWith(positionObject);
+
+    // if there are overlapping nodes, select the last one, this is the
+    // one which is drawn on top of the others
+    if (overlappingNodes.length > 0) {
+       return this.nodes[overlappingNodes[overlappingNodes.length - 1]];
+    }
+    else {
+      return null;
+    }
+  };
+
+
+  /**
+   * retrieve all edges overlapping with given object, selector is around center
+   * @param {Object} object  An object with parameters left, top, right, bottom
+   * @return {Number[]}   An array with id's of the overlapping nodes
+   * @private
+   */
+  exports._getEdgesOverlappingWith = function (object, overlappingEdges) {
+    var edges = this.edges;
+    for (var edgeId in edges) {
+      if (edges.hasOwnProperty(edgeId)) {
+        if (edges[edgeId].isOverlappingWith(object)) {
+          overlappingEdges.push(edgeId);
+        }
+      }
+    }
+  };
+
+
+  /**
+   * retrieve all nodes overlapping with given object
+   * @param {Object} object  An object with parameters left, top, right, bottom
+   * @return {Number[]}   An array with id's of the overlapping nodes
+   * @private
+   */
+  exports._getAllEdgesOverlappingWith = function (object) {
+    var overlappingEdges = [];
+    this._doInAllActiveSectors("_getEdgesOverlappingWith",object,overlappingEdges);
+    return overlappingEdges;
+  };
+
+  /**
+   * Place holder. To implement change the _getNodeAt to a _getObjectAt. Have the _getObjectAt call
+   * _getNodeAt and _getEdgesAt, then priortize the selection to user preferences.
+   *
+   * @param pointer
+   * @returns {null}
+   * @private
+   */
+  exports._getEdgeAt = function(pointer) {
+    var positionObject = this._pointerToPositionObject(pointer);
+    var overlappingEdges = this._getAllEdgesOverlappingWith(positionObject);
+
+    if (overlappingEdges.length > 0) {
+      return this.edges[overlappingEdges[overlappingEdges.length - 1]];
+    }
+    else {
+      return null;
+    }
+  };
+
+
+  /**
+   * Add object to the selection array.
+   *
+   * @param obj
+   * @private
+   */
+  exports._addToSelection = function(obj) {
+    if (obj instanceof Node) {
+      this.selectionObj.nodes[obj.id] = obj;
+    }
+    else {
+      this.selectionObj.edges[obj.id] = obj;
+    }
+  };
+
+  /**
+   * Add object to the selection array.
+   *
+   * @param obj
+   * @private
+   */
+  exports._addToHover = function(obj) {
+    if (obj instanceof Node) {
+      this.hoverObj.nodes[obj.id] = obj;
+    }
+    else {
+      this.hoverObj.edges[obj.id] = obj;
+    }
+  };
+
+
+  /**
+   * Remove a single option from selection.
+   *
+   * @param {Object} obj
+   * @private
+   */
+  exports._removeFromSelection = function(obj) {
+    if (obj instanceof Node) {
+      delete this.selectionObj.nodes[obj.id];
+    }
+    else {
+      delete this.selectionObj.edges[obj.id];
+    }
+  };
+
+  /**
+   * Unselect all. The selectionObj is useful for this.
+   *
+   * @param {Boolean} [doNotTrigger] | ignore trigger
+   * @private
+   */
+  exports._unselectAll = function(doNotTrigger) {
+    if (doNotTrigger === undefined) {
+      doNotTrigger = false;
+    }
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        this.selectionObj.nodes[nodeId].unselect();
+      }
+    }
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        this.selectionObj.edges[edgeId].unselect();
+      }
+    }
+
+    this.selectionObj = {nodes:{},edges:{}};
+
+    if (doNotTrigger == false) {
+      this.emit('select', this.getSelection());
+    }
+  };
+
+  /**
+   * Unselect all clusters. The selectionObj is useful for this.
+   *
+   * @param {Boolean} [doNotTrigger] | ignore trigger
+   * @private
+   */
+  exports._unselectClusters = function(doNotTrigger) {
+    if (doNotTrigger === undefined) {
+      doNotTrigger = false;
+    }
+
+    for (var nodeId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        if (this.selectionObj.nodes[nodeId].clusterSize > 1) {
+          this.selectionObj.nodes[nodeId].unselect();
+          this._removeFromSelection(this.selectionObj.nodes[nodeId]);
+        }
+      }
+    }
+
+    if (doNotTrigger == false) {
+      this.emit('select', this.getSelection());
+    }
+  };
+
+
+  /**
+   * return the number of selected nodes
+   *
+   * @returns {number}
+   * @private
+   */
+  exports._getSelectedNodeCount = function() {
+    var count = 0;
+    for (var nodeId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        count += 1;
+      }
+    }
+    return count;
+  };
+
+  /**
+   * return the selected node
+   *
+   * @returns {number}
+   * @private
+   */
+  exports._getSelectedNode = function() {
+    for (var nodeId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        return this.selectionObj.nodes[nodeId];
+      }
+    }
+    return null;
+  };
+
+  /**
+   * return the selected edge
+   *
+   * @returns {number}
+   * @private
+   */
+  exports._getSelectedEdge = function() {
+    for (var edgeId in this.selectionObj.edges) {
+      if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        return this.selectionObj.edges[edgeId];
+      }
+    }
+    return null;
+  };
+
+
+  /**
+   * return the number of selected edges
+   *
+   * @returns {number}
+   * @private
+   */
+  exports._getSelectedEdgeCount = function() {
+    var count = 0;
+    for (var edgeId in this.selectionObj.edges) {
+      if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        count += 1;
+      }
+    }
+    return count;
+  };
+
+
+  /**
+   * return the number of selected objects.
+   *
+   * @returns {number}
+   * @private
+   */
+  exports._getSelectedObjectCount = function() {
+    var count = 0;
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        count += 1;
+      }
+    }
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        count += 1;
+      }
+    }
+    return count;
+  };
+
+  /**
+   * Check if anything is selected
+   *
+   * @returns {boolean}
+   * @private
+   */
+  exports._selectionIsEmpty = function() {
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        return false;
+      }
+    }
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+
+  /**
+   * check if one of the selected nodes is a cluster.
+   *
+   * @returns {boolean}
+   * @private
+   */
+  exports._clusterInSelection = function() {
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        if (this.selectionObj.nodes[nodeId].clusterSize > 1) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
+  /**
+   * select the edges connected to the node that is being selected
+   *
+   * @param {Node} node
+   * @private
+   */
+  exports._selectConnectedEdges = function(node) {
+    for (var i = 0; i < node.dynamicEdges.length; i++) {
+      var edge = node.dynamicEdges[i];
+      edge.select();
+      this._addToSelection(edge);
+    }
+  };
+
+  /**
+   * select the edges connected to the node that is being selected
+   *
+   * @param {Node} node
+   * @private
+   */
+  exports._hoverConnectedEdges = function(node) {
+    for (var i = 0; i < node.dynamicEdges.length; i++) {
+      var edge = node.dynamicEdges[i];
+      edge.hover = true;
+      this._addToHover(edge);
+    }
+  };
+
+
+  /**
+   * unselect the edges connected to the node that is being selected
+   *
+   * @param {Node} node
+   * @private
+   */
+  exports._unselectConnectedEdges = function(node) {
+    for (var i = 0; i < node.dynamicEdges.length; i++) {
+      var edge = node.dynamicEdges[i];
+      edge.unselect();
+      this._removeFromSelection(edge);
+    }
+  };
+
+
+
+
+  /**
+   * This is called when someone clicks on a node. either select or deselect it.
+   * If there is an existing selection and we don't want to append to it, clear the existing selection
+   *
+   * @param {Node || Edge} object
+   * @param {Boolean} append
+   * @param {Boolean} [doNotTrigger] | ignore trigger
+   * @private
+   */
+  exports._selectObject = function(object, append, doNotTrigger, highlightEdges) {
+    if (doNotTrigger === undefined) {
+      doNotTrigger = false;
+    }
+    if (highlightEdges === undefined) {
+      highlightEdges = true;
+    }
+
+    if (this._selectionIsEmpty() == false && append == false && this.forceAppendSelection == false) {
+      this._unselectAll(true);
+    }
+
+    if (object.selected == false) {
+      object.select();
+      this._addToSelection(object);
+      if (object instanceof Node && this.blockConnectingEdgeSelection == false && highlightEdges == true) {
+        this._selectConnectedEdges(object);
+      }
+    }
+    else {
+      object.unselect();
+      this._removeFromSelection(object);
+    }
+
+    if (doNotTrigger == false) {
+      this.emit('select', this.getSelection());
+    }
+  };
+
+
+  /**
+   * This is called when someone clicks on a node. either select or deselect it.
+   * If there is an existing selection and we don't want to append to it, clear the existing selection
+   *
+   * @param {Node || Edge} object
+   * @private
+   */
+  exports._blurObject = function(object) {
+    if (object.hover == true) {
+      object.hover = false;
+      this.emit("blurNode",{node:object.id});
+    }
+  };
+
+  /**
+   * This is called when someone clicks on a node. either select or deselect it.
+   * If there is an existing selection and we don't want to append to it, clear the existing selection
+   *
+   * @param {Node || Edge} object
+   * @private
+   */
+  exports._hoverObject = function(object) {
+    if (object.hover == false) {
+      object.hover = true;
+      this._addToHover(object);
+      if (object instanceof Node) {
+        this.emit("hoverNode",{node:object.id});
+      }
+    }
+    if (object instanceof Node) {
+      this._hoverConnectedEdges(object);
+    }
+  };
+
+
+  /**
+   * handles the selection part of the touch, only for navigation controls elements;
+   * Touch is triggered before tap, also before hold. Hold triggers after a while.
+   * This is the most responsive solution
+   *
+   * @param {Object} pointer
+   * @private
+   */
+  exports._handleTouch = function(pointer) {
+  };
+
+
+  /**
+   * handles the selection part of the tap;
+   *
+   * @param {Object} pointer
+   * @private
+   */
+  exports._handleTap = function(pointer) {
+    var node = this._getNodeAt(pointer);
+    if (node != null) {
+      this._selectObject(node,false);
+    }
+    else {
+      var edge = this._getEdgeAt(pointer);
+      if (edge != null) {
+        this._selectObject(edge,false);
+      }
+      else {
+        this._unselectAll();
+      }
+    }
+    this.emit("click", this.getSelection());
+    this._redraw();
+  };
+
+
+  /**
+   * handles the selection part of the double tap and opens a cluster if needed
+   *
+   * @param {Object} pointer
+   * @private
+   */
+  exports._handleDoubleTap = function(pointer) {
+    var node = this._getNodeAt(pointer);
+    if (node != null && node !== undefined) {
+      // we reset the areaCenter here so the opening of the node will occur
+      this.areaCenter =  {"x" : this._XconvertDOMtoCanvas(pointer.x),
+                          "y" : this._YconvertDOMtoCanvas(pointer.y)};
+      this.openCluster(node);
+    }
+    this.emit("doubleClick", this.getSelection());
+  };
+
+
+  /**
+   * Handle the onHold selection part
+   *
+   * @param pointer
+   * @private
+   */
+  exports._handleOnHold = function(pointer) {
+    var node = this._getNodeAt(pointer);
+    if (node != null) {
+      this._selectObject(node,true);
+    }
+    else {
+      var edge = this._getEdgeAt(pointer);
+      if (edge != null) {
+        this._selectObject(edge,true);
+      }
+    }
+    this._redraw();
+  };
+
+
+  /**
+   * handle the onRelease event. These functions are here for the navigation controls module.
+   *
+    * @private
+   */
+  exports._handleOnRelease = function(pointer) {
+
+  };
+
+
+
+  /**
+   *
+   * retrieve the currently selected objects
+   * @return {{nodes: Array.<String>, edges: Array.<String>}} selection
+   */
+  exports.getSelection = function() {
+    var nodeIds = this.getSelectedNodes();
+    var edgeIds = this.getSelectedEdges();
+    return {nodes:nodeIds, edges:edgeIds};
+  };
+
+  /**
+   *
+   * retrieve the currently selected nodes
+   * @return {String[]} selection    An array with the ids of the
+   *                                            selected nodes.
+   */
+  exports.getSelectedNodes = function() {
+    var idArray = [];
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        idArray.push(nodeId);
+      }
+    }
+    return idArray
+  };
+
+  /**
+   *
+   * retrieve the currently selected edges
+   * @return {Array} selection    An array with the ids of the
+   *                                            selected nodes.
+   */
+  exports.getSelectedEdges = function() {
+    var idArray = [];
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        idArray.push(edgeId);
+      }
+    }
+    return idArray;
+  };
+
+
+  /**
+   * select zero or more nodes
+   * @param {Number[] | String[]} selection     An array with the ids of the
+   *                                            selected nodes.
+   */
+  exports.setSelection = function(selection) {
+    var i, iMax, id;
+
+    if (!selection || (selection.length == undefined))
+      throw 'Selection must be an array with ids';
+
+    // first unselect any selected node
+    this._unselectAll(true);
+
+    for (i = 0, iMax = selection.length; i < iMax; i++) {
+      id = selection[i];
+
+      var node = this.nodes[id];
+      if (!node) {
+        throw new RangeError('Node with id "' + id + '" not found');
+      }
+      this._selectObject(node,true,true);
+    }
+
+    console.log("setSelection is deprecated. Please use selectNodes instead.")
+
+    this.redraw();
+  };
+
+
+  /**
+   * select zero or more nodes with the option to highlight edges
+   * @param {Number[] | String[]} selection     An array with the ids of the
+   *                                            selected nodes.
+   * @param {boolean} [highlightEdges]
+   */
+  exports.selectNodes = function(selection, highlightEdges) {
+    var i, iMax, id;
+
+    if (!selection || (selection.length == undefined))
+      throw 'Selection must be an array with ids';
+
+    // first unselect any selected node
+    this._unselectAll(true);
+
+    for (i = 0, iMax = selection.length; i < iMax; i++) {
+      id = selection[i];
+
+      var node = this.nodes[id];
+      if (!node) {
+        throw new RangeError('Node with id "' + id + '" not found');
+      }
+      this._selectObject(node,true,true,highlightEdges);
+    }
+    this.redraw();
+  };
+
+
+  /**
+   * select zero or more edges
+   * @param {Number[] | String[]} selection     An array with the ids of the
+   *                                            selected nodes.
+   */
+  exports.selectEdges = function(selection) {
+    var i, iMax, id;
+
+    if (!selection || (selection.length == undefined))
+      throw 'Selection must be an array with ids';
+
+    // first unselect any selected node
+    this._unselectAll(true);
+
+    for (i = 0, iMax = selection.length; i < iMax; i++) {
+      id = selection[i];
+
+      var edge = this.edges[id];
+      if (!edge) {
+        throw new RangeError('Edge with id "' + id + '" not found');
+      }
+      this._selectObject(edge,true,true,highlightEdges);
+    }
+    this.redraw();
+  };
+
+  /**
+   * Validate the selection: remove ids of nodes which no longer exist
+   * @private
+   */
+  exports._updateSelection = function () {
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        if (!this.nodes.hasOwnProperty(nodeId)) {
+          delete this.selectionObj.nodes[nodeId];
+        }
+      }
+    }
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        if (!this.edges.hasOwnProperty(edgeId)) {
+          delete this.selectionObj.edges[edgeId];
+        }
+      }
+    }
+  };
+
+
+/***/ },
+/* 56 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var util = __webpack_require__(1);
+  var Node = __webpack_require__(36);
+  var Edge = __webpack_require__(34);
+
+  /**
+   * clears the toolbar div element of children
+   *
+   * @private
+   */
+  exports._clearManipulatorBar = function() {
+    while (this.manipulationDiv.hasChildNodes()) {
+      this.manipulationDiv.removeChild(this.manipulationDiv.firstChild);
+    }
+  };
+
+  /**
+   * Manipulation UI temporarily overloads certain functions to extend or replace them. To be able to restore
+   * these functions to their original functionality, we saved them in this.cachedFunctions.
+   * This function restores these functions to their original function.
+   *
+   * @private
+   */
+  exports._restoreOverloadedFunctions = function() {
+    for (var functionName in this.cachedFunctions) {
+      if (this.cachedFunctions.hasOwnProperty(functionName)) {
+        this[functionName] = this.cachedFunctions[functionName];
+      }
+    }
+  };
+
+  /**
+   * Enable or disable edit-mode.
+   *
+   * @private
+   */
+  exports._toggleEditMode = function() {
+    this.editMode = !this.editMode;
+    var toolbar = document.getElementById("network-manipulationDiv");
+    var closeDiv = document.getElementById("network-manipulation-closeDiv");
+    var editModeDiv = document.getElementById("network-manipulation-editMode");
+    if (this.editMode == true) {
+      toolbar.style.display="block";
+      closeDiv.style.display="block";
+      editModeDiv.style.display="none";
+      closeDiv.onclick = this._toggleEditMode.bind(this);
+    }
+    else {
+      toolbar.style.display="none";
+      closeDiv.style.display="none";
+      editModeDiv.style.display="block";
+      closeDiv.onclick = null;
+    }
+    this._createManipulatorBar()
+  };
+
+  /**
+   * main function, creates the main toolbar. Removes functions bound to the select event. Binds all the buttons of the toolbar.
+   *
+   * @private
+   */
+  exports._createManipulatorBar = function() {
+    // remove bound functions
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
+
+    var locale = this.constants.locales[this.constants.locale];
+
+    if (this.edgeBeingEdited !== undefined) {
+      this.edgeBeingEdited._disableControlNodes();
+      this.edgeBeingEdited = undefined;
+      this.selectedControlNode = null;
+      this.controlNodesActive = false;
+    }
+
+    // restore overloaded functions
+    this._restoreOverloadedFunctions();
+
+    // resume calculation
+    this.freezeSimulation = false;
+
+    // reset global variables
+    this.blockConnectingEdgeSelection = false;
+    this.forceAppendSelection = false;
+
+    if (this.editMode == true) {
+      while (this.manipulationDiv.hasChildNodes()) {
+        this.manipulationDiv.removeChild(this.manipulationDiv.firstChild);
+      }
+
+      // add the icons to the manipulator div
+      this.manipulationDiv.innerHTML = "" +
+        "<span class='network-manipulationUI add' id='network-manipulate-addNode'>" +
+          "<span class='network-manipulationLabel'>"+locale['addNode'] +"</span></span>" +
+        "<div class='network-seperatorLine'></div>" +
+        "<span class='network-manipulationUI connect' id='network-manipulate-connectNode'>" +
+          "<span class='network-manipulationLabel'>"+locale['addEdge'] +"</span></span>";
+      if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
+        this.manipulationDiv.innerHTML += "" +
+          "<div class='network-seperatorLine'></div>" +
+          "<span class='network-manipulationUI edit' id='network-manipulate-editNode'>" +
+            "<span class='network-manipulationLabel'>"+locale['editNode'] +"</span></span>";
+      }
+      else if (this._getSelectedEdgeCount() == 1 && this._getSelectedNodeCount() == 0) {
+        this.manipulationDiv.innerHTML += "" +
+          "<div class='network-seperatorLine'></div>" +
+          "<span class='network-manipulationUI edit' id='network-manipulate-editEdge'>" +
+          "<span class='network-manipulationLabel'>"+locale['editEdge'] +"</span></span>";
+      }
+      if (this._selectionIsEmpty() == false) {
+        this.manipulationDiv.innerHTML += "" +
+          "<div class='network-seperatorLine'></div>" +
+          "<span class='network-manipulationUI delete' id='network-manipulate-delete'>" +
+            "<span class='network-manipulationLabel'>"+locale['del'] +"</span></span>";
+      }
+
+
+      // bind the icons
+      var addNodeButton = document.getElementById("network-manipulate-addNode");
+      addNodeButton.onclick = this._createAddNodeToolbar.bind(this);
+      var addEdgeButton = document.getElementById("network-manipulate-connectNode");
+      addEdgeButton.onclick = this._createAddEdgeToolbar.bind(this);
+      if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
+        var editButton = document.getElementById("network-manipulate-editNode");
+        editButton.onclick = this._editNode.bind(this);
+      }
+      else if (this._getSelectedEdgeCount() == 1 && this._getSelectedNodeCount() == 0) {
+        var editButton = document.getElementById("network-manipulate-editEdge");
+        editButton.onclick = this._createEditEdgeToolbar.bind(this);
+      }
+      if (this._selectionIsEmpty() == false) {
+        var deleteButton = document.getElementById("network-manipulate-delete");
+        deleteButton.onclick = this._deleteSelected.bind(this);
+      }
+      var closeDiv = document.getElementById("network-manipulation-closeDiv");
+      closeDiv.onclick = this._toggleEditMode.bind(this);
+
+      this.boundFunction = this._createManipulatorBar.bind(this);
+      this.on('select', this.boundFunction);
+    }
+    else {
+      this.editModeDiv.innerHTML = "" +
+        "<span class='network-manipulationUI edit editmode' id='network-manipulate-editModeButton'>" +
+        "<span class='network-manipulationLabel'>" + locale['edit'] + "</span></span>";
+      var editModeButton = document.getElementById("network-manipulate-editModeButton");
+      editModeButton.onclick = this._toggleEditMode.bind(this);
+    }
+  };
+
+
+
+  /**
+   * Create the toolbar for adding Nodes
+   *
+   * @private
+   */
+  exports._createAddNodeToolbar = function() {
+    // clear the toolbar
+    this._clearManipulatorBar();
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
+
+    var locale = this.constants.locales[this.constants.locale];
+
+    // create the toolbar contents
+    this.manipulationDiv.innerHTML = "" +
+      "<span class='network-manipulationUI back' id='network-manipulate-back'>" +
+      "<span class='network-manipulationLabel'>" + locale['back'] + " </span></span>" +
+      "<div class='network-seperatorLine'></div>" +
+      "<span class='network-manipulationUI none' id='network-manipulate-back'>" +
+      "<span id='network-manipulatorLabel' class='network-manipulationLabel'>" + locale['addDescription'] + "</span></span>";
+
+    // bind the icon
+    var backButton = document.getElementById("network-manipulate-back");
+    backButton.onclick = this._createManipulatorBar.bind(this);
+
+    // we use the boundFunction so we can reference it when we unbind it from the "select" event.
+    this.boundFunction = this._addNode.bind(this);
+    this.on('select', this.boundFunction);
+  };
+
+
+  /**
+   * create the toolbar to connect nodes
+   *
+   * @private
+   */
+  exports._createAddEdgeToolbar = function() {
+    // clear the toolbar
+    this._clearManipulatorBar();
+    this._unselectAll(true);
+    this.freezeSimulation = true;
+
+    var locale = this.constants.locales[this.constants.locale];
+
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
+
+    this._unselectAll();
+    this.forceAppendSelection = false;
+    this.blockConnectingEdgeSelection = true;
+
+    this.manipulationDiv.innerHTML = "" +
+      "<span class='network-manipulationUI back' id='network-manipulate-back'>" +
+        "<span class='network-manipulationLabel'>" + locale['back'] + " </span></span>" +
+      "<div class='network-seperatorLine'></div>" +
+      "<span class='network-manipulationUI none' id='network-manipulate-back'>" +
+        "<span id='network-manipulatorLabel' class='network-manipulationLabel'>" + locale['edgeDescription'] + "</span></span>";
+
+    // bind the icon
+    var backButton = document.getElementById("network-manipulate-back");
+    backButton.onclick = this._createManipulatorBar.bind(this);
+
+    // we use the boundFunction so we can reference it when we unbind it from the "select" event.
+    this.boundFunction = this._handleConnect.bind(this);
+    this.on('select', this.boundFunction);
+
+    // temporarily overload functions
+    this.cachedFunctions["_handleTouch"] = this._handleTouch;
+    this.cachedFunctions["_handleOnRelease"] = this._handleOnRelease;
+    this._handleTouch = this._handleConnect;
+    this._handleOnRelease = this._finishConnect;
+
+    // redraw to show the unselect
+    this._redraw();
+  };
+
+  /**
+   * create the toolbar to edit edges
+   *
+   * @private
+   */
+  exports._createEditEdgeToolbar = function() {
+    // clear the toolbar
+    this._clearManipulatorBar();
+    this.controlNodesActive = true;
+
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
+
+    this.edgeBeingEdited = this._getSelectedEdge();
+    this.edgeBeingEdited._enableControlNodes();
+
+    var locale = this.constants.locales[this.constants.locale];
+
+    this.manipulationDiv.innerHTML = "" +
+      "<span class='network-manipulationUI back' id='network-manipulate-back'>" +
+      "<span class='network-manipulationLabel'>" + locale['back'] + " </span></span>" +
+      "<div class='network-seperatorLine'></div>" +
+      "<span class='network-manipulationUI none' id='network-manipulate-back'>" +
+      "<span id='network-manipulatorLabel' class='network-manipulationLabel'>" + locale['editEdgeDescription'] + "</span></span>";
+
+    // bind the icon
+    var backButton = document.getElementById("network-manipulate-back");
+    backButton.onclick = this._createManipulatorBar.bind(this);
+
+    // temporarily overload functions
+    this.cachedFunctions["_handleTouch"]      = this._handleTouch;
+    this.cachedFunctions["_handleOnRelease"]  = this._handleOnRelease;
+    this.cachedFunctions["_handleTap"]        = this._handleTap;
+    this.cachedFunctions["_handleDragStart"]  = this._handleDragStart;
+    this.cachedFunctions["_handleOnDrag"]     = this._handleOnDrag;
+    this._handleTouch     = this._selectControlNode;
+    this._handleTap       = function () {};
+    this._handleOnDrag    = this._controlNodeDrag;
+    this._handleDragStart = function () {}
+    this._handleOnRelease = this._releaseControlNode;
+
+    // redraw to show the unselect
+    this._redraw();
+  };
+
+
+
+
+
+  /**
+   * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
+   * to walk the user through the process.
+   *
+   * @private
+   */
+  exports._selectControlNode = function(pointer) {
+    this.edgeBeingEdited.controlNodes.from.unselect();
+    this.edgeBeingEdited.controlNodes.to.unselect();
+    this.selectedControlNode = this.edgeBeingEdited._getSelectedControlNode(this._XconvertDOMtoCanvas(pointer.x),this._YconvertDOMtoCanvas(pointer.y));
+    if (this.selectedControlNode !== null) {
+      this.selectedControlNode.select();
+      this.freezeSimulation = true;
+    }
+    this._redraw();
+  };
+
+  /**
+   * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
+   * to walk the user through the process.
+   *
+   * @private
+   */
+  exports._controlNodeDrag = function(event) {
+    var pointer = this._getPointer(event.gesture.center);
+    if (this.selectedControlNode !== null && this.selectedControlNode !== undefined) {
+      this.selectedControlNode.x = this._XconvertDOMtoCanvas(pointer.x);
+      this.selectedControlNode.y = this._YconvertDOMtoCanvas(pointer.y);
+    }
+    this._redraw();
+  };
+
+  exports._releaseControlNode = function(pointer) {
+    var newNode = this._getNodeAt(pointer);
+    if (newNode != null) {
+      if (this.edgeBeingEdited.controlNodes.from.selected == true) {
+        this._editEdge(newNode.id, this.edgeBeingEdited.to.id);
+        this.edgeBeingEdited.controlNodes.from.unselect();
+      }
+      if (this.edgeBeingEdited.controlNodes.to.selected == true) {
+        this._editEdge(this.edgeBeingEdited.from.id, newNode.id);
+        this.edgeBeingEdited.controlNodes.to.unselect();
+      }
+    }
+    else {
+      this.edgeBeingEdited._restoreControlNodes();
+    }
+    this.freezeSimulation = false;
+    this._redraw();
+  };
+
+  /**
+   * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
+   * to walk the user through the process.
+   *
+   * @private
+   */
+  exports._handleConnect = function(pointer) {
+    if (this._getSelectedNodeCount() == 0) {
+      var node = this._getNodeAt(pointer);
+      var supportNodes, targetNode, targetViaNode, connectionEdge;
+
+      if (node != null) {
+        if (node.clusterSize > 1) {
+          alert(this.constants.locales[this.constants.locale]['createEdgeError'])
+        }
+        else {
+          this._selectObject(node,false);
+          supportNodes = this.sectors['support']['nodes'];
+
+            // create a node the temporary line can look at
+          supportNodes['targetNode'] = targetNode = new Node({id:'targetNode'},{},{},this.constants);
+          targetNode.x = node.x;
+          targetNode.y = node.y;
+
+          supportNodes['targetViaNode'] = targetViaNode = new Node({id:'targetViaNode'},{},{},this.constants);
+          targetViaNode.x = node.x;
+          targetViaNode.y = node.y;
+          targetViaNode.parentEdgeId = "connectionEdge";
+
+          // create a temporary edge
+          this.edges['connectionEdge'] = connectionEdge = new Edge({id:"connectionEdge",from:node.id,to:targetNode.id}, this, this.constants);
+          connectionEdge.from = node;
+          connectionEdge.connected = true;
+          connectionEdge.smooth = true;
+          connectionEdge.selected = true;
+          connectionEdge.to = targetNode;
+          connectionEdge.via = targetViaNode;
+
+          this.cachedFunctions["_handleOnDrag"] = this._handleOnDrag;
+          this._handleOnDrag = function(event) {
+            var pointer = this._getPointer(event.gesture.center);
+            var supportNodes = this.sectors['support']['nodes'];
+            supportNodes['targetNode'].x = this._XconvertDOMtoCanvas(pointer.x);
+            supportNodes['targetNode'].y = this._YconvertDOMtoCanvas(pointer.y);
+            supportNodes['targetViaNode'].x = 0.5 * (this._XconvertDOMtoCanvas(pointer.x) + this.edges['connectionEdge'].from.x);
+            supportNodes['targetViaNode'].y = this._YconvertDOMtoCanvas(pointer.y);
+          };
+
+          this.moving = true;
+          this.start();
+        }
+      }
+    }
+  };
+
+  exports._finishConnect = function(pointer) {
+    if (this._getSelectedNodeCount() == 1) {
+
+      // restore the drag function
+      this._handleOnDrag = this.cachedFunctions["_handleOnDrag"];
+      delete this.cachedFunctions["_handleOnDrag"];
+
+      // remember the edge id
+      var connectFromId = this.edges['connectionEdge'].fromId;
+
+      // remove the temporary nodes and edge
+      delete this.edges['connectionEdge'];
+      delete this.sectors['support']['nodes']['targetNode'];
+      delete this.sectors['support']['nodes']['targetViaNode'];
+
+      var node = this._getNodeAt(pointer);
+      if (node != null) {
+        if (node.clusterSize > 1) {
+          alert(this.constants.locales[this.constants.locale]["createEdgeError"])
+        }
+        else {
+          this._createEdge(connectFromId,node.id);
+          this._createManipulatorBar();
+        }
+      }
+      this._unselectAll();
+    }
+  };
+
+
+  /**
+   * Adds a node on the specified location
+   */
+  exports._addNode = function() {
+    if (this._selectionIsEmpty() && this.editMode == true) {
+      var positionObject = this._pointerToPositionObject(this.pointerPosition);
+      var defaultData = {id:util.randomUUID(),x:positionObject.left,y:positionObject.top,label:"new",allowedToMoveX:true,allowedToMoveY:true};
+      if (this.triggerFunctions.add) {
+        if (this.triggerFunctions.add.length == 2) {
+          var me = this;
+          this.triggerFunctions.add(defaultData, function(finalizedData) {
+            me.nodesData.add(finalizedData);
+            me._createManipulatorBar();
+            me.moving = true;
+            me.start();
+          });
+        }
+        else {
+          throw new Error('The function for add does not support two arguments (data,callback)');
+          this._createManipulatorBar();
+          this.moving = true;
+          this.start();
+        }
+      }
+      else {
+        this.nodesData.add(defaultData);
+        this._createManipulatorBar();
+        this.moving = true;
+        this.start();
+      }
+    }
+  };
+
+
+  /**
+   * connect two nodes with a new edge.
+   *
+   * @private
+   */
+  exports._createEdge = function(sourceNodeId,targetNodeId) {
+    if (this.editMode == true) {
+      var defaultData = {from:sourceNodeId, to:targetNodeId};
+      if (this.triggerFunctions.connect) {
+        if (this.triggerFunctions.connect.length == 2) {
+          var me = this;
+          this.triggerFunctions.connect(defaultData, function(finalizedData) {
+            me.edgesData.add(finalizedData);
+            me.moving = true;
+            me.start();
+          });
+        }
+        else {
+          throw new Error('The function for connect does not support two arguments (data,callback)');
+          this.moving = true;
+          this.start();
+        }
+      }
+      else {
+        this.edgesData.add(defaultData);
+        this.moving = true;
+        this.start();
+      }
+    }
+  };
+
+  /**
+   * connect two nodes with a new edge.
+   *
+   * @private
+   */
+  exports._editEdge = function(sourceNodeId,targetNodeId) {
+    if (this.editMode == true) {
+      var defaultData = {id: this.edgeBeingEdited.id, from:sourceNodeId, to:targetNodeId};
+      if (this.triggerFunctions.editEdge) {
+        if (this.triggerFunctions.editEdge.length == 2) {
+          var me = this;
+          this.triggerFunctions.editEdge(defaultData, function(finalizedData) {
+            me.edgesData.update(finalizedData);
+            me.moving = true;
+            me.start();
+          });
+        }
+        else {
+          throw new Error('The function for edit does not support two arguments (data, callback)');
+          this.moving = true;
+          this.start();
+        }
+      }
+      else {
+        this.edgesData.update(defaultData);
+        this.moving = true;
+        this.start();
+      }
+    }
+  };
+
+  /**
+   * Create the toolbar to edit the selected node. The label and the color can be changed. Other colors are derived from the chosen color.
+   *
+   * @private
+   */
+  exports._editNode = function() {
+    if (this.triggerFunctions.edit && this.editMode == true) {
+      var node = this._getSelectedNode();
+      var data = {id:node.id,
+        label: node.label,
+        group: node.options.group,
+        shape: node.options.shape,
+        color: {
+          background:node.options.color.background,
+          border:node.options.color.border,
+          highlight: {
+            background:node.options.color.highlight.background,
+            border:node.options.color.highlight.border
+          }
+        }};
+      if (this.triggerFunctions.edit.length == 2) {
+        var me = this;
+        this.triggerFunctions.edit(data, function (finalizedData) {
+          me.nodesData.update(finalizedData);
+          me._createManipulatorBar();
+          me.moving = true;
+          me.start();
+        });
+      }
+      else {
+        throw new Error('The function for edit does not support two arguments (data, callback)');
+      }
+    }
+    else {
+      throw new Error('No edit function has been bound to this button');
+    }
+  };
+
+
+
+
+  /**
+   * delete everything in the selection
+   *
+   * @private
+   */
+  exports._deleteSelected = function() {
+    if (!this._selectionIsEmpty() && this.editMode == true) {
+      if (!this._clusterInSelection()) {
+        var selectedNodes = this.getSelectedNodes();
+        var selectedEdges = this.getSelectedEdges();
+        if (this.triggerFunctions.del) {
+          var me = this;
+          var data = {nodes: selectedNodes, edges: selectedEdges};
+          if (this.triggerFunctions.del.length = 2) {
+            this.triggerFunctions.del(data, function (finalizedData) {
+              me.edgesData.remove(finalizedData.edges);
+              me.nodesData.remove(finalizedData.nodes);
+              me._unselectAll();
+              me.moving = true;
+              me.start();
+            });
+          }
+          else {
+            throw new Error('The function for delete does not support two arguments (data, callback)')
+          }
+        }
+        else {
+          this.edgesData.remove(selectedEdges);
+          this.nodesData.remove(selectedNodes);
+          this._unselectAll();
+          this.moving = true;
+          this.start();
+        }
+      }
+      else {
+        alert(this.constants.locales[this.constants.locale]["deleteClusterError"]);
+      }
+    }
+  };
+
+
+/***/ },
+/* 57 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var util = __webpack_require__(1);
+  var Hammer = __webpack_require__(42);
+
+  exports._cleanNavigation = function() {
+    // clean up previous navigation items
+    var wrapper = document.getElementById('network-navigation_wrapper');
+    if (wrapper && wrapper.parentNode) {
+      wrapper.parentNode.removeChild(wrapper);
+    }
+    document.onmouseup = null;
+  };
+
+  /**
+   * Creation of the navigation controls nodes. They are drawn over the rest of the nodes and are not affected by scale and translation
+   * they have a triggerFunction which is called on click. If the position of the navigation controls is dependent
+   * on this.frame.canvas.clientWidth or this.frame.canvas.clientHeight, we flag horizontalAlignLeft and verticalAlignTop false.
+   * This means that the location will be corrected by the _relocateNavigation function on a size change of the canvas.
+   *
+   * @private
+   */
+  exports._loadNavigationElements = function() {
+    this._cleanNavigation();
+
+    this.navigationDivs = {};
+    var navigationDivs = ['up','down','left','right','zoomIn','zoomOut','zoomExtends'];
+    var navigationDivActions = ['_moveUp','_moveDown','_moveLeft','_moveRight','_zoomIn','_zoomOut','zoomExtent'];
+
+    this.navigationDivs['wrapper'] = document.createElement('div');
+    this.navigationDivs['wrapper'].id = 'network-navigation_wrapper';
+    this.frame.appendChild(this.navigationDivs['wrapper']);
+
+    var me = this;
+    for (var i = 0; i < navigationDivs.length; i++) {
+      this.navigationDivs[navigationDivs[i]] = document.createElement('div');
+      this.navigationDivs[navigationDivs[i]].id = 'network-navigation_' + navigationDivs[i];
+      this.navigationDivs[navigationDivs[i]].className = 'network-navigation ' + navigationDivs[i];
+      this.navigationDivs['wrapper'].appendChild(this.navigationDivs[navigationDivs[i]]);
+      var hammer = Hammer(this.navigationDivs[navigationDivs[i]], {prevent_default: true});
+      hammer.on('touch', me[navigationDivActions[i]].bind(me));
+    }
+    var hammer = Hammer(document, {prevent_default: false});
+    hammer.on('release', me._stopMovement.bind(me));
+  };
+
+  /**
+   * this stops all movement induced by the navigation buttons
+   *
+   * @private
+   */
+  exports._stopMovement = function() {
+    this._xStopMoving();
+    this._yStopMoving();
+    this._stopZoom();
+  };
+
+
+  /**
+   * move the screen up
+   * By using the increments, instead of adding a fixed number to the translation, we keep fluent and
+   * instant movement. The onKeypress event triggers immediately, then pauses, then triggers frequently
+   * To avoid this behaviour, we do the translation in the start loop.
+   *
+   * @private
+   */
+  exports._moveUp = function(event) {
+    this.yIncrement = this.constants.keyboard.speed.y;
+    this.start(); // if there is no node movement, the calculation wont be done
+    event.preventDefault();
+  };
+
+
+  /**
+   * move the screen down
+   * @private
+   */
+  exports._moveDown = function(event) {
+    this.yIncrement = -this.constants.keyboard.speed.y;
+    this.start(); // if there is no node movement, the calculation wont be done
+    event.preventDefault();
+  };
+
+
+  /**
+   * move the screen left
+   * @private
+   */
+  exports._moveLeft = function(event) {
+    this.xIncrement = this.constants.keyboard.speed.x;
+    this.start(); // if there is no node movement, the calculation wont be done
+    event.preventDefault();
+  };
+
+
+  /**
+   * move the screen right
+   * @private
+   */
+  exports._moveRight = function(event) {
+    this.xIncrement = -this.constants.keyboard.speed.y;
+    this.start(); // if there is no node movement, the calculation wont be done
+    event.preventDefault();
+  };
+
+
+  /**
+   * Zoom in, using the same method as the movement.
+   * @private
+   */
+  exports._zoomIn = function(event) {
+    this.zoomIncrement = this.constants.keyboard.speed.zoom;
+    this.start(); // if there is no node movement, the calculation wont be done
+    event.preventDefault();
+  };
+
+
+  /**
+   * Zoom out
+   * @private
+   */
+  exports._zoomOut = function(event) {
+    this.zoomIncrement = -this.constants.keyboard.speed.zoom;
+    this.start(); // if there is no node movement, the calculation wont be done
+    event.preventDefault();
+  };
+
+
+  /**
+   * Stop zooming and unhighlight the zoom controls
+   * @private
+   */
+  exports._stopZoom = function(event) {
+    this.zoomIncrement = 0;
+    event && event.preventDefault();
+  };
+
+
+  /**
+   * Stop moving in the Y direction and unHighlight the up and down
+   * @private
+   */
+  exports._yStopMoving = function(event) {
+    this.yIncrement = 0;
+    event && event.preventDefault();
+  };
+
+
+  /**
+   * Stop moving in the X direction and unHighlight left and right.
+   * @private
+   */
+  exports._xStopMoving = function(event) {
+    this.xIncrement = 0;
+    event && event.preventDefault();
+  };
+
+
+/***/ },
+/* 58 */
+/***/ function(module, exports, __webpack_require__) {
+
+  exports._resetLevels = function() {
+    for (var nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        var node = this.nodes[nodeId];
+        if (node.preassignedLevel == false) {
+          node.level = -1;
+          node.hierarchyEnumerated = false;
+        }
+      }
+    }
+  };
+
+  /**
+   * This is the main function to layout the nodes in a hierarchical way.
+   * It checks if the node details are supplied correctly
+   *
+   * @private
+   */
+  exports._setupHierarchicalLayout = function() {
+    if (this.constants.hierarchicalLayout.enabled == true && this.nodeIndices.length > 0) {
+      if (this.constants.hierarchicalLayout.direction == "RL" || this.constants.hierarchicalLayout.direction == "DU") {
+        this.constants.hierarchicalLayout.levelSeparation *= -1;
+      }
+      else {
+        this.constants.hierarchicalLayout.levelSeparation = Math.abs(this.constants.hierarchicalLayout.levelSeparation);
+      }
+
+      if (this.constants.hierarchicalLayout.direction == "RL" || this.constants.hierarchicalLayout.direction == "LR") {
+        if (this.constants.smoothCurves.enabled == true) {
+          this.constants.smoothCurves.type = "vertical";
+        }
+      }
+      else {
+        if (this.constants.smoothCurves.enabled == true) {
+          this.constants.smoothCurves.type = "horizontal";
+        }
+      }
+      // get the size of the largest hubs and check if the user has defined a level for a node.
+      var hubsize = 0;
+      var node, nodeId;
+      var definedLevel = false;
+      var undefinedLevel = false;
+
+      for (nodeId in this.nodes) {
+        if (this.nodes.hasOwnProperty(nodeId)) {
+          node = this.nodes[nodeId];
+          if (node.level != -1) {
+            definedLevel = true;
+          }
+          else {
+            undefinedLevel = true;
+          }
+          if (hubsize < node.edges.length) {
+            hubsize = node.edges.length;
+          }
+        }
+      }
+
+      // if the user defined some levels but not all, alert and run without hierarchical layout
+      if (undefinedLevel == true && definedLevel == true) {
+        throw new Error("To use the hierarchical layout, nodes require either no predefined levels or levels have to be defined for all nodes.");
+        this.zoomExtent(undefined,true,this.constants.clustering.enabled);
+        if (!this.constants.clustering.enabled) {
+          this.start();
+        }
+      }
+      else {
+        // setup the system to use hierarchical method.
+        this._changeConstants();
+
+        // define levels if undefined by the users. Based on hubsize
+        if (undefinedLevel == true) {
+          if (this.constants.hierarchicalLayout.layout == "hubsize") {
+            this._determineLevels(hubsize);
+          }
+          else {
+            this._determineLevelsDirected();
+          }
+
+        }
+        // check the distribution of the nodes per level.
+        var distribution = this._getDistribution();
+
+        // place the nodes on the canvas. This also stablilizes the system.
+        this._placeNodesByHierarchy(distribution);
+
+        // start the simulation.
+        this.start();
+      }
+    }
+  };
+
+
+  /**
+   * This function places the nodes on the canvas based on the hierarchial distribution.
+   *
+   * @param {Object} distribution | obtained by the function this._getDistribution()
+   * @private
+   */
+  exports._placeNodesByHierarchy = function(distribution) {
+    var nodeId, node;
+
+    // start placing all the level 0 nodes first. Then recursively position their branches.
+    for (var level in distribution) {
+      if (distribution.hasOwnProperty(level)) {
+
+        for (nodeId in distribution[level].nodes) {
+          if (distribution[level].nodes.hasOwnProperty(nodeId)) {
+            node = distribution[level].nodes[nodeId];
+            if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
+              if (node.xFixed) {
+                node.x = distribution[level].minPos;
+                node.xFixed = false;
+
+                distribution[level].minPos += distribution[level].nodeSpacing;
+              }
+            }
+            else {
+              if (node.yFixed) {
+                node.y = distribution[level].minPos;
+                node.yFixed = false;
+
+                distribution[level].minPos += distribution[level].nodeSpacing;
+              }
+            }
+            this._placeBranchNodes(node.edges,node.id,distribution,node.level);
+          }
+        }
+      }
+    }
+
+    // stabilize the system after positioning. This function calls zoomExtent.
+    this._stabilize();
+  };
+
+
+  /**
+   * This function get the distribution of levels based on hubsize
+   *
+   * @returns {Object}
+   * @private
+   */
+  exports._getDistribution = function() {
+    var distribution = {};
+    var nodeId, node, level;
+
+    // we fix Y because the hierarchy is vertical, we fix X so we do not give a node an x position for a second time.
+    // the fix of X is removed after the x value has been set.
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        node = this.nodes[nodeId];
+        node.xFixed = true;
+        node.yFixed = true;
+        if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
+          node.y = this.constants.hierarchicalLayout.levelSeparation*node.level;
+        }
+        else {
+          node.x = this.constants.hierarchicalLayout.levelSeparation*node.level;
+        }
+        if (distribution[node.level] === undefined) {
+          distribution[node.level] = {amount: 0, nodes: {}, minPos:0, nodeSpacing:0};
+        }
+        distribution[node.level].amount += 1;
+        distribution[node.level].nodes[nodeId] = node;
+      }
+    }
+
+    // determine the largest amount of nodes of all levels
+    var maxCount = 0;
+    for (level in distribution) {
+      if (distribution.hasOwnProperty(level)) {
+        if (maxCount < distribution[level].amount) {
+          maxCount = distribution[level].amount;
+        }
+      }
+    }
+
+    // set the initial position and spacing of each nodes accordingly
+    for (level in distribution) {
+      if (distribution.hasOwnProperty(level)) {
+        distribution[level].nodeSpacing = (maxCount + 1) * this.constants.hierarchicalLayout.nodeSpacing;
+        distribution[level].nodeSpacing /= (distribution[level].amount + 1);
+        distribution[level].minPos = distribution[level].nodeSpacing - (0.5 * (distribution[level].amount + 1) * distribution[level].nodeSpacing);
+      }
+    }
+
+    return distribution;
+  };
+
+
+  /**
+   * this function allocates nodes in levels based on the recursive branching from the largest hubs.
+   *
+   * @param hubsize
+   * @private
+   */
+  exports._determineLevels = function(hubsize) {
+    var nodeId, node;
+
+    // determine hubs
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        node = this.nodes[nodeId];
+        if (node.edges.length == hubsize) {
+          node.level = 0;
+        }
+      }
+    }
+
+    // branch from hubs
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        node = this.nodes[nodeId];
+        if (node.level == 0) {
+          this._setLevel(1,node.edges,node.id);
+        }
+      }
+    }
+  };
+
+  /**
+   * this function allocates nodes in levels based on the recursive branching from the largest hubs.
+   *
+   * @param hubsize
+   * @private
+   */
+  exports._determineLevelsDirected = function() {
+    var nodeId, node;
+
+    // set first node to source
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        this.nodes[nodeId].level = 10000;
+        break;
+      }
+    }
+
+    // branch from hubs
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        node = this.nodes[nodeId];
+        if (node.level == 10000) {
+          this._setLevelDirected(10000,node.edges,node.id);
+        }
+      }
+    }
+
+
+    // branch from hubs
+    var minLevel = 10000;
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        node = this.nodes[nodeId];
+        minLevel = node.level < minLevel ? node.level : minLevel;
+      }
+    }
+
+    // branch from hubs
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        node = this.nodes[nodeId];
+        node.level -= minLevel;
+      }
+    }
+  };
+
+
+  /**
+   * Since hierarchical layout does not support:
+   *    - smooth curves (based on the physics),
+   *    - clustering (based on dynamic node counts)
+   *
+   * We disable both features so there will be no problems.
+   *
+   * @private
+   */
+  exports._changeConstants = function() {
+    this.constants.clustering.enabled = false;
+    this.constants.physics.barnesHut.enabled = false;
+    this.constants.physics.hierarchicalRepulsion.enabled = true;
+    this._loadSelectedForceSolver();
+    if (this.constants.smoothCurves.enabled == true) {
+      this.constants.smoothCurves.dynamic = false;
+    }
+    this._configureSmoothCurves();
+  };
+
+
+  /**
+   * This is a recursively called function to enumerate the branches from the largest hubs and place the nodes
+   * on a X position that ensures there will be no overlap.
+   *
+   * @param edges
+   * @param parentId
+   * @param distribution
+   * @param parentLevel
+   * @private
+   */
+  exports._placeBranchNodes = function(edges, parentId, distribution, parentLevel) {
+    for (var i = 0; i < edges.length; i++) {
+      var childNode = null;
+      if (edges[i].toId == parentId) {
+        childNode = edges[i].from;
+      }
+      else {
+        childNode = edges[i].to;
+      }
+
+      // if a node is conneceted to another node on the same level (or higher (means lower level))!, this is not handled here.
+      var nodeMoved = false;
+      if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
+        if (childNode.xFixed && childNode.level > parentLevel) {
+          childNode.xFixed = false;
+          childNode.x = distribution[childNode.level].minPos;
+          nodeMoved = true;
+        }
+      }
+      else {
+        if (childNode.yFixed && childNode.level > parentLevel) {
+          childNode.yFixed = false;
+          childNode.y = distribution[childNode.level].minPos;
+          nodeMoved = true;
+        }
+      }
+
+      if (nodeMoved == true) {
+        distribution[childNode.level].minPos += distribution[childNode.level].nodeSpacing;
+        if (childNode.edges.length > 1) {
+          this._placeBranchNodes(childNode.edges,childNode.id,distribution,childNode.level);
+        }
+      }
+    }
+  };
+
+
+  /**
+   * this function is called recursively to enumerate the barnches of the largest hubs and give each node a level.
+   *
+   * @param level
+   * @param edges
+   * @param parentId
+   * @private
+   */
+  exports._setLevel = function(level, edges, parentId) {
+    for (var i = 0; i < edges.length; i++) {
+      var childNode = null;
+      if (edges[i].toId == parentId) {
+        childNode = edges[i].from;
+      }
+      else {
+        childNode = edges[i].to;
+      }
+      if (childNode.level == -1 || childNode.level > level) {
+        childNode.level = level;
+        if (childNode.edges.length > 1) {
+          this._setLevel(level+1, childNode.edges, childNode.id);
+        }
+      }
+    }
+  };
+
+
+  /**
+   * this function is called recursively to enumerate the barnches of the largest hubs and give each node a level.
+   *
+   * @param level
+   * @param edges
+   * @param parentId
+   * @private
+   */
+  exports._setLevelDirected = function(level, edges, parentId) {
+    this.nodes[parentId].hierarchyEnumerated = true;
+    for (var i = 0; i < edges.length; i++) {
+      var childNode = null;
+      var direction = 1;
+      if (edges[i].toId == parentId) {
+        childNode = edges[i].from;
+        direction = -1;
+      }
+      else {
+        childNode = edges[i].to;
+      }
+      if (childNode.level == -1) {
+        childNode.level = level + direction;
+      }
+    }
+
+    for (var i = 0; i < edges.length; i++) {
+      var childNode = null;
+      if (edges[i].toId == parentId) {childNode = edges[i].from;}
+      else {childNode = edges[i].to;}
+      if (childNode.edges.length > 1 && childNode.hierarchyEnumerated === false) {
+        this._setLevelDirected(childNode.level, childNode.edges, childNode.id);
+      }
+    }
+  };
+
+
+  /**
+   * Unfix nodes
+   *
+   * @private
+   */
+  exports._restoreNodes = function() {
+    for (var nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        this.nodes[nodeId].xFixed = false;
+        this.nodes[nodeId].yFixed = false;
+      }
+    }
+  };
+
+
+/***/ },
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v1.1.3 - 2014-05-20
@@ -27304,9 +30703,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // AMD export
   if(true) {
-      !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
+      !(__WEBPACK_AMD_DEFINE_RESULT__ = (function() {
           return Hammer;
-      }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+      }.call(exports, __webpack_require__, exports, module)), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
   // commonjs export
   } else if(typeof module !== 'undefined' && module.exports) {
       module.exports = Hammer;
@@ -27316,3592 +30715,6 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
   })(window);
-
-/***/ },
-/* 54 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * Creation of the ClusterMixin var.
-   *
-   * This contains all the functions the Network object can use to employ clustering
-   */
-
-  /**
-  * This is only called in the constructor of the network object
-  *
-  */
-  exports.startWithClustering = function() {
-   // cluster if the data set is big
-   this.clusterToFit(this.constants.clustering.initialMaxNodes, true);
-
-   // updates the lables after clustering
-   this.updateLabels();
-
-   // this is called here because if clusterin is disabled, the start and stabilize are called in
-   // the setData function.
-   if (this.stabilize) {
-     this._stabilize();
-   }
-   this.start();
-  };
-
-  /**
-   * This function clusters until the initialMaxNodes has been reached
-   *
-   * @param {Number}  maxNumberOfNodes
-   * @param {Boolean} reposition
-   */
-  exports.clusterToFit = function(maxNumberOfNodes, reposition) {
-    var numberOfNodes = this.nodeIndices.length;
-
-    var maxLevels = 50;
-    var level = 0;
-
-    // we first cluster the hubs, then we pull in the outliers, repeat
-    while (numberOfNodes > maxNumberOfNodes && level < maxLevels) {
-      if (level % 3 == 0) {
-        this.forceAggregateHubs(true);
-        this.normalizeClusterLevels();
-      }
-      else {
-        this.increaseClusterLevel(); // this also includes a cluster normalization
-      }
-
-      numberOfNodes = this.nodeIndices.length;
-      level += 1;
-    }
-
-    // after the clustering we reposition the nodes to reduce the initial chaos
-    if (level > 0 && reposition == true) {
-      this.repositionNodes();
-    }
-    this._updateCalculationNodes();
-  };
-
-  /**
-   * This function can be called to open up a specific cluster. It is only called by
-   * It will unpack the cluster back one level.
-   *
-   * @param node    | Node object: cluster to open.
-   */
-  exports.openCluster = function(node) {
-    var isMovingBeforeClustering = this.moving;
-    if (node.clusterSize > this.constants.clustering.sectorThreshold && this._nodeInActiveArea(node) &&
-      !(this._sector() == "default" && this.nodeIndices.length == 1)) {
-      // this loads a new sector, loads the nodes and edges and nodeIndices of it.
-      this._addSector(node);
-      var level = 0;
-
-      // we decluster until we reach a decent number of nodes
-      while ((this.nodeIndices.length < this.constants.clustering.initialMaxNodes) && (level < 10)) {
-        this.decreaseClusterLevel();
-        level += 1;
-      }
-
-    }
-    else {
-      this._expandClusterNode(node,false,true);
-
-      // update the index list, dynamic edges and labels
-      this._updateNodeIndexList();
-      this._updateDynamicEdges();
-      this._updateCalculationNodes();
-      this.updateLabels();
-    }
-
-    // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
-    if (this.moving != isMovingBeforeClustering) {
-      this.start();
-    }
-  };
-
-
-  /**
-   * This calls the updateClustes with default arguments
-   */
-  exports.updateClustersDefault = function() {
-    if (this.constants.clustering.enabled == true) {
-      this.updateClusters(0,false,false);
-    }
-  };
-
-
-  /**
-   * This function can be called to increase the cluster level. This means that the nodes with only one edge connection will
-   * be clustered with their connected node. This can be repeated as many times as needed.
-   * This can be called externally (by a keybind for instance) to reduce the complexity of big datasets.
-   */
-  exports.increaseClusterLevel = function() {
-    this.updateClusters(-1,false,true);
-  };
-
-
-  /**
-   * This function can be called to decrease the cluster level. This means that the nodes with only one edge connection will
-   * be unpacked if they are a cluster. This can be repeated as many times as needed.
-   * This can be called externally (by a key-bind for instance) to look into clusters without zooming.
-   */
-  exports.decreaseClusterLevel = function() {
-    this.updateClusters(1,false,true);
-  };
-
-
-  /**
-   * This is the main clustering function. It clusters and declusters on zoom or forced
-   * This function clusters on zoom, it can be called with a predefined zoom direction
-   * If out, check if we can form clusters, if in, check if we can open clusters.
-   * This function is only called from _zoom()
-   *
-   * @param {Number} zoomDirection  | -1 / 0 / +1   for  zoomOut / determineByZoom / zoomIn
-   * @param {Boolean} recursive     | enabled or disable recursive calling of the opening of clusters
-   * @param {Boolean} force         | enabled or disable forcing
-   * @param {Boolean} doNotStart    | if true do not call start
-   *
-   */
-  exports.updateClusters = function(zoomDirection,recursive,force,doNotStart) {
-    var isMovingBeforeClustering = this.moving;
-    var amountOfNodes = this.nodeIndices.length;
-
-    // on zoom out collapse the sector if the scale is at the level the sector was made
-    if (this.previousScale > this.scale && zoomDirection == 0) {
-      this._collapseSector();
-    }
-
-    // check if we zoom in or out
-    if (this.previousScale > this.scale || zoomDirection == -1) { // zoom out
-      // forming clusters when forced pulls outliers in. When not forced, the edge length of the
-      // outer nodes determines if it is being clustered
-      this._formClusters(force);
-    }
-    else if (this.previousScale < this.scale || zoomDirection == 1) { // zoom in
-      if (force == true) {
-        // _openClusters checks for each node if the formationScale of the cluster is smaller than
-        // the current scale and if so, declusters. When forced, all clusters are reduced by one step
-        this._openClusters(recursive,force);
-      }
-      else {
-        // if a cluster takes up a set percentage of the active window
-        this._openClustersBySize();
-      }
-    }
-    this._updateNodeIndexList();
-
-    // if a cluster was NOT formed and the user zoomed out, we try clustering by hubs
-    if (this.nodeIndices.length == amountOfNodes && (this.previousScale > this.scale || zoomDirection == -1))  {
-      this._aggregateHubs(force);
-      this._updateNodeIndexList();
-    }
-
-    // we now reduce chains.
-    if (this.previousScale > this.scale || zoomDirection == -1) { // zoom out
-      this.handleChains();
-      this._updateNodeIndexList();
-    }
-
-    this.previousScale = this.scale;
-
-    // rest of the update the index list, dynamic edges and labels
-    this._updateDynamicEdges();
-    this.updateLabels();
-
-    // if a cluster was formed, we increase the clusterSession
-    if (this.nodeIndices.length < amountOfNodes) { // this means a clustering operation has taken place
-      this.clusterSession += 1;
-      // if clusters have been made, we normalize the cluster level
-      this.normalizeClusterLevels();
-    }
-
-    if (doNotStart == false || doNotStart === undefined) {
-      // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
-      if (this.moving != isMovingBeforeClustering) {
-        this.start();
-      }
-    }
-
-    this._updateCalculationNodes();
-  };
-
-  /**
-   * This function handles the chains. It is called on every updateClusters().
-   */
-  exports.handleChains = function() {
-    // after clustering we check how many chains there are
-    var chainPercentage = this._getChainFraction();
-    if (chainPercentage > this.constants.clustering.chainThreshold) {
-      this._reduceAmountOfChains(1 - this.constants.clustering.chainThreshold / chainPercentage)
-
-    }
-  };
-
-  /**
-   * this functions starts clustering by hubs
-   * The minimum hub threshold is set globally
-   *
-   * @private
-   */
-  exports._aggregateHubs = function(force) {
-    this._getHubSize();
-    this._formClustersByHub(force,false);
-  };
-
-
-  /**
-   * This function is fired by keypress. It forces hubs to form.
-   *
-   */
-  exports.forceAggregateHubs = function(doNotStart) {
-    var isMovingBeforeClustering = this.moving;
-    var amountOfNodes = this.nodeIndices.length;
-
-    this._aggregateHubs(true);
-
-    // update the index list, dynamic edges and labels
-    this._updateNodeIndexList();
-    this._updateDynamicEdges();
-    this.updateLabels();
-
-    // if a cluster was formed, we increase the clusterSession
-    if (this.nodeIndices.length != amountOfNodes) {
-      this.clusterSession += 1;
-    }
-
-    if (doNotStart == false || doNotStart === undefined) {
-      // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
-      if (this.moving != isMovingBeforeClustering) {
-        this.start();
-      }
-    }
-  };
-
-  /**
-   * If a cluster takes up more than a set percentage of the screen, open the cluster
-   *
-   * @private
-   */
-  exports._openClustersBySize = function() {
-    for (var nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        var node = this.nodes[nodeId];
-        if (node.inView() == true) {
-          if ((node.width*this.scale > this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientWidth) ||
-              (node.height*this.scale > this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientHeight)) {
-            this.openCluster(node);
-          }
-        }
-      }
-    }
-  };
-
-
-  /**
-   * This function loops over all nodes in the nodeIndices list. For each node it checks if it is a cluster and if it
-   * has to be opened based on the current zoom level.
-   *
-   * @private
-   */
-  exports._openClusters = function(recursive,force) {
-    for (var i = 0; i < this.nodeIndices.length; i++) {
-      var node = this.nodes[this.nodeIndices[i]];
-      this._expandClusterNode(node,recursive,force);
-      this._updateCalculationNodes();
-    }
-  };
-
-  /**
-   * This function checks if a node has to be opened. This is done by checking the zoom level.
-   * If the node contains child nodes, this function is recursively called on the child nodes as well.
-   * This recursive behaviour is optional and can be set by the recursive argument.
-   *
-   * @param {Node}    parentNode    | to check for cluster and expand
-   * @param {Boolean} recursive     | enabled or disable recursive calling
-   * @param {Boolean} force         | enabled or disable forcing
-   * @param {Boolean} [openAll]     | This will recursively force all nodes in the parent to be released
-   * @private
-   */
-  exports._expandClusterNode = function(parentNode, recursive, force, openAll) {
-    // first check if node is a cluster
-    if (parentNode.clusterSize > 1) {
-      // this means that on a double tap event or a zoom event, the cluster fully unpacks if it is smaller than 20
-      if (parentNode.clusterSize < this.constants.clustering.sectorThreshold) {
-        openAll = true;
-      }
-      recursive = openAll ? true : recursive;
-
-      // if the last child has been added on a smaller scale than current scale decluster
-      if (parentNode.formationScale < this.scale || force == true) {
-        // we will check if any of the contained child nodes should be removed from the cluster
-        for (var containedNodeId in parentNode.containedNodes) {
-          if (parentNode.containedNodes.hasOwnProperty(containedNodeId)) {
-            var childNode = parentNode.containedNodes[containedNodeId];
-
-            // force expand will expand the largest cluster size clusters. Since we cluster from outside in, we assume that
-            // the largest cluster is the one that comes from outside
-            if (force == true) {
-              if (childNode.clusterSession == parentNode.clusterSessions[parentNode.clusterSessions.length-1]
-                  || openAll) {
-                this._expelChildFromParent(parentNode,containedNodeId,recursive,force,openAll);
-              }
-            }
-            else {
-              if (this._nodeInActiveArea(parentNode)) {
-                this._expelChildFromParent(parentNode,containedNodeId,recursive,force,openAll);
-              }
-            }
-          }
-        }
-      }
-    }
-  };
-
-  /**
-   * ONLY CALLED FROM _expandClusterNode
-   *
-   * This function will expel a child_node from a parent_node. This is to de-cluster the node. This function will remove
-   * the child node from the parent contained_node object and put it back into the global nodes object.
-   * The same holds for the edge that was connected to the child node. It is moved back into the global edges object.
-   *
-   * @param {Node}    parentNode        | the parent node
-   * @param {String}  containedNodeId   | child_node id as it is contained in the containedNodes object of the parent node
-   * @param {Boolean} recursive         | This will also check if the child needs to be expanded.
-   *                                      With force and recursive both true, the entire cluster is unpacked
-   * @param {Boolean} force             | This will disregard the zoom level and will expel this child from the parent
-   * @param {Boolean} openAll           | This will recursively force all nodes in the parent to be released
-   * @private
-   */
-  exports._expelChildFromParent = function(parentNode, containedNodeId, recursive, force, openAll) {
-    var childNode = parentNode.containedNodes[containedNodeId];
-
-    // if child node has been added on smaller scale than current, kick out
-    if (childNode.formationScale < this.scale || force == true) {
-      // unselect all selected items
-      this._unselectAll();
-
-      // put the child node back in the global nodes object
-      this.nodes[containedNodeId] = childNode;
-
-      // release the contained edges from this childNode back into the global edges
-      this._releaseContainedEdges(parentNode,childNode);
-
-      // reconnect rerouted edges to the childNode
-      this._connectEdgeBackToChild(parentNode,childNode);
-
-      // validate all edges in dynamicEdges
-      this._validateEdges(parentNode);
-
-      // undo the changes from the clustering operation on the parent node
-      parentNode.options.mass -= childNode.options.mass;
-      parentNode.clusterSize -= childNode.clusterSize;
-      parentNode.options.fontSize = Math.min(this.constants.clustering.maxFontSize, this.constants.nodes.fontSize + this.constants.clustering.fontSizeMultiplier*parentNode.clusterSize);
-      parentNode.dynamicEdgesLength = parentNode.dynamicEdges.length;
-
-      // place the child node near the parent, not at the exact same location to avoid chaos in the system
-      childNode.x = parentNode.x + parentNode.growthIndicator * (0.5 - Math.random());
-      childNode.y = parentNode.y + parentNode.growthIndicator * (0.5 - Math.random());
-
-      // remove node from the list
-      delete parentNode.containedNodes[containedNodeId];
-
-      // check if there are other childs with this clusterSession in the parent.
-      var othersPresent = false;
-      for (var childNodeId in parentNode.containedNodes) {
-        if (parentNode.containedNodes.hasOwnProperty(childNodeId)) {
-          if (parentNode.containedNodes[childNodeId].clusterSession == childNode.clusterSession) {
-            othersPresent = true;
-            break;
-          }
-        }
-      }
-      // if there are no others, remove the cluster session from the list
-      if (othersPresent == false) {
-        parentNode.clusterSessions.pop();
-      }
-
-      this._repositionBezierNodes(childNode);
-  //      this._repositionBezierNodes(parentNode);
-
-      // remove the clusterSession from the child node
-      childNode.clusterSession = 0;
-
-      // recalculate the size of the node on the next time the node is rendered
-      parentNode.clearSizeCache();
-
-      // restart the simulation to reorganise all nodes
-      this.moving = true;
-    }
-
-    // check if a further expansion step is possible if recursivity is enabled
-    if (recursive == true) {
-      this._expandClusterNode(childNode,recursive,force,openAll);
-    }
-  };
-
-
-  /**
-   * position the bezier nodes at the center of the edges
-   *
-   * @param node
-   * @private
-   */
-  exports._repositionBezierNodes = function(node) {
-    for (var i = 0; i < node.dynamicEdges.length; i++) {
-      node.dynamicEdges[i].positionBezierNode();
-    }
-  };
-
-
-  /**
-   * This function checks if any nodes at the end of their trees have edges below a threshold length
-   * This function is called only from updateClusters()
-   * forceLevelCollapse ignores the length of the edge and collapses one level
-   * This means that a node with only one edge will be clustered with its connected node
-   *
-   * @private
-   * @param {Boolean} force
-   */
-  exports._formClusters = function(force) {
-    if (force == false) {
-      this._formClustersByZoom();
-    }
-    else {
-      this._forceClustersByZoom();
-    }
-  };
-
-
-  /**
-   * This function handles the clustering by zooming out, this is based on a minimum edge distance
-   *
-   * @private
-   */
-  exports._formClustersByZoom = function() {
-    var dx,dy,length,
-        minLength = this.constants.clustering.clusterEdgeThreshold/this.scale;
-
-    // check if any edges are shorter than minLength and start the clustering
-    // the clustering favours the node with the larger mass
-    for (var edgeId in this.edges) {
-      if (this.edges.hasOwnProperty(edgeId)) {
-        var edge = this.edges[edgeId];
-        if (edge.connected) {
-          if (edge.toId != edge.fromId) {
-            dx = (edge.to.x - edge.from.x);
-            dy = (edge.to.y - edge.from.y);
-            length = Math.sqrt(dx * dx + dy * dy);
-
-
-            if (length < minLength) {
-              // first check which node is larger
-              var parentNode = edge.from;
-              var childNode = edge.to;
-              if (edge.to.options.mass > edge.from.options.mass) {
-                parentNode = edge.to;
-                childNode = edge.from;
-              }
-
-              if (childNode.dynamicEdgesLength == 1) {
-                this._addToCluster(parentNode,childNode,false);
-              }
-              else if (parentNode.dynamicEdgesLength == 1) {
-                this._addToCluster(childNode,parentNode,false);
-              }
-            }
-          }
-        }
-      }
-    }
-  };
-
-  /**
-   * This function forces the network to cluster all nodes with only one connecting edge to their
-   * connected node.
-   *
-   * @private
-   */
-  exports._forceClustersByZoom = function() {
-    for (var nodeId in this.nodes) {
-      // another node could have absorbed this child.
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        var childNode = this.nodes[nodeId];
-
-        // the edges can be swallowed by another decrease
-        if (childNode.dynamicEdgesLength == 1 && childNode.dynamicEdges.length != 0) {
-          var edge = childNode.dynamicEdges[0];
-          var parentNode = (edge.toId == childNode.id) ? this.nodes[edge.fromId] : this.nodes[edge.toId];
-
-          // group to the largest node
-          if (childNode.id != parentNode.id) {
-            if (parentNode.options.mass > childNode.options.mass) {
-              this._addToCluster(parentNode,childNode,true);
-            }
-            else {
-              this._addToCluster(childNode,parentNode,true);
-            }
-          }
-        }
-      }
-    }
-  };
-
-
-  /**
-   * To keep the nodes of roughly equal size we normalize the cluster levels.
-   * This function clusters a node to its smallest connected neighbour.
-   *
-   * @param node
-   * @private
-   */
-  exports._clusterToSmallestNeighbour = function(node) {
-    var smallestNeighbour = -1;
-    var smallestNeighbourNode = null;
-    for (var i = 0; i < node.dynamicEdges.length; i++) {
-      if (node.dynamicEdges[i] !== undefined) {
-        var neighbour = null;
-        if (node.dynamicEdges[i].fromId != node.id) {
-          neighbour = node.dynamicEdges[i].from;
-        }
-        else if (node.dynamicEdges[i].toId != node.id) {
-          neighbour = node.dynamicEdges[i].to;
-        }
-
-
-        if (neighbour != null && smallestNeighbour > neighbour.clusterSessions.length) {
-          smallestNeighbour = neighbour.clusterSessions.length;
-          smallestNeighbourNode = neighbour;
-        }
-      }
-    }
-
-    if (neighbour != null && this.nodes[neighbour.id] !== undefined) {
-      this._addToCluster(neighbour, node, true);
-    }
-  };
-
-
-  /**
-   * This function forms clusters from hubs, it loops over all nodes
-   *
-   * @param {Boolean} force         |   Disregard zoom level
-   * @param {Boolean} onlyEqual     |   This only clusters a hub with a specific number of edges
-   * @private
-   */
-  exports._formClustersByHub = function(force, onlyEqual) {
-    // we loop over all nodes in the list
-    for (var nodeId in this.nodes) {
-      // we check if it is still available since it can be used by the clustering in this loop
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        this._formClusterFromHub(this.nodes[nodeId],force,onlyEqual);
-      }
-    }
-  };
-
-  /**
-   * This function forms a cluster from a specific preselected hub node
-   *
-   * @param {Node}    hubNode       |   the node we will cluster as a hub
-   * @param {Boolean} force         |   Disregard zoom level
-   * @param {Boolean} onlyEqual     |   This only clusters a hub with a specific number of edges
-   * @param {Number} [absorptionSizeOffset] |
-   * @private
-   */
-  exports._formClusterFromHub = function(hubNode, force, onlyEqual, absorptionSizeOffset) {
-    if (absorptionSizeOffset === undefined) {
-      absorptionSizeOffset = 0;
-    }
-    // we decide if the node is a hub
-    if ((hubNode.dynamicEdgesLength >= this.hubThreshold && onlyEqual == false) ||
-      (hubNode.dynamicEdgesLength == this.hubThreshold && onlyEqual == true)) {
-      // initialize variables
-      var dx,dy,length;
-      var minLength = this.constants.clustering.clusterEdgeThreshold/this.scale;
-      var allowCluster = false;
-
-      // we create a list of edges because the dynamicEdges change over the course of this loop
-      var edgesIdarray = [];
-      var amountOfInitialEdges = hubNode.dynamicEdges.length;
-      for (var j = 0; j < amountOfInitialEdges; j++) {
-        edgesIdarray.push(hubNode.dynamicEdges[j].id);
-      }
-
-      // if the hub clustering is not forces, we check if one of the edges connected
-      // to a cluster is small enough based on the constants.clustering.clusterEdgeThreshold
-      if (force == false) {
-        allowCluster = false;
-        for (j = 0; j < amountOfInitialEdges; j++) {
-          var edge = this.edges[edgesIdarray[j]];
-          if (edge !== undefined) {
-            if (edge.connected) {
-              if (edge.toId != edge.fromId) {
-                dx = (edge.to.x - edge.from.x);
-                dy = (edge.to.y - edge.from.y);
-                length = Math.sqrt(dx * dx + dy * dy);
-
-                if (length < minLength) {
-                  allowCluster = true;
-                  break;
-                }
-              }
-            }
-          }
-        }
-      }
-
-      // start the clustering if allowed
-      if ((!force && allowCluster) || force) {
-        // we loop over all edges INITIALLY connected to this hub
-        for (j = 0; j < amountOfInitialEdges; j++) {
-          edge = this.edges[edgesIdarray[j]];
-          // the edge can be clustered by this function in a previous loop
-          if (edge !== undefined) {
-            var childNode = this.nodes[(edge.fromId == hubNode.id) ? edge.toId : edge.fromId];
-            // we do not want hubs to merge with other hubs nor do we want to cluster itself.
-            if ((childNode.dynamicEdges.length <= (this.hubThreshold + absorptionSizeOffset)) &&
-                (childNode.id != hubNode.id)) {
-              this._addToCluster(hubNode,childNode,force);
-            }
-          }
-        }
-      }
-    }
-  };
-
-
-
-  /**
-   * This function adds the child node to the parent node, creating a cluster if it is not already.
-   *
-   * @param {Node} parentNode           | this is the node that will house the child node
-   * @param {Node} childNode            | this node will be deleted from the global this.nodes and stored in the parent node
-   * @param {Boolean} force             | true will only update the remainingEdges at the very end of the clustering, ensuring single level collapse
-   * @private
-   */
-  exports._addToCluster = function(parentNode, childNode, force) {
-    // join child node in the parent node
-    parentNode.containedNodes[childNode.id] = childNode;
-
-    // manage all the edges connected to the child and parent nodes
-    for (var i = 0; i < childNode.dynamicEdges.length; i++) {
-      var edge = childNode.dynamicEdges[i];
-      if (edge.toId == parentNode.id || edge.fromId == parentNode.id) { // edge connected to parentNode
-        this._addToContainedEdges(parentNode,childNode,edge);
-      }
-      else {
-        this._connectEdgeToCluster(parentNode,childNode,edge);
-      }
-    }
-    // a contained node has no dynamic edges.
-    childNode.dynamicEdges = [];
-
-    // remove circular edges from clusters
-    this._containCircularEdgesFromNode(parentNode,childNode);
-
-
-    // remove the childNode from the global nodes object
-    delete this.nodes[childNode.id];
-
-    // update the properties of the child and parent
-    var massBefore = parentNode.options.mass;
-    childNode.clusterSession = this.clusterSession;
-    parentNode.options.mass += childNode.options.mass;
-    parentNode.clusterSize += childNode.clusterSize;
-    parentNode.options.fontSize = Math.min(this.constants.clustering.maxFontSize, this.constants.nodes.fontSize + this.constants.clustering.fontSizeMultiplier*parentNode.clusterSize);
-
-    // keep track of the clustersessions so we can open the cluster up as it has been formed.
-    if (parentNode.clusterSessions[parentNode.clusterSessions.length - 1] != this.clusterSession) {
-      parentNode.clusterSessions.push(this.clusterSession);
-    }
-
-    // forced clusters only open from screen size and double tap
-    if (force == true) {
-      // parentNode.formationScale = Math.pow(1 - (1.0/11.0),this.clusterSession+3);
-      parentNode.formationScale = 0;
-    }
-    else {
-      parentNode.formationScale = this.scale; // The latest child has been added on this scale
-    }
-
-    // recalculate the size of the node on the next time the node is rendered
-    parentNode.clearSizeCache();
-
-    // set the pop-out scale for the childnode
-    parentNode.containedNodes[childNode.id].formationScale = parentNode.formationScale;
-
-    // nullify the movement velocity of the child, this is to avoid hectic behaviour
-    childNode.clearVelocity();
-
-    // the mass has altered, preservation of energy dictates the velocity to be updated
-    parentNode.updateVelocity(massBefore);
-
-    // restart the simulation to reorganise all nodes
-    this.moving = true;
-  };
-
-
-  /**
-   * This function will apply the changes made to the remainingEdges during the formation of the clusters.
-   * This is a seperate function to allow for level-wise collapsing of the node barnesHutTree.
-   * It has to be called if a level is collapsed. It is called by _formClusters().
-   * @private
-   */
-  exports._updateDynamicEdges = function() {
-    for (var i = 0; i < this.nodeIndices.length; i++) {
-      var node = this.nodes[this.nodeIndices[i]];
-      node.dynamicEdgesLength = node.dynamicEdges.length;
-
-      // this corrects for multiple edges pointing at the same other node
-      var correction = 0;
-      if (node.dynamicEdgesLength > 1) {
-        for (var j = 0; j < node.dynamicEdgesLength - 1; j++) {
-          var edgeToId = node.dynamicEdges[j].toId;
-          var edgeFromId = node.dynamicEdges[j].fromId;
-          for (var k = j+1; k < node.dynamicEdgesLength; k++) {
-            if ((node.dynamicEdges[k].toId == edgeToId && node.dynamicEdges[k].fromId == edgeFromId) ||
-                (node.dynamicEdges[k].fromId == edgeToId && node.dynamicEdges[k].toId == edgeFromId)) {
-              correction += 1;
-            }
-          }
-        }
-      }
-      node.dynamicEdgesLength -= correction;
-    }
-  };
-
-
-  /**
-   * This adds an edge from the childNode to the contained edges of the parent node
-   *
-   * @param parentNode    | Node object
-   * @param childNode     | Node object
-   * @param edge          | Edge object
-   * @private
-   */
-  exports._addToContainedEdges = function(parentNode, childNode, edge) {
-    // create an array object if it does not yet exist for this childNode
-    if (!(parentNode.containedEdges.hasOwnProperty(childNode.id))) {
-      parentNode.containedEdges[childNode.id] = []
-    }
-    // add this edge to the list
-    parentNode.containedEdges[childNode.id].push(edge);
-
-    // remove the edge from the global edges object
-    delete this.edges[edge.id];
-
-    // remove the edge from the parent object
-    for (var i = 0; i < parentNode.dynamicEdges.length; i++) {
-      if (parentNode.dynamicEdges[i].id == edge.id) {
-        parentNode.dynamicEdges.splice(i,1);
-        break;
-      }
-    }
-  };
-
-  /**
-   * This function connects an edge that was connected to a child node to the parent node.
-   * It keeps track of which nodes it has been connected to with the originalId array.
-   *
-   * @param {Node} parentNode    | Node object
-   * @param {Node} childNode     | Node object
-   * @param {Edge} edge          | Edge object
-   * @private
-   */
-  exports._connectEdgeToCluster = function(parentNode, childNode, edge) {
-    // handle circular edges
-    if (edge.toId == edge.fromId) {
-      this._addToContainedEdges(parentNode, childNode, edge);
-    }
-    else {
-      if (edge.toId == childNode.id) {    // edge connected to other node on the "to" side
-        edge.originalToId.push(childNode.id);
-        edge.to = parentNode;
-        edge.toId = parentNode.id;
-      }
-      else {          // edge connected to other node with the "from" side
-
-        edge.originalFromId.push(childNode.id);
-        edge.from = parentNode;
-        edge.fromId = parentNode.id;
-      }
-
-      this._addToReroutedEdges(parentNode,childNode,edge);
-    }
-  };
-
-
-  /**
-   * If a node is connected to itself, a circular edge is drawn. When clustering we want to contain
-   * these edges inside of the cluster.
-   *
-   * @param parentNode
-   * @param childNode
-   * @private
-   */
-  exports._containCircularEdgesFromNode = function(parentNode, childNode) {
-    // manage all the edges connected to the child and parent nodes
-    for (var i = 0; i < parentNode.dynamicEdges.length; i++) {
-      var edge = parentNode.dynamicEdges[i];
-      // handle circular edges
-      if (edge.toId == edge.fromId) {
-        this._addToContainedEdges(parentNode, childNode, edge);
-      }
-    }
-  };
-
-
-  /**
-   * This adds an edge from the childNode to the rerouted edges of the parent node
-   *
-   * @param parentNode    | Node object
-   * @param childNode     | Node object
-   * @param edge          | Edge object
-   * @private
-   */
-  exports._addToReroutedEdges = function(parentNode, childNode, edge) {
-    // create an array object if it does not yet exist for this childNode
-    // we store the edge in the rerouted edges so we can restore it when the cluster pops open
-    if (!(parentNode.reroutedEdges.hasOwnProperty(childNode.id))) {
-      parentNode.reroutedEdges[childNode.id] = [];
-    }
-    parentNode.reroutedEdges[childNode.id].push(edge);
-
-    // this edge becomes part of the dynamicEdges of the cluster node
-    parentNode.dynamicEdges.push(edge);
-   };
-
-
-
-  /**
-   * This function connects an edge that was connected to a cluster node back to the child node.
-   *
-   * @param parentNode    | Node object
-   * @param childNode     | Node object
-   * @private
-   */
-  exports._connectEdgeBackToChild = function(parentNode, childNode) {
-    if (parentNode.reroutedEdges.hasOwnProperty(childNode.id)) {
-      for (var i = 0; i < parentNode.reroutedEdges[childNode.id].length; i++) {
-        var edge = parentNode.reroutedEdges[childNode.id][i];
-        if (edge.originalFromId[edge.originalFromId.length-1] == childNode.id) {
-          edge.originalFromId.pop();
-          edge.fromId = childNode.id;
-          edge.from = childNode;
-        }
-        else {
-          edge.originalToId.pop();
-          edge.toId = childNode.id;
-          edge.to = childNode;
-        }
-
-        // append this edge to the list of edges connecting to the childnode
-        childNode.dynamicEdges.push(edge);
-
-        // remove the edge from the parent object
-        for (var j = 0; j < parentNode.dynamicEdges.length; j++) {
-          if (parentNode.dynamicEdges[j].id == edge.id) {
-            parentNode.dynamicEdges.splice(j,1);
-            break;
-          }
-        }
-      }
-      // remove the entry from the rerouted edges
-      delete parentNode.reroutedEdges[childNode.id];
-    }
-  };
-
-
-  /**
-   * When loops are clustered, an edge can be both in the rerouted array and the contained array.
-   * This function is called last to verify that all edges in dynamicEdges are in fact connected to the
-   * parentNode
-   *
-   * @param parentNode    | Node object
-   * @private
-   */
-  exports._validateEdges = function(parentNode) {
-    for (var i = 0; i < parentNode.dynamicEdges.length; i++) {
-      var edge = parentNode.dynamicEdges[i];
-      if (parentNode.id != edge.toId && parentNode.id != edge.fromId) {
-        parentNode.dynamicEdges.splice(i,1);
-      }
-    }
-  };
-
-
-  /**
-   * This function released the contained edges back into the global domain and puts them back into the
-   * dynamic edges of both parent and child.
-   *
-   * @param {Node} parentNode    |
-   * @param {Node} childNode     |
-   * @private
-   */
-  exports._releaseContainedEdges = function(parentNode, childNode) {
-    for (var i = 0; i < parentNode.containedEdges[childNode.id].length; i++) {
-      var edge = parentNode.containedEdges[childNode.id][i];
-
-      // put the edge back in the global edges object
-      this.edges[edge.id] = edge;
-
-      // put the edge back in the dynamic edges of the child and parent
-      childNode.dynamicEdges.push(edge);
-      parentNode.dynamicEdges.push(edge);
-    }
-    // remove the entry from the contained edges
-    delete parentNode.containedEdges[childNode.id];
-
-  };
-
-
-
-
-  // ------------------- UTILITY FUNCTIONS ---------------------------- //
-
-
-  /**
-   * This updates the node labels for all nodes (for debugging purposes)
-   */
-  exports.updateLabels = function() {
-    var nodeId;
-    // update node labels
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        var node = this.nodes[nodeId];
-        if (node.clusterSize > 1) {
-          node.label = "[".concat(String(node.clusterSize),"]");
-        }
-      }
-    }
-
-    // update node labels
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        node = this.nodes[nodeId];
-        if (node.clusterSize == 1) {
-          if (node.originalLabel !== undefined) {
-            node.label = node.originalLabel;
-          }
-          else {
-            node.label = String(node.id);
-          }
-        }
-      }
-    }
-
-  //    /* Debug Override */
-  //    for (nodeId in this.nodes) {
-  //      if (this.nodes.hasOwnProperty(nodeId)) {
-  //        node = this.nodes[nodeId];
-  //        node.label = String(node.level);
-  //      }
-  //    }
-
-  };
-
-
-  /**
-   * We want to keep the cluster level distribution rather small. This means we do not want unclustered nodes
-   * if the rest of the nodes are already a few cluster levels in.
-   * To fix this we use this function. It determines the min and max cluster level and sends nodes that have not
-   * clustered enough to the clusterToSmallestNeighbours function.
-   */
-  exports.normalizeClusterLevels = function() {
-    var maxLevel = 0;
-    var minLevel = 1e9;
-    var clusterLevel = 0;
-    var nodeId;
-
-    // we loop over all nodes in the list
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        clusterLevel = this.nodes[nodeId].clusterSessions.length;
-        if (maxLevel < clusterLevel) {maxLevel = clusterLevel;}
-        if (minLevel > clusterLevel) {minLevel = clusterLevel;}
-      }
-    }
-
-    if (maxLevel - minLevel > this.constants.clustering.clusterLevelDifference) {
-      var amountOfNodes = this.nodeIndices.length;
-      var targetLevel = maxLevel - this.constants.clustering.clusterLevelDifference;
-      // we loop over all nodes in the list
-      for (nodeId in this.nodes) {
-        if (this.nodes.hasOwnProperty(nodeId)) {
-          if (this.nodes[nodeId].clusterSessions.length < targetLevel) {
-            this._clusterToSmallestNeighbour(this.nodes[nodeId]);
-          }
-        }
-      }
-      this._updateNodeIndexList();
-      this._updateDynamicEdges();
-      // if a cluster was formed, we increase the clusterSession
-      if (this.nodeIndices.length != amountOfNodes) {
-        this.clusterSession += 1;
-      }
-    }
-  };
-
-
-
-  /**
-   * This function determines if the cluster we want to decluster is in the active area
-   * this means around the zoom center
-   *
-   * @param {Node} node
-   * @returns {boolean}
-   * @private
-   */
-  exports._nodeInActiveArea = function(node) {
-    return (
-      Math.abs(node.x - this.areaCenter.x) <= this.constants.clustering.activeAreaBoxSize/this.scale
-        &&
-      Math.abs(node.y - this.areaCenter.y) <= this.constants.clustering.activeAreaBoxSize/this.scale
-      )
-  };
-
-
-  /**
-   * This is an adaptation of the original repositioning function. This is called if the system is clustered initially
-   * It puts large clusters away from the center and randomizes the order.
-   *
-   */
-  exports.repositionNodes = function() {
-    for (var i = 0; i < this.nodeIndices.length; i++) {
-      var node = this.nodes[this.nodeIndices[i]];
-      if ((node.xFixed == false || node.yFixed == false)) {
-        var radius = 10 * 0.1*this.nodeIndices.length * Math.min(100,node.options.mass);
-        var angle = 2 * Math.PI * Math.random();
-        if (node.xFixed == false) {node.x = radius * Math.cos(angle);}
-        if (node.yFixed == false) {node.y = radius * Math.sin(angle);}
-        this._repositionBezierNodes(node);
-      }
-    }
-  };
-
-
-  /**
-   * We determine how many connections denote an important hub.
-   * We take the mean + 2*std as the important hub size. (Assuming a normal distribution of data, ~2.2%)
-   *
-   * @private
-   */
-  exports._getHubSize = function() {
-    var average = 0;
-    var averageSquared = 0;
-    var hubCounter = 0;
-    var largestHub = 0;
-
-    for (var i = 0; i < this.nodeIndices.length; i++) {
-
-      var node = this.nodes[this.nodeIndices[i]];
-      if (node.dynamicEdgesLength > largestHub) {
-        largestHub = node.dynamicEdgesLength;
-      }
-      average += node.dynamicEdgesLength;
-      averageSquared += Math.pow(node.dynamicEdgesLength,2);
-      hubCounter += 1;
-    }
-    average = average / hubCounter;
-    averageSquared = averageSquared / hubCounter;
-
-    var variance = averageSquared - Math.pow(average,2);
-
-    var standardDeviation = Math.sqrt(variance);
-
-    this.hubThreshold = Math.floor(average + 2*standardDeviation);
-
-    // always have at least one to cluster
-    if (this.hubThreshold > largestHub) {
-      this.hubThreshold = largestHub;
-    }
-
-  //  console.log("average",average,"averageSQ",averageSquared,"var",variance,"std",standardDeviation);
-  //  console.log("hubThreshold:",this.hubThreshold);
-  };
-
-
-  /**
-   * We reduce the amount of "extension nodes" or chains. These are not quickly clustered with the outliers and hubs methods
-   * with this amount we can cluster specifically on these chains.
-   *
-   * @param   {Number} fraction     | between 0 and 1, the percentage of chains to reduce
-   * @private
-   */
-  exports._reduceAmountOfChains = function(fraction) {
-    this.hubThreshold = 2;
-    var reduceAmount = Math.floor(this.nodeIndices.length * fraction);
-    for (var nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        if (this.nodes[nodeId].dynamicEdgesLength == 2 && this.nodes[nodeId].dynamicEdges.length >= 2) {
-          if (reduceAmount > 0) {
-            this._formClusterFromHub(this.nodes[nodeId],true,true,1);
-            reduceAmount -= 1;
-          }
-        }
-      }
-    }
-  };
-
-  /**
-   * We get the amount of "extension nodes" or chains. These are not quickly clustered with the outliers and hubs methods
-   * with this amount we can cluster specifically on these chains.
-   *
-   * @private
-   */
-  exports._getChainFraction = function() {
-    var chains = 0;
-    var total = 0;
-    for (var nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        if (this.nodes[nodeId].dynamicEdgesLength == 2 && this.nodes[nodeId].dynamicEdges.length >= 2) {
-          chains += 1;
-        }
-        total += 1;
-      }
-    }
-    return chains/total;
-  };
-
-
-/***/ },
-/* 55 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var util = __webpack_require__(1);
-
-  /**
-   * Creation of the SectorMixin var.
-   *
-   * This contains all the functions the Network object can use to employ the sector system.
-   * The sector system is always used by Network, though the benefits only apply to the use of clustering.
-   * If clustering is not used, there is no overhead except for a duplicate object with references to nodes and edges.
-   */
-
-  /**
-   * This function is only called by the setData function of the Network object.
-   * This loads the global references into the active sector. This initializes the sector.
-   *
-   * @private
-   */
-  exports._putDataInSector = function() {
-    this.sectors["active"][this._sector()].nodes = this.nodes;
-    this.sectors["active"][this._sector()].edges = this.edges;
-    this.sectors["active"][this._sector()].nodeIndices = this.nodeIndices;
-  };
-
-
-  /**
-   *  /**
-   * This function sets the global references to nodes, edges and nodeIndices back to
-   * those of the supplied (active) sector. If a type is defined, do the specific type
-   *
-   * @param {String} sectorId
-   * @param {String} [sectorType] | "active" or "frozen"
-   * @private
-   */
-  exports._switchToSector = function(sectorId, sectorType) {
-    if (sectorType === undefined || sectorType == "active") {
-      this._switchToActiveSector(sectorId);
-    }
-    else {
-      this._switchToFrozenSector(sectorId);
-    }
-  };
-
-
-  /**
-   * This function sets the global references to nodes, edges and nodeIndices back to
-   * those of the supplied active sector.
-   *
-   * @param sectorId
-   * @private
-   */
-  exports._switchToActiveSector = function(sectorId) {
-    this.nodeIndices = this.sectors["active"][sectorId]["nodeIndices"];
-    this.nodes       = this.sectors["active"][sectorId]["nodes"];
-    this.edges       = this.sectors["active"][sectorId]["edges"];
-  };
-
-
-  /**
-   * This function sets the global references to nodes, edges and nodeIndices back to
-   * those of the supplied active sector.
-   *
-   * @private
-   */
-  exports._switchToSupportSector = function() {
-    this.nodeIndices = this.sectors["support"]["nodeIndices"];
-    this.nodes       = this.sectors["support"]["nodes"];
-    this.edges       = this.sectors["support"]["edges"];
-  };
-
-
-  /**
-   * This function sets the global references to nodes, edges and nodeIndices back to
-   * those of the supplied frozen sector.
-   *
-   * @param sectorId
-   * @private
-   */
-  exports._switchToFrozenSector = function(sectorId) {
-    this.nodeIndices = this.sectors["frozen"][sectorId]["nodeIndices"];
-    this.nodes       = this.sectors["frozen"][sectorId]["nodes"];
-    this.edges       = this.sectors["frozen"][sectorId]["edges"];
-  };
-
-
-  /**
-   * This function sets the global references to nodes, edges and nodeIndices back to
-   * those of the currently active sector.
-   *
-   * @private
-   */
-  exports._loadLatestSector = function() {
-    this._switchToSector(this._sector());
-  };
-
-
-  /**
-   * This function returns the currently active sector Id
-   *
-   * @returns {String}
-   * @private
-   */
-  exports._sector = function() {
-    return this.activeSector[this.activeSector.length-1];
-  };
-
-
-  /**
-   * This function returns the previously active sector Id
-   *
-   * @returns {String}
-   * @private
-   */
-  exports._previousSector = function() {
-    if (this.activeSector.length > 1) {
-      return this.activeSector[this.activeSector.length-2];
-    }
-    else {
-      throw new TypeError('there are not enough sectors in the this.activeSector array.');
-    }
-  };
-
-
-  /**
-   * We add the active sector at the end of the this.activeSector array
-   * This ensures it is the currently active sector returned by _sector() and it reaches the top
-   * of the activeSector stack. When we reverse our steps we move from the end to the beginning of this stack.
-   *
-   * @param newId
-   * @private
-   */
-  exports._setActiveSector = function(newId) {
-    this.activeSector.push(newId);
-  };
-
-
-  /**
-   * We remove the currently active sector id from the active sector stack. This happens when
-   * we reactivate the previously active sector
-   *
-   * @private
-   */
-  exports._forgetLastSector = function() {
-    this.activeSector.pop();
-  };
-
-
-  /**
-   * This function creates a new active sector with the supplied newId. This newId
-   * is the expanding node id.
-   *
-   * @param {String} newId   | Id of the new active sector
-   * @private
-   */
-  exports._createNewSector = function(newId) {
-    // create the new sector
-    this.sectors["active"][newId] = {"nodes":{},
-                                     "edges":{},
-                                     "nodeIndices":[],
-                                     "formationScale": this.scale,
-                                     "drawingNode": undefined};
-
-    // create the new sector render node. This gives visual feedback that you are in a new sector.
-    this.sectors["active"][newId]['drawingNode'] = new Node(
-        {id:newId,
-          color: {
-            background: "#eaefef",
-            border: "495c5e"
-          }
-        },{},{},this.constants);
-    this.sectors["active"][newId]['drawingNode'].clusterSize = 2;
-  };
-
-
-  /**
-   * This function removes the currently active sector. This is called when we create a new
-   * active sector.
-   *
-   * @param {String} sectorId   | Id of the active sector that will be removed
-   * @private
-   */
-  exports._deleteActiveSector = function(sectorId) {
-    delete this.sectors["active"][sectorId];
-  };
-
-
-  /**
-   * This function removes the currently active sector. This is called when we reactivate
-   * the previously active sector.
-   *
-   * @param {String} sectorId   | Id of the active sector that will be removed
-   * @private
-   */
-  exports._deleteFrozenSector = function(sectorId) {
-    delete this.sectors["frozen"][sectorId];
-  };
-
-
-  /**
-   * Freezing an active sector means moving it from the "active" object to the "frozen" object.
-   * We copy the references, then delete the active entree.
-   *
-   * @param sectorId
-   * @private
-   */
-  exports._freezeSector = function(sectorId) {
-    // we move the set references from the active to the frozen stack.
-    this.sectors["frozen"][sectorId] = this.sectors["active"][sectorId];
-
-    // we have moved the sector data into the frozen set, we now remove it from the active set
-    this._deleteActiveSector(sectorId);
-  };
-
-
-  /**
-   * This is the reverse operation of _freezeSector. Activating means moving the sector from the "frozen"
-   * object to the "active" object.
-   *
-   * @param sectorId
-   * @private
-   */
-  exports._activateSector = function(sectorId) {
-    // we move the set references from the frozen to the active stack.
-    this.sectors["active"][sectorId] = this.sectors["frozen"][sectorId];
-
-    // we have moved the sector data into the active set, we now remove it from the frozen stack
-    this._deleteFrozenSector(sectorId);
-  };
-
-
-  /**
-   * This function merges the data from the currently active sector with a frozen sector. This is used
-   * in the process of reverting back to the previously active sector.
-   * The data that is placed in the frozen (the previously active) sector is the node that has been removed from it
-   * upon the creation of a new active sector.
-   *
-   * @param sectorId
-   * @private
-   */
-  exports._mergeThisWithFrozen = function(sectorId) {
-    // copy all nodes
-    for (var nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        this.sectors["frozen"][sectorId]["nodes"][nodeId] = this.nodes[nodeId];
-      }
-    }
-
-    // copy all edges (if not fully clustered, else there are no edges)
-    for (var edgeId in this.edges) {
-      if (this.edges.hasOwnProperty(edgeId)) {
-        this.sectors["frozen"][sectorId]["edges"][edgeId] = this.edges[edgeId];
-      }
-    }
-
-    // merge the nodeIndices
-    for (var i = 0; i < this.nodeIndices.length; i++) {
-      this.sectors["frozen"][sectorId]["nodeIndices"].push(this.nodeIndices[i]);
-    }
-  };
-
-
-  /**
-   * This clusters the sector to one cluster. It was a single cluster before this process started so
-   * we revert to that state. The clusterToFit function with a maximum size of 1 node does this.
-   *
-   * @private
-   */
-  exports._collapseThisToSingleCluster = function() {
-    this.clusterToFit(1,false);
-  };
-
-
-  /**
-   * We create a new active sector from the node that we want to open.
-   *
-   * @param node
-   * @private
-   */
-  exports._addSector = function(node) {
-    // this is the currently active sector
-    var sector = this._sector();
-
-  //    // this should allow me to select nodes from a frozen set.
-  //    if (this.sectors['active'][sector]["nodes"].hasOwnProperty(node.id)) {
-  //      console.log("the node is part of the active sector");
-  //    }
-  //    else {
-  //      console.log("I dont know what the fuck happened!!");
-  //    }
-
-    // when we switch to a new sector, we remove the node that will be expanded from the current nodes list.
-    delete this.nodes[node.id];
-
-    var unqiueIdentifier = util.randomUUID();
-
-    // we fully freeze the currently active sector
-    this._freezeSector(sector);
-
-    // we create a new active sector. This sector has the Id of the node to ensure uniqueness
-    this._createNewSector(unqiueIdentifier);
-
-    // we add the active sector to the sectors array to be able to revert these steps later on
-    this._setActiveSector(unqiueIdentifier);
-
-    // we redirect the global references to the new sector's references. this._sector() now returns unqiueIdentifier
-    this._switchToSector(this._sector());
-
-    // finally we add the node we removed from our previous active sector to the new active sector
-    this.nodes[node.id] = node;
-  };
-
-
-  /**
-   * We close the sector that is currently open and revert back to the one before.
-   * If the active sector is the "default" sector, nothing happens.
-   *
-   * @private
-   */
-  exports._collapseSector = function() {
-    // the currently active sector
-    var sector = this._sector();
-
-    // we cannot collapse the default sector
-    if (sector != "default") {
-      if ((this.nodeIndices.length == 1) ||
-       (this.sectors["active"][sector]["drawingNode"].width*this.scale < this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientWidth) ||
-       (this.sectors["active"][sector]["drawingNode"].height*this.scale < this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientHeight)) {
-        var previousSector = this._previousSector();
-
-        // we collapse the sector back to a single cluster
-        this._collapseThisToSingleCluster();
-
-        // we move the remaining nodes, edges and nodeIndices to the previous sector.
-        // This previous sector is the one we will reactivate
-        this._mergeThisWithFrozen(previousSector);
-
-        // the previously active (frozen) sector now has all the data from the currently active sector.
-        // we can now delete the active sector.
-        this._deleteActiveSector(sector);
-
-        // we activate the previously active (and currently frozen) sector.
-        this._activateSector(previousSector);
-
-        // we load the references from the newly active sector into the global references
-        this._switchToSector(previousSector);
-
-        // we forget the previously active sector because we reverted to the one before
-        this._forgetLastSector();
-
-        // finally, we update the node index list.
-        this._updateNodeIndexList();
-
-        // we refresh the list with calulation nodes and calculation node indices.
-        this._updateCalculationNodes();
-      }
-    }
-  };
-
-
-  /**
-   * This runs a function in all active sectors. This is used in _redraw() and the _initializeForceCalculation().
-   *
-   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
-   *                              |   we dont pass the function itself because then the "this" is the window object
-   *                              |   instead of the Network object
-   * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
-   * @private
-   */
-  exports._doInAllActiveSectors = function(runFunction,argument) {
-    var returnValues = [];
-    if (argument === undefined) {
-      for (var sector in this.sectors["active"]) {
-        if (this.sectors["active"].hasOwnProperty(sector)) {
-          // switch the global references to those of this sector
-          this._switchToActiveSector(sector);
-          returnValues.push( this[runFunction]() );
-        }
-      }
-    }
-    else {
-      for (var sector in this.sectors["active"]) {
-        if (this.sectors["active"].hasOwnProperty(sector)) {
-          // switch the global references to those of this sector
-          this._switchToActiveSector(sector);
-          var args = Array.prototype.splice.call(arguments, 1);
-          if (args.length > 1) {
-            returnValues.push( this[runFunction](args[0],args[1]) );
-          }
-          else {
-            returnValues.push( this[runFunction](argument) );
-          }
-        }
-      }
-    }
-    // we revert the global references back to our active sector
-    this._loadLatestSector();
-    return returnValues;
-  };
-
-
-  /**
-   * This runs a function in all active sectors. This is used in _redraw() and the _initializeForceCalculation().
-   *
-   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
-   *                              |   we dont pass the function itself because then the "this" is the window object
-   *                              |   instead of the Network object
-   * @param {*} [argument]        |   Optional: arguments to pass to the runFunction
-   * @private
-   */
-  exports._doInSupportSector = function(runFunction,argument) {
-    var returnValues = false;
-    if (argument === undefined) {
-      this._switchToSupportSector();
-      returnValues = this[runFunction]();
-    }
-    else {
-      this._switchToSupportSector();
-      var args = Array.prototype.splice.call(arguments, 1);
-      if (args.length > 1) {
-        returnValues = this[runFunction](args[0],args[1]);
-      }
-      else {
-        returnValues = this[runFunction](argument);
-      }
-    }
-    // we revert the global references back to our active sector
-    this._loadLatestSector();
-    return returnValues;
-  };
-
-
-  /**
-   * This runs a function in all frozen sectors. This is used in the _redraw().
-   *
-   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
-   *                              |   we don't pass the function itself because then the "this" is the window object
-   *                              |   instead of the Network object
-   * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
-   * @private
-   */
-  exports._doInAllFrozenSectors = function(runFunction,argument) {
-    if (argument === undefined) {
-      for (var sector in this.sectors["frozen"]) {
-        if (this.sectors["frozen"].hasOwnProperty(sector)) {
-          // switch the global references to those of this sector
-          this._switchToFrozenSector(sector);
-          this[runFunction]();
-        }
-      }
-    }
-    else {
-      for (var sector in this.sectors["frozen"]) {
-        if (this.sectors["frozen"].hasOwnProperty(sector)) {
-          // switch the global references to those of this sector
-          this._switchToFrozenSector(sector);
-          var args = Array.prototype.splice.call(arguments, 1);
-          if (args.length > 1) {
-            this[runFunction](args[0],args[1]);
-          }
-          else {
-            this[runFunction](argument);
-          }
-        }
-      }
-    }
-    this._loadLatestSector();
-  };
-
-
-  /**
-   * This runs a function in all sectors. This is used in the _redraw().
-   *
-   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
-   *                              |   we don't pass the function itself because then the "this" is the window object
-   *                              |   instead of the Network object
-   * @param {*} [argument]        |   Optional: arguments to pass to the runFunction
-   * @private
-   */
-  exports._doInAllSectors = function(runFunction,argument) {
-    var args = Array.prototype.splice.call(arguments, 1);
-    if (argument === undefined) {
-      this._doInAllActiveSectors(runFunction);
-      this._doInAllFrozenSectors(runFunction);
-    }
-    else {
-      if (args.length > 1) {
-        this._doInAllActiveSectors(runFunction,args[0],args[1]);
-        this._doInAllFrozenSectors(runFunction,args[0],args[1]);
-      }
-      else {
-        this._doInAllActiveSectors(runFunction,argument);
-        this._doInAllFrozenSectors(runFunction,argument);
-      }
-    }
-  };
-
-
-  /**
-   * This clears the nodeIndices list. We cannot use this.nodeIndices = [] because we would break the link with the
-   * active sector. Thus we clear the nodeIndices in the active sector, then reconnect the this.nodeIndices to it.
-   *
-   * @private
-   */
-  exports._clearNodeIndexList = function() {
-    var sector = this._sector();
-    this.sectors["active"][sector]["nodeIndices"] = [];
-    this.nodeIndices = this.sectors["active"][sector]["nodeIndices"];
-  };
-
-
-  /**
-   * Draw the encompassing sector node
-   *
-   * @param ctx
-   * @param sectorType
-   * @private
-   */
-  exports._drawSectorNodes = function(ctx,sectorType) {
-    var minY = 1e9, maxY = -1e9, minX = 1e9, maxX = -1e9, node;
-    for (var sector in this.sectors[sectorType]) {
-      if (this.sectors[sectorType].hasOwnProperty(sector)) {
-        if (this.sectors[sectorType][sector]["drawingNode"] !== undefined) {
-
-          this._switchToSector(sector,sectorType);
-
-          minY = 1e9; maxY = -1e9; minX = 1e9; maxX = -1e9;
-          for (var nodeId in this.nodes) {
-            if (this.nodes.hasOwnProperty(nodeId)) {
-              node = this.nodes[nodeId];
-              node.resize(ctx);
-              if (minX > node.x - 0.5 * node.width) {minX = node.x - 0.5 * node.width;}
-              if (maxX < node.x + 0.5 * node.width) {maxX = node.x + 0.5 * node.width;}
-              if (minY > node.y - 0.5 * node.height) {minY = node.y - 0.5 * node.height;}
-              if (maxY < node.y + 0.5 * node.height) {maxY = node.y + 0.5 * node.height;}
-            }
-          }
-          node = this.sectors[sectorType][sector]["drawingNode"];
-          node.x = 0.5 * (maxX + minX);
-          node.y = 0.5 * (maxY + minY);
-          node.width = 2 * (node.x - minX);
-          node.height = 2 * (node.y - minY);
-          node.radius = Math.sqrt(Math.pow(0.5*node.width,2) + Math.pow(0.5*node.height,2));
-          node.setScale(this.scale);
-          node._drawCircle(ctx);
-        }
-      }
-    }
-  };
-
-  exports._drawAllSectorNodes = function(ctx) {
-    this._drawSectorNodes(ctx,"frozen");
-    this._drawSectorNodes(ctx,"active");
-    this._loadLatestSector();
-  };
-
-
-/***/ },
-/* 56 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var Node = __webpack_require__(37);
-
-  /**
-   * This function can be called from the _doInAllSectors function
-   *
-   * @param object
-   * @param overlappingNodes
-   * @private
-   */
-  exports._getNodesOverlappingWith = function(object, overlappingNodes) {
-    var nodes = this.nodes;
-    for (var nodeId in nodes) {
-      if (nodes.hasOwnProperty(nodeId)) {
-        if (nodes[nodeId].isOverlappingWith(object)) {
-          overlappingNodes.push(nodeId);
-        }
-      }
-    }
-  };
-
-  /**
-   * retrieve all nodes overlapping with given object
-   * @param {Object} object  An object with parameters left, top, right, bottom
-   * @return {Number[]}   An array with id's of the overlapping nodes
-   * @private
-   */
-  exports._getAllNodesOverlappingWith = function (object) {
-    var overlappingNodes = [];
-    this._doInAllActiveSectors("_getNodesOverlappingWith",object,overlappingNodes);
-    return overlappingNodes;
-  };
-
-
-  /**
-   * Return a position object in canvasspace from a single point in screenspace
-   *
-   * @param pointer
-   * @returns {{left: number, top: number, right: number, bottom: number}}
-   * @private
-   */
-  exports._pointerToPositionObject = function(pointer) {
-    var x = this._XconvertDOMtoCanvas(pointer.x);
-    var y = this._YconvertDOMtoCanvas(pointer.y);
-
-    return {
-      left:   x,
-      top:    y,
-      right:  x,
-      bottom: y
-    };
-  };
-
-
-  /**
-   * Get the top node at the a specific point (like a click)
-   *
-   * @param {{x: Number, y: Number}} pointer
-   * @return {Node | null} node
-   * @private
-   */
-  exports._getNodeAt = function (pointer) {
-    // we first check if this is an navigation controls element
-    var positionObject = this._pointerToPositionObject(pointer);
-    var overlappingNodes = this._getAllNodesOverlappingWith(positionObject);
-
-    // if there are overlapping nodes, select the last one, this is the
-    // one which is drawn on top of the others
-    if (overlappingNodes.length > 0) {
-       return this.nodes[overlappingNodes[overlappingNodes.length - 1]];
-    }
-    else {
-      return null;
-    }
-  };
-
-
-  /**
-   * retrieve all edges overlapping with given object, selector is around center
-   * @param {Object} object  An object with parameters left, top, right, bottom
-   * @return {Number[]}   An array with id's of the overlapping nodes
-   * @private
-   */
-  exports._getEdgesOverlappingWith = function (object, overlappingEdges) {
-    var edges = this.edges;
-    for (var edgeId in edges) {
-      if (edges.hasOwnProperty(edgeId)) {
-        if (edges[edgeId].isOverlappingWith(object)) {
-          overlappingEdges.push(edgeId);
-        }
-      }
-    }
-  };
-
-
-  /**
-   * retrieve all nodes overlapping with given object
-   * @param {Object} object  An object with parameters left, top, right, bottom
-   * @return {Number[]}   An array with id's of the overlapping nodes
-   * @private
-   */
-  exports._getAllEdgesOverlappingWith = function (object) {
-    var overlappingEdges = [];
-    this._doInAllActiveSectors("_getEdgesOverlappingWith",object,overlappingEdges);
-    return overlappingEdges;
-  };
-
-  /**
-   * Place holder. To implement change the _getNodeAt to a _getObjectAt. Have the _getObjectAt call
-   * _getNodeAt and _getEdgesAt, then priortize the selection to user preferences.
-   *
-   * @param pointer
-   * @returns {null}
-   * @private
-   */
-  exports._getEdgeAt = function(pointer) {
-    var positionObject = this._pointerToPositionObject(pointer);
-    var overlappingEdges = this._getAllEdgesOverlappingWith(positionObject);
-
-    if (overlappingEdges.length > 0) {
-      return this.edges[overlappingEdges[overlappingEdges.length - 1]];
-    }
-    else {
-      return null;
-    }
-  };
-
-
-  /**
-   * Add object to the selection array.
-   *
-   * @param obj
-   * @private
-   */
-  exports._addToSelection = function(obj) {
-    if (obj instanceof Node) {
-      this.selectionObj.nodes[obj.id] = obj;
-    }
-    else {
-      this.selectionObj.edges[obj.id] = obj;
-    }
-  };
-
-  /**
-   * Add object to the selection array.
-   *
-   * @param obj
-   * @private
-   */
-  exports._addToHover = function(obj) {
-    if (obj instanceof Node) {
-      this.hoverObj.nodes[obj.id] = obj;
-    }
-    else {
-      this.hoverObj.edges[obj.id] = obj;
-    }
-  };
-
-
-  /**
-   * Remove a single option from selection.
-   *
-   * @param {Object} obj
-   * @private
-   */
-  exports._removeFromSelection = function(obj) {
-    if (obj instanceof Node) {
-      delete this.selectionObj.nodes[obj.id];
-    }
-    else {
-      delete this.selectionObj.edges[obj.id];
-    }
-  };
-
-  /**
-   * Unselect all. The selectionObj is useful for this.
-   *
-   * @param {Boolean} [doNotTrigger] | ignore trigger
-   * @private
-   */
-  exports._unselectAll = function(doNotTrigger) {
-    if (doNotTrigger === undefined) {
-      doNotTrigger = false;
-    }
-    for(var nodeId in this.selectionObj.nodes) {
-      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-        this.selectionObj.nodes[nodeId].unselect();
-      }
-    }
-    for(var edgeId in this.selectionObj.edges) {
-      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
-        this.selectionObj.edges[edgeId].unselect();
-      }
-    }
-
-    this.selectionObj = {nodes:{},edges:{}};
-
-    if (doNotTrigger == false) {
-      this.emit('select', this.getSelection());
-    }
-  };
-
-  /**
-   * Unselect all clusters. The selectionObj is useful for this.
-   *
-   * @param {Boolean} [doNotTrigger] | ignore trigger
-   * @private
-   */
-  exports._unselectClusters = function(doNotTrigger) {
-    if (doNotTrigger === undefined) {
-      doNotTrigger = false;
-    }
-
-    for (var nodeId in this.selectionObj.nodes) {
-      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-        if (this.selectionObj.nodes[nodeId].clusterSize > 1) {
-          this.selectionObj.nodes[nodeId].unselect();
-          this._removeFromSelection(this.selectionObj.nodes[nodeId]);
-        }
-      }
-    }
-
-    if (doNotTrigger == false) {
-      this.emit('select', this.getSelection());
-    }
-  };
-
-
-  /**
-   * return the number of selected nodes
-   *
-   * @returns {number}
-   * @private
-   */
-  exports._getSelectedNodeCount = function() {
-    var count = 0;
-    for (var nodeId in this.selectionObj.nodes) {
-      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-        count += 1;
-      }
-    }
-    return count;
-  };
-
-  /**
-   * return the selected node
-   *
-   * @returns {number}
-   * @private
-   */
-  exports._getSelectedNode = function() {
-    for (var nodeId in this.selectionObj.nodes) {
-      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-        return this.selectionObj.nodes[nodeId];
-      }
-    }
-    return null;
-  };
-
-  /**
-   * return the selected edge
-   *
-   * @returns {number}
-   * @private
-   */
-  exports._getSelectedEdge = function() {
-    for (var edgeId in this.selectionObj.edges) {
-      if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
-        return this.selectionObj.edges[edgeId];
-      }
-    }
-    return null;
-  };
-
-
-  /**
-   * return the number of selected edges
-   *
-   * @returns {number}
-   * @private
-   */
-  exports._getSelectedEdgeCount = function() {
-    var count = 0;
-    for (var edgeId in this.selectionObj.edges) {
-      if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
-        count += 1;
-      }
-    }
-    return count;
-  };
-
-
-  /**
-   * return the number of selected objects.
-   *
-   * @returns {number}
-   * @private
-   */
-  exports._getSelectedObjectCount = function() {
-    var count = 0;
-    for(var nodeId in this.selectionObj.nodes) {
-      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-        count += 1;
-      }
-    }
-    for(var edgeId in this.selectionObj.edges) {
-      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
-        count += 1;
-      }
-    }
-    return count;
-  };
-
-  /**
-   * Check if anything is selected
-   *
-   * @returns {boolean}
-   * @private
-   */
-  exports._selectionIsEmpty = function() {
-    for(var nodeId in this.selectionObj.nodes) {
-      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-        return false;
-      }
-    }
-    for(var edgeId in this.selectionObj.edges) {
-      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
-        return false;
-      }
-    }
-    return true;
-  };
-
-
-  /**
-   * check if one of the selected nodes is a cluster.
-   *
-   * @returns {boolean}
-   * @private
-   */
-  exports._clusterInSelection = function() {
-    for(var nodeId in this.selectionObj.nodes) {
-      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-        if (this.selectionObj.nodes[nodeId].clusterSize > 1) {
-          return true;
-        }
-      }
-    }
-    return false;
-  };
-
-  /**
-   * select the edges connected to the node that is being selected
-   *
-   * @param {Node} node
-   * @private
-   */
-  exports._selectConnectedEdges = function(node) {
-    for (var i = 0; i < node.dynamicEdges.length; i++) {
-      var edge = node.dynamicEdges[i];
-      edge.select();
-      this._addToSelection(edge);
-    }
-  };
-
-  /**
-   * select the edges connected to the node that is being selected
-   *
-   * @param {Node} node
-   * @private
-   */
-  exports._hoverConnectedEdges = function(node) {
-    for (var i = 0; i < node.dynamicEdges.length; i++) {
-      var edge = node.dynamicEdges[i];
-      edge.hover = true;
-      this._addToHover(edge);
-    }
-  };
-
-
-  /**
-   * unselect the edges connected to the node that is being selected
-   *
-   * @param {Node} node
-   * @private
-   */
-  exports._unselectConnectedEdges = function(node) {
-    for (var i = 0; i < node.dynamicEdges.length; i++) {
-      var edge = node.dynamicEdges[i];
-      edge.unselect();
-      this._removeFromSelection(edge);
-    }
-  };
-
-
-
-
-  /**
-   * This is called when someone clicks on a node. either select or deselect it.
-   * If there is an existing selection and we don't want to append to it, clear the existing selection
-   *
-   * @param {Node || Edge} object
-   * @param {Boolean} append
-   * @param {Boolean} [doNotTrigger] | ignore trigger
-   * @private
-   */
-  exports._selectObject = function(object, append, doNotTrigger, highlightEdges) {
-    if (doNotTrigger === undefined) {
-      doNotTrigger = false;
-    }
-    if (highlightEdges === undefined) {
-      highlightEdges = true;
-    }
-
-    if (this._selectionIsEmpty() == false && append == false && this.forceAppendSelection == false) {
-      this._unselectAll(true);
-    }
-
-    if (object.selected == false) {
-      object.select();
-      this._addToSelection(object);
-      if (object instanceof Node && this.blockConnectingEdgeSelection == false && highlightEdges == true) {
-        this._selectConnectedEdges(object);
-      }
-    }
-    else {
-      object.unselect();
-      this._removeFromSelection(object);
-    }
-
-    if (doNotTrigger == false) {
-      this.emit('select', this.getSelection());
-    }
-  };
-
-
-  /**
-   * This is called when someone clicks on a node. either select or deselect it.
-   * If there is an existing selection and we don't want to append to it, clear the existing selection
-   *
-   * @param {Node || Edge} object
-   * @private
-   */
-  exports._blurObject = function(object) {
-    if (object.hover == true) {
-      object.hover = false;
-      this.emit("blurNode",{node:object.id});
-    }
-  };
-
-  /**
-   * This is called when someone clicks on a node. either select or deselect it.
-   * If there is an existing selection and we don't want to append to it, clear the existing selection
-   *
-   * @param {Node || Edge} object
-   * @private
-   */
-  exports._hoverObject = function(object) {
-    if (object.hover == false) {
-      object.hover = true;
-      this._addToHover(object);
-      if (object instanceof Node) {
-        this.emit("hoverNode",{node:object.id});
-      }
-    }
-    if (object instanceof Node) {
-      this._hoverConnectedEdges(object);
-    }
-  };
-
-
-  /**
-   * handles the selection part of the touch, only for navigation controls elements;
-   * Touch is triggered before tap, also before hold. Hold triggers after a while.
-   * This is the most responsive solution
-   *
-   * @param {Object} pointer
-   * @private
-   */
-  exports._handleTouch = function(pointer) {
-  };
-
-
-  /**
-   * handles the selection part of the tap;
-   *
-   * @param {Object} pointer
-   * @private
-   */
-  exports._handleTap = function(pointer) {
-    var node = this._getNodeAt(pointer);
-    if (node != null) {
-      this._selectObject(node,false);
-    }
-    else {
-      var edge = this._getEdgeAt(pointer);
-      if (edge != null) {
-        this._selectObject(edge,false);
-      }
-      else {
-        this._unselectAll();
-      }
-    }
-    this.emit("click", this.getSelection());
-    this._redraw();
-  };
-
-
-  /**
-   * handles the selection part of the double tap and opens a cluster if needed
-   *
-   * @param {Object} pointer
-   * @private
-   */
-  exports._handleDoubleTap = function(pointer) {
-    var node = this._getNodeAt(pointer);
-    if (node != null && node !== undefined) {
-      // we reset the areaCenter here so the opening of the node will occur
-      this.areaCenter =  {"x" : this._XconvertDOMtoCanvas(pointer.x),
-                          "y" : this._YconvertDOMtoCanvas(pointer.y)};
-      this.openCluster(node);
-    }
-    this.emit("doubleClick", this.getSelection());
-  };
-
-
-  /**
-   * Handle the onHold selection part
-   *
-   * @param pointer
-   * @private
-   */
-  exports._handleOnHold = function(pointer) {
-    var node = this._getNodeAt(pointer);
-    if (node != null) {
-      this._selectObject(node,true);
-    }
-    else {
-      var edge = this._getEdgeAt(pointer);
-      if (edge != null) {
-        this._selectObject(edge,true);
-      }
-    }
-    this._redraw();
-  };
-
-
-  /**
-   * handle the onRelease event. These functions are here for the navigation controls module.
-   *
-    * @private
-   */
-  exports._handleOnRelease = function(pointer) {
-
-  };
-
-
-
-  /**
-   *
-   * retrieve the currently selected objects
-   * @return {{nodes: Array.<String>, edges: Array.<String>}} selection
-   */
-  exports.getSelection = function() {
-    var nodeIds = this.getSelectedNodes();
-    var edgeIds = this.getSelectedEdges();
-    return {nodes:nodeIds, edges:edgeIds};
-  };
-
-  /**
-   *
-   * retrieve the currently selected nodes
-   * @return {String[]} selection    An array with the ids of the
-   *                                            selected nodes.
-   */
-  exports.getSelectedNodes = function() {
-    var idArray = [];
-    for(var nodeId in this.selectionObj.nodes) {
-      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-        idArray.push(nodeId);
-      }
-    }
-    return idArray
-  };
-
-  /**
-   *
-   * retrieve the currently selected edges
-   * @return {Array} selection    An array with the ids of the
-   *                                            selected nodes.
-   */
-  exports.getSelectedEdges = function() {
-    var idArray = [];
-    for(var edgeId in this.selectionObj.edges) {
-      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
-        idArray.push(edgeId);
-      }
-    }
-    return idArray;
-  };
-
-
-  /**
-   * select zero or more nodes
-   * @param {Number[] | String[]} selection     An array with the ids of the
-   *                                            selected nodes.
-   */
-  exports.setSelection = function(selection) {
-    var i, iMax, id;
-
-    if (!selection || (selection.length == undefined))
-      throw 'Selection must be an array with ids';
-
-    // first unselect any selected node
-    this._unselectAll(true);
-
-    for (i = 0, iMax = selection.length; i < iMax; i++) {
-      id = selection[i];
-
-      var node = this.nodes[id];
-      if (!node) {
-        throw new RangeError('Node with id "' + id + '" not found');
-      }
-      this._selectObject(node,true,true);
-    }
-
-    console.log("setSelection is deprecated. Please use selectNodes instead.")
-
-    this.redraw();
-  };
-
-
-  /**
-   * select zero or more nodes with the option to highlight edges
-   * @param {Number[] | String[]} selection     An array with the ids of the
-   *                                            selected nodes.
-   * @param {boolean} [highlightEdges]
-   */
-  exports.selectNodes = function(selection, highlightEdges) {
-    var i, iMax, id;
-
-    if (!selection || (selection.length == undefined))
-      throw 'Selection must be an array with ids';
-
-    // first unselect any selected node
-    this._unselectAll(true);
-
-    for (i = 0, iMax = selection.length; i < iMax; i++) {
-      id = selection[i];
-
-      var node = this.nodes[id];
-      if (!node) {
-        throw new RangeError('Node with id "' + id + '" not found');
-      }
-      this._selectObject(node,true,true,highlightEdges);
-    }
-    this.redraw();
-  };
-
-
-  /**
-   * select zero or more edges
-   * @param {Number[] | String[]} selection     An array with the ids of the
-   *                                            selected nodes.
-   */
-  exports.selectEdges = function(selection) {
-    var i, iMax, id;
-
-    if (!selection || (selection.length == undefined))
-      throw 'Selection must be an array with ids';
-
-    // first unselect any selected node
-    this._unselectAll(true);
-
-    for (i = 0, iMax = selection.length; i < iMax; i++) {
-      id = selection[i];
-
-      var edge = this.edges[id];
-      if (!edge) {
-        throw new RangeError('Edge with id "' + id + '" not found');
-      }
-      this._selectObject(edge,true,true,highlightEdges);
-    }
-    this.redraw();
-  };
-
-  /**
-   * Validate the selection: remove ids of nodes which no longer exist
-   * @private
-   */
-  exports._updateSelection = function () {
-    for(var nodeId in this.selectionObj.nodes) {
-      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-        if (!this.nodes.hasOwnProperty(nodeId)) {
-          delete this.selectionObj.nodes[nodeId];
-        }
-      }
-    }
-    for(var edgeId in this.selectionObj.edges) {
-      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
-        if (!this.edges.hasOwnProperty(edgeId)) {
-          delete this.selectionObj.edges[edgeId];
-        }
-      }
-    }
-  };
-
-
-/***/ },
-/* 57 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var util = __webpack_require__(1);
-  var Node = __webpack_require__(37);
-  var Edge = __webpack_require__(34);
-
-  /**
-   * clears the toolbar div element of children
-   *
-   * @private
-   */
-  exports._clearManipulatorBar = function() {
-    while (this.manipulationDiv.hasChildNodes()) {
-      this.manipulationDiv.removeChild(this.manipulationDiv.firstChild);
-    }
-  };
-
-  /**
-   * Manipulation UI temporarily overloads certain functions to extend or replace them. To be able to restore
-   * these functions to their original functionality, we saved them in this.cachedFunctions.
-   * This function restores these functions to their original function.
-   *
-   * @private
-   */
-  exports._restoreOverloadedFunctions = function() {
-    for (var functionName in this.cachedFunctions) {
-      if (this.cachedFunctions.hasOwnProperty(functionName)) {
-        this[functionName] = this.cachedFunctions[functionName];
-      }
-    }
-  };
-
-  /**
-   * Enable or disable edit-mode.
-   *
-   * @private
-   */
-  exports._toggleEditMode = function() {
-    this.editMode = !this.editMode;
-    var toolbar = document.getElementById("network-manipulationDiv");
-    var closeDiv = document.getElementById("network-manipulation-closeDiv");
-    var editModeDiv = document.getElementById("network-manipulation-editMode");
-    if (this.editMode == true) {
-      toolbar.style.display="block";
-      closeDiv.style.display="block";
-      editModeDiv.style.display="none";
-      closeDiv.onclick = this._toggleEditMode.bind(this);
-    }
-    else {
-      toolbar.style.display="none";
-      closeDiv.style.display="none";
-      editModeDiv.style.display="block";
-      closeDiv.onclick = null;
-    }
-    this._createManipulatorBar()
-  };
-
-  /**
-   * main function, creates the main toolbar. Removes functions bound to the select event. Binds all the buttons of the toolbar.
-   *
-   * @private
-   */
-  exports._createManipulatorBar = function() {
-    // remove bound functions
-    if (this.boundFunction) {
-      this.off('select', this.boundFunction);
-    }
-
-    var locale = this.constants.locales[this.constants.locale];
-
-    if (this.edgeBeingEdited !== undefined) {
-      this.edgeBeingEdited._disableControlNodes();
-      this.edgeBeingEdited = undefined;
-      this.selectedControlNode = null;
-      this.controlNodesActive = false;
-    }
-
-    // restore overloaded functions
-    this._restoreOverloadedFunctions();
-
-    // resume calculation
-    this.freezeSimulation = false;
-
-    // reset global variables
-    this.blockConnectingEdgeSelection = false;
-    this.forceAppendSelection = false;
-
-    if (this.editMode == true) {
-      while (this.manipulationDiv.hasChildNodes()) {
-        this.manipulationDiv.removeChild(this.manipulationDiv.firstChild);
-      }
-
-      // add the icons to the manipulator div
-      this.manipulationDiv.innerHTML = "" +
-        "<span class='network-manipulationUI add' id='network-manipulate-addNode'>" +
-          "<span class='network-manipulationLabel'>"+locale['addNode'] +"</span></span>" +
-        "<div class='network-seperatorLine'></div>" +
-        "<span class='network-manipulationUI connect' id='network-manipulate-connectNode'>" +
-          "<span class='network-manipulationLabel'>"+locale['addEdge'] +"</span></span>";
-      if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
-        this.manipulationDiv.innerHTML += "" +
-          "<div class='network-seperatorLine'></div>" +
-          "<span class='network-manipulationUI edit' id='network-manipulate-editNode'>" +
-            "<span class='network-manipulationLabel'>"+locale['editNode'] +"</span></span>";
-      }
-      else if (this._getSelectedEdgeCount() == 1 && this._getSelectedNodeCount() == 0) {
-        this.manipulationDiv.innerHTML += "" +
-          "<div class='network-seperatorLine'></div>" +
-          "<span class='network-manipulationUI edit' id='network-manipulate-editEdge'>" +
-          "<span class='network-manipulationLabel'>"+locale['editEdge'] +"</span></span>";
-      }
-      if (this._selectionIsEmpty() == false) {
-        this.manipulationDiv.innerHTML += "" +
-          "<div class='network-seperatorLine'></div>" +
-          "<span class='network-manipulationUI delete' id='network-manipulate-delete'>" +
-            "<span class='network-manipulationLabel'>"+locale['del'] +"</span></span>";
-      }
-
-
-      // bind the icons
-      var addNodeButton = document.getElementById("network-manipulate-addNode");
-      addNodeButton.onclick = this._createAddNodeToolbar.bind(this);
-      var addEdgeButton = document.getElementById("network-manipulate-connectNode");
-      addEdgeButton.onclick = this._createAddEdgeToolbar.bind(this);
-      if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
-        var editButton = document.getElementById("network-manipulate-editNode");
-        editButton.onclick = this._editNode.bind(this);
-      }
-      else if (this._getSelectedEdgeCount() == 1 && this._getSelectedNodeCount() == 0) {
-        var editButton = document.getElementById("network-manipulate-editEdge");
-        editButton.onclick = this._createEditEdgeToolbar.bind(this);
-      }
-      if (this._selectionIsEmpty() == false) {
-        var deleteButton = document.getElementById("network-manipulate-delete");
-        deleteButton.onclick = this._deleteSelected.bind(this);
-      }
-      var closeDiv = document.getElementById("network-manipulation-closeDiv");
-      closeDiv.onclick = this._toggleEditMode.bind(this);
-
-      this.boundFunction = this._createManipulatorBar.bind(this);
-      this.on('select', this.boundFunction);
-    }
-    else {
-      this.editModeDiv.innerHTML = "" +
-        "<span class='network-manipulationUI edit editmode' id='network-manipulate-editModeButton'>" +
-        "<span class='network-manipulationLabel'>" + locale['edit'] + "</span></span>";
-      var editModeButton = document.getElementById("network-manipulate-editModeButton");
-      editModeButton.onclick = this._toggleEditMode.bind(this);
-    }
-  };
-
-
-
-  /**
-   * Create the toolbar for adding Nodes
-   *
-   * @private
-   */
-  exports._createAddNodeToolbar = function() {
-    // clear the toolbar
-    this._clearManipulatorBar();
-    if (this.boundFunction) {
-      this.off('select', this.boundFunction);
-    }
-
-    var locale = this.constants.locales[this.constants.locale];
-
-    // create the toolbar contents
-    this.manipulationDiv.innerHTML = "" +
-      "<span class='network-manipulationUI back' id='network-manipulate-back'>" +
-      "<span class='network-manipulationLabel'>" + locale['back'] + " </span></span>" +
-      "<div class='network-seperatorLine'></div>" +
-      "<span class='network-manipulationUI none' id='network-manipulate-back'>" +
-      "<span id='network-manipulatorLabel' class='network-manipulationLabel'>" + locale['addDescription'] + "</span></span>";
-
-    // bind the icon
-    var backButton = document.getElementById("network-manipulate-back");
-    backButton.onclick = this._createManipulatorBar.bind(this);
-
-    // we use the boundFunction so we can reference it when we unbind it from the "select" event.
-    this.boundFunction = this._addNode.bind(this);
-    this.on('select', this.boundFunction);
-  };
-
-
-  /**
-   * create the toolbar to connect nodes
-   *
-   * @private
-   */
-  exports._createAddEdgeToolbar = function() {
-    // clear the toolbar
-    this._clearManipulatorBar();
-    this._unselectAll(true);
-    this.freezeSimulation = true;
-
-    var locale = this.constants.locales[this.constants.locale];
-
-    if (this.boundFunction) {
-      this.off('select', this.boundFunction);
-    }
-
-    this._unselectAll();
-    this.forceAppendSelection = false;
-    this.blockConnectingEdgeSelection = true;
-
-    this.manipulationDiv.innerHTML = "" +
-      "<span class='network-manipulationUI back' id='network-manipulate-back'>" +
-        "<span class='network-manipulationLabel'>" + locale['back'] + " </span></span>" +
-      "<div class='network-seperatorLine'></div>" +
-      "<span class='network-manipulationUI none' id='network-manipulate-back'>" +
-        "<span id='network-manipulatorLabel' class='network-manipulationLabel'>" + locale['edgeDescription'] + "</span></span>";
-
-    // bind the icon
-    var backButton = document.getElementById("network-manipulate-back");
-    backButton.onclick = this._createManipulatorBar.bind(this);
-
-    // we use the boundFunction so we can reference it when we unbind it from the "select" event.
-    this.boundFunction = this._handleConnect.bind(this);
-    this.on('select', this.boundFunction);
-
-    // temporarily overload functions
-    this.cachedFunctions["_handleTouch"] = this._handleTouch;
-    this.cachedFunctions["_handleOnRelease"] = this._handleOnRelease;
-    this._handleTouch = this._handleConnect;
-    this._handleOnRelease = this._finishConnect;
-
-    // redraw to show the unselect
-    this._redraw();
-  };
-
-  /**
-   * create the toolbar to edit edges
-   *
-   * @private
-   */
-  exports._createEditEdgeToolbar = function() {
-    // clear the toolbar
-    this._clearManipulatorBar();
-    this.controlNodesActive = true;
-
-    if (this.boundFunction) {
-      this.off('select', this.boundFunction);
-    }
-
-    this.edgeBeingEdited = this._getSelectedEdge();
-    this.edgeBeingEdited._enableControlNodes();
-
-    var locale = this.constants.locales[this.constants.locale];
-
-    this.manipulationDiv.innerHTML = "" +
-      "<span class='network-manipulationUI back' id='network-manipulate-back'>" +
-      "<span class='network-manipulationLabel'>" + locale['back'] + " </span></span>" +
-      "<div class='network-seperatorLine'></div>" +
-      "<span class='network-manipulationUI none' id='network-manipulate-back'>" +
-      "<span id='network-manipulatorLabel' class='network-manipulationLabel'>" + locale['editEdgeDescription'] + "</span></span>";
-
-    // bind the icon
-    var backButton = document.getElementById("network-manipulate-back");
-    backButton.onclick = this._createManipulatorBar.bind(this);
-
-    // temporarily overload functions
-    this.cachedFunctions["_handleTouch"]      = this._handleTouch;
-    this.cachedFunctions["_handleOnRelease"]  = this._handleOnRelease;
-    this.cachedFunctions["_handleTap"]        = this._handleTap;
-    this.cachedFunctions["_handleDragStart"]  = this._handleDragStart;
-    this.cachedFunctions["_handleOnDrag"]     = this._handleOnDrag;
-    this._handleTouch     = this._selectControlNode;
-    this._handleTap       = function () {};
-    this._handleOnDrag    = this._controlNodeDrag;
-    this._handleDragStart = function () {}
-    this._handleOnRelease = this._releaseControlNode;
-
-    // redraw to show the unselect
-    this._redraw();
-  };
-
-
-
-
-
-  /**
-   * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
-   * to walk the user through the process.
-   *
-   * @private
-   */
-  exports._selectControlNode = function(pointer) {
-    this.edgeBeingEdited.controlNodes.from.unselect();
-    this.edgeBeingEdited.controlNodes.to.unselect();
-    this.selectedControlNode = this.edgeBeingEdited._getSelectedControlNode(this._XconvertDOMtoCanvas(pointer.x),this._YconvertDOMtoCanvas(pointer.y));
-    if (this.selectedControlNode !== null) {
-      this.selectedControlNode.select();
-      this.freezeSimulation = true;
-    }
-    this._redraw();
-  };
-
-  /**
-   * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
-   * to walk the user through the process.
-   *
-   * @private
-   */
-  exports._controlNodeDrag = function(event) {
-    var pointer = this._getPointer(event.gesture.center);
-    if (this.selectedControlNode !== null && this.selectedControlNode !== undefined) {
-      this.selectedControlNode.x = this._XconvertDOMtoCanvas(pointer.x);
-      this.selectedControlNode.y = this._YconvertDOMtoCanvas(pointer.y);
-    }
-    this._redraw();
-  };
-
-  exports._releaseControlNode = function(pointer) {
-    var newNode = this._getNodeAt(pointer);
-    if (newNode != null) {
-      if (this.edgeBeingEdited.controlNodes.from.selected == true) {
-        this._editEdge(newNode.id, this.edgeBeingEdited.to.id);
-        this.edgeBeingEdited.controlNodes.from.unselect();
-      }
-      if (this.edgeBeingEdited.controlNodes.to.selected == true) {
-        this._editEdge(this.edgeBeingEdited.from.id, newNode.id);
-        this.edgeBeingEdited.controlNodes.to.unselect();
-      }
-    }
-    else {
-      this.edgeBeingEdited._restoreControlNodes();
-    }
-    this.freezeSimulation = false;
-    this._redraw();
-  };
-
-  /**
-   * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
-   * to walk the user through the process.
-   *
-   * @private
-   */
-  exports._handleConnect = function(pointer) {
-    if (this._getSelectedNodeCount() == 0) {
-      var node = this._getNodeAt(pointer);
-      var supportNodes, targetNode, targetViaNode, connectionEdge;
-
-      if (node != null) {
-        if (node.clusterSize > 1) {
-          alert(this.constants.locales[this.constants.locale]['createEdgeError'])
-        }
-        else {
-          this._selectObject(node,false);
-          supportNodes = this.sectors['support']['nodes'];
-
-            // create a node the temporary line can look at
-          supportNodes['targetNode'] = targetNode = new Node({id:'targetNode'},{},{},this.constants);
-          targetNode.x = node.x;
-          targetNode.y = node.y;
-
-          supportNodes['targetViaNode'] = targetViaNode = new Node({id:'targetViaNode'},{},{},this.constants);
-          targetViaNode.x = node.x;
-          targetViaNode.y = node.y;
-          targetViaNode.parentEdgeId = "connectionEdge";
-
-          // create a temporary edge
-          this.edges['connectionEdge'] = connectionEdge = new Edge({id:"connectionEdge",from:node.id,to:targetNode.id}, this, this.constants);
-          connectionEdge.from = node;
-          connectionEdge.connected = true;
-          connectionEdge.smooth = true;
-          connectionEdge.selected = true;
-          connectionEdge.to = targetNode;
-          connectionEdge.via = targetViaNode;
-
-          this.cachedFunctions["_handleOnDrag"] = this._handleOnDrag;
-          this._handleOnDrag = function(event) {
-            var pointer = this._getPointer(event.gesture.center);
-            var supportNodes = this.sectors['support']['nodes'];
-            supportNodes['targetNode'].x = this._XconvertDOMtoCanvas(pointer.x);
-            supportNodes['targetNode'].y = this._YconvertDOMtoCanvas(pointer.y);
-            supportNodes['targetViaNode'].x = 0.5 * (this._XconvertDOMtoCanvas(pointer.x) + this.edges['connectionEdge'].from.x);
-            supportNodes['targetViaNode'].y = this._YconvertDOMtoCanvas(pointer.y);
-          };
-
-          this.moving = true;
-          this.start();
-        }
-      }
-    }
-  };
-
-  exports._finishConnect = function(pointer) {
-    if (this._getSelectedNodeCount() == 1) {
-
-      // restore the drag function
-      this._handleOnDrag = this.cachedFunctions["_handleOnDrag"];
-      delete this.cachedFunctions["_handleOnDrag"];
-
-      // remember the edge id
-      var connectFromId = this.edges['connectionEdge'].fromId;
-
-      // remove the temporary nodes and edge
-      delete this.edges['connectionEdge'];
-      delete this.sectors['support']['nodes']['targetNode'];
-      delete this.sectors['support']['nodes']['targetViaNode'];
-
-      var node = this._getNodeAt(pointer);
-      if (node != null) {
-        if (node.clusterSize > 1) {
-          alert(this.constants.locales[this.constants.locale]["createEdgeError"])
-        }
-        else {
-          this._createEdge(connectFromId,node.id);
-          this._createManipulatorBar();
-        }
-      }
-      this._unselectAll();
-    }
-  };
-
-
-  /**
-   * Adds a node on the specified location
-   */
-  exports._addNode = function() {
-    if (this._selectionIsEmpty() && this.editMode == true) {
-      var positionObject = this._pointerToPositionObject(this.pointerPosition);
-      var defaultData = {id:util.randomUUID(),x:positionObject.left,y:positionObject.top,label:"new",allowedToMoveX:true,allowedToMoveY:true};
-      if (this.triggerFunctions.add) {
-        if (this.triggerFunctions.add.length == 2) {
-          var me = this;
-          this.triggerFunctions.add(defaultData, function(finalizedData) {
-            me.nodesData.add(finalizedData);
-            me._createManipulatorBar();
-            me.moving = true;
-            me.start();
-          });
-        }
-        else {
-          throw new Error('The function for add does not support two arguments (data,callback)');
-          this._createManipulatorBar();
-          this.moving = true;
-          this.start();
-        }
-      }
-      else {
-        this.nodesData.add(defaultData);
-        this._createManipulatorBar();
-        this.moving = true;
-        this.start();
-      }
-    }
-  };
-
-
-  /**
-   * connect two nodes with a new edge.
-   *
-   * @private
-   */
-  exports._createEdge = function(sourceNodeId,targetNodeId) {
-    if (this.editMode == true) {
-      var defaultData = {from:sourceNodeId, to:targetNodeId};
-      if (this.triggerFunctions.connect) {
-        if (this.triggerFunctions.connect.length == 2) {
-          var me = this;
-          this.triggerFunctions.connect(defaultData, function(finalizedData) {
-            me.edgesData.add(finalizedData);
-            me.moving = true;
-            me.start();
-          });
-        }
-        else {
-          throw new Error('The function for connect does not support two arguments (data,callback)');
-          this.moving = true;
-          this.start();
-        }
-      }
-      else {
-        this.edgesData.add(defaultData);
-        this.moving = true;
-        this.start();
-      }
-    }
-  };
-
-  /**
-   * connect two nodes with a new edge.
-   *
-   * @private
-   */
-  exports._editEdge = function(sourceNodeId,targetNodeId) {
-    if (this.editMode == true) {
-      var defaultData = {id: this.edgeBeingEdited.id, from:sourceNodeId, to:targetNodeId};
-      if (this.triggerFunctions.editEdge) {
-        if (this.triggerFunctions.editEdge.length == 2) {
-          var me = this;
-          this.triggerFunctions.editEdge(defaultData, function(finalizedData) {
-            me.edgesData.update(finalizedData);
-            me.moving = true;
-            me.start();
-          });
-        }
-        else {
-          throw new Error('The function for edit does not support two arguments (data, callback)');
-          this.moving = true;
-          this.start();
-        }
-      }
-      else {
-        this.edgesData.update(defaultData);
-        this.moving = true;
-        this.start();
-      }
-    }
-  };
-
-  /**
-   * Create the toolbar to edit the selected node. The label and the color can be changed. Other colors are derived from the chosen color.
-   *
-   * @private
-   */
-  exports._editNode = function() {
-    if (this.triggerFunctions.edit && this.editMode == true) {
-      var node = this._getSelectedNode();
-      var data = {id:node.id,
-        label: node.label,
-        group: node.options.group,
-        shape: node.options.shape,
-        color: {
-          background:node.options.color.background,
-          border:node.options.color.border,
-          highlight: {
-            background:node.options.color.highlight.background,
-            border:node.options.color.highlight.border
-          }
-        }};
-      if (this.triggerFunctions.edit.length == 2) {
-        var me = this;
-        this.triggerFunctions.edit(data, function (finalizedData) {
-          me.nodesData.update(finalizedData);
-          me._createManipulatorBar();
-          me.moving = true;
-          me.start();
-        });
-      }
-      else {
-        throw new Error('The function for edit does not support two arguments (data, callback)');
-      }
-    }
-    else {
-      throw new Error('No edit function has been bound to this button');
-    }
-  };
-
-
-
-
-  /**
-   * delete everything in the selection
-   *
-   * @private
-   */
-  exports._deleteSelected = function() {
-    if (!this._selectionIsEmpty() && this.editMode == true) {
-      if (!this._clusterInSelection()) {
-        var selectedNodes = this.getSelectedNodes();
-        var selectedEdges = this.getSelectedEdges();
-        if (this.triggerFunctions.del) {
-          var me = this;
-          var data = {nodes: selectedNodes, edges: selectedEdges};
-          if (this.triggerFunctions.del.length = 2) {
-            this.triggerFunctions.del(data, function (finalizedData) {
-              me.edgesData.remove(finalizedData.edges);
-              me.nodesData.remove(finalizedData.nodes);
-              me._unselectAll();
-              me.moving = true;
-              me.start();
-            });
-          }
-          else {
-            throw new Error('The function for delete does not support two arguments (data, callback)')
-          }
-        }
-        else {
-          this.edgesData.remove(selectedEdges);
-          this.nodesData.remove(selectedNodes);
-          this._unselectAll();
-          this.moving = true;
-          this.start();
-        }
-      }
-      else {
-        alert(this.constants.locales[this.constants.locale]["deleteClusterError"]);
-      }
-    }
-  };
-
-
-/***/ },
-/* 58 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var util = __webpack_require__(1);
-  var Hammer = __webpack_require__(42);
-
-  exports._cleanNavigation = function() {
-    // clean up previous navigation items
-    var wrapper = document.getElementById('network-navigation_wrapper');
-    if (wrapper && wrapper.parentNode) {
-      wrapper.parentNode.removeChild(wrapper);
-    }
-    document.onmouseup = null;
-  };
-
-  /**
-   * Creation of the navigation controls nodes. They are drawn over the rest of the nodes and are not affected by scale and translation
-   * they have a triggerFunction which is called on click. If the position of the navigation controls is dependent
-   * on this.frame.canvas.clientWidth or this.frame.canvas.clientHeight, we flag horizontalAlignLeft and verticalAlignTop false.
-   * This means that the location will be corrected by the _relocateNavigation function on a size change of the canvas.
-   *
-   * @private
-   */
-  exports._loadNavigationElements = function() {
-    this._cleanNavigation();
-
-    this.navigationDivs = {};
-    var navigationDivs = ['up','down','left','right','zoomIn','zoomOut','zoomExtends'];
-    var navigationDivActions = ['_moveUp','_moveDown','_moveLeft','_moveRight','_zoomIn','_zoomOut','zoomExtent'];
-
-    this.navigationDivs['wrapper'] = document.createElement('div');
-    this.navigationDivs['wrapper'].id = 'network-navigation_wrapper';
-    this.frame.appendChild(this.navigationDivs['wrapper']);
-
-    var me = this;
-    for (var i = 0; i < navigationDivs.length; i++) {
-      this.navigationDivs[navigationDivs[i]] = document.createElement('div');
-      this.navigationDivs[navigationDivs[i]].id = 'network-navigation_' + navigationDivs[i];
-      this.navigationDivs[navigationDivs[i]].className = 'network-navigation ' + navigationDivs[i];
-      this.navigationDivs['wrapper'].appendChild(this.navigationDivs[navigationDivs[i]]);
-      var hammer = Hammer(this.navigationDivs[navigationDivs[i]], {prevent_default: true});
-      hammer.on('touch', me[navigationDivActions[i]].bind(me));
-    }
-    var hammer = Hammer(document, {prevent_default: false});
-    hammer.on('release', me._stopMovement.bind(me));
-  };
-
-  /**
-   * this stops all movement induced by the navigation buttons
-   *
-   * @private
-   */
-  exports._stopMovement = function() {
-    this._xStopMoving();
-    this._yStopMoving();
-    this._stopZoom();
-  };
-
-
-  /**
-   * move the screen up
-   * By using the increments, instead of adding a fixed number to the translation, we keep fluent and
-   * instant movement. The onKeypress event triggers immediately, then pauses, then triggers frequently
-   * To avoid this behaviour, we do the translation in the start loop.
-   *
-   * @private
-   */
-  exports._moveUp = function(event) {
-    this.yIncrement = this.constants.keyboard.speed.y;
-    this.start(); // if there is no node movement, the calculation wont be done
-    event.preventDefault();
-  };
-
-
-  /**
-   * move the screen down
-   * @private
-   */
-  exports._moveDown = function(event) {
-    this.yIncrement = -this.constants.keyboard.speed.y;
-    this.start(); // if there is no node movement, the calculation wont be done
-    event.preventDefault();
-  };
-
-
-  /**
-   * move the screen left
-   * @private
-   */
-  exports._moveLeft = function(event) {
-    this.xIncrement = this.constants.keyboard.speed.x;
-    this.start(); // if there is no node movement, the calculation wont be done
-    event.preventDefault();
-  };
-
-
-  /**
-   * move the screen right
-   * @private
-   */
-  exports._moveRight = function(event) {
-    this.xIncrement = -this.constants.keyboard.speed.y;
-    this.start(); // if there is no node movement, the calculation wont be done
-    event.preventDefault();
-  };
-
-
-  /**
-   * Zoom in, using the same method as the movement.
-   * @private
-   */
-  exports._zoomIn = function(event) {
-    this.zoomIncrement = this.constants.keyboard.speed.zoom;
-    this.start(); // if there is no node movement, the calculation wont be done
-    event.preventDefault();
-  };
-
-
-  /**
-   * Zoom out
-   * @private
-   */
-  exports._zoomOut = function(event) {
-    this.zoomIncrement = -this.constants.keyboard.speed.zoom;
-    this.start(); // if there is no node movement, the calculation wont be done
-    event.preventDefault();
-  };
-
-
-  /**
-   * Stop zooming and unhighlight the zoom controls
-   * @private
-   */
-  exports._stopZoom = function(event) {
-    this.zoomIncrement = 0;
-    event && event.preventDefault();
-  };
-
-
-  /**
-   * Stop moving in the Y direction and unHighlight the up and down
-   * @private
-   */
-  exports._yStopMoving = function(event) {
-    this.yIncrement = 0;
-    event && event.preventDefault();
-  };
-
-
-  /**
-   * Stop moving in the X direction and unHighlight left and right.
-   * @private
-   */
-  exports._xStopMoving = function(event) {
-    this.xIncrement = 0;
-    event && event.preventDefault();
-  };
-
-
-/***/ },
-/* 59 */
-/***/ function(module, exports, __webpack_require__) {
-
-  exports._resetLevels = function() {
-    for (var nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        var node = this.nodes[nodeId];
-        if (node.preassignedLevel == false) {
-          node.level = -1;
-          node.hierarchyEnumerated = false;
-        }
-      }
-    }
-  };
-
-  /**
-   * This is the main function to layout the nodes in a hierarchical way.
-   * It checks if the node details are supplied correctly
-   *
-   * @private
-   */
-  exports._setupHierarchicalLayout = function() {
-    if (this.constants.hierarchicalLayout.enabled == true && this.nodeIndices.length > 0) {
-      if (this.constants.hierarchicalLayout.direction == "RL" || this.constants.hierarchicalLayout.direction == "DU") {
-        this.constants.hierarchicalLayout.levelSeparation *= -1;
-      }
-      else {
-        this.constants.hierarchicalLayout.levelSeparation = Math.abs(this.constants.hierarchicalLayout.levelSeparation);
-      }
-
-      if (this.constants.hierarchicalLayout.direction == "RL" || this.constants.hierarchicalLayout.direction == "LR") {
-        if (this.constants.smoothCurves.enabled == true) {
-          this.constants.smoothCurves.type = "vertical";
-        }
-      }
-      else {
-        if (this.constants.smoothCurves.enabled == true) {
-          this.constants.smoothCurves.type = "horizontal";
-        }
-      }
-      // get the size of the largest hubs and check if the user has defined a level for a node.
-      var hubsize = 0;
-      var node, nodeId;
-      var definedLevel = false;
-      var undefinedLevel = false;
-
-      for (nodeId in this.nodes) {
-        if (this.nodes.hasOwnProperty(nodeId)) {
-          node = this.nodes[nodeId];
-          if (node.level != -1) {
-            definedLevel = true;
-          }
-          else {
-            undefinedLevel = true;
-          }
-          if (hubsize < node.edges.length) {
-            hubsize = node.edges.length;
-          }
-        }
-      }
-
-      // if the user defined some levels but not all, alert and run without hierarchical layout
-      if (undefinedLevel == true && definedLevel == true) {
-        throw new Error("To use the hierarchical layout, nodes require either no predefined levels or levels have to be defined for all nodes.");
-        this.zoomExtent(undefined,true,this.constants.clustering.enabled);
-        if (!this.constants.clustering.enabled) {
-          this.start();
-        }
-      }
-      else {
-        // setup the system to use hierarchical method.
-        this._changeConstants();
-
-        // define levels if undefined by the users. Based on hubsize
-        if (undefinedLevel == true) {
-          if (this.constants.hierarchicalLayout.layout == "hubsize") {
-            this._determineLevels(hubsize);
-          }
-          else {
-            this._determineLevelsDirected();
-          }
-
-        }
-        // check the distribution of the nodes per level.
-        var distribution = this._getDistribution();
-
-        // place the nodes on the canvas. This also stablilizes the system.
-        this._placeNodesByHierarchy(distribution);
-
-        // start the simulation.
-        this.start();
-      }
-    }
-  };
-
-
-  /**
-   * This function places the nodes on the canvas based on the hierarchial distribution.
-   *
-   * @param {Object} distribution | obtained by the function this._getDistribution()
-   * @private
-   */
-  exports._placeNodesByHierarchy = function(distribution) {
-    var nodeId, node;
-
-    // start placing all the level 0 nodes first. Then recursively position their branches.
-    for (var level in distribution) {
-      if (distribution.hasOwnProperty(level)) {
-
-        for (nodeId in distribution[level].nodes) {
-          if (distribution[level].nodes.hasOwnProperty(nodeId)) {
-            node = distribution[level].nodes[nodeId];
-            if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
-              if (node.xFixed) {
-                node.x = distribution[level].minPos;
-                node.xFixed = false;
-
-                distribution[level].minPos += distribution[level].nodeSpacing;
-              }
-            }
-            else {
-              if (node.yFixed) {
-                node.y = distribution[level].minPos;
-                node.yFixed = false;
-
-                distribution[level].minPos += distribution[level].nodeSpacing;
-              }
-            }
-            this._placeBranchNodes(node.edges,node.id,distribution,node.level);
-          }
-        }
-      }
-    }
-
-    // stabilize the system after positioning. This function calls zoomExtent.
-    this._stabilize();
-  };
-
-
-  /**
-   * This function get the distribution of levels based on hubsize
-   *
-   * @returns {Object}
-   * @private
-   */
-  exports._getDistribution = function() {
-    var distribution = {};
-    var nodeId, node, level;
-
-    // we fix Y because the hierarchy is vertical, we fix X so we do not give a node an x position for a second time.
-    // the fix of X is removed after the x value has been set.
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        node = this.nodes[nodeId];
-        node.xFixed = true;
-        node.yFixed = true;
-        if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
-          node.y = this.constants.hierarchicalLayout.levelSeparation*node.level;
-        }
-        else {
-          node.x = this.constants.hierarchicalLayout.levelSeparation*node.level;
-        }
-        if (distribution[node.level] === undefined) {
-          distribution[node.level] = {amount: 0, nodes: {}, minPos:0, nodeSpacing:0};
-        }
-        distribution[node.level].amount += 1;
-        distribution[node.level].nodes[nodeId] = node;
-      }
-    }
-
-    // determine the largest amount of nodes of all levels
-    var maxCount = 0;
-    for (level in distribution) {
-      if (distribution.hasOwnProperty(level)) {
-        if (maxCount < distribution[level].amount) {
-          maxCount = distribution[level].amount;
-        }
-      }
-    }
-
-    // set the initial position and spacing of each nodes accordingly
-    for (level in distribution) {
-      if (distribution.hasOwnProperty(level)) {
-        distribution[level].nodeSpacing = (maxCount + 1) * this.constants.hierarchicalLayout.nodeSpacing;
-        distribution[level].nodeSpacing /= (distribution[level].amount + 1);
-        distribution[level].minPos = distribution[level].nodeSpacing - (0.5 * (distribution[level].amount + 1) * distribution[level].nodeSpacing);
-      }
-    }
-
-    return distribution;
-  };
-
-
-  /**
-   * this function allocates nodes in levels based on the recursive branching from the largest hubs.
-   *
-   * @param hubsize
-   * @private
-   */
-  exports._determineLevels = function(hubsize) {
-    var nodeId, node;
-
-    // determine hubs
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        node = this.nodes[nodeId];
-        if (node.edges.length == hubsize) {
-          node.level = 0;
-        }
-      }
-    }
-
-    // branch from hubs
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        node = this.nodes[nodeId];
-        if (node.level == 0) {
-          this._setLevel(1,node.edges,node.id);
-        }
-      }
-    }
-  };
-
-  /**
-   * this function allocates nodes in levels based on the recursive branching from the largest hubs.
-   *
-   * @param hubsize
-   * @private
-   */
-  exports._determineLevelsDirected = function() {
-    var nodeId, node;
-
-    // set first node to source
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        this.nodes[nodeId].level = 10000;
-        break;
-      }
-    }
-
-    // branch from hubs
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        node = this.nodes[nodeId];
-        if (node.level == 10000) {
-          this._setLevelDirected(10000,node.edges,node.id);
-        }
-      }
-    }
-
-
-    // branch from hubs
-    var minLevel = 10000;
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        node = this.nodes[nodeId];
-        minLevel = node.level < minLevel ? node.level : minLevel;
-      }
-    }
-
-    // branch from hubs
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        node = this.nodes[nodeId];
-        node.level -= minLevel;
-      }
-    }
-  };
-
-
-  /**
-   * Since hierarchical layout does not support:
-   *    - smooth curves (based on the physics),
-   *    - clustering (based on dynamic node counts)
-   *
-   * We disable both features so there will be no problems.
-   *
-   * @private
-   */
-  exports._changeConstants = function() {
-    this.constants.clustering.enabled = false;
-    this.constants.physics.barnesHut.enabled = false;
-    this.constants.physics.hierarchicalRepulsion.enabled = true;
-    this._loadSelectedForceSolver();
-    if (this.constants.smoothCurves.enabled == true) {
-      this.constants.smoothCurves.dynamic = false;
-    }
-    this._configureSmoothCurves();
-  };
-
-
-  /**
-   * This is a recursively called function to enumerate the branches from the largest hubs and place the nodes
-   * on a X position that ensures there will be no overlap.
-   *
-   * @param edges
-   * @param parentId
-   * @param distribution
-   * @param parentLevel
-   * @private
-   */
-  exports._placeBranchNodes = function(edges, parentId, distribution, parentLevel) {
-    for (var i = 0; i < edges.length; i++) {
-      var childNode = null;
-      if (edges[i].toId == parentId) {
-        childNode = edges[i].from;
-      }
-      else {
-        childNode = edges[i].to;
-      }
-
-      // if a node is conneceted to another node on the same level (or higher (means lower level))!, this is not handled here.
-      var nodeMoved = false;
-      if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
-        if (childNode.xFixed && childNode.level > parentLevel) {
-          childNode.xFixed = false;
-          childNode.x = distribution[childNode.level].minPos;
-          nodeMoved = true;
-        }
-      }
-      else {
-        if (childNode.yFixed && childNode.level > parentLevel) {
-          childNode.yFixed = false;
-          childNode.y = distribution[childNode.level].minPos;
-          nodeMoved = true;
-        }
-      }
-
-      if (nodeMoved == true) {
-        distribution[childNode.level].minPos += distribution[childNode.level].nodeSpacing;
-        if (childNode.edges.length > 1) {
-          this._placeBranchNodes(childNode.edges,childNode.id,distribution,childNode.level);
-        }
-      }
-    }
-  };
-
-
-  /**
-   * this function is called recursively to enumerate the barnches of the largest hubs and give each node a level.
-   *
-   * @param level
-   * @param edges
-   * @param parentId
-   * @private
-   */
-  exports._setLevel = function(level, edges, parentId) {
-    for (var i = 0; i < edges.length; i++) {
-      var childNode = null;
-      if (edges[i].toId == parentId) {
-        childNode = edges[i].from;
-      }
-      else {
-        childNode = edges[i].to;
-      }
-      if (childNode.level == -1 || childNode.level > level) {
-        childNode.level = level;
-        if (childNode.edges.length > 1) {
-          this._setLevel(level+1, childNode.edges, childNode.id);
-        }
-      }
-    }
-  };
-
-
-  /**
-   * this function is called recursively to enumerate the barnches of the largest hubs and give each node a level.
-   *
-   * @param level
-   * @param edges
-   * @param parentId
-   * @private
-   */
-  exports._setLevelDirected = function(level, edges, parentId) {
-    this.nodes[parentId].hierarchyEnumerated = true;
-    for (var i = 0; i < edges.length; i++) {
-      var childNode = null;
-      var direction = 1;
-      if (edges[i].toId == parentId) {
-        childNode = edges[i].from;
-        direction = -1;
-      }
-      else {
-        childNode = edges[i].to;
-      }
-      if (childNode.level == -1) {
-        childNode.level = level + direction;
-      }
-    }
-
-    for (var i = 0; i < edges.length; i++) {
-      var childNode = null;
-      if (edges[i].toId == parentId) {childNode = edges[i].from;}
-      else {childNode = edges[i].to;}
-      if (childNode.edges.length > 1 && childNode.hierarchyEnumerated === false) {
-        this._setLevelDirected(childNode.level, childNode.edges, childNode.id);
-      }
-    }
-  };
-
-
-  /**
-   * Unfix nodes
-   *
-   * @private
-   */
-  exports._restoreNodes = function() {
-    for (var nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        this.nodes[nodeId].xFixed = false;
-        this.nodes[nodeId].yFixed = false;
-      }
-    }
-  };
-
 
 /***/ },
 /* 60 */
@@ -31621,11 +31434,17 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
+  var map = {};
   function webpackContext(req) {
-  	throw new Error("Cannot find module '" + req + "'.");
-  }
-  webpackContext.resolve = webpackContext;
-  webpackContext.keys = function() { return []; };
+  	return __webpack_require__(webpackContextResolve(req));
+  };
+  function webpackContextResolve(req) {
+  	return map[req] || (function() { throw new Error("Cannot find module '" + req + "'.") }());
+  };
+  webpackContext.keys = function webpackContextKeys() {
+  	return Object.keys(map);
+  };
+  webpackContext.resolve = webpackContextResolve;
   module.exports = webpackContext;
 
 
@@ -32275,4 +32094,4 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ }
 /******/ ])
-});
+})
