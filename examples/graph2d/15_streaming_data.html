@@ -109,7 +109,7 @@
     var interval = range.end - range.start;
     var oldIds = dataset.getIds({
       filter: function (item) {
-        return item.x < range.start - interval; // changed so you don't see them disappearing
+        return item.x < range.start - interval;
       }
     });
     dataset.remove(oldIds);
