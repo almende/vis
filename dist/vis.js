@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 3.4.0
- * @date    2014-09-10
+ * @version 3.4.1
+ * @date    2014-09-11
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -1417,6 +1417,68 @@ return /******/ (function(modules) { // webpackBootstrap
     if (t < 1) return change/2*t*t + start;
     t--;
     return -change/2 * (t*(t-2) - 1) + start;
+  };
+
+
+
+  /*
+   * Easing Functions - inspired from http://gizma.com/easing/
+   * only considering the t value for the range [0, 1] => [0, 1]
+   * https://gist.github.com/gre/1650294
+   */
+  exports.easingFunctions = {
+    // no easing, no acceleration
+    linear: function (t) {
+      return t
+    },
+    // accelerating from zero velocity
+    easeInQuad: function (t) {
+      return t * t
+    },
+    // decelerating to zero velocity
+    easeOutQuad: function (t) {
+      return t * (2 - t)
+    },
+    // acceleration until halfway, then deceleration
+    easeInOutQuad: function (t) {
+      return t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t
+    },
+    // accelerating from zero velocity
+    easeInCubic: function (t) {
+      return t * t * t
+    },
+    // decelerating to zero velocity
+    easeOutCubic: function (t) {
+      return (--t) * t * t + 1
+    },
+    // acceleration until halfway, then deceleration
+    easeInOutCubic: function (t) {
+      return t < .5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1
+    },
+    // accelerating from zero velocity
+    easeInQuart: function (t) {
+      return t * t * t * t
+    },
+    // decelerating to zero velocity
+    easeOutQuart: function (t) {
+      return 1 - (--t) * t * t * t
+    },
+    // acceleration until halfway, then deceleration
+    easeInOutQuart: function (t) {
+      return t < .5 ? 8 * t * t * t * t : 1 - 8 * (--t) * t * t * t
+    },
+    // accelerating from zero velocity
+    easeInQuint: function (t) {
+      return t * t * t * t * t
+    },
+    // decelerating to zero velocity
+    easeOutQuint: function (t) {
+      return 1 + (--t) * t * t * t * t
+    },
+    // acceleration until halfway, then deceleration
+    easeInOutQuint: function (t) {
+      return t < .5 ? 16 * t * t * t * t * t : 1 + 16 * (--t) * t * t * t * t
+    }
   };
 
 /***/ },
@@ -11646,26 +11708,21 @@ return /******/ (function(modules) { // webpackBootstrap
    * @protected
    */
   LineGraph.prototype._updateUngrouped = function() {
-    if (this.itemsData != null) {
-  //    var t0 = new Date();
-      var group = {id: UNGROUPED, content: this.options.defaultGroup};
-      this._updateGroup(group, UNGROUPED);
+    if (this.itemsData && this.itemsData != null) {
       var ungroupedCounter = 0;
-      if (this.itemsData) {
-        for (var itemId in this.itemsData._data) {
-          if (this.itemsData._data.hasOwnProperty(itemId)) {
-            var item = this.itemsData._data[itemId];
-            if (item != undefined) {
-              if (item.hasOwnProperty('group')) {
-                if (item.group === undefined) {
-                  item.group = UNGROUPED;
-                }
-              }
-              else {
+      for (var itemId in this.itemsData._data) {
+        if (this.itemsData._data.hasOwnProperty(itemId)) {
+          var item = this.itemsData._data[itemId];
+          if (item != undefined) {
+            if (item.hasOwnProperty('group')) {
+              if (item.group === undefined) {
                 item.group = UNGROUPED;
               }
-              ungroupedCounter = item.group == UNGROUPED ? ungroupedCounter + 1 : ungroupedCounter;
             }
+            else {
+              item.group = UNGROUPED;
+            }
+            ungroupedCounter = item.group == UNGROUPED ? ungroupedCounter + 1 : ungroupedCounter;
           }
         }
       }
@@ -11676,6 +11733,10 @@ return /******/ (function(modules) { // webpackBootstrap
         this.legendRight.removeGroup(UNGROUPED);
         this.yAxisLeft.removeGroup(UNGROUPED);
         this.yAxisRight.removeGroup(UNGROUPED);
+      }
+      else {
+        var group = {id: UNGROUPED, content: this.options.defaultGroup};
+        this._updateGroup(group, UNGROUPED);
       }
     }
     else {
@@ -14231,6 +14292,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     this.hoverObj = {nodes:{},edges:{}};
     this.controlNodesActive = false;
+    this.navigationHammers = {existing:[], new: []};
 
     // animation properties
     this.animationSpeed = 1/this.renderRefreshRate;
@@ -14268,65 +14330,6 @@ return /******/ (function(modules) { // webpackBootstrap
     // load the selection system. (mandatory, required by Network)
     this._loadHierarchySystem();
 
-    /*
-     * Easing Functions - inspired from http://gizma.com/easing/
-     * only considering the t value for the range [0, 1] => [0, 1]
-     * https://gist.github.com/gre/1650294
-     */
-    this.easingFunctions = {
-      // no easing, no acceleration
-      linear: function (t) {
-        return t
-      },
-      // accelerating from zero velocity
-      easeInQuad: function (t) {
-        return t * t
-      },
-      // decelerating to zero velocity
-      easeOutQuad: function (t) {
-        return t * (2 - t)
-      },
-      // acceleration until halfway, then deceleration
-      easeInOutQuad: function (t) {
-        return t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t
-      },
-      // accelerating from zero velocity
-      easeInCubic: function (t) {
-        return t * t * t
-      },
-      // decelerating to zero velocity
-      easeOutCubic: function (t) {
-        return (--t) * t * t + 1
-      },
-      // acceleration until halfway, then deceleration
-      easeInOutCubic: function (t) {
-        return t < .5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1
-      },
-      // accelerating from zero velocity
-      easeInQuart: function (t) {
-        return t * t * t * t
-      },
-      // decelerating to zero velocity
-      easeOutQuart: function (t) {
-        return 1 - (--t) * t * t * t
-      },
-      // acceleration until halfway, then deceleration
-      easeInOutQuart: function (t) {
-        return t < .5 ? 8 * t * t * t * t : 1 - 8 * (--t) * t * t * t
-      },
-      // accelerating from zero velocity
-      easeInQuint: function (t) {
-        return t * t * t * t * t
-      },
-      // decelerating to zero velocity
-      easeOutQuint: function (t) {
-        return 1 + (--t) * t * t * t * t
-      },
-      // acceleration until halfway, then deceleration
-      easeInOutQuint: function (t) {
-        return t < .5 ? 16 * t * t * t * t * t : 1 + 16 * (--t) * t * t * t * t
-      }
-    };
 
     // apply options
     this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
@@ -14491,7 +14494,6 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     var range = this._getRange();
-    var scale = this._getScale();
     var zoomLevel;
 
     if (initialZoom == true) {
@@ -16444,7 +16446,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.easingTime = easingTime || this.easingTime + this.animationSpeed;
     this.easingTime += this.animationSpeed;
 
-    var progress = this.easingFunctions[this.animationEasingFunction](this.easingTime);
+    var progress = util.easingFunctions[this.animationEasingFunction](this.easingTime);
 
     this._setScale(this.sourceScale + (this.targetScale - this.sourceScale) * progress);
     this._setTranslation(
@@ -16454,7 +16456,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
     this._classicRedraw();
     this.moving = true;
-
     // cleanup
     if (this.easingTime >= 1.0) {
       this.easingTime = 0;
@@ -20332,6 +20333,16 @@ return /******/ (function(modules) { // webpackBootstrap
     var borderRootHeight= dom.root.offsetHeight - dom.root.clientHeight;
     var borderRootWidth = dom.root.offsetWidth - dom.root.clientWidth;
 
+    // workaround for a bug in IE: the clientWidth of an element with
+    // a height:0px and overflow:hidden is not calculated and always has value 0
+    if (dom.centerContainer.clientHeight === 0) {
+      props.border.left = props.border.top;
+      props.border.right  = props.border.left;
+    }
+    if (dom.root.clientHeight === 0) {
+      borderRootWidth = borderRootHeight;
+    }
+
     // calculate the heights. If any of the side panels is empty, we set the height to
     // minus the border width, such that the border will be invisible
     props.center.height = dom.center.offsetHeight;
@@ -21201,7 +21212,6 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   exports._loadNavigationControls = function () {
     this._loadMixin(NavigationMixin);
-
     // the clean function removes the button divs, this is done to remove the bindings.
     this._cleanNavigation();
     if (this.constants.navigation.enabled == true) {
@@ -30394,12 +30404,19 @@ return /******/ (function(modules) { // webpackBootstrap
   var Hammer = __webpack_require__(42);
 
   exports._cleanNavigation = function() {
+    // clean hammer bindings
+    if (this.navigationHammers.existing.length != 0) {
+      for (var i = 0; i < this.navigationHammers.existing.length; i++) {
+        this.navigationHammers.existing[i].dispose();
+      }
+      this.navigationHammers.existing = [];
+    }
+
     // clean up previous navigation items
     var wrapper = document.getElementById('network-navigation_wrapper');
     if (wrapper && wrapper.parentNode) {
       wrapper.parentNode.removeChild(wrapper);
     }
-    document.onmouseup = null;
   };
 
   /**
@@ -30415,23 +30432,43 @@ return /******/ (function(modules) { // webpackBootstrap
 
     this.navigationDivs = {};
     var navigationDivs = ['up','down','left','right','zoomIn','zoomOut','zoomExtends'];
-    var navigationDivActions = ['_moveUp','_moveDown','_moveLeft','_moveRight','_zoomIn','_zoomOut','zoomExtent'];
+    var navigationDivActions = ['_moveUp','_moveDown','_moveLeft','_moveRight','_zoomIn','_zoomOut','_zoomExtent'];
 
     this.navigationDivs['wrapper'] = document.createElement('div');
     this.navigationDivs['wrapper'].id = 'network-navigation_wrapper';
     this.frame.appendChild(this.navigationDivs['wrapper']);
 
-    var me = this;
     for (var i = 0; i < navigationDivs.length; i++) {
       this.navigationDivs[navigationDivs[i]] = document.createElement('div');
       this.navigationDivs[navigationDivs[i]].id = 'network-navigation_' + navigationDivs[i];
       this.navigationDivs[navigationDivs[i]].className = 'network-navigation ' + navigationDivs[i];
       this.navigationDivs['wrapper'].appendChild(this.navigationDivs[navigationDivs[i]]);
+
       var hammer = Hammer(this.navigationDivs[navigationDivs[i]], {prevent_default: true});
-      hammer.on('touch', me[navigationDivActions[i]].bind(me));
+      hammer.on('touch', this[navigationDivActions[i]].bind(this));
+      this.navigationHammers.new.push(hammer);
     }
-    var hammer = Hammer(document, {prevent_default: false});
-    hammer.on('release', me._stopMovement.bind(me));
+
+    var hammerDoc = Hammer(document, {prevent_default: false});
+    hammerDoc.on('release', this._stopMovement.bind(this));
+    this.navigationHammers.new.push(hammerDoc);
+
+    this.navigationHammers.existing = this.navigationHammers.new;
+  };
+
+
+  /**
+   * this stops all movement induced by the navigation buttons
+   *
+   * @private
+   */
+  exports._zoomExtent = function(event) {
+    // FIXME: this is a workaround because the binding of Hammer on Document makes this fire twice
+    if (this._zoomExtentLastTime === undefined || new Date() - this._zoomExtentLastTime > 50) {
+      this._zoomExtentLastTime = new Date();
+      this.zoomExtent({duration:800});
+      event.stopPropagation();
+    }
   };
 
   /**
