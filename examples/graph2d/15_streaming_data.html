@@ -42,12 +42,6 @@
   var dataset = new vis.DataSet();
   var now = vis.moment();
 
-  // added initial set so you don't think the graph is empty
-  dataset.add({x: now-2000,y: y((now-2000) / 1000)});
-  dataset.add({x: now-1000,y: y((now-1000) / 1000)});
-  dataset.add({x: now,y: y((now) / 1000)});
-  dataset.add({x: now+1000,y: y((now+1000) / 1000)});
-
   var options = {
     start: vis.moment().add(-30, 'seconds'), // changed so its faster
     end: vis.moment(),
@@ -57,6 +51,12 @@
           min:-10, max: 10
         }
       }
+    },
+    drawPoints: {
+      style: 'circle' // square, circle
+    },
+    shaded: {
+      orientation: 'bottom' // top, bottom
     }
   };
   var graph2d = new vis.Graph2d(container, dataset, options);
@@ -101,7 +101,7 @@
     // add a new data point to the dataset
     var now = vis.moment();
     dataset.add({
-      x: now+2000, // changed so you dont see them appearing
+      x: now,
       y: y(now / 1000)
     });
 

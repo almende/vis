@@ -10,6 +10,11 @@ http://visjs.org
 - Added animation to zoomExtent navigation button.
 - Improved cleaning of Hammer.js bindings.
 
+### Timeline
+
+- Fixed a bug in IE freezing when margin.item and margin.axis where both 0.
+
+
 ## 2014-09-10, version 3.4.0
 
 ### Graph2d
