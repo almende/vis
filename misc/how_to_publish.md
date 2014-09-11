@@ -61,8 +61,8 @@ This generates the vis.js library in the folder `./dist`.
 ## Update website
 
 - Copy the `dist` folder from the `master` branch to the `github-pages` branch.
-- Copy the `examples` folder from the `master` branch to the `github-pages` branch.
 - Copy the `docs` folder from the `master` branch to the `github-pages` branch.
+- Copy the `examples` folder from the `master` branch to the `github-pages` branch.
 - Create a packaged version of vis.js. Go to the `master` branch and run:
 
         zip vis.zip dist docs examples README.md HISTORY.md LICENSE NOTICE -r
