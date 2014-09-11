@@ -4,7 +4,11 @@ http://visjs.org
 
 ## not yet released, version 3.4.1
 
+### Network
 
+- Fix for introduced bug on zoomExtent navigation button.
+- Added animation to zoomExtent navigation button.
+- Improved cleaning of Hammer.js bindings.
 
 ## 2014-09-10, version 3.4.0
 
