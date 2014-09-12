@@ -2158,6 +2158,7 @@ var options: {
         The options that can be defined are:<br />
         <b><code>scale:Number</code></b><br /> - to zoom to that scale,<br />
         <b><code>offset:{x:Number, y:Number}</code></b><br /> - to offset the position from the center of the canvas (in DOM units),<br />
+        <b><code>locked: boolean</code></b><br /> - if true, the view remains locked on this node until either another focusOnNode, moveTo, releaseNode or drag is done <br />
         <b><code>animation: Object || Boolean</code></b><br /> - to define the specifics of the animation. True is animated with default settings, false is not animated.<br />
         <br />
         The animation object can consist of:<br />
@@ -2166,6 +2167,12 @@ var options: {
         <code>linear, easeInQuad, easeOutQuad, easeInOutQuad, easeInCubic, easeOutCubic, easeInOutCubic,
             easeInQuart, easeOutQuart, easeInOutQuart,
             easeInQuint, easeOutQuint, easeInOutQuint </code> <br /><br />
+    </td>
+  </tr>
+  <tr>
+    <td>releaseNode()</td>
+    <td>none</td>
+    <td>When locked on to a node, this function releases it again. If the view is not locked onto a node due to the focusOnNode locked option, nothing happens.
     </td>
   </tr>
   <tr>
