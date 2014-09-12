@@ -1,6 +1,6 @@
 {
   "name": "vis",
-  "version": "3.4.2",
+  "version": "3.4.3-SNAPSHOT",
   "description": "A dynamic, browser-based visualization library.",
   "homepage": "http://visjs.org/",
   "repository": {
