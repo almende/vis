@@ -76,7 +76,7 @@
         nodes: nodes,
         edges: edges
       };
-      var options = {stabilize:false};
+      var options = {};
       network = new vis.Network(container, data, options);
 
       // add event listeners
@@ -88,9 +88,6 @@
           document.getElementById('stabilization').innerHTML = 'Stabilization took ' + params.iterations + ' iterations.';
           doFocus = false;
       });
-
-
-      network.focusOnNode(0,{animation:false, locked: true});
     }
   </script>
 </head>

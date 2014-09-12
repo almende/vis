@@ -9,7 +9,7 @@ http://visjs.org
 - Changed timings for zoomExtent animation.
 - Fixed possible cause of freezing graph when animating.
 - Added locked to focusOnNode and releaseNode().
-
+- Fixed minor bug in positioning of fontFill of nodes with certain shapes.
 
 ## 2014-10-11, version 3.4.1
 
