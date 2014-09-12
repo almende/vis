@@ -2,7 +2,7 @@
 http://visjs.org
 
 
-## not yet released, version 3.4.2
+## 2014-10-12, version 3.4.2
 
 ### Network
 
@@ -10,6 +10,7 @@ http://visjs.org
 - Fixed possible cause of freezing graph when animating.
 - Added locked to focusOnNode and releaseNode().
 - Fixed minor bug in positioning of fontFill of nodes with certain shapes.
+
 
 ## 2014-10-11, version 3.4.1
 
