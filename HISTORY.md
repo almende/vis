@@ -4,6 +4,11 @@ http://visjs.org
 
 ## not yet released, version 3.4.2
 
+### Network
+
+- Changed timings for zoomExtent animation.
+- Fixed possible cause of freezing graph when animating.
+
 
 ## 2014-10-11, version 3.4.1
 

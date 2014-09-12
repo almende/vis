@@ -76,12 +76,13 @@
         nodes: nodes,
         edges: edges
       };
-      var options = {};
+      var options = {edges:{widthSelectionMultiplier:1}};
       network = new vis.Network(container, data, options);
 
       // add event listeners
       network.on('select', function(params) {
         document.getElementById('selection').innerHTML = 'Selection: ' + params.nodes;
+          console.log(params)
       });
       network.on('stabilized', function (params) {
           document.getElementById('stabilization').innerHTML = 'Stabilization took ' + params.iterations + ' iterations.';
