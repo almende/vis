@@ -21782,7 +21782,9 @@ return /******/ (function(modules) { // webpackBootstrap
       if (!node.isSelected()) {
         this._selectObject(node,false);
       }
+
       this.emit("dragStart",{nodeIds:this.getSelection().nodes});
+
       // create an array with the selected nodes and their original location and status
       for (var objectId in this.selectionObj.nodes) {
         if (this.selectionObj.nodes.hasOwnProperty(objectId)) {
@@ -21882,7 +21884,6 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   Network.prototype._onDragEnd = function () {
-    this.emit("dragEnd",{nodeIds:this.getSelection().nodes});
     this.drag.dragging = false;
     var selection = this.drag.selection;
     if (selection && selection.length) {
@@ -21897,7 +21898,7 @@ return /******/ (function(modules) { // webpackBootstrap
     else {
       this._redraw();
     }
-
+    this.emit("dragEnd",{nodeIds:this.getSelection().nodes});
   };
 
   /**
@@ -23005,7 +23006,6 @@ return /******/ (function(modules) { // webpackBootstrap
     var renderTime = Date.now();
     this._redraw();
     this.renderTime = Date.now() - renderTime;
-
   };
 
   if (typeof window !== 'undefined') {
@@ -23041,7 +23041,6 @@ return /******/ (function(modules) { // webpackBootstrap
     }
     else {
       this._redraw();
-
       if (this.stabilizationIterations > 0) {
         // trigger the "stabilized" event.
         // The event is triggered on the next tick, to prevent the case that
@@ -24630,6 +24629,8 @@ return /******/ (function(modules) { // webpackBootstrap
     this.id = undefined;
     this.x = null;
     this.y = null;
+    this.allowedToMoveX = false;
+    this.allowedToMoveY = false;
     this.xFixed = false;
     this.yFixed = false;
     this.horizontalAlignLeft = true; // these are for the navigation controls
@@ -24770,13 +24771,22 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     }
 
-    if (properties.allowedToMoveX == true) {this.xFixed = false;}
-    else {this.xFixed = this.xFixed || (properties.x !== undefined && !properties.allowedToMoveX);}
-    if (properties.allowedToMoveY == true) {this.yFixed = false;}
-    else {this.yFixed = this.yFixed || (properties.y !== undefined && !properties.allowedToMoveY);}
+    if (properties.allowedToMoveX !== undefined) {
+      this.xFixed = !properties.allowedToMoveX;
+      this.allowedToMoveX = properties.allowedToMoveX;
+    }
+    else if (properties.x !== undefined && this.allowedToMoveX == false) {
+      this.xFixed = true;
+    }
 
 
-
+    if (properties.allowedToMoveY !== undefined) {
+      this.yFixed = !properties.allowedToMoveY;
+      this.allowedToMoveY = properties.allowedToMoveY;
+    }
+    else if (properties.y !== undefined && this.allowedToMoveY == false) {
+      this.yFixed = true;
+    }
 
     this.radiusFixed = this.radiusFixed || (properties.radius !== undefined);
 
@@ -24784,6 +24794,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.options.radiusMin = constants.nodes.widthMin;
       this.options.radiusMax = constants.nodes.widthMax;
     }
+
 
 
     // choose draw method depending on the shape
@@ -24804,6 +24815,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }
     // reset the size of the node, this can be changed
     this._reset();
+
   };
 
   /**
@@ -24927,12 +24939,20 @@ return /******/ (function(modules) { // webpackBootstrap
       this.vx += ax * interval;               // velocity
       this.x  += this.vx * interval;          // position
     }
+    else {
+      this.fx = 0;
+      this.vx = 0;
+    }
 
     if (!this.yFixed) {
       var dy   = this.damping * this.vy;     // damping force
       var ay   = (this.fy - dy) / this.options.mass;  // acceleration
       this.vy += ay * interval;               // velocity
       this.y  += this.vy * interval;          // position
+    }
+    else {
+      this.fy = 0;
+      this.vy = 0;
     }
   };
 
@@ -24953,6 +24973,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }
     else {
       this.fx = 0;
+      this.vx = 0;
     }
 
     if (!this.yFixed) {
@@ -24964,6 +24985,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }
     else {
       this.fy = 0;
+      this.vy = 0;
     }
   };
 
