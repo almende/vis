@@ -1,0 +1,80 @@
+<!doctype html>
+<html>
+<head>
+  <title>Network | Random nodes</title>
+
+  <style type="text/css">
+    body {
+      font: 10pt sans;
+    }
+    #mynetwork {
+        width: 600px;
+        height: 600px;
+      border: 1px solid lightgray;
+    }
+  </style>
+
+  <script type="text/javascript" src="../../dist/vis.js"></script>
+  <link href="../../dist/vis.css" rel="stylesheet" type="text/css" />
+
+  <script type="text/javascript">
+    var nodes = null;
+    var edges = null;
+    var network = null;
+
+    function draw() {
+        nodes = new vis.DataSet([
+            {id: '1001', value: '1'},
+            {id: '1009', value: '2'},
+            {id: '1061', value: '3'},
+            {id: '1226', value: '4'}
+        ]);
+        edges = new vis.DataSet([
+            {id: '1001_1061', from: '1001', to: '1061'},
+            {id: '1001_1226', from: '1001', to: '1226'},
+            {id: '1009_1061', from: '1009', to: '1061'},
+            {id: '1009_1226', from: '1009', to: '1226'},
+            {id: '1061_1226', from: '1061', to: '1226'}
+        ]);
+      var container = document.getElementById('mynetwork');
+      var data = {
+        nodes: nodes,
+        edges: edges
+      };
+      var options = {
+          nodes: {
+              shape: 'dot'
+          },
+          edges: {
+              inheritColor: false
+          },
+          physics: {
+              'barnesHut': {
+                  centralGravity: 0.5,
+                  springLength: 150,
+                  springConstant: 0.03,
+                  damping: 0.2
+              }
+          }
+      };
+      network = new vis.Network(container, data, options);
+
+      // add event listeners
+      network.on('select', function(params) {
+        document.getElementById('selection').innerHTML = 'Selection: ' + params.nodes;
+          console.log(params.edges)
+          console.log(network.getSelection())
+      });
+    }
+
+
+  </script>
+</head>
+
+<body onload="draw();">
+<br>
+<div id="mynetwork"></div>
+
+<p id="selection"></p>
+</body>
+</html>

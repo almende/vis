@@ -4,6 +4,13 @@ http://visjs.org
 
 ## not yet released, version 3.4.3-SNAPSHOT
 
+### Network
+
+- Fixed nodes not always being unfixed when using allowedToMove.
+
+### Graph2d
+
+- Fixed dataAxis not showing large numbers correctly.
 
 ## 2014-10-12, version 3.4.2
 
