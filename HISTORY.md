@@ -8,6 +8,7 @@ http://visjs.org
 
 - Fixed nodes not always being unfixed when using allowedToMove.
 - Added dragStart and dragEnd events.
+- Added edge selection on edge labels.
 
 ### Graph2d
 
