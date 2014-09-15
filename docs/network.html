@@ -280,17 +280,13 @@ When using a DataSet, the network is automatically updating to changes in the Da
   <td>allowedToMoveX</td>
   <td>Boolean</td>
   <td>no</td>
-  <td>If allowedToMoveX is false, then the node will not move from its supplied position.
-    If an X position has been supplied, it is fixed in the X-direction.
-    If no X value has been supplied, this argument will not do anything.</td>
+  <td>If allowedToMoveX is false, then the node will not move in the X direction from its position.</td>
 </tr>
 <tr>
   <td>allowedToMoveY</td>
   <td>Boolean</td>
   <td>no</td>
-  <td>If allowedToMoveY is false, then the node will not move from its supplied position.
-    If an Y position has been supplied, it is fixed in the Y-direction.
-    If no Y value has been supplied, this argument will not do anything.</td>
+  <td>If allowedToMoveY is false, then the node will not move in the Y direction from its position.</td>
 </tr>
 
 <tr>
@@ -344,7 +340,7 @@ When using a DataSet, the network is automatically updating to changes in the Da
   <td>number</td>
   <td>no</td>
   <td>Horizontal position in pixels.
-    The horizontal position of the node will be fixed.
+    The horizontal position of the node will be fixed unless combined with the allowedToMoveX:true option.
     The vertical position y may remain undefined.</td>
 </tr>
 <tr>
@@ -352,7 +348,7 @@ When using a DataSet, the network is automatically updating to changes in the Da
   <td>number</td>
   <td>no</td>
   <td>Vertical position in pixels.
-    The vertical position of the node will be fixed.
+    The vertical position of the node will be fixed unless combined with the allowedToMoveY:true option.
     The horizontal position x may remain undefined.</td>
 </tr>
 </table>
