@@ -2423,6 +2423,24 @@ network.off('select', onSelect);
       </ul>
     </td>
   </tr>
+    <tr>
+        <td>dragStart</td>
+        <td>Fired when a node is being dragged.</td>
+        <td>
+            <ul>
+                <li><code>nodeIds</code>: Array of ids of the nodes that are being dragged</li>
+            </ul>
+        </td>
+    </tr>
+    <tr>
+        <td>dragEnd</td>
+        <td>Fired when the dragging of a node(s) has ended.</td>
+        <td>
+            <ul>
+                <li><code>nodeIds</code>: Array of ids of the nodes that were being dragged</li>
+            </ul>
+        </td>
+    </tr>
   <tr>
     <td>stabilized</td>
     <td>Fired every time the network has been stabilized. This event can be used to trigger the .storePosition() function after stabilization. Fired with an object having the following properties:</td>

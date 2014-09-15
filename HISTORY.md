@@ -7,6 +7,7 @@ http://visjs.org
 ### Network
 
 - Fixed nodes not always being unfixed when using allowedToMove.
+- Added dragStart and dragEnd events.
 
 ### Graph2d
 
