@@ -45,7 +45,7 @@
   // create a dataset with items
   var items = new vis.DataSet();
   for (var i = 0; i < itemCount; i++) {
-    var start = now.clone().add('hours', Math.random() * 200);
+    var start = now.clone().add(Math.random() * 200, 'hours');
     var group = Math.floor(Math.random() * groupCount);
     items.add({
       id: i,
