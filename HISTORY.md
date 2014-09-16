@@ -2,7 +2,7 @@
 http://visjs.org
 
 
-## not yet released, version 3.4.3-SNAPSHOT
+## 2014-10-16, version 3.5.0
 
 ### Network
 
@@ -13,6 +13,7 @@ http://visjs.org
 ### Graph2d
 
 - Fixed dataAxis not showing large numbers correctly.
+
 
 ## 2014-10-12, version 3.4.2
 
