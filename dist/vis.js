@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.4.3-SNAPSHOT
- * @date    2014-09-15
+ * @date    2014-09-16
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -21883,7 +21883,12 @@ return /******/ (function(modules) { // webpackBootstrap
    * handle drag start event
    * @private
    */
-  Network.prototype._onDragEnd = function () {
+  Network.prototype._onDragEnd = function (event) {
+    this._handleDragEnd(event);
+  };
+
+
+  Network.prototype._handleDragEnd = function(event) {
     this.drag.dragging = false;
     var selection = this.drag.selection;
     if (selection && selection.length) {
@@ -21899,8 +21904,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this._redraw();
     }
     this.emit("dragEnd",{nodeIds:this.getSelection().nodes});
-  };
-
+  }
   /**
    * handle tap/click event: select/unselect a node
    * @private
@@ -30983,8 +30987,12 @@ return /******/ (function(modules) { // webpackBootstrap
     // temporarily overload functions
     this.cachedFunctions["_handleTouch"] = this._handleTouch;
     this.cachedFunctions["_handleOnRelease"] = this._handleOnRelease;
+    this.cachedFunctions["_handleDragStart"] = this._handleDragStart;
+    this.cachedFunctions["_handleDragEnd"] = this._handleDragEnd;
     this._handleTouch = this._handleConnect;
-    this._handleOnRelease = this._finishConnect;
+    this._handleOnRelease = function () {};
+    this._handleDragStart = function () {};
+    this._handleDragEnd = this._finishConnect;
 
     // redraw to show the unselect
     this._redraw();
@@ -31037,9 +31045,6 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 
-
-
-
   /**
    * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
    * to walk the user through the process.
@@ -31056,6 +31061,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }
     this._redraw();
   };
+
 
   /**
    * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
@@ -31100,7 +31106,6 @@ return /******/ (function(modules) { // webpackBootstrap
   exports._handleConnect = function(pointer) {
     if (this._getSelectedNodeCount() == 0) {
       var node = this._getNodeAt(pointer);
-      var supportNodes, targetNode, targetViaNode, connectionEdge;
 
       if (node != null) {
         if (node.clusterSize > 1) {
@@ -31108,35 +31113,33 @@ return /******/ (function(modules) { // webpackBootstrap
         }
         else {
           this._selectObject(node,false);
-          supportNodes = this.sectors['support']['nodes'];
+          var supportNodes = this.sectors['support']['nodes'];
 
-            // create a node the temporary line can look at
-          supportNodes['targetNode'] = targetNode = new Node({id:'targetNode'},{},{},this.constants);
+          // create a node the temporary line can look at
+          supportNodes['targetNode'] = new Node({id:'targetNode'},{},{},this.constants);
+          var targetNode = supportNodes['targetNode'];
           targetNode.x = node.x;
           targetNode.y = node.y;
 
-          supportNodes['targetViaNode'] = targetViaNode = new Node({id:'targetViaNode'},{},{},this.constants);
-          targetViaNode.x = node.x;
-          targetViaNode.y = node.y;
-          targetViaNode.parentEdgeId = "connectionEdge";
-
           // create a temporary edge
-          this.edges['connectionEdge'] = connectionEdge = new Edge({id:"connectionEdge",from:node.id,to:targetNode.id}, this, this.constants);
+          this.edges['connectionEdge'] = new Edge({id:"connectionEdge",from:node.id,to:targetNode.id}, this, this.constants);
+          var connectionEdge = this.edges['connectionEdge'];
           connectionEdge.from = node;
           connectionEdge.connected = true;
-          connectionEdge.smooth = true;
+          connectionEdge.options.smoothCurves = {enabled: true,
+              dynamic: false,
+              type: "continuous",
+              roundness: 0.5
+          };
           connectionEdge.selected = true;
           connectionEdge.to = targetNode;
-          connectionEdge.via = targetViaNode;
 
           this.cachedFunctions["_handleOnDrag"] = this._handleOnDrag;
           this._handleOnDrag = function(event) {
             var pointer = this._getPointer(event.gesture.center);
-            var supportNodes = this.sectors['support']['nodes'];
-            supportNodes['targetNode'].x = this._XconvertDOMtoCanvas(pointer.x);
-            supportNodes['targetNode'].y = this._YconvertDOMtoCanvas(pointer.y);
-            supportNodes['targetViaNode'].x = 0.5 * (this._XconvertDOMtoCanvas(pointer.x) + this.edges['connectionEdge'].from.x);
-            supportNodes['targetViaNode'].y = this._YconvertDOMtoCanvas(pointer.y);
+            var connectionEdge = this.edges['connectionEdge'];
+            connectionEdge.to.x = this._XconvertDOMtoCanvas(pointer.x);
+            connectionEdge.to.y = this._YconvertDOMtoCanvas(pointer.y);
           };
 
           this.moving = true;
@@ -31146,9 +31149,9 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   };
 
-  exports._finishConnect = function(pointer) {
+  exports._finishConnect = function(event) {
     if (this._getSelectedNodeCount() == 1) {
-
+      var pointer = this._getPointer(event.gesture.center);
       // restore the drag function
       this._handleOnDrag = this.cachedFunctions["_handleOnDrag"];
       delete this.cachedFunctions["_handleOnDrag"];
