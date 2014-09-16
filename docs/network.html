@@ -280,17 +280,13 @@ When using a DataSet, the network is automatically updating to changes in the Da
   <td>allowedToMoveX</td>
   <td>Boolean</td>
   <td>no</td>
-  <td>If allowedToMoveX is false, then the node will not move from its supplied position.
-    If an X position has been supplied, it is fixed in the X-direction.
-    If no X value has been supplied, this argument will not do anything.</td>
+  <td>If allowedToMoveX is false, then the node will not move in the X direction from its position.</td>
 </tr>
 <tr>
   <td>allowedToMoveY</td>
   <td>Boolean</td>
   <td>no</td>
-  <td>If allowedToMoveY is false, then the node will not move from its supplied position.
-    If an Y position has been supplied, it is fixed in the Y-direction.
-    If no Y value has been supplied, this argument will not do anything.</td>
+  <td>If allowedToMoveY is false, then the node will not move in the Y direction from its position.</td>
 </tr>
 
 <tr>
@@ -344,7 +340,7 @@ When using a DataSet, the network is automatically updating to changes in the Da
   <td>number</td>
   <td>no</td>
   <td>Horizontal position in pixels.
-    The horizontal position of the node will be fixed.
+    The horizontal position of the node will be fixed unless combined with the allowedToMoveX:true option.
     The vertical position y may remain undefined.</td>
 </tr>
 <tr>
@@ -352,7 +348,7 @@ When using a DataSet, the network is automatically updating to changes in the Da
   <td>number</td>
   <td>no</td>
   <td>Vertical position in pixels.
-    The vertical position of the node will be fixed.
+    The vertical position of the node will be fixed unless combined with the allowedToMoveY:true option.
     The horizontal position x may remain undefined.</td>
 </tr>
 </table>
@@ -2423,6 +2419,24 @@ network.off('select', onSelect);
       </ul>
     </td>
   </tr>
+    <tr>
+        <td>dragStart</td>
+        <td>Fired when a node is being dragged.</td>
+        <td>
+            <ul>
+                <li><code>nodeIds</code>: Array of ids of the nodes that are being dragged</li>
+            </ul>
+        </td>
+    </tr>
+    <tr>
+        <td>dragEnd</td>
+        <td>Fired when the dragging of a node(s) has ended.</td>
+        <td>
+            <ul>
+                <li><code>nodeIds</code>: Array of ids of the nodes that were being dragged</li>
+            </ul>
+        </td>
+    </tr>
   <tr>
     <td>stabilized</td>
     <td>Fired every time the network has been stabilized. This event can be used to trigger the .storePosition() function after stabilization. Fired with an object having the following properties:</td>
