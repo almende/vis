@@ -11492,8 +11492,8 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   function Range(body, options) {
     var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
-    this.start = now.clone().add('days', -3).valueOf(); // Number
-    this.end = now.clone().add('days', 4).valueOf();   // Number
+    this.start = now.clone().add(-3, 'days').valueOf(); // Number
+    this.end = now.clone().add(4, 'days').valueOf();   // Number
 
     this.body = body;
 
@@ -22543,6 +22543,7 @@ return /******/ (function(modules) { // webpackBootstrap
     for (id in nodes) {
       if (nodes.hasOwnProperty(id)) {
         nodes[id].edges = [];
+        nodes[id].dynamicEdges = [];
       }
     }
 
@@ -24579,6 +24580,9 @@ return /******/ (function(modules) { // webpackBootstrap
     var index = this.edges.indexOf(edge);
     if (index != -1) {
       this.edges.splice(index, 1);
+    }
+    index = this.dynamicEdges.indexOf(edge);
+    if (index != -1) {
       this.dynamicEdges.splice(index, 1);
     }
     this.dynamicEdgesLength = this.dynamicEdges.length;
