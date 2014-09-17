@@ -24545,6 +24545,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.preassignedLevel = false;
     this.hierarchyEnumerated = false;
     this.labelDimensions = {top:0,left:0,width:0,height:0,yLine:0}; // could be cached
+    this.dirtyLabel = true;
 
 
     this.imagelist = imagelist;
@@ -24639,7 +24640,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.originalLabel = undefined;
     // basic properties
     if (properties.id !== undefined)        {this.id = properties.id;}
-    if (properties.label !== undefined)     {this.label = properties.label; this.originalLabel = properties.label;}
+    if (properties.label !== undefined)     {this.label = properties.label; this.originalLabel = properties.label; this.dirtyLabel = true;}
     if (properties.title !== undefined)     {this.title = properties.title;}
     if (properties.x !== undefined)         {this.x = properties.x;}
     if (properties.y !== undefined)         {this.y = properties.y;}
@@ -25367,8 +25368,6 @@ return /******/ (function(modules) { // webpackBootstrap
   Node.prototype._label = function (ctx, text, x, y, align, baseline, labelUnderNode) {
     if (text && Number(this.options.fontSize) * this.networkScale > this.fontDrawThreshold) {
       ctx.font = (this.selected ? "bold " : "") + this.options.fontSize + "px " + this.options.fontFace;
-      ctx.textAlign = align || "center";
-      ctx.textBaseline = baseline || "middle";
 
       var lines = text.split('\n');
       var lineCount = lines.length;
@@ -25400,6 +25399,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // draw text
       ctx.fillStyle = this.options.fontColor || "black";
+      ctx.textAlign = align || "center";
+      ctx.textBaseline = baseline || "middle";
       for (var i = 0; i < lineCount; i++) {
         ctx.fillText(lines[i], x, yLine);
         yLine += fontSize;
@@ -25555,6 +25556,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.selected = false;
     this.hover = false;
     this.labelDimensions = {top:0,left:0,width:0,height:0,yLine:0}; // could be cached
+    this.dirtyLabel = true;
 
     this.from = null;   // a node
     this.to = null;     // a node
@@ -25596,7 +25598,7 @@ return /******/ (function(modules) { // webpackBootstrap
     if (properties.to !== undefined)             {this.toId = properties.to;}
 
     if (properties.id !== undefined)             {this.id = properties.id;}
-    if (properties.label !== undefined)          {this.label = properties.label;}
+    if (properties.label !== undefined)          {this.label = properties.label; this.dirtyLabel = true;}
 
     if (properties.title !== undefined)        {this.title = properties.title;}
     if (properties.value !== undefined)        {this.value = properties.value;}
@@ -26061,37 +26063,43 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   Edge.prototype._label = function (ctx, text, x, y) {
     if (text) {
-      // TODO: cache the calculated size
       ctx.font = ((this.from.selected || this.to.selected) ? "bold " : "") +
-          this.options.fontSize + "px " + this.options.fontFace;
+      this.options.fontSize + "px " + this.options.fontFace;
+      var yLine;
 
+      if (this.dirtyLabel == true) {
+        var lines = String(text).split('\n');
+        var lineCount = lines.length;
+        var fontSize = (Number(this.options.fontSize) + 4);
+        yLine = y + (1 - lineCount) / 2 * fontSize;
 
-      var lines = String(text).split('\n');
-      var lineCount = lines.length;
-      var fontSize = (Number(this.options.fontSize) + 4);
-      var yLine = y + (1 - lineCount) / 2 * fontSize;
+        var width = ctx.measureText(lines[0]).width;
+        for (var i = 1; i < lineCount; i++) {
+          var lineWidth = ctx.measureText(lines[i]).width;
+          width = lineWidth > width ? lineWidth : width;
+        }
+        var height = this.options.fontSize * lineCount;
+        var left = x - width / 2;
+        var top = y - height / 2;
 
-      var width = ctx.measureText(lines[0]).width;
-      for (var i = 1; i < lineCount; i++) {
-        var lineWidth = ctx.measureText(lines[i]).width;
-        width = lineWidth > width ? lineWidth : width;
+        // cache
+        this.labelDimensions = {top:top,left:left,width:width,height:height,yLine:yLine};
       }
-      var height = this.options.fontSize * lineCount;
-      var left = x - width / 2;
-      var top = y - height / 2;
 
-      this.labelDimensions = {top:top,left:left,width:width,height:height,yLine:yLine};
 
       if (this.options.fontFill !== undefined && this.options.fontFill !== null && this.options.fontFill !== "none") {
         ctx.fillStyle = this.options.fontFill;
-        ctx.fillRect(left, top, width, height);
+        ctx.fillRect(this.labelDimensions.left,
+          this.labelDimensions.top,
+          this.labelDimensions.width,
+          this.labelDimensions.height);
       }
 
       // draw text
       ctx.fillStyle = this.options.fontColor || "black";
       ctx.textAlign = "center";
       ctx.textBaseline =  "middle";
-
+      yLine = this.labelDimensions.yLine;
       for (var i = 0; i < lineCount; i++) {
         ctx.fillText(lines[i], x, yLine);
         yLine += fontSize;
