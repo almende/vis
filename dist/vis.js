@@ -24544,6 +24544,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.level = -1;
     this.preassignedLevel = false;
     this.hierarchyEnumerated = false;
+    this.labelDimensions = {top:0,left:0,width:0,height:0,yLine:0}; // could be cached
 
 
     this.imagelist = imagelist;
@@ -25378,18 +25379,21 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       // font fill from edges now for nodes!
+      var width = ctx.measureText(lines[0]).width;
+      for (var i = 1; i < lineCount; i++) {
+        var lineWidth = ctx.measureText(lines[i]).width;
+        width = lineWidth > width ? lineWidth : width;
+      }
+      var height = this.options.fontSize * lineCount;
+      var left = x - width / 2;
+      var top = y - height / 2;
+      if (ctx.textBaseline == "top") {
+        top += 0.5 * fontSize;
+      }
+      this.labelDimensions = {top:top,left:left,width:width,height:height,yLine:yLine};
+
+      // create the fontfill background
       if (this.options.fontFill !== undefined && this.options.fontFill !== null && this.options.fontFill !== "none") {
-        var width = ctx.measureText(lines[0]).width;
-        for (var i = 1; i < lineCount; i++) {
-          var lineWidth = ctx.measureText(lines[i]).width;
-          width = lineWidth > width ? lineWidth : width;
-        }
-        var height = this.options.fontSize * lineCount;
-        var left = x - width / 2;
-        var top = y - height / 2;
-        if (ctx.textBaseline == "top") {
-          top += 0.5 * fontSize;
-        }
         ctx.fillStyle = this.options.fontFill;
         ctx.fillRect(left, top, width, height);
       }
@@ -25550,7 +25554,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.value  = undefined;
     this.selected = false;
     this.hover = false;
-    this.labelDimensions = {top:0,left:0,width:0,height:0};
+    this.labelDimensions = {top:0,left:0,width:0,height:0,yLine:0}; // could be cached
 
     this.from = null;   // a node
     this.to = null;     // a node
@@ -26076,7 +26080,7 @@ return /******/ (function(modules) { // webpackBootstrap
       var left = x - width / 2;
       var top = y - height / 2;
 
-      this.labelDimensions = {top:top,left:left,width:width,height:height};
+      this.labelDimensions = {top:top,left:left,width:width,height:height,yLine:yLine};
 
       if (this.options.fontFill !== undefined && this.options.fontFill !== null && this.options.fontFill !== "none") {
         ctx.fillStyle = this.options.fontFill;
