@@ -648,8 +648,8 @@ var options = {
   <td>Boolean</td>
   <td>false</td>
   <td>
-    With the advent of the storePosition() function, the positions of the nodes can be saved after they are stabilized. The smoothCurves require support nodes and those positions are not stored. In order
-    to speed up the initialization of the network by using storePosition() and loading the nodes with the stored positions, the freezeForStabilization option freezes all nodes that have been supplied with
+    With the advent of the storePositions() function, the positions of the nodes can be saved after they are stabilized. The smoothCurves require support nodes and those positions are not stored. In order
+    to speed up the initialization of the network by using storePositions() and loading the nodes with the stored positions, the freezeForStabilization option freezes all nodes that have been supplied with
     an x and y position in place during the stabilization. That way only the support nodes for the smooth curves have to stabilize, greatly speeding up the stabilization process with cached positions.
   </td>
 </tr>
@@ -2140,6 +2140,12 @@ var options: {
         </td>
     </tr>
     <tr>
+        <td>getCenterCoordinates()</td>
+        <td>Number</td>
+        <td>Returns the x and y coodinates of the center of the screen (in canvas space).
+        </td>
+    </tr>
+    <tr>
     <td>getSelection()</td>
     <td>Array of ids</td>
     <td>Returns an array with the ids of the selected nodes.
@@ -2169,13 +2175,6 @@ var options: {
     <td>releaseNode()</td>
     <td>none</td>
     <td>When locked on to a node, this function releases it again. If the view is not locked onto a node due to the focusOnNode locked option, nothing happens.
-    </td>
-  </tr>
-  <tr>
-    <td>storePosition()</td>
-    <td>none</td>
-    <td>This will put the X and Y positions of all nodes in the dataset. It will also include allowedToMoveX and allowedToMoveY with the correct values.
-      You can use this to stablize your network once, then save the positions in a database so the next time you load the nodes, stabilization will be near instantaneous.
     </td>
   </tr>
   <tr>
@@ -2285,7 +2284,19 @@ var options: {
       containing a new size for the visualization. Size can be provided in pixels
       or in percentages.</td>
   </tr>
-
+    <tr>
+        <td>getPositions()</td>
+        <td>none</td>
+        <td>This will return an object of all nodes' positions. Data can be accessed with object[nodeId].x and .y.
+        </td>
+    </tr>
+    <tr>
+        <td>storePositions()</td>
+        <td>none</td>
+        <td>This will put the X and Y positions of all nodes in the dataset. It will also include allowedToMoveX and allowedToMoveY with the correct values.
+            You can use this to stablize your network once, then save the positions in a database so the next time you load the nodes, stabilization will be near instantaneous.
+        </td>
+    </tr>
   <tr>
     <td>zoomExtent([options])</td>
     <td>none</td>
@@ -2439,7 +2450,7 @@ network.off('select', onSelect);
     </tr>
   <tr>
     <td>stabilized</td>
-    <td>Fired every time the network has been stabilized. This event can be used to trigger the .storePosition() function after stabilization. Fired with an object having the following properties:</td>
+    <td>Fired every time the network has been stabilized. This event can be used to trigger the .storePositions() function after stabilization. Fired with an object having the following properties:</td>
     <td>
       <ul>
         <li><code>iterations</code>: number of iterations used to stabilize</li>
@@ -2455,7 +2466,7 @@ network.off('select', onSelect);
   </tr>
   <tr>
     <td>zoom</td>
-    <td>Fired when the network has zoomed.  This event can be used to trigger the .storePosition() function after stabilization.</td>
+    <td>Fired when the network has zoomed.  This event can be used to trigger the .storePositions() function after stabilization.</td>
     <td>
       <ul>
         <li><code>direction: </code> "+" or "-" </li>
