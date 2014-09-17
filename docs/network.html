@@ -2448,13 +2448,20 @@ network.off('select', onSelect);
             </ul>
         </td>
     </tr>
-  <tr>
-    <td>stabilized</td>
-    <td>Fired every time the network has been stabilized. This event can be used to trigger the .storePositions() function after stabilization. Fired with an object having the following properties:</td>
-    <td>
-      <ul>
-        <li><code>iterations</code>: number of iterations used to stabilize</li>
-      </ul>
+    <tr>
+        <td>startStabilization</td>
+        <td>Fired once when the network starts the physics calculation. This ends with the stabilized event.
+        <td>
+        none
+        </td>
+    </tr>
+    <tr>
+        <td>stabilized</td>
+        <td>Fired every time the network has been stabilized. This event can be used to trigger the .storePositions() function after stabilization. Fired with an object having the following properties:</td>
+        <td>
+        <ul>
+           <li><code>iterations</code>: number of iterations used to stabilize</li>
+        </ul>
     </td>
   </tr>
   <tr>

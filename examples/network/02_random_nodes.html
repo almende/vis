@@ -83,7 +83,10 @@
         document.getElementById('selection').innerHTML = 'Selection: ' + params.nodes;
       });
       network.on('stabilized', function (params) {
-          document.getElementById('stabilization').innerHTML = 'Stabilization took ' + params.iterations + ' iterations.';
+        document.getElementById('stabilization').innerHTML = 'Stabilization took ' + params.iterations + ' iterations.';
+      });
+      network.on('startStabilization', function (params) {
+        document.getElementById('stabilization').innerHTML = 'Stabilizing...';
       });
     }
 
