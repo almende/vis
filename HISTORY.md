@@ -11,7 +11,15 @@ http://visjs.org
 - Added getPositions() method to get the position of all nodes.
 - Added getCenterCoordinates() method to get the x and y position in canvas space of the center of the view.
 
-## 2014-10-16, version 3.5.0
+## not yet released, version 3.5.1
+
+### DataSet
+
+- Event listeners of `update` now receive an extra property `data`, 
+  containing the changed fields of the changed items.
+
+
+## 2014-09-16, version 3.5.0
 
 ### Network
 
@@ -24,7 +32,7 @@ http://visjs.org
 - Fixed dataAxis not showing large numbers correctly.
 
 
-## 2014-10-12, version 3.4.2
+## 2014-09-12, version 3.4.2
 
 ### Network
 
@@ -35,7 +43,7 @@ http://visjs.org
 - Added startStabilization event.
 
 
-## 2014-10-11, version 3.4.1
+## 2014-09-11, version 3.4.1
 
 ### Network
 
