@@ -2,7 +2,15 @@
 http://visjs.org
 
 
-## 2014-10-16, version 3.5.0
+## not yet released, version 3.5.1
+
+### DataSet
+
+- Event listeners of `update` now receive an extra property `data`, 
+  containing the changed fields of the changed items.
+
+
+## 2014-09-16, version 3.5.0
 
 ### Network
 
@@ -15,7 +23,7 @@ http://visjs.org
 - Fixed dataAxis not showing large numbers correctly.
 
 
-## 2014-10-12, version 3.4.2
+## 2014-09-12, version 3.4.2
 
 ### Network
 
@@ -25,7 +33,7 @@ http://visjs.org
 - Fixed minor bug in positioning of fontFill of nodes with certain shapes.
 
 
-## 2014-10-11, version 3.4.1
+## 2014-09-11, version 3.4.1
 
 ### Network
 

@@ -448,8 +448,10 @@ function (event, properties, senderId) {
       In case of the events <code>add</code>,
       <code>update</code>, and <code>remove</code>,
       <code>properties</code> is always an object containing a property
-      items, which contains an array with the ids of the affected
-      items.
+      <code>items</code>, which contains an array with the ids of the affected
+      items. The <code>update</code> event has an extra field <code>data</code>
+      containing the original data of the updated items, i.e. the gives the
+      changed fields of the changed items.
     </td>
   </tr>
   <tr>
