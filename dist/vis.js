@@ -21229,7 +21229,7 @@ return /******/ (function(modules) { // webpackBootstrap
         network.start();
       },
       'update': function (event, params) {
-        network._updateNodes(params.items, params.data);
+        network._updateNodes(params.items, params.scadata);
         network.start();
       },
       'remove': function (event, params) {
