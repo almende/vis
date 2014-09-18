@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.5.0
- * @date    2014-09-17
+ * @date    2014-09-18
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -4527,10 +4527,11 @@ return /******/ (function(modules) { // webpackBootstrap
    * @return {Array} updatedIds     The ids of the added or updated items
    */
   DataSet.prototype.update = function (data, senderId) {
-    var addedIds = [],
-        updatedIds = [],
-        me = this,
-        fieldId = me._fieldId;
+    var addedIds = [];
+    var updatedIds = [];
+    var updatedData = [];
+    var me = this;
+    var fieldId = me._fieldId;
 
     var addOrUpdate = function (item) {
       var id = item[fieldId];
@@ -4538,6 +4539,7 @@ return /******/ (function(modules) { // webpackBootstrap
         // update item
         id = me._updateItem(item);
         updatedIds.push(id);
+        updatedData.push(item);
       }
       else {
         // add new item
@@ -4577,7 +4579,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this._trigger('add', {items: addedIds}, senderId);
     }
     if (updatedIds.length) {
-      this._trigger('update', {items: updatedIds}, senderId);
+      this._trigger('update', {items: updatedIds, data: updatedData}, senderId);
     }
 
     return addedIds.concat(updatedIds);
@@ -21227,7 +21229,7 @@ return /******/ (function(modules) { // webpackBootstrap
         network.start();
       },
       'update': function (event, params) {
-        network._updateNodes(params.items);
+        network._updateNodes(params.items, params.data);
         network.start();
       },
       'remove': function (event, params) {
@@ -22343,13 +22345,12 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {Number[] | String[]} ids
    * @private
    */
-  Network.prototype._updateNodes = function(ids) {
-    var nodes = this.nodes,
-        nodesData = this.nodesData;
+  Network.prototype._updateNodes = function(ids,changedData) {
+    var nodes = this.nodes;
     for (var i = 0, len = ids.length; i < len; i++) {
       var id = ids[i];
       var node = nodes[id];
-      var data = nodesData.get(id);
+      var data = changedData[i];
       if (node) {
         // update node
         node.setProperties(data, this.constants);
@@ -22366,7 +22367,6 @@ return /******/ (function(modules) { // webpackBootstrap
       this._setupHierarchicalLayout();
     }
     this._updateNodeIndexList();
-    this._reconnectEdges();
     this._updateValueRange(nodes);
   };
 

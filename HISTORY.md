@@ -1,7 +1,7 @@
 # vis.js history
 http://visjs.org
 
-## 2014-10-16, version 3.5.1 SNAPSHOT, not yet released
+## 2014-09-16, version 3.5.1 SNAPSHOT, not yet released
 
 ### Network
 
@@ -10,8 +10,6 @@ http://visjs.org
 - Improved cleaning up after manipulation toolbar.
 - Added getPositions() method to get the position of all nodes.
 - Added getCenterCoordinates() method to get the x and y position in canvas space of the center of the view.
-
-## not yet released, version 3.5.1
 
 ### DataSet
 
