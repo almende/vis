@@ -10,6 +10,9 @@ http://visjs.org
 - Improved cleaning up after manipulation toolbar.
 - Added getPositions() method to get the position of all nodes.
 - Added getCenterCoordinates() method to get the x and y position in canvas space of the center of the view.
+- Fixed node label becoming undefined.
+- Fixed cluster fontsize scaling.
+- Fixed cluster sector scaling.
 
 ### DataSet
 
