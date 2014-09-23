@@ -54,6 +54,8 @@
   border: none;
   background-color: rgba(213, 221, 246, 0.4);
   box-sizing: border-box;
+  padding:0px;
+  margin:0px;
   top: 0;
   bottom: 0;
 }
