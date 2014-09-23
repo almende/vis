@@ -111,17 +111,21 @@
 
 The constructor of the Timeline is <code>vis.Timeline</code>
 <pre class="prettyprint lang-js">var timeline = new vis.Timeline(container, items, options);</pre>
+or when using groups:
+<pre class="prettyprint lang-js">var timeline = new vis.Timeline(container, items, groups, options);</pre>
 
-
-The constructor accepts three parameters:
+The constructor accepts four parameters:
 <ul>
   <li>
     <code>container</code> is the DOM element in which to create the timeline.
   </li>
   <li>
     <code>items</code> is an Array containing items. The properties of an
-    item are described in section <a href="#Data_Format">Data Format</a>.
-  </li>
+    item are described in section <a href="#Data_Format">Data Format, items</a>.
+  </li><li>
+        <code>groups</code> is an Array containing groups. The properties of a
+        group are described in section <a href="#groups">Data Format, groups</a>.
+    </li>
   <li>
     <code>options</code> is an optional Object containing a name-value map
     with options. Options can also be set using the method
@@ -259,7 +263,7 @@ var items = [
   <code>content</code>, and <code>className</code> (optional).
 </p>
 <p>
-  Groups can be applied to a timeline using the method <code>setGroups</code>.
+  Groups can be applied to a timeline using the method <code>setGroups</code> or supplied in the constructor.
   A table with groups can be created like:
 </p>
 
