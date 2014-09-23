@@ -54,8 +54,8 @@
   border: none;
   background-color: rgba(213, 221, 246, 0.4);
   box-sizing: border-box;
-  padding:0px;
-  margin:0px;
+  padding: 0;
+  margin: 0;
   top: 0;
   bottom: 0;
 }
@@ -73,13 +73,6 @@
   overflow: hidden;
   max-width: 100%;
   margin: 5px;
-}
-.vis.timeline .item.background .noContent {
-    position: absolute;
-    display: inline-block;
-    overflow: hidden;
-    max-width: 100%;
-    margin: 0px;
 }
 
 .vis.timeline .item.line {
