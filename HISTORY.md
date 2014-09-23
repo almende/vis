@@ -14,6 +14,11 @@ http://visjs.org
 - Fixed cluster fontsize scaling.
 - Fixed cluster sector scaling.
 
+### Timeline
+
+- Fixed height of BackgroundItems not being 100% when timeline has a fixed height.
+- Fixed width of BackgroundItems not being reduced to 0 when zooming out.
+
 ### DataSet
 
 - Event listeners of `update` now receive an extra property `data`, 

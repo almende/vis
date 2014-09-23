@@ -138,6 +138,7 @@
   position: absolute;
   width: 100%;
   height: 100%;
+  overflow: visible;
 }
 
 .vis.timeline .axis {
@@ -214,8 +215,8 @@
   border: none;
   background-color: rgba(213, 221, 246, 0.4);
   box-sizing: border-box;
-  top: 0;
-  bottom: 0;
+  padding: 0;
+  margin: 0;
 }
 
 .vis.timeline .item.range .content {
@@ -231,13 +232,6 @@
   overflow: hidden;
   max-width: 100%;
   margin: 5px;
-}
-.vis.timeline .item.background .noContent {
-    position: absolute;
-    display: inline-block;
-    overflow: hidden;
-    max-width: 100%;
-    margin: 0px;
 }
 
 .vis.timeline .item.line {
