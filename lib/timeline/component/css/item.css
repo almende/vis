@@ -72,6 +72,13 @@
   max-width: 100%;
   margin: 5px;
 }
+.vis.timeline .item.background .noContent {
+    position: absolute;
+    display: inline-block;
+    overflow: hidden;
+    max-width: 100%;
+    margin: 0px;
+}
 
 .vis.timeline .item.line {
   padding: 0;
