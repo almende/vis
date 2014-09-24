@@ -24,6 +24,11 @@ http://visjs.org
 - Event listeners of `update` now receive an extra property `data`, 
   containing the changed fields of the changed items.
 
+### Graph3d
+
+- Implemented options `xValueLabel` and `yValueLabel` for custom labels along
+  the x and y axis. Thanks @fabriziofortino.
+
 
 ## 2014-09-16, version 3.5.0
 
