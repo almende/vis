@@ -183,7 +183,7 @@ var data = new vis.DataSet([data] [, options])
   <tr>
     <td>add(data [, senderId])</td>
     <td>Number[]</td>
-    <td>Add data to the DataSet. Adding an item will fail when there already is an item with the same id. The function returns an array with the ids of the added items. See section <a href="#Data_Manipulation">Data Manipulation</a>.</td>
+    <td>Add one or multiple items to the DataSet. <code>data</code> can be a single item or an array with items. Adding an item will fail when there already is an item with the same id. The function returns an array with the ids of the added items. See section <a href="#Data_Manipulation">Data Manipulation</a>.</td>
   </tr>
 
   <tr>
@@ -290,18 +290,17 @@ var data = new vis.DataSet([data] [, options])
     </td>
     <td>Number[]</td>
     <td>
-      Remove on ore multiple items by id or by the items themselves. Returns an array with the ids of the removed items. See section <a href="#Data_Manipulation">Data Manipulation</a>.
+      Remove one or multiple items by id or by the items themselves. Returns an array with the ids of the removed items. See section <a href="#Data_Manipulation">Data Manipulation</a>.
     </td>
   </tr>
 
   <tr>
     <td>
-      update(id [, senderId])<br>
-      update(ids [, senderId])
+      update(data [, senderId])
     </td>
     <td>Number[]</td>
     <td>
-      Update on ore existing items. When an item doesn't  exist, it will be created. Returns an array with the ids of the removed items. See section <a href="#Data_Manipulation">Data Manipulation</a>.
+      Update on ore multiple existing items. <code>data</code> can be a single item or an array with items. When an item doesn't  exist, it will be created. Returns an array with the ids of the removed items. See section <a href="#Data_Manipulation">Data Manipulation</a>.
     </td>
   </tr>
 
