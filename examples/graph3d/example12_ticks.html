@@ -14,7 +14,7 @@
     var graph = null;
 
     function custom(x, y) {
-      return (-Math.sin(x/Math.PI) * Math.cos(y/Math.PI) * 10 + 10);
+      return (-Math.sin(x/Math.PI) * Math.cos(y/Math.PI) * 10 + 10) * 1000;
     }
 
     // Called when the Visualization API is loaded.
@@ -64,6 +64,10 @@
         
         yValueLabel: function(value) {
             return value * 10 + '%';
+        },
+
+        zValueLabel: function(value) {
+            return value / 1000 + 'K';
         },
 
         keepAspectRatio: true,
