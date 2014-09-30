@@ -5,6 +5,7 @@ http://visjs.org
 
 ### Network
 
+- Title of nodes and edges can now be an HTML element too.
 - Renamed storePosition to storePositions. Added deprication message and old name still works.
 - Worked around hammer.js bug with multiple release listeners.
 - Improved cleaning up after manipulation toolbar.

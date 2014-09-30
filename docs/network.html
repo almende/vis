@@ -316,10 +316,11 @@ When using a DataSet, the network is automatically updating to changes in the Da
 
 <tr>
   <td>title</td>
-  <td>string | function</td>
+  <td>string | function | Element</td>
   <td>no</td>
   <td>Title to be displayed when the user hovers over the node.
-    The title can contain HTML code. If using a function, returning <code>undefined</code>
+    The title can be an HTML element or a string containing plain text or HTML.
+    When title is a function, the returned result is displayed as tooltip, and returning <code>undefined</code>
     will prevent the tooltip from being displayed.</td>
 </tr>
 
@@ -428,7 +429,8 @@ When using a DataSet, the network is automatically updating to changes in the Da
     <td>string | function</td>
     <td>no</td>
     <td>Title to be displayed when the user hovers over the edge.
-      The title can contain HTML code. If using a function, returning <code>undefined</code>
+      The title can be an HTML element or a string containing plain text or HTML.
+      When title is a function, the returned result is displayed as tooltip, and returning <code>undefined</code>
       will prevent the tooltip from being displayed.</td>
   </tr>
 
