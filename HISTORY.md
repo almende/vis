@@ -17,6 +17,8 @@ http://visjs.org
 
 ### Timeline
 
+- Implemented field `style` for both items and groups, to set a custom style for
+  individual items.
 - Fixed height of BackgroundItems not being 100% when timeline has a fixed height.
 - Fixed width of BackgroundItems not being reduced to 0 when zooming out.
 

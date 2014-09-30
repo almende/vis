@@ -149,7 +149,8 @@ The constructor accepts four parameters:
   The Timeline uses regular Arrays and Objects as data format.
   Data items can contain the properties <code>start</code>,
   <code>end</code> (optional), <code>content</code>,
-  <code>group</code> (optional), and <code>className</code> (optional).
+  <code>group</code> (optional), <code>className</code> (optional),
+  and <code>style</code> (optional).
 </p>
 
 <p>
@@ -162,7 +163,7 @@ var items = [
     start: new Date(2010, 7, 15),
     end: new Date(2010, 8, 2),  // end is optional
     content: 'Trajectory A'
-    // Optional: fields 'id', 'type', 'group', 'className'
+    // Optional: fields 'id', 'type', 'group', 'className', 'style'
   }
   // more items...
 ]);
@@ -236,6 +237,15 @@ var items = [
     <td>The start date of the item, for example <code>new Date(2010,9,23)</code>.</td>
   </tr>
   <tr>
+    <td>style</td>
+    <td>String</td>
+    <td>no</td>
+    <td>
+      A css text string to apply custom styling for an individual item, for
+      example <code>"color: red; background-color: pink;"</code>.
+    </td>
+  </tr>
+  <tr>
     <td>title</td>
     <td>String</td>
     <td>none</td>
@@ -272,7 +282,7 @@ var groups = [
   {
     id: 1,
     content: 'Group 1'
-    // Optional: a field 'className'
+    // Optional: a field 'className', 'style'
   }
   // more groups...
 ]);
@@ -319,6 +329,15 @@ var groups = [
     <td>An id for the group. The group will display all items having a
       property <code>group</code> which matches the <code>id</code>
       of the group.</td>
+  </tr>
+  <tr>
+    <td>style</td>
+    <td>String</td>
+    <td>no</td>
+    <td>
+      A css text string to apply custom styling for an individual group label, for
+      example <code>"color: red; background-color: pink;"</code>.
+    </td>
   </tr>
   <tr>
     <td>title</td>
