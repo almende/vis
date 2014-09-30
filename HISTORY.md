@@ -26,8 +26,8 @@ http://visjs.org
 
 ### Graph3d
 
-- Implemented options `xValueLabel` and `yValueLabel` for custom labels along
-  the x and y axis. Thanks @fabriziofortino.
+- Implemented options `xValueLabel`, `yValueLabel` and `zValueLabel` for custom labels along
+  the x, y, z axis. Thanks @fabriziofortino.
 
 
 ## 2014-09-16, version 3.5.0
