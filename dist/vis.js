@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.5.0
- * @date    2014-10-02
+ * @date    2014-10-03
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -100,45 +100,46 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // Timeline
   exports.Timeline = __webpack_require__(17);
-  exports.Graph2d = __webpack_require__(39);
+  exports.Graph2d = __webpack_require__(40);
   exports.timeline = {
-    DataStep: __webpack_require__(42),
+    DateUtil: __webpack_require__(23),
+    DataStep: __webpack_require__(43),
     Range: __webpack_require__(20),
-    stack: __webpack_require__(31),
-    TimeStep: __webpack_require__(25),
+    stack: __webpack_require__(32),
+    TimeStep: __webpack_require__(26),
 
     components: {
       items: {
-        Item: __webpack_require__(33),
-        BackgroundItem: __webpack_require__(36),
-        BoxItem: __webpack_require__(34),
-        PointItem: __webpack_require__(35),
-        RangeItem: __webpack_require__(32)
+        Item: __webpack_require__(34),
+        BackgroundItem: __webpack_require__(37),
+        BoxItem: __webpack_require__(35),
+        PointItem: __webpack_require__(36),
+        RangeItem: __webpack_require__(33)
       },
 
       Component: __webpack_require__(22),
-      CurrentTime: __webpack_require__(26),
-      CustomTime: __webpack_require__(28),
-      DataAxis: __webpack_require__(41),
-      GraphGroup: __webpack_require__(43),
-      Group: __webpack_require__(30),
-      ItemSet: __webpack_require__(29),
-      Legend: __webpack_require__(44),
-      LineGraph: __webpack_require__(40),
-      TimeAxis: __webpack_require__(24)
+      CurrentTime: __webpack_require__(27),
+      CustomTime: __webpack_require__(29),
+      DataAxis: __webpack_require__(42),
+      GraphGroup: __webpack_require__(44),
+      Group: __webpack_require__(31),
+      ItemSet: __webpack_require__(30),
+      Legend: __webpack_require__(45),
+      LineGraph: __webpack_require__(41),
+      TimeAxis: __webpack_require__(25)
     }
   };
 
   // Network
-  exports.Network = __webpack_require__(45);
+  exports.Network = __webpack_require__(46);
   exports.network = {
-    Edge: __webpack_require__(51),
-    Groups: __webpack_require__(48),
-    Images: __webpack_require__(49),
-    Node: __webpack_require__(50),
-    Popup: __webpack_require__(52),
-    dotparser: __webpack_require__(46),
-    gephiParser: __webpack_require__(47)
+    Edge: __webpack_require__(52),
+    Groups: __webpack_require__(49),
+    Images: __webpack_require__(50),
+    Node: __webpack_require__(51),
+    Popup: __webpack_require__(53),
+    dotparser: __webpack_require__(47),
+    gephiParser: __webpack_require__(48)
   };
 
   // Deprecated since v3.0.0
@@ -9312,11 +9313,11 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(8);
   var Range = __webpack_require__(20);
-  var Core = __webpack_require__(23);
-  var TimeAxis = __webpack_require__(24);
-  var CurrentTime = __webpack_require__(26);
-  var CustomTime = __webpack_require__(28);
-  var ItemSet = __webpack_require__(29);
+  var Core = __webpack_require__(24);
+  var TimeAxis = __webpack_require__(25);
+  var CurrentTime = __webpack_require__(27);
+  var CustomTime = __webpack_require__(29);
+  var ItemSet = __webpack_require__(30);
 
   /**
    * Create a timeline visualization
@@ -9367,6 +9368,7 @@ return /******/ (function(modules) { // webpackBootstrap
         off: this.off.bind(this),
         emit: this.emit.bind(this)
       },
+      hiddenDates: [],
       util: {
         snap: null, // will be specified after TimeAxis is created
         toScreen: me._toScreen.bind(me),
@@ -11807,6 +11809,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var hammerUtil = __webpack_require__(21);
   var moment = __webpack_require__(2);
   var Component = __webpack_require__(22);
+  var DateUtil = __webpack_require__(23);
 
   /**
    * @constructor Range
@@ -11883,7 +11886,7 @@ return /******/ (function(modules) { // webpackBootstrap
   Range.prototype.setOptions = function (options) {
     if (options) {
       // copy the options that we know
-      var fields = ['direction', 'min', 'max', 'zoomMin', 'zoomMax', 'moveable', 'zoomable', 'activate','hide'];
+      var fields = ['direction', 'min', 'max', 'zoomMin', 'zoomMax', 'moveable', 'zoomable', 'activate', 'hide'];
       util.selectiveExtend(fields, this.options, options);
 
       if ('start' in options || 'end' in options) {
@@ -12180,51 +12183,30 @@ return /******/ (function(modules) { // webpackBootstrap
     delta -= this.deltaDifference;
     var interval = (this.props.touch.end - this.props.touch.start);
 
+
     // normalize dragging speed if cutout is in between.
-    var startDate = new Date(this.options.hide.start).getTime();
-    var endDate = new Date(this.options.hide.end).getTime();
-    var duration = endDate - startDate;
-    if (startDate >= this.start && endDate < this.end) {
-      interval -= duration;
-    }
+    var duration = DateUtil.getHiddenDuration(this.body.hiddenDates, this);
+    interval -= duration;
+
 
     var width = (direction == 'horizontal') ? this.body.domProps.center.width : this.body.domProps.center.height;
     var diffRange = -delta / width * interval;
+    var newStart = this.props.touch.start + diffRange;
+    var newEnd = this.props.touch.end + diffRange;
+
 
     // snapping times away from hidden zones
-    var start = this.props.touch.start + diffRange;
-    var end = this.props.touch.end + diffRange;
-    if (start >= startDate && start < endDate && this.previousDelta - delta > 0) { // if the start is entering the zone from the left
-      this.deltaDifference += delta;
-      this.props.touch.start = endDate + 1;
-      this.props.touch.end = end + duration; // to cancel the time subtraction events;
+    var safeDates = DateUtil.snapAwayFromHidden(this.body.hiddenDates, this, newStart, newEnd, delta);
+    if (safeDates !== false) {
+      this.props.touch.start = safeDates.newStart;
+      this.props.touch.end = safeDates.newEnd;
       this._onDrag(event);
       return;
     }
-    else if (start >= startDate && start < endDate && this.previousDelta - delta < 0) { // if the start is entering the zone from the right
-      this.deltaDifference += delta;
-      this.props.touch.start = startDate - 1;
-      this.props.touch.end = end - duration; // to cancel the time subtraction events;
-      this._onDrag(event);
-      return;
-    }
-    else if (end >= startDate && end < endDate && this.previousDelta - delta > 0) { // if the start is entering the zone from the right
-      this.deltaDifference += delta;
-      this.props.touch.end = endDate + 1;
-      this.props.touch.start = start; // to cancel the time subtraction events;
-      this._onDrag(event);
-      return;
-    }
-    else if (end >= startDate && end < endDate && this.previousDelta - delta < 0) { // if the start is entering the zone from the right
-      this.deltaDifference += delta;
-      this.props.touch.end = startDate-1;
-      this.props.touch.start = start; // to cancel the time subtraction events;
-      this._onDrag(event);
-      return;
-    }
+
     this.previousDelta = delta;
 
-    this._applyRange(start, end);
+    this._applyRange(newStart, newEnd);
 
     // fire a rangechange event
     this.body.emitter.emit('rangechange', {
@@ -12299,7 +12281,7 @@ return /******/ (function(modules) { // webpackBootstrap
           pointer = getPointer(gesture.center, this.body.dom.center),
           pointerDate = this._pointerToDate(pointer);
 
-      this.zoom(scale, pointerDate);
+      this.zoom(scale, pointerDate, delta);
     }
 
     // Prevent default actions caused by mouse wheel
@@ -12342,12 +12324,24 @@ return /******/ (function(modules) { // webpackBootstrap
         this.props.touch.center = getPointer(event.gesture.center, this.body.dom.center);
       }
 
-      var scale = 1 / event.gesture.scale,
-          initDate = this._pointerToDate(this.props.touch.center);
+      var scale = 1 / event.gesture.scale;
+      var center = this._pointerToDate(this.props.touch.center);
+
+      var hiddenDuration = DateUtil.getHiddenDuration(this.body.hiddenDates, this);
 
       // calculate new start and end
-      var newStart = parseInt(initDate + (this.props.touch.start - initDate) * scale);
-      var newEnd = parseInt(initDate + (this.props.touch.end - initDate) * scale);
+      var newStart = center + (this.props.touch.start - center) * scale;
+      var newEnd = (center+hiddenDuration) + (this.props.touch.end - (center+hiddenDuration)) * scale;
+
+
+      this.previousDelta = 1;
+      var safeDates = DateUtil.snapAwayFromHidden(this.body.hiddenDates, this, newStart, newEnd, event.gesture.scale, true);
+      if (safeDates !== false) {
+        this.props.touch.start = safeDates.newStart;
+        this.props.touch.end = safeDates.newEnd;
+        newStart = safeDates.newStart;
+        newEnd = safeDates.newEnd;
+      }
 
       // apply new range
       this.setRange(newStart, newEnd);
@@ -12368,7 +12362,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
     if (direction == 'horizontal') {
       var width = this.body.domProps.center.width;
-      conversion = this.conversion(width);
+      var duration = DateUtil.getHiddenDuration(this.body.hiddenDates, this);
+      //return DateUtil.toTime(this.body, this, pointer.x, width);
+      conversion = this.conversion(width, duration);
+      //console.log(new Date(pointer.x / conversion.scale + conversion.offset + duration));
       return pointer.x / conversion.scale + conversion.offset;
     }
     else {
@@ -12402,18 +12399,32 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {Number} [center]   Value representing a date around which will
    *                            be zoomed.
    */
-  Range.prototype.zoom = function(scale, center) {
+  Range.prototype.zoom = function(scale, center, delta) {
     // if centerDate is not provided, take it half between start Date and end Date
     if (center == null) {
       center = (this.start + this.end) / 2;
     }
 
+    var hiddenDuration = DateUtil.getHiddenDuration(this.body.hiddenDates, this);
+
     // calculate new start and end
     var newStart = center + (this.start - center) * scale;
-    var newEnd = center + (this.end - center) * scale;
+    var newEnd   = (center+hiddenDuration) + (this.end - (center+hiddenDuration)) * scale;
+
+    this.previousDelta = 0;
+
+    // snapping times away from hidden zones
+    var safeDates = DateUtil.snapAwayFromHidden(this.body.hiddenDates, this, newStart, newEnd, delta, true);
+    //console.log(new Date(this.start), new Date(this.end), new Date(newStart), new Date(newEnd),new Date(safeDates.newStart), new Date(safeDates.newEnd));
+    if (safeDates !== false) {
+      newStart = safeDates.newStart;
+      newEnd = safeDates.newEnd;
+    }
 
     this.setRange(newStart, newEnd);
   };
+
+
 
   /**
    * Move the range with a given delta to the left or right. Start and end
@@ -12552,17 +12563,182 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
+  /**
+   * Created by Alex on 10/3/2014.
+   */
+  var moment = __webpack_require__(2);
+
+
+  exports.convertHiddenOptions = function(timeline) {
+    var hiddenTimes = timeline.options.hide;
+    if (Array.isArray(hiddenTimes) == true) {
+      for (var i = 0; i < hiddenTimes.length; i++) {
+        var dateItem = {};
+        dateItem.start = moment(hiddenTimes[i].start).toDate().valueOf();
+        dateItem.end = moment(hiddenTimes[i].end).toDate().valueOf();
+        timeline.body.hiddenDates.push(dateItem);
+      }
+      timeline.body.hiddenDates.sort(function(a,b) {return a.start - b.start;}); // sort by start time
+    }
+    else {
+      timeline.body.hiddenDates = [{
+          start:moment(hiddenTimes.start).toDate().valueOf(),
+          end:moment(hiddenTimes.end).toDate().valueOf()
+        }
+      ];
+    }
+  }
+
+  exports.stepOverHiddenDates = function(timeStep, previousTime) {
+    var stepInHidden = false;
+    var currentValue = timeStep.current.valueOf();
+    for (var i = 0; i < timeStep.hiddenDates.length; i++) {
+      var startDate = timeStep.hiddenDates[i].start;
+      var endDate = timeStep.hiddenDates[i].end;
+      if (currentValue >= startDate && currentValue < endDate) {
+        stepInHidden = true;
+        break;
+      }
+    }
+
+    if (stepInHidden == true && currentValue < timeStep._end.valueOf() && currentValue != previousTime) {
+      timeStep.current = moment(endDate).toDate();
+    }
+  }
+
+  exports.toScreen = function(timeline, time, width) {
+    var hidden = exports.isHidden(time, timeline.body.hiddenDates)
+    if (hidden.hidden == true) {
+      time = hidden.startDate;
+    }
+
+    var res = exports.correctTimeForDuration(timeline.body.hiddenDates, timeline.range, time);
+    var duration = res.duration;
+    time = res.time;
+
+    var conversion = timeline.range.conversion(width, duration);
+    return (time.valueOf() - conversion.offset) * conversion.scale;
+  }
+
+  exports.toTime = function(body, range, x, width) {
+    var duration = exports.getHiddenDuration(body.hiddenDates, range);
+
+    var conversion = range.conversion(width, duration);
+    var time = new Date(x / conversion.scale + conversion.offset);
+
+    //var hidden = exports.isHidden(time, timeline.body.hiddenDates)
+    //if (hidden.hidden == true) {
+    //  time = hidden.startDate;
+    //}
+    //time = exports.correctTimeForDuration(body.hiddenDates, range, time).time;
+    return time;
+  }
+
+
+  exports.getHiddenDuration = function(hiddenTimes, range) {
+    var duration = 0;
+    for (var i = 0; i < hiddenTimes.length; i++) {
+      var startDate = hiddenTimes[i].start;
+      var endDate = hiddenTimes[i].end;
+      // if time after the cutout, and the
+      if (startDate >= range.start && endDate < range.end) {
+        duration += endDate - startDate;
+      }
+    }
+    return duration;
+  }
+
+
+  exports.correctTimeForDuration = function(hiddenTimes, range, time) {
+    var duration = 0;
+    var timeOffset = 0;
+    time = moment(time).toDate().valueOf()
+
+    for (var i = 0; i < hiddenTimes.length; i++) {
+      var startDate = hiddenTimes[i].start;
+      var endDate = hiddenTimes[i].end;
+      // if time after the cutout, and the
+      if (startDate >= range.start && endDate < range.end) {
+        duration += (endDate - startDate);
+        if (time >= endDate) {
+          timeOffset += (endDate - startDate);
+        }
+      }
+    }
+    time -= timeOffset;
+    return {duration: duration, time:time, offset: timeOffset};
+  }
+
+
+
+
+
+  exports.snapAwayFromHidden = function(hiddenTimes, range, start, end, delta, zoom) {
+    zoom = zoom || false;
+    var newStart = start;
+    var newEnd = end;
+    for (var i = 0; i < hiddenTimes.length; i++) {
+      var startDate = hiddenTimes[i].start;
+      var endDate = hiddenTimes[i].end;
+      if (start >= startDate && start < endDate) { // if the start is entering a hidden zone
+        range.deltaDifference += delta;
+        if (range.previousDelta - delta > 0 && zoom == false || zoom == true && range.previousDelta - delta < 0) { // from the left
+          console.log("start from left, snap to right")
+          newStart = endDate + 1;
+        }
+        else { // from the right
+          console.log("start from right, snap to left")
+          newStart = startDate - 1;
+        }
+        return {newStart: newStart, newEnd: newEnd};
+      }
+      else if (end >= startDate && end < endDate) { // if the start is entering a hidden zone
+        range.deltaDifference += delta;
+        if (range.previousDelta - delta < 0) { //  from the right
+          console.log("end from right, snap to left")
+          newEnd = startDate - 1;
+
+        }
+        else { // from the left
+          console.log("end from left, snap to right")
+          newEnd = endDate + 1;
+        }
+        return {newStart: newStart, newEnd: newEnd};
+      }
+    }
+    return false;
+  }
+
+  exports.isHidden = function(time, hiddenTimes) {
+    var isHidden = false;
+    for (var i = 0; i < hiddenTimes.length; i++) {
+      var startDate = hiddenTimes[i].start;
+      var endDate = hiddenTimes[i].end;
+
+      if (time >= startDate && time < endDate) { // if the start is entering a hidden zone
+        isHidden = true;
+        break;
+      }
+    }
+    return {hidden: isHidden, startDate: startDate, endDate: endDate};
+  }
+
+/***/ },
+/* 24 */
+/***/ function(module, exports, __webpack_require__) {
+
   var Emitter = __webpack_require__(10);
   var Hammer = __webpack_require__(18);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(8);
   var Range = __webpack_require__(20);
-  var TimeAxis = __webpack_require__(24);
-  var CurrentTime = __webpack_require__(26);
-  var CustomTime = __webpack_require__(28);
-  var ItemSet = __webpack_require__(29);
-  var Activator = __webpack_require__(37);
+  var TimeAxis = __webpack_require__(25);
+  var CurrentTime = __webpack_require__(27);
+  var CustomTime = __webpack_require__(29);
+  var ItemSet = __webpack_require__(30);
+  var Activator = __webpack_require__(38);
+  var DateUtil = __webpack_require__(23);
 
   /**
    * Create a timeline visualization
@@ -12729,6 +12905,10 @@ return /******/ (function(modules) { // webpackBootstrap
       // copy the known options
       var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'orientation', 'clickToUse', 'dataAttributes', 'hide'];
       util.selectiveExtend(fields, this.options, options);
+
+      if ('hide' in this.options) {
+        DateUtil.convertHiddenOptions(this);
+      }
 
       if ('clickToUse' in options) {
         if (options.clickToUse) {
@@ -13170,22 +13350,23 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   // TODO: move this function to Range
   Core.prototype._toTime = function(x) {
-    var startDate = new Date(this.options.hide.start).getTime();
-    var endDate = new Date(this.options.hide.end).getTime();
-    var duration = endDate - startDate;
-    if (!(startDate >= this.range.start && endDate < this.range.end)) {
-      duration = 0;
-    }
-
-    var conversion = this.range.conversion(this.props.center.width, duration);
-    var time = new Date(x / conversion.scale + conversion.offset);
-
-    if (time >= endDate && startDate >= this.range.start && endDate < this.range.end) {
-      time -= duration;
-    }
-
-
-    return time;
+    return DateUtil.toTime(this.body, this.range, x, this.props.center.width);
+    //var startDate = new Date(this.options.hide.start).getTime();
+    //var endDate = new Date(this.options.hide.end).getTime();
+    //var duration = endDate - startDate;
+    //if (!(startDate >= this.range.start && endDate < this.range.end)) {
+    //  duration = 0;
+    //}
+    //
+    //var conversion = this.range.conversion(this.props.center.width, duration);
+    //var time = new Date(x / conversion.scale + conversion.offset);
+    //
+    //if (time >= endDate && startDate >= this.range.start && endDate < this.range.end) {
+    //  time -= duration;
+    //}
+    //
+    //
+    //return time;
   };
 
   /**
@@ -13196,8 +13377,9 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   // TODO: move this function to Range
   Core.prototype._toGlobalTime = function(x) {
-    var conversion = this.range.conversion(this.props.root.width);
-    return new Date(x / conversion.scale + conversion.offset);
+    return DateUtil.toTime(this.body, this.range, x, this.props.root.width);
+    //var conversion = this.range.conversion(this.props.root.width);
+    //return new Date(x / conversion.scale + conversion.offset);
   };
 
   /**
@@ -13209,19 +13391,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   // TODO: move this function to Range
   Core.prototype._toScreen = function(time) {
-    var startDate = new Date(this.options.hide.start).getTime();
-    var endDate = new Date(this.options.hide.end).getTime();
-    var duration = endDate - startDate;
-    // if time after the cutout, and the
-    if (time >= endDate && startDate >= this.range.start && endDate < this.range.end) {
-      time -= duration;
-    }
-    else if (!(startDate >= this.range.start && endDate < this.range.end)) {
-      duration = 0;
-    }
-
-    var conversion = this.range.conversion(this.props.center.width, duration);
-    return (time.valueOf() - conversion.offset) * conversion.scale;
+    return DateUtil.toScreen(this, time, this.props.center.width);
   };
 
 
@@ -13236,8 +13406,9 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   // TODO: move this function to Range
   Core.prototype._toGlobalScreen = function(time) {
-    var conversion = this.range.conversion(this.props.root.width);
-    return (time.valueOf() - conversion.offset) * conversion.scale;
+    return DateUtil.toScreen(this, time, this.props.root.width);
+    //var conversion = this.range.conversion(this.props.root.width);
+    //return (time.valueOf() - conversion.offset) * conversion.scale;
   };
 
 
@@ -13403,12 +13574,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 24 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
   var Component = __webpack_require__(22);
-  var TimeStep = __webpack_require__(25);
+  var TimeStep = __webpack_require__(26);
   var moment = __webpack_require__(2);
 
   /**
@@ -13586,7 +13757,7 @@ return /******/ (function(modules) { // webpackBootstrap
         end = util.convert(this.body.range.end, 'Number'),
         minimumStep = this.body.util.toTime((this.props.minorCharWidth || 10) * 7).valueOf()
             -this.body.util.toTime(0).valueOf();
-    var step = new TimeStep(new Date(start), new Date(end), minimumStep, this.options.hide);
+    var step = new TimeStep(new Date(start), new Date(end), minimumStep, this.body.hiddenDates);
     this.step = step;
 
     // Move all DOM elements to a "redundant" list, where they
@@ -13817,10 +13988,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 25 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
   var moment = __webpack_require__(2);
+  var DateUtil = __webpack_require__(23);
 
   /**
    * @constructor  TimeStep
@@ -13848,7 +14020,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {Date} [end]           The end date
    * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
    */
-  function TimeStep(start, end, minimumStep, hide) {
+  function TimeStep(start, end, minimumStep, hiddenDates) {
     // variables
     this.current = new Date();
     this._start = new Date();
@@ -13861,9 +14033,9 @@ return /******/ (function(modules) { // webpackBootstrap
     // initialize the range
     this.setRange(start, end, minimumStep);
 
-    this.hide = hide;
-    if (hide === undefined) {
-      this.hide = [];
+    this.hiddenDates = hiddenDates;
+    if (hiddenDates === undefined) {
+      this.hiddenDates = [];
     }
   }
 
@@ -14018,17 +14190,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.current = new Date(this._end.valueOf());
     }
 
-    var startDate = new Date(this.hide.start).getTime();
-    var endDate = new Date(this.hide.end).getTime();
-    if (this.current.valueOf() >= startDate &&
-      this.current.valueOf() < endDate &&
-      this.current.valueOf() < this._end.valueOf() &&
-      this.current.valueOf() != prev) {
-
-      //this.current = endDate;
-      this.next();
-    }
-
+    DateUtil.stepOverHiddenDates(this, prev);
   };
 
 
@@ -14310,13 +14472,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 26 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
   var Component = __webpack_require__(22);
   var moment = __webpack_require__(2);
-  var locales = __webpack_require__(27);
+  var locales = __webpack_require__(28);
 
   /**
    * A current time bar
@@ -14479,7 +14641,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 27 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -14500,14 +14662,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 28 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Hammer = __webpack_require__(18);
   var util = __webpack_require__(1);
   var Component = __webpack_require__(22);
   var moment = __webpack_require__(2);
-  var locales = __webpack_require__(27);
+  var locales = __webpack_require__(28);
 
   /**
    * A custom time bar
@@ -14702,7 +14864,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 29 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Hammer = __webpack_require__(18);
@@ -14710,11 +14872,11 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(8);
   var Component = __webpack_require__(22);
-  var Group = __webpack_require__(30);
-  var BoxItem = __webpack_require__(34);
-  var PointItem = __webpack_require__(35);
-  var RangeItem = __webpack_require__(32);
-  var BackgroundItem = __webpack_require__(36);
+  var Group = __webpack_require__(31);
+  var BoxItem = __webpack_require__(35);
+  var PointItem = __webpack_require__(36);
+  var RangeItem = __webpack_require__(33);
+  var BackgroundItem = __webpack_require__(37);
 
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
@@ -14971,7 +15133,7 @@ return /******/ (function(modules) { // webpackBootstrap
   ItemSet.prototype.setOptions = function(options) {
     if (options) {
       // copy all options that we know
-      var fields = ['type', 'align', 'orientation', 'padding', 'stack', 'selectable', 'groupOrder', 'dataAttributes', 'template'];
+      var fields = ['type', 'align', 'orientation', 'padding', 'stack', 'selectable', 'groupOrder', 'dataAttributes', 'template','hide'];
       util.selectiveExtend(fields, this.options, options);
 
       if ('margin' in options) {
@@ -16130,12 +16292,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 30 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var stack = __webpack_require__(31);
-  var RangeItem = __webpack_require__(32);
+  var stack = __webpack_require__(32);
+  var RangeItem = __webpack_require__(33);
+  var DateUtil = __webpack_require__(23);
 
   /**
    * @constructor Group
@@ -16530,18 +16693,29 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   Group.prototype._checkIfInvisible = function(item, visibleItems, range) {
-    if (item.isVisible(range)) {
-      if (!item.displayed) item.show();
-      item.repositionX();
-      if (visibleItems.indexOf(item) == -1) {
-        visibleItems.push(item);
+    //if (DateUtil.isHidden(item.data.start,this.itemSet.body.hiddenDates).hidden == false) {
+      if (item.isVisible(range)) {
+        if (!item.displayed) item.show();
+        item.repositionX();
+        if (visibleItems.indexOf(item) == -1) {
+          visibleItems.push(item);
+        }
+        return false;
       }
-      return false;
-    }
-    else {
-      if (item.displayed) item.hide();
-      return true;
-    }
+      else {
+        if (item.displayed) item.hide();
+        return true;
+      }
+    //}
+    //else {
+    //  if (item.isVisible(range)) {
+    //    return false;
+    //  }
+    //  else {
+    //    if (item.displayed) item.hide();
+    //    return true;
+    //  }
+    //}
   };
 
   /**
@@ -16556,22 +16730,29 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   Group.prototype._checkIfVisible = function(item, visibleItems, range) {
-    if (item.isVisible(range)) {
-      if (!item.displayed) item.show();
-      // reposition item horizontally
-      item.repositionX();
-      visibleItems.push(item);
-    }
-    else {
-      if (item.displayed) item.hide();
-    }
+    //if (DateUtil.isHidden(item.data.start,this.itemSet.body.hiddenDates).hidden == false) {
+      if (item.isVisible(range)) {
+        if (!item.displayed) item.show();
+        // reposition item horizontally
+        item.repositionX();
+        visibleItems.push(item);
+      }
+      else {
+        if (item.displayed) item.hide();
+      }
+    //}
+    //else {
+    //  if (!item.isVisible(range)) {
+    //    if (item.displayed) item.hide();
+    //  }
+    //}
   };
 
   module.exports = Group;
 
 
 /***/ },
-/* 31 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Utility functions for ordering and stacking of items
@@ -16685,11 +16866,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 32 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Hammer = __webpack_require__(18);
-  var Item = __webpack_require__(33);
+  var Item = __webpack_require__(34);
 
   /**
    * @constructor RangeItem
@@ -16984,7 +17165,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 33 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Hammer = __webpack_require__(18);
@@ -17244,10 +17425,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 34 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Item = __webpack_require__(33);
+  var Item = __webpack_require__(34);
   var util = __webpack_require__(1);
 
   /**
@@ -17474,10 +17655,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 35 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Item = __webpack_require__(33);
+  var Item = __webpack_require__(34);
 
   /**
    * @constructor PointItem
@@ -17663,12 +17844,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 36 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Hammer = __webpack_require__(18);
-  var Item = __webpack_require__(33);
-  var RangeItem = __webpack_require__(32);
+  var Item = __webpack_require__(34);
+  var RangeItem = __webpack_require__(33);
 
   /**
    * @constructor BackgroundItem
@@ -17821,10 +18002,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 37 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var mousetrap = __webpack_require__(38);
+  var mousetrap = __webpack_require__(39);
   var Emitter = __webpack_require__(10);
   var Hammer = __webpack_require__(18);
   var util = __webpack_require__(1);
@@ -17973,7 +18154,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 38 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -18778,7 +18959,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 39 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Emitter = __webpack_require__(10);
@@ -18787,11 +18968,11 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(8);
   var Range = __webpack_require__(20);
-  var Core = __webpack_require__(23);
-  var TimeAxis = __webpack_require__(24);
-  var CurrentTime = __webpack_require__(26);
-  var CustomTime = __webpack_require__(28);
-  var LineGraph = __webpack_require__(40);
+  var Core = __webpack_require__(24);
+  var TimeAxis = __webpack_require__(25);
+  var CurrentTime = __webpack_require__(27);
+  var CustomTime = __webpack_require__(29);
+  var LineGraph = __webpack_require__(41);
 
   /**
    * Create a timeline visualization
@@ -19027,7 +19208,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 40 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -19035,9 +19216,9 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(8);
   var Component = __webpack_require__(22);
-  var DataAxis = __webpack_require__(41);
-  var GraphGroup = __webpack_require__(43);
-  var Legend = __webpack_require__(44);
+  var DataAxis = __webpack_require__(42);
+  var GraphGroup = __webpack_require__(44);
+  var Legend = __webpack_require__(45);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -20334,13 +20515,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 41 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(6);
   var Component = __webpack_require__(22);
-  var DataStep = __webpack_require__(42);
+  var DataStep = __webpack_require__(43);
 
   /**
    * A horizontal time axis
@@ -20841,7 +21022,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 42 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -21069,7 +21250,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 43 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -21210,7 +21391,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 44 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -21413,29 +21594,29 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 45 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Emitter = __webpack_require__(10);
   var Hammer = __webpack_require__(18);
-  var mousetrap = __webpack_require__(38);
+  var mousetrap = __webpack_require__(39);
   var util = __webpack_require__(1);
   var hammerUtil = __webpack_require__(21);
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(8);
-  var dotparser = __webpack_require__(46);
-  var gephiParser = __webpack_require__(47);
-  var Groups = __webpack_require__(48);
-  var Images = __webpack_require__(49);
-  var Node = __webpack_require__(50);
-  var Edge = __webpack_require__(51);
-  var Popup = __webpack_require__(52);
-  var MixinLoader = __webpack_require__(53);
-  var Activator = __webpack_require__(37);
-  var locales = __webpack_require__(64);
+  var dotparser = __webpack_require__(47);
+  var gephiParser = __webpack_require__(48);
+  var Groups = __webpack_require__(49);
+  var Images = __webpack_require__(50);
+  var Node = __webpack_require__(51);
+  var Edge = __webpack_require__(52);
+  var Popup = __webpack_require__(53);
+  var MixinLoader = __webpack_require__(54);
+  var Activator = __webpack_require__(38);
+  var locales = __webpack_require__(65);
 
   // Load custom shapes into CanvasRenderingContext2D
-  __webpack_require__(65);
+  __webpack_require__(66);
 
   /**
    * @constructor Network
@@ -23935,7 +24116,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 46 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -24767,7 +24948,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 47 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
   
@@ -24832,7 +25013,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.parseGephi = parseGephi;
 
 /***/ },
-/* 48 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -24921,7 +25102,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 49 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -24979,7 +25160,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 50 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -26003,11 +26184,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 51 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Node = __webpack_require__(50);
+  var Node = __webpack_require__(51);
 
   /**
    * @class Edge
@@ -27202,7 +27383,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Edge;
 
 /***/ },
-/* 52 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27348,16 +27529,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 53 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var PhysicsMixin = __webpack_require__(54);
-  var ClusterMixin = __webpack_require__(58);
-  var SectorsMixin = __webpack_require__(59);
-  var SelectionMixin = __webpack_require__(60);
-  var ManipulationMixin = __webpack_require__(61);
-  var NavigationMixin = __webpack_require__(62);
-  var HierarchicalLayoutMixin = __webpack_require__(63);
+  var PhysicsMixin = __webpack_require__(55);
+  var ClusterMixin = __webpack_require__(59);
+  var SectorsMixin = __webpack_require__(60);
+  var SelectionMixin = __webpack_require__(61);
+  var ManipulationMixin = __webpack_require__(62);
+  var NavigationMixin = __webpack_require__(63);
+  var HierarchicalLayoutMixin = __webpack_require__(64);
 
   /**
    * Load a mixin into the network object
@@ -27552,13 +27733,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 54 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var RepulsionMixin = __webpack_require__(55);
-  var HierarchialRepulsionMixin = __webpack_require__(56);
-  var BarnesHutMixin = __webpack_require__(57);
+  var RepulsionMixin = __webpack_require__(56);
+  var HierarchialRepulsionMixin = __webpack_require__(57);
+  var BarnesHutMixin = __webpack_require__(58);
 
   /**
    * Toggling barnes Hut calculation on and off.
@@ -28266,7 +28447,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 55 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -28330,7 +28511,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 56 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -28489,7 +28670,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 57 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -28894,7 +29075,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 58 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -30037,11 +30218,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 59 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Node = __webpack_require__(50);
+  var Node = __webpack_require__(51);
 
   /**
    * Creation of the SectorMixin var.
@@ -30596,10 +30777,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 60 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Node = __webpack_require__(50);
+  var Node = __webpack_require__(51);
 
   /**
    * This function can be called from the _doInAllSectors function
@@ -31310,12 +31491,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 61 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Node = __webpack_require__(50);
-  var Edge = __webpack_require__(51);
+  var Node = __webpack_require__(51);
+  var Edge = __webpack_require__(52);
 
   /**
    * clears the toolbar div element of children
@@ -31911,7 +32092,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 62 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -32094,7 +32275,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 63 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   exports._resetLevels = function() {
@@ -32511,7 +32692,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 64 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -32552,7 +32733,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 65 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
