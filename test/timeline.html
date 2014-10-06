@@ -71,7 +71,8 @@
   items.add([
     {_id: 0, content: 'item 0', start: now.clone().add(3, 'days').toDate(), title: 'hello title!'},
     {_id: '1', content: 'item 1<br>start', start: now.clone().add(4, 'days').toDate()},
-    {_id: 2, content: 'item 2', start: now.clone().add(-2, 'days').toDate() },
+    {_id: 2, content: '<a href="javascript: alert(\'you clicked an anchor\');">Click here! (anchor)</a><br><br>' +
+        '<div onclick="alert(\'you clicked a div\');   ">Click here! (div)</div>', start: now.clone().add(-2, 'days').toDate() },
     {_id: 3, content: 'item 3', start: now.clone().add(2, 'days').toDate(), style: 'color: red;'},
     {
       _id: 4, content: 'item 4 ',
@@ -111,13 +112,13 @@
   });
 
   /*
-  timeline.on('rangechange', function (range) {
-    console.log('rangechange', range);
-  });
-  timeline.on('rangechanged', function (range) {
-    console.log('rangechanged', range);
-  });
-  */
+   timeline.on('rangechange', function (range) {
+   console.log('rangechange', range);
+   });
+   timeline.on('rangechanged', function (range) {
+   console.log('rangechanged', range);
+   });
+   */
 
   items.on('add',    console.log.bind(console));
   items.on('update', console.log.bind(console));
