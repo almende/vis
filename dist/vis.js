@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.5.0
- * @date    2014-10-03
+ * @date    2014-10-06
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -11886,7 +11886,7 @@ return /******/ (function(modules) { // webpackBootstrap
   Range.prototype.setOptions = function (options) {
     if (options) {
       // copy the options that we know
-      var fields = ['direction', 'min', 'max', 'zoomMin', 'zoomMax', 'moveable', 'zoomable', 'activate', 'hide'];
+      var fields = ['direction', 'min', 'max', 'zoomMin', 'zoomMax', 'moveable', 'zoomable', 'activate', 'hiddenDates'];
       util.selectiveExtend(fields, this.options, options);
 
       if ('start' in options || 'end' in options) {
@@ -11921,7 +11921,6 @@ return /******/ (function(modules) { // webpackBootstrap
   Range.prototype.setRange = function(start, end, animate) {
     var _start = start != undefined ? util.convert(start, 'Date').valueOf() : null;
     var _end   = end != undefined   ? util.convert(end, 'Date').valueOf()   : null;
-
     this._cancelAnimation();
 
     if (animate) {
@@ -11941,6 +11940,7 @@ return /******/ (function(modules) { // webpackBootstrap
           var e = (done || _end === null)   ? _end   : util.easeInOutQuad(time, initEnd, _end, duration);
 
           changed = me._applyRange(s, e);
+          DateUtil.updateHiddenDates(this.body, this.options.hiddenDates);
           anyChanged = anyChanged || changed;
           if (changed) {
             me.body.emitter.emit('rangechange', {start: new Date(me.start), end: new Date(me.end)});
@@ -11963,6 +11963,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }
     else {
       var changed = this._applyRange(_start, _end);
+      DateUtil.updateHiddenDates(this.body, this.options.hiddenDates);
       if (changed) {
         var params = {start: new Date(this.start), end: new Date(this.end)};
         this.body.emitter.emit('rangechange', params);
@@ -12205,7 +12206,6 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     this.previousDelta = delta;
-
     this._applyRange(newStart, newEnd);
 
     // fire a rangechange event
@@ -12417,6 +12417,7 @@ return /******/ (function(modules) { // webpackBootstrap
     var safeDates = DateUtil.snapAwayFromHidden(this.body.hiddenDates, this, newStart, newEnd, delta, true);
     //console.log(new Date(this.start), new Date(this.end), new Date(newStart), new Date(newEnd),new Date(safeDates.newStart), new Date(safeDates.newEnd));
     if (safeDates !== false) {
+
       newStart = safeDates.newStart;
       newEnd = safeDates.newEnd;
     }
@@ -12569,26 +12570,165 @@ return /******/ (function(modules) { // webpackBootstrap
   var moment = __webpack_require__(2);
 
 
-  exports.convertHiddenOptions = function(timeline) {
-    var hiddenTimes = timeline.options.hide;
-    if (Array.isArray(hiddenTimes) == true) {
-      for (var i = 0; i < hiddenTimes.length; i++) {
-        var dateItem = {};
-        dateItem.start = moment(hiddenTimes[i].start).toDate().valueOf();
-        dateItem.end = moment(hiddenTimes[i].end).toDate().valueOf();
-        timeline.body.hiddenDates.push(dateItem);
-      }
-      timeline.body.hiddenDates.sort(function(a,b) {return a.start - b.start;}); // sort by start time
-    }
-    else {
-      timeline.body.hiddenDates = [{
-          start:moment(hiddenTimes.start).toDate().valueOf(),
-          end:moment(hiddenTimes.end).toDate().valueOf()
+  /**
+   * used in Core to convert the options into a volatile variable
+   * 
+   * @param Core
+   */
+  exports.convertHiddenOptions = function(body, hiddenDates) {
+    var hiddenTimes = hiddenDates.specific;
+    if (hiddenTimes) {
+      if (Array.isArray(hiddenTimes) == true) {
+        for (var i = 0; i < hiddenTimes.length; i++) {
+          var dateItem = {};
+          dateItem.start = moment(hiddenTimes[i].start).toDate().valueOf();
+          dateItem.end = moment(hiddenTimes[i].end).toDate().valueOf();
+          body.hiddenDates.push(dateItem);
         }
-      ];
+        body.hiddenDates.sort(function (a, b) {
+          return a.start - b.start;
+        }); // sort by start time
+      }
+      else {
+        body.hiddenDates = [{
+          start: moment(hiddenTimes.start).toDate().valueOf(),
+          end: moment(hiddenTimes.end).toDate().valueOf()
+        }
+        ];
+      }
+    }
+  };
+
+  exports.updateHiddenDates = function (body, hiddenDates) {
+    if (hiddenDates && hiddenDates.periodic) {
+      body.hiddenDates = [];
+      exports.convertHiddenOptions(body, hiddenDates);
+
+      var start = moment(body.range.start);
+      var end = moment(body.range.end);
+
+      if (hiddenDates.periodic.days) {
+        var nextStartDay = moment(body.range.start);
+        var nextEndDay = moment(body.range.start);
+        for (var i = 0; i < hiddenDates.periodic.days.length; i++) {
+          var startDay = hiddenDates.periodic.days[i].start;
+          var endDay = hiddenDates.periodic.days[i].end;
+
+          nextStartDay.isoWeekday(startDay);
+          nextEndDay.isoWeekday(endDay);
+          if (start < nextStartDay) {
+            nextStartDay.isoWeekday(startDay - 7);
+          }
+          if (start < nextEndDay) {
+            nextEndDay.isoWeekday(endDay - 7);
+          }
+          nextStartDay.milliseconds(0);
+          nextStartDay.seconds(0);
+          nextStartDay.minutes(0);
+          nextStartDay.hours(0);
+
+          nextEndDay.milliseconds(0);
+          nextEndDay.seconds(0);
+          nextEndDay.minutes(0);
+          nextEndDay.hours(0);
+
+          while (nextStartDay < end) {
+            body.hiddenDates.push({start: nextStartDay.valueOf(), end: nextEndDay.valueOf()});
+            nextStartDay.isoWeekday(startDay + 7);
+            nextEndDay.isoWeekday(endDay + 7);
+          }
+          body.hiddenDates.push({start: nextStartDay.valueOf(), end: nextEndDay.valueOf()});
+        }
+      }
+
+      if (hiddenDates.periodic.times) {
+        var nextStartDay = moment(body.range.start);
+        var nextEndDay = moment(body.range.start);
+        end = end.valueOf();
+
+        for (var i = 0; i < hiddenDates.periodic.times.length; i++) {
+          var startTime = hiddenDates.periodic.times[i].start.split(":");
+          var endTime = hiddenDates.periodic.times[i].end.split(":");
+
+          nextStartDay.milliseconds(0);
+          nextStartDay.seconds(startTime[2]);
+          nextStartDay.minutes(startTime[1]);
+          nextStartDay.hours(startTime[0]);
+
+          nextEndDay.milliseconds(0);
+          nextEndDay.seconds(endTime[2]);
+          nextEndDay.minutes(endTime[1]);
+          nextEndDay.hours(endTime[0]);
+
+          nextStartDay = nextStartDay.valueOf();
+          nextEndDay = nextEndDay.valueOf();
+
+          if (endTime[0] < startTime[0]) {
+            nextEndDay += 3600000*24;
+          }
+
+          nextStartDay -= 7*3600000*24;
+          nextEndDay -= 7*3600000*24;
+          while (nextStartDay < (end + 7*3600000*24)) {
+            body.hiddenDates.push({start: nextStartDay.valueOf(), end: nextEndDay.valueOf()});
+            nextStartDay += 3600000*24;
+            nextEndDay += 3600000*24;
+          }
+        }
+      }
+      exports.removeDuplicates(body);
+      //var startHidden = exports.isHidden(body.range.start, body.hiddenDates);
+      //var endHidden = exports.isHidden(body.range.end,body.hiddenDates);
     }
   }
 
+  exports.removeDuplicates = function(body) {
+    var hiddenDates = body.hiddenDates;
+    var safeDates = [];
+    for (var i = 0; i < hiddenDates.length; i++) {
+      for (var j = 0; j < hiddenDates.length; j++) {
+        if (i != j && hiddenDates[j].remove != true && hiddenDates[i].remove != true) {
+          // j inside i
+          if (hiddenDates[j].start >= hiddenDates[i].start && hiddenDates[j].end <= hiddenDates[i].end) {
+            hiddenDates[j].remove = true;
+          }
+          // j start inside i
+          else if (hiddenDates[j].start >= hiddenDates[i].start && hiddenDates[j].start <= hiddenDates[i].end) {
+            hiddenDates[i].end = hiddenDates[j].end;
+            hiddenDates[j].remove = true;
+          }
+          // j end inside i
+          else if (hiddenDates[j].end >= hiddenDates[i].start && hiddenDates[j].end <= hiddenDates[i].end) {
+            hiddenDates[i].start = hiddenDates[j].start;
+            hiddenDates[j].remove = true;
+          }
+        }
+      }
+    }
+
+    for (var i = 0; i < hiddenDates.length; i++) {
+      if (hiddenDates[i].remove !== true) {
+        safeDates.push(hiddenDates[i]);
+      }
+    }
+
+    body.hiddenDates = safeDates;
+    body.hiddenDates.sort(function (a, b) {
+      return a.start - b.start;
+    }); // sort by start time
+  }
+
+  exports.printDates = function(dates) {
+    for (var i =0; i < dates.length; i++) {
+      console.log(i, new Date(dates[i].start),new Date(dates[i].end), dates[i].start, dates[i].end, dates[i].remove);
+    }
+  }
+
+  /**
+   * Used in TimeStep to avoid the hidden times.
+   * @param timeStep
+   * @param previousTime
+   */
   exports.stepOverHiddenDates = function(timeStep, previousTime) {
     var stepInHidden = false;
     var currentValue = timeStep.current.valueOf();
@@ -12602,39 +12742,84 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     if (stepInHidden == true && currentValue < timeStep._end.valueOf() && currentValue != previousTime) {
-      timeStep.current = moment(endDate).toDate();
+      var prevValue = moment(previousTime);
+      var newValue = moment(endDate);
+      if (prevValue.dayOfYear() != newValue.dayOfYear()) {
+        timeStep.switchedDay = true;
+      }
+      timeStep.current = newValue.toDate();
     }
-  }
+  };
 
-  exports.toScreen = function(timeline, time, width) {
-    var hidden = exports.isHidden(time, timeline.body.hiddenDates)
+
+  /**
+   * Used in TimeStep to avoid the hidden times.
+   * @param timeStep
+   * @param previousTime
+   */
+  exports.checkFirstStep = function(timeStep) {
+    var stepInHidden = false;
+    var currentValue = timeStep.current.valueOf();
+    for (var i = 0; i < timeStep.hiddenDates.length; i++) {
+      var startDate = timeStep.hiddenDates[i].start;
+      var endDate = timeStep.hiddenDates[i].end;
+      if (currentValue >= startDate && currentValue < endDate) {
+        stepInHidden = true;
+        break;
+      }
+    }
+
+    if (stepInHidden == true && currentValue <= timeStep._end.valueOf()) {
+      var newValue = moment(endDate);
+      timeStep.current = newValue.toDate();
+    }
+  };
+
+  /**
+   * replaces the Core toScreen methods
+   * @param Core
+   * @param time
+   * @param width
+   * @returns {number}
+   */
+  exports.toScreen = function(Core, time, width) {
+    var hidden = exports.isHidden(time, Core.body.hiddenDates)
     if (hidden.hidden == true) {
       time = hidden.startDate;
     }
 
-    var res = exports.correctTimeForDuration(timeline.body.hiddenDates, timeline.range, time);
+    var res = exports.correctTimeForDuration(Core.body.hiddenDates, Core.range, time);
     var duration = res.duration;
     time = res.time;
 
-    var conversion = timeline.range.conversion(width, duration);
+    var conversion = Core.range.conversion(width, duration);
     return (time.valueOf() - conversion.offset) * conversion.scale;
-  }
+  };
 
+
+  /**
+   * Replaces the core toTime methods
+   * @param body
+   * @param range
+   * @param x
+   * @param width
+   * @returns {Date}
+   */
   exports.toTime = function(body, range, x, width) {
     var duration = exports.getHiddenDuration(body.hiddenDates, range);
-
     var conversion = range.conversion(width, duration);
-    var time = new Date(x / conversion.scale + conversion.offset);
 
-    //var hidden = exports.isHidden(time, timeline.body.hiddenDates)
-    //if (hidden.hidden == true) {
-    //  time = hidden.startDate;
-    //}
-    //time = exports.correctTimeForDuration(body.hiddenDates, range, time).time;
-    return time;
-  }
+    return new Date(x / conversion.scale + conversion.offset);
+  };
 
 
+  /**
+   * Support function
+   *
+   * @param hiddenTimes
+   * @param range
+   * @returns {number}
+   */
   exports.getHiddenDuration = function(hiddenTimes, range) {
     var duration = 0;
     for (var i = 0; i < hiddenTimes.length; i++) {
@@ -12646,13 +12831,20 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     }
     return duration;
-  }
+  };
 
 
+  /**
+   * Support function
+   * @param hiddenTimes
+   * @param range
+   * @param time
+   * @returns {{duration: number, time: *, offset: number}}
+   */
   exports.correctTimeForDuration = function(hiddenTimes, range, time) {
     var duration = 0;
     var timeOffset = 0;
-    time = moment(time).toDate().valueOf()
+    time = moment(time).toDate().valueOf();
 
     for (var i = 0; i < hiddenTimes.length; i++) {
       var startDate = hiddenTimes[i].start;
@@ -12667,48 +12859,63 @@ return /******/ (function(modules) { // webpackBootstrap
     }
     time -= timeOffset;
     return {duration: duration, time:time, offset: timeOffset};
-  }
+  };
 
 
-
-
-
+  /**
+   * Used with zooming and dragging
+   *
+   * @param hiddenTimes
+   * @param range
+   * @param start
+   * @param end
+   * @param delta
+   * @param zoom
+   * @returns {*}
+   */
   exports.snapAwayFromHidden = function(hiddenTimes, range, start, end, delta, zoom) {
     zoom = zoom || false;
     var newStart = start;
     var newEnd = end;
+    var newDates = false;
     for (var i = 0; i < hiddenTimes.length; i++) {
       var startDate = hiddenTimes[i].start;
       var endDate = hiddenTimes[i].end;
       if (start >= startDate && start < endDate) { // if the start is entering a hidden zone
-        range.deltaDifference += delta;
+        newDates = true;
+        // start from left, snap to right
         if (range.previousDelta - delta > 0 && zoom == false || zoom == true && range.previousDelta - delta < 0) { // from the left
-          console.log("start from left, snap to right")
           newStart = endDate + 1;
         }
-        else { // from the right
-          console.log("start from right, snap to left")
+        else { // start from right, snap to left
           newStart = startDate - 1;
         }
-        return {newStart: newStart, newEnd: newEnd};
       }
-      else if (end >= startDate && end < endDate) { // if the start is entering a hidden zone
-        range.deltaDifference += delta;
-        if (range.previousDelta - delta < 0) { //  from the right
-          console.log("end from right, snap to left")
+      if (end >= startDate && end < endDate) { // if the end is entering a hidden zone
+        newDates = true;
+        if (range.previousDelta - delta < 0) { //  end from right, snap to left
           newEnd = startDate - 1;
-
         }
-        else { // from the left
-          console.log("end from left, snap to right")
+        else { // end from left, snap to right
           newEnd = endDate + 1;
         }
-        return {newStart: newStart, newEnd: newEnd};
       }
     }
+    if (newDates == true) {
+      range.deltaDifference += delta;
+      return {newStart: newStart, newEnd: newEnd};
+    }
     return false;
-  }
+  };
 
+
+  /**
+   * Check if a time is hidden
+   *
+   * @param time
+   * @param hiddenTimes
+   * @returns {{hidden: boolean, startDate: Window.start, endDate: *}}
+   */
   exports.isHidden = function(time, hiddenTimes) {
     var isHidden = false;
     for (var i = 0; i < hiddenTimes.length; i++) {
@@ -12903,11 +13110,11 @@ return /******/ (function(modules) { // webpackBootstrap
   Core.prototype.setOptions = function (options) {
     if (options) {
       // copy the known options
-      var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'orientation', 'clickToUse', 'dataAttributes', 'hide'];
+      var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'orientation', 'clickToUse', 'dataAttributes', 'hiddenDates'];
       util.selectiveExtend(fields, this.options, options);
 
-      if ('hide' in this.options) {
-        DateUtil.convertHiddenOptions(this);
+      if ('hiddenDates' in this.options) {
+        DateUtil.convertHiddenOptions(this.body, this.options.hiddenDates);
       }
 
       if ('clickToUse' in options) {
@@ -13160,12 +13367,14 @@ return /******/ (function(modules) { // webpackBootstrap
    * option autoResize=false
    */
   Core.prototype.redraw = function() {
-    var resized = false,
-      options = this.options,
-      props = this.props,
-      dom = this.dom;
+    var resized = false;
+    var options = this.options;
+    var props = this.props;
+    var dom = this.dom;
 
     if (!dom) return; // when destroyed
+
+    DateUtil.updateHiddenDates(this.body, this.options.hiddenDates);
 
     // update class names
     if (options.orientation == 'top') {
@@ -13580,6 +13789,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(22);
   var TimeStep = __webpack_require__(26);
+  var DateUtil = __webpack_require__(23);
   var moment = __webpack_require__(2);
 
   /**
@@ -13642,7 +13852,7 @@ return /******/ (function(modules) { // webpackBootstrap
   TimeAxis.prototype.setOptions = function(options) {
     if (options) {
       // copy all options that we know
-      util.selectiveExtend(['orientation', 'showMinorLabels', 'showMajorLabels','hide'], this.options, options);
+      util.selectiveExtend(['orientation', 'showMinorLabels', 'showMajorLabels','hiddenDates'], this.options, options);
 
       // apply locale to moment.js
       // TODO: not so nice, this is applied globally to moment.js
@@ -13689,10 +13899,10 @@ return /******/ (function(modules) { // webpackBootstrap
    * @return {boolean} Returns true if the component is resized
    */
   TimeAxis.prototype.redraw = function () {
-    var options = this.options,
-        props = this.props,
-        foreground = this.dom.foreground,
-        background = this.dom.background;
+    var options = this.options;
+    var props = this.props;
+    var foreground = this.dom.foreground;
+    var background = this.dom.background;
 
     // determine the correct parent DOM element (depending on option orientation)
     var parent = (options.orientation == 'top') ? this.body.dom.top : this.body.dom.bottom;
@@ -14033,6 +14243,8 @@ return /******/ (function(modules) { // webpackBootstrap
     // initialize the range
     this.setRange(start, end, minimumStep);
 
+    // hidden Dates options
+    this.switchedDay = false;
     this.hiddenDates = hiddenDates;
     if (hiddenDates === undefined) {
       this.hiddenDates = [];
@@ -14395,6 +14607,19 @@ return /******/ (function(modules) { // webpackBootstrap
    * @return {boolean} true if current date is major, else false.
    */
   TimeStep.prototype.isMajor = function() {
+    if (this.switchedDay == true) {
+      this.switchedDay = false;
+      switch (this.scale) {
+        case TimeStep.SCALE.MILLISECOND:
+        case TimeStep.SCALE.SECOND:
+        case TimeStep.SCALE.MINUTE:
+        case TimeStep.SCALE.HOUR:
+          return true;
+        default:
+          return false;
+      }
+    }
+
     switch (this.scale) {
       case TimeStep.SCALE.MILLISECOND:
         return (this.current.getMilliseconds() == 0);
@@ -14402,7 +14627,6 @@ return /******/ (function(modules) { // webpackBootstrap
         return (this.current.getSeconds() == 0);
       case TimeStep.SCALE.MINUTE:
         return (this.current.getHours() == 0) && (this.current.getMinutes() == 0);
-      // Note: this is no bug. Major label is equal for both minute and hour scale
       case TimeStep.SCALE.HOUR:
         return (this.current.getHours() == 0);
       case TimeStep.SCALE.WEEKDAY: // intentional fall through
