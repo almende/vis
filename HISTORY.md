@@ -14,6 +14,7 @@ http://visjs.org
 - Fixed node label becoming undefined.
 - Fixed cluster fontsize scaling.
 - Fixed cluster sector scaling.
+- Added oldHeight and oldWidth to resize event.
 
 ### Timeline
 

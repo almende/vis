@@ -133,13 +133,13 @@ return /******/ (function(modules) { // webpackBootstrap
   // Network
   exports.Network = __webpack_require__(46);
   exports.network = {
-    Edge: __webpack_require__(52),
+    Edge: __webpack_require__(47),
     Groups: __webpack_require__(49),
     Images: __webpack_require__(50),
-    Node: __webpack_require__(51),
-    Popup: __webpack_require__(53),
-    dotparser: __webpack_require__(47),
-    gephiParser: __webpack_require__(48)
+    Node: __webpack_require__(48),
+    Popup: __webpack_require__(51),
+    dotparser: __webpack_require__(52),
+    gephiParser: __webpack_require__(53)
   };
 
   // Deprecated since v3.0.0
@@ -21849,19 +21849,19 @@ return /******/ (function(modules) { // webpackBootstrap
   var hammerUtil = __webpack_require__(21);
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(8);
-  var dotparser = __webpack_require__(47);
-  var gephiParser = __webpack_require__(48);
+  var dotparser = __webpack_require__(52);
+  var gephiParser = __webpack_require__(53);
   var Groups = __webpack_require__(49);
   var Images = __webpack_require__(50);
-  var Node = __webpack_require__(51);
-  var Edge = __webpack_require__(52);
-  var Popup = __webpack_require__(53);
+  var Node = __webpack_require__(48);
+  var Edge = __webpack_require__(47);
+  var Popup = __webpack_require__(51);
   var MixinLoader = __webpack_require__(54);
   var Activator = __webpack_require__(38);
-  var locales = __webpack_require__(65);
+  var locales = __webpack_require__(55);
 
   // Load custom shapes into CanvasRenderingContext2D
-  __webpack_require__(66);
+  __webpack_require__(56);
 
   /**
    * @constructor Network
@@ -23140,6 +23140,8 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   Network.prototype.setSize = function(width, height) {
     var emitEvent = false;
+    var oldWidth = this.frame.canvas.width;
+    var oldHeight = this.frame.canvas.height;
     if (width != this.constants.width || height != this.constants.height || this.frame.style.width != width || this.frame.style.height != height) {
       this.frame.style.width = width;
       this.frame.style.height = height;
@@ -23170,7 +23172,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     if (emitEvent == true) {
-      this.emit('resize', {width:this.frame.canvas.width,height:this.frame.canvas.height});
+      this.emit('resize', {width:this.frame.canvas.width,height:this.frame.canvas.height, oldWidth: oldWidth, oldHeight: oldHeight});
     }
   };
 
@@ -24364,2076 +24366,8 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
-  /**
-   * Parse a text source containing data in DOT language into a JSON object.
-   * The object contains two lists: one with nodes and one with edges.
-   *
-   * DOT language reference: http://www.graphviz.org/doc/info/lang.html
-   *
-   * @param {String} data     Text containing a graph in DOT-notation
-   * @return {Object} graph   An object containing two parameters:
-   *                          {Object[]} nodes
-   *                          {Object[]} edges
-   */
-  function parseDOT (data) {
-    dot = data;
-    return parseGraph();
-  }
-
-  // token types enumeration
-  var TOKENTYPE = {
-    NULL : 0,
-    DELIMITER : 1,
-    IDENTIFIER: 2,
-    UNKNOWN : 3
-  };
-
-  // map with all delimiters
-  var DELIMITERS = {
-    '{': true,
-    '}': true,
-    '[': true,
-    ']': true,
-    ';': true,
-    '=': true,
-    ',': true,
-
-    '->': true,
-    '--': true
-  };
-
-  var dot = '';                   // current dot file
-  var index = 0;                  // current index in dot file
-  var c = '';                     // current token character in expr
-  var token = '';                 // current token
-  var tokenType = TOKENTYPE.NULL; // type of the token
-
-  /**
-   * Get the first character from the dot file.
-   * The character is stored into the char c. If the end of the dot file is
-   * reached, the function puts an empty string in c.
-   */
-  function first() {
-    index = 0;
-    c = dot.charAt(0);
-  }
-
-  /**
-   * Get the next character from the dot file.
-   * The character is stored into the char c. If the end of the dot file is
-   * reached, the function puts an empty string in c.
-   */
-  function next() {
-    index++;
-    c = dot.charAt(index);
-  }
-
-  /**
-   * Preview the next character from the dot file.
-   * @return {String} cNext
-   */
-  function nextPreview() {
-    return dot.charAt(index + 1);
-  }
-
-  /**
-   * Test whether given character is alphabetic or numeric
-   * @param {String} c
-   * @return {Boolean} isAlphaNumeric
-   */
-  var regexAlphaNumeric = /[a-zA-Z_0-9.:#]/;
-  function isAlphaNumeric(c) {
-    return regexAlphaNumeric.test(c);
-  }
-
-  /**
-   * Merge all properties of object b into object b
-   * @param {Object} a
-   * @param {Object} b
-   * @return {Object} a
-   */
-  function merge (a, b) {
-    if (!a) {
-      a = {};
-    }
-
-    if (b) {
-      for (var name in b) {
-        if (b.hasOwnProperty(name)) {
-          a[name] = b[name];
-        }
-      }
-    }
-    return a;
-  }
-
-  /**
-   * Set a value in an object, where the provided parameter name can be a
-   * path with nested parameters. For example:
-   *
-   *     var obj = {a: 2};
-   *     setValue(obj, 'b.c', 3);     // obj = {a: 2, b: {c: 3}}
-   *
-   * @param {Object} obj
-   * @param {String} path  A parameter name or dot-separated parameter path,
-   *                      like "color.highlight.border".
-   * @param {*} value
-   */
-  function setValue(obj, path, value) {
-    var keys = path.split('.');
-    var o = obj;
-    while (keys.length) {
-      var key = keys.shift();
-      if (keys.length) {
-        // this isn't the end point
-        if (!o[key]) {
-          o[key] = {};
-        }
-        o = o[key];
-      }
-      else {
-        // this is the end point
-        o[key] = value;
-      }
-    }
-  }
-
-  /**
-   * Add a node to a graph object. If there is already a node with
-   * the same id, their attributes will be merged.
-   * @param {Object} graph
-   * @param {Object} node
-   */
-  function addNode(graph, node) {
-    var i, len;
-    var current = null;
-
-    // find root graph (in case of subgraph)
-    var graphs = [graph]; // list with all graphs from current graph to root graph
-    var root = graph;
-    while (root.parent) {
-      graphs.push(root.parent);
-      root = root.parent;
-    }
-
-    // find existing node (at root level) by its id
-    if (root.nodes) {
-      for (i = 0, len = root.nodes.length; i < len; i++) {
-        if (node.id === root.nodes[i].id) {
-          current = root.nodes[i];
-          break;
-        }
-      }
-    }
-
-    if (!current) {
-      // this is a new node
-      current = {
-        id: node.id
-      };
-      if (graph.node) {
-        // clone default attributes
-        current.attr = merge(current.attr, graph.node);
-      }
-    }
-
-    // add node to this (sub)graph and all its parent graphs
-    for (i = graphs.length - 1; i >= 0; i--) {
-      var g = graphs[i];
-
-      if (!g.nodes) {
-        g.nodes = [];
-      }
-      if (g.nodes.indexOf(current) == -1) {
-        g.nodes.push(current);
-      }
-    }
-
-    // merge attributes
-    if (node.attr) {
-      current.attr = merge(current.attr, node.attr);
-    }
-  }
-
-  /**
-   * Add an edge to a graph object
-   * @param {Object} graph
-   * @param {Object} edge
-   */
-  function addEdge(graph, edge) {
-    if (!graph.edges) {
-      graph.edges = [];
-    }
-    graph.edges.push(edge);
-    if (graph.edge) {
-      var attr = merge({}, graph.edge);     // clone default attributes
-      edge.attr = merge(attr, edge.attr); // merge attributes
-    }
-  }
-
-  /**
-   * Create an edge to a graph object
-   * @param {Object} graph
-   * @param {String | Number | Object} from
-   * @param {String | Number | Object} to
-   * @param {String} type
-   * @param {Object | null} attr
-   * @return {Object} edge
-   */
-  function createEdge(graph, from, to, type, attr) {
-    var edge = {
-      from: from,
-      to: to,
-      type: type
-    };
-
-    if (graph.edge) {
-      edge.attr = merge({}, graph.edge);  // clone default attributes
-    }
-    edge.attr = merge(edge.attr || {}, attr); // merge attributes
-
-    return edge;
-  }
-
-  /**
-   * Get next token in the current dot file.
-   * The token and token type are available as token and tokenType
-   */
-  function getToken() {
-    tokenType = TOKENTYPE.NULL;
-    token = '';
-
-    // skip over whitespaces
-    while (c == ' ' || c == '\t' || c == '\n' || c == '\r') {  // space, tab, enter
-      next();
-    }
-
-    do {
-      var isComment = false;
-
-      // skip comment
-      if (c == '#') {
-        // find the previous non-space character
-        var i = index - 1;
-        while (dot.charAt(i) == ' ' || dot.charAt(i) == '\t') {
-          i--;
-        }
-        if (dot.charAt(i) == '\n' || dot.charAt(i) == '') {
-          // the # is at the start of a line, this is indeed a line comment
-          while (c != '' && c != '\n') {
-            next();
-          }
-          isComment = true;
-        }
-      }
-      if (c == '/' && nextPreview() == '/') {
-        // skip line comment
-        while (c != '' && c != '\n') {
-          next();
-        }
-        isComment = true;
-      }
-      if (c == '/' && nextPreview() == '*') {
-        // skip block comment
-        while (c != '') {
-          if (c == '*' && nextPreview() == '/') {
-            // end of block comment found. skip these last two characters
-            next();
-            next();
-            break;
-          }
-          else {
-            next();
-          }
-        }
-        isComment = true;
-      }
-
-      // skip over whitespaces
-      while (c == ' ' || c == '\t' || c == '\n' || c == '\r') {  // space, tab, enter
-        next();
-      }
-    }
-    while (isComment);
-
-    // check for end of dot file
-    if (c == '') {
-      // token is still empty
-      tokenType = TOKENTYPE.DELIMITER;
-      return;
-    }
-
-    // check for delimiters consisting of 2 characters
-    var c2 = c + nextPreview();
-    if (DELIMITERS[c2]) {
-      tokenType = TOKENTYPE.DELIMITER;
-      token = c2;
-      next();
-      next();
-      return;
-    }
-
-    // check for delimiters consisting of 1 character
-    if (DELIMITERS[c]) {
-      tokenType = TOKENTYPE.DELIMITER;
-      token = c;
-      next();
-      return;
-    }
-
-    // check for an identifier (number or string)
-    // TODO: more precise parsing of numbers/strings (and the port separator ':')
-    if (isAlphaNumeric(c) || c == '-') {
-      token += c;
-      next();
-
-      while (isAlphaNumeric(c)) {
-        token += c;
-        next();
-      }
-      if (token == 'false') {
-        token = false;   // convert to boolean
-      }
-      else if (token == 'true') {
-        token = true;   // convert to boolean
-      }
-      else if (!isNaN(Number(token))) {
-        token = Number(token); // convert to number
-      }
-      tokenType = TOKENTYPE.IDENTIFIER;
-      return;
-    }
-
-    // check for a string enclosed by double quotes
-    if (c == '"') {
-      next();
-      while (c != '' && (c != '"' || (c == '"' && nextPreview() == '"'))) {
-        token += c;
-        if (c == '"') { // skip the escape character
-          next();
-        }
-        next();
-      }
-      if (c != '"') {
-        throw newSyntaxError('End of string " expected');
-      }
-      next();
-      tokenType = TOKENTYPE.IDENTIFIER;
-      return;
-    }
-
-    // something unknown is found, wrong characters, a syntax error
-    tokenType = TOKENTYPE.UNKNOWN;
-    while (c != '') {
-      token += c;
-      next();
-    }
-    throw new SyntaxError('Syntax error in part "' + chop(token, 30) + '"');
-  }
-
-  /**
-   * Parse a graph.
-   * @returns {Object} graph
-   */
-  function parseGraph() {
-    var graph = {};
-
-    first();
-    getToken();
-
-    // optional strict keyword
-    if (token == 'strict') {
-      graph.strict = true;
-      getToken();
-    }
-
-    // graph or digraph keyword
-    if (token == 'graph' || token == 'digraph') {
-      graph.type = token;
-      getToken();
-    }
-
-    // optional graph id
-    if (tokenType == TOKENTYPE.IDENTIFIER) {
-      graph.id = token;
-      getToken();
-    }
-
-    // open angle bracket
-    if (token != '{') {
-      throw newSyntaxError('Angle bracket { expected');
-    }
-    getToken();
-
-    // statements
-    parseStatements(graph);
-
-    // close angle bracket
-    if (token != '}') {
-      throw newSyntaxError('Angle bracket } expected');
-    }
-    getToken();
-
-    // end of file
-    if (token !== '') {
-      throw newSyntaxError('End of file expected');
-    }
-    getToken();
-
-    // remove temporary default properties
-    delete graph.node;
-    delete graph.edge;
-    delete graph.graph;
-
-    return graph;
-  }
-
-  /**
-   * Parse a list with statements.
-   * @param {Object} graph
-   */
-  function parseStatements (graph) {
-    while (token !== '' && token != '}') {
-      parseStatement(graph);
-      if (token == ';') {
-        getToken();
-      }
-    }
-  }
-
-  /**
-   * Parse a single statement. Can be a an attribute statement, node
-   * statement, a series of node statements and edge statements, or a
-   * parameter.
-   * @param {Object} graph
-   */
-  function parseStatement(graph) {
-    // parse subgraph
-    var subgraph = parseSubgraph(graph);
-    if (subgraph) {
-      // edge statements
-      parseEdge(graph, subgraph);
-
-      return;
-    }
-
-    // parse an attribute statement
-    var attr = parseAttributeStatement(graph);
-    if (attr) {
-      return;
-    }
-
-    // parse node
-    if (tokenType != TOKENTYPE.IDENTIFIER) {
-      throw newSyntaxError('Identifier expected');
-    }
-    var id = token; // id can be a string or a number
-    getToken();
-
-    if (token == '=') {
-      // id statement
-      getToken();
-      if (tokenType != TOKENTYPE.IDENTIFIER) {
-        throw newSyntaxError('Identifier expected');
-      }
-      graph[id] = token;
-      getToken();
-      // TODO: implement comma separated list with "a_list: ID=ID [','] [a_list] "
-    }
-    else {
-      parseNodeStatement(graph, id);
-    }
-  }
-
-  /**
-   * Parse a subgraph
-   * @param {Object} graph    parent graph object
-   * @return {Object | null} subgraph
-   */
-  function parseSubgraph (graph) {
-    var subgraph = null;
-
-    // optional subgraph keyword
-    if (token == 'subgraph') {
-      subgraph = {};
-      subgraph.type = 'subgraph';
-      getToken();
-
-      // optional graph id
-      if (tokenType == TOKENTYPE.IDENTIFIER) {
-        subgraph.id = token;
-        getToken();
-      }
-    }
-
-    // open angle bracket
-    if (token == '{') {
-      getToken();
-
-      if (!subgraph) {
-        subgraph = {};
-      }
-      subgraph.parent = graph;
-      subgraph.node = graph.node;
-      subgraph.edge = graph.edge;
-      subgraph.graph = graph.graph;
-
-      // statements
-      parseStatements(subgraph);
-
-      // close angle bracket
-      if (token != '}') {
-        throw newSyntaxError('Angle bracket } expected');
-      }
-      getToken();
-
-      // remove temporary default properties
-      delete subgraph.node;
-      delete subgraph.edge;
-      delete subgraph.graph;
-      delete subgraph.parent;
-
-      // register at the parent graph
-      if (!graph.subgraphs) {
-        graph.subgraphs = [];
-      }
-      graph.subgraphs.push(subgraph);
-    }
-
-    return subgraph;
-  }
-
-  /**
-   * parse an attribute statement like "node [shape=circle fontSize=16]".
-   * Available keywords are 'node', 'edge', 'graph'.
-   * The previous list with default attributes will be replaced
-   * @param {Object} graph
-   * @returns {String | null} keyword Returns the name of the parsed attribute
-   *                                  (node, edge, graph), or null if nothing
-   *                                  is parsed.
-   */
-  function parseAttributeStatement (graph) {
-    // attribute statements
-    if (token == 'node') {
-      getToken();
-
-      // node attributes
-      graph.node = parseAttributeList();
-      return 'node';
-    }
-    else if (token == 'edge') {
-      getToken();
-
-      // edge attributes
-      graph.edge = parseAttributeList();
-      return 'edge';
-    }
-    else if (token == 'graph') {
-      getToken();
-
-      // graph attributes
-      graph.graph = parseAttributeList();
-      return 'graph';
-    }
-
-    return null;
-  }
-
-  /**
-   * parse a node statement
-   * @param {Object} graph
-   * @param {String | Number} id
-   */
-  function parseNodeStatement(graph, id) {
-    // node statement
-    var node = {
-      id: id
-    };
-    var attr = parseAttributeList();
-    if (attr) {
-      node.attr = attr;
-    }
-    addNode(graph, node);
-
-    // edge statements
-    parseEdge(graph, id);
-  }
-
-  /**
-   * Parse an edge or a series of edges
-   * @param {Object} graph
-   * @param {String | Number} from        Id of the from node
-   */
-  function parseEdge(graph, from) {
-    while (token == '->' || token == '--') {
-      var to;
-      var type = token;
-      getToken();
-
-      var subgraph = parseSubgraph(graph);
-      if (subgraph) {
-        to = subgraph;
-      }
-      else {
-        if (tokenType != TOKENTYPE.IDENTIFIER) {
-          throw newSyntaxError('Identifier or subgraph expected');
-        }
-        to = token;
-        addNode(graph, {
-          id: to
-        });
-        getToken();
-      }
-
-      // parse edge attributes
-      var attr = parseAttributeList();
-
-      // create edge
-      var edge = createEdge(graph, from, to, type, attr);
-      addEdge(graph, edge);
-
-      from = to;
-    }
-  }
-
-  /**
-   * Parse a set with attributes,
-   * for example [label="1.000", shape=solid]
-   * @return {Object | null} attr
-   */
-  function parseAttributeList() {
-    var attr = null;
-
-    while (token == '[') {
-      getToken();
-      attr = {};
-      while (token !== '' && token != ']') {
-        if (tokenType != TOKENTYPE.IDENTIFIER) {
-          throw newSyntaxError('Attribute name expected');
-        }
-        var name = token;
-
-        getToken();
-        if (token != '=') {
-          throw newSyntaxError('Equal sign = expected');
-        }
-        getToken();
-
-        if (tokenType != TOKENTYPE.IDENTIFIER) {
-          throw newSyntaxError('Attribute value expected');
-        }
-        var value = token;
-        setValue(attr, name, value); // name can be a path
-
-        getToken();
-        if (token ==',') {
-          getToken();
-        }
-      }
-
-      if (token != ']') {
-        throw newSyntaxError('Bracket ] expected');
-      }
-      getToken();
-    }
-
-    return attr;
-  }
-
-  /**
-   * Create a syntax error with extra information on current token and index.
-   * @param {String} message
-   * @returns {SyntaxError} err
-   */
-  function newSyntaxError(message) {
-    return new SyntaxError(message + ', got "' + chop(token, 30) + '" (char ' + index + ')');
-  }
-
-  /**
-   * Chop off text after a maximum length
-   * @param {String} text
-   * @param {Number} maxLength
-   * @returns {String}
-   */
-  function chop (text, maxLength) {
-    return (text.length <= maxLength) ? text : (text.substr(0, 27) + '...');
-  }
-
-  /**
-   * Execute a function fn for each pair of elements in two arrays
-   * @param {Array | *} array1
-   * @param {Array | *} array2
-   * @param {function} fn
-   */
-  function forEach2(array1, array2, fn) {
-    if (Array.isArray(array1)) {
-      array1.forEach(function (elem1) {
-        if (Array.isArray(array2)) {
-          array2.forEach(function (elem2)  {
-            fn(elem1, elem2);
-          });
-        }
-        else {
-          fn(elem1, array2);
-        }
-      });
-    }
-    else {
-      if (Array.isArray(array2)) {
-        array2.forEach(function (elem2)  {
-          fn(array1, elem2);
-        });
-      }
-      else {
-        fn(array1, array2);
-      }
-    }
-  }
-
-  /**
-   * Convert a string containing a graph in DOT language into a map containing
-   * with nodes and edges in the format of graph.
-   * @param {String} data         Text containing a graph in DOT-notation
-   * @return {Object} graphData
-   */
-  function DOTToGraph (data) {
-    // parse the DOT file
-    var dotData = parseDOT(data);
-    var graphData = {
-      nodes: [],
-      edges: [],
-      options: {}
-    };
-
-    // copy the nodes
-    if (dotData.nodes) {
-      dotData.nodes.forEach(function (dotNode) {
-        var graphNode = {
-          id: dotNode.id,
-          label: String(dotNode.label || dotNode.id)
-        };
-        merge(graphNode, dotNode.attr);
-        if (graphNode.image) {
-          graphNode.shape = 'image';
-        }
-        graphData.nodes.push(graphNode);
-      });
-    }
-
-    // copy the edges
-    if (dotData.edges) {
-      /**
-       * Convert an edge in DOT format to an edge with VisGraph format
-       * @param {Object} dotEdge
-       * @returns {Object} graphEdge
-       */
-      function convertEdge(dotEdge) {
-        var graphEdge = {
-          from: dotEdge.from,
-          to: dotEdge.to
-        };
-        merge(graphEdge, dotEdge.attr);
-        graphEdge.style = (dotEdge.type == '->') ? 'arrow' : 'line';
-        return graphEdge;
-      }
-
-      dotData.edges.forEach(function (dotEdge) {
-        var from, to;
-        if (dotEdge.from instanceof Object) {
-          from = dotEdge.from.nodes;
-        }
-        else {
-          from = {
-            id: dotEdge.from
-          }
-        }
-
-        if (dotEdge.to instanceof Object) {
-          to = dotEdge.to.nodes;
-        }
-        else {
-          to = {
-            id: dotEdge.to
-          }
-        }
-
-        if (dotEdge.from instanceof Object && dotEdge.from.edges) {
-          dotEdge.from.edges.forEach(function (subEdge) {
-            var graphEdge = convertEdge(subEdge);
-            graphData.edges.push(graphEdge);
-          });
-        }
-
-        forEach2(from, to, function (from, to) {
-          var subEdge = createEdge(graphData, from.id, to.id, dotEdge.type, dotEdge.attr);
-          var graphEdge = convertEdge(subEdge);
-          graphData.edges.push(graphEdge);
-        });
-
-        if (dotEdge.to instanceof Object && dotEdge.to.edges) {
-          dotEdge.to.edges.forEach(function (subEdge) {
-            var graphEdge = convertEdge(subEdge);
-            graphData.edges.push(graphEdge);
-          });
-        }
-      });
-    }
-
-    // copy the options
-    if (dotData.attr) {
-      graphData.options = dotData.attr;
-    }
-
-    return graphData;
-  }
-
-  // exports
-  exports.parseDOT = parseDOT;
-  exports.DOTToGraph = DOTToGraph;
-
-
-/***/ },
-/* 48 */
-/***/ function(module, exports, __webpack_require__) {
-
-  
-  function parseGephi(gephiJSON, options) {
-    var edges = [];
-    var nodes = [];
-    this.options = {
-      edges: {
-        inheritColor: true
-      },
-      nodes: {
-        allowedToMove: false,
-        parseColor: false
-      }
-    };
-
-    if (options !== undefined) {
-      this.options.nodes['allowedToMove'] = options.allowedToMove | false;
-      this.options.nodes['parseColor']    = options.parseColor    | false;
-      this.options.edges['inheritColor']  = options.inheritColor  | true;
-    }
-
-    var gEdges = gephiJSON.edges;
-    var gNodes = gephiJSON.nodes;
-    for (var i = 0; i < gEdges.length; i++) {
-      var edge = {};
-      var gEdge = gEdges[i];
-      edge['id'] = gEdge.id;
-      edge['from'] = gEdge.source;
-      edge['to'] = gEdge.target;
-      edge['attributes'] = gEdge.attributes;
-  //    edge['value'] = gEdge.attributes !== undefined ? gEdge.attributes.Weight : undefined;
-  //    edge['width'] = edge['value'] !== undefined ? undefined : edgegEdge.size;
-      edge['color'] = gEdge.color;
-      edge['inheritColor'] = edge['color'] !== undefined ? false : this.options.inheritColor;
-      edges.push(edge);
-    }
-
-    for (var i = 0; i < gNodes.length; i++) {
-      var node = {};
-      var gNode = gNodes[i];
-      node['id'] = gNode.id;
-      node['attributes'] = gNode.attributes;
-      node['x'] = gNode.x;
-      node['y'] = gNode.y;
-      node['label'] = gNode.label;
-      if (this.options.nodes.parseColor == true) {
-        node['color'] = gNode.color;
-      }
-      else {
-        node['color'] = gNode.color !== undefined ? {background:gNode.color, border:gNode.color} : undefined;
-      }
-      node['radius'] = gNode.size;
-      node['allowedToMoveX'] = this.options.nodes.allowedToMove;
-      node['allowedToMoveY'] = this.options.nodes.allowedToMove;
-      nodes.push(node);
-    }
-
-    return {nodes:nodes, edges:edges};
-  }
-
-  exports.parseGephi = parseGephi;
-
-/***/ },
-/* 49 */
-/***/ function(module, exports, __webpack_require__) {
-
   var util = __webpack_require__(1);
-
-  /**
-   * @class Groups
-   * This class can store groups and properties specific for groups.
-   */
-  function Groups() {
-    this.clear();
-    this.defaultIndex = 0;
-  }
-
-
-  /**
-   * default constants for group colors
-   */
-  Groups.DEFAULT = [
-    {border: "#2B7CE9", background: "#97C2FC", highlight: {border: "#2B7CE9", background: "#D2E5FF"}, hover: {border: "#2B7CE9", background: "#D2E5FF"}}, // blue
-    {border: "#FFA500", background: "#FFFF00", highlight: {border: "#FFA500", background: "#FFFFA3"}, hover: {border: "#FFA500", background: "#FFFFA3"}}, // yellow
-    {border: "#FA0A10", background: "#FB7E81", highlight: {border: "#FA0A10", background: "#FFAFB1"}, hover: {border: "#FA0A10", background: "#FFAFB1"}}, // red
-    {border: "#41A906", background: "#7BE141", highlight: {border: "#41A906", background: "#A1EC76"}, hover: {border: "#41A906", background: "#A1EC76"}}, // green
-    {border: "#E129F0", background: "#EB7DF4", highlight: {border: "#E129F0", background: "#F0B3F5"}, hover: {border: "#E129F0", background: "#F0B3F5"}}, // magenta
-    {border: "#7C29F0", background: "#AD85E4", highlight: {border: "#7C29F0", background: "#D3BDF0"}, hover: {border: "#7C29F0", background: "#D3BDF0"}}, // purple
-    {border: "#C37F00", background: "#FFA807", highlight: {border: "#C37F00", background: "#FFCA66"}, hover: {border: "#C37F00", background: "#FFCA66"}}, // orange
-    {border: "#4220FB", background: "#6E6EFD", highlight: {border: "#4220FB", background: "#9B9BFD"}, hover: {border: "#4220FB", background: "#9B9BFD"}}, // darkblue
-    {border: "#FD5A77", background: "#FFC0CB", highlight: {border: "#FD5A77", background: "#FFD1D9"}, hover: {border: "#FD5A77", background: "#FFD1D9"}}, // pink
-    {border: "#4AD63A", background: "#C2FABC", highlight: {border: "#4AD63A", background: "#E6FFE3"}, hover: {border: "#4AD63A", background: "#E6FFE3"}}  // mint
-  ];
-
-
-  /**
-   * Clear all groups
-   */
-  Groups.prototype.clear = function () {
-    this.groups = {};
-    this.groups.length = function()
-    {
-      var i = 0;
-      for ( var p in this ) {
-        if (this.hasOwnProperty(p)) {
-          i++;
-        }
-      }
-      return i;
-    }
-  };
-
-
-  /**
-   * get group properties of a groupname. If groupname is not found, a new group
-   * is added.
-   * @param {*} groupname        Can be a number, string, Date, etc.
-   * @return {Object} group      The created group, containing all group properties
-   */
-  Groups.prototype.get = function (groupname) {
-    var group = this.groups[groupname];
-    if (group == undefined) {
-      // create new group
-      var index = this.defaultIndex % Groups.DEFAULT.length;
-      this.defaultIndex++;
-      group = {};
-      group.color = Groups.DEFAULT[index];
-      this.groups[groupname] = group;
-    }
-
-    return group;
-  };
-
-  /**
-   * Add a custom group style
-   * @param {String} groupname
-   * @param {Object} style       An object containing borderColor,
-   *                             backgroundColor, etc.
-   * @return {Object} group      The created group object
-   */
-  Groups.prototype.add = function (groupname, style) {
-    this.groups[groupname] = style;
-    if (style.color) {
-      style.color = util.parseColor(style.color);
-    }
-    return style;
-  };
-
-  module.exports = Groups;
-
-
-/***/ },
-/* 50 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * @class Images
-   * This class loads images and keeps them stored.
-   */
-  function Images() {
-    this.images = {};
-
-    this.callback = undefined;
-  }
-
-  /**
-   * Set an onload callback function. This will be called each time an image
-   * is loaded
-   * @param {function} callback
-   */
-  Images.prototype.setOnloadCallback = function(callback) {
-    this.callback = callback;
-  };
-
-  /**
-   *
-   * @param {string} url          Url of the image
-   * @param {string} url          Url of an image to use if the url image is not found
-   * @return {Image} img          The image object
-   */
-  Images.prototype.load = function(url, brokenUrl) {
-    var img = this.images[url];
-    if (img == undefined) {
-      // create the image
-      var images = this;
-      img = new Image();
-      this.images[url] = img;
-      img.onload = function() {
-        if (images.callback) {
-          images.callback(this);
-        }
-      };
-      
-      img.onerror = function () {
-  	  this.src = brokenUrl;
-  	  if (images.callback) {
-  		images.callback(this);
-  	  }
-  	};
-  	
-      img.src = url;
-    }
-
-    return img;
-  };
-
-  module.exports = Images;
-
-
-/***/ },
-/* 51 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var util = __webpack_require__(1);
-
-  /**
-   * @class Node
-   * A node. A node can be connected to other nodes via one or multiple edges.
-   * @param {object} properties An object containing properties for the node. All
-   *                            properties are optional, except for the id.
-   *                              {number} id     Id of the node. Required
-   *                              {string} label  Text label for the node
-   *                              {number} x      Horizontal position of the node
-   *                              {number} y      Vertical position of the node
-   *                              {string} shape  Node shape, available:
-   *                                              "database", "circle", "ellipse",
-   *                                              "box", "image", "text", "dot",
-   *                                              "star", "triangle", "triangleDown",
-   *                                              "square"
-   *                              {string} image  An image url
-   *                              {string} title  An title text, can be HTML
-   *                              {anytype} group A group name or number
-   * @param {Network.Images} imagelist    A list with images. Only needed
-   *                                            when the node has an image
-   * @param {Network.Groups} grouplist    A list with groups. Needed for
-   *                                            retrieving group properties
-   * @param {Object}               constants    An object with default values for
-   *                                            example for the color
-   *
-   */
-  function Node(properties, imagelist, grouplist, networkConstants) {
-    var constants = util.selectiveBridgeObject(['nodes'],networkConstants);
-    this.options = constants.nodes;
-
-    this.selected = false;
-    this.hover = false;
-
-    this.edges = []; // all edges connected to this node
-    this.dynamicEdges = [];
-    this.reroutedEdges = {};
-
-    this.fontDrawThreshold = 3;
-
-    // set defaults for the properties
-    this.id = undefined;
-    this.x = null;
-    this.y = null;
-    this.allowedToMoveX = false;
-    this.allowedToMoveY = false;
-    this.xFixed = false;
-    this.yFixed = false;
-    this.horizontalAlignLeft = true; // these are for the navigation controls
-    this.verticalAlignTop    = true; // these are for the navigation controls
-    this.baseRadiusValue = networkConstants.nodes.radius;
-    this.radiusFixed = false;
-    this.level = -1;
-    this.preassignedLevel = false;
-    this.hierarchyEnumerated = false;
-    this.labelDimensions = {top:0,left:0,width:0,height:0,yLine:0}; // could be cached
-
-
-    this.imagelist = imagelist;
-    this.grouplist = grouplist;
-
-    // physics properties
-    this.fx = 0.0;  // external force x
-    this.fy = 0.0;  // external force y
-    this.vx = 0.0;  // velocity x
-    this.vy = 0.0;  // velocity y
-    this.damping = networkConstants.physics.damping; // written every time gravity is calculated
-    this.fixedData = {x:null,y:null};
-
-    this.setProperties(properties, constants);
-
-    // creating the variables for clustering
-    this.resetCluster();
-    this.dynamicEdgesLength = 0;
-    this.clusterSession = 0;
-    this.clusterSizeWidthFactor  = networkConstants.clustering.nodeScaling.width;
-    this.clusterSizeHeightFactor = networkConstants.clustering.nodeScaling.height;
-    this.clusterSizeRadiusFactor = networkConstants.clustering.nodeScaling.radius;
-    this.maxNodeSizeIncrements = networkConstants.clustering.maxNodeSizeIncrements;
-    this.growthIndicator = 0;
-
-    // variables to tell the node about the network.
-    this.networkScaleInv = 1;
-    this.networkScale = 1;
-    this.canvasTopLeft = {"x": -300, "y": -300};
-    this.canvasBottomRight = {"x":  300, "y":  300};
-    this.parentEdgeId = null;
-  }
-
-  /**
-   * (re)setting the clustering variables and objects
-   */
-  Node.prototype.resetCluster = function() {
-    // clustering variables
-    this.formationScale = undefined; // this is used to determine when to open the cluster
-    this.clusterSize = 1;            // this signifies the total amount of nodes in this cluster
-    this.containedNodes = {};
-    this.containedEdges = {};
-    this.clusterSessions = [];
-  };
-
-  /**
-   * Attach a edge to the node
-   * @param {Edge} edge
-   */
-  Node.prototype.attachEdge = function(edge) {
-    if (this.edges.indexOf(edge) == -1) {
-      this.edges.push(edge);
-    }
-    if (this.dynamicEdges.indexOf(edge) == -1) {
-      this.dynamicEdges.push(edge);
-    }
-    this.dynamicEdgesLength = this.dynamicEdges.length;
-  };
-
-  /**
-   * Detach a edge from the node
-   * @param {Edge} edge
-   */
-  Node.prototype.detachEdge = function(edge) {
-    var index = this.edges.indexOf(edge);
-    if (index != -1) {
-      this.edges.splice(index, 1);
-    }
-    index = this.dynamicEdges.indexOf(edge);
-    if (index != -1) {
-      this.dynamicEdges.splice(index, 1);
-    }
-    this.dynamicEdgesLength = this.dynamicEdges.length;
-  };
-
-
-  /**
-   * Set or overwrite properties for the node
-   * @param {Object} properties an object with properties
-   * @param {Object} constants  and object with default, global properties
-   */
-  Node.prototype.setProperties = function(properties, constants) {
-    if (!properties) {
-      return;
-    }
-
-    var fields = ['borderWidth','borderWidthSelected','shape','image','brokenImage','radius','fontColor',
-      'fontSize','fontFace','fontFill','group','mass'
-    ];
-    util.selectiveDeepExtend(fields, this.options, properties);
-
-    // basic properties
-    if (properties.id !== undefined)        {this.id = properties.id;}
-    if (properties.label !== undefined)     {this.label = properties.label; this.originalLabel = properties.label;}
-    if (properties.title !== undefined)     {this.title = properties.title;}
-    if (properties.x !== undefined)         {this.x = properties.x;}
-    if (properties.y !== undefined)         {this.y = properties.y;}
-    if (properties.value !== undefined)     {this.value = properties.value;}
-    if (properties.level !== undefined)     {this.level = properties.level; this.preassignedLevel = true;}
-
-    // navigation controls properties
-    if (properties.horizontalAlignLeft !== undefined) {this.horizontalAlignLeft = properties.horizontalAlignLeft;}
-    if (properties.verticalAlignTop    !== undefined) {this.verticalAlignTop    = properties.verticalAlignTop;}
-    if (properties.triggerFunction     !== undefined) {this.triggerFunction     = properties.triggerFunction;}
-
-    if (this.id === undefined) {
-      throw "Node must have an id";
-    }
-
-    // copy group properties
-    if (typeof this.options.group === 'number' || (typeof this.options.group === 'string' && this.options.group != '')) {
-      var groupObj = this.grouplist.get(this.options.group);
-      for (var prop in groupObj) {
-        if (groupObj.hasOwnProperty(prop)) {
-          this.options[prop] = groupObj[prop];
-        }
-      }
-    }
-
-
-    // individual shape properties
-    if (properties.radius !== undefined)         {this.baseRadiusValue = this.options.radius;}
-    if (properties.color !== undefined)          {this.options.color = util.parseColor(properties.color);}
-
-    if (this.options.image!== undefined && this.options.image!= "") {
-      if (this.imagelist) {
-        this.imageObj = this.imagelist.load(this.options.image, this.options.brokenImage);
-      }
-      else {
-        throw "No imagelist provided";
-      }
-    }
-
-    if (properties.allowedToMoveX !== undefined) {
-      this.xFixed = !properties.allowedToMoveX;
-      this.allowedToMoveX = properties.allowedToMoveX;
-    }
-    else if (properties.x !== undefined && this.allowedToMoveX == false) {
-      this.xFixed = true;
-    }
-
-
-    if (properties.allowedToMoveY !== undefined) {
-      this.yFixed = !properties.allowedToMoveY;
-      this.allowedToMoveY = properties.allowedToMoveY;
-    }
-    else if (properties.y !== undefined && this.allowedToMoveY == false) {
-      this.yFixed = true;
-    }
-
-    this.radiusFixed = this.radiusFixed || (properties.radius !== undefined);
-
-    if (this.options.shape == 'image') {
-      this.options.radiusMin = constants.nodes.widthMin;
-      this.options.radiusMax = constants.nodes.widthMax;
-    }
-
-
-
-    // choose draw method depending on the shape
-    switch (this.options.shape) {
-      case 'database':      this.draw = this._drawDatabase; this.resize = this._resizeDatabase; break;
-      case 'box':           this.draw = this._drawBox; this.resize = this._resizeBox; break;
-      case 'circle':        this.draw = this._drawCircle; this.resize = this._resizeCircle; break;
-      case 'ellipse':       this.draw = this._drawEllipse; this.resize = this._resizeEllipse; break;
-      // TODO: add diamond shape
-      case 'image':         this.draw = this._drawImage; this.resize = this._resizeImage; break;
-      case 'text':          this.draw = this._drawText; this.resize = this._resizeText; break;
-      case 'dot':           this.draw = this._drawDot; this.resize = this._resizeShape; break;
-      case 'square':        this.draw = this._drawSquare; this.resize = this._resizeShape; break;
-      case 'triangle':      this.draw = this._drawTriangle; this.resize = this._resizeShape; break;
-      case 'triangleDown':  this.draw = this._drawTriangleDown; this.resize = this._resizeShape; break;
-      case 'star':          this.draw = this._drawStar; this.resize = this._resizeShape; break;
-      default:              this.draw = this._drawEllipse; this.resize = this._resizeEllipse; break;
-    }
-    // reset the size of the node, this can be changed
-    this._reset();
-
-  };
-
-  /**
-   * select this node
-   */
-  Node.prototype.select = function() {
-    this.selected = true;
-    this._reset();
-  };
-
-  /**
-   * unselect this node
-   */
-  Node.prototype.unselect = function() {
-    this.selected = false;
-    this._reset();
-  };
-
-
-  /**
-   * Reset the calculated size of the node, forces it to recalculate its size
-   */
-  Node.prototype.clearSizeCache = function() {
-    this._reset();
-  };
-
-  /**
-   * Reset the calculated size of the node, forces it to recalculate its size
-   * @private
-   */
-  Node.prototype._reset = function() {
-    this.width = undefined;
-    this.height = undefined;
-  };
-
-  /**
-   * get the title of this node.
-   * @return {string} title    The title of the node, or undefined when no title
-   *                           has been set.
-   */
-  Node.prototype.getTitle = function() {
-    return typeof this.title === "function" ? this.title() : this.title;
-  };
-
-  /**
-   * Calculate the distance to the border of the Node
-   * @param {CanvasRenderingContext2D}   ctx
-   * @param {Number} angle        Angle in radians
-   * @returns {number} distance   Distance to the border in pixels
-   */
-  Node.prototype.distanceToBorder = function (ctx, angle) {
-    var borderWidth = 1;
-
-    if (!this.width) {
-      this.resize(ctx);
-    }
-
-    switch (this.options.shape) {
-      case 'circle':
-      case 'dot':
-        return this.options.radius+ borderWidth;
-
-      case 'ellipse':
-        var a = this.width / 2;
-        var b = this.height / 2;
-        var w = (Math.sin(angle) * a);
-        var h = (Math.cos(angle) * b);
-        return a * b / Math.sqrt(w * w + h * h);
-
-      // TODO: implement distanceToBorder for database
-      // TODO: implement distanceToBorder for triangle
-      // TODO: implement distanceToBorder for triangleDown
-
-      case 'box':
-      case 'image':
-      case 'text':
-      default:
-        if (this.width) {
-          return Math.min(
-              Math.abs(this.width / 2 / Math.cos(angle)),
-              Math.abs(this.height / 2 / Math.sin(angle))) + borderWidth;
-          // TODO: reckon with border radius too in case of box
-        }
-        else {
-          return 0;
-        }
-
-    }
-    // TODO: implement calculation of distance to border for all shapes
-  };
-
-  /**
-   * Set forces acting on the node
-   * @param {number} fx   Force in horizontal direction
-   * @param {number} fy   Force in vertical direction
-   */
-  Node.prototype._setForce = function(fx, fy) {
-    this.fx = fx;
-    this.fy = fy;
-  };
-
-  /**
-   * Add forces acting on the node
-   * @param {number} fx   Force in horizontal direction
-   * @param {number} fy   Force in vertical direction
-   * @private
-   */
-  Node.prototype._addForce = function(fx, fy) {
-    this.fx += fx;
-    this.fy += fy;
-  };
-
-  /**
-   * Perform one discrete step for the node
-   * @param {number} interval    Time interval in seconds
-   */
-  Node.prototype.discreteStep = function(interval) {
-    if (!this.xFixed) {
-      var dx   = this.damping * this.vx;     // damping force
-      var ax   = (this.fx - dx) / this.options.mass;  // acceleration
-      this.vx += ax * interval;               // velocity
-      this.x  += this.vx * interval;          // position
-    }
-    else {
-      this.fx = 0;
-      this.vx = 0;
-    }
-
-    if (!this.yFixed) {
-      var dy   = this.damping * this.vy;     // damping force
-      var ay   = (this.fy - dy) / this.options.mass;  // acceleration
-      this.vy += ay * interval;               // velocity
-      this.y  += this.vy * interval;          // position
-    }
-    else {
-      this.fy = 0;
-      this.vy = 0;
-    }
-  };
-
-
-
-  /**
-   * Perform one discrete step for the node
-   * @param {number} interval    Time interval in seconds
-   * @param {number} maxVelocity The speed limit imposed on the velocity
-   */
-  Node.prototype.discreteStepLimited = function(interval, maxVelocity) {
-    if (!this.xFixed) {
-      var dx   = this.damping * this.vx;     // damping force
-      var ax   = (this.fx - dx) / this.options.mass;  // acceleration
-      this.vx += ax * interval;               // velocity
-      this.vx = (Math.abs(this.vx) > maxVelocity) ? ((this.vx > 0) ? maxVelocity : -maxVelocity) : this.vx;
-      this.x  += this.vx * interval;          // position
-    }
-    else {
-      this.fx = 0;
-      this.vx = 0;
-    }
-
-    if (!this.yFixed) {
-      var dy   = this.damping * this.vy;     // damping force
-      var ay   = (this.fy - dy) / this.options.mass;  // acceleration
-      this.vy += ay * interval;               // velocity
-      this.vy = (Math.abs(this.vy) > maxVelocity) ? ((this.vy > 0) ? maxVelocity : -maxVelocity) : this.vy;
-      this.y  += this.vy * interval;          // position
-    }
-    else {
-      this.fy = 0;
-      this.vy = 0;
-    }
-  };
-
-  /**
-   * Check if this node has a fixed x and y position
-   * @return {boolean}      true if fixed, false if not
-   */
-  Node.prototype.isFixed = function() {
-    return (this.xFixed && this.yFixed);
-  };
-
-  /**
-   * Check if this node is moving
-   * @param {number} vmin   the minimum velocity considered as "moving"
-   * @return {boolean}      true if moving, false if it has no velocity
-   */
-  Node.prototype.isMoving = function(vmin) {
-    var velocity = Math.sqrt(Math.pow(this.vx,2) + Math.pow(this.vy,2));
-  //  this.velocity = Math.sqrt(Math.pow(this.vx,2) + Math.pow(this.vy,2))
-    return (velocity > vmin);
-  };
-
-  /**
-   * check if this node is selecte
-   * @return {boolean} selected   True if node is selected, else false
-   */
-  Node.prototype.isSelected = function() {
-    return this.selected;
-  };
-
-  /**
-   * Retrieve the value of the node. Can be undefined
-   * @return {Number} value
-   */
-  Node.prototype.getValue = function() {
-    return this.value;
-  };
-
-  /**
-   * Calculate the distance from the nodes location to the given location (x,y)
-   * @param {Number} x
-   * @param {Number} y
-   * @return {Number} value
-   */
-  Node.prototype.getDistance = function(x, y) {
-    var dx = this.x - x,
-        dy = this.y - y;
-    return Math.sqrt(dx * dx + dy * dy);
-  };
-
-
-  /**
-   * Adjust the value range of the node. The node will adjust it's radius
-   * based on its value.
-   * @param {Number} min
-   * @param {Number} max
-   */
-  Node.prototype.setValueRange = function(min, max) {
-    if (!this.radiusFixed && this.value !== undefined) {
-      if (max == min) {
-        this.options.radius= (this.options.radiusMin + this.options.radiusMax) / 2;
-      }
-      else {
-        var scale = (this.options.radiusMax - this.options.radiusMin) / (max - min);
-        this.options.radius= (this.value - min) * scale + this.options.radiusMin;
-      }
-    }
-    this.baseRadiusValue = this.options.radius;
-  };
-
-  /**
-   * Draw this node in the given canvas
-   * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-   * @param {CanvasRenderingContext2D}   ctx
-   */
-  Node.prototype.draw = function(ctx) {
-    throw "Draw method not initialized for node";
-  };
-
-  /**
-   * Recalculate the size of this node in the given canvas
-   * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-   * @param {CanvasRenderingContext2D}   ctx
-   */
-  Node.prototype.resize = function(ctx) {
-    throw "Resize method not initialized for node";
-  };
-
-  /**
-   * Check if this object is overlapping with the provided object
-   * @param {Object} obj   an object with parameters left, top, right, bottom
-   * @return {boolean}     True if location is located on node
-   */
-  Node.prototype.isOverlappingWith = function(obj) {
-    return (this.left              < obj.right  &&
-            this.left + this.width > obj.left   &&
-            this.top               < obj.bottom &&
-            this.top + this.height > obj.top);
-  };
-
-  Node.prototype._resizeImage = function (ctx) {
-    // TODO: pre calculate the image size
-
-    if (!this.width || !this.height) {  // undefined or 0
-      var width, height;
-      if (this.value) {
-        this.options.radius= this.baseRadiusValue;
-        var scale = this.imageObj.height / this.imageObj.width;
-        if (scale !== undefined) {
-          width = this.options.radius|| this.imageObj.width;
-          height = this.options.radius* scale || this.imageObj.height;
-        }
-        else {
-          width = 0;
-          height = 0;
-        }
-      }
-      else {
-        width = this.imageObj.width;
-        height = this.imageObj.height;
-      }
-      this.width  = width;
-      this.height = height;
-
-      this.growthIndicator = 0;
-      if (this.width > 0 && this.height > 0) {
-        this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements)  * this.clusterSizeWidthFactor;
-        this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
-        this.options.radius+= Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
-        this.growthIndicator = this.width - width;
-      }
-    }
-
-  };
-
-  Node.prototype._drawImage = function (ctx) {
-    this._resizeImage(ctx);
-
-    this.left   = this.x - this.width / 2;
-    this.top    = this.y - this.height / 2;
-
-    var yLabel;
-    if (this.imageObj.width != 0 ) {
-      // draw the shade
-      if (this.clusterSize > 1) {
-        var lineWidth = ((this.clusterSize > 1) ? 10 : 0.0);
-        lineWidth *= this.networkScaleInv;
-        lineWidth = Math.min(0.2 * this.width,lineWidth);
-
-        ctx.globalAlpha = 0.5;
-        ctx.drawImage(this.imageObj, this.left - lineWidth, this.top - lineWidth, this.width + 2*lineWidth, this.height + 2*lineWidth);
-      }
-
-      // draw the image
-      ctx.globalAlpha = 1.0;
-      ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
-      yLabel = this.y + this.height / 2;
-    }
-    else {
-      // image still loading... just draw the label for now
-      yLabel = this.y;
-    }
-
-    this._label(ctx, this.label, this.x, yLabel, undefined, "top");
-  };
-
-
-  Node.prototype._resizeBox = function (ctx) {
-    if (!this.width) {
-      var margin = 5;
-      var textSize = this.getTextSize(ctx);
-      this.width = textSize.width + 2 * margin;
-      this.height = textSize.height + 2 * margin;
-
-      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeWidthFactor;
-      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeHeightFactor;
-      this.growthIndicator = this.width - (textSize.width + 2 * margin);
-  //    this.options.radius+= Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeRadiusFactor;
-
-    }
-  };
-
-  Node.prototype._drawBox = function (ctx) {
-    this._resizeBox(ctx);
-
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    var clusterLineWidth = 2.5;
-    var borderWidth = this.options.borderWidth;
-    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-
-    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
-
-    // draw the outer border
-    if (this.clusterSize > 1) {
-      ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-      ctx.lineWidth *= this.networkScaleInv;
-      ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
-
-      ctx.roundRect(this.left-2*ctx.lineWidth, this.top-2*ctx.lineWidth, this.width+4*ctx.lineWidth, this.height+4*ctx.lineWidth, this.options.radius);
-      ctx.stroke();
-    }
-    ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.networkScaleInv;
-    ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
-
-    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.options.color.background;
-
-    ctx.roundRect(this.left, this.top, this.width, this.height, this.options.radius);
-    ctx.fill();
-    ctx.stroke();
-
-    this._label(ctx, this.label, this.x, this.y);
-  };
-
-
-  Node.prototype._resizeDatabase = function (ctx) {
-    if (!this.width) {
-      var margin = 5;
-      var textSize = this.getTextSize(ctx);
-      var size = textSize.width + 2 * margin;
-      this.width = size;
-      this.height = size;
-
-      // scaling used for clustering
-      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
-      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
-      this.options.radius+= Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
-      this.growthIndicator = this.width - size;
-    }
-  };
-
-  Node.prototype._drawDatabase = function (ctx) {
-    this._resizeDatabase(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    var clusterLineWidth = 2.5;
-    var borderWidth = this.options.borderWidth;
-    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-
-    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
-
-    // draw the outer border
-    if (this.clusterSize > 1) {
-      ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-      ctx.lineWidth *= this.networkScaleInv;
-      ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
-
-      ctx.database(this.x - this.width/2 - 2*ctx.lineWidth, this.y - this.height*0.5 - 2*ctx.lineWidth, this.width + 4*ctx.lineWidth, this.height + 4*ctx.lineWidth);
-      ctx.stroke();
-    }
-    ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.networkScaleInv;
-    ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
-
-    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
-    ctx.database(this.x - this.width/2, this.y - this.height*0.5, this.width, this.height);
-    ctx.fill();
-    ctx.stroke();
-
-    this._label(ctx, this.label, this.x, this.y);
-  };
-
-
-  Node.prototype._resizeCircle = function (ctx) {
-    if (!this.width) {
-      var margin = 5;
-      var textSize = this.getTextSize(ctx);
-      var diameter = Math.max(textSize.width, textSize.height) + 2 * margin;
-      this.options.radius = diameter / 2;
-
-      this.width = diameter;
-      this.height = diameter;
-
-      // scaling used for clustering
-  //    this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeWidthFactor;
-  //    this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeHeightFactor;
-      this.options.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeRadiusFactor;
-      this.growthIndicator = this.options.radius- 0.5*diameter;
-    }
-  };
-
-  Node.prototype._drawCircle = function (ctx) {
-    this._resizeCircle(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    var clusterLineWidth = 2.5;
-    var borderWidth = this.options.borderWidth;
-    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-
-    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
-
-    // draw the outer border
-    if (this.clusterSize > 1) {
-      ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-      ctx.lineWidth *= this.networkScaleInv;
-      ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
-
-      ctx.circle(this.x, this.y, this.options.radius+2*ctx.lineWidth);
-      ctx.stroke();
-    }
-    ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.networkScaleInv;
-    ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
-
-    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
-    ctx.circle(this.x, this.y, this.options.radius);
-    ctx.fill();
-    ctx.stroke();
-
-    this._label(ctx, this.label, this.x, this.y);
-  };
-
-  Node.prototype._resizeEllipse = function (ctx) {
-    if (!this.width) {
-      var textSize = this.getTextSize(ctx);
-
-      this.width = textSize.width * 1.5;
-      this.height = textSize.height * 2;
-      if (this.width < this.height) {
-        this.width = this.height;
-      }
-      var defaultSize = this.width;
-
-      // scaling used for clustering
-      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
-      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
-      this.options.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
-      this.growthIndicator = this.width - defaultSize;
-    }
-  };
-
-  Node.prototype._drawEllipse = function (ctx) {
-    this._resizeEllipse(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    var clusterLineWidth = 2.5;
-    var borderWidth = this.options.borderWidth;
-    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-
-    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
-
-    // draw the outer border
-    if (this.clusterSize > 1) {
-      ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-      ctx.lineWidth *= this.networkScaleInv;
-      ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
-
-      ctx.ellipse(this.left-2*ctx.lineWidth, this.top-2*ctx.lineWidth, this.width+4*ctx.lineWidth, this.height+4*ctx.lineWidth);
-      ctx.stroke();
-    }
-    ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.networkScaleInv;
-    ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
-
-    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
-
-    ctx.ellipse(this.left, this.top, this.width, this.height);
-    ctx.fill();
-    ctx.stroke();
-    this._label(ctx, this.label, this.x, this.y);
-  };
-
-  Node.prototype._drawDot = function (ctx) {
-    this._drawShape(ctx, 'circle');
-  };
-
-  Node.prototype._drawTriangle = function (ctx) {
-    this._drawShape(ctx, 'triangle');
-  };
-
-  Node.prototype._drawTriangleDown = function (ctx) {
-    this._drawShape(ctx, 'triangleDown');
-  };
-
-  Node.prototype._drawSquare = function (ctx) {
-    this._drawShape(ctx, 'square');
-  };
-
-  Node.prototype._drawStar = function (ctx) {
-    this._drawShape(ctx, 'star');
-  };
-
-  Node.prototype._resizeShape = function (ctx) {
-    if (!this.width) {
-      this.options.radius= this.baseRadiusValue;
-      var size = 2 * this.options.radius;
-      this.width = size;
-      this.height = size;
-
-      // scaling used for clustering
-      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
-      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
-      this.options.radius+= Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeRadiusFactor;
-      this.growthIndicator = this.width - size;
-    }
-  };
-
-  Node.prototype._drawShape = function (ctx, shape) {
-    this._resizeShape(ctx);
-
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    var clusterLineWidth = 2.5;
-    var borderWidth = this.options.borderWidth;
-    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-    var radiusMultiplier = 2;
-
-    // choose draw method depending on the shape
-    switch (shape) {
-      case 'dot':           radiusMultiplier = 2; break;
-      case 'square':        radiusMultiplier = 2; break;
-      case 'triangle':      radiusMultiplier = 3; break;
-      case 'triangleDown':  radiusMultiplier = 3; break;
-      case 'star':          radiusMultiplier = 4; break;
-    }
-
-    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
-    // draw the outer border
-    if (this.clusterSize > 1) {
-      ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-      ctx.lineWidth *= this.networkScaleInv;
-      ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
-
-      ctx[shape](this.x, this.y, this.options.radius+ radiusMultiplier * ctx.lineWidth);
-      ctx.stroke();
-    }
-    ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.networkScaleInv;
-    ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
-
-    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
-    ctx[shape](this.x, this.y, this.options.radius);
-    ctx.fill();
-    ctx.stroke();
-
-    if (this.label) {
-      this._label(ctx, this.label, this.x, this.y + this.height / 2, undefined, 'top',true);
-    }
-  };
-
-  Node.prototype._resizeText = function (ctx) {
-    if (!this.width) {
-      var margin = 5;
-      var textSize = this.getTextSize(ctx);
-      this.width = textSize.width + 2 * margin;
-      this.height = textSize.height + 2 * margin;
-
-      // scaling used for clustering
-      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
-      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
-      this.options.radius+= Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
-      this.growthIndicator = this.width - (textSize.width + 2 * margin);
-    }
-  };
-
-  Node.prototype._drawText = function (ctx) {
-    this._resizeText(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    this._label(ctx, this.label, this.x, this.y);
-  };
-
-
-  Node.prototype._label = function (ctx, text, x, y, align, baseline, labelUnderNode) {
-    if (text && Number(this.options.fontSize) * this.networkScale > this.fontDrawThreshold) {
-      ctx.font = (this.selected ? "bold " : "") + this.options.fontSize + "px " + this.options.fontFace;
-
-      var lines = text.split('\n');
-      var lineCount = lines.length;
-      var fontSize = (Number(this.options.fontSize) + 4);
-      var yLine = y + (1 - lineCount) / 2 * fontSize;
-      if (labelUnderNode == true) {
-        yLine = y + (1 - lineCount) / (2 * fontSize);
-      }
-
-      // font fill from edges now for nodes!
-      var width = ctx.measureText(lines[0]).width;
-      for (var i = 1; i < lineCount; i++) {
-        var lineWidth = ctx.measureText(lines[i]).width;
-        width = lineWidth > width ? lineWidth : width;
-      }
-      var height = this.options.fontSize * lineCount;
-      var left = x - width / 2;
-      var top = y - height / 2;
-      if (ctx.textBaseline == "top") {
-        top += 0.5 * fontSize;
-      }
-      this.labelDimensions = {top:top,left:left,width:width,height:height,yLine:yLine};
-
-      // create the fontfill background
-      if (this.options.fontFill !== undefined && this.options.fontFill !== null && this.options.fontFill !== "none") {
-        ctx.fillStyle = this.options.fontFill;
-        ctx.fillRect(left, top, width, height);
-      }
-
-      // draw text
-      ctx.fillStyle = this.options.fontColor || "black";
-      ctx.textAlign = align || "center";
-      ctx.textBaseline = baseline || "middle";
-      for (var i = 0; i < lineCount; i++) {
-        ctx.fillText(lines[i], x, yLine);
-        yLine += fontSize;
-      }
-    }
-  };
-
-
-  Node.prototype.getTextSize = function(ctx) {
-    if (this.label !== undefined) {
-      ctx.font = (this.selected ? "bold " : "") + this.options.fontSize + "px " + this.options.fontFace;
-
-      var lines = this.label.split('\n'),
-          height = (Number(this.options.fontSize) + 4) * lines.length,
-          width = 0;
-
-      for (var i = 0, iMax = lines.length; i < iMax; i++) {
-        width = Math.max(width, ctx.measureText(lines[i]).width);
-      }
-
-      return {"width": width, "height": height};
-    }
-    else {
-      return {"width": 0, "height": 0};
-    }
-  };
-
-  /**
-   * this is used to determine if a node is visible at all. this is used to determine when it needs to be drawn.
-   * there is a safety margin of 0.3 * width;
-   *
-   * @returns {boolean}
-   */
-  Node.prototype.inArea = function() {
-    if (this.width !== undefined) {
-    return (this.x + this.width *this.networkScaleInv  >= this.canvasTopLeft.x     &&
-            this.x - this.width *this.networkScaleInv  <  this.canvasBottomRight.x &&
-            this.y + this.height*this.networkScaleInv  >= this.canvasTopLeft.y     &&
-            this.y - this.height*this.networkScaleInv  <  this.canvasBottomRight.y);
-    }
-    else {
-      return true;
-    }
-  };
-
-  /**
-   * checks if the core of the node is in the display area, this is used for opening clusters around zoom
-   * @returns {boolean}
-   */
-  Node.prototype.inView = function() {
-    return (this.x >= this.canvasTopLeft.x    &&
-            this.x < this.canvasBottomRight.x &&
-            this.y >= this.canvasTopLeft.y    &&
-            this.y < this.canvasBottomRight.y);
-  };
-
-  /**
-   * This allows the zoom level of the network to influence the rendering
-   * We store the inverted scale and the coordinates of the top left, and bottom right points of the canvas
-   *
-   * @param scale
-   * @param canvasTopLeft
-   * @param canvasBottomRight
-   */
-  Node.prototype.setScaleAndPos = function(scale,canvasTopLeft,canvasBottomRight) {
-    this.networkScaleInv = 1.0/scale;
-    this.networkScale = scale;
-    this.canvasTopLeft = canvasTopLeft;
-    this.canvasBottomRight = canvasBottomRight;
-  };
-
-
-  /**
-   * This allows the zoom level of the network to influence the rendering
-   *
-   * @param scale
-   */
-  Node.prototype.setScale = function(scale) {
-    this.networkScaleInv = 1.0/scale;
-    this.networkScale = scale;
-  };
-
-
-
-  /**
-   * set the velocity at 0. Is called when this node is contained in another during clustering
-   */
-  Node.prototype.clearVelocity = function() {
-    this.vx = 0;
-    this.vy = 0;
-  };
-
-
-  /**
-   * Basic preservation of (kinectic) energy
-   *
-   * @param massBeforeClustering
-   */
-  Node.prototype.updateVelocity = function(massBeforeClustering) {
-    var energyBefore = this.vx * this.vx * massBeforeClustering;
-    //this.vx = (this.vx < 0) ? -Math.sqrt(energyBefore/this.options.mass) : Math.sqrt(energyBefore/this.options.mass);
-    this.vx = Math.sqrt(energyBefore/this.options.mass);
-    energyBefore = this.vy * this.vy * massBeforeClustering;
-    //this.vy = (this.vy < 0) ? -Math.sqrt(energyBefore/this.options.mass) : Math.sqrt(energyBefore/this.options.mass);
-    this.vy = Math.sqrt(energyBefore/this.options.mass);
-  };
-
-  module.exports = Node;
-
-
-/***/ },
-/* 52 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var util = __webpack_require__(1);
-  var Node = __webpack_require__(51);
+  var Node = __webpack_require__(48);
 
   /**
    * @class Edge
@@ -27628,7 +25562,1178 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Edge;
 
 /***/ },
-/* 53 */
+/* 48 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var util = __webpack_require__(1);
+
+  /**
+   * @class Node
+   * A node. A node can be connected to other nodes via one or multiple edges.
+   * @param {object} properties An object containing properties for the node. All
+   *                            properties are optional, except for the id.
+   *                              {number} id     Id of the node. Required
+   *                              {string} label  Text label for the node
+   *                              {number} x      Horizontal position of the node
+   *                              {number} y      Vertical position of the node
+   *                              {string} shape  Node shape, available:
+   *                                              "database", "circle", "ellipse",
+   *                                              "box", "image", "text", "dot",
+   *                                              "star", "triangle", "triangleDown",
+   *                                              "square"
+   *                              {string} image  An image url
+   *                              {string} title  An title text, can be HTML
+   *                              {anytype} group A group name or number
+   * @param {Network.Images} imagelist    A list with images. Only needed
+   *                                            when the node has an image
+   * @param {Network.Groups} grouplist    A list with groups. Needed for
+   *                                            retrieving group properties
+   * @param {Object}               constants    An object with default values for
+   *                                            example for the color
+   *
+   */
+  function Node(properties, imagelist, grouplist, networkConstants) {
+    var constants = util.selectiveBridgeObject(['nodes'],networkConstants);
+    this.options = constants.nodes;
+
+    this.selected = false;
+    this.hover = false;
+
+    this.edges = []; // all edges connected to this node
+    this.dynamicEdges = [];
+    this.reroutedEdges = {};
+
+    this.fontDrawThreshold = 3;
+
+    // set defaults for the properties
+    this.id = undefined;
+    this.x = null;
+    this.y = null;
+    this.allowedToMoveX = false;
+    this.allowedToMoveY = false;
+    this.xFixed = false;
+    this.yFixed = false;
+    this.horizontalAlignLeft = true; // these are for the navigation controls
+    this.verticalAlignTop    = true; // these are for the navigation controls
+    this.baseRadiusValue = networkConstants.nodes.radius;
+    this.radiusFixed = false;
+    this.level = -1;
+    this.preassignedLevel = false;
+    this.hierarchyEnumerated = false;
+    this.labelDimensions = {top:0,left:0,width:0,height:0,yLine:0}; // could be cached
+
+
+    this.imagelist = imagelist;
+    this.grouplist = grouplist;
+
+    // physics properties
+    this.fx = 0.0;  // external force x
+    this.fy = 0.0;  // external force y
+    this.vx = 0.0;  // velocity x
+    this.vy = 0.0;  // velocity y
+    this.damping = networkConstants.physics.damping; // written every time gravity is calculated
+    this.fixedData = {x:null,y:null};
+
+    this.setProperties(properties, constants);
+
+    // creating the variables for clustering
+    this.resetCluster();
+    this.dynamicEdgesLength = 0;
+    this.clusterSession = 0;
+    this.clusterSizeWidthFactor  = networkConstants.clustering.nodeScaling.width;
+    this.clusterSizeHeightFactor = networkConstants.clustering.nodeScaling.height;
+    this.clusterSizeRadiusFactor = networkConstants.clustering.nodeScaling.radius;
+    this.maxNodeSizeIncrements = networkConstants.clustering.maxNodeSizeIncrements;
+    this.growthIndicator = 0;
+
+    // variables to tell the node about the network.
+    this.networkScaleInv = 1;
+    this.networkScale = 1;
+    this.canvasTopLeft = {"x": -300, "y": -300};
+    this.canvasBottomRight = {"x":  300, "y":  300};
+    this.parentEdgeId = null;
+  }
+
+  /**
+   * (re)setting the clustering variables and objects
+   */
+  Node.prototype.resetCluster = function() {
+    // clustering variables
+    this.formationScale = undefined; // this is used to determine when to open the cluster
+    this.clusterSize = 1;            // this signifies the total amount of nodes in this cluster
+    this.containedNodes = {};
+    this.containedEdges = {};
+    this.clusterSessions = [];
+  };
+
+  /**
+   * Attach a edge to the node
+   * @param {Edge} edge
+   */
+  Node.prototype.attachEdge = function(edge) {
+    if (this.edges.indexOf(edge) == -1) {
+      this.edges.push(edge);
+    }
+    if (this.dynamicEdges.indexOf(edge) == -1) {
+      this.dynamicEdges.push(edge);
+    }
+    this.dynamicEdgesLength = this.dynamicEdges.length;
+  };
+
+  /**
+   * Detach a edge from the node
+   * @param {Edge} edge
+   */
+  Node.prototype.detachEdge = function(edge) {
+    var index = this.edges.indexOf(edge);
+    if (index != -1) {
+      this.edges.splice(index, 1);
+    }
+    index = this.dynamicEdges.indexOf(edge);
+    if (index != -1) {
+      this.dynamicEdges.splice(index, 1);
+    }
+    this.dynamicEdgesLength = this.dynamicEdges.length;
+  };
+
+
+  /**
+   * Set or overwrite properties for the node
+   * @param {Object} properties an object with properties
+   * @param {Object} constants  and object with default, global properties
+   */
+  Node.prototype.setProperties = function(properties, constants) {
+    if (!properties) {
+      return;
+    }
+
+    var fields = ['borderWidth','borderWidthSelected','shape','image','brokenImage','radius','fontColor',
+      'fontSize','fontFace','fontFill','group','mass'
+    ];
+    util.selectiveDeepExtend(fields, this.options, properties);
+
+    // basic properties
+    if (properties.id !== undefined)        {this.id = properties.id;}
+    if (properties.label !== undefined)     {this.label = properties.label; this.originalLabel = properties.label;}
+    if (properties.title !== undefined)     {this.title = properties.title;}
+    if (properties.x !== undefined)         {this.x = properties.x;}
+    if (properties.y !== undefined)         {this.y = properties.y;}
+    if (properties.value !== undefined)     {this.value = properties.value;}
+    if (properties.level !== undefined)     {this.level = properties.level; this.preassignedLevel = true;}
+
+    // navigation controls properties
+    if (properties.horizontalAlignLeft !== undefined) {this.horizontalAlignLeft = properties.horizontalAlignLeft;}
+    if (properties.verticalAlignTop    !== undefined) {this.verticalAlignTop    = properties.verticalAlignTop;}
+    if (properties.triggerFunction     !== undefined) {this.triggerFunction     = properties.triggerFunction;}
+
+    if (this.id === undefined) {
+      throw "Node must have an id";
+    }
+
+    // copy group properties
+    if (typeof this.options.group === 'number' || (typeof this.options.group === 'string' && this.options.group != '')) {
+      var groupObj = this.grouplist.get(this.options.group);
+      for (var prop in groupObj) {
+        if (groupObj.hasOwnProperty(prop)) {
+          this.options[prop] = groupObj[prop];
+        }
+      }
+    }
+
+
+    // individual shape properties
+    if (properties.radius !== undefined)         {this.baseRadiusValue = this.options.radius;}
+    if (properties.color !== undefined)          {this.options.color = util.parseColor(properties.color);}
+
+    if (this.options.image!== undefined && this.options.image!= "") {
+      if (this.imagelist) {
+        this.imageObj = this.imagelist.load(this.options.image, this.options.brokenImage);
+      }
+      else {
+        throw "No imagelist provided";
+      }
+    }
+
+    if (properties.allowedToMoveX !== undefined) {
+      this.xFixed = !properties.allowedToMoveX;
+      this.allowedToMoveX = properties.allowedToMoveX;
+    }
+    else if (properties.x !== undefined && this.allowedToMoveX == false) {
+      this.xFixed = true;
+    }
+
+
+    if (properties.allowedToMoveY !== undefined) {
+      this.yFixed = !properties.allowedToMoveY;
+      this.allowedToMoveY = properties.allowedToMoveY;
+    }
+    else if (properties.y !== undefined && this.allowedToMoveY == false) {
+      this.yFixed = true;
+    }
+
+    this.radiusFixed = this.radiusFixed || (properties.radius !== undefined);
+
+    if (this.options.shape == 'image') {
+      this.options.radiusMin = constants.nodes.widthMin;
+      this.options.radiusMax = constants.nodes.widthMax;
+    }
+
+
+
+    // choose draw method depending on the shape
+    switch (this.options.shape) {
+      case 'database':      this.draw = this._drawDatabase; this.resize = this._resizeDatabase; break;
+      case 'box':           this.draw = this._drawBox; this.resize = this._resizeBox; break;
+      case 'circle':        this.draw = this._drawCircle; this.resize = this._resizeCircle; break;
+      case 'ellipse':       this.draw = this._drawEllipse; this.resize = this._resizeEllipse; break;
+      // TODO: add diamond shape
+      case 'image':         this.draw = this._drawImage; this.resize = this._resizeImage; break;
+      case 'text':          this.draw = this._drawText; this.resize = this._resizeText; break;
+      case 'dot':           this.draw = this._drawDot; this.resize = this._resizeShape; break;
+      case 'square':        this.draw = this._drawSquare; this.resize = this._resizeShape; break;
+      case 'triangle':      this.draw = this._drawTriangle; this.resize = this._resizeShape; break;
+      case 'triangleDown':  this.draw = this._drawTriangleDown; this.resize = this._resizeShape; break;
+      case 'star':          this.draw = this._drawStar; this.resize = this._resizeShape; break;
+      default:              this.draw = this._drawEllipse; this.resize = this._resizeEllipse; break;
+    }
+    // reset the size of the node, this can be changed
+    this._reset();
+
+  };
+
+  /**
+   * select this node
+   */
+  Node.prototype.select = function() {
+    this.selected = true;
+    this._reset();
+  };
+
+  /**
+   * unselect this node
+   */
+  Node.prototype.unselect = function() {
+    this.selected = false;
+    this._reset();
+  };
+
+
+  /**
+   * Reset the calculated size of the node, forces it to recalculate its size
+   */
+  Node.prototype.clearSizeCache = function() {
+    this._reset();
+  };
+
+  /**
+   * Reset the calculated size of the node, forces it to recalculate its size
+   * @private
+   */
+  Node.prototype._reset = function() {
+    this.width = undefined;
+    this.height = undefined;
+  };
+
+  /**
+   * get the title of this node.
+   * @return {string} title    The title of the node, or undefined when no title
+   *                           has been set.
+   */
+  Node.prototype.getTitle = function() {
+    return typeof this.title === "function" ? this.title() : this.title;
+  };
+
+  /**
+   * Calculate the distance to the border of the Node
+   * @param {CanvasRenderingContext2D}   ctx
+   * @param {Number} angle        Angle in radians
+   * @returns {number} distance   Distance to the border in pixels
+   */
+  Node.prototype.distanceToBorder = function (ctx, angle) {
+    var borderWidth = 1;
+
+    if (!this.width) {
+      this.resize(ctx);
+    }
+
+    switch (this.options.shape) {
+      case 'circle':
+      case 'dot':
+        return this.options.radius+ borderWidth;
+
+      case 'ellipse':
+        var a = this.width / 2;
+        var b = this.height / 2;
+        var w = (Math.sin(angle) * a);
+        var h = (Math.cos(angle) * b);
+        return a * b / Math.sqrt(w * w + h * h);
+
+      // TODO: implement distanceToBorder for database
+      // TODO: implement distanceToBorder for triangle
+      // TODO: implement distanceToBorder for triangleDown
+
+      case 'box':
+      case 'image':
+      case 'text':
+      default:
+        if (this.width) {
+          return Math.min(
+              Math.abs(this.width / 2 / Math.cos(angle)),
+              Math.abs(this.height / 2 / Math.sin(angle))) + borderWidth;
+          // TODO: reckon with border radius too in case of box
+        }
+        else {
+          return 0;
+        }
+
+    }
+    // TODO: implement calculation of distance to border for all shapes
+  };
+
+  /**
+   * Set forces acting on the node
+   * @param {number} fx   Force in horizontal direction
+   * @param {number} fy   Force in vertical direction
+   */
+  Node.prototype._setForce = function(fx, fy) {
+    this.fx = fx;
+    this.fy = fy;
+  };
+
+  /**
+   * Add forces acting on the node
+   * @param {number} fx   Force in horizontal direction
+   * @param {number} fy   Force in vertical direction
+   * @private
+   */
+  Node.prototype._addForce = function(fx, fy) {
+    this.fx += fx;
+    this.fy += fy;
+  };
+
+  /**
+   * Perform one discrete step for the node
+   * @param {number} interval    Time interval in seconds
+   */
+  Node.prototype.discreteStep = function(interval) {
+    if (!this.xFixed) {
+      var dx   = this.damping * this.vx;     // damping force
+      var ax   = (this.fx - dx) / this.options.mass;  // acceleration
+      this.vx += ax * interval;               // velocity
+      this.x  += this.vx * interval;          // position
+    }
+    else {
+      this.fx = 0;
+      this.vx = 0;
+    }
+
+    if (!this.yFixed) {
+      var dy   = this.damping * this.vy;     // damping force
+      var ay   = (this.fy - dy) / this.options.mass;  // acceleration
+      this.vy += ay * interval;               // velocity
+      this.y  += this.vy * interval;          // position
+    }
+    else {
+      this.fy = 0;
+      this.vy = 0;
+    }
+  };
+
+
+
+  /**
+   * Perform one discrete step for the node
+   * @param {number} interval    Time interval in seconds
+   * @param {number} maxVelocity The speed limit imposed on the velocity
+   */
+  Node.prototype.discreteStepLimited = function(interval, maxVelocity) {
+    if (!this.xFixed) {
+      var dx   = this.damping * this.vx;     // damping force
+      var ax   = (this.fx - dx) / this.options.mass;  // acceleration
+      this.vx += ax * interval;               // velocity
+      this.vx = (Math.abs(this.vx) > maxVelocity) ? ((this.vx > 0) ? maxVelocity : -maxVelocity) : this.vx;
+      this.x  += this.vx * interval;          // position
+    }
+    else {
+      this.fx = 0;
+      this.vx = 0;
+    }
+
+    if (!this.yFixed) {
+      var dy   = this.damping * this.vy;     // damping force
+      var ay   = (this.fy - dy) / this.options.mass;  // acceleration
+      this.vy += ay * interval;               // velocity
+      this.vy = (Math.abs(this.vy) > maxVelocity) ? ((this.vy > 0) ? maxVelocity : -maxVelocity) : this.vy;
+      this.y  += this.vy * interval;          // position
+    }
+    else {
+      this.fy = 0;
+      this.vy = 0;
+    }
+  };
+
+  /**
+   * Check if this node has a fixed x and y position
+   * @return {boolean}      true if fixed, false if not
+   */
+  Node.prototype.isFixed = function() {
+    return (this.xFixed && this.yFixed);
+  };
+
+  /**
+   * Check if this node is moving
+   * @param {number} vmin   the minimum velocity considered as "moving"
+   * @return {boolean}      true if moving, false if it has no velocity
+   */
+  Node.prototype.isMoving = function(vmin) {
+    var velocity = Math.sqrt(Math.pow(this.vx,2) + Math.pow(this.vy,2));
+  //  this.velocity = Math.sqrt(Math.pow(this.vx,2) + Math.pow(this.vy,2))
+    return (velocity > vmin);
+  };
+
+  /**
+   * check if this node is selecte
+   * @return {boolean} selected   True if node is selected, else false
+   */
+  Node.prototype.isSelected = function() {
+    return this.selected;
+  };
+
+  /**
+   * Retrieve the value of the node. Can be undefined
+   * @return {Number} value
+   */
+  Node.prototype.getValue = function() {
+    return this.value;
+  };
+
+  /**
+   * Calculate the distance from the nodes location to the given location (x,y)
+   * @param {Number} x
+   * @param {Number} y
+   * @return {Number} value
+   */
+  Node.prototype.getDistance = function(x, y) {
+    var dx = this.x - x,
+        dy = this.y - y;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
+
+  /**
+   * Adjust the value range of the node. The node will adjust it's radius
+   * based on its value.
+   * @param {Number} min
+   * @param {Number} max
+   */
+  Node.prototype.setValueRange = function(min, max) {
+    if (!this.radiusFixed && this.value !== undefined) {
+      if (max == min) {
+        this.options.radius= (this.options.radiusMin + this.options.radiusMax) / 2;
+      }
+      else {
+        var scale = (this.options.radiusMax - this.options.radiusMin) / (max - min);
+        this.options.radius= (this.value - min) * scale + this.options.radiusMin;
+      }
+    }
+    this.baseRadiusValue = this.options.radius;
+  };
+
+  /**
+   * Draw this node in the given canvas
+   * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+   * @param {CanvasRenderingContext2D}   ctx
+   */
+  Node.prototype.draw = function(ctx) {
+    throw "Draw method not initialized for node";
+  };
+
+  /**
+   * Recalculate the size of this node in the given canvas
+   * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+   * @param {CanvasRenderingContext2D}   ctx
+   */
+  Node.prototype.resize = function(ctx) {
+    throw "Resize method not initialized for node";
+  };
+
+  /**
+   * Check if this object is overlapping with the provided object
+   * @param {Object} obj   an object with parameters left, top, right, bottom
+   * @return {boolean}     True if location is located on node
+   */
+  Node.prototype.isOverlappingWith = function(obj) {
+    return (this.left              < obj.right  &&
+            this.left + this.width > obj.left   &&
+            this.top               < obj.bottom &&
+            this.top + this.height > obj.top);
+  };
+
+  Node.prototype._resizeImage = function (ctx) {
+    // TODO: pre calculate the image size
+
+    if (!this.width || !this.height) {  // undefined or 0
+      var width, height;
+      if (this.value) {
+        this.options.radius= this.baseRadiusValue;
+        var scale = this.imageObj.height / this.imageObj.width;
+        if (scale !== undefined) {
+          width = this.options.radius|| this.imageObj.width;
+          height = this.options.radius* scale || this.imageObj.height;
+        }
+        else {
+          width = 0;
+          height = 0;
+        }
+      }
+      else {
+        width = this.imageObj.width;
+        height = this.imageObj.height;
+      }
+      this.width  = width;
+      this.height = height;
+
+      this.growthIndicator = 0;
+      if (this.width > 0 && this.height > 0) {
+        this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements)  * this.clusterSizeWidthFactor;
+        this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
+        this.options.radius+= Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
+        this.growthIndicator = this.width - width;
+      }
+    }
+
+  };
+
+  Node.prototype._drawImage = function (ctx) {
+    this._resizeImage(ctx);
+
+    this.left   = this.x - this.width / 2;
+    this.top    = this.y - this.height / 2;
+
+    var yLabel;
+    if (this.imageObj.width != 0 ) {
+      // draw the shade
+      if (this.clusterSize > 1) {
+        var lineWidth = ((this.clusterSize > 1) ? 10 : 0.0);
+        lineWidth *= this.networkScaleInv;
+        lineWidth = Math.min(0.2 * this.width,lineWidth);
+
+        ctx.globalAlpha = 0.5;
+        ctx.drawImage(this.imageObj, this.left - lineWidth, this.top - lineWidth, this.width + 2*lineWidth, this.height + 2*lineWidth);
+      }
+
+      // draw the image
+      ctx.globalAlpha = 1.0;
+      ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
+      yLabel = this.y + this.height / 2;
+    }
+    else {
+      // image still loading... just draw the label for now
+      yLabel = this.y;
+    }
+
+    this._label(ctx, this.label, this.x, yLabel, undefined, "top");
+  };
+
+
+  Node.prototype._resizeBox = function (ctx) {
+    if (!this.width) {
+      var margin = 5;
+      var textSize = this.getTextSize(ctx);
+      this.width = textSize.width + 2 * margin;
+      this.height = textSize.height + 2 * margin;
+
+      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeWidthFactor;
+      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeHeightFactor;
+      this.growthIndicator = this.width - (textSize.width + 2 * margin);
+  //    this.options.radius+= Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeRadiusFactor;
+
+    }
+  };
+
+  Node.prototype._drawBox = function (ctx) {
+    this._resizeBox(ctx);
+
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    var clusterLineWidth = 2.5;
+    var borderWidth = this.options.borderWidth;
+    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+
+    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
+
+    // draw the outer border
+    if (this.clusterSize > 1) {
+      ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+      ctx.lineWidth *= this.networkScaleInv;
+      ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+      ctx.roundRect(this.left-2*ctx.lineWidth, this.top-2*ctx.lineWidth, this.width+4*ctx.lineWidth, this.height+4*ctx.lineWidth, this.options.radius);
+      ctx.stroke();
+    }
+    ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.networkScaleInv;
+    ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.options.color.background;
+
+    ctx.roundRect(this.left, this.top, this.width, this.height, this.options.radius);
+    ctx.fill();
+    ctx.stroke();
+
+    this._label(ctx, this.label, this.x, this.y);
+  };
+
+
+  Node.prototype._resizeDatabase = function (ctx) {
+    if (!this.width) {
+      var margin = 5;
+      var textSize = this.getTextSize(ctx);
+      var size = textSize.width + 2 * margin;
+      this.width = size;
+      this.height = size;
+
+      // scaling used for clustering
+      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
+      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
+      this.options.radius+= Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
+      this.growthIndicator = this.width - size;
+    }
+  };
+
+  Node.prototype._drawDatabase = function (ctx) {
+    this._resizeDatabase(ctx);
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    var clusterLineWidth = 2.5;
+    var borderWidth = this.options.borderWidth;
+    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+
+    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
+
+    // draw the outer border
+    if (this.clusterSize > 1) {
+      ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+      ctx.lineWidth *= this.networkScaleInv;
+      ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+      ctx.database(this.x - this.width/2 - 2*ctx.lineWidth, this.y - this.height*0.5 - 2*ctx.lineWidth, this.width + 4*ctx.lineWidth, this.height + 4*ctx.lineWidth);
+      ctx.stroke();
+    }
+    ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.networkScaleInv;
+    ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
+    ctx.database(this.x - this.width/2, this.y - this.height*0.5, this.width, this.height);
+    ctx.fill();
+    ctx.stroke();
+
+    this._label(ctx, this.label, this.x, this.y);
+  };
+
+
+  Node.prototype._resizeCircle = function (ctx) {
+    if (!this.width) {
+      var margin = 5;
+      var textSize = this.getTextSize(ctx);
+      var diameter = Math.max(textSize.width, textSize.height) + 2 * margin;
+      this.options.radius = diameter / 2;
+
+      this.width = diameter;
+      this.height = diameter;
+
+      // scaling used for clustering
+  //    this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeWidthFactor;
+  //    this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeHeightFactor;
+      this.options.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeRadiusFactor;
+      this.growthIndicator = this.options.radius- 0.5*diameter;
+    }
+  };
+
+  Node.prototype._drawCircle = function (ctx) {
+    this._resizeCircle(ctx);
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    var clusterLineWidth = 2.5;
+    var borderWidth = this.options.borderWidth;
+    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+
+    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
+
+    // draw the outer border
+    if (this.clusterSize > 1) {
+      ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+      ctx.lineWidth *= this.networkScaleInv;
+      ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+      ctx.circle(this.x, this.y, this.options.radius+2*ctx.lineWidth);
+      ctx.stroke();
+    }
+    ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.networkScaleInv;
+    ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
+    ctx.circle(this.x, this.y, this.options.radius);
+    ctx.fill();
+    ctx.stroke();
+
+    this._label(ctx, this.label, this.x, this.y);
+  };
+
+  Node.prototype._resizeEllipse = function (ctx) {
+    if (!this.width) {
+      var textSize = this.getTextSize(ctx);
+
+      this.width = textSize.width * 1.5;
+      this.height = textSize.height * 2;
+      if (this.width < this.height) {
+        this.width = this.height;
+      }
+      var defaultSize = this.width;
+
+      // scaling used for clustering
+      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
+      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
+      this.options.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
+      this.growthIndicator = this.width - defaultSize;
+    }
+  };
+
+  Node.prototype._drawEllipse = function (ctx) {
+    this._resizeEllipse(ctx);
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    var clusterLineWidth = 2.5;
+    var borderWidth = this.options.borderWidth;
+    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+
+    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
+
+    // draw the outer border
+    if (this.clusterSize > 1) {
+      ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+      ctx.lineWidth *= this.networkScaleInv;
+      ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+      ctx.ellipse(this.left-2*ctx.lineWidth, this.top-2*ctx.lineWidth, this.width+4*ctx.lineWidth, this.height+4*ctx.lineWidth);
+      ctx.stroke();
+    }
+    ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.networkScaleInv;
+    ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
+
+    ctx.ellipse(this.left, this.top, this.width, this.height);
+    ctx.fill();
+    ctx.stroke();
+    this._label(ctx, this.label, this.x, this.y);
+  };
+
+  Node.prototype._drawDot = function (ctx) {
+    this._drawShape(ctx, 'circle');
+  };
+
+  Node.prototype._drawTriangle = function (ctx) {
+    this._drawShape(ctx, 'triangle');
+  };
+
+  Node.prototype._drawTriangleDown = function (ctx) {
+    this._drawShape(ctx, 'triangleDown');
+  };
+
+  Node.prototype._drawSquare = function (ctx) {
+    this._drawShape(ctx, 'square');
+  };
+
+  Node.prototype._drawStar = function (ctx) {
+    this._drawShape(ctx, 'star');
+  };
+
+  Node.prototype._resizeShape = function (ctx) {
+    if (!this.width) {
+      this.options.radius= this.baseRadiusValue;
+      var size = 2 * this.options.radius;
+      this.width = size;
+      this.height = size;
+
+      // scaling used for clustering
+      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
+      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
+      this.options.radius+= Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeRadiusFactor;
+      this.growthIndicator = this.width - size;
+    }
+  };
+
+  Node.prototype._drawShape = function (ctx, shape) {
+    this._resizeShape(ctx);
+
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    var clusterLineWidth = 2.5;
+    var borderWidth = this.options.borderWidth;
+    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+    var radiusMultiplier = 2;
+
+    // choose draw method depending on the shape
+    switch (shape) {
+      case 'dot':           radiusMultiplier = 2; break;
+      case 'square':        radiusMultiplier = 2; break;
+      case 'triangle':      radiusMultiplier = 3; break;
+      case 'triangleDown':  radiusMultiplier = 3; break;
+      case 'star':          radiusMultiplier = 4; break;
+    }
+
+    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
+    // draw the outer border
+    if (this.clusterSize > 1) {
+      ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+      ctx.lineWidth *= this.networkScaleInv;
+      ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+      ctx[shape](this.x, this.y, this.options.radius+ radiusMultiplier * ctx.lineWidth);
+      ctx.stroke();
+    }
+    ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.networkScaleInv;
+    ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
+    ctx[shape](this.x, this.y, this.options.radius);
+    ctx.fill();
+    ctx.stroke();
+
+    if (this.label) {
+      this._label(ctx, this.label, this.x, this.y + this.height / 2, undefined, 'top',true);
+    }
+  };
+
+  Node.prototype._resizeText = function (ctx) {
+    if (!this.width) {
+      var margin = 5;
+      var textSize = this.getTextSize(ctx);
+      this.width = textSize.width + 2 * margin;
+      this.height = textSize.height + 2 * margin;
+
+      // scaling used for clustering
+      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
+      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
+      this.options.radius+= Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
+      this.growthIndicator = this.width - (textSize.width + 2 * margin);
+    }
+  };
+
+  Node.prototype._drawText = function (ctx) {
+    this._resizeText(ctx);
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    this._label(ctx, this.label, this.x, this.y);
+  };
+
+
+  Node.prototype._label = function (ctx, text, x, y, align, baseline, labelUnderNode) {
+    if (text && Number(this.options.fontSize) * this.networkScale > this.fontDrawThreshold) {
+      ctx.font = (this.selected ? "bold " : "") + this.options.fontSize + "px " + this.options.fontFace;
+
+      var lines = text.split('\n');
+      var lineCount = lines.length;
+      var fontSize = (Number(this.options.fontSize) + 4);
+      var yLine = y + (1 - lineCount) / 2 * fontSize;
+      if (labelUnderNode == true) {
+        yLine = y + (1 - lineCount) / (2 * fontSize);
+      }
+
+      // font fill from edges now for nodes!
+      var width = ctx.measureText(lines[0]).width;
+      for (var i = 1; i < lineCount; i++) {
+        var lineWidth = ctx.measureText(lines[i]).width;
+        width = lineWidth > width ? lineWidth : width;
+      }
+      var height = this.options.fontSize * lineCount;
+      var left = x - width / 2;
+      var top = y - height / 2;
+      if (ctx.textBaseline == "top") {
+        top += 0.5 * fontSize;
+      }
+      this.labelDimensions = {top:top,left:left,width:width,height:height,yLine:yLine};
+
+      // create the fontfill background
+      if (this.options.fontFill !== undefined && this.options.fontFill !== null && this.options.fontFill !== "none") {
+        ctx.fillStyle = this.options.fontFill;
+        ctx.fillRect(left, top, width, height);
+      }
+
+      // draw text
+      ctx.fillStyle = this.options.fontColor || "black";
+      ctx.textAlign = align || "center";
+      ctx.textBaseline = baseline || "middle";
+      for (var i = 0; i < lineCount; i++) {
+        ctx.fillText(lines[i], x, yLine);
+        yLine += fontSize;
+      }
+    }
+  };
+
+
+  Node.prototype.getTextSize = function(ctx) {
+    if (this.label !== undefined) {
+      ctx.font = (this.selected ? "bold " : "") + this.options.fontSize + "px " + this.options.fontFace;
+
+      var lines = this.label.split('\n'),
+          height = (Number(this.options.fontSize) + 4) * lines.length,
+          width = 0;
+
+      for (var i = 0, iMax = lines.length; i < iMax; i++) {
+        width = Math.max(width, ctx.measureText(lines[i]).width);
+      }
+
+      return {"width": width, "height": height};
+    }
+    else {
+      return {"width": 0, "height": 0};
+    }
+  };
+
+  /**
+   * this is used to determine if a node is visible at all. this is used to determine when it needs to be drawn.
+   * there is a safety margin of 0.3 * width;
+   *
+   * @returns {boolean}
+   */
+  Node.prototype.inArea = function() {
+    if (this.width !== undefined) {
+    return (this.x + this.width *this.networkScaleInv  >= this.canvasTopLeft.x     &&
+            this.x - this.width *this.networkScaleInv  <  this.canvasBottomRight.x &&
+            this.y + this.height*this.networkScaleInv  >= this.canvasTopLeft.y     &&
+            this.y - this.height*this.networkScaleInv  <  this.canvasBottomRight.y);
+    }
+    else {
+      return true;
+    }
+  };
+
+  /**
+   * checks if the core of the node is in the display area, this is used for opening clusters around zoom
+   * @returns {boolean}
+   */
+  Node.prototype.inView = function() {
+    return (this.x >= this.canvasTopLeft.x    &&
+            this.x < this.canvasBottomRight.x &&
+            this.y >= this.canvasTopLeft.y    &&
+            this.y < this.canvasBottomRight.y);
+  };
+
+  /**
+   * This allows the zoom level of the network to influence the rendering
+   * We store the inverted scale and the coordinates of the top left, and bottom right points of the canvas
+   *
+   * @param scale
+   * @param canvasTopLeft
+   * @param canvasBottomRight
+   */
+  Node.prototype.setScaleAndPos = function(scale,canvasTopLeft,canvasBottomRight) {
+    this.networkScaleInv = 1.0/scale;
+    this.networkScale = scale;
+    this.canvasTopLeft = canvasTopLeft;
+    this.canvasBottomRight = canvasBottomRight;
+  };
+
+
+  /**
+   * This allows the zoom level of the network to influence the rendering
+   *
+   * @param scale
+   */
+  Node.prototype.setScale = function(scale) {
+    this.networkScaleInv = 1.0/scale;
+    this.networkScale = scale;
+  };
+
+
+
+  /**
+   * set the velocity at 0. Is called when this node is contained in another during clustering
+   */
+  Node.prototype.clearVelocity = function() {
+    this.vx = 0;
+    this.vy = 0;
+  };
+
+
+  /**
+   * Basic preservation of (kinectic) energy
+   *
+   * @param massBeforeClustering
+   */
+  Node.prototype.updateVelocity = function(massBeforeClustering) {
+    var energyBefore = this.vx * this.vx * massBeforeClustering;
+    //this.vx = (this.vx < 0) ? -Math.sqrt(energyBefore/this.options.mass) : Math.sqrt(energyBefore/this.options.mass);
+    this.vx = Math.sqrt(energyBefore/this.options.mass);
+    energyBefore = this.vy * this.vy * massBeforeClustering;
+    //this.vy = (this.vy < 0) ? -Math.sqrt(energyBefore/this.options.mass) : Math.sqrt(energyBefore/this.options.mass);
+    this.vy = Math.sqrt(energyBefore/this.options.mass);
+  };
+
+  module.exports = Node;
+
+
+/***/ },
+/* 49 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var util = __webpack_require__(1);
+
+  /**
+   * @class Groups
+   * This class can store groups and properties specific for groups.
+   */
+  function Groups() {
+    this.clear();
+    this.defaultIndex = 0;
+  }
+
+
+  /**
+   * default constants for group colors
+   */
+  Groups.DEFAULT = [
+    {border: "#2B7CE9", background: "#97C2FC", highlight: {border: "#2B7CE9", background: "#D2E5FF"}, hover: {border: "#2B7CE9", background: "#D2E5FF"}}, // blue
+    {border: "#FFA500", background: "#FFFF00", highlight: {border: "#FFA500", background: "#FFFFA3"}, hover: {border: "#FFA500", background: "#FFFFA3"}}, // yellow
+    {border: "#FA0A10", background: "#FB7E81", highlight: {border: "#FA0A10", background: "#FFAFB1"}, hover: {border: "#FA0A10", background: "#FFAFB1"}}, // red
+    {border: "#41A906", background: "#7BE141", highlight: {border: "#41A906", background: "#A1EC76"}, hover: {border: "#41A906", background: "#A1EC76"}}, // green
+    {border: "#E129F0", background: "#EB7DF4", highlight: {border: "#E129F0", background: "#F0B3F5"}, hover: {border: "#E129F0", background: "#F0B3F5"}}, // magenta
+    {border: "#7C29F0", background: "#AD85E4", highlight: {border: "#7C29F0", background: "#D3BDF0"}, hover: {border: "#7C29F0", background: "#D3BDF0"}}, // purple
+    {border: "#C37F00", background: "#FFA807", highlight: {border: "#C37F00", background: "#FFCA66"}, hover: {border: "#C37F00", background: "#FFCA66"}}, // orange
+    {border: "#4220FB", background: "#6E6EFD", highlight: {border: "#4220FB", background: "#9B9BFD"}, hover: {border: "#4220FB", background: "#9B9BFD"}}, // darkblue
+    {border: "#FD5A77", background: "#FFC0CB", highlight: {border: "#FD5A77", background: "#FFD1D9"}, hover: {border: "#FD5A77", background: "#FFD1D9"}}, // pink
+    {border: "#4AD63A", background: "#C2FABC", highlight: {border: "#4AD63A", background: "#E6FFE3"}, hover: {border: "#4AD63A", background: "#E6FFE3"}}  // mint
+  ];
+
+
+  /**
+   * Clear all groups
+   */
+  Groups.prototype.clear = function () {
+    this.groups = {};
+    this.groups.length = function()
+    {
+      var i = 0;
+      for ( var p in this ) {
+        if (this.hasOwnProperty(p)) {
+          i++;
+        }
+      }
+      return i;
+    }
+  };
+
+
+  /**
+   * get group properties of a groupname. If groupname is not found, a new group
+   * is added.
+   * @param {*} groupname        Can be a number, string, Date, etc.
+   * @return {Object} group      The created group, containing all group properties
+   */
+  Groups.prototype.get = function (groupname) {
+    var group = this.groups[groupname];
+    if (group == undefined) {
+      // create new group
+      var index = this.defaultIndex % Groups.DEFAULT.length;
+      this.defaultIndex++;
+      group = {};
+      group.color = Groups.DEFAULT[index];
+      this.groups[groupname] = group;
+    }
+
+    return group;
+  };
+
+  /**
+   * Add a custom group style
+   * @param {String} groupname
+   * @param {Object} style       An object containing borderColor,
+   *                             backgroundColor, etc.
+   * @return {Object} group      The created group object
+   */
+  Groups.prototype.add = function (groupname, style) {
+    this.groups[groupname] = style;
+    if (style.color) {
+      style.color = util.parseColor(style.color);
+    }
+    return style;
+  };
+
+  module.exports = Groups;
+
+
+/***/ },
+/* 50 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * @class Images
+   * This class loads images and keeps them stored.
+   */
+  function Images() {
+    this.images = {};
+
+    this.callback = undefined;
+  }
+
+  /**
+   * Set an onload callback function. This will be called each time an image
+   * is loaded
+   * @param {function} callback
+   */
+  Images.prototype.setOnloadCallback = function(callback) {
+    this.callback = callback;
+  };
+
+  /**
+   *
+   * @param {string} url          Url of the image
+   * @param {string} url          Url of an image to use if the url image is not found
+   * @return {Image} img          The image object
+   */
+  Images.prototype.load = function(url, brokenUrl) {
+    var img = this.images[url];
+    if (img == undefined) {
+      // create the image
+      var images = this;
+      img = new Image();
+      this.images[url] = img;
+      img.onload = function() {
+        if (images.callback) {
+          images.callback(this);
+        }
+      };
+      
+      img.onerror = function () {
+  	  this.src = brokenUrl;
+  	  if (images.callback) {
+  		images.callback(this);
+  	  }
+  	};
+  	
+      img.src = url;
+    }
+
+    return img;
+  };
+
+  module.exports = Images;
+
+
+/***/ },
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27774,16 +26879,913 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
+/* 52 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Parse a text source containing data in DOT language into a JSON object.
+   * The object contains two lists: one with nodes and one with edges.
+   *
+   * DOT language reference: http://www.graphviz.org/doc/info/lang.html
+   *
+   * @param {String} data     Text containing a graph in DOT-notation
+   * @return {Object} graph   An object containing two parameters:
+   *                          {Object[]} nodes
+   *                          {Object[]} edges
+   */
+  function parseDOT (data) {
+    dot = data;
+    return parseGraph();
+  }
+
+  // token types enumeration
+  var TOKENTYPE = {
+    NULL : 0,
+    DELIMITER : 1,
+    IDENTIFIER: 2,
+    UNKNOWN : 3
+  };
+
+  // map with all delimiters
+  var DELIMITERS = {
+    '{': true,
+    '}': true,
+    '[': true,
+    ']': true,
+    ';': true,
+    '=': true,
+    ',': true,
+
+    '->': true,
+    '--': true
+  };
+
+  var dot = '';                   // current dot file
+  var index = 0;                  // current index in dot file
+  var c = '';                     // current token character in expr
+  var token = '';                 // current token
+  var tokenType = TOKENTYPE.NULL; // type of the token
+
+  /**
+   * Get the first character from the dot file.
+   * The character is stored into the char c. If the end of the dot file is
+   * reached, the function puts an empty string in c.
+   */
+  function first() {
+    index = 0;
+    c = dot.charAt(0);
+  }
+
+  /**
+   * Get the next character from the dot file.
+   * The character is stored into the char c. If the end of the dot file is
+   * reached, the function puts an empty string in c.
+   */
+  function next() {
+    index++;
+    c = dot.charAt(index);
+  }
+
+  /**
+   * Preview the next character from the dot file.
+   * @return {String} cNext
+   */
+  function nextPreview() {
+    return dot.charAt(index + 1);
+  }
+
+  /**
+   * Test whether given character is alphabetic or numeric
+   * @param {String} c
+   * @return {Boolean} isAlphaNumeric
+   */
+  var regexAlphaNumeric = /[a-zA-Z_0-9.:#]/;
+  function isAlphaNumeric(c) {
+    return regexAlphaNumeric.test(c);
+  }
+
+  /**
+   * Merge all properties of object b into object b
+   * @param {Object} a
+   * @param {Object} b
+   * @return {Object} a
+   */
+  function merge (a, b) {
+    if (!a) {
+      a = {};
+    }
+
+    if (b) {
+      for (var name in b) {
+        if (b.hasOwnProperty(name)) {
+          a[name] = b[name];
+        }
+      }
+    }
+    return a;
+  }
+
+  /**
+   * Set a value in an object, where the provided parameter name can be a
+   * path with nested parameters. For example:
+   *
+   *     var obj = {a: 2};
+   *     setValue(obj, 'b.c', 3);     // obj = {a: 2, b: {c: 3}}
+   *
+   * @param {Object} obj
+   * @param {String} path  A parameter name or dot-separated parameter path,
+   *                      like "color.highlight.border".
+   * @param {*} value
+   */
+  function setValue(obj, path, value) {
+    var keys = path.split('.');
+    var o = obj;
+    while (keys.length) {
+      var key = keys.shift();
+      if (keys.length) {
+        // this isn't the end point
+        if (!o[key]) {
+          o[key] = {};
+        }
+        o = o[key];
+      }
+      else {
+        // this is the end point
+        o[key] = value;
+      }
+    }
+  }
+
+  /**
+   * Add a node to a graph object. If there is already a node with
+   * the same id, their attributes will be merged.
+   * @param {Object} graph
+   * @param {Object} node
+   */
+  function addNode(graph, node) {
+    var i, len;
+    var current = null;
+
+    // find root graph (in case of subgraph)
+    var graphs = [graph]; // list with all graphs from current graph to root graph
+    var root = graph;
+    while (root.parent) {
+      graphs.push(root.parent);
+      root = root.parent;
+    }
+
+    // find existing node (at root level) by its id
+    if (root.nodes) {
+      for (i = 0, len = root.nodes.length; i < len; i++) {
+        if (node.id === root.nodes[i].id) {
+          current = root.nodes[i];
+          break;
+        }
+      }
+    }
+
+    if (!current) {
+      // this is a new node
+      current = {
+        id: node.id
+      };
+      if (graph.node) {
+        // clone default attributes
+        current.attr = merge(current.attr, graph.node);
+      }
+    }
+
+    // add node to this (sub)graph and all its parent graphs
+    for (i = graphs.length - 1; i >= 0; i--) {
+      var g = graphs[i];
+
+      if (!g.nodes) {
+        g.nodes = [];
+      }
+      if (g.nodes.indexOf(current) == -1) {
+        g.nodes.push(current);
+      }
+    }
+
+    // merge attributes
+    if (node.attr) {
+      current.attr = merge(current.attr, node.attr);
+    }
+  }
+
+  /**
+   * Add an edge to a graph object
+   * @param {Object} graph
+   * @param {Object} edge
+   */
+  function addEdge(graph, edge) {
+    if (!graph.edges) {
+      graph.edges = [];
+    }
+    graph.edges.push(edge);
+    if (graph.edge) {
+      var attr = merge({}, graph.edge);     // clone default attributes
+      edge.attr = merge(attr, edge.attr); // merge attributes
+    }
+  }
+
+  /**
+   * Create an edge to a graph object
+   * @param {Object} graph
+   * @param {String | Number | Object} from
+   * @param {String | Number | Object} to
+   * @param {String} type
+   * @param {Object | null} attr
+   * @return {Object} edge
+   */
+  function createEdge(graph, from, to, type, attr) {
+    var edge = {
+      from: from,
+      to: to,
+      type: type
+    };
+
+    if (graph.edge) {
+      edge.attr = merge({}, graph.edge);  // clone default attributes
+    }
+    edge.attr = merge(edge.attr || {}, attr); // merge attributes
+
+    return edge;
+  }
+
+  /**
+   * Get next token in the current dot file.
+   * The token and token type are available as token and tokenType
+   */
+  function getToken() {
+    tokenType = TOKENTYPE.NULL;
+    token = '';
+
+    // skip over whitespaces
+    while (c == ' ' || c == '\t' || c == '\n' || c == '\r') {  // space, tab, enter
+      next();
+    }
+
+    do {
+      var isComment = false;
+
+      // skip comment
+      if (c == '#') {
+        // find the previous non-space character
+        var i = index - 1;
+        while (dot.charAt(i) == ' ' || dot.charAt(i) == '\t') {
+          i--;
+        }
+        if (dot.charAt(i) == '\n' || dot.charAt(i) == '') {
+          // the # is at the start of a line, this is indeed a line comment
+          while (c != '' && c != '\n') {
+            next();
+          }
+          isComment = true;
+        }
+      }
+      if (c == '/' && nextPreview() == '/') {
+        // skip line comment
+        while (c != '' && c != '\n') {
+          next();
+        }
+        isComment = true;
+      }
+      if (c == '/' && nextPreview() == '*') {
+        // skip block comment
+        while (c != '') {
+          if (c == '*' && nextPreview() == '/') {
+            // end of block comment found. skip these last two characters
+            next();
+            next();
+            break;
+          }
+          else {
+            next();
+          }
+        }
+        isComment = true;
+      }
+
+      // skip over whitespaces
+      while (c == ' ' || c == '\t' || c == '\n' || c == '\r') {  // space, tab, enter
+        next();
+      }
+    }
+    while (isComment);
+
+    // check for end of dot file
+    if (c == '') {
+      // token is still empty
+      tokenType = TOKENTYPE.DELIMITER;
+      return;
+    }
+
+    // check for delimiters consisting of 2 characters
+    var c2 = c + nextPreview();
+    if (DELIMITERS[c2]) {
+      tokenType = TOKENTYPE.DELIMITER;
+      token = c2;
+      next();
+      next();
+      return;
+    }
+
+    // check for delimiters consisting of 1 character
+    if (DELIMITERS[c]) {
+      tokenType = TOKENTYPE.DELIMITER;
+      token = c;
+      next();
+      return;
+    }
+
+    // check for an identifier (number or string)
+    // TODO: more precise parsing of numbers/strings (and the port separator ':')
+    if (isAlphaNumeric(c) || c == '-') {
+      token += c;
+      next();
+
+      while (isAlphaNumeric(c)) {
+        token += c;
+        next();
+      }
+      if (token == 'false') {
+        token = false;   // convert to boolean
+      }
+      else if (token == 'true') {
+        token = true;   // convert to boolean
+      }
+      else if (!isNaN(Number(token))) {
+        token = Number(token); // convert to number
+      }
+      tokenType = TOKENTYPE.IDENTIFIER;
+      return;
+    }
+
+    // check for a string enclosed by double quotes
+    if (c == '"') {
+      next();
+      while (c != '' && (c != '"' || (c == '"' && nextPreview() == '"'))) {
+        token += c;
+        if (c == '"') { // skip the escape character
+          next();
+        }
+        next();
+      }
+      if (c != '"') {
+        throw newSyntaxError('End of string " expected');
+      }
+      next();
+      tokenType = TOKENTYPE.IDENTIFIER;
+      return;
+    }
+
+    // something unknown is found, wrong characters, a syntax error
+    tokenType = TOKENTYPE.UNKNOWN;
+    while (c != '') {
+      token += c;
+      next();
+    }
+    throw new SyntaxError('Syntax error in part "' + chop(token, 30) + '"');
+  }
+
+  /**
+   * Parse a graph.
+   * @returns {Object} graph
+   */
+  function parseGraph() {
+    var graph = {};
+
+    first();
+    getToken();
+
+    // optional strict keyword
+    if (token == 'strict') {
+      graph.strict = true;
+      getToken();
+    }
+
+    // graph or digraph keyword
+    if (token == 'graph' || token == 'digraph') {
+      graph.type = token;
+      getToken();
+    }
+
+    // optional graph id
+    if (tokenType == TOKENTYPE.IDENTIFIER) {
+      graph.id = token;
+      getToken();
+    }
+
+    // open angle bracket
+    if (token != '{') {
+      throw newSyntaxError('Angle bracket { expected');
+    }
+    getToken();
+
+    // statements
+    parseStatements(graph);
+
+    // close angle bracket
+    if (token != '}') {
+      throw newSyntaxError('Angle bracket } expected');
+    }
+    getToken();
+
+    // end of file
+    if (token !== '') {
+      throw newSyntaxError('End of file expected');
+    }
+    getToken();
+
+    // remove temporary default properties
+    delete graph.node;
+    delete graph.edge;
+    delete graph.graph;
+
+    return graph;
+  }
+
+  /**
+   * Parse a list with statements.
+   * @param {Object} graph
+   */
+  function parseStatements (graph) {
+    while (token !== '' && token != '}') {
+      parseStatement(graph);
+      if (token == ';') {
+        getToken();
+      }
+    }
+  }
+
+  /**
+   * Parse a single statement. Can be a an attribute statement, node
+   * statement, a series of node statements and edge statements, or a
+   * parameter.
+   * @param {Object} graph
+   */
+  function parseStatement(graph) {
+    // parse subgraph
+    var subgraph = parseSubgraph(graph);
+    if (subgraph) {
+      // edge statements
+      parseEdge(graph, subgraph);
+
+      return;
+    }
+
+    // parse an attribute statement
+    var attr = parseAttributeStatement(graph);
+    if (attr) {
+      return;
+    }
+
+    // parse node
+    if (tokenType != TOKENTYPE.IDENTIFIER) {
+      throw newSyntaxError('Identifier expected');
+    }
+    var id = token; // id can be a string or a number
+    getToken();
+
+    if (token == '=') {
+      // id statement
+      getToken();
+      if (tokenType != TOKENTYPE.IDENTIFIER) {
+        throw newSyntaxError('Identifier expected');
+      }
+      graph[id] = token;
+      getToken();
+      // TODO: implement comma separated list with "a_list: ID=ID [','] [a_list] "
+    }
+    else {
+      parseNodeStatement(graph, id);
+    }
+  }
+
+  /**
+   * Parse a subgraph
+   * @param {Object} graph    parent graph object
+   * @return {Object | null} subgraph
+   */
+  function parseSubgraph (graph) {
+    var subgraph = null;
+
+    // optional subgraph keyword
+    if (token == 'subgraph') {
+      subgraph = {};
+      subgraph.type = 'subgraph';
+      getToken();
+
+      // optional graph id
+      if (tokenType == TOKENTYPE.IDENTIFIER) {
+        subgraph.id = token;
+        getToken();
+      }
+    }
+
+    // open angle bracket
+    if (token == '{') {
+      getToken();
+
+      if (!subgraph) {
+        subgraph = {};
+      }
+      subgraph.parent = graph;
+      subgraph.node = graph.node;
+      subgraph.edge = graph.edge;
+      subgraph.graph = graph.graph;
+
+      // statements
+      parseStatements(subgraph);
+
+      // close angle bracket
+      if (token != '}') {
+        throw newSyntaxError('Angle bracket } expected');
+      }
+      getToken();
+
+      // remove temporary default properties
+      delete subgraph.node;
+      delete subgraph.edge;
+      delete subgraph.graph;
+      delete subgraph.parent;
+
+      // register at the parent graph
+      if (!graph.subgraphs) {
+        graph.subgraphs = [];
+      }
+      graph.subgraphs.push(subgraph);
+    }
+
+    return subgraph;
+  }
+
+  /**
+   * parse an attribute statement like "node [shape=circle fontSize=16]".
+   * Available keywords are 'node', 'edge', 'graph'.
+   * The previous list with default attributes will be replaced
+   * @param {Object} graph
+   * @returns {String | null} keyword Returns the name of the parsed attribute
+   *                                  (node, edge, graph), or null if nothing
+   *                                  is parsed.
+   */
+  function parseAttributeStatement (graph) {
+    // attribute statements
+    if (token == 'node') {
+      getToken();
+
+      // node attributes
+      graph.node = parseAttributeList();
+      return 'node';
+    }
+    else if (token == 'edge') {
+      getToken();
+
+      // edge attributes
+      graph.edge = parseAttributeList();
+      return 'edge';
+    }
+    else if (token == 'graph') {
+      getToken();
+
+      // graph attributes
+      graph.graph = parseAttributeList();
+      return 'graph';
+    }
+
+    return null;
+  }
+
+  /**
+   * parse a node statement
+   * @param {Object} graph
+   * @param {String | Number} id
+   */
+  function parseNodeStatement(graph, id) {
+    // node statement
+    var node = {
+      id: id
+    };
+    var attr = parseAttributeList();
+    if (attr) {
+      node.attr = attr;
+    }
+    addNode(graph, node);
+
+    // edge statements
+    parseEdge(graph, id);
+  }
+
+  /**
+   * Parse an edge or a series of edges
+   * @param {Object} graph
+   * @param {String | Number} from        Id of the from node
+   */
+  function parseEdge(graph, from) {
+    while (token == '->' || token == '--') {
+      var to;
+      var type = token;
+      getToken();
+
+      var subgraph = parseSubgraph(graph);
+      if (subgraph) {
+        to = subgraph;
+      }
+      else {
+        if (tokenType != TOKENTYPE.IDENTIFIER) {
+          throw newSyntaxError('Identifier or subgraph expected');
+        }
+        to = token;
+        addNode(graph, {
+          id: to
+        });
+        getToken();
+      }
+
+      // parse edge attributes
+      var attr = parseAttributeList();
+
+      // create edge
+      var edge = createEdge(graph, from, to, type, attr);
+      addEdge(graph, edge);
+
+      from = to;
+    }
+  }
+
+  /**
+   * Parse a set with attributes,
+   * for example [label="1.000", shape=solid]
+   * @return {Object | null} attr
+   */
+  function parseAttributeList() {
+    var attr = null;
+
+    while (token == '[') {
+      getToken();
+      attr = {};
+      while (token !== '' && token != ']') {
+        if (tokenType != TOKENTYPE.IDENTIFIER) {
+          throw newSyntaxError('Attribute name expected');
+        }
+        var name = token;
+
+        getToken();
+        if (token != '=') {
+          throw newSyntaxError('Equal sign = expected');
+        }
+        getToken();
+
+        if (tokenType != TOKENTYPE.IDENTIFIER) {
+          throw newSyntaxError('Attribute value expected');
+        }
+        var value = token;
+        setValue(attr, name, value); // name can be a path
+
+        getToken();
+        if (token ==',') {
+          getToken();
+        }
+      }
+
+      if (token != ']') {
+        throw newSyntaxError('Bracket ] expected');
+      }
+      getToken();
+    }
+
+    return attr;
+  }
+
+  /**
+   * Create a syntax error with extra information on current token and index.
+   * @param {String} message
+   * @returns {SyntaxError} err
+   */
+  function newSyntaxError(message) {
+    return new SyntaxError(message + ', got "' + chop(token, 30) + '" (char ' + index + ')');
+  }
+
+  /**
+   * Chop off text after a maximum length
+   * @param {String} text
+   * @param {Number} maxLength
+   * @returns {String}
+   */
+  function chop (text, maxLength) {
+    return (text.length <= maxLength) ? text : (text.substr(0, 27) + '...');
+  }
+
+  /**
+   * Execute a function fn for each pair of elements in two arrays
+   * @param {Array | *} array1
+   * @param {Array | *} array2
+   * @param {function} fn
+   */
+  function forEach2(array1, array2, fn) {
+    if (Array.isArray(array1)) {
+      array1.forEach(function (elem1) {
+        if (Array.isArray(array2)) {
+          array2.forEach(function (elem2)  {
+            fn(elem1, elem2);
+          });
+        }
+        else {
+          fn(elem1, array2);
+        }
+      });
+    }
+    else {
+      if (Array.isArray(array2)) {
+        array2.forEach(function (elem2)  {
+          fn(array1, elem2);
+        });
+      }
+      else {
+        fn(array1, array2);
+      }
+    }
+  }
+
+  /**
+   * Convert a string containing a graph in DOT language into a map containing
+   * with nodes and edges in the format of graph.
+   * @param {String} data         Text containing a graph in DOT-notation
+   * @return {Object} graphData
+   */
+  function DOTToGraph (data) {
+    // parse the DOT file
+    var dotData = parseDOT(data);
+    var graphData = {
+      nodes: [],
+      edges: [],
+      options: {}
+    };
+
+    // copy the nodes
+    if (dotData.nodes) {
+      dotData.nodes.forEach(function (dotNode) {
+        var graphNode = {
+          id: dotNode.id,
+          label: String(dotNode.label || dotNode.id)
+        };
+        merge(graphNode, dotNode.attr);
+        if (graphNode.image) {
+          graphNode.shape = 'image';
+        }
+        graphData.nodes.push(graphNode);
+      });
+    }
+
+    // copy the edges
+    if (dotData.edges) {
+      /**
+       * Convert an edge in DOT format to an edge with VisGraph format
+       * @param {Object} dotEdge
+       * @returns {Object} graphEdge
+       */
+      function convertEdge(dotEdge) {
+        var graphEdge = {
+          from: dotEdge.from,
+          to: dotEdge.to
+        };
+        merge(graphEdge, dotEdge.attr);
+        graphEdge.style = (dotEdge.type == '->') ? 'arrow' : 'line';
+        return graphEdge;
+      }
+
+      dotData.edges.forEach(function (dotEdge) {
+        var from, to;
+        if (dotEdge.from instanceof Object) {
+          from = dotEdge.from.nodes;
+        }
+        else {
+          from = {
+            id: dotEdge.from
+          }
+        }
+
+        if (dotEdge.to instanceof Object) {
+          to = dotEdge.to.nodes;
+        }
+        else {
+          to = {
+            id: dotEdge.to
+          }
+        }
+
+        if (dotEdge.from instanceof Object && dotEdge.from.edges) {
+          dotEdge.from.edges.forEach(function (subEdge) {
+            var graphEdge = convertEdge(subEdge);
+            graphData.edges.push(graphEdge);
+          });
+        }
+
+        forEach2(from, to, function (from, to) {
+          var subEdge = createEdge(graphData, from.id, to.id, dotEdge.type, dotEdge.attr);
+          var graphEdge = convertEdge(subEdge);
+          graphData.edges.push(graphEdge);
+        });
+
+        if (dotEdge.to instanceof Object && dotEdge.to.edges) {
+          dotEdge.to.edges.forEach(function (subEdge) {
+            var graphEdge = convertEdge(subEdge);
+            graphData.edges.push(graphEdge);
+          });
+        }
+      });
+    }
+
+    // copy the options
+    if (dotData.attr) {
+      graphData.options = dotData.attr;
+    }
+
+    return graphData;
+  }
+
+  // exports
+  exports.parseDOT = parseDOT;
+  exports.DOTToGraph = DOTToGraph;
+
+
+/***/ },
+/* 53 */
+/***/ function(module, exports, __webpack_require__) {
+
+  
+  function parseGephi(gephiJSON, options) {
+    var edges = [];
+    var nodes = [];
+    this.options = {
+      edges: {
+        inheritColor: true
+      },
+      nodes: {
+        allowedToMove: false,
+        parseColor: false
+      }
+    };
+
+    if (options !== undefined) {
+      this.options.nodes['allowedToMove'] = options.allowedToMove | false;
+      this.options.nodes['parseColor']    = options.parseColor    | false;
+      this.options.edges['inheritColor']  = options.inheritColor  | true;
+    }
+
+    var gEdges = gephiJSON.edges;
+    var gNodes = gephiJSON.nodes;
+    for (var i = 0; i < gEdges.length; i++) {
+      var edge = {};
+      var gEdge = gEdges[i];
+      edge['id'] = gEdge.id;
+      edge['from'] = gEdge.source;
+      edge['to'] = gEdge.target;
+      edge['attributes'] = gEdge.attributes;
+  //    edge['value'] = gEdge.attributes !== undefined ? gEdge.attributes.Weight : undefined;
+  //    edge['width'] = edge['value'] !== undefined ? undefined : edgegEdge.size;
+      edge['color'] = gEdge.color;
+      edge['inheritColor'] = edge['color'] !== undefined ? false : this.options.inheritColor;
+      edges.push(edge);
+    }
+
+    for (var i = 0; i < gNodes.length; i++) {
+      var node = {};
+      var gNode = gNodes[i];
+      node['id'] = gNode.id;
+      node['attributes'] = gNode.attributes;
+      node['x'] = gNode.x;
+      node['y'] = gNode.y;
+      node['label'] = gNode.label;
+      if (this.options.nodes.parseColor == true) {
+        node['color'] = gNode.color;
+      }
+      else {
+        node['color'] = gNode.color !== undefined ? {background:gNode.color, border:gNode.color} : undefined;
+      }
+      node['radius'] = gNode.size;
+      node['allowedToMoveX'] = this.options.nodes.allowedToMove;
+      node['allowedToMoveY'] = this.options.nodes.allowedToMove;
+      nodes.push(node);
+    }
+
+    return {nodes:nodes, edges:edges};
+  }
+
+  exports.parseGephi = parseGephi;
+
+/***/ },
 /* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var PhysicsMixin = __webpack_require__(55);
-  var ClusterMixin = __webpack_require__(59);
-  var SectorsMixin = __webpack_require__(60);
-  var SelectionMixin = __webpack_require__(61);
-  var ManipulationMixin = __webpack_require__(62);
-  var NavigationMixin = __webpack_require__(63);
-  var HierarchicalLayoutMixin = __webpack_require__(64);
+  var PhysicsMixin = __webpack_require__(57);
+  var ClusterMixin = __webpack_require__(58);
+  var SectorsMixin = __webpack_require__(59);
+  var SelectionMixin = __webpack_require__(60);
+  var ManipulationMixin = __webpack_require__(61);
+  var NavigationMixin = __webpack_require__(62);
+  var HierarchicalLayoutMixin = __webpack_require__(63);
 
   /**
    * Load a mixin into the network object
@@ -27981,10 +27983,282 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
+  // English
+  exports['en'] = {
+    edit: 'Edit',
+    del: 'Delete selected',
+    back: 'Back',
+    addNode: 'Add Node',
+    addEdge: 'Add Edge',
+    editNode: 'Edit Node',
+    editEdge: 'Edit Edge',
+    addDescription: 'Click in an empty space to place a new node.',
+    edgeDescription: 'Click on a node and drag the edge to another node to connect them.',
+    editEdgeDescription: 'Click on the control points and drag them to a node to connect to it.',
+    createEdgeError: 'Cannot link edges to a cluster.',
+    deleteClusterError: 'Clusters cannot be deleted.'
+  };
+  exports['en_EN'] = exports['en'];
+  exports['en_US'] = exports['en'];
+
+  // Dutch
+  exports['nl'] = {
+    edit: 'Wijzigen',
+    del: 'Selectie verwijderen',
+    back: 'Terug',
+    addNode: 'Node toevoegen',
+    addEdge: 'Link toevoegen',
+    editNode: 'Node wijzigen',
+    editEdge: 'Link wijzigen',
+    addDescription: 'Klik op een leeg gebied om een nieuwe node te maken.',
+    edgeDescription: 'Klik op een node en sleep de link naar een andere node om ze te verbinden.',
+    editEdgeDescription: 'Klik op de verbindingspunten en sleep ze naar een node om daarmee te verbinden.',
+    createEdgeError: 'Kan geen link maken naar een cluster.',
+    deleteClusterError: 'Clusters kunnen niet worden verwijderd.'
+  };
+  exports['nl_NL'] = exports['nl'];
+  exports['nl_BE'] = exports['nl'];
+
+
+/***/ },
+/* 56 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Canvas shapes used by Network
+   */
+  if (typeof CanvasRenderingContext2D !== 'undefined') {
+
+    /**
+     * Draw a circle shape
+     */
+    CanvasRenderingContext2D.prototype.circle = function(x, y, r) {
+      this.beginPath();
+      this.arc(x, y, r, 0, 2*Math.PI, false);
+    };
+
+    /**
+     * Draw a square shape
+     * @param {Number} x horizontal center
+     * @param {Number} y vertical center
+     * @param {Number} r   size, width and height of the square
+     */
+    CanvasRenderingContext2D.prototype.square = function(x, y, r) {
+      this.beginPath();
+      this.rect(x - r, y - r, r * 2, r * 2);
+    };
+
+    /**
+     * Draw a triangle shape
+     * @param {Number} x horizontal center
+     * @param {Number} y vertical center
+     * @param {Number} r   radius, half the length of the sides of the triangle
+     */
+    CanvasRenderingContext2D.prototype.triangle = function(x, y, r) {
+      // http://en.wikipedia.org/wiki/Equilateral_triangle
+      this.beginPath();
+
+      var s = r * 2;
+      var s2 = s / 2;
+      var ir = Math.sqrt(3) / 6 * s;      // radius of inner circle
+      var h = Math.sqrt(s * s - s2 * s2); // height
+
+      this.moveTo(x, y - (h - ir));
+      this.lineTo(x + s2, y + ir);
+      this.lineTo(x - s2, y + ir);
+      this.lineTo(x, y - (h - ir));
+      this.closePath();
+    };
+
+    /**
+     * Draw a triangle shape in downward orientation
+     * @param {Number} x horizontal center
+     * @param {Number} y vertical center
+     * @param {Number} r radius
+     */
+    CanvasRenderingContext2D.prototype.triangleDown = function(x, y, r) {
+      // http://en.wikipedia.org/wiki/Equilateral_triangle
+      this.beginPath();
+
+      var s = r * 2;
+      var s2 = s / 2;
+      var ir = Math.sqrt(3) / 6 * s;      // radius of inner circle
+      var h = Math.sqrt(s * s - s2 * s2); // height
+
+      this.moveTo(x, y + (h - ir));
+      this.lineTo(x + s2, y - ir);
+      this.lineTo(x - s2, y - ir);
+      this.lineTo(x, y + (h - ir));
+      this.closePath();
+    };
+
+    /**
+     * Draw a star shape, a star with 5 points
+     * @param {Number} x horizontal center
+     * @param {Number} y vertical center
+     * @param {Number} r   radius, half the length of the sides of the triangle
+     */
+    CanvasRenderingContext2D.prototype.star = function(x, y, r) {
+      // http://www.html5canvastutorials.com/labs/html5-canvas-star-spinner/
+      this.beginPath();
+
+      for (var n = 0; n < 10; n++) {
+        var radius = (n % 2 === 0) ? r * 1.3 : r * 0.5;
+        this.lineTo(
+            x + radius * Math.sin(n * 2 * Math.PI / 10),
+            y - radius * Math.cos(n * 2 * Math.PI / 10)
+        );
+      }
+
+      this.closePath();
+    };
+
+    /**
+     * http://stackoverflow.com/questions/1255512/how-to-draw-a-rounded-rectangle-on-html-canvas
+     */
+    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+      var r2d = Math.PI/180;
+      if( w - ( 2 * r ) < 0 ) { r = ( w / 2 ); } //ensure that the radius isn't too large for x
+      if( h - ( 2 * r ) < 0 ) { r = ( h / 2 ); } //ensure that the radius isn't too large for y
+      this.beginPath();
+      this.moveTo(x+r,y);
+      this.lineTo(x+w-r,y);
+      this.arc(x+w-r,y+r,r,r2d*270,r2d*360,false);
+      this.lineTo(x+w,y+h-r);
+      this.arc(x+w-r,y+h-r,r,0,r2d*90,false);
+      this.lineTo(x+r,y+h);
+      this.arc(x+r,y+h-r,r,r2d*90,r2d*180,false);
+      this.lineTo(x,y+r);
+      this.arc(x+r,y+r,r,r2d*180,r2d*270,false);
+    };
+
+    /**
+     * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
+     */
+    CanvasRenderingContext2D.prototype.ellipse = function(x, y, w, h) {
+      var kappa = .5522848,
+          ox = (w / 2) * kappa, // control point offset horizontal
+          oy = (h / 2) * kappa, // control point offset vertical
+          xe = x + w,           // x-end
+          ye = y + h,           // y-end
+          xm = x + w / 2,       // x-middle
+          ym = y + h / 2;       // y-middle
+
+      this.beginPath();
+      this.moveTo(x, ym);
+      this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
+      this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
+      this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
+      this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
+    };
+
+
+
+    /**
+     * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
+     */
+    CanvasRenderingContext2D.prototype.database = function(x, y, w, h) {
+      var f = 1/3;
+      var wEllipse = w;
+      var hEllipse = h * f;
+
+      var kappa = .5522848,
+          ox = (wEllipse / 2) * kappa, // control point offset horizontal
+          oy = (hEllipse / 2) * kappa, // control point offset vertical
+          xe = x + wEllipse,           // x-end
+          ye = y + hEllipse,           // y-end
+          xm = x + wEllipse / 2,       // x-middle
+          ym = y + hEllipse / 2,       // y-middle
+          ymb = y + (h - hEllipse/2),  // y-midlle, bottom ellipse
+          yeb = y + h;                 // y-end, bottom ellipse
+
+      this.beginPath();
+      this.moveTo(xe, ym);
+
+      this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
+      this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
+
+      this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
+      this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
+
+      this.lineTo(xe, ymb);
+
+      this.bezierCurveTo(xe, ymb + oy, xm + ox, yeb, xm, yeb);
+      this.bezierCurveTo(xm - ox, yeb, x, ymb + oy, x, ymb);
+
+      this.lineTo(x, ym);
+    };
+
+
+    /**
+     * Draw an arrow point (no line)
+     */
+    CanvasRenderingContext2D.prototype.arrow = function(x, y, angle, length) {
+      // tail
+      var xt = x - length * Math.cos(angle);
+      var yt = y - length * Math.sin(angle);
+
+      // inner tail
+      // TODO: allow to customize different shapes
+      var xi = x - length * 0.9 * Math.cos(angle);
+      var yi = y - length * 0.9 * Math.sin(angle);
+
+      // left
+      var xl = xt + length / 3 * Math.cos(angle + 0.5 * Math.PI);
+      var yl = yt + length / 3 * Math.sin(angle + 0.5 * Math.PI);
+
+      // right
+      var xr = xt + length / 3 * Math.cos(angle - 0.5 * Math.PI);
+      var yr = yt + length / 3 * Math.sin(angle - 0.5 * Math.PI);
+
+      this.beginPath();
+      this.moveTo(x, y);
+      this.lineTo(xl, yl);
+      this.lineTo(xi, yi);
+      this.lineTo(xr, yr);
+      this.closePath();
+    };
+
+    /**
+     * Sets up the dashedLine functionality for drawing
+     * Original code came from http://stackoverflow.com/questions/4576724/dotted-stroke-in-canvas
+     * @author David Jordan
+     * @date 2012-08-08
+     */
+    CanvasRenderingContext2D.prototype.dashedLine = function(x,y,x2,y2,dashArray){
+      if (!dashArray) dashArray=[10,5];
+      if (dashLength==0) dashLength = 0.001; // Hack for Safari
+      var dashCount = dashArray.length;
+      this.moveTo(x, y);
+      var dx = (x2-x), dy = (y2-y);
+      var slope = dy/dx;
+      var distRemaining = Math.sqrt( dx*dx + dy*dy );
+      var dashIndex=0, draw=true;
+      while (distRemaining>=0.1){
+        var dashLength = dashArray[dashIndex++%dashCount];
+        if (dashLength > distRemaining) dashLength = distRemaining;
+        var xStep = Math.sqrt( dashLength*dashLength / (1 + slope*slope) );
+        if (dx<0) xStep = -xStep;
+        x += xStep;
+        y += slope*xStep;
+        this[draw ? 'lineTo' : 'moveTo'](x,y);
+        distRemaining -= dashLength;
+        draw = !draw;
+      }
+    };
+
+    // TODO: add diamond shape
+  }
+
+
+/***/ },
+/* 57 */
+/***/ function(module, exports, __webpack_require__) {
+
   var util = __webpack_require__(1);
-  var RepulsionMixin = __webpack_require__(56);
-  var HierarchialRepulsionMixin = __webpack_require__(57);
-  var BarnesHutMixin = __webpack_require__(58);
+  var RepulsionMixin = __webpack_require__(64);
+  var HierarchialRepulsionMixin = __webpack_require__(65);
+  var BarnesHutMixin = __webpack_require__(66);
 
   /**
    * Toggling barnes Hut calculation on and off.
@@ -28692,635 +28966,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 56 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * Calculate the forces the nodes apply on each other based on a repulsion field.
-   * This field is linearly approximated.
-   *
-   * @private
-   */
-  exports._calculateNodeForces = function () {
-    var dx, dy, angle, distance, fx, fy, combinedClusterSize,
-      repulsingForce, node1, node2, i, j;
-
-    var nodes = this.calculationNodes;
-    var nodeIndices = this.calculationNodeIndices;
-
-    // approximation constants
-    var a_base = -2 / 3;
-    var b = 4 / 3;
-
-    // repulsing forces between nodes
-    var nodeDistance = this.constants.physics.repulsion.nodeDistance;
-    var minimumDistance = nodeDistance;
-
-    // we loop from i over all but the last entree in the array
-    // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
-    for (i = 0; i < nodeIndices.length - 1; i++) {
-      node1 = nodes[nodeIndices[i]];
-      for (j = i + 1; j < nodeIndices.length; j++) {
-        node2 = nodes[nodeIndices[j]];
-        combinedClusterSize = node1.clusterSize + node2.clusterSize - 2;
-
-        dx = node2.x - node1.x;
-        dy = node2.y - node1.y;
-        distance = Math.sqrt(dx * dx + dy * dy);
-
-        minimumDistance = (combinedClusterSize == 0) ? nodeDistance : (nodeDistance * (1 + combinedClusterSize * this.constants.clustering.distanceAmplification));
-        var a = a_base / minimumDistance;
-        if (distance < 2 * minimumDistance) {
-          if (distance < 0.5 * minimumDistance) {
-            repulsingForce = 1.0;
-          }
-          else {
-            repulsingForce = a * distance + b; // linear approx of  1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness))
-          }
-
-          // amplify the repulsion for clusters.
-          repulsingForce *= (combinedClusterSize == 0) ? 1 : 1 + combinedClusterSize * this.constants.clustering.forceAmplification;
-          repulsingForce = repulsingForce / distance;
-
-          fx = dx * repulsingForce;
-          fy = dy * repulsingForce;
-
-          node1.fx -= fx;
-          node1.fy -= fy;
-          node2.fx += fx;
-          node2.fy += fy;
-        }
-      }
-    }
-  };
-
-
-/***/ },
-/* 57 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * Calculate the forces the nodes apply on eachother based on a repulsion field.
-   * This field is linearly approximated.
-   *
-   * @private
-   */
-  exports._calculateNodeForces = function () {
-    var dx, dy, distance, fx, fy,
-      repulsingForce, node1, node2, i, j;
-
-    var nodes = this.calculationNodes;
-    var nodeIndices = this.calculationNodeIndices;
-
-    // repulsing forces between nodes
-    var nodeDistance = this.constants.physics.hierarchicalRepulsion.nodeDistance;
-
-    // we loop from i over all but the last entree in the array
-    // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
-    for (i = 0; i < nodeIndices.length - 1; i++) {
-      node1 = nodes[nodeIndices[i]];
-      for (j = i + 1; j < nodeIndices.length; j++) {
-        node2 = nodes[nodeIndices[j]];
-
-        // nodes only affect nodes on their level
-        if (node1.level == node2.level) {
-
-          dx = node2.x - node1.x;
-          dy = node2.y - node1.y;
-          distance = Math.sqrt(dx * dx + dy * dy);
-
-
-          var steepness = 0.05;
-          if (distance < nodeDistance) {
-            repulsingForce = -Math.pow(steepness*distance,2) + Math.pow(steepness*nodeDistance,2);
-          }
-          else {
-            repulsingForce = 0;
-          }
-            // normalize force with
-            if (distance == 0) {
-              distance = 0.01;
-            }
-            else {
-              repulsingForce = repulsingForce / distance;
-            }
-            fx = dx * repulsingForce;
-            fy = dy * repulsingForce;
-
-            node1.fx -= fx;
-            node1.fy -= fy;
-            node2.fx += fx;
-            node2.fy += fy;
-        }
-      }
-    }
-  };
-
-
-  /**
-   * this function calculates the effects of the springs in the case of unsmooth curves.
-   *
-   * @private
-   */
-  exports._calculateHierarchicalSpringForces = function () {
-    var edgeLength, edge, edgeId;
-    var dx, dy, fx, fy, springForce, distance;
-    var edges = this.edges;
-
-    var nodes = this.calculationNodes;
-    var nodeIndices = this.calculationNodeIndices;
-
-
-    for (var i = 0; i < nodeIndices.length; i++) {
-      var node1 = nodes[nodeIndices[i]];
-      node1.springFx = 0;
-      node1.springFy = 0;
-    }
-
-
-    // forces caused by the edges, modelled as springs
-    for (edgeId in edges) {
-      if (edges.hasOwnProperty(edgeId)) {
-        edge = edges[edgeId];
-        if (edge.connected) {
-          // only calculate forces if nodes are in the same sector
-          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
-            edgeLength = edge.physics.springLength;
-            // this implies that the edges between big clusters are longer
-            edgeLength += (edge.to.clusterSize + edge.from.clusterSize - 2) * this.constants.clustering.edgeGrowth;
-
-            dx = (edge.from.x - edge.to.x);
-            dy = (edge.from.y - edge.to.y);
-            distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance == 0) {
-              distance = 0.01;
-            }
-
-            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
-            springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
-
-            fx = dx * springForce;
-            fy = dy * springForce;
-
-
-
-            if (edge.to.level != edge.from.level) {
-              edge.to.springFx -= fx;
-              edge.to.springFy -= fy;
-              edge.from.springFx += fx;
-              edge.from.springFy += fy;
-            }
-            else {
-              var factor = 0.5;
-              edge.to.fx -= factor*fx;
-              edge.to.fy -= factor*fy;
-              edge.from.fx += factor*fx;
-              edge.from.fy += factor*fy;
-            }
-          }
-        }
-      }
-    }
-
-    // normalize spring forces
-    var springForce = 1;
-    var springFx, springFy;
-    for (i = 0; i < nodeIndices.length; i++) {
-      var node = nodes[nodeIndices[i]];
-      springFx = Math.min(springForce,Math.max(-springForce,node.springFx));
-      springFy = Math.min(springForce,Math.max(-springForce,node.springFy));
-
-      node.fx += springFx;
-      node.fy += springFy;
-    }
-
-    // retain energy balance
-    var totalFx = 0;
-    var totalFy = 0;
-    for (i = 0; i < nodeIndices.length; i++) {
-      var node = nodes[nodeIndices[i]];
-      totalFx += node.fx;
-      totalFy += node.fy;
-    }
-    var correctionFx = totalFx / nodeIndices.length;
-    var correctionFy = totalFy / nodeIndices.length;
-
-    for (i = 0; i < nodeIndices.length; i++) {
-      var node = nodes[nodeIndices[i]];
-      node.fx -= correctionFx;
-      node.fy -= correctionFy;
-    }
-
-  };
-
-/***/ },
 /* 58 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * This function calculates the forces the nodes apply on eachother based on a gravitational model.
-   * The Barnes Hut method is used to speed up this N-body simulation.
-   *
-   * @private
-   */
-  exports._calculateNodeForces = function() {
-    if (this.constants.physics.barnesHut.gravitationalConstant != 0) {
-      var node;
-      var nodes = this.calculationNodes;
-      var nodeIndices = this.calculationNodeIndices;
-      var nodeCount = nodeIndices.length;
-
-      this._formBarnesHutTree(nodes,nodeIndices);
-
-      var barnesHutTree = this.barnesHutTree;
-
-      // place the nodes one by one recursively
-      for (var i = 0; i < nodeCount; i++) {
-        node = nodes[nodeIndices[i]];
-        if (node.options.mass > 0) {
-        // starting with root is irrelevant, it never passes the BarnesHut condition
-          this._getForceContribution(barnesHutTree.root.children.NW,node);
-          this._getForceContribution(barnesHutTree.root.children.NE,node);
-          this._getForceContribution(barnesHutTree.root.children.SW,node);
-          this._getForceContribution(barnesHutTree.root.children.SE,node);
-        }
-      }
-    }
-  };
-
-
-  /**
-   * This function traverses the barnesHutTree. It checks when it can approximate distant nodes with their center of mass.
-   * If a region contains a single node, we check if it is not itself, then we apply the force.
-   *
-   * @param parentBranch
-   * @param node
-   * @private
-   */
-  exports._getForceContribution = function(parentBranch,node) {
-    // we get no force contribution from an empty region
-    if (parentBranch.childrenCount > 0) {
-      var dx,dy,distance;
-
-      // get the distance from the center of mass to the node.
-      dx = parentBranch.centerOfMass.x - node.x;
-      dy = parentBranch.centerOfMass.y - node.y;
-      distance = Math.sqrt(dx * dx + dy * dy);
-
-      // BarnesHut condition
-      // original condition : s/d < theta = passed  ===  d/s > 1/theta = passed
-      // calcSize = 1/s --> d * 1/s > 1/theta = passed
-      if (distance * parentBranch.calcSize > this.constants.physics.barnesHut.theta) {
-        // duplicate code to reduce function calls to speed up program
-        if (distance == 0) {
-          distance = 0.1*Math.random();
-          dx = distance;
-        }
-        var gravityForce = this.constants.physics.barnesHut.gravitationalConstant * parentBranch.mass * node.options.mass / (distance * distance * distance);
-        var fx = dx * gravityForce;
-        var fy = dy * gravityForce;
-        node.fx += fx;
-        node.fy += fy;
-      }
-      else {
-        // Did not pass the condition, go into children if available
-        if (parentBranch.childrenCount == 4) {
-          this._getForceContribution(parentBranch.children.NW,node);
-          this._getForceContribution(parentBranch.children.NE,node);
-          this._getForceContribution(parentBranch.children.SW,node);
-          this._getForceContribution(parentBranch.children.SE,node);
-        }
-        else { // parentBranch must have only one node, if it was empty we wouldnt be here
-          if (parentBranch.children.data.id != node.id) { // if it is not self
-            // duplicate code to reduce function calls to speed up program
-            if (distance == 0) {
-              distance = 0.5*Math.random();
-              dx = distance;
-            }
-            var gravityForce = this.constants.physics.barnesHut.gravitationalConstant * parentBranch.mass * node.options.mass / (distance * distance * distance);
-            var fx = dx * gravityForce;
-            var fy = dy * gravityForce;
-            node.fx += fx;
-            node.fy += fy;
-          }
-        }
-      }
-    }
-  };
-
-  /**
-   * This function constructs the barnesHut tree recursively. It creates the root, splits it and starts placing the nodes.
-   *
-   * @param nodes
-   * @param nodeIndices
-   * @private
-   */
-  exports._formBarnesHutTree = function(nodes,nodeIndices) {
-    var node;
-    var nodeCount = nodeIndices.length;
-
-    var minX = Number.MAX_VALUE,
-      minY = Number.MAX_VALUE,
-      maxX =-Number.MAX_VALUE,
-      maxY =-Number.MAX_VALUE;
-
-    // get the range of the nodes
-    for (var i = 0; i < nodeCount; i++) {
-      var x = nodes[nodeIndices[i]].x;
-      var y = nodes[nodeIndices[i]].y;
-      if (nodes[nodeIndices[i]].options.mass > 0) {
-        if (x < minX) { minX = x; }
-        if (x > maxX) { maxX = x; }
-        if (y < minY) { minY = y; }
-        if (y > maxY) { maxY = y; }
-      }
-    }
-    // make the range a square
-    var sizeDiff = Math.abs(maxX - minX) - Math.abs(maxY - minY); // difference between X and Y
-    if (sizeDiff > 0) {minY -= 0.5 * sizeDiff; maxY += 0.5 * sizeDiff;} // xSize > ySize
-    else              {minX += 0.5 * sizeDiff; maxX -= 0.5 * sizeDiff;} // xSize < ySize
-
-
-    var minimumTreeSize = 1e-5;
-    var rootSize = Math.max(minimumTreeSize,Math.abs(maxX - minX));
-    var halfRootSize = 0.5 * rootSize;
-    var centerX = 0.5 * (minX + maxX), centerY = 0.5 * (minY + maxY);
-
-    // construct the barnesHutTree
-    var barnesHutTree = {
-      root:{
-        centerOfMass: {x:0, y:0},
-        mass:0,
-        range: {
-          minX: centerX-halfRootSize,maxX:centerX+halfRootSize,
-          minY: centerY-halfRootSize,maxY:centerY+halfRootSize
-        },
-        size: rootSize,
-        calcSize: 1 / rootSize,
-        children: { data:null},
-        maxWidth: 0,
-        level: 0,
-        childrenCount: 4
-      }
-    };
-    this._splitBranch(barnesHutTree.root);
-
-    // place the nodes one by one recursively
-    for (i = 0; i < nodeCount; i++) {
-      node = nodes[nodeIndices[i]];
-      if (node.options.mass > 0) {
-        this._placeInTree(barnesHutTree.root,node);
-      }
-    }
-
-    // make global
-    this.barnesHutTree = barnesHutTree
-  };
-
-
-  /**
-   * this updates the mass of a branch. this is increased by adding a node.
-   *
-   * @param parentBranch
-   * @param node
-   * @private
-   */
-  exports._updateBranchMass = function(parentBranch, node) {
-    var totalMass = parentBranch.mass + node.options.mass;
-    var totalMassInv = 1/totalMass;
-
-    parentBranch.centerOfMass.x = parentBranch.centerOfMass.x * parentBranch.mass + node.x * node.options.mass;
-    parentBranch.centerOfMass.x *= totalMassInv;
-
-    parentBranch.centerOfMass.y = parentBranch.centerOfMass.y * parentBranch.mass + node.y * node.options.mass;
-    parentBranch.centerOfMass.y *= totalMassInv;
-
-    parentBranch.mass = totalMass;
-    var biggestSize = Math.max(Math.max(node.height,node.radius),node.width);
-    parentBranch.maxWidth = (parentBranch.maxWidth < biggestSize) ? biggestSize : parentBranch.maxWidth;
-
-  };
-
-
-  /**
-   * determine in which branch the node will be placed.
-   *
-   * @param parentBranch
-   * @param node
-   * @param skipMassUpdate
-   * @private
-   */
-  exports._placeInTree = function(parentBranch,node,skipMassUpdate) {
-    if (skipMassUpdate != true || skipMassUpdate === undefined) {
-      // update the mass of the branch.
-      this._updateBranchMass(parentBranch,node);
-    }
-
-    if (parentBranch.children.NW.range.maxX > node.x) { // in NW or SW
-      if (parentBranch.children.NW.range.maxY > node.y) { // in NW
-        this._placeInRegion(parentBranch,node,"NW");
-      }
-      else { // in SW
-        this._placeInRegion(parentBranch,node,"SW");
-      }
-    }
-    else { // in NE or SE
-      if (parentBranch.children.NW.range.maxY > node.y) { // in NE
-        this._placeInRegion(parentBranch,node,"NE");
-      }
-      else { // in SE
-        this._placeInRegion(parentBranch,node,"SE");
-      }
-    }
-  };
-
-
-  /**
-   * actually place the node in a region (or branch)
-   *
-   * @param parentBranch
-   * @param node
-   * @param region
-   * @private
-   */
-  exports._placeInRegion = function(parentBranch,node,region) {
-    switch (parentBranch.children[region].childrenCount) {
-      case 0: // place node here
-        parentBranch.children[region].children.data = node;
-        parentBranch.children[region].childrenCount = 1;
-        this._updateBranchMass(parentBranch.children[region],node);
-        break;
-      case 1: // convert into children
-        // if there are two nodes exactly overlapping (on init, on opening of cluster etc.)
-        // we move one node a pixel and we do not put it in the tree.
-        if (parentBranch.children[region].children.data.x == node.x &&
-            parentBranch.children[region].children.data.y == node.y) {
-          node.x += Math.random();
-          node.y += Math.random();
-        }
-        else {
-          this._splitBranch(parentBranch.children[region]);
-          this._placeInTree(parentBranch.children[region],node);
-        }
-        break;
-      case 4: // place in branch
-        this._placeInTree(parentBranch.children[region],node);
-        break;
-    }
-  };
-
-
-  /**
-   * this function splits a branch into 4 sub branches. If the branch contained a node, we place it in the subbranch
-   * after the split is complete.
-   *
-   * @param parentBranch
-   * @private
-   */
-  exports._splitBranch = function(parentBranch) {
-    // if the branch is shaded with a node, replace the node in the new subset.
-    var containedNode = null;
-    if (parentBranch.childrenCount == 1) {
-      containedNode = parentBranch.children.data;
-      parentBranch.mass = 0; parentBranch.centerOfMass.x = 0; parentBranch.centerOfMass.y = 0;
-    }
-    parentBranch.childrenCount = 4;
-    parentBranch.children.data = null;
-    this._insertRegion(parentBranch,"NW");
-    this._insertRegion(parentBranch,"NE");
-    this._insertRegion(parentBranch,"SW");
-    this._insertRegion(parentBranch,"SE");
-
-    if (containedNode != null) {
-      this._placeInTree(parentBranch,containedNode);
-    }
-  };
-
-
-  /**
-   * This function subdivides the region into four new segments.
-   * Specifically, this inserts a single new segment.
-   * It fills the children section of the parentBranch
-   *
-   * @param parentBranch
-   * @param region
-   * @param parentRange
-   * @private
-   */
-  exports._insertRegion = function(parentBranch, region) {
-    var minX,maxX,minY,maxY;
-    var childSize = 0.5 * parentBranch.size;
-    switch (region) {
-      case "NW":
-        minX = parentBranch.range.minX;
-        maxX = parentBranch.range.minX + childSize;
-        minY = parentBranch.range.minY;
-        maxY = parentBranch.range.minY + childSize;
-        break;
-      case "NE":
-        minX = parentBranch.range.minX + childSize;
-        maxX = parentBranch.range.maxX;
-        minY = parentBranch.range.minY;
-        maxY = parentBranch.range.minY + childSize;
-        break;
-      case "SW":
-        minX = parentBranch.range.minX;
-        maxX = parentBranch.range.minX + childSize;
-        minY = parentBranch.range.minY + childSize;
-        maxY = parentBranch.range.maxY;
-        break;
-      case "SE":
-        minX = parentBranch.range.minX + childSize;
-        maxX = parentBranch.range.maxX;
-        minY = parentBranch.range.minY + childSize;
-        maxY = parentBranch.range.maxY;
-        break;
-    }
-
-
-    parentBranch.children[region] = {
-      centerOfMass:{x:0,y:0},
-      mass:0,
-      range:{minX:minX,maxX:maxX,minY:minY,maxY:maxY},
-      size: 0.5 * parentBranch.size,
-      calcSize: 2 * parentBranch.calcSize,
-      children: {data:null},
-      maxWidth: 0,
-      level: parentBranch.level+1,
-      childrenCount: 0
-    };
-  };
-
-
-  /**
-   * This function is for debugging purposed, it draws the tree.
-   *
-   * @param ctx
-   * @param color
-   * @private
-   */
-  exports._drawTree = function(ctx,color) {
-    if (this.barnesHutTree !== undefined) {
-
-      ctx.lineWidth = 1;
-
-      this._drawBranch(this.barnesHutTree.root,ctx,color);
-    }
-  };
-
-
-  /**
-   * This function is for debugging purposes. It draws the branches recursively.
-   *
-   * @param branch
-   * @param ctx
-   * @param color
-   * @private
-   */
-  exports._drawBranch = function(branch,ctx,color) {
-    if (color === undefined) {
-      color = "#FF0000";
-    }
-
-    if (branch.childrenCount == 4) {
-      this._drawBranch(branch.children.NW,ctx);
-      this._drawBranch(branch.children.NE,ctx);
-      this._drawBranch(branch.children.SE,ctx);
-      this._drawBranch(branch.children.SW,ctx);
-    }
-    ctx.strokeStyle = color;
-    ctx.beginPath();
-    ctx.moveTo(branch.range.minX,branch.range.minY);
-    ctx.lineTo(branch.range.maxX,branch.range.minY);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(branch.range.maxX,branch.range.minY);
-    ctx.lineTo(branch.range.maxX,branch.range.maxY);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(branch.range.maxX,branch.range.maxY);
-    ctx.lineTo(branch.range.minX,branch.range.maxY);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(branch.range.minX,branch.range.maxY);
-    ctx.lineTo(branch.range.minX,branch.range.minY);
-    ctx.stroke();
-
-    /*
-     if (branch.mass > 0) {
-     ctx.circle(branch.centerOfMass.x, branch.centerOfMass.y, 3*branch.mass);
-     ctx.stroke();
-     }
-     */
-  };
-
-
-/***/ },
-/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -30463,11 +30109,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 60 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Node = __webpack_require__(51);
+  var Node = __webpack_require__(48);
 
   /**
    * Creation of the SectorMixin var.
@@ -31022,10 +30668,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 61 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Node = __webpack_require__(51);
+  var Node = __webpack_require__(48);
 
   /**
    * This function can be called from the _doInAllSectors function
@@ -31736,12 +31382,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 62 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Node = __webpack_require__(51);
-  var Edge = __webpack_require__(52);
+  var Node = __webpack_require__(48);
+  var Edge = __webpack_require__(47);
 
   /**
    * clears the toolbar div element of children
@@ -32337,7 +31983,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 63 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -32520,7 +32166,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 64 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   exports._resetLevels = function() {
@@ -32937,275 +32583,631 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
+/* 64 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Calculate the forces the nodes apply on each other based on a repulsion field.
+   * This field is linearly approximated.
+   *
+   * @private
+   */
+  exports._calculateNodeForces = function () {
+    var dx, dy, angle, distance, fx, fy, combinedClusterSize,
+      repulsingForce, node1, node2, i, j;
+
+    var nodes = this.calculationNodes;
+    var nodeIndices = this.calculationNodeIndices;
+
+    // approximation constants
+    var a_base = -2 / 3;
+    var b = 4 / 3;
+
+    // repulsing forces between nodes
+    var nodeDistance = this.constants.physics.repulsion.nodeDistance;
+    var minimumDistance = nodeDistance;
+
+    // we loop from i over all but the last entree in the array
+    // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
+    for (i = 0; i < nodeIndices.length - 1; i++) {
+      node1 = nodes[nodeIndices[i]];
+      for (j = i + 1; j < nodeIndices.length; j++) {
+        node2 = nodes[nodeIndices[j]];
+        combinedClusterSize = node1.clusterSize + node2.clusterSize - 2;
+
+        dx = node2.x - node1.x;
+        dy = node2.y - node1.y;
+        distance = Math.sqrt(dx * dx + dy * dy);
+
+        minimumDistance = (combinedClusterSize == 0) ? nodeDistance : (nodeDistance * (1 + combinedClusterSize * this.constants.clustering.distanceAmplification));
+        var a = a_base / minimumDistance;
+        if (distance < 2 * minimumDistance) {
+          if (distance < 0.5 * minimumDistance) {
+            repulsingForce = 1.0;
+          }
+          else {
+            repulsingForce = a * distance + b; // linear approx of  1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness))
+          }
+
+          // amplify the repulsion for clusters.
+          repulsingForce *= (combinedClusterSize == 0) ? 1 : 1 + combinedClusterSize * this.constants.clustering.forceAmplification;
+          repulsingForce = repulsingForce / distance;
+
+          fx = dx * repulsingForce;
+          fy = dy * repulsingForce;
+
+          node1.fx -= fx;
+          node1.fy -= fy;
+          node2.fx += fx;
+          node2.fy += fy;
+        }
+      }
+    }
+  };
+
+
+/***/ },
 /* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
-  // English
-  exports['en'] = {
-    edit: 'Edit',
-    del: 'Delete selected',
-    back: 'Back',
-    addNode: 'Add Node',
-    addEdge: 'Add Edge',
-    editNode: 'Edit Node',
-    editEdge: 'Edit Edge',
-    addDescription: 'Click in an empty space to place a new node.',
-    edgeDescription: 'Click on a node and drag the edge to another node to connect them.',
-    editEdgeDescription: 'Click on the control points and drag them to a node to connect to it.',
-    createEdgeError: 'Cannot link edges to a cluster.',
-    deleteClusterError: 'Clusters cannot be deleted.'
-  };
-  exports['en_EN'] = exports['en'];
-  exports['en_US'] = exports['en'];
+  /**
+   * Calculate the forces the nodes apply on eachother based on a repulsion field.
+   * This field is linearly approximated.
+   *
+   * @private
+   */
+  exports._calculateNodeForces = function () {
+    var dx, dy, distance, fx, fy,
+      repulsingForce, node1, node2, i, j;
 
-  // Dutch
-  exports['nl'] = {
-    edit: 'Wijzigen',
-    del: 'Selectie verwijderen',
-    back: 'Terug',
-    addNode: 'Node toevoegen',
-    addEdge: 'Link toevoegen',
-    editNode: 'Node wijzigen',
-    editEdge: 'Link wijzigen',
-    addDescription: 'Klik op een leeg gebied om een nieuwe node te maken.',
-    edgeDescription: 'Klik op een node en sleep de link naar een andere node om ze te verbinden.',
-    editEdgeDescription: 'Klik op de verbindingspunten en sleep ze naar een node om daarmee te verbinden.',
-    createEdgeError: 'Kan geen link maken naar een cluster.',
-    deleteClusterError: 'Clusters kunnen niet worden verwijderd.'
-  };
-  exports['nl_NL'] = exports['nl'];
-  exports['nl_BE'] = exports['nl'];
+    var nodes = this.calculationNodes;
+    var nodeIndices = this.calculationNodeIndices;
 
+    // repulsing forces between nodes
+    var nodeDistance = this.constants.physics.hierarchicalRepulsion.nodeDistance;
+
+    // we loop from i over all but the last entree in the array
+    // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
+    for (i = 0; i < nodeIndices.length - 1; i++) {
+      node1 = nodes[nodeIndices[i]];
+      for (j = i + 1; j < nodeIndices.length; j++) {
+        node2 = nodes[nodeIndices[j]];
+
+        // nodes only affect nodes on their level
+        if (node1.level == node2.level) {
+
+          dx = node2.x - node1.x;
+          dy = node2.y - node1.y;
+          distance = Math.sqrt(dx * dx + dy * dy);
+
+
+          var steepness = 0.05;
+          if (distance < nodeDistance) {
+            repulsingForce = -Math.pow(steepness*distance,2) + Math.pow(steepness*nodeDistance,2);
+          }
+          else {
+            repulsingForce = 0;
+          }
+            // normalize force with
+            if (distance == 0) {
+              distance = 0.01;
+            }
+            else {
+              repulsingForce = repulsingForce / distance;
+            }
+            fx = dx * repulsingForce;
+            fy = dy * repulsingForce;
+
+            node1.fx -= fx;
+            node1.fy -= fy;
+            node2.fx += fx;
+            node2.fy += fy;
+        }
+      }
+    }
+  };
+
+
+  /**
+   * this function calculates the effects of the springs in the case of unsmooth curves.
+   *
+   * @private
+   */
+  exports._calculateHierarchicalSpringForces = function () {
+    var edgeLength, edge, edgeId;
+    var dx, dy, fx, fy, springForce, distance;
+    var edges = this.edges;
+
+    var nodes = this.calculationNodes;
+    var nodeIndices = this.calculationNodeIndices;
+
+
+    for (var i = 0; i < nodeIndices.length; i++) {
+      var node1 = nodes[nodeIndices[i]];
+      node1.springFx = 0;
+      node1.springFy = 0;
+    }
+
+
+    // forces caused by the edges, modelled as springs
+    for (edgeId in edges) {
+      if (edges.hasOwnProperty(edgeId)) {
+        edge = edges[edgeId];
+        if (edge.connected) {
+          // only calculate forces if nodes are in the same sector
+          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
+            edgeLength = edge.physics.springLength;
+            // this implies that the edges between big clusters are longer
+            edgeLength += (edge.to.clusterSize + edge.from.clusterSize - 2) * this.constants.clustering.edgeGrowth;
+
+            dx = (edge.from.x - edge.to.x);
+            dy = (edge.from.y - edge.to.y);
+            distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance == 0) {
+              distance = 0.01;
+            }
+
+            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+            springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
+
+            fx = dx * springForce;
+            fy = dy * springForce;
+
+
+
+            if (edge.to.level != edge.from.level) {
+              edge.to.springFx -= fx;
+              edge.to.springFy -= fy;
+              edge.from.springFx += fx;
+              edge.from.springFy += fy;
+            }
+            else {
+              var factor = 0.5;
+              edge.to.fx -= factor*fx;
+              edge.to.fy -= factor*fy;
+              edge.from.fx += factor*fx;
+              edge.from.fy += factor*fy;
+            }
+          }
+        }
+      }
+    }
+
+    // normalize spring forces
+    var springForce = 1;
+    var springFx, springFy;
+    for (i = 0; i < nodeIndices.length; i++) {
+      var node = nodes[nodeIndices[i]];
+      springFx = Math.min(springForce,Math.max(-springForce,node.springFx));
+      springFy = Math.min(springForce,Math.max(-springForce,node.springFy));
+
+      node.fx += springFx;
+      node.fy += springFy;
+    }
+
+    // retain energy balance
+    var totalFx = 0;
+    var totalFy = 0;
+    for (i = 0; i < nodeIndices.length; i++) {
+      var node = nodes[nodeIndices[i]];
+      totalFx += node.fx;
+      totalFy += node.fy;
+    }
+    var correctionFx = totalFx / nodeIndices.length;
+    var correctionFy = totalFy / nodeIndices.length;
+
+    for (i = 0; i < nodeIndices.length; i++) {
+      var node = nodes[nodeIndices[i]];
+      node.fx -= correctionFx;
+      node.fy -= correctionFy;
+    }
+
+  };
 
 /***/ },
 /* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
-   * Canvas shapes used by Network
+   * This function calculates the forces the nodes apply on eachother based on a gravitational model.
+   * The Barnes Hut method is used to speed up this N-body simulation.
+   *
+   * @private
    */
-  if (typeof CanvasRenderingContext2D !== 'undefined') {
+  exports._calculateNodeForces = function() {
+    if (this.constants.physics.barnesHut.gravitationalConstant != 0) {
+      var node;
+      var nodes = this.calculationNodes;
+      var nodeIndices = this.calculationNodeIndices;
+      var nodeCount = nodeIndices.length;
 
-    /**
-     * Draw a circle shape
-     */
-    CanvasRenderingContext2D.prototype.circle = function(x, y, r) {
-      this.beginPath();
-      this.arc(x, y, r, 0, 2*Math.PI, false);
-    };
+      this._formBarnesHutTree(nodes,nodeIndices);
 
-    /**
-     * Draw a square shape
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r   size, width and height of the square
-     */
-    CanvasRenderingContext2D.prototype.square = function(x, y, r) {
-      this.beginPath();
-      this.rect(x - r, y - r, r * 2, r * 2);
-    };
+      var barnesHutTree = this.barnesHutTree;
 
-    /**
-     * Draw a triangle shape
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r   radius, half the length of the sides of the triangle
-     */
-    CanvasRenderingContext2D.prototype.triangle = function(x, y, r) {
-      // http://en.wikipedia.org/wiki/Equilateral_triangle
-      this.beginPath();
-
-      var s = r * 2;
-      var s2 = s / 2;
-      var ir = Math.sqrt(3) / 6 * s;      // radius of inner circle
-      var h = Math.sqrt(s * s - s2 * s2); // height
-
-      this.moveTo(x, y - (h - ir));
-      this.lineTo(x + s2, y + ir);
-      this.lineTo(x - s2, y + ir);
-      this.lineTo(x, y - (h - ir));
-      this.closePath();
-    };
-
-    /**
-     * Draw a triangle shape in downward orientation
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r radius
-     */
-    CanvasRenderingContext2D.prototype.triangleDown = function(x, y, r) {
-      // http://en.wikipedia.org/wiki/Equilateral_triangle
-      this.beginPath();
-
-      var s = r * 2;
-      var s2 = s / 2;
-      var ir = Math.sqrt(3) / 6 * s;      // radius of inner circle
-      var h = Math.sqrt(s * s - s2 * s2); // height
-
-      this.moveTo(x, y + (h - ir));
-      this.lineTo(x + s2, y - ir);
-      this.lineTo(x - s2, y - ir);
-      this.lineTo(x, y + (h - ir));
-      this.closePath();
-    };
-
-    /**
-     * Draw a star shape, a star with 5 points
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r   radius, half the length of the sides of the triangle
-     */
-    CanvasRenderingContext2D.prototype.star = function(x, y, r) {
-      // http://www.html5canvastutorials.com/labs/html5-canvas-star-spinner/
-      this.beginPath();
-
-      for (var n = 0; n < 10; n++) {
-        var radius = (n % 2 === 0) ? r * 1.3 : r * 0.5;
-        this.lineTo(
-            x + radius * Math.sin(n * 2 * Math.PI / 10),
-            y - radius * Math.cos(n * 2 * Math.PI / 10)
-        );
+      // place the nodes one by one recursively
+      for (var i = 0; i < nodeCount; i++) {
+        node = nodes[nodeIndices[i]];
+        if (node.options.mass > 0) {
+        // starting with root is irrelevant, it never passes the BarnesHut condition
+          this._getForceContribution(barnesHutTree.root.children.NW,node);
+          this._getForceContribution(barnesHutTree.root.children.NE,node);
+          this._getForceContribution(barnesHutTree.root.children.SW,node);
+          this._getForceContribution(barnesHutTree.root.children.SE,node);
+        }
       }
-
-      this.closePath();
-    };
-
-    /**
-     * http://stackoverflow.com/questions/1255512/how-to-draw-a-rounded-rectangle-on-html-canvas
-     */
-    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
-      var r2d = Math.PI/180;
-      if( w - ( 2 * r ) < 0 ) { r = ( w / 2 ); } //ensure that the radius isn't too large for x
-      if( h - ( 2 * r ) < 0 ) { r = ( h / 2 ); } //ensure that the radius isn't too large for y
-      this.beginPath();
-      this.moveTo(x+r,y);
-      this.lineTo(x+w-r,y);
-      this.arc(x+w-r,y+r,r,r2d*270,r2d*360,false);
-      this.lineTo(x+w,y+h-r);
-      this.arc(x+w-r,y+h-r,r,0,r2d*90,false);
-      this.lineTo(x+r,y+h);
-      this.arc(x+r,y+h-r,r,r2d*90,r2d*180,false);
-      this.lineTo(x,y+r);
-      this.arc(x+r,y+r,r,r2d*180,r2d*270,false);
-    };
-
-    /**
-     * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
-     */
-    CanvasRenderingContext2D.prototype.ellipse = function(x, y, w, h) {
-      var kappa = .5522848,
-          ox = (w / 2) * kappa, // control point offset horizontal
-          oy = (h / 2) * kappa, // control point offset vertical
-          xe = x + w,           // x-end
-          ye = y + h,           // y-end
-          xm = x + w / 2,       // x-middle
-          ym = y + h / 2;       // y-middle
-
-      this.beginPath();
-      this.moveTo(x, ym);
-      this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
-      this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
-      this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
-      this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
-    };
+    }
+  };
 
 
+  /**
+   * This function traverses the barnesHutTree. It checks when it can approximate distant nodes with their center of mass.
+   * If a region contains a single node, we check if it is not itself, then we apply the force.
+   *
+   * @param parentBranch
+   * @param node
+   * @private
+   */
+  exports._getForceContribution = function(parentBranch,node) {
+    // we get no force contribution from an empty region
+    if (parentBranch.childrenCount > 0) {
+      var dx,dy,distance;
 
-    /**
-     * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
-     */
-    CanvasRenderingContext2D.prototype.database = function(x, y, w, h) {
-      var f = 1/3;
-      var wEllipse = w;
-      var hEllipse = h * f;
+      // get the distance from the center of mass to the node.
+      dx = parentBranch.centerOfMass.x - node.x;
+      dy = parentBranch.centerOfMass.y - node.y;
+      distance = Math.sqrt(dx * dx + dy * dy);
 
-      var kappa = .5522848,
-          ox = (wEllipse / 2) * kappa, // control point offset horizontal
-          oy = (hEllipse / 2) * kappa, // control point offset vertical
-          xe = x + wEllipse,           // x-end
-          ye = y + hEllipse,           // y-end
-          xm = x + wEllipse / 2,       // x-middle
-          ym = y + hEllipse / 2,       // y-middle
-          ymb = y + (h - hEllipse/2),  // y-midlle, bottom ellipse
-          yeb = y + h;                 // y-end, bottom ellipse
+      // BarnesHut condition
+      // original condition : s/d < theta = passed  ===  d/s > 1/theta = passed
+      // calcSize = 1/s --> d * 1/s > 1/theta = passed
+      if (distance * parentBranch.calcSize > this.constants.physics.barnesHut.theta) {
+        // duplicate code to reduce function calls to speed up program
+        if (distance == 0) {
+          distance = 0.1*Math.random();
+          dx = distance;
+        }
+        var gravityForce = this.constants.physics.barnesHut.gravitationalConstant * parentBranch.mass * node.options.mass / (distance * distance * distance);
+        var fx = dx * gravityForce;
+        var fy = dy * gravityForce;
+        node.fx += fx;
+        node.fy += fy;
+      }
+      else {
+        // Did not pass the condition, go into children if available
+        if (parentBranch.childrenCount == 4) {
+          this._getForceContribution(parentBranch.children.NW,node);
+          this._getForceContribution(parentBranch.children.NE,node);
+          this._getForceContribution(parentBranch.children.SW,node);
+          this._getForceContribution(parentBranch.children.SE,node);
+        }
+        else { // parentBranch must have only one node, if it was empty we wouldnt be here
+          if (parentBranch.children.data.id != node.id) { // if it is not self
+            // duplicate code to reduce function calls to speed up program
+            if (distance == 0) {
+              distance = 0.5*Math.random();
+              dx = distance;
+            }
+            var gravityForce = this.constants.physics.barnesHut.gravitationalConstant * parentBranch.mass * node.options.mass / (distance * distance * distance);
+            var fx = dx * gravityForce;
+            var fy = dy * gravityForce;
+            node.fx += fx;
+            node.fy += fy;
+          }
+        }
+      }
+    }
+  };
 
-      this.beginPath();
-      this.moveTo(xe, ym);
+  /**
+   * This function constructs the barnesHut tree recursively. It creates the root, splits it and starts placing the nodes.
+   *
+   * @param nodes
+   * @param nodeIndices
+   * @private
+   */
+  exports._formBarnesHutTree = function(nodes,nodeIndices) {
+    var node;
+    var nodeCount = nodeIndices.length;
 
-      this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
-      this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
+    var minX = Number.MAX_VALUE,
+      minY = Number.MAX_VALUE,
+      maxX =-Number.MAX_VALUE,
+      maxY =-Number.MAX_VALUE;
 
-      this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
-      this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
+    // get the range of the nodes
+    for (var i = 0; i < nodeCount; i++) {
+      var x = nodes[nodeIndices[i]].x;
+      var y = nodes[nodeIndices[i]].y;
+      if (nodes[nodeIndices[i]].options.mass > 0) {
+        if (x < minX) { minX = x; }
+        if (x > maxX) { maxX = x; }
+        if (y < minY) { minY = y; }
+        if (y > maxY) { maxY = y; }
+      }
+    }
+    // make the range a square
+    var sizeDiff = Math.abs(maxX - minX) - Math.abs(maxY - minY); // difference between X and Y
+    if (sizeDiff > 0) {minY -= 0.5 * sizeDiff; maxY += 0.5 * sizeDiff;} // xSize > ySize
+    else              {minX += 0.5 * sizeDiff; maxX -= 0.5 * sizeDiff;} // xSize < ySize
 
-      this.lineTo(xe, ymb);
 
-      this.bezierCurveTo(xe, ymb + oy, xm + ox, yeb, xm, yeb);
-      this.bezierCurveTo(xm - ox, yeb, x, ymb + oy, x, ymb);
+    var minimumTreeSize = 1e-5;
+    var rootSize = Math.max(minimumTreeSize,Math.abs(maxX - minX));
+    var halfRootSize = 0.5 * rootSize;
+    var centerX = 0.5 * (minX + maxX), centerY = 0.5 * (minY + maxY);
 
-      this.lineTo(x, ym);
-    };
-
-
-    /**
-     * Draw an arrow point (no line)
-     */
-    CanvasRenderingContext2D.prototype.arrow = function(x, y, angle, length) {
-      // tail
-      var xt = x - length * Math.cos(angle);
-      var yt = y - length * Math.sin(angle);
-
-      // inner tail
-      // TODO: allow to customize different shapes
-      var xi = x - length * 0.9 * Math.cos(angle);
-      var yi = y - length * 0.9 * Math.sin(angle);
-
-      // left
-      var xl = xt + length / 3 * Math.cos(angle + 0.5 * Math.PI);
-      var yl = yt + length / 3 * Math.sin(angle + 0.5 * Math.PI);
-
-      // right
-      var xr = xt + length / 3 * Math.cos(angle - 0.5 * Math.PI);
-      var yr = yt + length / 3 * Math.sin(angle - 0.5 * Math.PI);
-
-      this.beginPath();
-      this.moveTo(x, y);
-      this.lineTo(xl, yl);
-      this.lineTo(xi, yi);
-      this.lineTo(xr, yr);
-      this.closePath();
-    };
-
-    /**
-     * Sets up the dashedLine functionality for drawing
-     * Original code came from http://stackoverflow.com/questions/4576724/dotted-stroke-in-canvas
-     * @author David Jordan
-     * @date 2012-08-08
-     */
-    CanvasRenderingContext2D.prototype.dashedLine = function(x,y,x2,y2,dashArray){
-      if (!dashArray) dashArray=[10,5];
-      if (dashLength==0) dashLength = 0.001; // Hack for Safari
-      var dashCount = dashArray.length;
-      this.moveTo(x, y);
-      var dx = (x2-x), dy = (y2-y);
-      var slope = dy/dx;
-      var distRemaining = Math.sqrt( dx*dx + dy*dy );
-      var dashIndex=0, draw=true;
-      while (distRemaining>=0.1){
-        var dashLength = dashArray[dashIndex++%dashCount];
-        if (dashLength > distRemaining) dashLength = distRemaining;
-        var xStep = Math.sqrt( dashLength*dashLength / (1 + slope*slope) );
-        if (dx<0) xStep = -xStep;
-        x += xStep;
-        y += slope*xStep;
-        this[draw ? 'lineTo' : 'moveTo'](x,y);
-        distRemaining -= dashLength;
-        draw = !draw;
+    // construct the barnesHutTree
+    var barnesHutTree = {
+      root:{
+        centerOfMass: {x:0, y:0},
+        mass:0,
+        range: {
+          minX: centerX-halfRootSize,maxX:centerX+halfRootSize,
+          minY: centerY-halfRootSize,maxY:centerY+halfRootSize
+        },
+        size: rootSize,
+        calcSize: 1 / rootSize,
+        children: { data:null},
+        maxWidth: 0,
+        level: 0,
+        childrenCount: 4
       }
     };
+    this._splitBranch(barnesHutTree.root);
 
-    // TODO: add diamond shape
-  }
+    // place the nodes one by one recursively
+    for (i = 0; i < nodeCount; i++) {
+      node = nodes[nodeIndices[i]];
+      if (node.options.mass > 0) {
+        this._placeInTree(barnesHutTree.root,node);
+      }
+    }
+
+    // make global
+    this.barnesHutTree = barnesHutTree
+  };
+
+
+  /**
+   * this updates the mass of a branch. this is increased by adding a node.
+   *
+   * @param parentBranch
+   * @param node
+   * @private
+   */
+  exports._updateBranchMass = function(parentBranch, node) {
+    var totalMass = parentBranch.mass + node.options.mass;
+    var totalMassInv = 1/totalMass;
+
+    parentBranch.centerOfMass.x = parentBranch.centerOfMass.x * parentBranch.mass + node.x * node.options.mass;
+    parentBranch.centerOfMass.x *= totalMassInv;
+
+    parentBranch.centerOfMass.y = parentBranch.centerOfMass.y * parentBranch.mass + node.y * node.options.mass;
+    parentBranch.centerOfMass.y *= totalMassInv;
+
+    parentBranch.mass = totalMass;
+    var biggestSize = Math.max(Math.max(node.height,node.radius),node.width);
+    parentBranch.maxWidth = (parentBranch.maxWidth < biggestSize) ? biggestSize : parentBranch.maxWidth;
+
+  };
+
+
+  /**
+   * determine in which branch the node will be placed.
+   *
+   * @param parentBranch
+   * @param node
+   * @param skipMassUpdate
+   * @private
+   */
+  exports._placeInTree = function(parentBranch,node,skipMassUpdate) {
+    if (skipMassUpdate != true || skipMassUpdate === undefined) {
+      // update the mass of the branch.
+      this._updateBranchMass(parentBranch,node);
+    }
+
+    if (parentBranch.children.NW.range.maxX > node.x) { // in NW or SW
+      if (parentBranch.children.NW.range.maxY > node.y) { // in NW
+        this._placeInRegion(parentBranch,node,"NW");
+      }
+      else { // in SW
+        this._placeInRegion(parentBranch,node,"SW");
+      }
+    }
+    else { // in NE or SE
+      if (parentBranch.children.NW.range.maxY > node.y) { // in NE
+        this._placeInRegion(parentBranch,node,"NE");
+      }
+      else { // in SE
+        this._placeInRegion(parentBranch,node,"SE");
+      }
+    }
+  };
+
+
+  /**
+   * actually place the node in a region (or branch)
+   *
+   * @param parentBranch
+   * @param node
+   * @param region
+   * @private
+   */
+  exports._placeInRegion = function(parentBranch,node,region) {
+    switch (parentBranch.children[region].childrenCount) {
+      case 0: // place node here
+        parentBranch.children[region].children.data = node;
+        parentBranch.children[region].childrenCount = 1;
+        this._updateBranchMass(parentBranch.children[region],node);
+        break;
+      case 1: // convert into children
+        // if there are two nodes exactly overlapping (on init, on opening of cluster etc.)
+        // we move one node a pixel and we do not put it in the tree.
+        if (parentBranch.children[region].children.data.x == node.x &&
+            parentBranch.children[region].children.data.y == node.y) {
+          node.x += Math.random();
+          node.y += Math.random();
+        }
+        else {
+          this._splitBranch(parentBranch.children[region]);
+          this._placeInTree(parentBranch.children[region],node);
+        }
+        break;
+      case 4: // place in branch
+        this._placeInTree(parentBranch.children[region],node);
+        break;
+    }
+  };
+
+
+  /**
+   * this function splits a branch into 4 sub branches. If the branch contained a node, we place it in the subbranch
+   * after the split is complete.
+   *
+   * @param parentBranch
+   * @private
+   */
+  exports._splitBranch = function(parentBranch) {
+    // if the branch is shaded with a node, replace the node in the new subset.
+    var containedNode = null;
+    if (parentBranch.childrenCount == 1) {
+      containedNode = parentBranch.children.data;
+      parentBranch.mass = 0; parentBranch.centerOfMass.x = 0; parentBranch.centerOfMass.y = 0;
+    }
+    parentBranch.childrenCount = 4;
+    parentBranch.children.data = null;
+    this._insertRegion(parentBranch,"NW");
+    this._insertRegion(parentBranch,"NE");
+    this._insertRegion(parentBranch,"SW");
+    this._insertRegion(parentBranch,"SE");
+
+    if (containedNode != null) {
+      this._placeInTree(parentBranch,containedNode);
+    }
+  };
+
+
+  /**
+   * This function subdivides the region into four new segments.
+   * Specifically, this inserts a single new segment.
+   * It fills the children section of the parentBranch
+   *
+   * @param parentBranch
+   * @param region
+   * @param parentRange
+   * @private
+   */
+  exports._insertRegion = function(parentBranch, region) {
+    var minX,maxX,minY,maxY;
+    var childSize = 0.5 * parentBranch.size;
+    switch (region) {
+      case "NW":
+        minX = parentBranch.range.minX;
+        maxX = parentBranch.range.minX + childSize;
+        minY = parentBranch.range.minY;
+        maxY = parentBranch.range.minY + childSize;
+        break;
+      case "NE":
+        minX = parentBranch.range.minX + childSize;
+        maxX = parentBranch.range.maxX;
+        minY = parentBranch.range.minY;
+        maxY = parentBranch.range.minY + childSize;
+        break;
+      case "SW":
+        minX = parentBranch.range.minX;
+        maxX = parentBranch.range.minX + childSize;
+        minY = parentBranch.range.minY + childSize;
+        maxY = parentBranch.range.maxY;
+        break;
+      case "SE":
+        minX = parentBranch.range.minX + childSize;
+        maxX = parentBranch.range.maxX;
+        minY = parentBranch.range.minY + childSize;
+        maxY = parentBranch.range.maxY;
+        break;
+    }
+
+
+    parentBranch.children[region] = {
+      centerOfMass:{x:0,y:0},
+      mass:0,
+      range:{minX:minX,maxX:maxX,minY:minY,maxY:maxY},
+      size: 0.5 * parentBranch.size,
+      calcSize: 2 * parentBranch.calcSize,
+      children: {data:null},
+      maxWidth: 0,
+      level: parentBranch.level+1,
+      childrenCount: 0
+    };
+  };
+
+
+  /**
+   * This function is for debugging purposed, it draws the tree.
+   *
+   * @param ctx
+   * @param color
+   * @private
+   */
+  exports._drawTree = function(ctx,color) {
+    if (this.barnesHutTree !== undefined) {
+
+      ctx.lineWidth = 1;
+
+      this._drawBranch(this.barnesHutTree.root,ctx,color);
+    }
+  };
+
+
+  /**
+   * This function is for debugging purposes. It draws the branches recursively.
+   *
+   * @param branch
+   * @param ctx
+   * @param color
+   * @private
+   */
+  exports._drawBranch = function(branch,ctx,color) {
+    if (color === undefined) {
+      color = "#FF0000";
+    }
+
+    if (branch.childrenCount == 4) {
+      this._drawBranch(branch.children.NW,ctx);
+      this._drawBranch(branch.children.NE,ctx);
+      this._drawBranch(branch.children.SE,ctx);
+      this._drawBranch(branch.children.SW,ctx);
+    }
+    ctx.strokeStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(branch.range.minX,branch.range.minY);
+    ctx.lineTo(branch.range.maxX,branch.range.minY);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(branch.range.maxX,branch.range.minY);
+    ctx.lineTo(branch.range.maxX,branch.range.maxY);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(branch.range.maxX,branch.range.maxY);
+    ctx.lineTo(branch.range.minX,branch.range.maxY);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(branch.range.minX,branch.range.maxY);
+    ctx.lineTo(branch.range.minX,branch.range.minY);
+    ctx.stroke();
+
+    /*
+     if (branch.mass > 0) {
+     ctx.circle(branch.centerOfMass.x, branch.centerOfMass.y, 3*branch.mass);
+     ctx.stroke();
+     }
+     */
+  };
 
 
 /***/ }
