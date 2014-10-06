@@ -12575,13 +12575,13 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param Core
    */
   exports.convertHiddenOptions = function(body, hiddenDates) {
-    var hiddenTimes = hiddenDates.specific;
-    if (hiddenTimes) {
-      if (Array.isArray(hiddenTimes) == true) {
-        for (var i = 0; i < hiddenTimes.length; i++) {
+    var specificHiddenDates = hiddenDates.specific;
+    if (specificHiddenDates) {
+      if (Array.isArray(specificHiddenDates) == true) {
+        for (var i = 0; i < specificHiddenDates.length; i++) {
           var dateItem = {};
-          dateItem.start = moment(hiddenTimes[i].start).toDate().valueOf();
-          dateItem.end = moment(hiddenTimes[i].end).toDate().valueOf();
+          dateItem.start = moment(specificHiddenDates[i].start).toDate().valueOf();
+          dateItem.end = moment(specificHiddenDates[i].end).toDate().valueOf();
           body.hiddenDates.push(dateItem);
         }
         body.hiddenDates.sort(function (a, b) {
@@ -12590,10 +12590,24 @@ return /******/ (function(modules) { // webpackBootstrap
       }
       else {
         body.hiddenDates = [{
-          start: moment(hiddenTimes.start).toDate().valueOf(),
-          end: moment(hiddenTimes.end).toDate().valueOf()
+          start: moment(specificHiddenDates.start).toDate().valueOf(),
+          end: moment(specificHiddenDates.end).toDate().valueOf()
         }
         ];
+      }
+    }
+
+    var periodicHiddenDates = hiddenDates.periodic;
+    if (periodicHiddenDates) {
+      if (periodicHiddenDates.times) {
+        if (Array.isArray(periodicHiddenDates.times) != true) {
+          periodicHiddenDates.times = [periodicHiddenDates.times];
+        }
+      }
+      if (periodicHiddenDates.days) {
+        if (Array.isArray(periodicHiddenDates.days) != true) {
+          periodicHiddenDates.days = [periodicHiddenDates.days];
+        }
       }
     }
   };

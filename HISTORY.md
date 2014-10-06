@@ -21,7 +21,8 @@ http://visjs.org
   individual items.
 - Fixed height of BackgroundItems not being 100% when timeline has a fixed height.
 - Fixed width of BackgroundItems not being reduced to 0 when zooming out.
-- Fixed onclick events in items not working. 
+- Fixed onclick events in items not working.
+- Added hiddenDates to hide specific times and/or days in the timeline.
 
 ### DataSet
 

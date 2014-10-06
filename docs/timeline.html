@@ -480,6 +480,45 @@ var options = {
 </tr>
 
 <tr>
+    <td>hiddenDates</td>
+    <td>Object</td>
+    <td>none</td>
+    <td>This option allows you to hide specific timespans from the time axis. For usage, look at the object definitions below.
+    </td>
+</tr>
+<tr>
+    <td>hiddenDates.specific</td>
+    <td>Array | Object</td>
+    <td>none</td>
+    <td>The specific hiddenDates are manually, fully defined dates that will be hidden from the timeline. The dates can be supplied as an object:
+        <code>{start: '2014-03-21 00:00:00', end: '2014-03-28 00:00:00'}</code> or as an Array of these objects.
+    </td>
+</tr>
+<tr>
+    <td>hiddenDates.periodic</td>
+    <td>Object</td>
+    <td>none</td>
+    <td>This option can be used to specify recurring days and times that have to be hidden from view (weekends, working hours etc.).
+    </td>
+</tr>
+<tr>
+    <td>hiddenDates.periodic.times</td>
+    <td>Array | Object</td>
+    <td>none</td>
+    <td>You can manually specify times which will then be hidden every day on the timeline. These are defined as an object: <code>{start:'20:00:00', end:'09:00:00'}</code>
+         or as an Array of these objects.
+    </td>
+</tr>
+<tr>
+    <td>hiddenDates.periodic.days</td>
+    <td>Array | Object</td>
+    <td>none</td>
+    <td>You can manually specify days which will then be hidden every week on the timeline. These are defined as an object: <code>{start:6, end:1}</code>
+        or as an Array of these objects. 1 stands for Monday and 7 stands for Sunday. So: <code>{start:6, end:1}</code> means hide Saturday and Sunday.
+    </td>
+</tr>
+
+<tr>
     <td>locale</td>
     <td>String</td>
     <td>none</td>
