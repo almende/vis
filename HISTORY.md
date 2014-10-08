@@ -9,7 +9,7 @@ http://visjs.org
 - Renamed storePosition to storePositions. Added deprication message and old name still works.
 - Worked around hammer.js bug with multiple release listeners.
 - Improved cleaning up after manipulation toolbar.
-- Added getPositions() method to get the position of all nodes.
+- Added getPositions() method to get the position of all nodes or some of them if specific Ids are supplied.
 - Added getCenterCoordinates() method to get the x and y position in canvas space of the center of the view.
 - Fixed node label becoming undefined.
 - Fixed cluster fontsize scaling.
