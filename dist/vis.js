@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.5.0
- * @date    2014-10-09
+ * @date    2014-10-10
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -100,32 +100,32 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // Timeline
   exports.Timeline = __webpack_require__(17);
-  exports.Graph2d = __webpack_require__(39);
+  exports.Graph2d = __webpack_require__(33);
   exports.timeline = {
     DateUtil: __webpack_require__(23),
-    DataStep: __webpack_require__(42),
+    DataStep: __webpack_require__(36),
     Range: __webpack_require__(20),
-    stack: __webpack_require__(45),
+    stack: __webpack_require__(39),
     TimeStep: __webpack_require__(26),
 
     components: {
       items: {
-        Item: __webpack_require__(33),
-        BackgroundItem: __webpack_require__(36),
-        BoxItem: __webpack_require__(32),
-        PointItem: __webpack_require__(34),
-        RangeItem: __webpack_require__(35)
+        Item: __webpack_require__(40),
+        BackgroundItem: __webpack_require__(41),
+        BoxItem: __webpack_require__(43),
+        PointItem: __webpack_require__(44),
+        RangeItem: __webpack_require__(42)
       },
 
       Component: __webpack_require__(22),
       CurrentTime: __webpack_require__(27),
       CustomTime: __webpack_require__(29),
-      DataAxis: __webpack_require__(41),
-      GraphGroup: __webpack_require__(43),
-      Group: __webpack_require__(31),
+      DataAxis: __webpack_require__(35),
+      GraphGroup: __webpack_require__(37),
+      Group: __webpack_require__(45),
       ItemSet: __webpack_require__(30),
-      Legend: __webpack_require__(44),
-      LineGraph: __webpack_require__(40),
+      Legend: __webpack_require__(38),
+      LineGraph: __webpack_require__(34),
       TimeAxis: __webpack_require__(25)
     }
   };
@@ -12192,7 +12192,6 @@ return /******/ (function(modules) { // webpackBootstrap
     var duration = DateUtil.getHiddenDuration(this.body.hiddenDates, this);
     interval -= duration;
 
-
     var width = (direction == 'horizontal') ? this.body.domProps.center.width : this.body.domProps.center.height;
     var diffRange = -delta / width * interval;
     var newStart = this.props.touch.start + diffRange;
@@ -12860,9 +12859,8 @@ return /******/ (function(modules) { // webpackBootstrap
       time = hidden.startDate;
     }
 
-    var res = exports.correctTimeForDuration(Core.body.hiddenDates, Core.range, time);
-    var duration = res.duration;
-    time = res.time;
+    var duration = exports.getHiddenDuration(Core.body.hiddenDates, Core.range);
+    time = exports.getHiddenTimeBefore(Core.body.hiddenDates, Core.range, time);
 
     var conversion = Core.range.conversion(width, duration);
     return (time.valueOf() - conversion.offset) * conversion.scale;
@@ -12878,10 +12876,13 @@ return /******/ (function(modules) { // webpackBootstrap
    * @returns {Date}
    */
   exports.toTime = function(body, range, x, width) {
-    var duration = exports.getHiddenDuration(body.hiddenDates, range);
-    var conversion = range.conversion(width, duration);
+    var hiddenDuration = exports.getHiddenDuration(body.hiddenDates, range);
+    var totalDuration = range.end - range.start - hiddenDuration;
+    var partialDuration = totalDuration * x / width;
+    var accumulatedHiddenDuration = exports.getAccumulatedHiddenDuration(body.hiddenDates,range, partialDuration);
 
-    return new Date(x / conversion.scale + conversion.offset);
+    var newTime = new Date(accumulatedHiddenDuration + partialDuration + range.start);
+    return newTime;
   };
 
 
@@ -12908,30 +12909,61 @@ return /******/ (function(modules) { // webpackBootstrap
 
   /**
    * Support function
-   * @param hiddenTimes
+   * @param hiddenDates
    * @param range
    * @param time
    * @returns {{duration: number, time: *, offset: number}}
    */
-  exports.correctTimeForDuration = function(hiddenTimes, range, time) {
-    var duration = 0;
+  exports.getHiddenTimeBefore = function(hiddenDates, range, time) {
     var timeOffset = 0;
     time = moment(time).toDate().valueOf();
 
-    for (var i = 0; i < hiddenTimes.length; i++) {
-      var startDate = hiddenTimes[i].start;
-      var endDate = hiddenTimes[i].end;
+    for (var i = 0; i < hiddenDates.length; i++) {
+      var startDate = hiddenDates[i].start;
+      var endDate = hiddenDates[i].end;
       // if time after the cutout, and the
       if (startDate >= range.start && endDate < range.end) {
-        duration += (endDate - startDate);
         if (time >= endDate) {
           timeOffset += (endDate - startDate);
         }
       }
     }
     time -= timeOffset;
-    return {duration: duration, time:time, offset: timeOffset};
+    return time;
   };
+
+  /**
+   * Support function
+   * @param hiddenDates
+   * @param range
+   * @param time
+   * @returns {{duration: number, time: *, offset: number}}
+   */
+  exports.getAccumulatedHiddenDuration = function(hiddenDates, range, requiredDuration) {
+    var hiddenDuration = 0;
+    var duration = 0;
+    var previousPoint = range.start;
+    //exports.printDates(hiddenDates)
+    for (var i = 0; i < hiddenDates.length; i++) {
+      var startDate = hiddenDates[i].start;
+      var endDate = hiddenDates[i].end;
+      // if time after the cutout, and the
+      if (startDate >= range.start && endDate < range.end) {
+        duration += startDate - previousPoint;
+
+        previousPoint = endDate;
+        if (duration >= requiredDuration) {
+          break;
+        }
+        else {
+          hiddenDuration += endDate - startDate;
+        }
+      }
+    }
+
+    return hiddenDuration;
+  };
+
 
 
   /**
@@ -13004,7 +13036,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var CurrentTime = __webpack_require__(27);
   var CustomTime = __webpack_require__(29);
   var ItemSet = __webpack_require__(30);
-  var Activator = __webpack_require__(37);
+  var Activator = __webpack_require__(31);
   var DateUtil = __webpack_require__(23);
 
   /**
@@ -15189,11 +15221,12 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(8);
   var Component = __webpack_require__(22);
-  var Group = __webpack_require__(31);
-  var BoxItem = __webpack_require__(32);
-  var PointItem = __webpack_require__(34);
-  var RangeItem = __webpack_require__(35);
-  var BackgroundItem = __webpack_require__(36);
+  var Group = __webpack_require__(45);
+  var BoxItem = __webpack_require__(43);
+  var PointItem = __webpack_require__(44);
+  var RangeItem = __webpack_require__(42);
+  var BackgroundItem = __webpack_require__(41);
+  var DateUtil = __webpack_require__(23);
 
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
@@ -16222,18 +16255,17 @@ return /******/ (function(modules) { // webpackBootstrap
       return;
     }
 
-    var item = this.touchParams.item || null,
-        me = this,
-        props;
+    var item = this.touchParams.item || null;
+    var me = this;
+    var props = {};
 
+    props.initialX = event.gesture.center.clientX;
     if (item && item.selected) {
       var dragLeftItem = event.target.dragLeftItem;
       var dragRightItem = event.target.dragRightItem;
 
       if (dragLeftItem) {
-        props = {
-          item: dragLeftItem
-        };
+        props.item = dragLeftItem;
 
         if (me.options.editable.updateTime) {
           props.start = item.data.start.valueOf();
@@ -16245,9 +16277,7 @@ return /******/ (function(modules) { // webpackBootstrap
         this.touchParams.itemProps = [props];
       }
       else if (dragRightItem) {
-        props = {
-          item: dragRightItem
-        };
+        props.item = dragRightItem;
 
         if (me.options.editable.updateTime) {
           props.end = item.data.end.valueOf();
@@ -16261,9 +16291,7 @@ return /******/ (function(modules) { // webpackBootstrap
       else {
         this.touchParams.itemProps = this.getSelection().map(function (id) {
           var item = me.items[id];
-          var props = {
-            item: item
-          };
+          props.item = item;
 
           if (me.options.editable.updateTime) {
             if ('start' in item.data) props.start = item.data.start.valueOf();
@@ -16289,23 +16317,27 @@ return /******/ (function(modules) { // webpackBootstrap
   ItemSet.prototype._onDrag = function (event) {
     if (this.touchParams.itemProps) {
       var me = this;
-      var range = this.body.range;
       var snap = this.body.util.snap || null;
-      var deltaX = event.gesture.deltaX;
-      var scale = (this.props.width / (range.end - range.start));
-      var offset = deltaX / scale;
 
       // move
       this.touchParams.itemProps.forEach(function (props) {
         var newProps = {};
-
-        if ('start' in props) {
-          var start = new Date(props.start + offset);
+        if ('start' in props && !('end' in props)) {  // only start in props
+          var start = me.body.util.toTime(event.gesture.center.clientX)
           newProps.start = snap ? snap(start) : start;
         }
-
-        if ('end' in props) {
+        else if ('start' in props) {                  // start and end in props
+          var current = me.body.util.toTime(event.gesture.center.clientX);
+          var initial = me.body.util.toTime(props.initialX);
+          var offset = current - initial;
+          var start = new Date(props.start + offset);
           var end = new Date(props.end + offset);
+
+          newProps.start = snap ? snap(start) : start;
+          newProps.end = snap ? snap(end) : end;
+        }
+        else if ('end' in props) {                    // only end in props
+          var end = me.body.util.toTime(event.gesture.center.clientX);
           newProps.end = snap ? snap(end) : end;
         }
 
@@ -16608,1652 +16640,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var util = __webpack_require__(1);
-  var stack = __webpack_require__(45);
-  var RangeItem = __webpack_require__(35);
-  var DateUtil = __webpack_require__(23);
-
-  /**
-   * @constructor Group
-   * @param {Number | String} groupId
-   * @param {Object} data
-   * @param {ItemSet} itemSet
-   */
-  function Group (groupId, data, itemSet) {
-    this.groupId = groupId;
-    this.subgroups = {};
-    this.visibleSubgroups = 0;
-    this.itemSet = itemSet;
-
-    this.dom = {};
-    this.props = {
-      label: {
-        width: 0,
-        height: 0
-      }
-    };
-    this.className = null;
-
-    this.items = {};        // items filtered by groupId of this group
-    this.visibleItems = []; // items currently visible in window
-    this.orderedItems = {   // items sorted by start and by end
-      byStart: [],
-      byEnd: []
-    };
-
-    this._create();
-
-    this.setData(data);
-  }
-
-  /**
-   * Create DOM elements for the group
-   * @private
-   */
-  Group.prototype._create = function() {
-    var label = document.createElement('div');
-    label.className = 'vlabel';
-    this.dom.label = label;
-
-    var inner = document.createElement('div');
-    inner.className = 'inner';
-    label.appendChild(inner);
-    this.dom.inner = inner;
-
-    var foreground = document.createElement('div');
-    foreground.className = 'group';
-    foreground['timeline-group'] = this;
-    this.dom.foreground = foreground;
-
-    this.dom.background = document.createElement('div');
-    this.dom.background.className = 'group';
-
-    this.dom.axis = document.createElement('div');
-    this.dom.axis.className = 'group';
-
-    // create a hidden marker to detect when the Timelines container is attached
-    // to the DOM, or the style of a parent of the Timeline is changed from
-    // display:none is changed to visible.
-    this.dom.marker = document.createElement('div');
-    this.dom.marker.style.visibility = 'hidden'; // TODO: ask jos why this is not none?
-    this.dom.marker.innerHTML = '?';
-    this.dom.background.appendChild(this.dom.marker);
-  };
-
-  /**
-   * Set the group data for this group
-   * @param {Object} data   Group data, can contain properties content and className
-   */
-  Group.prototype.setData = function(data) {
-    // update contents
-    var content = data && data.content;
-    if (content instanceof Element) {
-      this.dom.inner.appendChild(content);
-    }
-    else if (content !== undefined && content !== null) {
-      this.dom.inner.innerHTML = content;
-    }
-    else {
-      this.dom.inner.innerHTML = this.groupId || ''; // groupId can be null
-    }
-
-    // update title
-    this.dom.label.title = data && data.title || '';
-
-    if (!this.dom.inner.firstChild) {
-      util.addClassName(this.dom.inner, 'hidden');
-    }
-    else {
-      util.removeClassName(this.dom.inner, 'hidden');
-    }
-
-    // update className
-    var className = data && data.className || null;
-    if (className != this.className) {
-      if (this.className) {
-        util.removeClassName(this.dom.label, this.className);
-        util.removeClassName(this.dom.foreground, this.className);
-        util.removeClassName(this.dom.background, this.className);
-        util.removeClassName(this.dom.axis, this.className);
-      }
-      util.addClassName(this.dom.label, className);
-      util.addClassName(this.dom.foreground, className);
-      util.addClassName(this.dom.background, className);
-      util.addClassName(this.dom.axis, className);
-      this.className = className;
-    }
-
-    // update style
-    if (this.style) {
-      util.removeCssText(this.dom.label, this.style);
-      this.style = null;
-    }
-    if (data && data.style) {
-      util.addCssText(this.dom.label, data.style);
-      this.style = data.style;
-    }
-  };
-
-  /**
-   * Get the width of the group label
-   * @return {number} width
-   */
-  Group.prototype.getLabelWidth = function() {
-    return this.props.label.width;
-  };
-
-
-  /**
-   * Repaint this group
-   * @param {{start: number, end: number}} range
-   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
-   * @param {boolean} [restack=false]  Force restacking of all items
-   * @return {boolean} Returns true if the group is resized
-   */
-  Group.prototype.redraw = function(range, margin, restack) {
-    var resized = false;
-
-    this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
-
-    // force recalculation of the height of the items when the marker height changed
-    // (due to the Timeline being attached to the DOM or changed from display:none to visible)
-    var markerHeight = this.dom.marker.clientHeight;
-    if (markerHeight != this.lastMarkerHeight) {
-      this.lastMarkerHeight = markerHeight;
-
-      util.forEach(this.items, function (item) {
-        item.dirty = true;
-        if (item.displayed) item.redraw();
-      });
-
-      restack = true;
-    }
-
-    // reposition visible items vertically
-    if (this.itemSet.options.stack) { // TODO: ugly way to access options...
-      stack.stack(this.visibleItems, margin, restack);
-    }
-    else { // no stacking
-      stack.nostack(this.visibleItems, margin, this.subgroups);
-    }
-
-    // recalculate the height of the group
-    var height;
-    var visibleItems = this.visibleItems;
-    var visibleSubgroups = [];
-    this.visibleSubgroups = 0;
-    var me = this;
-    if (visibleItems.length) {
-      var min = visibleItems[0].top;
-      var max = visibleItems[0].top + visibleItems[0].height;
-      util.forEach(visibleItems, function (item) {
-        min = Math.min(min, item.top);
-        max = Math.max(max, (item.top + item.height));
-        if (item.data.subgroup !== undefined) {
-          me.subgroups[item.data.subgroup].height = Math.max(me.subgroups[item.data.subgroup].height,item.height);
-          if (visibleSubgroups.indexOf(item.data.subgroup) == -1){
-            visibleSubgroups.push(item.data.subgroup);
-            me.visibleSubgroups += 1;
-          }
-        }
-      });
-      if (min > margin.axis) {
-        // there is an empty gap between the lowest item and the axis
-        var offset = min - margin.axis;
-        max -= offset;
-        util.forEach(visibleItems, function (item) {
-          item.top -= offset;
-        });
-      }
-      height = max + margin.item.vertical / 2;
-    }
-    else {
-      height = margin.axis + margin.item.vertical;
-    }
-    height = Math.max(height, this.props.label.height);
-
-    // calculate actual size and position
-    var foreground = this.dom.foreground;
-    this.top = foreground.offsetTop;
-    this.left = foreground.offsetLeft;
-    this.width = foreground.offsetWidth;
-    resized = util.updateProperty(this, 'height', height) || resized;
-
-    // recalculate size of label
-    resized = util.updateProperty(this.props.label, 'width', this.dom.inner.clientWidth) || resized;
-    resized = util.updateProperty(this.props.label, 'height', this.dom.inner.clientHeight) || resized;
-
-    // apply new height
-    this.dom.background.style.height  = height + 'px';
-    this.dom.foreground.style.height  = height + 'px';
-    this.dom.label.style.height = height + 'px';
-
-    // update vertical position of items after they are re-stacked and the height of the group is calculated
-    for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
-      var item = this.visibleItems[i];
-      item.repositionY(margin);
-    }
-
-    return resized;
-  };
-
-  /**
-   * Show this group: attach to the DOM
-   */
-  Group.prototype.show = function() {
-    if (!this.dom.label.parentNode) {
-      this.itemSet.dom.labelSet.appendChild(this.dom.label);
-    }
-
-    if (!this.dom.foreground.parentNode) {
-      this.itemSet.dom.foreground.appendChild(this.dom.foreground);
-    }
-
-    if (!this.dom.background.parentNode) {
-      this.itemSet.dom.background.appendChild(this.dom.background);
-    }
-
-    if (!this.dom.axis.parentNode) {
-      this.itemSet.dom.axis.appendChild(this.dom.axis);
-    }
-  };
-
-  /**
-   * Hide this group: remove from the DOM
-   */
-  Group.prototype.hide = function() {
-    var label = this.dom.label;
-    if (label.parentNode) {
-      label.parentNode.removeChild(label);
-    }
-
-    var foreground = this.dom.foreground;
-    if (foreground.parentNode) {
-      foreground.parentNode.removeChild(foreground);
-    }
-
-    var background = this.dom.background;
-    if (background.parentNode) {
-      background.parentNode.removeChild(background);
-    }
-
-    var axis = this.dom.axis;
-    if (axis.parentNode) {
-      axis.parentNode.removeChild(axis);
-    }
-  };
-
-  /**
-   * Add an item to the group
-   * @param {Item} item
-   */
-  Group.prototype.add = function(item) {
-    this.items[item.id] = item;
-    item.setParent(this);
-
-    // add to
-    if (item.data.subgroup !== undefined) {
-      if (this.subgroups[item.data.subgroup] === undefined) {
-        this.subgroups[item.data.subgroup] = {height:0};
-      }
-    }
-
-    if (this.visibleItems.indexOf(item) == -1) {
-      var range = this.itemSet.body.range; // TODO: not nice accessing the range like this
-      this._checkIfVisible(item, this.visibleItems, range);
-    }
-  };
-
-  /**
-   * Remove an item from the group
-   * @param {Item} item
-   */
-  Group.prototype.remove = function(item) {
-    delete this.items[item.id];
-    item.setParent(this.itemSet);
-
-    // remove from visible items
-    var index = this.visibleItems.indexOf(item);
-    if (index != -1) this.visibleItems.splice(index, 1);
-
-    // TODO: also remove from ordered items?
-  };
-
-  /**
-   * Remove an item from the corresponding DataSet
-   * @param {Item} item
-   */
-  Group.prototype.removeFromDataSet = function(item) {
-    this.itemSet.removeItem(item.id);
-  };
-
-  /**
-   * Reorder the items
-   */
-  Group.prototype.order = function() {
-    var array = util.toArray(this.items);
-    this.orderedItems.byStart = array;
-    this.orderedItems.byEnd = this._constructByEndArray(array);
-
-    stack.orderByStart(this.orderedItems.byStart);
-    stack.orderByEnd(this.orderedItems.byEnd);
-  };
-
-  /**
-   * Create an array containing all items being a range (having an end date)
-   * @param {Item[]} array
-   * @returns {RangeItem[]}
-   * @private
-   */
-  Group.prototype._constructByEndArray = function(array) {
-    var endArray = [];
-
-    for (var i = 0; i < array.length; i++) {
-      if (array[i] instanceof RangeItem) {
-        endArray.push(array[i]);
-      }
-    }
-    return endArray;
-  };
-
-  /**
-   * Update the visible items
-   * @param {{byStart: Item[], byEnd: Item[]}} orderedItems   All items ordered by start date and by end date
-   * @param {Item[]} visibleItems                             The previously visible items.
-   * @param {{start: number, end: number}} range              Visible range
-   * @return {Item[]} visibleItems                            The new visible items.
-   * @private
-   */
-  Group.prototype._updateVisibleItems = function(orderedItems, visibleItems, range) {
-    var initialPosByStart,
-        newVisibleItems = [],
-        i;
-
-    // first check if the items that were in view previously are still in view.
-    // this handles the case for the RangeItem that is both before and after the current one.
-    if (visibleItems.length > 0) {
-      for (i = 0; i < visibleItems.length; i++) {
-        this._checkIfVisible(visibleItems[i], newVisibleItems, range);
-      }
-    }
-
-    // If there were no visible items previously, use binarySearch to find a visible PointItem or RangeItem (based on startTime)
-    if (newVisibleItems.length == 0) {
-      initialPosByStart = util.binarySearch(orderedItems.byStart, range, 'data','start');
-    }
-    else {
-      initialPosByStart = orderedItems.byStart.indexOf(newVisibleItems[0]);
-    }
-
-    // use visible search to find a visible RangeItem (only based on endTime)
-    var initialPosByEnd = util.binarySearch(orderedItems.byEnd, range, 'data','end');
-
-    // if we found a initial ID to use, trace it up and down until we meet an invisible item.
-    if (initialPosByStart != -1) {
-      for (i = initialPosByStart; i >= 0; i--) {
-        if (this._checkIfInvisible(orderedItems.byStart[i], newVisibleItems, range)) {break;}
-      }
-      for (i = initialPosByStart + 1; i < orderedItems.byStart.length; i++) {
-        if (this._checkIfInvisible(orderedItems.byStart[i], newVisibleItems, range)) {break;}
-      }
-    }
-
-    // if we found a initial ID to use, trace it up and down until we meet an invisible item.
-    if (initialPosByEnd != -1) {
-      for (i = initialPosByEnd; i >= 0; i--) {
-        if (this._checkIfInvisible(orderedItems.byEnd[i], newVisibleItems, range)) {break;}
-      }
-      for (i = initialPosByEnd + 1; i < orderedItems.byEnd.length; i++) {
-        if (this._checkIfInvisible(orderedItems.byEnd[i], newVisibleItems, range)) {break;}
-      }
-    }
-
-    return newVisibleItems;
-  };
-
-
-
-  /**
-   * this function checks if an item is invisible. If it is NOT we make it visible
-   * and add it to the global visible items. If it is, return true.
-   *
-   * @param {Item} item
-   * @param {Item[]} visibleItems
-   * @param {{start:number, end:number}} range
-   * @returns {boolean}
-   * @private
-   */
-  Group.prototype._checkIfInvisible = function(item, visibleItems, range) {
-      if (item.isVisible(range)) {
-        if (!item.displayed) item.show();
-        item.repositionX();
-        if (visibleItems.indexOf(item) == -1) {
-          visibleItems.push(item);
-        }
-        return false;
-      }
-      else {
-        if (item.displayed) item.hide();
-        return true;
-      }
-  };
-
-  /**
-   * this function is very similar to the _checkIfInvisible() but it does not
-   * return booleans, hides the item if it should not be seen and always adds to
-   * the visibleItems.
-   * this one is for brute forcing and hiding.
-   *
-   * @param {Item} item
-   * @param {Array} visibleItems
-   * @param {{start:number, end:number}} range
-   * @private
-   */
-  Group.prototype._checkIfVisible = function(item, visibleItems, range) {
-      if (item.isVisible(range)) {
-        if (!item.displayed) item.show();
-        // reposition item horizontally
-        item.repositionX();
-        visibleItems.push(item);
-      }
-      else {
-        if (item.displayed) item.hide();
-      }
-  };
-
-  module.exports = Group;
-
-
-/***/ },
-/* 32 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var Item = __webpack_require__(33);
-  var util = __webpack_require__(1);
-
-  /**
-   * @constructor BoxItem
-   * @extends Item
-   * @param {Object} data             Object containing parameters start
-   *                                  content, className.
-   * @param {{toScreen: function, toTime: function}} conversion
-   *                                  Conversion functions from time to screen and vice versa
-   * @param {Object} [options]        Configuration options
-   *                                  // TODO: describe available options
-   */
-  function BoxItem (data, conversion, options) {
-    this.props = {
-      dot: {
-        width: 0,
-        height: 0
-      },
-      line: {
-        width: 0,
-        height: 0
-      }
-    };
-
-    // validate data
-    if (data) {
-      if (data.start == undefined) {
-        throw new Error('Property "start" missing in item ' + data);
-      }
-    }
-
-    Item.call(this, data, conversion, options);
-  }
-
-  BoxItem.prototype = new Item (null, null, null);
-
-  /**
-   * Check whether this item is visible inside given range
-   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
-   * @returns {boolean} True if visible
-   */
-  BoxItem.prototype.isVisible = function(range) {
-    // determine visibility
-    // TODO: account for the real width of the item. Right now we just add 1/4 to the window
-    var interval = (range.end - range.start) / 4;
-    return (this.data.start > range.start - interval) && (this.data.start < range.end + interval);
-  };
-
-  /**
-   * Repaint the item
-   */
-  BoxItem.prototype.redraw = function() {
-    var dom = this.dom;
-    if (!dom) {
-      // create DOM
-      this.dom = {};
-      dom = this.dom;
-
-      // create main box
-      dom.box = document.createElement('DIV');
-
-      // contents box (inside the background box). used for making margins
-      dom.content = document.createElement('DIV');
-      dom.content.className = 'content';
-      dom.box.appendChild(dom.content);
-
-      // line to axis
-      dom.line = document.createElement('DIV');
-      dom.line.className = 'line';
-
-      // dot on axis
-      dom.dot = document.createElement('DIV');
-      dom.dot.className = 'dot';
-
-      // attach this item as attribute
-      dom.box['timeline-item'] = this;
-
-      this.dirty = true;
-    }
-
-    // append DOM to parent DOM
-    if (!this.parent) {
-      throw new Error('Cannot redraw item: no parent attached');
-    }
-    if (!dom.box.parentNode) {
-      var foreground = this.parent.dom.foreground;
-      if (!foreground) throw new Error('Cannot redraw item: parent has no foreground container element');
-      foreground.appendChild(dom.box);
-    }
-    if (!dom.line.parentNode) {
-      var background = this.parent.dom.background;
-      if (!background) throw new Error('Cannot redraw item: parent has no background container element');
-      background.appendChild(dom.line);
-    }
-    if (!dom.dot.parentNode) {
-      var axis = this.parent.dom.axis;
-      if (!background) throw new Error('Cannot redraw item: parent has no axis container element');
-      axis.appendChild(dom.dot);
-    }
-    this.displayed = true;
-
-    // Update DOM when item is marked dirty. An item is marked dirty when:
-    // - the item is not yet rendered
-    // - the item's data is changed
-    // - the item is selected/deselected
-    if (this.dirty) {
-      this._updateContents(this.dom.content);
-      this._updateTitle(this.dom.box);
-      this._updateDataAttributes(this.dom.box);
-      this._updateStyle(this.dom.box);
-
-      // update class
-      var className = (this.data.className? ' ' + this.data.className : '') +
-          (this.selected ? ' selected' : '');
-      dom.box.className = 'item box' + className;
-      dom.line.className = 'item line' + className;
-      dom.dot.className  = 'item dot' + className;
-
-      // recalculate size
-      this.props.dot.height = dom.dot.offsetHeight;
-      this.props.dot.width = dom.dot.offsetWidth;
-      this.props.line.width = dom.line.offsetWidth;
-      this.width = dom.box.offsetWidth;
-      this.height = dom.box.offsetHeight;
-
-      this.dirty = false;
-    }
-
-    this._repaintDeleteButton(dom.box);
-  };
-
-  /**
-   * Show the item in the DOM (when not already displayed). The items DOM will
-   * be created when needed.
-   */
-  BoxItem.prototype.show = function() {
-    if (!this.displayed) {
-      this.redraw();
-    }
-  };
-
-  /**
-   * Hide the item from the DOM (when visible)
-   */
-  BoxItem.prototype.hide = function() {
-    if (this.displayed) {
-      var dom = this.dom;
-
-      if (dom.box.parentNode)   dom.box.parentNode.removeChild(dom.box);
-      if (dom.line.parentNode)  dom.line.parentNode.removeChild(dom.line);
-      if (dom.dot.parentNode)   dom.dot.parentNode.removeChild(dom.dot);
-
-      this.top = null;
-      this.left = null;
-
-      this.displayed = false;
-    }
-  };
-
-  /**
-   * Reposition the item horizontally
-   * @Override
-   */
-  BoxItem.prototype.repositionX = function() {
-    var start = this.conversion.toScreen(this.data.start);
-    var align = this.options.align;
-    var left;
-    var box = this.dom.box;
-    var line = this.dom.line;
-    var dot = this.dom.dot;
-
-    // calculate left position of the box
-    if (align == 'right') {
-      this.left = start - this.width;
-    }
-    else if (align == 'left') {
-      this.left = start;
-    }
-    else {
-      // default or 'center'
-      this.left = start - this.width / 2;
-    }
-
-    // reposition box
-    box.style.left = this.left + 'px';
-
-    // reposition line
-    line.style.left = (start - this.props.line.width / 2) + 'px';
-
-    // reposition dot
-    dot.style.left = (start - this.props.dot.width / 2) + 'px';
-  };
-
-  /**
-   * Reposition the item vertically
-   * @Override
-   */
-  BoxItem.prototype.repositionY = function() {
-    var orientation = this.options.orientation;
-    var box = this.dom.box;
-    var line = this.dom.line;
-    var dot = this.dom.dot;
-
-    if (orientation == 'top') {
-      box.style.top     = (this.top || 0) + 'px';
-
-      line.style.top    = '0';
-      line.style.height = (this.parent.top + this.top + 1) + 'px';
-      line.style.bottom = '';
-    }
-    else { // orientation 'bottom'
-      var itemSetHeight = this.parent.itemSet.props.height; // TODO: this is nasty
-      var lineHeight = itemSetHeight - this.parent.top - this.parent.height + this.top;
-
-      box.style.top     = (this.parent.height - this.top - this.height || 0) + 'px';
-      line.style.top    = (itemSetHeight - lineHeight) + 'px';
-      line.style.bottom = '0';
-    }
-
-    dot.style.top = (-this.props.dot.height / 2) + 'px';
-  };
-
-  module.exports = BoxItem;
-
-
-/***/ },
-/* 33 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var Hammer = __webpack_require__(18);
-  var util = __webpack_require__(1);
-
-  /**
-   * @constructor Item
-   * @param {Object} data             Object containing (optional) parameters type,
-   *                                  start, end, content, group, className.
-   * @param {{toScreen: function, toTime: function}} conversion
-   *                                  Conversion functions from time to screen and vice versa
-   * @param {Object} options          Configuration options
-   *                                  // TODO: describe available options
-   */
-  function Item (data, conversion, options) {
-    this.id = null;
-    this.parent = null;
-    this.data = data;
-    this.dom = null;
-    this.conversion = conversion || {};
-    this.options = options || {};
-
-    this.selected = false;
-    this.displayed = false;
-    this.dirty = true;
-
-    this.top = null;
-    this.left = null;
-    this.width = null;
-    this.height = null;
-
-    this.ignoreStacking = false;
-  }
-
-  /**
-   * Select current item
-   */
-  Item.prototype.select = function() {
-    this.selected = true;
-    this.dirty = true;
-    if (this.displayed) this.redraw();
-  };
-
-  /**
-   * Unselect current item
-   */
-  Item.prototype.unselect = function() {
-    this.selected = false;
-    this.dirty = true;
-    if (this.displayed) this.redraw();
-  };
-
-  /**
-   * Set data for the item. Existing data will be updated. The id should not
-   * be changed. When the item is displayed, it will be redrawn immediately.
-   * @param {Object} data
-   */
-  Item.prototype.setData = function(data) {
-    this.data = data;
-    this.dirty = true;
-    if (this.displayed) this.redraw();
-  };
-
-  /**
-   * Set a parent for the item
-   * @param {ItemSet | Group} parent
-   */
-  Item.prototype.setParent = function(parent) {
-    if (this.displayed) {
-      this.hide();
-      this.parent = parent;
-      if (this.parent) {
-        this.show();
-      }
-    }
-    else {
-      this.parent = parent;
-    }
-  };
-
-  /**
-   * Check whether this item is visible inside given range
-   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
-   * @returns {boolean} True if visible
-   */
-  Item.prototype.isVisible = function(range) {
-    // Should be implemented by Item implementations
-    return false;
-  };
-
-  /**
-   * Show the Item in the DOM (when not already visible)
-   * @return {Boolean} changed
-   */
-  Item.prototype.show = function() {
-    return false;
-  };
-
-  /**
-   * Hide the Item from the DOM (when visible)
-   * @return {Boolean} changed
-   */
-  Item.prototype.hide = function() {
-    return false;
-  };
-
-  /**
-   * Repaint the item
-   */
-  Item.prototype.redraw = function() {
-    // should be implemented by the item
-  };
-
-  /**
-   * Reposition the Item horizontally
-   */
-  Item.prototype.repositionX = function() {
-    // should be implemented by the item
-  };
-
-  /**
-   * Reposition the Item vertically
-   */
-  Item.prototype.repositionY = function() {
-    // should be implemented by the item
-  };
-
-  /**
-   * Repaint a delete button on the top right of the item when the item is selected
-   * @param {HTMLElement} anchor
-   * @protected
-   */
-  Item.prototype._repaintDeleteButton = function (anchor) {
-    if (this.selected && this.options.editable.remove && !this.dom.deleteButton) {
-      // create and show button
-      var me = this;
-
-      var deleteButton = document.createElement('div');
-      deleteButton.className = 'delete';
-      deleteButton.title = 'Delete this item';
-
-      Hammer(deleteButton, {
-        preventDefault: true
-      }).on('tap', function (event) {
-        me.parent.removeFromDataSet(me);
-        event.stopPropagation();
-      });
-
-      anchor.appendChild(deleteButton);
-      this.dom.deleteButton = deleteButton;
-    }
-    else if (!this.selected && this.dom.deleteButton) {
-      // remove button
-      if (this.dom.deleteButton.parentNode) {
-        this.dom.deleteButton.parentNode.removeChild(this.dom.deleteButton);
-      }
-      this.dom.deleteButton = null;
-    }
-  };
-
-  /**
-   * Set HTML contents for the item
-   * @param {Element} element   HTML element to fill with the contents
-   * @private
-   */
-  Item.prototype._updateContents = function (element) {
-    var content;
-    if (this.options.template) {
-      var itemData = this.parent.itemSet.itemsData.get(this.id); // get a clone of the data from the dataset
-      content = this.options.template(itemData);
-    }
-    else {
-      content = this.data.content;
-    }
-
-    if(content !== this.content) {
-      // only replace the content when changed
-      if (content instanceof Element) {
-        element.innerHTML = '';
-        element.appendChild(content);
-      }
-      else if (content != undefined) {
-        element.innerHTML = content;
-      }
-      else {
-        if (!(this.data.type == 'background' && this.data.content === undefined)) {
-          throw new Error('Property "content" missing in item ' + this.id);
-        }
-      }
-
-      this.content = content;
-    }
-  };
-
-  /**
-   * Set HTML contents for the item
-   * @param {Element} element   HTML element to fill with the contents
-   * @private
-   */
-  Item.prototype._updateTitle = function (element) {
-    if (this.data.title != null) {
-      element.title = this.data.title || '';
-    }
-    else {
-      element.removeAttribute('title');
-    }
-  };
-
-  /**
-   * Process dataAttributes timeline option and set as data- attributes on dom.content
-   * @param {Element} element   HTML element to which the attributes will be attached
-   * @private
-   */
-   Item.prototype._updateDataAttributes = function(element) {
-    if (this.options.dataAttributes && this.options.dataAttributes.length > 0) {
-      var attributes = [];
-
-      if (Array.isArray(this.options.dataAttributes)) {
-        attributes = this.options.dataAttributes;
-      }
-      else if (this.options.dataAttributes == 'all') {
-        attributes = Object.keys(this.data);
-      }
-      else {
-        return;
-      }
-
-      for (var i = 0; i < attributes.length; i++) {
-        var name = attributes[i];
-        var value = this.data[name];
-
-        if (value != null) {
-          element.setAttribute('data-' + name, value);
-        }
-        else {
-          element.removeAttribute('data-' + name);
-        }
-      }
-    }
-  };
-
-  /**
-   * Update custom styles of the element
-   * @param element
-   * @private
-   */
-  Item.prototype._updateStyle = function(element) {
-    // remove old styles
-    if (this.style) {
-      util.removeCssText(element, this.style);
-      this.style = null;
-    }
-
-    // append new styles
-    if (this.data.style) {
-      util.addCssText(element, this.data.style);
-      this.style = this.data.style;
-    }
-  };
-
-  module.exports = Item;
-
-
-/***/ },
-/* 34 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var Item = __webpack_require__(33);
-
-  /**
-   * @constructor PointItem
-   * @extends Item
-   * @param {Object} data             Object containing parameters start
-   *                                  content, className.
-   * @param {{toScreen: function, toTime: function}} conversion
-   *                                  Conversion functions from time to screen and vice versa
-   * @param {Object} [options]        Configuration options
-   *                                  // TODO: describe available options
-   */
-  function PointItem (data, conversion, options) {
-    this.props = {
-      dot: {
-        top: 0,
-        width: 0,
-        height: 0
-      },
-      content: {
-        height: 0,
-        marginLeft: 0
-      }
-    };
-
-    // validate data
-    if (data) {
-      if (data.start == undefined) {
-        throw new Error('Property "start" missing in item ' + data);
-      }
-    }
-
-    Item.call(this, data, conversion, options);
-  }
-
-  PointItem.prototype = new Item (null, null, null);
-
-  /**
-   * Check whether this item is visible inside given range
-   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
-   * @returns {boolean} True if visible
-   */
-  PointItem.prototype.isVisible = function(range) {
-    // determine visibility
-    // TODO: account for the real width of the item. Right now we just add 1/4 to the window
-    var interval = (range.end - range.start) / 4;
-    return (this.data.start > range.start - interval) && (this.data.start < range.end + interval);
-  };
-
-  /**
-   * Repaint the item
-   */
-  PointItem.prototype.redraw = function() {
-    var dom = this.dom;
-    if (!dom) {
-      // create DOM
-      this.dom = {};
-      dom = this.dom;
-
-      // background box
-      dom.point = document.createElement('div');
-      // className is updated in redraw()
-
-      // contents box, right from the dot
-      dom.content = document.createElement('div');
-      dom.content.className = 'content';
-      dom.point.appendChild(dom.content);
-
-      // dot at start
-      dom.dot = document.createElement('div');
-      dom.point.appendChild(dom.dot);
-
-      // attach this item as attribute
-      dom.point['timeline-item'] = this;
-
-      this.dirty = true;
-    }
-
-    // append DOM to parent DOM
-    if (!this.parent) {
-      throw new Error('Cannot redraw item: no parent attached');
-    }
-    if (!dom.point.parentNode) {
-      var foreground = this.parent.dom.foreground;
-      if (!foreground) {
-        throw new Error('Cannot redraw item: parent has no foreground container element');
-      }
-      foreground.appendChild(dom.point);
-    }
-    this.displayed = true;
-
-    // Update DOM when item is marked dirty. An item is marked dirty when:
-    // - the item is not yet rendered
-    // - the item's data is changed
-    // - the item is selected/deselected
-    if (this.dirty) {
-      this._updateContents(this.dom.content);
-      this._updateTitle(this.dom.point);
-      this._updateDataAttributes(this.dom.point);
-      this._updateStyle(this.dom.point);
-
-      // update class
-      var className = (this.data.className? ' ' + this.data.className : '') +
-          (this.selected ? ' selected' : '');
-      dom.point.className  = 'item point' + className;
-      dom.dot.className  = 'item dot' + className;
-
-      // recalculate size
-      this.width = dom.point.offsetWidth;
-      this.height = dom.point.offsetHeight;
-      this.props.dot.width = dom.dot.offsetWidth;
-      this.props.dot.height = dom.dot.offsetHeight;
-      this.props.content.height = dom.content.offsetHeight;
-
-      // resize contents
-      dom.content.style.marginLeft = 2 * this.props.dot.width + 'px';
-      //dom.content.style.marginRight = ... + 'px'; // TODO: margin right
-
-      dom.dot.style.top = ((this.height - this.props.dot.height) / 2) + 'px';
-      dom.dot.style.left = (this.props.dot.width / 2) + 'px';
-
-      this.dirty = false;
-    }
-
-    this._repaintDeleteButton(dom.point);
-  };
-
-  /**
-   * Show the item in the DOM (when not already visible). The items DOM will
-   * be created when needed.
-   */
-  PointItem.prototype.show = function() {
-    if (!this.displayed) {
-      this.redraw();
-    }
-  };
-
-  /**
-   * Hide the item from the DOM (when visible)
-   */
-  PointItem.prototype.hide = function() {
-    if (this.displayed) {
-      if (this.dom.point.parentNode) {
-        this.dom.point.parentNode.removeChild(this.dom.point);
-      }
-
-      this.top = null;
-      this.left = null;
-
-      this.displayed = false;
-    }
-  };
-
-  /**
-   * Reposition the item horizontally
-   * @Override
-   */
-  PointItem.prototype.repositionX = function() {
-    var start = this.conversion.toScreen(this.data.start);
-
-    this.left = start - this.props.dot.width;
-
-    // reposition point
-    this.dom.point.style.left = this.left + 'px';
-  };
-
-  /**
-   * Reposition the item vertically
-   * @Override
-   */
-  PointItem.prototype.repositionY = function() {
-    var orientation = this.options.orientation,
-        point = this.dom.point;
-
-    if (orientation == 'top') {
-      point.style.top = this.top + 'px';
-    }
-    else {
-      point.style.top = (this.parent.height - this.top - this.height) + 'px';
-    }
-  };
-
-  module.exports = PointItem;
-
-
-/***/ },
-/* 35 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var Hammer = __webpack_require__(18);
-  var Item = __webpack_require__(33);
-
-  /**
-   * @constructor RangeItem
-   * @extends Item
-   * @param {Object} data             Object containing parameters start, end
-   *                                  content, className.
-   * @param {{toScreen: function, toTime: function}} conversion
-   *                                  Conversion functions from time to screen and vice versa
-   * @param {Object} [options]        Configuration options
-   *                                  // TODO: describe options
-   */
-  function RangeItem (data, conversion, options) {
-    this.props = {
-      content: {
-        width: 0
-      }
-    };
-    this.overflow = false; // if contents can overflow (css styling), this flag is set to true
-
-    // validate data
-    if (data) {
-      if (data.start == undefined) {
-        throw new Error('Property "start" missing in item ' + data.id);
-      }
-      if (data.end == undefined) {
-        throw new Error('Property "end" missing in item ' + data.id);
-      }
-    }
-
-    Item.call(this, data, conversion, options);
-  }
-
-  RangeItem.prototype = new Item (null, null, null);
-
-  RangeItem.prototype.baseClassName = 'item range';
-
-  /**
-   * Check whether this item is visible inside given range
-   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
-   * @returns {boolean} True if visible
-   */
-  RangeItem.prototype.isVisible = function(range) {
-    // determine visibility
-    return (this.data.start < range.end) && (this.data.end > range.start);
-  };
-
-  /**
-   * Repaint the item
-   */
-  RangeItem.prototype.redraw = function() {
-    var dom = this.dom;
-    if (!dom) {
-      // create DOM
-      this.dom = {};
-      dom = this.dom;
-
-        // background box
-      dom.box = document.createElement('div');
-      // className is updated in redraw()
-
-      // contents box
-      dom.content = document.createElement('div');
-      dom.content.className = 'content';
-      dom.box.appendChild(dom.content);
-
-      // attach this item as attribute
-      dom.box['timeline-item'] = this;
-
-      this.dirty = true;
-    }
-
-    // append DOM to parent DOM
-    if (!this.parent) {
-      throw new Error('Cannot redraw item: no parent attached');
-    }
-    if (!dom.box.parentNode) {
-      var foreground = this.parent.dom.foreground;
-      if (!foreground) {
-        throw new Error('Cannot redraw item: parent has no foreground container element');
-      }
-      foreground.appendChild(dom.box);
-    }
-    this.displayed = true;
-
-    // Update DOM when item is marked dirty. An item is marked dirty when:
-    // - the item is not yet rendered
-    // - the item's data is changed
-    // - the item is selected/deselected
-    if (this.dirty) {
-      this._updateContents(this.dom.content);
-      this._updateTitle(this.dom.box);
-      this._updateDataAttributes(this.dom.box);
-      this._updateStyle(this.dom.box);
-
-      // update class
-      var className = (this.data.className ? (' ' + this.data.className) : '') +
-          (this.selected ? ' selected' : '');
-      dom.box.className = this.baseClassName + className;
-
-      // determine from css whether this box has overflow
-      this.overflow = window.getComputedStyle(dom.content).overflow !== 'hidden';
-
-      // recalculate size
-      this.props.content.width = this.dom.content.offsetWidth;
-      this.height = this.dom.box.offsetHeight;
-
-      this.dirty = false;
-    }
-
-    this._repaintDeleteButton(dom.box);
-    this._repaintDragLeft();
-    this._repaintDragRight();
-  };
-
-  /**
-   * Show the item in the DOM (when not already visible). The items DOM will
-   * be created when needed.
-   */
-  RangeItem.prototype.show = function() {
-    if (!this.displayed) {
-      this.redraw();
-    }
-  };
-
-  /**
-   * Hide the item from the DOM (when visible)
-   * @return {Boolean} changed
-   */
-  RangeItem.prototype.hide = function() {
-    if (this.displayed) {
-      var box = this.dom.box;
-
-      if (box.parentNode) {
-        box.parentNode.removeChild(box);
-      }
-
-      this.top = null;
-      this.left = null;
-
-      this.displayed = false;
-    }
-  };
-
-  /**
-   * Reposition the item horizontally
-   * @Override
-   */
-  RangeItem.prototype.repositionX = function() {
-    var parentWidth = this.parent.width;
-    var start = this.conversion.toScreen(this.data.start);
-    var end = this.conversion.toScreen(this.data.end);
-    var contentLeft;
-    var contentWidth;
-
-    // limit the width of the this, as browsers cannot draw very wide divs
-    if (start < -parentWidth) {
-      start = -parentWidth;
-    }
-    if (end > 2 * parentWidth) {
-      end = 2 * parentWidth;
-    }
-    var boxWidth = Math.max(end - start, 1);
-
-    if (this.overflow) {
-      this.left = start;
-      this.width = boxWidth + this.props.content.width;
-      contentWidth = this.props.content.width;
-
-      // Note: The calculation of width is an optimistic calculation, giving
-      //       a width which will not change when moving the Timeline
-      //       So no re-stacking needed, which is nicer for the eye;
-    }
-    else {
-      this.left = start;
-      this.width = boxWidth;
-      contentWidth = Math.min(end - start, this.props.content.width);
-    }
-
-    this.dom.box.style.left = this.left + 'px';
-    this.dom.box.style.width = boxWidth + 'px';
-
-    switch (this.options.align) {
-      case 'left':
-        this.dom.content.style.left = '0';
-        break;
-
-      case 'right':
-        this.dom.content.style.left = Math.max((boxWidth - contentWidth - 2 * this.options.padding), 0) + 'px';
-        break;
-
-      case 'center':
-        this.dom.content.style.left = Math.max((boxWidth - contentWidth - 2 * this.options.padding) / 2, 0) + 'px';
-        break;
-
-      default: // 'auto'
-        if (this.overflow) {
-          // when range exceeds left of the window, position the contents at the left of the visible area
-          contentLeft = Math.max(-start, 0);
-        }
-        else {
-          // when range exceeds left of the window, position the contents at the left of the visible area
-          if (start < 0) {
-            contentLeft = Math.min(-start,
-                (end - start - this.props.content.width - 2 * this.options.padding));
-            // TODO: remove the need for options.padding. it's terrible.
-          }
-          else {
-            contentLeft = 0;
-          }
-        }
-        this.dom.content.style.left = contentLeft + 'px';
-    }
-  };
-
-  /**
-   * Reposition the item vertically
-   * @Override
-   */
-  RangeItem.prototype.repositionY = function() {
-    var orientation = this.options.orientation,
-        box = this.dom.box;
-
-    if (orientation == 'top') {
-      box.style.top = this.top + 'px';
-    }
-    else {
-      box.style.top = (this.parent.height - this.top - this.height) + 'px';
-    }
-  };
-
-  /**
-   * Repaint a drag area on the left side of the range when the range is selected
-   * @protected
-   */
-  RangeItem.prototype._repaintDragLeft = function () {
-    if (this.selected && this.options.editable.updateTime && !this.dom.dragLeft) {
-      // create and show drag area
-      var dragLeft = document.createElement('div');
-      dragLeft.className = 'drag-left';
-      dragLeft.dragLeftItem = this;
-
-      // TODO: this should be redundant?
-      Hammer(dragLeft, {
-        preventDefault: true
-      }).on('drag', function () {
-            //console.log('drag left')
-          });
-
-      this.dom.box.appendChild(dragLeft);
-      this.dom.dragLeft = dragLeft;
-    }
-    else if (!this.selected && this.dom.dragLeft) {
-      // delete drag area
-      if (this.dom.dragLeft.parentNode) {
-        this.dom.dragLeft.parentNode.removeChild(this.dom.dragLeft);
-      }
-      this.dom.dragLeft = null;
-    }
-  };
-
-  /**
-   * Repaint a drag area on the right side of the range when the range is selected
-   * @protected
-   */
-  RangeItem.prototype._repaintDragRight = function () {
-    if (this.selected && this.options.editable.updateTime && !this.dom.dragRight) {
-      // create and show drag area
-      var dragRight = document.createElement('div');
-      dragRight.className = 'drag-right';
-      dragRight.dragRightItem = this;
-
-      // TODO: this should be redundant?
-      Hammer(dragRight, {
-        preventDefault: true
-      }).on('drag', function () {
-        //console.log('drag right')
-      });
-
-      this.dom.box.appendChild(dragRight);
-      this.dom.dragRight = dragRight;
-    }
-    else if (!this.selected && this.dom.dragRight) {
-      // delete drag area
-      if (this.dom.dragRight.parentNode) {
-        this.dom.dragRight.parentNode.removeChild(this.dom.dragRight);
-      }
-      this.dom.dragRight = null;
-    }
-  };
-
-  module.exports = RangeItem;
-
-
-/***/ },
-/* 36 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var Hammer = __webpack_require__(18);
-  var Item = __webpack_require__(33);
-  var RangeItem = __webpack_require__(35);
-
-  /**
-   * @constructor BackgroundItem
-   * @extends Item
-   * @param {Object} data             Object containing parameters start, end
-   *                                  content, className.
-   * @param {{toScreen: function, toTime: function}} conversion
-   *                                  Conversion functions from time to screen and vice versa
-   * @param {Object} [options]        Configuration options
-   *                                  // TODO: describe options
-   */
-  // TODO: implement support for the BackgroundItem just having a start, then being displayed as a sort of an annotation
-  function BackgroundItem (data, conversion, options) {
-    this.props = {
-      content: {
-        width: 0
-      }
-    };
-    this.overflow = false; // if contents can overflow (css styling), this flag is set to true
-
-    // validate data
-    if (data) {
-      if (data.start == undefined) {
-        throw new Error('Property "start" missing in item ' + data.id);
-      }
-      if (data.end == undefined) {
-        throw new Error('Property "end" missing in item ' + data.id);
-      }
-    }
-
-    Item.call(this, data, conversion, options);
-
-    this.ignoreStacking = true; // this is not used when stacking
-    this.emptyContent = false;
-  }
-
-  BackgroundItem.prototype = new Item (null, null, null);
-
-  BackgroundItem.prototype.baseClassName = 'item background';
-
-  /**
-   * Check whether this item is visible inside given range
-   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
-   * @returns {boolean} True if visible
-   */
-  BackgroundItem.prototype.isVisible = function(range) {
-    // determine visibility
-    return (this.data.start < range.end) && (this.data.end > range.start);
-  };
-
-  /**
-   * Repaint the item
-   */
-  BackgroundItem.prototype.redraw = function() {
-    var dom = this.dom;
-    if (!dom) {
-      // create DOM
-      this.dom = {};
-      dom = this.dom;
-
-      // background box
-      dom.box = document.createElement('div');
-      // className is updated in redraw()
-
-      // contents box
-      dom.content = document.createElement('div');
-      dom.content.className = 'content';
-      dom.box.appendChild(dom.content);
-
-      // attach this item as attribute
-      dom.box['timeline-item'] = this;
-
-      this.dirty = true;
-    }
-
-    // append DOM to parent DOM
-    if (!this.parent) {
-      throw new Error('Cannot redraw item: no parent attached');
-    }
-    if (!dom.box.parentNode) {
-      var background = this.parent.dom.background;
-      if (!background) {
-        throw new Error('Cannot redraw item: parent has no background container element');
-      }
-      background.appendChild(dom.box);
-    }
-    this.displayed = true;
-
-    // Update DOM when item is marked dirty. An item is marked dirty when:
-    // - the item is not yet rendered
-    // - the item's data is changed
-    // - the item is selected/deselected
-    if (this.dirty) {
-      this._updateContents(this.dom.content);
-      this._updateTitle(this.dom.content);
-      this._updateDataAttributes(this.dom.content);
-      this._updateStyle(this.dom.box);
-
-      // update class
-      var className = (this.data.className ? (' ' + this.data.className) : '') +
-          (this.selected ? ' selected' : '');
-      dom.box.className = this.baseClassName + className;
-
-      // determine from css whether this box has overflow
-      this.overflow = window.getComputedStyle(dom.content).overflow !== 'hidden';
-
-      // recalculate size
-      this.props.content.width = this.dom.content.offsetWidth;
-      this.height = 0; // set height zero, so this item will be ignored when stacking items
-
-      this.dirty = false;
-    }
-  };
-
-  /**
-   * Show the item in the DOM (when not already visible). The items DOM will
-   * be created when needed.
-   */
-  BackgroundItem.prototype.show = RangeItem.prototype.show;
-
-  /**
-   * Hide the item from the DOM (when visible)
-   * @return {Boolean} changed
-   */
-  BackgroundItem.prototype.hide = RangeItem.prototype.hide;
-
-  /**
-   * Reposition the item horizontally
-   * @Override
-   */
-  BackgroundItem.prototype.repositionX = RangeItem.prototype.repositionX;
-
-  /**
-   * Reposition the item vertically
-   * @Override
-   */
-  BackgroundItem.prototype.repositionY = function(margin) {
-    var onTop = this.options.orientation === 'top';
-    this.dom.content.style.top = onTop ? '' : '0';
-    this.dom.content.style.bottom = onTop ? '0' : '';
-    var height;
-
-    // special positioning for subgroups
-    if (this.data.subgroup !== undefined) {
-      var subgroup = this.data.subgroup;
-      height = this.parent.subgroups[subgroup].height + margin.item.vertical;
-
-
-      // if the orientation is top, we need to take the difference in height into account.
-      if (onTop == true) {
-        // the first subgroup will have to account for the distance from the top to the first item.
-        height += subgroup == 0 ? margin.axis - 0.5*margin.item.vertical : 0;
-        var newTop = this.parent.top + (subgroup) * height;
-
-        // the others will have to be offset downwards with this same distance.
-        newTop += subgroup != 0 ? margin.axis - 0.5 * margin.item.vertical : 0;
-        this.dom.box.style.top = newTop + 'px';
-        this.dom.box.style.bottom = '';
-      }
-      // and when the orientation is bottom:
-      else {
-        var amountvisibleSubgroups = this.parent.visibleSubgroups - 1;
-        this.dom.box.style.top = (amountvisibleSubgroups - subgroup) * height + this.parent.top + 'px';
-        this.dom.box.style.bottom = '';
-      }
-    }
-    // and in the case of no subgroups:
-    else {
-      // we want backgrounds with groups to only show in groups.
-      if (this.data.group !== undefined) {
-        height = this.parent.height;
-        // alignment for items when orientation is top
-        if (onTop == true) {
-          this.dom.box.style.top = this.parent.top + 'px';
-          this.dom.box.style.bottom = '';
-        }
-        // and when the orientation is bottom
-        else {
-          this.dom.box.style.top = this.parent.top + 'px';
-          this.dom.box.style.bottom = '';
-        }
-      }
-      else {
-        // if the item is not in a group:
-        height = Math.max(this.parent.height, this.parent.itemSet.body.domProps.centerContainer.height);
-        this.dom.box.style.top = onTop ? '0' : '';
-        this.dom.box.style.bottom = onTop ? '' : '0';
-      }
-    }
-    this.dom.box.style.height = height + 'px';
-  };
-
-  module.exports = BackgroundItem;
-
-
-/***/ },
-/* 37 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var mousetrap = __webpack_require__(38);
+  var mousetrap = __webpack_require__(32);
   var Emitter = __webpack_require__(10);
   var Hammer = __webpack_require__(18);
   var util = __webpack_require__(1);
@@ -18402,7 +16789,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 38 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -19207,7 +17594,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 39 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Emitter = __webpack_require__(10);
@@ -19220,7 +17607,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var TimeAxis = __webpack_require__(25);
   var CurrentTime = __webpack_require__(27);
   var CustomTime = __webpack_require__(29);
-  var LineGraph = __webpack_require__(40);
+  var LineGraph = __webpack_require__(34);
 
   /**
    * Create a timeline visualization
@@ -19456,7 +17843,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 40 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -19464,9 +17851,9 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(8);
   var Component = __webpack_require__(22);
-  var DataAxis = __webpack_require__(41);
-  var GraphGroup = __webpack_require__(43);
-  var Legend = __webpack_require__(44);
+  var DataAxis = __webpack_require__(35);
+  var GraphGroup = __webpack_require__(37);
+  var Legend = __webpack_require__(38);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -20763,13 +19150,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 41 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(6);
   var Component = __webpack_require__(22);
-  var DataStep = __webpack_require__(42);
+  var DataStep = __webpack_require__(36);
 
   /**
    * A horizontal time axis
@@ -21270,7 +19657,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 42 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -21498,7 +19885,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 43 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -21639,7 +20026,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 44 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -21842,7 +20229,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 45 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Utility functions for ordering and stacking of items
@@ -21930,12 +20317,20 @@ return /******/ (function(modules) { // webpackBootstrap
    *            Margins between items and between items and the axis.
    */
   exports.nostack = function(items, margin, subgroups) {
-    var i, iMax;
+    var i, iMax, newTop;
 
     // reset top position of all items
     for (i = 0, iMax = items.length; i < iMax; i++) {
       if (items[i].data.subgroup !== undefined) {
-        items[i].top = margin.axis + (subgroups[items[i].data.subgroup].height + margin.item.vertical) * items[i].data.subgroup;
+        newTop = margin.axis;
+        for (var subgroupIdx in subgroups) {
+          if (subgroups.hasOwnProperty(subgroupIdx)) {
+            if (subgroups[subgroupIdx].visible == true && subgroupIdx < items[i].data.subgroup) {
+              newTop += subgroups[subgroupIdx].height + margin.item.vertical;
+            }
+          }
+        }
+        items[i].top = newTop;
       }
       else {
         items[i].top = margin.axis;
@@ -21962,12 +20357,1674 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
+/* 40 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var Hammer = __webpack_require__(18);
+  var util = __webpack_require__(1);
+
+  /**
+   * @constructor Item
+   * @param {Object} data             Object containing (optional) parameters type,
+   *                                  start, end, content, group, className.
+   * @param {{toScreen: function, toTime: function}} conversion
+   *                                  Conversion functions from time to screen and vice versa
+   * @param {Object} options          Configuration options
+   *                                  // TODO: describe available options
+   */
+  function Item (data, conversion, options) {
+    this.id = null;
+    this.parent = null;
+    this.data = data;
+    this.dom = null;
+    this.conversion = conversion || {};
+    this.options = options || {};
+
+    this.selected = false;
+    this.displayed = false;
+    this.dirty = true;
+
+    this.top = null;
+    this.left = null;
+    this.width = null;
+    this.height = null;
+
+    this.ignoreStacking = false;
+  }
+
+  /**
+   * Select current item
+   */
+  Item.prototype.select = function() {
+    this.selected = true;
+    this.dirty = true;
+    if (this.displayed) this.redraw();
+  };
+
+  /**
+   * Unselect current item
+   */
+  Item.prototype.unselect = function() {
+    this.selected = false;
+    this.dirty = true;
+    if (this.displayed) this.redraw();
+  };
+
+  /**
+   * Set data for the item. Existing data will be updated. The id should not
+   * be changed. When the item is displayed, it will be redrawn immediately.
+   * @param {Object} data
+   */
+  Item.prototype.setData = function(data) {
+    this.data = data;
+    this.dirty = true;
+    if (this.displayed) this.redraw();
+  };
+
+  /**
+   * Set a parent for the item
+   * @param {ItemSet | Group} parent
+   */
+  Item.prototype.setParent = function(parent) {
+    if (this.displayed) {
+      this.hide();
+      this.parent = parent;
+      if (this.parent) {
+        this.show();
+      }
+    }
+    else {
+      this.parent = parent;
+    }
+  };
+
+  /**
+   * Check whether this item is visible inside given range
+   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+   * @returns {boolean} True if visible
+   */
+  Item.prototype.isVisible = function(range) {
+    // Should be implemented by Item implementations
+    return false;
+  };
+
+  /**
+   * Show the Item in the DOM (when not already visible)
+   * @return {Boolean} changed
+   */
+  Item.prototype.show = function() {
+    return false;
+  };
+
+  /**
+   * Hide the Item from the DOM (when visible)
+   * @return {Boolean} changed
+   */
+  Item.prototype.hide = function() {
+    return false;
+  };
+
+  /**
+   * Repaint the item
+   */
+  Item.prototype.redraw = function() {
+    // should be implemented by the item
+  };
+
+  /**
+   * Reposition the Item horizontally
+   */
+  Item.prototype.repositionX = function() {
+    // should be implemented by the item
+  };
+
+  /**
+   * Reposition the Item vertically
+   */
+  Item.prototype.repositionY = function() {
+    // should be implemented by the item
+  };
+
+  /**
+   * Repaint a delete button on the top right of the item when the item is selected
+   * @param {HTMLElement} anchor
+   * @protected
+   */
+  Item.prototype._repaintDeleteButton = function (anchor) {
+    if (this.selected && this.options.editable.remove && !this.dom.deleteButton) {
+      // create and show button
+      var me = this;
+
+      var deleteButton = document.createElement('div');
+      deleteButton.className = 'delete';
+      deleteButton.title = 'Delete this item';
+
+      Hammer(deleteButton, {
+        preventDefault: true
+      }).on('tap', function (event) {
+        me.parent.removeFromDataSet(me);
+        event.stopPropagation();
+      });
+
+      anchor.appendChild(deleteButton);
+      this.dom.deleteButton = deleteButton;
+    }
+    else if (!this.selected && this.dom.deleteButton) {
+      // remove button
+      if (this.dom.deleteButton.parentNode) {
+        this.dom.deleteButton.parentNode.removeChild(this.dom.deleteButton);
+      }
+      this.dom.deleteButton = null;
+    }
+  };
+
+  /**
+   * Set HTML contents for the item
+   * @param {Element} element   HTML element to fill with the contents
+   * @private
+   */
+  Item.prototype._updateContents = function (element) {
+    var content;
+    if (this.options.template) {
+      var itemData = this.parent.itemSet.itemsData.get(this.id); // get a clone of the data from the dataset
+      content = this.options.template(itemData);
+    }
+    else {
+      content = this.data.content;
+    }
+
+    if(content !== this.content) {
+      // only replace the content when changed
+      if (content instanceof Element) {
+        element.innerHTML = '';
+        element.appendChild(content);
+      }
+      else if (content != undefined) {
+        element.innerHTML = content;
+      }
+      else {
+        if (!(this.data.type == 'background' && this.data.content === undefined)) {
+          throw new Error('Property "content" missing in item ' + this.id);
+        }
+      }
+
+      this.content = content;
+    }
+  };
+
+  /**
+   * Set HTML contents for the item
+   * @param {Element} element   HTML element to fill with the contents
+   * @private
+   */
+  Item.prototype._updateTitle = function (element) {
+    if (this.data.title != null) {
+      element.title = this.data.title || '';
+    }
+    else {
+      element.removeAttribute('title');
+    }
+  };
+
+  /**
+   * Process dataAttributes timeline option and set as data- attributes on dom.content
+   * @param {Element} element   HTML element to which the attributes will be attached
+   * @private
+   */
+   Item.prototype._updateDataAttributes = function(element) {
+    if (this.options.dataAttributes && this.options.dataAttributes.length > 0) {
+      var attributes = [];
+
+      if (Array.isArray(this.options.dataAttributes)) {
+        attributes = this.options.dataAttributes;
+      }
+      else if (this.options.dataAttributes == 'all') {
+        attributes = Object.keys(this.data);
+      }
+      else {
+        return;
+      }
+
+      for (var i = 0; i < attributes.length; i++) {
+        var name = attributes[i];
+        var value = this.data[name];
+
+        if (value != null) {
+          element.setAttribute('data-' + name, value);
+        }
+        else {
+          element.removeAttribute('data-' + name);
+        }
+      }
+    }
+  };
+
+  /**
+   * Update custom styles of the element
+   * @param element
+   * @private
+   */
+  Item.prototype._updateStyle = function(element) {
+    // remove old styles
+    if (this.style) {
+      util.removeCssText(element, this.style);
+      this.style = null;
+    }
+
+    // append new styles
+    if (this.data.style) {
+      util.addCssText(element, this.data.style);
+      this.style = this.data.style;
+    }
+  };
+
+  module.exports = Item;
+
+
+/***/ },
+/* 41 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var Hammer = __webpack_require__(18);
+  var Item = __webpack_require__(40);
+  var RangeItem = __webpack_require__(42);
+
+  /**
+   * @constructor BackgroundItem
+   * @extends Item
+   * @param {Object} data             Object containing parameters start, end
+   *                                  content, className.
+   * @param {{toScreen: function, toTime: function}} conversion
+   *                                  Conversion functions from time to screen and vice versa
+   * @param {Object} [options]        Configuration options
+   *                                  // TODO: describe options
+   */
+  // TODO: implement support for the BackgroundItem just having a start, then being displayed as a sort of an annotation
+  function BackgroundItem (data, conversion, options) {
+    this.props = {
+      content: {
+        width: 0
+      }
+    };
+    this.overflow = false; // if contents can overflow (css styling), this flag is set to true
+
+    // validate data
+    if (data) {
+      if (data.start == undefined) {
+        throw new Error('Property "start" missing in item ' + data.id);
+      }
+      if (data.end == undefined) {
+        throw new Error('Property "end" missing in item ' + data.id);
+      }
+    }
+
+    Item.call(this, data, conversion, options);
+
+    this.ignoreStacking = true; // this is not used when stacking
+    this.emptyContent = false;
+  }
+
+  BackgroundItem.prototype = new Item (null, null, null);
+
+  BackgroundItem.prototype.baseClassName = 'item background';
+
+  /**
+   * Check whether this item is visible inside given range
+   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+   * @returns {boolean} True if visible
+   */
+  BackgroundItem.prototype.isVisible = function(range) {
+    // determine visibility
+    return (this.data.start < range.end) && (this.data.end > range.start);
+  };
+
+  /**
+   * Repaint the item
+   */
+  BackgroundItem.prototype.redraw = function() {
+    var dom = this.dom;
+    if (!dom) {
+      // create DOM
+      this.dom = {};
+      dom = this.dom;
+
+      // background box
+      dom.box = document.createElement('div');
+      // className is updated in redraw()
+
+      // contents box
+      dom.content = document.createElement('div');
+      dom.content.className = 'content';
+      dom.box.appendChild(dom.content);
+
+      // attach this item as attribute
+      dom.box['timeline-item'] = this;
+
+      this.dirty = true;
+    }
+
+    // append DOM to parent DOM
+    if (!this.parent) {
+      throw new Error('Cannot redraw item: no parent attached');
+    }
+    if (!dom.box.parentNode) {
+      var background = this.parent.dom.background;
+      if (!background) {
+        throw new Error('Cannot redraw item: parent has no background container element');
+      }
+      background.appendChild(dom.box);
+    }
+    this.displayed = true;
+
+    // Update DOM when item is marked dirty. An item is marked dirty when:
+    // - the item is not yet rendered
+    // - the item's data is changed
+    // - the item is selected/deselected
+    if (this.dirty) {
+      this._updateContents(this.dom.content);
+      this._updateTitle(this.dom.content);
+      this._updateDataAttributes(this.dom.content);
+      this._updateStyle(this.dom.box);
+
+      // update class
+      var className = (this.data.className ? (' ' + this.data.className) : '') +
+          (this.selected ? ' selected' : '');
+      dom.box.className = this.baseClassName + className;
+
+      // determine from css whether this box has overflow
+      this.overflow = window.getComputedStyle(dom.content).overflow !== 'hidden';
+
+      // recalculate size
+      this.props.content.width = this.dom.content.offsetWidth;
+      this.height = 0; // set height zero, so this item will be ignored when stacking items
+
+      this.dirty = false;
+    }
+  };
+
+  /**
+   * Show the item in the DOM (when not already visible). The items DOM will
+   * be created when needed.
+   */
+  BackgroundItem.prototype.show = RangeItem.prototype.show;
+
+  /**
+   * Hide the item from the DOM (when visible)
+   * @return {Boolean} changed
+   */
+  BackgroundItem.prototype.hide = RangeItem.prototype.hide;
+
+  /**
+   * Reposition the item horizontally
+   * @Override
+   */
+  BackgroundItem.prototype.repositionX = RangeItem.prototype.repositionX;
+
+  /**
+   * Reposition the item vertically
+   * @Override
+   */
+  BackgroundItem.prototype.repositionY = function(margin) {
+    var onTop = this.options.orientation === 'top';
+    this.dom.content.style.top = onTop ? '' : '0';
+    this.dom.content.style.bottom = onTop ? '0' : '';
+    var height;
+
+    // special positioning for subgroups
+    if (this.data.subgroup !== undefined) {
+      var subgroup = this.data.subgroup;
+      var subgroups = this.parent.subgroups;
+      // if the orientation is top, we need to take the difference in height into account.
+      if (onTop == true) {
+        // the first subgroup will have to account for the distance from the top to the first item.
+        height = this.parent.subgroups[subgroup].height + margin.item.vertical;
+        height += subgroup == 0 ? margin.axis - 0.5*margin.item.vertical : 0;
+        var newTop = this.parent.top;
+        for (var subgroupIdx in subgroups) {
+          if (subgroups.hasOwnProperty(subgroupIdx)) {
+            if (subgroups[subgroupIdx].visible == true && subgroupIdx < subgroup) {
+              newTop += subgroups[subgroupIdx].height + margin.item.vertical;
+            }
+          }
+        }
+
+        // the others will have to be offset downwards with this same distance.
+        newTop += subgroup != 0 ? margin.axis - 0.5 * margin.item.vertical : 0;
+        this.dom.box.style.top = newTop + 'px';
+        this.dom.box.style.bottom = '';
+      }
+      // and when the orientation is bottom:
+      else {
+        var newTop = this.parent.top;
+        for (var subgroupIdx in subgroups) {
+          if (subgroups.hasOwnProperty(subgroupIdx)) {
+            if (subgroups[subgroupIdx].visible == true && subgroupIdx > subgroup) {
+              newTop += subgroups[subgroupIdx].height + margin.item.vertical;
+            }
+          }
+        }
+        height = this.parent.subgroups[subgroup].height + margin.item.vertical;
+        this.dom.box.style.top = newTop + 'px';
+        this.dom.box.style.bottom = '';
+      }
+    }
+    // and in the case of no subgroups:
+    else {
+      // we want backgrounds with groups to only show in groups.
+      if (this.data.group !== undefined) {
+        height = this.parent.height;
+        // same alignment for items when orientation is top or bottom
+        this.dom.box.style.top = this.parent.top + 'px';
+        this.dom.box.style.bottom = '';
+      }
+      else {
+        // if the item is not in a group:
+        height = Math.max(this.parent.height, this.parent.itemSet.body.domProps.centerContainer.height);
+        this.dom.box.style.top = onTop ? '0' : '';
+        this.dom.box.style.bottom = onTop ? '' : '0';
+      }
+    }
+    this.dom.box.style.height = height + 'px';
+  };
+
+  module.exports = BackgroundItem;
+
+
+/***/ },
+/* 42 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var Hammer = __webpack_require__(18);
+  var Item = __webpack_require__(40);
+
+  /**
+   * @constructor RangeItem
+   * @extends Item
+   * @param {Object} data             Object containing parameters start, end
+   *                                  content, className.
+   * @param {{toScreen: function, toTime: function}} conversion
+   *                                  Conversion functions from time to screen and vice versa
+   * @param {Object} [options]        Configuration options
+   *                                  // TODO: describe options
+   */
+  function RangeItem (data, conversion, options) {
+    this.props = {
+      content: {
+        width: 0
+      }
+    };
+    this.overflow = false; // if contents can overflow (css styling), this flag is set to true
+
+    // validate data
+    if (data) {
+      if (data.start == undefined) {
+        throw new Error('Property "start" missing in item ' + data.id);
+      }
+      if (data.end == undefined) {
+        throw new Error('Property "end" missing in item ' + data.id);
+      }
+    }
+
+    Item.call(this, data, conversion, options);
+  }
+
+  RangeItem.prototype = new Item (null, null, null);
+
+  RangeItem.prototype.baseClassName = 'item range';
+
+  /**
+   * Check whether this item is visible inside given range
+   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+   * @returns {boolean} True if visible
+   */
+  RangeItem.prototype.isVisible = function(range) {
+    // determine visibility
+    return (this.data.start < range.end) && (this.data.end > range.start);
+  };
+
+  /**
+   * Repaint the item
+   */
+  RangeItem.prototype.redraw = function() {
+    var dom = this.dom;
+    if (!dom) {
+      // create DOM
+      this.dom = {};
+      dom = this.dom;
+
+        // background box
+      dom.box = document.createElement('div');
+      // className is updated in redraw()
+
+      // contents box
+      dom.content = document.createElement('div');
+      dom.content.className = 'content';
+      dom.box.appendChild(dom.content);
+
+      // attach this item as attribute
+      dom.box['timeline-item'] = this;
+
+      this.dirty = true;
+    }
+
+    // append DOM to parent DOM
+    if (!this.parent) {
+      throw new Error('Cannot redraw item: no parent attached');
+    }
+    if (!dom.box.parentNode) {
+      var foreground = this.parent.dom.foreground;
+      if (!foreground) {
+        throw new Error('Cannot redraw item: parent has no foreground container element');
+      }
+      foreground.appendChild(dom.box);
+    }
+    this.displayed = true;
+
+    // Update DOM when item is marked dirty. An item is marked dirty when:
+    // - the item is not yet rendered
+    // - the item's data is changed
+    // - the item is selected/deselected
+    if (this.dirty) {
+      this._updateContents(this.dom.content);
+      this._updateTitle(this.dom.box);
+      this._updateDataAttributes(this.dom.box);
+      this._updateStyle(this.dom.box);
+
+      // update class
+      var className = (this.data.className ? (' ' + this.data.className) : '') +
+          (this.selected ? ' selected' : '');
+      dom.box.className = this.baseClassName + className;
+
+      // determine from css whether this box has overflow
+      this.overflow = window.getComputedStyle(dom.content).overflow !== 'hidden';
+
+      // recalculate size
+      this.props.content.width = this.dom.content.offsetWidth;
+      this.height = this.dom.box.offsetHeight;
+
+      this.dirty = false;
+    }
+
+    this._repaintDeleteButton(dom.box);
+    this._repaintDragLeft();
+    this._repaintDragRight();
+  };
+
+  /**
+   * Show the item in the DOM (when not already visible). The items DOM will
+   * be created when needed.
+   */
+  RangeItem.prototype.show = function() {
+    if (!this.displayed) {
+      this.redraw();
+    }
+  };
+
+  /**
+   * Hide the item from the DOM (when visible)
+   * @return {Boolean} changed
+   */
+  RangeItem.prototype.hide = function() {
+    if (this.displayed) {
+      var box = this.dom.box;
+
+      if (box.parentNode) {
+        box.parentNode.removeChild(box);
+      }
+
+      this.top = null;
+      this.left = null;
+
+      this.displayed = false;
+    }
+  };
+
+  /**
+   * Reposition the item horizontally
+   * @Override
+   */
+  RangeItem.prototype.repositionX = function() {
+    var parentWidth = this.parent.width;
+    var start = this.conversion.toScreen(this.data.start);
+    var end = this.conversion.toScreen(this.data.end);
+    var contentLeft;
+    var contentWidth;
+
+    // limit the width of the this, as browsers cannot draw very wide divs
+    if (start < -parentWidth) {
+      start = -parentWidth;
+    }
+    if (end > 2 * parentWidth) {
+      end = 2 * parentWidth;
+    }
+    var boxWidth = Math.max(end - start, 1);
+
+    if (this.overflow) {
+      this.left = start;
+      this.width = boxWidth + this.props.content.width;
+      contentWidth = this.props.content.width;
+
+      // Note: The calculation of width is an optimistic calculation, giving
+      //       a width which will not change when moving the Timeline
+      //       So no re-stacking needed, which is nicer for the eye;
+    }
+    else {
+      this.left = start;
+      this.width = boxWidth;
+      contentWidth = Math.min(end - start, this.props.content.width);
+    }
+
+    this.dom.box.style.left = this.left + 'px';
+    this.dom.box.style.width = boxWidth + 'px';
+
+    switch (this.options.align) {
+      case 'left':
+        this.dom.content.style.left = '0';
+        break;
+
+      case 'right':
+        this.dom.content.style.left = Math.max((boxWidth - contentWidth - 2 * this.options.padding), 0) + 'px';
+        break;
+
+      case 'center':
+        this.dom.content.style.left = Math.max((boxWidth - contentWidth - 2 * this.options.padding) / 2, 0) + 'px';
+        break;
+
+      default: // 'auto'
+        if (this.overflow) {
+          // when range exceeds left of the window, position the contents at the left of the visible area
+          contentLeft = Math.max(-start, 0);
+        }
+        else {
+          // when range exceeds left of the window, position the contents at the left of the visible area
+          if (start < 0) {
+            contentLeft = Math.min(-start,
+                (end - start - this.props.content.width - 2 * this.options.padding));
+            // TODO: remove the need for options.padding. it's terrible.
+          }
+          else {
+            contentLeft = 0;
+          }
+        }
+        this.dom.content.style.left = contentLeft + 'px';
+    }
+  };
+
+  /**
+   * Reposition the item vertically
+   * @Override
+   */
+  RangeItem.prototype.repositionY = function() {
+    var orientation = this.options.orientation,
+        box = this.dom.box;
+
+    if (orientation == 'top') {
+      box.style.top = this.top + 'px';
+    }
+    else {
+      box.style.top = (this.parent.height - this.top - this.height) + 'px';
+    }
+  };
+
+  /**
+   * Repaint a drag area on the left side of the range when the range is selected
+   * @protected
+   */
+  RangeItem.prototype._repaintDragLeft = function () {
+    if (this.selected && this.options.editable.updateTime && !this.dom.dragLeft) {
+      // create and show drag area
+      var dragLeft = document.createElement('div');
+      dragLeft.className = 'drag-left';
+      dragLeft.dragLeftItem = this;
+
+      // TODO: this should be redundant?
+      Hammer(dragLeft, {
+        preventDefault: true
+      }).on('drag', function () {
+            //console.log('drag left')
+          });
+
+      this.dom.box.appendChild(dragLeft);
+      this.dom.dragLeft = dragLeft;
+    }
+    else if (!this.selected && this.dom.dragLeft) {
+      // delete drag area
+      if (this.dom.dragLeft.parentNode) {
+        this.dom.dragLeft.parentNode.removeChild(this.dom.dragLeft);
+      }
+      this.dom.dragLeft = null;
+    }
+  };
+
+  /**
+   * Repaint a drag area on the right side of the range when the range is selected
+   * @protected
+   */
+  RangeItem.prototype._repaintDragRight = function () {
+    if (this.selected && this.options.editable.updateTime && !this.dom.dragRight) {
+      // create and show drag area
+      var dragRight = document.createElement('div');
+      dragRight.className = 'drag-right';
+      dragRight.dragRightItem = this;
+
+      // TODO: this should be redundant?
+      Hammer(dragRight, {
+        preventDefault: true
+      }).on('drag', function () {
+        //console.log('drag right')
+      });
+
+      this.dom.box.appendChild(dragRight);
+      this.dom.dragRight = dragRight;
+    }
+    else if (!this.selected && this.dom.dragRight) {
+      // delete drag area
+      if (this.dom.dragRight.parentNode) {
+        this.dom.dragRight.parentNode.removeChild(this.dom.dragRight);
+      }
+      this.dom.dragRight = null;
+    }
+  };
+
+  module.exports = RangeItem;
+
+
+/***/ },
+/* 43 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var Item = __webpack_require__(40);
+  var util = __webpack_require__(1);
+
+  /**
+   * @constructor BoxItem
+   * @extends Item
+   * @param {Object} data             Object containing parameters start
+   *                                  content, className.
+   * @param {{toScreen: function, toTime: function}} conversion
+   *                                  Conversion functions from time to screen and vice versa
+   * @param {Object} [options]        Configuration options
+   *                                  // TODO: describe available options
+   */
+  function BoxItem (data, conversion, options) {
+    this.props = {
+      dot: {
+        width: 0,
+        height: 0
+      },
+      line: {
+        width: 0,
+        height: 0
+      }
+    };
+
+    // validate data
+    if (data) {
+      if (data.start == undefined) {
+        throw new Error('Property "start" missing in item ' + data);
+      }
+    }
+
+    Item.call(this, data, conversion, options);
+  }
+
+  BoxItem.prototype = new Item (null, null, null);
+
+  /**
+   * Check whether this item is visible inside given range
+   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+   * @returns {boolean} True if visible
+   */
+  BoxItem.prototype.isVisible = function(range) {
+    // determine visibility
+    // TODO: account for the real width of the item. Right now we just add 1/4 to the window
+    var interval = (range.end - range.start) / 4;
+    return (this.data.start > range.start - interval) && (this.data.start < range.end + interval);
+  };
+
+  /**
+   * Repaint the item
+   */
+  BoxItem.prototype.redraw = function() {
+    var dom = this.dom;
+    if (!dom) {
+      // create DOM
+      this.dom = {};
+      dom = this.dom;
+
+      // create main box
+      dom.box = document.createElement('DIV');
+
+      // contents box (inside the background box). used for making margins
+      dom.content = document.createElement('DIV');
+      dom.content.className = 'content';
+      dom.box.appendChild(dom.content);
+
+      // line to axis
+      dom.line = document.createElement('DIV');
+      dom.line.className = 'line';
+
+      // dot on axis
+      dom.dot = document.createElement('DIV');
+      dom.dot.className = 'dot';
+
+      // attach this item as attribute
+      dom.box['timeline-item'] = this;
+
+      this.dirty = true;
+    }
+
+    // append DOM to parent DOM
+    if (!this.parent) {
+      throw new Error('Cannot redraw item: no parent attached');
+    }
+    if (!dom.box.parentNode) {
+      var foreground = this.parent.dom.foreground;
+      if (!foreground) throw new Error('Cannot redraw item: parent has no foreground container element');
+      foreground.appendChild(dom.box);
+    }
+    if (!dom.line.parentNode) {
+      var background = this.parent.dom.background;
+      if (!background) throw new Error('Cannot redraw item: parent has no background container element');
+      background.appendChild(dom.line);
+    }
+    if (!dom.dot.parentNode) {
+      var axis = this.parent.dom.axis;
+      if (!background) throw new Error('Cannot redraw item: parent has no axis container element');
+      axis.appendChild(dom.dot);
+    }
+    this.displayed = true;
+
+    // Update DOM when item is marked dirty. An item is marked dirty when:
+    // - the item is not yet rendered
+    // - the item's data is changed
+    // - the item is selected/deselected
+    if (this.dirty) {
+      this._updateContents(this.dom.content);
+      this._updateTitle(this.dom.box);
+      this._updateDataAttributes(this.dom.box);
+      this._updateStyle(this.dom.box);
+
+      // update class
+      var className = (this.data.className? ' ' + this.data.className : '') +
+          (this.selected ? ' selected' : '');
+      dom.box.className = 'item box' + className;
+      dom.line.className = 'item line' + className;
+      dom.dot.className  = 'item dot' + className;
+
+      // recalculate size
+      this.props.dot.height = dom.dot.offsetHeight;
+      this.props.dot.width = dom.dot.offsetWidth;
+      this.props.line.width = dom.line.offsetWidth;
+      this.width = dom.box.offsetWidth;
+      this.height = dom.box.offsetHeight;
+
+      this.dirty = false;
+    }
+
+    this._repaintDeleteButton(dom.box);
+  };
+
+  /**
+   * Show the item in the DOM (when not already displayed). The items DOM will
+   * be created when needed.
+   */
+  BoxItem.prototype.show = function() {
+    if (!this.displayed) {
+      this.redraw();
+    }
+  };
+
+  /**
+   * Hide the item from the DOM (when visible)
+   */
+  BoxItem.prototype.hide = function() {
+    if (this.displayed) {
+      var dom = this.dom;
+
+      if (dom.box.parentNode)   dom.box.parentNode.removeChild(dom.box);
+      if (dom.line.parentNode)  dom.line.parentNode.removeChild(dom.line);
+      if (dom.dot.parentNode)   dom.dot.parentNode.removeChild(dom.dot);
+
+      this.top = null;
+      this.left = null;
+
+      this.displayed = false;
+    }
+  };
+
+  /**
+   * Reposition the item horizontally
+   * @Override
+   */
+  BoxItem.prototype.repositionX = function() {
+    var start = this.conversion.toScreen(this.data.start);
+    var align = this.options.align;
+    var left;
+    var box = this.dom.box;
+    var line = this.dom.line;
+    var dot = this.dom.dot;
+
+    // calculate left position of the box
+    if (align == 'right') {
+      this.left = start - this.width;
+    }
+    else if (align == 'left') {
+      this.left = start;
+    }
+    else {
+      // default or 'center'
+      this.left = start - this.width / 2;
+    }
+
+    // reposition box
+    box.style.left = this.left + 'px';
+
+    // reposition line
+    line.style.left = (start - this.props.line.width / 2) + 'px';
+
+    // reposition dot
+    dot.style.left = (start - this.props.dot.width / 2) + 'px';
+  };
+
+  /**
+   * Reposition the item vertically
+   * @Override
+   */
+  BoxItem.prototype.repositionY = function() {
+    var orientation = this.options.orientation;
+    var box = this.dom.box;
+    var line = this.dom.line;
+    var dot = this.dom.dot;
+
+    if (orientation == 'top') {
+      box.style.top     = (this.top || 0) + 'px';
+
+      line.style.top    = '0';
+      line.style.height = (this.parent.top + this.top + 1) + 'px';
+      line.style.bottom = '';
+    }
+    else { // orientation 'bottom'
+      var itemSetHeight = this.parent.itemSet.props.height; // TODO: this is nasty
+      var lineHeight = itemSetHeight - this.parent.top - this.parent.height + this.top;
+
+      box.style.top     = (this.parent.height - this.top - this.height || 0) + 'px';
+      line.style.top    = (itemSetHeight - lineHeight) + 'px';
+      line.style.bottom = '0';
+    }
+
+    dot.style.top = (-this.props.dot.height / 2) + 'px';
+  };
+
+  module.exports = BoxItem;
+
+
+/***/ },
+/* 44 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var Item = __webpack_require__(40);
+
+  /**
+   * @constructor PointItem
+   * @extends Item
+   * @param {Object} data             Object containing parameters start
+   *                                  content, className.
+   * @param {{toScreen: function, toTime: function}} conversion
+   *                                  Conversion functions from time to screen and vice versa
+   * @param {Object} [options]        Configuration options
+   *                                  // TODO: describe available options
+   */
+  function PointItem (data, conversion, options) {
+    this.props = {
+      dot: {
+        top: 0,
+        width: 0,
+        height: 0
+      },
+      content: {
+        height: 0,
+        marginLeft: 0
+      }
+    };
+
+    // validate data
+    if (data) {
+      if (data.start == undefined) {
+        throw new Error('Property "start" missing in item ' + data);
+      }
+    }
+
+    Item.call(this, data, conversion, options);
+  }
+
+  PointItem.prototype = new Item (null, null, null);
+
+  /**
+   * Check whether this item is visible inside given range
+   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+   * @returns {boolean} True if visible
+   */
+  PointItem.prototype.isVisible = function(range) {
+    // determine visibility
+    // TODO: account for the real width of the item. Right now we just add 1/4 to the window
+    var interval = (range.end - range.start) / 4;
+    return (this.data.start > range.start - interval) && (this.data.start < range.end + interval);
+  };
+
+  /**
+   * Repaint the item
+   */
+  PointItem.prototype.redraw = function() {
+    var dom = this.dom;
+    if (!dom) {
+      // create DOM
+      this.dom = {};
+      dom = this.dom;
+
+      // background box
+      dom.point = document.createElement('div');
+      // className is updated in redraw()
+
+      // contents box, right from the dot
+      dom.content = document.createElement('div');
+      dom.content.className = 'content';
+      dom.point.appendChild(dom.content);
+
+      // dot at start
+      dom.dot = document.createElement('div');
+      dom.point.appendChild(dom.dot);
+
+      // attach this item as attribute
+      dom.point['timeline-item'] = this;
+
+      this.dirty = true;
+    }
+
+    // append DOM to parent DOM
+    if (!this.parent) {
+      throw new Error('Cannot redraw item: no parent attached');
+    }
+    if (!dom.point.parentNode) {
+      var foreground = this.parent.dom.foreground;
+      if (!foreground) {
+        throw new Error('Cannot redraw item: parent has no foreground container element');
+      }
+      foreground.appendChild(dom.point);
+    }
+    this.displayed = true;
+
+    // Update DOM when item is marked dirty. An item is marked dirty when:
+    // - the item is not yet rendered
+    // - the item's data is changed
+    // - the item is selected/deselected
+    if (this.dirty) {
+      this._updateContents(this.dom.content);
+      this._updateTitle(this.dom.point);
+      this._updateDataAttributes(this.dom.point);
+      this._updateStyle(this.dom.point);
+
+      // update class
+      var className = (this.data.className? ' ' + this.data.className : '') +
+          (this.selected ? ' selected' : '');
+      dom.point.className  = 'item point' + className;
+      dom.dot.className  = 'item dot' + className;
+
+      // recalculate size
+      this.width = dom.point.offsetWidth;
+      this.height = dom.point.offsetHeight;
+      this.props.dot.width = dom.dot.offsetWidth;
+      this.props.dot.height = dom.dot.offsetHeight;
+      this.props.content.height = dom.content.offsetHeight;
+
+      // resize contents
+      dom.content.style.marginLeft = 2 * this.props.dot.width + 'px';
+      //dom.content.style.marginRight = ... + 'px'; // TODO: margin right
+
+      dom.dot.style.top = ((this.height - this.props.dot.height) / 2) + 'px';
+      dom.dot.style.left = (this.props.dot.width / 2) + 'px';
+
+      this.dirty = false;
+    }
+
+    this._repaintDeleteButton(dom.point);
+  };
+
+  /**
+   * Show the item in the DOM (when not already visible). The items DOM will
+   * be created when needed.
+   */
+  PointItem.prototype.show = function() {
+    if (!this.displayed) {
+      this.redraw();
+    }
+  };
+
+  /**
+   * Hide the item from the DOM (when visible)
+   */
+  PointItem.prototype.hide = function() {
+    if (this.displayed) {
+      if (this.dom.point.parentNode) {
+        this.dom.point.parentNode.removeChild(this.dom.point);
+      }
+
+      this.top = null;
+      this.left = null;
+
+      this.displayed = false;
+    }
+  };
+
+  /**
+   * Reposition the item horizontally
+   * @Override
+   */
+  PointItem.prototype.repositionX = function() {
+    var start = this.conversion.toScreen(this.data.start);
+
+    this.left = start - this.props.dot.width;
+
+    // reposition point
+    this.dom.point.style.left = this.left + 'px';
+  };
+
+  /**
+   * Reposition the item vertically
+   * @Override
+   */
+  PointItem.prototype.repositionY = function() {
+    var orientation = this.options.orientation,
+        point = this.dom.point;
+
+    if (orientation == 'top') {
+      point.style.top = this.top + 'px';
+    }
+    else {
+      point.style.top = (this.parent.height - this.top - this.height) + 'px';
+    }
+  };
+
+  module.exports = PointItem;
+
+
+/***/ },
+/* 45 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var util = __webpack_require__(1);
+  var stack = __webpack_require__(39);
+  var RangeItem = __webpack_require__(42);
+  var DateUtil = __webpack_require__(23);
+
+  /**
+   * @constructor Group
+   * @param {Number | String} groupId
+   * @param {Object} data
+   * @param {ItemSet} itemSet
+   */
+  function Group (groupId, data, itemSet) {
+    this.groupId = groupId;
+    this.subgroups = {};
+    this.visibleSubgroups = 0;
+    this.itemSet = itemSet;
+
+    this.dom = {};
+    this.props = {
+      label: {
+        width: 0,
+        height: 0
+      }
+    };
+    this.className = null;
+
+    this.items = {};        // items filtered by groupId of this group
+    this.visibleItems = []; // items currently visible in window
+    this.orderedItems = {   // items sorted by start and by end
+      byStart: [],
+      byEnd: []
+    };
+
+    this._create();
+
+    this.setData(data);
+  }
+
+  /**
+   * Create DOM elements for the group
+   * @private
+   */
+  Group.prototype._create = function() {
+    var label = document.createElement('div');
+    label.className = 'vlabel';
+    this.dom.label = label;
+
+    var inner = document.createElement('div');
+    inner.className = 'inner';
+    label.appendChild(inner);
+    this.dom.inner = inner;
+
+    var foreground = document.createElement('div');
+    foreground.className = 'group';
+    foreground['timeline-group'] = this;
+    this.dom.foreground = foreground;
+
+    this.dom.background = document.createElement('div');
+    this.dom.background.className = 'group';
+
+    this.dom.axis = document.createElement('div');
+    this.dom.axis.className = 'group';
+
+    // create a hidden marker to detect when the Timelines container is attached
+    // to the DOM, or the style of a parent of the Timeline is changed from
+    // display:none is changed to visible.
+    this.dom.marker = document.createElement('div');
+    this.dom.marker.style.visibility = 'hidden'; // TODO: ask jos why this is not none?
+    this.dom.marker.innerHTML = '?';
+    this.dom.background.appendChild(this.dom.marker);
+  };
+
+  /**
+   * Set the group data for this group
+   * @param {Object} data   Group data, can contain properties content and className
+   */
+  Group.prototype.setData = function(data) {
+    // update contents
+    var content = data && data.content;
+    if (content instanceof Element) {
+      this.dom.inner.appendChild(content);
+    }
+    else if (content !== undefined && content !== null) {
+      this.dom.inner.innerHTML = content;
+    }
+    else {
+      this.dom.inner.innerHTML = this.groupId || ''; // groupId can be null
+    }
+
+    // update title
+    this.dom.label.title = data && data.title || '';
+
+    if (!this.dom.inner.firstChild) {
+      util.addClassName(this.dom.inner, 'hidden');
+    }
+    else {
+      util.removeClassName(this.dom.inner, 'hidden');
+    }
+
+    // update className
+    var className = data && data.className || null;
+    if (className != this.className) {
+      if (this.className) {
+        util.removeClassName(this.dom.label, this.className);
+        util.removeClassName(this.dom.foreground, this.className);
+        util.removeClassName(this.dom.background, this.className);
+        util.removeClassName(this.dom.axis, this.className);
+      }
+      util.addClassName(this.dom.label, className);
+      util.addClassName(this.dom.foreground, className);
+      util.addClassName(this.dom.background, className);
+      util.addClassName(this.dom.axis, className);
+      this.className = className;
+    }
+
+    // update style
+    if (this.style) {
+      util.removeCssText(this.dom.label, this.style);
+      this.style = null;
+    }
+    if (data && data.style) {
+      util.addCssText(this.dom.label, data.style);
+      this.style = data.style;
+    }
+  };
+
+  /**
+   * Get the width of the group label
+   * @return {number} width
+   */
+  Group.prototype.getLabelWidth = function() {
+    return this.props.label.width;
+  };
+
+
+  /**
+   * Repaint this group
+   * @param {{start: number, end: number}} range
+   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
+   * @param {boolean} [restack=false]  Force restacking of all items
+   * @return {boolean} Returns true if the group is resized
+   */
+  Group.prototype.redraw = function(range, margin, restack) {
+    var resized = false;
+
+    this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
+
+    // force recalculation of the height of the items when the marker height changed
+    // (due to the Timeline being attached to the DOM or changed from display:none to visible)
+    var markerHeight = this.dom.marker.clientHeight;
+    if (markerHeight != this.lastMarkerHeight) {
+      this.lastMarkerHeight = markerHeight;
+
+      util.forEach(this.items, function (item) {
+        item.dirty = true;
+        if (item.displayed) item.redraw();
+      });
+
+      restack = true;
+    }
+
+    // reposition visible items vertically
+    if (this.itemSet.options.stack) { // TODO: ugly way to access options...
+      stack.stack(this.visibleItems, margin, restack);
+    }
+    else { // no stacking
+      stack.nostack(this.visibleItems, margin, this.subgroups);
+    }
+
+    // recalculate the height of the group
+    var height;
+    var visibleItems = this.visibleItems;
+    //var visibleSubgroups = [];
+    //this.visibleSubgroups = 0;
+    this.resetSubgroups();
+    var me = this;
+    if (visibleItems.length) {
+      var min = visibleItems[0].top;
+      var max = visibleItems[0].top + visibleItems[0].height;
+      util.forEach(visibleItems, function (item) {
+        min = Math.min(min, item.top);
+        max = Math.max(max, (item.top + item.height));
+        if (item.data.subgroup !== undefined) {
+          me.subgroups[item.data.subgroup].height = Math.max(me.subgroups[item.data.subgroup].height,item.height);
+          me.subgroups[item.data.subgroup].visible = true;
+          //if (visibleSubgroups.indexOf(item.data.subgroup) == -1){
+          //  visibleSubgroups.push(item.data.subgroup);
+          //  me.visibleSubgroups += 1;
+          //}
+        }
+      });
+      if (min > margin.axis) {
+        // there is an empty gap between the lowest item and the axis
+        var offset = min - margin.axis;
+        max -= offset;
+        util.forEach(visibleItems, function (item) {
+          item.top -= offset;
+        });
+      }
+      height = max + margin.item.vertical / 2;
+    }
+    else {
+      height = margin.axis + margin.item.vertical;
+    }
+    height = Math.max(height, this.props.label.height);
+
+    // calculate actual size and position
+    var foreground = this.dom.foreground;
+    this.top = foreground.offsetTop;
+    this.left = foreground.offsetLeft;
+    this.width = foreground.offsetWidth;
+    resized = util.updateProperty(this, 'height', height) || resized;
+
+    // recalculate size of label
+    resized = util.updateProperty(this.props.label, 'width', this.dom.inner.clientWidth) || resized;
+    resized = util.updateProperty(this.props.label, 'height', this.dom.inner.clientHeight) || resized;
+
+    // apply new height
+    this.dom.background.style.height  = height + 'px';
+    this.dom.foreground.style.height  = height + 'px';
+    this.dom.label.style.height = height + 'px';
+
+    // update vertical position of items after they are re-stacked and the height of the group is calculated
+    for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
+      var item = this.visibleItems[i];
+      item.repositionY(margin);
+    }
+
+    return resized;
+  };
+
+  /**
+   * Show this group: attach to the DOM
+   */
+  Group.prototype.show = function() {
+    if (!this.dom.label.parentNode) {
+      this.itemSet.dom.labelSet.appendChild(this.dom.label);
+    }
+
+    if (!this.dom.foreground.parentNode) {
+      this.itemSet.dom.foreground.appendChild(this.dom.foreground);
+    }
+
+    if (!this.dom.background.parentNode) {
+      this.itemSet.dom.background.appendChild(this.dom.background);
+    }
+
+    if (!this.dom.axis.parentNode) {
+      this.itemSet.dom.axis.appendChild(this.dom.axis);
+    }
+  };
+
+  /**
+   * Hide this group: remove from the DOM
+   */
+  Group.prototype.hide = function() {
+    var label = this.dom.label;
+    if (label.parentNode) {
+      label.parentNode.removeChild(label);
+    }
+
+    var foreground = this.dom.foreground;
+    if (foreground.parentNode) {
+      foreground.parentNode.removeChild(foreground);
+    }
+
+    var background = this.dom.background;
+    if (background.parentNode) {
+      background.parentNode.removeChild(background);
+    }
+
+    var axis = this.dom.axis;
+    if (axis.parentNode) {
+      axis.parentNode.removeChild(axis);
+    }
+  };
+
+  /**
+   * Add an item to the group
+   * @param {Item} item
+   */
+  Group.prototype.add = function(item) {
+    this.items[item.id] = item;
+    item.setParent(this);
+
+    // add to
+    if (item.data.subgroup !== undefined) {
+      if (this.subgroups[item.data.subgroup] === undefined) {
+        this.subgroups[item.data.subgroup] = {height:0, visible: false};
+      }
+    }
+
+    if (this.visibleItems.indexOf(item) == -1) {
+      var range = this.itemSet.body.range; // TODO: not nice accessing the range like this
+      this._checkIfVisible(item, this.visibleItems, range);
+    }
+  };
+
+  Group.prototype.resetSubgroups = function() {
+    for (var subgroup in this.subgroups) {
+      if (this.subgroups.hasOwnProperty(subgroup)) {
+        this.subgroups[subgroup].visible = false;
+      }
+    }
+  }
+
+  /**
+   * Remove an item from the group
+   * @param {Item} item
+   */
+  Group.prototype.remove = function(item) {
+    delete this.items[item.id];
+    item.setParent(this.itemSet);
+
+    // remove from visible items
+    var index = this.visibleItems.indexOf(item);
+    if (index != -1) this.visibleItems.splice(index, 1);
+
+    // TODO: also remove from ordered items?
+  };
+
+  /**
+   * Remove an item from the corresponding DataSet
+   * @param {Item} item
+   */
+  Group.prototype.removeFromDataSet = function(item) {
+    this.itemSet.removeItem(item.id);
+  };
+
+  /**
+   * Reorder the items
+   */
+  Group.prototype.order = function() {
+    var array = util.toArray(this.items);
+    this.orderedItems.byStart = array;
+    this.orderedItems.byEnd = this._constructByEndArray(array);
+
+    stack.orderByStart(this.orderedItems.byStart);
+    stack.orderByEnd(this.orderedItems.byEnd);
+  };
+
+  /**
+   * Create an array containing all items being a range (having an end date)
+   * @param {Item[]} array
+   * @returns {RangeItem[]}
+   * @private
+   */
+  Group.prototype._constructByEndArray = function(array) {
+    var endArray = [];
+
+    for (var i = 0; i < array.length; i++) {
+      if (array[i] instanceof RangeItem) {
+        endArray.push(array[i]);
+      }
+    }
+    return endArray;
+  };
+
+  /**
+   * Update the visible items
+   * @param {{byStart: Item[], byEnd: Item[]}} orderedItems   All items ordered by start date and by end date
+   * @param {Item[]} visibleItems                             The previously visible items.
+   * @param {{start: number, end: number}} range              Visible range
+   * @return {Item[]} visibleItems                            The new visible items.
+   * @private
+   */
+  Group.prototype._updateVisibleItems = function(orderedItems, visibleItems, range) {
+    var initialPosByStart,
+        newVisibleItems = [],
+        i;
+
+    // first check if the items that were in view previously are still in view.
+    // this handles the case for the RangeItem that is both before and after the current one.
+    if (visibleItems.length > 0) {
+      for (i = 0; i < visibleItems.length; i++) {
+        this._checkIfVisible(visibleItems[i], newVisibleItems, range);
+      }
+    }
+
+    // If there were no visible items previously, use binarySearch to find a visible PointItem or RangeItem (based on startTime)
+    if (newVisibleItems.length == 0) {
+      initialPosByStart = util.binarySearch(orderedItems.byStart, range, 'data','start');
+    }
+    else {
+      initialPosByStart = orderedItems.byStart.indexOf(newVisibleItems[0]);
+    }
+
+    // use visible search to find a visible RangeItem (only based on endTime)
+    var initialPosByEnd = util.binarySearch(orderedItems.byEnd, range, 'data','end');
+
+    // if we found a initial ID to use, trace it up and down until we meet an invisible item.
+    if (initialPosByStart != -1) {
+      for (i = initialPosByStart; i >= 0; i--) {
+        if (this._checkIfInvisible(orderedItems.byStart[i], newVisibleItems, range)) {break;}
+      }
+      for (i = initialPosByStart + 1; i < orderedItems.byStart.length; i++) {
+        if (this._checkIfInvisible(orderedItems.byStart[i], newVisibleItems, range)) {break;}
+      }
+    }
+
+    // if we found a initial ID to use, trace it up and down until we meet an invisible item.
+    if (initialPosByEnd != -1) {
+      for (i = initialPosByEnd; i >= 0; i--) {
+        if (this._checkIfInvisible(orderedItems.byEnd[i], newVisibleItems, range)) {break;}
+      }
+      for (i = initialPosByEnd + 1; i < orderedItems.byEnd.length; i++) {
+        if (this._checkIfInvisible(orderedItems.byEnd[i], newVisibleItems, range)) {break;}
+      }
+    }
+
+    return newVisibleItems;
+  };
+
+
+
+  /**
+   * this function checks if an item is invisible. If it is NOT we make it visible
+   * and add it to the global visible items. If it is, return true.
+   *
+   * @param {Item} item
+   * @param {Item[]} visibleItems
+   * @param {{start:number, end:number}} range
+   * @returns {boolean}
+   * @private
+   */
+  Group.prototype._checkIfInvisible = function(item, visibleItems, range) {
+      if (item.isVisible(range)) {
+        if (!item.displayed) item.show();
+        item.repositionX();
+        if (visibleItems.indexOf(item) == -1) {
+          visibleItems.push(item);
+        }
+        return false;
+      }
+      else {
+        if (item.displayed) item.hide();
+        return true;
+      }
+  };
+
+  /**
+   * this function is very similar to the _checkIfInvisible() but it does not
+   * return booleans, hides the item if it should not be seen and always adds to
+   * the visibleItems.
+   * this one is for brute forcing and hiding.
+   *
+   * @param {Item} item
+   * @param {Array} visibleItems
+   * @param {{start:number, end:number}} range
+   * @private
+   */
+  Group.prototype._checkIfVisible = function(item, visibleItems, range) {
+      if (item.isVisible(range)) {
+        if (!item.displayed) item.show();
+        // reposition item horizontally
+        item.repositionX();
+        visibleItems.push(item);
+      }
+      else {
+        if (item.displayed) item.hide();
+      }
+  };
+
+  module.exports = Group;
+
+
+/***/ },
 /* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Emitter = __webpack_require__(10);
   var Hammer = __webpack_require__(18);
-  var mousetrap = __webpack_require__(38);
+  var mousetrap = __webpack_require__(32);
   var util = __webpack_require__(1);
   var hammerUtil = __webpack_require__(21);
   var DataSet = __webpack_require__(7);
@@ -21980,7 +22037,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var Edge = __webpack_require__(52);
   var Popup = __webpack_require__(53);
   var MixinLoader = __webpack_require__(54);
-  var Activator = __webpack_require__(37);
+  var Activator = __webpack_require__(31);
   var locales = __webpack_require__(65);
 
   // Load custom shapes into CanvasRenderingContext2D
