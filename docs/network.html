@@ -2285,8 +2285,11 @@ var options: {
     <tr>
         <td>storePositions()</td>
         <td>none</td>
-        <td>This will put the X and Y positions of all nodes in the dataset. It will also include allowedToMoveX and allowedToMoveY with the correct values.
-            You can use this to stablize your network once, then save the positions in a database so the next time you load the nodes, stabilization will be near instantaneous.
+        <td>When using the vis.DataSet to load your nodes into the network, this method will put the X and Y positions of all nodes into that dataset. It will also include allowedToMoveX and allowedToMoveY with the correct values.
+            If you're loading your nodes from a database and have this dynamically coupled with the DataSet, you can use this
+            to stablize your network once, then save the positions in that database through the DataSet so the next time you load the nodes, stabilization will be near instantaneous.
+            If the nodes are still moving and you're using dynamic smooth edges (which is on by default), you can use the option freezeForStabilization to improve initialization time.
+            <br><br><i><code>NOTE:</code>This method does not work with the hierarchical layout because the hierarchical algorithm is assigning X Y positions on load, regardless of the ones you supply it with.</i>
         </td>
     </tr>
   <tr>
