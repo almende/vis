@@ -100,32 +100,32 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // Timeline
   exports.Timeline = __webpack_require__(17);
-  exports.Graph2d = __webpack_require__(39);
+  exports.Graph2d = __webpack_require__(40);
   exports.timeline = {
     DateUtil: __webpack_require__(23),
-    DataStep: __webpack_require__(42),
+    DataStep: __webpack_require__(43),
     Range: __webpack_require__(20),
-    stack: __webpack_require__(31),
-    TimeStep: __webpack_require__(45),
+    stack: __webpack_require__(32),
+    TimeStep: __webpack_require__(26),
 
     components: {
       items: {
-        Item: __webpack_require__(33),
-        BackgroundItem: __webpack_require__(36),
-        BoxItem: __webpack_require__(34),
-        PointItem: __webpack_require__(35),
-        RangeItem: __webpack_require__(32)
+        Item: __webpack_require__(34),
+        BackgroundItem: __webpack_require__(37),
+        BoxItem: __webpack_require__(35),
+        PointItem: __webpack_require__(36),
+        RangeItem: __webpack_require__(33)
       },
 
       Component: __webpack_require__(22),
-      CurrentTime: __webpack_require__(26),
-      CustomTime: __webpack_require__(28),
-      DataAxis: __webpack_require__(41),
-      GraphGroup: __webpack_require__(43),
-      Group: __webpack_require__(30),
-      ItemSet: __webpack_require__(29),
-      Legend: __webpack_require__(44),
-      LineGraph: __webpack_require__(40),
+      CurrentTime: __webpack_require__(27),
+      CustomTime: __webpack_require__(29),
+      DataAxis: __webpack_require__(42),
+      GraphGroup: __webpack_require__(44),
+      Group: __webpack_require__(31),
+      ItemSet: __webpack_require__(30),
+      Legend: __webpack_require__(45),
+      LineGraph: __webpack_require__(41),
       TimeAxis: __webpack_require__(25)
     }
   };
@@ -9315,9 +9315,9 @@ return /******/ (function(modules) { // webpackBootstrap
   var Range = __webpack_require__(20);
   var Core = __webpack_require__(24);
   var TimeAxis = __webpack_require__(25);
-  var CurrentTime = __webpack_require__(26);
-  var CustomTime = __webpack_require__(28);
-  var ItemSet = __webpack_require__(29);
+  var CurrentTime = __webpack_require__(27);
+  var CustomTime = __webpack_require__(29);
+  var ItemSet = __webpack_require__(30);
 
   /**
    * Create a timeline visualization
@@ -12589,146 +12589,161 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param Core
    */
   exports.convertHiddenOptions = function(body, hiddenDates) {
-    var specificHiddenDates = hiddenDates.specific;
-    if (specificHiddenDates) {
-      if (Array.isArray(specificHiddenDates) == true) {
-        for (var i = 0; i < specificHiddenDates.length; i++) {
-          var dateItem = {};
-          dateItem.start = moment(specificHiddenDates[i].start).toDate().valueOf();
-          dateItem.end = moment(specificHiddenDates[i].end).toDate().valueOf();
-          body.hiddenDates.push(dateItem);
+    //var specificHiddenDates = hiddenDates.specific;
+    //if (specificHiddenDates) {
+    //  if (Array.isArray(specificHiddenDates) == true) {
+    //    for (var i = 0; i < specificHiddenDates.length; i++) {
+    //      var dateItem = {};
+    //      dateItem.start = moment(specificHiddenDates[i].start).toDate().valueOf();
+    //      dateItem.end = moment(specificHiddenDates[i].end).toDate().valueOf();
+    //      body.hiddenDates.push(dateItem);
+    //    }
+    //    body.hiddenDates.sort(function (a, b) {
+    //      return a.start - b.start;
+    //    }); // sort by start time
+    //  }
+    //  else {
+    //    body.hiddenDates = [{
+    //      start: moment(specificHiddenDates.start).toDate().valueOf(),
+    //      end: moment(specificHiddenDates.end).toDate().valueOf()
+    //    }
+    //    ];
+    //  }
+    //}
+    //
+    //// allowing multiple input formats
+    //var periodicHiddenDates = hiddenDates.periodic;
+    //if (periodicHiddenDates) {
+    //  if (periodicHiddenDates.times) {
+    //    if (Array.isArray(periodicHiddenDates.times) != true) {
+    //      periodicHiddenDates.times = [periodicHiddenDates.times];
+    //    }
+    //  }
+    //  if (periodicHiddenDates.days) {
+    //    if (Array.isArray(periodicHiddenDates.days) != true) {
+    //      periodicHiddenDates.days = [periodicHiddenDates.days];
+    //    }
+    //  }
+    //}
+    body.hiddenDates = [];
+    if (hiddenDates) {
+      if (Array.isArray(hiddenDates) == true) {
+        for (var i = 0; i < hiddenDates.length; i++) {
+          if (hiddenDates[i].repeat === undefined) {
+            var dateItem = {};
+            dateItem.start = moment(hiddenDates[i].start).toDate().valueOf();
+            dateItem.end = moment(hiddenDates[i].end).toDate().valueOf();
+            body.hiddenDates.push(dateItem);
+          }
         }
         body.hiddenDates.sort(function (a, b) {
           return a.start - b.start;
         }); // sort by start time
-      }
-      else {
-        body.hiddenDates = [{
-          start: moment(specificHiddenDates.start).toDate().valueOf(),
-          end: moment(specificHiddenDates.end).toDate().valueOf()
-        }
-        ];
-      }
-    }
-
-    // allowing multiple input formats
-    var periodicHiddenDates = hiddenDates.periodic;
-    if (periodicHiddenDates) {
-      if (periodicHiddenDates.times) {
-        if (Array.isArray(periodicHiddenDates.times) != true) {
-          periodicHiddenDates.times = [periodicHiddenDates.times];
-        }
-      }
-      if (periodicHiddenDates.days) {
-        if (Array.isArray(periodicHiddenDates.days) != true) {
-          periodicHiddenDates.days = [periodicHiddenDates.days];
-        }
       }
     }
   };
 
 
   /**
-   * create new entrees for the periodic hidden dates
+   * create new entrees for the repeating hidden dates
    * @param body
    * @param hiddenDates
    */
   exports.updateHiddenDates = function (body, hiddenDates) {
-    if (hiddenDates && hiddenDates.periodic && body.domProps.centerContainer.width !== undefined) {
-      body.hiddenDates = [];
+    if (hiddenDates && body.domProps.centerContainer.width !== undefined) {
       exports.convertHiddenOptions(body, hiddenDates);
 
       var start = moment(body.range.start);
       var end = moment(body.range.end);
 
       var totalRange = (body.range.end - body.range.start);
-      var pixelTime = totalRange/body.domProps.centerContainer.width;
+      var pixelTime = totalRange / body.domProps.centerContainer.width;
 
-      if (hiddenDates.periodic.days) {
-        var nextStartDay = moment(body.range.start);
-        var nextEndDay = moment(body.range.start);
-        for (var i = 0; i < hiddenDates.periodic.days.length; i++) {
-          var startDay = hiddenDates.periodic.days[i].start;
-          var endDay = hiddenDates.periodic.days[i].end;
 
-          nextStartDay.isoWeekday(startDay);
-          nextEndDay.isoWeekday(endDay);
-          if (start < nextStartDay) {
-            nextStartDay.isoWeekday(startDay - 7);
-          }
-          if (start < nextEndDay) {
-            nextEndDay.isoWeekday(endDay - 7);
-          }
-          nextStartDay.milliseconds(0);
-          nextStartDay.seconds(0);
-          nextStartDay.minutes(0);
-          nextStartDay.hours(0);
+      for (var i = 0; i < hiddenDates.length; i++) {
+        if (hiddenDates[i].repeat !== undefined) {
+          var startDate = moment(hiddenDates[i].start);
+          var endDate = moment(hiddenDates[i].end);
 
-          nextEndDay.milliseconds(0);
-          nextEndDay.seconds(0);
-          nextEndDay.minutes(0);
-          nextEndDay.hours(0);
+          var duration = endDate - startDate;
+          if (duration >= 4 * pixelTime) {
+            var offset = 0;
+            switch (hiddenDates[i].repeat) {
+              case "daily": // case of time
+                if (startDate.day() != endDate.day()) {
+                  offset = 1;
+                }
+                startDate.day(start.day);
+                startDate.subtract(7,'days');
+                startDate.month(start.month());
+                startDate.year(start.year());
 
-          if (nextEndDay < nextStartDay) {
-            nextEndDay.isoWeekday(endDay + 7);
-          }
+                endDate.day(start.day);
+                endDate.subtract(7 + offset,'days');
+                endDate.month(start.month());
+                endDate.year(start.year());
+                break;
+              case "weekly":
+                if (startDate.week() != endDate.week()) {
+                  offset = 1;
+                }
+                startDate.week(start.week() - 1)
+                startDate.year(start.year());
 
-          var duration = nextEndDay - nextStartDay;
-          if (duration < 4 * pixelTime) {
-            break;
-          }
-          else {
-            while (nextStartDay < end) {
-              body.hiddenDates.push({start: nextStartDay.valueOf(), end: nextEndDay.valueOf()});
-              nextStartDay.isoWeekday(startDay + 7);
-              nextEndDay.isoWeekday(endDay + 7);
+                endDate.week(start.week() - 1 + offset)
+                endDate.year(start.year());
+                break
+              case "monthly":
+                if (startDate.month() != endDate.month()) {
+                  offset = 1;
+                }
+                startDate.month(start.month() - 1)
+                startDate.year(start.year());
+
+                endDate.month(start.month() - 1 + offset)
+                endDate.year(start.year());
+                break;
+              case "yearly":
+                if (startDate.year() != endDate.year()) {
+                  offset = 1;
+                }
+                startDate.year(start.year() - 1);
+
+                endDate.year(start.year() - 1 + offset);
+                break;
+              default:
+                console.log("Wrong repeat format, allowed are: daily, weekly, monthly, yearly. Given:", hiddenDates[i].repeat);
+                return;
             }
-            body.hiddenDates.push({start: nextStartDay.valueOf(), end: nextEndDay.valueOf()});
+            while (startDate < end) {
+              body.hiddenDates.push({start: startDate.valueOf(), end: endDate.valueOf()});
+              switch (hiddenDates[i].repeat) {
+                case "daily":
+                  startDate.add(1, 'days');
+                  endDate.add(1, 'days');
+                  break;
+                case "weekly":
+                  startDate.add(7, 'days');
+                  endDate.add(7, 'days');
+                  break
+                case "monthly":
+                  startDate.add(1, 'months');
+                  endDate.add(1, 'months');
+                  break;
+                case "yearly":
+                  startDate.add(1, 'y');
+                  endDate.add(1, 'y');
+                  break;
+                default:
+                  console.log("Wrong repeat format, allowed are: daily, weekly, monthly, yearly. Given:", hiddenDates[i].repeat);
+                  return;
+              }
+            }
+            body.hiddenDates.push({start: startDate.valueOf(), end: endDate.valueOf()});
           }
         }
       }
 
-      if (hiddenDates.periodic.times) {
-        var nextStartDay = moment(body.range.start);
-        var nextEndDay = moment(body.range.start);
-        end = end.valueOf();
-
-        for (var i = 0; i < hiddenDates.periodic.times.length; i++) {
-          var startTime = hiddenDates.periodic.times[i].start.split(":");
-          var endTime = hiddenDates.periodic.times[i].end.split(":");
-
-          nextStartDay.milliseconds(0);
-          nextStartDay.seconds(startTime[2]);
-          nextStartDay.minutes(startTime[1]);
-          nextStartDay.hours(startTime[0]);
-
-          nextEndDay.milliseconds(0);
-          nextEndDay.seconds(endTime[2]);
-          nextEndDay.minutes(endTime[1]);
-          nextEndDay.hours(endTime[0]);
-
-          nextStartDay = nextStartDay.valueOf();
-          nextEndDay = nextEndDay.valueOf();
-
-          if (endTime[0] < startTime[0]) {
-            nextEndDay += 3600000*24;
-          }
-
-          var duration = nextEndDay - nextStartDay;
-          if (duration < 4 * pixelTime) {
-            break;
-          }
-          else {
-            nextStartDay -= 7*3600000*24;
-            nextEndDay -= 7*3600000*24;
-            while (nextStartDay < (end + 7*3600000*24)) {
-              body.hiddenDates.push({start: nextStartDay.valueOf(), end: nextEndDay.valueOf()});
-              nextStartDay += 3600000*24;
-              nextEndDay += 3600000*24;
-            }
-          }
-        }
-      }
       // remove duplicates, merge where possible
       exports.removeDuplicates(body);
 
@@ -13038,10 +13053,10 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataView = __webpack_require__(8);
   var Range = __webpack_require__(20);
   var TimeAxis = __webpack_require__(25);
-  var CurrentTime = __webpack_require__(26);
-  var CustomTime = __webpack_require__(28);
-  var ItemSet = __webpack_require__(29);
-  var Activator = __webpack_require__(37);
+  var CurrentTime = __webpack_require__(27);
+  var CustomTime = __webpack_require__(29);
+  var ItemSet = __webpack_require__(30);
+  var Activator = __webpack_require__(38);
   var DateUtil = __webpack_require__(23);
 
   /**
@@ -13885,7 +13900,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var Component = __webpack_require__(22);
-  var TimeStep = __webpack_require__(45);
+  var TimeStep = __webpack_require__(26);
   var DateUtil = __webpack_require__(23);
   var moment = __webpack_require__(2);
 
@@ -14301,10 +14316,543 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
+  var moment = __webpack_require__(2);
+  var DateUtil = __webpack_require__(23);
+
+  /**
+   * @constructor  TimeStep
+   * The class TimeStep is an iterator for dates. You provide a start date and an
+   * end date. The class itself determines the best scale (step size) based on the
+   * provided start Date, end Date, and minimumStep.
+   *
+   * If minimumStep is provided, the step size is chosen as close as possible
+   * to the minimumStep but larger than minimumStep. If minimumStep is not
+   * provided, the scale is set to 1 DAY.
+   * The minimumStep should correspond with the onscreen size of about 6 characters
+   *
+   * Alternatively, you can set a scale by hand.
+   * After creation, you can initialize the class by executing first(). Then you
+   * can iterate from the start date to the end date via next(). You can check if
+   * the end date is reached with the function hasNext(). After each step, you can
+   * retrieve the current date via getCurrent().
+   * The TimeStep has scales ranging from milliseconds, seconds, minutes, hours,
+   * days, to years.
+   *
+   * Version: 1.2
+   *
+   * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
+   *                               or new Date(2010, 9, 21, 23, 45, 00)
+   * @param {Date} [end]           The end date
+   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
+   */
+  function TimeStep(start, end, minimumStep, hiddenDates) {
+    // variables
+    this.current = new Date();
+    this._start = new Date();
+    this._end = new Date();
+
+    this.autoScale  = true;
+    this.scale = TimeStep.SCALE.DAY;
+    this.step = 1;
+
+    // initialize the range
+    this.setRange(start, end, minimumStep);
+
+    // hidden Dates options
+    this.switchedDay = false;
+    this.switchedMonth = false;
+    this.switchedYear = false;
+    this.hiddenDates = hiddenDates;
+    if (hiddenDates === undefined) {
+      this.hiddenDates = [];
+    }
+  }
+
+  /// enum scale
+  TimeStep.SCALE = {
+    MILLISECOND: 1,
+    SECOND: 2,
+    MINUTE: 3,
+    HOUR: 4,
+    DAY: 5,
+    WEEKDAY: 6,
+    MONTH: 7,
+    YEAR: 8
+  };
+
+
+  /**
+   * Set a new range
+   * If minimumStep is provided, the step size is chosen as close as possible
+   * to the minimumStep but larger than minimumStep. If minimumStep is not
+   * provided, the scale is set to 1 DAY.
+   * The minimumStep should correspond with the onscreen size of about 6 characters
+   * @param {Date} [start]      The start date and time.
+   * @param {Date} [end]        The end date and time.
+   * @param {int} [minimumStep] Optional. Minimum step size in milliseconds
+   */
+  TimeStep.prototype.setRange = function(start, end, minimumStep) {
+    if (!(start instanceof Date) || !(end instanceof Date)) {
+      throw  "No legal start or end date in method setRange";
+    }
+
+    this._start = (start != undefined) ? new Date(start.valueOf()) : new Date();
+    this._end = (end != undefined) ? new Date(end.valueOf()) : new Date();
+
+    if (this.autoScale) {
+      this.setMinimumStep(minimumStep);
+    }
+  };
+
+  /**
+   * Set the range iterator to the start date.
+   */
+  TimeStep.prototype.first = function() {
+    this.current = new Date(this._start.valueOf());
+    this.roundToMinor();
+  };
+
+  /**
+   * Round the current date to the first minor date value
+   * This must be executed once when the current date is set to start Date
+   */
+  TimeStep.prototype.roundToMinor = function() {
+    // round to floor
+    // IMPORTANT: we have no breaks in this switch! (this is no bug)
+    //noinspection FallthroughInSwitchStatementJS
+    switch (this.scale) {
+      case TimeStep.SCALE.YEAR:
+        this.current.setFullYear(this.step * Math.floor(this.current.getFullYear() / this.step));
+        this.current.setMonth(0);
+      case TimeStep.SCALE.MONTH:        this.current.setDate(1);
+      case TimeStep.SCALE.DAY:          // intentional fall through
+      case TimeStep.SCALE.WEEKDAY:      this.current.setHours(0);
+      case TimeStep.SCALE.HOUR:         this.current.setMinutes(0);
+      case TimeStep.SCALE.MINUTE:       this.current.setSeconds(0);
+      case TimeStep.SCALE.SECOND:       this.current.setMilliseconds(0);
+      //case TimeStep.SCALE.MILLISECOND: // nothing to do for milliseconds
+    }
+
+    if (this.step != 1) {
+      // round down to the first minor value that is a multiple of the current step size
+      switch (this.scale) {
+        case TimeStep.SCALE.MILLISECOND:  this.current.setMilliseconds(this.current.getMilliseconds() - this.current.getMilliseconds() % this.step);  break;
+        case TimeStep.SCALE.SECOND:       this.current.setSeconds(this.current.getSeconds() - this.current.getSeconds() % this.step); break;
+        case TimeStep.SCALE.MINUTE:       this.current.setMinutes(this.current.getMinutes() - this.current.getMinutes() % this.step); break;
+        case TimeStep.SCALE.HOUR:         this.current.setHours(this.current.getHours() - this.current.getHours() % this.step); break;
+        case TimeStep.SCALE.WEEKDAY:      // intentional fall through
+        case TimeStep.SCALE.DAY:          this.current.setDate((this.current.getDate()-1) - (this.current.getDate()-1) % this.step + 1); break;
+        case TimeStep.SCALE.MONTH:        this.current.setMonth(this.current.getMonth() - this.current.getMonth() % this.step);  break;
+        case TimeStep.SCALE.YEAR:         this.current.setFullYear(this.current.getFullYear() - this.current.getFullYear() % this.step); break;
+        default: break;
+      }
+    }
+  };
+
+  /**
+   * Check if the there is a next step
+   * @return {boolean}  true if the current date has not passed the end date
+   */
+  TimeStep.prototype.hasNext = function () {
+    return (this.current.valueOf() <= this._end.valueOf());
+  };
+
+  /**
+   * Do the next step
+   */
+  TimeStep.prototype.next = function() {
+    var prev = this.current.valueOf();
+
+    // Two cases, needed to prevent issues with switching daylight savings
+    // (end of March and end of October)
+    if (this.current.getMonth() < 6)   {
+      switch (this.scale) {
+        case TimeStep.SCALE.MILLISECOND:
+
+          this.current = new Date(this.current.valueOf() + this.step); break;
+        case TimeStep.SCALE.SECOND:       this.current = new Date(this.current.valueOf() + this.step * 1000); break;
+        case TimeStep.SCALE.MINUTE:       this.current = new Date(this.current.valueOf() + this.step * 1000 * 60); break;
+        case TimeStep.SCALE.HOUR:
+          this.current = new Date(this.current.valueOf() + this.step * 1000 * 60 * 60);
+          // in case of skipping an hour for daylight savings, adjust the hour again (else you get: 0h 5h 9h ... instead of 0h 4h 8h ...)
+          var h = this.current.getHours();
+          this.current.setHours(h - (h % this.step));
+          break;
+        case TimeStep.SCALE.WEEKDAY:      // intentional fall through
+        case TimeStep.SCALE.DAY:          this.current.setDate(this.current.getDate() + this.step); break;
+        case TimeStep.SCALE.MONTH:        this.current.setMonth(this.current.getMonth() + this.step); break;
+        case TimeStep.SCALE.YEAR:         this.current.setFullYear(this.current.getFullYear() + this.step); break;
+        default:                      break;
+      }
+    }
+    else {
+      switch (this.scale) {
+        case TimeStep.SCALE.MILLISECOND:  this.current = new Date(this.current.valueOf() + this.step); break;
+        case TimeStep.SCALE.SECOND:       this.current.setSeconds(this.current.getSeconds() + this.step); break;
+        case TimeStep.SCALE.MINUTE:       this.current.setMinutes(this.current.getMinutes() + this.step); break;
+        case TimeStep.SCALE.HOUR:         this.current.setHours(this.current.getHours() + this.step); break;
+        case TimeStep.SCALE.WEEKDAY:      // intentional fall through
+        case TimeStep.SCALE.DAY:          this.current.setDate(this.current.getDate() + this.step); break;
+        case TimeStep.SCALE.MONTH:        this.current.setMonth(this.current.getMonth() + this.step); break;
+        case TimeStep.SCALE.YEAR:         this.current.setFullYear(this.current.getFullYear() + this.step); break;
+        default:                      break;
+      }
+    }
+
+    if (this.step != 1) {
+      // round down to the correct major value
+      switch (this.scale) {
+        case TimeStep.SCALE.MILLISECOND:  if(this.current.getMilliseconds() < this.step) this.current.setMilliseconds(0);  break;
+        case TimeStep.SCALE.SECOND:       if(this.current.getSeconds() < this.step) this.current.setSeconds(0);  break;
+        case TimeStep.SCALE.MINUTE:       if(this.current.getMinutes() < this.step) this.current.setMinutes(0);  break;
+        case TimeStep.SCALE.HOUR:         if(this.current.getHours() < this.step) this.current.setHours(0);  break;
+        case TimeStep.SCALE.WEEKDAY:      // intentional fall through
+        case TimeStep.SCALE.DAY:          if(this.current.getDate() < this.step+1) this.current.setDate(1); break;
+        case TimeStep.SCALE.MONTH:        if(this.current.getMonth() < this.step) this.current.setMonth(0);  break;
+        case TimeStep.SCALE.YEAR:         break; // nothing to do for year
+        default:                break;
+      }
+    }
+
+    // safety mechanism: if current time is still unchanged, move to the end
+    if (this.current.valueOf() == prev) {
+      this.current = new Date(this._end.valueOf());
+    }
+
+    DateUtil.stepOverHiddenDates(this, prev);
+  };
+
+
+  /**
+   * Get the current datetime
+   * @return {Date}  current The current date
+   */
+  TimeStep.prototype.getCurrent = function() {
+    return this.current;
+  };
+
+  /**
+   * Set a custom scale. Autoscaling will be disabled.
+   * For example setScale(SCALE.MINUTES, 5) will result
+   * in minor steps of 5 minutes, and major steps of an hour.
+   *
+   * @param {TimeStep.SCALE} newScale
+   *                               A scale. Choose from SCALE.MILLISECOND,
+   *                               SCALE.SECOND, SCALE.MINUTE, SCALE.HOUR,
+   *                               SCALE.WEEKDAY, SCALE.DAY, SCALE.MONTH,
+   *                               SCALE.YEAR.
+   * @param {Number}     newStep   A step size, by default 1. Choose for
+   *                               example 1, 2, 5, or 10.
+   */
+  TimeStep.prototype.setScale = function(newScale, newStep) {
+    this.scale = newScale;
+
+    if (newStep > 0) {
+      this.step = newStep;
+    }
+
+    this.autoScale = false;
+  };
+
+  /**
+   * Enable or disable autoscaling
+   * @param {boolean} enable  If true, autoascaling is set true
+   */
+  TimeStep.prototype.setAutoScale = function (enable) {
+    this.autoScale = enable;
+  };
+
+
+  /**
+   * Automatically determine the scale that bests fits the provided minimum step
+   * @param {Number} [minimumStep]  The minimum step size in milliseconds
+   */
+  TimeStep.prototype.setMinimumStep = function(minimumStep) {
+    if (minimumStep == undefined) {
+      return;
+    }
+
+    //var b = asc + ds;
+
+    var stepYear       = (1000 * 60 * 60 * 24 * 30 * 12);
+    var stepMonth      = (1000 * 60 * 60 * 24 * 30);
+    var stepDay        = (1000 * 60 * 60 * 24);
+    var stepHour       = (1000 * 60 * 60);
+    var stepMinute     = (1000 * 60);
+    var stepSecond     = (1000);
+    var stepMillisecond= (1);
+
+    // find the smallest step that is larger than the provided minimumStep
+    if (stepYear*1000 > minimumStep)        {this.scale = TimeStep.SCALE.YEAR;        this.step = 1000;}
+    if (stepYear*500 > minimumStep)         {this.scale = TimeStep.SCALE.YEAR;        this.step = 500;}
+    if (stepYear*100 > minimumStep)         {this.scale = TimeStep.SCALE.YEAR;        this.step = 100;}
+    if (stepYear*50 > minimumStep)          {this.scale = TimeStep.SCALE.YEAR;        this.step = 50;}
+    if (stepYear*10 > minimumStep)          {this.scale = TimeStep.SCALE.YEAR;        this.step = 10;}
+    if (stepYear*5 > minimumStep)           {this.scale = TimeStep.SCALE.YEAR;        this.step = 5;}
+    if (stepYear > minimumStep)             {this.scale = TimeStep.SCALE.YEAR;        this.step = 1;}
+    if (stepMonth*3 > minimumStep)          {this.scale = TimeStep.SCALE.MONTH;       this.step = 3;}
+    if (stepMonth > minimumStep)            {this.scale = TimeStep.SCALE.MONTH;       this.step = 1;}
+    if (stepDay*5 > minimumStep)            {this.scale = TimeStep.SCALE.DAY;         this.step = 5;}
+    if (stepDay*2 > minimumStep)            {this.scale = TimeStep.SCALE.DAY;         this.step = 2;}
+    if (stepDay > minimumStep)              {this.scale = TimeStep.SCALE.DAY;         this.step = 1;}
+    if (stepDay/2 > minimumStep)            {this.scale = TimeStep.SCALE.WEEKDAY;     this.step = 1;}
+    if (stepHour*4 > minimumStep)           {this.scale = TimeStep.SCALE.HOUR;        this.step = 4;}
+    if (stepHour > minimumStep)             {this.scale = TimeStep.SCALE.HOUR;        this.step = 1;}
+    if (stepMinute*15 > minimumStep)        {this.scale = TimeStep.SCALE.MINUTE;      this.step = 15;}
+    if (stepMinute*10 > minimumStep)        {this.scale = TimeStep.SCALE.MINUTE;      this.step = 10;}
+    if (stepMinute*5 > minimumStep)         {this.scale = TimeStep.SCALE.MINUTE;      this.step = 5;}
+    if (stepMinute > minimumStep)           {this.scale = TimeStep.SCALE.MINUTE;      this.step = 1;}
+    if (stepSecond*15 > minimumStep)        {this.scale = TimeStep.SCALE.SECOND;      this.step = 15;}
+    if (stepSecond*10 > minimumStep)        {this.scale = TimeStep.SCALE.SECOND;      this.step = 10;}
+    if (stepSecond*5 > minimumStep)         {this.scale = TimeStep.SCALE.SECOND;      this.step = 5;}
+    if (stepSecond > minimumStep)           {this.scale = TimeStep.SCALE.SECOND;      this.step = 1;}
+    if (stepMillisecond*200 > minimumStep)  {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 200;}
+    if (stepMillisecond*100 > minimumStep)  {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 100;}
+    if (stepMillisecond*50 > minimumStep)   {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 50;}
+    if (stepMillisecond*10 > minimumStep)   {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 10;}
+    if (stepMillisecond*5 > minimumStep)    {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 5;}
+    if (stepMillisecond > minimumStep)      {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 1;}
+  };
+
+  /**
+   * Snap a date to a rounded value.
+   * The snap intervals are dependent on the current scale and step.
+   * @param {Date} date   the date to be snapped.
+   * @return {Date} snappedDate
+   */
+  TimeStep.prototype.snap = function(date) {
+    var clone = new Date(date.valueOf());
+
+    if (this.scale == TimeStep.SCALE.YEAR) {
+      var year = clone.getFullYear() + Math.round(clone.getMonth() / 12);
+      clone.setFullYear(Math.round(year / this.step) * this.step);
+      clone.setMonth(0);
+      clone.setDate(0);
+      clone.setHours(0);
+      clone.setMinutes(0);
+      clone.setSeconds(0);
+      clone.setMilliseconds(0);
+    }
+    else if (this.scale == TimeStep.SCALE.MONTH) {
+      if (clone.getDate() > 15) {
+        clone.setDate(1);
+        clone.setMonth(clone.getMonth() + 1);
+        // important: first set Date to 1, after that change the month.
+      }
+      else {
+        clone.setDate(1);
+      }
+
+      clone.setHours(0);
+      clone.setMinutes(0);
+      clone.setSeconds(0);
+      clone.setMilliseconds(0);
+    }
+    else if (this.scale == TimeStep.SCALE.DAY) {
+      //noinspection FallthroughInSwitchStatementJS
+      switch (this.step) {
+        case 5:
+        case 2:
+          clone.setHours(Math.round(clone.getHours() / 24) * 24); break;
+        default:
+          clone.setHours(Math.round(clone.getHours() / 12) * 12); break;
+      }
+      clone.setMinutes(0);
+      clone.setSeconds(0);
+      clone.setMilliseconds(0);
+    }
+    else if (this.scale == TimeStep.SCALE.WEEKDAY) {
+      //noinspection FallthroughInSwitchStatementJS
+      switch (this.step) {
+        case 5:
+        case 2:
+          clone.setHours(Math.round(clone.getHours() / 12) * 12); break;
+        default:
+          clone.setHours(Math.round(clone.getHours() / 6) * 6); break;
+      }
+      clone.setMinutes(0);
+      clone.setSeconds(0);
+      clone.setMilliseconds(0);
+    }
+    else if (this.scale == TimeStep.SCALE.HOUR) {
+      switch (this.step) {
+        case 4:
+          clone.setMinutes(Math.round(clone.getMinutes() / 60) * 60); break;
+        default:
+          clone.setMinutes(Math.round(clone.getMinutes() / 30) * 30); break;
+      }
+      clone.setSeconds(0);
+      clone.setMilliseconds(0);
+    } else if (this.scale == TimeStep.SCALE.MINUTE) {
+      //noinspection FallthroughInSwitchStatementJS
+      switch (this.step) {
+        case 15:
+        case 10:
+          clone.setMinutes(Math.round(clone.getMinutes() / 5) * 5);
+          clone.setSeconds(0);
+          break;
+        case 5:
+          clone.setSeconds(Math.round(clone.getSeconds() / 60) * 60); break;
+        default:
+          clone.setSeconds(Math.round(clone.getSeconds() / 30) * 30); break;
+      }
+      clone.setMilliseconds(0);
+    }
+    else if (this.scale == TimeStep.SCALE.SECOND) {
+      //noinspection FallthroughInSwitchStatementJS
+      switch (this.step) {
+        case 15:
+        case 10:
+          clone.setSeconds(Math.round(clone.getSeconds() / 5) * 5);
+          clone.setMilliseconds(0);
+          break;
+        case 5:
+          clone.setMilliseconds(Math.round(clone.getMilliseconds() / 1000) * 1000); break;
+        default:
+          clone.setMilliseconds(Math.round(clone.getMilliseconds() / 500) * 500); break;
+      }
+    }
+    else if (this.scale == TimeStep.SCALE.MILLISECOND) {
+      var step = this.step > 5 ? this.step / 2 : 1;
+      clone.setMilliseconds(Math.round(clone.getMilliseconds() / step) * step);
+    }
+    
+    return clone;
+  };
+
+  /**
+   * Check if the current value is a major value (for example when the step
+   * is DAY, a major value is each first day of the MONTH)
+   * @return {boolean} true if current date is major, else false.
+   */
+  TimeStep.prototype.isMajor = function() {
+    if (this.switchedYear == true) {
+      this.switchedYear = false;
+      switch (this.scale) {
+        case TimeStep.SCALE.YEAR:
+        case TimeStep.SCALE.MONTH:
+        case TimeStep.SCALE.WEEKDAY:
+        case TimeStep.SCALE.DAY:
+        case TimeStep.SCALE.HOUR:
+        case TimeStep.SCALE.MINUTE:
+        case TimeStep.SCALE.SECOND:
+        case TimeStep.SCALE.MILLISECOND:
+          return true;
+        default:
+          return false;
+      }
+    }
+    else if (this.switchedMonth == true) {
+      this.switchedMonth = false;
+      switch (this.scale) {
+        case TimeStep.SCALE.WEEKDAY:
+        case TimeStep.SCALE.DAY:
+        case TimeStep.SCALE.HOUR:
+        case TimeStep.SCALE.MINUTE:
+        case TimeStep.SCALE.SECOND:
+        case TimeStep.SCALE.MILLISECOND:
+          return true;
+        default:
+          return false;
+      }
+    }
+    else if (this.switchedDay == true) {
+      this.switchedDay = false;
+      switch (this.scale) {
+        case TimeStep.SCALE.MILLISECOND:
+        case TimeStep.SCALE.SECOND:
+        case TimeStep.SCALE.MINUTE:
+        case TimeStep.SCALE.HOUR:
+          return true;
+        default:
+          return false;
+      }
+    }
+
+
+    switch (this.scale) {
+      case TimeStep.SCALE.MILLISECOND:
+        return (this.current.getMilliseconds() == 0);
+      case TimeStep.SCALE.SECOND:
+        return (this.current.getSeconds() == 0);
+      case TimeStep.SCALE.MINUTE:
+        return (this.current.getHours() == 0) && (this.current.getMinutes() == 0);
+      case TimeStep.SCALE.HOUR:
+        return (this.current.getHours() == 0);
+      case TimeStep.SCALE.WEEKDAY: // intentional fall through
+      case TimeStep.SCALE.DAY:
+        return (this.current.getDate() == 1);
+      case TimeStep.SCALE.MONTH:
+        return (this.current.getMonth() == 0);
+      case TimeStep.SCALE.YEAR:
+        return false;
+      default:
+        return false;
+    }
+  };
+
+
+  /**
+   * Returns formatted text for the minor axislabel, depending on the current
+   * date and the scale. For example when scale is MINUTE, the current time is
+   * formatted as "hh:mm".
+   * @param {Date} [date] custom date. if not provided, current date is taken
+   */
+  TimeStep.prototype.getLabelMinor = function(date) {
+    if (date == undefined) {
+      date = this.current;
+    }
+
+    switch (this.scale) {
+      case TimeStep.SCALE.MILLISECOND:  return moment(date).format('SSS');
+      case TimeStep.SCALE.SECOND:       return moment(date).format('s');
+      case TimeStep.SCALE.MINUTE:       return moment(date).format('HH:mm');
+      case TimeStep.SCALE.HOUR:         return moment(date).format('HH:mm');
+      case TimeStep.SCALE.WEEKDAY:      return moment(date).format('ddd D');
+      case TimeStep.SCALE.DAY:          return moment(date).format('D');
+      case TimeStep.SCALE.MONTH:        return moment(date).format('MMM');
+      case TimeStep.SCALE.YEAR:         return moment(date).format('YYYY');
+      default:                          return '';
+    }
+  };
+
+
+  /**
+   * Returns formatted text for the major axis label, depending on the current
+   * date and the scale. For example when scale is MINUTE, the major scale is
+   * hours, and the hour will be formatted as "hh".
+   * @param {Date} [date] custom date. if not provided, current date is taken
+   */
+  TimeStep.prototype.getLabelMajor = function(date) {
+    if (date == undefined) {
+      date = this.current;
+    }
+
+    //noinspection FallthroughInSwitchStatementJS
+    switch (this.scale) {
+      case TimeStep.SCALE.MILLISECOND:return moment(date).format('HH:mm:ss');
+      case TimeStep.SCALE.SECOND:     return moment(date).format('D MMMM HH:mm');
+      case TimeStep.SCALE.MINUTE:
+      case TimeStep.SCALE.HOUR:       return moment(date).format('ddd D MMMM');
+      case TimeStep.SCALE.WEEKDAY:
+      case TimeStep.SCALE.DAY:        return moment(date).format('MMMM YYYY');
+      case TimeStep.SCALE.MONTH:      return moment(date).format('YYYY');
+      case TimeStep.SCALE.YEAR:       return '';
+      default:                        return '';
+    }
+  };
+
+  module.exports = TimeStep;
+
+
+/***/ },
+/* 27 */
+/***/ function(module, exports, __webpack_require__) {
+
   var util = __webpack_require__(1);
   var Component = __webpack_require__(22);
   var moment = __webpack_require__(2);
-  var locales = __webpack_require__(27);
+  var locales = __webpack_require__(28);
 
   /**
    * A current time bar
@@ -14467,7 +15015,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 27 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -14488,14 +15036,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 28 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Hammer = __webpack_require__(18);
   var util = __webpack_require__(1);
   var Component = __webpack_require__(22);
   var moment = __webpack_require__(2);
-  var locales = __webpack_require__(27);
+  var locales = __webpack_require__(28);
 
   /**
    * A custom time bar
@@ -14690,7 +15238,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 29 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Hammer = __webpack_require__(18);
@@ -14698,11 +15246,11 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(8);
   var Component = __webpack_require__(22);
-  var Group = __webpack_require__(30);
-  var BoxItem = __webpack_require__(34);
-  var PointItem = __webpack_require__(35);
-  var RangeItem = __webpack_require__(32);
-  var BackgroundItem = __webpack_require__(36);
+  var Group = __webpack_require__(31);
+  var BoxItem = __webpack_require__(35);
+  var PointItem = __webpack_require__(36);
+  var RangeItem = __webpack_require__(33);
+  var BackgroundItem = __webpack_require__(37);
   var DateUtil = __webpack_require__(23);
 
 
@@ -16114,12 +16662,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 30 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var stack = __webpack_require__(31);
-  var RangeItem = __webpack_require__(32);
+  var stack = __webpack_require__(32);
+  var RangeItem = __webpack_require__(33);
   var DateUtil = __webpack_require__(23);
 
   /**
@@ -16584,7 +17132,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 31 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Utility functions for ordering and stacking of items
@@ -16712,11 +17260,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 32 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Hammer = __webpack_require__(18);
-  var Item = __webpack_require__(33);
+  var Item = __webpack_require__(34);
 
   /**
    * @constructor RangeItem
@@ -17011,7 +17559,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 33 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Hammer = __webpack_require__(18);
@@ -17276,10 +17824,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 34 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Item = __webpack_require__(33);
+  var Item = __webpack_require__(34);
   var util = __webpack_require__(1);
 
   /**
@@ -17506,10 +18054,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 35 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Item = __webpack_require__(33);
+  var Item = __webpack_require__(34);
 
   /**
    * @constructor PointItem
@@ -17695,12 +18243,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 36 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Hammer = __webpack_require__(18);
-  var Item = __webpack_require__(33);
-  var RangeItem = __webpack_require__(32);
+  var Item = __webpack_require__(34);
+  var RangeItem = __webpack_require__(33);
 
   /**
    * @constructor BackgroundItem
@@ -17904,10 +18452,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 37 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var mousetrap = __webpack_require__(38);
+  var mousetrap = __webpack_require__(39);
   var Emitter = __webpack_require__(10);
   var Hammer = __webpack_require__(18);
   var util = __webpack_require__(1);
@@ -18056,7 +18604,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 38 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -18861,7 +19409,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 39 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Emitter = __webpack_require__(10);
@@ -18872,9 +19420,9 @@ return /******/ (function(modules) { // webpackBootstrap
   var Range = __webpack_require__(20);
   var Core = __webpack_require__(24);
   var TimeAxis = __webpack_require__(25);
-  var CurrentTime = __webpack_require__(26);
-  var CustomTime = __webpack_require__(28);
-  var LineGraph = __webpack_require__(40);
+  var CurrentTime = __webpack_require__(27);
+  var CustomTime = __webpack_require__(29);
+  var LineGraph = __webpack_require__(41);
 
   /**
    * Create a timeline visualization
@@ -19110,7 +19658,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 40 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -19118,9 +19666,9 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(8);
   var Component = __webpack_require__(22);
-  var DataAxis = __webpack_require__(41);
-  var GraphGroup = __webpack_require__(43);
-  var Legend = __webpack_require__(44);
+  var DataAxis = __webpack_require__(42);
+  var GraphGroup = __webpack_require__(44);
+  var Legend = __webpack_require__(45);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -20417,13 +20965,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 41 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(6);
   var Component = __webpack_require__(22);
-  var DataStep = __webpack_require__(42);
+  var DataStep = __webpack_require__(43);
 
   /**
    * A horizontal time axis
@@ -20924,7 +21472,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 42 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -21152,7 +21700,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 43 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -21293,7 +21841,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 44 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -21496,545 +22044,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 45 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var moment = __webpack_require__(2);
-  var DateUtil = __webpack_require__(23);
-
-  /**
-   * @constructor  TimeStep
-   * The class TimeStep is an iterator for dates. You provide a start date and an
-   * end date. The class itself determines the best scale (step size) based on the
-   * provided start Date, end Date, and minimumStep.
-   *
-   * If minimumStep is provided, the step size is chosen as close as possible
-   * to the minimumStep but larger than minimumStep. If minimumStep is not
-   * provided, the scale is set to 1 DAY.
-   * The minimumStep should correspond with the onscreen size of about 6 characters
-   *
-   * Alternatively, you can set a scale by hand.
-   * After creation, you can initialize the class by executing first(). Then you
-   * can iterate from the start date to the end date via next(). You can check if
-   * the end date is reached with the function hasNext(). After each step, you can
-   * retrieve the current date via getCurrent().
-   * The TimeStep has scales ranging from milliseconds, seconds, minutes, hours,
-   * days, to years.
-   *
-   * Version: 1.2
-   *
-   * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
-   *                               or new Date(2010, 9, 21, 23, 45, 00)
-   * @param {Date} [end]           The end date
-   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
-   */
-  function TimeStep(start, end, minimumStep, hiddenDates) {
-    // variables
-    this.current = new Date();
-    this._start = new Date();
-    this._end = new Date();
-
-    this.autoScale  = true;
-    this.scale = TimeStep.SCALE.DAY;
-    this.step = 1;
-
-    // initialize the range
-    this.setRange(start, end, minimumStep);
-
-    // hidden Dates options
-    this.switchedDay = false;
-    this.switchedMonth = false;
-    this.switchedYear = false;
-    this.hiddenDates = hiddenDates;
-    if (hiddenDates === undefined) {
-      this.hiddenDates = [];
-    }
-  }
-
-  /// enum scale
-  TimeStep.SCALE = {
-    MILLISECOND: 1,
-    SECOND: 2,
-    MINUTE: 3,
-    HOUR: 4,
-    DAY: 5,
-    WEEKDAY: 6,
-    MONTH: 7,
-    YEAR: 8
-  };
-
-
-  /**
-   * Set a new range
-   * If minimumStep is provided, the step size is chosen as close as possible
-   * to the minimumStep but larger than minimumStep. If minimumStep is not
-   * provided, the scale is set to 1 DAY.
-   * The minimumStep should correspond with the onscreen size of about 6 characters
-   * @param {Date} [start]      The start date and time.
-   * @param {Date} [end]        The end date and time.
-   * @param {int} [minimumStep] Optional. Minimum step size in milliseconds
-   */
-  TimeStep.prototype.setRange = function(start, end, minimumStep) {
-    if (!(start instanceof Date) || !(end instanceof Date)) {
-      throw  "No legal start or end date in method setRange";
-    }
-
-    this._start = (start != undefined) ? new Date(start.valueOf()) : new Date();
-    this._end = (end != undefined) ? new Date(end.valueOf()) : new Date();
-
-    if (this.autoScale) {
-      this.setMinimumStep(minimumStep);
-    }
-  };
-
-  /**
-   * Set the range iterator to the start date.
-   */
-  TimeStep.prototype.first = function() {
-    this.current = new Date(this._start.valueOf());
-    this.roundToMinor();
-  };
-
-  /**
-   * Round the current date to the first minor date value
-   * This must be executed once when the current date is set to start Date
-   */
-  TimeStep.prototype.roundToMinor = function() {
-    // round to floor
-    // IMPORTANT: we have no breaks in this switch! (this is no bug)
-    //noinspection FallthroughInSwitchStatementJS
-    switch (this.scale) {
-      case TimeStep.SCALE.YEAR:
-        this.current.setFullYear(this.step * Math.floor(this.current.getFullYear() / this.step));
-        this.current.setMonth(0);
-      case TimeStep.SCALE.MONTH:        this.current.setDate(1);
-      case TimeStep.SCALE.DAY:          // intentional fall through
-      case TimeStep.SCALE.WEEKDAY:      this.current.setHours(0);
-      case TimeStep.SCALE.HOUR:         this.current.setMinutes(0);
-      case TimeStep.SCALE.MINUTE:       this.current.setSeconds(0);
-      case TimeStep.SCALE.SECOND:       this.current.setMilliseconds(0);
-      //case TimeStep.SCALE.MILLISECOND: // nothing to do for milliseconds
-    }
-
-    if (this.step != 1) {
-      // round down to the first minor value that is a multiple of the current step size
-      switch (this.scale) {
-        case TimeStep.SCALE.MILLISECOND:  this.current.setMilliseconds(this.current.getMilliseconds() - this.current.getMilliseconds() % this.step);  break;
-        case TimeStep.SCALE.SECOND:       this.current.setSeconds(this.current.getSeconds() - this.current.getSeconds() % this.step); break;
-        case TimeStep.SCALE.MINUTE:       this.current.setMinutes(this.current.getMinutes() - this.current.getMinutes() % this.step); break;
-        case TimeStep.SCALE.HOUR:         this.current.setHours(this.current.getHours() - this.current.getHours() % this.step); break;
-        case TimeStep.SCALE.WEEKDAY:      // intentional fall through
-        case TimeStep.SCALE.DAY:          this.current.setDate((this.current.getDate()-1) - (this.current.getDate()-1) % this.step + 1); break;
-        case TimeStep.SCALE.MONTH:        this.current.setMonth(this.current.getMonth() - this.current.getMonth() % this.step);  break;
-        case TimeStep.SCALE.YEAR:         this.current.setFullYear(this.current.getFullYear() - this.current.getFullYear() % this.step); break;
-        default: break;
-      }
-    }
-  };
-
-  /**
-   * Check if the there is a next step
-   * @return {boolean}  true if the current date has not passed the end date
-   */
-  TimeStep.prototype.hasNext = function () {
-    return (this.current.valueOf() <= this._end.valueOf());
-  };
-
-  /**
-   * Do the next step
-   */
-  TimeStep.prototype.next = function() {
-    var prev = this.current.valueOf();
-
-    // Two cases, needed to prevent issues with switching daylight savings
-    // (end of March and end of October)
-    if (this.current.getMonth() < 6)   {
-      switch (this.scale) {
-        case TimeStep.SCALE.MILLISECOND:
-
-          this.current = new Date(this.current.valueOf() + this.step); break;
-        case TimeStep.SCALE.SECOND:       this.current = new Date(this.current.valueOf() + this.step * 1000); break;
-        case TimeStep.SCALE.MINUTE:       this.current = new Date(this.current.valueOf() + this.step * 1000 * 60); break;
-        case TimeStep.SCALE.HOUR:
-          this.current = new Date(this.current.valueOf() + this.step * 1000 * 60 * 60);
-          // in case of skipping an hour for daylight savings, adjust the hour again (else you get: 0h 5h 9h ... instead of 0h 4h 8h ...)
-          var h = this.current.getHours();
-          this.current.setHours(h - (h % this.step));
-          break;
-        case TimeStep.SCALE.WEEKDAY:      // intentional fall through
-        case TimeStep.SCALE.DAY:          this.current.setDate(this.current.getDate() + this.step); break;
-        case TimeStep.SCALE.MONTH:        this.current.setMonth(this.current.getMonth() + this.step); break;
-        case TimeStep.SCALE.YEAR:         this.current.setFullYear(this.current.getFullYear() + this.step); break;
-        default:                      break;
-      }
-    }
-    else {
-      switch (this.scale) {
-        case TimeStep.SCALE.MILLISECOND:  this.current = new Date(this.current.valueOf() + this.step); break;
-        case TimeStep.SCALE.SECOND:       this.current.setSeconds(this.current.getSeconds() + this.step); break;
-        case TimeStep.SCALE.MINUTE:       this.current.setMinutes(this.current.getMinutes() + this.step); break;
-        case TimeStep.SCALE.HOUR:         this.current.setHours(this.current.getHours() + this.step); break;
-        case TimeStep.SCALE.WEEKDAY:      // intentional fall through
-        case TimeStep.SCALE.DAY:          this.current.setDate(this.current.getDate() + this.step); break;
-        case TimeStep.SCALE.MONTH:        this.current.setMonth(this.current.getMonth() + this.step); break;
-        case TimeStep.SCALE.YEAR:         this.current.setFullYear(this.current.getFullYear() + this.step); break;
-        default:                      break;
-      }
-    }
-
-    if (this.step != 1) {
-      // round down to the correct major value
-      switch (this.scale) {
-        case TimeStep.SCALE.MILLISECOND:  if(this.current.getMilliseconds() < this.step) this.current.setMilliseconds(0);  break;
-        case TimeStep.SCALE.SECOND:       if(this.current.getSeconds() < this.step) this.current.setSeconds(0);  break;
-        case TimeStep.SCALE.MINUTE:       if(this.current.getMinutes() < this.step) this.current.setMinutes(0);  break;
-        case TimeStep.SCALE.HOUR:         if(this.current.getHours() < this.step) this.current.setHours(0);  break;
-        case TimeStep.SCALE.WEEKDAY:      // intentional fall through
-        case TimeStep.SCALE.DAY:          if(this.current.getDate() < this.step+1) this.current.setDate(1); break;
-        case TimeStep.SCALE.MONTH:        if(this.current.getMonth() < this.step) this.current.setMonth(0);  break;
-        case TimeStep.SCALE.YEAR:         break; // nothing to do for year
-        default:                break;
-      }
-    }
-
-    // safety mechanism: if current time is still unchanged, move to the end
-    if (this.current.valueOf() == prev) {
-      this.current = new Date(this._end.valueOf());
-    }
-
-    DateUtil.stepOverHiddenDates(this, prev);
-  };
-
-
-  /**
-   * Get the current datetime
-   * @return {Date}  current The current date
-   */
-  TimeStep.prototype.getCurrent = function() {
-    return this.current;
-  };
-
-  /**
-   * Set a custom scale. Autoscaling will be disabled.
-   * For example setScale(SCALE.MINUTES, 5) will result
-   * in minor steps of 5 minutes, and major steps of an hour.
-   *
-   * @param {TimeStep.SCALE} newScale
-   *                               A scale. Choose from SCALE.MILLISECOND,
-   *                               SCALE.SECOND, SCALE.MINUTE, SCALE.HOUR,
-   *                               SCALE.WEEKDAY, SCALE.DAY, SCALE.MONTH,
-   *                               SCALE.YEAR.
-   * @param {Number}     newStep   A step size, by default 1. Choose for
-   *                               example 1, 2, 5, or 10.
-   */
-  TimeStep.prototype.setScale = function(newScale, newStep) {
-    this.scale = newScale;
-
-    if (newStep > 0) {
-      this.step = newStep;
-    }
-
-    this.autoScale = false;
-  };
-
-  /**
-   * Enable or disable autoscaling
-   * @param {boolean} enable  If true, autoascaling is set true
-   */
-  TimeStep.prototype.setAutoScale = function (enable) {
-    this.autoScale = enable;
-  };
-
-
-  /**
-   * Automatically determine the scale that bests fits the provided minimum step
-   * @param {Number} [minimumStep]  The minimum step size in milliseconds
-   */
-  TimeStep.prototype.setMinimumStep = function(minimumStep) {
-    if (minimumStep == undefined) {
-      return;
-    }
-
-    //var b = asc + ds;
-
-    var stepYear       = (1000 * 60 * 60 * 24 * 30 * 12);
-    var stepMonth      = (1000 * 60 * 60 * 24 * 30);
-    var stepDay        = (1000 * 60 * 60 * 24);
-    var stepHour       = (1000 * 60 * 60);
-    var stepMinute     = (1000 * 60);
-    var stepSecond     = (1000);
-    var stepMillisecond= (1);
-
-    // find the smallest step that is larger than the provided minimumStep
-    if (stepYear*1000 > minimumStep)        {this.scale = TimeStep.SCALE.YEAR;        this.step = 1000;}
-    if (stepYear*500 > minimumStep)         {this.scale = TimeStep.SCALE.YEAR;        this.step = 500;}
-    if (stepYear*100 > minimumStep)         {this.scale = TimeStep.SCALE.YEAR;        this.step = 100;}
-    if (stepYear*50 > minimumStep)          {this.scale = TimeStep.SCALE.YEAR;        this.step = 50;}
-    if (stepYear*10 > minimumStep)          {this.scale = TimeStep.SCALE.YEAR;        this.step = 10;}
-    if (stepYear*5 > minimumStep)           {this.scale = TimeStep.SCALE.YEAR;        this.step = 5;}
-    if (stepYear > minimumStep)             {this.scale = TimeStep.SCALE.YEAR;        this.step = 1;}
-    if (stepMonth*3 > minimumStep)          {this.scale = TimeStep.SCALE.MONTH;       this.step = 3;}
-    if (stepMonth > minimumStep)            {this.scale = TimeStep.SCALE.MONTH;       this.step = 1;}
-    if (stepDay*5 > minimumStep)            {this.scale = TimeStep.SCALE.DAY;         this.step = 5;}
-    if (stepDay*2 > minimumStep)            {this.scale = TimeStep.SCALE.DAY;         this.step = 2;}
-    if (stepDay > minimumStep)              {this.scale = TimeStep.SCALE.DAY;         this.step = 1;}
-    if (stepDay/2 > minimumStep)            {this.scale = TimeStep.SCALE.WEEKDAY;     this.step = 1;}
-    if (stepHour*4 > minimumStep)           {this.scale = TimeStep.SCALE.HOUR;        this.step = 4;}
-    if (stepHour > minimumStep)             {this.scale = TimeStep.SCALE.HOUR;        this.step = 1;}
-    if (stepMinute*15 > minimumStep)        {this.scale = TimeStep.SCALE.MINUTE;      this.step = 15;}
-    if (stepMinute*10 > minimumStep)        {this.scale = TimeStep.SCALE.MINUTE;      this.step = 10;}
-    if (stepMinute*5 > minimumStep)         {this.scale = TimeStep.SCALE.MINUTE;      this.step = 5;}
-    if (stepMinute > minimumStep)           {this.scale = TimeStep.SCALE.MINUTE;      this.step = 1;}
-    if (stepSecond*15 > minimumStep)        {this.scale = TimeStep.SCALE.SECOND;      this.step = 15;}
-    if (stepSecond*10 > minimumStep)        {this.scale = TimeStep.SCALE.SECOND;      this.step = 10;}
-    if (stepSecond*5 > minimumStep)         {this.scale = TimeStep.SCALE.SECOND;      this.step = 5;}
-    if (stepSecond > minimumStep)           {this.scale = TimeStep.SCALE.SECOND;      this.step = 1;}
-    if (stepMillisecond*200 > minimumStep)  {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 200;}
-    if (stepMillisecond*100 > minimumStep)  {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 100;}
-    if (stepMillisecond*50 > minimumStep)   {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 50;}
-    if (stepMillisecond*10 > minimumStep)   {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 10;}
-    if (stepMillisecond*5 > minimumStep)    {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 5;}
-    if (stepMillisecond > minimumStep)      {this.scale = TimeStep.SCALE.MILLISECOND; this.step = 1;}
-  };
-
-  /**
-   * Snap a date to a rounded value.
-   * The snap intervals are dependent on the current scale and step.
-   * @param {Date} date   the date to be snapped.
-   * @return {Date} snappedDate
-   */
-  TimeStep.prototype.snap = function(date) {
-    var clone = new Date(date.valueOf());
-
-    if (this.scale == TimeStep.SCALE.YEAR) {
-      var year = clone.getFullYear() + Math.round(clone.getMonth() / 12);
-      clone.setFullYear(Math.round(year / this.step) * this.step);
-      clone.setMonth(0);
-      clone.setDate(0);
-      clone.setHours(0);
-      clone.setMinutes(0);
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
-    }
-    else if (this.scale == TimeStep.SCALE.MONTH) {
-      if (clone.getDate() > 15) {
-        clone.setDate(1);
-        clone.setMonth(clone.getMonth() + 1);
-        // important: first set Date to 1, after that change the month.
-      }
-      else {
-        clone.setDate(1);
-      }
-
-      clone.setHours(0);
-      clone.setMinutes(0);
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
-    }
-    else if (this.scale == TimeStep.SCALE.DAY) {
-      //noinspection FallthroughInSwitchStatementJS
-      switch (this.step) {
-        case 5:
-        case 2:
-          clone.setHours(Math.round(clone.getHours() / 24) * 24); break;
-        default:
-          clone.setHours(Math.round(clone.getHours() / 12) * 12); break;
-      }
-      clone.setMinutes(0);
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
-    }
-    else if (this.scale == TimeStep.SCALE.WEEKDAY) {
-      //noinspection FallthroughInSwitchStatementJS
-      switch (this.step) {
-        case 5:
-        case 2:
-          clone.setHours(Math.round(clone.getHours() / 12) * 12); break;
-        default:
-          clone.setHours(Math.round(clone.getHours() / 6) * 6); break;
-      }
-      clone.setMinutes(0);
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
-    }
-    else if (this.scale == TimeStep.SCALE.HOUR) {
-      switch (this.step) {
-        case 4:
-          clone.setMinutes(Math.round(clone.getMinutes() / 60) * 60); break;
-        default:
-          clone.setMinutes(Math.round(clone.getMinutes() / 30) * 30); break;
-      }
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
-    } else if (this.scale == TimeStep.SCALE.MINUTE) {
-      //noinspection FallthroughInSwitchStatementJS
-      switch (this.step) {
-        case 15:
-        case 10:
-          clone.setMinutes(Math.round(clone.getMinutes() / 5) * 5);
-          clone.setSeconds(0);
-          break;
-        case 5:
-          clone.setSeconds(Math.round(clone.getSeconds() / 60) * 60); break;
-        default:
-          clone.setSeconds(Math.round(clone.getSeconds() / 30) * 30); break;
-      }
-      clone.setMilliseconds(0);
-    }
-    else if (this.scale == TimeStep.SCALE.SECOND) {
-      //noinspection FallthroughInSwitchStatementJS
-      switch (this.step) {
-        case 15:
-        case 10:
-          clone.setSeconds(Math.round(clone.getSeconds() / 5) * 5);
-          clone.setMilliseconds(0);
-          break;
-        case 5:
-          clone.setMilliseconds(Math.round(clone.getMilliseconds() / 1000) * 1000); break;
-        default:
-          clone.setMilliseconds(Math.round(clone.getMilliseconds() / 500) * 500); break;
-      }
-    }
-    else if (this.scale == TimeStep.SCALE.MILLISECOND) {
-      var step = this.step > 5 ? this.step / 2 : 1;
-      clone.setMilliseconds(Math.round(clone.getMilliseconds() / step) * step);
-    }
-    
-    return clone;
-  };
-
-  /**
-   * Check if the current value is a major value (for example when the step
-   * is DAY, a major value is each first day of the MONTH)
-   * @return {boolean} true if current date is major, else false.
-   */
-  TimeStep.prototype.isMajor = function() {
-    if (this.switchedYear == true) {
-      this.switchedYear = false;
-      switch (this.scale) {
-        case TimeStep.SCALE.YEAR:
-        case TimeStep.SCALE.MONTH:
-        case TimeStep.SCALE.WEEKDAY:
-        case TimeStep.SCALE.DAY:
-        case TimeStep.SCALE.HOUR:
-        case TimeStep.SCALE.MINUTE:
-        case TimeStep.SCALE.SECOND:
-        case TimeStep.SCALE.MILLISECOND:
-          return true;
-        default:
-          return false;
-      }
-    }
-    else if (this.switchedMonth == true) {
-      this.switchedMonth = false;
-      switch (this.scale) {
-        case TimeStep.SCALE.WEEKDAY:
-        case TimeStep.SCALE.DAY:
-        case TimeStep.SCALE.HOUR:
-        case TimeStep.SCALE.MINUTE:
-        case TimeStep.SCALE.SECOND:
-        case TimeStep.SCALE.MILLISECOND:
-          return true;
-        default:
-          return false;
-      }
-    }
-    else if (this.switchedDay == true) {
-      this.switchedDay = false;
-      switch (this.scale) {
-        case TimeStep.SCALE.MILLISECOND:
-        case TimeStep.SCALE.SECOND:
-        case TimeStep.SCALE.MINUTE:
-        case TimeStep.SCALE.HOUR:
-          return true;
-        default:
-          return false;
-      }
-    }
-
-
-    switch (this.scale) {
-      case TimeStep.SCALE.MILLISECOND:
-        return (this.current.getMilliseconds() == 0);
-      case TimeStep.SCALE.SECOND:
-        return (this.current.getSeconds() == 0);
-      case TimeStep.SCALE.MINUTE:
-        return (this.current.getHours() == 0) && (this.current.getMinutes() == 0);
-      case TimeStep.SCALE.HOUR:
-        return (this.current.getHours() == 0);
-      case TimeStep.SCALE.WEEKDAY: // intentional fall through
-      case TimeStep.SCALE.DAY:
-        return (this.current.getDate() == 1);
-      case TimeStep.SCALE.MONTH:
-        return (this.current.getMonth() == 0);
-      case TimeStep.SCALE.YEAR:
-        return false;
-      default:
-        return false;
-    }
-  };
-
-
-  /**
-   * Returns formatted text for the minor axislabel, depending on the current
-   * date and the scale. For example when scale is MINUTE, the current time is
-   * formatted as "hh:mm".
-   * @param {Date} [date] custom date. if not provided, current date is taken
-   */
-  TimeStep.prototype.getLabelMinor = function(date) {
-    if (date == undefined) {
-      date = this.current;
-    }
-
-    switch (this.scale) {
-      case TimeStep.SCALE.MILLISECOND:  return moment(date).format('SSS');
-      case TimeStep.SCALE.SECOND:       return moment(date).format('s');
-      case TimeStep.SCALE.MINUTE:       return moment(date).format('HH:mm');
-      case TimeStep.SCALE.HOUR:         return moment(date).format('HH:mm');
-      case TimeStep.SCALE.WEEKDAY:      return moment(date).format('ddd D');
-      case TimeStep.SCALE.DAY:          return moment(date).format('D');
-      case TimeStep.SCALE.MONTH:        return moment(date).format('MMM');
-      case TimeStep.SCALE.YEAR:         return moment(date).format('YYYY');
-      default:                          return '';
-    }
-  };
-
-
-  /**
-   * Returns formatted text for the major axis label, depending on the current
-   * date and the scale. For example when scale is MINUTE, the major scale is
-   * hours, and the hour will be formatted as "hh".
-   * @param {Date} [date] custom date. if not provided, current date is taken
-   */
-  TimeStep.prototype.getLabelMajor = function(date) {
-    if (date == undefined) {
-      date = this.current;
-    }
-
-    //noinspection FallthroughInSwitchStatementJS
-    switch (this.scale) {
-      case TimeStep.SCALE.MILLISECOND:return moment(date).format('HH:mm:ss');
-      case TimeStep.SCALE.SECOND:     return moment(date).format('D MMMM HH:mm');
-      case TimeStep.SCALE.MINUTE:
-      case TimeStep.SCALE.HOUR:       return moment(date).format('ddd D MMMM');
-      case TimeStep.SCALE.WEEKDAY:
-      case TimeStep.SCALE.DAY:        return moment(date).format('MMMM YYYY');
-      case TimeStep.SCALE.MONTH:      return moment(date).format('YYYY');
-      case TimeStep.SCALE.YEAR:       return '';
-      default:                        return '';
-    }
-  };
-
-  module.exports = TimeStep;
-
-
-/***/ },
 /* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Emitter = __webpack_require__(10);
   var Hammer = __webpack_require__(18);
-  var mousetrap = __webpack_require__(38);
+  var mousetrap = __webpack_require__(39);
   var util = __webpack_require__(1);
   var hammerUtil = __webpack_require__(21);
   var DataSet = __webpack_require__(7);
@@ -22047,7 +22062,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var Edge = __webpack_require__(52);
   var Popup = __webpack_require__(53);
   var MixinLoader = __webpack_require__(54);
-  var Activator = __webpack_require__(37);
+  var Activator = __webpack_require__(38);
   var locales = __webpack_require__(65);
 
   // Load custom shapes into CanvasRenderingContext2D
