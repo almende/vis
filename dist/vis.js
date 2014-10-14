@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.5.0
- * @date    2014-10-13
+ * @date    2014-10-14
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -12860,7 +12860,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     var duration = exports.getHiddenDuration(Core.body.hiddenDates, Core.range);
-    time = exports.getHiddenTimeBefore(Core.body.hiddenDates, Core.range, time);
+    time = exports.correctTimeForHidden(Core.body.hiddenDates, Core.range, time);
 
     var conversion = Core.range.conversion(width, duration);
     return (time.valueOf() - conversion.offset) * conversion.scale;
@@ -12914,7 +12914,13 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param time
    * @returns {{duration: number, time: *, offset: number}}
    */
-  exports.getHiddenTimeBefore = function(hiddenDates, range, time) {
+  exports.correctTimeForHidden = function(hiddenDates, range, time) {
+    time = moment(time).toDate().valueOf();
+    time -= exports.getHiddenDurationBefore(hiddenDates,range,time);
+    return time;
+  };
+
+  exports.getHiddenDurationBefore = function(hiddenDates, range, time) {
     var timeOffset = 0;
     time = moment(time).toDate().valueOf();
 
@@ -12928,12 +12934,12 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       }
     }
-    time -= timeOffset;
-    return time;
-  };
+    return timeOffset;
+  }
 
   /**
-   * Support function
+   * sum the duration from start to finish, including the hidden duration,
+   * until the required amount has been reached, return the accumulated hidden duration
    * @param hiddenDates
    * @param range
    * @param time
@@ -12950,7 +12956,6 @@ return /******/ (function(modules) { // webpackBootstrap
       // if time after the cutout, and the
       if (startDate >= range.start && endDate < range.end) {
         duration += startDate - previousPoint;
-
         previousPoint = endDate;
         if (duration >= requiredDuration) {
           break;
@@ -14055,10 +14060,13 @@ return /******/ (function(modules) { // webpackBootstrap
     var orientation = this.options.orientation;
 
     // calculate range and step (step such that we have space for 7 characters per label)
-    var start = util.convert(this.body.range.start, 'Number'),
-        end = util.convert(this.body.range.end, 'Number'),
-        minimumStep = this.body.util.toTime((this.props.minorCharWidth || 10) * 7).valueOf()
-            -this.body.util.toTime(0).valueOf();
+    var start = util.convert(this.body.range.start, 'Number');
+    var end = util.convert(this.body.range.end, 'Number');
+    var timeLabelsize = this.body.util.toTime((this.props.minorCharWidth || 10) * 7).valueOf();
+    var minimumStep = DateUtil.getHiddenDurationBefore(this.body.hiddenDates, this.body.range, timeLabelsize);
+    minimumStep -= this.body.util.toTime(0).valueOf();
+
+
     var step = new TimeStep(new Date(start), new Date(end), minimumStep, this.body.hiddenDates);
     this.step = step;
 
@@ -14548,6 +14556,8 @@ return /******/ (function(modules) { // webpackBootstrap
     if (minimumStep == undefined) {
       return;
     }
+
+    //var b = asc + ds;
 
     var stepYear       = (1000 * 60 * 60 * 24 * 30 * 12);
     var stepMonth      = (1000 * 60 * 60 * 24 * 30);
