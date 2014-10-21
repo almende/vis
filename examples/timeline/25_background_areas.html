@@ -27,16 +27,7 @@
 <div id="visualization"></div>
 
 <script>
-  // create a dataset with items
-  // we specify the type of the fields `start` and `end` here to be strings
-  // containing an ISO date. The fields will be outputted as ISO dates
-  // automatically getting data from the DataSet via items.get().
-  var items = new vis.DataSet({
-    type: { start: 'ISODate', end: 'ISODate' }
-  });
-
-  // add items to the DataSet
-  items.add([
+  var items = new vis.DataSet([
     {id: 'A', content: 'Period A', start: '2014-01-16', end: '2014-01-22', type: 'background'},
     {id: 'B', content: 'Period B', start: '2014-01-25', end: '2014-01-30', type: 'background', className: 'negative'},
     {id: 1, content: 'item 1<br>start', start: '2014-01-23'},

@@ -42,6 +42,7 @@ exports.timeline = {
     DataAxis: require('./lib/timeline/component/DataAxis'),
     GraphGroup: require('./lib/timeline/component/GraphGroup'),
     Group: require('./lib/timeline/component/Group'),
+    BackgroundGroup: require('./lib/timeline/component/BackgroundGroup'),
     ItemSet: require('./lib/timeline/component/ItemSet'),
     Legend: require('./lib/timeline/component/Legend'),
     LineGraph: require('./lib/timeline/component/LineGraph'),
