@@ -316,10 +316,11 @@ When using a DataSet, the network is automatically updating to changes in the Da
 
 <tr>
   <td>title</td>
-  <td>string | function</td>
+  <td>string | function | Element</td>
   <td>no</td>
   <td>Title to be displayed when the user hovers over the node.
-    The title can contain HTML code. If using a function, returning <code>undefined</code>
+    The title can be an HTML element or a string containing plain text or HTML.
+    When title is a function, the returned result is displayed as tooltip, and returning <code>undefined</code>
     will prevent the tooltip from being displayed.</td>
 </tr>
 
@@ -428,7 +429,8 @@ When using a DataSet, the network is automatically updating to changes in the Da
     <td>string | function</td>
     <td>no</td>
     <td>Title to be displayed when the user hovers over the edge.
-      The title can contain HTML code. If using a function, returning <code>undefined</code>
+      The title can be an HTML element or a string containing plain text or HTML.
+      When title is a function, the returned result is displayed as tooltip, and returning <code>undefined</code>
       will prevent the tooltip from being displayed.</td>
   </tr>
 
@@ -648,8 +650,8 @@ var options = {
   <td>Boolean</td>
   <td>false</td>
   <td>
-    With the advent of the storePosition() function, the positions of the nodes can be saved after they are stabilized. The smoothCurves require support nodes and those positions are not stored. In order
-    to speed up the initialization of the network by using storePosition() and loading the nodes with the stored positions, the freezeForStabilization option freezes all nodes that have been supplied with
+    With the advent of the storePositions() function, the positions of the nodes can be saved after they are stabilized. The smoothCurves require support nodes and those positions are not stored. In order
+    to speed up the initialization of the network by using storePositions() and loading the nodes with the stored positions, the freezeForStabilization option freezes all nodes that have been supplied with
     an x and y position in place during the stabilization. That way only the support nodes for the smooth curves have to stabilize, greatly speeding up the stabilization process with cached positions.
   </td>
 </tr>
@@ -2140,6 +2142,12 @@ var options: {
         </td>
     </tr>
     <tr>
+        <td>getCenterCoordinates()</td>
+        <td>Number</td>
+        <td>Returns the x and y coodinates of the center of the screen (in canvas space).
+        </td>
+    </tr>
+    <tr>
     <td>getSelection()</td>
     <td>Array of ids</td>
     <td>Returns an array with the ids of the selected nodes.
@@ -2153,7 +2161,7 @@ var options: {
     <td>This function will move the view to center on the specified node. An optional options object can submitted where you can define the animation properties. <br />
         The options that can be defined are:<br />
         <b><code>scale:Number</code></b><br /> - to zoom to that scale,<br />
-        <b><code>offset:{x:Number, y:Number}</code></b><br /> - to offset the position from the center of the canvas (in DOM units),<br />
+        <b><code>offset:{x:Number, y:Number}</code></b><br /> - to offset the position from the center of the canvas (in pixels),<br />
         <b><code>locked: boolean</code></b><br /> - if true, the view remains locked on this node until either another focusOnNode, moveTo, releaseNode or drag is done <br />
         <b><code>animation: Object || Boolean</code></b><br /> - to define the specifics of the animation. True is animated with default settings, false is not animated.<br />
         <br />
@@ -2169,13 +2177,6 @@ var options: {
     <td>releaseNode()</td>
     <td>none</td>
     <td>When locked on to a node, this function releases it again. If the view is not locked onto a node due to the focusOnNode locked option, nothing happens.
-    </td>
-  </tr>
-  <tr>
-    <td>storePosition()</td>
-    <td>none</td>
-    <td>This will put the X and Y positions of all nodes in the dataset. It will also include allowedToMoveX and allowedToMoveY with the correct values.
-      You can use this to stablize your network once, then save the positions in a database so the next time you load the nodes, stabilization will be near instantaneous.
     </td>
   </tr>
   <tr>
@@ -2267,16 +2268,6 @@ var options: {
       edges with id 3 and 5.
     </td>
   </tr>
-  <tr>
-    <td>setSelection(selection)</td>
-    <td>none</td>
-    <td>Select nodes [deprecated].
-      <code>selection</code> is an array with ids of nodes to be selected.
-      The array <code>selection</code> can contain zero or multiple ids.
-      Example usage: <code>network.setSelection([3, 5]);</code> will select
-      nodes with id 3 and 5.
-    </td>
-  </tr>
 
   <tr>
     <td>setSize(width, height)</td>
@@ -2285,7 +2276,22 @@ var options: {
       containing a new size for the visualization. Size can be provided in pixels
       or in percentages.</td>
   </tr>
-
+    <tr>
+        <td>getPositions([ids])</td>
+        <td>Object</td>
+        <td>This will return an object of all nodes' positions. Data can be accessed with object[nodeId].x and .y. You can optionally supply an id as string or number or an array of ids. If no id or array of ids have been supplied, all positions are returned.
+        </td>
+    </tr>
+    <tr>
+        <td>storePositions()</td>
+        <td>none</td>
+        <td>When using the vis.DataSet to load your nodes into the network, this method will put the X and Y positions of all nodes into that dataset. It will also include allowedToMoveX and allowedToMoveY with the correct values.
+            If you're loading your nodes from a database and have this dynamically coupled with the DataSet, you can use this
+            to stablize your network once, then save the positions in that database through the DataSet so the next time you load the nodes, stabilization will be near instantaneous.
+            If the nodes are still moving and you're using dynamic smooth edges (which is on by default), you can use the option freezeForStabilization to improve initialization time.
+            <br><br><i><code>NOTE:</code>This method does not work with the hierarchical layout because the hierarchical algorithm is assigning X Y positions on load, regardless of the ones you supply it with.</i>
+        </td>
+    </tr>
   <tr>
     <td>zoomExtent([options])</td>
     <td>none</td>
@@ -2416,6 +2422,8 @@ network.off('select', onSelect);
       <ul>
         <li><code>width</code>: the new width of the canvas</li>
         <li><code>height</code>: the new height of the canvas</li>
+        <li><code>oldWidth</code>: the old width of the canvas</li>
+        <li><code>oldHeight</code>: the old height of the canvas</li>
       </ul>
     </td>
   </tr>
@@ -2437,13 +2445,20 @@ network.off('select', onSelect);
             </ul>
         </td>
     </tr>
-  <tr>
-    <td>stabilized</td>
-    <td>Fired every time the network has been stabilized. This event can be used to trigger the .storePosition() function after stabilization. Fired with an object having the following properties:</td>
-    <td>
-      <ul>
-        <li><code>iterations</code>: number of iterations used to stabilize</li>
-      </ul>
+    <tr>
+        <td>startStabilization</td>
+        <td>Fired once when the network starts the physics calculation. This ends with the stabilized event.
+        <td>
+        none
+        </td>
+    </tr>
+    <tr>
+        <td>stabilized</td>
+        <td>Fired every time the network has been stabilized. This event can be used to trigger the .storePositions() function after stabilization. Fired with an object having the following properties:</td>
+        <td>
+        <ul>
+           <li><code>iterations</code>: number of iterations used to stabilize</li>
+        </ul>
     </td>
   </tr>
   <tr>
@@ -2455,7 +2470,7 @@ network.off('select', onSelect);
   </tr>
   <tr>
     <td>zoom</td>
-    <td>Fired when the network has zoomed.  This event can be used to trigger the .storePosition() function after stabilization.</td>
+    <td>Fired when the network has zoomed.  This event can be used to trigger the .storePositions() function after stabilization.</td>
     <td>
       <ul>
         <li><code>direction: </code> "+" or "-" </li>

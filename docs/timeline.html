@@ -111,17 +111,21 @@
 
 The constructor of the Timeline is <code>vis.Timeline</code>
 <pre class="prettyprint lang-js">var timeline = new vis.Timeline(container, items, options);</pre>
+or when using groups:
+<pre class="prettyprint lang-js">var timeline = new vis.Timeline(container, items, groups, options);</pre>
 
-
-The constructor accepts three parameters:
+The constructor accepts four parameters:
 <ul>
   <li>
     <code>container</code> is the DOM element in which to create the timeline.
   </li>
   <li>
     <code>items</code> is an Array containing items. The properties of an
-    item are described in section <a href="#Data_Format">Data Format</a>.
-  </li>
+    item are described in section <a href="#Data_Format">Data Format, items</a>.
+  </li><li>
+        <code>groups</code> is an Array containing groups. The properties of a
+        group are described in section <a href="#groups">Data Format, groups</a>.
+    </li>
   <li>
     <code>options</code> is an optional Object containing a name-value map
     with options. Options can also be set using the method
@@ -145,7 +149,8 @@ The constructor accepts three parameters:
   The Timeline uses regular Arrays and Objects as data format.
   Data items can contain the properties <code>start</code>,
   <code>end</code> (optional), <code>content</code>,
-  <code>group</code> (optional), and <code>className</code> (optional).
+  <code>group</code> (optional), <code>className</code> (optional),
+  and <code>style</code> (optional).
 </p>
 
 <p>
@@ -158,7 +163,7 @@ var items = [
     start: new Date(2010, 7, 15),
     end: new Date(2010, 8, 2),  // end is optional
     content: 'Trajectory A'
-    // Optional: fields 'id', 'type', 'group', 'className'
+    // Optional: fields 'id', 'type', 'group', 'className', 'style'
   }
   // more items...
 ]);
@@ -232,6 +237,15 @@ var items = [
     <td>The start date of the item, for example <code>new Date(2010,9,23)</code>.</td>
   </tr>
   <tr>
+    <td>style</td>
+    <td>String</td>
+    <td>no</td>
+    <td>
+      A css text string to apply custom styling for an individual item, for
+      example <code>"color: red; background-color: pink;"</code>.
+    </td>
+  </tr>
+  <tr>
     <td>title</td>
     <td>String</td>
     <td>none</td>
@@ -259,7 +273,7 @@ var items = [
   <code>content</code>, and <code>className</code> (optional).
 </p>
 <p>
-  Groups can be applied to a timeline using the method <code>setGroups</code>.
+  Groups can be applied to a timeline using the method <code>setGroups</code> or supplied in the constructor.
   A table with groups can be created like:
 </p>
 
@@ -268,7 +282,7 @@ var groups = [
   {
     id: 1,
     content: 'Group 1'
-    // Optional: a field 'className'
+    // Optional: a field 'className', 'style'
   }
   // more groups...
 ]);
@@ -315,6 +329,15 @@ var groups = [
     <td>An id for the group. The group will display all items having a
       property <code>group</code> which matches the <code>id</code>
       of the group.</td>
+  </tr>
+  <tr>
+    <td>style</td>
+    <td>String</td>
+    <td>no</td>
+    <td>
+      A css text string to apply custom styling for an individual group label, for
+      example <code>"color: red; background-color: pink;"</code>.
+    </td>
   </tr>
   <tr>
     <td>title</td>
@@ -381,9 +404,10 @@ var options = {
 
 <tr>
   <td>dataAttributes</td>
-  <td>Array[String]</td>
+  <td>Array[String] | 'all'</td>
   <td>false</td>
-  <td>An array of fields optionally defined on the timeline items that will be appended as <code>data-</code> attributes to the DOM element of the items.</td>
+  <td>An array of fields optionally defined on the timeline items that will be appended as <code>data-</code> attributes to the DOM element of the items.<br>
+    If value is <code>'all'</code> then each field defined on the timeline item will become a <code>data-</code> attribute.</td>
 </tr>
 
 
@@ -455,6 +479,16 @@ var options = {
     </td>
 </tr>
 
+<tr>
+    <td>hiddenDates</td>
+    <td>Object</td>
+    <td>none</td>
+    <td>This option allows you to hide specific timespans from the time axis. The dates can be supplied as an object:
+        <code>{start: '2014-03-21 00:00:00', end: '2014-03-28 00:00:00', [repeat:'daily']}</code> or as an Array of these objects. The repeat argument is optional.
+        The possible values are (case-sensitive): <code>daily, weekly, monthly, yearly</code>. To hide a weekend, pick any Saturday as start and the following Monday as end
+        and set repeat to weekly.
+    </td>
+</tr>
 <tr>
     <td>locale</td>
     <td>String</td>
