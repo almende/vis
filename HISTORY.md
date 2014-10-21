@@ -30,6 +30,10 @@ http://visjs.org
 - Event listeners of `update` now receive an extra property `data`, 
   containing the changed fields of the changed items.
 
+### Graph2d
+
+- Fixed height of legend when there are many items showing.
+
 ### Graph3d
 
 - Implemented options `xValueLabel`, `yValueLabel` and `zValueLabel` for custom labels along
