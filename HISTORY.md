@@ -1,6 +1,12 @@
 # vis.js history
 http://visjs.org
 
+## 2014-10-21, version 3.6.1
+
+### Timeline
+
+- Fixed uneven stepsized with hidden dates
+
 ## 2014-10-21, version 3.6.0
 
 ### Network
