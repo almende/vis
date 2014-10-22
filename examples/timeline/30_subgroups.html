@@ -25,7 +25,7 @@
 </head>
 <body>
 
-<p>This example demonstrates the item type "background", see "Period A" and "Period B". The background areas can be styled with css.</p>
+<p>This example shows the workings of the subgroups. Subgroups do not use stacking, and only work when stacking is disabled.</p>
 
 <div id="visualization"></div>
 
@@ -38,23 +38,25 @@
         type: { start: 'ISODate', end: 'ISODate' }
     });
     var groups = new vis.DataSet([{
-        id: 'bar', content:'bar'
+        id: 'bar', content:'bar', subgroupOrder: function (a,b) {return a.subgroupOrder - b.subgroupOrder;}
     },{
-        id: 'foo', content:'foo'
+        id: 'foo', content:'foo', subgroupOrder: 'subgroupOrder' // this group has no subgroups but this would be the other method to do the sorting.
     }]);
     // add items to the DataSet
     items.add([
-        {id: 'A', content:'1',start: '2014-01-20', end: '2014-01-22', type: 'background', group:'foo'},
-        {id: 'B', content:'1',start: '2014-01-22', end: '2014-01-23', type: 'background', group:'foo', className: 'negative'},
-        {id: 0, content: 'item 4', start: '2014-01-20', end: '2014-01-22',group:'foo'},
+        {id: 'A',start: '2014-01-20', end: '2014-01-22', type: 'background', group:'foo'},
+        {id: 'B',start: '2014-01-22', end: '2014-01-23', type: 'background', group:'foo', className: 'negative'},
+        {id: 0, content: 'no subgroup', start: '2014-01-20', end: '2014-01-22',group:'foo'},
 
-        {id: 'ab', content:'1',start: '2014-01-25', end: '2014-01-27', type: 'background', group:'bar', subgroup:'banana'},
-        {id: 'bb', content:'1',start: '2014-01-26', end: '2014-01-27', type: 'background', className: 'positive',group:'bar', subgroup:'banana'},
-        {id: 1, content: '0', start: '2014-01-25 12:00:00', end: '2014-01-26 12:00:00',group:'bar', subgroup:'banana'},
-        {id: 'aab', content:'1',start: '2014-01-27', end: '2014-01-29', type: 'background', group:'bar', subgroup:'putty'},
-        {id: 'bab', content:'1',start: '2014-01-27', end: '2014-01-28', type: 'background', className: 'negative',group:'bar', subgroup:'putty'},
-        {id: 'bdab', content:'1',start: '2014-01-29', end: '2014-01-30', type: 'background', className: 'negative',group:'bar'},
-        {id: 2, content: 'subgroup1', start: '2014-01-27', end: '2014-01-29',group:'bar', subgroup:'putty'},
+        {id: 'SG_1_1',start: '2014-01-25', end: '2014-01-27', type: 'background', group:'bar', subgroup:'sg_1', subgroupOrder:0},
+        {id: 'SG_1_2', start: '2014-01-26', end: '2014-01-27', type: 'background', className: 'positive',group:'bar', subgroup:'sg_1', subgroupOrder:0},
+        {id: 1, content: 'subgroup0', start: '2014-01-23 12:00:00', end: '2014-01-26 12:00:00',group:'bar', subgroup:'sg_1', subgroupOrder:0},
+        {id: 'SG_2_1', start: '2014-01-27', end: '2014-01-29', type: 'background', group:'bar', subgroup:'sg_2', subgroupOrder:1},
+        {id: 'SG_2_2', start: '2014-01-27', end: '2014-01-28', type: 'background', className: 'negative',group:'bar', subgroup:'sg_2', subgroupOrder:1},
+        {id: 2, content: 'subgroup1', start: '2014-01-27', end: '2014-01-29',group:'bar', subgroup:'sg_2', subgroupOrder:1},
+
+        {id: 'background', start: '2014-01-29', end: '2014-01-30', type: 'background', className: 'negative',group:'bar'},
+        {id: 'background_all', start: '2014-01-31', end: '2014-02-02', type: 'background', className: 'positive'},
     ]);
 
     var container = document.getElementById('visualization');

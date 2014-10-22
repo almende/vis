@@ -8,6 +8,7 @@ http://visjs.org
 
 - Fixed uneven stepsized with hidden dates.
 - Fixed multiple bugs with regards to hidden dates.
+- Fixed subgroups and added subgroup sorting. Subgroup labels will be in future releases.
 
 ## 2014-10-21, version 3.6.0
 
