@@ -2,13 +2,14 @@
 http://visjs.org
 
 
-## not yet released, version 3.6.1
+## 2014-10-22, version 3.6.1
 
 ### Timeline
 
 - Fixed uneven stepsized with hidden dates.
 - Fixed multiple bugs with regards to hidden dates.
 - Fixed subgroups and added subgroup sorting. Subgroup labels will be in future releases.
+
 
 ## 2014-10-21, version 3.6.0
 
