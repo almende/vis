@@ -6,7 +6,8 @@ http://visjs.org
 
 ### Timeline
 
-- Fixed uneven stepsized with hidden dates
+- Fixed uneven stepsized with hidden dates.
+- Fixed multiple bugs with regards to hidden dates.
 
 ## 2014-10-21, version 3.6.0
 

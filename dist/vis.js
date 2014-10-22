@@ -12622,14 +12622,21 @@ return /******/ (function(modules) { // webpackBootstrap
       var totalRange = (body.range.end - body.range.start);
       var pixelTime = totalRange / body.domProps.centerContainer.width;
 
-
       for (var i = 0; i < hiddenDates.length; i++) {
         if (hiddenDates[i].repeat !== undefined) {
           var startDate = moment(hiddenDates[i].start);
           var endDate = moment(hiddenDates[i].end);
 
+          if (startDate._d == "Invalid Date") {
+            throw new Error("Supplied start date is not valid: " + hiddenDates[i].start);
+          }
+          if (endDate._d == "Invalid Date") {
+            throw new Error("Supplied end date is not valid: " + hiddenDates[i].end);
+          }
+
           var duration = endDate - startDate;
           if (duration >= 4 * pixelTime) {
+
             var offset = 0;
             var runUntil = end.clone();
             switch (hiddenDates[i].repeat) {
@@ -12728,7 +12735,6 @@ return /******/ (function(modules) { // webpackBootstrap
       }
       // remove duplicates, merge where possible
       exports.removeDuplicates(body);
-      //exports.printDates(body.hiddenDates)
       // ensure the new positions are not on hidden dates
       var startHidden = exports.isHidden(body.range.start, body.hiddenDates);
       var endHidden = exports.isHidden(body.range.end,body.hiddenDates);
