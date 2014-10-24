@@ -2,8 +2,9 @@
 http://visjs.org
 
 
-## not yet released, version 3.6.2
+## 2014-10-24, version 3.6.2
 
+- Vis.js is now dual licensed under both Apache 2.0 and MIT.
 
 
 ## 2014-10-22, version 3.6.1
