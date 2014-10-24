@@ -9,6 +9,7 @@ This document describes how to publish vis.js.
 - Open `HISTORY.md`, write down the changes, version number, and release date.
 - Build the library by running:
 
+        npm prune
         npm update
         npm run build
 
