@@ -8,6 +8,11 @@ http://visjs.org
 
 - Fixed background items not always be cleared when removing them.
 
+### Network
+
+- Fixed dashed and arrow lines not using inheritColor.
+
+
 
 ## 2014-10-24, version 3.6.2
 
