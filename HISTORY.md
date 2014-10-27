@@ -7,6 +7,7 @@ http://visjs.org
 ### Timeline
 
 - Fixed background items not always be cleared when removing them.
+- Fixed visible items not always be displayed.
 
 ### Network
 
