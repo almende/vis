@@ -2,6 +2,13 @@
 http://visjs.org
 
 
+## not yet released, version 3.6.3
+
+### Timeline
+
+- Fixed background items not always be cleared when removing them.
+
+
 ## 2014-10-24, version 3.6.2
 
 - Vis.js is now dual licensed under both Apache 2.0 and MIT.
