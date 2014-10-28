@@ -8,11 +8,15 @@ http://visjs.org
 
 - Fixed background items not always be cleared when removing them.
 - Fixed visible items not always be displayed.
+- Performance improvements when doing a lot of changes at once in a DataSet.
 
 ### Network
 
 - Fixed dashed and arrow lines not using inheritColor.
 
+### DataSet
+
+- Support for queueing of changes, and flushing them at once.
 
 
 ## 2014-10-24, version 3.6.2

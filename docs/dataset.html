@@ -162,6 +162,32 @@ var data = new vis.DataSet([data] [, options])
       <a href="#Data_Types">Data Types</a>.
     </td>
   </tr>
+  <tr>
+    <td>queue</td>
+    <td>Object | boolean</td>
+    <td>none</td>
+    <td>
+      Queue data changes ('add', 'update', 'remove') and flush them at once.
+      The queue can be flushed manually by calling
+      <code>DataSet.flush()</code>, or can be flushed after a configured delay
+      or maximum number of entries.
+      <br>
+      <br>
+      When <code>queue</code> is true, a queue is created
+      with default options. Options can be specified by providing an object:
+      <ul>
+        <li><code>delay: number</code><br>
+          The queue will be flushed automatically after an inactivity of this
+          delay in milliseconds. Default value is <code>null</code>.
+        <li><code>max: number</code><br>
+          When the queue exceeds the given maximum number
+          of entries, the queue is flushed automatically.
+          Default value is <code>Infinity</code>.
+        </li>
+      </ul>
+
+    </td>
+  </tr>
 </table>
 
 
@@ -196,6 +222,12 @@ var data = new vis.DataSet([data] [, options])
     <td>distinct(field)</td>
     <td>Array</td>
     <td>Find all distinct values of a specified field. Returns an unordered array containing all distinct values. If data items do not contain the specified field are ignored.</td>
+  </tr>
+
+  <tr>
+    <td>flush()</td>
+    <td>none</td>
+    <td>Flush queued changes. Only available when the DataSet is configured with the option <code>queue</code>, see section <a href="#Construction">Construction</a>.</td>
   </tr>
 
   <tr>
