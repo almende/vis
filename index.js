@@ -5,6 +5,7 @@ exports.DOMutil = require('./lib/DOMutil');
 // data
 exports.DataSet = require('./lib/DataSet');
 exports.DataView = require('./lib/DataView');
+exports.Queue = require('./lib/Queue');
 
 // Graph3d
 exports.Graph3d = require('./lib/graph3d/Graph3d');

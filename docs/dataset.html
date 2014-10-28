@@ -185,7 +185,6 @@ var data = new vis.DataSet([data] [, options])
           Default value is <code>Infinity</code>.
         </li>
       </ul>
-
     </td>
   </tr>
 </table>
@@ -323,6 +322,41 @@ var data = new vis.DataSet([data] [, options])
     <td>Number[]</td>
     <td>
       Remove one or multiple items by id or by the items themselves. Returns an array with the ids of the removed items. See section <a href="#Data_Manipulation">Data Manipulation</a>.
+    </td>
+  </tr>
+
+  <tr>
+    <td>
+      setOptions(options)
+    </td>
+    <td>none</td>
+    <td>
+      Set options for the DataSet. Available options:
+
+      <ul>
+        <li>
+          <code>queue</code><br>
+          Queue data changes ('add', 'update', 'remove') and flush them at once.
+          The queue can be flushed manually by calling
+          <code>DataSet.flush()</code>, or can be flushed after a configured delay
+          or maximum number of entries.
+          <br>
+          <br>
+          When <code>queue</code> is true, a queue is created with default options.
+          When <code>queue</code> is false, an existing queue will be flushed and removed.
+          Options can be specified by providing an object:
+          <ul>
+            <li><code>delay: number</code><br>
+              The queue will be flushed automatically after an inactivity of this
+              delay in milliseconds. Default value is <code>null</code>.
+            <li><code>max: number</code><br>
+              When the queue exceeds the given maximum number
+              of entries, the queue is flushed automatically.
+              Default value is <code>Infinity</code>.
+            </li>
+          </ul>
+        </li>
+      </ul>
     </td>
   </tr>
 

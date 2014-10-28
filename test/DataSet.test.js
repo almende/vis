@@ -236,4 +236,42 @@ describe('DataSet', function () {
     }, 200)
   });
 
+  it('should remove a queue from the dataset', function () {
+    var options = {queue: true};
+    var dataset = new DataSet([
+      {id: 1, content: 'Item 1'},
+      {id: 2, content: 'Item 2'}
+    ], options);
+
+    assert.deepEqual(dataset.get(), [
+      {id: 1, content: 'Item 1'},
+      {id: 2, content: 'Item 2'}
+    ]);
+
+    dataset.add({id: 3, content: 'Item 3'});
+    dataset.update({id: 1, content: 'Item 1 (updated)'});
+    dataset.remove(2);
+
+    assert.deepEqual(dataset.get(), [
+      {id: 1, content: 'Item 1'},
+      {id: 2, content: 'Item 2'}
+    ]);
+
+    dataset.setOptions({queue: false}); // remove queue, should flush changes
+
+    assert.deepEqual(dataset.get(), [
+      {id: 1, content: 'Item 1 (updated)'},
+      {id: 3, content: 'Item 3'}
+    ]);
+
+    dataset.add({id: 4, content: 'Item 4'});
+
+    assert.deepEqual(dataset.get(), [
+      {id: 1, content: 'Item 1 (updated)'},
+      {id: 3, content: 'Item 3'},
+      {id: 4, content: 'Item 4'}
+    ]);
+
+  });
+
 });

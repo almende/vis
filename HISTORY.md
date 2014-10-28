@@ -17,6 +17,7 @@ http://visjs.org
 ### DataSet
 
 - Support for queueing of changes, and flushing them at once.
+- Implemented `DataSet.setOptions`. Only applicable for the `queue` options.
 
 
 ## 2014-10-24, version 3.6.2

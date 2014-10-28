@@ -153,4 +153,8 @@ describe('Queue', function () {
     assert.equal(obj.count, 2);
   });
 
+  // TODO: test Queue.setOptions
+
+  // TODO: test Queue.destroy
+
 });
