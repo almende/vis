@@ -4,7 +4,7 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 3.6.3-SNAPSHOT
+ * @version 3.6.3
  * @date    2014-10-28
  *
  * @license
@@ -86,61 +86,62 @@ return /******/ (function(modules) { // webpackBootstrap
   // data
   exports.DataSet = __webpack_require__(3);
   exports.DataView = __webpack_require__(4);
+  exports.Queue = __webpack_require__(5);
 
   // Graph3d
-  exports.Graph3d = __webpack_require__(5);
+  exports.Graph3d = __webpack_require__(6);
   exports.graph3d = {
-    Camera: __webpack_require__(6),
-    Filter: __webpack_require__(7),
-    Point2d: __webpack_require__(8),
-    Point3d: __webpack_require__(9),
-    Slider: __webpack_require__(10),
-    StepNumber: __webpack_require__(11)
+    Camera: __webpack_require__(7),
+    Filter: __webpack_require__(8),
+    Point2d: __webpack_require__(9),
+    Point3d: __webpack_require__(10),
+    Slider: __webpack_require__(11),
+    StepNumber: __webpack_require__(12)
   };
 
   // Timeline
-  exports.Timeline = __webpack_require__(12);
-  exports.Graph2d = __webpack_require__(13);
+  exports.Timeline = __webpack_require__(13);
+  exports.Graph2d = __webpack_require__(14);
   exports.timeline = {
-    DateUtil: __webpack_require__(14),
-    DataStep: __webpack_require__(15),
-    Range: __webpack_require__(16),
-    stack: __webpack_require__(17),
-    TimeStep: __webpack_require__(18),
+    DateUtil: __webpack_require__(15),
+    DataStep: __webpack_require__(16),
+    Range: __webpack_require__(17),
+    stack: __webpack_require__(18),
+    TimeStep: __webpack_require__(19),
 
     components: {
       items: {
-        Item: __webpack_require__(30),
-        BackgroundItem: __webpack_require__(31),
-        BoxItem: __webpack_require__(32),
-        PointItem: __webpack_require__(33),
-        RangeItem: __webpack_require__(34)
+        Item: __webpack_require__(31),
+        BackgroundItem: __webpack_require__(32),
+        BoxItem: __webpack_require__(33),
+        PointItem: __webpack_require__(34),
+        RangeItem: __webpack_require__(35)
       },
 
-      Component: __webpack_require__(19),
-      CurrentTime: __webpack_require__(20),
-      CustomTime: __webpack_require__(21),
-      DataAxis: __webpack_require__(22),
-      GraphGroup: __webpack_require__(23),
-      Group: __webpack_require__(24),
-      BackgroundGroup: __webpack_require__(25),
-      ItemSet: __webpack_require__(26),
-      Legend: __webpack_require__(27),
-      LineGraph: __webpack_require__(28),
-      TimeAxis: __webpack_require__(29)
+      Component: __webpack_require__(20),
+      CurrentTime: __webpack_require__(21),
+      CustomTime: __webpack_require__(22),
+      DataAxis: __webpack_require__(23),
+      GraphGroup: __webpack_require__(24),
+      Group: __webpack_require__(25),
+      BackgroundGroup: __webpack_require__(26),
+      ItemSet: __webpack_require__(27),
+      Legend: __webpack_require__(28),
+      LineGraph: __webpack_require__(29),
+      TimeAxis: __webpack_require__(30)
     }
   };
 
   // Network
-  exports.Network = __webpack_require__(35);
+  exports.Network = __webpack_require__(36);
   exports.network = {
-    Edge: __webpack_require__(36),
-    Groups: __webpack_require__(37),
-    Images: __webpack_require__(38),
-    Node: __webpack_require__(39),
-    Popup: __webpack_require__(40),
-    dotparser: __webpack_require__(41),
-    gephiParser: __webpack_require__(42)
+    Edge: __webpack_require__(37),
+    Groups: __webpack_require__(38),
+    Images: __webpack_require__(39),
+    Node: __webpack_require__(40),
+    Popup: __webpack_require__(41),
+    dotparser: __webpack_require__(42),
+    gephiParser: __webpack_require__(43)
   };
 
   // Deprecated since v3.0.0
@@ -149,8 +150,8 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   // bundled external libraries
-  exports.moment = __webpack_require__(43);
-  exports.hammer = __webpack_require__(44);
+  exports.moment = __webpack_require__(44);
+  exports.hammer = __webpack_require__(45);
 
 
 /***/ },
@@ -161,7 +162,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // first check if moment.js is already loaded in the browser window, if so,
   // use this instance. Else, load via commonjs.
-  var moment = __webpack_require__(43);
+  var moment = __webpack_require__(44);
 
   /**
    * Test whether given object is a number
@@ -1694,7 +1695,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Queue = __webpack_require__(45);
+  var Queue = __webpack_require__(5);
 
   /**
    * DataSet
@@ -1779,15 +1780,41 @@ return /******/ (function(modules) { // webpackBootstrap
       this.add(data);
     }
 
-    // change the dataset in a queued one
-    if (this._options.queue) {
-      var queue = {
-        replace: ['add', 'update', 'remove']
-      };
-      if (typeof this._options.queue === 'object') util.extend(queue, this._options.queue);
-      Queue.extend(this, queue);
-    }
+    this.setOptions(options);
   }
+
+  /**
+   * @param {Object} [options]   Available options:
+   *                             {Object} queue   Queue changes to the DataSet,
+   *                                              flush them all at once.
+   *                                              Queue options:
+   *                                              - {number} delay  Delay in ms, null by default
+   *                                              - {number} max    Maximum number of entries in the queue, Infinity by default
+   * @param options
+   */
+  DataSet.prototype.setOptions = function(options) {
+    if (options && options.queue !== undefined) {
+      if (options.queue === false) {
+        // delete queue if loaded
+        if (this._queue) {
+          this._queue.destroy();
+          delete this._queue;
+        }
+      }
+      else {
+        // create queue and update its options
+        if (!this._queue) {
+          this._queue = Queue.extend(this, {
+            replace: ['add', 'update', 'remove']
+          });
+        }
+
+        if (typeof options.queue === 'object') {
+          this._queue.setOptions(options.queue);
+        }
+      }
+    }
+  };
 
   /**
    * Subscribe to an event, add an event listener
@@ -2968,16 +2995,222 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
+  /**
+   * A queue
+   * @param {Object} options
+   *            Available options:
+   *            - delay: number    When provided, the queue will be flushed
+   *                               automatically after an inactivity of this delay
+   *                               in milliseconds.
+   *                               Default value is null.
+   *            - max: number      When the queue exceeds the given maximum number
+   *                               of entries, the queue is flushed automatically.
+   *                               Default value of max is Infinity.
+   * @constructor
+   */
+  function Queue(options) {
+    // options
+    this.delay = null;
+    this.max = Infinity;
+
+    // properties
+    this._queue = [];
+    this._timeout = null;
+    this._extended = null;
+
+    this.setOptions(options);
+  }
+
+  /**
+   * Update the configuration of the queue
+   * @param {Object} options
+   *            Available options:
+   *            - delay: number    When provided, the queue will be flushed
+   *                               automatically after an inactivity of this delay
+   *                               in milliseconds.
+   *                               Default value is null.
+   *            - max: number      When the queue exceeds the given maximum number
+   *                               of entries, the queue is flushed automatically.
+   *                               Default value of max is Infinity.
+   * @param options
+   */
+  Queue.prototype.setOptions = function (options) {
+    if (options && typeof options.delay !== 'undefined') {
+      this.delay = options.delay;
+    }
+    if (options && typeof options.max !== 'undefined') {
+      this.max = options.max;
+    }
+
+    this._flushIfNeeded();
+  };
+
+  /**
+   * Extend an object with queuing functionality.
+   * The object will be extended with a function flush, and the methods provided
+   * in options.replace will be replaced with queued ones.
+   * @param {Object} object
+   * @param {Object} options
+   *            Available options:
+   *            - replace: Array.<string>
+   *                               A list with method names of the methods
+   *                               on the object to be replaced with queued ones.
+   *            - delay: number    When provided, the queue will be flushed
+   *                               automatically after an inactivity of this delay
+   *                               in milliseconds.
+   *                               Default value is null.
+   *            - max: number      When the queue exceeds the given maximum number
+   *                               of entries, the queue is flushed automatically.
+   *                               Default value of max is Infinity.
+   * @return {Queue} Returns the created queue
+   */
+  Queue.extend = function (object, options) {
+    var queue = new Queue(options);
+
+    if (object.flush !== undefined) {
+      throw new Error('Target object already has a property flush');
+    }
+    object.flush = function () {
+      queue.flush();
+    };
+
+    var methods = [{
+      name: 'flush',
+      original: undefined
+    }];
+
+    if (options && options.replace) {
+      for (var i = 0; i < options.replace.length; i++) {
+        var name = options.replace[i];
+        methods.push({
+          name: name,
+          original: object[name]
+        });
+        queue.replace(object, name);
+      }
+    }
+
+    queue._extended = {
+      object: object,
+      methods: methods
+    };
+
+    return queue;
+  };
+
+  /**
+   * Destroy the queue. The queue will first flush all queued actions, and in
+   * case it has extended an object, will restore the original object.
+   */
+  Queue.prototype.destroy = function () {
+    this.flush();
+
+    if (this._extended) {
+      var object = this._extended.object;
+      var methods = this._extended.methods;
+      for (var i = 0; i < methods.length; i++) {
+        var method = methods[i];
+        if (method.original) {
+          object[method.name] = method.original;
+        }
+        else {
+          delete object[method.name];
+        }
+      }
+      this._extended = null;
+    }
+  };
+
+  /**
+   * Replace a method on an object with a queued version
+   * @param {Object} object   Object having the method
+   * @param {string} method   The method name
+   */
+  Queue.prototype.replace = function(object, method) {
+    var me = this;
+    var original = object[method];
+    if (!original) {
+      throw new Error('Method ' + method + ' undefined');
+    }
+
+    object[method] = function () {
+      // create an Array with the arguments
+      var args = [];
+      for (var i = 0; i < arguments.length; i++) {
+        args[i] = arguments[i];
+      }
+
+      // add this call to the queue
+      me.queue({
+        args: args,
+        fn: original,
+        context: this
+      });
+    };
+  };
+
+  /**
+   * Queue a call
+   * @param {function | {fn: function, args: Array} | {fn: function, args: Array, context: Object}} entry
+   */
+  Queue.prototype.queue = function(entry) {
+    if (typeof entry === 'function') {
+      this._queue.push({fn: entry});
+    }
+    else {
+      this._queue.push(entry);
+    }
+
+    this._flushIfNeeded();
+  };
+
+  /**
+   * Check whether the queue needs to be flushed
+   * @private
+   */
+  Queue.prototype._flushIfNeeded = function () {
+    // flush when the maximum is exceeded.
+    if (this._queue.length > this.max) {
+      this.flush();
+    }
+
+    // flush after a period of inactivity when a delay is configured
+    clearTimeout(this._timeout);
+    if (this.queue.length > 0 && typeof this.delay === 'number') {
+      var me = this;
+      this._timeout = setTimeout(function () {
+        me.flush();
+      }, this.delay);
+    }
+  };
+
+  /**
+   * Flush all queued calls
+   */
+  Queue.prototype.flush = function () {
+    while (this._queue.length > 0) {
+      var entry = this._queue.shift();
+      entry.fn.apply(entry.context || entry.fn, entry.args || []);
+    }
+  };
+
+  module.exports = Queue;
+
+
+/***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
   var Emitter = __webpack_require__(53);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var util = __webpack_require__(1);
-  var Point3d = __webpack_require__(9);
-  var Point2d = __webpack_require__(8);
-  var Camera = __webpack_require__(6);
-  var Filter = __webpack_require__(7);
-  var Slider = __webpack_require__(10);
-  var StepNumber = __webpack_require__(11);
+  var Point3d = __webpack_require__(10);
+  var Point2d = __webpack_require__(9);
+  var Camera = __webpack_require__(7);
+  var Filter = __webpack_require__(8);
+  var Slider = __webpack_require__(11);
+  var StepNumber = __webpack_require__(12);
 
   /**
    * @constructor Graph3d
@@ -5249,10 +5482,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 6 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Point3d = __webpack_require__(9);
+  var Point3d = __webpack_require__(10);
 
   /**
    * @class Camera
@@ -5389,7 +5622,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Camera;
 
 /***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
   var DataView = __webpack_require__(4);
@@ -5613,7 +5846,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -5630,7 +5863,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -5721,7 +5954,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -6073,7 +6306,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -6219,20 +6452,20 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Emitter = __webpack_require__(53);
-  var Hammer = __webpack_require__(44);
+  var Hammer = __webpack_require__(45);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
-  var Range = __webpack_require__(16);
+  var Range = __webpack_require__(17);
   var Core = __webpack_require__(46);
-  var TimeAxis = __webpack_require__(29);
-  var CurrentTime = __webpack_require__(20);
-  var CustomTime = __webpack_require__(21);
-  var ItemSet = __webpack_require__(26);
+  var TimeAxis = __webpack_require__(30);
+  var CurrentTime = __webpack_require__(21);
+  var CustomTime = __webpack_require__(22);
+  var ItemSet = __webpack_require__(27);
 
   /**
    * Create a timeline visualization
@@ -6534,20 +6767,20 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Emitter = __webpack_require__(53);
-  var Hammer = __webpack_require__(44);
+  var Hammer = __webpack_require__(45);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
-  var Range = __webpack_require__(16);
+  var Range = __webpack_require__(17);
   var Core = __webpack_require__(46);
-  var TimeAxis = __webpack_require__(29);
-  var CurrentTime = __webpack_require__(20);
-  var CustomTime = __webpack_require__(21);
-  var LineGraph = __webpack_require__(28);
+  var TimeAxis = __webpack_require__(30);
+  var CurrentTime = __webpack_require__(21);
+  var CustomTime = __webpack_require__(22);
+  var LineGraph = __webpack_require__(29);
 
   /**
    * Create a timeline visualization
@@ -6784,13 +7017,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
    * Created by Alex on 10/3/2014.
    */
-  var moment = __webpack_require__(43);
+  var moment = __webpack_require__(44);
 
 
   /**
@@ -7242,7 +7475,7 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -7470,14 +7703,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
   var hammerUtil = __webpack_require__(47);
-  var moment = __webpack_require__(43);
-  var Component = __webpack_require__(19);
-  var DateUtil = __webpack_require__(14);
+  var moment = __webpack_require__(44);
+  var Component = __webpack_require__(20);
+  var DateUtil = __webpack_require__(15);
 
   /**
    * @constructor Range
@@ -8146,7 +8379,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Utility functions for ordering and stacking of items
@@ -8274,11 +8507,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var moment = __webpack_require__(43);
-  var DateUtil = __webpack_require__(14);
+  var moment = __webpack_require__(44);
+  var DateUtil = __webpack_require__(15);
 
   /**
    * @constructor  TimeStep
@@ -8806,7 +9039,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -8866,12 +9099,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Component = __webpack_require__(19);
-  var moment = __webpack_require__(43);
+  var Component = __webpack_require__(20);
+  var moment = __webpack_require__(44);
   var locales = __webpack_require__(48);
 
   /**
@@ -9035,13 +9268,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(44);
+  var Hammer = __webpack_require__(45);
   var util = __webpack_require__(1);
-  var Component = __webpack_require__(19);
-  var moment = __webpack_require__(43);
+  var Component = __webpack_require__(20);
+  var moment = __webpack_require__(44);
   var locales = __webpack_require__(48);
 
   /**
@@ -9237,13 +9470,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 22 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(2);
-  var Component = __webpack_require__(19);
-  var DataStep = __webpack_require__(15);
+  var Component = __webpack_require__(20);
+  var DataStep = __webpack_require__(16);
 
   /**
    * A horizontal time axis
@@ -9744,7 +9977,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -9885,12 +10118,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 24 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var stack = __webpack_require__(17);
-  var RangeItem = __webpack_require__(34);
+  var stack = __webpack_require__(18);
+  var RangeItem = __webpack_require__(35);
 
   /**
    * @constructor Group
@@ -10397,11 +10630,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 25 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Group = __webpack_require__(24);
+  var Group = __webpack_require__(25);
 
   /**
    * @constructor BackgroundGroup
@@ -10460,20 +10693,20 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 26 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(44);
+  var Hammer = __webpack_require__(45);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
-  var Component = __webpack_require__(19);
-  var Group = __webpack_require__(24);
-  var BackgroundGroup = __webpack_require__(25);
-  var BoxItem = __webpack_require__(32);
-  var PointItem = __webpack_require__(33);
-  var RangeItem = __webpack_require__(34);
-  var BackgroundItem = __webpack_require__(31);
+  var Component = __webpack_require__(20);
+  var Group = __webpack_require__(25);
+  var BackgroundGroup = __webpack_require__(26);
+  var BoxItem = __webpack_require__(33);
+  var PointItem = __webpack_require__(34);
+  var RangeItem = __webpack_require__(35);
+  var BackgroundItem = __webpack_require__(32);
 
 
   var UNGROUPED = '__ungrouped__';   // reserved group id for ungrouped items
@@ -11931,12 +12164,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 27 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(2);
-  var Component = __webpack_require__(19);
+  var Component = __webpack_require__(20);
 
   /**
    * Legend for Graph2d
@@ -12135,17 +12368,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 28 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(2);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
-  var Component = __webpack_require__(19);
-  var DataAxis = __webpack_require__(22);
-  var GraphGroup = __webpack_require__(23);
-  var Legend = __webpack_require__(27);
+  var Component = __webpack_require__(20);
+  var DataAxis = __webpack_require__(23);
+  var GraphGroup = __webpack_require__(24);
+  var Legend = __webpack_require__(28);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -13442,14 +13675,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 29 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Component = __webpack_require__(19);
-  var TimeStep = __webpack_require__(18);
-  var DateUtil = __webpack_require__(14);
-  var moment = __webpack_require__(43);
+  var Component = __webpack_require__(20);
+  var TimeStep = __webpack_require__(19);
+  var DateUtil = __webpack_require__(15);
+  var moment = __webpack_require__(44);
 
   /**
    * A horizontal time axis
@@ -13861,10 +14094,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 30 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(44);
+  var Hammer = __webpack_require__(45);
   var util = __webpack_require__(1);
 
   /**
@@ -14126,13 +14359,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 31 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(44);
-  var Item = __webpack_require__(30);
-  var BackgroundGroup = __webpack_require__(25);
-  var RangeItem = __webpack_require__(34);
+  var Hammer = __webpack_require__(45);
+  var Item = __webpack_require__(31);
+  var BackgroundGroup = __webpack_require__(26);
+  var RangeItem = __webpack_require__(35);
 
   /**
    * @constructor BackgroundItem
@@ -14337,10 +14570,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 32 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Item = __webpack_require__(30);
+  var Item = __webpack_require__(31);
   var util = __webpack_require__(1);
 
   /**
@@ -14567,10 +14800,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 33 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Item = __webpack_require__(30);
+  var Item = __webpack_require__(31);
 
   /**
    * @constructor PointItem
@@ -14756,11 +14989,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 34 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(44);
-  var Item = __webpack_require__(30);
+  var Hammer = __webpack_require__(45);
+  var Item = __webpack_require__(31);
 
   /**
    * @constructor RangeItem
@@ -15055,23 +15288,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 35 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Emitter = __webpack_require__(53);
-  var Hammer = __webpack_require__(44);
+  var Hammer = __webpack_require__(45);
   var mousetrap = __webpack_require__(54);
   var util = __webpack_require__(1);
   var hammerUtil = __webpack_require__(47);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
-  var dotparser = __webpack_require__(41);
-  var gephiParser = __webpack_require__(42);
-  var Groups = __webpack_require__(37);
-  var Images = __webpack_require__(38);
-  var Node = __webpack_require__(39);
-  var Edge = __webpack_require__(36);
-  var Popup = __webpack_require__(40);
+  var dotparser = __webpack_require__(42);
+  var gephiParser = __webpack_require__(43);
+  var Groups = __webpack_require__(38);
+  var Images = __webpack_require__(39);
+  var Node = __webpack_require__(40);
+  var Edge = __webpack_require__(37);
+  var Popup = __webpack_require__(41);
   var MixinLoader = __webpack_require__(51);
   var Activator = __webpack_require__(52);
   var locales = __webpack_require__(49);
@@ -17596,11 +17829,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 36 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Node = __webpack_require__(39);
+  var Node = __webpack_require__(40);
 
   /**
    * @class Edge
@@ -18787,7 +19020,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Edge;
 
 /***/ },
-/* 37 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -18876,7 +19109,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 38 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -18934,7 +19167,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 39 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -19958,7 +20191,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 40 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -20104,7 +20337,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 41 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -20936,7 +21169,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 42 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
   
@@ -21001,7 +21234,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.parseGephi = parseGephi;
 
 /***/ },
-/* 43 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   // first check if moment.js is already loaded in the browser window, if so,
@@ -21010,7 +21243,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 44 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Only load hammer.js when in a browser environment
@@ -21026,151 +21259,21 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 45 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * A queue
-   * @param {Object} options
-   *            Available options:
-   *            - delay: number    When a number, the queue will be flushed
-   *                               automatically after an inactivity of this delay
-   *                               in milliseconds.
-   *                               Default value is null.
-   *            - max: number      When the queue exceeds the given maximum number
-   *                               of entries, the queue is flushed automatically.
-   *                               Default value of max is Infinity.
-   * @constructor
-   */
-  function Queue(options) {
-    // options
-    this.delay = options && typeof options.delay === 'number' ? options.delay : null;
-    this.max   = options && typeof options.max === 'number'   ? options.max   : Infinity;
-
-    // properties
-    this._queue = [];
-    this._timeout = null;
-  }
-
-  /**
-   * Extend an object with queuing functionality.
-   * The object will be extended with a function flush, and the methods provided
-   * in options.replace will be replaced with queued ones.
-   * @param {Object} object
-   * @param {Object} options
-   *            Available options:
-   *            - replace: Array.<string>
-   *                               A list with method names of the methods
-   *                               on the object to be replaced with queued ones.
-   *            - delay: number    When a number, the queue will be flushed
-   *                               automatically after an inactivity of this delay
-   *                               in milliseconds.
-   *                               Default value is null.
-   *            - max: number      When the queue exceeds the given maximum number
-   *                               of entries, the queue is flushed automatically.
-   *                               Default value of max is Infinity.
-   */
-  Queue.extend = function (object, options) {
-    var queue = new Queue(options);
-
-    if (object.flush !== undefined) {
-      throw new Error('Target object already has a property flush');
-    }
-    object.flush = function () {
-      queue.flush();
-    };
-
-    if (options && options.replace) {
-      for (var i = 0; i < options.replace.length; i++) {
-        queue.replace(object, options.replace[i]);
-      }
-    }
-  };
-
-  /**
-   * Replace a method on an object with a queued version
-   * @param {Object} object   Object having the method
-   * @param {string} method   The method name
-   */
-  Queue.prototype.replace = function(object, method) {
-    var me = this;
-    var original = object[method];
-    if (!original) {
-      throw new Error('Method ' + method + ' undefined');
-    }
-
-    object[method] = function () {
-      // create an Array with the arguments
-      var args = [];
-      for (var i = 0; i < arguments.length; i++) {
-        args[i] = arguments[i];
-      }
-
-      // add this call to the queue
-      me.queue({
-        args: args,
-        fn: original,
-        context: this
-      });
-    };
-  };
-
-  /**
-   * Queue a call
-   * @param {function | {fn: function, args: Array} | {fn: function, args: Array, context: Object}} entry
-   */
-  Queue.prototype.queue = function(entry) {
-    if (typeof entry === 'function') {
-      this._queue.push({fn: entry});
-    }
-    else {
-      this._queue.push(entry);
-    }
-
-    // flush when the maximum is exceeded.
-    if (this._queue.length > this.max) {
-      this.flush();
-    }
-
-    // flush after a period of inactivity when a delay is configured
-    if (typeof this.delay === 'number') {
-      var me = this;
-      clearTimeout(this._timeout);
-      this._timeout = setTimeout(function () {
-        me.flush();
-      }, this.delay);
-    }
-  };
-
-  /**
-   * Flush all queued calls
-   */
-  Queue.prototype.flush = function () {
-    while (this._queue.length > 0) {
-      var entry = this._queue.shift();
-      entry.fn.apply(entry.context || entry.fn, entry.args || []);
-    }
-  };
-
-  module.exports = Queue;
-
-
-/***/ },
 /* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Emitter = __webpack_require__(53);
-  var Hammer = __webpack_require__(44);
+  var Hammer = __webpack_require__(45);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
-  var Range = __webpack_require__(16);
-  var TimeAxis = __webpack_require__(29);
-  var CurrentTime = __webpack_require__(20);
-  var CustomTime = __webpack_require__(21);
-  var ItemSet = __webpack_require__(26);
+  var Range = __webpack_require__(17);
+  var TimeAxis = __webpack_require__(30);
+  var CurrentTime = __webpack_require__(21);
+  var CustomTime = __webpack_require__(22);
+  var ItemSet = __webpack_require__(27);
   var Activator = __webpack_require__(52);
-  var DateUtil = __webpack_require__(14);
+  var DateUtil = __webpack_require__(15);
 
   /**
    * Create a timeline visualization
@@ -22010,7 +22113,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(44);
+  var Hammer = __webpack_require__(45);
 
   /**
    * Fake a hammer.js gesture. Event can be a ScrollEvent or MouseMoveEvent
@@ -22543,7 +22646,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var mousetrap = __webpack_require__(54);
   var Emitter = __webpack_require__(53);
-  var Hammer = __webpack_require__(44);
+  var Hammer = __webpack_require__(45);
   var util = __webpack_require__(1);
 
   /**
@@ -29842,7 +29945,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Node = __webpack_require__(39);
+  var Node = __webpack_require__(40);
 
   /**
    * Creation of the SectorMixin var.
@@ -30400,7 +30503,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Node = __webpack_require__(39);
+  var Node = __webpack_require__(40);
 
   /**
    * This function can be called from the _doInAllSectors function
@@ -31105,8 +31208,8 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Node = __webpack_require__(39);
-  var Edge = __webpack_require__(36);
+  var Node = __webpack_require__(40);
+  var Edge = __webpack_require__(37);
 
   /**
    * clears the toolbar div element of children
@@ -31706,7 +31809,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Hammer = __webpack_require__(44);
+  var Hammer = __webpack_require__(45);
 
   exports._cleanNavigation = function() {
     // clean hammer bindings
