@@ -2,7 +2,7 @@ var assert = require('assert');
 var Queue = require('../lib/Queue');
 
 describe('Queue', function () {
-  it('queue, queue actions', function () {
+  it('queue actions', function () {
     var queue = new Queue();
 
     var count = 0;
@@ -17,7 +17,7 @@ describe('Queue', function () {
     assert.equal(count, 1);
   });
 
-  it('queue, queue actions with a delay', function (done) {
+  it('queue actions with a delay', function (done) {
     var queue = new Queue({delay: 25});
 
     var count = 0;
@@ -35,7 +35,7 @@ describe('Queue', function () {
     }, 50);
   });
 
-  it('queue, queue multiple actions with a delay', function (done) {
+  it('queue multiple actions with a delay', function (done) {
     var queue = new Queue({delay: 100});
 
     var count = 0;
@@ -61,6 +61,24 @@ describe('Queue', function () {
         }, 50);
       }, 75);
     }, 50);
+  });
+
+  it('flush when the configured maximum is exceeded', function () {
+    var queue = new Queue({max: 4});
+
+    var count = 0;
+    function inc() {
+      count++;
+    }
+
+    queue.queue(inc);
+    queue.queue(inc);
+    assert.equal(count, 0);
+
+    queue.queue(inc);
+    queue.queue(inc);
+    queue.queue(inc);
+    assert.equal(count, 5);
   });
 
   it('queue actions with args', function () {

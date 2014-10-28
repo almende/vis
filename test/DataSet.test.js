@@ -1,12 +1,13 @@
 var assert = require('assert');
 var moment = require('moment');
 var DataSet = require('../lib/DataSet');
+var Queue = require('../lib/Queue');
 
 var now = new Date();
 
-// TODO: improve DataSet tests, split up in one test per function
 describe('DataSet', function () {
   it('should work', function () {
+    // TODO: improve DataSet tests, split up in one test per function
 
     var data = new DataSet({
       type: {
@@ -174,4 +175,65 @@ describe('DataSet', function () {
     // TODO: test subscribing to events
 
   });
+
+  it('should queue and flush changes', function () {
+    var options = {queue: true};
+    var dataset = new DataSet([
+      {id: 1, content: 'Item 1'},
+      {id: 2, content: 'Item 2'}
+    ], options);
+
+    assert.deepEqual(dataset.get(), [
+      {id: 1, content: 'Item 1'},
+      {id: 2, content: 'Item 2'}
+    ]);
+
+    dataset.add({id: 3, content: 'Item 3'});
+    dataset.update({id: 1, content: 'Item 1 (updated)'});
+    dataset.remove(2);
+
+    assert.deepEqual(dataset.get(), [
+      {id: 1, content: 'Item 1'},
+      {id: 2, content: 'Item 2'}
+    ]);
+
+    dataset.flush();
+
+    assert.deepEqual(dataset.get(), [
+      {id: 1, content: 'Item 1 (updated)'},
+      {id: 3, content: 'Item 3'}
+    ]);
+  });
+
+  it('should queue and flush changes after a timeout', function (done) {
+    var options = {queue: {delay: 100}};
+    var dataset = new DataSet([
+      {id: 1, content: 'Item 1'},
+      {id: 2, content: 'Item 2'}
+    ], options);
+
+    assert.deepEqual(dataset.get(), [
+      {id: 1, content: 'Item 1'},
+      {id: 2, content: 'Item 2'}
+    ]);
+
+    dataset.add({id: 3, content: 'Item 3'});
+    dataset.update({id: 1, content: 'Item 1 (updated)'});
+    dataset.remove(2);
+
+    assert.deepEqual(dataset.get(), [
+      {id: 1, content: 'Item 1'},
+      {id: 2, content: 'Item 2'}
+    ]);
+
+    setTimeout(function () {
+      assert.deepEqual(dataset.get(), [
+        {id: 1, content: 'Item 1 (updated)'},
+        {id: 3, content: 'Item 3'}
+      ]);
+
+      done();
+    }, 200)
+  });
+
 });
