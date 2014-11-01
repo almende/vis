@@ -60,6 +60,10 @@
                     <td><input type="button" onclick="showTitle('right', true)" value="Show Right Title" /></td>
                     <td><input type="button" onclick="showTitle('right', false)" value="Hide Right Title" /></td>
                 </tr>
+                <tr>
+                    <td><input type="button" onclick="styleTitle('left')" value="Color Left Title" /></td>
+                    <td><input type="button" onclick="styleTitle('right')" value="Color Right Title" /></td>
+                </tr>
             </table>
         </td>
     </tr>
@@ -166,11 +170,24 @@
     function showTitle(axes, show) {
         var title;
         if(show == true) {
-            title = {text: "Title (" + axes + " axes)"};
+            title = {text: "Title (" + axes + " axes)", style: "color: green;"};
         }
         else {
             title = false;
         }
+
+        if(axes == 'left') {
+            graph2d.setOptions({dataAxis: {title: {left: title}}});
+        }
+        else {
+            graph2d.setOptions({dataAxis: {title: {right: title}}});
+        }
+    }
+
+    var colors=['red','green','blue','black','yellow','purple','pink'];
+    function styleTitle(axes) {
+        var title;
+        title = {style: "color: " + colors[Math.floor(Math.random() * colors.length) + 1]};
 
         if(axes == 'left') {
             graph2d.setOptions({dataAxis: {title: {left: title}}});
