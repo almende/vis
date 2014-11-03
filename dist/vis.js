@@ -11783,15 +11783,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
     var item = this.touchParams.item || null;
     var me = this;
-    var props = {};
+    var props;
 
-    props.initialX = event.gesture.center.clientX;
     if (item && item.selected) {
       var dragLeftItem = event.target.dragLeftItem;
       var dragRightItem = event.target.dragRightItem;
 
       if (dragLeftItem) {
-        props.item = dragLeftItem;
+        props = {
+          item: dragLeftItem,
+          initialX: event.gesture.center.clientX
+        };
 
         if (me.options.editable.updateTime) {
           props.start = item.data.start.valueOf();
@@ -11803,7 +11805,10 @@ return /******/ (function(modules) { // webpackBootstrap
         this.touchParams.itemProps = [props];
       }
       else if (dragRightItem) {
-        props.item = dragRightItem;
+        props = {
+          item: dragRightItem,
+          initialX: event.gesture.center.clientX
+        };
 
         if (me.options.editable.updateTime) {
           props.end = item.data.end.valueOf();
@@ -11817,7 +11822,10 @@ return /******/ (function(modules) { // webpackBootstrap
       else {
         this.touchParams.itemProps = this.getSelection().map(function (id) {
           var item = me.items[id];
-          props.item = item;
+          var props = {
+            item: item,
+            initialX: event.gesture.center.clientX
+          };
 
           if (me.options.editable.updateTime) {
             if ('start' in item.data) props.start = item.data.start.valueOf();
@@ -11849,22 +11857,17 @@ return /******/ (function(modules) { // webpackBootstrap
       // move
       this.touchParams.itemProps.forEach(function (props) {
         var newProps = {};
-        if ('start' in props && !('end' in props)) {  // only start in props
-          var start = me.body.util.toTime(event.gesture.center.clientX - xOffset);
-          newProps.start = snap ? snap(start) : start;
-        }
-        else if ('start' in props) {                  // start and end in props
-          var current = me.body.util.toTime(event.gesture.center.clientX - xOffset);
-          var initial = me.body.util.toTime(props.initialX - xOffset);
-          var offset = current - initial;
-          var start = new Date(props.start + offset);
-          var end = new Date(props.end + offset);
+        var current = me.body.util.toTime(event.gesture.center.clientX - xOffset);
+        var initial = me.body.util.toTime(props.initialX - xOffset);
+        var offset = current - initial;
 
+        if ('start' in props) {
+          var start = new Date(props.start + offset);
           newProps.start = snap ? snap(start) : start;
-          newProps.end = snap ? snap(end) : end;
         }
-        else if ('end' in props) {                    // only end in props
-          var end = me.body.util.toTime(event.gesture.center.clientX - xOffset);
+
+        if ('end' in props) {
+          var end = new Date(props.end + offset);
           newProps.end = snap ? snap(end) : end;
         }
 
