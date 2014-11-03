@@ -110,6 +110,42 @@
                         </select>
                     </td>
                 </tr>
+                <tr>
+                    <td>Points Color</td>
+                    <td>
+                        <select id="pointcolor" onchange="updateStyle()">
+                            <option value="stroke:green;">green</option>
+                            <option value="stroke:red;">red</option>
+                            <option value="stroke:blue;" selected="selected">blue</option>
+                            <option value="stroke:black;">black</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Point line thickness</td>
+                    <td>
+                        <select id="pointthickness" onchange="updateStyle()">
+                            <option value="stroke-width:0;">0</option>
+                            <option value="stroke-width:1;">1</option>
+                            <option value="stroke-width:2;" selected="selected">2</option>
+                            <option value="stroke-width:3;">3</option>
+                            <option value="stroke-width:4;">4</option>
+                            <option value="stroke-width:5;">5</option>
+                            <option value="stroke-width:6;">6</option>
+                        </select>
+                    </td>
+                <tr>
+                </tr>
+                  <td>Points Fill Color</td>
+                    <td>
+                        <select id="pointfill" onchange="updateStyle()">
+                            <option value="fill:green;">green</option>
+                            <option value="fill:red;">red</option>
+                            <option value="fill:blue;" selected="selected">blue</option>
+                            <option value="fill:black;">black</option>
+                        </select>
+                    </td>
+                </tr>
             </table>
         </td>
     </tr>
@@ -135,8 +171,7 @@
         dataAxis: {
             showMinorLabels: false,
             icons: true
-        },
-        legend: {left: {position: "top-left"}}
+        }
     };
 
     var groupData = {
@@ -165,7 +200,11 @@
         groupData.style += document.getElementById("thickness").value;
 
         groupData.options.drawPoints = {};
+        groupData.options.drawPoints.styles = "";
         groupData.options.drawPoints.style = document.getElementById("points").value;
+        groupData.options.drawPoints.styles += document.getElementById("pointcolor").value;
+        groupData.options.drawPoints.styles += document.getElementById("pointthickness").value;
+        groupData.options.drawPoints.styles += document.getElementById("pointfill").value;
         groupData.options.drawPoints.size = Number(document.getElementById("pointsize").value);
         if (groupData.options.drawPoints.style == "") {
             groupData.options.drawPoints = false;
