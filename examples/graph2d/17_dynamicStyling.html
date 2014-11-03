@@ -18,7 +18,7 @@
 <body>
 <h2>Graph2d | Dynamic Styling Example</h2>
 
-<div style="width:700px; font-size:14px; text-align: justify;">
+<div style="width:800px; font-size:14px; text-align: justify;">
     This example shows how to programmatically change the styling of a group. While this can also
     be done in CSS, this must be statically defined, and the programmatic interface allows the
     user to define the look of the graph at runtime.
@@ -27,18 +27,18 @@
 
 
 <table>
-    <col width="500">
-    <col width="200">
+    <col width="600">
+    <col width="220">
     <tr>
         <td style="padding-right: 20px; border-right: 1px solid;">
             <div id="visualization"></div>
         </td>
         <td style="padding-left: 5px;">
             <table style="font-size: 12px;">
-                <col width="130">
+                <col width="150">
                 <col width="50">
                 <tr>
-                    <td>Color</td>
+                    <td>Line Color</td>
                     <td>
                         <select id="color" onchange="updateStyle()">
                             <option value="stroke:green;">green</option>
@@ -74,12 +74,40 @@
                     </td>
                 </tr>
                 <tr>
-                    <td>Fill</td>
+                    <td>Fill Position</td>
                     <td>
                         <select id="fill" onchange="updateStyle()">
                             <option value="">none</option>
                             <option value="top">top</option>
                             <option value="bottom" selected="selected">bottom</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Fill Color</td>
+                    <td>
+                        <select id="fillcolor" onchange="updateStyle()">
+                            <option value="fill:green;">green</option>
+                            <option value="fill:red;">red</option>
+                            <option value="fill:blue;" selected="selected">blue</option>
+                            <option value="fill:black;">black</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Fill Opacity</td>
+                    <td>
+                        <select id="fillopacity" onchange="updateStyle()">
+                            <option value="opacity:0.1;">0.1</option>
+                            <option value="opacity:0.2;">0.2</option>
+                            <option value="opacity:0.3;">0.3</option>
+                            <option value="opacity:0.4;">0.4</option>
+                            <option value="opacity:0.5;">0.5</option>
+                            <option value="opacity:0.6;" selected="selected">0.6</option>
+                            <option value="opacity:0.7;">0.7</option>
+                            <option value="opacity:0.8;">0.8</option>
+                            <option value="opacity:0.9;">0.9</option>
+                            <option value="opacity:1;">1</option>
                         </select>
                     </td>
                 </tr>
@@ -122,7 +150,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td>Point line thickness</td>
+                    <td>Point Line Thickness</td>
                     <td>
                         <select id="pointthickness" onchange="updateStyle()">
                             <option value="stroke-width:0;">0</option>
@@ -211,6 +239,9 @@
         }
 
         groupData.options.shaded = {};
+        groupData.options.shaded.style = "";
+        groupData.options.shaded.style += document.getElementById("fillcolor").value;
+        groupData.options.shaded.style += document.getElementById("fillopacity").value;
         groupData.options.shaded.orientation = document.getElementById("fill").value;
         if (groupData.options.shaded.orientation == "") {
             groupData.options.shaded = false;
