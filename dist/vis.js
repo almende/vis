@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.6.4-SNAPSHOT
- * @date    2014-10-28
+ * @date    2014-11-03
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -14552,7 +14552,9 @@ return /******/ (function(modules) { // webpackBootstrap
       // we want backgrounds with groups to only show in groups.
       if (this.parent instanceof BackgroundGroup) {
         // if the item is not in a group:
-        height = Math.max(this.parent.height, this.parent.itemSet.body.domProps.centerContainer.height);
+        height = Math.max(this.parent.height,
+            this.parent.itemSet.body.domProps.center.height,
+            this.parent.itemSet.body.domProps.centerContainer.height);
         this.dom.box.style.top = onTop ? '0' : '';
         this.dom.box.style.bottom = onTop ? '' : '0';
       }
