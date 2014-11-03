@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>Graph2d | Both Axis Example</title>
+    <title>Graph2d | Axis Titles and Styling</title>
     <link href="../../dist/vis.css" rel="stylesheet" type="text/css" />
     <style type="text/css">
         body, html {
@@ -38,7 +38,7 @@
 
 </head>
 <body>
-<h2>Graph2d | Axis Title Example</h2>
+<h2>Graph2d | Axis Titles and Styling</h2>
 <div style="width:800px; font-size:14px; text-align: justify;">
 <table>
     <tr>
@@ -63,6 +63,15 @@
                 <tr>
                     <td><input type="button" onclick="styleTitle('left')" value="Color Left Title" /></td>
                     <td><input type="button" onclick="styleTitle('right')" value="Color Right Title" /></td>
+                </tr>
+                <tr>
+                    <td>Left decimals</td>
+                    <td><select id="decimals" onchange="styleDecimals()">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        </select>
+                    </td>
                 </tr>
             </table>
         </td>
@@ -194,6 +203,11 @@
         else {
             graph2d.setOptions({dataAxis: {title: {right: title}}});
         }
+    }
+
+    function styleDecimals() {
+        var x = document.getElementById("decimals");
+        graph2d.setOptions({dataAxis: {format: {left: {decimals: Number(x.value)}}}});
     }
 
 </script>
