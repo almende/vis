@@ -489,12 +489,28 @@ The options colored in green can also be used as options for the groups. All opt
   <td>Set the title style for the right axis. This is a css string and it will override the attributes set in the class.</td>
 </tr>
 <tr>
+  <td>dataAxis.format.left.decimals</td>
+  <td>Number</td>
+  <td>undefined</td>
+  <td>Set the number of decimal points used on the the left axis. If set, this will fix the number of decimal places
+    displayed after the decimal point.
+    If undefined, trailing zeros will be removed.</td>
+</tr>
+<tr>
+  <td>dataAxis.format.right.decimals</td>
+  <td>Number</td>
+  <td>undefined</td>
+  <td>Set the number of decimal points used on the the right axis. If set, this will fix the number of decimal places
+      displayed after the decimal point.
+      If undefined, trailing zeros will be removed.</td>
+</tr>
+<tr>
   <td>groups.visibility</td>
   <td>Object</td>
   <td></td>
   <td>You can use this to toggle the visibility of groups per graph2D instance. This is different from setting the visibility flag of the groups since
     this is not communicated across instances of graph2d. Take a look at <a href="../examples/graph2d/14_toggleGroups.html">Example 14</a>
-    for more explaination.
+    for more explanation.
   </td>
 </tr>
 <tr>
