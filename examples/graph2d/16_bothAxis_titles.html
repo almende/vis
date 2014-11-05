@@ -43,7 +43,7 @@
 <table>
     <tr>
         <td>
-            This example shows setting a title for the left and right axes. Optionally the example allows the user
+            This example shows setting a title for the left and right axis. Optionally the example allows the user
             to show icons and labels on the left and right axis.
         </td>
         <td>
@@ -161,7 +161,7 @@
             showMinorLabels: false,
             title: {
                 right: {
-                    text: 'Right (right axis)'
+                    text: 'Title (right axis)'
                 }
             }
         },
@@ -175,16 +175,16 @@
         graph2d.setOptions({dataAxis: {icons: show}});
     }
 
-    function showTitle(axes, show) {
+    function showTitle(axis, show) {
         var title;
         if(show == true) {
-            title = {text: "Title (" + axes + " axes)", style: "color: green;"};
+            title = {text: "Title (" + axis + " axis)"};
         }
         else {
             title = undefined;
         }
 
-        if(axes == 'left') {
+        if(axis == 'left') {
             graph2d.setOptions({dataAxis: {title: {left: title}}});
         }
         else {
@@ -193,11 +193,11 @@
     }
 
     var colors=['red','green','blue','black','yellow','purple','pink'];
-    function styleTitle(axes) {
+    function styleTitle(axis) {
         var title;
         title = {style: "color: " + colors[Math.floor(Math.random() * colors.length) + 1]};
 
-        if(axes == 'left') {
+        if(axis == 'left') {
             graph2d.setOptions({dataAxis: {title: {left: title}}});
         }
         else {

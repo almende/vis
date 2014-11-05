@@ -415,6 +415,48 @@
     width: auto;
 }
 
+.vis.timeline .dataaxis .yAxis.title{
+    position: absolute;
+    color: #4d4d4d;
+    white-space: nowrap;
+    bottom: 20px;
+    text-align: center;
+}
+
+.vis.timeline .dataaxis .yAxis.title.measure{
+    padding: 0px 0px 0px 0px;
+    margin: 0px 0px 0px 0px;
+    visibility: hidden;
+    width: auto;
+}
+
+.vis.timeline .dataaxis .yAxis.title.left {
+    bottom: 0px;
+    -webkit-transform-origin: left top;
+    -moz-transform-origin: left top;
+    -ms-transform-origin: left top;
+    -o-transform-origin: left top;
+    transform-origin: left bottom;
+    -webkit-transform: rotate(-90deg);
+    -moz-transform: rotate(-90deg);
+    -ms-transform: rotate(-90deg);
+    -o-transform: rotate(-90deg);
+    transform: rotate(-90deg);
+}
+
+.vis.timeline .dataaxis .yAxis.title.right {
+    bottom: 0px;
+    -webkit-transform-origin: right bottom;
+    -moz-transform-origin: right bottom;
+    -ms-transform-origin: right bottom;
+    -o-transform-origin: right bottom;
+    transform-origin: right bottom;
+    -webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    transform: rotate(90deg);
+}
 
 .vis.timeline .legend {
     background-color: rgba(247, 252, 255, 0.65);
