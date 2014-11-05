@@ -14,6 +14,11 @@ http://visjs.org
 - Fixed onRelease with navigation option.
 - Fixed arrow heads not being colored.
 
+### Graph2D
+
+- Fixed cleaning up of groups.
+- Throw error message when items are added before groups.
+
 
 ## 2014-10-28, version 3.6.3
 
