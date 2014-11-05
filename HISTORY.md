@@ -19,6 +19,7 @@ http://visjs.org
 - Fixed cleaning up of groups.
 - Throw error message when items are added before groups.
 - Made graphHeight automatic if height is defined AND if graphHeight is smaller than the center panel when height is defined as well.
+- Added new verticalDrag event for internal use, allowing the vertical scrolling of the grid lines on drag.
 
 
 ## 2014-10-28, version 3.6.3
