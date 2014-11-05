@@ -9,6 +9,10 @@ http://visjs.org
 - Fixed height of background items when having a fixed or max height defined.
 - Fixed only one item being dragged when multiple items are selected.
 
+### Network
+
+- Fixed onRelease with navigation option.
+
 
 ## 2014-10-28, version 3.6.3
 
