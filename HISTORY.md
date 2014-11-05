@@ -12,6 +12,7 @@ http://visjs.org
 ### Network
 
 - Fixed onRelease with navigation option.
+- Fixed arrow heads not being colored.
 
 
 ## 2014-10-28, version 3.6.3
