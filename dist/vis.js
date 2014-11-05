@@ -20102,6 +20102,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     };
 
+
     // options is shared by this ItemSet and all its items
     this.options = util.extend({}, this.defaultOptions);
     this.dom = {};
@@ -20109,6 +20110,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.hammer = null;
     this.groups = {};
     this.abortedGraphUpdate = false;
+    this.autoSizeSVG = false;
 
     var me = this;
     this.itemsData = null;    // DataSet
@@ -20149,7 +20151,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.setOptions(options);
     this.groupsUsingDefaultStyles = [0];
 
-    this.body.emitter.on("rangechanged", function() {
+    this.body.emitter.on('rangechanged', function() {
       me.lastStart = me.body.range.start;
       me.svg.style.left = util.option.asSize(-me.width);
       me._updateGraph.apply(me);
@@ -20157,7 +20159,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // create the HTML DOM
     this._create();
-    this.body.emitter.emit("change");
+    this.body.emitter.emit('change');
   }
 
   LineGraph.prototype = new Component();
@@ -20171,10 +20173,10 @@ return /******/ (function(modules) { // webpackBootstrap
     this.dom.frame = frame;
 
     // create svg element for graph drawing.
-    this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
-    this.svg.style.position = "relative";
-    this.svg.style.height = ('' + this.options.graphHeight).replace("px",'') + 'px';
-    this.svg.style.display = "block";
+    this.svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    this.svg.style.position = 'relative';
+    this.svg.style.height = ('' + this.options.graphHeight).replace('px','') + 'px';
+    this.svg.style.display = 'block';
     frame.appendChild(this.svg);
 
     // data axis
@@ -20199,6 +20201,12 @@ return /******/ (function(modules) { // webpackBootstrap
   LineGraph.prototype.setOptions = function(options) {
     if (options) {
       var fields = ['sampling','defaultGroup','graphHeight','yAxisOrientation','style','barChart','dataAxis','sort','groups'];
+      if (options.graphHeight === undefined && options.height !== undefined && this.body.domProps.centerContainer.height !== undefined) {
+        this.autoSizeSVG = true;
+      }
+      else if (this.body.domProps.centerContainer.height !== undefined && parseInt(options.graphHeight.replace("px",'')) < this.body.domProps.centerContainer.height) {
+        this.autoSizeSVG = true;
+      }
       util.selectiveDeepExtend(fields, this.options, options);
       util.mergeOptions(this.options, options,'catmullRom');
       util.mergeOptions(this.options, options,'drawPoints');
@@ -20452,9 +20460,9 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.itemsData._data.hasOwnProperty(itemId)) {
           var item = this.itemsData._data[itemId];
           if (groupsContent[item.group] === undefined) {
-            throw new Error("Cannot find referenced group. Possible reason: items added before groups? Groups need to be added before items, as items refer to groups.")
+            throw new Error('Cannot find referenced group. Possible reason: items added before groups? Groups need to be added before items, as items refer to groups.')
           }
-          item.x = util.convert(item.x,"Date");
+          item.x = util.convert(item.x,'Date');
           groupsContent[item.group].push(item);
         }
       }
@@ -20556,7 +20564,7 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.width != 0) {
           var rangePerPixelInv = this.width/range;
           var xOffset = offset * rangePerPixelInv;
-          this.svg.style.left = (-this.width - xOffset) + "px";
+          this.svg.style.left = (-this.width - xOffset) + 'px';
         }
       }
 
@@ -20581,6 +20589,14 @@ return /******/ (function(modules) { // webpackBootstrap
       var processedGroupData = {};
       var groupRanges = {};
       var changeCalled = false;
+
+      // update the height of the graph on each redraw of the graph.
+      if (this.autoSizeSVG == true) {
+        if (this.options.graphHeight != this.body.domProps.centerContainer.height + 'px') {
+          this.options.graphHeight = this.body.domProps.centerContainer.height + 'px';
+          this.svg.style.height = this.body.domProps.centerContainer.height + 'px';
+        }
+      }
 
       // getting group Ids
       var groupIds = [];
@@ -20612,7 +20628,7 @@ return /******/ (function(modules) { // webpackBootstrap
         if (changeCalled == true) {
           DOMutil.cleanupElements(this.svgElements);
           this.abortedGraphUpdate = true;
-          this.body.emitter.emit("change");
+          this.body.emitter.emit('change');
           return;
         }
         this.abortedGraphUpdate = false;
@@ -20723,7 +20739,7 @@ return /******/ (function(modules) { // webpackBootstrap
         groupData = groupsData[groupIds[i]];
         if (groupData.length > 0) {
           group = this.groups[groupIds[i]];
-          if (group.options.style == 'line' || group.options.barChart.handleOverlap != "stack") {
+          if (group.options.style == 'line' || group.options.barChart.handleOverlap != 'stack') {
             var yMin = groupData[0].y;
             var yMax = groupData[0].y;
             for (j = 0; j < groupData.length; j++) {
@@ -20766,9 +20782,9 @@ return /******/ (function(modules) { // webpackBootstrap
         });
         intersections = {};
         this._getDataIntersections(intersections, barCombinedDataLeft);
-        groupRanges["__barchartLeft"] = this._getStackedBarYRange(intersections, barCombinedDataLeft);
-        groupRanges["__barchartLeft"].yAxisOrientation = "left";
-        groupIds.push("__barchartLeft");
+        groupRanges['__barchartLeft'] = this._getStackedBarYRange(intersections, barCombinedDataLeft);
+        groupRanges['__barchartLeft'].yAxisOrientation = 'left';
+        groupIds.push('__barchartLeft');
       }
       if (barCombinedDataRight.length > 0) {
         // sort by time and by group
@@ -20781,9 +20797,9 @@ return /******/ (function(modules) { // webpackBootstrap
         });
         intersections = {};
         this._getDataIntersections(intersections, barCombinedDataRight);
-        groupRanges["__barchartRight"] = this._getStackedBarYRange(intersections, barCombinedDataRight);
-        groupRanges["__barchartRight"].yAxisOrientation = "right";
-        groupIds.push("__barchartRight");
+        groupRanges['__barchartRight'] = this._getStackedBarYRange(intersections, barCombinedDataRight);
+        groupRanges['__barchartRight'].yAxisOrientation = 'right';
+        groupIds.push('__barchartRight');
       }
     }
   };
@@ -20881,11 +20897,11 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     // clean the accumulated lists
-    if (groupIds.indexOf("__barchartLeft") != -1) {
-      groupIds.splice(groupIds.indexOf("__barchartLeft"),1);
+    if (groupIds.indexOf('__barchartLeft') != -1) {
+      groupIds.splice(groupIds.indexOf('__barchartLeft'),1);
     }
-    if (groupIds.indexOf("__barchartRight") != -1) {
-      groupIds.splice(groupIds.indexOf("__barchartRight"),1);
+    if (groupIds.indexOf('__barchartRight') != -1) {
+      groupIds.splice(groupIds.indexOf('__barchartRight'),1);
     }
 
     return changeCalled;
@@ -21075,9 +21091,9 @@ return /******/ (function(modules) { // webpackBootstrap
     if (dataset != null) {
       if (dataset.length > 0) {
         var path, d;
-        var svgHeight = Number(this.svg.style.height.replace("px",""));
+        var svgHeight = Number(this.svg.style.height.replace('px',''));
         path = DOMutil.getSVGElement('path', this.svgElements, this.svg);
-        path.setAttributeNS(null, "class", group.className);
+        path.setAttributeNS(null, 'class', group.className);
 
         // construct path from dataset
         if (group.options.catmullRom.enabled == true) {
@@ -21092,16 +21108,16 @@ return /******/ (function(modules) { // webpackBootstrap
           var fillPath = DOMutil.getSVGElement('path',this.svgElements, this.svg);
           var dFill;
           if (group.options.shaded.orientation == 'top') {
-            dFill = "M" + dataset[0].x + "," + 0 + " " + d + "L" + dataset[dataset.length - 1].x + "," + 0;
+            dFill = 'M' + dataset[0].x + ',' + 0 + ' ' + d + 'L' + dataset[dataset.length - 1].x + ',' + 0;
           }
           else {
-            dFill = "M" + dataset[0].x + "," + svgHeight + " " + d + "L" + dataset[dataset.length - 1].x + "," + svgHeight;
+            dFill = 'M' + dataset[0].x + ',' + svgHeight + ' ' + d + 'L' + dataset[dataset.length - 1].x + ',' + svgHeight;
           }
-          fillPath.setAttributeNS(null, "class", group.className + " fill");
-          fillPath.setAttributeNS(null, "d", dFill);
+          fillPath.setAttributeNS(null, 'class', group.className + ' fill');
+          fillPath.setAttributeNS(null, 'd', dFill);
         }
         // copy properties to path for drawing.
-        path.setAttributeNS(null, "d", "M" + d);
+        path.setAttributeNS(null, 'd', 'M' + d);
 
         // draw points
         if (group.options.drawPoints.enabled == true) {
@@ -21168,7 +21184,7 @@ return /******/ (function(modules) { // webpackBootstrap
     var xValue, yValue;
     var toScreen = this.body.util.toScreen;
     var axis = this.yAxisLeft;
-    var svgHeight = Number(this.svg.style.height.replace("px",""));
+    var svgHeight = Number(this.svg.style.height.replace('px',''));
     if (group.options.yAxisOrientation == 'right') {
       axis = this.yAxisRight;
     }
@@ -21186,7 +21202,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   /**
    * This uses an uniform parametrization of the CatmullRom algorithm:
-   * "On the Parameterization of Catmull-Rom Curves" by Cem Yuksel et al.
+   * 'On the Parameterization of Catmull-Rom Curves' by Cem Yuksel et al.
    * @param data
    * @returns {string}
    * @private
@@ -21194,7 +21210,7 @@ return /******/ (function(modules) { // webpackBootstrap
   LineGraph.prototype._catmullRomUniform = function(data) {
     // catmull rom
     var p0, p1, p2, p3, bp1, bp2;
-    var d = Math.round(data[0].x) + "," + Math.round(data[0].y) + " ";
+    var d = Math.round(data[0].x) + ',' + Math.round(data[0].y) + ' ';
     var normalization = 1/6;
     var length = data.length;
     for (var i = 0; i < length - 1; i++) {
@@ -21216,13 +21232,13 @@ return /******/ (function(modules) { // webpackBootstrap
       bp2 = { x: (( p1.x + 6*p2.x - p3.x) *normalization), y: (( p1.y + 6*p2.y - p3.y) *normalization)};
       //    bp0 = { x: p2.x,                               y: p2.y };
 
-      d += "C" +
-        bp1.x + "," +
-        bp1.y + " " +
-        bp2.x + "," +
-        bp2.y + " " +
-        p2.x + "," +
-        p2.y + " ";
+      d += 'C' +
+        bp1.x + ',' +
+        bp1.y + ' ' +
+        bp2.x + ',' +
+        bp2.y + ' ' +
+        p2.x + ',' +
+        p2.y + ' ';
     }
 
     return d;
@@ -21246,7 +21262,7 @@ return /******/ (function(modules) { // webpackBootstrap
     else {
       var p0, p1, p2, p3, bp1, bp2, d1,d2,d3, A, B, N, M;
       var d3powA, d2powA, d3pow2A, d2pow2A, d1pow2A, d1powA;
-      var d = Math.round(data[0].x) + "," + Math.round(data[0].y) + " ";
+      var d = Math.round(data[0].x) + ',' + Math.round(data[0].y) + ' ';
       var length = data.length;
       for (var i = 0; i < length - 1; i++) {
 
@@ -21296,13 +21312,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
         if (bp1.x == 0 && bp1.y == 0) {bp1 = p1;}
         if (bp2.x == 0 && bp2.y == 0) {bp2 = p2;}
-        d += "C" +
-          bp1.x + "," +
-          bp1.y + " " +
-          bp2.x + "," +
-          bp2.y + " " +
-          p2.x + "," +
-          p2.y + " ";
+        d += 'C' +
+          bp1.x + ',' +
+          bp1.y + ' ' +
+          bp2.x + ',' +
+          bp2.y + ' ' +
+          p2.x + ',' +
+          p2.y + ' ';
       }
 
       return d;
@@ -21317,13 +21333,13 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   LineGraph.prototype._linear = function(data) {
     // linear
-    var d = "";
+    var d = '';
     for (var i = 0; i < data.length; i++) {
       if (i == 0) {
-        d += data[i].x + "," + data[i].y;
+        d += data[i].x + ',' + data[i].y;
       }
       else {
-        d += " " + data[i].x + "," + data[i].y;
+        d += ' ' + data[i].x + ',' + data[i].y;
       }
     }
     return d;
