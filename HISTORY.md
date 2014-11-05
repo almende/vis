@@ -8,6 +8,7 @@ http://visjs.org
 
 - Fixed height of background items when having a fixed or max height defined.
 - Fixed only one item being dragged when multiple items are selected.
+- Optimised a serious slowdown on performance since hidden dates.
 
 ### Network
 
@@ -20,7 +21,15 @@ http://visjs.org
 - Throw error message when items are added before groups.
 - Made graphHeight automatic if height is defined AND if graphHeight is smaller than the center panel when height is defined as well.
 - Added new verticalDrag event for internal use, allowing the vertical scrolling of the grid lines on drag.
-- Fixed moving legend when postioned on the bottom and vertical dragging
+- Fixed moving legend when postioned on the bottom and vertical dragging.
+- Optimised a serious slowdown on performance since hidden dates.
+
+- Accepted a large pull request from @cdjackson adding the following features (thank you!): 
+- Titles on the DataAxis to explain what units you are using.
+- A style field for groups and datapoints so you can dynamically change styles.
+- A precision option to manually set the amount of decimals.
+- Two new examples showing the new features.
+
 
 ## 2014-10-28, version 3.6.3
 
