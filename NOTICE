@@ -28,6 +28,6 @@ Vis.js uses and redistributes the following third-party libraries:
   http://momentjs.com/
   The MIT License
 
-- mousetrap
-  http://craig.is/killing/mice
-  The Apache 2.0 License
+- keycharm
+  https://github.com/AlexDM0/keycharm
+  The MIT License

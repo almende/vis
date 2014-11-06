@@ -4,6 +4,11 @@ http://visjs.org
 
 ## not yet released, version 3.6.4
 
+
+### General
+
+- Removed mousetrap due to Apache license, created keycharm and implemented it with vis.
+
 ### Timeline
 
 - Fixed height of background items when having a fixed or max height defined.

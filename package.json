@@ -31,7 +31,7 @@
     "emitter-component": "^1.1.1",
     "hammerjs": "^1.1.0",
     "moment": "^2.7.0",
-    "mousetrap": "0.0.1"
+    "keycharm": "^0.0.6"
   },
   "devDependencies": {
     "clean-css": "latest",
