@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 3.6.3
- * @date    2014-10-28
+ * @version 3.6.4
+ * @date    2014-11-07
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -1298,14 +1298,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
   /**
-   * This function does a binary search for a visible item. The user can select either the this.orderedItems.byStart or .byEnd
-   * arrays. This is done by giving a boolean value true if you want to use the byEnd.
-   * This is done to be able to select the correct if statement (we do not want to check if an item is visible, we want to check
-   * if the time we selected (start or end) is within the current range).
-   *
-   * The trick is that every interval has to either enter the screen at the initial load or by dragging. The case of the RangeItem that is
-   * before and after the current range is handled by simply checking if it was in view before and if it is again. For all the rest,
-   * either the start OR end time has to be in the range.
+   * This function does a binary search for a visible item in a sorted list. If we find a visible item, the code that uses
+   * this function will then iterate in both directions over this sorted list to find all visible items.
    *
    * @param {Item[]} orderedItems  Items ordered by start
    * @param {{start: number, end: number}} range
@@ -1343,14 +1337,9 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   /**
-   * This function does a binary search for a visible item. The user can select either the this.orderedItems.byStart or .byEnd
-   * arrays. This is done by giving a boolean value true if you want to use the byEnd.
-   * This is done to be able to select the correct if statement (we do not want to check if an item is visible, we want to check
-   * if the time we selected (start or end) is within the current range).
-   *
-   * The trick is that every interval has to either enter the screen at the initial load or by dragging. The case of the RangeItem that is
-   * before and after the current range is handled by simply checking if it was in view before and if it is again. For all the rest,
-   * either the start OR end time has to be in the range.
+   * This function does a binary search for a specific value in a sorted array. If it does not exist but is in between of
+   * two values, we return either the one before or the one after, depending on user input
+   * If it is found, we return the index, else -1.
    *
    * @param {Array} orderedItems
    * @param {{start: number, end: number}} target
@@ -1362,73 +1351,39 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.binarySearchGeneric = function(orderedItems, target, field, sidePreference) {
     var maxIterations = 10000;
     var iteration = 0;
-    var array = orderedItems;
-    var found = false;
     var low = 0;
-    var high = array.length;
-    var newLow = low;
-    var newHigh = high;
-    var guess = Math.floor(0.5*(high+low));
-    var newGuess;
-    var prevValue, value, nextValue;
+    var high = orderedItems.length - 1;
+    var prevValue, value, nextValue, middle;
 
-    if (high == 0) {guess = -1;}
-    else if (high == 1) {
-      value = array[guess][field];
-      if (value == target) {
-        guess =  0;
-      }
-      else {
-        guess = -1;
-      }
-    }
-    else {
-      high -= 1;
-      while (found == false && iteration < maxIterations) {
-        prevValue = array[Math.max(0,guess - 1)][field];
-        value = array[guess][field];
-        nextValue = array[Math.min(array.length-1,guess + 1)][field];
+    while (low <= high && iteration < maxIterations) {
+      // get a new guess
+      middle = Math.floor(0.5*(high+low));
+      prevValue = orderedItems[Math.max(0,middle - 1)][field];
+      value     = orderedItems[middle][field];
+      nextValue = orderedItems[Math.min(orderedItems.length-1,middle + 1)][field];
 
-        if (value == target || prevValue < target && value > target || value < target && nextValue > target) {
-          found = true;
-          if (value != target) {
-            if (sidePreference == 'before') {
-              if (prevValue < target && value > target) {
-                guess = Math.max(0,guess - 1);
-              }
-            }
-            else {
-              if (value < target && nextValue > target) {
-                guess = Math.min(array.length-1,guess + 1);
-              }
-            }
-          }
-        }
-        else {
-          if (value < target) { // it is too small --> increase low
-            newLow = Math.floor(0.5*(high+low));
-          }
-          else {  // it is too big --> decrease high
-            newHigh = Math.floor(0.5*(high+low));
-          }
-          newGuess = Math.floor(0.5*(high+low));
-          // not in list;
-          if (low == newLow && high == newHigh) {
-            guess = -1;
-            found = true;
-          }
-          else {
-            high = newHigh; low = newLow;
-            guess = Math.floor(0.5*(high+low));
-          }
-        }
-        iteration++;
+      if (value == target) { // we found the target
+        return middle;
       }
-      if (iteration >= maxIterations) {
-        console.log("BinarySearch too many iterations. Aborting.");
+      else if (prevValue < target && value > target) {  // target is in between of the previous and the current
+        return sidePreference == 'before' ? Math.max(0,middle - 1) : middle;
       }
+      else if (value < target && nextValue > target) { // target is in between of the current and the next
+        return sidePreference == 'before' ? middle : Math.min(orderedItems.length-1,middle + 1);
+      }
+      else {  // didnt find the target, we need to change our boundaries.
+        if (value < target) { // it is too small --> increase low
+          low = middle + 1;
+        }
+        else {  // it is too big --> decrease high
+          high = middle - 1;
+        }
+      }
+      iteration++;
     }
-    return guess;
+
+    // didnt find anything. Return -1.
+    return -1;
   };
 
   /**
@@ -1655,7 +1610,6 @@ return /******/ (function(modules) { // webpackBootstrap
       point.setAttributeNS(null, "cx", x);
       point.setAttributeNS(null, "cy", y);
       point.setAttributeNS(null, "r", 0.5 * group.options.drawPoints.size);
-      point.setAttributeNS(null, "class", group.className + " point");
     }
     else {
       point = exports.getSVGElement('rect',JSONcontainer,svgContainer);
@@ -1663,8 +1617,12 @@ return /******/ (function(modules) { // webpackBootstrap
       point.setAttributeNS(null, "y", y - 0.5*group.options.drawPoints.size);
       point.setAttributeNS(null, "width", group.options.drawPoints.size);
       point.setAttributeNS(null, "height", group.options.drawPoints.size);
-      point.setAttributeNS(null, "class", group.className + " point");
     }
+
+    if(group.options.drawPoints.styles !== undefined) {
+      point.setAttributeNS(null, "style", group.group.options.drawPoints.styles);
+    }
+    point.setAttributeNS(null, "class", group.className + " point");
     return point;
   };
 
@@ -7271,28 +7229,28 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 
-  /**
-   * Used in TimeStep to avoid the hidden times.
-   * @param timeStep
-   * @param previousTime
-   */
-  exports.checkFirstStep = function(timeStep) {
-    var stepInHidden = false;
-    var currentValue = timeStep.current.valueOf();
-    for (var i = 0; i < timeStep.hiddenDates.length; i++) {
-      var startDate = timeStep.hiddenDates[i].start;
-      var endDate = timeStep.hiddenDates[i].end;
-      if (currentValue >= startDate && currentValue < endDate) {
-        stepInHidden = true;
-        break;
-      }
-    }
-
-    if (stepInHidden == true && currentValue <= timeStep._end.valueOf()) {
-      var newValue = moment(endDate);
-      timeStep.current = newValue.toDate();
-    }
-  };
+  ///**
+  // * Used in TimeStep to avoid the hidden times.
+  // * @param timeStep
+  // * @param previousTime
+  // */
+  //exports.checkFirstStep = function(timeStep) {
+  //  var stepInHidden = false;
+  //  var currentValue = timeStep.current.valueOf();
+  //  for (var i = 0; i < timeStep.hiddenDates.length; i++) {
+  //    var startDate = timeStep.hiddenDates[i].start;
+  //    var endDate = timeStep.hiddenDates[i].end;
+  //    if (currentValue >= startDate && currentValue < endDate) {
+  //      stepInHidden = true;
+  //      break;
+  //    }
+  //  }
+  //
+  //  if (stepInHidden == true && currentValue <= timeStep._end.valueOf()) {
+  //    var newValue = moment(endDate);
+  //    timeStep.current = newValue.toDate();
+  //  }
+  //};
 
   /**
    * replaces the Core toScreen methods
@@ -7302,16 +7260,22 @@ return /******/ (function(modules) { // webpackBootstrap
    * @returns {number}
    */
   exports.toScreen = function(Core, time, width) {
-    var hidden = exports.isHidden(time, Core.body.hiddenDates)
-    if (hidden.hidden == true) {
-      time = hidden.startDate;
+    if (Core.body.hiddenDates.length == 0) {
+      var conversion = Core.range.conversion(width);
+      return (time.valueOf() - conversion.offset) * conversion.scale;
     }
+    else {
+      var hidden = exports.isHidden(time, Core.body.hiddenDates)
+      if (hidden.hidden == true) {
+        time = hidden.startDate;
+      }
 
-    var duration = exports.getHiddenDurationBetween(Core.body.hiddenDates, Core.range.start, Core.range.end);
-    time = exports.correctTimeForHidden(Core.body.hiddenDates, Core.range, time);
+      var duration = exports.getHiddenDurationBetween(Core.body.hiddenDates, Core.range.start, Core.range.end);
+      time = exports.correctTimeForHidden(Core.body.hiddenDates, Core.range, time);
 
-    var conversion = Core.range.conversion(width, duration);
-    return (time.valueOf() - conversion.offset) * conversion.scale;
+      var conversion = Core.range.conversion(width, duration);
+      return (time.valueOf() - conversion.offset) * conversion.scale;
+    }
   };
 
 
@@ -7323,14 +7287,20 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param width
    * @returns {Date}
    */
-  exports.toTime = function(body, range, x, width) {
-    var hiddenDuration = exports.getHiddenDurationBetween(body.hiddenDates, range.start, range.end);
-    var totalDuration = range.end - range.start - hiddenDuration;
-    var partialDuration = totalDuration * x / width;
-    var accumulatedHiddenDuration = exports.getAccumulatedHiddenDuration(body.hiddenDates,range, partialDuration);
+  exports.toTime = function(Core, x, width) {
+    if (Core.body.hiddenDates.length == 0) {
+      var conversion = Core.range.conversion(width);
+      return new Date(x / conversion.scale + conversion.offset);
+    }
+    else {
+      var hiddenDuration = exports.getHiddenDurationBetween(Core.body.hiddenDates, Core.range.start, Core.range.end);
+      var totalDuration = Core.range.end - Core.range.start - hiddenDuration;
+      var partialDuration = totalDuration * x / width;
+      var accumulatedHiddenDuration = exports.getAccumulatedHiddenDuration(Core.body.hiddenDates, Core.range, partialDuration);
 
-    var newTime = new Date(accumulatedHiddenDuration + partialDuration + range.start);
-    return newTime;
+      var newTime = new Date(accumulatedHiddenDuration + partialDuration + Core.range.start);
+      return newTime;
+    }
   };
 
 
@@ -7658,19 +7628,59 @@ return /******/ (function(modules) { // webpackBootstrap
    * Get the current datetime
    * @return {String}  current The current date
    */
-  DataStep.prototype.getCurrent = function() {
+  DataStep.prototype.getCurrent = function(decimals) {
     var toPrecision = '' + Number(this.current).toPrecision(5);
-    if (toPrecision.indexOf(",") != -1 || toPrecision.indexOf(".") != -1) {
-      for (var i = toPrecision.length-1; i > 0; i--) {
-        if (toPrecision[i] == "0") {
-          toPrecision = toPrecision.slice(0,i);
+    // If decimals is specified, then limit or extend the string as required
+    if(decimals !== undefined && !isNaN(Number(decimals))) {
+      // If string includes exponent, then we need to add it to the end
+      var exp = "";
+      var index = toPrecision.indexOf("e");
+      if(index != -1) {
+        // Get the exponent
+        exp = toPrecision.slice(index);
+        // Remove the exponent in case we need to zero-extend
+        toPrecision = toPrecision.slice(0, index);
+      }
+      index = Math.max(toPrecision.indexOf(","), toPrecision.indexOf("."));
+      if(index === -1) {
+        // No decimal found - if we want decimals, then we need to add it
+        if(decimals !== 0) {
+          toPrecision += '.';
         }
-        else if (toPrecision[i] == "." || toPrecision[i] == ",") {
-          toPrecision = toPrecision.slice(0,i);
-          break;
+        // Calculate how long the string should be
+        index = toPrecision.length + decimals;
+      }
+      else if(decimals !== 0) {
+        // Calculate how long the string should be - accounting for the decimal place
+        index += decimals + 1;
+      }
+      if(index > toPrecision.length) {
+        // We need to add zeros!
+        for(var cnt = index - toPrecision.length; cnt > 0; cnt--) {
+          toPrecision += '0';
         }
-        else{
-          break;
+      }
+      else {
+        // we need to remove characters
+        toPrecision = toPrecision.slice(0, index);
+      }
+      // Add the exponent if there is one
+      toPrecision += exp;
+    }
+    else {
+      if (toPrecision.indexOf(",") != -1 || toPrecision.indexOf(".") != -1) {
+        // If no decimal is specified, and there are decimal places, remove trailing zeros
+        for (var i = toPrecision.length - 1; i > 0; i--) {
+          if (toPrecision[i] == "0") {
+            toPrecision = toPrecision.slice(0, i);
+          }
+          else if (toPrecision[i] == "." || toPrecision[i] == ",") {
+            toPrecision = toPrecision.slice(0, i);
+            break;
+          }
+          else {
+            break;
+          }
         }
       }
     }
@@ -9505,6 +9515,14 @@ return /******/ (function(modules) { // webpackBootstrap
       customRange: {
         left: {min:undefined, max:undefined},
         right: {min:undefined, max:undefined}
+      },
+      title: {
+        left: {text:undefined},
+        right: {text:undefined}
+      },
+      format: {
+        left: {decimals: undefined},
+        right: {decimals: undefined}
       }
     };
 
@@ -9513,7 +9531,8 @@ return /******/ (function(modules) { // webpackBootstrap
     this.props = {};
     this.DOMelements = { // dynamic elements
       lines: {},
-      labels: {}
+      labels: {},
+      title: {}
     };
 
     this.dom = {};
@@ -9533,6 +9552,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.lineOffset = 0;
     this.master = true;
     this.svgElements = {};
+    this.iconsRemoved = false;
 
 
     this.groups = {};
@@ -9540,6 +9560,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // create the HTML DOM
     this._create();
+
+    var me = this;
+    this.body.emitter.on("verticalDrag", function() {
+      me.dom.lineContainer.style.top = me.body.domProps.scrollTop + 'px';
+    });
   }
 
   DataAxis.prototype = new Component();
@@ -9583,7 +9608,9 @@ return /******/ (function(modules) { // webpackBootstrap
         'iconWidth',
         'width',
         'visible',
-        'customRange'
+        'customRange',
+        'title',
+        'format'
       ];
       util.selectiveExtend(fields, this.options, options);
 
@@ -9608,6 +9635,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.dom.lineContainer = document.createElement('div');
     this.dom.lineContainer.style.width = '100%';
     this.dom.lineContainer.style.height = this.height;
+    this.dom.lineContainer.style.position = 'relative';
 
     // create svg element for graph drawing.
     this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
@@ -9645,7 +9673,16 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     DOMutil.cleanupElements(this.svgElements);
+    this.iconsRemoved = false;
   };
+
+  DataAxis.prototype._cleanupIcons = function() {
+    if (this.iconsRemoved == false) {
+      DOMutil.prepareElements(this.svgElements);
+      DOMutil.cleanupElements(this.svgElements);
+      this.iconsRemoved = true;
+    }
+  }
 
   /**
    * Create the HTML DOM for the DataAxis
@@ -9696,6 +9733,10 @@ return /******/ (function(modules) { // webpackBootstrap
   DataAxis.prototype.redraw = function () {
     var changeCalled = false;
     var activeGroups = 0;
+    
+    // Make sure the line container adheres to the vertical scrolling.
+    this.dom.lineContainer.style.top = this.body.domProps.scrollTop + 'px';
+
     for (var groupId in this.groups) {
       if (this.groups.hasOwnProperty(groupId)) {
         if (this.groups[groupId].visible == true && (this.linegraphOptions.visibility[groupId] === undefined || this.linegraphOptions.visibility[groupId] == true)) {
@@ -9709,8 +9750,8 @@ return /******/ (function(modules) { // webpackBootstrap
     else {
       this.show();
       this.height = Number(this.linegraphSVG.style.height.replace("px",""));
-      // svg offsetheight did not work in firefox and explorer...
 
+      // svg offsetheight did not work in firefox and explorer...
       this.dom.lineContainer.style.height = this.height + 'px';
       this.width = this.options.visible == true ? Number(('' + this.options.width).replace("px","")) : 0;
 
@@ -9727,7 +9768,7 @@ return /******/ (function(modules) { // webpackBootstrap
       var showMinorLabels = this.options.showMinorLabels;
       var showMajorLabels = this.options.showMajorLabels;
 
-      // determine the width and height of the elemens for the axis
+      // determine the width and height of the elements for the axis
       props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
       props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
 
@@ -9752,9 +9793,15 @@ return /******/ (function(modules) { // webpackBootstrap
         frame.style.height = this.height + "px";
       }
       changeCalled = this._redrawLabels();
+
       if (this.options.icons == true) {
         this._redrawGroupIcons();
       }
+      else {
+        this._cleanupIcons();
+      }
+
+      this._redrawTitle(orientation);
     }
     return changeCalled;
   };
@@ -9801,6 +9848,12 @@ return /******/ (function(modules) { // webpackBootstrap
     // do not draw the first label
     var max = 1;
 
+    // Get the number of decimal places
+    var decimals;
+    if(this.options.format[orientation] !== undefined) {
+      decimals = this.options.format[orientation].decimals;
+    }
+
     this.maxLabelSize = 0;
     var y = 0;
     while (max < Math.round(amountOfSteps)) {
@@ -9810,13 +9863,13 @@ return /******/ (function(modules) { // webpackBootstrap
       var isMajor = step.isMajor();
 
       if (this.options['showMinorLabels'] && isMajor == false || this.master == false && this.options['showMinorLabels'] == true) {
-        this._redrawLabel(y - 2, step.getCurrent(), orientation, 'yAxis minor', this.props.minorCharHeight);
+        this._redrawLabel(y - 2, step.getCurrent(decimals), orientation, 'yAxis minor', this.props.minorCharHeight);
       }
 
       if (isMajor && this.options['showMajorLabels'] && this.master == true ||
           this.options['showMinorLabels'] == false && this.master == false && isMajor == true) {
         if (y >= 0) {
-          this._redrawLabel(y - 2, step.getCurrent(), orientation, 'yAxis major', this.props.majorCharHeight);
+          this._redrawLabel(y - 2, step.getCurrent(decimals), orientation, 'yAxis major', this.props.majorCharHeight);
         }
         this._redrawLine(y, orientation, 'grid horizontal major', this.options.majorLinesOffset, this.props.majorLineWidth);
       }
@@ -9834,8 +9887,14 @@ return /******/ (function(modules) { // webpackBootstrap
       this.conversionFactor = this.dom.frame.offsetHeight / step.marginRange;
     }
 
-    var offset = this.options.icons == true ? this.options.iconWidth + this.options.labelOffsetX + 15 : this.options.labelOffsetX + 15;
-    // this will resize the yAxis to accomodate the labels.
+    // Note that title is rotated, so we're using the height, not width!
+    var titleWidth = 0;
+    if (this.options.title[orientation] !== undefined && this.options.title[orientation].text !== undefined) {
+      titleWidth = this.props.titleCharHeight;
+    }
+    var offset = this.options.icons == true ? Math.max(this.options.iconWidth, titleWidth) + this.options.labelOffsetX + 15 : titleWidth + this.options.labelOffsetX + 15;
+
+    // this will resize the yAxis to accommodate the labels.
     if (this.maxLabelSize > (this.width - offset) && this.options.visible == true) {
       this.width = this.maxLabelSize + offset;
       this.options.width = this.width + "px";
@@ -9925,6 +9984,38 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   };
 
+  /**
+   * Create a title for the axis
+   * @private
+   * @param orientation
+   */
+  DataAxis.prototype._redrawTitle = function (orientation) {
+    DOMutil.prepareElements(this.DOMelements.title);
+
+    // Check if the title is defined for this axes
+    if (this.options.title[orientation] !== undefined && this.options.title[orientation].text !== undefined) {
+      var title = DOMutil.getDOMElement('div', this.DOMelements.title, this.dom.frame);
+      title.className = 'yAxis title ' + orientation;
+      title.innerHTML = this.options.title[orientation].text;
+
+      // Add style - if provided
+      if (this.options.title[orientation].style !== undefined) {
+        util.addCssText(title, this.options.title[orientation].style);
+      }
+
+      if (orientation == 'left') {
+        title.style.left = this.props.titleCharHeight + 'px';
+      }
+      else {
+        title.style.right = this.props.titleCharHeight + 'px';
+      }
+
+      title.style.width = this.height + 'px';
+    }
+
+    // we need to clean up in case we did not use all elements.
+    DOMutil.cleanupElements(this.DOMelements.title);
+  };
 
 
 
@@ -9960,6 +10051,19 @@ return /******/ (function(modules) { // webpackBootstrap
       this.props.majorCharWidth = measureCharMajor.clientWidth;
 
       this.dom.frame.removeChild(measureCharMajor);
+    }
+
+    if (!('titleCharHeight' in this.props)) {
+      var textTitle = document.createTextNode('0');
+      var measureCharTitle = document.createElement('DIV');
+      measureCharTitle.className = 'yAxis title measure';
+      measureCharTitle.appendChild(textTitle);
+      this.dom.frame.appendChild(measureCharTitle);
+
+      this.props.titleCharHeight = measureCharTitle.clientHeight;
+      this.props.titleCharWidth = measureCharTitle.clientWidth;
+
+      this.dom.frame.removeChild(measureCharTitle);
     }
   };
 
@@ -10053,6 +10157,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.content = group.content || 'graph';
     this.className = group.className || this.className || "graphGroup" + this.groupsUsingDefaultStyles[0] % 10;
     this.visible = group.visible === undefined ? true : group.visible;
+    this.style = group.style;
     this.setOptions(group.options);
   };
 
@@ -10070,6 +10175,10 @@ return /******/ (function(modules) { // webpackBootstrap
     if (this.options.style == 'line') {
       path = DOMutil.getSVGElement("path", JSONcontainer, SVGcontainer);
       path.setAttributeNS(null, "class", this.className);
+      if(this.style !== undefined) {
+        path.setAttributeNS(null, "style", this.style);
+      }
+
       path.setAttributeNS(null, "d", "M" + x + ","+y+" L" + (x + iconWidth) + ","+y+"");
       if (this.options.shaded.enabled == true) {
         fillPath = DOMutil.getSVGElement("path", JSONcontainer, SVGcontainer);
@@ -11783,15 +11892,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
     var item = this.touchParams.item || null;
     var me = this;
-    var props = {};
+    var props;
 
-    props.initialX = event.gesture.center.clientX;
     if (item && item.selected) {
       var dragLeftItem = event.target.dragLeftItem;
       var dragRightItem = event.target.dragRightItem;
 
       if (dragLeftItem) {
-        props.item = dragLeftItem;
+        props = {
+          item: dragLeftItem,
+          initialX: event.gesture.center.clientX
+        };
 
         if (me.options.editable.updateTime) {
           props.start = item.data.start.valueOf();
@@ -11803,7 +11914,10 @@ return /******/ (function(modules) { // webpackBootstrap
         this.touchParams.itemProps = [props];
       }
       else if (dragRightItem) {
-        props.item = dragRightItem;
+        props = {
+          item: dragRightItem,
+          initialX: event.gesture.center.clientX
+        };
 
         if (me.options.editable.updateTime) {
           props.end = item.data.end.valueOf();
@@ -11817,7 +11931,10 @@ return /******/ (function(modules) { // webpackBootstrap
       else {
         this.touchParams.itemProps = this.getSelection().map(function (id) {
           var item = me.items[id];
-          props.item = item;
+          var props = {
+            item: item,
+            initialX: event.gesture.center.clientX
+          };
 
           if (me.options.editable.updateTime) {
             if ('start' in item.data) props.start = item.data.start.valueOf();
@@ -11849,22 +11966,17 @@ return /******/ (function(modules) { // webpackBootstrap
       // move
       this.touchParams.itemProps.forEach(function (props) {
         var newProps = {};
-        if ('start' in props && !('end' in props)) {  // only start in props
-          var start = me.body.util.toTime(event.gesture.center.clientX - xOffset);
-          newProps.start = snap ? snap(start) : start;
-        }
-        else if ('start' in props) {                  // start and end in props
-          var current = me.body.util.toTime(event.gesture.center.clientX - xOffset);
-          var initial = me.body.util.toTime(props.initialX - xOffset);
-          var offset = current - initial;
-          var start = new Date(props.start + offset);
-          var end = new Date(props.end + offset);
+        var current = me.body.util.toTime(event.gesture.center.clientX - xOffset);
+        var initial = me.body.util.toTime(props.initialX - xOffset);
+        var offset = current - initial;
 
+        if ('start' in props) {
+          var start = new Date(props.start + offset);
           newProps.start = snap ? snap(start) : start;
-          newProps.end = snap ? snap(end) : end;
         }
-        else if ('end' in props) {                    // only end in props
-          var end = me.body.util.toTime(event.gesture.center.clientX - xOffset);
+
+        if ('end' in props) {
+          var end = new Date(props.end + offset);
           newProps.end = snap ? snap(end) : end;
         }
 
@@ -12205,8 +12317,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
   Legend.prototype = new Component();
 
+  Legend.prototype.clear = function() {
+    this.groups = {};
+    this.amountOfGroups = 0;
+  }
 
   Legend.prototype.addGroup = function(label, graphOptions) {
+
     if (!this.groups.hasOwnProperty(label)) {
       this.groups[label] = graphOptions;
     }
@@ -12311,7 +12428,8 @@ return /******/ (function(modules) { // webpackBootstrap
         this.dom.frame.style.bottom = '';
       }
       else {
-        this.dom.frame.style.bottom = 4 - Number(this.body.dom.center.style.top.replace("px","")) + 'px';
+        var scrollableHeight = this.body.domProps.center.height - this.body.domProps.centerContainer.height;
+        this.dom.frame.style.bottom = 4 + scrollableHeight + Number(this.body.dom.center.style.top.replace("px","")) + 'px';
         this.dom.frame.style.top = '';
       }
 
@@ -12429,6 +12547,21 @@ return /******/ (function(modules) { // webpackBootstrap
           left: {min:undefined, max:undefined},
           right: {min:undefined, max:undefined}
         }
+        //,
+        //format: {
+        //  left: {decimals: 2},
+        //  right: {decimals: 2}
+        //},
+        //title: {
+        //  left: {
+        //    text: 'left',
+        //    style: 'color:black;'
+        //  },
+        //  right: {
+        //    text: 'right',
+        //    style: 'color:black;'
+        //  }
+        //}
       },
       legend: {
         enabled: false,
@@ -12454,6 +12587,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.hammer = null;
     this.groups = {};
     this.abortedGraphUpdate = false;
+    this.autoSizeSVG = false;
 
     var me = this;
     this.itemsData = null;    // DataSet
@@ -12494,7 +12628,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.setOptions(options);
     this.groupsUsingDefaultStyles = [0];
 
-    this.body.emitter.on("rangechanged", function() {
+    this.body.emitter.on('rangechanged', function() {
       me.lastStart = me.body.range.start;
       me.svg.style.left = util.option.asSize(-me.width);
       me._updateGraph.apply(me);
@@ -12502,7 +12636,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // create the HTML DOM
     this._create();
-    this.body.emitter.emit("change");
+    this.body.emitter.emit('change');
   }
 
   LineGraph.prototype = new Component();
@@ -12516,10 +12650,10 @@ return /******/ (function(modules) { // webpackBootstrap
     this.dom.frame = frame;
 
     // create svg element for graph drawing.
-    this.svg = document.createElementNS('http://www.w3.org/2000/svg',"svg");
-    this.svg.style.position = "relative";
-    this.svg.style.height = ('' + this.options.graphHeight).replace("px",'') + 'px';
-    this.svg.style.display = "block";
+    this.svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    this.svg.style.position = 'relative';
+    this.svg.style.height = ('' + this.options.graphHeight).replace('px','') + 'px';
+    this.svg.style.display = 'block';
     frame.appendChild(this.svg);
 
     // data axis
@@ -12544,6 +12678,14 @@ return /******/ (function(modules) { // webpackBootstrap
   LineGraph.prototype.setOptions = function(options) {
     if (options) {
       var fields = ['sampling','defaultGroup','graphHeight','yAxisOrientation','style','barChart','dataAxis','sort','groups'];
+      if (options.graphHeight === undefined && options.height !== undefined && this.body.domProps.centerContainer.height !== undefined) {
+        this.autoSizeSVG = true;
+      }
+      else if (this.body.domProps.centerContainer.height !== undefined && options.graphHeight !== undefined) {
+        if (parseInt((options.graphHeight + '').replace("px",'')) < this.body.domProps.centerContainer.height) {
+          this.autoSizeSVG = true;
+        }
+      }
       util.selectiveDeepExtend(fields, this.options, options);
       util.mergeOptions(this.options, options,'catmullRom');
       util.mergeOptions(this.options, options,'drawPoints');
@@ -12664,8 +12806,8 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {vis.DataSet} groups
    */
   LineGraph.prototype.setGroups = function(groups) {
-    var me = this,
-      ids;
+    var me = this;
+    var ids;
 
     // unsubscribe from current dataset
     if (this.groupsData) {
@@ -12731,7 +12873,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   LineGraph.prototype._onRemoveGroups = function (groupIds) {
     for (var i = 0; i < groupIds.length; i++) {
-      if (!this.groups.hasOwnProperty(groupIds[i])) {
+      if (this.groups.hasOwnProperty(groupIds[i])) {
         if (this.groups[groupIds[i]].options.yAxisOrientation == 'right') {
           this.yAxisRight.removeGroup(groupIds[i]);
           this.legendRight.removeGroup(groupIds[i]);
@@ -12796,7 +12938,10 @@ return /******/ (function(modules) { // webpackBootstrap
       for (var itemId in this.itemsData._data) {
         if (this.itemsData._data.hasOwnProperty(itemId)) {
           var item = this.itemsData._data[itemId];
-          item.x = util.convert(item.x,"Date");
+          if (groupsContent[item.group] === undefined) {
+            throw new Error('Cannot find referenced group. Possible reason: items added before groups? Groups need to be added before items, as items refer to groups.')
+          }
+          item.x = util.convert(item.x,'Date');
           groupsContent[item.group].push(item);
         }
       }
@@ -12898,7 +13043,7 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.width != 0) {
           var rangePerPixelInv = this.width/range;
           var xOffset = offset * rangePerPixelInv;
-          this.svg.style.left = (-this.width - xOffset) + "px";
+          this.svg.style.left = (-this.width - xOffset) + 'px';
         }
       }
 
@@ -12923,6 +13068,14 @@ return /******/ (function(modules) { // webpackBootstrap
       var processedGroupData = {};
       var groupRanges = {};
       var changeCalled = false;
+
+      // update the height of the graph on each redraw of the graph.
+      if (this.autoSizeSVG == true) {
+        if (this.options.graphHeight != this.body.domProps.centerContainer.height + 'px') {
+          this.options.graphHeight = this.body.domProps.centerContainer.height + 'px';
+          this.svg.style.height = this.body.domProps.centerContainer.height + 'px';
+        }
+      }
 
       // getting group Ids
       var groupIds = [];
@@ -12954,7 +13107,7 @@ return /******/ (function(modules) { // webpackBootstrap
         if (changeCalled == true) {
           DOMutil.cleanupElements(this.svgElements);
           this.abortedGraphUpdate = true;
-          this.body.emitter.emit("change");
+          this.body.emitter.emit('change');
           return;
         }
         this.abortedGraphUpdate = false;
@@ -13065,7 +13218,7 @@ return /******/ (function(modules) { // webpackBootstrap
         groupData = groupsData[groupIds[i]];
         if (groupData.length > 0) {
           group = this.groups[groupIds[i]];
-          if (group.options.style == 'line' || group.options.barChart.handleOverlap != "stack") {
+          if (group.options.style == 'line' || group.options.barChart.handleOverlap != 'stack') {
             var yMin = groupData[0].y;
             var yMax = groupData[0].y;
             for (j = 0; j < groupData.length; j++) {
@@ -13108,9 +13261,9 @@ return /******/ (function(modules) { // webpackBootstrap
         });
         intersections = {};
         this._getDataIntersections(intersections, barCombinedDataLeft);
-        groupRanges["__barchartLeft"] = this._getStackedBarYRange(intersections, barCombinedDataLeft);
-        groupRanges["__barchartLeft"].yAxisOrientation = "left";
-        groupIds.push("__barchartLeft");
+        groupRanges['__barchartLeft'] = this._getStackedBarYRange(intersections, barCombinedDataLeft);
+        groupRanges['__barchartLeft'].yAxisOrientation = 'left';
+        groupIds.push('__barchartLeft');
       }
       if (barCombinedDataRight.length > 0) {
         // sort by time and by group
@@ -13123,9 +13276,9 @@ return /******/ (function(modules) { // webpackBootstrap
         });
         intersections = {};
         this._getDataIntersections(intersections, barCombinedDataRight);
-        groupRanges["__barchartRight"] = this._getStackedBarYRange(intersections, barCombinedDataRight);
-        groupRanges["__barchartRight"].yAxisOrientation = "right";
-        groupIds.push("__barchartRight");
+        groupRanges['__barchartRight'] = this._getStackedBarYRange(intersections, barCombinedDataRight);
+        groupRanges['__barchartRight'].yAxisOrientation = 'right';
+        groupIds.push('__barchartRight');
       }
     }
   };
@@ -13223,11 +13376,11 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     // clean the accumulated lists
-    if (groupIds.indexOf("__barchartLeft") != -1) {
-      groupIds.splice(groupIds.indexOf("__barchartLeft"),1);
+    if (groupIds.indexOf('__barchartLeft') != -1) {
+      groupIds.splice(groupIds.indexOf('__barchartLeft'),1);
     }
-    if (groupIds.indexOf("__barchartRight") != -1) {
-      groupIds.splice(groupIds.indexOf("__barchartRight"),1);
+    if (groupIds.indexOf('__barchartRight') != -1) {
+      groupIds.splice(groupIds.indexOf('__barchartRight'),1);
     }
 
     return changeCalled;
@@ -13417,9 +13570,12 @@ return /******/ (function(modules) { // webpackBootstrap
     if (dataset != null) {
       if (dataset.length > 0) {
         var path, d;
-        var svgHeight = Number(this.svg.style.height.replace("px",""));
+        var svgHeight = Number(this.svg.style.height.replace('px',''));
         path = DOMutil.getSVGElement('path', this.svgElements, this.svg);
         path.setAttributeNS(null, "class", group.className);
+        if(group.style !== undefined) {
+          path.setAttributeNS(null, "style", group.style);
+        }
 
         // construct path from dataset
         if (group.options.catmullRom.enabled == true) {
@@ -13434,16 +13590,19 @@ return /******/ (function(modules) { // webpackBootstrap
           var fillPath = DOMutil.getSVGElement('path',this.svgElements, this.svg);
           var dFill;
           if (group.options.shaded.orientation == 'top') {
-            dFill = "M" + dataset[0].x + "," + 0 + " " + d + "L" + dataset[dataset.length - 1].x + "," + 0;
+            dFill = 'M' + dataset[0].x + ',' + 0 + ' ' + d + 'L' + dataset[dataset.length - 1].x + ',' + 0;
           }
           else {
-            dFill = "M" + dataset[0].x + "," + svgHeight + " " + d + "L" + dataset[dataset.length - 1].x + "," + svgHeight;
+            dFill = 'M' + dataset[0].x + ',' + svgHeight + ' ' + d + 'L' + dataset[dataset.length - 1].x + ',' + svgHeight;
           }
           fillPath.setAttributeNS(null, "class", group.className + " fill");
+          if(group.options.shaded.style !== undefined) {
+            fillPath.setAttributeNS(null, "style", group.options.shaded.style);
+          }
           fillPath.setAttributeNS(null, "d", dFill);
         }
         // copy properties to path for drawing.
-        path.setAttributeNS(null, "d", "M" + d);
+        path.setAttributeNS(null, 'd', 'M' + d);
 
         // draw points
         if (group.options.drawPoints.enabled == true) {
@@ -13510,7 +13669,7 @@ return /******/ (function(modules) { // webpackBootstrap
     var xValue, yValue;
     var toScreen = this.body.util.toScreen;
     var axis = this.yAxisLeft;
-    var svgHeight = Number(this.svg.style.height.replace("px",""));
+    var svgHeight = Number(this.svg.style.height.replace('px',''));
     if (group.options.yAxisOrientation == 'right') {
       axis = this.yAxisRight;
     }
@@ -13528,7 +13687,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   /**
    * This uses an uniform parametrization of the CatmullRom algorithm:
-   * "On the Parameterization of Catmull-Rom Curves" by Cem Yuksel et al.
+   * 'On the Parameterization of Catmull-Rom Curves' by Cem Yuksel et al.
    * @param data
    * @returns {string}
    * @private
@@ -13536,7 +13695,7 @@ return /******/ (function(modules) { // webpackBootstrap
   LineGraph.prototype._catmullRomUniform = function(data) {
     // catmull rom
     var p0, p1, p2, p3, bp1, bp2;
-    var d = Math.round(data[0].x) + "," + Math.round(data[0].y) + " ";
+    var d = Math.round(data[0].x) + ',' + Math.round(data[0].y) + ' ';
     var normalization = 1/6;
     var length = data.length;
     for (var i = 0; i < length - 1; i++) {
@@ -13558,13 +13717,13 @@ return /******/ (function(modules) { // webpackBootstrap
       bp2 = { x: (( p1.x + 6*p2.x - p3.x) *normalization), y: (( p1.y + 6*p2.y - p3.y) *normalization)};
       //    bp0 = { x: p2.x,                               y: p2.y };
 
-      d += "C" +
-        bp1.x + "," +
-        bp1.y + " " +
-        bp2.x + "," +
-        bp2.y + " " +
-        p2.x + "," +
-        p2.y + " ";
+      d += 'C' +
+        bp1.x + ',' +
+        bp1.y + ' ' +
+        bp2.x + ',' +
+        bp2.y + ' ' +
+        p2.x + ',' +
+        p2.y + ' ';
     }
 
     return d;
@@ -13588,7 +13747,7 @@ return /******/ (function(modules) { // webpackBootstrap
     else {
       var p0, p1, p2, p3, bp1, bp2, d1,d2,d3, A, B, N, M;
       var d3powA, d2powA, d3pow2A, d2pow2A, d1pow2A, d1powA;
-      var d = Math.round(data[0].x) + "," + Math.round(data[0].y) + " ";
+      var d = Math.round(data[0].x) + ',' + Math.round(data[0].y) + ' ';
       var length = data.length;
       for (var i = 0; i < length - 1; i++) {
 
@@ -13638,13 +13797,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
         if (bp1.x == 0 && bp1.y == 0) {bp1 = p1;}
         if (bp2.x == 0 && bp2.y == 0) {bp2 = p2;}
-        d += "C" +
-          bp1.x + "," +
-          bp1.y + " " +
-          bp2.x + "," +
-          bp2.y + " " +
-          p2.x + "," +
-          p2.y + " ";
+        d += 'C' +
+          bp1.x + ',' +
+          bp1.y + ' ' +
+          bp2.x + ',' +
+          bp2.y + ' ' +
+          p2.x + ',' +
+          p2.y + ' ';
       }
 
       return d;
@@ -13659,13 +13818,13 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   LineGraph.prototype._linear = function(data) {
     // linear
-    var d = "";
+    var d = '';
     for (var i = 0; i < data.length; i++) {
       if (i == 0) {
-        d += data[i].x + "," + data[i].y;
+        d += data[i].x + ',' + data[i].y;
       }
       else {
-        d += " " + data[i].x + "," + data[i].y;
+        d += ' ' + data[i].x + ',' + data[i].y;
       }
     }
     return d;
@@ -14552,7 +14711,9 @@ return /******/ (function(modules) { // webpackBootstrap
       // we want backgrounds with groups to only show in groups.
       if (this.parent instanceof BackgroundGroup) {
         // if the item is not in a group:
-        height = Math.max(this.parent.height, this.parent.itemSet.body.domProps.centerContainer.height);
+        height = Math.max(this.parent.height,
+            this.parent.itemSet.body.domProps.center.height,
+            this.parent.itemSet.body.domProps.centerContainer.height);
         this.dom.box.style.top = onTop ? '0' : '';
         this.dom.box.style.bottom = onTop ? '' : '0';
       }
@@ -15293,7 +15454,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var Emitter = __webpack_require__(53);
   var Hammer = __webpack_require__(45);
-  var mousetrap = __webpack_require__(54);
+  var keycharm = __webpack_require__(54);
   var util = __webpack_require__(1);
   var hammerUtil = __webpack_require__(47);
   var DataSet = __webpack_require__(3);
@@ -16039,10 +16200,15 @@ return /******/ (function(modules) { // webpackBootstrap
     this.hammer.on('dragstart', me._onDragStart.bind(me) );
     this.hammer.on('drag',      me._onDrag.bind(me) );
     this.hammer.on('dragend',   me._onDragEnd.bind(me) );
-    this.hammer.on('release',   me._onRelease.bind(me) );
     this.hammer.on('mousewheel',me._onMouseWheel.bind(me) );
     this.hammer.on('DOMMouseScroll',me._onMouseWheel.bind(me) ); // for FF
     this.hammer.on('mousemove', me._onMouseMoveTitle.bind(me) );
+
+    this.hammerFrame = Hammer(this.frame, {
+      prevent_default: true
+    });
+
+    this.hammerFrame.on('release',   me._onRelease.bind(me) );
 
     // add the frame to the container element
     this.containerElement.appendChild(this.frame);
@@ -16056,36 +16222,43 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   Network.prototype._createKeyBinds = function() {
     var me = this;
-    this.mousetrap = mousetrap;
+    if (this.keycharm !== undefined) {
+      this.keycharm.destroy();
+    }
+    this.keycharm = keycharm();
 
-    this.mousetrap.reset();
+    this.keycharm.reset();
 
     if (this.constants.keyboard.enabled && this.isActive()) {
-      this.mousetrap.bind("up",   this._moveUp.bind(me)   , "keydown");
-      this.mousetrap.bind("up",   this._yStopMoving.bind(me), "keyup");
-      this.mousetrap.bind("down", this._moveDown.bind(me) , "keydown");
-      this.mousetrap.bind("down", this._yStopMoving.bind(me), "keyup");
-      this.mousetrap.bind("left", this._moveLeft.bind(me) , "keydown");
-      this.mousetrap.bind("left", this._xStopMoving.bind(me), "keyup");
-      this.mousetrap.bind("right",this._moveRight.bind(me), "keydown");
-      this.mousetrap.bind("right",this._xStopMoving.bind(me), "keyup");
-      this.mousetrap.bind("=",    this._zoomIn.bind(me),    "keydown");
-      this.mousetrap.bind("=",    this._stopZoom.bind(me),    "keyup");
-      this.mousetrap.bind("-",    this._zoomOut.bind(me),   "keydown");
-      this.mousetrap.bind("-",    this._stopZoom.bind(me),    "keyup");
-      this.mousetrap.bind("[",    this._zoomIn.bind(me),    "keydown");
-      this.mousetrap.bind("[",    this._stopZoom.bind(me),    "keyup");
-      this.mousetrap.bind("]",    this._zoomOut.bind(me),   "keydown");
-      this.mousetrap.bind("]",    this._stopZoom.bind(me),    "keyup");
-      this.mousetrap.bind("pageup",this._zoomIn.bind(me),   "keydown");
-      this.mousetrap.bind("pageup",this._stopZoom.bind(me),   "keyup");
-      this.mousetrap.bind("pagedown",this._zoomOut.bind(me),"keydown");
-      this.mousetrap.bind("pagedown",this._stopZoom.bind(me), "keyup");
+      this.keycharm.bind("up",   this._moveUp.bind(me)   , "keydown");
+      this.keycharm.bind("up",   this._yStopMoving.bind(me), "keyup");
+      this.keycharm.bind("down", this._moveDown.bind(me) , "keydown");
+      this.keycharm.bind("down", this._yStopMoving.bind(me), "keyup");
+      this.keycharm.bind("left", this._moveLeft.bind(me) , "keydown");
+      this.keycharm.bind("left", this._xStopMoving.bind(me), "keyup");
+      this.keycharm.bind("right",this._moveRight.bind(me), "keydown");
+      this.keycharm.bind("right",this._xStopMoving.bind(me), "keyup");
+      this.keycharm.bind("=",    this._zoomIn.bind(me),    "keydown");
+      this.keycharm.bind("=",    this._stopZoom.bind(me),    "keyup");
+      this.keycharm.bind("num+", this._zoomIn.bind(me),    "keydown");
+      this.keycharm.bind("num+", this._stopZoom.bind(me),    "keyup");
+      this.keycharm.bind("num-", this._zoomOut.bind(me),   "keydown");
+      this.keycharm.bind("num-", this._stopZoom.bind(me),    "keyup");
+      this.keycharm.bind("-",    this._zoomOut.bind(me),   "keydown");
+      this.keycharm.bind("-",    this._stopZoom.bind(me),    "keyup");
+      this.keycharm.bind("[",    this._zoomIn.bind(me),    "keydown");
+      this.keycharm.bind("[",    this._stopZoom.bind(me),    "keyup");
+      this.keycharm.bind("]",    this._zoomOut.bind(me),   "keydown");
+      this.keycharm.bind("]",    this._stopZoom.bind(me),    "keyup");
+      this.keycharm.bind("pageup",this._zoomIn.bind(me),   "keydown");
+      this.keycharm.bind("pageup",this._stopZoom.bind(me),   "keyup");
+      this.keycharm.bind("pagedown",this._zoomOut.bind(me),"keydown");
+      this.keycharm.bind("pagedown",this._stopZoom.bind(me), "keyup");
     }
 
     if (this.constants.dataManipulation.enabled == true) {
-      this.mousetrap.bind("escape",this._createManipulatorBar.bind(me));
-      this.mousetrap.bind("del",this._deleteSelected.bind(me));
+      this.keycharm.bind("esc",this._createManipulatorBar.bind(me));
+      this.keycharm.bind("delete",this._deleteSelected.bind(me));
     }
   };
 
@@ -18551,6 +18724,7 @@ return /******/ (function(modules) { // webpackBootstrap
     var point;
     // set style
     ctx.strokeStyle = this._getColor();
+    ctx.fillStyle = ctx.strokeStyle;
     ctx.lineWidth = this._getLineWidth();
 
     if (this.from != this.to) {
@@ -18624,6 +18798,7 @@ return /******/ (function(modules) { // webpackBootstrap
   Edge.prototype._drawArrow = function(ctx) {
     // set style
     ctx.strokeStyle = this._getColor();
+    ctx.fillStyle = ctx.strokeStyle;
     ctx.lineWidth = this._getLineWidth();
 
     var angle, length;
@@ -21902,7 +22077,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   // TODO: move this function to Range
   Core.prototype._toTime = function(x) {
-    return DateUtil.toTime(this.body, this.range, x, this.props.center.width);
+    return DateUtil.toTime(this, x, this.props.center.width);
   };
 
   /**
@@ -21913,7 +22088,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   // TODO: move this function to Range
   Core.prototype._toGlobalTime = function(x) {
-    return DateUtil.toTime(this.body, this.range, x, this.props.root.width);
+    return DateUtil.toTime(this, x, this.props.root.width);
     //var conversion = this.range.conversion(this.props.root.width);
     //return new Date(x / conversion.scale + conversion.offset);
   };
@@ -22056,8 +22231,10 @@ return /******/ (function(modules) { // webpackBootstrap
     var oldScrollTop = this._getScrollTop();
     var newScrollTop = this._setScrollTop(this.touch.initialScrollTop + delta);
 
+
     if (newScrollTop != oldScrollTop) {
       this.redraw(); // TODO: this causes two redraws when dragging, the other is triggered by rangechange already
+      this.emit("verticalDrag");
     }
   };
 
@@ -22644,7 +22821,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var mousetrap = __webpack_require__(54);
+  var keycharm = __webpack_require__(54);
   var Emitter = __webpack_require__(53);
   var Hammer = __webpack_require__(45);
   var util = __webpack_require__(1);
@@ -22697,7 +22874,12 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     });
 
-    // mousetrap listener only bounded when active)
+    if (this.keycharm !== undefined) {
+      this.keycharm.destroy();
+    }
+    this.keycharm = keycharm();
+
+    // keycharm listener only bounded when active)
     this.escListener = this.deactivate.bind(this);
   }
 
@@ -22742,7 +22924,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // ugly hack: bind ESC after emitting the events, as the Network rebinds all
     // keyboard events on a 'change' event
-    mousetrap.bind('esc', this.escListener);
+    this.keycharm.bind('esc', this.escListener);
   };
 
   /**
@@ -22753,7 +22935,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.active = false;
     this.dom.overlay.style.display = '';
     util.removeClassName(this.dom.container, 'vis-active');
-    mousetrap.unbind('esc', this.escListener);
+    this.keycharm.unbind('esc', this.escListener);
 
     this.emit('change');
     this.emit('deactivate');
@@ -22966,804 +23148,192 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
-  /**
-   * Copyright 2012 Craig Campbell
-   *
-   * Licensed under the Apache License, Version 2.0 (the "License");
-   * you may not use this file except in compliance with the License.
-   * You may obtain a copy of the License at
-   *
-   * http://www.apache.org/licenses/LICENSE-2.0
-   *
-   * Unless required by applicable law or agreed to in writing, software
-   * distributed under the License is distributed on an "AS IS" BASIS,
-   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   * See the License for the specific language governing permissions and
-   * limitations under the License.
-   *
-   * Mousetrap is a simple keyboard shortcut library for Javascript with
-   * no external dependencies
-   *
-   * @version 1.1.2
-   * @url craig.is/killing/mice
+  var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/**
+   * Created by Alex on 11/6/2014.
    */
 
-    /**
-     * mapping of special keycodes to their corresponding keys
-     *
-     * everything in this dictionary cannot use keypress events
-     * so it has to be here to map to the correct keycodes for
-     * keyup/keydown events
-     *
-     * @type {Object}
-     */
-    var _MAP = {
-            8: 'backspace',
-            9: 'tab',
-            13: 'enter',
-            16: 'shift',
-            17: 'ctrl',
-            18: 'alt',
-            20: 'capslock',
-            27: 'esc',
-            32: 'space',
-            33: 'pageup',
-            34: 'pagedown',
-            35: 'end',
-            36: 'home',
-            37: 'left',
-            38: 'up',
-            39: 'right',
-            40: 'down',
-            45: 'ins',
-            46: 'del',
-            91: 'meta',
-            93: 'meta',
-            224: 'meta'
-        },
-
-        /**
-         * mapping for special characters so they can support
-         *
-         * this dictionary is only used incase you want to bind a
-         * keyup or keydown event to one of these keys
-         *
-         * @type {Object}
-         */
-        _KEYCODE_MAP = {
-            106: '*',
-            107: '+',
-            109: '-',
-            110: '.',
-            111 : '/',
-            186: ';',
-            187: '=',
-            188: ',',
-            189: '-',
-            190: '.',
-            191: '/',
-            192: '`',
-            219: '[',
-            220: '\\',
-            221: ']',
-            222: '\''
-        },
-
-        /**
-         * this is a mapping of keys that require shift on a US keypad
-         * back to the non shift equivelents
-         *
-         * this is so you can use keyup events with these keys
-         *
-         * note that this will only work reliably on US keyboards
-         *
-         * @type {Object}
-         */
-        _SHIFT_MAP = {
-            '~': '`',
-            '!': '1',
-            '@': '2',
-            '#': '3',
-            '$': '4',
-            '%': '5',
-            '^': '6',
-            '&': '7',
-            '*': '8',
-            '(': '9',
-            ')': '0',
-            '_': '-',
-            '+': '=',
-            ':': ';',
-            '\"': '\'',
-            '<': ',',
-            '>': '.',
-            '?': '/',
-            '|': '\\'
-        },
-
-        /**
-         * this is a list of special strings you can use to map
-         * to modifier keys when you specify your keyboard shortcuts
-         *
-         * @type {Object}
-         */
-        _SPECIAL_ALIASES = {
-            'option': 'alt',
-            'command': 'meta',
-            'return': 'enter',
-            'escape': 'esc'
-        },
-
-        /**
-         * variable to store the flipped version of _MAP from above
-         * needed to check if we should use keypress or not when no action
-         * is specified
-         *
-         * @type {Object|undefined}
-         */
-        _REVERSE_MAP,
-
-        /**
-         * a list of all the callbacks setup via Mousetrap.bind()
-         *
-         * @type {Object}
-         */
-        _callbacks = {},
-
-        /**
-         * direct map of string combinations to callbacks used for trigger()
-         *
-         * @type {Object}
-         */
-        _direct_map = {},
-
-        /**
-         * keeps track of what level each sequence is at since multiple
-         * sequences can start out with the same sequence
-         *
-         * @type {Object}
-         */
-        _sequence_levels = {},
-
-        /**
-         * variable to store the setTimeout call
-         *
-         * @type {null|number}
-         */
-        _reset_timer,
-
-        /**
-         * temporary state where we will ignore the next keyup
-         *
-         * @type {boolean|string}
-         */
-        _ignore_next_keyup = false,
-
-        /**
-         * are we currently inside of a sequence?
-         * type of action ("keyup" or "keydown" or "keypress") or false
-         *
-         * @type {boolean|string}
-         */
-        _inside_sequence = false;
-
-    /**
-     * loop through the f keys, f1 to f19 and add them to the map
-     * programatically
-     */
-    for (var i = 1; i < 20; ++i) {
-        _MAP[111 + i] = 'f' + i;
+  // https://github.com/umdjs/umd/blob/master/returnExports.js#L40-L60
+  // if the module has no dependencies, the above pattern can be simplified to
+  (function (root, factory) {
+    if (true) {
+      // AMD. Register as an anonymous module.
+      !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+    } else if (typeof exports === 'object') {
+      // Node. Does not work with strict CommonJS, but
+      // only CommonJS-like environments that support module.exports,
+      // like Node.
+      module.exports = factory();
+    } else {
+      // Browser globals (root is window)
+      root.keycharm = factory();
     }
+  }(this, function () {
 
-    /**
-     * loop through to map numbers on the numeric keypad
-     */
-    for (i = 0; i <= 9; ++i) {
-        _MAP[i + 96] = i;
-    }
+    function keycharm(options) {
+      var preventDefault = options && options.preventDefault || false;
 
-    /**
-     * cross browser add event method
-     *
-     * @param {Element|HTMLDocument} object
-     * @param {string} type
-     * @param {Function} callback
-     * @returns void
-     */
-    function _addEvent(object, type, callback) {
-        if (object.addEventListener) {
-            return object.addEventListener(type, callback, false);
-        }
+      var _bound = {keydown:{}, keyup:{}};
+      var _keys = {};
+      var i;
 
-        object.attachEvent('on' + type, callback);
-    }
+      // a - z
+      for (i = 97; i <= 122; i++) {_keys[String.fromCharCode(i)] = {code:65 + (i - 97), shift: false};}
+      // A - Z
+      for (i = 65; i <= 90; i++) {_keys[String.fromCharCode(i)] = {code:i, shift: true};}
+      // 0 - 9
+      for (i = 0;  i <= 9;   i++) {_keys['' + i] = {code:48 + i, shift: false};}
+      // F1 - F12
+      for (i = 1;  i <= 12;   i++) {_keys['F' + i] = {code:111 + i, shift: false};}
+      // num0 - num9
+      for (i = 0;  i <= 9;   i++) {_keys['num' + i] = {code:96 + i, shift: false};}
 
-    /**
-     * takes the event and returns the key character
-     *
-     * @param {Event} e
-     * @return {string}
-     */
-    function _characterFromEvent(e) {
+      // numpad misc
+      _keys['num*'] = {code:106, shift: false};
+      _keys['num+'] = {code:107, shift: false};
+      _keys['num-'] = {code:109, shift: false};
+      _keys['num/'] = {code:111, shift: false};
+      _keys['num.'] = {code:110, shift: false};
+      // arrows
+      _keys['left']  = {code:37, shift: false};
+      _keys['up']    = {code:38, shift: false};
+      _keys['right'] = {code:39, shift: false};
+      _keys['down']  = {code:40, shift: false};
+      // extra keys
+      _keys['space'] = {code:32, shift: false};
+      _keys['enter'] = {code:13, shift: false};
+      _keys['shift'] = {code:16, shift: undefined};
+      _keys['esc']   = {code:27, shift: false};
+      _keys['backspace'] = {code:8, shift: false};
+      _keys['tab']       = {code:9, shift: false};
+      _keys['ctrl']      = {code:17, shift: false};
+      _keys['alt']       = {code:18, shift: false};
+      _keys['delete']    = {code:46, shift: false};
+      _keys['pageup']    = {code:33, shift: false};
+      _keys['pagedown']  = {code:34, shift: false};
+      // symbols
+      _keys['=']     = {code:187, shift: false};
+      _keys['-']     = {code:189, shift: false};
+      _keys[']']     = {code:221, shift: false};
+      _keys['[']     = {code:219, shift: false};
 
-        // for keypress events we should return the character as is
-        if (e.type == 'keypress') {
-            return String.fromCharCode(e.which);
-        }
 
-        // for non keypress events the special maps are needed
-        if (_MAP[e.which]) {
-            return _MAP[e.which];
-        }
 
-        if (_KEYCODE_MAP[e.which]) {
-            return _KEYCODE_MAP[e.which];
-        }
+      var down = function(event) {handleEvent(event,'keydown');};
+      var up = function(event) {handleEvent(event,'keyup');};
 
-        // if it is not in the special map
-        return String.fromCharCode(e.which).toLowerCase();
-    }
-
-    /**
-     * should we stop this event before firing off callbacks
-     *
-     * @param {Event} e
-     * @return {boolean}
-     */
-    function _stop(e) {
-        var element = e.target || e.srcElement,
-            tag_name = element.tagName;
-
-        // if the element has the class "mousetrap" then no need to stop
-        if ((' ' + element.className + ' ').indexOf(' mousetrap ') > -1) {
-            return false;
-        }
-
-        // stop for input, select, and textarea
-        return tag_name == 'INPUT' || tag_name == 'SELECT' || tag_name == 'TEXTAREA' || (element.contentEditable && element.contentEditable == 'true');
-    }
-
-    /**
-     * checks if two arrays are equal
-     *
-     * @param {Array} modifiers1
-     * @param {Array} modifiers2
-     * @returns {boolean}
-     */
-    function _modifiersMatch(modifiers1, modifiers2) {
-        return modifiers1.sort().join(',') === modifiers2.sort().join(',');
-    }
-
-    /**
-     * resets all sequence counters except for the ones passed in
-     *
-     * @param {Object} do_not_reset
-     * @returns void
-     */
-    function _resetSequences(do_not_reset) {
-        do_not_reset = do_not_reset || {};
-
-        var active_sequences = false,
-            key;
-
-        for (key in _sequence_levels) {
-            if (do_not_reset[key]) {
-                active_sequences = true;
-                continue;
+      // handle the actualy bound key with the event
+      var handleEvent = function(event,type) {
+        if (_bound[type][event.keyCode] !== undefined) {
+          var bound = _bound[type][event.keyCode];
+          for (var i = 0; i < bound.length; i++) {
+            if (bound[i].shift === undefined) {
+              bound[i].fn(event);
             }
-            _sequence_levels[key] = 0;
-        }
-
-        if (!active_sequences) {
-            _inside_sequence = false;
-        }
-    }
-
-    /**
-     * finds all callbacks that match based on the keycode, modifiers,
-     * and action
-     *
-     * @param {string} character
-     * @param {Array} modifiers
-     * @param {string} action
-     * @param {boolean=} remove - should we remove any matches
-     * @param {string=} combination
-     * @returns {Array}
-     */
-    function _getMatches(character, modifiers, action, remove, combination) {
-        var i,
-            callback,
-            matches = [];
-
-        // if there are no events related to this keycode
-        if (!_callbacks[character]) {
-            return [];
-        }
-
-        // if a modifier key is coming up on its own we should allow it
-        if (action == 'keyup' && _isModifier(character)) {
-            modifiers = [character];
-        }
-
-        // loop through all callbacks for the key that was pressed
-        // and see if any of them match
-        for (i = 0; i < _callbacks[character].length; ++i) {
-            callback = _callbacks[character][i];
-
-            // if this is a sequence but it is not at the right level
-            // then move onto the next match
-            if (callback.seq && _sequence_levels[callback.seq] != callback.level) {
-                continue;
+            else if (bound[i].shift == true && event.shiftKey == true) {
+              bound[i].fn(event);
             }
-
-            // if the action we are looking for doesn't match the action we got
-            // then we should keep going
-            if (action != callback.action) {
-                continue;
+            else if (bound[i].shift == false && event.shiftKey == false) {
+              bound[i].fn(event);
             }
+          }
 
-            // if this is a keypress event that means that we need to only
-            // look at the character, otherwise check the modifiers as
-            // well
-            if (action == 'keypress' || _modifiersMatch(modifiers, callback.modifiers)) {
+          if (preventDefault == true) {
+            event.preventDefault();
+          }
+        }
+      };
 
-                // remove is used so if you change your mind and call bind a
-                // second time with a new function the first one is overwritten
-                if (remove && callback.combo == combination) {
-                    _callbacks[character].splice(i, 1);
-                }
+      // bind a key to a callback
+      this.bind = function(key, callback, type) {
+        if (type === undefined) {
+          type = 'keydown';
+        }
+        if (_keys[key] === undefined) {
+          throw new Error("unsupported key: " + key);
+        }
+        if (_bound[type][_keys[key].code] === undefined) {
+          _bound[type][_keys[key].code] = [];
+        }
+        _bound[type][_keys[key].code].push({fn:callback, shift:_keys[key].shift});
+      };
 
-                matches.push(callback);
+
+      // bind all keys to a call back (demo purposes)
+      this.bindAll = function(callback, type) {
+        if (type === undefined) {
+          type = 'keydown';
+        }
+        for (key in _keys) {
+          if (_keys.hasOwnProperty(key)) {
+            this.bind(key,callback,type);
+          }
+        }
+      }
+
+      // get the key label from an event
+      this.getKey = function(event) {
+        for (key in _keys) {
+          if (_keys.hasOwnProperty(key)) {
+            if (event.shiftKey == true && _keys[key].shift == true && event.keyCode == _keys[key].code) {
+              return key;
             }
-        }
-
-        return matches;
-    }
-
-    /**
-     * takes a key event and figures out what the modifiers are
-     *
-     * @param {Event} e
-     * @returns {Array}
-     */
-    function _eventModifiers(e) {
-        var modifiers = [];
-
-        if (e.shiftKey) {
-            modifiers.push('shift');
-        }
-
-        if (e.altKey) {
-            modifiers.push('alt');
-        }
-
-        if (e.ctrlKey) {
-            modifiers.push('ctrl');
-        }
-
-        if (e.metaKey) {
-            modifiers.push('meta');
-        }
-
-        return modifiers;
-    }
-
-    /**
-     * actually calls the callback function
-     *
-     * if your callback function returns false this will use the jquery
-     * convention - prevent default and stop propogation on the event
-     *
-     * @param {Function} callback
-     * @param {Event} e
-     * @returns void
-     */
-    function _fireCallback(callback, e) {
-        if (callback(e) === false) {
-            if (e.preventDefault) {
-                e.preventDefault();
+            else if (event.shiftKey == false && _keys[key].shift == false && event.keyCode == _keys[key].code) {
+              return key;
             }
-
-            if (e.stopPropagation) {
-                e.stopPropagation();
+            else if (event.keyCode == _keys[key].code && key == 'shift') {
+              return key;
             }
-
-            e.returnValue = false;
-            e.cancelBubble = true;
+          }
         }
-    }
+        return "unknown key, currently not supported";
+      };
 
-    /**
-     * handles a character key event
-     *
-     * @param {string} character
-     * @param {Event} e
-     * @returns void
-     */
-    function _handleCharacter(character, e) {
-
-        // if this event should not happen stop here
-        if (_stop(e)) {
-            return;
+      // unbind either a specific callback from a key or all of them (by leaving callback undefined)
+      this.unbind = function(key, callback, type) {
+        if (type === undefined) {
+          type = 'keydown';
         }
-
-        var callbacks = _getMatches(character, _eventModifiers(e), e.type),
-            i,
-            do_not_reset = {},
-            processed_sequence_callback = false;
-
-        // loop through matching callbacks for this key event
-        for (i = 0; i < callbacks.length; ++i) {
-
-            // fire for all sequence callbacks
-            // this is because if for example you have multiple sequences
-            // bound such as "g i" and "g t" they both need to fire the
-            // callback for matching g cause otherwise you can only ever
-            // match the first one
-            if (callbacks[i].seq) {
-                processed_sequence_callback = true;
-
-                // keep a list of which sequences were matches for later
-                do_not_reset[callbacks[i].seq] = 1;
-                _fireCallback(callbacks[i].callback, e);
-                continue;
+        if (_keys[key] === undefined) {
+          throw new Error("unsupported key: " + key);
+        }
+        if (callback !== undefined) {
+          var newBindings = [];
+          var bound = _bound[type][_keys[key].code]
+          for (var i = 0; i < bound.length; i++) {
+            if (!(bound[i].fn == callback && bound[i].shift == _keys[key].shift)) {
+              newBindings.push(_bound[type][_keys[key].code][i]);
             }
-
-            // if there were no sequence matches but we are still here
-            // that means this is a regular match so we should fire that
-            if (!processed_sequence_callback && !_inside_sequence) {
-                _fireCallback(callbacks[i].callback, e);
-            }
+          }
+          _bound[type][_keys[key].code] = newBindings;
         }
-
-        // if you are inside of a sequence and the key you are pressing
-        // is not a modifier key then we should reset all sequences
-        // that were not matched by this key event
-        if (e.type == _inside_sequence && !_isModifier(character)) {
-            _resetSequences(do_not_reset);
+        else {
+          _bound[type][_keys[key].code] = [];
         }
+      };
+
+      // reset all bound variables.
+      this.reset = function() {
+        _bound = {keydown:{}, keyup:{}};
+      };
+
+      // unbind all listeners and reset all variables.
+      this.destroy = function() {
+        _bound = {keydown:{}, keyup:{}};
+        window.removeEventListener('keydown', down, true);
+        window.removeEventListener('keyup', up, true);
+      };
+
+      // create listeners.
+      window.addEventListener('keydown',down,true);
+      window.addEventListener('keyup',up,true);
+
+      // return the public functions.
+      return this;
     }
 
-    /**
-     * handles a keydown event
-     *
-     * @param {Event} e
-     * @returns void
-     */
-    function _handleKey(e) {
+    return keycharm;
+  }));
 
-        // normalize e.which for key events
-        // @see http://stackoverflow.com/questions/4285627/javascript-keycode-vs-charcode-utter-confusion
-        e.which = typeof e.which == "number" ? e.which : e.keyCode;
-
-        var character = _characterFromEvent(e);
-
-        // no character found then stop
-        if (!character) {
-            return;
-        }
-
-        if (e.type == 'keyup' && _ignore_next_keyup == character) {
-            _ignore_next_keyup = false;
-            return;
-        }
-
-        _handleCharacter(character, e);
-    }
-
-    /**
-     * determines if the keycode specified is a modifier key or not
-     *
-     * @param {string} key
-     * @returns {boolean}
-     */
-    function _isModifier(key) {
-        return key == 'shift' || key == 'ctrl' || key == 'alt' || key == 'meta';
-    }
-
-    /**
-     * called to set a 1 second timeout on the specified sequence
-     *
-     * this is so after each key press in the sequence you have 1 second
-     * to press the next key before you have to start over
-     *
-     * @returns void
-     */
-    function _resetSequenceTimer() {
-        clearTimeout(_reset_timer);
-        _reset_timer = setTimeout(_resetSequences, 1000);
-    }
-
-    /**
-     * reverses the map lookup so that we can look for specific keys
-     * to see what can and can't use keypress
-     *
-     * @return {Object}
-     */
-    function _getReverseMap() {
-        if (!_REVERSE_MAP) {
-            _REVERSE_MAP = {};
-            for (var key in _MAP) {
-
-                // pull out the numeric keypad from here cause keypress should
-                // be able to detect the keys from the character
-                if (key > 95 && key < 112) {
-                    continue;
-                }
-
-                if (_MAP.hasOwnProperty(key)) {
-                    _REVERSE_MAP[_MAP[key]] = key;
-                }
-            }
-        }
-        return _REVERSE_MAP;
-    }
-
-    /**
-     * picks the best action based on the key combination
-     *
-     * @param {string} key - character for key
-     * @param {Array} modifiers
-     * @param {string=} action passed in
-     */
-    function _pickBestAction(key, modifiers, action) {
-
-        // if no action was picked in we should try to pick the one
-        // that we think would work best for this key
-        if (!action) {
-            action = _getReverseMap()[key] ? 'keydown' : 'keypress';
-        }
-
-        // modifier keys don't work as expected with keypress,
-        // switch to keydown
-        if (action == 'keypress' && modifiers.length) {
-            action = 'keydown';
-        }
-
-        return action;
-    }
-
-    /**
-     * binds a key sequence to an event
-     *
-     * @param {string} combo - combo specified in bind call
-     * @param {Array} keys
-     * @param {Function} callback
-     * @param {string=} action
-     * @returns void
-     */
-    function _bindSequence(combo, keys, callback, action) {
-
-        // start off by adding a sequence level record for this combination
-        // and setting the level to 0
-        _sequence_levels[combo] = 0;
-
-        // if there is no action pick the best one for the first key
-        // in the sequence
-        if (!action) {
-            action = _pickBestAction(keys[0], []);
-        }
-
-        /**
-         * callback to increase the sequence level for this sequence and reset
-         * all other sequences that were active
-         *
-         * @param {Event} e
-         * @returns void
-         */
-        var _increaseSequence = function(e) {
-                _inside_sequence = action;
-                ++_sequence_levels[combo];
-                _resetSequenceTimer();
-            },
-
-            /**
-             * wraps the specified callback inside of another function in order
-             * to reset all sequence counters as soon as this sequence is done
-             *
-             * @param {Event} e
-             * @returns void
-             */
-            _callbackAndReset = function(e) {
-                _fireCallback(callback, e);
-
-                // we should ignore the next key up if the action is key down
-                // or keypress.  this is so if you finish a sequence and
-                // release the key the final key will not trigger a keyup
-                if (action !== 'keyup') {
-                    _ignore_next_keyup = _characterFromEvent(e);
-                }
-
-                // weird race condition if a sequence ends with the key
-                // another sequence begins with
-                setTimeout(_resetSequences, 10);
-            },
-            i;
-
-        // loop through keys one at a time and bind the appropriate callback
-        // function.  for any key leading up to the final one it should
-        // increase the sequence. after the final, it should reset all sequences
-        for (i = 0; i < keys.length; ++i) {
-            _bindSingle(keys[i], i < keys.length - 1 ? _increaseSequence : _callbackAndReset, action, combo, i);
-        }
-    }
-
-    /**
-     * binds a single keyboard combination
-     *
-     * @param {string} combination
-     * @param {Function} callback
-     * @param {string=} action
-     * @param {string=} sequence_name - name of sequence if part of sequence
-     * @param {number=} level - what part of the sequence the command is
-     * @returns void
-     */
-    function _bindSingle(combination, callback, action, sequence_name, level) {
-
-        // make sure multiple spaces in a row become a single space
-        combination = combination.replace(/\s+/g, ' ');
-
-        var sequence = combination.split(' '),
-            i,
-            key,
-            keys,
-            modifiers = [];
-
-        // if this pattern is a sequence of keys then run through this method
-        // to reprocess each pattern one key at a time
-        if (sequence.length > 1) {
-            return _bindSequence(combination, sequence, callback, action);
-        }
-
-        // take the keys from this pattern and figure out what the actual
-        // pattern is all about
-        keys = combination === '+' ? ['+'] : combination.split('+');
-
-        for (i = 0; i < keys.length; ++i) {
-            key = keys[i];
-
-            // normalize key names
-            if (_SPECIAL_ALIASES[key]) {
-                key = _SPECIAL_ALIASES[key];
-            }
-
-            // if this is not a keypress event then we should
-            // be smart about using shift keys
-            // this will only work for US keyboards however
-            if (action && action != 'keypress' && _SHIFT_MAP[key]) {
-                key = _SHIFT_MAP[key];
-                modifiers.push('shift');
-            }
-
-            // if this key is a modifier then add it to the list of modifiers
-            if (_isModifier(key)) {
-                modifiers.push(key);
-            }
-        }
-
-        // depending on what the key combination is
-        // we will try to pick the best event for it
-        action = _pickBestAction(key, modifiers, action);
-
-        // make sure to initialize array if this is the first time
-        // a callback is added for this key
-        if (!_callbacks[key]) {
-            _callbacks[key] = [];
-        }
-
-        // remove an existing match if there is one
-        _getMatches(key, modifiers, action, !sequence_name, combination);
-
-        // add this call back to the array
-        // if it is a sequence put it at the beginning
-        // if not put it at the end
-        //
-        // this is important because the way these are processed expects
-        // the sequence ones to come first
-        _callbacks[key][sequence_name ? 'unshift' : 'push']({
-            callback: callback,
-            modifiers: modifiers,
-            action: action,
-            seq: sequence_name,
-            level: level,
-            combo: combination
-        });
-    }
-
-    /**
-     * binds multiple combinations to the same callback
-     *
-     * @param {Array} combinations
-     * @param {Function} callback
-     * @param {string|undefined} action
-     * @returns void
-     */
-    function _bindMultiple(combinations, callback, action) {
-        for (var i = 0; i < combinations.length; ++i) {
-            _bindSingle(combinations[i], callback, action);
-        }
-    }
-
-    // start!
-    _addEvent(document, 'keypress', _handleKey);
-    _addEvent(document, 'keydown', _handleKey);
-    _addEvent(document, 'keyup', _handleKey);
-
-    var mousetrap = {
-
-        /**
-         * binds an event to mousetrap
-         *
-         * can be a single key, a combination of keys separated with +,
-         * a comma separated list of keys, an array of keys, or
-         * a sequence of keys separated by spaces
-         *
-         * be sure to list the modifier keys first to make sure that the
-         * correct key ends up getting bound (the last key in the pattern)
-         *
-         * @param {string|Array} keys
-         * @param {Function} callback
-         * @param {string=} action - 'keypress', 'keydown', or 'keyup'
-         * @returns void
-         */
-        bind: function(keys, callback, action) {
-            _bindMultiple(keys instanceof Array ? keys : [keys], callback, action);
-            _direct_map[keys + ':' + action] = callback;
-            return this;
-        },
-
-        /**
-         * unbinds an event to mousetrap
-         *
-         * the unbinding sets the callback function of the specified key combo
-         * to an empty function and deletes the corresponding key in the
-         * _direct_map dict.
-         *
-         * the keycombo+action has to be exactly the same as
-         * it was defined in the bind method
-         *
-         * TODO: actually remove this from the _callbacks dictionary instead
-         * of binding an empty function
-         *
-         * @param {string|Array} keys
-         * @param {string} action
-         * @returns void
-         */
-        unbind: function(keys, action) {
-            if (_direct_map[keys + ':' + action]) {
-                delete _direct_map[keys + ':' + action];
-                this.bind(keys, function() {}, action);
-            }
-            return this;
-        },
-
-        /**
-         * triggers an event that has already been bound
-         *
-         * @param {string} keys
-         * @param {string=} action
-         * @returns void
-         */
-        trigger: function(keys, action) {
-            _direct_map[keys + ':' + action]();
-            return this;
-        },
-
-        /**
-         * resets the library back to its initial state.  this is useful
-         * if you want to clear out the current keyboard shortcuts and bind
-         * new ones - for example if you switch to another page
-         *
-         * @returns void
-         */
-        reset: function() {
-            _callbacks = {};
-            _direct_map = {};
-            return this;
-        }
-    };
-
-  module.exports = mousetrap;
 
 
 
