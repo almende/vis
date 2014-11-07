@@ -4,7 +4,7 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 3.6.4-SNAPSHOT
+ * @version 3.6.4
  * @date    2014-11-07
  *
  * @license
@@ -12682,7 +12682,7 @@ return /******/ (function(modules) { // webpackBootstrap
         this.autoSizeSVG = true;
       }
       else if (this.body.domProps.centerContainer.height !== undefined && options.graphHeight !== undefined) {
-        if (parseInt(options.graphHeight.replace("px",'')) < this.body.domProps.centerContainer.height) {
+        if (parseInt((options.graphHeight + '').replace("px",'')) < this.body.domProps.centerContainer.height) {
           this.autoSizeSVG = true;
         }
       }
