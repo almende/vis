@@ -1,6 +1,13 @@
 # vis.js history
 http://visjs.org
 
+## 2014-11-07, version 3.6.5 NOT YET RELEASED
+
+### Graph2D
+
+- Added points style for scatterplots and pointclouds.
+- Modularized the Graph2D draw styles.
+
 
 ## 2014-11-07, version 3.6.4
 
