@@ -8,6 +8,9 @@ http://visjs.org
 - Added points style for scatterplots and pointclouds.
 - Modularized the Graph2D draw styles.
 
+### Network
+
+- Added pointer properties to the click and the doubleClick events containing the XY coordinates in DOM and canvas space.
 
 ## 2014-11-07, version 3.6.4
 

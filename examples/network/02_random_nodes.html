@@ -77,7 +77,9 @@
       };
       var options = {stabilization:false};
       network = new vis.Network(container, data, options);
-
+        network.on('click', function(params) {
+            console.log(params)
+        });
       // add event listeners
       network.on('select', function(params) {
         document.getElementById('selection').innerHTML = 'Selection: ' + params.nodes;
