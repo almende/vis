@@ -7,11 +7,17 @@ http://visjs.org
 
 - Added points style for scatterplots and pointclouds.
 - Modularized the Graph2D draw styles.
+- Added a finishedRedraw event.
 
 ### Network
 
 - Added pointer properties to the click and the doubleClick events containing the XY coordinates in DOM and canvas space.
 - Removed IDs from navigation so multiple networks can be shown on the same page. (#438)
+
+
+### Timeline
+
+- Added a finishedRedraw event.
 
 ## 2014-11-07, version 3.6.4
 
