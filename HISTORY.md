@@ -18,6 +18,7 @@ http://visjs.org
 ### Timeline
 
 - Added a finishedRedraw event.
+- Fixed the disappearing item bug.
 
 ## 2014-11-07, version 3.6.4
 
