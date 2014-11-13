@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.6.5-SNAPSHOT
- * @date    2014-11-12
+ * @date    2014-11-13
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -101,10 +101,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // Timeline
   exports.Timeline = __webpack_require__(18);
-  exports.Graph2d = __webpack_require__(42);
+  exports.Graph2d = __webpack_require__(40);
   exports.timeline = {
     DateUtil: __webpack_require__(24),
-    DataStep: __webpack_require__(45),
+    DataStep: __webpack_require__(43),
     Range: __webpack_require__(21),
     stack: __webpack_require__(33),
     TimeStep: __webpack_require__(27),
@@ -121,27 +121,27 @@ return /******/ (function(modules) { // webpackBootstrap
       Component: __webpack_require__(23),
       CurrentTime: __webpack_require__(28),
       CustomTime: __webpack_require__(30),
-      DataAxis: __webpack_require__(44),
-      GraphGroup: __webpack_require__(46),
+      DataAxis: __webpack_require__(42),
+      GraphGroup: __webpack_require__(44),
       Group: __webpack_require__(32),
       BackgroundGroup: __webpack_require__(36),
       ItemSet: __webpack_require__(31),
-      Legend: __webpack_require__(50),
-      LineGraph: __webpack_require__(43),
+      Legend: __webpack_require__(48),
+      LineGraph: __webpack_require__(41),
       TimeAxis: __webpack_require__(26)
     }
   };
 
   // Network
-  exports.Network = __webpack_require__(51);
+  exports.Network = __webpack_require__(49);
   exports.network = {
-    Edge: __webpack_require__(57),
-    Groups: __webpack_require__(54),
-    Images: __webpack_require__(55),
-    Node: __webpack_require__(56),
-    Popup: __webpack_require__(58),
-    dotparser: __webpack_require__(52),
-    gephiParser: __webpack_require__(53)
+    Edge: __webpack_require__(56),
+    Groups: __webpack_require__(53),
+    Images: __webpack_require__(54),
+    Node: __webpack_require__(55),
+    Popup: __webpack_require__(57),
+    dotparser: __webpack_require__(51),
+    gephiParser: __webpack_require__(52)
   };
 
   // Deprecated since v3.0.0
@@ -12269,6 +12269,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
     var changed = (this.start != newStart || this.end != newEnd);
 
+    // if the new range does NOT overlap with the old range, emit checkRangedItems to avoid not showing ranged items (ranged meaning has end time, not neccesarily of type Range)
+    if (!((newStart >= this.start && newStart   <= this.start) || (newEnd   >= this.start && newEnd   <= this.end)) &&
+        !((this.start >= newStart && this.start <= newEnd)     || (this.end >= newStart   && this.end <= newEnd) )) {
+      this.body.emitter.emit('checkRangedItems');
+    }
+
     this.start = newStart;
     this.end = newEnd;
     return changed;
@@ -13233,7 +13239,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var CurrentTime = __webpack_require__(28);
   var CustomTime = __webpack_require__(30);
   var ItemSet = __webpack_require__(31);
-  var Activator = __webpack_require__(40);
+  var Activator = __webpack_require__(69);
   var DateUtil = __webpack_require__(24);
 
   /**
@@ -16927,6 +16933,11 @@ return /******/ (function(modules) { // webpackBootstrap
       byStart: [],
       byEnd: []
     };
+    this.checkRangedItems = false; // needed to refresh the ranged items if the window is programatically changed with NO overlap.
+    var me = this;
+    this.itemSet.body.emitter.on("checkRangedItems", function () {
+      me.checkRangedItems = true;
+    })
 
     this._create();
 
@@ -17310,9 +17321,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // this function is used to do the binary search.
     var searchFunction = function (value) {
-      if      (value < lowerBound)                         {return -1;}
-      else if (value >= lowerBound && value <= upperBound) {return  0;}
-      else                                                 {return  1;}
+      if      (value < lowerBound)  {return -1;}
+      else if (value <= upperBound) {return  0;}
+      else                          {return  1;}
     }
 
     // first check if the items that were in view previously are still in view.
@@ -17320,32 +17331,35 @@ return /******/ (function(modules) { // webpackBootstrap
     // also cleans up invisible items.
     if (oldVisibleItems.length > 0) {
       for (i = 0; i < oldVisibleItems.length; i++) {
-        item = oldVisibleItems[i];
-        if (item.isVisible(range)) {
-          visibleItems.push(item);
-          visibleItemsLookup[item.id] = true;
-        }
-        else {
-          if (item.displayed) item.hide();
-        }
+        this._checkIfVisibleWithReference(oldVisibleItems[i], visibleItems, visibleItemsLookup, range);
       }
     }
 
     // we do a binary search for the items that have only start values.
     var initialPosByStart = util.binarySearchCustom(orderedItems.byStart, searchFunction, 'data','start');
 
-    // we do a binary search for the items that have defined end times.
-    var initialPosByEnd   = util.binarySearchCustom(orderedItems.byEnd, searchFunction, 'data','end');
-
     // trace the visible items from the inital start pos both ways until an invisible item is found, we only look at the start values.
     this._traceVisible(initialPosByStart, orderedItems.byStart, visibleItems, visibleItemsLookup, function (item) {
       return (item.data.start < lowerBound || item.data.start > upperBound);
     });
 
-    // trace the visible items from the inital start pos both ways until an invisible item is found, we only look at the end values.
-    this._traceVisible(initialPosByEnd, orderedItems.byEnd, visibleItems, visibleItemsLookup, function (item) {
-      return (item.data.end < lowerBound || item.data.end > upperBound);
-    });
+    // if the window has changed programmatically without overlapping the old window, the ranged items with start < lowerBound and end > upperbound are not shown.
+    // We therefore have to brute force check all items in the byEnd list
+    if (this.checkRangedItems == true) {
+      this.checkRangedItems = false;
+      for (i = 0; i < orderedItems.byEnd.length; i++) {
+        this._checkIfVisibleWithReference(orderedItems.byEnd[i], visibleItems, visibleItemsLookup, range);
+      }
+    }
+    else {
+      // we do a binary search for the items that have defined end times.
+      var initialPosByEnd = util.binarySearchCustom(orderedItems.byEnd, searchFunction, 'data','end');
+
+      // trace the visible items from the inital start pos both ways until an invisible item is found, we only look at the end values.
+      this._traceVisible(initialPosByEnd, orderedItems.byEnd, visibleItems, visibleItemsLookup, function (item) {
+        return (item.data.end < lowerBound || item.data.end > upperBound);
+      });
+    }
 
 
     // finally, we reposition all the visible items.
@@ -17427,6 +17441,30 @@ return /******/ (function(modules) { // webpackBootstrap
       else {
         if (item.displayed) item.hide();
       }
+  };
+
+
+  /**
+   * this function is very similar to the _checkIfInvisible() but it does not
+   * return booleans, hides the item if it should not be seen and always adds to
+   * the visibleItems.
+   * this one is for brute forcing and hiding.
+   *
+   * @param {Item} item
+   * @param {Array} visibleItems
+   * @param {{start:number, end:number}} range
+   * @private
+   */
+  Group.prototype._checkIfVisibleWithReference = function(item, visibleItems, visibleItemsLookup, range) {
+    if (item.isVisible(range)) {
+      if (visibleItemsLookup[item.id] === undefined) {
+        visibleItemsLookup[item.id] = true;
+        visibleItems.push(item);
+      }
+    }
+    else {
+      if (item.displayed) item.hide();
+    }
   };
 
 
@@ -18825,356 +18863,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var keycharm = __webpack_require__(41);
-  var Emitter = __webpack_require__(11);
-  var Hammer = __webpack_require__(19);
-  var util = __webpack_require__(1);
-
-  /**
-   * Turn an element into an clickToUse element.
-   * When not active, the element has a transparent overlay. When the overlay is
-   * clicked, the mode is changed to active.
-   * When active, the element is displayed with a blue border around it, and
-   * the interactive contents of the element can be used. When clicked outside
-   * the element, the elements mode is changed to inactive.
-   * @param {Element} container
-   * @constructor
-   */
-  function Activator(container) {
-    this.active = false;
-
-    this.dom = {
-      container: container
-    };
-
-    this.dom.overlay = document.createElement('div');
-    this.dom.overlay.className = 'overlay';
-
-    this.dom.container.appendChild(this.dom.overlay);
-
-    this.hammer = Hammer(this.dom.overlay, {prevent_default: false});
-    this.hammer.on('tap', this._onTapOverlay.bind(this));
-
-    // block all touch events (except tap)
-    var me = this;
-    var events = [
-      'touch', 'pinch',
-      'doubletap', 'hold',
-      'dragstart', 'drag', 'dragend',
-      'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is needed for Firefox
-    ];
-    events.forEach(function (event) {
-      me.hammer.on(event, function (event) {
-        event.stopPropagation();
-      });
-    });
-
-    // attach a tap event to the window, in order to deactivate when clicking outside the timeline
-    this.windowHammer = Hammer(window, {prevent_default: false});
-    this.windowHammer.on('tap', function (event) {
-      // deactivate when clicked outside the container
-      if (!_hasParent(event.target, container)) {
-        me.deactivate();
-      }
-    });
-
-    if (this.keycharm !== undefined) {
-      this.keycharm.destroy();
-    }
-    this.keycharm = keycharm();
-
-    // keycharm listener only bounded when active)
-    this.escListener = this.deactivate.bind(this);
-  }
-
-  // turn into an event emitter
-  Emitter(Activator.prototype);
-
-  // The currently active activator
-  Activator.current = null;
-
-  /**
-   * Destroy the activator. Cleans up all created DOM and event listeners
-   */
-  Activator.prototype.destroy = function () {
-    this.deactivate();
-
-    // remove dom
-    this.dom.overlay.parentNode.removeChild(this.dom.overlay);
-
-    // cleanup hammer instances
-    this.hammer = null;
-    this.windowHammer = null;
-    // FIXME: cleaning up hammer instances doesn't work (Timeline not removed from memory)
-  };
-
-  /**
-   * Activate the element
-   * Overlay is hidden, element is decorated with a blue shadow border
-   */
-  Activator.prototype.activate = function () {
-    // we allow only one active activator at a time
-    if (Activator.current) {
-      Activator.current.deactivate();
-    }
-    Activator.current = this;
-
-    this.active = true;
-    this.dom.overlay.style.display = 'none';
-    util.addClassName(this.dom.container, 'vis-active');
-
-    this.emit('change');
-    this.emit('activate');
-
-    // ugly hack: bind ESC after emitting the events, as the Network rebinds all
-    // keyboard events on a 'change' event
-    this.keycharm.bind('esc', this.escListener);
-  };
-
-  /**
-   * Deactivate the element
-   * Overlay is displayed on top of the element
-   */
-  Activator.prototype.deactivate = function () {
-    this.active = false;
-    this.dom.overlay.style.display = '';
-    util.removeClassName(this.dom.container, 'vis-active');
-    this.keycharm.unbind('esc', this.escListener);
-
-    this.emit('change');
-    this.emit('deactivate');
-  };
-
-  /**
-   * Handle a tap event: activate the container
-   * @param event
-   * @private
-   */
-  Activator.prototype._onTapOverlay = function (event) {
-    // activate the container
-    this.activate();
-    event.stopPropagation();
-  };
-
-  /**
-   * Test whether the element has the requested parent element somewhere in
-   * its chain of parent nodes.
-   * @param {HTMLElement} element
-   * @param {HTMLElement} parent
-   * @returns {boolean} Returns true when the parent is found somewhere in the
-   *                    chain of parent nodes.
-   * @private
-   */
-  function _hasParent(element, parent) {
-    while (element) {
-      if (element === parent) {
-        return true
-      }
-      element = element.parentNode;
-    }
-    return false;
-  }
-
-  module.exports = Activator;
-
-
-/***/ },
-/* 41 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/**
-   * Created by Alex on 11/6/2014.
-   */
-
-  // https://github.com/umdjs/umd/blob/master/returnExports.js#L40-L60
-  // if the module has no dependencies, the above pattern can be simplified to
-  (function (root, factory) {
-    if (true) {
-      // AMD. Register as an anonymous module.
-      !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-    } else if (typeof exports === 'object') {
-      // Node. Does not work with strict CommonJS, but
-      // only CommonJS-like environments that support module.exports,
-      // like Node.
-      module.exports = factory();
-    } else {
-      // Browser globals (root is window)
-      root.keycharm = factory();
-    }
-  }(this, function () {
-
-    function keycharm(options) {
-      var preventDefault = options && options.preventDefault || false;
-
-      var _bound = {keydown:{}, keyup:{}};
-      var _keys = {};
-      var i;
-
-      // a - z
-      for (i = 97; i <= 122; i++) {_keys[String.fromCharCode(i)] = {code:65 + (i - 97), shift: false};}
-      // A - Z
-      for (i = 65; i <= 90; i++) {_keys[String.fromCharCode(i)] = {code:i, shift: true};}
-      // 0 - 9
-      for (i = 0;  i <= 9;   i++) {_keys['' + i] = {code:48 + i, shift: false};}
-      // F1 - F12
-      for (i = 1;  i <= 12;   i++) {_keys['F' + i] = {code:111 + i, shift: false};}
-      // num0 - num9
-      for (i = 0;  i <= 9;   i++) {_keys['num' + i] = {code:96 + i, shift: false};}
-
-      // numpad misc
-      _keys['num*'] = {code:106, shift: false};
-      _keys['num+'] = {code:107, shift: false};
-      _keys['num-'] = {code:109, shift: false};
-      _keys['num/'] = {code:111, shift: false};
-      _keys['num.'] = {code:110, shift: false};
-      // arrows
-      _keys['left']  = {code:37, shift: false};
-      _keys['up']    = {code:38, shift: false};
-      _keys['right'] = {code:39, shift: false};
-      _keys['down']  = {code:40, shift: false};
-      // extra keys
-      _keys['space'] = {code:32, shift: false};
-      _keys['enter'] = {code:13, shift: false};
-      _keys['shift'] = {code:16, shift: undefined};
-      _keys['esc']   = {code:27, shift: false};
-      _keys['backspace'] = {code:8, shift: false};
-      _keys['tab']       = {code:9, shift: false};
-      _keys['ctrl']      = {code:17, shift: false};
-      _keys['alt']       = {code:18, shift: false};
-      _keys['delete']    = {code:46, shift: false};
-      _keys['pageup']    = {code:33, shift: false};
-      _keys['pagedown']  = {code:34, shift: false};
-      // symbols
-      _keys['=']     = {code:187, shift: false};
-      _keys['-']     = {code:189, shift: false};
-      _keys[']']     = {code:221, shift: false};
-      _keys['[']     = {code:219, shift: false};
-
-
-
-      var down = function(event) {handleEvent(event,'keydown');};
-      var up = function(event) {handleEvent(event,'keyup');};
-
-      // handle the actualy bound key with the event
-      var handleEvent = function(event,type) {
-        if (_bound[type][event.keyCode] !== undefined) {
-          var bound = _bound[type][event.keyCode];
-          for (var i = 0; i < bound.length; i++) {
-            if (bound[i].shift === undefined) {
-              bound[i].fn(event);
-            }
-            else if (bound[i].shift == true && event.shiftKey == true) {
-              bound[i].fn(event);
-            }
-            else if (bound[i].shift == false && event.shiftKey == false) {
-              bound[i].fn(event);
-            }
-          }
-
-          if (preventDefault == true) {
-            event.preventDefault();
-          }
-        }
-      };
-
-      // bind a key to a callback
-      this.bind = function(key, callback, type) {
-        if (type === undefined) {
-          type = 'keydown';
-        }
-        if (_keys[key] === undefined) {
-          throw new Error("unsupported key: " + key);
-        }
-        if (_bound[type][_keys[key].code] === undefined) {
-          _bound[type][_keys[key].code] = [];
-        }
-        _bound[type][_keys[key].code].push({fn:callback, shift:_keys[key].shift});
-      };
-
-
-      // bind all keys to a call back (demo purposes)
-      this.bindAll = function(callback, type) {
-        if (type === undefined) {
-          type = 'keydown';
-        }
-        for (key in _keys) {
-          if (_keys.hasOwnProperty(key)) {
-            this.bind(key,callback,type);
-          }
-        }
-      }
-
-      // get the key label from an event
-      this.getKey = function(event) {
-        for (key in _keys) {
-          if (_keys.hasOwnProperty(key)) {
-            if (event.shiftKey == true && _keys[key].shift == true && event.keyCode == _keys[key].code) {
-              return key;
-            }
-            else if (event.shiftKey == false && _keys[key].shift == false && event.keyCode == _keys[key].code) {
-              return key;
-            }
-            else if (event.keyCode == _keys[key].code && key == 'shift') {
-              return key;
-            }
-          }
-        }
-        return "unknown key, currently not supported";
-      };
-
-      // unbind either a specific callback from a key or all of them (by leaving callback undefined)
-      this.unbind = function(key, callback, type) {
-        if (type === undefined) {
-          type = 'keydown';
-        }
-        if (_keys[key] === undefined) {
-          throw new Error("unsupported key: " + key);
-        }
-        if (callback !== undefined) {
-          var newBindings = [];
-          var bound = _bound[type][_keys[key].code]
-          for (var i = 0; i < bound.length; i++) {
-            if (!(bound[i].fn == callback && bound[i].shift == _keys[key].shift)) {
-              newBindings.push(_bound[type][_keys[key].code][i]);
-            }
-          }
-          _bound[type][_keys[key].code] = newBindings;
-        }
-        else {
-          _bound[type][_keys[key].code] = [];
-        }
-      };
-
-      // reset all bound variables.
-      this.reset = function() {
-        _bound = {keydown:{}, keyup:{}};
-      };
-
-      // unbind all listeners and reset all variables.
-      this.destroy = function() {
-        _bound = {keydown:{}, keyup:{}};
-        window.removeEventListener('keydown', down, true);
-        window.removeEventListener('keyup', up, true);
-      };
-
-      // create listeners.
-      window.addEventListener('keydown',down,true);
-      window.addEventListener('keyup',up,true);
-
-      // return the public functions.
-      return this;
-    }
-
-    return keycharm;
-  }));
-
-
-
-
-/***/ },
-/* 42 */
-/***/ function(module, exports, __webpack_require__) {
-
   var Emitter = __webpack_require__(11);
   var Hammer = __webpack_require__(19);
   var util = __webpack_require__(1);
@@ -19185,7 +18873,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var TimeAxis = __webpack_require__(26);
   var CurrentTime = __webpack_require__(28);
   var CustomTime = __webpack_require__(30);
-  var LineGraph = __webpack_require__(43);
+  var LineGraph = __webpack_require__(41);
 
   /**
    * Create a timeline visualization
@@ -19422,7 +19110,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 43 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -19430,10 +19118,10 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(9);
   var Component = __webpack_require__(23);
-  var DataAxis = __webpack_require__(44);
-  var GraphGroup = __webpack_require__(46);
-  var Legend = __webpack_require__(50);
-  var BarGraphFunctions = __webpack_require__(49);
+  var DataAxis = __webpack_require__(42);
+  var GraphGroup = __webpack_require__(44);
+  var Legend = __webpack_require__(48);
+  var BarGraphFunctions = __webpack_require__(47);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -20385,13 +20073,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 44 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(6);
   var Component = __webpack_require__(23);
-  var DataStep = __webpack_require__(45);
+  var DataStep = __webpack_require__(43);
 
   /**
    * A horizontal time axis
@@ -20986,7 +20674,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 45 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -21254,14 +20942,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 46 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(6);
-  var Line = __webpack_require__(47);
-  var Bar = __webpack_require__(49);
-  var Points = __webpack_require__(48);
+  var Line = __webpack_require__(45);
+  var Bar = __webpack_require__(47);
+  var Points = __webpack_require__(46);
 
   /**
    * /**
@@ -21459,14 +21147,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 47 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
    * Created by Alex on 11/11/2014.
    */
   var DOMutil = __webpack_require__(6);
-  var Points = __webpack_require__(48);
+  var Points = __webpack_require__(46);
 
   function Line(groupId, options) {
     this.groupId = groupId;
@@ -21683,7 +21371,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 48 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -21731,14 +21419,14 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Points;
 
 /***/ },
-/* 49 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
    * Created by Alex on 11/11/2014.
    */
   var DOMutil = __webpack_require__(6);
-  var Points = __webpack_require__(48);
+  var Points = __webpack_require__(46);
 
   function Bargraph(groupId, options) {
     this.groupId = groupId;
@@ -21965,7 +21653,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Bargraph;
 
 /***/ },
-/* 50 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -22175,25 +21863,25 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 51 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Emitter = __webpack_require__(11);
   var Hammer = __webpack_require__(19);
-  var keycharm = __webpack_require__(41);
+  var keycharm = __webpack_require__(50);
   var util = __webpack_require__(1);
   var hammerUtil = __webpack_require__(22);
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(9);
-  var dotparser = __webpack_require__(52);
-  var gephiParser = __webpack_require__(53);
-  var Groups = __webpack_require__(54);
-  var Images = __webpack_require__(55);
-  var Node = __webpack_require__(56);
-  var Edge = __webpack_require__(57);
-  var Popup = __webpack_require__(58);
-  var MixinLoader = __webpack_require__(59);
-  var Activator = __webpack_require__(40);
+  var dotparser = __webpack_require__(51);
+  var gephiParser = __webpack_require__(52);
+  var Groups = __webpack_require__(53);
+  var Images = __webpack_require__(54);
+  var Node = __webpack_require__(55);
+  var Edge = __webpack_require__(56);
+  var Popup = __webpack_require__(57);
+  var MixinLoader = __webpack_require__(58);
+  var Activator = __webpack_require__(69);
   var locales = __webpack_require__(70);
 
   // Load custom shapes into CanvasRenderingContext2D
@@ -24728,7 +24416,200 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 52 */
+/* 50 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/**
+   * Created by Alex on 11/6/2014.
+   */
+
+  // https://github.com/umdjs/umd/blob/master/returnExports.js#L40-L60
+  // if the module has no dependencies, the above pattern can be simplified to
+  (function (root, factory) {
+    if (true) {
+      // AMD. Register as an anonymous module.
+      !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+    } else if (typeof exports === 'object') {
+      // Node. Does not work with strict CommonJS, but
+      // only CommonJS-like environments that support module.exports,
+      // like Node.
+      module.exports = factory();
+    } else {
+      // Browser globals (root is window)
+      root.keycharm = factory();
+    }
+  }(this, function () {
+
+    function keycharm(options) {
+      var preventDefault = options && options.preventDefault || false;
+
+      var _bound = {keydown:{}, keyup:{}};
+      var _keys = {};
+      var i;
+
+      // a - z
+      for (i = 97; i <= 122; i++) {_keys[String.fromCharCode(i)] = {code:65 + (i - 97), shift: false};}
+      // A - Z
+      for (i = 65; i <= 90; i++) {_keys[String.fromCharCode(i)] = {code:i, shift: true};}
+      // 0 - 9
+      for (i = 0;  i <= 9;   i++) {_keys['' + i] = {code:48 + i, shift: false};}
+      // F1 - F12
+      for (i = 1;  i <= 12;   i++) {_keys['F' + i] = {code:111 + i, shift: false};}
+      // num0 - num9
+      for (i = 0;  i <= 9;   i++) {_keys['num' + i] = {code:96 + i, shift: false};}
+
+      // numpad misc
+      _keys['num*'] = {code:106, shift: false};
+      _keys['num+'] = {code:107, shift: false};
+      _keys['num-'] = {code:109, shift: false};
+      _keys['num/'] = {code:111, shift: false};
+      _keys['num.'] = {code:110, shift: false};
+      // arrows
+      _keys['left']  = {code:37, shift: false};
+      _keys['up']    = {code:38, shift: false};
+      _keys['right'] = {code:39, shift: false};
+      _keys['down']  = {code:40, shift: false};
+      // extra keys
+      _keys['space'] = {code:32, shift: false};
+      _keys['enter'] = {code:13, shift: false};
+      _keys['shift'] = {code:16, shift: undefined};
+      _keys['esc']   = {code:27, shift: false};
+      _keys['backspace'] = {code:8, shift: false};
+      _keys['tab']       = {code:9, shift: false};
+      _keys['ctrl']      = {code:17, shift: false};
+      _keys['alt']       = {code:18, shift: false};
+      _keys['delete']    = {code:46, shift: false};
+      _keys['pageup']    = {code:33, shift: false};
+      _keys['pagedown']  = {code:34, shift: false};
+      // symbols
+      _keys['=']     = {code:187, shift: false};
+      _keys['-']     = {code:189, shift: false};
+      _keys[']']     = {code:221, shift: false};
+      _keys['[']     = {code:219, shift: false};
+
+
+
+      var down = function(event) {handleEvent(event,'keydown');};
+      var up = function(event) {handleEvent(event,'keyup');};
+
+      // handle the actualy bound key with the event
+      var handleEvent = function(event,type) {
+        if (_bound[type][event.keyCode] !== undefined) {
+          var bound = _bound[type][event.keyCode];
+          for (var i = 0; i < bound.length; i++) {
+            if (bound[i].shift === undefined) {
+              bound[i].fn(event);
+            }
+            else if (bound[i].shift == true && event.shiftKey == true) {
+              bound[i].fn(event);
+            }
+            else if (bound[i].shift == false && event.shiftKey == false) {
+              bound[i].fn(event);
+            }
+          }
+
+          if (preventDefault == true) {
+            event.preventDefault();
+          }
+        }
+      };
+
+      // bind a key to a callback
+      this.bind = function(key, callback, type) {
+        if (type === undefined) {
+          type = 'keydown';
+        }
+        if (_keys[key] === undefined) {
+          throw new Error("unsupported key: " + key);
+        }
+        if (_bound[type][_keys[key].code] === undefined) {
+          _bound[type][_keys[key].code] = [];
+        }
+        _bound[type][_keys[key].code].push({fn:callback, shift:_keys[key].shift});
+      };
+
+
+      // bind all keys to a call back (demo purposes)
+      this.bindAll = function(callback, type) {
+        if (type === undefined) {
+          type = 'keydown';
+        }
+        for (key in _keys) {
+          if (_keys.hasOwnProperty(key)) {
+            this.bind(key,callback,type);
+          }
+        }
+      }
+
+      // get the key label from an event
+      this.getKey = function(event) {
+        for (key in _keys) {
+          if (_keys.hasOwnProperty(key)) {
+            if (event.shiftKey == true && _keys[key].shift == true && event.keyCode == _keys[key].code) {
+              return key;
+            }
+            else if (event.shiftKey == false && _keys[key].shift == false && event.keyCode == _keys[key].code) {
+              return key;
+            }
+            else if (event.keyCode == _keys[key].code && key == 'shift') {
+              return key;
+            }
+          }
+        }
+        return "unknown key, currently not supported";
+      };
+
+      // unbind either a specific callback from a key or all of them (by leaving callback undefined)
+      this.unbind = function(key, callback, type) {
+        if (type === undefined) {
+          type = 'keydown';
+        }
+        if (_keys[key] === undefined) {
+          throw new Error("unsupported key: " + key);
+        }
+        if (callback !== undefined) {
+          var newBindings = [];
+          var bound = _bound[type][_keys[key].code]
+          for (var i = 0; i < bound.length; i++) {
+            if (!(bound[i].fn == callback && bound[i].shift == _keys[key].shift)) {
+              newBindings.push(_bound[type][_keys[key].code][i]);
+            }
+          }
+          _bound[type][_keys[key].code] = newBindings;
+        }
+        else {
+          _bound[type][_keys[key].code] = [];
+        }
+      };
+
+      // reset all bound variables.
+      this.reset = function() {
+        _bound = {keydown:{}, keyup:{}};
+      };
+
+      // unbind all listeners and reset all variables.
+      this.destroy = function() {
+        _bound = {keydown:{}, keyup:{}};
+        window.removeEventListener('keydown', down, true);
+        window.removeEventListener('keyup', up, true);
+      };
+
+      // create listeners.
+      window.addEventListener('keydown',down,true);
+      window.addEventListener('keyup',up,true);
+
+      // return the public functions.
+      return this;
+    }
+
+    return keycharm;
+  }));
+
+
+
+
+/***/ },
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -25560,7 +25441,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 53 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
   
@@ -25625,7 +25506,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.parseGephi = parseGephi;
 
 /***/ },
-/* 54 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -25714,7 +25595,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 55 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -25772,7 +25653,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 56 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -26796,11 +26677,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 57 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Node = __webpack_require__(56);
+  var Node = __webpack_require__(55);
 
   /**
    * @class Edge
@@ -27989,7 +27870,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Edge;
 
 /***/ },
-/* 58 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -28135,16 +28016,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 59 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var PhysicsMixin = __webpack_require__(60);
-  var ClusterMixin = __webpack_require__(64);
-  var SectorsMixin = __webpack_require__(65);
-  var SelectionMixin = __webpack_require__(66);
-  var ManipulationMixin = __webpack_require__(67);
-  var NavigationMixin = __webpack_require__(68);
-  var HierarchicalLayoutMixin = __webpack_require__(69);
+  var PhysicsMixin = __webpack_require__(59);
+  var ClusterMixin = __webpack_require__(63);
+  var SectorsMixin = __webpack_require__(64);
+  var SelectionMixin = __webpack_require__(65);
+  var ManipulationMixin = __webpack_require__(66);
+  var NavigationMixin = __webpack_require__(67);
+  var HierarchicalLayoutMixin = __webpack_require__(68);
 
   /**
    * Load a mixin into the network object
@@ -28336,13 +28217,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 60 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var RepulsionMixin = __webpack_require__(61);
-  var HierarchialRepulsionMixin = __webpack_require__(62);
-  var BarnesHutMixin = __webpack_require__(63);
+  var RepulsionMixin = __webpack_require__(60);
+  var HierarchialRepulsionMixin = __webpack_require__(61);
+  var BarnesHutMixin = __webpack_require__(62);
 
   /**
    * Toggling barnes Hut calculation on and off.
@@ -29050,7 +28931,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 61 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -29114,7 +28995,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 62 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -29273,7 +29154,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 63 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -29678,7 +29559,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 64 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -30821,11 +30702,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 65 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Node = __webpack_require__(56);
+  var Node = __webpack_require__(55);
 
   /**
    * Creation of the SectorMixin var.
@@ -31380,10 +31261,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 66 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Node = __webpack_require__(56);
+  var Node = __webpack_require__(55);
 
   /**
    * This function can be called from the _doInAllSectors function
@@ -32094,12 +31975,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 67 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Node = __webpack_require__(56);
-  var Edge = __webpack_require__(57);
+  var Node = __webpack_require__(55);
+  var Edge = __webpack_require__(56);
 
   /**
    * clears the toolbar div element of children
@@ -32779,7 +32660,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 68 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -32959,7 +32840,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 69 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   exports._resetLevels = function() {
@@ -33373,6 +33254,163 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     }
   };
+
+
+/***/ },
+/* 69 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var keycharm = __webpack_require__(50);
+  var Emitter = __webpack_require__(11);
+  var Hammer = __webpack_require__(19);
+  var util = __webpack_require__(1);
+
+  /**
+   * Turn an element into an clickToUse element.
+   * When not active, the element has a transparent overlay. When the overlay is
+   * clicked, the mode is changed to active.
+   * When active, the element is displayed with a blue border around it, and
+   * the interactive contents of the element can be used. When clicked outside
+   * the element, the elements mode is changed to inactive.
+   * @param {Element} container
+   * @constructor
+   */
+  function Activator(container) {
+    this.active = false;
+
+    this.dom = {
+      container: container
+    };
+
+    this.dom.overlay = document.createElement('div');
+    this.dom.overlay.className = 'overlay';
+
+    this.dom.container.appendChild(this.dom.overlay);
+
+    this.hammer = Hammer(this.dom.overlay, {prevent_default: false});
+    this.hammer.on('tap', this._onTapOverlay.bind(this));
+
+    // block all touch events (except tap)
+    var me = this;
+    var events = [
+      'touch', 'pinch',
+      'doubletap', 'hold',
+      'dragstart', 'drag', 'dragend',
+      'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is needed for Firefox
+    ];
+    events.forEach(function (event) {
+      me.hammer.on(event, function (event) {
+        event.stopPropagation();
+      });
+    });
+
+    // attach a tap event to the window, in order to deactivate when clicking outside the timeline
+    this.windowHammer = Hammer(window, {prevent_default: false});
+    this.windowHammer.on('tap', function (event) {
+      // deactivate when clicked outside the container
+      if (!_hasParent(event.target, container)) {
+        me.deactivate();
+      }
+    });
+
+    if (this.keycharm !== undefined) {
+      this.keycharm.destroy();
+    }
+    this.keycharm = keycharm();
+
+    // keycharm listener only bounded when active)
+    this.escListener = this.deactivate.bind(this);
+  }
+
+  // turn into an event emitter
+  Emitter(Activator.prototype);
+
+  // The currently active activator
+  Activator.current = null;
+
+  /**
+   * Destroy the activator. Cleans up all created DOM and event listeners
+   */
+  Activator.prototype.destroy = function () {
+    this.deactivate();
+
+    // remove dom
+    this.dom.overlay.parentNode.removeChild(this.dom.overlay);
+
+    // cleanup hammer instances
+    this.hammer = null;
+    this.windowHammer = null;
+    // FIXME: cleaning up hammer instances doesn't work (Timeline not removed from memory)
+  };
+
+  /**
+   * Activate the element
+   * Overlay is hidden, element is decorated with a blue shadow border
+   */
+  Activator.prototype.activate = function () {
+    // we allow only one active activator at a time
+    if (Activator.current) {
+      Activator.current.deactivate();
+    }
+    Activator.current = this;
+
+    this.active = true;
+    this.dom.overlay.style.display = 'none';
+    util.addClassName(this.dom.container, 'vis-active');
+
+    this.emit('change');
+    this.emit('activate');
+
+    // ugly hack: bind ESC after emitting the events, as the Network rebinds all
+    // keyboard events on a 'change' event
+    this.keycharm.bind('esc', this.escListener);
+  };
+
+  /**
+   * Deactivate the element
+   * Overlay is displayed on top of the element
+   */
+  Activator.prototype.deactivate = function () {
+    this.active = false;
+    this.dom.overlay.style.display = '';
+    util.removeClassName(this.dom.container, 'vis-active');
+    this.keycharm.unbind('esc', this.escListener);
+
+    this.emit('change');
+    this.emit('deactivate');
+  };
+
+  /**
+   * Handle a tap event: activate the container
+   * @param event
+   * @private
+   */
+  Activator.prototype._onTapOverlay = function (event) {
+    // activate the container
+    this.activate();
+    event.stopPropagation();
+  };
+
+  /**
+   * Test whether the element has the requested parent element somewhere in
+   * its chain of parent nodes.
+   * @param {HTMLElement} element
+   * @param {HTMLElement} parent
+   * @returns {boolean} Returns true when the parent is found somewhere in the
+   *                    chain of parent nodes.
+   * @private
+   */
+  function _hasParent(element, parent) {
+    while (element) {
+      if (element === parent) {
+        return true
+      }
+      element = element.parentNode;
+    }
+    return false;
+  }
+
+  module.exports = Activator;
 
 
 /***/ },
