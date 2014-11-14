@@ -2,6 +2,10 @@
 http://visjs.org
 
 
+## not yet released, version 3.7.1
+
+
+
 ## 2014-11-14, version 3.7.0
 
 ### Graph2D
