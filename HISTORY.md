@@ -1,7 +1,8 @@
 # vis.js history
 http://visjs.org
 
-## 2014-11-07, version 3.6.5 NOT YET RELEASED
+
+## 2014-11-14, version 3.7.0
 
 ### Graph2D
 
@@ -19,6 +20,7 @@ http://visjs.org
 
 - Added a finishedRedraw event.
 - Fixed the disappearing item bug.
+
 
 ## 2014-11-07, version 3.6.4
 
