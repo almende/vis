@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 3.6.4
- * @date    2014-11-07
+ * @version 3.7.0
+ * @date    2014-11-14
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -1301,14 +1301,14 @@ return /******/ (function(modules) { // webpackBootstrap
    * This function does a binary search for a visible item in a sorted list. If we find a visible item, the code that uses
    * this function will then iterate in both directions over this sorted list to find all visible items.
    *
-   * @param {Item[]} orderedItems  Items ordered by start
-   * @param {{start: number, end: number}} range
+   * @param {Item[]} orderedItems       | Items ordered by start
+   * @param {function} searchFunction   | -1 is lower, 0 is found, 1 is higher
    * @param {String} field
    * @param {String} field2
    * @returns {number}
    * @private
    */
-  exports.binarySearch = function(orderedItems, range, field, field2) {
+  exports.binarySearchCustom = function(orderedItems, searchFunction, field, field2) {
     var maxIterations = 10000;
     var iteration = 0;
     var low = 0;
@@ -1318,12 +1318,13 @@ return /******/ (function(modules) { // webpackBootstrap
       var middle = Math.floor((low + high) / 2);
 
       var item = orderedItems[middle];
-      if (item.isVisible(range)) { // jihaa, found a visible item!
+      var value = (field2 === undefined) ? item[field] : item[field][field2];
+
+      var searchResult = searchFunction(value);
+      if (searchResult == 0) { // jihaa, found a visible item!
         return middle;
       }
-
-      var value = (field2 === undefined) ? item[field] : item[field][field2];
-      if (value < range.start) {  // it is too small --> increase low
+      else if (searchResult == -1) {  // it is too small --> increase low
         low = middle + 1;
       }
       else {  // it is too big --> decrease high
@@ -1348,7 +1349,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @returns {number}
    * @private
    */
-  exports.binarySearchGeneric = function(orderedItems, target, field, sidePreference) {
+  exports.binarySearchValue = function(orderedItems, target, field, sidePreference) {
     var maxIterations = 10000;
     var iteration = 0;
     var low = 0;
@@ -3159,7 +3160,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(53);
+  var Emitter = __webpack_require__(56);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var util = __webpack_require__(1);
@@ -6413,7 +6414,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(53);
+  var Emitter = __webpack_require__(56);
   var Hammer = __webpack_require__(45);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
@@ -6728,7 +6729,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(53);
+  var Emitter = __webpack_require__(56);
   var Hammer = __webpack_require__(45);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
@@ -8001,6 +8002,12 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     var changed = (this.start != newStart || this.end != newEnd);
+
+    // if the new range does NOT overlap with the old range, emit checkRangedItems to avoid not showing ranged items (ranged meaning has end time, not neccesarily of type Range)
+    if (!((newStart >= this.start && newStart   <= this.start) || (newEnd   >= this.start && newEnd   <= this.end)) &&
+        !((this.start >= newStart && this.start <= newEnd)     || (this.end >= newStart   && this.end <= newEnd) )) {
+      this.body.emitter.emit('checkRangedItems');
+    }
 
     this.start = newStart;
     this.end = newEnd;
@@ -10086,12 +10093,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(2);
+  var Line = __webpack_require__(51);
+  var Bar = __webpack_require__(52);
+  var Points = __webpack_require__(53);
 
   /**
-   * @constructor Group
-   * @param {Number | String} groupId
-   * @param {Object} data
-   * @param {ItemSet} itemSet
+   * /**
+   * @param {object} group            | the object of the group from the dataset
+   * @param {string} groupId          | ID of the group
+   * @param {object} options          | the default options
+   * @param {array} groupsUsingDefaultStyles  | this array has one entree.
+   *                                            It is passed as an array so it is passed by reference.
+   *                                            It enumerates through the default styles
+   * @constructor
    */
   function GraphGroup (group, groupId, options, groupsUsingDefaultStyles) {
     this.id = groupId;
@@ -10108,6 +10122,11 @@ return /******/ (function(modules) { // webpackBootstrap
     this.visible = group.visible === undefined ? true : group.visible;
   }
 
+
+  /**
+   * this loads a reference to all items in this group into this group.
+   * @param {array} items
+   */
   GraphGroup.prototype.setItems = function(items) {
     if (items != null) {
       this.itemsData = items;
@@ -10120,10 +10139,20 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   };
 
+
+  /**
+   * this is used for plotting barcharts, this way, we only have to calculate it once.
+   * @param pos
+   */
   GraphGroup.prototype.setZeroPosition = function(pos) {
     this.zeroPosition = pos;
   };
 
+
+  /**
+   * set the options of the graph group over the default options.
+   * @param options
+   */
   GraphGroup.prototype.setOptions = function(options) {
     if (options !== undefined) {
       var fields = ['sampling','style','sort','yAxisOrientation','barChart'];
@@ -10150,8 +10179,23 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       }
     }
+
+    if (this.options.style == 'line') {
+      this.type = new Line(this.id, this.options);
+    }
+    else if (this.options.style == 'bar') {
+      this.type = new Bar(this.id, this.options);
+    }
+    else if (this.options.style == 'points') {
+      this.type = new Points(this.id, this.options);
+    }
   };
 
+
+  /**
+   * this updates the current group class with the latest group dataset entree, used in _updateGroup in linegraph
+   * @param group
+   */
   GraphGroup.prototype.update = function(group) {
     this.group = group;
     this.content = group.content || 'graph';
@@ -10161,6 +10205,17 @@ return /******/ (function(modules) { // webpackBootstrap
     this.setOptions(group.options);
   };
 
+
+  /**
+   * draw the icon for the legend.
+   *
+   * @param x
+   * @param y
+   * @param JSONcontainer
+   * @param SVGcontainer
+   * @param iconWidth
+   * @param iconHeight
+   */
   GraphGroup.prototype.drawIcon = function(x, y, JSONcontainer, SVGcontainer, iconWidth, iconHeight) {
     var fillHeight = iconHeight * 0.5;
     var path, fillPath;
@@ -10211,7 +10266,9 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   };
 
+
   /**
+   * return the legend entree for this group.
    *
    * @param iconWidth
    * @param iconHeight
@@ -10222,6 +10279,15 @@ return /******/ (function(modules) { // webpackBootstrap
     this.drawIcon(0,0.5*iconHeight,[],svg,iconWidth,iconHeight);
     return {icon: svg, label: this.content, orientation:this.options.yAxisOrientation};
   }
+
+  GraphGroup.prototype.getYRange = function(groupData) {
+    return this.type.getYRange(groupData);
+  }
+
+  GraphGroup.prototype.draw = function(dataset, group, framework) {
+    this.type.draw(dataset, group, framework);
+  }
+
 
   module.exports = GraphGroup;
 
@@ -10258,10 +10324,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
     this.items = {};        // items filtered by groupId of this group
     this.visibleItems = []; // items currently visible in window
-    this.orderedItems = {   // items sorted by start and by end
+    this.orderedItems = {
       byStart: [],
       byEnd: []
     };
+    this.checkRangedItems = false; // needed to refresh the ranged items if the window is programatically changed with NO overlap.
+    var me = this;
+    this.itemSet.body.emitter.on("checkRangedItems", function () {
+      me.checkRangedItems = true;
+    })
 
     this._create();
 
@@ -10593,6 +10664,7 @@ return /******/ (function(modules) { // webpackBootstrap
     // TODO: also remove from ordered items?
   };
 
+
   /**
    * Remove an item from the corresponding DataSet
    * @param {Item} item
@@ -10601,34 +10673,30 @@ return /******/ (function(modules) { // webpackBootstrap
     this.itemSet.removeItem(item.id);
   };
 
+
   /**
    * Reorder the items
    */
   Group.prototype.order = function() {
     var array = util.toArray(this.items);
-    this.orderedItems.byStart = array;
-    this.orderedItems.byEnd = this._constructByEndArray(array);
+    var startArray = [];
+    var endArray = [];
+
+    for (var i = 0; i < array.length; i++) {
+      if (array[i].data.end !== undefined) {
+        endArray.push(array[i]);
+      }
+      startArray.push(array[i]);
+    }
+    this.orderedItems = {
+      byStart: startArray,
+      byEnd: endArray
+    };
 
     stack.orderByStart(this.orderedItems.byStart);
     stack.orderByEnd(this.orderedItems.byEnd);
   };
 
-  /**
-   * Create an array containing all items being a range (having an end date)
-   * @param {Item[]} array
-   * @returns {RangeItem[]}
-   * @private
-   */
-  Group.prototype._constructByEndArray = function(array) {
-    var endArray = [];
-
-    for (var i = 0; i < array.length; i++) {
-      if (array[i] instanceof RangeItem) {
-        endArray.push(array[i]);
-      }
-    }
-    return endArray;
-  };
 
   /**
    * Update the visible items
@@ -10638,79 +10706,114 @@ return /******/ (function(modules) { // webpackBootstrap
    * @return {Item[]} visibleItems                            The new visible items.
    * @private
    */
-  Group.prototype._updateVisibleItems = function(orderedItems, visibleItems, range) {
-    var initialPosByStart,
-        newVisibleItems = [],
-        i;
+  Group.prototype._updateVisibleItems = function(orderedItems, oldVisibleItems, range) {
+    var visibleItems = [];
+    var visibleItemsLookup = {}; // we keep this to quickly look up if an item already exists in the list without using indexOf on visibleItems
+    var interval = (range.end - range.start) / 4;
+    var lowerBound = range.start - interval;
+    var upperBound = range.end + interval;
+    var item, i;
+
+    // this function is used to do the binary search.
+    var searchFunction = function (value) {
+      if      (value < lowerBound)  {return -1;}
+      else if (value <= upperBound) {return  0;}
+      else                          {return  1;}
+    }
 
     // first check if the items that were in view previously are still in view.
-    // this handles the case for the RangeItem that is both before and after the current one.
-    if (visibleItems.length > 0) {
-      for (i = 0; i < visibleItems.length; i++) {
-        this._checkIfVisible(visibleItems[i], newVisibleItems, range);
+    // IMPORTANT: this handles the case for the items with startdate before the window and enddate after the window!
+    // also cleans up invisible items.
+    if (oldVisibleItems.length > 0) {
+      for (i = 0; i < oldVisibleItems.length; i++) {
+        this._checkIfVisibleWithReference(oldVisibleItems[i], visibleItems, visibleItemsLookup, range);
       }
     }
 
-    // If there were no visible items previously, use binarySearch to find a visible PointItem or RangeItem (based on startTime)
-    if (newVisibleItems.length == 0) {
-      initialPosByStart = util.binarySearch(orderedItems.byStart, range, 'data','start');
+    // we do a binary search for the items that have only start values.
+    var initialPosByStart = util.binarySearchCustom(orderedItems.byStart, searchFunction, 'data','start');
+
+    // trace the visible items from the inital start pos both ways until an invisible item is found, we only look at the start values.
+    this._traceVisible(initialPosByStart, orderedItems.byStart, visibleItems, visibleItemsLookup, function (item) {
+      return (item.data.start < lowerBound || item.data.start > upperBound);
+    });
+
+    // if the window has changed programmatically without overlapping the old window, the ranged items with start < lowerBound and end > upperbound are not shown.
+    // We therefore have to brute force check all items in the byEnd list
+    if (this.checkRangedItems == true) {
+      this.checkRangedItems = false;
+      for (i = 0; i < orderedItems.byEnd.length; i++) {
+        this._checkIfVisibleWithReference(orderedItems.byEnd[i], visibleItems, visibleItemsLookup, range);
+      }
     }
     else {
-      initialPosByStart = orderedItems.byStart.indexOf(newVisibleItems[0]);
+      // we do a binary search for the items that have defined end times.
+      var initialPosByEnd = util.binarySearchCustom(orderedItems.byEnd, searchFunction, 'data','end');
+
+      // trace the visible items from the inital start pos both ways until an invisible item is found, we only look at the end values.
+      this._traceVisible(initialPosByEnd, orderedItems.byEnd, visibleItems, visibleItemsLookup, function (item) {
+        return (item.data.end < lowerBound || item.data.end > upperBound);
+      });
     }
 
-    // use visible search to find a visible RangeItem (only based on endTime)
-    var initialPosByEnd = util.binarySearch(orderedItems.byEnd, range, 'data','end');
 
-    // if we found a initial ID to use, trace it up and down until we meet an invisible item.
-    if (initialPosByStart != -1) {
-      for (i = initialPosByStart; i >= 0; i--) {
-        if (this._checkIfInvisible(orderedItems.byStart[i], newVisibleItems, range)) {break;}
-      }
-      for (i = initialPosByStart + 1; i < orderedItems.byStart.length; i++) {
-        if (this._checkIfInvisible(orderedItems.byStart[i], newVisibleItems, range)) {break;}
-      }
+    // finally, we reposition all the visible items.
+    for (i = 0; i < visibleItems.length; i++) {
+      item = visibleItems[i];
+      if (!item.displayed) item.show();
+      // reposition item horizontally
+      item.repositionX();
     }
 
-    // if we found a initial ID to use, trace it up and down until we meet an invisible item.
-    if (initialPosByEnd != -1) {
-      for (i = initialPosByEnd; i >= 0; i--) {
-        if (this._checkIfInvisible(orderedItems.byEnd[i], newVisibleItems, range)) {break;}
-      }
-      for (i = initialPosByEnd + 1; i < orderedItems.byEnd.length; i++) {
-        if (this._checkIfInvisible(orderedItems.byEnd[i], newVisibleItems, range)) {break;}
-      }
-    }
+    // debug
+    //console.log("new line")
+    //if (this.groupId == null) {
+    //  for (i = 0; i < orderedItems.byStart.length; i++) {
+    //    item = orderedItems.byStart[i].data;
+    //    console.log('start',i,initialPosByStart, item.start.valueOf(), item.content, item.start >= lowerBound && item.start <= upperBound,i == initialPosByStart ? "<------------------- HEREEEE" : "")
+    //  }
+    //  for (i = 0; i < orderedItems.byEnd.length; i++) {
+    //    item = orderedItems.byEnd[i].data;
+    //    console.log('rangeEnd',i,initialPosByEnd, item.end.valueOf(), item.content, item.end >= range.start && item.end <= range.end,i == initialPosByEnd ? "<------------------- HEREEEE" : "")
+    //  }
+    //}
 
-    return newVisibleItems;
+    return visibleItems;
   };
 
+  Group.prototype._traceVisible = function (initialPos, items, visibleItems, visibleItemsLookup, breakCondition) {
+    var item;
+    var i;
 
-
-  /**
-   * this function checks if an item is invisible. If it is NOT we make it visible
-   * and add it to the global visible items. If it is, return true.
-   *
-   * @param {Item} item
-   * @param {Item[]} visibleItems
-   * @param {{start:number, end:number}} range
-   * @returns {boolean}
-   * @private
-   */
-  Group.prototype._checkIfInvisible = function(item, visibleItems, range) {
-      if (item.isVisible(range)) {
-        if (!item.displayed) item.show();
-        item.repositionX();
-        if (visibleItems.indexOf(item) == -1) {
-          visibleItems.push(item);
+    if (initialPos != -1) {
+      for (i = initialPos; i >= 0; i--) {
+        item = items[i];
+        if (breakCondition(item)) {
+          break;
         }
-        return false;
+        else {
+          if (visibleItemsLookup[item.id] === undefined) {
+            visibleItemsLookup[item.id] = true;
+            visibleItems.push(item);
+          }
+        }
       }
-      else {
-        if (item.displayed) item.hide();
-        return true;
+
+      for (i = initialPos + 1; i < items.length; i++) {
+        item = items[i];
+        if (breakCondition(item)) {
+          break;
+        }
+        else {
+          if (visibleItemsLookup[item.id] === undefined) {
+            visibleItemsLookup[item.id] = true;
+            visibleItems.push(item);
+          }
+        }
       }
-  };
+    }
+  }
+
 
   /**
    * this function is very similar to the _checkIfInvisible() but it does not
@@ -10734,6 +10837,32 @@ return /******/ (function(modules) { // webpackBootstrap
         if (item.displayed) item.hide();
       }
   };
+
+
+  /**
+   * this function is very similar to the _checkIfInvisible() but it does not
+   * return booleans, hides the item if it should not be seen and always adds to
+   * the visibleItems.
+   * this one is for brute forcing and hiding.
+   *
+   * @param {Item} item
+   * @param {Array} visibleItems
+   * @param {{start:number, end:number}} range
+   * @private
+   */
+  Group.prototype._checkIfVisibleWithReference = function(item, visibleItems, visibleItemsLookup, range) {
+    if (item.isVisible(range)) {
+      if (visibleItemsLookup[item.id] === undefined) {
+        visibleItemsLookup[item.id] = true;
+        visibleItems.push(item);
+      }
+    }
+    else {
+      if (item.displayed) item.hide();
+    }
+  };
+
+
 
   module.exports = Group;
 
@@ -12497,6 +12626,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataAxis = __webpack_require__(23);
   var GraphGroup = __webpack_require__(24);
   var Legend = __webpack_require__(28);
+  var BarGraphFunctions = __webpack_require__(52);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -12547,7 +12677,7 @@ return /******/ (function(modules) { // webpackBootstrap
           left: {min:undefined, max:undefined},
           right: {min:undefined, max:undefined}
         }
-        //,
+        //, these options are not set by default, but this shows the format they will be in
         //format: {
         //  left: {decimals: 2},
         //  right: {decimals: 2}
@@ -12636,7 +12766,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // create the HTML DOM
     this._create();
+    this.framework = {svg: this.svg, svgElements: this.svgElements, options: this.options, groups: this.groups};
     this.body.emitter.emit('change');
+
   }
 
   LineGraph.prototype = new Component();
@@ -12673,7 +12805,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   /**
    * set the options of the LineGraph. the mergeOptions is used for subObjects that have an enabled element.
-   * @param options
+   * @param {object} options
    */
   LineGraph.prototype.setOptions = function(options) {
     if (options) {
@@ -12742,6 +12874,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   };
 
+
   /**
    * Show the component in the DOM (when not already visible).
    * @return {Boolean} changed
@@ -12801,6 +12934,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.redraw();
   };
 
+
   /**
    * Set groups
    * @param {vis.DataSet} groups
@@ -12848,7 +12982,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
   /**
-   * Update the datapoints
+   * Update the data
    * @param [ids]
    * @private
    */
@@ -12871,6 +13005,12 @@ return /******/ (function(modules) { // webpackBootstrap
   };
   LineGraph.prototype._onAddGroups = function (groupIds) {this._onUpdateGroups(groupIds);};
 
+
+  /**
+   * this cleans the group out off the legends and the dataaxis, updates the ungrouped and updates the graph
+   * @param {Array} groupIds
+   * @private
+   */
   LineGraph.prototype._onRemoveGroups = function (groupIds) {
     for (var i = 0; i < groupIds.length; i++) {
       if (this.groups.hasOwnProperty(groupIds[i])) {
@@ -12892,8 +13032,9 @@ return /******/ (function(modules) { // webpackBootstrap
     this.redraw();
   };
 
+
   /**
-   * update a group object
+   * update a group object with the group dataset entree
    *
    * @param group
    * @param groupId
@@ -12926,6 +13067,12 @@ return /******/ (function(modules) { // webpackBootstrap
     this.legendRight.redraw();
   };
 
+
+  /**
+   * this updates all groups, it is used when there is an update the the itemset.
+   *
+   * @private
+   */
   LineGraph.prototype._updateAllGroupData = function () {
     if (this.itemsData != null) {
       var groupsContent = {};
@@ -12952,6 +13099,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     }
   };
+
 
   /**
    * Create or delete the group holding all ungrouped items. This group is used when
@@ -13055,6 +13203,7 @@ return /******/ (function(modules) { // webpackBootstrap
     return resized;
   };
 
+
   /**
    * Update and redraw the graph.
    *
@@ -13092,12 +13241,17 @@ return /******/ (function(modules) { // webpackBootstrap
         var minDate = this.body.util.toGlobalTime(- this.body.domProps.root.width);
         var maxDate = this.body.util.toGlobalTime(2 * this.body.domProps.root.width);
         var groupsData = {};
-        // fill groups data
+        // fill groups data, this only loads the data we require based on the timewindow
         this._getRelevantData(groupIds, groupsData, minDate, maxDate);
+
+        // apply sampling, if disabled, it will pass through this function.
+        this._applySampling(groupIds, groupsData);
+
         // we transform the X coordinates to detect collisions
         for (i = 0; i < groupIds.length; i++) {
           preprocessedGroupData[groupIds[i]] = this._convertXcoordinates(groupsData[groupIds[i]]);
         }
+
         // now all needed data has been collected we start the processing.
         this._getYRanges(groupIds, preprocessedGroupData, groupRanges);
 
@@ -13122,11 +13276,11 @@ return /******/ (function(modules) { // webpackBootstrap
         // draw the groups
         for (i = 0; i < groupIds.length; i++) {
           group = this.groups[groupIds[i]];
-          if (group.options.style == 'line') {
-            this._drawLineGraph(processedGroupData[groupIds[i]], group);
+          if (group.options.style != 'bar') { // bar needs to be drawn enmasse
+            group.draw(processedGroupData[groupIds[i]], group, this.framework);
           }
         }
-        this._drawBarGraphs(groupIds, processedGroupData);
+        BarGraphFunctions.draw(groupIds, processedGroupData, this.framework);
       }
     }
 
@@ -13135,12 +13289,20 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 
+  /**
+   * first select and preprocess the data from the datasets.
+   * the groups have their preselection of data, we now loop over this data to see
+   * what data we need to draw. Sorted data is much faster.
+   * more optimization is possible by doing the sampling before and using the binary search
+   * to find the end date to determine the increment.
+   *
+   * @param {array}  groupIds
+   * @param {object} groupsData
+   * @param {date}   minDate
+   * @param {date}   maxDate
+   * @private
+   */
   LineGraph.prototype._getRelevantData = function (groupIds, groupsData, minDate, maxDate) {
-    // first select and preprocess the data from the datasets.
-    // the groups have their preselection of data, we now loop over this data to see
-    // what data we need to draw. Sorted data is much faster.
-    // more optimization is possible by doing the sampling before and using the binary search
-    // to find the end date to determine the increment.
     var group, i, j, item;
     if (groupIds.length > 0) {
       for (i = 0; i < groupIds.length; i++) {
@@ -13149,7 +13311,7 @@ return /******/ (function(modules) { // webpackBootstrap
         var dataContainer = groupsData[groupIds[i]];
         // optimization for sorted data
         if (group.options.sort == true) {
-          var guess = Math.max(0, util.binarySearchGeneric(group.itemsData, minDate, 'x', 'before'));
+          var guess = Math.max(0, util.binarySearchValue(group.itemsData, minDate, 'x', 'before'));
           for (j = guess; j < group.itemsData.length; j++) {
             item = group.itemsData[j];
             if (item !== undefined) {
@@ -13175,10 +13337,15 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       }
     }
-
-    this._applySampling(groupIds, groupsData);
   };
 
+
+  /**
+   *
+   * @param groupIds
+   * @param groupsData
+   * @private
+   */
   LineGraph.prototype._applySampling = function (groupIds, groupsData) {
     var group;
     if (groupIds.length > 0) {
@@ -13208,103 +13375,41 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   };
 
+
+  /**
+   *
+   *
+   * @param {array}  groupIds
+   * @param {object} groupsData
+   * @param {object} groupRanges  | this is being filled here
+   * @private
+   */
   LineGraph.prototype._getYRanges = function (groupIds, groupsData, groupRanges) {
-    var groupData, group, i,j;
+    var groupData, group, i;
     var barCombinedDataLeft = [];
     var barCombinedDataRight = [];
-    var barCombinedData;
+    var options;
     if (groupIds.length > 0) {
       for (i = 0; i < groupIds.length; i++) {
         groupData = groupsData[groupIds[i]];
+        options = this.groups[groupIds[i]].options;
         if (groupData.length > 0) {
           group = this.groups[groupIds[i]];
-          if (group.options.style == 'line' || group.options.barChart.handleOverlap != 'stack') {
-            var yMin = groupData[0].y;
-            var yMax = groupData[0].y;
-            for (j = 0; j < groupData.length; j++) {
-              yMin = yMin > groupData[j].y ? groupData[j].y : yMin;
-              yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
-            }
-            groupRanges[groupIds[i]] = {min: yMin, max: yMax, yAxisOrientation: group.options.yAxisOrientation};
+          // if bar graphs are stacked, their range need to be handled differently and accumulated over all groups.
+          if (options.barChart.handleOverlap == 'stack' && options.style == 'bar') {
+            if (options.yAxisOrientation == 'left') {barCombinedDataLeft  = barCombinedDataLeft.concat(group.getYRange(groupData)) ;}
+            else                                    {barCombinedDataRight = barCombinedDataRight.concat(group.getYRange(groupData));}
           }
-          else if (group.options.style == 'bar') {
-            if (group.options.yAxisOrientation == 'left') {
-              barCombinedData = barCombinedDataLeft;
-            }
-            else {
-              barCombinedData = barCombinedDataRight;
-            }
-
-            groupRanges[groupIds[i]] = {min: 0, max: 0, yAxisOrientation: group.options.yAxisOrientation, ignore: true};
-
-            // combine data
-            for (j = 0; j < groupData.length; j++) {
-              barCombinedData.push({
-                x: groupData[j].x,
-                y: groupData[j].y,
-                groupId: groupIds[i]
-              });
-            }
+          else {
+            groupRanges[groupIds[i]] = group.getYRange(groupData,groupIds[i]);
           }
         }
       }
 
-      var intersections;
-      if (barCombinedDataLeft.length > 0) {
-        // sort by time and by group
-        barCombinedDataLeft.sort(function (a, b) {
-          if (a.x == b.x) {
-            return a.groupId - b.groupId;
-          } else {
-            return a.x - b.x;
-          }
-        });
-        intersections = {};
-        this._getDataIntersections(intersections, barCombinedDataLeft);
-        groupRanges['__barchartLeft'] = this._getStackedBarYRange(intersections, barCombinedDataLeft);
-        groupRanges['__barchartLeft'].yAxisOrientation = 'left';
-        groupIds.push('__barchartLeft');
-      }
-      if (barCombinedDataRight.length > 0) {
-        // sort by time and by group
-        barCombinedDataRight.sort(function (a, b) {
-          if (a.x == b.x) {
-            return a.groupId - b.groupId;
-          } else {
-            return a.x - b.x;
-          }
-        });
-        intersections = {};
-        this._getDataIntersections(intersections, barCombinedDataRight);
-        groupRanges['__barchartRight'] = this._getStackedBarYRange(intersections, barCombinedDataRight);
-        groupRanges['__barchartRight'].yAxisOrientation = 'right';
-        groupIds.push('__barchartRight');
-      }
+      // if bar graphs are stacked, their range need to be handled differently and accumulated over all groups.
+      BarGraphFunctions.getStackedBarYRange(barCombinedDataLeft , groupRanges, groupIds, '__barchartLeft' , 'left' );
+      BarGraphFunctions.getStackedBarYRange(barCombinedDataRight, groupRanges, groupIds, '__barchartRight', 'right');
     }
-  };
-
-  LineGraph.prototype._getStackedBarYRange = function (intersections, combinedData) {
-    var key;
-    var yMin = combinedData[0].y;
-    var yMax = combinedData[0].y;
-    for (var i = 0; i < combinedData.length; i++) {
-      key = combinedData[i].x;
-      if (intersections[key] === undefined) {
-        yMin = yMin > combinedData[i].y ? combinedData[i].y : yMin;
-        yMax = yMax < combinedData[i].y ? combinedData[i].y : yMax;
-      }
-      else {
-        intersections[key].accumulated += combinedData[i].y;
-      }
-    }
-    for (var xpos in intersections) {
-      if (intersections.hasOwnProperty(xpos)) {
-        yMin = yMin > intersections[xpos].accumulated ? intersections[xpos].accumulated : yMin;
-        yMax = yMax < intersections[xpos].accumulated ? intersections[xpos].accumulated : yMax;
-      }
-    }
-
-    return {min: yMin, max: yMax};
   };
 
 
@@ -13386,6 +13491,7 @@ return /******/ (function(modules) { // webpackBootstrap
     return changeCalled;
   };
 
+
   /**
    * This shows or hides the Y axis if needed. If there is a change, the changed event is emitted by the updateYAxis function
    *
@@ -13413,224 +13519,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
   /**
-   * draw a bar graph
-   *
-   * @param groupIds
-   * @param processedGroupData
-   */
-  LineGraph.prototype._drawBarGraphs = function (groupIds, processedGroupData) {
-    var combinedData = [];
-    var intersections = {};
-    var coreDistance;
-    var key, drawData;
-    var group;
-    var i,j;
-    var barPoints = 0;
-
-    // combine all barchart data
-    for (i = 0; i < groupIds.length; i++) {
-      group = this.groups[groupIds[i]];
-      if (group.options.style == 'bar') {
-        if (group.visible == true && (this.options.groups.visibility[groupIds[i]] === undefined || this.options.groups.visibility[groupIds[i]] == true)) {
-          for (j = 0; j < processedGroupData[groupIds[i]].length; j++) {
-            combinedData.push({
-              x: processedGroupData[groupIds[i]][j].x,
-              y: processedGroupData[groupIds[i]][j].y,
-              groupId: groupIds[i]
-            });
-            barPoints += 1;
-          }
-        }
-      }
-    }
-
-    if (barPoints == 0) {return;}
-
-    // sort by time and by group
-    combinedData.sort(function (a, b) {
-      if (a.x == b.x) {
-        return a.groupId - b.groupId;
-      } else {
-        return a.x - b.x;
-      }
-    });
-
-    // get intersections
-    this._getDataIntersections(intersections, combinedData);
-
-    // plot barchart
-    for (i = 0; i < combinedData.length; i++) {
-      group = this.groups[combinedData[i].groupId];
-      var minWidth = 0.1 * group.options.barChart.width;
-
-      key = combinedData[i].x;
-      var heightOffset = 0;
-      if (intersections[key] === undefined) {
-        if (i+1 < combinedData.length) {coreDistance = Math.abs(combinedData[i+1].x - key);}
-        if (i > 0)                     {coreDistance = Math.min(coreDistance,Math.abs(combinedData[i-1].x - key));}
-        drawData = this._getSafeDrawData(coreDistance, group, minWidth);
-      }
-      else {
-        var nextKey = i + (intersections[key].amount - intersections[key].resolved);
-        var prevKey = i - (intersections[key].resolved + 1);
-        if (nextKey < combinedData.length) {coreDistance = Math.abs(combinedData[nextKey].x - key);}
-        if (prevKey > 0)                   {coreDistance = Math.min(coreDistance,Math.abs(combinedData[prevKey].x - key));}
-        drawData = this._getSafeDrawData(coreDistance, group, minWidth);
-        intersections[key].resolved += 1;
-
-        if (group.options.barChart.handleOverlap == 'stack') {
-          heightOffset = intersections[key].accumulated;
-          intersections[key].accumulated += group.zeroPosition - combinedData[i].y;
-        }
-        else if (group.options.barChart.handleOverlap == 'sideBySide') {
-          drawData.width = drawData.width / intersections[key].amount;
-          drawData.offset += (intersections[key].resolved) * drawData.width - (0.5*drawData.width * (intersections[key].amount+1));
-          if (group.options.barChart.align == 'left')       {drawData.offset -= 0.5*drawData.width;}
-          else if (group.options.barChart.align == 'right') {drawData.offset += 0.5*drawData.width;}
-        }
-      }
-      DOMutil.drawBar(combinedData[i].x + drawData.offset, combinedData[i].y - heightOffset, drawData.width, group.zeroPosition - combinedData[i].y, group.className + ' bar', this.svgElements, this.svg);
-      // draw points
-      if (group.options.drawPoints.enabled == true) {
-        DOMutil.drawPoint(combinedData[i].x + drawData.offset, combinedData[i].y - heightOffset, group, this.svgElements, this.svg);
-      }
-    }
-  };
-
-  /**
-   * Fill the intersections object with counters of how many datapoints share the same x coordinates
-   * @param intersections
-   * @param combinedData
-   * @private
-   */
-  LineGraph.prototype._getDataIntersections = function (intersections, combinedData) {
-    // get intersections
-    var coreDistance;
-    for (var i = 0; i < combinedData.length; i++) {
-      if (i + 1 < combinedData.length) {
-        coreDistance = Math.abs(combinedData[i + 1].x - combinedData[i].x);
-      }
-      if (i > 0) {
-        coreDistance = Math.min(coreDistance, Math.abs(combinedData[i - 1].x - combinedData[i].x));
-      }
-      if (coreDistance == 0) {
-        if (intersections[combinedData[i].x] === undefined) {
-          intersections[combinedData[i].x] = {amount: 0, resolved: 0, accumulated: 0};
-        }
-        intersections[combinedData[i].x].amount += 1;
-      }
-    }
-  };
-
-  /**
-   * Get the width and offset for bargraphs based on the coredistance between datapoints
-   *
-   * @param coreDistance
-   * @param group
-   * @param minWidth
-   * @returns {{width: Number, offset: Number}}
-   * @private
-   */
-  LineGraph.prototype._getSafeDrawData = function (coreDistance, group, minWidth) {
-    var width, offset;
-    if (coreDistance < group.options.barChart.width && coreDistance > 0) {
-      width = coreDistance < minWidth ? minWidth : coreDistance;
-
-      offset = 0; // recalculate offset with the new width;
-      if (group.options.barChart.align == 'left') {
-        offset -= 0.5 * coreDistance;
-      }
-      else if (group.options.barChart.align == 'right') {
-        offset += 0.5 * coreDistance;
-      }
-    }
-    else {
-      // default settings
-      width = group.options.barChart.width;
-      offset = 0;
-      if (group.options.barChart.align == 'left') {
-        offset -= 0.5 * group.options.barChart.width;
-      }
-      else if (group.options.barChart.align == 'right') {
-        offset += 0.5 * group.options.barChart.width;
-      }
-    }
-
-    return {width: width, offset: offset};
-  };
-
-
-  /**
-   * draw a line graph
-   *
-   * @param dataset
-   * @param group
-   */
-  LineGraph.prototype._drawLineGraph = function (dataset, group) {
-    if (dataset != null) {
-      if (dataset.length > 0) {
-        var path, d;
-        var svgHeight = Number(this.svg.style.height.replace('px',''));
-        path = DOMutil.getSVGElement('path', this.svgElements, this.svg);
-        path.setAttributeNS(null, "class", group.className);
-        if(group.style !== undefined) {
-          path.setAttributeNS(null, "style", group.style);
-        }
-
-        // construct path from dataset
-        if (group.options.catmullRom.enabled == true) {
-          d = this._catmullRom(dataset, group);
-        }
-        else {
-          d = this._linear(dataset);
-        }
-
-        // append with points for fill and finalize the path
-        if (group.options.shaded.enabled == true) {
-          var fillPath = DOMutil.getSVGElement('path',this.svgElements, this.svg);
-          var dFill;
-          if (group.options.shaded.orientation == 'top') {
-            dFill = 'M' + dataset[0].x + ',' + 0 + ' ' + d + 'L' + dataset[dataset.length - 1].x + ',' + 0;
-          }
-          else {
-            dFill = 'M' + dataset[0].x + ',' + svgHeight + ' ' + d + 'L' + dataset[dataset.length - 1].x + ',' + svgHeight;
-          }
-          fillPath.setAttributeNS(null, "class", group.className + " fill");
-          if(group.options.shaded.style !== undefined) {
-            fillPath.setAttributeNS(null, "style", group.options.shaded.style);
-          }
-          fillPath.setAttributeNS(null, "d", dFill);
-        }
-        // copy properties to path for drawing.
-        path.setAttributeNS(null, 'd', 'M' + d);
-
-        // draw points
-        if (group.options.drawPoints.enabled == true) {
-          this._drawPoints(dataset, group, this.svgElements, this.svg);
-        }
-      }
-    }
-  };
-
-  /**
-   * draw the data points
-   *
-   * @param {Array} dataset
-   * @param {Object} JSONcontainer
-   * @param {Object} svg            | SVG DOM element
-   * @param {GraphGroup} group
-   * @param {Number} [offset]
-   */
-  LineGraph.prototype._drawPoints = function (dataset, group, JSONcontainer, svg, offset) {
-    if (offset === undefined) {offset = 0;}
-    for (var i = 0; i < dataset.length; i++) {
-      DOMutil.drawPoint(dataset[i].x + offset, dataset[i].y, group, JSONcontainer, svg);
-    }
-  };
-
-
-
-  /**
    * This uses the DataAxis object to generate the correct X coordinate on the SVG window. It uses the
    * util function toScreen to get the x coordinate from the timestamp. It also pre-filters the data and get the minMax ranges for
    * the yAxis.
@@ -13654,13 +13542,13 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 
-
   /**
    * This uses the DataAxis object to generate the correct X coordinate on the SVG window. It uses the
    * util function toScreen to get the x coordinate from the timestamp. It also pre-filters the data and get the minMax ranges for
    * the yAxis.
    *
    * @param datapoints
+   * @param group
    * @returns {Array}
    * @private
    */
@@ -13685,150 +13573,6 @@ return /******/ (function(modules) { // webpackBootstrap
     return extractedData;
   };
 
-  /**
-   * This uses an uniform parametrization of the CatmullRom algorithm:
-   * 'On the Parameterization of Catmull-Rom Curves' by Cem Yuksel et al.
-   * @param data
-   * @returns {string}
-   * @private
-   */
-  LineGraph.prototype._catmullRomUniform = function(data) {
-    // catmull rom
-    var p0, p1, p2, p3, bp1, bp2;
-    var d = Math.round(data[0].x) + ',' + Math.round(data[0].y) + ' ';
-    var normalization = 1/6;
-    var length = data.length;
-    for (var i = 0; i < length - 1; i++) {
-
-      p0 = (i == 0) ? data[0] : data[i-1];
-      p1 = data[i];
-      p2 = data[i+1];
-      p3 = (i + 2 < length) ? data[i+2] : p2;
-
-
-      // Catmull-Rom to Cubic Bezier conversion matrix
-      //    0       1       0       0
-      //  -1/6      1      1/6      0
-      //    0      1/6      1     -1/6
-      //    0       0       1       0
-
-      //    bp0 = { x: p1.x,                               y: p1.y };
-      bp1 = { x: ((-p0.x + 6*p1.x + p2.x) *normalization), y: ((-p0.y + 6*p1.y + p2.y) *normalization)};
-      bp2 = { x: (( p1.x + 6*p2.x - p3.x) *normalization), y: (( p1.y + 6*p2.y - p3.y) *normalization)};
-      //    bp0 = { x: p2.x,                               y: p2.y };
-
-      d += 'C' +
-        bp1.x + ',' +
-        bp1.y + ' ' +
-        bp2.x + ',' +
-        bp2.y + ' ' +
-        p2.x + ',' +
-        p2.y + ' ';
-    }
-
-    return d;
-  };
-
-  /**
-   * This uses either the chordal or centripetal parameterization of the catmull-rom algorithm.
-   * By default, the centripetal parameterization is used because this gives the nicest results.
-   * These parameterizations are relatively heavy because the distance between 4 points have to be calculated.
-   *
-   * One optimization can be used to reuse distances since this is a sliding window approach.
-   * @param data
-   * @returns {string}
-   * @private
-   */
-  LineGraph.prototype._catmullRom = function(data, group) {
-    var alpha = group.options.catmullRom.alpha;
-    if (alpha == 0 || alpha === undefined) {
-      return this._catmullRomUniform(data);
-    }
-    else {
-      var p0, p1, p2, p3, bp1, bp2, d1,d2,d3, A, B, N, M;
-      var d3powA, d2powA, d3pow2A, d2pow2A, d1pow2A, d1powA;
-      var d = Math.round(data[0].x) + ',' + Math.round(data[0].y) + ' ';
-      var length = data.length;
-      for (var i = 0; i < length - 1; i++) {
-
-        p0 = (i == 0) ? data[0] : data[i-1];
-        p1 = data[i];
-        p2 = data[i+1];
-        p3 = (i + 2 < length) ? data[i+2] : p2;
-
-        d1 = Math.sqrt(Math.pow(p0.x - p1.x,2) + Math.pow(p0.y - p1.y,2));
-        d2 = Math.sqrt(Math.pow(p1.x - p2.x,2) + Math.pow(p1.y - p2.y,2));
-        d3 = Math.sqrt(Math.pow(p2.x - p3.x,2) + Math.pow(p2.y - p3.y,2));
-
-        // Catmull-Rom to Cubic Bezier conversion matrix
-        //
-        // A = 2d1^2a + 3d1^a * d2^a + d3^2a
-        // B = 2d3^2a + 3d3^a * d2^a + d2^2a
-        //
-        // [   0             1            0          0          ]
-        // [   -d2^2a/N      A/N          d1^2a/N    0          ]
-        // [   0             d3^2a/M      B/M        -d2^2a/M   ]
-        // [   0             0            1          0          ]
-
-        // [   0             1            0          0          ]
-        // [   -d2pow2a/N    A/N          d1pow2a/N  0          ]
-        // [   0             d3pow2a/M    B/M        -d2pow2a/M ]
-        // [   0             0            1          0          ]
-
-        d3powA  = Math.pow(d3,  alpha);
-        d3pow2A = Math.pow(d3,2*alpha);
-        d2powA  = Math.pow(d2,  alpha);
-        d2pow2A = Math.pow(d2,2*alpha);
-        d1powA  = Math.pow(d1,  alpha);
-        d1pow2A = Math.pow(d1,2*alpha);
-
-        A = 2*d1pow2A + 3*d1powA * d2powA + d2pow2A;
-        B = 2*d3pow2A + 3*d3powA * d2powA + d2pow2A;
-        N = 3*d1powA * (d1powA + d2powA);
-        if (N > 0) {N = 1 / N;}
-        M = 3*d3powA * (d3powA + d2powA);
-        if (M > 0) {M = 1 / M;}
-
-        bp1 = { x: ((-d2pow2A * p0.x + A*p1.x + d1pow2A * p2.x) * N),
-          y: ((-d2pow2A * p0.y + A*p1.y + d1pow2A * p2.y) * N)};
-
-        bp2 = { x: (( d3pow2A * p1.x + B*p2.x - d2pow2A * p3.x) * M),
-          y: (( d3pow2A * p1.y + B*p2.y - d2pow2A * p3.y) * M)};
-
-        if (bp1.x == 0 && bp1.y == 0) {bp1 = p1;}
-        if (bp2.x == 0 && bp2.y == 0) {bp2 = p2;}
-        d += 'C' +
-          bp1.x + ',' +
-          bp1.y + ' ' +
-          bp2.x + ',' +
-          bp2.y + ' ' +
-          p2.x + ',' +
-          p2.y + ' ';
-      }
-
-      return d;
-    }
-  };
-
-  /**
-   * this generates the SVG path for a linear drawing between datapoints.
-   * @param data
-   * @returns {string}
-   * @private
-   */
-  LineGraph.prototype._linear = function(data) {
-    // linear
-    var d = '';
-    for (var i = 0; i < data.length; i++) {
-      if (i == 0) {
-        d += data[i].x + ',' + data[i].y;
-      }
-      else {
-        d += ' ' + data[i].x + ',' + data[i].y;
-      }
-    }
-    return d;
-  };
 
   module.exports = LineGraph;
 
@@ -15452,9 +15196,9 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(53);
+  var Emitter = __webpack_require__(56);
   var Hammer = __webpack_require__(45);
-  var keycharm = __webpack_require__(54);
+  var keycharm = __webpack_require__(57);
   var util = __webpack_require__(1);
   var hammerUtil = __webpack_require__(47);
   var DataSet = __webpack_require__(3);
@@ -15466,8 +15210,8 @@ return /******/ (function(modules) { // webpackBootstrap
   var Node = __webpack_require__(40);
   var Edge = __webpack_require__(37);
   var Popup = __webpack_require__(41);
-  var MixinLoader = __webpack_require__(51);
-  var Activator = __webpack_require__(52);
+  var MixinLoader = __webpack_require__(54);
+  var Activator = __webpack_require__(55);
   var locales = __webpack_require__(49);
 
   // Load custom shapes into CanvasRenderingContext2D
@@ -21414,7 +21158,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // first check if moment.js is already loaded in the browser window, if so,
   // use this instance. Else, load via commonjs.
-  module.exports = (typeof window !== 'undefined') && window['moment'] || __webpack_require__(55);
+  module.exports = (typeof window !== 'undefined') && window['moment'] || __webpack_require__(58);
 
 
 /***/ },
@@ -21424,7 +21168,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // Only load hammer.js when in a browser environment
   // (loading hammer.js in a node.js environment gives errors)
   if (typeof window !== 'undefined') {
-    module.exports = window['Hammer'] || __webpack_require__(56);
+    module.exports = window['Hammer'] || __webpack_require__(59);
   }
   else {
     module.exports = function () {
@@ -21437,7 +21181,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(53);
+  var Emitter = __webpack_require__(56);
   var Hammer = __webpack_require__(45);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
@@ -21447,7 +21191,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var CurrentTime = __webpack_require__(21);
   var CustomTime = __webpack_require__(22);
   var ItemSet = __webpack_require__(27);
-  var Activator = __webpack_require__(52);
+  var Activator = __webpack_require__(55);
   var DateUtil = __webpack_require__(15);
 
   /**
@@ -22034,6 +21778,8 @@ return /******/ (function(modules) { // webpackBootstrap
       // keep repainting until all sizes are settled
       this.redraw();
     }
+
+    this.emit("finishedRedraw");
   };
 
   // TODO: deprecated since version 1.1.0, remove some day
@@ -22617,13 +22363,519 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var PhysicsMixin = __webpack_require__(63);
-  var ClusterMixin = __webpack_require__(57);
-  var SectorsMixin = __webpack_require__(58);
-  var SelectionMixin = __webpack_require__(59);
-  var ManipulationMixin = __webpack_require__(60);
-  var NavigationMixin = __webpack_require__(61);
-  var HierarchicalLayoutMixin = __webpack_require__(62);
+  /**
+   * Created by Alex on 11/11/2014.
+   */
+  var DOMutil = __webpack_require__(2);
+  var Points = __webpack_require__(53);
+
+  function Line(groupId, options) {
+    this.groupId = groupId;
+    this.options = options;
+  }
+
+  Line.prototype.getYRange = function(groupData) {
+    var yMin = groupData[0].y;
+    var yMax = groupData[0].y;
+    for (j = 0; j < groupData.length; j++) {
+      yMin = yMin > groupData[j].y ? groupData[j].y : yMin;
+      yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
+    }
+    return {min: yMin, max: yMax, yAxisOrientation: this.options.yAxisOrientation};
+  };
+
+
+  /**
+   * draw a line graph
+   *
+   * @param dataset
+   * @param group
+   */
+  Line.prototype.draw = function (dataset, group, framework) {
+    if (dataset != null) {
+      if (dataset.length > 0) {
+        var path, d;
+        var svgHeight = Number(framework.svg.style.height.replace('px',''));
+        path = DOMutil.getSVGElement('path', framework.svgElements, framework.svg);
+        path.setAttributeNS(null, "class", group.className);
+        if(group.style !== undefined) {
+          path.setAttributeNS(null, "style", group.style);
+        }
+
+        // construct path from dataset
+        if (group.options.catmullRom.enabled == true) {
+          d = Line._catmullRom(dataset, group);
+        }
+        else {
+          d = Line._linear(dataset);
+        }
+
+        // append with points for fill and finalize the path
+        if (group.options.shaded.enabled == true) {
+          var fillPath = DOMutil.getSVGElement('path', framework.svgElements, framework.svg);
+          var dFill;
+          if (group.options.shaded.orientation == 'top') {
+            dFill = 'M' + dataset[0].x + ',' + 0 + ' ' + d + 'L' + dataset[dataset.length - 1].x + ',' + 0;
+          }
+          else {
+            dFill = 'M' + dataset[0].x + ',' + svgHeight + ' ' + d + 'L' + dataset[dataset.length - 1].x + ',' + svgHeight;
+          }
+          fillPath.setAttributeNS(null, "class", group.className + " fill");
+          if(group.options.shaded.style !== undefined) {
+            fillPath.setAttributeNS(null, "style", group.options.shaded.style);
+          }
+          fillPath.setAttributeNS(null, "d", dFill);
+        }
+        // copy properties to path for drawing.
+        path.setAttributeNS(null, 'd', 'M' + d);
+
+        // draw points
+        if (group.options.drawPoints.enabled == true) {
+          Points.draw(dataset, group, framework);
+        }
+      }
+    }
+  };
+
+
+
+  /**
+   * This uses an uniform parametrization of the CatmullRom algorithm:
+   * 'On the Parameterization of Catmull-Rom Curves' by Cem Yuksel et al.
+   * @param data
+   * @returns {string}
+   * @private
+   */
+  Line._catmullRomUniform = function(data) {
+    // catmull rom
+    var p0, p1, p2, p3, bp1, bp2;
+    var d = Math.round(data[0].x) + ',' + Math.round(data[0].y) + ' ';
+    var normalization = 1/6;
+    var length = data.length;
+    for (var i = 0; i < length - 1; i++) {
+
+      p0 = (i == 0) ? data[0] : data[i-1];
+      p1 = data[i];
+      p2 = data[i+1];
+      p3 = (i + 2 < length) ? data[i+2] : p2;
+
+
+      // Catmull-Rom to Cubic Bezier conversion matrix
+      //    0       1       0       0
+      //  -1/6      1      1/6      0
+      //    0      1/6      1     -1/6
+      //    0       0       1       0
+
+      //    bp0 = { x: p1.x,                               y: p1.y };
+      bp1 = { x: ((-p0.x + 6*p1.x + p2.x) *normalization), y: ((-p0.y + 6*p1.y + p2.y) *normalization)};
+      bp2 = { x: (( p1.x + 6*p2.x - p3.x) *normalization), y: (( p1.y + 6*p2.y - p3.y) *normalization)};
+      //    bp0 = { x: p2.x,                               y: p2.y };
+
+      d += 'C' +
+      bp1.x + ',' +
+      bp1.y + ' ' +
+      bp2.x + ',' +
+      bp2.y + ' ' +
+      p2.x + ',' +
+      p2.y + ' ';
+    }
+
+    return d;
+  };
+
+  /**
+   * This uses either the chordal or centripetal parameterization of the catmull-rom algorithm.
+   * By default, the centripetal parameterization is used because this gives the nicest results.
+   * These parameterizations are relatively heavy because the distance between 4 points have to be calculated.
+   *
+   * One optimization can be used to reuse distances since this is a sliding window approach.
+   * @param data
+   * @param group
+   * @returns {string}
+   * @private
+   */
+  Line._catmullRom = function(data, group) {
+    var alpha = group.options.catmullRom.alpha;
+    if (alpha == 0 || alpha === undefined) {
+      return this._catmullRomUniform(data);
+    }
+    else {
+      var p0, p1, p2, p3, bp1, bp2, d1,d2,d3, A, B, N, M;
+      var d3powA, d2powA, d3pow2A, d2pow2A, d1pow2A, d1powA;
+      var d = Math.round(data[0].x) + ',' + Math.round(data[0].y) + ' ';
+      var length = data.length;
+      for (var i = 0; i < length - 1; i++) {
+
+        p0 = (i == 0) ? data[0] : data[i-1];
+        p1 = data[i];
+        p2 = data[i+1];
+        p3 = (i + 2 < length) ? data[i+2] : p2;
+
+        d1 = Math.sqrt(Math.pow(p0.x - p1.x,2) + Math.pow(p0.y - p1.y,2));
+        d2 = Math.sqrt(Math.pow(p1.x - p2.x,2) + Math.pow(p1.y - p2.y,2));
+        d3 = Math.sqrt(Math.pow(p2.x - p3.x,2) + Math.pow(p2.y - p3.y,2));
+
+        // Catmull-Rom to Cubic Bezier conversion matrix
+
+        // A = 2d1^2a + 3d1^a * d2^a + d3^2a
+        // B = 2d3^2a + 3d3^a * d2^a + d2^2a
+
+        // [   0             1            0          0          ]
+        // [   -d2^2a /N     A/N          d1^2a /N   0          ]
+        // [   0             d3^2a /M     B/M        -d2^2a /M  ]
+        // [   0             0            1          0          ]
+
+        d3powA  = Math.pow(d3,  alpha);
+        d3pow2A = Math.pow(d3,2*alpha);
+        d2powA  = Math.pow(d2,  alpha);
+        d2pow2A = Math.pow(d2,2*alpha);
+        d1powA  = Math.pow(d1,  alpha);
+        d1pow2A = Math.pow(d1,2*alpha);
+
+        A = 2*d1pow2A + 3*d1powA * d2powA + d2pow2A;
+        B = 2*d3pow2A + 3*d3powA * d2powA + d2pow2A;
+        N = 3*d1powA * (d1powA + d2powA);
+        if (N > 0) {N = 1 / N;}
+        M = 3*d3powA * (d3powA + d2powA);
+        if (M > 0) {M = 1 / M;}
+
+        bp1 = { x: ((-d2pow2A * p0.x + A*p1.x + d1pow2A * p2.x) * N),
+          y: ((-d2pow2A * p0.y + A*p1.y + d1pow2A * p2.y) * N)};
+
+        bp2 = { x: (( d3pow2A * p1.x + B*p2.x - d2pow2A * p3.x) * M),
+          y: (( d3pow2A * p1.y + B*p2.y - d2pow2A * p3.y) * M)};
+
+        if (bp1.x == 0 && bp1.y == 0) {bp1 = p1;}
+        if (bp2.x == 0 && bp2.y == 0) {bp2 = p2;}
+        d += 'C' +
+        bp1.x + ',' +
+        bp1.y + ' ' +
+        bp2.x + ',' +
+        bp2.y + ' ' +
+        p2.x + ',' +
+        p2.y + ' ';
+      }
+
+      return d;
+    }
+  };
+
+  /**
+   * this generates the SVG path for a linear drawing between datapoints.
+   * @param data
+   * @returns {string}
+   * @private
+   */
+  Line._linear = function(data) {
+    // linear
+    var d = '';
+    for (var i = 0; i < data.length; i++) {
+      if (i == 0) {
+        d += data[i].x + ',' + data[i].y;
+      }
+      else {
+        d += ' ' + data[i].x + ',' + data[i].y;
+      }
+    }
+    return d;
+  };
+
+  module.exports = Line;
+
+
+/***/ },
+/* 52 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Created by Alex on 11/11/2014.
+   */
+  var DOMutil = __webpack_require__(2);
+  var Points = __webpack_require__(53);
+
+  function Bargraph(groupId, options) {
+    this.groupId = groupId;
+    this.options = options;
+  }
+
+  Bargraph.prototype.getYRange = function(groupData) {
+    if (this.options.barChart.handleOverlap != 'stack') {
+      var yMin = groupData[0].y;
+      var yMax = groupData[0].y;
+      for (var j = 0; j < groupData.length; j++) {
+        yMin = yMin > groupData[j].y ? groupData[j].y : yMin;
+        yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
+      }
+      return {min: yMin, max: yMax, yAxisOrientation: this.options.yAxisOrientation};
+    }
+    else {
+      var barCombinedData = [];
+      for (var j = 0; j < groupData.length; j++) {
+        barCombinedData.push({
+          x: groupData[j].x,
+          y: groupData[j].y,
+          groupId: this.groupId
+        });
+      }
+      return barCombinedData;
+    }
+  };
+
+
+
+  /**
+   * draw a bar graph
+   *
+   * @param groupIds
+   * @param processedGroupData
+   */
+  Bargraph.draw = function (groupIds, processedGroupData, framework) {
+    var combinedData = [];
+    var intersections = {};
+    var coreDistance;
+    var key, drawData;
+    var group;
+    var i,j;
+    var barPoints = 0;
+
+    // combine all barchart data
+    for (i = 0; i < groupIds.length; i++) {
+      group = framework.groups[groupIds[i]];
+      if (group.options.style == 'bar') {
+        if (group.visible == true && (framework.options.groups.visibility[groupIds[i]] === undefined || framework.options.groups.visibility[groupIds[i]] == true)) {
+          for (j = 0; j < processedGroupData[groupIds[i]].length; j++) {
+            combinedData.push({
+              x: processedGroupData[groupIds[i]][j].x,
+              y: processedGroupData[groupIds[i]][j].y,
+              groupId: groupIds[i]
+            });
+            barPoints += 1;
+          }
+        }
+      }
+    }
+
+    if (barPoints == 0) {return;}
+
+    // sort by time and by group
+    combinedData.sort(function (a, b) {
+      if (a.x == b.x) {
+        return a.groupId - b.groupId;
+      } else {
+        return a.x - b.x;
+      }
+    });
+
+    // get intersections
+    Bargraph._getDataIntersections(intersections, combinedData);
+
+    // plot barchart
+    for (i = 0; i < combinedData.length; i++) {
+      group = framework.groups[combinedData[i].groupId];
+      var minWidth = 0.1 * group.options.barChart.width;
+
+      key = combinedData[i].x;
+      var heightOffset = 0;
+      if (intersections[key] === undefined) {
+        if (i+1 < combinedData.length) {coreDistance = Math.abs(combinedData[i+1].x - key);}
+        if (i > 0)                     {coreDistance = Math.min(coreDistance,Math.abs(combinedData[i-1].x - key));}
+        drawData = Bargraph._getSafeDrawData(coreDistance, group, minWidth);
+      }
+      else {
+        var nextKey = i + (intersections[key].amount - intersections[key].resolved);
+        var prevKey = i - (intersections[key].resolved + 1);
+        if (nextKey < combinedData.length) {coreDistance = Math.abs(combinedData[nextKey].x - key);}
+        if (prevKey > 0)                   {coreDistance = Math.min(coreDistance,Math.abs(combinedData[prevKey].x - key));}
+        drawData = Bargraph._getSafeDrawData(coreDistance, group, minWidth);
+        intersections[key].resolved += 1;
+
+        if (group.options.barChart.handleOverlap == 'stack') {
+          heightOffset = intersections[key].accumulated;
+          intersections[key].accumulated += group.zeroPosition - combinedData[i].y;
+        }
+        else if (group.options.barChart.handleOverlap == 'sideBySide') {
+          drawData.width = drawData.width / intersections[key].amount;
+          drawData.offset += (intersections[key].resolved) * drawData.width - (0.5*drawData.width * (intersections[key].amount+1));
+          if (group.options.barChart.align == 'left')       {drawData.offset -= 0.5*drawData.width;}
+          else if (group.options.barChart.align == 'right') {drawData.offset += 0.5*drawData.width;}
+        }
+      }
+      DOMutil.drawBar(combinedData[i].x + drawData.offset, combinedData[i].y - heightOffset, drawData.width, group.zeroPosition - combinedData[i].y, group.className + ' bar', framework.svgElements, framework.svg);
+      // draw points
+      if (group.options.drawPoints.enabled == true) {
+        Points.draw(dataset, group, framework, drawData.offset);
+      }
+    }
+  };
+
+
+  /**
+   * Fill the intersections object with counters of how many datapoints share the same x coordinates
+   * @param intersections
+   * @param combinedData
+   * @private
+   */
+  Bargraph._getDataIntersections = function (intersections, combinedData) {
+    // get intersections
+    var coreDistance;
+    for (var i = 0; i < combinedData.length; i++) {
+      if (i + 1 < combinedData.length) {
+        coreDistance = Math.abs(combinedData[i + 1].x - combinedData[i].x);
+      }
+      if (i > 0) {
+        coreDistance = Math.min(coreDistance, Math.abs(combinedData[i - 1].x - combinedData[i].x));
+      }
+      if (coreDistance == 0) {
+        if (intersections[combinedData[i].x] === undefined) {
+          intersections[combinedData[i].x] = {amount: 0, resolved: 0, accumulated: 0};
+        }
+        intersections[combinedData[i].x].amount += 1;
+      }
+    }
+  };
+
+
+  /**
+   * Get the width and offset for bargraphs based on the coredistance between datapoints
+   *
+   * @param coreDistance
+   * @param group
+   * @param minWidth
+   * @returns {{width: Number, offset: Number}}
+   * @private
+   */
+  Bargraph._getSafeDrawData = function (coreDistance, group, minWidth) {
+    var width, offset;
+    if (coreDistance < group.options.barChart.width && coreDistance > 0) {
+      width = coreDistance < minWidth ? minWidth : coreDistance;
+
+      offset = 0; // recalculate offset with the new width;
+      if (group.options.barChart.align == 'left') {
+        offset -= 0.5 * coreDistance;
+      }
+      else if (group.options.barChart.align == 'right') {
+        offset += 0.5 * coreDistance;
+      }
+    }
+    else {
+      // default settings
+      width = group.options.barChart.width;
+      offset = 0;
+      if (group.options.barChart.align == 'left') {
+        offset -= 0.5 * group.options.barChart.width;
+      }
+      else if (group.options.barChart.align == 'right') {
+        offset += 0.5 * group.options.barChart.width;
+      }
+    }
+
+    return {width: width, offset: offset};
+  };
+
+  Bargraph.getStackedBarYRange = function(barCombinedData, groupRanges, groupIds, groupLabel, orientation) {
+    if (barCombinedData.length > 0) {
+      // sort by time and by group
+      barCombinedData.sort(function (a, b) {
+        if (a.x == b.x) {
+          return a.groupId - b.groupId;
+        } else {
+          return a.x - b.x;
+        }
+      });
+      var intersections = {};
+
+      Bargraph._getDataIntersections(intersections, barCombinedData);
+      groupRanges[groupLabel] = Bargraph._getStackedBarYRange(intersections, barCombinedData);
+      groupRanges[groupLabel].yAxisOrientation = orientation;
+      groupIds.push(groupLabel);
+    }
+  }
+
+  Bargraph._getStackedBarYRange = function (intersections, combinedData) {
+    var key;
+    var yMin = combinedData[0].y;
+    var yMax = combinedData[0].y;
+    for (var i = 0; i < combinedData.length; i++) {
+      key = combinedData[i].x;
+      if (intersections[key] === undefined) {
+        yMin = yMin > combinedData[i].y ? combinedData[i].y : yMin;
+        yMax = yMax < combinedData[i].y ? combinedData[i].y : yMax;
+      }
+      else {
+        intersections[key].accumulated += combinedData[i].y;
+      }
+    }
+    for (var xpos in intersections) {
+      if (intersections.hasOwnProperty(xpos)) {
+        yMin = yMin > intersections[xpos].accumulated ? intersections[xpos].accumulated : yMin;
+        yMax = yMax < intersections[xpos].accumulated ? intersections[xpos].accumulated : yMax;
+      }
+    }
+
+    return {min: yMin, max: yMax};
+  };
+
+  module.exports = Bargraph;
+
+/***/ },
+/* 53 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Created by Alex on 11/11/2014.
+   */
+  var DOMutil = __webpack_require__(2);
+
+  function Points(groupId, options) {
+    this.groupId = groupId;
+    this.options = options;
+  }
+
+
+  Points.prototype.getYRange = function(groupData) {
+    var yMin = groupData[0].y;
+    var yMax = groupData[0].y;
+    for (j = 0; j < groupData.length; j++) {
+      yMin = yMin > groupData[j].y ? groupData[j].y : yMin;
+      yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
+    }
+    return {min: yMin, max: yMax, yAxisOrientation: this.options.yAxisOrientation};
+  };
+
+  Points.prototype.draw = function(dataset, group, framework, offset) {
+    Points.draw(dataset, group, framework, offset);
+  }
+
+  /**
+   * draw the data points
+   *
+   * @param {Array} dataset
+   * @param {Object} JSONcontainer
+   * @param {Object} svg            | SVG DOM element
+   * @param {GraphGroup} group
+   * @param {Number} [offset]
+   */
+  Points.draw = function (dataset, group, framework, offset) {
+    if (offset === undefined) {offset = 0;}
+    for (var i = 0; i < dataset.length; i++) {
+      DOMutil.drawPoint(dataset[i].x + offset, dataset[i].y, group, framework.svgElements, framework.svg);
+    }
+  };
+
+
+  module.exports = Points;
+
+/***/ },
+/* 54 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var PhysicsMixin = __webpack_require__(66);
+  var ClusterMixin = __webpack_require__(60);
+  var SectorsMixin = __webpack_require__(61);
+  var SelectionMixin = __webpack_require__(62);
+  var ManipulationMixin = __webpack_require__(63);
+  var NavigationMixin = __webpack_require__(64);
+  var HierarchicalLayoutMixin = __webpack_require__(65);
 
   /**
    * Load a mixin into the network object
@@ -22735,7 +22987,6 @@ return /******/ (function(modules) { // webpackBootstrap
       if (this.manipulationDiv === undefined) {
         this.manipulationDiv = document.createElement('div');
         this.manipulationDiv.className = 'network-manipulationDiv';
-        this.manipulationDiv.id = 'network-manipulationDiv';
         if (this.editMode == true) {
           this.manipulationDiv.style.display = "block";
         }
@@ -22748,7 +22999,6 @@ return /******/ (function(modules) { // webpackBootstrap
       if (this.editModeDiv === undefined) {
         this.editModeDiv = document.createElement('div');
         this.editModeDiv.className = 'network-manipulation-editMode';
-        this.editModeDiv.id = 'network-manipulation-editMode';
         if (this.editMode == true) {
           this.editModeDiv.style.display = "none";
         }
@@ -22761,7 +23011,6 @@ return /******/ (function(modules) { // webpackBootstrap
       if (this.closeDiv === undefined) {
         this.closeDiv = document.createElement('div');
         this.closeDiv.className = 'network-manipulation-closeDiv';
-        this.closeDiv.id = 'network-manipulation-closeDiv';
         this.closeDiv.style.display = this.manipulationDiv.style.display;
         this.frame.appendChild(this.closeDiv);
       }
@@ -22818,11 +23067,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 52 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var keycharm = __webpack_require__(54);
-  var Emitter = __webpack_require__(53);
+  var keycharm = __webpack_require__(57);
+  var Emitter = __webpack_require__(56);
   var Hammer = __webpack_require__(45);
   var util = __webpack_require__(1);
 
@@ -22975,7 +23224,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 53 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
   
@@ -23145,7 +23394,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 54 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/**
@@ -23338,7 +23587,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 55 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global, module) {//! moment.js
@@ -26198,10 +26447,10 @@ return /******/ (function(modules) { // webpackBootstrap
       }
   }).call(this);
   
-  /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(68)(module)))
+  /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(71)(module)))
 
 /***/ },
-/* 56 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v1.1.3 - 2014-05-20
@@ -28368,7 +28617,7 @@ return /******/ (function(modules) { // webpackBootstrap
   })(window);
 
 /***/ },
-/* 57 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -29511,7 +29760,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 58 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -30070,7 +30319,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 59 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Node = __webpack_require__(40);
@@ -30581,7 +30830,12 @@ return /******/ (function(modules) { // webpackBootstrap
         this._unselectAll();
       }
     }
-    this.emit("click", this.getSelection());
+    var properties = this.getSelection();
+    properties['pointer'] = {
+      DOM: {x: pointer.x, y: pointer.y},
+      canvas: {x: this._XconvertDOMtoCanvas(pointer.x), y: this._YconvertDOMtoCanvas(pointer.y)}
+    }
+    this.emit("click", properties);
     this._redraw();
   };
 
@@ -30600,7 +30854,12 @@ return /******/ (function(modules) { // webpackBootstrap
                           "y" : this._YconvertDOMtoCanvas(pointer.y)};
       this.openCluster(node);
     }
-    this.emit("doubleClick", this.getSelection());
+    var properties = this.getSelection();
+    properties['pointer'] = {
+      DOM: {x: pointer.x, y: pointer.y},
+      canvas: {x: this._XconvertDOMtoCanvas(pointer.x), y: this._YconvertDOMtoCanvas(pointer.y)}
+    }
+    this.emit("doubleClick", properties);
   };
 
 
@@ -30774,7 +31033,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 60 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -30790,6 +31049,7 @@ return /******/ (function(modules) { // webpackBootstrap
     while (this.manipulationDiv.hasChildNodes()) {
       this.manipulationDiv.removeChild(this.manipulationDiv.firstChild);
     }
+    this.manipulationDOM = {};
 
     this._manipulationReleaseOverload = function () {};
     delete this.sectors['support']['nodes']['targetNode'];
@@ -30819,9 +31079,9 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   exports._toggleEditMode = function() {
     this.editMode = !this.editMode;
-    var toolbar = document.getElementById("network-manipulationDiv");
-    var closeDiv = document.getElementById("network-manipulation-closeDiv");
-    var editModeDiv = document.getElementById("network-manipulation-editMode");
+    var toolbar = this.manipulationDiv;
+    var closeDiv = this.closeDiv;
+    var editModeDiv = this.editModeDiv;
     if (this.editMode == true) {
       toolbar.style.display="block";
       closeDiv.style.display="block";
@@ -30866,68 +31126,110 @@ return /******/ (function(modules) { // webpackBootstrap
     // reset global variables
     this.blockConnectingEdgeSelection = false;
     this.forceAppendSelection = false;
+    this.manipulationDOM = {};
 
     if (this.editMode == true) {
       while (this.manipulationDiv.hasChildNodes()) {
         this.manipulationDiv.removeChild(this.manipulationDiv.firstChild);
       }
 
-      // add the icons to the manipulator div
-      this.manipulationDiv.innerHTML = "" +
-        "<span class='network-manipulationUI add' id='network-manipulate-addNode'>" +
-          "<span class='network-manipulationLabel'>"+locale['addNode'] +"</span></span>" +
-        "<div class='network-seperatorLine'></div>" +
-        "<span class='network-manipulationUI connect' id='network-manipulate-connectNode'>" +
-          "<span class='network-manipulationLabel'>"+locale['addEdge'] +"</span></span>";
+      this.manipulationDOM['addNodeSpan'] = document.createElement('span');
+      this.manipulationDOM['addNodeSpan'].className = 'network-manipulationUI add';
+      this.manipulationDOM['addNodeLabelSpan'] = document.createElement('span');
+      this.manipulationDOM['addNodeLabelSpan'].className = 'network-manipulationLabel';
+      this.manipulationDOM['addNodeLabelSpan'].innerHTML = locale['addNode'];
+      this.manipulationDOM['addNodeSpan'].appendChild(this.manipulationDOM['addNodeLabelSpan']);
+
+      this.manipulationDOM['seperatorLineDiv1'] = document.createElement('div');
+      this.manipulationDOM['seperatorLineDiv1'].className = 'network-seperatorLine';
+
+      this.manipulationDOM['addEdgeSpan'] = document.createElement('span');
+      this.manipulationDOM['addEdgeSpan'].className = 'network-manipulationUI connect';
+      this.manipulationDOM['addEdgeLabelSpan'] = document.createElement('span');
+      this.manipulationDOM['addEdgeLabelSpan'].className = 'network-manipulationLabel';
+      this.manipulationDOM['addEdgeLabelSpan'].innerHTML = locale['addEdge'];
+      this.manipulationDOM['addEdgeSpan'].appendChild(this.manipulationDOM['addEdgeLabelSpan']);
+
+      this.manipulationDiv.appendChild(this.manipulationDOM['addNodeSpan']);
+      this.manipulationDiv.appendChild(this.manipulationDOM['seperatorLineDiv1']);
+      this.manipulationDiv.appendChild(this.manipulationDOM['addEdgeSpan']);
+
       if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
-        this.manipulationDiv.innerHTML += "" +
-          "<div class='network-seperatorLine'></div>" +
-          "<span class='network-manipulationUI edit' id='network-manipulate-editNode'>" +
-            "<span class='network-manipulationLabel'>"+locale['editNode'] +"</span></span>";
+        this.manipulationDOM['seperatorLineDiv2'] = document.createElement('div');
+        this.manipulationDOM['seperatorLineDiv2'].className = 'network-seperatorLine';
+
+        this.manipulationDOM['editNodeSpan'] = document.createElement('span');
+        this.manipulationDOM['editNodeSpan'].className = 'network-manipulationUI edit';
+        this.manipulationDOM['editNodeLabelSpan'] = document.createElement('span');
+        this.manipulationDOM['editNodeLabelSpan'].className = 'network-manipulationLabel';
+        this.manipulationDOM['editNodeLabelSpan'].innerHTML = locale['editNode'];
+        this.manipulationDOM['editNodeSpan'].appendChild(this.manipulationDOM['editNodeLabelSpan']);
+
+        this.manipulationDiv.appendChild(this.manipulationDOM['seperatorLineDiv2']);
+        this.manipulationDiv.appendChild(this.manipulationDOM['editNodeSpan']);
       }
       else if (this._getSelectedEdgeCount() == 1 && this._getSelectedNodeCount() == 0) {
-        this.manipulationDiv.innerHTML += "" +
-          "<div class='network-seperatorLine'></div>" +
-          "<span class='network-manipulationUI edit' id='network-manipulate-editEdge'>" +
-          "<span class='network-manipulationLabel'>"+locale['editEdge'] +"</span></span>";
+        this.manipulationDOM['seperatorLineDiv3'] = document.createElement('div');
+        this.manipulationDOM['seperatorLineDiv3'].className = 'network-seperatorLine';
+
+        this.manipulationDOM['editEdgeSpan'] = document.createElement('span');
+        this.manipulationDOM['editEdgeSpan'].className = 'network-manipulationUI edit';
+        this.manipulationDOM['editEdgeLabelSpan'] = document.createElement('span');
+        this.manipulationDOM['editEdgeLabelSpan'].className = 'network-manipulationLabel';
+        this.manipulationDOM['editEdgeLabelSpan'].innerHTML = locale['editEdge'];
+        this.manipulationDOM['editEdgeSpan'].appendChild(this.manipulationDOM['editEdgeLabelSpan']);
+
+        this.manipulationDiv.appendChild(this.manipulationDOM['seperatorLineDiv3']);
+        this.manipulationDiv.appendChild(this.manipulationDOM['editEdgeSpan']);
       }
       if (this._selectionIsEmpty() == false) {
-        this.manipulationDiv.innerHTML += "" +
-          "<div class='network-seperatorLine'></div>" +
-          "<span class='network-manipulationUI delete' id='network-manipulate-delete'>" +
-            "<span class='network-manipulationLabel'>"+locale['del'] +"</span></span>";
+        this.manipulationDOM['seperatorLineDiv4'] = document.createElement('div');
+        this.manipulationDOM['seperatorLineDiv4'].className = 'network-seperatorLine';
+
+        this.manipulationDOM['deleteSpan'] = document.createElement('span');
+        this.manipulationDOM['deleteSpan'].className = 'network-manipulationUI delete';
+        this.manipulationDOM['deleteLabelSpan'] = document.createElement('span');
+        this.manipulationDOM['deleteLabelSpan'].className = 'network-manipulationLabel';
+        this.manipulationDOM['deleteLabelSpan'].innerHTML = locale['del'];
+        this.manipulationDOM['deleteSpan'].appendChild(this.manipulationDOM['deleteLabelSpan']);
+
+        this.manipulationDiv.appendChild(this.manipulationDOM['seperatorLineDiv4']);
+        this.manipulationDiv.appendChild(this.manipulationDOM['deleteSpan']);
       }
 
 
       // bind the icons
-      var addNodeButton = document.getElementById("network-manipulate-addNode");
-      addNodeButton.onclick = this._createAddNodeToolbar.bind(this);
-      var addEdgeButton = document.getElementById("network-manipulate-connectNode");
-      addEdgeButton.onclick = this._createAddEdgeToolbar.bind(this);
+      this.manipulationDOM['addNodeSpan'].onclick = this._createAddNodeToolbar.bind(this);
+      this.manipulationDOM['addEdgeSpan'].onclick = this._createAddEdgeToolbar.bind(this);
       if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
-        var editButton = document.getElementById("network-manipulate-editNode");
-        editButton.onclick = this._editNode.bind(this);
+        this.manipulationDOM['editNodeSpan'].onclick = this._editNode.bind(this);
       }
       else if (this._getSelectedEdgeCount() == 1 && this._getSelectedNodeCount() == 0) {
-        var editButton = document.getElementById("network-manipulate-editEdge");
-        editButton.onclick = this._createEditEdgeToolbar.bind(this);
+        this.manipulationDOM['editEdgeSpan'].onclick = this._createEditEdgeToolbar.bind(this);
       }
       if (this._selectionIsEmpty() == false) {
-        var deleteButton = document.getElementById("network-manipulate-delete");
-        deleteButton.onclick = this._deleteSelected.bind(this);
+        this.manipulationDOM['deleteSpan'].onclick = this._deleteSelected.bind(this);
       }
-      var closeDiv = document.getElementById("network-manipulation-closeDiv");
-      closeDiv.onclick = this._toggleEditMode.bind(this);
+      this.closeDiv.onclick = this._toggleEditMode.bind(this);
 
       this.boundFunction = this._createManipulatorBar.bind(this);
       this.on('select', this.boundFunction);
     }
     else {
-      this.editModeDiv.innerHTML = "" +
-        "<span class='network-manipulationUI edit editmode' id='network-manipulate-editModeButton'>" +
-        "<span class='network-manipulationLabel'>" + locale['edit'] + "</span></span>";
-      var editModeButton = document.getElementById("network-manipulate-editModeButton");
-      editModeButton.onclick = this._toggleEditMode.bind(this);
+      while (this.editModeDiv.hasChildNodes()) {
+        this.editModeDiv.removeChild(this.editModeDiv.firstChild);
+      }
+
+      this.manipulationDOM['editModeSpan'] = document.createElement('span');
+      this.manipulationDOM['editModeSpan'].className = 'network-manipulationUI edit editmode';
+      this.manipulationDOM['editModeLabelSpan'] = document.createElement('span');
+      this.manipulationDOM['editModeLabelSpan'].className = 'network-manipulationLabel';
+      this.manipulationDOM['editModeLabelSpan'].innerHTML = locale['edit'];
+      this.manipulationDOM['editModeSpan'].appendChild(this.manipulationDOM['editModeLabelSpan']);
+
+      this.editModeDiv.appendChild(this.manipulationDOM['editModeSpan']);
+
+      this.manipulationDOM['editModeSpan'].onclick = this._toggleEditMode.bind(this);
     }
   };
 
@@ -30947,17 +31249,30 @@ return /******/ (function(modules) { // webpackBootstrap
 
     var locale = this.constants.locales[this.constants.locale];
 
-    // create the toolbar contents
-    this.manipulationDiv.innerHTML = "" +
-      "<span class='network-manipulationUI back' id='network-manipulate-back'>" +
-      "<span class='network-manipulationLabel'>" + locale['back'] + " </span></span>" +
-      "<div class='network-seperatorLine'></div>" +
-      "<span class='network-manipulationUI none' id='network-manipulate-back'>" +
-      "<span id='network-manipulatorLabel' class='network-manipulationLabel'>" + locale['addDescription'] + "</span></span>";
+    this.manipulationDOM = {};
+    this.manipulationDOM['backSpan'] = document.createElement('span');
+    this.manipulationDOM['backSpan'].className = 'network-manipulationUI back';
+    this.manipulationDOM['backLabelSpan'] = document.createElement('span');
+    this.manipulationDOM['backLabelSpan'].className = 'network-manipulationLabel';
+    this.manipulationDOM['backLabelSpan'].innerHTML = locale['back'];
+    this.manipulationDOM['backSpan'].appendChild(this.manipulationDOM['backLabelSpan']);
+
+    this.manipulationDOM['seperatorLineDiv1'] = document.createElement('div');
+    this.manipulationDOM['seperatorLineDiv1'].className = 'network-seperatorLine';
+
+    this.manipulationDOM['descriptionSpan'] = document.createElement('span');
+    this.manipulationDOM['descriptionSpan'].className = 'network-manipulationUI none';
+    this.manipulationDOM['descriptionLabelSpan'] = document.createElement('span');
+    this.manipulationDOM['descriptionLabelSpan'].className = 'network-manipulationLabel';
+    this.manipulationDOM['descriptionLabelSpan'].innerHTML = locale['addDescription'];
+    this.manipulationDOM['descriptionSpan'].appendChild(this.manipulationDOM['descriptionLabelSpan']);
+
+    this.manipulationDiv.appendChild(this.manipulationDOM['backSpan']);
+    this.manipulationDiv.appendChild(this.manipulationDOM['seperatorLineDiv1']);
+    this.manipulationDiv.appendChild(this.manipulationDOM['descriptionSpan']);
 
     // bind the icon
-    var backButton = document.getElementById("network-manipulate-back");
-    backButton.onclick = this._createManipulatorBar.bind(this);
+    this.manipulationDOM['backSpan'].onclick = this._createManipulatorBar.bind(this);
 
     // we use the boundFunction so we can reference it when we unbind it from the "select" event.
     this.boundFunction = this._addNode.bind(this);
@@ -30986,16 +31301,30 @@ return /******/ (function(modules) { // webpackBootstrap
     this.forceAppendSelection = false;
     this.blockConnectingEdgeSelection = true;
 
-    this.manipulationDiv.innerHTML = "" +
-      "<span class='network-manipulationUI back' id='network-manipulate-back'>" +
-        "<span class='network-manipulationLabel'>" + locale['back'] + " </span></span>" +
-      "<div class='network-seperatorLine'></div>" +
-      "<span class='network-manipulationUI none' id='network-manipulate-back'>" +
-        "<span id='network-manipulatorLabel' class='network-manipulationLabel'>" + locale['edgeDescription'] + "</span></span>";
+    this.manipulationDOM = {};
+    this.manipulationDOM['backSpan'] = document.createElement('span');
+    this.manipulationDOM['backSpan'].className = 'network-manipulationUI back';
+    this.manipulationDOM['backLabelSpan'] = document.createElement('span');
+    this.manipulationDOM['backLabelSpan'].className = 'network-manipulationLabel';
+    this.manipulationDOM['backLabelSpan'].innerHTML = locale['back'];
+    this.manipulationDOM['backSpan'].appendChild(this.manipulationDOM['backLabelSpan']);
+
+    this.manipulationDOM['seperatorLineDiv1'] = document.createElement('div');
+    this.manipulationDOM['seperatorLineDiv1'].className = 'network-seperatorLine';
+
+    this.manipulationDOM['descriptionSpan'] = document.createElement('span');
+    this.manipulationDOM['descriptionSpan'].className = 'network-manipulationUI none';
+    this.manipulationDOM['descriptionLabelSpan'] = document.createElement('span');
+    this.manipulationDOM['descriptionLabelSpan'].className = 'network-manipulationLabel';
+    this.manipulationDOM['descriptionLabelSpan'].innerHTML = locale['edgeDescription'];
+    this.manipulationDOM['descriptionSpan'].appendChild(this.manipulationDOM['descriptionLabelSpan']);
+
+    this.manipulationDiv.appendChild(this.manipulationDOM['backSpan']);
+    this.manipulationDiv.appendChild(this.manipulationDOM['seperatorLineDiv1']);
+    this.manipulationDiv.appendChild(this.manipulationDOM['descriptionSpan']);
 
     // bind the icon
-    var backButton = document.getElementById("network-manipulate-back");
-    backButton.onclick = this._createManipulatorBar.bind(this);
+    this.manipulationDOM['backSpan'].onclick = this._createManipulatorBar.bind(this);
 
     // we use the boundFunction so we can reference it when we unbind it from the "select" event.
     this.boundFunction = this._handleConnect.bind(this);
@@ -31034,16 +31363,30 @@ return /******/ (function(modules) { // webpackBootstrap
 
     var locale = this.constants.locales[this.constants.locale];
 
-    this.manipulationDiv.innerHTML = "" +
-      "<span class='network-manipulationUI back' id='network-manipulate-back'>" +
-      "<span class='network-manipulationLabel'>" + locale['back'] + " </span></span>" +
-      "<div class='network-seperatorLine'></div>" +
-      "<span class='network-manipulationUI none' id='network-manipulate-back'>" +
-      "<span id='network-manipulatorLabel' class='network-manipulationLabel'>" + locale['editEdgeDescription'] + "</span></span>";
+    this.manipulationDOM = {};
+    this.manipulationDOM['backSpan'] = document.createElement('span');
+    this.manipulationDOM['backSpan'].className = 'network-manipulationUI back';
+    this.manipulationDOM['backLabelSpan'] = document.createElement('span');
+    this.manipulationDOM['backLabelSpan'].className = 'network-manipulationLabel';
+    this.manipulationDOM['backLabelSpan'].innerHTML = locale['back'];
+    this.manipulationDOM['backSpan'].appendChild(this.manipulationDOM['backLabelSpan']);
+
+    this.manipulationDOM['seperatorLineDiv1'] = document.createElement('div');
+    this.manipulationDOM['seperatorLineDiv1'].className = 'network-seperatorLine';
+
+    this.manipulationDOM['descriptionSpan'] = document.createElement('span');
+    this.manipulationDOM['descriptionSpan'].className = 'network-manipulationUI none';
+    this.manipulationDOM['descriptionLabelSpan'] = document.createElement('span');
+    this.manipulationDOM['descriptionLabelSpan'].className = 'network-manipulationLabel';
+    this.manipulationDOM['descriptionLabelSpan'].innerHTML = locale['editEdgeDescription'];
+    this.manipulationDOM['descriptionSpan'].appendChild(this.manipulationDOM['descriptionLabelSpan']);
+
+    this.manipulationDiv.appendChild(this.manipulationDOM['backSpan']);
+    this.manipulationDiv.appendChild(this.manipulationDOM['seperatorLineDiv1']);
+    this.manipulationDiv.appendChild(this.manipulationDOM['descriptionSpan']);
 
     // bind the icon
-    var backButton = document.getElementById("network-manipulate-back");
-    backButton.onclick = this._createManipulatorBar.bind(this);
+    this.manipulationDOM['backSpan'].onclick = this._createManipulatorBar.bind(this);
 
     // temporarily overload functions
     this.cachedFunctions["_handleTouch"]      = this._handleTouch;
@@ -31375,7 +31718,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 61 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -31393,9 +31736,8 @@ return /******/ (function(modules) { // webpackBootstrap
     this._navigationReleaseOverload = function () {};
 
     // clean up previous navigation items
-    var wrapper = document.getElementById('network-navigation_wrapper');
-    if (wrapper && wrapper.parentNode) {
-      wrapper.parentNode.removeChild(wrapper);
+    if (this.navigationDivs && this.navigationDivs['wrapper'] && this.navigationDivs['wrapper'].parentNode) {
+      this.navigationDivs['wrapper'].parentNode.removeChild(this.navigationDivs['wrapper']);
     }
   };
 
@@ -31415,12 +31757,10 @@ return /******/ (function(modules) { // webpackBootstrap
     var navigationDivActions = ['_moveUp','_moveDown','_moveLeft','_moveRight','_zoomIn','_zoomOut','_zoomExtent'];
 
     this.navigationDivs['wrapper'] = document.createElement('div');
-    this.navigationDivs['wrapper'].id = 'network-navigation_wrapper';
     this.frame.appendChild(this.navigationDivs['wrapper']);
 
     for (var i = 0; i < navigationDivs.length; i++) {
       this.navigationDivs[navigationDivs[i]] = document.createElement('div');
-      this.navigationDivs[navigationDivs[i]].id = 'network-navigation_' + navigationDivs[i];
       this.navigationDivs[navigationDivs[i]].className = 'network-navigation ' + navigationDivs[i];
       this.navigationDivs['wrapper'].appendChild(this.navigationDivs[navigationDivs[i]]);
 
@@ -31441,7 +31781,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   exports._zoomExtent = function(event) {
-    this.zoomExtent({duration:800});
+    this.zoomExtent({duration:700});
     event.stopPropagation();
   };
 
@@ -31558,7 +31898,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 62 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   exports._resetLevels = function() {
@@ -31975,13 +32315,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 63 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var RepulsionMixin = __webpack_require__(65);
-  var HierarchialRepulsionMixin = __webpack_require__(66);
-  var BarnesHutMixin = __webpack_require__(67);
+  var RepulsionMixin = __webpack_require__(68);
+  var HierarchialRepulsionMixin = __webpack_require__(69);
+  var BarnesHutMixin = __webpack_require__(70);
 
   /**
    * Toggling barnes Hut calculation on and off.
@@ -32689,7 +33029,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 64 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   function webpackContext(req) {
@@ -32698,11 +33038,11 @@ return /******/ (function(modules) { // webpackBootstrap
   webpackContext.keys = function() { return []; };
   webpackContext.resolve = webpackContext;
   module.exports = webpackContext;
-  webpackContext.id = 64;
+  webpackContext.id = 67;
 
 
 /***/ },
-/* 65 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -32766,7 +33106,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 66 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -32925,7 +33265,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 67 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -33330,7 +33670,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 68 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
   module.exports = function(module) {

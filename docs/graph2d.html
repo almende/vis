@@ -349,7 +349,7 @@ The options colored in green can also be used as options for the groups. All opt
   <td class="greenField">style</td>
   <td>String</td>
   <td>'line'</td>
-  <td>This allows the user to define if this should be a linegraph or a barchart. The options are: 'line' or 'bar'.</td>
+  <td>This allows the user to define if this should be a linegraph, barchart or pointcloud. The options are: 'line', 'bar', 'points'.</td>
 </tr>
 <tr>
   <td class="greenField">barChart.width</td>
@@ -943,6 +943,14 @@ Graph2d.off('rangechanged', onChange);
     <th>Description</th>
     <th>Properties</th>
   </tr>
+    <tr>
+        <td>finishedRedraw</td>
+        <td>Fired after a redraw is complete. When moving the Graph2d around, this could be fired frequently.
+        </td>
+        <td>
+            none.
+        </td>
+    </tr>
 
   <tr>
     <td>rangechange</td>
