@@ -4,6 +4,9 @@ http://visjs.org
 
 ## not yet released, version 3.7.1
 
+### Timeline
+
+- Fixed onAdd/onUpdate callbacks when using a DataView (thanks @motzel).
 
 
 ## 2014-11-14, version 3.7.0
