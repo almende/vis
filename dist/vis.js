@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.7.1-SNAPSHOT
- * @date    2014-11-14
+ * @date    2014-11-18
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -12254,7 +12254,7 @@ return /******/ (function(modules) { // webpackBootstrap
     // except when old selection is empty and new selection is still empty
     if (newSelection.length > 0 || oldSelection.length > 0) {
       this.body.emitter.emit('select', {
-        items: this.getSelection()
+        items: newSelection
       });
     }
   };
@@ -12279,7 +12279,7 @@ return /******/ (function(modules) { // webpackBootstrap
       var itemData = me.itemsData.get(item.id); // get a clone of the data from the dataset
       this.options.onUpdate(itemData, function (itemData) {
         if (itemData) {
-          me.itemsData.update(itemData);
+          me.itemsData.getDataSet().update(itemData);
         }
       });
     }
@@ -12309,7 +12309,7 @@ return /******/ (function(modules) { // webpackBootstrap
       // execute async handler to customize (or cancel) adding an item
       this.options.onAdd(newItem, function (item) {
         if (item) {
-          me.itemsData.add(item);
+          me.itemsData.getDataSet().add(item);
           // TODO: need to trigger a redraw?
         }
       });
@@ -12330,20 +12330,82 @@ return /******/ (function(modules) { // webpackBootstrap
     if (item) {
       // multi select items
       selection = this.getSelection(); // current selection
-      var index = selection.indexOf(item.id);
-      if (index == -1) {
-        // item is not yet selected -> select it
+
+      console.log('multiselect', selection, item)
+
+      var shiftKey = event.gesture.touches[0] && event.gesture.touches[0].shiftKey || false;
+      if (shiftKey) {
+        // select all items between the old selection and the tapped item
+
+        // determine the selection range
         selection.push(item.id);
+        var range = ItemSet._getItemRange(this.itemsData.get(selection, this.itemOptions));
+
+        // select all items within the selection range
+        selection = [];
+        for (var id in this.items) {
+          if (this.items.hasOwnProperty(id)) {
+            var _item = this.items[id];
+            var start = _item.data.start;
+            var end = (_item.data.end !== undefined) ? _item.data.end : start;
+
+            if (start >= range.min && end <= range.max) {
+              selection.push(_item.id); // do not use id but item.id, id itself is stringified
+            }
+          }
+        }
       }
       else {
-        // item is already selected -> deselect it
-        selection.splice(index, 1);
+        // add/remove this item from the current selection
+        var index = selection.indexOf(item.id);
+        if (index == -1) {
+          // item is not yet selected -> select it
+          selection.push(item.id);
+        }
+        else {
+          // item is already selected -> deselect it
+          selection.splice(index, 1);
+        }
       }
+
       this.setSelection(selection);
 
       this.body.emitter.emit('select', {
         items: this.getSelection()
       });
+    }
+  };
+
+  /**
+   * Calculate the time range of a list of items
+   * @param {Array.<Object>} itemsData
+   * @return {{min: Date, max: Date}} Returns the range of the provided items
+   * @private
+   */
+  ItemSet._getItemRange = function(itemsData) {
+    var max = null;
+    var min = null;
+
+    itemsData.forEach(function (data) {
+      if (min == null || data.start < min) {
+        min = data.start;
+      }
+
+      if (data.end != undefined) {
+        if (max == null || data.end > max) {
+          max = data.end;
+        }
+      }
+      else {
+        if (max == null || data.start > max) {
+          max = data.start;
+        }
+      }
+    });
+
+    return {
+      min: min,
+      max: max
     }
   };
 
