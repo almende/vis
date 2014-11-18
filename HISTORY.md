@@ -6,6 +6,7 @@ http://visjs.org
 
 ### Timeline
 
+- Implemented selection of a range of items using Shift+Click.
 - Fixed onAdd/onUpdate callbacks when using a DataView (thanks @motzel).
 
 
