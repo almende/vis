@@ -13,6 +13,11 @@ http://visjs.org
 
 - Added alignZeros option to dataAxis with default value true.
 
+
+### Network
+
+- dragEnd event now does not give the selected nodes if only the viewport has been dragged #453
+
 ## 2014-11-14, version 3.7.0
 
 ### Graph2D
