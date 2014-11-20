@@ -9,6 +9,9 @@ http://visjs.org
 - Implemented selection of a range of items using Shift+Click.
 - Fixed onAdd/onUpdate callbacks when using a DataView (thanks @motzel).
 
+### Graph2D
+
+- Added alignZeros option to dataAxis with default value true.
 
 ## 2014-11-14, version 3.7.0
 

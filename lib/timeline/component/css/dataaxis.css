@@ -25,6 +25,7 @@
 .vis.timeline .dataaxis .yAxis.major.measure{
     padding: 0px 0px 0px 0px;
     margin: 0px 0px 0px 0px;
+    border: 0px;
     visibility: hidden;
     width: auto;
 }
@@ -40,6 +41,7 @@
 .vis.timeline .dataaxis .yAxis.minor.measure{
     padding: 0px 0px 0px 0px;
     margin: 0px 0px 0px 0px;
+    border: 0px;
     visibility: hidden;
     width: auto;
 }
