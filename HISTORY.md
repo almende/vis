@@ -7,6 +7,7 @@ http://visjs.org
 ### Timeline
 
 - Implemented selection of a range of items using Shift+Click.
+- Fixed content in range items may overflow range after zoom.
 - Fixed onAdd/onUpdate callbacks when using a DataView (thanks @motzel).
 
 ### Graph2D

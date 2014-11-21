@@ -207,6 +207,7 @@
   border-style: solid;
   border-radius: 2px;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .vis.timeline .item.background {
@@ -222,7 +223,6 @@
   position: relative;
   display: inline-block;
   overflow: hidden;
-  max-width: 100%;
 }
 
 .vis.timeline .item.background .content {
