@@ -21301,9 +21301,6 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
-  var TimeAxis = __webpack_require__(30);
-  var CurrentTime = __webpack_require__(21);
-  var CustomTime = __webpack_require__(22);
   var ItemSet = __webpack_require__(27);
   var Activator = __webpack_require__(55);
   var DateUtil = __webpack_require__(15);
@@ -21452,6 +21449,8 @@ return /******/ (function(modules) { // webpackBootstrap
       scrollTopMin: 0
     };
     this.touch = {}; // store state information needed for touch events
+
+    this.redrawCount = 0;
 
     // attach the root panel to the provided container
     if (!container) throw new Error('No container provided');
@@ -21890,7 +21889,15 @@ return /******/ (function(modules) { // webpackBootstrap
     });
     if (resized) {
       // keep repainting until all sizes are settled
-      this.redraw();
+      var MAX_REDRAWS = 2; // maximum number of consecutive redraws
+      if (this.redrawCount < MAX_REDRAWS) {
+        this.redrawCount++;
+        this.redraw();
+      }
+      else {
+        console.log('WARNING: infinite loop in redraw?')
+      }
+      this.redrawCount = 0;
     }
 
     this.emit("finishedRedraw");
