@@ -121,7 +121,10 @@ gulp.task('copy', ['clean'], function () {
 gulp.task('minify', ['bundle-js'], function (cb) {
   var result = uglify.minify([DIST + '/' + VIS_JS], uglifyConfig);
 
-  fs.writeFileSync(DIST + '/' + VIS_MIN_JS, result.code);
+  // note: we add a newline '\n' to the end of the minified file to prevent
+  //       any issues when concatenating the file downstream (the file ends
+  //       with a comment).
+  fs.writeFileSync(DIST + '/' + VIS_MIN_JS, result.code + '\n');
   fs.writeFileSync(DIST + '/' + VIS_MAP, result.map);
 
   cb();
