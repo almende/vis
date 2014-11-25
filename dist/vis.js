@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.7.1-SNAPSHOT
- * @date    2014-11-21
+ * @date    2014-11-25
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -8014,8 +8014,8 @@ return /******/ (function(modules) { // webpackBootstrap
     var changed = (this.start != newStart || this.end != newEnd);
 
     // if the new range does NOT overlap with the old range, emit checkRangedItems to avoid not showing ranged items (ranged meaning has end time, not neccesarily of type Range)
-    if (!((newStart >= this.start && newStart   <= this.start) || (newEnd   >= this.start && newEnd   <= this.end)) &&
-        !((this.start >= newStart && this.start <= newEnd)     || (this.end >= newStart   && this.end <= newEnd) )) {
+    if (!((newStart >= this.start && newStart   <= this.end) || (newEnd   >= this.start && newEnd   <= this.end)) &&
+        !((this.start >= newStart && this.start <= newEnd)   || (this.end >= newStart   && this.end <= newEnd) )) {
       this.body.emitter.emit('checkRangedItems');
     }
 
@@ -15490,7 +15490,6 @@ return /******/ (function(modules) { // webpackBootstrap
         type: "continuous",
         roundness: 0.5
       },
-      dynamicSmoothCurves: true,
       maxVelocity:  30,
       minVelocity:  0.1,   // px/s
       stabilize: true,  // stabilize before displaying the network
@@ -15872,9 +15871,10 @@ return /******/ (function(modules) { // webpackBootstrap
     if (options) {
       var prop;
 
-      var fields = ['nodes','edges','smoothCurves','hierarchicalLayout','clustering','navigation','keyboard','dataManipulation',
-        'onAdd','onEdit','onEditEdge','onConnect','onDelete','clickToUse'
+      var fields = ['nodes','edges','smoothCurves','hierarchicalLayout','clustering','navigation',
+        'keyboard','dataManipulation','onAdd','onEdit','onEditEdge','onConnect','onDelete','clickToUse'
       ];
+      // extend all but the values in fields
       util.selectiveNotDeepExtend(fields,this.constants, options);
       util.selectiveNotDeepExtend(['color'],this.constants.nodes, options.nodes);
       util.selectiveNotDeepExtend(['color','length'],this.constants.edges, options.edges);
@@ -22824,7 +22824,7 @@ return /******/ (function(modules) { // webpackBootstrap
       DOMutil.drawBar(combinedData[i].x + drawData.offset, combinedData[i].y - heightOffset, drawData.width, group.zeroPosition - combinedData[i].y, group.className + ' bar', framework.svgElements, framework.svg);
       // draw points
       if (group.options.drawPoints.enabled == true) {
-        Points.draw(dataset, group, framework, drawData.offset);
+        Points.draw(combinedData, group, framework, drawData.offset);
       }
     }
   };
