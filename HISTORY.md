@@ -13,11 +13,14 @@ http://visjs.org
 ### Graph2D
 
 - Added alignZeros option to dataAxis with default value true.
+- Fixed bug with points drawn on bargraphs
+- Fixed docs
 
 
 ### Network
 
 - dragEnd event now does not give the selected nodes if only the viewport has been dragged #453
+- merged high DPI fix by @crubier, thanks!
 
 ## 2014-11-14, version 3.7.0
 
