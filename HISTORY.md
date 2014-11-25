@@ -10,6 +10,8 @@ http://visjs.org
 - Fixed content in range items may overflow range after zoom.
 - Fixed onAdd/onUpdate callbacks when using a DataView (thanks @motzel).
 - Fixed configuring either `start` or `end`.
+- Fixed Timeline and Graph2d getting stuck in an infinite loop in some
+  circumstances.
 
 ### Graph2D
 
