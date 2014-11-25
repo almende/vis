@@ -6572,8 +6572,6 @@ return /******/ (function(modules) { // webpackBootstrap
         var start = this.options.start != undefined ? this.options.start : dataRange.start;
         var end   = this.options.end != undefined   ? this.options.end   : dataRange.end;
 
-        console.log(this.options.start, this.options.end, dataRange)
-
         this.setWindow(start, end, {animate: false});
       }
       else {
@@ -14450,8 +14448,9 @@ return /******/ (function(modules) { // webpackBootstrap
       dom.content.className = 'content';
       dom.box.appendChild(dom.content);
 
-      // attach this item as attribute
-      dom.box['timeline-item'] = this;
+      // Note: we do NOT attach this item as attribute to the DOM,
+      //       such that background items cannot be selected
+      //dom.box['timeline-item'] = this;
 
       this.dirty = true;
     }

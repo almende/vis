@@ -12,6 +12,7 @@ http://visjs.org
 - Fixed configuring either `start` or `end`.
 - Fixed Timeline and Graph2d getting stuck in an infinite loop in some
   circumstances.
+- Fixed background items being selectable and editable when a height is set.
 
 ### Graph2D
 
