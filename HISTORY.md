@@ -2,6 +2,11 @@
 http://visjs.org
 
 
+## not yet released, version 3.7.2-SNAPSHOT
+
+
+
+
 ## 2014-11-28, version 3.7.1
 
 ### Timeline
@@ -21,11 +26,11 @@ http://visjs.org
 - Fixed docs
 - Fixed height increase on scrolling if only `graphHeight` is defined.
 
-
 ### Network
 
 - dragEnd event now does not give the selected nodes if only the viewport has been dragged #453
 - merged high DPI fix by @crubier, thanks!
+
 
 ## 2014-11-14, version 3.7.0
 
