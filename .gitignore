@@ -1,5 +1,5 @@
 .idea
-.git
+.c9
 *.iml
 node_modules
 .project
