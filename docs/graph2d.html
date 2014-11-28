@@ -118,7 +118,7 @@ For backwards compatibility, groups and options can be interchanged.
 
 <p>
   Data, options and groups can be set or changed later on using the functions
-  <code>Graph2d.setData(data)</code>, <code>Graph2d.setOptions(options)</code> and <code>Graph2d.setGroups(groups)</code>.
+  <code>Graph2d.setItems(data)</code>, <code>Graph2d.setOptions(options)</code> and <code>Graph2d.setGroups(groups)</code>.
 </p>
 
 <h2 id="Data_Format">Data Format</h2>
@@ -509,6 +509,13 @@ The options colored in green can also be used as options for the groups. All opt
   <td>Set the number of decimal points used on the the right axis. If set, this will fix the number of decimal places
       displayed after the decimal point.
       If undefined, trailing zeros will be removed.</td>
+</tr>
+<tr>
+    <td>dataAxis.alignZeros</td>
+    <td>Boolean</td>
+    <td>true</td>
+    <td>When using multiple axis, the right one is slaved to the left one. If you need to ensure that the zero-lines are on the same
+    height, you can turn this option on.</td>
 </tr>
 <tr>
   <td>groups.visibility</td>

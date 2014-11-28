@@ -13,6 +13,13 @@
   box-shadow: 0 0 10px #86d5f8;
 }
 
+/* override some bootstrap styles screwing up the timelines css */
+
+.vis [class*="span"] {
+  min-height: 0;
+  width: auto;
+}
+
 .vis.timeline {
 }
 
@@ -221,8 +228,8 @@
 .vis.timeline .item.range .content {
   position: relative;
   display: inline-block;
-  overflow: hidden;
   max-width: 100%;
+  overflow: hidden;
 }
 
 .vis.timeline .item.background .content {
@@ -396,6 +403,7 @@
 .vis.timeline .dataaxis .yAxis.major.measure{
     padding: 0px 0px 0px 0px;
     margin: 0px 0px 0px 0px;
+    border: 0px;
     visibility: hidden;
     width: auto;
 }
@@ -411,6 +419,7 @@
 .vis.timeline .dataaxis .yAxis.minor.measure{
     padding: 0px 0px 0px 0px;
     margin: 0px 0px 0px 0px;
+    border: 0px;
     visibility: hidden;
     width: auto;
 }
