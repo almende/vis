@@ -9,10 +9,14 @@ http://visjs.org
 - Implemented selection of a range of items using Shift+Click.
 - Fixed content in range items may overflow range after zoom.
 - Fixed onAdd/onUpdate callbacks when using a DataView (thanks @motzel).
+- Fixed configuring either `start` or `end`.
+- Fixed Timeline and Graph2d getting stuck in an infinite loop in some
+  circumstances.
+- Fixed background items being selectable and editable when a height is set.
 
 ### Graph2D
 
-- Added alignZeros option to dataAxis with default value true.
+- Added `alignZeros` option to dataAxis with default value true.
 - Fixed bug with points drawn on bargraphs
 - Fixed docs
 
