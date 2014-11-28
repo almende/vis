@@ -2,7 +2,7 @@
 http://visjs.org
 
 
-## not yet released, version 3.7.1
+## 2014-11-28, version 3.7.1
 
 ### Timeline
 
@@ -19,7 +19,7 @@ http://visjs.org
 - Added `alignZeros` option to dataAxis with default value true.
 - Fixed bug with points drawn on bargraphs
 - Fixed docs
-- Fixed height increase on scolling if only graphHeight is defined.
+- Fixed height increase on scrolling if only `graphHeight` is defined.
 
 
 ### Network
