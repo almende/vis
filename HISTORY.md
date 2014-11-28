@@ -19,6 +19,7 @@ http://visjs.org
 - Added `alignZeros` option to dataAxis with default value true.
 - Fixed bug with points drawn on bargraphs
 - Fixed docs
+- Fixed height increase on scolling if only graphHeight is defined.
 
 
 ### Network
