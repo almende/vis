@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.7.2-SNAPSHOT
- * @date    2014-11-28
+ * @date    2014-12-02
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -22,6 +22,8 @@
  *
  * Vis.js may be distributed under either license.
  */
+
+"use strict";
 
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -3687,9 +3689,9 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       }
 
-      function sortNumber(a, b) {
+      var sortNumber = function (a, b) {
         return a - b;
-      }
+      };
       dataX.sort(sortNumber);
       dataY.sort(sortNumber);
 
@@ -5422,20 +5424,20 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {Event} event
    * @return {Number} mouse x
    */
-  getMouseX = function(event) {
+  function getMouseX (event) {
     if ('clientX' in event) return event.clientX;
     return event.targetTouches[0] && event.targetTouches[0].clientX || 0;
-  };
+  }
 
   /**
    * Get the vertical mouse position from a mouse event
    * @param {Event} event
    * @return {Number} mouse y
    */
-  getMouseY = function(event) {
+  function getMouseY (event) {
     if ('clientY' in event) return event.clientY;
     return event.targetTouches[0] && event.targetTouches[0].clientY || 0;
-  };
+  }
 
   module.exports = Graph3d;
 
@@ -5456,7 +5458,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Documentation:
    *   http://en.wikipedia.org/wiki/3D_projection
    */
-  Camera = function () {
+  function Camera() {
     this.armLocation = new Point3d();
     this.armRotation = {};
     this.armRotation.horizontal = 0;
@@ -5467,7 +5469,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.cameraRotation =  new Point3d(0.5*Math.PI, 0, 0);
 
     this.calculateCameraOrientation();
-  };
+  }
 
   /**
    * Set the location (origin) of the arm
@@ -5813,10 +5815,10 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {Number} [x]
    * @param {Number} [y]
    */
-  Point2d = function (x, y) {
+  function Point2d (x, y) {
     this.x = x !== undefined ? x : 0;
     this.y = y !== undefined ? y : 0;
-  };
+  }
 
   module.exports = Point2d;
 
@@ -7861,7 +7863,7 @@ return /******/ (function(modules) { // webpackBootstrap
       var initTime = new Date().valueOf();
       var anyChanged = false;
 
-      function next() {
+      var next = function () {
         if (!me.props.touch.dragging) {
           var now = new Date().valueOf();
           var time = now - initTime;
@@ -15537,7 +15539,7 @@ return /******/ (function(modules) { // webpackBootstrap
     
     this.hoverObj = {nodes:{},edges:{}};
     this.controlNodesActive = false;
-    this.navigationHammers = {existing:[], new: []};
+    this.navigationHammers = {existing:[], _new: []};
 
     // animation properties
     this.animationSpeed = 1/this.renderRefreshRate;
@@ -21180,7 +21182,7 @@ return /******/ (function(modules) { // webpackBootstrap
        * @param {Object} dotEdge
        * @returns {Object} graphEdge
        */
-      function convertEdge(dotEdge) {
+      var convertEdge = function (dotEdge) {
         var graphEdge = {
           from: dotEdge.from,
           to: dotEdge.to
@@ -32025,12 +32027,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
       var hammer = Hammer(this.navigationDivs[navigationDivs[i]], {prevent_default: true});
       hammer.on('touch', this[navigationDivActions[i]].bind(this));
-      this.navigationHammers.new.push(hammer);
+      this.navigationHammers._new.push(hammer);
     }
 
     this._navigationReleaseOverload = this._stopMovement;
 
-    this.navigationHammers.existing = this.navigationHammers.new;
+    this.navigationHammers.existing = this.navigationHammers._new;
   };
 
 
