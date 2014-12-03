@@ -47,7 +47,6 @@
   border-style: solid;
   border-radius: 2px;
   box-sizing: border-box;
-  overflow: hidden;
 }
 
 .vis.timeline .item.background {
@@ -62,6 +61,7 @@
 .vis.timeline .item.range .content {
   position: relative;
   display: inline-block;
+  max-width: 100%;
   overflow: hidden;
 }
 
