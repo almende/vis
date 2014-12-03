@@ -103,39 +103,39 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // Timeline
   exports.Timeline = __webpack_require__(18);
-  exports.Graph2d = __webpack_require__(41);
+  exports.Graph2d = __webpack_require__(42);
   exports.timeline = {
-    DateUtil: __webpack_require__(35),
-    DataStep: __webpack_require__(44),
+    DateUtil: __webpack_require__(24),
+    DataStep: __webpack_require__(45),
     Range: __webpack_require__(21),
-    stack: __webpack_require__(26),
-    TimeStep: __webpack_require__(37),
+    stack: __webpack_require__(28),
+    TimeStep: __webpack_require__(38),
 
     components: {
       items: {
-        Item: __webpack_require__(28),
-        BackgroundItem: __webpack_require__(32),
-        BoxItem: __webpack_require__(30),
-        PointItem: __webpack_require__(31),
-        RangeItem: __webpack_require__(27)
+        Item: __webpack_require__(30),
+        BackgroundItem: __webpack_require__(34),
+        BoxItem: __webpack_require__(32),
+        PointItem: __webpack_require__(33),
+        RangeItem: __webpack_require__(29)
       },
 
-      Component: __webpack_require__(24),
-      CurrentTime: __webpack_require__(38),
-      CustomTime: __webpack_require__(40),
-      DataAxis: __webpack_require__(43),
-      GraphGroup: __webpack_require__(45),
-      Group: __webpack_require__(25),
-      BackgroundGroup: __webpack_require__(29),
-      ItemSet: __webpack_require__(23),
-      Legend: __webpack_require__(49),
-      LineGraph: __webpack_require__(42),
-      TimeAxis: __webpack_require__(36)
+      Component: __webpack_require__(23),
+      CurrentTime: __webpack_require__(39),
+      CustomTime: __webpack_require__(41),
+      DataAxis: __webpack_require__(44),
+      GraphGroup: __webpack_require__(46),
+      Group: __webpack_require__(27),
+      BackgroundGroup: __webpack_require__(31),
+      ItemSet: __webpack_require__(26),
+      Legend: __webpack_require__(50),
+      LineGraph: __webpack_require__(43),
+      TimeAxis: __webpack_require__(37)
     }
   };
 
   // Network
-  exports.Network = __webpack_require__(50);
+  exports.Network = __webpack_require__(51);
   exports.network = {
     Edge: __webpack_require__(57),
     Groups: __webpack_require__(54),
@@ -9545,11 +9545,11 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(9);
   var Range = __webpack_require__(21);
-  var Core = __webpack_require__(22);
-  var TimeAxis = __webpack_require__(36);
-  var CurrentTime = __webpack_require__(38);
-  var CustomTime = __webpack_require__(40);
-  var ItemSet = __webpack_require__(23);
+  var Core = __webpack_require__(25);
+  var TimeAxis = __webpack_require__(37);
+  var CurrentTime = __webpack_require__(39);
+  var CustomTime = __webpack_require__(41);
+  var ItemSet = __webpack_require__(26);
 
   /**
    * Create a timeline visualization
@@ -12043,10 +12043,10 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(51);
+  var hammerUtil = __webpack_require__(22);
   var moment = __webpack_require__(2);
-  var Component = __webpack_require__(24);
-  var DateUtil = __webpack_require__(35);
+  var Component = __webpack_require__(23);
+  var DateUtil = __webpack_require__(24);
 
   /**
    * @constructor Range
@@ -12724,15 +12724,579 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
+  var Hammer = __webpack_require__(19);
+
+  /**
+   * Fake a hammer.js gesture. Event can be a ScrollEvent or MouseMoveEvent
+   * @param {Element} element
+   * @param {Event} event
+   */
+  exports.fakeGesture = function(element, event) {
+    var eventType = null;
+
+    // for hammer.js 1.0.5
+    // var gesture = Hammer.event.collectEventData(this, eventType, event);
+
+    // for hammer.js 1.0.6+
+    var touches = Hammer.event.getTouchList(event, eventType);
+    var gesture = Hammer.event.collectEventData(this, eventType, touches, event);
+
+    // on IE in standards mode, no touches are recognized by hammer.js,
+    // resulting in NaN values for center.pageX and center.pageY
+    if (isNaN(gesture.center.pageX)) {
+      gesture.center.pageX = event.pageX;
+    }
+    if (isNaN(gesture.center.pageY)) {
+      gesture.center.pageY = event.pageY;
+    }
+
+    return gesture;
+  };
+
+
+/***/ },
+/* 23 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Prototype for visual components
+   * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} [body]
+   * @param {Object} [options]
+   */
+  function Component (body, options) {
+    this.options = null;
+    this.props = null;
+  }
+
+  /**
+   * Set options for the component. The new options will be merged into the
+   * current options.
+   * @param {Object} options
+   */
+  Component.prototype.setOptions = function(options) {
+    if (options) {
+      util.extend(this.options, options);
+    }
+  };
+
+  /**
+   * Repaint the component
+   * @return {boolean} Returns true if the component is resized
+   */
+  Component.prototype.redraw = function() {
+    // should be implemented by the component
+    return false;
+  };
+
+  /**
+   * Destroy the component. Cleanup DOM and event listeners
+   */
+  Component.prototype.destroy = function() {
+    // should be implemented by the component
+  };
+
+  /**
+   * Test whether the component is resized since the last time _isResized() was
+   * called.
+   * @return {Boolean} Returns true if the component is resized
+   * @protected
+   */
+  Component.prototype._isResized = function() {
+    var resized = (this.props._previousWidth !== this.props.width ||
+        this.props._previousHeight !== this.props.height);
+
+    this.props._previousWidth = this.props.width;
+    this.props._previousHeight = this.props.height;
+
+    return resized;
+  };
+
+  module.exports = Component;
+
+
+/***/ },
+/* 24 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Created by Alex on 10/3/2014.
+   */
+  var moment = __webpack_require__(2);
+
+
+  /**
+   * used in Core to convert the options into a volatile variable
+   * 
+   * @param Core
+   */
+  exports.convertHiddenOptions = function(body, hiddenDates) {
+    body.hiddenDates = [];
+    if (hiddenDates) {
+      if (Array.isArray(hiddenDates) == true) {
+        for (var i = 0; i < hiddenDates.length; i++) {
+          if (hiddenDates[i].repeat === undefined) {
+            var dateItem = {};
+            dateItem.start = moment(hiddenDates[i].start).toDate().valueOf();
+            dateItem.end = moment(hiddenDates[i].end).toDate().valueOf();
+            body.hiddenDates.push(dateItem);
+          }
+        }
+        body.hiddenDates.sort(function (a, b) {
+          return a.start - b.start;
+        }); // sort by start time
+      }
+    }
+  };
+
+
+  /**
+   * create new entrees for the repeating hidden dates
+   * @param body
+   * @param hiddenDates
+   */
+  exports.updateHiddenDates = function (body, hiddenDates) {
+    if (hiddenDates && body.domProps.centerContainer.width !== undefined) {
+      exports.convertHiddenOptions(body, hiddenDates);
+
+      var start = moment(body.range.start);
+      var end = moment(body.range.end);
+
+      var totalRange = (body.range.end - body.range.start);
+      var pixelTime = totalRange / body.domProps.centerContainer.width;
+
+      for (var i = 0; i < hiddenDates.length; i++) {
+        if (hiddenDates[i].repeat !== undefined) {
+          var startDate = moment(hiddenDates[i].start);
+          var endDate = moment(hiddenDates[i].end);
+
+          if (startDate._d == "Invalid Date") {
+            throw new Error("Supplied start date is not valid: " + hiddenDates[i].start);
+          }
+          if (endDate._d == "Invalid Date") {
+            throw new Error("Supplied end date is not valid: " + hiddenDates[i].end);
+          }
+
+          var duration = endDate - startDate;
+          if (duration >= 4 * pixelTime) {
+
+            var offset = 0;
+            var runUntil = end.clone();
+            switch (hiddenDates[i].repeat) {
+              case "daily": // case of time
+                if (startDate.day() != endDate.day()) {
+                  offset = 1;
+                }
+                startDate.dayOfYear(start.dayOfYear());
+                startDate.year(start.year());
+                startDate.subtract(7,'days');
+
+                endDate.dayOfYear(start.dayOfYear());
+                endDate.year(start.year());
+                endDate.subtract(7 - offset,'days');
+
+                runUntil.add(1, 'weeks');
+                break;
+              case "weekly":
+                var dayOffset = endDate.diff(startDate,'days')
+                var day = startDate.day();
+
+                // set the start date to the range.start
+                startDate.date(start.date());
+                startDate.month(start.month());
+                startDate.year(start.year());
+                endDate = startDate.clone();
+
+                // force
+                startDate.day(day);
+                endDate.day(day);
+                endDate.add(dayOffset,'days');
+
+                startDate.subtract(1,'weeks');
+                endDate.subtract(1,'weeks');
+
+                runUntil.add(1, 'weeks');
+                break
+              case "monthly":
+                if (startDate.month() != endDate.month()) {
+                  offset = 1;
+                }
+                startDate.month(start.month());
+                startDate.year(start.year());
+                startDate.subtract(1,'months');
+
+                endDate.month(start.month());
+                endDate.year(start.year());
+                endDate.subtract(1,'months');
+                endDate.add(offset,'months');
+
+                runUntil.add(1, 'months');
+                break;
+              case "yearly":
+                if (startDate.year() != endDate.year()) {
+                  offset = 1;
+                }
+                startDate.year(start.year());
+                startDate.subtract(1,'years');
+                endDate.year(start.year());
+                endDate.subtract(1,'years');
+                endDate.add(offset,'years');
+
+                runUntil.add(1, 'years');
+                break;
+              default:
+                console.log("Wrong repeat format, allowed are: daily, weekly, monthly, yearly. Given:", hiddenDates[i].repeat);
+                return;
+            }
+            while (startDate < runUntil) {
+              body.hiddenDates.push({start: startDate.valueOf(), end: endDate.valueOf()});
+              switch (hiddenDates[i].repeat) {
+                case "daily":
+                  startDate.add(1, 'days');
+                  endDate.add(1, 'days');
+                  break;
+                case "weekly":
+                  startDate.add(1, 'weeks');
+                  endDate.add(1, 'weeks');
+                  break
+                case "monthly":
+                  startDate.add(1, 'months');
+                  endDate.add(1, 'months');
+                  break;
+                case "yearly":
+                  startDate.add(1, 'y');
+                  endDate.add(1, 'y');
+                  break;
+                default:
+                  console.log("Wrong repeat format, allowed are: daily, weekly, monthly, yearly. Given:", hiddenDates[i].repeat);
+                  return;
+              }
+            }
+            body.hiddenDates.push({start: startDate.valueOf(), end: endDate.valueOf()});
+          }
+        }
+      }
+      // remove duplicates, merge where possible
+      exports.removeDuplicates(body);
+      // ensure the new positions are not on hidden dates
+      var startHidden = exports.isHidden(body.range.start, body.hiddenDates);
+      var endHidden = exports.isHidden(body.range.end,body.hiddenDates);
+      var rangeStart = body.range.start;
+      var rangeEnd = body.range.end;
+      if (startHidden.hidden == true) {rangeStart = body.range.startToFront == true ? startHidden.startDate - 1 : startHidden.endDate + 1;}
+      if (endHidden.hidden == true)   {rangeEnd   = body.range.endToFront == true ?   endHidden.startDate - 1   : endHidden.endDate + 1;}
+      if (startHidden.hidden == true || endHidden.hidden == true) {
+        body.range._applyRange(rangeStart, rangeEnd);
+      }
+    }
+
+  }
+
+
+  /**
+   * remove duplicates from the hidden dates list. Duplicates are evil. They mess everything up.
+   * Scales with N^2
+   * @param body
+   */
+  exports.removeDuplicates = function(body) {
+    var hiddenDates = body.hiddenDates;
+    var safeDates = [];
+    for (var i = 0; i < hiddenDates.length; i++) {
+      for (var j = 0; j < hiddenDates.length; j++) {
+        if (i != j && hiddenDates[j].remove != true && hiddenDates[i].remove != true) {
+          // j inside i
+          if (hiddenDates[j].start >= hiddenDates[i].start && hiddenDates[j].end <= hiddenDates[i].end) {
+            hiddenDates[j].remove = true;
+          }
+          // j start inside i
+          else if (hiddenDates[j].start >= hiddenDates[i].start && hiddenDates[j].start <= hiddenDates[i].end) {
+            hiddenDates[i].end = hiddenDates[j].end;
+            hiddenDates[j].remove = true;
+          }
+          // j end inside i
+          else if (hiddenDates[j].end >= hiddenDates[i].start && hiddenDates[j].end <= hiddenDates[i].end) {
+            hiddenDates[i].start = hiddenDates[j].start;
+            hiddenDates[j].remove = true;
+          }
+        }
+      }
+    }
+
+    for (var i = 0; i < hiddenDates.length; i++) {
+      if (hiddenDates[i].remove !== true) {
+        safeDates.push(hiddenDates[i]);
+      }
+    }
+
+    body.hiddenDates = safeDates;
+    body.hiddenDates.sort(function (a, b) {
+      return a.start - b.start;
+    }); // sort by start time
+  }
+
+  exports.printDates = function(dates) {
+    for (var i =0; i < dates.length; i++) {
+      console.log(i, new Date(dates[i].start),new Date(dates[i].end), dates[i].start, dates[i].end, dates[i].remove);
+    }
+  }
+
+  /**
+   * Used in TimeStep to avoid the hidden times.
+   * @param timeStep
+   * @param previousTime
+   */
+  exports.stepOverHiddenDates = function(timeStep, previousTime) {
+    var stepInHidden = false;
+    var currentValue = timeStep.current.valueOf();
+    for (var i = 0; i < timeStep.hiddenDates.length; i++) {
+      var startDate = timeStep.hiddenDates[i].start;
+      var endDate = timeStep.hiddenDates[i].end;
+      if (currentValue >= startDate && currentValue < endDate) {
+        stepInHidden = true;
+        break;
+      }
+    }
+
+    if (stepInHidden == true && currentValue < timeStep._end.valueOf() && currentValue != previousTime) {
+      var prevValue = moment(previousTime);
+      var newValue = moment(endDate);
+      //check if the next step should be major
+      if (prevValue.year() != newValue.year()) {timeStep.switchedYear = true;}
+      else if (prevValue.month() != newValue.month()) {timeStep.switchedMonth = true;}
+      else if (prevValue.dayOfYear() != newValue.dayOfYear()) {timeStep.switchedDay = true;}
+
+      timeStep.current = newValue.toDate();
+    }
+  };
+
+
+  ///**
+  // * Used in TimeStep to avoid the hidden times.
+  // * @param timeStep
+  // * @param previousTime
+  // */
+  //exports.checkFirstStep = function(timeStep) {
+  //  var stepInHidden = false;
+  //  var currentValue = timeStep.current.valueOf();
+  //  for (var i = 0; i < timeStep.hiddenDates.length; i++) {
+  //    var startDate = timeStep.hiddenDates[i].start;
+  //    var endDate = timeStep.hiddenDates[i].end;
+  //    if (currentValue >= startDate && currentValue < endDate) {
+  //      stepInHidden = true;
+  //      break;
+  //    }
+  //  }
+  //
+  //  if (stepInHidden == true && currentValue <= timeStep._end.valueOf()) {
+  //    var newValue = moment(endDate);
+  //    timeStep.current = newValue.toDate();
+  //  }
+  //};
+
+  /**
+   * replaces the Core toScreen methods
+   * @param Core
+   * @param time
+   * @param width
+   * @returns {number}
+   */
+  exports.toScreen = function(Core, time, width) {
+    if (Core.body.hiddenDates.length == 0) {
+      var conversion = Core.range.conversion(width);
+      return (time.valueOf() - conversion.offset) * conversion.scale;
+    }
+    else {
+      var hidden = exports.isHidden(time, Core.body.hiddenDates)
+      if (hidden.hidden == true) {
+        time = hidden.startDate;
+      }
+
+      var duration = exports.getHiddenDurationBetween(Core.body.hiddenDates, Core.range.start, Core.range.end);
+      time = exports.correctTimeForHidden(Core.body.hiddenDates, Core.range, time);
+
+      var conversion = Core.range.conversion(width, duration);
+      return (time.valueOf() - conversion.offset) * conversion.scale;
+    }
+  };
+
+
+  /**
+   * Replaces the core toTime methods
+   * @param body
+   * @param range
+   * @param x
+   * @param width
+   * @returns {Date}
+   */
+  exports.toTime = function(Core, x, width) {
+    if (Core.body.hiddenDates.length == 0) {
+      var conversion = Core.range.conversion(width);
+      return new Date(x / conversion.scale + conversion.offset);
+    }
+    else {
+      var hiddenDuration = exports.getHiddenDurationBetween(Core.body.hiddenDates, Core.range.start, Core.range.end);
+      var totalDuration = Core.range.end - Core.range.start - hiddenDuration;
+      var partialDuration = totalDuration * x / width;
+      var accumulatedHiddenDuration = exports.getAccumulatedHiddenDuration(Core.body.hiddenDates, Core.range, partialDuration);
+
+      var newTime = new Date(accumulatedHiddenDuration + partialDuration + Core.range.start);
+      return newTime;
+    }
+  };
+
+
+  /**
+   * Support function
+   *
+   * @param hiddenDates
+   * @param range
+   * @returns {number}
+   */
+  exports.getHiddenDurationBetween = function(hiddenDates, start, end) {
+    var duration = 0;
+    for (var i = 0; i < hiddenDates.length; i++) {
+      var startDate = hiddenDates[i].start;
+      var endDate = hiddenDates[i].end;
+      // if time after the cutout, and the
+      if (startDate >= start && endDate < end) {
+        duration += endDate - startDate;
+      }
+    }
+    return duration;
+  };
+
+
+  /**
+   * Support function
+   * @param hiddenDates
+   * @param range
+   * @param time
+   * @returns {{duration: number, time: *, offset: number}}
+   */
+  exports.correctTimeForHidden = function(hiddenDates, range, time) {
+    time = moment(time).toDate().valueOf();
+    time -= exports.getHiddenDurationBefore(hiddenDates,range,time);
+    return time;
+  };
+
+  exports.getHiddenDurationBefore = function(hiddenDates, range, time) {
+    var timeOffset = 0;
+    time = moment(time).toDate().valueOf();
+
+    for (var i = 0; i < hiddenDates.length; i++) {
+      var startDate = hiddenDates[i].start;
+      var endDate = hiddenDates[i].end;
+      // if time after the cutout, and the
+      if (startDate >= range.start && endDate < range.end) {
+        if (time >= endDate) {
+          timeOffset += (endDate - startDate);
+        }
+      }
+    }
+    return timeOffset;
+  }
+
+  /**
+   * sum the duration from start to finish, including the hidden duration,
+   * until the required amount has been reached, return the accumulated hidden duration
+   * @param hiddenDates
+   * @param range
+   * @param time
+   * @returns {{duration: number, time: *, offset: number}}
+   */
+  exports.getAccumulatedHiddenDuration = function(hiddenDates, range, requiredDuration) {
+    var hiddenDuration = 0;
+    var duration = 0;
+    var previousPoint = range.start;
+    //exports.printDates(hiddenDates)
+    for (var i = 0; i < hiddenDates.length; i++) {
+      var startDate = hiddenDates[i].start;
+      var endDate = hiddenDates[i].end;
+      // if time after the cutout, and the
+      if (startDate >= range.start && endDate < range.end) {
+        duration += startDate - previousPoint;
+        previousPoint = endDate;
+        if (duration >= requiredDuration) {
+          break;
+        }
+        else {
+          hiddenDuration += endDate - startDate;
+        }
+      }
+    }
+
+    return hiddenDuration;
+  };
+
+
+
+  /**
+   * used to step over to either side of a hidden block. Correction is disabled on tablets, might be set to true
+   * @param hiddenDates
+   * @param time
+   * @param direction
+   * @param correctionEnabled
+   * @returns {*}
+   */
+  exports.snapAwayFromHidden = function(hiddenDates, time, direction, correctionEnabled) {
+    var isHidden = exports.isHidden(time, hiddenDates);
+    if (isHidden.hidden == true) {
+      if (direction < 0) {
+        if (correctionEnabled == true) {
+          return isHidden.startDate - (isHidden.endDate - time) - 1;
+        }
+        else {
+          return isHidden.startDate - 1;
+        }
+      }
+      else {
+        if (correctionEnabled == true) {
+          return isHidden.endDate + (time - isHidden.startDate) + 1;
+        }
+        else {
+          return isHidden.endDate + 1;
+        }
+      }
+    }
+    else {
+      return time;
+    }
+
+  }
+
+
+  /**
+   * Check if a time is hidden
+   *
+   * @param time
+   * @param hiddenDates
+   * @returns {{hidden: boolean, startDate: Window.start, endDate: *}}
+   */
+  exports.isHidden = function(time, hiddenDates) {
+    for (var i = 0; i < hiddenDates.length; i++) {
+      var startDate = hiddenDates[i].start;
+      var endDate = hiddenDates[i].end;
+
+      if (time >= startDate && time < endDate) { // if the start is entering a hidden zone
+        return {hidden: true, startDate: startDate, endDate: endDate};
+        break;
+      }
+    }
+    return {hidden: false, startDate: startDate, endDate: endDate};
+  }
+
+/***/ },
+/* 25 */
+/***/ function(module, exports, __webpack_require__) {
+
   var Emitter = __webpack_require__(11);
   var Hammer = __webpack_require__(19);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(9);
   var Range = __webpack_require__(21);
-  var ItemSet = __webpack_require__(23);
-  var Activator = __webpack_require__(33);
-  var DateUtil = __webpack_require__(35);
+  var ItemSet = __webpack_require__(26);
+  var Activator = __webpack_require__(35);
+  var DateUtil = __webpack_require__(24);
 
   /**
    * Create a timeline visualization
@@ -13597,20 +14161,20 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 23 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Hammer = __webpack_require__(19);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(9);
-  var Component = __webpack_require__(24);
-  var Group = __webpack_require__(25);
-  var BackgroundGroup = __webpack_require__(29);
-  var BoxItem = __webpack_require__(30);
-  var PointItem = __webpack_require__(31);
-  var RangeItem = __webpack_require__(27);
-  var BackgroundItem = __webpack_require__(32);
+  var Component = __webpack_require__(23);
+  var Group = __webpack_require__(27);
+  var BackgroundGroup = __webpack_require__(31);
+  var BoxItem = __webpack_require__(32);
+  var PointItem = __webpack_require__(33);
+  var RangeItem = __webpack_require__(29);
+  var BackgroundItem = __webpack_require__(34);
 
 
   var UNGROUPED = '__ungrouped__';   // reserved group id for ungrouped items
@@ -15131,72 +15695,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 24 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * Prototype for visual components
-   * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} [body]
-   * @param {Object} [options]
-   */
-  function Component (body, options) {
-    this.options = null;
-    this.props = null;
-  }
-
-  /**
-   * Set options for the component. The new options will be merged into the
-   * current options.
-   * @param {Object} options
-   */
-  Component.prototype.setOptions = function(options) {
-    if (options) {
-      util.extend(this.options, options);
-    }
-  };
-
-  /**
-   * Repaint the component
-   * @return {boolean} Returns true if the component is resized
-   */
-  Component.prototype.redraw = function() {
-    // should be implemented by the component
-    return false;
-  };
-
-  /**
-   * Destroy the component. Cleanup DOM and event listeners
-   */
-  Component.prototype.destroy = function() {
-    // should be implemented by the component
-  };
-
-  /**
-   * Test whether the component is resized since the last time _isResized() was
-   * called.
-   * @return {Boolean} Returns true if the component is resized
-   * @protected
-   */
-  Component.prototype._isResized = function() {
-    var resized = (this.props._previousWidth !== this.props.width ||
-        this.props._previousHeight !== this.props.height);
-
-    this.props._previousWidth = this.props.width;
-    this.props._previousHeight = this.props.height;
-
-    return resized;
-  };
-
-  module.exports = Component;
-
-
-/***/ },
-/* 25 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var stack = __webpack_require__(26);
-  var RangeItem = __webpack_require__(27);
+  var stack = __webpack_require__(28);
+  var RangeItem = __webpack_require__(29);
 
   /**
    * @constructor Group
@@ -15766,7 +16270,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 26 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Utility functions for ordering and stacking of items
@@ -15894,11 +16398,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 27 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Hammer = __webpack_require__(19);
-  var Item = __webpack_require__(28);
+  var Item = __webpack_require__(30);
 
   /**
    * @constructor RangeItem
@@ -16201,7 +16705,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 28 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Hammer = __webpack_require__(19);
@@ -16466,11 +16970,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 29 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Group = __webpack_require__(25);
+  var Group = __webpack_require__(27);
 
   /**
    * @constructor BackgroundGroup
@@ -16529,10 +17033,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 30 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Item = __webpack_require__(28);
+  var Item = __webpack_require__(30);
   var util = __webpack_require__(1);
 
   /**
@@ -16759,10 +17263,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 31 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Item = __webpack_require__(28);
+  var Item = __webpack_require__(30);
 
   /**
    * @constructor PointItem
@@ -16948,13 +17452,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 32 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Hammer = __webpack_require__(19);
-  var Item = __webpack_require__(28);
-  var BackgroundGroup = __webpack_require__(29);
-  var RangeItem = __webpack_require__(27);
+  var Item = __webpack_require__(30);
+  var BackgroundGroup = __webpack_require__(31);
+  var RangeItem = __webpack_require__(29);
 
   /**
    * @constructor BackgroundItem
@@ -17162,10 +17666,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 33 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var keycharm = __webpack_require__(34);
+  var keycharm = __webpack_require__(36);
   var Emitter = __webpack_require__(11);
   var Hammer = __webpack_require__(19);
   var util = __webpack_require__(1);
@@ -17319,7 +17823,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 34 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
@@ -17516,483 +18020,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 35 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * Created by Alex on 10/3/2014.
-   */
-  var moment = __webpack_require__(2);
-
-
-  /**
-   * used in Core to convert the options into a volatile variable
-   * 
-   * @param Core
-   */
-  exports.convertHiddenOptions = function(body, hiddenDates) {
-    body.hiddenDates = [];
-    if (hiddenDates) {
-      if (Array.isArray(hiddenDates) == true) {
-        for (var i = 0; i < hiddenDates.length; i++) {
-          if (hiddenDates[i].repeat === undefined) {
-            var dateItem = {};
-            dateItem.start = moment(hiddenDates[i].start).toDate().valueOf();
-            dateItem.end = moment(hiddenDates[i].end).toDate().valueOf();
-            body.hiddenDates.push(dateItem);
-          }
-        }
-        body.hiddenDates.sort(function (a, b) {
-          return a.start - b.start;
-        }); // sort by start time
-      }
-    }
-  };
-
-
-  /**
-   * create new entrees for the repeating hidden dates
-   * @param body
-   * @param hiddenDates
-   */
-  exports.updateHiddenDates = function (body, hiddenDates) {
-    if (hiddenDates && body.domProps.centerContainer.width !== undefined) {
-      exports.convertHiddenOptions(body, hiddenDates);
-
-      var start = moment(body.range.start);
-      var end = moment(body.range.end);
-
-      var totalRange = (body.range.end - body.range.start);
-      var pixelTime = totalRange / body.domProps.centerContainer.width;
-
-      for (var i = 0; i < hiddenDates.length; i++) {
-        if (hiddenDates[i].repeat !== undefined) {
-          var startDate = moment(hiddenDates[i].start);
-          var endDate = moment(hiddenDates[i].end);
-
-          if (startDate._d == "Invalid Date") {
-            throw new Error("Supplied start date is not valid: " + hiddenDates[i].start);
-          }
-          if (endDate._d == "Invalid Date") {
-            throw new Error("Supplied end date is not valid: " + hiddenDates[i].end);
-          }
-
-          var duration = endDate - startDate;
-          if (duration >= 4 * pixelTime) {
-
-            var offset = 0;
-            var runUntil = end.clone();
-            switch (hiddenDates[i].repeat) {
-              case "daily": // case of time
-                if (startDate.day() != endDate.day()) {
-                  offset = 1;
-                }
-                startDate.dayOfYear(start.dayOfYear());
-                startDate.year(start.year());
-                startDate.subtract(7,'days');
-
-                endDate.dayOfYear(start.dayOfYear());
-                endDate.year(start.year());
-                endDate.subtract(7 - offset,'days');
-
-                runUntil.add(1, 'weeks');
-                break;
-              case "weekly":
-                var dayOffset = endDate.diff(startDate,'days')
-                var day = startDate.day();
-
-                // set the start date to the range.start
-                startDate.date(start.date());
-                startDate.month(start.month());
-                startDate.year(start.year());
-                endDate = startDate.clone();
-
-                // force
-                startDate.day(day);
-                endDate.day(day);
-                endDate.add(dayOffset,'days');
-
-                startDate.subtract(1,'weeks');
-                endDate.subtract(1,'weeks');
-
-                runUntil.add(1, 'weeks');
-                break
-              case "monthly":
-                if (startDate.month() != endDate.month()) {
-                  offset = 1;
-                }
-                startDate.month(start.month());
-                startDate.year(start.year());
-                startDate.subtract(1,'months');
-
-                endDate.month(start.month());
-                endDate.year(start.year());
-                endDate.subtract(1,'months');
-                endDate.add(offset,'months');
-
-                runUntil.add(1, 'months');
-                break;
-              case "yearly":
-                if (startDate.year() != endDate.year()) {
-                  offset = 1;
-                }
-                startDate.year(start.year());
-                startDate.subtract(1,'years');
-                endDate.year(start.year());
-                endDate.subtract(1,'years');
-                endDate.add(offset,'years');
-
-                runUntil.add(1, 'years');
-                break;
-              default:
-                console.log("Wrong repeat format, allowed are: daily, weekly, monthly, yearly. Given:", hiddenDates[i].repeat);
-                return;
-            }
-            while (startDate < runUntil) {
-              body.hiddenDates.push({start: startDate.valueOf(), end: endDate.valueOf()});
-              switch (hiddenDates[i].repeat) {
-                case "daily":
-                  startDate.add(1, 'days');
-                  endDate.add(1, 'days');
-                  break;
-                case "weekly":
-                  startDate.add(1, 'weeks');
-                  endDate.add(1, 'weeks');
-                  break
-                case "monthly":
-                  startDate.add(1, 'months');
-                  endDate.add(1, 'months');
-                  break;
-                case "yearly":
-                  startDate.add(1, 'y');
-                  endDate.add(1, 'y');
-                  break;
-                default:
-                  console.log("Wrong repeat format, allowed are: daily, weekly, monthly, yearly. Given:", hiddenDates[i].repeat);
-                  return;
-              }
-            }
-            body.hiddenDates.push({start: startDate.valueOf(), end: endDate.valueOf()});
-          }
-        }
-      }
-      // remove duplicates, merge where possible
-      exports.removeDuplicates(body);
-      // ensure the new positions are not on hidden dates
-      var startHidden = exports.isHidden(body.range.start, body.hiddenDates);
-      var endHidden = exports.isHidden(body.range.end,body.hiddenDates);
-      var rangeStart = body.range.start;
-      var rangeEnd = body.range.end;
-      if (startHidden.hidden == true) {rangeStart = body.range.startToFront == true ? startHidden.startDate - 1 : startHidden.endDate + 1;}
-      if (endHidden.hidden == true)   {rangeEnd   = body.range.endToFront == true ?   endHidden.startDate - 1   : endHidden.endDate + 1;}
-      if (startHidden.hidden == true || endHidden.hidden == true) {
-        body.range._applyRange(rangeStart, rangeEnd);
-      }
-    }
-
-  }
-
-
-  /**
-   * remove duplicates from the hidden dates list. Duplicates are evil. They mess everything up.
-   * Scales with N^2
-   * @param body
-   */
-  exports.removeDuplicates = function(body) {
-    var hiddenDates = body.hiddenDates;
-    var safeDates = [];
-    for (var i = 0; i < hiddenDates.length; i++) {
-      for (var j = 0; j < hiddenDates.length; j++) {
-        if (i != j && hiddenDates[j].remove != true && hiddenDates[i].remove != true) {
-          // j inside i
-          if (hiddenDates[j].start >= hiddenDates[i].start && hiddenDates[j].end <= hiddenDates[i].end) {
-            hiddenDates[j].remove = true;
-          }
-          // j start inside i
-          else if (hiddenDates[j].start >= hiddenDates[i].start && hiddenDates[j].start <= hiddenDates[i].end) {
-            hiddenDates[i].end = hiddenDates[j].end;
-            hiddenDates[j].remove = true;
-          }
-          // j end inside i
-          else if (hiddenDates[j].end >= hiddenDates[i].start && hiddenDates[j].end <= hiddenDates[i].end) {
-            hiddenDates[i].start = hiddenDates[j].start;
-            hiddenDates[j].remove = true;
-          }
-        }
-      }
-    }
-
-    for (var i = 0; i < hiddenDates.length; i++) {
-      if (hiddenDates[i].remove !== true) {
-        safeDates.push(hiddenDates[i]);
-      }
-    }
-
-    body.hiddenDates = safeDates;
-    body.hiddenDates.sort(function (a, b) {
-      return a.start - b.start;
-    }); // sort by start time
-  }
-
-  exports.printDates = function(dates) {
-    for (var i =0; i < dates.length; i++) {
-      console.log(i, new Date(dates[i].start),new Date(dates[i].end), dates[i].start, dates[i].end, dates[i].remove);
-    }
-  }
-
-  /**
-   * Used in TimeStep to avoid the hidden times.
-   * @param timeStep
-   * @param previousTime
-   */
-  exports.stepOverHiddenDates = function(timeStep, previousTime) {
-    var stepInHidden = false;
-    var currentValue = timeStep.current.valueOf();
-    for (var i = 0; i < timeStep.hiddenDates.length; i++) {
-      var startDate = timeStep.hiddenDates[i].start;
-      var endDate = timeStep.hiddenDates[i].end;
-      if (currentValue >= startDate && currentValue < endDate) {
-        stepInHidden = true;
-        break;
-      }
-    }
-
-    if (stepInHidden == true && currentValue < timeStep._end.valueOf() && currentValue != previousTime) {
-      var prevValue = moment(previousTime);
-      var newValue = moment(endDate);
-      //check if the next step should be major
-      if (prevValue.year() != newValue.year()) {timeStep.switchedYear = true;}
-      else if (prevValue.month() != newValue.month()) {timeStep.switchedMonth = true;}
-      else if (prevValue.dayOfYear() != newValue.dayOfYear()) {timeStep.switchedDay = true;}
-
-      timeStep.current = newValue.toDate();
-    }
-  };
-
-
-  ///**
-  // * Used in TimeStep to avoid the hidden times.
-  // * @param timeStep
-  // * @param previousTime
-  // */
-  //exports.checkFirstStep = function(timeStep) {
-  //  var stepInHidden = false;
-  //  var currentValue = timeStep.current.valueOf();
-  //  for (var i = 0; i < timeStep.hiddenDates.length; i++) {
-  //    var startDate = timeStep.hiddenDates[i].start;
-  //    var endDate = timeStep.hiddenDates[i].end;
-  //    if (currentValue >= startDate && currentValue < endDate) {
-  //      stepInHidden = true;
-  //      break;
-  //    }
-  //  }
-  //
-  //  if (stepInHidden == true && currentValue <= timeStep._end.valueOf()) {
-  //    var newValue = moment(endDate);
-  //    timeStep.current = newValue.toDate();
-  //  }
-  //};
-
-  /**
-   * replaces the Core toScreen methods
-   * @param Core
-   * @param time
-   * @param width
-   * @returns {number}
-   */
-  exports.toScreen = function(Core, time, width) {
-    if (Core.body.hiddenDates.length == 0) {
-      var conversion = Core.range.conversion(width);
-      return (time.valueOf() - conversion.offset) * conversion.scale;
-    }
-    else {
-      var hidden = exports.isHidden(time, Core.body.hiddenDates)
-      if (hidden.hidden == true) {
-        time = hidden.startDate;
-      }
-
-      var duration = exports.getHiddenDurationBetween(Core.body.hiddenDates, Core.range.start, Core.range.end);
-      time = exports.correctTimeForHidden(Core.body.hiddenDates, Core.range, time);
-
-      var conversion = Core.range.conversion(width, duration);
-      return (time.valueOf() - conversion.offset) * conversion.scale;
-    }
-  };
-
-
-  /**
-   * Replaces the core toTime methods
-   * @param body
-   * @param range
-   * @param x
-   * @param width
-   * @returns {Date}
-   */
-  exports.toTime = function(Core, x, width) {
-    if (Core.body.hiddenDates.length == 0) {
-      var conversion = Core.range.conversion(width);
-      return new Date(x / conversion.scale + conversion.offset);
-    }
-    else {
-      var hiddenDuration = exports.getHiddenDurationBetween(Core.body.hiddenDates, Core.range.start, Core.range.end);
-      var totalDuration = Core.range.end - Core.range.start - hiddenDuration;
-      var partialDuration = totalDuration * x / width;
-      var accumulatedHiddenDuration = exports.getAccumulatedHiddenDuration(Core.body.hiddenDates, Core.range, partialDuration);
-
-      var newTime = new Date(accumulatedHiddenDuration + partialDuration + Core.range.start);
-      return newTime;
-    }
-  };
-
-
-  /**
-   * Support function
-   *
-   * @param hiddenDates
-   * @param range
-   * @returns {number}
-   */
-  exports.getHiddenDurationBetween = function(hiddenDates, start, end) {
-    var duration = 0;
-    for (var i = 0; i < hiddenDates.length; i++) {
-      var startDate = hiddenDates[i].start;
-      var endDate = hiddenDates[i].end;
-      // if time after the cutout, and the
-      if (startDate >= start && endDate < end) {
-        duration += endDate - startDate;
-      }
-    }
-    return duration;
-  };
-
-
-  /**
-   * Support function
-   * @param hiddenDates
-   * @param range
-   * @param time
-   * @returns {{duration: number, time: *, offset: number}}
-   */
-  exports.correctTimeForHidden = function(hiddenDates, range, time) {
-    time = moment(time).toDate().valueOf();
-    time -= exports.getHiddenDurationBefore(hiddenDates,range,time);
-    return time;
-  };
-
-  exports.getHiddenDurationBefore = function(hiddenDates, range, time) {
-    var timeOffset = 0;
-    time = moment(time).toDate().valueOf();
-
-    for (var i = 0; i < hiddenDates.length; i++) {
-      var startDate = hiddenDates[i].start;
-      var endDate = hiddenDates[i].end;
-      // if time after the cutout, and the
-      if (startDate >= range.start && endDate < range.end) {
-        if (time >= endDate) {
-          timeOffset += (endDate - startDate);
-        }
-      }
-    }
-    return timeOffset;
-  }
-
-  /**
-   * sum the duration from start to finish, including the hidden duration,
-   * until the required amount has been reached, return the accumulated hidden duration
-   * @param hiddenDates
-   * @param range
-   * @param time
-   * @returns {{duration: number, time: *, offset: number}}
-   */
-  exports.getAccumulatedHiddenDuration = function(hiddenDates, range, requiredDuration) {
-    var hiddenDuration = 0;
-    var duration = 0;
-    var previousPoint = range.start;
-    //exports.printDates(hiddenDates)
-    for (var i = 0; i < hiddenDates.length; i++) {
-      var startDate = hiddenDates[i].start;
-      var endDate = hiddenDates[i].end;
-      // if time after the cutout, and the
-      if (startDate >= range.start && endDate < range.end) {
-        duration += startDate - previousPoint;
-        previousPoint = endDate;
-        if (duration >= requiredDuration) {
-          break;
-        }
-        else {
-          hiddenDuration += endDate - startDate;
-        }
-      }
-    }
-
-    return hiddenDuration;
-  };
-
-
-
-  /**
-   * used to step over to either side of a hidden block. Correction is disabled on tablets, might be set to true
-   * @param hiddenDates
-   * @param time
-   * @param direction
-   * @param correctionEnabled
-   * @returns {*}
-   */
-  exports.snapAwayFromHidden = function(hiddenDates, time, direction, correctionEnabled) {
-    var isHidden = exports.isHidden(time, hiddenDates);
-    if (isHidden.hidden == true) {
-      if (direction < 0) {
-        if (correctionEnabled == true) {
-          return isHidden.startDate - (isHidden.endDate - time) - 1;
-        }
-        else {
-          return isHidden.startDate - 1;
-        }
-      }
-      else {
-        if (correctionEnabled == true) {
-          return isHidden.endDate + (time - isHidden.startDate) + 1;
-        }
-        else {
-          return isHidden.endDate + 1;
-        }
-      }
-    }
-    else {
-      return time;
-    }
-
-  }
-
-
-  /**
-   * Check if a time is hidden
-   *
-   * @param time
-   * @param hiddenDates
-   * @returns {{hidden: boolean, startDate: Window.start, endDate: *}}
-   */
-  exports.isHidden = function(time, hiddenDates) {
-    for (var i = 0; i < hiddenDates.length; i++) {
-      var startDate = hiddenDates[i].start;
-      var endDate = hiddenDates[i].end;
-
-      if (time >= startDate && time < endDate) { // if the start is entering a hidden zone
-        return {hidden: true, startDate: startDate, endDate: endDate};
-        break;
-      }
-    }
-    return {hidden: false, startDate: startDate, endDate: endDate};
-  }
-
-/***/ },
-/* 36 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Component = __webpack_require__(24);
-  var TimeStep = __webpack_require__(37);
-  var DateUtil = __webpack_require__(35);
+  var Component = __webpack_require__(23);
+  var TimeStep = __webpack_require__(38);
+  var DateUtil = __webpack_require__(24);
   var moment = __webpack_require__(2);
 
   /**
@@ -18405,11 +18439,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 37 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
   var moment = __webpack_require__(2);
-  var DateUtil = __webpack_require__(35);
+  var DateUtil = __webpack_require__(24);
 
   /**
    * @constructor  TimeStep
@@ -18937,13 +18971,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 38 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Component = __webpack_require__(24);
+  var Component = __webpack_require__(23);
   var moment = __webpack_require__(2);
-  var locales = __webpack_require__(39);
+  var locales = __webpack_require__(40);
 
   /**
    * A current time bar
@@ -19106,7 +19140,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 39 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -19127,14 +19161,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 40 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Hammer = __webpack_require__(19);
   var util = __webpack_require__(1);
-  var Component = __webpack_require__(24);
+  var Component = __webpack_require__(23);
   var moment = __webpack_require__(2);
-  var locales = __webpack_require__(39);
+  var locales = __webpack_require__(40);
 
   /**
    * A custom time bar
@@ -19329,7 +19363,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 41 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Emitter = __webpack_require__(11);
@@ -19338,11 +19372,11 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(9);
   var Range = __webpack_require__(21);
-  var Core = __webpack_require__(22);
-  var TimeAxis = __webpack_require__(36);
-  var CurrentTime = __webpack_require__(38);
-  var CustomTime = __webpack_require__(40);
-  var LineGraph = __webpack_require__(42);
+  var Core = __webpack_require__(25);
+  var TimeAxis = __webpack_require__(37);
+  var CurrentTime = __webpack_require__(39);
+  var CustomTime = __webpack_require__(41);
+  var LineGraph = __webpack_require__(43);
 
   /**
    * Create a timeline visualization
@@ -19579,18 +19613,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 42 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(6);
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(9);
-  var Component = __webpack_require__(24);
-  var DataAxis = __webpack_require__(43);
-  var GraphGroup = __webpack_require__(45);
-  var Legend = __webpack_require__(49);
-  var BarGraphFunctions = __webpack_require__(48);
+  var Component = __webpack_require__(23);
+  var DataAxis = __webpack_require__(44);
+  var GraphGroup = __webpack_require__(46);
+  var Legend = __webpack_require__(50);
+  var BarGraphFunctions = __webpack_require__(49);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -20545,13 +20579,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 43 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(6);
-  var Component = __webpack_require__(24);
-  var DataStep = __webpack_require__(44);
+  var Component = __webpack_require__(23);
+  var DataStep = __webpack_require__(45);
 
   /**
    * A horizontal time axis
@@ -21179,7 +21213,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 44 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -21457,14 +21491,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 45 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(6);
-  var Line = __webpack_require__(46);
-  var Bar = __webpack_require__(48);
-  var Points = __webpack_require__(47);
+  var Line = __webpack_require__(47);
+  var Bar = __webpack_require__(49);
+  var Points = __webpack_require__(48);
 
   /**
    * /**
@@ -21662,14 +21696,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 46 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
    * Created by Alex on 11/11/2014.
    */
   var DOMutil = __webpack_require__(6);
-  var Points = __webpack_require__(47);
+  var Points = __webpack_require__(48);
 
   function Line(groupId, options) {
     this.groupId = groupId;
@@ -21886,7 +21920,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 47 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -21934,14 +21968,14 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Points;
 
 /***/ },
-/* 48 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
    * Created by Alex on 11/11/2014.
    */
   var DOMutil = __webpack_require__(6);
-  var Points = __webpack_require__(47);
+  var Points = __webpack_require__(48);
 
   function Bargraph(groupId, options) {
     this.groupId = groupId;
@@ -22168,12 +22202,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Bargraph;
 
 /***/ },
-/* 49 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(6);
-  var Component = __webpack_require__(24);
+  var Component = __webpack_require__(23);
 
   /**
    * Legend for Graph2d
@@ -22378,14 +22412,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 50 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Emitter = __webpack_require__(11);
   var Hammer = __webpack_require__(19);
-  var keycharm = __webpack_require__(34);
+  var keycharm = __webpack_require__(36);
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(51);
+  var hammerUtil = __webpack_require__(22);
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(9);
   var dotparser = __webpack_require__(52);
@@ -22396,7 +22430,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var Edge = __webpack_require__(57);
   var Popup = __webpack_require__(58);
   var MixinLoader = __webpack_require__(59);
-  var Activator = __webpack_require__(33);
+  var Activator = __webpack_require__(35);
   var locales = __webpack_require__(70);
 
   // Load custom shapes into CanvasRenderingContext2D
@@ -22614,6 +22648,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.targetTranslation = 0;
     this.lockedOnNodeId = null;
     this.lockedOnNodeOffset = null;
+    this.touchTime = 0;
 
     // Node variables
     var network = this;
@@ -23163,7 +23198,6 @@ return /******/ (function(modules) { // webpackBootstrap
     this.hammerFrame = Hammer(this.frame, {
       prevent_default: true
     });
-
     this.hammerFrame.on('release',   me._onRelease.bind(me) );
 
     // add the frame to the container element
@@ -23237,11 +23271,16 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   Network.prototype._onTouch = function (event) {
-    this.drag.pointer = this._getPointer(event.gesture.center);
-    this.drag.pinched = false;
-    this.pinch.scale = this._getScale();
+    if (new Date().valueOf() - this.touchTime > 100) {
+      this.drag.pointer = this._getPointer(event.gesture.center);
+      this.drag.pinched = false;
+      this.pinch.scale = this._getScale();
 
-    this._handleTouch(this.drag.pointer);
+      // to avoid double fireing of this event because we have two hammer instances. (on canvas and on frame)
+      this.touchTime = new Date().valueOf();
+
+      this._handleTouch(this.drag.pointer);
+    }
   };
 
   /**
@@ -24966,40 +25005,6 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   module.exports = Network;
-
-
-/***/ },
-/* 51 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var Hammer = __webpack_require__(19);
-
-  /**
-   * Fake a hammer.js gesture. Event can be a ScrollEvent or MouseMoveEvent
-   * @param {Element} element
-   * @param {Event} event
-   */
-  exports.fakeGesture = function(element, event) {
-    var eventType = null;
-
-    // for hammer.js 1.0.5
-    // var gesture = Hammer.event.collectEventData(this, eventType, event);
-
-    // for hammer.js 1.0.6+
-    var touches = Hammer.event.getTouchList(event, eventType);
-    var gesture = Hammer.event.collectEventData(this, eventType, touches, event);
-
-    // on IE in standards mode, no touches are recognized by hammer.js,
-    // resulting in NaN values for center.pageX and center.pageY
-    if (isNaN(gesture.center.pageX)) {
-      gesture.center.pageX = event.pageX;
-    }
-    if (isNaN(gesture.center.pageY)) {
-      gesture.center.pageY = event.pageY;
-    }
-
-    return gesture;
-  };
 
 
 /***/ },
@@ -27121,6 +27126,9 @@ return /******/ (function(modules) { // webpackBootstrap
     this.to = null;     // a node
     this.via = null;    // a temp node
 
+    this.fromBackup = null; // used to clean up after reconnect
+    this.toBackup = null;;  // used to clean up after reconnect
+
     // we use this to be able to reconnect the edge to a cluster if its node is put into a cluster
     // by storing the original information we can revert to the original connection when the cluser is opened.
     this.originalFromId = [];
@@ -28113,7 +28121,8 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   /**
-   * This function draws the control nodes for the manipulator. In order to enable this, only set the this.controlNodesEnabled to true.
+   * This function draws the control nodes for the manipulator.
+   * In order to enable this, only set the this.controlNodesEnabled to true.
    * @param ctx
    */
   Edge.prototype._drawControlNodes = function(ctx) {
@@ -28159,16 +28168,30 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   Edge.prototype._enableControlNodes = function() {
+    this.fromBackup = this.from;
+    this.toBackup = this.to;
     this.controlNodesEnabled = true;
   };
 
   /**
-   * disable control nodes
+   * disable control nodes and remove from dynamicEdges from old node
    * @private
    */
   Edge.prototype._disableControlNodes = function() {
+    this.fromId = this.from.id;
+    this.toId = this.to.id;
+    if (this.fromId != this.fromBackup.id) { // from was changed, remove edge from old 'from' node dynamic edges
+      this.fromBackup.detachEdge(this);
+    }
+    else if (this.toId != this.toBackup.id) { // to was changed, remove edge from old 'to' node dynamic edges
+      this.toBackup.detachEdge(this);
+    }
+
+    this.fromBackup = null;
+    this.toBackup = null;
     this.controlNodesEnabled = false;
   };
+
 
   /**
    * This checks if one of the control nodes is selected and if so, returns the control node object. Else it returns null.
@@ -28208,7 +28231,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.connectedNode = null;
       this.controlNodes.from.unselect();
     }
-    if (this.controlNodes.to.selected == true) {
+    else if (this.controlNodes.to.selected == true) {
       this.to = this.connectedNode;
       this.connectedNode = null;
       this.controlNodes.to.unselect();
@@ -32445,7 +32468,6 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     var locale = this.constants.locales[this.constants.locale];
-
     if (this.edgeBeingEdited !== undefined) {
       this.edgeBeingEdited._disableControlNodes();
       this.edgeBeingEdited = undefined;
@@ -32776,7 +32798,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   exports._releaseControlNode = function(pointer) {
     var newNode = this._getNodeAt(pointer);
-    if (newNode != null) {
+    if (newNode !== null) {
       if (this.edgeBeingEdited.controlNodes.from.selected == true) {
         this._editEdge(newNode.id, this.edgeBeingEdited.to.id);
         this.edgeBeingEdited.controlNodes.from.unselect();

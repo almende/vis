@@ -5,7 +5,10 @@ http://visjs.org
 ## not yet released, version 3.7.2-SNAPSHOT
 
 
+### Network
 
+- Sidestepped double touch event from hammer (ugly.. but functional) causing strange behaviour in manipulation mode
+- Better cleanup after reconnecting edges in manipulation mode
 
 ## 2014-11-28, version 3.7.1
 
