@@ -1529,7 +1529,7 @@ var options = {
     }
 }
 // OR to just load the module with default values:
-var options: {
+var options = {
     dataManipulation: true
 }
 </pre>
@@ -1567,7 +1567,7 @@ var options: {
 </p>
 <pre class="prettyprint">
 // If a variable is not supplied, the default value is used.
-var options: {
+var options = {
     dataManipulation: true,
     onAdd: function(data,callback) {
         /** data = {id: random unique id,
@@ -1677,7 +1677,7 @@ var options = {
     }
 }
 // OR to just load the module with default values:
-var options: {
+var options = {
     clustering: true
 }
 </pre>
@@ -1827,7 +1827,7 @@ var options: {
 
 <pre class="prettyprint">
 // use of navigation controls
-var options: {
+var options = {
   navigation: true
 }
 
@@ -1841,12 +1841,12 @@ var options: {
 
 <pre class="prettyprint">
 // simple use of keyboard controls
-var options: {
+var options = {
     keyboard: true
 }
 
 // advanced configuration for keyboard controls
-var options: {
+var options = {
   keyboard: {
     speed: {
       x: 10,
@@ -1897,12 +1897,12 @@ var options: {
 
 <pre class="prettyprint">
 // simple use of the hierarchical layout
-var options: {
+var options = {
     hierarchicalLayout: true
 }
 
 // advanced configuration for hierarchical layout
-var options: {
+var options = {
     hierarchicalLayout: {
       enabled:false,
       levelSeparation: 150,
@@ -1912,7 +1912,7 @@ var options: {
     }
 }
 // partial configuration automatically sets enabled to true
-var options: {
+var options = {
     hierarchicalLayout: {
       nodeSpacing: 100,
       direction: "UD"
@@ -2062,7 +2062,7 @@ To load a locale into the Timeline not supported by default, one can add a new l
 
 <pre class="prettyprint">
 // tooltip behaviour and style options
-var options: {
+var options = {
   tooltip: {
     delay: 300,
     fontColor: "black",
