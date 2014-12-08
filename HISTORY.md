@@ -10,6 +10,10 @@ http://visjs.org
 - Sidestepped double touch event from hammer (ugly.. but functional) causing strange behaviour in manipulation mode
 - Better cleanup after reconnecting edges in manipulation mode
 
+### Graph2D
+
+- Fixed infinite loop when clearing dataset
+
 ## 2014-11-28, version 3.7.1
 
 ### Timeline
