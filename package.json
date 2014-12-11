@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "emitter-component": "^1.1.1",
-    "hammerjs": "^1.1.0",
+    "hammerjs": "^2.0.4",
     "moment": "^2.7.0",
     "keycharm": "^0.1.6"
   },
