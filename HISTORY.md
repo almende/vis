@@ -108,6 +108,7 @@ http://visjs.org
 ### Network
 
 - Fixed dashed and arrow lines not using inheritColor.
+- Fixed flipping of hierachical network on update when using RL and DU.
 
 ### DataSet
 

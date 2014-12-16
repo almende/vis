@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.7.2-SNAPSHOT
- * @date    2014-12-09
+ * @date    2014-12-16
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -31981,7 +31981,7 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.triggerFunctions.del) {
           var me = this;
           var data = {nodes: selectedNodes, edges: selectedEdges};
-          if (this.triggerFunctions.del.length = 2) {
+          if (this.triggerFunctions.del.length == 2) {
             this.triggerFunctions.del(data, function (finalizedData) {
               me.edgesData.remove(finalizedData.edges);
               me.nodesData.remove(finalizedData.nodes);
@@ -32214,7 +32214,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports._setupHierarchicalLayout = function() {
     if (this.constants.hierarchicalLayout.enabled == true && this.nodeIndices.length > 0) {
       if (this.constants.hierarchicalLayout.direction == "RL" || this.constants.hierarchicalLayout.direction == "DU") {
-        this.constants.hierarchicalLayout.levelSeparation *= -1;
+        this.constants.hierarchicalLayout.levelSeparation = this.constants.hierarchicalLayout.levelSeparation < 0 ? this.constants.hierarchicalLayout.levelSeparation : this.constants.hierarchicalLayout.levelSeparation * -1;
       }
       else {
         this.constants.hierarchicalLayout.levelSeparation = Math.abs(this.constants.hierarchicalLayout.levelSeparation);
