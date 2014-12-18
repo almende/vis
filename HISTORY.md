@@ -2,6 +2,13 @@
 http://visjs.org
 
 
+## not yet released, version 3.7.3
+
+### Graph2d
+
+- Fixed round-off errors of zero on the y-axis.
+
+
 ## 2014-12-09, version 3.7.2
 
 ### Timeline
