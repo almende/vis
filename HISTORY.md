@@ -1,6 +1,11 @@
 # vis.js history
 http://visjs.org
 
+## 2014-12-09, version 3.7.3-SNAPSHOT NOT YET RELEASED
+
+### Network
+
+- Fixed flipping of hierachical network on update when using RL and DU.
 
 ## not yet released, version 3.7.3
 
@@ -115,7 +120,6 @@ http://visjs.org
 ### Network
 
 - Fixed dashed and arrow lines not using inheritColor.
-- Fixed flipping of hierachical network on update when using RL and DU.
 
 ### DataSet
 
