@@ -246,6 +246,16 @@ var items = [
     </td>
   </tr>
   <tr>
+    <td>subgroup</td>
+    <td>String | Number</td>
+    <td>none</td>
+    <td>The id of a subgroup.
+      Groups all items within a group per subgroup, and positions them on the
+      same height instead of staking them on top of each other. can be ordered
+      by specifying the option <code>subgroupOrder</code> of a group.
+    </td>
+  </tr>
+  <tr>
     <td>title</td>
     <td>String</td>
     <td>none</td>
@@ -340,6 +350,14 @@ var groups = [
     </td>
   </tr>
   <tr>
+    <td>subgroupOrder</td>
+    <td>String | Function</td>
+    <td>none</td>
+    <td>Order the subgroups by a field name or custom sort function.
+      By default, groups are ordered by first-come, first-show.
+    </td>
+  </tr>
+  <tr>
     <td>title</td>
     <td>String</td>
     <td>none</td>
@@ -347,14 +365,6 @@ var groups = [
       The title can only contain plain text.
     </td>
   </tr>
-    <tr>
-        <td>subgroupOrder</td>
-        <td>String | Function</td>
-        <td>none</td>
-        <td>Order the subgroups by a field name or custom sort function.
-            By default, groups are ordered by first-come, first-show.
-        </td>
-    </tr>
 </table>
 
 
