@@ -12,6 +12,10 @@ http://visjs.org
 
 - Fixed round-off errors of zero on the y-axis.
 
+### Timeline
+
+- Support for custom date formatting of the labels on the time axis.
+
 
 ## 2014-12-09, version 3.7.2
 

@@ -466,6 +466,39 @@ var options = {
 </tr>
 
 <tr>
+    <td>format</td>
+    <td>Object</td>
+    <td>none</td>
+    <td>
+      Apply custom date formatting of the labels on the time axis. The default value of <code>format</code> is:
+      <pre class="prettyprint lang-js">{
+  minorLabels: {
+    millisecond:'SSS',
+    second:     's',
+    minute:     'HH:mm',
+    hour:       'HH:mm',
+    weekday:    'ddd D',
+    day:        'D',
+    month:      'MMM',
+    year:       'YYYY'
+  },
+  majorLabels: {
+    millisecond:'HH:mm:ss',
+    second:     'D MMMM HH:mm',
+    minute:     'ddd D MMMM',
+    hour:       'ddd D MMMM',
+    weekday:    'MMMM YYYY',
+    day:        'MMMM YYYY',
+    month:      'YYYY',
+    year:       ''
+  }
+}</pre>
+      For values which not provided in the customized <code>options.format</code>, the default values will be used.
+      All available formatting syntax is described in the <a href="http://momentjs.com/docs/#/displaying/format/">docs of moment.js</a>.
+    </td>
+</tr>
+
+<tr>
     <td>groupOrder</td>
     <td>String | Function</td>
     <td>none</td>
