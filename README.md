@@ -154,6 +154,16 @@ The source code of vis.js consists of commonjs modules, which makes it possible 
 
 *Note that hammer.js version 1 is required (v1.0.6-v1.1.3), version 2 is not yet supported.*
 
+
+#### Prerequisites
+
+Before you can do a build:
+
+- Install node.js, npm, and browserify on your system.
+- Download or clone the vis.js project.
+- Install the dependencies of vis.js by running `npm install` in the root of the project.
+
+
 #### Example 1: Bundle a single visualization
 
 For example, to create a bundle with just the Timeline and DataSet, create an index file named **custom.js** in the root of the project, containing: 
