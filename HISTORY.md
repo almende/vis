@@ -1,13 +1,12 @@
 # vis.js history
 http://visjs.org
 
-## 2014-12-09, version 3.7.3-SNAPSHOT NOT YET RELEASED
+
+## not yet released, version 3.7.3-SNAPSHOT
 
 ### Network
 
-- Fixed flipping of hierachical network on update when using RL and DU.
-
-## not yet released, version 3.7.3
+- Fixed flipping of hierarchical network on update when using RL and DU.
 
 ### Graph2d
 
