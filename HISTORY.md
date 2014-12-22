@@ -11,10 +11,12 @@ http://visjs.org
 ### Graph2d
 
 - Fixed round-off errors of zero on the y-axis.
+- added show major/minor lines options to dataAxis.
 
 ### Timeline
 
 - Support for custom date formatting of the labels on the time axis.
+- added show major/minor lines options to timeline.
 
 
 ## 2014-12-09, version 3.7.2
