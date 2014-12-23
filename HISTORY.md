@@ -35,7 +35,7 @@ http://visjs.org
   strange behaviour in manipulation mode
 - Better cleanup after reconnecting edges in manipulation mode
 - Fixed recursion error with smooth edges that are connected to non-existent nodes
-
+- Added destroy method. 
 
 ## 2014-11-28, version 3.7.1
 
