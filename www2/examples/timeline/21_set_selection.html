@@ -1,0 +1,65 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>Timeline | Select items</title>
+
+  <style>
+    body, html {
+      font-family: arial, sans-serif;
+      font-size: 11pt;
+    }
+  </style>
+
+  <script src="../../dist/vis.js"></script>
+  <link href="../../dist/vis.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<h1>Set selection</h1>
+<p style="max-width: 600px;">
+  Enter one or multiple ids of items, then press select to select the items. This demo uses the function <code>Timeline.setSelection(ids)</code>. Optionally, the window can be moved to the selected items.
+</p>
+
+<p>
+  Select item(s): <input type="text" id="selection" value="5, 6"><input type="button" id="select" value="Select"><br>
+  <label><input type="checkbox" id="focus" checked> Focus on selection</label>
+</p>
+<div id="visualization"></div>
+
+<script>
+  // create a dataset with items
+  // we specify the type of the fields `start` and `end` here to be strings
+  // containing an ISO date. The fields will be outputted as ISO dates
+  // automatically getting data from the DataSet via items.get().
+  var items = new vis.DataSet({
+    type: { start: 'ISODate', end: 'ISODate' }
+  });
+
+  // add items to the DataSet
+  items.add([
+    {id: 1, content: 'item 1<br>start', start: '2014-01-23'},
+    {id: 2, content: 'item 2', start: '2014-01-18'},
+    {id: 3, content: 'item 3', start: '2014-01-21'},
+    {id: 4, content: 'item 4', start: '2014-01-19', end: '2014-01-24'},
+    {id: 5, content: 'item 5', start: '2014-01-28', type:'point'},
+    {id: 6, content: 'item 6', start: '2014-01-26'}
+  ]);
+
+  var container = document.getElementById('visualization');
+  var options = {
+    editable: true
+  };
+
+  var timeline = new vis.Timeline(container, items, options);
+
+  var selection = document.getElementById('selection');
+  var select = document.getElementById('select');
+  var focus = document.getElementById('focus');
+  select.onclick = function () {
+    var ids = selection.value.split(',').map(function (value) {
+      return value.trim();
+    });
+    timeline.setSelection(ids, {focus: focus.checked});
+  };
+</script>
+</body>
+</html>

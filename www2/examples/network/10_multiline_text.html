@@ -1,0 +1,51 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title>Network | Multiline text</title>
+
+  <style type="text/css">
+    #mynetwork {
+      width: 600px;
+      height: 600px;
+      border: 1px solid lightgray;
+    }
+  </style>
+
+  <script type="text/javascript" src="../../dist/vis.js"></script>
+  <link href="../../dist/vis.css" rel="stylesheet" type="text/css" />
+
+  <script type="text/javascript">
+    function draw() {
+      // create some nodes
+      var nodes = [
+        {id: 1, label: 'Node in\nthe center', shape: 'text'},
+        {id: 2, label: 'Node\nwith\nmultiple\nlines', shape: 'circle'},
+        {id: 3, label: 'This is a lot of text\nbut luckily we can spread\nover multiple lines', shape: 'database'},
+        {id: 4, label: 'This is text\non multiple lines', shape: 'box'},
+        {id: 5, label: 'Little text', shape: 'ellipse'}
+      ];
+
+      // create some edges
+      var edges = [
+        {from: 1, to: 2, style: 'line', color: 'red', width: 3, length: 200}, // individual length definition is possible
+        {from: 1, to: 3, style: 'dash-line', width: 1, length: 200},
+        {from: 1, to: 4, style: 'line', width: 1, length: 200, label:'I\'m an edge!'},
+        {from: 1, to: 5, style: 'arrow', width: 3, length: 200, label:'arrows\nare cool'}
+      ];
+
+      // create a network
+      var container = document.getElementById('mynetwork');
+      var data = {
+        nodes: nodes,
+        edges: edges
+      };
+      var options = {};
+      var network = new vis.Network(container, data, options);
+    }
+  </script>
+</head>
+
+<body onload="draw()">
+<div id="mynetwork"></div>
+</body>
+</html>
