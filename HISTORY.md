@@ -7,6 +7,7 @@ http://visjs.org
 ### Network
 
 - Fixed flipping of hierarchical network on update when using RL and DU.
+- Added zoomExtentOnStabilize option to network.
 
 ### Graph2d
 

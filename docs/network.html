@@ -790,6 +790,14 @@ var options = {
     before showing the result. If your simulation takes too long to stabilize, this number can be reduced. On the other hand, if your network is not stabilized after loading, this number can be increased.</td>
 </tr>
 
+
+<tr>
+  <td>zoomExtentOnStabilize</td>
+  <td>Boolean</td>
+  <td>true</td>
+  <td>When the internal stabilize function is called because the stabilize option is set to true OR the hierarchical system (re)initializes, a call to zoomExtent is done by default. By setting this to false, you can avoid this call.</td>
+</tr>
+
 <tr>
   <td>width</td>
   <td>String</td>
