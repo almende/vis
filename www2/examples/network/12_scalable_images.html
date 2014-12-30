@@ -1,0 +1,86 @@
+<!doctype html>
+<html>
+<head>
+  <title>Network | Scalable images</title>
+
+  <style type="text/css">
+    body {
+      font: 10pt arial;
+    }
+    #mynetwork {
+      width: 600px;
+      height: 600px;
+      border: 1px solid lightgray;
+    }
+  </style>
+
+  <script type="text/javascript" src="../../dist/vis.js"></script>
+  <link href="../../dist/vis.css" rel="stylesheet" type="text/css" />
+
+  <script type="text/javascript">
+    var DIR = 'img/soft-scraps-icons/';
+
+    var nodes = null;
+    var edges = null;
+    var network = null;
+
+    // Called when the Visualization API is loaded.
+    function draw() {
+      // create people.
+      // value corresponds with the age of the person
+      var DIR = 'img/soft-scraps-icons/';
+      nodes = [
+        {id: 1,  value: 2,  shape: 'image', label: 'Algie', title: 'Algie (2 years old)', image: DIR + 'Smiley-Angry-icon.png'},
+        {id: 2,  value: 31, shape: 'image', label: 'Alston', title: 'Alston (31 years old)', image: DIR + 'Smiley-Grin-icon.png'},
+        {id: 3,  value: 12, shape: 'image', label: 'Barney', title: 'Barney (12 years old)', image: DIR + 'User-Administrator-Blue-icon.png'},
+        {id: 4,  value: 16, shape: 'image', label: 'Coley', title: 'Coley (16 years old)', image: DIR + 'User-Administrator-Green-icon.png'},
+        {id: 5,  value: 17, shape: 'image', label: 'Grant', title: 'Grant (17 years old)', image: DIR + 'User-Coat-Blue-icon.png'},
+        {id: 6,  value: 15, shape: 'image', label: 'Langdon', title: 'Langdon (15 years old)', image: DIR + 'User-Coat-Green-icon.png'},
+        {id: 7,  value: 6,  shape: 'image', label: 'Lee', title: 'Lee (6 years old)', image: DIR + 'User-Coat-Red-icon.png'},
+        {id: 8,  value: 5,  shape: 'image', label: 'Merlin', title: 'Merlin (5 years old)', image: DIR + 'User-Executive-Green-icon.png'},
+        {id: 9,  value: 30, shape: 'image', label: 'Mick', title: 'Mick (30 years old)', image: DIR + 'User-Preppy-Blue-icon.png'},
+        {id: 10, value: 18, shape: 'image', label: 'Tod', title: 'Tod (18 years old)', image: DIR + 'User-Preppy-Red-icon.png'}
+      ];
+
+      // create connetions between people
+      // value corresponds with the amount of contact between two people
+      edges = [
+        {from: 2, to: 8, value: 3, title: '3 emails per week'},
+        {from: 2, to: 9, value: 5, title: '5 emails per week'},
+        {from: 2, to: 10,value: 1, title: '1 emails per week'},
+        {from: 4, to: 6, value: 8, title: '8 emails per week'},
+        {from: 5, to: 7, value: 2, title: '2 emails per week'},
+        {from: 4, to: 5, value: 1, title: '1 emails per week'},
+        {from: 9, to: 10,value: 2, title: '2 emails per week'},
+        {from: 2, to: 3, value: 6, title: '6 emails per week'},
+        {from: 3, to: 9, value: 4, title: '4 emails per week'},
+        {from: 5, to: 3, value: 1, title: '1 emails per week'},
+        {from: 2, to: 7, value: 4, title: '4 emails per week'}
+      ];
+
+      // create a network
+      var container = document.getElementById('mynetwork');
+      var data = {
+        nodes: nodes,
+        edges: edges
+      };
+      var options = {
+        nodes: {
+          widthMin: 20,  // min width in pixels
+          widthMax: 100  // max width in pixels
+        },
+        edges: {
+          color: 'lightgray'
+        }
+      };
+      network = new vis.Network(container, data, options);
+    }
+  </script>
+</head>
+
+<body onload="draw()">
+<div id="mynetwork"></div>
+
+<div id="info"></div>
+</body>
+</html>

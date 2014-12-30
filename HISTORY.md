@@ -2,6 +2,24 @@
 http://visjs.org
 
 
+## not yet released, version 3.7.3-SNAPSHOT
+
+### Network
+
+- Fixed flipping of hierarchical network on update when using RL and DU.
+- Added zoomExtentOnStabilize option to network.
+
+### Graph2d
+
+- Fixed round-off errors of zero on the y-axis.
+- added show major/minor lines options to dataAxis.
+
+### Timeline
+
+- Support for custom date formatting of the labels on the time axis.
+- added show major/minor lines options to timeline.
+
+
 ## 2014-12-09, version 3.7.2
 
 ### Timeline
@@ -17,7 +35,8 @@ http://visjs.org
 - Sidestepped double touch event from hammer (ugly.. but functional) causing
   strange behaviour in manipulation mode
 - Better cleanup after reconnecting edges in manipulation mode
-
+- Fixed recursion error with smooth edges that are connected to non-existent nodes
+- Added destroy method. 
 
 ## 2014-11-28, version 3.7.1
 
