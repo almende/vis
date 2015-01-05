@@ -36,6 +36,71 @@
     The issues marked in green are being worked on by the community and link to their forked version. Finally, the ones in black are not on our immediate todo list but would be great if someone added them.</div>
 
 
+<h3 id="all">All</h3>
+<ul>
+    <li>(#308) Add a click-to-scroll option similar to click-to-use but it should allow dragging all the time, only block the scrolling without activating it.</li>
+    <li>(#207) If possible, add Nuget Package support without ruining the current build tools.</li>
+</ul>
+<h3 id="network">Network</h3>
+<ul>
+    <li>(#530, #475, #300) Improve option structure for the behaviour of the network. This will solve multiple issues if done correctly.</li>
+    <li>(#426) Label stroke ref: <a href="http://www.html5canvastutorials.com/tutorials/html5-canvas-text-stroke/">http://www.html5canvastutorials.com/tutorials/html5-canvas-text-stroke/</a></li>
+    <li>(#247) Allow the font-size of a label to depend on the value (thereby the node-size).</li>
+    <li>(#247) Set thresholds for displaying of labels based on the value. As you zoom out, only the most noteworthy labels will be shown.</li>
+    <li>(#246)  Add a fontAlignment option. This option should control where the label is drawn with respect to the node (ie. above, midde, under, left, right etc).</li>
+    <li>(#211) Create styling groups for edges, as they already exist for nodes.</li>
+    <li>(#203) Improve the click/doubleClick event with options how these should be fired.</li>
+    <li>(#430) Add fix/unfix functions for nodes. This can be done with allowToMoveX and Y but native options would be better ('node.disableMove' and 'node.disableDrag').</li>
+    <li>(#351) Improve the options for arrows, backarrows and linetypes. Possibly receiving a function as input for custom nodes &amp; edges.</li>
+    <li>(#335) Set smooth curves per edge.</li>
+    <li>(#323) GIF support.</li>
+</ul>
+<h3 id="timeline">Timeline</h3>
+<ul>
+    <li>(#529) Similar how templating works for the items, allow templating of groups by a groupTemplate option.</li>
+    <li>(#398) Implement recurring events (similarly to the way the hidden dates are implemented?)</li>
+    <li>(#338) HTML tooltips. Could be combined with the onHover event.</li>
+    <li>(#297) Center column labels in the timeline.</li>
+    <li>(#283) Adapt zoom functionality to horizontal/vertical pinch on touchscreens.</li>
+    <li>(#363, #275) Support for making individual items editable or readonly.</li>
+    <li>(#273) Show vertical scrollbar when contents do not fit vertically. This could be a custom, stylable scrollbar.</li>
+    <li>(#504, #427, #261, #151) Set time/date format. Could support AM/PM, Quarters, weekdays, military etc.</li>
+    <li>(#257) Toggle the visiblity of groups and subgroups (could be a predecessor for clustering).</li>
+    <li>(#240) Introduce a new event that fires when an item is being moved.</li>
+    <li>(#239) Create a new option to disable timeline zoom/drag with mouse in the group column.</li>
+    <li>(#226) Add a 'onHover' event to the timeline, similar to the network.</li>
+    <li>(#192) While dragging multiple items across groups, keep the group-offset.</li>
+    <li>(#112) A horizontalOrientation options to support a right-to-left timeline.</li>
+    <li>(#21) CSS highlighting of certain days/weekends etc. CSS class tags will have to be added to the vertical grid lines.</li>
+    <li>(#506) Implement an inertia while dragging and releasing (like default touchscreen behaviour) which should be enabled by an option.</li>
+    <li>(#497) Introduce a new item that has two start and two end times. Picture shown in git issue.</li>
+    <li>(#436) Make background items and subgroups editable.</li>
+    <li>(#435) Implement the dragging of groups (up/down) to change the order.</li>
+    <li>(#428) Implement an option to make the timeline vertically oriented.</li>
+    <li>(#518, #242) Clustering of items.</li>
+</ul>
+<h3 id="timeline-graph2d">Timeline &amp; Graph2d</h3>
+<ul>
+    <li>(#455, #92) Numeric range for the x-axis.</li>
+    <li>(#384) Fast horizontal scrolling.</li>
+</ul>
+<h3 id="graph2d">Graph2d</h3>
+<ul>
+    <li>(#516) Stacking of line graphs similar to how the bar charts can be stacked.</li>
+    <li>(#388, #311, #282) ToolTips: this should give a stylable tooltip with the value at the position of the cursor. Options should include: <strong>snap-to-datapoint</strong> (only show tooltips on datapoints, if off, show interpolated value at position), <strong>alwaysOn</strong> (always show tooltips on datapoints, perhaps with an optional tag that you can specify here?)</li>
+    <li>(#354) Add uncertainty plot styles (box, candle, shaded area, etc.)</li>
+    <li>(#314) Logarithmic scale (y-axis initially, if numeric range for x-axis is implemented, could be ported over to x-axis as well).</li>
+</ul>
+<h3 id="graph3d">Graph3d</h3>
+<ul>
+    <li>(#442) Implement touch gestures for camera controls using hammer.js.</li>
+</ul>
+<h3 id="dataset-dataview">DataSet &amp; DataView</h3>
+<ul>
+    <li>(#339) Dynamically update the filter of a DataView.</li>
+</ul>
+
+
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 <!-- Include all compiled plugins (below), or include individual files as needed -->
