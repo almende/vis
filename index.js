@@ -70,4 +70,5 @@ exports.Graph = function () {
 
 // bundled external libraries
 exports.moment = require('./lib/module/moment');
-exports.hammer = require('./lib/module/hammer');
+exports.hammer = require('./lib/module/hammer'); // TODO: deprecate exports.hammer some day
+exports.Hammer = require('./lib/module/hammer');
