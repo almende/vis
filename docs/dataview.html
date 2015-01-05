@@ -1,0 +1,219 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>vis.js | DataView documentation</title>
+
+  <link href="css/prettify.css" type="text/css" rel="stylesheet" />
+  <link href='css/style.css' type='text/css' rel='stylesheet'>
+
+  <script type="text/javascript" src="lib/prettify/prettify.js"></script>
+</head>
+
+<body onload="prettyPrint();">
+<div id="container">
+
+<h1>DataView documentation</h1>
+
+<h2 id="Contents">Contents</h2>
+<ul>
+  <li><a href="#Overview">Overview</a></li>
+  <li><a href="#Example">Example</a></li>
+  <li><a href="#Construction">Construction</a></li>
+  <li><a href="#Getting_Data">Getting Data</a></li>
+  <li><a href="#Subscriptions">Subscriptions</a></li>
+  <li><a href="#Data_Policy">Data Policy</a></li>
+</ul>
+
+
+<h2 id="Overview">Overview</h2>
+
+<p>
+  A DataView offers a filtered and/or formatted view on a
+  <a href="dataset.html">DataSet</a>.
+  One can subscribe on changes in a DataView, and easily get filtered or
+  formatted data without having to specify filters and field types all
+  the time.
+</p>
+
+<h2 id="Example">Example</h2>
+
+<p>
+  The following example shows how to use a DataView.
+</p>
+
+<pre class="prettyprint lang-js">
+// create a DataSet
+var data = new vis.DataSet();
+data.add([
+  {id: 1, text: 'item 1', date: new Date(2013, 6, 20), group: 1, first: true},
+  {id: 2, text: 'item 2', date: '2013-06-23', group: 2},
+  {id: 3, text: 'item 3', date: '2013-06-25', group: 2},
+  {id: 4, text: 'item 4'}
+]);
+
+// create a DataView
+// the view will only contain items having a property group with value 1,
+// and will only output fields id, text, and date.
+var view = new vis.DataView(data, {
+  filter: function (item) {
+    return (item.group == 1);
+  },
+  fields: ['id', 'text', 'date']
+});
+
+// subscribe to any change in the DataView
+view.on('*', function (event, properties, senderId) {
+  console.log('event', event, properties);
+});
+
+// update an item in the data set
+data.update({id: 2, group: 1});
+
+// get all ids in the view
+var ids = view.getIds();
+console.log('ids', ids); // will output [1, 2]
+
+// get all items in the view
+var items = view.get();
+</pre>
+
+<h2 id="Construction">Construction</h2>
+
+
+<p>
+  A DataView can be constructed as:
+</p>
+
+<pre class="prettyprint lang-js">
+var data = new vis.DataView(dataset, options)
+</pre>
+
+<p>
+  where:
+</p>
+
+<ul>
+  <li>
+    <code>dataset</code> is a DataSet or DataView.
+  </li>
+  <li>
+    <code>options</code> is an object which can
+    contain the following properties. Note that these properties
+    are exactly the same as the properties available in methods
+    <code>DataSet.get</code> and <code>DataView.get</code>.
+
+    <table>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+
+      <tr>
+        <td>convert</td>
+        <td>Object.&lt;String,&nbsp;String&gt;</td>
+        <td>
+          An object containing field names as key, and data types as value.
+          By default, the type of the properties of an item are left
+          unchanged. When a field type is specified, this field in the
+          items will be converted to the specified type. This can be used
+          for example to convert ISO strings containing a date to a
+          JavaScript Date object, or convert strings to numbers or vice
+          versa. The available data types are listed in section
+          <a href="dataset.html#Data_Types">Data Types</a>.
+        </td>
+      </tr>
+
+      <tr>
+        <td>fields</td>
+        <td>String[&nbsp;]</td>
+        <td>
+          An array with field names.
+          By default, all properties of the items are emitted.
+          When <code>fields</code> is defined, only the properties
+          whose name is specified in <code>fields</code> will be included
+          in the returned items.
+        </td>
+      </tr>
+
+      <tr>
+        <td>filter</td>
+        <td>function</td>
+        <td>Items can be filtered on specific properties by providing a filter
+          function. A filter function is executed for each of the items in the
+          DataSet, and is called with the item as parameter. The function must
+          return a boolean. All items for which the filter function returns
+          true will be emitted.
+          See also section <a href="dataset.html#Data_Filtering">Data Filtering</a>.</td>
+      </tr>
+
+    </table>
+  </li>
+</ul>
+
+<h2 id="Getting_Data">Getting Data</h2>
+
+<p>
+  Data of the DataView can be retrieved using the method <code>get</code>.
+</p>
+
+<pre class="prettyprint lang-js">
+var items = view.get();
+</pre>
+
+<p>
+  Data of a DataView can be filtered and formatted again, in exactly the
+  same way as in a DataSet. See sections
+  <a href="dataset.html#Data_Filtering">Data Filtering</a> and
+  <a href="dataset.html#Data_Formatting">Data Formatting</a> for more
+  information.
+</p>
+
+<pre class="prettyprint lang-js">
+var items = view.get({
+  fields: ['id', 'score'],
+  filter: function (item) {
+    return (item.score > 50);
+  }
+});
+</pre>
+
+
+
+<h2 id="Subscriptions">Subscriptions</h2>
+<p>
+  One can subscribe on changes in the DataView. Subscription works exactly
+  the same as for DataSets. See the documentation on
+  <a href="dataset.html#Subscriptions">subscriptions in a DataSet</a>
+  for more information.
+</p>
+
+<pre class="prettyprint lang-js">
+// create a DataSet and a view on the data set
+var data = new vis.DataSet();
+var view = new vis.DataView({
+  filter: function (item) {
+    return (item.group == 2);
+  }
+});
+
+// subscribe to any change in the DataView
+view.on('*', function (event, properties, senderId) {
+  console.log('event:', event, 'properties:', properties, 'senderId:', senderId);
+});
+
+// add, update, and remove data in the DataSet...
+</pre>
+
+
+
+<h2 id="Data_Policy">Data Policy</h2>
+<p>
+  All code and data is processed and rendered in the browser.
+  No data is sent to any server.
+</p>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+<head>
+  <title>Network | Static smooth curves</title>
+
+  <script type="text/javascript" src="../../dist/vis.js"></script>
+  <link href="../../dist/vis.css" rel="stylesheet" type="text/css" />
+
+  <style type="text/css">
+    #mynetwork {
+      width: 400px;
+      height: 400px;
+      border: 1px solid lightgray;
+    }
+  </style>
+</head>
+
+<body>
+
+<h2>Static smooth curves</h2>
+<div style="width:700px; font-size:14px; text-align: justify;">
+    All the smooth curves in the examples so far have been using dynamic smooth curves. This means that each curve has a
+    support node which takes part in the physics simulation. For large networks or dense clusters, this may not be the ideal
+    solution. To solve this, static smooth curves have been added. The static smooth curves are based only on the positions of the connected
+    nodes. There are multiple ways to determine the way this curve is drawn. This example shows the effect of the different
+    types. <br /> <br />
+    Drag the nodes around each other to see how the smooth curves are drawn for each setting. For animated system, we
+    recommend only the continuous mode. In the next example you can see the effect of these methods on a large network. Keep in mind
+    that the direction (the from and to) of the curve matters.
+    <br /> <br />
+</div>
+
+Smooth curve type:
+<select id="dropdownID">
+    <option value="continuous">continuous</option>
+    <option value="discrete">discrete</option>
+    <option value="diagonalCross">diagonalCross</option>
+    <option value="straightCross">straightCross</option>
+    <option value="horizontal">horizontal</option>
+    <option value="vertical">vertical</option>
+</select>
+<div id="mynetwork"></div>
+
+<script type="text/javascript">
+
+var dropdown = document.getElementById("dropdownID");
+dropdown.onchange = update;
+  // create an array with nodes
+  var nodes = [
+    {id: 1, label: 'Node 1'},
+    {id: 2, label: 'Node 2', x:150, y:130, allowedToMoveX: true, allowedToMoveY: true}
+  ];
+
+  // create an array with edges
+  var edges = [
+    {from: 1, to: 2}
+  ];
+
+  // create a network
+  var container = document.getElementById('mynetwork');
+  var data = {
+    nodes: nodes,
+    edges: edges
+  };
+  var options = {physics:{barnesHut:{gravitationalConstant:0, springConstant:0, centralGravity: 0}},
+  smoothCurves:{dynamic:false, type: '1'}};
+  var network = new vis.Network(container, data, options);
+
+    function update() {
+        var type = dropdown.value;
+        network.setOptions({smoothCurves:{type:type}});
+    }
+</script>
+
+</body>
+</html>

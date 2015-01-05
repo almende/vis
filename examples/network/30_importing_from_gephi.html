@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<!-- saved from url=(0044)http://kenedict.com/networks/worldcup14/vis/ , thanks Andre!-->
+<html><head><meta http-equiv="content-type" content="text/html; charset=UTF8">
+    <title>Dynamic Data - Importing from Gephi (JSON)</title>
+    <script type="text/javascript" src="../../dist/vis.js"></script>
+    <link type="text/css" rel="stylesheet" href="../../dist/vis.css">
+
+    <style type="text/css">
+        #mynetwork {
+            width: 800px;
+            height: 800px;
+            border: 1px solid lightgray;
+        }
+
+        div.nodeContent {
+            position: relative;
+            border: 1px solid lightgray;
+            width:480px;
+            height:780px;
+            margin-top: -802px;
+            margin-left: 810px;
+            padding:10px;
+        }
+
+        pre {padding: 5px; margin: 5px; }
+        .string { color: green; }
+        .number { color: darkorange; }
+        .boolean { color: blue; }
+        .null { color: magenta; }
+        .key { color: red; }
+    </style>
+</head>
+
+<body>
+
+<h2>Dynamic Data - Importing from Gephi (JSON)</h2>
+<div style="width:700px; font-size:14px; text-align: justify;">
+    This example shows how to import a JSON file exported by Gephi. The two options available for the import are
+    available through the checkboxes. You can download the Gephi JSON exporter here:
+    <a href="https://marketplace.gephi.org/plugin/json-exporter/" target="_blank">https://marketplace.gephi.org/plugin/json-exporter/</a>.
+    All of Gephi's attributes are also contained within the node elements. This means you can access all of this data through the DataSet.
+    <br />
+</div>
+
+
+<input type="checkbox" id="allowedToMove">: Allow to move after import. <br/>
+<input type="checkbox"  id="parseColor">: Parse the color instead of copy (adds borders, highlights etc.)
+<div id="mynetwork"></div>
+<div class="nodeContent"><h4>Node Content:</h4> <pre id="nodeContent"></pre></div>
+
+<script type="text/javascript">
+var network;
+
+var nodes = new vis.DataSet();
+var edges = new vis.DataSet();
+var gephiImported;
+var allowedToMoveCheckbox = document.getElementById("allowedToMove");
+allowedToMoveCheckbox.onchange = redrawAll;
+
+var parseColorCheckbox = document.getElementById("parseColor");
+parseColorCheckbox.onchange = redrawAll;
+
+var nodeContent = document.getElementById("nodeContent");
+
+loadJSON("./data/WorldCup2014.json",redrawAll);
+
+var container = document.getElementById('mynetwork');
+var data = {
+    nodes: nodes,
+    edges: edges
+};
+var options = {
+    nodes: {
+        shape: 'dot',
+        fontFace: "Tahoma"
+    },
+    edges: {
+        width: 0.15,
+        inheritColor: "from"
+    },
+    tooltip: {
+        delay: 200,
+        fontSize: 12,
+        color: {
+            background: "#fff"
+        }
+    },
+    smoothCurves: {dynamic:false, type: "continuous"},
+    stabilize: false,
+    physics: {barnesHut: {gravitationalConstant: -10000, springConstant: 0.002, springLength: 150}},
+    hideEdgesOnDrag: true
+};
+
+network = new vis.Network(container, data, options);
+
+/**
+ * This function fills the DataSets. These DataSets will update the network.
+ */
+function redrawAll(gephiJSON) {
+    if (gephiJSON.nodes === undefined) {
+        gephiJSON = gephiImported;
+    }
+    else {
+        gephiImported = gephiJSON;
+    }
+
+    nodes.clear();
+    edges.clear();
+
+    var allowedToMove = allowedToMoveCheckbox.checked;
+    var parseColor = parseColorCheckbox.checked;
+    var parsed = vis.network.gephiParser.parseGephi(gephiJSON, {allowedToMove:allowedToMove, parseColor:parseColor});
+
+    // add the parsed data to the DataSets.
+    nodes.add(parsed.nodes);
+    edges.add(parsed.edges);
+
+    var data = nodes.get(2); // get the data from node 2
+    nodeContent.innerHTML = syntaxHighlight(data); // show the data in the div
+    network.zoomExtent(); // zoom to fit
+}
+
+// from http://stackoverflow.com/questions/4810841/how-can-i-pretty-print-json-using-javascript
+function syntaxHighlight(json) {
+    if (typeof json != 'string') {
+        json = JSON.stringify(json, undefined, 2);
+    }
+    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+        var cls = 'number';
+        if (/^"/.test(match)) {
+            if (/:$/.test(match)) {
+                cls = 'key';
+            } else {
+                cls = 'string';
+            }
+        } else if (/true|false/.test(match)) {
+            cls = 'boolean';
+        } else if (/null/.test(match)) {
+            cls = 'null';
+        }
+        return '<span class="' + cls + '">' + match + '</span>';
+    });
+}
+
+function loadJSON(path, success, error) {
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                success(JSON.parse(xhr.responseText));
+            }
+            else {
+                error(xhr);
+            }
+        }
+    };
+    xhr.open("GET", path, true);
+    xhr.send();
+}
+
+</script>
+
+
+
+</body></html>
