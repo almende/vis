@@ -1,0 +1,225 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>vis.js | documentation</title>
+
+  <link href="css/prettify.css" type="text/css" rel="stylesheet" />
+  <link href='css/style.css' type='text/css' rel='stylesheet'>
+
+  <script type="text/javascript" src="lib/prettify/prettify.js"></script>
+</head>
+
+<body onload="prettyPrint();">
+<div id="container">
+
+  <h1>vis.js documentation</h1>
+
+  <p>
+    Vis.js is a dynamic, browser based visualization library.
+    The library is designed to be easy to use, handle large amounts
+    of dynamic data, and enable manipulation of the data.
+  </p>
+
+  <p>
+    The library is developed by
+    <a href="http://almende.com" target="_blank">Almende B.V.</a>.
+    Vis.js runs fine on Chrome, Firefox, Opera, Safari, IE9+, and most mobile
+    browsers (with full touch support).
+  </p>
+
+  <h2 id="Components">Components</h2>
+
+  <p>
+    Vis.js contains of the following components:
+  </p>
+
+  <div style="text-align: center; float: right; padding-left: 30px;">
+    <a href="img/vis_overview.png" target="_blank">
+      <img src="img/vis_overview.png" style="width: 350px; "/><br>
+      (click for a larger view)
+    </a>
+  </div>
+
+  <ul>
+    <li>
+      <a href="dataset.html"><b>DataSet</b></a>.
+      A flexible key/value based data set.
+      Add, update, and remove items. Subscribe on changes in the data set.
+      A DataSet can filter and order items, and convert fields of items.
+    </li>
+    <li>
+      <a href="dataview.html"><b>DataView</b></a>.
+      A filtered and/or formatted view on a DataSet.
+    </li>
+    <li>
+      <a href="network.html"><b>Network</b></a>.
+      Display a network (force directed graph) with nodes and edges (previously called Graph).
+    </li>
+    <li>
+      <a href="graph2d.html"><b>Graph2d</b></a>.
+      Plot data on a timeline with lines or barcharts.
+    </li>
+    <li>
+      <a href="graph3d.html"><b>Graph3d</b></a>.
+      Display data in a three dimensional graph.
+    </li>
+    <li>
+      <a href="timeline.html"><b>Timeline</b></a>.
+      Display different types of data on a timeline.
+    </li>
+  </ul>
+
+  <h2 id="Install">Install</h2>
+
+  <h3>npm</h3>
+
+<pre class="prettyprint">
+npm install vis
+</pre>
+
+  <h3>bower</h3>
+
+<pre class="prettyprint">
+bower install vis
+</pre>
+
+  <h3>download</h3>
+  Download the library from the website:
+  <a href="http://visjs.org" target="_blank">http://visjs.org</a>.
+
+  <h2 id="Load">Load</h2>
+
+  <p>
+    To load vis.js, include the javascript and css files of vis in your web page:
+  </p>
+
+<pre class="prettyprint lang-html">&lt;!DOCTYPE HTML&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;script src="components/vis/vis.js"&gt;&lt;/script&gt;
+  &lt;link href="components/vis/vis.css" rel="stylesheet" type="text/css" /&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;script type="text/javascript"&gt;
+  // ... load a visualization
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</pre>
+
+  <p>
+    or load vis.js using require.js:
+  </p>
+
+<pre class="prettyprint lang-js">
+require.config({
+  paths: {
+    vis: 'path/to/vis',
+  }
+});
+
+require(['vis'], function (math) {
+  // ... load a visualization
+});
+</pre>
+
+  <p>
+    A timeline can be instantiated as follows. Other components can be
+    created in a similar way.
+  </p>
+
+<pre class="prettyprint lang-js">
+var timeline = new vis.Timeline(container, data, options);
+</pre>
+
+  <p>
+    Where <code>container</code> is an HTML element, <code>data</code> is
+    an Array with data or a DataSet, and <code>options</code> is an optional
+    object with configuration options for the component.
+  </p>
+
+  <h2 id="Use">Use</h2>
+
+  <p>
+    A basic example on using a Timeline is shown below. More examples can be
+    found in the <a href="https://github.com/almende/vis/tree/master/examples"
+                    target="_blank">examples directory</a> of the project.
+  </p>
+
+<pre class="prettyprint lang-html">
+&lt;!DOCTYPE HTML&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;title&gt;Timeline basic demo&lt;/title&gt;
+
+  &lt;script src="components/vis/vis.js"&gt;&lt;/script&gt;
+  &lt;link href="components/vis/vis.css" rel="stylesheet" type="text/css" /&gt;
+
+  &lt;style type="text/css"&gt;
+    body, html {
+      font-family: sans-serif;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id="visualization"&gt;&lt;/div&gt;
+
+&lt;script type="text/javascript"&gt;
+  // DOM element where the Timeline will be attached
+  var container = document.getElementById('visualization');
+
+  // Create a DataSet (allows two way data-binding)
+  var data = new vis.DataSet([
+    {id: 1, content: 'item 1', start: '2013-04-20'},
+    {id: 2, content: 'item 2', start: '2013-04-14'},
+    {id: 3, content: 'item 3', start: '2013-04-18'},
+    {id: 4, content: 'item 4', start: '2013-04-16', end: '2013-04-19'},
+    {id: 5, content: 'item 5', start: '2013-04-25'},
+    {id: 6, content: 'item 6', start: '2013-04-27'}
+  ]);
+
+    // Configuration for the Timeline
+  var options = {};
+
+  // Create a Timeline
+  var timeline = new vis.Timeline(container, data, options);
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</pre>
+
+
+  <h2 id="license">License</h2>
+
+  <p>
+    Copyright 2010-2014 Almende B.V.
+  </p>
+
+  <p>
+    Vis.js is dual licensed under both
+  </p>
+  <ul>
+    <li>
+      The Apache 2.0 License<br>
+      <a href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a>
+    </li>
+  </ul>
+  <p>
+    and
+  </p>
+  <ul>
+    <li>
+      The MIT License<br>
+      <a href="http://opensource.org/licenses/MIT">http://opensource.org/licenses/MIT</a>
+    </li>
+  </ul>
+
+  <p>
+    Vis.js may be distributed under either license.
+  </p>
+
+
+</div>
+</body>
+</html>
