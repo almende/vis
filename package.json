@@ -30,8 +30,9 @@
   "dependencies": {
     "emitter-component": "^1.1.1",
     "hammerjs": "^2.0.4",
+    "keycharm": "^0.1.6",
     "moment": "^2.7.0",
-    "keycharm": "^0.1.6"
+    "propagating-hammerjs": "^1.2.0"
   },
   "devDependencies": {
     "clean-css": "latest",
