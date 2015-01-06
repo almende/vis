@@ -11,6 +11,7 @@ http://visjs.org
 - Improved destroy function, added them to the examples.
 - Nodes now have bounding boxes that are used for zoomExtent.
 - Made physics more stable (albeit a little slower).
+- Added a check so only one 'activator' overlay is created on clickToUse.
 - Made global color options for edges overrule the inheritColors.
 
 ### Graph2d
@@ -18,11 +19,13 @@ http://visjs.org
 - Fixed round-off errors of zero on the y-axis.
 - added show major/minor lines options to dataAxis.
 - Fixed adapting to width and height changes.
+- Added a check so only one 'activator' overlay is created on clickToUse.
 
 ### Timeline
 
 - Support for custom date formatting of the labels on the time axis.
 - added show major/minor lines options to timeline.
+- Added a check so only one 'activator' overlay is created on clickToUse.
 
 ### Graph3d
 
