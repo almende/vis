@@ -26715,7 +26715,16 @@ return /******/ (function(modules) { // webpackBootstrap
       yLabel = this.y;
     }
 
+
+    this.boundingBox.top = this.top;
+    this.boundingBox.left = this.left;
+    this.boundingBox.right = this.left + this.width;
+    this.boundingBox.bottom = this.top + this.height;
+
     this._label(ctx, this.label, this.x, yLabel, undefined, "top");
+    this.boundingBox.left = Math.min(this.boundingBox.left, this.labelDimensions.left);
+    this.boundingBox.right = Math.max(this.boundingBox.right, this.labelDimensions.left + this.labelDimensions.width);
+    this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelDimensions.height);
   };
 
 
@@ -27021,9 +27030,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
     if (this.label) {
       this._label(ctx, this.label, this.x, this.y + this.height / 2, undefined, 'top',true);
-      this.boundingBox.left = Math.min(this.boundingBox.left, this.labelDimensions.left)
-      this.boundingBox.right = Math.max(this.boundingBox.right, this.labelDimensions.left + this.labelDimensions.width)
-      this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelDimensions.height)
+      this.boundingBox.left = Math.min(this.boundingBox.left, this.labelDimensions.left);
+      this.boundingBox.right = Math.max(this.boundingBox.right, this.labelDimensions.left + this.labelDimensions.width);
+      this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelDimensions.height);
     }
   };
 
