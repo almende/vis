@@ -93,20 +93,20 @@ return /******/ (function(modules) { // webpackBootstrap
   // Graph3d
   exports.Graph3d = __webpack_require__(10);
   exports.graph3d = {
-    Camera: __webpack_require__(11),
-    Filter: __webpack_require__(13),
-    Point2d: __webpack_require__(14),
+    Camera: __webpack_require__(14),
+    Filter: __webpack_require__(15),
+    Point2d: __webpack_require__(13),
     Point3d: __webpack_require__(12),
-    Slider: __webpack_require__(15),
-    StepNumber: __webpack_require__(16)
+    Slider: __webpack_require__(16),
+    StepNumber: __webpack_require__(17)
   };
 
   // Timeline
-  exports.Timeline = __webpack_require__(17);
+  exports.Timeline = __webpack_require__(18);
   exports.Graph2d = __webpack_require__(42);
   exports.timeline = {
     DateUtil: __webpack_require__(24),
-    DataStep: __webpack_require__(45),
+    DataStep: __webpack_require__(44),
     Range: __webpack_require__(21),
     stack: __webpack_require__(28),
     TimeStep: __webpack_require__(38),
@@ -123,7 +123,7 @@ return /******/ (function(modules) { // webpackBootstrap
       Component: __webpack_require__(23),
       CurrentTime: __webpack_require__(39),
       CustomTime: __webpack_require__(41),
-      DataAxis: __webpack_require__(44),
+      DataAxis: __webpack_require__(45),
       GraphGroup: __webpack_require__(46),
       Group: __webpack_require__(27),
       BackgroundGroup: __webpack_require__(31),
@@ -6115,16 +6115,16 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(18);
+  var Emitter = __webpack_require__(11);
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(9);
   var util = __webpack_require__(1);
   var Point3d = __webpack_require__(12);
-  var Point2d = __webpack_require__(14);
-  var Camera = __webpack_require__(11);
-  var Filter = __webpack_require__(13);
-  var Slider = __webpack_require__(15);
-  var StepNumber = __webpack_require__(16);
+  var Point2d = __webpack_require__(13);
+  var Camera = __webpack_require__(14);
+  var Filter = __webpack_require__(15);
+  var Slider = __webpack_require__(16);
+  var StepNumber = __webpack_require__(17);
 
   /**
    * @constructor Graph3d
@@ -8400,6 +8400,284 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
+  
+  /**
+   * Expose `Emitter`.
+   */
+
+  module.exports = Emitter;
+
+  /**
+   * Initialize a new `Emitter`.
+   *
+   * @api public
+   */
+
+  function Emitter(obj) {
+    if (obj) return mixin(obj);
+  };
+
+  /**
+   * Mixin the emitter properties.
+   *
+   * @param {Object} obj
+   * @return {Object}
+   * @api private
+   */
+
+  function mixin(obj) {
+    for (var key in Emitter.prototype) {
+      obj[key] = Emitter.prototype[key];
+    }
+    return obj;
+  }
+
+  /**
+   * Listen on the given `event` with `fn`.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.on =
+  Emitter.prototype.addEventListener = function(event, fn){
+    this._callbacks = this._callbacks || {};
+    (this._callbacks[event] = this._callbacks[event] || [])
+      .push(fn);
+    return this;
+  };
+
+  /**
+   * Adds an `event` listener that will be invoked a single
+   * time then automatically removed.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.once = function(event, fn){
+    var self = this;
+    this._callbacks = this._callbacks || {};
+
+    function on() {
+      self.off(event, on);
+      fn.apply(this, arguments);
+    }
+
+    on.fn = fn;
+    this.on(event, on);
+    return this;
+  };
+
+  /**
+   * Remove the given callback for `event` or all
+   * registered callbacks.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.off =
+  Emitter.prototype.removeListener =
+  Emitter.prototype.removeAllListeners =
+  Emitter.prototype.removeEventListener = function(event, fn){
+    this._callbacks = this._callbacks || {};
+
+    // all
+    if (0 == arguments.length) {
+      this._callbacks = {};
+      return this;
+    }
+
+    // specific event
+    var callbacks = this._callbacks[event];
+    if (!callbacks) return this;
+
+    // remove all handlers
+    if (1 == arguments.length) {
+      delete this._callbacks[event];
+      return this;
+    }
+
+    // remove specific handler
+    var cb;
+    for (var i = 0; i < callbacks.length; i++) {
+      cb = callbacks[i];
+      if (cb === fn || cb.fn === fn) {
+        callbacks.splice(i, 1);
+        break;
+      }
+    }
+    return this;
+  };
+
+  /**
+   * Emit `event` with the given args.
+   *
+   * @param {String} event
+   * @param {Mixed} ...
+   * @return {Emitter}
+   */
+
+  Emitter.prototype.emit = function(event){
+    this._callbacks = this._callbacks || {};
+    var args = [].slice.call(arguments, 1)
+      , callbacks = this._callbacks[event];
+
+    if (callbacks) {
+      callbacks = callbacks.slice(0);
+      for (var i = 0, len = callbacks.length; i < len; ++i) {
+        callbacks[i].apply(this, args);
+      }
+    }
+
+    return this;
+  };
+
+  /**
+   * Return array of callbacks for `event`.
+   *
+   * @param {String} event
+   * @return {Array}
+   * @api public
+   */
+
+  Emitter.prototype.listeners = function(event){
+    this._callbacks = this._callbacks || {};
+    return this._callbacks[event] || [];
+  };
+
+  /**
+   * Check if this emitter has `event` handlers.
+   *
+   * @param {String} event
+   * @return {Boolean}
+   * @api public
+   */
+
+  Emitter.prototype.hasListeners = function(event){
+    return !! this.listeners(event).length;
+  };
+
+
+/***/ },
+/* 12 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * @prototype Point3d
+   * @param {Number} [x]
+   * @param {Number} [y]
+   * @param {Number} [z]
+   */
+  function Point3d(x, y, z) {
+    this.x = x !== undefined ? x : 0;
+    this.y = y !== undefined ? y : 0;
+    this.z = z !== undefined ? z : 0;
+  };
+
+  /**
+   * Subtract the two provided points, returns a-b
+   * @param {Point3d} a
+   * @param {Point3d} b
+   * @return {Point3d} a-b
+   */
+  Point3d.subtract = function(a, b) {
+    var sub = new Point3d();
+    sub.x = a.x - b.x;
+    sub.y = a.y - b.y;
+    sub.z = a.z - b.z;
+    return sub;
+  };
+
+  /**
+   * Add the two provided points, returns a+b
+   * @param {Point3d} a
+   * @param {Point3d} b
+   * @return {Point3d} a+b
+   */
+  Point3d.add = function(a, b) {
+    var sum = new Point3d();
+    sum.x = a.x + b.x;
+    sum.y = a.y + b.y;
+    sum.z = a.z + b.z;
+    return sum;
+  };
+
+  /**
+   * Calculate the average of two 3d points
+   * @param {Point3d} a
+   * @param {Point3d} b
+   * @return {Point3d} The average, (a+b)/2
+   */
+  Point3d.avg = function(a, b) {
+    return new Point3d(
+            (a.x + b.x) / 2,
+            (a.y + b.y) / 2,
+            (a.z + b.z) / 2
+    );
+  };
+
+  /**
+   * Calculate the cross product of the two provided points, returns axb
+   * Documentation: http://en.wikipedia.org/wiki/Cross_product
+   * @param {Point3d} a
+   * @param {Point3d} b
+   * @return {Point3d} cross product axb
+   */
+  Point3d.crossProduct = function(a, b) {
+    var crossproduct = new Point3d();
+
+    crossproduct.x = a.y * b.z - a.z * b.y;
+    crossproduct.y = a.z * b.x - a.x * b.z;
+    crossproduct.z = a.x * b.y - a.y * b.x;
+
+    return crossproduct;
+  };
+
+
+  /**
+   * Rtrieve the length of the vector (or the distance from this point to the origin
+   * @return {Number}  length
+   */
+  Point3d.prototype.length = function() {
+    return Math.sqrt(
+            this.x * this.x +
+            this.y * this.y +
+            this.z * this.z
+    );
+  };
+
+  module.exports = Point3d;
+
+
+/***/ },
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * @prototype Point2d
+   * @param {Number} [x]
+   * @param {Number} [y]
+   */
+  function Point2d (x, y) {
+    this.x = x !== undefined ? x : 0;
+    this.y = y !== undefined ? y : 0;
+  }
+
+  module.exports = Point2d;
+
+
+/***/ },
+/* 14 */
+/***/ function(module, exports, __webpack_require__) {
+
   var Point3d = __webpack_require__(12);
 
   /**
@@ -8537,98 +8815,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Camera;
 
 /***/ },
-/* 12 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * @prototype Point3d
-   * @param {Number} [x]
-   * @param {Number} [y]
-   * @param {Number} [z]
-   */
-  function Point3d(x, y, z) {
-    this.x = x !== undefined ? x : 0;
-    this.y = y !== undefined ? y : 0;
-    this.z = z !== undefined ? z : 0;
-  };
-
-  /**
-   * Subtract the two provided points, returns a-b
-   * @param {Point3d} a
-   * @param {Point3d} b
-   * @return {Point3d} a-b
-   */
-  Point3d.subtract = function(a, b) {
-    var sub = new Point3d();
-    sub.x = a.x - b.x;
-    sub.y = a.y - b.y;
-    sub.z = a.z - b.z;
-    return sub;
-  };
-
-  /**
-   * Add the two provided points, returns a+b
-   * @param {Point3d} a
-   * @param {Point3d} b
-   * @return {Point3d} a+b
-   */
-  Point3d.add = function(a, b) {
-    var sum = new Point3d();
-    sum.x = a.x + b.x;
-    sum.y = a.y + b.y;
-    sum.z = a.z + b.z;
-    return sum;
-  };
-
-  /**
-   * Calculate the average of two 3d points
-   * @param {Point3d} a
-   * @param {Point3d} b
-   * @return {Point3d} The average, (a+b)/2
-   */
-  Point3d.avg = function(a, b) {
-    return new Point3d(
-            (a.x + b.x) / 2,
-            (a.y + b.y) / 2,
-            (a.z + b.z) / 2
-    );
-  };
-
-  /**
-   * Calculate the cross product of the two provided points, returns axb
-   * Documentation: http://en.wikipedia.org/wiki/Cross_product
-   * @param {Point3d} a
-   * @param {Point3d} b
-   * @return {Point3d} cross product axb
-   */
-  Point3d.crossProduct = function(a, b) {
-    var crossproduct = new Point3d();
-
-    crossproduct.x = a.y * b.z - a.z * b.y;
-    crossproduct.y = a.z * b.x - a.x * b.z;
-    crossproduct.z = a.x * b.y - a.y * b.x;
-
-    return crossproduct;
-  };
-
-
-  /**
-   * Rtrieve the length of the vector (or the distance from this point to the origin
-   * @return {Number}  length
-   */
-  Point3d.prototype.length = function() {
-    return Math.sqrt(
-            this.x * this.x +
-            this.y * this.y +
-            this.z * this.z
-    );
-  };
-
-  module.exports = Point3d;
-
-
-/***/ },
-/* 13 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
   var DataView = __webpack_require__(9);
@@ -8852,24 +9039,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 14 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * @prototype Point2d
-   * @param {Number} [x]
-   * @param {Number} [y]
-   */
-  function Point2d (x, y) {
-    this.x = x !== undefined ? x : 0;
-    this.y = y !== undefined ? y : 0;
-  }
-
-  module.exports = Point2d;
-
-
-/***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -9221,7 +9391,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -9367,10 +9537,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(18);
+  var Emitter = __webpack_require__(11);
   var Hammer = __webpack_require__(19);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(7);
@@ -9684,176 +9854,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
   module.exports = Timeline;
-
-
-/***/ },
-/* 18 */
-/***/ function(module, exports, __webpack_require__) {
-
-  
-  /**
-   * Expose `Emitter`.
-   */
-
-  module.exports = Emitter;
-
-  /**
-   * Initialize a new `Emitter`.
-   *
-   * @api public
-   */
-
-  function Emitter(obj) {
-    if (obj) return mixin(obj);
-  };
-
-  /**
-   * Mixin the emitter properties.
-   *
-   * @param {Object} obj
-   * @return {Object}
-   * @api private
-   */
-
-  function mixin(obj) {
-    for (var key in Emitter.prototype) {
-      obj[key] = Emitter.prototype[key];
-    }
-    return obj;
-  }
-
-  /**
-   * Listen on the given `event` with `fn`.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.on =
-  Emitter.prototype.addEventListener = function(event, fn){
-    this._callbacks = this._callbacks || {};
-    (this._callbacks[event] = this._callbacks[event] || [])
-      .push(fn);
-    return this;
-  };
-
-  /**
-   * Adds an `event` listener that will be invoked a single
-   * time then automatically removed.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.once = function(event, fn){
-    var self = this;
-    this._callbacks = this._callbacks || {};
-
-    function on() {
-      self.off(event, on);
-      fn.apply(this, arguments);
-    }
-
-    on.fn = fn;
-    this.on(event, on);
-    return this;
-  };
-
-  /**
-   * Remove the given callback for `event` or all
-   * registered callbacks.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.off =
-  Emitter.prototype.removeListener =
-  Emitter.prototype.removeAllListeners =
-  Emitter.prototype.removeEventListener = function(event, fn){
-    this._callbacks = this._callbacks || {};
-
-    // all
-    if (0 == arguments.length) {
-      this._callbacks = {};
-      return this;
-    }
-
-    // specific event
-    var callbacks = this._callbacks[event];
-    if (!callbacks) return this;
-
-    // remove all handlers
-    if (1 == arguments.length) {
-      delete this._callbacks[event];
-      return this;
-    }
-
-    // remove specific handler
-    var cb;
-    for (var i = 0; i < callbacks.length; i++) {
-      cb = callbacks[i];
-      if (cb === fn || cb.fn === fn) {
-        callbacks.splice(i, 1);
-        break;
-      }
-    }
-    return this;
-  };
-
-  /**
-   * Emit `event` with the given args.
-   *
-   * @param {String} event
-   * @param {Mixed} ...
-   * @return {Emitter}
-   */
-
-  Emitter.prototype.emit = function(event){
-    this._callbacks = this._callbacks || {};
-    var args = [].slice.call(arguments, 1)
-      , callbacks = this._callbacks[event];
-
-    if (callbacks) {
-      callbacks = callbacks.slice(0);
-      for (var i = 0, len = callbacks.length; i < len; ++i) {
-        callbacks[i].apply(this, args);
-      }
-    }
-
-    return this;
-  };
-
-  /**
-   * Return array of callbacks for `event`.
-   *
-   * @param {String} event
-   * @return {Array}
-   * @api public
-   */
-
-  Emitter.prototype.listeners = function(event){
-    this._callbacks = this._callbacks || {};
-    return this._callbacks[event] || [];
-  };
-
-  /**
-   * Check if this emitter has `event` handlers.
-   *
-   * @param {String} event
-   * @return {Boolean}
-   * @api public
-   */
-
-  Emitter.prototype.hasListeners = function(event){
-    return !! this.listeners(event).length;
-  };
 
 
 /***/ },
@@ -13289,7 +13289,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(18);
+  var Emitter = __webpack_require__(11);
   var Hammer = __webpack_require__(19);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(7);
@@ -17675,7 +17675,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var keycharm = __webpack_require__(36);
-  var Emitter = __webpack_require__(18);
+  var Emitter = __webpack_require__(11);
   var Hammer = __webpack_require__(19);
   var util = __webpack_require__(1);
 
@@ -19383,7 +19383,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(18);
+  var Emitter = __webpack_require__(11);
   var Hammer = __webpack_require__(19);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(7);
@@ -19638,7 +19638,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(9);
   var Component = __webpack_require__(23);
-  var DataAxis = __webpack_require__(44);
+  var DataAxis = __webpack_require__(45);
   var GraphGroup = __webpack_require__(46);
   var Legend = __webpack_require__(50);
   var BarGraphFunctions = __webpack_require__(49);
@@ -19778,7 +19778,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.COUNTER = 0;
     this.body.emitter.on('rangechanged', function() {
       me.lastStart = me.body.range.start;
-      me.svg.style.left = util.option.asSize(-me.width);
+      me.svg.style.left = util.option.asSize(-me.props.width);
       me.redraw.call(me,true);
     });
 
@@ -19827,7 +19827,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   LineGraph.prototype.setOptions = function(options) {
     if (options) {
-      var fields = ['sampling','defaultGroup','graphHeight','yAxisOrientation','style','barChart','dataAxis','sort','groups'];
+      var fields = ['sampling','defaultGroup','height','graphHeight','yAxisOrientation','style','barChart','dataAxis','sort','groups'];
       if (options.graphHeight === undefined && options.height !== undefined && this.body.domProps.centerContainer.height !== undefined) {
         this.autoSizeSVG = true;
       }
@@ -20178,44 +20178,61 @@ return /******/ (function(modules) { // webpackBootstrap
   LineGraph.prototype.redraw = function(forceGraphUpdate) {
     var resized = false;
 
-    this.svg.style.height = ('' + this.options.graphHeight).replace('px','') + 'px';
-    if (this.lastWidth === undefined && this.width || this.lastWidth != this.width) {
-      resized = true;
+    // calculate actual size and position
+    this.props.width = this.dom.frame.offsetWidth;
+    this.props.height = this.body.domProps.centerContainer.height;
+
+    // update the graph if there is no lastWidth or with, used for the initial draw
+    if (this.lastWidth === undefined && this.props.width) {
+      forceGraphUpdate = true;
     }
+
     // check if this component is resized
     resized = this._isResized() || resized;
+
     // check whether zoomed (in that case we need to re-stack everything)
     var visibleInterval = this.body.range.end - this.body.range.start;
-    var zoomed = (visibleInterval != this.lastVisibleInterval) || (this.width != this.lastWidth); // we get this from the range changed event
+    var zoomed = (visibleInterval != this.lastVisibleInterval);
     this.lastVisibleInterval = visibleInterval;
-    this.lastWidth = this.width;
 
-    // calculate actual size and position
-    this.width = this.dom.frame.offsetWidth;
 
     // the svg element is three times as big as the width, this allows for fully dragging left and right
     // without reloading the graph. the controls for this are bound to events in the constructor
     if (resized == true) {
-      this.svg.style.width = util.option.asSize(3*this.width);
-      this.svg.style.left = util.option.asSize(-this.width);
+      this.svg.style.width = util.option.asSize(3*this.props.width);
+      this.svg.style.left = util.option.asSize(-this.props.width);
+      if ((this.options.height + '').indexOf("%") != -1) {
+        this.autoSizeSVG = true;
+      }
+    }
+
+    // update the height of the graph on each redraw of the graph.
+    if (this.autoSizeSVG == true) {
+      if (this.options.graphHeight != this.body.domProps.centerContainer.height + 'px') {
+        this.options.graphHeight = this.body.domProps.centerContainer.height + 'px';
+        this.svg.style.height = this.body.domProps.centerContainer.height + 'px';
+      }
+      this.autoSizeSVG = false;
+    }
+    else {
+      this.svg.style.height = ('' + this.options.graphHeight).replace('px','') + 'px';
     }
 
     // zoomed is here to ensure that animations are shown correctly.
-    if (zoomed == true || this.abortedGraphUpdate == true || forceGraphUpdate == true) {
-      resized = resized || this._updateGraph();
+    if (resized == true || zoomed == true || this.abortedGraphUpdate == true || forceGraphUpdate == true) {
+      resized = this._updateGraph() || resized;
     }
     else {
       // move the whole svg while dragging
       if (this.lastStart != 0) {
         var offset = this.body.range.start - this.lastStart;
         var range = this.body.range.end - this.body.range.start;
-        if (this.width != 0) {
-          var rangePerPixelInv = this.width/range;
+        if (this.props.width != 0) {
+          var rangePerPixelInv = this.props.width/range;
           var xOffset = offset * rangePerPixelInv;
-          this.svg.style.left = (-this.width - xOffset) + 'px';
+          this.svg.style.left = (-this.props.width - xOffset) + 'px';
         }
       }
-
     }
 
     this.legendLeft.redraw();
@@ -20232,21 +20249,12 @@ return /******/ (function(modules) { // webpackBootstrap
   LineGraph.prototype._updateGraph = function () {
     // reset the svg elements
     DOMutil.prepareElements(this.svgElements);
-    if (this.width != 0 && this.itemsData != null) {
+    if (this.props.width != 0 && this.itemsData != null) {
       var group, i;
       var preprocessedGroupData = {};
       var processedGroupData = {};
       var groupRanges = {};
       var changeCalled = false;
-
-      // update the height of the graph on each redraw of the graph.
-      if (this.autoSizeSVG == true) {
-        if (this.options.graphHeight != this.body.domProps.centerContainer.height + 'px') {
-          this.options.graphHeight = this.body.domProps.centerContainer.height + 'px';
-          this.svg.style.height = this.body.domProps.centerContainer.height + 'px';
-        }
-        this.autoSizeSVG = false;
-      }
 
       // getting group Ids
       var groupIds = [];
@@ -20501,7 +20509,6 @@ return /******/ (function(modules) { // webpackBootstrap
     }
     changeCalled = this._toggleAxisVisiblity(yAxisLeftUsed , this.yAxisLeft)  || changeCalled;
     changeCalled = this._toggleAxisVisiblity(yAxisRightUsed, this.yAxisRight) || changeCalled;
-
     if (yAxisRightUsed == true && yAxisLeftUsed == true) {
       this.yAxisLeft.drawIcons = true;
       this.yAxisRight.drawIcons = true;
@@ -20510,7 +20517,6 @@ return /******/ (function(modules) { // webpackBootstrap
       this.yAxisLeft.drawIcons = false;
       this.yAxisRight.drawIcons = false;
     }
-
     this.yAxisRight.master = !yAxisLeftUsed;
 
     if (this.yAxisRight.master == false) {
@@ -20579,7 +20585,7 @@ return /******/ (function(modules) { // webpackBootstrap
     var toScreen = this.body.util.toScreen;
 
     for (var i = 0; i < datapoints.length; i++) {
-      xValue = toScreen(datapoints[i].x) + this.width;
+      xValue = toScreen(datapoints[i].x) + this.props.width;
       yValue = datapoints[i].y;
       extractedData.push({x: xValue, y: yValue});
     }
@@ -20609,7 +20615,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     for (var i = 0; i < datapoints.length; i++) {
-      xValue = toScreen(datapoints[i].x) + this.width;
+      xValue = toScreen(datapoints[i].x) + this.props.width;
       yValue = Math.round(axis.convertValue(datapoints[i].y));
       extractedData.push({x: xValue, y: yValue});
     }
@@ -20627,10 +20633,291 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
+  /**
+   * @constructor  DataStep
+   * The class DataStep is an iterator for data for the lineGraph. You provide a start data point and an
+   * end data point. The class itself determines the best scale (step size) based on the
+   * provided start Date, end Date, and minimumStep.
+   *
+   * If minimumStep is provided, the step size is chosen as close as possible
+   * to the minimumStep but larger than minimumStep. If minimumStep is not
+   * provided, the scale is set to 1 DAY.
+   * The minimumStep should correspond with the onscreen size of about 6 characters
+   *
+   * Alternatively, you can set a scale by hand.
+   * After creation, you can initialize the class by executing first(). Then you
+   * can iterate from the start date to the end date via next(). You can check if
+   * the end date is reached with the function hasNext(). After each step, you can
+   * retrieve the current date via getCurrent().
+   * The DataStep has scales ranging from milliseconds, seconds, minutes, hours,
+   * days, to years.
+   *
+   * Version: 1.2
+   *
+   * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
+   *                               or new Date(2010, 9, 21, 23, 45, 00)
+   * @param {Date} [end]           The end date
+   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
+   */
+  function DataStep(start, end, minimumStep, containerHeight, customRange, alignZeros) {
+    // variables
+    this.current = 0;
+
+    this.autoScale = true;
+    this.stepIndex = 0;
+    this.step = 1;
+    this.scale = 1;
+
+    this.marginStart;
+    this.marginEnd;
+    this.deadSpace = 0;
+
+    this.majorSteps = [1,     2,    5,  10];
+    this.minorSteps = [0.25,  0.5,  1,  2];
+
+    this.alignZeros = alignZeros;
+
+    this.setRange(start, end, minimumStep, containerHeight, customRange);
+  }
+
+
+
+  /**
+   * Set a new range
+   * If minimumStep is provided, the step size is chosen as close as possible
+   * to the minimumStep but larger than minimumStep. If minimumStep is not
+   * provided, the scale is set to 1 DAY.
+   * The minimumStep should correspond with the onscreen size of about 6 characters
+   * @param {Number} [start]      The start date and time.
+   * @param {Number} [end]        The end date and time.
+   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
+   */
+  DataStep.prototype.setRange = function(start, end, minimumStep, containerHeight, customRange) {
+    this._start = customRange.min === undefined ? start : customRange.min;
+    this._end = customRange.max === undefined ? end : customRange.max;
+
+    if (this._start == this._end) {
+      this._start -= 0.75;
+      this._end += 1;
+    }
+
+    if (this.autoScale == true) {
+      this.setMinimumStep(minimumStep, containerHeight);
+    }
+
+    this.setFirst(customRange);
+  };
+
+  /**
+   * Automatically determine the scale that bests fits the provided minimum step
+   * @param {Number} [minimumStep]  The minimum step size in milliseconds
+   */
+  DataStep.prototype.setMinimumStep = function(minimumStep, containerHeight) {
+    // round to floor
+    var size = this._end - this._start;
+    var safeSize = size * 1.2;
+    var minimumStepValue = minimumStep * (safeSize / containerHeight);
+    var orderOfMagnitude = Math.round(Math.log(safeSize)/Math.LN10);
+
+    var minorStepIdx = -1;
+    var magnitudefactor = Math.pow(10,orderOfMagnitude);
+
+    var start = 0;
+    if (orderOfMagnitude < 0) {
+      start = orderOfMagnitude;
+    }
+
+    var solutionFound = false;
+    for (var i = start; Math.abs(i) <= Math.abs(orderOfMagnitude); i++) {
+      magnitudefactor = Math.pow(10,i);
+      for (var j = 0; j < this.minorSteps.length; j++) {
+        var stepSize = magnitudefactor * this.minorSteps[j];
+        if (stepSize >= minimumStepValue) {
+          solutionFound = true;
+          minorStepIdx = j;
+          break;
+        }
+      }
+      if (solutionFound == true) {
+        break;
+      }
+    }
+    this.stepIndex = minorStepIdx;
+    this.scale = magnitudefactor;
+    this.step = magnitudefactor * this.minorSteps[minorStepIdx];
+  };
+
+
+
+  /**
+   * Round the current date to the first minor date value
+   * This must be executed once when the current date is set to start Date
+   */
+  DataStep.prototype.setFirst = function(customRange) {
+    if (customRange === undefined) {
+      customRange = {};
+    }
+
+    var niceStart = customRange.min === undefined ? this._start - (this.scale * 2 * this.minorSteps[this.stepIndex]) : customRange.min;
+    var niceEnd = customRange.max === undefined ? this._end + (this.scale * this.minorSteps[this.stepIndex]) : customRange.max;
+
+    this.marginEnd = customRange.max === undefined ? this.roundToMinor(niceEnd) : customRange.max;
+    this.marginStart = customRange.min === undefined ? this.roundToMinor(niceStart) : customRange.min;
+
+    // if we need to align the zero's we need to make sure that there is a zero to use.
+    if (this.alignZeros == true && (this.marginEnd - this.marginStart) % this.step != 0) {
+      this.marginEnd += this.marginEnd % this.step;
+    }
+
+    this.deadSpace = this.roundToMinor(niceEnd) - niceEnd + this.roundToMinor(niceStart) - niceStart;
+    this.marginRange = this.marginEnd - this.marginStart;
+
+
+    this.current = this.marginEnd;
+  };
+
+  DataStep.prototype.roundToMinor = function(value) {
+    var rounded = value - (value % (this.scale * this.minorSteps[this.stepIndex]));
+    if (value % (this.scale * this.minorSteps[this.stepIndex]) > 0.5 * (this.scale * this.minorSteps[this.stepIndex])) {
+      return rounded + (this.scale * this.minorSteps[this.stepIndex]);
+    }
+    else {
+      return rounded;
+    }
+  }
+
+
+  /**
+   * Check if the there is a next step
+   * @return {boolean}  true if the current date has not passed the end date
+   */
+  DataStep.prototype.hasNext = function () {
+    return (this.current >= this.marginStart);
+  };
+
+  /**
+   * Do the next step
+   */
+  DataStep.prototype.next = function() {
+    var prev = this.current;
+    this.current -= this.step;
+
+    // safety mechanism: if current time is still unchanged, move to the end
+    if (this.current == prev) {
+      this.current = this._end;
+    }
+  };
+
+  /**
+   * Do the next step
+   */
+  DataStep.prototype.previous = function() {
+    this.current += this.step;
+    this.marginEnd += this.step;
+    this.marginRange = this.marginEnd - this.marginStart;
+  };
+
+
+
+  /**
+   * Get the current datetime
+   * @return {String}  current The current date
+   */
+  DataStep.prototype.getCurrent = function(decimals) {
+    // prevent round-off errors when close to zero
+    var current = (Math.abs(this.current) < this.step / 2) ? 0 : this.current;
+    var toPrecision = '' + Number(current).toPrecision(5);
+
+    // If decimals is specified, then limit or extend the string as required
+    if(decimals !== undefined && !isNaN(Number(decimals))) {
+      // If string includes exponent, then we need to add it to the end
+      var exp = "";
+      var index = toPrecision.indexOf("e");
+      if(index != -1) {
+        // Get the exponent
+        exp = toPrecision.slice(index);
+        // Remove the exponent in case we need to zero-extend
+        toPrecision = toPrecision.slice(0, index);
+      }
+      index = Math.max(toPrecision.indexOf(","), toPrecision.indexOf("."));
+      if(index === -1) {
+        // No decimal found - if we want decimals, then we need to add it
+        if(decimals !== 0) {
+          toPrecision += '.';
+        }
+        // Calculate how long the string should be
+        index = toPrecision.length + decimals;
+      }
+      else if(decimals !== 0) {
+        // Calculate how long the string should be - accounting for the decimal place
+        index += decimals + 1;
+      }
+      if(index > toPrecision.length) {
+        // We need to add zeros!
+        for(var cnt = index - toPrecision.length; cnt > 0; cnt--) {
+          toPrecision += '0';
+        }
+      }
+      else {
+        // we need to remove characters
+        toPrecision = toPrecision.slice(0, index);
+      }
+      // Add the exponent if there is one
+      toPrecision += exp;
+    }
+    else {
+      if (toPrecision.indexOf(",") != -1 || toPrecision.indexOf(".") != -1) {
+        // If no decimal is specified, and there are decimal places, remove trailing zeros
+        for (var i = toPrecision.length - 1; i > 0; i--) {
+          if (toPrecision[i] == "0") {
+            toPrecision = toPrecision.slice(0, i);
+          }
+          else if (toPrecision[i] == "." || toPrecision[i] == ",") {
+            toPrecision = toPrecision.slice(0, i);
+            break;
+          }
+          else {
+            break;
+          }
+        }
+      }
+    }
+
+    return toPrecision;
+  };
+
+
+
+  /**
+   * Snap a date to a rounded value.
+   * The snap intervals are dependent on the current scale and step.
+   * @param {Date} date   the date to be snapped.
+   * @return {Date} snappedDate
+   */
+  DataStep.prototype.snap = function(date) {
+
+  };
+
+  /**
+   * Check if the current value is a major value (for example when the step
+   * is DAY, a major value is each first day of the MONTH)
+   * @return {boolean} true if current date is major, else false.
+   */
+  DataStep.prototype.isMajor = function() {
+    return (this.current % (this.scale * this.majorSteps[this.stepIndex]) == 0);
+  };
+
+  module.exports = DataStep;
+
+
+/***/ },
+/* 45 */
+/***/ function(module, exports, __webpack_require__) {
+
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(6);
   var Component = __webpack_require__(23);
-  var DataStep = __webpack_require__(45);
+  var DataStep = __webpack_require__(44);
 
   /**
    * A horizontal time axis
@@ -21263,287 +21550,6 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   module.exports = DataAxis;
-
-
-/***/ },
-/* 45 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * @constructor  DataStep
-   * The class DataStep is an iterator for data for the lineGraph. You provide a start data point and an
-   * end data point. The class itself determines the best scale (step size) based on the
-   * provided start Date, end Date, and minimumStep.
-   *
-   * If minimumStep is provided, the step size is chosen as close as possible
-   * to the minimumStep but larger than minimumStep. If minimumStep is not
-   * provided, the scale is set to 1 DAY.
-   * The minimumStep should correspond with the onscreen size of about 6 characters
-   *
-   * Alternatively, you can set a scale by hand.
-   * After creation, you can initialize the class by executing first(). Then you
-   * can iterate from the start date to the end date via next(). You can check if
-   * the end date is reached with the function hasNext(). After each step, you can
-   * retrieve the current date via getCurrent().
-   * The DataStep has scales ranging from milliseconds, seconds, minutes, hours,
-   * days, to years.
-   *
-   * Version: 1.2
-   *
-   * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
-   *                               or new Date(2010, 9, 21, 23, 45, 00)
-   * @param {Date} [end]           The end date
-   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
-   */
-  function DataStep(start, end, minimumStep, containerHeight, customRange, alignZeros) {
-    // variables
-    this.current = 0;
-
-    this.autoScale = true;
-    this.stepIndex = 0;
-    this.step = 1;
-    this.scale = 1;
-
-    this.marginStart;
-    this.marginEnd;
-    this.deadSpace = 0;
-
-    this.majorSteps = [1,     2,    5,  10];
-    this.minorSteps = [0.25,  0.5,  1,  2];
-
-    this.alignZeros = alignZeros;
-
-    this.setRange(start, end, minimumStep, containerHeight, customRange);
-  }
-
-
-
-  /**
-   * Set a new range
-   * If minimumStep is provided, the step size is chosen as close as possible
-   * to the minimumStep but larger than minimumStep. If minimumStep is not
-   * provided, the scale is set to 1 DAY.
-   * The minimumStep should correspond with the onscreen size of about 6 characters
-   * @param {Number} [start]      The start date and time.
-   * @param {Number} [end]        The end date and time.
-   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
-   */
-  DataStep.prototype.setRange = function(start, end, minimumStep, containerHeight, customRange) {
-    this._start = customRange.min === undefined ? start : customRange.min;
-    this._end = customRange.max === undefined ? end : customRange.max;
-
-    if (this._start == this._end) {
-      this._start -= 0.75;
-      this._end += 1;
-    }
-
-    if (this.autoScale == true) {
-      this.setMinimumStep(minimumStep, containerHeight);
-    }
-
-    this.setFirst(customRange);
-  };
-
-  /**
-   * Automatically determine the scale that bests fits the provided minimum step
-   * @param {Number} [minimumStep]  The minimum step size in milliseconds
-   */
-  DataStep.prototype.setMinimumStep = function(minimumStep, containerHeight) {
-    // round to floor
-    var size = this._end - this._start;
-    var safeSize = size * 1.2;
-    var minimumStepValue = minimumStep * (safeSize / containerHeight);
-    var orderOfMagnitude = Math.round(Math.log(safeSize)/Math.LN10);
-
-    var minorStepIdx = -1;
-    var magnitudefactor = Math.pow(10,orderOfMagnitude);
-
-    var start = 0;
-    if (orderOfMagnitude < 0) {
-      start = orderOfMagnitude;
-    }
-
-    var solutionFound = false;
-    for (var i = start; Math.abs(i) <= Math.abs(orderOfMagnitude); i++) {
-      magnitudefactor = Math.pow(10,i);
-      for (var j = 0; j < this.minorSteps.length; j++) {
-        var stepSize = magnitudefactor * this.minorSteps[j];
-        if (stepSize >= minimumStepValue) {
-          solutionFound = true;
-          minorStepIdx = j;
-          break;
-        }
-      }
-      if (solutionFound == true) {
-        break;
-      }
-    }
-    this.stepIndex = minorStepIdx;
-    this.scale = magnitudefactor;
-    this.step = magnitudefactor * this.minorSteps[minorStepIdx];
-  };
-
-
-
-  /**
-   * Round the current date to the first minor date value
-   * This must be executed once when the current date is set to start Date
-   */
-  DataStep.prototype.setFirst = function(customRange) {
-    if (customRange === undefined) {
-      customRange = {};
-    }
-
-    var niceStart = customRange.min === undefined ? this._start - (this.scale * 2 * this.minorSteps[this.stepIndex]) : customRange.min;
-    var niceEnd = customRange.max === undefined ? this._end + (this.scale * this.minorSteps[this.stepIndex]) : customRange.max;
-
-    this.marginEnd = customRange.max === undefined ? this.roundToMinor(niceEnd) : customRange.max;
-    this.marginStart = customRange.min === undefined ? this.roundToMinor(niceStart) : customRange.min;
-
-    // if we need to align the zero's we need to make sure that there is a zero to use.
-    if (this.alignZeros == true && (this.marginEnd - this.marginStart) % this.step != 0) {
-      this.marginEnd += this.marginEnd % this.step;
-    }
-
-    this.deadSpace = this.roundToMinor(niceEnd) - niceEnd + this.roundToMinor(niceStart) - niceStart;
-    this.marginRange = this.marginEnd - this.marginStart;
-
-
-    this.current = this.marginEnd;
-  };
-
-  DataStep.prototype.roundToMinor = function(value) {
-    var rounded = value - (value % (this.scale * this.minorSteps[this.stepIndex]));
-    if (value % (this.scale * this.minorSteps[this.stepIndex]) > 0.5 * (this.scale * this.minorSteps[this.stepIndex])) {
-      return rounded + (this.scale * this.minorSteps[this.stepIndex]);
-    }
-    else {
-      return rounded;
-    }
-  }
-
-
-  /**
-   * Check if the there is a next step
-   * @return {boolean}  true if the current date has not passed the end date
-   */
-  DataStep.prototype.hasNext = function () {
-    return (this.current >= this.marginStart);
-  };
-
-  /**
-   * Do the next step
-   */
-  DataStep.prototype.next = function() {
-    var prev = this.current;
-    this.current -= this.step;
-
-    // safety mechanism: if current time is still unchanged, move to the end
-    if (this.current == prev) {
-      this.current = this._end;
-    }
-  };
-
-  /**
-   * Do the next step
-   */
-  DataStep.prototype.previous = function() {
-    this.current += this.step;
-    this.marginEnd += this.step;
-    this.marginRange = this.marginEnd - this.marginStart;
-  };
-
-
-
-  /**
-   * Get the current datetime
-   * @return {String}  current The current date
-   */
-  DataStep.prototype.getCurrent = function(decimals) {
-    // prevent round-off errors when close to zero
-    var current = (Math.abs(this.current) < this.step / 2) ? 0 : this.current;
-    var toPrecision = '' + Number(current).toPrecision(5);
-
-    // If decimals is specified, then limit or extend the string as required
-    if(decimals !== undefined && !isNaN(Number(decimals))) {
-      // If string includes exponent, then we need to add it to the end
-      var exp = "";
-      var index = toPrecision.indexOf("e");
-      if(index != -1) {
-        // Get the exponent
-        exp = toPrecision.slice(index);
-        // Remove the exponent in case we need to zero-extend
-        toPrecision = toPrecision.slice(0, index);
-      }
-      index = Math.max(toPrecision.indexOf(","), toPrecision.indexOf("."));
-      if(index === -1) {
-        // No decimal found - if we want decimals, then we need to add it
-        if(decimals !== 0) {
-          toPrecision += '.';
-        }
-        // Calculate how long the string should be
-        index = toPrecision.length + decimals;
-      }
-      else if(decimals !== 0) {
-        // Calculate how long the string should be - accounting for the decimal place
-        index += decimals + 1;
-      }
-      if(index > toPrecision.length) {
-        // We need to add zeros!
-        for(var cnt = index - toPrecision.length; cnt > 0; cnt--) {
-          toPrecision += '0';
-        }
-      }
-      else {
-        // we need to remove characters
-        toPrecision = toPrecision.slice(0, index);
-      }
-      // Add the exponent if there is one
-      toPrecision += exp;
-    }
-    else {
-      if (toPrecision.indexOf(",") != -1 || toPrecision.indexOf(".") != -1) {
-        // If no decimal is specified, and there are decimal places, remove trailing zeros
-        for (var i = toPrecision.length - 1; i > 0; i--) {
-          if (toPrecision[i] == "0") {
-            toPrecision = toPrecision.slice(0, i);
-          }
-          else if (toPrecision[i] == "." || toPrecision[i] == ",") {
-            toPrecision = toPrecision.slice(0, i);
-            break;
-          }
-          else {
-            break;
-          }
-        }
-      }
-    }
-
-    return toPrecision;
-  };
-
-
-
-  /**
-   * Snap a date to a rounded value.
-   * The snap intervals are dependent on the current scale and step.
-   * @param {Date} date   the date to be snapped.
-   * @return {Date} snappedDate
-   */
-  DataStep.prototype.snap = function(date) {
-
-  };
-
-  /**
-   * Check if the current value is a major value (for example when the step
-   * is DAY, a major value is each first day of the MONTH)
-   * @return {boolean} true if current date is major, else false.
-   */
-  DataStep.prototype.isMajor = function() {
-    return (this.current % (this.scale * this.majorSteps[this.stepIndex]) == 0);
-  };
-
-  module.exports = DataStep;
 
 
 /***/ },
@@ -22471,7 +22477,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Emitter = __webpack_require__(18);
+  var Emitter = __webpack_require__(11);
   var Hammer = __webpack_require__(19);
   var keycharm = __webpack_require__(36);
   var util = __webpack_require__(1);
