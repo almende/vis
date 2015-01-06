@@ -84,7 +84,7 @@
         nodes: nodes,
         edges: edges
       };
-      var options = {stabilize:false, clickToUse:true};
+      var options = {stabilize:false};
       network = new vis.Network(container, data, options);
 
       // add event listeners
@@ -96,12 +96,6 @@
       });
       network.on('startStabilization', function (params) {
         document.getElementById('stabilization').innerHTML = 'Stabilizing...';
-      });
-
-      network.setData({
-        nodes: nodes,
-        edges: edges,
-        options: options
       });
     }
 
