@@ -103,47 +103,47 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // Timeline
   exports.Timeline = __webpack_require__(18);
-  exports.Graph2d = __webpack_require__(40);
+  exports.Graph2d = __webpack_require__(42);
   exports.timeline = {
     DateUtil: __webpack_require__(24),
-    DataStep: __webpack_require__(43),
+    DataStep: __webpack_require__(45),
     Range: __webpack_require__(21),
-    stack: __webpack_require__(33),
-    TimeStep: __webpack_require__(27),
+    stack: __webpack_require__(28),
+    TimeStep: __webpack_require__(38),
 
     components: {
       items: {
-        Item: __webpack_require__(35),
-        BackgroundItem: __webpack_require__(39),
-        BoxItem: __webpack_require__(37),
-        PointItem: __webpack_require__(38),
-        RangeItem: __webpack_require__(34)
+        Item: __webpack_require__(30),
+        BackgroundItem: __webpack_require__(34),
+        BoxItem: __webpack_require__(32),
+        PointItem: __webpack_require__(33),
+        RangeItem: __webpack_require__(29)
       },
 
       Component: __webpack_require__(23),
-      CurrentTime: __webpack_require__(28),
-      CustomTime: __webpack_require__(30),
-      DataAxis: __webpack_require__(42),
-      GraphGroup: __webpack_require__(44),
-      Group: __webpack_require__(32),
-      BackgroundGroup: __webpack_require__(36),
-      ItemSet: __webpack_require__(31),
-      Legend: __webpack_require__(48),
-      LineGraph: __webpack_require__(41),
-      TimeAxis: __webpack_require__(26)
+      CurrentTime: __webpack_require__(39),
+      CustomTime: __webpack_require__(41),
+      DataAxis: __webpack_require__(44),
+      GraphGroup: __webpack_require__(46),
+      Group: __webpack_require__(27),
+      BackgroundGroup: __webpack_require__(31),
+      ItemSet: __webpack_require__(26),
+      Legend: __webpack_require__(50),
+      LineGraph: __webpack_require__(43),
+      TimeAxis: __webpack_require__(37)
     }
   };
 
   // Network
-  exports.Network = __webpack_require__(49);
+  exports.Network = __webpack_require__(51);
   exports.network = {
-    Edge: __webpack_require__(56),
-    Groups: __webpack_require__(53),
-    Images: __webpack_require__(54),
-    Node: __webpack_require__(55),
-    Popup: __webpack_require__(57),
-    dotparser: __webpack_require__(51),
-    gephiParser: __webpack_require__(52)
+    Edge: __webpack_require__(52),
+    Groups: __webpack_require__(54),
+    Images: __webpack_require__(55),
+    Node: __webpack_require__(53),
+    Popup: __webpack_require__(56),
+    dotparser: __webpack_require__(57),
+    gephiParser: __webpack_require__(58)
   };
 
   // Deprecated since v3.0.0
@@ -9547,10 +9547,10 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataView = __webpack_require__(9);
   var Range = __webpack_require__(21);
   var Core = __webpack_require__(25);
-  var TimeAxis = __webpack_require__(26);
-  var CurrentTime = __webpack_require__(28);
-  var CustomTime = __webpack_require__(30);
-  var ItemSet = __webpack_require__(31);
+  var TimeAxis = __webpack_require__(37);
+  var CurrentTime = __webpack_require__(39);
+  var CustomTime = __webpack_require__(41);
+  var ItemSet = __webpack_require__(26);
 
   /**
    * Create a timeline visualization
@@ -13295,8 +13295,8 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(9);
   var Range = __webpack_require__(21);
-  var ItemSet = __webpack_require__(31);
-  var Activator = __webpack_require__(69);
+  var ItemSet = __webpack_require__(26);
+  var Activator = __webpack_require__(35);
   var DateUtil = __webpack_require__(24);
 
   /**
@@ -14167,1370 +14167,17 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var util = __webpack_require__(1);
-  var Component = __webpack_require__(23);
-  var TimeStep = __webpack_require__(27);
-  var DateUtil = __webpack_require__(24);
-  var moment = __webpack_require__(2);
-
-  /**
-   * A horizontal time axis
-   * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} body
-   * @param {Object} [options]        See TimeAxis.setOptions for the available
-   *                                  options.
-   * @constructor TimeAxis
-   * @extends Component
-   */
-  function TimeAxis (body, options) {
-    this.dom = {
-      foreground: null,
-      majorLines: [],
-      majorTexts: [],
-      minorLines: [],
-      minorTexts: [],
-      redundant: {
-        majorLines: [],
-        majorTexts: [],
-        minorLines: [],
-        minorTexts: []
-      }
-    };
-    this.props = {
-      range: {
-        start: 0,
-        end: 0,
-        minimumStep: 0
-      },
-      lineTop: 0
-    };
-
-    this.defaultOptions = {
-      orientation: 'bottom',  // supported: 'top', 'bottom'
-      // TODO: implement timeaxis orientations 'left' and 'right'
-      showMinorLabels: true,
-      showMajorLabels: true,
-      showMajorLines: true,
-      showMinorLines: true,
-      format: null
-    };
-    this.options = util.extend({}, this.defaultOptions);
-
-    this.body = body;
-
-    // create the HTML DOM
-    this._create();
-
-    this.setOptions(options);
-  }
-
-  TimeAxis.prototype = new Component();
-
-  /**
-   * Set options for the TimeAxis.
-   * Parameters will be merged in current options.
-   * @param {Object} options  Available options:
-   *                          {string} [orientation]
-   *                          {boolean} [showMinorLabels]
-   *                          {boolean} [showMajorLabels]
-   */
-  TimeAxis.prototype.setOptions = function(options) {
-    if (options) {
-      // copy all options that we know
-      util.selectiveExtend(['orientation', 'showMinorLabels', 'showMajorLabels', 'showMinorLines', 'showMajorLines','hiddenDates', 'format'], this.options, options);
-
-      // apply locale to moment.js
-      // TODO: not so nice, this is applied globally to moment.js
-      if ('locale' in options) {
-        if (typeof moment.locale === 'function') {
-          // moment.js 2.8.1+
-          moment.locale(options.locale);
-        }
-        else {
-          moment.lang(options.locale);
-        }
-      }
-    }
-  };
-
-  /**
-   * Create the HTML DOM for the TimeAxis
-   */
-  TimeAxis.prototype._create = function() {
-    this.dom.foreground = document.createElement('div');
-    this.dom.background = document.createElement('div');
-
-    this.dom.foreground.className = 'timeaxis foreground';
-    this.dom.background.className = 'timeaxis background';
-  };
-
-  /**
-   * Destroy the TimeAxis
-   */
-  TimeAxis.prototype.destroy = function() {
-    // remove from DOM
-    if (this.dom.foreground.parentNode) {
-      this.dom.foreground.parentNode.removeChild(this.dom.foreground);
-    }
-    if (this.dom.background.parentNode) {
-      this.dom.background.parentNode.removeChild(this.dom.background);
-    }
-
-    this.body = null;
-  };
-
-  /**
-   * Repaint the component
-   * @return {boolean} Returns true if the component is resized
-   */
-  TimeAxis.prototype.redraw = function () {
-    var options = this.options;
-    var props = this.props;
-    var foreground = this.dom.foreground;
-    var background = this.dom.background;
-
-    // determine the correct parent DOM element (depending on option orientation)
-    var parent = (options.orientation == 'top') ? this.body.dom.top : this.body.dom.bottom;
-    var parentChanged = (foreground.parentNode !== parent);
-
-    // calculate character width and height
-    this._calculateCharSize();
-
-    // TODO: recalculate sizes only needed when parent is resized or options is changed
-    var orientation = this.options.orientation,
-        showMinorLabels = this.options.showMinorLabels,
-        showMajorLabels = this.options.showMajorLabels;
-
-    // determine the width and height of the elemens for the axis
-    props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
-    props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
-    props.height = props.minorLabelHeight + props.majorLabelHeight;
-    props.width = foreground.offsetWidth;
-
-    props.minorLineHeight = this.body.domProps.root.height - props.majorLabelHeight -
-        (options.orientation == 'top' ? this.body.domProps.bottom.height : this.body.domProps.top.height);
-    props.minorLineWidth = 1; // TODO: really calculate width
-    props.majorLineHeight = props.minorLineHeight + props.majorLabelHeight;
-    props.majorLineWidth = 1; // TODO: really calculate width
-
-    //  take foreground and background offline while updating (is almost twice as fast)
-    var foregroundNextSibling = foreground.nextSibling;
-    var backgroundNextSibling = background.nextSibling;
-    foreground.parentNode && foreground.parentNode.removeChild(foreground);
-    background.parentNode && background.parentNode.removeChild(background);
-
-    foreground.style.height = this.props.height + 'px';
-
-    this._repaintLabels();
-
-    // put DOM online again (at the same place)
-    if (foregroundNextSibling) {
-      parent.insertBefore(foreground, foregroundNextSibling);
-    }
-    else {
-      parent.appendChild(foreground)
-    }
-    if (backgroundNextSibling) {
-      this.body.dom.backgroundVertical.insertBefore(background, backgroundNextSibling);
-    }
-    else {
-      this.body.dom.backgroundVertical.appendChild(background)
-    }
-
-    return this._isResized() || parentChanged;
-  };
-
-  /**
-   * Repaint major and minor text labels and vertical grid lines
-   * @private
-   */
-  TimeAxis.prototype._repaintLabels = function () {
-    var orientation = this.options.orientation;
-
-    // calculate range and step (step such that we have space for 7 characters per label)
-    var start = util.convert(this.body.range.start, 'Number');
-    var end = util.convert(this.body.range.end, 'Number');
-    var timeLabelsize = this.body.util.toTime((this.props.minorCharWidth || 10) * 7).valueOf();
-    var minimumStep = timeLabelsize - DateUtil.getHiddenDurationBefore(this.body.hiddenDates, this.body.range, timeLabelsize);
-    minimumStep -= this.body.util.toTime(0).valueOf();
-
-    var step = new TimeStep(new Date(start), new Date(end), minimumStep, this.body.hiddenDates);
-    if (this.options.format) {
-      step.setFormat(this.options.format);
-    }
-    this.step = step;
-
-    // Move all DOM elements to a "redundant" list, where they
-    // can be picked for re-use, and clear the lists with lines and texts.
-    // At the end of the function _repaintLabels, left over elements will be cleaned up
-    var dom = this.dom;
-    dom.redundant.majorLines = dom.majorLines;
-    dom.redundant.majorTexts = dom.majorTexts;
-    dom.redundant.minorLines = dom.minorLines;
-    dom.redundant.minorTexts = dom.minorTexts;
-    dom.majorLines = [];
-    dom.majorTexts = [];
-    dom.minorLines = [];
-    dom.minorTexts = [];
-
-    step.first();
-    var xFirstMajorLabel = undefined;
-    var max = 0;
-    while (step.hasNext() && max < 1000) {
-      max++;
-      var cur = step.getCurrent();
-      var x = this.body.util.toScreen(cur);
-      var isMajor = step.isMajor();
-
-
-      // TODO: lines must have a width, such that we can create css backgrounds
-
-      if (this.options.showMinorLabels) {
-        this._repaintMinorText(x, step.getLabelMinor(), orientation);
-      }
-
-      if (isMajor && this.options.showMajorLabels) {
-        if (x > 0) {
-          if (xFirstMajorLabel == undefined) {
-            xFirstMajorLabel = x;
-          }
-          this._repaintMajorText(x, step.getLabelMajor(), orientation);
-        }
-        if (this.options.showMajorLines == true) {
-          this._repaintMajorLine(x, orientation);
-        }
-      }
-      else if (this.options.showMinorLines == true) {
-        this._repaintMinorLine(x, orientation);
-      }
-
-      step.next();
-    }
-
-    // create a major label on the left when needed
-    if (this.options.showMajorLabels) {
-      var leftTime = this.body.util.toTime(0),
-          leftText = step.getLabelMajor(leftTime),
-          widthText = leftText.length * (this.props.majorCharWidth || 10) + 10; // upper bound estimation
-
-      if (xFirstMajorLabel == undefined || widthText < xFirstMajorLabel) {
-        this._repaintMajorText(0, leftText, orientation);
-      }
-    }
-
-    // Cleanup leftover DOM elements from the redundant list
-    util.forEach(this.dom.redundant, function (arr) {
-      while (arr.length) {
-        var elem = arr.pop();
-        if (elem && elem.parentNode) {
-          elem.parentNode.removeChild(elem);
-        }
-      }
-    });
-  };
-
-  /**
-   * Create a minor label for the axis at position x
-   * @param {Number} x
-   * @param {String} text
-   * @param {String} orientation   "top" or "bottom" (default)
-   * @private
-   */
-  TimeAxis.prototype._repaintMinorText = function (x, text, orientation) {
-    // reuse redundant label
-    var label = this.dom.redundant.minorTexts.shift();
-
-    if (!label) {
-      // create new label
-      var content = document.createTextNode('');
-      label = document.createElement('div');
-      label.appendChild(content);
-      label.className = 'text minor';
-      this.dom.foreground.appendChild(label);
-    }
-    this.dom.minorTexts.push(label);
-
-    label.childNodes[0].nodeValue = text;
-
-    label.style.top = (orientation == 'top') ? (this.props.majorLabelHeight + 'px') : '0';
-    label.style.left = x + 'px';
-    //label.title = title;  // TODO: this is a heavy operation
-  };
-
-  /**
-   * Create a Major label for the axis at position x
-   * @param {Number} x
-   * @param {String} text
-   * @param {String} orientation   "top" or "bottom" (default)
-   * @private
-   */
-  TimeAxis.prototype._repaintMajorText = function (x, text, orientation) {
-    // reuse redundant label
-    var label = this.dom.redundant.majorTexts.shift();
-
-    if (!label) {
-      // create label
-      var content = document.createTextNode(text);
-      label = document.createElement('div');
-      label.className = 'text major';
-      label.appendChild(content);
-      this.dom.foreground.appendChild(label);
-    }
-    this.dom.majorTexts.push(label);
-
-    label.childNodes[0].nodeValue = text;
-    //label.title = title; // TODO: this is a heavy operation
-
-    label.style.top = (orientation == 'top') ? '0' : (this.props.minorLabelHeight  + 'px');
-    label.style.left = x + 'px';
-  };
-
-  /**
-   * Create a minor line for the axis at position x
-   * @param {Number} x
-   * @param {String} orientation   "top" or "bottom" (default)
-   * @private
-   */
-  TimeAxis.prototype._repaintMinorLine = function (x, orientation) {
-    // reuse redundant line
-    var line = this.dom.redundant.minorLines.shift();
-
-    if (!line) {
-      // create vertical line
-      line = document.createElement('div');
-      line.className = 'grid vertical minor';
-      this.dom.background.appendChild(line);
-    }
-    this.dom.minorLines.push(line);
-
-    var props = this.props;
-    if (orientation == 'top') {
-      line.style.top = props.majorLabelHeight + 'px';
-    }
-    else {
-      line.style.top = this.body.domProps.top.height + 'px';
-    }
-    line.style.height = props.minorLineHeight + 'px';
-    line.style.left = (x - props.minorLineWidth / 2) + 'px';
-  };
-
-  /**
-   * Create a Major line for the axis at position x
-   * @param {Number} x
-   * @param {String} orientation   "top" or "bottom" (default)
-   * @private
-   */
-  TimeAxis.prototype._repaintMajorLine = function (x, orientation) {
-    // reuse redundant line
-    var line = this.dom.redundant.majorLines.shift();
-
-    if (!line) {
-      // create vertical line
-      line = document.createElement('DIV');
-      line.className = 'grid vertical major';
-      this.dom.background.appendChild(line);
-    }
-    this.dom.majorLines.push(line);
-
-    var props = this.props;
-    if (orientation == 'top') {
-      line.style.top = '0';
-    }
-    else {
-      line.style.top = this.body.domProps.top.height + 'px';
-    }
-    line.style.left = (x - props.majorLineWidth / 2) + 'px';
-    line.style.height = props.majorLineHeight + 'px';
-  };
-
-  /**
-   * Determine the size of text on the axis (both major and minor axis).
-   * The size is calculated only once and then cached in this.props.
-   * @private
-   */
-  TimeAxis.prototype._calculateCharSize = function () {
-    // Note: We calculate char size with every redraw. Size may change, for
-    // example when any of the timelines parents had display:none for example.
-
-    // determine the char width and height on the minor axis
-    if (!this.dom.measureCharMinor) {
-      this.dom.measureCharMinor = document.createElement('DIV');
-      this.dom.measureCharMinor.className = 'text minor measure';
-      this.dom.measureCharMinor.style.position = 'absolute';
-
-      this.dom.measureCharMinor.appendChild(document.createTextNode('0'));
-      this.dom.foreground.appendChild(this.dom.measureCharMinor);
-    }
-    this.props.minorCharHeight = this.dom.measureCharMinor.clientHeight;
-    this.props.minorCharWidth = this.dom.measureCharMinor.clientWidth;
-
-    // determine the char width and height on the major axis
-    if (!this.dom.measureCharMajor) {
-      this.dom.measureCharMajor = document.createElement('DIV');
-      this.dom.measureCharMajor.className = 'text major measure';
-      this.dom.measureCharMajor.style.position = 'absolute';
-
-      this.dom.measureCharMajor.appendChild(document.createTextNode('0'));
-      this.dom.foreground.appendChild(this.dom.measureCharMajor);
-    }
-    this.props.majorCharHeight = this.dom.measureCharMajor.clientHeight;
-    this.props.majorCharWidth = this.dom.measureCharMajor.clientWidth;
-  };
-
-  /**
-   * Snap a date to a rounded value.
-   * The snap intervals are dependent on the current scale and step.
-   * @param {Date} date   the date to be snapped.
-   * @return {Date} snappedDate
-   */
-  TimeAxis.prototype.snap = function(date) {
-    return this.step.snap(date);
-  };
-
-  module.exports = TimeAxis;
-
-
-/***/ },
-/* 27 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var moment = __webpack_require__(2);
-  var DateUtil = __webpack_require__(24);
-  var util = __webpack_require__(1);
-
-  /**
-   * @constructor  TimeStep
-   * The class TimeStep is an iterator for dates. You provide a start date and an
-   * end date. The class itself determines the best scale (step size) based on the
-   * provided start Date, end Date, and minimumStep.
-   *
-   * If minimumStep is provided, the step size is chosen as close as possible
-   * to the minimumStep but larger than minimumStep. If minimumStep is not
-   * provided, the scale is set to 1 DAY.
-   * The minimumStep should correspond with the onscreen size of about 6 characters
-   *
-   * Alternatively, you can set a scale by hand.
-   * After creation, you can initialize the class by executing first(). Then you
-   * can iterate from the start date to the end date via next(). You can check if
-   * the end date is reached with the function hasNext(). After each step, you can
-   * retrieve the current date via getCurrent().
-   * The TimeStep has scales ranging from milliseconds, seconds, minutes, hours,
-   * days, to years.
-   *
-   * Version: 1.2
-   *
-   * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
-   *                               or new Date(2010, 9, 21, 23, 45, 00)
-   * @param {Date} [end]           The end date
-   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
-   */
-  function TimeStep(start, end, minimumStep, hiddenDates) {
-    // variables
-    this.current = new Date();
-    this._start = new Date();
-    this._end = new Date();
-
-    this.autoScale  = true;
-    this.scale = 'day';
-    this.step = 1;
-
-    // initialize the range
-    this.setRange(start, end, minimumStep);
-
-    // hidden Dates options
-    this.switchedDay = false;
-    this.switchedMonth = false;
-    this.switchedYear = false;
-    this.hiddenDates = hiddenDates;
-    if (hiddenDates === undefined) {
-      this.hiddenDates = [];
-    }
-
-    this.format = TimeStep.FORMAT; // default formatting
-  }
-
-  // Time formatting
-  TimeStep.FORMAT = {
-    minorLabels: {
-      millisecond:'SSS',
-      second:     's',
-      minute:     'HH:mm',
-      hour:       'HH:mm',
-      weekday:    'ddd D',
-      day:        'D',
-      month:      'MMM',
-      year:       'YYYY'
-    },
-    majorLabels: {
-      millisecond:'HH:mm:ss',
-      second:     'D MMMM HH:mm',
-      minute:     'ddd D MMMM',
-      hour:       'ddd D MMMM',
-      weekday:    'MMMM YYYY',
-      day:        'MMMM YYYY',
-      month:      'YYYY',
-      year:       ''
-    }
-  };
-
-  /**
-   * Set custom formatting for the minor an major labels of the TimeStep.
-   * Both `minorLabels` and `majorLabels` are an Object with properties:
-   * 'millisecond, 'second, 'minute', 'hour', 'weekday, 'day, 'month, 'year'.
-   * @param {{minorLabels: Object, majorLabels: Object}} format
-   */
-  TimeStep.prototype.setFormat = function (format) {
-    var defaultFormat = util.deepExtend({}, TimeStep.FORMAT);
-    this.format = util.deepExtend(defaultFormat, format);
-  };
-
-  /**
-   * Set a new range
-   * If minimumStep is provided, the step size is chosen as close as possible
-   * to the minimumStep but larger than minimumStep. If minimumStep is not
-   * provided, the scale is set to 1 DAY.
-   * The minimumStep should correspond with the onscreen size of about 6 characters
-   * @param {Date} [start]      The start date and time.
-   * @param {Date} [end]        The end date and time.
-   * @param {int} [minimumStep] Optional. Minimum step size in milliseconds
-   */
-  TimeStep.prototype.setRange = function(start, end, minimumStep) {
-    if (!(start instanceof Date) || !(end instanceof Date)) {
-      throw  "No legal start or end date in method setRange";
-    }
-
-    this._start = (start != undefined) ? new Date(start.valueOf()) : new Date();
-    this._end = (end != undefined) ? new Date(end.valueOf()) : new Date();
-
-    if (this.autoScale) {
-      this.setMinimumStep(minimumStep);
-    }
-  };
-
-  /**
-   * Set the range iterator to the start date.
-   */
-  TimeStep.prototype.first = function() {
-    this.current = new Date(this._start.valueOf());
-    this.roundToMinor();
-  };
-
-  /**
-   * Round the current date to the first minor date value
-   * This must be executed once when the current date is set to start Date
-   */
-  TimeStep.prototype.roundToMinor = function() {
-    // round to floor
-    // IMPORTANT: we have no breaks in this switch! (this is no bug)
-    // noinspection FallThroughInSwitchStatementJS
-    switch (this.scale) {
-      case 'year':
-        this.current.setFullYear(this.step * Math.floor(this.current.getFullYear() / this.step));
-        this.current.setMonth(0);
-      case 'month':        this.current.setDate(1);
-      case 'day':          // intentional fall through
-      case 'weekday':      this.current.setHours(0);
-      case 'hour':         this.current.setMinutes(0);
-      case 'minute':       this.current.setSeconds(0);
-      case 'second':       this.current.setMilliseconds(0);
-      //case 'millisecond': // nothing to do for milliseconds
-    }
-
-    if (this.step != 1) {
-      // round down to the first minor value that is a multiple of the current step size
-      switch (this.scale) {
-        case 'millisecond':  this.current.setMilliseconds(this.current.getMilliseconds() - this.current.getMilliseconds() % this.step);  break;
-        case 'second':       this.current.setSeconds(this.current.getSeconds() - this.current.getSeconds() % this.step); break;
-        case 'minute':       this.current.setMinutes(this.current.getMinutes() - this.current.getMinutes() % this.step); break;
-        case 'hour':         this.current.setHours(this.current.getHours() - this.current.getHours() % this.step); break;
-        case 'weekday':      // intentional fall through
-        case 'day':          this.current.setDate((this.current.getDate()-1) - (this.current.getDate()-1) % this.step + 1); break;
-        case 'month':        this.current.setMonth(this.current.getMonth() - this.current.getMonth() % this.step);  break;
-        case 'year':         this.current.setFullYear(this.current.getFullYear() - this.current.getFullYear() % this.step); break;
-        default: break;
-      }
-    }
-  };
-
-  /**
-   * Check if the there is a next step
-   * @return {boolean}  true if the current date has not passed the end date
-   */
-  TimeStep.prototype.hasNext = function () {
-    return (this.current.valueOf() <= this._end.valueOf());
-  };
-
-  /**
-   * Do the next step
-   */
-  TimeStep.prototype.next = function() {
-    var prev = this.current.valueOf();
-
-    // Two cases, needed to prevent issues with switching daylight savings
-    // (end of March and end of October)
-    if (this.current.getMonth() < 6)   {
-      switch (this.scale) {
-        case 'millisecond':
-
-          this.current = new Date(this.current.valueOf() + this.step); break;
-        case 'second':       this.current = new Date(this.current.valueOf() + this.step * 1000); break;
-        case 'minute':       this.current = new Date(this.current.valueOf() + this.step * 1000 * 60); break;
-        case 'hour':
-          this.current = new Date(this.current.valueOf() + this.step * 1000 * 60 * 60);
-          // in case of skipping an hour for daylight savings, adjust the hour again (else you get: 0h 5h 9h ... instead of 0h 4h 8h ...)
-          var h = this.current.getHours();
-          this.current.setHours(h - (h % this.step));
-          break;
-        case 'weekday':      // intentional fall through
-        case 'day':          this.current.setDate(this.current.getDate() + this.step); break;
-        case 'month':        this.current.setMonth(this.current.getMonth() + this.step); break;
-        case 'year':         this.current.setFullYear(this.current.getFullYear() + this.step); break;
-        default:                      break;
-      }
-    }
-    else {
-      switch (this.scale) {
-        case 'millisecond':  this.current = new Date(this.current.valueOf() + this.step); break;
-        case 'second':       this.current.setSeconds(this.current.getSeconds() + this.step); break;
-        case 'minute':       this.current.setMinutes(this.current.getMinutes() + this.step); break;
-        case 'hour':         this.current.setHours(this.current.getHours() + this.step); break;
-        case 'weekday':      // intentional fall through
-        case 'day':          this.current.setDate(this.current.getDate() + this.step); break;
-        case 'month':        this.current.setMonth(this.current.getMonth() + this.step); break;
-        case 'year':         this.current.setFullYear(this.current.getFullYear() + this.step); break;
-        default:                      break;
-      }
-    }
-
-    if (this.step != 1) {
-      // round down to the correct major value
-      switch (this.scale) {
-        case 'millisecond':  if(this.current.getMilliseconds() < this.step) this.current.setMilliseconds(0);  break;
-        case 'second':       if(this.current.getSeconds() < this.step) this.current.setSeconds(0);  break;
-        case 'minute':       if(this.current.getMinutes() < this.step) this.current.setMinutes(0);  break;
-        case 'hour':         if(this.current.getHours() < this.step) this.current.setHours(0);  break;
-        case 'weekday':      // intentional fall through
-        case 'day':          if(this.current.getDate() < this.step+1) this.current.setDate(1); break;
-        case 'month':        if(this.current.getMonth() < this.step) this.current.setMonth(0);  break;
-        case 'year':         break; // nothing to do for year
-        default:                break;
-      }
-    }
-
-    // safety mechanism: if current time is still unchanged, move to the end
-    if (this.current.valueOf() == prev) {
-      this.current = new Date(this._end.valueOf());
-    }
-
-    DateUtil.stepOverHiddenDates(this, prev);
-  };
-
-
-  /**
-   * Get the current datetime
-   * @return {Date}  current The current date
-   */
-  TimeStep.prototype.getCurrent = function() {
-    return this.current;
-  };
-
-  /**
-   * Set a custom scale. Autoscaling will be disabled.
-   * For example setScale(SCALE.MINUTES, 5) will result
-   * in minor steps of 5 minutes, and major steps of an hour.
-   *
-   * @param {string} newScale
-   *                               A scale. Choose from 'millisecond, 'second,
-   *                               'minute', 'hour', 'weekday, 'day, 'month, 'year'.
-   * @param {Number}     newStep   A step size, by default 1. Choose for
-   *                               example 1, 2, 5, or 10.
-   */
-  TimeStep.prototype.setScale = function(newScale, newStep) {
-    this.scale = newScale;
-
-    if (newStep > 0) {
-      this.step = newStep;
-    }
-
-    this.autoScale = false;
-  };
-
-  /**
-   * Enable or disable autoscaling
-   * @param {boolean} enable  If true, autoascaling is set true
-   */
-  TimeStep.prototype.setAutoScale = function (enable) {
-    this.autoScale = enable;
-  };
-
-
-  /**
-   * Automatically determine the scale that bests fits the provided minimum step
-   * @param {Number} [minimumStep]  The minimum step size in milliseconds
-   */
-  TimeStep.prototype.setMinimumStep = function(minimumStep) {
-    if (minimumStep == undefined) {
-      return;
-    }
-
-    //var b = asc + ds;
-
-    var stepYear       = (1000 * 60 * 60 * 24 * 30 * 12);
-    var stepMonth      = (1000 * 60 * 60 * 24 * 30);
-    var stepDay        = (1000 * 60 * 60 * 24);
-    var stepHour       = (1000 * 60 * 60);
-    var stepMinute     = (1000 * 60);
-    var stepSecond     = (1000);
-    var stepMillisecond= (1);
-
-    // find the smallest step that is larger than the provided minimumStep
-    if (stepYear*1000 > minimumStep)        {this.scale = 'year';        this.step = 1000;}
-    if (stepYear*500 > minimumStep)         {this.scale = 'year';        this.step = 500;}
-    if (stepYear*100 > minimumStep)         {this.scale = 'year';        this.step = 100;}
-    if (stepYear*50 > minimumStep)          {this.scale = 'year';        this.step = 50;}
-    if (stepYear*10 > minimumStep)          {this.scale = 'year';        this.step = 10;}
-    if (stepYear*5 > minimumStep)           {this.scale = 'year';        this.step = 5;}
-    if (stepYear > minimumStep)             {this.scale = 'year';        this.step = 1;}
-    if (stepMonth*3 > minimumStep)          {this.scale = 'month';       this.step = 3;}
-    if (stepMonth > minimumStep)            {this.scale = 'month';       this.step = 1;}
-    if (stepDay*5 > minimumStep)            {this.scale = 'day';         this.step = 5;}
-    if (stepDay*2 > minimumStep)            {this.scale = 'day';         this.step = 2;}
-    if (stepDay > minimumStep)              {this.scale = 'day';         this.step = 1;}
-    if (stepDay/2 > minimumStep)            {this.scale = 'weekday';     this.step = 1;}
-    if (stepHour*4 > minimumStep)           {this.scale = 'hour';        this.step = 4;}
-    if (stepHour > minimumStep)             {this.scale = 'hour';        this.step = 1;}
-    if (stepMinute*15 > minimumStep)        {this.scale = 'minute';      this.step = 15;}
-    if (stepMinute*10 > minimumStep)        {this.scale = 'minute';      this.step = 10;}
-    if (stepMinute*5 > minimumStep)         {this.scale = 'minute';      this.step = 5;}
-    if (stepMinute > minimumStep)           {this.scale = 'minute';      this.step = 1;}
-    if (stepSecond*15 > minimumStep)        {this.scale = 'second';      this.step = 15;}
-    if (stepSecond*10 > minimumStep)        {this.scale = 'second';      this.step = 10;}
-    if (stepSecond*5 > minimumStep)         {this.scale = 'second';      this.step = 5;}
-    if (stepSecond > minimumStep)           {this.scale = 'second';      this.step = 1;}
-    if (stepMillisecond*200 > minimumStep)  {this.scale = 'millisecond'; this.step = 200;}
-    if (stepMillisecond*100 > minimumStep)  {this.scale = 'millisecond'; this.step = 100;}
-    if (stepMillisecond*50 > minimumStep)   {this.scale = 'millisecond'; this.step = 50;}
-    if (stepMillisecond*10 > minimumStep)   {this.scale = 'millisecond'; this.step = 10;}
-    if (stepMillisecond*5 > minimumStep)    {this.scale = 'millisecond'; this.step = 5;}
-    if (stepMillisecond > minimumStep)      {this.scale = 'millisecond'; this.step = 1;}
-  };
-
-  /**
-   * Snap a date to a rounded value.
-   * The snap intervals are dependent on the current scale and step.
-   * @param {Date} date   the date to be snapped.
-   * @return {Date} snappedDate
-   */
-  TimeStep.prototype.snap = function(date) {
-    var clone = new Date(date.valueOf());
-
-    if (this.scale == 'year') {
-      var year = clone.getFullYear() + Math.round(clone.getMonth() / 12);
-      clone.setFullYear(Math.round(year / this.step) * this.step);
-      clone.setMonth(0);
-      clone.setDate(0);
-      clone.setHours(0);
-      clone.setMinutes(0);
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
-    }
-    else if (this.scale == 'month') {
-      if (clone.getDate() > 15) {
-        clone.setDate(1);
-        clone.setMonth(clone.getMonth() + 1);
-        // important: first set Date to 1, after that change the month.
-      }
-      else {
-        clone.setDate(1);
-      }
-
-      clone.setHours(0);
-      clone.setMinutes(0);
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
-    }
-    else if (this.scale == 'day') {
-      //noinspection FallthroughInSwitchStatementJS
-      switch (this.step) {
-        case 5:
-        case 2:
-          clone.setHours(Math.round(clone.getHours() / 24) * 24); break;
-        default:
-          clone.setHours(Math.round(clone.getHours() / 12) * 12); break;
-      }
-      clone.setMinutes(0);
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
-    }
-    else if (this.scale == 'weekday') {
-      //noinspection FallthroughInSwitchStatementJS
-      switch (this.step) {
-        case 5:
-        case 2:
-          clone.setHours(Math.round(clone.getHours() / 12) * 12); break;
-        default:
-          clone.setHours(Math.round(clone.getHours() / 6) * 6); break;
-      }
-      clone.setMinutes(0);
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
-    }
-    else if (this.scale == 'hour') {
-      switch (this.step) {
-        case 4:
-          clone.setMinutes(Math.round(clone.getMinutes() / 60) * 60); break;
-        default:
-          clone.setMinutes(Math.round(clone.getMinutes() / 30) * 30); break;
-      }
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
-    } else if (this.scale == 'minute') {
-      //noinspection FallthroughInSwitchStatementJS
-      switch (this.step) {
-        case 15:
-        case 10:
-          clone.setMinutes(Math.round(clone.getMinutes() / 5) * 5);
-          clone.setSeconds(0);
-          break;
-        case 5:
-          clone.setSeconds(Math.round(clone.getSeconds() / 60) * 60); break;
-        default:
-          clone.setSeconds(Math.round(clone.getSeconds() / 30) * 30); break;
-      }
-      clone.setMilliseconds(0);
-    }
-    else if (this.scale == 'second') {
-      //noinspection FallthroughInSwitchStatementJS
-      switch (this.step) {
-        case 15:
-        case 10:
-          clone.setSeconds(Math.round(clone.getSeconds() / 5) * 5);
-          clone.setMilliseconds(0);
-          break;
-        case 5:
-          clone.setMilliseconds(Math.round(clone.getMilliseconds() / 1000) * 1000); break;
-        default:
-          clone.setMilliseconds(Math.round(clone.getMilliseconds() / 500) * 500); break;
-      }
-    }
-    else if (this.scale == 'millisecond') {
-      var step = this.step > 5 ? this.step / 2 : 1;
-      clone.setMilliseconds(Math.round(clone.getMilliseconds() / step) * step);
-    }
-    
-    return clone;
-  };
-
-  /**
-   * Check if the current value is a major value (for example when the step
-   * is DAY, a major value is each first day of the MONTH)
-   * @return {boolean} true if current date is major, else false.
-   */
-  TimeStep.prototype.isMajor = function() {
-    if (this.switchedYear == true) {
-      this.switchedYear = false;
-      switch (this.scale) {
-        case 'year':
-        case 'month':
-        case 'weekday':
-        case 'day':
-        case 'hour':
-        case 'minute':
-        case 'second':
-        case 'millisecond':
-          return true;
-        default:
-          return false;
-      }
-    }
-    else if (this.switchedMonth == true) {
-      this.switchedMonth = false;
-      switch (this.scale) {
-        case 'weekday':
-        case 'day':
-        case 'hour':
-        case 'minute':
-        case 'second':
-        case 'millisecond':
-          return true;
-        default:
-          return false;
-      }
-    }
-    else if (this.switchedDay == true) {
-      this.switchedDay = false;
-      switch (this.scale) {
-        case 'millisecond':
-        case 'second':
-        case 'minute':
-        case 'hour':
-          return true;
-        default:
-          return false;
-      }
-    }
-
-    switch (this.scale) {
-      case 'millisecond':
-        return (this.current.getMilliseconds() == 0);
-      case 'second':
-        return (this.current.getSeconds() == 0);
-      case 'minute':
-        return (this.current.getHours() == 0) && (this.current.getMinutes() == 0);
-      case 'hour':
-        return (this.current.getHours() == 0);
-      case 'weekday': // intentional fall through
-      case 'day':
-        return (this.current.getDate() == 1);
-      case 'month':
-        return (this.current.getMonth() == 0);
-      case 'year':
-        return false;
-      default:
-        return false;
-    }
-  };
-
-
-  /**
-   * Returns formatted text for the minor axislabel, depending on the current
-   * date and the scale. For example when scale is MINUTE, the current time is
-   * formatted as "hh:mm".
-   * @param {Date} [date] custom date. if not provided, current date is taken
-   */
-  TimeStep.prototype.getLabelMinor = function(date) {
-    if (date == undefined) {
-      date = this.current;
-    }
-
-    var format = this.format.minorLabels[this.scale];
-    return (format && format.length > 0) ? moment(date).format(format) : '';
-  };
-
-  /**
-   * Returns formatted text for the major axis label, depending on the current
-   * date and the scale. For example when scale is MINUTE, the major scale is
-   * hours, and the hour will be formatted as "hh".
-   * @param {Date} [date] custom date. if not provided, current date is taken
-   */
-  TimeStep.prototype.getLabelMajor = function(date) {
-    if (date == undefined) {
-      date = this.current;
-    }
-
-    var format = this.format.majorLabels[this.scale];
-    return (format && format.length > 0) ? moment(date).format(format) : '';
-  };
-
-  module.exports = TimeStep;
-
-
-/***/ },
-/* 28 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var util = __webpack_require__(1);
-  var Component = __webpack_require__(23);
-  var moment = __webpack_require__(2);
-  var locales = __webpack_require__(29);
-
-  /**
-   * A current time bar
-   * @param {{range: Range, dom: Object, domProps: Object}} body
-   * @param {Object} [options]        Available parameters:
-   *                                  {Boolean} [showCurrentTime]
-   * @constructor CurrentTime
-   * @extends Component
-   */
-  function CurrentTime (body, options) {
-    this.body = body;
-
-    // default options
-    this.defaultOptions = {
-      showCurrentTime: true,
-
-      locales: locales,
-      locale: 'en'
-    };
-    this.options = util.extend({}, this.defaultOptions);
-    this.offset = 0;
-
-    this._create();
-
-    this.setOptions(options);
-  }
-
-  CurrentTime.prototype = new Component();
-
-  /**
-   * Create the HTML DOM for the current time bar
-   * @private
-   */
-  CurrentTime.prototype._create = function() {
-    var bar = document.createElement('div');
-    bar.className = 'currenttime';
-    bar.style.position = 'absolute';
-    bar.style.top = '0px';
-    bar.style.height = '100%';
-
-    this.bar = bar;
-  };
-
-  /**
-   * Destroy the CurrentTime bar
-   */
-  CurrentTime.prototype.destroy = function () {
-    this.options.showCurrentTime = false;
-    this.redraw(); // will remove the bar from the DOM and stop refreshing
-
-    this.body = null;
-  };
-
-  /**
-   * Set options for the component. Options will be merged in current options.
-   * @param {Object} options  Available parameters:
-   *                          {boolean} [showCurrentTime]
-   */
-  CurrentTime.prototype.setOptions = function(options) {
-    if (options) {
-      // copy all options that we know
-      util.selectiveExtend(['showCurrentTime', 'locale', 'locales'], this.options, options);
-    }
-  };
-
-  /**
-   * Repaint the component
-   * @return {boolean} Returns true if the component is resized
-   */
-  CurrentTime.prototype.redraw = function() {
-    if (this.options.showCurrentTime) {
-      var parent = this.body.dom.backgroundVertical;
-      if (this.bar.parentNode != parent) {
-        // attach to the dom
-        if (this.bar.parentNode) {
-          this.bar.parentNode.removeChild(this.bar);
-        }
-        parent.appendChild(this.bar);
-
-        this.start();
-      }
-
-      var now = new Date(new Date().valueOf() + this.offset);
-      var x = this.body.util.toScreen(now);
-
-      var locale = this.options.locales[this.options.locale];
-      var title = locale.current + ' ' + locale.time + ': ' + moment(now).format('dddd, MMMM Do YYYY, H:mm:ss');
-      title = title.charAt(0).toUpperCase() + title.substring(1);
-
-      this.bar.style.left = x + 'px';
-      this.bar.title = title;
-    }
-    else {
-      // remove the line from the DOM
-      if (this.bar.parentNode) {
-        this.bar.parentNode.removeChild(this.bar);
-      }
-      this.stop();
-    }
-
-    return false;
-  };
-
-  /**
-   * Start auto refreshing the current time bar
-   */
-  CurrentTime.prototype.start = function() {
-    var me = this;
-
-    function update () {
-      me.stop();
-
-      // determine interval to refresh
-      var scale = me.body.range.conversion(me.body.domProps.center.width).scale;
-      var interval = 1 / scale / 10;
-      if (interval < 30)   interval = 30;
-      if (interval > 1000) interval = 1000;
-
-      me.redraw();
-
-      // start a timer to adjust for the new time
-      me.currentTimeTimer = setTimeout(update, interval);
-    }
-
-    update();
-  };
-
-  /**
-   * Stop auto refreshing the current time bar
-   */
-  CurrentTime.prototype.stop = function() {
-    if (this.currentTimeTimer !== undefined) {
-      clearTimeout(this.currentTimeTimer);
-      delete this.currentTimeTimer;
-    }
-  };
-
-  /**
-   * Set a current time. This can be used for example to ensure that a client's
-   * time is synchronized with a shared server time.
-   * @param {Date | String | Number} time     A Date, unix timestamp, or
-   *                                          ISO date string.
-   */
-  CurrentTime.prototype.setCurrentTime = function(time) {
-    var t = util.convert(time, 'Date').valueOf();
-    var now = new Date().valueOf();
-    this.offset = t - now;
-    this.redraw();
-  };
-
-  /**
-   * Get the current time.
-   * @return {Date} Returns the current time.
-   */
-  CurrentTime.prototype.getCurrentTime = function() {
-    return new Date(new Date().valueOf() + this.offset);
-  };
-
-  module.exports = CurrentTime;
-
-
-/***/ },
-/* 29 */
-/***/ function(module, exports, __webpack_require__) {
-
-  // English
-  exports['en'] = {
-    current: 'current',
-    time: 'time'
-  };
-  exports['en_EN'] = exports['en'];
-  exports['en_US'] = exports['en'];
-
-  // Dutch
-  exports['nl'] = {
-    custom: 'aangepaste',
-    time: 'tijd'
-  };
-  exports['nl_NL'] = exports['nl'];
-  exports['nl_BE'] = exports['nl'];
-
-
-/***/ },
-/* 30 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var Hammer = __webpack_require__(19);
-  var util = __webpack_require__(1);
-  var Component = __webpack_require__(23);
-  var moment = __webpack_require__(2);
-  var locales = __webpack_require__(29);
-
-  /**
-   * A custom time bar
-   * @param {{range: Range, dom: Object}} body
-   * @param {Object} [options]        Available parameters:
-   *                                  {Boolean} [showCustomTime]
-   * @constructor CustomTime
-   * @extends Component
-   */
-
-  function CustomTime (body, options) {
-    this.body = body;
-
-    // default options
-    this.defaultOptions = {
-      showCustomTime: false,
-      locales: locales,
-      locale: 'en'
-    };
-    this.options = util.extend({}, this.defaultOptions);
-
-    this.customTime = new Date();
-    this.eventParams = {}; // stores state parameters while dragging the bar
-
-    // create the DOM
-    this._create();
-
-    this.setOptions(options);
-  }
-
-  CustomTime.prototype = new Component();
-
-  /**
-   * Set options for the component. Options will be merged in current options.
-   * @param {Object} options  Available parameters:
-   *                          {boolean} [showCustomTime]
-   */
-  CustomTime.prototype.setOptions = function(options) {
-    if (options) {
-      // copy all options that we know
-      util.selectiveExtend(['showCustomTime', 'locale', 'locales'], this.options, options);
-    }
-  };
-
-  /**
-   * Create the DOM for the custom time
-   * @private
-   */
-  CustomTime.prototype._create = function() {
-    var bar = document.createElement('div');
-    bar.className = 'customtime';
-    bar.style.position = 'absolute';
-    bar.style.top = '0px';
-    bar.style.height = '100%';
-    this.bar = bar;
-
-    var drag = document.createElement('div');
-    drag.style.position = 'relative';
-    drag.style.top = '0px';
-    drag.style.left = '-10px';
-    drag.style.height = '100%';
-    drag.style.width = '20px';
-    bar.appendChild(drag);
-
-    // attach event listeners
-    this.hammer = Hammer(bar, {
-      prevent_default: true
-    });
-    this.hammer.on('dragstart', this._onDragStart.bind(this));
-    this.hammer.on('drag',      this._onDrag.bind(this));
-    this.hammer.on('dragend',   this._onDragEnd.bind(this));
-  };
-
-  /**
-   * Destroy the CustomTime bar
-   */
-  CustomTime.prototype.destroy = function () {
-    this.options.showCustomTime = false;
-    this.redraw(); // will remove the bar from the DOM
-
-    this.hammer.enable(false);
-    this.hammer = null;
-
-    this.body = null;
-  };
-
-  /**
-   * Repaint the component
-   * @return {boolean} Returns true if the component is resized
-   */
-  CustomTime.prototype.redraw = function () {
-    if (this.options.showCustomTime) {
-      var parent = this.body.dom.backgroundVertical;
-      if (this.bar.parentNode != parent) {
-        // attach to the dom
-        if (this.bar.parentNode) {
-          this.bar.parentNode.removeChild(this.bar);
-        }
-        parent.appendChild(this.bar);
-      }
-
-      var x = this.body.util.toScreen(this.customTime);
-
-      var locale = this.options.locales[this.options.locale];
-      var title = locale.time + ': ' + moment(this.customTime).format('dddd, MMMM Do YYYY, H:mm:ss');
-      title = title.charAt(0).toUpperCase() + title.substring(1);
-
-      this.bar.style.left = x + 'px';
-      this.bar.title = title;
-    }
-    else {
-      // remove the line from the DOM
-      if (this.bar.parentNode) {
-        this.bar.parentNode.removeChild(this.bar);
-      }
-    }
-
-    return false;
-  };
-
-  /**
-   * Set custom time.
-   * @param {Date | number | string} time
-   */
-  CustomTime.prototype.setCustomTime = function(time) {
-    this.customTime = util.convert(time, 'Date');
-    this.redraw();
-  };
-
-  /**
-   * Retrieve the current custom time.
-   * @return {Date} customTime
-   */
-  CustomTime.prototype.getCustomTime = function() {
-    return new Date(this.customTime.valueOf());
-  };
-
-  /**
-   * Start moving horizontally
-   * @param {Event} event
-   * @private
-   */
-  CustomTime.prototype._onDragStart = function(event) {
-    this.eventParams.dragging = true;
-    this.eventParams.customTime = this.customTime;
-
-    event.stopPropagation();
-    event.preventDefault();
-  };
-
-  /**
-   * Perform moving operating.
-   * @param {Event} event
-   * @private
-   */
-  CustomTime.prototype._onDrag = function (event) {
-    if (!this.eventParams.dragging) return;
-
-    var deltaX = event.gesture.deltaX,
-        x = this.body.util.toScreen(this.eventParams.customTime) + deltaX,
-        time = this.body.util.toTime(x);
-
-    this.setCustomTime(time);
-
-    // fire a timechange event
-    this.body.emitter.emit('timechange', {
-      time: new Date(this.customTime.valueOf())
-    });
-
-    event.stopPropagation();
-    event.preventDefault();
-  };
-
-  /**
-   * Stop moving operating.
-   * @param {event} event
-   * @private
-   */
-  CustomTime.prototype._onDragEnd = function (event) {
-    if (!this.eventParams.dragging) return;
-
-    // fire a timechanged event
-    this.body.emitter.emit('timechanged', {
-      time: new Date(this.customTime.valueOf())
-    });
-
-    event.stopPropagation();
-    event.preventDefault();
-  };
-
-  module.exports = CustomTime;
-
-
-/***/ },
-/* 31 */
-/***/ function(module, exports, __webpack_require__) {
-
   var Hammer = __webpack_require__(19);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(9);
   var Component = __webpack_require__(23);
-  var Group = __webpack_require__(32);
-  var BackgroundGroup = __webpack_require__(36);
-  var BoxItem = __webpack_require__(37);
-  var PointItem = __webpack_require__(38);
-  var RangeItem = __webpack_require__(34);
-  var BackgroundItem = __webpack_require__(39);
+  var Group = __webpack_require__(27);
+  var BackgroundGroup = __webpack_require__(31);
+  var BoxItem = __webpack_require__(32);
+  var PointItem = __webpack_require__(33);
+  var RangeItem = __webpack_require__(29);
+  var BackgroundItem = __webpack_require__(34);
 
 
   var UNGROUPED = '__ungrouped__';   // reserved group id for ungrouped items
@@ -17055,12 +15702,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 32 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var stack = __webpack_require__(33);
-  var RangeItem = __webpack_require__(34);
+  var stack = __webpack_require__(28);
+  var RangeItem = __webpack_require__(29);
 
   /**
    * @constructor Group
@@ -17630,7 +16277,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 33 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Utility functions for ordering and stacking of items
@@ -17758,11 +16405,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 34 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Hammer = __webpack_require__(19);
-  var Item = __webpack_require__(35);
+  var Item = __webpack_require__(30);
 
   /**
    * @constructor RangeItem
@@ -18065,7 +16712,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 35 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Hammer = __webpack_require__(19);
@@ -18330,11 +16977,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 36 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Group = __webpack_require__(32);
+  var Group = __webpack_require__(27);
 
   /**
    * @constructor BackgroundGroup
@@ -18393,10 +17040,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 37 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Item = __webpack_require__(35);
+  var Item = __webpack_require__(30);
   var util = __webpack_require__(1);
 
   /**
@@ -18623,10 +17270,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 38 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Item = __webpack_require__(35);
+  var Item = __webpack_require__(30);
 
   /**
    * @constructor PointItem
@@ -18812,13 +17459,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 39 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Hammer = __webpack_require__(19);
-  var Item = __webpack_require__(35);
-  var BackgroundGroup = __webpack_require__(36);
-  var RangeItem = __webpack_require__(34);
+  var Item = __webpack_require__(30);
+  var BackgroundGroup = __webpack_require__(31);
+  var RangeItem = __webpack_require__(29);
 
   /**
    * @constructor BackgroundItem
@@ -19026,7 +17673,1716 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
+/* 35 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var keycharm = __webpack_require__(36);
+  var Emitter = __webpack_require__(11);
+  var Hammer = __webpack_require__(19);
+  var util = __webpack_require__(1);
+
+  /**
+   * Turn an element into an clickToUse element.
+   * When not active, the element has a transparent overlay. When the overlay is
+   * clicked, the mode is changed to active.
+   * When active, the element is displayed with a blue border around it, and
+   * the interactive contents of the element can be used. When clicked outside
+   * the element, the elements mode is changed to inactive.
+   * @param {Element} container
+   * @constructor
+   */
+  function Activator(container) {
+    this.active = false;
+
+    this.dom = {
+      container: container
+    };
+
+    this.dom.overlay = document.createElement('div');
+    this.dom.overlay.className = 'overlay';
+
+    this.dom.container.appendChild(this.dom.overlay);
+
+    this.hammer = Hammer(this.dom.overlay, {prevent_default: false});
+    this.hammer.on('tap', this._onTapOverlay.bind(this));
+
+    // block all touch events (except tap)
+    var me = this;
+    var events = [
+      'touch', 'pinch',
+      'doubletap', 'hold',
+      'dragstart', 'drag', 'dragend',
+      'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is needed for Firefox
+    ];
+    events.forEach(function (event) {
+      me.hammer.on(event, function (event) {
+        event.stopPropagation();
+      });
+    });
+
+    // attach a tap event to the window, in order to deactivate when clicking outside the timeline
+    this.windowHammer = Hammer(window, {prevent_default: false});
+    this.windowHammer.on('tap', function (event) {
+      // deactivate when clicked outside the container
+      if (!_hasParent(event.target, container)) {
+        me.deactivate();
+      }
+    });
+
+    if (this.keycharm !== undefined) {
+      this.keycharm.destroy();
+    }
+    this.keycharm = keycharm();
+
+    // keycharm listener only bounded when active)
+    this.escListener = this.deactivate.bind(this);
+  }
+
+  // turn into an event emitter
+  Emitter(Activator.prototype);
+
+  // The currently active activator
+  Activator.current = null;
+
+  /**
+   * Destroy the activator. Cleans up all created DOM and event listeners
+   */
+  Activator.prototype.destroy = function () {
+    this.deactivate();
+
+    // remove dom
+    this.dom.overlay.parentNode.removeChild(this.dom.overlay);
+
+    // cleanup hammer instances
+    this.hammer = null;
+    this.windowHammer = null;
+    // FIXME: cleaning up hammer instances doesn't work (Timeline not removed from memory)
+  };
+
+  /**
+   * Activate the element
+   * Overlay is hidden, element is decorated with a blue shadow border
+   */
+  Activator.prototype.activate = function () {
+    // we allow only one active activator at a time
+    if (Activator.current) {
+      Activator.current.deactivate();
+    }
+    Activator.current = this;
+
+    this.active = true;
+    this.dom.overlay.style.display = 'none';
+    util.addClassName(this.dom.container, 'vis-active');
+
+    this.emit('change');
+    this.emit('activate');
+
+    // ugly hack: bind ESC after emitting the events, as the Network rebinds all
+    // keyboard events on a 'change' event
+    this.keycharm.bind('esc', this.escListener);
+  };
+
+  /**
+   * Deactivate the element
+   * Overlay is displayed on top of the element
+   */
+  Activator.prototype.deactivate = function () {
+    this.active = false;
+    this.dom.overlay.style.display = '';
+    util.removeClassName(this.dom.container, 'vis-active');
+    this.keycharm.unbind('esc', this.escListener);
+
+    this.emit('change');
+    this.emit('deactivate');
+  };
+
+  /**
+   * Handle a tap event: activate the container
+   * @param event
+   * @private
+   */
+  Activator.prototype._onTapOverlay = function (event) {
+    // activate the container
+    this.activate();
+    event.stopPropagation();
+  };
+
+  /**
+   * Test whether the element has the requested parent element somewhere in
+   * its chain of parent nodes.
+   * @param {HTMLElement} element
+   * @param {HTMLElement} parent
+   * @returns {boolean} Returns true when the parent is found somewhere in the
+   *                    chain of parent nodes.
+   * @private
+   */
+  function _hasParent(element, parent) {
+    while (element) {
+      if (element === parent) {
+        return true
+      }
+      element = element.parentNode;
+    }
+    return false;
+  }
+
+  module.exports = Activator;
+
+
+/***/ },
+/* 36 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
+  /**
+   * Created by Alex on 11/6/2014.
+   */
+
+  // https://github.com/umdjs/umd/blob/master/returnExports.js#L40-L60
+  // if the module has no dependencies, the above pattern can be simplified to
+  (function (root, factory) {
+    if (true) {
+      // AMD. Register as an anonymous module.
+      !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+    } else if (typeof exports === 'object') {
+      // Node. Does not work with strict CommonJS, but
+      // only CommonJS-like environments that support module.exports,
+      // like Node.
+      module.exports = factory();
+    } else {
+      // Browser globals (root is window)
+      root.keycharm = factory();
+    }
+  }(this, function () {
+
+    function keycharm(options) {
+      var preventDefault = options && options.preventDefault || false;
+
+      var container = options && options.container || window;
+
+      var _exportFunctions = {};
+      var _bound = {keydown:{}, keyup:{}};
+      var _keys = {};
+      var i;
+
+      // a - z
+      for (i = 97; i <= 122; i++) {_keys[String.fromCharCode(i)] = {code:65 + (i - 97), shift: false};}
+      // A - Z
+      for (i = 65; i <= 90; i++) {_keys[String.fromCharCode(i)] = {code:i, shift: true};}
+      // 0 - 9
+      for (i = 0;  i <= 9;   i++) {_keys['' + i] = {code:48 + i, shift: false};}
+      // F1 - F12
+      for (i = 1;  i <= 12;   i++) {_keys['F' + i] = {code:111 + i, shift: false};}
+      // num0 - num9
+      for (i = 0;  i <= 9;   i++) {_keys['num' + i] = {code:96 + i, shift: false};}
+
+      // numpad misc
+      _keys['num*'] = {code:106, shift: false};
+      _keys['num+'] = {code:107, shift: false};
+      _keys['num-'] = {code:109, shift: false};
+      _keys['num/'] = {code:111, shift: false};
+      _keys['num.'] = {code:110, shift: false};
+      // arrows
+      _keys['left']  = {code:37, shift: false};
+      _keys['up']    = {code:38, shift: false};
+      _keys['right'] = {code:39, shift: false};
+      _keys['down']  = {code:40, shift: false};
+      // extra keys
+      _keys['space'] = {code:32, shift: false};
+      _keys['enter'] = {code:13, shift: false};
+      _keys['shift'] = {code:16, shift: undefined};
+      _keys['esc']   = {code:27, shift: false};
+      _keys['backspace'] = {code:8, shift: false};
+      _keys['tab']       = {code:9, shift: false};
+      _keys['ctrl']      = {code:17, shift: false};
+      _keys['alt']       = {code:18, shift: false};
+      _keys['delete']    = {code:46, shift: false};
+      _keys['pageup']    = {code:33, shift: false};
+      _keys['pagedown']  = {code:34, shift: false};
+      // symbols
+      _keys['=']     = {code:187, shift: false};
+      _keys['-']     = {code:189, shift: false};
+      _keys[']']     = {code:221, shift: false};
+      _keys['[']     = {code:219, shift: false};
+
+
+
+      var down = function(event) {handleEvent(event,'keydown');};
+      var up = function(event) {handleEvent(event,'keyup');};
+
+      // handle the actualy bound key with the event
+      var handleEvent = function(event,type) {
+        if (_bound[type][event.keyCode] !== undefined) {
+          var bound = _bound[type][event.keyCode];
+          for (var i = 0; i < bound.length; i++) {
+            if (bound[i].shift === undefined) {
+              bound[i].fn(event);
+            }
+            else if (bound[i].shift == true && event.shiftKey == true) {
+              bound[i].fn(event);
+            }
+            else if (bound[i].shift == false && event.shiftKey == false) {
+              bound[i].fn(event);
+            }
+          }
+
+          if (preventDefault == true) {
+            event.preventDefault();
+          }
+        }
+      };
+
+      // bind a key to a callback
+      _exportFunctions.bind = function(key, callback, type) {
+        if (type === undefined) {
+          type = 'keydown';
+        }
+        if (_keys[key] === undefined) {
+          throw new Error("unsupported key: " + key);
+        }
+        if (_bound[type][_keys[key].code] === undefined) {
+          _bound[type][_keys[key].code] = [];
+        }
+        _bound[type][_keys[key].code].push({fn:callback, shift:_keys[key].shift});
+      };
+
+
+      // bind all keys to a call back (demo purposes)
+      _exportFunctions.bindAll = function(callback, type) {
+        if (type === undefined) {
+          type = 'keydown';
+        }
+        for (var key in _keys) {
+          if (_keys.hasOwnProperty(key)) {
+            _exportFunctions.bind(key,callback,type);
+          }
+        }
+      };
+
+      // get the key label from an event
+      _exportFunctions.getKey = function(event) {
+        for (var key in _keys) {
+          if (_keys.hasOwnProperty(key)) {
+            if (event.shiftKey == true && _keys[key].shift == true && event.keyCode == _keys[key].code) {
+              return key;
+            }
+            else if (event.shiftKey == false && _keys[key].shift == false && event.keyCode == _keys[key].code) {
+              return key;
+            }
+            else if (event.keyCode == _keys[key].code && key == 'shift') {
+              return key;
+            }
+          }
+        }
+        return "unknown key, currently not supported";
+      };
+
+      // unbind either a specific callback from a key or all of them (by leaving callback undefined)
+      _exportFunctions.unbind = function(key, callback, type) {
+        if (type === undefined) {
+          type = 'keydown';
+        }
+        if (_keys[key] === undefined) {
+          throw new Error("unsupported key: " + key);
+        }
+        if (callback !== undefined) {
+          var newBindings = [];
+          var bound = _bound[type][_keys[key].code];
+          if (bound !== undefined) {
+            for (var i = 0; i < bound.length; i++) {
+              if (!(bound[i].fn == callback && bound[i].shift == _keys[key].shift)) {
+                newBindings.push(_bound[type][_keys[key].code][i]);
+              }
+            }
+          }
+          _bound[type][_keys[key].code] = newBindings;
+        }
+        else {
+          _bound[type][_keys[key].code] = [];
+        }
+      };
+
+      // reset all bound variables.
+      _exportFunctions.reset = function() {
+        _bound = {keydown:{}, keyup:{}};
+      };
+
+      // unbind all listeners and reset all variables.
+      _exportFunctions.destroy = function() {
+        _bound = {keydown:{}, keyup:{}};
+        container.removeEventListener('keydown', down, true);
+        container.removeEventListener('keyup', up, true);
+      };
+
+      // create listeners.
+      container.addEventListener('keydown',down,true);
+      container.addEventListener('keyup',up,true);
+
+      // return the public functions.
+      return _exportFunctions;
+    }
+
+    return keycharm;
+  }));
+
+
+
+
+/***/ },
+/* 37 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var util = __webpack_require__(1);
+  var Component = __webpack_require__(23);
+  var TimeStep = __webpack_require__(38);
+  var DateUtil = __webpack_require__(24);
+  var moment = __webpack_require__(2);
+
+  /**
+   * A horizontal time axis
+   * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} body
+   * @param {Object} [options]        See TimeAxis.setOptions for the available
+   *                                  options.
+   * @constructor TimeAxis
+   * @extends Component
+   */
+  function TimeAxis (body, options) {
+    this.dom = {
+      foreground: null,
+      majorLines: [],
+      majorTexts: [],
+      minorLines: [],
+      minorTexts: [],
+      redundant: {
+        majorLines: [],
+        majorTexts: [],
+        minorLines: [],
+        minorTexts: []
+      }
+    };
+    this.props = {
+      range: {
+        start: 0,
+        end: 0,
+        minimumStep: 0
+      },
+      lineTop: 0
+    };
+
+    this.defaultOptions = {
+      orientation: 'bottom',  // supported: 'top', 'bottom'
+      // TODO: implement timeaxis orientations 'left' and 'right'
+      showMinorLabels: true,
+      showMajorLabels: true,
+      showMajorLines: true,
+      showMinorLines: true,
+      format: null
+    };
+    this.options = util.extend({}, this.defaultOptions);
+
+    this.body = body;
+
+    // create the HTML DOM
+    this._create();
+
+    this.setOptions(options);
+  }
+
+  TimeAxis.prototype = new Component();
+
+  /**
+   * Set options for the TimeAxis.
+   * Parameters will be merged in current options.
+   * @param {Object} options  Available options:
+   *                          {string} [orientation]
+   *                          {boolean} [showMinorLabels]
+   *                          {boolean} [showMajorLabels]
+   */
+  TimeAxis.prototype.setOptions = function(options) {
+    if (options) {
+      // copy all options that we know
+      util.selectiveExtend(['orientation', 'showMinorLabels', 'showMajorLabels', 'showMinorLines', 'showMajorLines','hiddenDates', 'format'], this.options, options);
+
+      // apply locale to moment.js
+      // TODO: not so nice, this is applied globally to moment.js
+      if ('locale' in options) {
+        if (typeof moment.locale === 'function') {
+          // moment.js 2.8.1+
+          moment.locale(options.locale);
+        }
+        else {
+          moment.lang(options.locale);
+        }
+      }
+    }
+  };
+
+  /**
+   * Create the HTML DOM for the TimeAxis
+   */
+  TimeAxis.prototype._create = function() {
+    this.dom.foreground = document.createElement('div');
+    this.dom.background = document.createElement('div');
+
+    this.dom.foreground.className = 'timeaxis foreground';
+    this.dom.background.className = 'timeaxis background';
+  };
+
+  /**
+   * Destroy the TimeAxis
+   */
+  TimeAxis.prototype.destroy = function() {
+    // remove from DOM
+    if (this.dom.foreground.parentNode) {
+      this.dom.foreground.parentNode.removeChild(this.dom.foreground);
+    }
+    if (this.dom.background.parentNode) {
+      this.dom.background.parentNode.removeChild(this.dom.background);
+    }
+
+    this.body = null;
+  };
+
+  /**
+   * Repaint the component
+   * @return {boolean} Returns true if the component is resized
+   */
+  TimeAxis.prototype.redraw = function () {
+    var options = this.options;
+    var props = this.props;
+    var foreground = this.dom.foreground;
+    var background = this.dom.background;
+
+    // determine the correct parent DOM element (depending on option orientation)
+    var parent = (options.orientation == 'top') ? this.body.dom.top : this.body.dom.bottom;
+    var parentChanged = (foreground.parentNode !== parent);
+
+    // calculate character width and height
+    this._calculateCharSize();
+
+    // TODO: recalculate sizes only needed when parent is resized or options is changed
+    var orientation = this.options.orientation,
+        showMinorLabels = this.options.showMinorLabels,
+        showMajorLabels = this.options.showMajorLabels;
+
+    // determine the width and height of the elemens for the axis
+    props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
+    props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
+    props.height = props.minorLabelHeight + props.majorLabelHeight;
+    props.width = foreground.offsetWidth;
+
+    props.minorLineHeight = this.body.domProps.root.height - props.majorLabelHeight -
+        (options.orientation == 'top' ? this.body.domProps.bottom.height : this.body.domProps.top.height);
+    props.minorLineWidth = 1; // TODO: really calculate width
+    props.majorLineHeight = props.minorLineHeight + props.majorLabelHeight;
+    props.majorLineWidth = 1; // TODO: really calculate width
+
+    //  take foreground and background offline while updating (is almost twice as fast)
+    var foregroundNextSibling = foreground.nextSibling;
+    var backgroundNextSibling = background.nextSibling;
+    foreground.parentNode && foreground.parentNode.removeChild(foreground);
+    background.parentNode && background.parentNode.removeChild(background);
+
+    foreground.style.height = this.props.height + 'px';
+
+    this._repaintLabels();
+
+    // put DOM online again (at the same place)
+    if (foregroundNextSibling) {
+      parent.insertBefore(foreground, foregroundNextSibling);
+    }
+    else {
+      parent.appendChild(foreground)
+    }
+    if (backgroundNextSibling) {
+      this.body.dom.backgroundVertical.insertBefore(background, backgroundNextSibling);
+    }
+    else {
+      this.body.dom.backgroundVertical.appendChild(background)
+    }
+
+    return this._isResized() || parentChanged;
+  };
+
+  /**
+   * Repaint major and minor text labels and vertical grid lines
+   * @private
+   */
+  TimeAxis.prototype._repaintLabels = function () {
+    var orientation = this.options.orientation;
+
+    // calculate range and step (step such that we have space for 7 characters per label)
+    var start = util.convert(this.body.range.start, 'Number');
+    var end = util.convert(this.body.range.end, 'Number');
+    var timeLabelsize = this.body.util.toTime((this.props.minorCharWidth || 10) * 7).valueOf();
+    var minimumStep = timeLabelsize - DateUtil.getHiddenDurationBefore(this.body.hiddenDates, this.body.range, timeLabelsize);
+    minimumStep -= this.body.util.toTime(0).valueOf();
+
+    var step = new TimeStep(new Date(start), new Date(end), minimumStep, this.body.hiddenDates);
+    if (this.options.format) {
+      step.setFormat(this.options.format);
+    }
+    this.step = step;
+
+    // Move all DOM elements to a "redundant" list, where they
+    // can be picked for re-use, and clear the lists with lines and texts.
+    // At the end of the function _repaintLabels, left over elements will be cleaned up
+    var dom = this.dom;
+    dom.redundant.majorLines = dom.majorLines;
+    dom.redundant.majorTexts = dom.majorTexts;
+    dom.redundant.minorLines = dom.minorLines;
+    dom.redundant.minorTexts = dom.minorTexts;
+    dom.majorLines = [];
+    dom.majorTexts = [];
+    dom.minorLines = [];
+    dom.minorTexts = [];
+
+    step.first();
+    var xFirstMajorLabel = undefined;
+    var max = 0;
+    while (step.hasNext() && max < 1000) {
+      max++;
+      var cur = step.getCurrent();
+      var x = this.body.util.toScreen(cur);
+      var isMajor = step.isMajor();
+
+
+      // TODO: lines must have a width, such that we can create css backgrounds
+
+      if (this.options.showMinorLabels) {
+        this._repaintMinorText(x, step.getLabelMinor(), orientation);
+      }
+
+      if (isMajor && this.options.showMajorLabels) {
+        if (x > 0) {
+          if (xFirstMajorLabel == undefined) {
+            xFirstMajorLabel = x;
+          }
+          this._repaintMajorText(x, step.getLabelMajor(), orientation);
+        }
+        if (this.options.showMajorLines == true) {
+          this._repaintMajorLine(x, orientation);
+        }
+      }
+      else if (this.options.showMinorLines == true) {
+        this._repaintMinorLine(x, orientation);
+      }
+
+      step.next();
+    }
+
+    // create a major label on the left when needed
+    if (this.options.showMajorLabels) {
+      var leftTime = this.body.util.toTime(0),
+          leftText = step.getLabelMajor(leftTime),
+          widthText = leftText.length * (this.props.majorCharWidth || 10) + 10; // upper bound estimation
+
+      if (xFirstMajorLabel == undefined || widthText < xFirstMajorLabel) {
+        this._repaintMajorText(0, leftText, orientation);
+      }
+    }
+
+    // Cleanup leftover DOM elements from the redundant list
+    util.forEach(this.dom.redundant, function (arr) {
+      while (arr.length) {
+        var elem = arr.pop();
+        if (elem && elem.parentNode) {
+          elem.parentNode.removeChild(elem);
+        }
+      }
+    });
+  };
+
+  /**
+   * Create a minor label for the axis at position x
+   * @param {Number} x
+   * @param {String} text
+   * @param {String} orientation   "top" or "bottom" (default)
+   * @private
+   */
+  TimeAxis.prototype._repaintMinorText = function (x, text, orientation) {
+    // reuse redundant label
+    var label = this.dom.redundant.minorTexts.shift();
+
+    if (!label) {
+      // create new label
+      var content = document.createTextNode('');
+      label = document.createElement('div');
+      label.appendChild(content);
+      label.className = 'text minor';
+      this.dom.foreground.appendChild(label);
+    }
+    this.dom.minorTexts.push(label);
+
+    label.childNodes[0].nodeValue = text;
+
+    label.style.top = (orientation == 'top') ? (this.props.majorLabelHeight + 'px') : '0';
+    label.style.left = x + 'px';
+    //label.title = title;  // TODO: this is a heavy operation
+  };
+
+  /**
+   * Create a Major label for the axis at position x
+   * @param {Number} x
+   * @param {String} text
+   * @param {String} orientation   "top" or "bottom" (default)
+   * @private
+   */
+  TimeAxis.prototype._repaintMajorText = function (x, text, orientation) {
+    // reuse redundant label
+    var label = this.dom.redundant.majorTexts.shift();
+
+    if (!label) {
+      // create label
+      var content = document.createTextNode(text);
+      label = document.createElement('div');
+      label.className = 'text major';
+      label.appendChild(content);
+      this.dom.foreground.appendChild(label);
+    }
+    this.dom.majorTexts.push(label);
+
+    label.childNodes[0].nodeValue = text;
+    //label.title = title; // TODO: this is a heavy operation
+
+    label.style.top = (orientation == 'top') ? '0' : (this.props.minorLabelHeight  + 'px');
+    label.style.left = x + 'px';
+  };
+
+  /**
+   * Create a minor line for the axis at position x
+   * @param {Number} x
+   * @param {String} orientation   "top" or "bottom" (default)
+   * @private
+   */
+  TimeAxis.prototype._repaintMinorLine = function (x, orientation) {
+    // reuse redundant line
+    var line = this.dom.redundant.minorLines.shift();
+
+    if (!line) {
+      // create vertical line
+      line = document.createElement('div');
+      line.className = 'grid vertical minor';
+      this.dom.background.appendChild(line);
+    }
+    this.dom.minorLines.push(line);
+
+    var props = this.props;
+    if (orientation == 'top') {
+      line.style.top = props.majorLabelHeight + 'px';
+    }
+    else {
+      line.style.top = this.body.domProps.top.height + 'px';
+    }
+    line.style.height = props.minorLineHeight + 'px';
+    line.style.left = (x - props.minorLineWidth / 2) + 'px';
+  };
+
+  /**
+   * Create a Major line for the axis at position x
+   * @param {Number} x
+   * @param {String} orientation   "top" or "bottom" (default)
+   * @private
+   */
+  TimeAxis.prototype._repaintMajorLine = function (x, orientation) {
+    // reuse redundant line
+    var line = this.dom.redundant.majorLines.shift();
+
+    if (!line) {
+      // create vertical line
+      line = document.createElement('DIV');
+      line.className = 'grid vertical major';
+      this.dom.background.appendChild(line);
+    }
+    this.dom.majorLines.push(line);
+
+    var props = this.props;
+    if (orientation == 'top') {
+      line.style.top = '0';
+    }
+    else {
+      line.style.top = this.body.domProps.top.height + 'px';
+    }
+    line.style.left = (x - props.majorLineWidth / 2) + 'px';
+    line.style.height = props.majorLineHeight + 'px';
+  };
+
+  /**
+   * Determine the size of text on the axis (both major and minor axis).
+   * The size is calculated only once and then cached in this.props.
+   * @private
+   */
+  TimeAxis.prototype._calculateCharSize = function () {
+    // Note: We calculate char size with every redraw. Size may change, for
+    // example when any of the timelines parents had display:none for example.
+
+    // determine the char width and height on the minor axis
+    if (!this.dom.measureCharMinor) {
+      this.dom.measureCharMinor = document.createElement('DIV');
+      this.dom.measureCharMinor.className = 'text minor measure';
+      this.dom.measureCharMinor.style.position = 'absolute';
+
+      this.dom.measureCharMinor.appendChild(document.createTextNode('0'));
+      this.dom.foreground.appendChild(this.dom.measureCharMinor);
+    }
+    this.props.minorCharHeight = this.dom.measureCharMinor.clientHeight;
+    this.props.minorCharWidth = this.dom.measureCharMinor.clientWidth;
+
+    // determine the char width and height on the major axis
+    if (!this.dom.measureCharMajor) {
+      this.dom.measureCharMajor = document.createElement('DIV');
+      this.dom.measureCharMajor.className = 'text major measure';
+      this.dom.measureCharMajor.style.position = 'absolute';
+
+      this.dom.measureCharMajor.appendChild(document.createTextNode('0'));
+      this.dom.foreground.appendChild(this.dom.measureCharMajor);
+    }
+    this.props.majorCharHeight = this.dom.measureCharMajor.clientHeight;
+    this.props.majorCharWidth = this.dom.measureCharMajor.clientWidth;
+  };
+
+  /**
+   * Snap a date to a rounded value.
+   * The snap intervals are dependent on the current scale and step.
+   * @param {Date} date   the date to be snapped.
+   * @return {Date} snappedDate
+   */
+  TimeAxis.prototype.snap = function(date) {
+    return this.step.snap(date);
+  };
+
+  module.exports = TimeAxis;
+
+
+/***/ },
+/* 38 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var moment = __webpack_require__(2);
+  var DateUtil = __webpack_require__(24);
+  var util = __webpack_require__(1);
+
+  /**
+   * @constructor  TimeStep
+   * The class TimeStep is an iterator for dates. You provide a start date and an
+   * end date. The class itself determines the best scale (step size) based on the
+   * provided start Date, end Date, and minimumStep.
+   *
+   * If minimumStep is provided, the step size is chosen as close as possible
+   * to the minimumStep but larger than minimumStep. If minimumStep is not
+   * provided, the scale is set to 1 DAY.
+   * The minimumStep should correspond with the onscreen size of about 6 characters
+   *
+   * Alternatively, you can set a scale by hand.
+   * After creation, you can initialize the class by executing first(). Then you
+   * can iterate from the start date to the end date via next(). You can check if
+   * the end date is reached with the function hasNext(). After each step, you can
+   * retrieve the current date via getCurrent().
+   * The TimeStep has scales ranging from milliseconds, seconds, minutes, hours,
+   * days, to years.
+   *
+   * Version: 1.2
+   *
+   * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
+   *                               or new Date(2010, 9, 21, 23, 45, 00)
+   * @param {Date} [end]           The end date
+   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
+   */
+  function TimeStep(start, end, minimumStep, hiddenDates) {
+    // variables
+    this.current = new Date();
+    this._start = new Date();
+    this._end = new Date();
+
+    this.autoScale  = true;
+    this.scale = 'day';
+    this.step = 1;
+
+    // initialize the range
+    this.setRange(start, end, minimumStep);
+
+    // hidden Dates options
+    this.switchedDay = false;
+    this.switchedMonth = false;
+    this.switchedYear = false;
+    this.hiddenDates = hiddenDates;
+    if (hiddenDates === undefined) {
+      this.hiddenDates = [];
+    }
+
+    this.format = TimeStep.FORMAT; // default formatting
+  }
+
+  // Time formatting
+  TimeStep.FORMAT = {
+    minorLabels: {
+      millisecond:'SSS',
+      second:     's',
+      minute:     'HH:mm',
+      hour:       'HH:mm',
+      weekday:    'ddd D',
+      day:        'D',
+      month:      'MMM',
+      year:       'YYYY'
+    },
+    majorLabels: {
+      millisecond:'HH:mm:ss',
+      second:     'D MMMM HH:mm',
+      minute:     'ddd D MMMM',
+      hour:       'ddd D MMMM',
+      weekday:    'MMMM YYYY',
+      day:        'MMMM YYYY',
+      month:      'YYYY',
+      year:       ''
+    }
+  };
+
+  /**
+   * Set custom formatting for the minor an major labels of the TimeStep.
+   * Both `minorLabels` and `majorLabels` are an Object with properties:
+   * 'millisecond, 'second, 'minute', 'hour', 'weekday, 'day, 'month, 'year'.
+   * @param {{minorLabels: Object, majorLabels: Object}} format
+   */
+  TimeStep.prototype.setFormat = function (format) {
+    var defaultFormat = util.deepExtend({}, TimeStep.FORMAT);
+    this.format = util.deepExtend(defaultFormat, format);
+  };
+
+  /**
+   * Set a new range
+   * If minimumStep is provided, the step size is chosen as close as possible
+   * to the minimumStep but larger than minimumStep. If minimumStep is not
+   * provided, the scale is set to 1 DAY.
+   * The minimumStep should correspond with the onscreen size of about 6 characters
+   * @param {Date} [start]      The start date and time.
+   * @param {Date} [end]        The end date and time.
+   * @param {int} [minimumStep] Optional. Minimum step size in milliseconds
+   */
+  TimeStep.prototype.setRange = function(start, end, minimumStep) {
+    if (!(start instanceof Date) || !(end instanceof Date)) {
+      throw  "No legal start or end date in method setRange";
+    }
+
+    this._start = (start != undefined) ? new Date(start.valueOf()) : new Date();
+    this._end = (end != undefined) ? new Date(end.valueOf()) : new Date();
+
+    if (this.autoScale) {
+      this.setMinimumStep(minimumStep);
+    }
+  };
+
+  /**
+   * Set the range iterator to the start date.
+   */
+  TimeStep.prototype.first = function() {
+    this.current = new Date(this._start.valueOf());
+    this.roundToMinor();
+  };
+
+  /**
+   * Round the current date to the first minor date value
+   * This must be executed once when the current date is set to start Date
+   */
+  TimeStep.prototype.roundToMinor = function() {
+    // round to floor
+    // IMPORTANT: we have no breaks in this switch! (this is no bug)
+    // noinspection FallThroughInSwitchStatementJS
+    switch (this.scale) {
+      case 'year':
+        this.current.setFullYear(this.step * Math.floor(this.current.getFullYear() / this.step));
+        this.current.setMonth(0);
+      case 'month':        this.current.setDate(1);
+      case 'day':          // intentional fall through
+      case 'weekday':      this.current.setHours(0);
+      case 'hour':         this.current.setMinutes(0);
+      case 'minute':       this.current.setSeconds(0);
+      case 'second':       this.current.setMilliseconds(0);
+      //case 'millisecond': // nothing to do for milliseconds
+    }
+
+    if (this.step != 1) {
+      // round down to the first minor value that is a multiple of the current step size
+      switch (this.scale) {
+        case 'millisecond':  this.current.setMilliseconds(this.current.getMilliseconds() - this.current.getMilliseconds() % this.step);  break;
+        case 'second':       this.current.setSeconds(this.current.getSeconds() - this.current.getSeconds() % this.step); break;
+        case 'minute':       this.current.setMinutes(this.current.getMinutes() - this.current.getMinutes() % this.step); break;
+        case 'hour':         this.current.setHours(this.current.getHours() - this.current.getHours() % this.step); break;
+        case 'weekday':      // intentional fall through
+        case 'day':          this.current.setDate((this.current.getDate()-1) - (this.current.getDate()-1) % this.step + 1); break;
+        case 'month':        this.current.setMonth(this.current.getMonth() - this.current.getMonth() % this.step);  break;
+        case 'year':         this.current.setFullYear(this.current.getFullYear() - this.current.getFullYear() % this.step); break;
+        default: break;
+      }
+    }
+  };
+
+  /**
+   * Check if the there is a next step
+   * @return {boolean}  true if the current date has not passed the end date
+   */
+  TimeStep.prototype.hasNext = function () {
+    return (this.current.valueOf() <= this._end.valueOf());
+  };
+
+  /**
+   * Do the next step
+   */
+  TimeStep.prototype.next = function() {
+    var prev = this.current.valueOf();
+
+    // Two cases, needed to prevent issues with switching daylight savings
+    // (end of March and end of October)
+    if (this.current.getMonth() < 6)   {
+      switch (this.scale) {
+        case 'millisecond':
+
+          this.current = new Date(this.current.valueOf() + this.step); break;
+        case 'second':       this.current = new Date(this.current.valueOf() + this.step * 1000); break;
+        case 'minute':       this.current = new Date(this.current.valueOf() + this.step * 1000 * 60); break;
+        case 'hour':
+          this.current = new Date(this.current.valueOf() + this.step * 1000 * 60 * 60);
+          // in case of skipping an hour for daylight savings, adjust the hour again (else you get: 0h 5h 9h ... instead of 0h 4h 8h ...)
+          var h = this.current.getHours();
+          this.current.setHours(h - (h % this.step));
+          break;
+        case 'weekday':      // intentional fall through
+        case 'day':          this.current.setDate(this.current.getDate() + this.step); break;
+        case 'month':        this.current.setMonth(this.current.getMonth() + this.step); break;
+        case 'year':         this.current.setFullYear(this.current.getFullYear() + this.step); break;
+        default:                      break;
+      }
+    }
+    else {
+      switch (this.scale) {
+        case 'millisecond':  this.current = new Date(this.current.valueOf() + this.step); break;
+        case 'second':       this.current.setSeconds(this.current.getSeconds() + this.step); break;
+        case 'minute':       this.current.setMinutes(this.current.getMinutes() + this.step); break;
+        case 'hour':         this.current.setHours(this.current.getHours() + this.step); break;
+        case 'weekday':      // intentional fall through
+        case 'day':          this.current.setDate(this.current.getDate() + this.step); break;
+        case 'month':        this.current.setMonth(this.current.getMonth() + this.step); break;
+        case 'year':         this.current.setFullYear(this.current.getFullYear() + this.step); break;
+        default:                      break;
+      }
+    }
+
+    if (this.step != 1) {
+      // round down to the correct major value
+      switch (this.scale) {
+        case 'millisecond':  if(this.current.getMilliseconds() < this.step) this.current.setMilliseconds(0);  break;
+        case 'second':       if(this.current.getSeconds() < this.step) this.current.setSeconds(0);  break;
+        case 'minute':       if(this.current.getMinutes() < this.step) this.current.setMinutes(0);  break;
+        case 'hour':         if(this.current.getHours() < this.step) this.current.setHours(0);  break;
+        case 'weekday':      // intentional fall through
+        case 'day':          if(this.current.getDate() < this.step+1) this.current.setDate(1); break;
+        case 'month':        if(this.current.getMonth() < this.step) this.current.setMonth(0);  break;
+        case 'year':         break; // nothing to do for year
+        default:                break;
+      }
+    }
+
+    // safety mechanism: if current time is still unchanged, move to the end
+    if (this.current.valueOf() == prev) {
+      this.current = new Date(this._end.valueOf());
+    }
+
+    DateUtil.stepOverHiddenDates(this, prev);
+  };
+
+
+  /**
+   * Get the current datetime
+   * @return {Date}  current The current date
+   */
+  TimeStep.prototype.getCurrent = function() {
+    return this.current;
+  };
+
+  /**
+   * Set a custom scale. Autoscaling will be disabled.
+   * For example setScale(SCALE.MINUTES, 5) will result
+   * in minor steps of 5 minutes, and major steps of an hour.
+   *
+   * @param {string} newScale
+   *                               A scale. Choose from 'millisecond, 'second,
+   *                               'minute', 'hour', 'weekday, 'day, 'month, 'year'.
+   * @param {Number}     newStep   A step size, by default 1. Choose for
+   *                               example 1, 2, 5, or 10.
+   */
+  TimeStep.prototype.setScale = function(newScale, newStep) {
+    this.scale = newScale;
+
+    if (newStep > 0) {
+      this.step = newStep;
+    }
+
+    this.autoScale = false;
+  };
+
+  /**
+   * Enable or disable autoscaling
+   * @param {boolean} enable  If true, autoascaling is set true
+   */
+  TimeStep.prototype.setAutoScale = function (enable) {
+    this.autoScale = enable;
+  };
+
+
+  /**
+   * Automatically determine the scale that bests fits the provided minimum step
+   * @param {Number} [minimumStep]  The minimum step size in milliseconds
+   */
+  TimeStep.prototype.setMinimumStep = function(minimumStep) {
+    if (minimumStep == undefined) {
+      return;
+    }
+
+    //var b = asc + ds;
+
+    var stepYear       = (1000 * 60 * 60 * 24 * 30 * 12);
+    var stepMonth      = (1000 * 60 * 60 * 24 * 30);
+    var stepDay        = (1000 * 60 * 60 * 24);
+    var stepHour       = (1000 * 60 * 60);
+    var stepMinute     = (1000 * 60);
+    var stepSecond     = (1000);
+    var stepMillisecond= (1);
+
+    // find the smallest step that is larger than the provided minimumStep
+    if (stepYear*1000 > minimumStep)        {this.scale = 'year';        this.step = 1000;}
+    if (stepYear*500 > minimumStep)         {this.scale = 'year';        this.step = 500;}
+    if (stepYear*100 > minimumStep)         {this.scale = 'year';        this.step = 100;}
+    if (stepYear*50 > minimumStep)          {this.scale = 'year';        this.step = 50;}
+    if (stepYear*10 > minimumStep)          {this.scale = 'year';        this.step = 10;}
+    if (stepYear*5 > minimumStep)           {this.scale = 'year';        this.step = 5;}
+    if (stepYear > minimumStep)             {this.scale = 'year';        this.step = 1;}
+    if (stepMonth*3 > minimumStep)          {this.scale = 'month';       this.step = 3;}
+    if (stepMonth > minimumStep)            {this.scale = 'month';       this.step = 1;}
+    if (stepDay*5 > minimumStep)            {this.scale = 'day';         this.step = 5;}
+    if (stepDay*2 > minimumStep)            {this.scale = 'day';         this.step = 2;}
+    if (stepDay > minimumStep)              {this.scale = 'day';         this.step = 1;}
+    if (stepDay/2 > minimumStep)            {this.scale = 'weekday';     this.step = 1;}
+    if (stepHour*4 > minimumStep)           {this.scale = 'hour';        this.step = 4;}
+    if (stepHour > minimumStep)             {this.scale = 'hour';        this.step = 1;}
+    if (stepMinute*15 > minimumStep)        {this.scale = 'minute';      this.step = 15;}
+    if (stepMinute*10 > minimumStep)        {this.scale = 'minute';      this.step = 10;}
+    if (stepMinute*5 > minimumStep)         {this.scale = 'minute';      this.step = 5;}
+    if (stepMinute > minimumStep)           {this.scale = 'minute';      this.step = 1;}
+    if (stepSecond*15 > minimumStep)        {this.scale = 'second';      this.step = 15;}
+    if (stepSecond*10 > minimumStep)        {this.scale = 'second';      this.step = 10;}
+    if (stepSecond*5 > minimumStep)         {this.scale = 'second';      this.step = 5;}
+    if (stepSecond > minimumStep)           {this.scale = 'second';      this.step = 1;}
+    if (stepMillisecond*200 > minimumStep)  {this.scale = 'millisecond'; this.step = 200;}
+    if (stepMillisecond*100 > minimumStep)  {this.scale = 'millisecond'; this.step = 100;}
+    if (stepMillisecond*50 > minimumStep)   {this.scale = 'millisecond'; this.step = 50;}
+    if (stepMillisecond*10 > minimumStep)   {this.scale = 'millisecond'; this.step = 10;}
+    if (stepMillisecond*5 > minimumStep)    {this.scale = 'millisecond'; this.step = 5;}
+    if (stepMillisecond > minimumStep)      {this.scale = 'millisecond'; this.step = 1;}
+  };
+
+  /**
+   * Snap a date to a rounded value.
+   * The snap intervals are dependent on the current scale and step.
+   * @param {Date} date   the date to be snapped.
+   * @return {Date} snappedDate
+   */
+  TimeStep.prototype.snap = function(date) {
+    var clone = new Date(date.valueOf());
+
+    if (this.scale == 'year') {
+      var year = clone.getFullYear() + Math.round(clone.getMonth() / 12);
+      clone.setFullYear(Math.round(year / this.step) * this.step);
+      clone.setMonth(0);
+      clone.setDate(0);
+      clone.setHours(0);
+      clone.setMinutes(0);
+      clone.setSeconds(0);
+      clone.setMilliseconds(0);
+    }
+    else if (this.scale == 'month') {
+      if (clone.getDate() > 15) {
+        clone.setDate(1);
+        clone.setMonth(clone.getMonth() + 1);
+        // important: first set Date to 1, after that change the month.
+      }
+      else {
+        clone.setDate(1);
+      }
+
+      clone.setHours(0);
+      clone.setMinutes(0);
+      clone.setSeconds(0);
+      clone.setMilliseconds(0);
+    }
+    else if (this.scale == 'day') {
+      //noinspection FallthroughInSwitchStatementJS
+      switch (this.step) {
+        case 5:
+        case 2:
+          clone.setHours(Math.round(clone.getHours() / 24) * 24); break;
+        default:
+          clone.setHours(Math.round(clone.getHours() / 12) * 12); break;
+      }
+      clone.setMinutes(0);
+      clone.setSeconds(0);
+      clone.setMilliseconds(0);
+    }
+    else if (this.scale == 'weekday') {
+      //noinspection FallthroughInSwitchStatementJS
+      switch (this.step) {
+        case 5:
+        case 2:
+          clone.setHours(Math.round(clone.getHours() / 12) * 12); break;
+        default:
+          clone.setHours(Math.round(clone.getHours() / 6) * 6); break;
+      }
+      clone.setMinutes(0);
+      clone.setSeconds(0);
+      clone.setMilliseconds(0);
+    }
+    else if (this.scale == 'hour') {
+      switch (this.step) {
+        case 4:
+          clone.setMinutes(Math.round(clone.getMinutes() / 60) * 60); break;
+        default:
+          clone.setMinutes(Math.round(clone.getMinutes() / 30) * 30); break;
+      }
+      clone.setSeconds(0);
+      clone.setMilliseconds(0);
+    } else if (this.scale == 'minute') {
+      //noinspection FallthroughInSwitchStatementJS
+      switch (this.step) {
+        case 15:
+        case 10:
+          clone.setMinutes(Math.round(clone.getMinutes() / 5) * 5);
+          clone.setSeconds(0);
+          break;
+        case 5:
+          clone.setSeconds(Math.round(clone.getSeconds() / 60) * 60); break;
+        default:
+          clone.setSeconds(Math.round(clone.getSeconds() / 30) * 30); break;
+      }
+      clone.setMilliseconds(0);
+    }
+    else if (this.scale == 'second') {
+      //noinspection FallthroughInSwitchStatementJS
+      switch (this.step) {
+        case 15:
+        case 10:
+          clone.setSeconds(Math.round(clone.getSeconds() / 5) * 5);
+          clone.setMilliseconds(0);
+          break;
+        case 5:
+          clone.setMilliseconds(Math.round(clone.getMilliseconds() / 1000) * 1000); break;
+        default:
+          clone.setMilliseconds(Math.round(clone.getMilliseconds() / 500) * 500); break;
+      }
+    }
+    else if (this.scale == 'millisecond') {
+      var step = this.step > 5 ? this.step / 2 : 1;
+      clone.setMilliseconds(Math.round(clone.getMilliseconds() / step) * step);
+    }
+    
+    return clone;
+  };
+
+  /**
+   * Check if the current value is a major value (for example when the step
+   * is DAY, a major value is each first day of the MONTH)
+   * @return {boolean} true if current date is major, else false.
+   */
+  TimeStep.prototype.isMajor = function() {
+    if (this.switchedYear == true) {
+      this.switchedYear = false;
+      switch (this.scale) {
+        case 'year':
+        case 'month':
+        case 'weekday':
+        case 'day':
+        case 'hour':
+        case 'minute':
+        case 'second':
+        case 'millisecond':
+          return true;
+        default:
+          return false;
+      }
+    }
+    else if (this.switchedMonth == true) {
+      this.switchedMonth = false;
+      switch (this.scale) {
+        case 'weekday':
+        case 'day':
+        case 'hour':
+        case 'minute':
+        case 'second':
+        case 'millisecond':
+          return true;
+        default:
+          return false;
+      }
+    }
+    else if (this.switchedDay == true) {
+      this.switchedDay = false;
+      switch (this.scale) {
+        case 'millisecond':
+        case 'second':
+        case 'minute':
+        case 'hour':
+          return true;
+        default:
+          return false;
+      }
+    }
+
+    switch (this.scale) {
+      case 'millisecond':
+        return (this.current.getMilliseconds() == 0);
+      case 'second':
+        return (this.current.getSeconds() == 0);
+      case 'minute':
+        return (this.current.getHours() == 0) && (this.current.getMinutes() == 0);
+      case 'hour':
+        return (this.current.getHours() == 0);
+      case 'weekday': // intentional fall through
+      case 'day':
+        return (this.current.getDate() == 1);
+      case 'month':
+        return (this.current.getMonth() == 0);
+      case 'year':
+        return false;
+      default:
+        return false;
+    }
+  };
+
+
+  /**
+   * Returns formatted text for the minor axislabel, depending on the current
+   * date and the scale. For example when scale is MINUTE, the current time is
+   * formatted as "hh:mm".
+   * @param {Date} [date] custom date. if not provided, current date is taken
+   */
+  TimeStep.prototype.getLabelMinor = function(date) {
+    if (date == undefined) {
+      date = this.current;
+    }
+
+    var format = this.format.minorLabels[this.scale];
+    return (format && format.length > 0) ? moment(date).format(format) : '';
+  };
+
+  /**
+   * Returns formatted text for the major axis label, depending on the current
+   * date and the scale. For example when scale is MINUTE, the major scale is
+   * hours, and the hour will be formatted as "hh".
+   * @param {Date} [date] custom date. if not provided, current date is taken
+   */
+  TimeStep.prototype.getLabelMajor = function(date) {
+    if (date == undefined) {
+      date = this.current;
+    }
+
+    var format = this.format.majorLabels[this.scale];
+    return (format && format.length > 0) ? moment(date).format(format) : '';
+  };
+
+  module.exports = TimeStep;
+
+
+/***/ },
+/* 39 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var util = __webpack_require__(1);
+  var Component = __webpack_require__(23);
+  var moment = __webpack_require__(2);
+  var locales = __webpack_require__(40);
+
+  /**
+   * A current time bar
+   * @param {{range: Range, dom: Object, domProps: Object}} body
+   * @param {Object} [options]        Available parameters:
+   *                                  {Boolean} [showCurrentTime]
+   * @constructor CurrentTime
+   * @extends Component
+   */
+  function CurrentTime (body, options) {
+    this.body = body;
+
+    // default options
+    this.defaultOptions = {
+      showCurrentTime: true,
+
+      locales: locales,
+      locale: 'en'
+    };
+    this.options = util.extend({}, this.defaultOptions);
+    this.offset = 0;
+
+    this._create();
+
+    this.setOptions(options);
+  }
+
+  CurrentTime.prototype = new Component();
+
+  /**
+   * Create the HTML DOM for the current time bar
+   * @private
+   */
+  CurrentTime.prototype._create = function() {
+    var bar = document.createElement('div');
+    bar.className = 'currenttime';
+    bar.style.position = 'absolute';
+    bar.style.top = '0px';
+    bar.style.height = '100%';
+
+    this.bar = bar;
+  };
+
+  /**
+   * Destroy the CurrentTime bar
+   */
+  CurrentTime.prototype.destroy = function () {
+    this.options.showCurrentTime = false;
+    this.redraw(); // will remove the bar from the DOM and stop refreshing
+
+    this.body = null;
+  };
+
+  /**
+   * Set options for the component. Options will be merged in current options.
+   * @param {Object} options  Available parameters:
+   *                          {boolean} [showCurrentTime]
+   */
+  CurrentTime.prototype.setOptions = function(options) {
+    if (options) {
+      // copy all options that we know
+      util.selectiveExtend(['showCurrentTime', 'locale', 'locales'], this.options, options);
+    }
+  };
+
+  /**
+   * Repaint the component
+   * @return {boolean} Returns true if the component is resized
+   */
+  CurrentTime.prototype.redraw = function() {
+    if (this.options.showCurrentTime) {
+      var parent = this.body.dom.backgroundVertical;
+      if (this.bar.parentNode != parent) {
+        // attach to the dom
+        if (this.bar.parentNode) {
+          this.bar.parentNode.removeChild(this.bar);
+        }
+        parent.appendChild(this.bar);
+
+        this.start();
+      }
+
+      var now = new Date(new Date().valueOf() + this.offset);
+      var x = this.body.util.toScreen(now);
+
+      var locale = this.options.locales[this.options.locale];
+      var title = locale.current + ' ' + locale.time + ': ' + moment(now).format('dddd, MMMM Do YYYY, H:mm:ss');
+      title = title.charAt(0).toUpperCase() + title.substring(1);
+
+      this.bar.style.left = x + 'px';
+      this.bar.title = title;
+    }
+    else {
+      // remove the line from the DOM
+      if (this.bar.parentNode) {
+        this.bar.parentNode.removeChild(this.bar);
+      }
+      this.stop();
+    }
+
+    return false;
+  };
+
+  /**
+   * Start auto refreshing the current time bar
+   */
+  CurrentTime.prototype.start = function() {
+    var me = this;
+
+    function update () {
+      me.stop();
+
+      // determine interval to refresh
+      var scale = me.body.range.conversion(me.body.domProps.center.width).scale;
+      var interval = 1 / scale / 10;
+      if (interval < 30)   interval = 30;
+      if (interval > 1000) interval = 1000;
+
+      me.redraw();
+
+      // start a timer to adjust for the new time
+      me.currentTimeTimer = setTimeout(update, interval);
+    }
+
+    update();
+  };
+
+  /**
+   * Stop auto refreshing the current time bar
+   */
+  CurrentTime.prototype.stop = function() {
+    if (this.currentTimeTimer !== undefined) {
+      clearTimeout(this.currentTimeTimer);
+      delete this.currentTimeTimer;
+    }
+  };
+
+  /**
+   * Set a current time. This can be used for example to ensure that a client's
+   * time is synchronized with a shared server time.
+   * @param {Date | String | Number} time     A Date, unix timestamp, or
+   *                                          ISO date string.
+   */
+  CurrentTime.prototype.setCurrentTime = function(time) {
+    var t = util.convert(time, 'Date').valueOf();
+    var now = new Date().valueOf();
+    this.offset = t - now;
+    this.redraw();
+  };
+
+  /**
+   * Get the current time.
+   * @return {Date} Returns the current time.
+   */
+  CurrentTime.prototype.getCurrentTime = function() {
+    return new Date(new Date().valueOf() + this.offset);
+  };
+
+  module.exports = CurrentTime;
+
+
+/***/ },
 /* 40 */
+/***/ function(module, exports, __webpack_require__) {
+
+  // English
+  exports['en'] = {
+    current: 'current',
+    time: 'time'
+  };
+  exports['en_EN'] = exports['en'];
+  exports['en_US'] = exports['en'];
+
+  // Dutch
+  exports['nl'] = {
+    custom: 'aangepaste',
+    time: 'tijd'
+  };
+  exports['nl_NL'] = exports['nl'];
+  exports['nl_BE'] = exports['nl'];
+
+
+/***/ },
+/* 41 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var Hammer = __webpack_require__(19);
+  var util = __webpack_require__(1);
+  var Component = __webpack_require__(23);
+  var moment = __webpack_require__(2);
+  var locales = __webpack_require__(40);
+
+  /**
+   * A custom time bar
+   * @param {{range: Range, dom: Object}} body
+   * @param {Object} [options]        Available parameters:
+   *                                  {Boolean} [showCustomTime]
+   * @constructor CustomTime
+   * @extends Component
+   */
+
+  function CustomTime (body, options) {
+    this.body = body;
+
+    // default options
+    this.defaultOptions = {
+      showCustomTime: false,
+      locales: locales,
+      locale: 'en'
+    };
+    this.options = util.extend({}, this.defaultOptions);
+
+    this.customTime = new Date();
+    this.eventParams = {}; // stores state parameters while dragging the bar
+
+    // create the DOM
+    this._create();
+
+    this.setOptions(options);
+  }
+
+  CustomTime.prototype = new Component();
+
+  /**
+   * Set options for the component. Options will be merged in current options.
+   * @param {Object} options  Available parameters:
+   *                          {boolean} [showCustomTime]
+   */
+  CustomTime.prototype.setOptions = function(options) {
+    if (options) {
+      // copy all options that we know
+      util.selectiveExtend(['showCustomTime', 'locale', 'locales'], this.options, options);
+    }
+  };
+
+  /**
+   * Create the DOM for the custom time
+   * @private
+   */
+  CustomTime.prototype._create = function() {
+    var bar = document.createElement('div');
+    bar.className = 'customtime';
+    bar.style.position = 'absolute';
+    bar.style.top = '0px';
+    bar.style.height = '100%';
+    this.bar = bar;
+
+    var drag = document.createElement('div');
+    drag.style.position = 'relative';
+    drag.style.top = '0px';
+    drag.style.left = '-10px';
+    drag.style.height = '100%';
+    drag.style.width = '20px';
+    bar.appendChild(drag);
+
+    // attach event listeners
+    this.hammer = Hammer(bar, {
+      prevent_default: true
+    });
+    this.hammer.on('dragstart', this._onDragStart.bind(this));
+    this.hammer.on('drag',      this._onDrag.bind(this));
+    this.hammer.on('dragend',   this._onDragEnd.bind(this));
+  };
+
+  /**
+   * Destroy the CustomTime bar
+   */
+  CustomTime.prototype.destroy = function () {
+    this.options.showCustomTime = false;
+    this.redraw(); // will remove the bar from the DOM
+
+    this.hammer.enable(false);
+    this.hammer = null;
+
+    this.body = null;
+  };
+
+  /**
+   * Repaint the component
+   * @return {boolean} Returns true if the component is resized
+   */
+  CustomTime.prototype.redraw = function () {
+    if (this.options.showCustomTime) {
+      var parent = this.body.dom.backgroundVertical;
+      if (this.bar.parentNode != parent) {
+        // attach to the dom
+        if (this.bar.parentNode) {
+          this.bar.parentNode.removeChild(this.bar);
+        }
+        parent.appendChild(this.bar);
+      }
+
+      var x = this.body.util.toScreen(this.customTime);
+
+      var locale = this.options.locales[this.options.locale];
+      var title = locale.time + ': ' + moment(this.customTime).format('dddd, MMMM Do YYYY, H:mm:ss');
+      title = title.charAt(0).toUpperCase() + title.substring(1);
+
+      this.bar.style.left = x + 'px';
+      this.bar.title = title;
+    }
+    else {
+      // remove the line from the DOM
+      if (this.bar.parentNode) {
+        this.bar.parentNode.removeChild(this.bar);
+      }
+    }
+
+    return false;
+  };
+
+  /**
+   * Set custom time.
+   * @param {Date | number | string} time
+   */
+  CustomTime.prototype.setCustomTime = function(time) {
+    this.customTime = util.convert(time, 'Date');
+    this.redraw();
+  };
+
+  /**
+   * Retrieve the current custom time.
+   * @return {Date} customTime
+   */
+  CustomTime.prototype.getCustomTime = function() {
+    return new Date(this.customTime.valueOf());
+  };
+
+  /**
+   * Start moving horizontally
+   * @param {Event} event
+   * @private
+   */
+  CustomTime.prototype._onDragStart = function(event) {
+    this.eventParams.dragging = true;
+    this.eventParams.customTime = this.customTime;
+
+    event.stopPropagation();
+    event.preventDefault();
+  };
+
+  /**
+   * Perform moving operating.
+   * @param {Event} event
+   * @private
+   */
+  CustomTime.prototype._onDrag = function (event) {
+    if (!this.eventParams.dragging) return;
+
+    var deltaX = event.gesture.deltaX,
+        x = this.body.util.toScreen(this.eventParams.customTime) + deltaX,
+        time = this.body.util.toTime(x);
+
+    this.setCustomTime(time);
+
+    // fire a timechange event
+    this.body.emitter.emit('timechange', {
+      time: new Date(this.customTime.valueOf())
+    });
+
+    event.stopPropagation();
+    event.preventDefault();
+  };
+
+  /**
+   * Stop moving operating.
+   * @param {event} event
+   * @private
+   */
+  CustomTime.prototype._onDragEnd = function (event) {
+    if (!this.eventParams.dragging) return;
+
+    // fire a timechanged event
+    this.body.emitter.emit('timechanged', {
+      time: new Date(this.customTime.valueOf())
+    });
+
+    event.stopPropagation();
+    event.preventDefault();
+  };
+
+  module.exports = CustomTime;
+
+
+/***/ },
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Emitter = __webpack_require__(11);
@@ -19036,10 +19392,10 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataView = __webpack_require__(9);
   var Range = __webpack_require__(21);
   var Core = __webpack_require__(25);
-  var TimeAxis = __webpack_require__(26);
-  var CurrentTime = __webpack_require__(28);
-  var CustomTime = __webpack_require__(30);
-  var LineGraph = __webpack_require__(41);
+  var TimeAxis = __webpack_require__(37);
+  var CurrentTime = __webpack_require__(39);
+  var CustomTime = __webpack_require__(41);
+  var LineGraph = __webpack_require__(43);
 
   /**
    * Create a timeline visualization
@@ -19276,7 +19632,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 41 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -19284,10 +19640,10 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(9);
   var Component = __webpack_require__(23);
-  var DataAxis = __webpack_require__(42);
-  var GraphGroup = __webpack_require__(44);
-  var Legend = __webpack_require__(48);
-  var BarGraphFunctions = __webpack_require__(47);
+  var DataAxis = __webpack_require__(44);
+  var GraphGroup = __webpack_require__(46);
+  var Legend = __webpack_require__(50);
+  var BarGraphFunctions = __webpack_require__(49);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -20276,13 +20632,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 42 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(6);
   var Component = __webpack_require__(23);
-  var DataStep = __webpack_require__(43);
+  var DataStep = __webpack_require__(45);
 
   /**
    * A horizontal time axis
@@ -20918,7 +21274,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 43 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -21199,14 +21555,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 44 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(6);
-  var Line = __webpack_require__(45);
-  var Bar = __webpack_require__(47);
-  var Points = __webpack_require__(46);
+  var Line = __webpack_require__(47);
+  var Bar = __webpack_require__(49);
+  var Points = __webpack_require__(48);
 
   /**
    * /**
@@ -21404,14 +21760,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 45 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
    * Created by Alex on 11/11/2014.
    */
   var DOMutil = __webpack_require__(6);
-  var Points = __webpack_require__(46);
+  var Points = __webpack_require__(48);
 
   function Line(groupId, options) {
     this.groupId = groupId;
@@ -21628,7 +21984,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 46 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -21676,14 +22032,14 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Points;
 
 /***/ },
-/* 47 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
    * Created by Alex on 11/11/2014.
    */
   var DOMutil = __webpack_require__(6);
-  var Points = __webpack_require__(46);
+  var Points = __webpack_require__(48);
 
   function Bargraph(groupId, options) {
     this.groupId = groupId;
@@ -21910,7 +22266,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Bargraph;
 
 /***/ },
-/* 48 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -22120,25 +22476,25 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 49 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Emitter = __webpack_require__(11);
   var Hammer = __webpack_require__(19);
-  var keycharm = __webpack_require__(50);
+  var keycharm = __webpack_require__(36);
   var util = __webpack_require__(1);
   var hammerUtil = __webpack_require__(22);
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(9);
-  var dotparser = __webpack_require__(51);
-  var gephiParser = __webpack_require__(52);
-  var Groups = __webpack_require__(53);
-  var Images = __webpack_require__(54);
-  var Node = __webpack_require__(55);
-  var Edge = __webpack_require__(56);
-  var Popup = __webpack_require__(57);
-  var MixinLoader = __webpack_require__(58);
-  var Activator = __webpack_require__(69);
+  var dotparser = __webpack_require__(57);
+  var gephiParser = __webpack_require__(58);
+  var Groups = __webpack_require__(54);
+  var Images = __webpack_require__(55);
+  var Node = __webpack_require__(53);
+  var Edge = __webpack_require__(52);
+  var Popup = __webpack_require__(56);
+  var MixinLoader = __webpack_require__(59);
+  var Activator = __webpack_require__(35);
   var locales = __webpack_require__(70);
 
   // Load custom shapes into CanvasRenderingContext2D
@@ -22966,16 +23322,16 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   };
 
-
+  /**
+   * Cleans up all bindings of the network, removing it fully from the memory IF the variable is set to null after calling this function.
+   * var network = new vis.Network(..);
+   * network.destroy();
+   * network = null;
+   */
   Network.prototype.destroy = function() {
     this.start = function () {};
     this.redraw = function () {};
     this.timer = false;
-
-    setTimeout(this._destroy.bind(this), 10);
-  }
-
-  Network.prototype._destroy = function() {
 
     // remove keybindings
     this.keycharm.reset();
@@ -24769,2321 +25125,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 50 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
-  /**
-   * Created by Alex on 11/6/2014.
-   */
-
-  // https://github.com/umdjs/umd/blob/master/returnExports.js#L40-L60
-  // if the module has no dependencies, the above pattern can be simplified to
-  (function (root, factory) {
-    if (true) {
-      // AMD. Register as an anonymous module.
-      !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-    } else if (typeof exports === 'object') {
-      // Node. Does not work with strict CommonJS, but
-      // only CommonJS-like environments that support module.exports,
-      // like Node.
-      module.exports = factory();
-    } else {
-      // Browser globals (root is window)
-      root.keycharm = factory();
-    }
-  }(this, function () {
-
-    function keycharm(options) {
-      var preventDefault = options && options.preventDefault || false;
-
-      var container = options && options.container || window;
-
-      var _exportFunctions = {};
-      var _bound = {keydown:{}, keyup:{}};
-      var _keys = {};
-      var i;
-
-      // a - z
-      for (i = 97; i <= 122; i++) {_keys[String.fromCharCode(i)] = {code:65 + (i - 97), shift: false};}
-      // A - Z
-      for (i = 65; i <= 90; i++) {_keys[String.fromCharCode(i)] = {code:i, shift: true};}
-      // 0 - 9
-      for (i = 0;  i <= 9;   i++) {_keys['' + i] = {code:48 + i, shift: false};}
-      // F1 - F12
-      for (i = 1;  i <= 12;   i++) {_keys['F' + i] = {code:111 + i, shift: false};}
-      // num0 - num9
-      for (i = 0;  i <= 9;   i++) {_keys['num' + i] = {code:96 + i, shift: false};}
-
-      // numpad misc
-      _keys['num*'] = {code:106, shift: false};
-      _keys['num+'] = {code:107, shift: false};
-      _keys['num-'] = {code:109, shift: false};
-      _keys['num/'] = {code:111, shift: false};
-      _keys['num.'] = {code:110, shift: false};
-      // arrows
-      _keys['left']  = {code:37, shift: false};
-      _keys['up']    = {code:38, shift: false};
-      _keys['right'] = {code:39, shift: false};
-      _keys['down']  = {code:40, shift: false};
-      // extra keys
-      _keys['space'] = {code:32, shift: false};
-      _keys['enter'] = {code:13, shift: false};
-      _keys['shift'] = {code:16, shift: undefined};
-      _keys['esc']   = {code:27, shift: false};
-      _keys['backspace'] = {code:8, shift: false};
-      _keys['tab']       = {code:9, shift: false};
-      _keys['ctrl']      = {code:17, shift: false};
-      _keys['alt']       = {code:18, shift: false};
-      _keys['delete']    = {code:46, shift: false};
-      _keys['pageup']    = {code:33, shift: false};
-      _keys['pagedown']  = {code:34, shift: false};
-      // symbols
-      _keys['=']     = {code:187, shift: false};
-      _keys['-']     = {code:189, shift: false};
-      _keys[']']     = {code:221, shift: false};
-      _keys['[']     = {code:219, shift: false};
-
-
-
-      var down = function(event) {handleEvent(event,'keydown');};
-      var up = function(event) {handleEvent(event,'keyup');};
-
-      // handle the actualy bound key with the event
-      var handleEvent = function(event,type) {
-        if (_bound[type][event.keyCode] !== undefined) {
-          var bound = _bound[type][event.keyCode];
-          for (var i = 0; i < bound.length; i++) {
-            if (bound[i].shift === undefined) {
-              bound[i].fn(event);
-            }
-            else if (bound[i].shift == true && event.shiftKey == true) {
-              bound[i].fn(event);
-            }
-            else if (bound[i].shift == false && event.shiftKey == false) {
-              bound[i].fn(event);
-            }
-          }
-
-          if (preventDefault == true) {
-            event.preventDefault();
-          }
-        }
-      };
-
-      // bind a key to a callback
-      _exportFunctions.bind = function(key, callback, type) {
-        if (type === undefined) {
-          type = 'keydown';
-        }
-        if (_keys[key] === undefined) {
-          throw new Error("unsupported key: " + key);
-        }
-        if (_bound[type][_keys[key].code] === undefined) {
-          _bound[type][_keys[key].code] = [];
-        }
-        _bound[type][_keys[key].code].push({fn:callback, shift:_keys[key].shift});
-      };
-
-
-      // bind all keys to a call back (demo purposes)
-      _exportFunctions.bindAll = function(callback, type) {
-        if (type === undefined) {
-          type = 'keydown';
-        }
-        for (var key in _keys) {
-          if (_keys.hasOwnProperty(key)) {
-            _exportFunctions.bind(key,callback,type);
-          }
-        }
-      };
-
-      // get the key label from an event
-      _exportFunctions.getKey = function(event) {
-        for (var key in _keys) {
-          if (_keys.hasOwnProperty(key)) {
-            if (event.shiftKey == true && _keys[key].shift == true && event.keyCode == _keys[key].code) {
-              return key;
-            }
-            else if (event.shiftKey == false && _keys[key].shift == false && event.keyCode == _keys[key].code) {
-              return key;
-            }
-            else if (event.keyCode == _keys[key].code && key == 'shift') {
-              return key;
-            }
-          }
-        }
-        return "unknown key, currently not supported";
-      };
-
-      // unbind either a specific callback from a key or all of them (by leaving callback undefined)
-      _exportFunctions.unbind = function(key, callback, type) {
-        if (type === undefined) {
-          type = 'keydown';
-        }
-        if (_keys[key] === undefined) {
-          throw new Error("unsupported key: " + key);
-        }
-        if (callback !== undefined) {
-          var newBindings = [];
-          var bound = _bound[type][_keys[key].code];
-          if (bound !== undefined) {
-            for (var i = 0; i < bound.length; i++) {
-              if (!(bound[i].fn == callback && bound[i].shift == _keys[key].shift)) {
-                newBindings.push(_bound[type][_keys[key].code][i]);
-              }
-            }
-          }
-          _bound[type][_keys[key].code] = newBindings;
-        }
-        else {
-          _bound[type][_keys[key].code] = [];
-        }
-      };
-
-      // reset all bound variables.
-      _exportFunctions.reset = function() {
-        _bound = {keydown:{}, keyup:{}};
-      };
-
-      // unbind all listeners and reset all variables.
-      _exportFunctions.destroy = function() {
-        _bound = {keydown:{}, keyup:{}};
-        container.removeEventListener('keydown', down, true);
-        container.removeEventListener('keyup', up, true);
-      };
-
-      // create listeners.
-      container.addEventListener('keydown',down,true);
-      container.addEventListener('keyup',up,true);
-
-      // return the public functions.
-      return _exportFunctions;
-    }
-
-    return keycharm;
-  }));
-
-
-
-
-/***/ },
-/* 51 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * Parse a text source containing data in DOT language into a JSON object.
-   * The object contains two lists: one with nodes and one with edges.
-   *
-   * DOT language reference: http://www.graphviz.org/doc/info/lang.html
-   *
-   * @param {String} data     Text containing a graph in DOT-notation
-   * @return {Object} graph   An object containing two parameters:
-   *                          {Object[]} nodes
-   *                          {Object[]} edges
-   */
-  function parseDOT (data) {
-    dot = data;
-    return parseGraph();
-  }
-
-  // token types enumeration
-  var TOKENTYPE = {
-    NULL : 0,
-    DELIMITER : 1,
-    IDENTIFIER: 2,
-    UNKNOWN : 3
-  };
-
-  // map with all delimiters
-  var DELIMITERS = {
-    '{': true,
-    '}': true,
-    '[': true,
-    ']': true,
-    ';': true,
-    '=': true,
-    ',': true,
-
-    '->': true,
-    '--': true
-  };
-
-  var dot = '';                   // current dot file
-  var index = 0;                  // current index in dot file
-  var c = '';                     // current token character in expr
-  var token = '';                 // current token
-  var tokenType = TOKENTYPE.NULL; // type of the token
-
-  /**
-   * Get the first character from the dot file.
-   * The character is stored into the char c. If the end of the dot file is
-   * reached, the function puts an empty string in c.
-   */
-  function first() {
-    index = 0;
-    c = dot.charAt(0);
-  }
-
-  /**
-   * Get the next character from the dot file.
-   * The character is stored into the char c. If the end of the dot file is
-   * reached, the function puts an empty string in c.
-   */
-  function next() {
-    index++;
-    c = dot.charAt(index);
-  }
-
-  /**
-   * Preview the next character from the dot file.
-   * @return {String} cNext
-   */
-  function nextPreview() {
-    return dot.charAt(index + 1);
-  }
-
-  /**
-   * Test whether given character is alphabetic or numeric
-   * @param {String} c
-   * @return {Boolean} isAlphaNumeric
-   */
-  var regexAlphaNumeric = /[a-zA-Z_0-9.:#]/;
-  function isAlphaNumeric(c) {
-    return regexAlphaNumeric.test(c);
-  }
-
-  /**
-   * Merge all properties of object b into object b
-   * @param {Object} a
-   * @param {Object} b
-   * @return {Object} a
-   */
-  function merge (a, b) {
-    if (!a) {
-      a = {};
-    }
-
-    if (b) {
-      for (var name in b) {
-        if (b.hasOwnProperty(name)) {
-          a[name] = b[name];
-        }
-      }
-    }
-    return a;
-  }
-
-  /**
-   * Set a value in an object, where the provided parameter name can be a
-   * path with nested parameters. For example:
-   *
-   *     var obj = {a: 2};
-   *     setValue(obj, 'b.c', 3);     // obj = {a: 2, b: {c: 3}}
-   *
-   * @param {Object} obj
-   * @param {String} path  A parameter name or dot-separated parameter path,
-   *                      like "color.highlight.border".
-   * @param {*} value
-   */
-  function setValue(obj, path, value) {
-    var keys = path.split('.');
-    var o = obj;
-    while (keys.length) {
-      var key = keys.shift();
-      if (keys.length) {
-        // this isn't the end point
-        if (!o[key]) {
-          o[key] = {};
-        }
-        o = o[key];
-      }
-      else {
-        // this is the end point
-        o[key] = value;
-      }
-    }
-  }
-
-  /**
-   * Add a node to a graph object. If there is already a node with
-   * the same id, their attributes will be merged.
-   * @param {Object} graph
-   * @param {Object} node
-   */
-  function addNode(graph, node) {
-    var i, len;
-    var current = null;
-
-    // find root graph (in case of subgraph)
-    var graphs = [graph]; // list with all graphs from current graph to root graph
-    var root = graph;
-    while (root.parent) {
-      graphs.push(root.parent);
-      root = root.parent;
-    }
-
-    // find existing node (at root level) by its id
-    if (root.nodes) {
-      for (i = 0, len = root.nodes.length; i < len; i++) {
-        if (node.id === root.nodes[i].id) {
-          current = root.nodes[i];
-          break;
-        }
-      }
-    }
-
-    if (!current) {
-      // this is a new node
-      current = {
-        id: node.id
-      };
-      if (graph.node) {
-        // clone default attributes
-        current.attr = merge(current.attr, graph.node);
-      }
-    }
-
-    // add node to this (sub)graph and all its parent graphs
-    for (i = graphs.length - 1; i >= 0; i--) {
-      var g = graphs[i];
-
-      if (!g.nodes) {
-        g.nodes = [];
-      }
-      if (g.nodes.indexOf(current) == -1) {
-        g.nodes.push(current);
-      }
-    }
-
-    // merge attributes
-    if (node.attr) {
-      current.attr = merge(current.attr, node.attr);
-    }
-  }
-
-  /**
-   * Add an edge to a graph object
-   * @param {Object} graph
-   * @param {Object} edge
-   */
-  function addEdge(graph, edge) {
-    if (!graph.edges) {
-      graph.edges = [];
-    }
-    graph.edges.push(edge);
-    if (graph.edge) {
-      var attr = merge({}, graph.edge);     // clone default attributes
-      edge.attr = merge(attr, edge.attr); // merge attributes
-    }
-  }
-
-  /**
-   * Create an edge to a graph object
-   * @param {Object} graph
-   * @param {String | Number | Object} from
-   * @param {String | Number | Object} to
-   * @param {String} type
-   * @param {Object | null} attr
-   * @return {Object} edge
-   */
-  function createEdge(graph, from, to, type, attr) {
-    var edge = {
-      from: from,
-      to: to,
-      type: type
-    };
-
-    if (graph.edge) {
-      edge.attr = merge({}, graph.edge);  // clone default attributes
-    }
-    edge.attr = merge(edge.attr || {}, attr); // merge attributes
-
-    return edge;
-  }
-
-  /**
-   * Get next token in the current dot file.
-   * The token and token type are available as token and tokenType
-   */
-  function getToken() {
-    tokenType = TOKENTYPE.NULL;
-    token = '';
-
-    // skip over whitespaces
-    while (c == ' ' || c == '\t' || c == '\n' || c == '\r') {  // space, tab, enter
-      next();
-    }
-
-    do {
-      var isComment = false;
-
-      // skip comment
-      if (c == '#') {
-        // find the previous non-space character
-        var i = index - 1;
-        while (dot.charAt(i) == ' ' || dot.charAt(i) == '\t') {
-          i--;
-        }
-        if (dot.charAt(i) == '\n' || dot.charAt(i) == '') {
-          // the # is at the start of a line, this is indeed a line comment
-          while (c != '' && c != '\n') {
-            next();
-          }
-          isComment = true;
-        }
-      }
-      if (c == '/' && nextPreview() == '/') {
-        // skip line comment
-        while (c != '' && c != '\n') {
-          next();
-        }
-        isComment = true;
-      }
-      if (c == '/' && nextPreview() == '*') {
-        // skip block comment
-        while (c != '') {
-          if (c == '*' && nextPreview() == '/') {
-            // end of block comment found. skip these last two characters
-            next();
-            next();
-            break;
-          }
-          else {
-            next();
-          }
-        }
-        isComment = true;
-      }
-
-      // skip over whitespaces
-      while (c == ' ' || c == '\t' || c == '\n' || c == '\r') {  // space, tab, enter
-        next();
-      }
-    }
-    while (isComment);
-
-    // check for end of dot file
-    if (c == '') {
-      // token is still empty
-      tokenType = TOKENTYPE.DELIMITER;
-      return;
-    }
-
-    // check for delimiters consisting of 2 characters
-    var c2 = c + nextPreview();
-    if (DELIMITERS[c2]) {
-      tokenType = TOKENTYPE.DELIMITER;
-      token = c2;
-      next();
-      next();
-      return;
-    }
-
-    // check for delimiters consisting of 1 character
-    if (DELIMITERS[c]) {
-      tokenType = TOKENTYPE.DELIMITER;
-      token = c;
-      next();
-      return;
-    }
-
-    // check for an identifier (number or string)
-    // TODO: more precise parsing of numbers/strings (and the port separator ':')
-    if (isAlphaNumeric(c) || c == '-') {
-      token += c;
-      next();
-
-      while (isAlphaNumeric(c)) {
-        token += c;
-        next();
-      }
-      if (token == 'false') {
-        token = false;   // convert to boolean
-      }
-      else if (token == 'true') {
-        token = true;   // convert to boolean
-      }
-      else if (!isNaN(Number(token))) {
-        token = Number(token); // convert to number
-      }
-      tokenType = TOKENTYPE.IDENTIFIER;
-      return;
-    }
-
-    // check for a string enclosed by double quotes
-    if (c == '"') {
-      next();
-      while (c != '' && (c != '"' || (c == '"' && nextPreview() == '"'))) {
-        token += c;
-        if (c == '"') { // skip the escape character
-          next();
-        }
-        next();
-      }
-      if (c != '"') {
-        throw newSyntaxError('End of string " expected');
-      }
-      next();
-      tokenType = TOKENTYPE.IDENTIFIER;
-      return;
-    }
-
-    // something unknown is found, wrong characters, a syntax error
-    tokenType = TOKENTYPE.UNKNOWN;
-    while (c != '') {
-      token += c;
-      next();
-    }
-    throw new SyntaxError('Syntax error in part "' + chop(token, 30) + '"');
-  }
-
-  /**
-   * Parse a graph.
-   * @returns {Object} graph
-   */
-  function parseGraph() {
-    var graph = {};
-
-    first();
-    getToken();
-
-    // optional strict keyword
-    if (token == 'strict') {
-      graph.strict = true;
-      getToken();
-    }
-
-    // graph or digraph keyword
-    if (token == 'graph' || token == 'digraph') {
-      graph.type = token;
-      getToken();
-    }
-
-    // optional graph id
-    if (tokenType == TOKENTYPE.IDENTIFIER) {
-      graph.id = token;
-      getToken();
-    }
-
-    // open angle bracket
-    if (token != '{') {
-      throw newSyntaxError('Angle bracket { expected');
-    }
-    getToken();
-
-    // statements
-    parseStatements(graph);
-
-    // close angle bracket
-    if (token != '}') {
-      throw newSyntaxError('Angle bracket } expected');
-    }
-    getToken();
-
-    // end of file
-    if (token !== '') {
-      throw newSyntaxError('End of file expected');
-    }
-    getToken();
-
-    // remove temporary default properties
-    delete graph.node;
-    delete graph.edge;
-    delete graph.graph;
-
-    return graph;
-  }
-
-  /**
-   * Parse a list with statements.
-   * @param {Object} graph
-   */
-  function parseStatements (graph) {
-    while (token !== '' && token != '}') {
-      parseStatement(graph);
-      if (token == ';') {
-        getToken();
-      }
-    }
-  }
-
-  /**
-   * Parse a single statement. Can be a an attribute statement, node
-   * statement, a series of node statements and edge statements, or a
-   * parameter.
-   * @param {Object} graph
-   */
-  function parseStatement(graph) {
-    // parse subgraph
-    var subgraph = parseSubgraph(graph);
-    if (subgraph) {
-      // edge statements
-      parseEdge(graph, subgraph);
-
-      return;
-    }
-
-    // parse an attribute statement
-    var attr = parseAttributeStatement(graph);
-    if (attr) {
-      return;
-    }
-
-    // parse node
-    if (tokenType != TOKENTYPE.IDENTIFIER) {
-      throw newSyntaxError('Identifier expected');
-    }
-    var id = token; // id can be a string or a number
-    getToken();
-
-    if (token == '=') {
-      // id statement
-      getToken();
-      if (tokenType != TOKENTYPE.IDENTIFIER) {
-        throw newSyntaxError('Identifier expected');
-      }
-      graph[id] = token;
-      getToken();
-      // TODO: implement comma separated list with "a_list: ID=ID [','] [a_list] "
-    }
-    else {
-      parseNodeStatement(graph, id);
-    }
-  }
-
-  /**
-   * Parse a subgraph
-   * @param {Object} graph    parent graph object
-   * @return {Object | null} subgraph
-   */
-  function parseSubgraph (graph) {
-    var subgraph = null;
-
-    // optional subgraph keyword
-    if (token == 'subgraph') {
-      subgraph = {};
-      subgraph.type = 'subgraph';
-      getToken();
-
-      // optional graph id
-      if (tokenType == TOKENTYPE.IDENTIFIER) {
-        subgraph.id = token;
-        getToken();
-      }
-    }
-
-    // open angle bracket
-    if (token == '{') {
-      getToken();
-
-      if (!subgraph) {
-        subgraph = {};
-      }
-      subgraph.parent = graph;
-      subgraph.node = graph.node;
-      subgraph.edge = graph.edge;
-      subgraph.graph = graph.graph;
-
-      // statements
-      parseStatements(subgraph);
-
-      // close angle bracket
-      if (token != '}') {
-        throw newSyntaxError('Angle bracket } expected');
-      }
-      getToken();
-
-      // remove temporary default properties
-      delete subgraph.node;
-      delete subgraph.edge;
-      delete subgraph.graph;
-      delete subgraph.parent;
-
-      // register at the parent graph
-      if (!graph.subgraphs) {
-        graph.subgraphs = [];
-      }
-      graph.subgraphs.push(subgraph);
-    }
-
-    return subgraph;
-  }
-
-  /**
-   * parse an attribute statement like "node [shape=circle fontSize=16]".
-   * Available keywords are 'node', 'edge', 'graph'.
-   * The previous list with default attributes will be replaced
-   * @param {Object} graph
-   * @returns {String | null} keyword Returns the name of the parsed attribute
-   *                                  (node, edge, graph), or null if nothing
-   *                                  is parsed.
-   */
-  function parseAttributeStatement (graph) {
-    // attribute statements
-    if (token == 'node') {
-      getToken();
-
-      // node attributes
-      graph.node = parseAttributeList();
-      return 'node';
-    }
-    else if (token == 'edge') {
-      getToken();
-
-      // edge attributes
-      graph.edge = parseAttributeList();
-      return 'edge';
-    }
-    else if (token == 'graph') {
-      getToken();
-
-      // graph attributes
-      graph.graph = parseAttributeList();
-      return 'graph';
-    }
-
-    return null;
-  }
-
-  /**
-   * parse a node statement
-   * @param {Object} graph
-   * @param {String | Number} id
-   */
-  function parseNodeStatement(graph, id) {
-    // node statement
-    var node = {
-      id: id
-    };
-    var attr = parseAttributeList();
-    if (attr) {
-      node.attr = attr;
-    }
-    addNode(graph, node);
-
-    // edge statements
-    parseEdge(graph, id);
-  }
-
-  /**
-   * Parse an edge or a series of edges
-   * @param {Object} graph
-   * @param {String | Number} from        Id of the from node
-   */
-  function parseEdge(graph, from) {
-    while (token == '->' || token == '--') {
-      var to;
-      var type = token;
-      getToken();
-
-      var subgraph = parseSubgraph(graph);
-      if (subgraph) {
-        to = subgraph;
-      }
-      else {
-        if (tokenType != TOKENTYPE.IDENTIFIER) {
-          throw newSyntaxError('Identifier or subgraph expected');
-        }
-        to = token;
-        addNode(graph, {
-          id: to
-        });
-        getToken();
-      }
-
-      // parse edge attributes
-      var attr = parseAttributeList();
-
-      // create edge
-      var edge = createEdge(graph, from, to, type, attr);
-      addEdge(graph, edge);
-
-      from = to;
-    }
-  }
-
-  /**
-   * Parse a set with attributes,
-   * for example [label="1.000", shape=solid]
-   * @return {Object | null} attr
-   */
-  function parseAttributeList() {
-    var attr = null;
-
-    while (token == '[') {
-      getToken();
-      attr = {};
-      while (token !== '' && token != ']') {
-        if (tokenType != TOKENTYPE.IDENTIFIER) {
-          throw newSyntaxError('Attribute name expected');
-        }
-        var name = token;
-
-        getToken();
-        if (token != '=') {
-          throw newSyntaxError('Equal sign = expected');
-        }
-        getToken();
-
-        if (tokenType != TOKENTYPE.IDENTIFIER) {
-          throw newSyntaxError('Attribute value expected');
-        }
-        var value = token;
-        setValue(attr, name, value); // name can be a path
-
-        getToken();
-        if (token ==',') {
-          getToken();
-        }
-      }
-
-      if (token != ']') {
-        throw newSyntaxError('Bracket ] expected');
-      }
-      getToken();
-    }
-
-    return attr;
-  }
-
-  /**
-   * Create a syntax error with extra information on current token and index.
-   * @param {String} message
-   * @returns {SyntaxError} err
-   */
-  function newSyntaxError(message) {
-    return new SyntaxError(message + ', got "' + chop(token, 30) + '" (char ' + index + ')');
-  }
-
-  /**
-   * Chop off text after a maximum length
-   * @param {String} text
-   * @param {Number} maxLength
-   * @returns {String}
-   */
-  function chop (text, maxLength) {
-    return (text.length <= maxLength) ? text : (text.substr(0, 27) + '...');
-  }
-
-  /**
-   * Execute a function fn for each pair of elements in two arrays
-   * @param {Array | *} array1
-   * @param {Array | *} array2
-   * @param {function} fn
-   */
-  function forEach2(array1, array2, fn) {
-    if (Array.isArray(array1)) {
-      array1.forEach(function (elem1) {
-        if (Array.isArray(array2)) {
-          array2.forEach(function (elem2)  {
-            fn(elem1, elem2);
-          });
-        }
-        else {
-          fn(elem1, array2);
-        }
-      });
-    }
-    else {
-      if (Array.isArray(array2)) {
-        array2.forEach(function (elem2)  {
-          fn(array1, elem2);
-        });
-      }
-      else {
-        fn(array1, array2);
-      }
-    }
-  }
-
-  /**
-   * Convert a string containing a graph in DOT language into a map containing
-   * with nodes and edges in the format of graph.
-   * @param {String} data         Text containing a graph in DOT-notation
-   * @return {Object} graphData
-   */
-  function DOTToGraph (data) {
-    // parse the DOT file
-    var dotData = parseDOT(data);
-    var graphData = {
-      nodes: [],
-      edges: [],
-      options: {}
-    };
-
-    // copy the nodes
-    if (dotData.nodes) {
-      dotData.nodes.forEach(function (dotNode) {
-        var graphNode = {
-          id: dotNode.id,
-          label: String(dotNode.label || dotNode.id)
-        };
-        merge(graphNode, dotNode.attr);
-        if (graphNode.image) {
-          graphNode.shape = 'image';
-        }
-        graphData.nodes.push(graphNode);
-      });
-    }
-
-    // copy the edges
-    if (dotData.edges) {
-      /**
-       * Convert an edge in DOT format to an edge with VisGraph format
-       * @param {Object} dotEdge
-       * @returns {Object} graphEdge
-       */
-      var convertEdge = function (dotEdge) {
-        var graphEdge = {
-          from: dotEdge.from,
-          to: dotEdge.to
-        };
-        merge(graphEdge, dotEdge.attr);
-        graphEdge.style = (dotEdge.type == '->') ? 'arrow' : 'line';
-        return graphEdge;
-      }
-
-      dotData.edges.forEach(function (dotEdge) {
-        var from, to;
-        if (dotEdge.from instanceof Object) {
-          from = dotEdge.from.nodes;
-        }
-        else {
-          from = {
-            id: dotEdge.from
-          }
-        }
-
-        if (dotEdge.to instanceof Object) {
-          to = dotEdge.to.nodes;
-        }
-        else {
-          to = {
-            id: dotEdge.to
-          }
-        }
-
-        if (dotEdge.from instanceof Object && dotEdge.from.edges) {
-          dotEdge.from.edges.forEach(function (subEdge) {
-            var graphEdge = convertEdge(subEdge);
-            graphData.edges.push(graphEdge);
-          });
-        }
-
-        forEach2(from, to, function (from, to) {
-          var subEdge = createEdge(graphData, from.id, to.id, dotEdge.type, dotEdge.attr);
-          var graphEdge = convertEdge(subEdge);
-          graphData.edges.push(graphEdge);
-        });
-
-        if (dotEdge.to instanceof Object && dotEdge.to.edges) {
-          dotEdge.to.edges.forEach(function (subEdge) {
-            var graphEdge = convertEdge(subEdge);
-            graphData.edges.push(graphEdge);
-          });
-        }
-      });
-    }
-
-    // copy the options
-    if (dotData.attr) {
-      graphData.options = dotData.attr;
-    }
-
-    return graphData;
-  }
-
-  // exports
-  exports.parseDOT = parseDOT;
-  exports.DOTToGraph = DOTToGraph;
-
-
-/***/ },
 /* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
-  
-  function parseGephi(gephiJSON, options) {
-    var edges = [];
-    var nodes = [];
-    this.options = {
-      edges: {
-        inheritColor: true
-      },
-      nodes: {
-        allowedToMove: false,
-        parseColor: false
-      }
-    };
-
-    if (options !== undefined) {
-      this.options.nodes['allowedToMove'] = options.allowedToMove | false;
-      this.options.nodes['parseColor']    = options.parseColor    | false;
-      this.options.edges['inheritColor']  = options.inheritColor  | true;
-    }
-
-    var gEdges = gephiJSON.edges;
-    var gNodes = gephiJSON.nodes;
-    for (var i = 0; i < gEdges.length; i++) {
-      var edge = {};
-      var gEdge = gEdges[i];
-      edge['id'] = gEdge.id;
-      edge['from'] = gEdge.source;
-      edge['to'] = gEdge.target;
-      edge['attributes'] = gEdge.attributes;
-  //    edge['value'] = gEdge.attributes !== undefined ? gEdge.attributes.Weight : undefined;
-  //    edge['width'] = edge['value'] !== undefined ? undefined : edgegEdge.size;
-      edge['color'] = gEdge.color;
-      edge['inheritColor'] = edge['color'] !== undefined ? false : this.options.inheritColor;
-      edges.push(edge);
-    }
-
-    for (var i = 0; i < gNodes.length; i++) {
-      var node = {};
-      var gNode = gNodes[i];
-      node['id'] = gNode.id;
-      node['attributes'] = gNode.attributes;
-      node['x'] = gNode.x;
-      node['y'] = gNode.y;
-      node['label'] = gNode.label;
-      if (this.options.nodes.parseColor == true) {
-        node['color'] = gNode.color;
-      }
-      else {
-        node['color'] = gNode.color !== undefined ? {background:gNode.color, border:gNode.color} : undefined;
-      }
-      node['radius'] = gNode.size;
-      node['allowedToMoveX'] = this.options.nodes.allowedToMove;
-      node['allowedToMoveY'] = this.options.nodes.allowedToMove;
-      nodes.push(node);
-    }
-
-    return {nodes:nodes, edges:edges};
-  }
-
-  exports.parseGephi = parseGephi;
-
-/***/ },
-/* 53 */
-/***/ function(module, exports, __webpack_require__) {
-
   var util = __webpack_require__(1);
-
-  /**
-   * @class Groups
-   * This class can store groups and properties specific for groups.
-   */
-  function Groups() {
-    this.clear();
-    this.defaultIndex = 0;
-  }
-
-
-  /**
-   * default constants for group colors
-   */
-  Groups.DEFAULT = [
-    {border: "#2B7CE9", background: "#97C2FC", highlight: {border: "#2B7CE9", background: "#D2E5FF"}, hover: {border: "#2B7CE9", background: "#D2E5FF"}}, // blue
-    {border: "#FFA500", background: "#FFFF00", highlight: {border: "#FFA500", background: "#FFFFA3"}, hover: {border: "#FFA500", background: "#FFFFA3"}}, // yellow
-    {border: "#FA0A10", background: "#FB7E81", highlight: {border: "#FA0A10", background: "#FFAFB1"}, hover: {border: "#FA0A10", background: "#FFAFB1"}}, // red
-    {border: "#41A906", background: "#7BE141", highlight: {border: "#41A906", background: "#A1EC76"}, hover: {border: "#41A906", background: "#A1EC76"}}, // green
-    {border: "#E129F0", background: "#EB7DF4", highlight: {border: "#E129F0", background: "#F0B3F5"}, hover: {border: "#E129F0", background: "#F0B3F5"}}, // magenta
-    {border: "#7C29F0", background: "#AD85E4", highlight: {border: "#7C29F0", background: "#D3BDF0"}, hover: {border: "#7C29F0", background: "#D3BDF0"}}, // purple
-    {border: "#C37F00", background: "#FFA807", highlight: {border: "#C37F00", background: "#FFCA66"}, hover: {border: "#C37F00", background: "#FFCA66"}}, // orange
-    {border: "#4220FB", background: "#6E6EFD", highlight: {border: "#4220FB", background: "#9B9BFD"}, hover: {border: "#4220FB", background: "#9B9BFD"}}, // darkblue
-    {border: "#FD5A77", background: "#FFC0CB", highlight: {border: "#FD5A77", background: "#FFD1D9"}, hover: {border: "#FD5A77", background: "#FFD1D9"}}, // pink
-    {border: "#4AD63A", background: "#C2FABC", highlight: {border: "#4AD63A", background: "#E6FFE3"}, hover: {border: "#4AD63A", background: "#E6FFE3"}}  // mint
-  ];
-
-
-  /**
-   * Clear all groups
-   */
-  Groups.prototype.clear = function () {
-    this.groups = {};
-    this.groups.length = function()
-    {
-      var i = 0;
-      for ( var p in this ) {
-        if (this.hasOwnProperty(p)) {
-          i++;
-        }
-      }
-      return i;
-    }
-  };
-
-
-  /**
-   * get group properties of a groupname. If groupname is not found, a new group
-   * is added.
-   * @param {*} groupname        Can be a number, string, Date, etc.
-   * @return {Object} group      The created group, containing all group properties
-   */
-  Groups.prototype.get = function (groupname) {
-    var group = this.groups[groupname];
-    if (group == undefined) {
-      // create new group
-      var index = this.defaultIndex % Groups.DEFAULT.length;
-      this.defaultIndex++;
-      group = {};
-      group.color = Groups.DEFAULT[index];
-      this.groups[groupname] = group;
-    }
-
-    return group;
-  };
-
-  /**
-   * Add a custom group style
-   * @param {String} groupname
-   * @param {Object} style       An object containing borderColor,
-   *                             backgroundColor, etc.
-   * @return {Object} group      The created group object
-   */
-  Groups.prototype.add = function (groupname, style) {
-    this.groups[groupname] = style;
-    if (style.color) {
-      style.color = util.parseColor(style.color);
-    }
-    return style;
-  };
-
-  module.exports = Groups;
-
-
-/***/ },
-/* 54 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * @class Images
-   * This class loads images and keeps them stored.
-   */
-  function Images() {
-    this.images = {};
-
-    this.callback = undefined;
-  }
-
-  /**
-   * Set an onload callback function. This will be called each time an image
-   * is loaded
-   * @param {function} callback
-   */
-  Images.prototype.setOnloadCallback = function(callback) {
-    this.callback = callback;
-  };
-
-  /**
-   *
-   * @param {string} url          Url of the image
-   * @param {string} url          Url of an image to use if the url image is not found
-   * @return {Image} img          The image object
-   */
-  Images.prototype.load = function(url, brokenUrl) {
-    var img = this.images[url];
-    if (img == undefined) {
-      // create the image
-      var images = this;
-      img = new Image();
-      this.images[url] = img;
-      img.onload = function() {
-        if (images.callback) {
-          images.callback(this);
-        }
-      };
-      
-      img.onerror = function () {
-  	  this.src = brokenUrl;
-  	  if (images.callback) {
-  		images.callback(this);
-  	  }
-  	};
-  	
-      img.src = url;
-    }
-
-    return img;
-  };
-
-  module.exports = Images;
-
-
-/***/ },
-/* 55 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var util = __webpack_require__(1);
-
-  /**
-   * @class Node
-   * A node. A node can be connected to other nodes via one or multiple edges.
-   * @param {object} properties An object containing properties for the node. All
-   *                            properties are optional, except for the id.
-   *                              {number} id     Id of the node. Required
-   *                              {string} label  Text label for the node
-   *                              {number} x      Horizontal position of the node
-   *                              {number} y      Vertical position of the node
-   *                              {string} shape  Node shape, available:
-   *                                              "database", "circle", "ellipse",
-   *                                              "box", "image", "text", "dot",
-   *                                              "star", "triangle", "triangleDown",
-   *                                              "square"
-   *                              {string} image  An image url
-   *                              {string} title  An title text, can be HTML
-   *                              {anytype} group A group name or number
-   * @param {Network.Images} imagelist    A list with images. Only needed
-   *                                            when the node has an image
-   * @param {Network.Groups} grouplist    A list with groups. Needed for
-   *                                            retrieving group properties
-   * @param {Object}               constants    An object with default values for
-   *                                            example for the color
-   *
-   */
-  function Node(properties, imagelist, grouplist, networkConstants) {
-    var constants = util.selectiveBridgeObject(['nodes'],networkConstants);
-    this.options = constants.nodes;
-
-    this.selected = false;
-    this.hover = false;
-
-    this.edges = []; // all edges connected to this node
-    this.dynamicEdges = [];
-    this.reroutedEdges = {};
-
-    this.fontDrawThreshold = 3;
-
-    // set defaults for the properties
-    this.id = undefined;
-    this.x = null;
-    this.y = null;
-    this.allowedToMoveX = false;
-    this.allowedToMoveY = false;
-    this.xFixed = false;
-    this.yFixed = false;
-    this.horizontalAlignLeft = true; // these are for the navigation controls
-    this.verticalAlignTop    = true; // these are for the navigation controls
-    this.baseRadiusValue = networkConstants.nodes.radius;
-    this.radiusFixed = false;
-    this.level = -1;
-    this.preassignedLevel = false;
-    this.hierarchyEnumerated = false;
-    this.labelDimensions = {top:0, left:0, width:0, height:0, yLine:0}; // could be cached
-    this.boundingBox = {top:0, left:0, right:0, bottom:0};
-
-    this.imagelist = imagelist;
-    this.grouplist = grouplist;
-
-    // physics properties
-    this.fx = 0.0;  // external force x
-    this.fy = 0.0;  // external force y
-    this.vx = 0.0;  // velocity x
-    this.vy = 0.0;  // velocity y
-    this.damping = networkConstants.physics.damping; // written every time gravity is calculated
-    this.fixedData = {x:null,y:null};
-
-    this.setProperties(properties, constants);
-
-    // creating the variables for clustering
-    this.resetCluster();
-    this.dynamicEdgesLength = 0;
-    this.clusterSession = 0;
-    this.clusterSizeWidthFactor  = networkConstants.clustering.nodeScaling.width;
-    this.clusterSizeHeightFactor = networkConstants.clustering.nodeScaling.height;
-    this.clusterSizeRadiusFactor = networkConstants.clustering.nodeScaling.radius;
-    this.maxNodeSizeIncrements = networkConstants.clustering.maxNodeSizeIncrements;
-    this.growthIndicator = 0;
-
-    // variables to tell the node about the network.
-    this.networkScaleInv = 1;
-    this.networkScale = 1;
-    this.canvasTopLeft = {"x": -300, "y": -300};
-    this.canvasBottomRight = {"x":  300, "y":  300};
-    this.parentEdgeId = null;
-  }
-
-  /**
-   * (re)setting the clustering variables and objects
-   */
-  Node.prototype.resetCluster = function() {
-    // clustering variables
-    this.formationScale = undefined; // this is used to determine when to open the cluster
-    this.clusterSize = 1;            // this signifies the total amount of nodes in this cluster
-    this.containedNodes = {};
-    this.containedEdges = {};
-    this.clusterSessions = [];
-  };
-
-  /**
-   * Attach a edge to the node
-   * @param {Edge} edge
-   */
-  Node.prototype.attachEdge = function(edge) {
-    if (this.edges.indexOf(edge) == -1) {
-      this.edges.push(edge);
-    }
-    if (this.dynamicEdges.indexOf(edge) == -1) {
-      this.dynamicEdges.push(edge);
-    }
-    this.dynamicEdgesLength = this.dynamicEdges.length;
-  };
-
-  /**
-   * Detach a edge from the node
-   * @param {Edge} edge
-   */
-  Node.prototype.detachEdge = function(edge) {
-    var index = this.edges.indexOf(edge);
-    if (index != -1) {
-      this.edges.splice(index, 1);
-    }
-    index = this.dynamicEdges.indexOf(edge);
-    if (index != -1) {
-      this.dynamicEdges.splice(index, 1);
-    }
-    this.dynamicEdgesLength = this.dynamicEdges.length;
-  };
-
-
-  /**
-   * Set or overwrite properties for the node
-   * @param {Object} properties an object with properties
-   * @param {Object} constants  and object with default, global properties
-   */
-  Node.prototype.setProperties = function(properties, constants) {
-    if (!properties) {
-      return;
-    }
-
-    var fields = ['borderWidth','borderWidthSelected','shape','image','brokenImage','radius','fontColor',
-      'fontSize','fontFace','fontFill','group','mass'
-    ];
-    util.selectiveDeepExtend(fields, this.options, properties);
-
-    // basic properties
-    if (properties.id !== undefined)        {this.id = properties.id;}
-    if (properties.label !== undefined)     {this.label = properties.label; this.originalLabel = properties.label;}
-    if (properties.title !== undefined)     {this.title = properties.title;}
-    if (properties.x !== undefined)         {this.x = properties.x;}
-    if (properties.y !== undefined)         {this.y = properties.y;}
-    if (properties.value !== undefined)     {this.value = properties.value;}
-    if (properties.level !== undefined)     {this.level = properties.level; this.preassignedLevel = true;}
-
-    // navigation controls properties
-    if (properties.horizontalAlignLeft !== undefined) {this.horizontalAlignLeft = properties.horizontalAlignLeft;}
-    if (properties.verticalAlignTop    !== undefined) {this.verticalAlignTop    = properties.verticalAlignTop;}
-    if (properties.triggerFunction     !== undefined) {this.triggerFunction     = properties.triggerFunction;}
-
-    if (this.id === undefined) {
-      throw "Node must have an id";
-    }
-
-    // copy group properties
-    if (typeof this.options.group === 'number' || (typeof this.options.group === 'string' && this.options.group != '')) {
-      var groupObj = this.grouplist.get(this.options.group);
-      for (var prop in groupObj) {
-        if (groupObj.hasOwnProperty(prop)) {
-          this.options[prop] = groupObj[prop];
-        }
-      }
-    }
-
-
-    // individual shape properties
-    if (properties.radius !== undefined)         {this.baseRadiusValue = this.options.radius;}
-    if (properties.color !== undefined)          {this.options.color = util.parseColor(properties.color);}
-
-    if (this.options.image!== undefined && this.options.image!= "") {
-      if (this.imagelist) {
-        this.imageObj = this.imagelist.load(this.options.image, this.options.brokenImage);
-      }
-      else {
-        throw "No imagelist provided";
-      }
-    }
-
-    if (properties.allowedToMoveX !== undefined) {
-      this.xFixed = !properties.allowedToMoveX;
-      this.allowedToMoveX = properties.allowedToMoveX;
-    }
-    else if (properties.x !== undefined && this.allowedToMoveX == false) {
-      this.xFixed = true;
-    }
-
-
-    if (properties.allowedToMoveY !== undefined) {
-      this.yFixed = !properties.allowedToMoveY;
-      this.allowedToMoveY = properties.allowedToMoveY;
-    }
-    else if (properties.y !== undefined && this.allowedToMoveY == false) {
-      this.yFixed = true;
-    }
-
-    this.radiusFixed = this.radiusFixed || (properties.radius !== undefined);
-
-    if (this.options.shape == 'image') {
-      this.options.radiusMin = constants.nodes.widthMin;
-      this.options.radiusMax = constants.nodes.widthMax;
-    }
-
-
-
-    // choose draw method depending on the shape
-    switch (this.options.shape) {
-      case 'database':      this.draw = this._drawDatabase; this.resize = this._resizeDatabase; break;
-      case 'box':           this.draw = this._drawBox; this.resize = this._resizeBox; break;
-      case 'circle':        this.draw = this._drawCircle; this.resize = this._resizeCircle; break;
-      case 'ellipse':       this.draw = this._drawEllipse; this.resize = this._resizeEllipse; break;
-      // TODO: add diamond shape
-      case 'image':         this.draw = this._drawImage; this.resize = this._resizeImage; break;
-      case 'text':          this.draw = this._drawText; this.resize = this._resizeText; break;
-      case 'dot':           this.draw = this._drawDot; this.resize = this._resizeShape; break;
-      case 'square':        this.draw = this._drawSquare; this.resize = this._resizeShape; break;
-      case 'triangle':      this.draw = this._drawTriangle; this.resize = this._resizeShape; break;
-      case 'triangleDown':  this.draw = this._drawTriangleDown; this.resize = this._resizeShape; break;
-      case 'star':          this.draw = this._drawStar; this.resize = this._resizeShape; break;
-      default:              this.draw = this._drawEllipse; this.resize = this._resizeEllipse; break;
-    }
-    // reset the size of the node, this can be changed
-    this._reset();
-
-  };
-
-  /**
-   * select this node
-   */
-  Node.prototype.select = function() {
-    this.selected = true;
-    this._reset();
-  };
-
-  /**
-   * unselect this node
-   */
-  Node.prototype.unselect = function() {
-    this.selected = false;
-    this._reset();
-  };
-
-
-  /**
-   * Reset the calculated size of the node, forces it to recalculate its size
-   */
-  Node.prototype.clearSizeCache = function() {
-    this._reset();
-  };
-
-  /**
-   * Reset the calculated size of the node, forces it to recalculate its size
-   * @private
-   */
-  Node.prototype._reset = function() {
-    this.width = undefined;
-    this.height = undefined;
-  };
-
-  /**
-   * get the title of this node.
-   * @return {string} title    The title of the node, or undefined when no title
-   *                           has been set.
-   */
-  Node.prototype.getTitle = function() {
-    return typeof this.title === "function" ? this.title() : this.title;
-  };
-
-  /**
-   * Calculate the distance to the border of the Node
-   * @param {CanvasRenderingContext2D}   ctx
-   * @param {Number} angle        Angle in radians
-   * @returns {number} distance   Distance to the border in pixels
-   */
-  Node.prototype.distanceToBorder = function (ctx, angle) {
-    var borderWidth = 1;
-
-    if (!this.width) {
-      this.resize(ctx);
-    }
-
-    switch (this.options.shape) {
-      case 'circle':
-      case 'dot':
-        return this.options.radius+ borderWidth;
-
-      case 'ellipse':
-        var a = this.width / 2;
-        var b = this.height / 2;
-        var w = (Math.sin(angle) * a);
-        var h = (Math.cos(angle) * b);
-        return a * b / Math.sqrt(w * w + h * h);
-
-      // TODO: implement distanceToBorder for database
-      // TODO: implement distanceToBorder for triangle
-      // TODO: implement distanceToBorder for triangleDown
-
-      case 'box':
-      case 'image':
-      case 'text':
-      default:
-        if (this.width) {
-          return Math.min(
-              Math.abs(this.width / 2 / Math.cos(angle)),
-              Math.abs(this.height / 2 / Math.sin(angle))) + borderWidth;
-          // TODO: reckon with border radius too in case of box
-        }
-        else {
-          return 0;
-        }
-
-    }
-    // TODO: implement calculation of distance to border for all shapes
-  };
-
-  /**
-   * Set forces acting on the node
-   * @param {number} fx   Force in horizontal direction
-   * @param {number} fy   Force in vertical direction
-   */
-  Node.prototype._setForce = function(fx, fy) {
-    this.fx = fx;
-    this.fy = fy;
-  };
-
-  /**
-   * Add forces acting on the node
-   * @param {number} fx   Force in horizontal direction
-   * @param {number} fy   Force in vertical direction
-   * @private
-   */
-  Node.prototype._addForce = function(fx, fy) {
-    this.fx += fx;
-    this.fy += fy;
-  };
-
-  /**
-   * Perform one discrete step for the node
-   * @param {number} interval    Time interval in seconds
-   */
-  Node.prototype.discreteStep = function(interval) {
-    if (!this.xFixed) {
-      var dx   = this.damping * this.vx;     // damping force
-      var ax   = (this.fx - dx) / this.options.mass;  // acceleration
-      this.vx += ax * interval;               // velocity
-      this.x  += this.vx * interval;          // position
-    }
-    else {
-      this.fx = 0;
-      this.vx = 0;
-    }
-
-    if (!this.yFixed) {
-      var dy   = this.damping * this.vy;     // damping force
-      var ay   = (this.fy - dy) / this.options.mass;  // acceleration
-      this.vy += ay * interval;               // velocity
-      this.y  += this.vy * interval;          // position
-    }
-    else {
-      this.fy = 0;
-      this.vy = 0;
-    }
-  };
-
-
-
-  /**
-   * Perform one discrete step for the node
-   * @param {number} interval    Time interval in seconds
-   * @param {number} maxVelocity The speed limit imposed on the velocity
-   */
-  Node.prototype.discreteStepLimited = function(interval, maxVelocity) {
-    if (!this.xFixed) {
-      var dx   = this.damping * this.vx;     // damping force
-      var ax   = (this.fx - dx) / this.options.mass;  // acceleration
-      this.vx += ax * interval;               // velocity
-      this.vx = (Math.abs(this.vx) > maxVelocity) ? ((this.vx > 0) ? maxVelocity : -maxVelocity) : this.vx;
-      this.x  += this.vx * interval;          // position
-    }
-    else {
-      this.fx = 0;
-      this.vx = 0;
-    }
-
-    if (!this.yFixed) {
-      var dy   = this.damping * this.vy;     // damping force
-      var ay   = (this.fy - dy) / this.options.mass;  // acceleration
-      this.vy += ay * interval;               // velocity
-      this.vy = (Math.abs(this.vy) > maxVelocity) ? ((this.vy > 0) ? maxVelocity : -maxVelocity) : this.vy;
-      this.y  += this.vy * interval;          // position
-    }
-    else {
-      this.fy = 0;
-      this.vy = 0;
-    }
-  };
-
-  /**
-   * Check if this node has a fixed x and y position
-   * @return {boolean}      true if fixed, false if not
-   */
-  Node.prototype.isFixed = function() {
-    return (this.xFixed && this.yFixed);
-  };
-
-  /**
-   * Check if this node is moving
-   * @param {number} vmin   the minimum velocity considered as "moving"
-   * @return {boolean}      true if moving, false if it has no velocity
-   */
-  Node.prototype.isMoving = function(vmin) {
-    var velocity = Math.sqrt(Math.pow(this.vx,2) + Math.pow(this.vy,2));
-  //  this.velocity = Math.sqrt(Math.pow(this.vx,2) + Math.pow(this.vy,2))
-    return (velocity > vmin);
-  };
-
-  /**
-   * check if this node is selecte
-   * @return {boolean} selected   True if node is selected, else false
-   */
-  Node.prototype.isSelected = function() {
-    return this.selected;
-  };
-
-  /**
-   * Retrieve the value of the node. Can be undefined
-   * @return {Number} value
-   */
-  Node.prototype.getValue = function() {
-    return this.value;
-  };
-
-  /**
-   * Calculate the distance from the nodes location to the given location (x,y)
-   * @param {Number} x
-   * @param {Number} y
-   * @return {Number} value
-   */
-  Node.prototype.getDistance = function(x, y) {
-    var dx = this.x - x,
-        dy = this.y - y;
-    return Math.sqrt(dx * dx + dy * dy);
-  };
-
-
-  /**
-   * Adjust the value range of the node. The node will adjust it's radius
-   * based on its value.
-   * @param {Number} min
-   * @param {Number} max
-   */
-  Node.prototype.setValueRange = function(min, max) {
-    if (!this.radiusFixed && this.value !== undefined) {
-      if (max == min) {
-        this.options.radius= (this.options.radiusMin + this.options.radiusMax) / 2;
-      }
-      else {
-        var scale = (this.options.radiusMax - this.options.radiusMin) / (max - min);
-        this.options.radius= (this.value - min) * scale + this.options.radiusMin;
-      }
-    }
-    this.baseRadiusValue = this.options.radius;
-  };
-
-  /**
-   * Draw this node in the given canvas
-   * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-   * @param {CanvasRenderingContext2D}   ctx
-   */
-  Node.prototype.draw = function(ctx) {
-    throw "Draw method not initialized for node";
-  };
-
-  /**
-   * Recalculate the size of this node in the given canvas
-   * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-   * @param {CanvasRenderingContext2D}   ctx
-   */
-  Node.prototype.resize = function(ctx) {
-    throw "Resize method not initialized for node";
-  };
-
-  /**
-   * Check if this object is overlapping with the provided object
-   * @param {Object} obj   an object with parameters left, top, right, bottom
-   * @return {boolean}     True if location is located on node
-   */
-  Node.prototype.isOverlappingWith = function(obj) {
-    return (this.left              < obj.right  &&
-            this.left + this.width > obj.left   &&
-            this.top               < obj.bottom &&
-            this.top + this.height > obj.top);
-  };
-
-  Node.prototype._resizeImage = function (ctx) {
-    // TODO: pre calculate the image size
-
-    if (!this.width || !this.height) {  // undefined or 0
-      var width, height;
-      if (this.value) {
-        this.options.radius= this.baseRadiusValue;
-        var scale = this.imageObj.height / this.imageObj.width;
-        if (scale !== undefined) {
-          width = this.options.radius|| this.imageObj.width;
-          height = this.options.radius* scale || this.imageObj.height;
-        }
-        else {
-          width = 0;
-          height = 0;
-        }
-      }
-      else {
-        width = this.imageObj.width;
-        height = this.imageObj.height;
-      }
-      this.width  = width;
-      this.height = height;
-
-      this.growthIndicator = 0;
-      if (this.width > 0 && this.height > 0) {
-        this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements)  * this.clusterSizeWidthFactor;
-        this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
-        this.options.radius+= Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
-        this.growthIndicator = this.width - width;
-      }
-    }
-
-  };
-
-  Node.prototype._drawImage = function (ctx) {
-    this._resizeImage(ctx);
-
-    this.left   = this.x - this.width / 2;
-    this.top    = this.y - this.height / 2;
-
-    var yLabel;
-    if (this.imageObj.width != 0 ) {
-      // draw the shade
-      if (this.clusterSize > 1) {
-        var lineWidth = ((this.clusterSize > 1) ? 10 : 0.0);
-        lineWidth *= this.networkScaleInv;
-        lineWidth = Math.min(0.2 * this.width,lineWidth);
-
-        ctx.globalAlpha = 0.5;
-        ctx.drawImage(this.imageObj, this.left - lineWidth, this.top - lineWidth, this.width + 2*lineWidth, this.height + 2*lineWidth);
-      }
-
-      // draw the image
-      ctx.globalAlpha = 1.0;
-      ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
-      yLabel = this.y + this.height / 2;
-    }
-    else {
-      // image still loading... just draw the label for now
-      yLabel = this.y;
-    }
-
-
-    this.boundingBox.top = this.top;
-    this.boundingBox.left = this.left;
-    this.boundingBox.right = this.left + this.width;
-    this.boundingBox.bottom = this.top + this.height;
-
-    this._label(ctx, this.label, this.x, yLabel, undefined, "top");
-    this.boundingBox.left = Math.min(this.boundingBox.left, this.labelDimensions.left);
-    this.boundingBox.right = Math.max(this.boundingBox.right, this.labelDimensions.left + this.labelDimensions.width);
-    this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelDimensions.height);
-  };
-
-
-  Node.prototype._resizeBox = function (ctx) {
-    if (!this.width) {
-      var margin = 5;
-      var textSize = this.getTextSize(ctx);
-      this.width = textSize.width + 2 * margin;
-      this.height = textSize.height + 2 * margin;
-
-      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeWidthFactor;
-      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeHeightFactor;
-      this.growthIndicator = this.width - (textSize.width + 2 * margin);
-  //    this.options.radius+= Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeRadiusFactor;
-
-    }
-  };
-
-  Node.prototype._drawBox = function (ctx) {
-    this._resizeBox(ctx);
-
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    var clusterLineWidth = 2.5;
-    var borderWidth = this.options.borderWidth;
-    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-
-    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
-
-    // draw the outer border
-    if (this.clusterSize > 1) {
-      ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-      ctx.lineWidth *= this.networkScaleInv;
-      ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
-
-      ctx.roundRect(this.left-2*ctx.lineWidth, this.top-2*ctx.lineWidth, this.width+4*ctx.lineWidth, this.height+4*ctx.lineWidth, this.options.radius);
-      ctx.stroke();
-    }
-    ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.networkScaleInv;
-    ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
-
-    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.options.color.background;
-
-    ctx.roundRect(this.left, this.top, this.width, this.height, this.options.radius);
-    ctx.fill();
-    ctx.stroke();
-
-    this.boundingBox.top = this.top;
-    this.boundingBox.left = this.left;
-    this.boundingBox.right = this.left + this.width;
-    this.boundingBox.bottom = this.top + this.height;
-
-    this._label(ctx, this.label, this.x, this.y);
-  };
-
-
-  Node.prototype._resizeDatabase = function (ctx) {
-    if (!this.width) {
-      var margin = 5;
-      var textSize = this.getTextSize(ctx);
-      var size = textSize.width + 2 * margin;
-      this.width = size;
-      this.height = size;
-
-      // scaling used for clustering
-      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
-      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
-      this.options.radius+= Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
-      this.growthIndicator = this.width - size;
-    }
-  };
-
-  Node.prototype._drawDatabase = function (ctx) {
-    this._resizeDatabase(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    var clusterLineWidth = 2.5;
-    var borderWidth = this.options.borderWidth;
-    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-
-    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
-
-    // draw the outer border
-    if (this.clusterSize > 1) {
-      ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-      ctx.lineWidth *= this.networkScaleInv;
-      ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
-
-      ctx.database(this.x - this.width/2 - 2*ctx.lineWidth, this.y - this.height*0.5 - 2*ctx.lineWidth, this.width + 4*ctx.lineWidth, this.height + 4*ctx.lineWidth);
-      ctx.stroke();
-    }
-    ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.networkScaleInv;
-    ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
-
-    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
-    ctx.database(this.x - this.width/2, this.y - this.height*0.5, this.width, this.height);
-    ctx.fill();
-    ctx.stroke();
-
-    this.boundingBox.top = this.top;
-    this.boundingBox.left = this.left;
-    this.boundingBox.right = this.left + this.width;
-    this.boundingBox.bottom = this.top + this.height;
-
-    this._label(ctx, this.label, this.x, this.y);
-  };
-
-
-  Node.prototype._resizeCircle = function (ctx) {
-    if (!this.width) {
-      var margin = 5;
-      var textSize = this.getTextSize(ctx);
-      var diameter = Math.max(textSize.width, textSize.height) + 2 * margin;
-      this.options.radius = diameter / 2;
-
-      this.width = diameter;
-      this.height = diameter;
-
-      // scaling used for clustering
-  //    this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeWidthFactor;
-  //    this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeHeightFactor;
-      this.options.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeRadiusFactor;
-      this.growthIndicator = this.options.radius- 0.5*diameter;
-    }
-  };
-
-  Node.prototype._drawCircle = function (ctx) {
-    this._resizeCircle(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    var clusterLineWidth = 2.5;
-    var borderWidth = this.options.borderWidth;
-    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-
-    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
-
-    // draw the outer border
-    if (this.clusterSize > 1) {
-      ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-      ctx.lineWidth *= this.networkScaleInv;
-      ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
-
-      ctx.circle(this.x, this.y, this.options.radius+2*ctx.lineWidth);
-      ctx.stroke();
-    }
-    ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.networkScaleInv;
-    ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
-
-    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
-    ctx.circle(this.x, this.y, this.options.radius);
-    ctx.fill();
-    ctx.stroke();
-
-    this.boundingBox.top = this.y - this.options.radius;
-    this.boundingBox.left = this.x - this.options.radius;
-    this.boundingBox.right = this.x + this.options.radius;
-    this.boundingBox.bottom = this.y + this.options.radius;
-
-    this._label(ctx, this.label, this.x, this.y);
-  };
-
-  Node.prototype._resizeEllipse = function (ctx) {
-    if (!this.width) {
-      var textSize = this.getTextSize(ctx);
-
-      this.width = textSize.width * 1.5;
-      this.height = textSize.height * 2;
-      if (this.width < this.height) {
-        this.width = this.height;
-      }
-      var defaultSize = this.width;
-
-      // scaling used for clustering
-      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
-      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
-      this.options.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
-      this.growthIndicator = this.width - defaultSize;
-    }
-  };
-
-  Node.prototype._drawEllipse = function (ctx) {
-    this._resizeEllipse(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    var clusterLineWidth = 2.5;
-    var borderWidth = this.options.borderWidth;
-    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-
-    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
-
-    // draw the outer border
-    if (this.clusterSize > 1) {
-      ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-      ctx.lineWidth *= this.networkScaleInv;
-      ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
-
-      ctx.ellipse(this.left-2*ctx.lineWidth, this.top-2*ctx.lineWidth, this.width+4*ctx.lineWidth, this.height+4*ctx.lineWidth);
-      ctx.stroke();
-    }
-    ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.networkScaleInv;
-    ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
-
-    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
-
-    ctx.ellipse(this.left, this.top, this.width, this.height);
-    ctx.fill();
-    ctx.stroke();
-
-    this.boundingBox.top = this.top;
-    this.boundingBox.left = this.left;
-    this.boundingBox.right = this.left + this.width;
-    this.boundingBox.bottom = this.top + this.height;
-
-    this._label(ctx, this.label, this.x, this.y);
-  };
-
-  Node.prototype._drawDot = function (ctx) {
-    this._drawShape(ctx, 'circle');
-  };
-
-  Node.prototype._drawTriangle = function (ctx) {
-    this._drawShape(ctx, 'triangle');
-  };
-
-  Node.prototype._drawTriangleDown = function (ctx) {
-    this._drawShape(ctx, 'triangleDown');
-  };
-
-  Node.prototype._drawSquare = function (ctx) {
-    this._drawShape(ctx, 'square');
-  };
-
-  Node.prototype._drawStar = function (ctx) {
-    this._drawShape(ctx, 'star');
-  };
-
-  Node.prototype._resizeShape = function (ctx) {
-    if (!this.width) {
-      this.options.radius= this.baseRadiusValue;
-      var size = 2 * this.options.radius;
-      this.width = size;
-      this.height = size;
-
-      // scaling used for clustering
-      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
-      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
-      this.options.radius+= Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeRadiusFactor;
-      this.growthIndicator = this.width - size;
-    }
-  };
-
-  Node.prototype._drawShape = function (ctx, shape) {
-    this._resizeShape(ctx);
-
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    var clusterLineWidth = 2.5;
-    var borderWidth = this.options.borderWidth;
-    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-    var radiusMultiplier = 2;
-
-    // choose draw method depending on the shape
-    switch (shape) {
-      case 'dot':           radiusMultiplier = 2; break;
-      case 'square':        radiusMultiplier = 2; break;
-      case 'triangle':      radiusMultiplier = 3; break;
-      case 'triangleDown':  radiusMultiplier = 3; break;
-      case 'star':          radiusMultiplier = 4; break;
-    }
-
-    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
-    // draw the outer border
-    if (this.clusterSize > 1) {
-      ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-      ctx.lineWidth *= this.networkScaleInv;
-      ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
-
-      ctx[shape](this.x, this.y, this.options.radius+ radiusMultiplier * ctx.lineWidth);
-      ctx.stroke();
-    }
-    ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
-    ctx.lineWidth *= this.networkScaleInv;
-    ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
-
-    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
-    ctx[shape](this.x, this.y, this.options.radius);
-    ctx.fill();
-    ctx.stroke();
-
-    this.boundingBox.top = this.y - this.options.radius;
-    this.boundingBox.left = this.x - this.options.radius;
-    this.boundingBox.right = this.x + this.options.radius;
-    this.boundingBox.bottom = this.y + this.options.radius;
-
-    if (this.label) {
-      this._label(ctx, this.label, this.x, this.y + this.height / 2, undefined, 'top',true);
-      this.boundingBox.left = Math.min(this.boundingBox.left, this.labelDimensions.left);
-      this.boundingBox.right = Math.max(this.boundingBox.right, this.labelDimensions.left + this.labelDimensions.width);
-      this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelDimensions.height);
-    }
-  };
-
-  Node.prototype._resizeText = function (ctx) {
-    if (!this.width) {
-      var margin = 5;
-      var textSize = this.getTextSize(ctx);
-      this.width = textSize.width + 2 * margin;
-      this.height = textSize.height + 2 * margin;
-
-      // scaling used for clustering
-      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
-      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
-      this.options.radius+= Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
-      this.growthIndicator = this.width - (textSize.width + 2 * margin);
-    }
-  };
-
-  Node.prototype._drawText = function (ctx) {
-    this._resizeText(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    this._label(ctx, this.label, this.x, this.y);
-
-    this.boundingBox.top = this.top;
-    this.boundingBox.left = this.left;
-    this.boundingBox.right = this.left + this.width;
-    this.boundingBox.bottom = this.top + this.height;
-  };
-
-
-  Node.prototype._label = function (ctx, text, x, y, align, baseline, labelUnderNode) {
-    if (text && Number(this.options.fontSize) * this.networkScale > this.fontDrawThreshold) {
-      ctx.font = (this.selected ? "bold " : "") + this.options.fontSize + "px " + this.options.fontFace;
-
-      var lines = text.split('\n');
-      var lineCount = lines.length;
-      var fontSize = (Number(this.options.fontSize) + 4); // TODO: why is this +4 ?
-      var yLine = y + (1 - lineCount) / 2 * fontSize;
-      if (labelUnderNode == true) {
-        yLine = y + (1 - lineCount) / (2 * fontSize);
-      }
-
-      // font fill from edges now for nodes!
-      var width = ctx.measureText(lines[0]).width;
-      for (var i = 1; i < lineCount; i++) {
-        var lineWidth = ctx.measureText(lines[i]).width;
-        width = lineWidth > width ? lineWidth : width;
-      }
-      var height = this.options.fontSize * lineCount;
-      var left = x - width / 2;
-      var top = y - height / 2;
-      if (baseline == "top") {
-        top += 0.5 * fontSize;
-      }
-      this.labelDimensions = {top:top,left:left,width:width,height:height,yLine:yLine};
-
-      // create the fontfill background
-      if (this.options.fontFill !== undefined && this.options.fontFill !== null && this.options.fontFill !== "none") {
-        ctx.fillStyle = this.options.fontFill;
-        ctx.fillRect(left, top, width, height);
-      }
-
-      // draw text
-      ctx.fillStyle = this.options.fontColor || "black";
-      ctx.textAlign = align || "center";
-      ctx.textBaseline = baseline || "middle";
-      for (var i = 0; i < lineCount; i++) {
-        ctx.fillText(lines[i], x, yLine);
-        yLine += fontSize;
-      }
-    }
-  };
-
-
-  Node.prototype.getTextSize = function(ctx) {
-    if (this.label !== undefined) {
-      ctx.font = (this.selected ? "bold " : "") + this.options.fontSize + "px " + this.options.fontFace;
-
-      var lines = this.label.split('\n'),
-          height = (Number(this.options.fontSize) + 4) * lines.length,
-          width = 0;
-
-      for (var i = 0, iMax = lines.length; i < iMax; i++) {
-        width = Math.max(width, ctx.measureText(lines[i]).width);
-      }
-
-      return {"width": width, "height": height};
-    }
-    else {
-      return {"width": 0, "height": 0};
-    }
-  };
-
-  /**
-   * this is used to determine if a node is visible at all. this is used to determine when it needs to be drawn.
-   * there is a safety margin of 0.3 * width;
-   *
-   * @returns {boolean}
-   */
-  Node.prototype.inArea = function() {
-    if (this.width !== undefined) {
-    return (this.x + this.width *this.networkScaleInv  >= this.canvasTopLeft.x     &&
-            this.x - this.width *this.networkScaleInv  <  this.canvasBottomRight.x &&
-            this.y + this.height*this.networkScaleInv  >= this.canvasTopLeft.y     &&
-            this.y - this.height*this.networkScaleInv  <  this.canvasBottomRight.y);
-    }
-    else {
-      return true;
-    }
-  };
-
-  /**
-   * checks if the core of the node is in the display area, this is used for opening clusters around zoom
-   * @returns {boolean}
-   */
-  Node.prototype.inView = function() {
-    return (this.x >= this.canvasTopLeft.x    &&
-            this.x < this.canvasBottomRight.x &&
-            this.y >= this.canvasTopLeft.y    &&
-            this.y < this.canvasBottomRight.y);
-  };
-
-  /**
-   * This allows the zoom level of the network to influence the rendering
-   * We store the inverted scale and the coordinates of the top left, and bottom right points of the canvas
-   *
-   * @param scale
-   * @param canvasTopLeft
-   * @param canvasBottomRight
-   */
-  Node.prototype.setScaleAndPos = function(scale,canvasTopLeft,canvasBottomRight) {
-    this.networkScaleInv = 1.0/scale;
-    this.networkScale = scale;
-    this.canvasTopLeft = canvasTopLeft;
-    this.canvasBottomRight = canvasBottomRight;
-  };
-
-
-  /**
-   * This allows the zoom level of the network to influence the rendering
-   *
-   * @param scale
-   */
-  Node.prototype.setScale = function(scale) {
-    this.networkScaleInv = 1.0/scale;
-    this.networkScale = scale;
-  };
-
-
-
-  /**
-   * set the velocity at 0. Is called when this node is contained in another during clustering
-   */
-  Node.prototype.clearVelocity = function() {
-    this.vx = 0;
-    this.vy = 0;
-  };
-
-
-  /**
-   * Basic preservation of (kinectic) energy
-   *
-   * @param massBeforeClustering
-   */
-  Node.prototype.updateVelocity = function(massBeforeClustering) {
-    var energyBefore = this.vx * this.vx * massBeforeClustering;
-    //this.vx = (this.vx < 0) ? -Math.sqrt(energyBefore/this.options.mass) : Math.sqrt(energyBefore/this.options.mass);
-    this.vx = Math.sqrt(energyBefore/this.options.mass);
-    energyBefore = this.vy * this.vy * massBeforeClustering;
-    //this.vy = (this.vy < 0) ? -Math.sqrt(energyBefore/this.options.mass) : Math.sqrt(energyBefore/this.options.mass);
-    this.vy = Math.sqrt(energyBefore/this.options.mass);
-  };
-
-  module.exports = Node;
-
-
-/***/ },
-/* 56 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var util = __webpack_require__(1);
-  var Node = __webpack_require__(55);
+  var Node = __webpack_require__(53);
 
   /**
    * @class Edge
@@ -28294,7 +26340,1221 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Edge;
 
 /***/ },
-/* 57 */
+/* 53 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var util = __webpack_require__(1);
+
+  /**
+   * @class Node
+   * A node. A node can be connected to other nodes via one or multiple edges.
+   * @param {object} properties An object containing properties for the node. All
+   *                            properties are optional, except for the id.
+   *                              {number} id     Id of the node. Required
+   *                              {string} label  Text label for the node
+   *                              {number} x      Horizontal position of the node
+   *                              {number} y      Vertical position of the node
+   *                              {string} shape  Node shape, available:
+   *                                              "database", "circle", "ellipse",
+   *                                              "box", "image", "text", "dot",
+   *                                              "star", "triangle", "triangleDown",
+   *                                              "square"
+   *                              {string} image  An image url
+   *                              {string} title  An title text, can be HTML
+   *                              {anytype} group A group name or number
+   * @param {Network.Images} imagelist    A list with images. Only needed
+   *                                            when the node has an image
+   * @param {Network.Groups} grouplist    A list with groups. Needed for
+   *                                            retrieving group properties
+   * @param {Object}               constants    An object with default values for
+   *                                            example for the color
+   *
+   */
+  function Node(properties, imagelist, grouplist, networkConstants) {
+    var constants = util.selectiveBridgeObject(['nodes'],networkConstants);
+    this.options = constants.nodes;
+
+    this.selected = false;
+    this.hover = false;
+
+    this.edges = []; // all edges connected to this node
+    this.dynamicEdges = [];
+    this.reroutedEdges = {};
+
+    this.fontDrawThreshold = 3;
+
+    // set defaults for the properties
+    this.id = undefined;
+    this.x = null;
+    this.y = null;
+    this.allowedToMoveX = false;
+    this.allowedToMoveY = false;
+    this.xFixed = false;
+    this.yFixed = false;
+    this.horizontalAlignLeft = true; // these are for the navigation controls
+    this.verticalAlignTop    = true; // these are for the navigation controls
+    this.baseRadiusValue = networkConstants.nodes.radius;
+    this.radiusFixed = false;
+    this.level = -1;
+    this.preassignedLevel = false;
+    this.hierarchyEnumerated = false;
+    this.labelDimensions = {top:0, left:0, width:0, height:0, yLine:0}; // could be cached
+    this.boundingBox = {top:0, left:0, right:0, bottom:0};
+
+    this.imagelist = imagelist;
+    this.grouplist = grouplist;
+
+    // physics properties
+    this.fx = 0.0;  // external force x
+    this.fy = 0.0;  // external force y
+    this.vx = 0.0;  // velocity x
+    this.vy = 0.0;  // velocity y
+    this.damping = networkConstants.physics.damping; // written every time gravity is calculated
+    this.fixedData = {x:null,y:null};
+
+    this.setProperties(properties, constants);
+
+    // creating the variables for clustering
+    this.resetCluster();
+    this.dynamicEdgesLength = 0;
+    this.clusterSession = 0;
+    this.clusterSizeWidthFactor  = networkConstants.clustering.nodeScaling.width;
+    this.clusterSizeHeightFactor = networkConstants.clustering.nodeScaling.height;
+    this.clusterSizeRadiusFactor = networkConstants.clustering.nodeScaling.radius;
+    this.maxNodeSizeIncrements = networkConstants.clustering.maxNodeSizeIncrements;
+    this.growthIndicator = 0;
+
+    // variables to tell the node about the network.
+    this.networkScaleInv = 1;
+    this.networkScale = 1;
+    this.canvasTopLeft = {"x": -300, "y": -300};
+    this.canvasBottomRight = {"x":  300, "y":  300};
+    this.parentEdgeId = null;
+  }
+
+  /**
+   * (re)setting the clustering variables and objects
+   */
+  Node.prototype.resetCluster = function() {
+    // clustering variables
+    this.formationScale = undefined; // this is used to determine when to open the cluster
+    this.clusterSize = 1;            // this signifies the total amount of nodes in this cluster
+    this.containedNodes = {};
+    this.containedEdges = {};
+    this.clusterSessions = [];
+  };
+
+  /**
+   * Attach a edge to the node
+   * @param {Edge} edge
+   */
+  Node.prototype.attachEdge = function(edge) {
+    if (this.edges.indexOf(edge) == -1) {
+      this.edges.push(edge);
+    }
+    if (this.dynamicEdges.indexOf(edge) == -1) {
+      this.dynamicEdges.push(edge);
+    }
+    this.dynamicEdgesLength = this.dynamicEdges.length;
+  };
+
+  /**
+   * Detach a edge from the node
+   * @param {Edge} edge
+   */
+  Node.prototype.detachEdge = function(edge) {
+    var index = this.edges.indexOf(edge);
+    if (index != -1) {
+      this.edges.splice(index, 1);
+    }
+    index = this.dynamicEdges.indexOf(edge);
+    if (index != -1) {
+      this.dynamicEdges.splice(index, 1);
+    }
+    this.dynamicEdgesLength = this.dynamicEdges.length;
+  };
+
+
+  /**
+   * Set or overwrite properties for the node
+   * @param {Object} properties an object with properties
+   * @param {Object} constants  and object with default, global properties
+   */
+  Node.prototype.setProperties = function(properties, constants) {
+    if (!properties) {
+      return;
+    }
+
+    var fields = ['borderWidth','borderWidthSelected','shape','image','brokenImage','radius','fontColor',
+      'fontSize','fontFace','fontFill','group','mass'
+    ];
+    util.selectiveDeepExtend(fields, this.options, properties);
+
+    // basic properties
+    if (properties.id !== undefined)        {this.id = properties.id;}
+    if (properties.label !== undefined)     {this.label = properties.label; this.originalLabel = properties.label;}
+    if (properties.title !== undefined)     {this.title = properties.title;}
+    if (properties.x !== undefined)         {this.x = properties.x;}
+    if (properties.y !== undefined)         {this.y = properties.y;}
+    if (properties.value !== undefined)     {this.value = properties.value;}
+    if (properties.level !== undefined)     {this.level = properties.level; this.preassignedLevel = true;}
+
+    // navigation controls properties
+    if (properties.horizontalAlignLeft !== undefined) {this.horizontalAlignLeft = properties.horizontalAlignLeft;}
+    if (properties.verticalAlignTop    !== undefined) {this.verticalAlignTop    = properties.verticalAlignTop;}
+    if (properties.triggerFunction     !== undefined) {this.triggerFunction     = properties.triggerFunction;}
+
+    if (this.id === undefined) {
+      throw "Node must have an id";
+    }
+
+    // copy group properties
+    if (typeof this.options.group === 'number' || (typeof this.options.group === 'string' && this.options.group != '')) {
+      var groupObj = this.grouplist.get(this.options.group);
+      for (var prop in groupObj) {
+        if (groupObj.hasOwnProperty(prop)) {
+          this.options[prop] = groupObj[prop];
+        }
+      }
+    }
+
+
+    // individual shape properties
+    if (properties.radius !== undefined)         {this.baseRadiusValue = this.options.radius;}
+    if (properties.color !== undefined)          {this.options.color = util.parseColor(properties.color);}
+
+    if (this.options.image!== undefined && this.options.image!= "") {
+      if (this.imagelist) {
+        this.imageObj = this.imagelist.load(this.options.image, this.options.brokenImage);
+      }
+      else {
+        throw "No imagelist provided";
+      }
+    }
+
+    if (properties.allowedToMoveX !== undefined) {
+      this.xFixed = !properties.allowedToMoveX;
+      this.allowedToMoveX = properties.allowedToMoveX;
+    }
+    else if (properties.x !== undefined && this.allowedToMoveX == false) {
+      this.xFixed = true;
+    }
+
+
+    if (properties.allowedToMoveY !== undefined) {
+      this.yFixed = !properties.allowedToMoveY;
+      this.allowedToMoveY = properties.allowedToMoveY;
+    }
+    else if (properties.y !== undefined && this.allowedToMoveY == false) {
+      this.yFixed = true;
+    }
+
+    this.radiusFixed = this.radiusFixed || (properties.radius !== undefined);
+
+    if (this.options.shape == 'image') {
+      this.options.radiusMin = constants.nodes.widthMin;
+      this.options.radiusMax = constants.nodes.widthMax;
+    }
+
+
+
+    // choose draw method depending on the shape
+    switch (this.options.shape) {
+      case 'database':      this.draw = this._drawDatabase; this.resize = this._resizeDatabase; break;
+      case 'box':           this.draw = this._drawBox; this.resize = this._resizeBox; break;
+      case 'circle':        this.draw = this._drawCircle; this.resize = this._resizeCircle; break;
+      case 'ellipse':       this.draw = this._drawEllipse; this.resize = this._resizeEllipse; break;
+      // TODO: add diamond shape
+      case 'image':         this.draw = this._drawImage; this.resize = this._resizeImage; break;
+      case 'text':          this.draw = this._drawText; this.resize = this._resizeText; break;
+      case 'dot':           this.draw = this._drawDot; this.resize = this._resizeShape; break;
+      case 'square':        this.draw = this._drawSquare; this.resize = this._resizeShape; break;
+      case 'triangle':      this.draw = this._drawTriangle; this.resize = this._resizeShape; break;
+      case 'triangleDown':  this.draw = this._drawTriangleDown; this.resize = this._resizeShape; break;
+      case 'star':          this.draw = this._drawStar; this.resize = this._resizeShape; break;
+      default:              this.draw = this._drawEllipse; this.resize = this._resizeEllipse; break;
+    }
+    // reset the size of the node, this can be changed
+    this._reset();
+
+  };
+
+  /**
+   * select this node
+   */
+  Node.prototype.select = function() {
+    this.selected = true;
+    this._reset();
+  };
+
+  /**
+   * unselect this node
+   */
+  Node.prototype.unselect = function() {
+    this.selected = false;
+    this._reset();
+  };
+
+
+  /**
+   * Reset the calculated size of the node, forces it to recalculate its size
+   */
+  Node.prototype.clearSizeCache = function() {
+    this._reset();
+  };
+
+  /**
+   * Reset the calculated size of the node, forces it to recalculate its size
+   * @private
+   */
+  Node.prototype._reset = function() {
+    this.width = undefined;
+    this.height = undefined;
+  };
+
+  /**
+   * get the title of this node.
+   * @return {string} title    The title of the node, or undefined when no title
+   *                           has been set.
+   */
+  Node.prototype.getTitle = function() {
+    return typeof this.title === "function" ? this.title() : this.title;
+  };
+
+  /**
+   * Calculate the distance to the border of the Node
+   * @param {CanvasRenderingContext2D}   ctx
+   * @param {Number} angle        Angle in radians
+   * @returns {number} distance   Distance to the border in pixels
+   */
+  Node.prototype.distanceToBorder = function (ctx, angle) {
+    var borderWidth = 1;
+
+    if (!this.width) {
+      this.resize(ctx);
+    }
+
+    switch (this.options.shape) {
+      case 'circle':
+      case 'dot':
+        return this.options.radius+ borderWidth;
+
+      case 'ellipse':
+        var a = this.width / 2;
+        var b = this.height / 2;
+        var w = (Math.sin(angle) * a);
+        var h = (Math.cos(angle) * b);
+        return a * b / Math.sqrt(w * w + h * h);
+
+      // TODO: implement distanceToBorder for database
+      // TODO: implement distanceToBorder for triangle
+      // TODO: implement distanceToBorder for triangleDown
+
+      case 'box':
+      case 'image':
+      case 'text':
+      default:
+        if (this.width) {
+          return Math.min(
+              Math.abs(this.width / 2 / Math.cos(angle)),
+              Math.abs(this.height / 2 / Math.sin(angle))) + borderWidth;
+          // TODO: reckon with border radius too in case of box
+        }
+        else {
+          return 0;
+        }
+
+    }
+    // TODO: implement calculation of distance to border for all shapes
+  };
+
+  /**
+   * Set forces acting on the node
+   * @param {number} fx   Force in horizontal direction
+   * @param {number} fy   Force in vertical direction
+   */
+  Node.prototype._setForce = function(fx, fy) {
+    this.fx = fx;
+    this.fy = fy;
+  };
+
+  /**
+   * Add forces acting on the node
+   * @param {number} fx   Force in horizontal direction
+   * @param {number} fy   Force in vertical direction
+   * @private
+   */
+  Node.prototype._addForce = function(fx, fy) {
+    this.fx += fx;
+    this.fy += fy;
+  };
+
+  /**
+   * Perform one discrete step for the node
+   * @param {number} interval    Time interval in seconds
+   */
+  Node.prototype.discreteStep = function(interval) {
+    if (!this.xFixed) {
+      var dx   = this.damping * this.vx;     // damping force
+      var ax   = (this.fx - dx) / this.options.mass;  // acceleration
+      this.vx += ax * interval;               // velocity
+      this.x  += this.vx * interval;          // position
+    }
+    else {
+      this.fx = 0;
+      this.vx = 0;
+    }
+
+    if (!this.yFixed) {
+      var dy   = this.damping * this.vy;     // damping force
+      var ay   = (this.fy - dy) / this.options.mass;  // acceleration
+      this.vy += ay * interval;               // velocity
+      this.y  += this.vy * interval;          // position
+    }
+    else {
+      this.fy = 0;
+      this.vy = 0;
+    }
+  };
+
+
+
+  /**
+   * Perform one discrete step for the node
+   * @param {number} interval    Time interval in seconds
+   * @param {number} maxVelocity The speed limit imposed on the velocity
+   */
+  Node.prototype.discreteStepLimited = function(interval, maxVelocity) {
+    if (!this.xFixed) {
+      var dx   = this.damping * this.vx;     // damping force
+      var ax   = (this.fx - dx) / this.options.mass;  // acceleration
+      this.vx += ax * interval;               // velocity
+      this.vx = (Math.abs(this.vx) > maxVelocity) ? ((this.vx > 0) ? maxVelocity : -maxVelocity) : this.vx;
+      this.x  += this.vx * interval;          // position
+    }
+    else {
+      this.fx = 0;
+      this.vx = 0;
+    }
+
+    if (!this.yFixed) {
+      var dy   = this.damping * this.vy;     // damping force
+      var ay   = (this.fy - dy) / this.options.mass;  // acceleration
+      this.vy += ay * interval;               // velocity
+      this.vy = (Math.abs(this.vy) > maxVelocity) ? ((this.vy > 0) ? maxVelocity : -maxVelocity) : this.vy;
+      this.y  += this.vy * interval;          // position
+    }
+    else {
+      this.fy = 0;
+      this.vy = 0;
+    }
+  };
+
+  /**
+   * Check if this node has a fixed x and y position
+   * @return {boolean}      true if fixed, false if not
+   */
+  Node.prototype.isFixed = function() {
+    return (this.xFixed && this.yFixed);
+  };
+
+  /**
+   * Check if this node is moving
+   * @param {number} vmin   the minimum velocity considered as "moving"
+   * @return {boolean}      true if moving, false if it has no velocity
+   */
+  Node.prototype.isMoving = function(vmin) {
+    var velocity = Math.sqrt(Math.pow(this.vx,2) + Math.pow(this.vy,2));
+  //  this.velocity = Math.sqrt(Math.pow(this.vx,2) + Math.pow(this.vy,2))
+    return (velocity > vmin);
+  };
+
+  /**
+   * check if this node is selecte
+   * @return {boolean} selected   True if node is selected, else false
+   */
+  Node.prototype.isSelected = function() {
+    return this.selected;
+  };
+
+  /**
+   * Retrieve the value of the node. Can be undefined
+   * @return {Number} value
+   */
+  Node.prototype.getValue = function() {
+    return this.value;
+  };
+
+  /**
+   * Calculate the distance from the nodes location to the given location (x,y)
+   * @param {Number} x
+   * @param {Number} y
+   * @return {Number} value
+   */
+  Node.prototype.getDistance = function(x, y) {
+    var dx = this.x - x,
+        dy = this.y - y;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
+
+  /**
+   * Adjust the value range of the node. The node will adjust it's radius
+   * based on its value.
+   * @param {Number} min
+   * @param {Number} max
+   */
+  Node.prototype.setValueRange = function(min, max) {
+    if (!this.radiusFixed && this.value !== undefined) {
+      if (max == min) {
+        this.options.radius= (this.options.radiusMin + this.options.radiusMax) / 2;
+      }
+      else {
+        var scale = (this.options.radiusMax - this.options.radiusMin) / (max - min);
+        this.options.radius= (this.value - min) * scale + this.options.radiusMin;
+      }
+    }
+    this.baseRadiusValue = this.options.radius;
+  };
+
+  /**
+   * Draw this node in the given canvas
+   * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+   * @param {CanvasRenderingContext2D}   ctx
+   */
+  Node.prototype.draw = function(ctx) {
+    throw "Draw method not initialized for node";
+  };
+
+  /**
+   * Recalculate the size of this node in the given canvas
+   * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+   * @param {CanvasRenderingContext2D}   ctx
+   */
+  Node.prototype.resize = function(ctx) {
+    throw "Resize method not initialized for node";
+  };
+
+  /**
+   * Check if this object is overlapping with the provided object
+   * @param {Object} obj   an object with parameters left, top, right, bottom
+   * @return {boolean}     True if location is located on node
+   */
+  Node.prototype.isOverlappingWith = function(obj) {
+    return (this.left              < obj.right  &&
+            this.left + this.width > obj.left   &&
+            this.top               < obj.bottom &&
+            this.top + this.height > obj.top);
+  };
+
+  Node.prototype._resizeImage = function (ctx) {
+    // TODO: pre calculate the image size
+
+    if (!this.width || !this.height) {  // undefined or 0
+      var width, height;
+      if (this.value) {
+        this.options.radius= this.baseRadiusValue;
+        var scale = this.imageObj.height / this.imageObj.width;
+        if (scale !== undefined) {
+          width = this.options.radius|| this.imageObj.width;
+          height = this.options.radius* scale || this.imageObj.height;
+        }
+        else {
+          width = 0;
+          height = 0;
+        }
+      }
+      else {
+        width = this.imageObj.width;
+        height = this.imageObj.height;
+      }
+      this.width  = width;
+      this.height = height;
+
+      this.growthIndicator = 0;
+      if (this.width > 0 && this.height > 0) {
+        this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements)  * this.clusterSizeWidthFactor;
+        this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
+        this.options.radius+= Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
+        this.growthIndicator = this.width - width;
+      }
+    }
+
+  };
+
+  Node.prototype._drawImage = function (ctx) {
+    this._resizeImage(ctx);
+
+    this.left   = this.x - this.width / 2;
+    this.top    = this.y - this.height / 2;
+
+    var yLabel;
+    if (this.imageObj.width != 0 ) {
+      // draw the shade
+      if (this.clusterSize > 1) {
+        var lineWidth = ((this.clusterSize > 1) ? 10 : 0.0);
+        lineWidth *= this.networkScaleInv;
+        lineWidth = Math.min(0.2 * this.width,lineWidth);
+
+        ctx.globalAlpha = 0.5;
+        ctx.drawImage(this.imageObj, this.left - lineWidth, this.top - lineWidth, this.width + 2*lineWidth, this.height + 2*lineWidth);
+      }
+
+      // draw the image
+      ctx.globalAlpha = 1.0;
+      ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
+      yLabel = this.y + this.height / 2;
+    }
+    else {
+      // image still loading... just draw the label for now
+      yLabel = this.y;
+    }
+
+
+    this.boundingBox.top = this.top;
+    this.boundingBox.left = this.left;
+    this.boundingBox.right = this.left + this.width;
+    this.boundingBox.bottom = this.top + this.height;
+
+    this._label(ctx, this.label, this.x, yLabel, undefined, "top");
+    this.boundingBox.left = Math.min(this.boundingBox.left, this.labelDimensions.left);
+    this.boundingBox.right = Math.max(this.boundingBox.right, this.labelDimensions.left + this.labelDimensions.width);
+    this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelDimensions.height);
+  };
+
+
+  Node.prototype._resizeBox = function (ctx) {
+    if (!this.width) {
+      var margin = 5;
+      var textSize = this.getTextSize(ctx);
+      this.width = textSize.width + 2 * margin;
+      this.height = textSize.height + 2 * margin;
+
+      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeWidthFactor;
+      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeHeightFactor;
+      this.growthIndicator = this.width - (textSize.width + 2 * margin);
+  //    this.options.radius+= Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeRadiusFactor;
+
+    }
+  };
+
+  Node.prototype._drawBox = function (ctx) {
+    this._resizeBox(ctx);
+
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    var clusterLineWidth = 2.5;
+    var borderWidth = this.options.borderWidth;
+    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+
+    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
+
+    // draw the outer border
+    if (this.clusterSize > 1) {
+      ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+      ctx.lineWidth *= this.networkScaleInv;
+      ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+      ctx.roundRect(this.left-2*ctx.lineWidth, this.top-2*ctx.lineWidth, this.width+4*ctx.lineWidth, this.height+4*ctx.lineWidth, this.options.radius);
+      ctx.stroke();
+    }
+    ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.networkScaleInv;
+    ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.options.color.background;
+
+    ctx.roundRect(this.left, this.top, this.width, this.height, this.options.radius);
+    ctx.fill();
+    ctx.stroke();
+
+    this.boundingBox.top = this.top;
+    this.boundingBox.left = this.left;
+    this.boundingBox.right = this.left + this.width;
+    this.boundingBox.bottom = this.top + this.height;
+
+    this._label(ctx, this.label, this.x, this.y);
+  };
+
+
+  Node.prototype._resizeDatabase = function (ctx) {
+    if (!this.width) {
+      var margin = 5;
+      var textSize = this.getTextSize(ctx);
+      var size = textSize.width + 2 * margin;
+      this.width = size;
+      this.height = size;
+
+      // scaling used for clustering
+      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
+      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
+      this.options.radius+= Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
+      this.growthIndicator = this.width - size;
+    }
+  };
+
+  Node.prototype._drawDatabase = function (ctx) {
+    this._resizeDatabase(ctx);
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    var clusterLineWidth = 2.5;
+    var borderWidth = this.options.borderWidth;
+    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+
+    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
+
+    // draw the outer border
+    if (this.clusterSize > 1) {
+      ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+      ctx.lineWidth *= this.networkScaleInv;
+      ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+      ctx.database(this.x - this.width/2 - 2*ctx.lineWidth, this.y - this.height*0.5 - 2*ctx.lineWidth, this.width + 4*ctx.lineWidth, this.height + 4*ctx.lineWidth);
+      ctx.stroke();
+    }
+    ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.networkScaleInv;
+    ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
+    ctx.database(this.x - this.width/2, this.y - this.height*0.5, this.width, this.height);
+    ctx.fill();
+    ctx.stroke();
+
+    this.boundingBox.top = this.top;
+    this.boundingBox.left = this.left;
+    this.boundingBox.right = this.left + this.width;
+    this.boundingBox.bottom = this.top + this.height;
+
+    this._label(ctx, this.label, this.x, this.y);
+  };
+
+
+  Node.prototype._resizeCircle = function (ctx) {
+    if (!this.width) {
+      var margin = 5;
+      var textSize = this.getTextSize(ctx);
+      var diameter = Math.max(textSize.width, textSize.height) + 2 * margin;
+      this.options.radius = diameter / 2;
+
+      this.width = diameter;
+      this.height = diameter;
+
+      // scaling used for clustering
+  //    this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeWidthFactor;
+  //    this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeHeightFactor;
+      this.options.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeRadiusFactor;
+      this.growthIndicator = this.options.radius- 0.5*diameter;
+    }
+  };
+
+  Node.prototype._drawCircle = function (ctx) {
+    this._resizeCircle(ctx);
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    var clusterLineWidth = 2.5;
+    var borderWidth = this.options.borderWidth;
+    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+
+    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
+
+    // draw the outer border
+    if (this.clusterSize > 1) {
+      ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+      ctx.lineWidth *= this.networkScaleInv;
+      ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+      ctx.circle(this.x, this.y, this.options.radius+2*ctx.lineWidth);
+      ctx.stroke();
+    }
+    ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.networkScaleInv;
+    ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
+    ctx.circle(this.x, this.y, this.options.radius);
+    ctx.fill();
+    ctx.stroke();
+
+    this.boundingBox.top = this.y - this.options.radius;
+    this.boundingBox.left = this.x - this.options.radius;
+    this.boundingBox.right = this.x + this.options.radius;
+    this.boundingBox.bottom = this.y + this.options.radius;
+
+    this._label(ctx, this.label, this.x, this.y);
+  };
+
+  Node.prototype._resizeEllipse = function (ctx) {
+    if (!this.width) {
+      var textSize = this.getTextSize(ctx);
+
+      this.width = textSize.width * 1.5;
+      this.height = textSize.height * 2;
+      if (this.width < this.height) {
+        this.width = this.height;
+      }
+      var defaultSize = this.width;
+
+      // scaling used for clustering
+      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
+      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
+      this.options.radius += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
+      this.growthIndicator = this.width - defaultSize;
+    }
+  };
+
+  Node.prototype._drawEllipse = function (ctx) {
+    this._resizeEllipse(ctx);
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    var clusterLineWidth = 2.5;
+    var borderWidth = this.options.borderWidth;
+    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+
+    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
+
+    // draw the outer border
+    if (this.clusterSize > 1) {
+      ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+      ctx.lineWidth *= this.networkScaleInv;
+      ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+      ctx.ellipse(this.left-2*ctx.lineWidth, this.top-2*ctx.lineWidth, this.width+4*ctx.lineWidth, this.height+4*ctx.lineWidth);
+      ctx.stroke();
+    }
+    ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.networkScaleInv;
+    ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
+
+    ctx.ellipse(this.left, this.top, this.width, this.height);
+    ctx.fill();
+    ctx.stroke();
+
+    this.boundingBox.top = this.top;
+    this.boundingBox.left = this.left;
+    this.boundingBox.right = this.left + this.width;
+    this.boundingBox.bottom = this.top + this.height;
+
+    this._label(ctx, this.label, this.x, this.y);
+  };
+
+  Node.prototype._drawDot = function (ctx) {
+    this._drawShape(ctx, 'circle');
+  };
+
+  Node.prototype._drawTriangle = function (ctx) {
+    this._drawShape(ctx, 'triangle');
+  };
+
+  Node.prototype._drawTriangleDown = function (ctx) {
+    this._drawShape(ctx, 'triangleDown');
+  };
+
+  Node.prototype._drawSquare = function (ctx) {
+    this._drawShape(ctx, 'square');
+  };
+
+  Node.prototype._drawStar = function (ctx) {
+    this._drawShape(ctx, 'star');
+  };
+
+  Node.prototype._resizeShape = function (ctx) {
+    if (!this.width) {
+      this.options.radius= this.baseRadiusValue;
+      var size = 2 * this.options.radius;
+      this.width = size;
+      this.height = size;
+
+      // scaling used for clustering
+      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
+      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
+      this.options.radius+= Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * 0.5 * this.clusterSizeRadiusFactor;
+      this.growthIndicator = this.width - size;
+    }
+  };
+
+  Node.prototype._drawShape = function (ctx, shape) {
+    this._resizeShape(ctx);
+
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    var clusterLineWidth = 2.5;
+    var borderWidth = this.options.borderWidth;
+    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+    var radiusMultiplier = 2;
+
+    // choose draw method depending on the shape
+    switch (shape) {
+      case 'dot':           radiusMultiplier = 2; break;
+      case 'square':        radiusMultiplier = 2; break;
+      case 'triangle':      radiusMultiplier = 3; break;
+      case 'triangleDown':  radiusMultiplier = 3; break;
+      case 'star':          radiusMultiplier = 4; break;
+    }
+
+    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
+    // draw the outer border
+    if (this.clusterSize > 1) {
+      ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+      ctx.lineWidth *= this.networkScaleInv;
+      ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+      ctx[shape](this.x, this.y, this.options.radius+ radiusMultiplier * ctx.lineWidth);
+      ctx.stroke();
+    }
+    ctx.lineWidth = (this.selected ? selectionLineWidth : borderWidth) + ((this.clusterSize > 1) ? clusterLineWidth : 0.0);
+    ctx.lineWidth *= this.networkScaleInv;
+    ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
+
+    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
+    ctx[shape](this.x, this.y, this.options.radius);
+    ctx.fill();
+    ctx.stroke();
+
+    this.boundingBox.top = this.y - this.options.radius;
+    this.boundingBox.left = this.x - this.options.radius;
+    this.boundingBox.right = this.x + this.options.radius;
+    this.boundingBox.bottom = this.y + this.options.radius;
+
+    if (this.label) {
+      this._label(ctx, this.label, this.x, this.y + this.height / 2, undefined, 'top',true);
+      this.boundingBox.left = Math.min(this.boundingBox.left, this.labelDimensions.left);
+      this.boundingBox.right = Math.max(this.boundingBox.right, this.labelDimensions.left + this.labelDimensions.width);
+      this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelDimensions.height);
+    }
+  };
+
+  Node.prototype._resizeText = function (ctx) {
+    if (!this.width) {
+      var margin = 5;
+      var textSize = this.getTextSize(ctx);
+      this.width = textSize.width + 2 * margin;
+      this.height = textSize.height + 2 * margin;
+
+      // scaling used for clustering
+      this.width  += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeWidthFactor;
+      this.height += Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeHeightFactor;
+      this.options.radius+= Math.min(this.clusterSize - 1, this.maxNodeSizeIncrements) * this.clusterSizeRadiusFactor;
+      this.growthIndicator = this.width - (textSize.width + 2 * margin);
+    }
+  };
+
+  Node.prototype._drawText = function (ctx) {
+    this._resizeText(ctx);
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    this._label(ctx, this.label, this.x, this.y);
+
+    this.boundingBox.top = this.top;
+    this.boundingBox.left = this.left;
+    this.boundingBox.right = this.left + this.width;
+    this.boundingBox.bottom = this.top + this.height;
+  };
+
+
+  Node.prototype._label = function (ctx, text, x, y, align, baseline, labelUnderNode) {
+    if (text && Number(this.options.fontSize) * this.networkScale > this.fontDrawThreshold) {
+      ctx.font = (this.selected ? "bold " : "") + this.options.fontSize + "px " + this.options.fontFace;
+
+      var lines = text.split('\n');
+      var lineCount = lines.length;
+      var fontSize = (Number(this.options.fontSize) + 4); // TODO: why is this +4 ?
+      var yLine = y + (1 - lineCount) / 2 * fontSize;
+      if (labelUnderNode == true) {
+        yLine = y + (1 - lineCount) / (2 * fontSize);
+      }
+
+      // font fill from edges now for nodes!
+      var width = ctx.measureText(lines[0]).width;
+      for (var i = 1; i < lineCount; i++) {
+        var lineWidth = ctx.measureText(lines[i]).width;
+        width = lineWidth > width ? lineWidth : width;
+      }
+      var height = this.options.fontSize * lineCount;
+      var left = x - width / 2;
+      var top = y - height / 2;
+      if (baseline == "top") {
+        top += 0.5 * fontSize;
+      }
+      this.labelDimensions = {top:top,left:left,width:width,height:height,yLine:yLine};
+
+      // create the fontfill background
+      if (this.options.fontFill !== undefined && this.options.fontFill !== null && this.options.fontFill !== "none") {
+        ctx.fillStyle = this.options.fontFill;
+        ctx.fillRect(left, top, width, height);
+      }
+
+      // draw text
+      ctx.fillStyle = this.options.fontColor || "black";
+      ctx.textAlign = align || "center";
+      ctx.textBaseline = baseline || "middle";
+      for (var i = 0; i < lineCount; i++) {
+        ctx.fillText(lines[i], x, yLine);
+        yLine += fontSize;
+      }
+    }
+  };
+
+
+  Node.prototype.getTextSize = function(ctx) {
+    if (this.label !== undefined) {
+      ctx.font = (this.selected ? "bold " : "") + this.options.fontSize + "px " + this.options.fontFace;
+
+      var lines = this.label.split('\n'),
+          height = (Number(this.options.fontSize) + 4) * lines.length,
+          width = 0;
+
+      for (var i = 0, iMax = lines.length; i < iMax; i++) {
+        width = Math.max(width, ctx.measureText(lines[i]).width);
+      }
+
+      return {"width": width, "height": height};
+    }
+    else {
+      return {"width": 0, "height": 0};
+    }
+  };
+
+  /**
+   * this is used to determine if a node is visible at all. this is used to determine when it needs to be drawn.
+   * there is a safety margin of 0.3 * width;
+   *
+   * @returns {boolean}
+   */
+  Node.prototype.inArea = function() {
+    if (this.width !== undefined) {
+    return (this.x + this.width *this.networkScaleInv  >= this.canvasTopLeft.x     &&
+            this.x - this.width *this.networkScaleInv  <  this.canvasBottomRight.x &&
+            this.y + this.height*this.networkScaleInv  >= this.canvasTopLeft.y     &&
+            this.y - this.height*this.networkScaleInv  <  this.canvasBottomRight.y);
+    }
+    else {
+      return true;
+    }
+  };
+
+  /**
+   * checks if the core of the node is in the display area, this is used for opening clusters around zoom
+   * @returns {boolean}
+   */
+  Node.prototype.inView = function() {
+    return (this.x >= this.canvasTopLeft.x    &&
+            this.x < this.canvasBottomRight.x &&
+            this.y >= this.canvasTopLeft.y    &&
+            this.y < this.canvasBottomRight.y);
+  };
+
+  /**
+   * This allows the zoom level of the network to influence the rendering
+   * We store the inverted scale and the coordinates of the top left, and bottom right points of the canvas
+   *
+   * @param scale
+   * @param canvasTopLeft
+   * @param canvasBottomRight
+   */
+  Node.prototype.setScaleAndPos = function(scale,canvasTopLeft,canvasBottomRight) {
+    this.networkScaleInv = 1.0/scale;
+    this.networkScale = scale;
+    this.canvasTopLeft = canvasTopLeft;
+    this.canvasBottomRight = canvasBottomRight;
+  };
+
+
+  /**
+   * This allows the zoom level of the network to influence the rendering
+   *
+   * @param scale
+   */
+  Node.prototype.setScale = function(scale) {
+    this.networkScaleInv = 1.0/scale;
+    this.networkScale = scale;
+  };
+
+
+
+  /**
+   * set the velocity at 0. Is called when this node is contained in another during clustering
+   */
+  Node.prototype.clearVelocity = function() {
+    this.vx = 0;
+    this.vy = 0;
+  };
+
+
+  /**
+   * Basic preservation of (kinectic) energy
+   *
+   * @param massBeforeClustering
+   */
+  Node.prototype.updateVelocity = function(massBeforeClustering) {
+    var energyBefore = this.vx * this.vx * massBeforeClustering;
+    //this.vx = (this.vx < 0) ? -Math.sqrt(energyBefore/this.options.mass) : Math.sqrt(energyBefore/this.options.mass);
+    this.vx = Math.sqrt(energyBefore/this.options.mass);
+    energyBefore = this.vy * this.vy * massBeforeClustering;
+    //this.vy = (this.vy < 0) ? -Math.sqrt(energyBefore/this.options.mass) : Math.sqrt(energyBefore/this.options.mass);
+    this.vy = Math.sqrt(energyBefore/this.options.mass);
+  };
+
+  module.exports = Node;
+
+
+/***/ },
+/* 54 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var util = __webpack_require__(1);
+
+  /**
+   * @class Groups
+   * This class can store groups and properties specific for groups.
+   */
+  function Groups() {
+    this.clear();
+    this.defaultIndex = 0;
+  }
+
+
+  /**
+   * default constants for group colors
+   */
+  Groups.DEFAULT = [
+    {border: "#2B7CE9", background: "#97C2FC", highlight: {border: "#2B7CE9", background: "#D2E5FF"}, hover: {border: "#2B7CE9", background: "#D2E5FF"}}, // blue
+    {border: "#FFA500", background: "#FFFF00", highlight: {border: "#FFA500", background: "#FFFFA3"}, hover: {border: "#FFA500", background: "#FFFFA3"}}, // yellow
+    {border: "#FA0A10", background: "#FB7E81", highlight: {border: "#FA0A10", background: "#FFAFB1"}, hover: {border: "#FA0A10", background: "#FFAFB1"}}, // red
+    {border: "#41A906", background: "#7BE141", highlight: {border: "#41A906", background: "#A1EC76"}, hover: {border: "#41A906", background: "#A1EC76"}}, // green
+    {border: "#E129F0", background: "#EB7DF4", highlight: {border: "#E129F0", background: "#F0B3F5"}, hover: {border: "#E129F0", background: "#F0B3F5"}}, // magenta
+    {border: "#7C29F0", background: "#AD85E4", highlight: {border: "#7C29F0", background: "#D3BDF0"}, hover: {border: "#7C29F0", background: "#D3BDF0"}}, // purple
+    {border: "#C37F00", background: "#FFA807", highlight: {border: "#C37F00", background: "#FFCA66"}, hover: {border: "#C37F00", background: "#FFCA66"}}, // orange
+    {border: "#4220FB", background: "#6E6EFD", highlight: {border: "#4220FB", background: "#9B9BFD"}, hover: {border: "#4220FB", background: "#9B9BFD"}}, // darkblue
+    {border: "#FD5A77", background: "#FFC0CB", highlight: {border: "#FD5A77", background: "#FFD1D9"}, hover: {border: "#FD5A77", background: "#FFD1D9"}}, // pink
+    {border: "#4AD63A", background: "#C2FABC", highlight: {border: "#4AD63A", background: "#E6FFE3"}, hover: {border: "#4AD63A", background: "#E6FFE3"}}  // mint
+  ];
+
+
+  /**
+   * Clear all groups
+   */
+  Groups.prototype.clear = function () {
+    this.groups = {};
+    this.groups.length = function()
+    {
+      var i = 0;
+      for ( var p in this ) {
+        if (this.hasOwnProperty(p)) {
+          i++;
+        }
+      }
+      return i;
+    }
+  };
+
+
+  /**
+   * get group properties of a groupname. If groupname is not found, a new group
+   * is added.
+   * @param {*} groupname        Can be a number, string, Date, etc.
+   * @return {Object} group      The created group, containing all group properties
+   */
+  Groups.prototype.get = function (groupname) {
+    var group = this.groups[groupname];
+    if (group == undefined) {
+      // create new group
+      var index = this.defaultIndex % Groups.DEFAULT.length;
+      this.defaultIndex++;
+      group = {};
+      group.color = Groups.DEFAULT[index];
+      this.groups[groupname] = group;
+    }
+
+    return group;
+  };
+
+  /**
+   * Add a custom group style
+   * @param {String} groupname
+   * @param {Object} style       An object containing borderColor,
+   *                             backgroundColor, etc.
+   * @return {Object} group      The created group object
+   */
+  Groups.prototype.add = function (groupname, style) {
+    this.groups[groupname] = style;
+    if (style.color) {
+      style.color = util.parseColor(style.color);
+    }
+    return style;
+  };
+
+  module.exports = Groups;
+
+
+/***/ },
+/* 55 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * @class Images
+   * This class loads images and keeps them stored.
+   */
+  function Images() {
+    this.images = {};
+
+    this.callback = undefined;
+  }
+
+  /**
+   * Set an onload callback function. This will be called each time an image
+   * is loaded
+   * @param {function} callback
+   */
+  Images.prototype.setOnloadCallback = function(callback) {
+    this.callback = callback;
+  };
+
+  /**
+   *
+   * @param {string} url          Url of the image
+   * @param {string} url          Url of an image to use if the url image is not found
+   * @return {Image} img          The image object
+   */
+  Images.prototype.load = function(url, brokenUrl) {
+    var img = this.images[url];
+    if (img == undefined) {
+      // create the image
+      var images = this;
+      img = new Image();
+      this.images[url] = img;
+      img.onload = function() {
+        if (images.callback) {
+          images.callback(this);
+        }
+      };
+      
+      img.onerror = function () {
+  	  this.src = brokenUrl;
+  	  if (images.callback) {
+  		images.callback(this);
+  	  }
+  	};
+  	
+      img.src = url;
+    }
+
+    return img;
+  };
+
+  module.exports = Images;
+
+
+/***/ },
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -28440,16 +27700,913 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
+/* 57 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Parse a text source containing data in DOT language into a JSON object.
+   * The object contains two lists: one with nodes and one with edges.
+   *
+   * DOT language reference: http://www.graphviz.org/doc/info/lang.html
+   *
+   * @param {String} data     Text containing a graph in DOT-notation
+   * @return {Object} graph   An object containing two parameters:
+   *                          {Object[]} nodes
+   *                          {Object[]} edges
+   */
+  function parseDOT (data) {
+    dot = data;
+    return parseGraph();
+  }
+
+  // token types enumeration
+  var TOKENTYPE = {
+    NULL : 0,
+    DELIMITER : 1,
+    IDENTIFIER: 2,
+    UNKNOWN : 3
+  };
+
+  // map with all delimiters
+  var DELIMITERS = {
+    '{': true,
+    '}': true,
+    '[': true,
+    ']': true,
+    ';': true,
+    '=': true,
+    ',': true,
+
+    '->': true,
+    '--': true
+  };
+
+  var dot = '';                   // current dot file
+  var index = 0;                  // current index in dot file
+  var c = '';                     // current token character in expr
+  var token = '';                 // current token
+  var tokenType = TOKENTYPE.NULL; // type of the token
+
+  /**
+   * Get the first character from the dot file.
+   * The character is stored into the char c. If the end of the dot file is
+   * reached, the function puts an empty string in c.
+   */
+  function first() {
+    index = 0;
+    c = dot.charAt(0);
+  }
+
+  /**
+   * Get the next character from the dot file.
+   * The character is stored into the char c. If the end of the dot file is
+   * reached, the function puts an empty string in c.
+   */
+  function next() {
+    index++;
+    c = dot.charAt(index);
+  }
+
+  /**
+   * Preview the next character from the dot file.
+   * @return {String} cNext
+   */
+  function nextPreview() {
+    return dot.charAt(index + 1);
+  }
+
+  /**
+   * Test whether given character is alphabetic or numeric
+   * @param {String} c
+   * @return {Boolean} isAlphaNumeric
+   */
+  var regexAlphaNumeric = /[a-zA-Z_0-9.:#]/;
+  function isAlphaNumeric(c) {
+    return regexAlphaNumeric.test(c);
+  }
+
+  /**
+   * Merge all properties of object b into object b
+   * @param {Object} a
+   * @param {Object} b
+   * @return {Object} a
+   */
+  function merge (a, b) {
+    if (!a) {
+      a = {};
+    }
+
+    if (b) {
+      for (var name in b) {
+        if (b.hasOwnProperty(name)) {
+          a[name] = b[name];
+        }
+      }
+    }
+    return a;
+  }
+
+  /**
+   * Set a value in an object, where the provided parameter name can be a
+   * path with nested parameters. For example:
+   *
+   *     var obj = {a: 2};
+   *     setValue(obj, 'b.c', 3);     // obj = {a: 2, b: {c: 3}}
+   *
+   * @param {Object} obj
+   * @param {String} path  A parameter name or dot-separated parameter path,
+   *                      like "color.highlight.border".
+   * @param {*} value
+   */
+  function setValue(obj, path, value) {
+    var keys = path.split('.');
+    var o = obj;
+    while (keys.length) {
+      var key = keys.shift();
+      if (keys.length) {
+        // this isn't the end point
+        if (!o[key]) {
+          o[key] = {};
+        }
+        o = o[key];
+      }
+      else {
+        // this is the end point
+        o[key] = value;
+      }
+    }
+  }
+
+  /**
+   * Add a node to a graph object. If there is already a node with
+   * the same id, their attributes will be merged.
+   * @param {Object} graph
+   * @param {Object} node
+   */
+  function addNode(graph, node) {
+    var i, len;
+    var current = null;
+
+    // find root graph (in case of subgraph)
+    var graphs = [graph]; // list with all graphs from current graph to root graph
+    var root = graph;
+    while (root.parent) {
+      graphs.push(root.parent);
+      root = root.parent;
+    }
+
+    // find existing node (at root level) by its id
+    if (root.nodes) {
+      for (i = 0, len = root.nodes.length; i < len; i++) {
+        if (node.id === root.nodes[i].id) {
+          current = root.nodes[i];
+          break;
+        }
+      }
+    }
+
+    if (!current) {
+      // this is a new node
+      current = {
+        id: node.id
+      };
+      if (graph.node) {
+        // clone default attributes
+        current.attr = merge(current.attr, graph.node);
+      }
+    }
+
+    // add node to this (sub)graph and all its parent graphs
+    for (i = graphs.length - 1; i >= 0; i--) {
+      var g = graphs[i];
+
+      if (!g.nodes) {
+        g.nodes = [];
+      }
+      if (g.nodes.indexOf(current) == -1) {
+        g.nodes.push(current);
+      }
+    }
+
+    // merge attributes
+    if (node.attr) {
+      current.attr = merge(current.attr, node.attr);
+    }
+  }
+
+  /**
+   * Add an edge to a graph object
+   * @param {Object} graph
+   * @param {Object} edge
+   */
+  function addEdge(graph, edge) {
+    if (!graph.edges) {
+      graph.edges = [];
+    }
+    graph.edges.push(edge);
+    if (graph.edge) {
+      var attr = merge({}, graph.edge);     // clone default attributes
+      edge.attr = merge(attr, edge.attr); // merge attributes
+    }
+  }
+
+  /**
+   * Create an edge to a graph object
+   * @param {Object} graph
+   * @param {String | Number | Object} from
+   * @param {String | Number | Object} to
+   * @param {String} type
+   * @param {Object | null} attr
+   * @return {Object} edge
+   */
+  function createEdge(graph, from, to, type, attr) {
+    var edge = {
+      from: from,
+      to: to,
+      type: type
+    };
+
+    if (graph.edge) {
+      edge.attr = merge({}, graph.edge);  // clone default attributes
+    }
+    edge.attr = merge(edge.attr || {}, attr); // merge attributes
+
+    return edge;
+  }
+
+  /**
+   * Get next token in the current dot file.
+   * The token and token type are available as token and tokenType
+   */
+  function getToken() {
+    tokenType = TOKENTYPE.NULL;
+    token = '';
+
+    // skip over whitespaces
+    while (c == ' ' || c == '\t' || c == '\n' || c == '\r') {  // space, tab, enter
+      next();
+    }
+
+    do {
+      var isComment = false;
+
+      // skip comment
+      if (c == '#') {
+        // find the previous non-space character
+        var i = index - 1;
+        while (dot.charAt(i) == ' ' || dot.charAt(i) == '\t') {
+          i--;
+        }
+        if (dot.charAt(i) == '\n' || dot.charAt(i) == '') {
+          // the # is at the start of a line, this is indeed a line comment
+          while (c != '' && c != '\n') {
+            next();
+          }
+          isComment = true;
+        }
+      }
+      if (c == '/' && nextPreview() == '/') {
+        // skip line comment
+        while (c != '' && c != '\n') {
+          next();
+        }
+        isComment = true;
+      }
+      if (c == '/' && nextPreview() == '*') {
+        // skip block comment
+        while (c != '') {
+          if (c == '*' && nextPreview() == '/') {
+            // end of block comment found. skip these last two characters
+            next();
+            next();
+            break;
+          }
+          else {
+            next();
+          }
+        }
+        isComment = true;
+      }
+
+      // skip over whitespaces
+      while (c == ' ' || c == '\t' || c == '\n' || c == '\r') {  // space, tab, enter
+        next();
+      }
+    }
+    while (isComment);
+
+    // check for end of dot file
+    if (c == '') {
+      // token is still empty
+      tokenType = TOKENTYPE.DELIMITER;
+      return;
+    }
+
+    // check for delimiters consisting of 2 characters
+    var c2 = c + nextPreview();
+    if (DELIMITERS[c2]) {
+      tokenType = TOKENTYPE.DELIMITER;
+      token = c2;
+      next();
+      next();
+      return;
+    }
+
+    // check for delimiters consisting of 1 character
+    if (DELIMITERS[c]) {
+      tokenType = TOKENTYPE.DELIMITER;
+      token = c;
+      next();
+      return;
+    }
+
+    // check for an identifier (number or string)
+    // TODO: more precise parsing of numbers/strings (and the port separator ':')
+    if (isAlphaNumeric(c) || c == '-') {
+      token += c;
+      next();
+
+      while (isAlphaNumeric(c)) {
+        token += c;
+        next();
+      }
+      if (token == 'false') {
+        token = false;   // convert to boolean
+      }
+      else if (token == 'true') {
+        token = true;   // convert to boolean
+      }
+      else if (!isNaN(Number(token))) {
+        token = Number(token); // convert to number
+      }
+      tokenType = TOKENTYPE.IDENTIFIER;
+      return;
+    }
+
+    // check for a string enclosed by double quotes
+    if (c == '"') {
+      next();
+      while (c != '' && (c != '"' || (c == '"' && nextPreview() == '"'))) {
+        token += c;
+        if (c == '"') { // skip the escape character
+          next();
+        }
+        next();
+      }
+      if (c != '"') {
+        throw newSyntaxError('End of string " expected');
+      }
+      next();
+      tokenType = TOKENTYPE.IDENTIFIER;
+      return;
+    }
+
+    // something unknown is found, wrong characters, a syntax error
+    tokenType = TOKENTYPE.UNKNOWN;
+    while (c != '') {
+      token += c;
+      next();
+    }
+    throw new SyntaxError('Syntax error in part "' + chop(token, 30) + '"');
+  }
+
+  /**
+   * Parse a graph.
+   * @returns {Object} graph
+   */
+  function parseGraph() {
+    var graph = {};
+
+    first();
+    getToken();
+
+    // optional strict keyword
+    if (token == 'strict') {
+      graph.strict = true;
+      getToken();
+    }
+
+    // graph or digraph keyword
+    if (token == 'graph' || token == 'digraph') {
+      graph.type = token;
+      getToken();
+    }
+
+    // optional graph id
+    if (tokenType == TOKENTYPE.IDENTIFIER) {
+      graph.id = token;
+      getToken();
+    }
+
+    // open angle bracket
+    if (token != '{') {
+      throw newSyntaxError('Angle bracket { expected');
+    }
+    getToken();
+
+    // statements
+    parseStatements(graph);
+
+    // close angle bracket
+    if (token != '}') {
+      throw newSyntaxError('Angle bracket } expected');
+    }
+    getToken();
+
+    // end of file
+    if (token !== '') {
+      throw newSyntaxError('End of file expected');
+    }
+    getToken();
+
+    // remove temporary default properties
+    delete graph.node;
+    delete graph.edge;
+    delete graph.graph;
+
+    return graph;
+  }
+
+  /**
+   * Parse a list with statements.
+   * @param {Object} graph
+   */
+  function parseStatements (graph) {
+    while (token !== '' && token != '}') {
+      parseStatement(graph);
+      if (token == ';') {
+        getToken();
+      }
+    }
+  }
+
+  /**
+   * Parse a single statement. Can be a an attribute statement, node
+   * statement, a series of node statements and edge statements, or a
+   * parameter.
+   * @param {Object} graph
+   */
+  function parseStatement(graph) {
+    // parse subgraph
+    var subgraph = parseSubgraph(graph);
+    if (subgraph) {
+      // edge statements
+      parseEdge(graph, subgraph);
+
+      return;
+    }
+
+    // parse an attribute statement
+    var attr = parseAttributeStatement(graph);
+    if (attr) {
+      return;
+    }
+
+    // parse node
+    if (tokenType != TOKENTYPE.IDENTIFIER) {
+      throw newSyntaxError('Identifier expected');
+    }
+    var id = token; // id can be a string or a number
+    getToken();
+
+    if (token == '=') {
+      // id statement
+      getToken();
+      if (tokenType != TOKENTYPE.IDENTIFIER) {
+        throw newSyntaxError('Identifier expected');
+      }
+      graph[id] = token;
+      getToken();
+      // TODO: implement comma separated list with "a_list: ID=ID [','] [a_list] "
+    }
+    else {
+      parseNodeStatement(graph, id);
+    }
+  }
+
+  /**
+   * Parse a subgraph
+   * @param {Object} graph    parent graph object
+   * @return {Object | null} subgraph
+   */
+  function parseSubgraph (graph) {
+    var subgraph = null;
+
+    // optional subgraph keyword
+    if (token == 'subgraph') {
+      subgraph = {};
+      subgraph.type = 'subgraph';
+      getToken();
+
+      // optional graph id
+      if (tokenType == TOKENTYPE.IDENTIFIER) {
+        subgraph.id = token;
+        getToken();
+      }
+    }
+
+    // open angle bracket
+    if (token == '{') {
+      getToken();
+
+      if (!subgraph) {
+        subgraph = {};
+      }
+      subgraph.parent = graph;
+      subgraph.node = graph.node;
+      subgraph.edge = graph.edge;
+      subgraph.graph = graph.graph;
+
+      // statements
+      parseStatements(subgraph);
+
+      // close angle bracket
+      if (token != '}') {
+        throw newSyntaxError('Angle bracket } expected');
+      }
+      getToken();
+
+      // remove temporary default properties
+      delete subgraph.node;
+      delete subgraph.edge;
+      delete subgraph.graph;
+      delete subgraph.parent;
+
+      // register at the parent graph
+      if (!graph.subgraphs) {
+        graph.subgraphs = [];
+      }
+      graph.subgraphs.push(subgraph);
+    }
+
+    return subgraph;
+  }
+
+  /**
+   * parse an attribute statement like "node [shape=circle fontSize=16]".
+   * Available keywords are 'node', 'edge', 'graph'.
+   * The previous list with default attributes will be replaced
+   * @param {Object} graph
+   * @returns {String | null} keyword Returns the name of the parsed attribute
+   *                                  (node, edge, graph), or null if nothing
+   *                                  is parsed.
+   */
+  function parseAttributeStatement (graph) {
+    // attribute statements
+    if (token == 'node') {
+      getToken();
+
+      // node attributes
+      graph.node = parseAttributeList();
+      return 'node';
+    }
+    else if (token == 'edge') {
+      getToken();
+
+      // edge attributes
+      graph.edge = parseAttributeList();
+      return 'edge';
+    }
+    else if (token == 'graph') {
+      getToken();
+
+      // graph attributes
+      graph.graph = parseAttributeList();
+      return 'graph';
+    }
+
+    return null;
+  }
+
+  /**
+   * parse a node statement
+   * @param {Object} graph
+   * @param {String | Number} id
+   */
+  function parseNodeStatement(graph, id) {
+    // node statement
+    var node = {
+      id: id
+    };
+    var attr = parseAttributeList();
+    if (attr) {
+      node.attr = attr;
+    }
+    addNode(graph, node);
+
+    // edge statements
+    parseEdge(graph, id);
+  }
+
+  /**
+   * Parse an edge or a series of edges
+   * @param {Object} graph
+   * @param {String | Number} from        Id of the from node
+   */
+  function parseEdge(graph, from) {
+    while (token == '->' || token == '--') {
+      var to;
+      var type = token;
+      getToken();
+
+      var subgraph = parseSubgraph(graph);
+      if (subgraph) {
+        to = subgraph;
+      }
+      else {
+        if (tokenType != TOKENTYPE.IDENTIFIER) {
+          throw newSyntaxError('Identifier or subgraph expected');
+        }
+        to = token;
+        addNode(graph, {
+          id: to
+        });
+        getToken();
+      }
+
+      // parse edge attributes
+      var attr = parseAttributeList();
+
+      // create edge
+      var edge = createEdge(graph, from, to, type, attr);
+      addEdge(graph, edge);
+
+      from = to;
+    }
+  }
+
+  /**
+   * Parse a set with attributes,
+   * for example [label="1.000", shape=solid]
+   * @return {Object | null} attr
+   */
+  function parseAttributeList() {
+    var attr = null;
+
+    while (token == '[') {
+      getToken();
+      attr = {};
+      while (token !== '' && token != ']') {
+        if (tokenType != TOKENTYPE.IDENTIFIER) {
+          throw newSyntaxError('Attribute name expected');
+        }
+        var name = token;
+
+        getToken();
+        if (token != '=') {
+          throw newSyntaxError('Equal sign = expected');
+        }
+        getToken();
+
+        if (tokenType != TOKENTYPE.IDENTIFIER) {
+          throw newSyntaxError('Attribute value expected');
+        }
+        var value = token;
+        setValue(attr, name, value); // name can be a path
+
+        getToken();
+        if (token ==',') {
+          getToken();
+        }
+      }
+
+      if (token != ']') {
+        throw newSyntaxError('Bracket ] expected');
+      }
+      getToken();
+    }
+
+    return attr;
+  }
+
+  /**
+   * Create a syntax error with extra information on current token and index.
+   * @param {String} message
+   * @returns {SyntaxError} err
+   */
+  function newSyntaxError(message) {
+    return new SyntaxError(message + ', got "' + chop(token, 30) + '" (char ' + index + ')');
+  }
+
+  /**
+   * Chop off text after a maximum length
+   * @param {String} text
+   * @param {Number} maxLength
+   * @returns {String}
+   */
+  function chop (text, maxLength) {
+    return (text.length <= maxLength) ? text : (text.substr(0, 27) + '...');
+  }
+
+  /**
+   * Execute a function fn for each pair of elements in two arrays
+   * @param {Array | *} array1
+   * @param {Array | *} array2
+   * @param {function} fn
+   */
+  function forEach2(array1, array2, fn) {
+    if (Array.isArray(array1)) {
+      array1.forEach(function (elem1) {
+        if (Array.isArray(array2)) {
+          array2.forEach(function (elem2)  {
+            fn(elem1, elem2);
+          });
+        }
+        else {
+          fn(elem1, array2);
+        }
+      });
+    }
+    else {
+      if (Array.isArray(array2)) {
+        array2.forEach(function (elem2)  {
+          fn(array1, elem2);
+        });
+      }
+      else {
+        fn(array1, array2);
+      }
+    }
+  }
+
+  /**
+   * Convert a string containing a graph in DOT language into a map containing
+   * with nodes and edges in the format of graph.
+   * @param {String} data         Text containing a graph in DOT-notation
+   * @return {Object} graphData
+   */
+  function DOTToGraph (data) {
+    // parse the DOT file
+    var dotData = parseDOT(data);
+    var graphData = {
+      nodes: [],
+      edges: [],
+      options: {}
+    };
+
+    // copy the nodes
+    if (dotData.nodes) {
+      dotData.nodes.forEach(function (dotNode) {
+        var graphNode = {
+          id: dotNode.id,
+          label: String(dotNode.label || dotNode.id)
+        };
+        merge(graphNode, dotNode.attr);
+        if (graphNode.image) {
+          graphNode.shape = 'image';
+        }
+        graphData.nodes.push(graphNode);
+      });
+    }
+
+    // copy the edges
+    if (dotData.edges) {
+      /**
+       * Convert an edge in DOT format to an edge with VisGraph format
+       * @param {Object} dotEdge
+       * @returns {Object} graphEdge
+       */
+      var convertEdge = function (dotEdge) {
+        var graphEdge = {
+          from: dotEdge.from,
+          to: dotEdge.to
+        };
+        merge(graphEdge, dotEdge.attr);
+        graphEdge.style = (dotEdge.type == '->') ? 'arrow' : 'line';
+        return graphEdge;
+      }
+
+      dotData.edges.forEach(function (dotEdge) {
+        var from, to;
+        if (dotEdge.from instanceof Object) {
+          from = dotEdge.from.nodes;
+        }
+        else {
+          from = {
+            id: dotEdge.from
+          }
+        }
+
+        if (dotEdge.to instanceof Object) {
+          to = dotEdge.to.nodes;
+        }
+        else {
+          to = {
+            id: dotEdge.to
+          }
+        }
+
+        if (dotEdge.from instanceof Object && dotEdge.from.edges) {
+          dotEdge.from.edges.forEach(function (subEdge) {
+            var graphEdge = convertEdge(subEdge);
+            graphData.edges.push(graphEdge);
+          });
+        }
+
+        forEach2(from, to, function (from, to) {
+          var subEdge = createEdge(graphData, from.id, to.id, dotEdge.type, dotEdge.attr);
+          var graphEdge = convertEdge(subEdge);
+          graphData.edges.push(graphEdge);
+        });
+
+        if (dotEdge.to instanceof Object && dotEdge.to.edges) {
+          dotEdge.to.edges.forEach(function (subEdge) {
+            var graphEdge = convertEdge(subEdge);
+            graphData.edges.push(graphEdge);
+          });
+        }
+      });
+    }
+
+    // copy the options
+    if (dotData.attr) {
+      graphData.options = dotData.attr;
+    }
+
+    return graphData;
+  }
+
+  // exports
+  exports.parseDOT = parseDOT;
+  exports.DOTToGraph = DOTToGraph;
+
+
+/***/ },
 /* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var PhysicsMixin = __webpack_require__(59);
-  var ClusterMixin = __webpack_require__(63);
-  var SectorsMixin = __webpack_require__(64);
-  var SelectionMixin = __webpack_require__(65);
-  var ManipulationMixin = __webpack_require__(66);
-  var NavigationMixin = __webpack_require__(67);
-  var HierarchicalLayoutMixin = __webpack_require__(68);
+  
+  function parseGephi(gephiJSON, options) {
+    var edges = [];
+    var nodes = [];
+    this.options = {
+      edges: {
+        inheritColor: true
+      },
+      nodes: {
+        allowedToMove: false,
+        parseColor: false
+      }
+    };
+
+    if (options !== undefined) {
+      this.options.nodes['allowedToMove'] = options.allowedToMove | false;
+      this.options.nodes['parseColor']    = options.parseColor    | false;
+      this.options.edges['inheritColor']  = options.inheritColor  | true;
+    }
+
+    var gEdges = gephiJSON.edges;
+    var gNodes = gephiJSON.nodes;
+    for (var i = 0; i < gEdges.length; i++) {
+      var edge = {};
+      var gEdge = gEdges[i];
+      edge['id'] = gEdge.id;
+      edge['from'] = gEdge.source;
+      edge['to'] = gEdge.target;
+      edge['attributes'] = gEdge.attributes;
+  //    edge['value'] = gEdge.attributes !== undefined ? gEdge.attributes.Weight : undefined;
+  //    edge['width'] = edge['value'] !== undefined ? undefined : edgegEdge.size;
+      edge['color'] = gEdge.color;
+      edge['inheritColor'] = edge['color'] !== undefined ? false : this.options.inheritColor;
+      edges.push(edge);
+    }
+
+    for (var i = 0; i < gNodes.length; i++) {
+      var node = {};
+      var gNode = gNodes[i];
+      node['id'] = gNode.id;
+      node['attributes'] = gNode.attributes;
+      node['x'] = gNode.x;
+      node['y'] = gNode.y;
+      node['label'] = gNode.label;
+      if (this.options.nodes.parseColor == true) {
+        node['color'] = gNode.color;
+      }
+      else {
+        node['color'] = gNode.color !== undefined ? {background:gNode.color, border:gNode.color} : undefined;
+      }
+      node['radius'] = gNode.size;
+      node['allowedToMoveX'] = this.options.nodes.allowedToMove;
+      node['allowedToMoveY'] = this.options.nodes.allowedToMove;
+      nodes.push(node);
+    }
+
+    return {nodes:nodes, edges:edges};
+  }
+
+  exports.parseGephi = parseGephi;
+
+/***/ },
+/* 59 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var PhysicsMixin = __webpack_require__(60);
+  var ClusterMixin = __webpack_require__(64);
+  var SectorsMixin = __webpack_require__(65);
+  var SelectionMixin = __webpack_require__(66);
+  var ManipulationMixin = __webpack_require__(67);
+  var NavigationMixin = __webpack_require__(68);
+  var HierarchicalLayoutMixin = __webpack_require__(69);
 
   /**
    * Load a mixin into the network object
@@ -28641,13 +28798,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 59 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var RepulsionMixin = __webpack_require__(60);
-  var HierarchialRepulsionMixin = __webpack_require__(61);
-  var BarnesHutMixin = __webpack_require__(62);
+  var RepulsionMixin = __webpack_require__(61);
+  var HierarchialRepulsionMixin = __webpack_require__(62);
+  var BarnesHutMixin = __webpack_require__(63);
 
   /**
    * Toggling barnes Hut calculation on and off.
@@ -29355,7 +29512,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 60 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -29419,7 +29576,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 61 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -29578,7 +29735,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 62 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -29983,7 +30140,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 63 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -31126,11 +31283,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 64 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Node = __webpack_require__(55);
+  var Node = __webpack_require__(53);
 
   /**
    * Creation of the SectorMixin var.
@@ -31685,10 +31842,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 65 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Node = __webpack_require__(55);
+  var Node = __webpack_require__(53);
 
   /**
    * This function can be called from the _doInAllSectors function
@@ -32399,12 +32556,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 66 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Node = __webpack_require__(55);
-  var Edge = __webpack_require__(56);
+  var Node = __webpack_require__(53);
+  var Edge = __webpack_require__(52);
 
   /**
    * clears the toolbar div element of children
@@ -33085,7 +33242,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 67 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -33265,7 +33422,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 68 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   exports._resetLevels = function() {
@@ -33679,163 +33836,6 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     }
   };
-
-
-/***/ },
-/* 69 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var keycharm = __webpack_require__(50);
-  var Emitter = __webpack_require__(11);
-  var Hammer = __webpack_require__(19);
-  var util = __webpack_require__(1);
-
-  /**
-   * Turn an element into an clickToUse element.
-   * When not active, the element has a transparent overlay. When the overlay is
-   * clicked, the mode is changed to active.
-   * When active, the element is displayed with a blue border around it, and
-   * the interactive contents of the element can be used. When clicked outside
-   * the element, the elements mode is changed to inactive.
-   * @param {Element} container
-   * @constructor
-   */
-  function Activator(container) {
-    this.active = false;
-
-    this.dom = {
-      container: container
-    };
-
-    this.dom.overlay = document.createElement('div');
-    this.dom.overlay.className = 'overlay';
-
-    this.dom.container.appendChild(this.dom.overlay);
-
-    this.hammer = Hammer(this.dom.overlay, {prevent_default: false});
-    this.hammer.on('tap', this._onTapOverlay.bind(this));
-
-    // block all touch events (except tap)
-    var me = this;
-    var events = [
-      'touch', 'pinch',
-      'doubletap', 'hold',
-      'dragstart', 'drag', 'dragend',
-      'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is needed for Firefox
-    ];
-    events.forEach(function (event) {
-      me.hammer.on(event, function (event) {
-        event.stopPropagation();
-      });
-    });
-
-    // attach a tap event to the window, in order to deactivate when clicking outside the timeline
-    this.windowHammer = Hammer(window, {prevent_default: false});
-    this.windowHammer.on('tap', function (event) {
-      // deactivate when clicked outside the container
-      if (!_hasParent(event.target, container)) {
-        me.deactivate();
-      }
-    });
-
-    if (this.keycharm !== undefined) {
-      this.keycharm.destroy();
-    }
-    this.keycharm = keycharm();
-
-    // keycharm listener only bounded when active)
-    this.escListener = this.deactivate.bind(this);
-  }
-
-  // turn into an event emitter
-  Emitter(Activator.prototype);
-
-  // The currently active activator
-  Activator.current = null;
-
-  /**
-   * Destroy the activator. Cleans up all created DOM and event listeners
-   */
-  Activator.prototype.destroy = function () {
-    this.deactivate();
-
-    // remove dom
-    this.dom.overlay.parentNode.removeChild(this.dom.overlay);
-
-    // cleanup hammer instances
-    this.hammer = null;
-    this.windowHammer = null;
-    // FIXME: cleaning up hammer instances doesn't work (Timeline not removed from memory)
-  };
-
-  /**
-   * Activate the element
-   * Overlay is hidden, element is decorated with a blue shadow border
-   */
-  Activator.prototype.activate = function () {
-    // we allow only one active activator at a time
-    if (Activator.current) {
-      Activator.current.deactivate();
-    }
-    Activator.current = this;
-
-    this.active = true;
-    this.dom.overlay.style.display = 'none';
-    util.addClassName(this.dom.container, 'vis-active');
-
-    this.emit('change');
-    this.emit('activate');
-
-    // ugly hack: bind ESC after emitting the events, as the Network rebinds all
-    // keyboard events on a 'change' event
-    this.keycharm.bind('esc', this.escListener);
-  };
-
-  /**
-   * Deactivate the element
-   * Overlay is displayed on top of the element
-   */
-  Activator.prototype.deactivate = function () {
-    this.active = false;
-    this.dom.overlay.style.display = '';
-    util.removeClassName(this.dom.container, 'vis-active');
-    this.keycharm.unbind('esc', this.escListener);
-
-    this.emit('change');
-    this.emit('deactivate');
-  };
-
-  /**
-   * Handle a tap event: activate the container
-   * @param event
-   * @private
-   */
-  Activator.prototype._onTapOverlay = function (event) {
-    // activate the container
-    this.activate();
-    event.stopPropagation();
-  };
-
-  /**
-   * Test whether the element has the requested parent element somewhere in
-   * its chain of parent nodes.
-   * @param {HTMLElement} element
-   * @param {HTMLElement} parent
-   * @returns {boolean} Returns true when the parent is found somewhere in the
-   *                    chain of parent nodes.
-   * @private
-   */
-  function _hasParent(element, parent) {
-    while (element) {
-      if (element === parent) {
-        return true
-      }
-      element = element.parentNode;
-    }
-    return false;
-  }
-
-  module.exports = Activator;
 
 
 /***/ },
