@@ -13,6 +13,7 @@ http://visjs.org
 - Made physics more stable (albeit a little slower).
 - Added a check so only one 'activator' overlay is created on clickToUse.
 - Made global color options for edges overrule the inheritColors.
+- Improved cleaning up of the physics configuration on destroy and in options.
 
 ### Graph2d
 
