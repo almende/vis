@@ -8,16 +8,25 @@ http://visjs.org
 
 - Fixed flipping of hierarchical network on update when using RL and DU.
 - Added zoomExtentOnStabilize option to network.
+- Improved destroy function, added them to the examples.
+- Nodes now have bounding boxes that are used for zoomExtent.
+- Made physics more stable (albeit a little slower).
+- Made global color options for edges overrule the inheritColors.
 
 ### Graph2d
 
 - Fixed round-off errors of zero on the y-axis.
 - added show major/minor lines options to dataAxis.
+- Fixed adapting to width and height changes.
 
 ### Timeline
 
 - Support for custom date formatting of the labels on the time axis.
 - added show major/minor lines options to timeline.
+
+### Graph3d
+
+- Fixed mouse coordinates for tooltips.
 
 
 ## 2014-12-09, version 3.7.2
