@@ -14,6 +14,7 @@ http://visjs.org
 - Added a check so only one 'activator' overlay is created on clickToUse.
 - Made global color options for edges overrule the inheritColors.
 - Improved cleaning up of the physics configuration on destroy and in options.
+- Made nodes who lost their color revert back to default.
 
 ### Graph2d
 

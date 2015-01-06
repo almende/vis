@@ -22,6 +22,7 @@
     var nodes = null;
     var edges = null;
     var network = null;
+    var nodesData = null;
 
     google.load('visualization', '1');
 
@@ -130,11 +131,11 @@
         nodeOffset += nodeCount;
         group++;
       }
-
+      nodesData = new vis.DataSet(nodes);
       // create a network
       var container = document.getElementById('mynetwork');
       var data = {
-        nodes: nodes,
+        nodes: nodesData,
         edges: edges
       };
       var options = {
@@ -145,6 +146,10 @@
         physics: {barnesHut:{springLength: 200}}
       };
       network = new vis.Network(container, data, options);
+    }
+
+    function dostuff() {
+      nodesData.update({id:16,group:null})
     }
   </script>
 </head>
@@ -158,7 +163,7 @@
   <input type="submit" value="Go">
 </form>
 <br>
-
+<input type="button" onclick="dostuff()">
 <div id="mynetwork"></div>
 
 </body>
