@@ -22,7 +22,16 @@
     var edges = null;
     var network = null;
 
+    function destroy() {
+      if (network !== null) {
+        network.destroy();
+        network = null;
+      }
+    }
+
     function draw() {
+      destroy();
+
       nodes = [];
       edges = [];
       var connectionCount = [];
@@ -75,7 +84,7 @@
         nodes: nodes,
         edges: edges
       };
-      var options = {stabilization:false};
+      var options = {stabilize:false};
       network = new vis.Network(container, data, options);
 
       // add event listeners

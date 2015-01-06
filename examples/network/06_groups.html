@@ -28,8 +28,17 @@
     // Set callback to run when API is loaded
     google.setOnLoadCallback(draw);
 
+    function destroy() {
+      if (network !== null) {
+        network.destroy();
+        network = null;
+      }
+    }
+
     // Called when the Visualization API is loaded.
     function draw() {
+      destroy();
+
       var from, to;
 
       nodes = [];

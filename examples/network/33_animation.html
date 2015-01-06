@@ -46,8 +46,15 @@
     var statusUpdateSpan;
     var finishMessage = "";
 
+    function destroy() {
+        if (network !== null) {
+            network.destroy();
+            network = null;
+        }
+    }
 
     function draw() {
+      destroy();
       statusUpdateSpan = document.getElementById("statusUpdate");
       doButton = document.getElementById("btnDo");
       focusButton = document.getElementById("btnFocus");
