@@ -26104,9 +26104,6 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   Groups.prototype.add = function (groupname, style) {
     this.groups[groupname] = style;
-    if (style.color) {
-      style.color = util.parseColor(style.color);
-    }
     return style;
   };
 
@@ -26343,12 +26340,9 @@ return /******/ (function(modules) { // webpackBootstrap
     // copy group properties
     if (typeof this.options.group === 'number' || (typeof this.options.group === 'string' && this.options.group != '')) {
       var groupObj = this.grouplist.get(this.options.group);
-      for (var prop in groupObj) {
-        if (groupObj.hasOwnProperty(prop)) {
-          this.options[prop] = groupObj[prop];
-        }
-      }
-      console.log(this.options)
+      util.deepExtend(this.options, groupObj);
+      // the color object needs to be completely defined. Since groups can partially overwrite the colors, we parse it again, just in case.
+      this.options.color = util.parseColor(this.options.color);
     }
     else if (properties.color === undefined) {
       this.options.color = constants.nodes.color;

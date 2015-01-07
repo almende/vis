@@ -22,8 +22,8 @@
 <script type="text/javascript">
   // create an array with nodes
   var nodes = [
-    {id: 1, label: 'Node 1'},
-    {id: 2, label: 'Node 2'},
+    {id: 1, label: 'Node 1', group: 'mygroup1'},
+    {id: 2, label: 'Node 2', group: 'mygroup1'},
     {id: 3, label: 'Node 3'},
     {id: 4, label: 'Node 4'},
     {id: 5, label: 'Node 5'}
@@ -43,9 +43,27 @@
     nodes: nodes,
     edges: edges
   };
-  var options = {};
+  var options = {
+    width: '400px',
+    height: '400px',
+    hover: true,
+    groups: {
+      mygroup1: {
+        color: {
+          hover: {
+            background: 'red',
+            border: 'red'
+          },
+          highlight: 'green'
+        },
+        shape: 'box'
+      }
+    }
+
+  };
   var network = new vis.Network(container, data, options);
 </script>
 
 </body>
+
 </html>
