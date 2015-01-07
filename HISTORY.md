@@ -22,6 +22,7 @@ http://visjs.org
 - Fixed error in repulsion physics model.
 - Improved physics handling for smoother network simulation.
 - Fixed infinite loop when an image can not be found and no brokenImage is provided.
+- Added getBoundingBox method.
 
 ### Graph2d
 
