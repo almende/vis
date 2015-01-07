@@ -18,6 +18,7 @@ http://visjs.org
 - Changed group behaviour, groups now extend the options, not replace. This allows partial defines of color.
 - Fixed bug where box shaped nodes did not use hover color.
 - Fixed Locales docs.
+- When hovering over a node that does not have a title, the title of one of the connected edges that HAS a title is no longer shown.
 
 ### Graph2d
 
