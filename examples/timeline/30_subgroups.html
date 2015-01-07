@@ -61,11 +61,11 @@
 
     var container = document.getElementById('visualization');
     var options = {
+        // orientation:'top'
         start: '2014-01-10',
         end: '2014-02-10',
         editable: true,
-        stack: false,
-//        orientation:'top'
+        stack: false
     };
 
     var timeline = new vis.Timeline(container, items, groups, options);

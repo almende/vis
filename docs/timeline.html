@@ -246,6 +246,16 @@ var items = [
     </td>
   </tr>
   <tr>
+    <td>subgroup</td>
+    <td>String | Number</td>
+    <td>none</td>
+    <td>The id of a subgroup.
+      Groups all items within a group per subgroup, and positions them on the
+      same height instead of staking them on top of each other. can be ordered
+      by specifying the option <code>subgroupOrder</code> of a group.
+    </td>
+  </tr>
+  <tr>
     <td>title</td>
     <td>String</td>
     <td>none</td>
@@ -340,6 +350,14 @@ var groups = [
     </td>
   </tr>
   <tr>
+    <td>subgroupOrder</td>
+    <td>String | Function</td>
+    <td>none</td>
+    <td>Order the subgroups by a field name or custom sort function.
+      By default, groups are ordered by first-come, first-show.
+    </td>
+  </tr>
+  <tr>
     <td>title</td>
     <td>String</td>
     <td>none</td>
@@ -347,14 +365,6 @@ var groups = [
       The title can only contain plain text.
     </td>
   </tr>
-    <tr>
-        <td>subgroupOrder</td>
-        <td>String | Function</td>
-        <td>none</td>
-        <td>Order the subgroups by a field name or custom sort function.
-            By default, groups are ordered by first-come, first-show.
-        </td>
-    </tr>
 </table>
 
 
@@ -463,6 +473,39 @@ var options = {
     <td>The initial end date for the axis of the timeline.
         If not provided, the latest date present in the items set is taken as
         end date.</td>
+</tr>
+
+<tr>
+    <td>format</td>
+    <td>Object</td>
+    <td>none</td>
+    <td>
+      Apply custom date formatting of the labels on the time axis. The default value of <code>format</code> is:
+      <pre class="prettyprint lang-js">{
+  minorLabels: {
+    millisecond:'SSS',
+    second:     's',
+    minute:     'HH:mm',
+    hour:       'HH:mm',
+    weekday:    'ddd D',
+    day:        'D',
+    month:      'MMM',
+    year:       'YYYY'
+  },
+  majorLabels: {
+    millisecond:'HH:mm:ss',
+    second:     'D MMMM HH:mm',
+    minute:     'ddd D MMMM',
+    hour:       'ddd D MMMM',
+    weekday:    'MMMM YYYY',
+    day:        'MMMM YYYY',
+    month:      'YYYY',
+    year:       ''
+  }
+}</pre>
+      For values which not provided in the customized <code>options.format</code>, the default values will be used.
+      All available formatting syntax is described in the <a href="http://momentjs.com/docs/#/displaying/format/">docs of moment.js</a>.
+    </td>
 </tr>
 
 <tr>
@@ -699,6 +742,23 @@ var options = {
         <code>showMinorLabels</code> are false, no horizontal axis will be
         visible.</td>
 </tr>
+
+
+  <tr>
+    <td>showMajorLines</td>
+    <td>boolean</td>
+    <td>true</td>
+    <td>By default, the timeline shows both minor and major date lines on the
+      time axis. You can use this option to hide the lines from the major dates.
+  </tr>
+
+  <tr>
+    <td>showMinorLines</td>
+    <td>boolean</td>
+    <td>true</td>
+    <td>By default, the timeline shows both minor and major date lines on the
+      time axis. You can use this option to hide the lines from the minor dates.
+  </tr>
 
 <tr>
     <td>stack</td>

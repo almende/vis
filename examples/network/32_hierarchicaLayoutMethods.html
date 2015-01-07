@@ -21,7 +21,16 @@
         var network = null;
         var layoutMethod = "hubsize";
 
+        function destroy() {
+            if (network !== null) {
+                network.destroy();
+                network = null;
+            }
+        }
+
         function draw() {
+            destroy();
+
             var nodes = [];
             var edges = [];
             // randomly create some nodes and edges
@@ -113,7 +122,7 @@
 </head>
 
 <body onload="draw();">
-<h2>Hierarchical Layout - User-defined</h2>
+<h2>Hierarchical layout difference</h2>
 <div style="width:700px; font-size:14px; text-align: justify;">
     This example shows a the effect of the different hierarchical layout methods. Hubsize is based on the amount of edges connected to a node.
     The node with the most connections (the largest hub) is drawn at the top of the tree. The direction method is based on the direction of the edges.

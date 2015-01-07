@@ -790,6 +790,14 @@ var options = {
     before showing the result. If your simulation takes too long to stabilize, this number can be reduced. On the other hand, if your network is not stabilized after loading, this number can be increased.</td>
 </tr>
 
+
+<tr>
+  <td>zoomExtentOnStabilize</td>
+  <td>Boolean</td>
+  <td>true</td>
+  <td>When the internal stabilize function is called because the stabilize option is set to true OR the hierarchical system (re)initializes, a call to zoomExtent is done by default. By setting this to false, you can avoid this call.</td>
+</tr>
+
 <tr>
   <td>width</td>
   <td>String</td>
@@ -2009,15 +2017,15 @@ To load a locale into the Timeline not supported by default, one can add a new l
   locales: {
     // create a new locale (text strings should be replaced with localized strings)
     mylocale: {
-      add: 'Add Node',
       edit: 'Edit',
-      link: 'Add Link',
       del: 'Delete selected',
+      back: 'Back',
+      addNode: 'Add Node',
+      addEdge: 'Add Edge',
       editNode: 'Edit Node',
       editEdge: 'Edit Edge',
-      back: 'Back',
       addDescription: 'Click in an empty space to place a new node.',
-      linkDescription: 'Click on a node and drag the edge to another node to connect them.',
+      edgeDescription: 'Click on a node and drag the edge to another node to connect them.',
       editEdgeDescription: 'Click on the control points and drag them to a node to connect to it.',
       createEdgeError: 'Cannot link edges to a cluster.',
       deleteClusterError: 'Clusters cannot be deleted.'
@@ -2222,7 +2230,11 @@ var options = {
     <td>none</td>
     <td>Remove an event listener created before via function <code>on(event, callback)</code>. See section <a href="#Events">Events</a> for more information.</td>
   </tr>
-
+  <tr>
+    <td>destroy()</td>
+    <td>none</td>
+    <td>Remove all bindings and clean up after the Network.</td>
+  </tr>
   <tr>
     <td>redraw()</td>
     <td>none</td>
