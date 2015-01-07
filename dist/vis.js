@@ -24650,6 +24650,7 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.constants.smoothCurves.enabled == true && this.constants.smoothCurves.dynamic == true) {
           supportMovingStatus = this._doInSupportSector("_discreteStepNodes");
         }
+
         // gather movement data from all sectors, if one moves, we are NOT stabilzied
         for (var i = 0; i < mainMoving.length; i++) {mainMovingStatus = mainMoving[0] || mainMovingStatus;}
 
@@ -24709,8 +24710,6 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       if (!this.timer) {
-
-
         if (this.requiresTimeout == true) {
           this.timer = window.setTimeout(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
         }
@@ -27543,6 +27542,15 @@ return /******/ (function(modules) { // webpackBootstrap
       var me = this;
       var img = new Image();
       img.onload = function () {
+
+        // IE11 fix -- thanks dponch!
+        if (this.width == 0) {
+          document.body.appendChild(this);
+          this.width = this.offsetWidth;
+          this.height = this.offsetHeight;
+          document.body.removeChild(this);
+        }
+
         if (me.callback) {
           me.images[url] = img;
           me.callback(this);

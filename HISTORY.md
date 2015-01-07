@@ -23,6 +23,7 @@ http://visjs.org
 - Improved physics handling for smoother network simulation.
 - Fixed infinite loop when an image can not be found and no brokenImage is provided.
 - Added getBoundingBox method.
+- Community fix for SVG images in IE11, thanks @dponch!
 
 ### Graph2d
 
