@@ -24,6 +24,7 @@ http://visjs.org
 - added show major/minor lines options to dataAxis.
 - Fixed adapting to width and height changes.
 - Added a check so only one 'activator' overlay is created on clickToUse.
+- DataAxis width option now draws correctly.
 
 ### Timeline
 
