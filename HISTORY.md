@@ -19,6 +19,8 @@ http://visjs.org
 - Fixed bug where box shaped nodes did not use hover color.
 - Fixed Locales docs.
 - When hovering over a node that does not have a title, the title of one of the connected edges that HAS a title is no longer shown.
+- Fixed error in repulsion physics model.
+- Improved physics handling for smoother network simulation.
 
 ### Graph2d
 
