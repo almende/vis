@@ -17,6 +17,7 @@ http://visjs.org
 - Made nodes who lost their group revert back to default color.
 - Changed group behaviour, groups now extend the options, not replace. This allows partial defines of color.
 - Fixed bug where box shaped nodes did not use hover color.
+- Fixed Locales docs.
 
 ### Graph2d
 
