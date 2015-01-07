@@ -21,6 +21,7 @@ http://visjs.org
 - When hovering over a node that does not have a title, the title of one of the connected edges that HAS a title is no longer shown.
 - Fixed error in repulsion physics model.
 - Improved physics handling for smoother network simulation.
+- Fixed infinite loop when an image can not be found and no brokenImage is provided.
 
 ### Graph2d
 
