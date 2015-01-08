@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
-
+    <link rel="icon" HREF="favicon.ico">
     <title>vis.js - A dynamic, browser based visualization library.</title>
 
     <!-- Bootstrap core CSS -->
@@ -63,8 +63,9 @@
 
         div.post {
             margin:40px 80px 0px 190px;
-            padding:10px 10px 10px 10px;;
+            padding:10px 10px 10px 20px;;
             border: 1px solid #eeeeee;
+            border-radius:3px;
         }
 
         div.postHeader {
@@ -80,8 +81,9 @@
         }
 
         div.postAuthor {
-            padding-left:10px;
+            padding-left:5px;
             margin-top:19px;
+            margin-right:20px;
             float:right;
             font-size:12px;
         }
@@ -180,48 +182,195 @@
     <div class="postsMenu">
         <div class="postsMenuContent">
             Posts:
-            <a class="post" href="#Released version 3.7.3">- Released version 3.7.3</a>
-            <a class="post" href="#Released version 3.7.2">- Released version 3.7.2</a>
+            <a class="post" href="#The 2015 roadmap for vis.js">- The 2015 roadmap for vis.js</a>
+            <a class="post" href="#A look back on vis.js">- A look back on vis.js</a>
+            <a class="post" href="#New website for vis.js!">- New website for vis.js!</a>
+            <a class="post" href="#Released version 3.8.0">- Released version 3.8.0</a>
+        </div>
+    </div>
+
+
+    <div class="post">
+        <div class="postHeader" id="The 2015 roadmap for vis.js">The 2015 roadmap for vis.js</div>
+        <div class="postAuthor">by <a href="https://github.com/AlexDM0">Alex</a></div>
+        <div class="postDate">9th of January 2015</div>
+        <div class="postContent">
+            <p>
+               I initially wanted to do a small recap of vis.js so far but it became larger (and more off topic) than I expected. To understand some of the motivations for our roadmap, <a href="#A look back on vis.js">take a look at the post below this one first</a>.
+            </p><p>
+            So now for our plans for 2015! We have added a lot of features over the last year, and we have to be careful that vis does not die of option-obesity. To mediate this we thought of a few solutions.
+            Firstly, we will make the docs collapsible using a similar system to <a href="https://www.jsoneditoronline.org/" target="_blank">Jos&prime;s great online JSON editor</a>. This is naturally a temporary fix but
+            the docs are one of the most important ways to get information. We think we ourselves may be the most frequent visitor of those pages so it's a good start!
+            </p><p>
+            Secondly, the actual changes, we plan to reorganize some of the option structure. This will unfortunately  (but by definition) be a breaking change from our old versions. The new structure will be clearer and more intuitive. The work our current
+            users will have to do to update will be minimal. If you're using the options we reorganize, you'll have to update your options. Breaking releases are always a shame, but we feel it is necessary.
+        </p><p>
+            The third step we want to take is to go over the code of each module and modularize everything much more. This will make the code easier to maintain as we move away from very large .js files, as well as make it easier to expand on.
+        </p><p>
+            Once everything is modularized, we want to change the API to allow users to plug their own parts of vis together. As an example: You start a network module, plug in the type of node module, edge module, physics module and optionally navigation module (etc.) and you're good to go!
+            All of these modules will be individually configured. This means the huge list of options will be segmented into smaller, more manageable parts. Additionally, the docs will become smaller and clearer.
+            </p><p>
+            Of course, we do not want to abandon all our plug-and-play functionality! We will also start to supply more preconfigured constructors (i.e. a vis.BarChart that will give you a preconfigured graph2d module). Apart from these constructors
+            we will continue to publish examples which will include code snippets that you can use in your own project.
+        </p><p>
+            Once this has been completed, we expect there will be more options that accept functions as arguments which gives you more control over vis. Finally, because everything (well, more than now) would be split up into
+            modules, it becomes easier for the community to create additional modules, further improving vis!
+        </p><p>
+            The things I have listed here are the ideas that we have now. This is subject to change. We also cannot provide a timeline for this because we work on vis whenever we have time. No deadlines, no constrains, just when we have time.
+        </p><p>
+            To wrap up, there are a few things I did not mention here but I'd like to add to the post anyway.
+            <ul>
+            <li>We want to improve the fusion of graph2d and the timeline, with the ideal that a graph2d can be used like a group in timeline now.</li>
+            <li>Examples will be split in simple option/configuration examples and larger, feature demonstration/exploration examples.</li>
+            <li>Graph2d will be expanded.</li>
+            <li>We will move to hammer.js 2.0.</li>
+            <li>We will add features <a href="./featureRequests.html" target="_blank">from the list</a> when we can</li>
+            <li>We hope to keep up the <communi></communi>cation with our community!</li>
+            </ul>
+            Let's make 2015 as good as last year!
+        </p>
         </div>
     </div>
 
     <div class="post">
-        <div class="postHeader" id="Released version 3.7.3">Released version 3.7.3</div>
+        <div class="postHeader" id="A look back on vis.js">A look back on vis.js</div>
         <div class="postAuthor">by <a href="https://github.com/AlexDM0">Alex</a></div>
-        <div class="postDate">8th of January, 2015</div>
+        <div class="postDate">9th of January 2015</div>
         <div class="postContent">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris varius tellus felis, sed porttitor enim facilisis in. Sed lacinia est sit amet quam dapibus egestas. Integer laoreet, odio quis lobortis scelerisque, sapien mauris consequat nisl, nec maximus justo felis eget ligula. Aliquam tempus mattis porttitor. Pellentesque vitae massa nunc. Maecenas sit amet laoreet ligula. Proin tellus ex, eleifend eget velit eu, tincidunt facilisis purus. Sed at quam vel odio feugiat fringilla.
-
-            Nam pretium justo nec magna volutpat porttitor. Interdum et malesuada fames ac ante ipsum primis in faucibus. Duis a rhoncus arcu, quis sagittis lacus. Pellentesque sed convallis metus. Cras eu lorem ex. Donec ultricies dui congue, varius nulla pharetra, semper dolor. Sed ac elit tortor. Cras vestibulum risus lacus, ut varius risus congue sed. Aliquam in tincidunt libero. Aenean ac eleifend dolor, non pellentesque neque.
-
-            Nunc metus enim, tristique vel odio vel, dignissim ultricies massa. Nam posuere mauris erat. Vestibulum ornare nulla et purus placerat, ac venenatis mi facilisis. Ut non sapien a neque hendrerit finibus. Fusce rhoncus aliquet tristique. Donec eu nisl id dolor molestie convallis at vitae diam. Phasellus in tortor ut ante tincidunt mollis. Aliquam erat volutpat. Suspendisse eget odio ut dolor ultrices vestibulum a at nunc. Donec vel sodales nunc. In hac habitasse platea dictumst. Cras pharetra felis ut nisl commodo, eget sollicitudin justo fringilla. Quisque scelerisque lacus est, vestibulum dignissim lorem venenatis non. Nullam ac turpis elit. Sed quis lorem id nisi egestas semper quis non erat.
-
-            Nam quis elit vitae nibh volutpat facilisis eget sit amet tortor. Nam rutrum ante eget nisl cursus, nec eleifend lacus vulputate. Donec porta dui a tellus molestie, a dapibus nisl convallis. Aenean laoreet vehicula lorem in dictum. Phasellus ullamcorper lectus suscipit felis malesuada blandit. Vestibulum non posuere libero. Maecenas malesuada bibendum lacus eget congue. Sed id nibh in nulla vehicula luctus. Ut cursus metus ante, a lobortis lacus volutpat sit amet. Nullam elit augue, hendrerit id maximus at, viverra eget quam. Quisque tempor diam vitae purus posuere congue. Phasellus blandit dictum maximus. Nulla justo tortor, finibus sit amet malesuada et, bibendum eget urna.
-
-            Aliquam mattis libero id felis aliquet eleifend. Vivamus placerat at felis eget tincidunt. Integer vitae mi sit amet felis mollis consequat. Aenean rutrum, ipsum porttitor molestie dictum, nulla nunc eleifend ligula, quis auctor lacus dolor vel felis. Curabitur nec dui sit amet mi blandit ornare. Integer sodales orci in elementum ornare. Aenean ut lacus eu libero faucibus porta. Pellentesque mattis non dui ac fermentum. Nulla non faucibus mi. Morbi feugiat tincidunt erat, a scelerisque risus. Quisque accumsan risus nec urna elementum cursus. Suspendisse potenti. Etiam in tortor feugiat, maximus leo eget, rhoncus turpis. Aliquam in purus nunc. Duis lobortis nibh ut pellentesque gravida. Donec non metus laoreet, eleifend lectus in, auctor ipsum.
-
+            <p>
+                In April 2013, the initial commit was made for vis.js by <a href="https://github.com/josdejong">Jos</a> because the old CHAP LINKS library was becoming too large to expand and maintain.
+                Vis.js was a clean, new start using all the knowledge gathered from the CHAP library with the ideal that the new infrastructure would be more stable, faster and easier to maintain.
+                </p><p>
+                In January 2014, I joined the project and started to expand the Network module, which was called Graph back then. I have been working alongside Jos since then we have poured a lot of hours into vis.
+            </p><p>
+                On the 16th of April 2014, exactly a year after the initial commit, <a href="https://twitter.com/hackernewsbot/status/456231005678874624" target="_blank">a twitterbot with a lot of followers</a> notified
+                the world that we were featured on hackernews! This was the boost we needed to really reach a large community. We saw the amount of visitors and Github stars increase greatly over the months that followed.
+            <br />
+            <br />
+            <i><b>TODO: insert graph2d with visitors?</b></i>
+            <br />
+            <br />
+            </p><p>
+                The 14th of October, we have altered the license of vis.js to MIT or APACHE 2.0. This allowed <a href="http://tiddlywiki.com/" target="_blank">Tiddlywiki</a> to add vis.js to their keychain. From what we hear,
+            their developers really enjoy working with vis and we look forward to hearing how their community uses our software!
+        </p><p>
+            Now, we have a great community that helps out in issues, fixes our typos in the docs, notifies us of bugs and sometimes fixes them for us. We have received pull requests with new features and improvements and
+            it has been fantastic!
+        </p><p>
+            This post started out as the roadmap for vis in 2015, but the review was longer than I initially expected thereby deserving its own post.
+            </p><p>
+            Have fun using vis!
+            </p>
         </div>
     </div>
+
     <div class="post">
-        <div class="postHeader" id="Released version 3.7.2">Released version 3.7.2</div>
+        <div class="postHeader" id="New website for vis.js!">New website for vis.js!</div>
         <div class="postAuthor">by <a href="https://github.com/AlexDM0">Alex</a></div>
-        <div class="postDate">8th of January, 2015</div>
-
+        <div class="postDate">9th of January 2015</div>
         <div class="postContent">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris varius tellus felis, sed porttitor enim facilisis in. Sed lacinia est sit amet quam dapibus egestas. Integer laoreet, odio quis lobortis scelerisque, sapien mauris consequat nisl, nec maximus justo felis eget ligula. Aliquam tempus mattis porttitor. Pellentesque vitae massa nunc. Maecenas sit amet laoreet ligula. Proin tellus ex, eleifend eget velit eu, tincidunt facilisis purus. Sed at quam vel odio feugiat fringilla.
-
-            Nam pretium justo nec magna volutpat porttitor. Interdum et malesuada fames ac ante ipsum primis in faucibus. Duis a rhoncus arcu, quis sagittis lacus. Pellentesque sed convallis metus. Cras eu lorem ex. Donec ultricies dui congue, varius nulla pharetra, semper dolor. Sed ac elit tortor. Cras vestibulum risus lacus, ut varius risus congue sed. Aliquam in tincidunt libero. Aenean ac eleifend dolor, non pellentesque neque.
-
-            Nunc metus enim, tristique vel odio vel, dignissim ultricies massa. Nam posuere mauris erat. Vestibulum ornare nulla et purus placerat, ac venenatis mi facilisis. Ut non sapien a neque hendrerit finibus. Fusce rhoncus aliquet tristique. Donec eu nisl id dolor molestie convallis at vitae diam. Phasellus in tortor ut ante tincidunt mollis. Aliquam erat volutpat. Suspendisse eget odio ut dolor ultrices vestibulum a at nunc. Donec vel sodales nunc. In hac habitasse platea dictumst. Cras pharetra felis ut nisl commodo, eget sollicitudin justo fringilla. Quisque scelerisque lacus est, vestibulum dignissim lorem venenatis non. Nullam ac turpis elit. Sed quis lorem id nisi egestas semper quis non erat.
-
-            Nam quis elit vitae nibh volutpat facilisis eget sit amet tortor. Nam rutrum ante eget nisl cursus, nec eleifend lacus vulputate. Donec porta dui a tellus molestie, a dapibus nisl convallis. Aenean laoreet vehicula lorem in dictum. Phasellus ullamcorper lectus suscipit felis malesuada blandit. Vestibulum non posuere libero. Maecenas malesuada bibendum lacus eget congue. Sed id nibh in nulla vehicula luctus. Ut cursus metus ante, a lobortis lacus volutpat sit amet. Nullam elit augue, hendrerit id maximus at, viverra eget quam. Quisque tempor diam vitae purus posuere congue. Phasellus blandit dictum maximus. Nulla justo tortor, finibus sit amet malesuada et, bibendum eget urna.
-
-            Aliquam mattis libero id felis aliquet eleifend. Vivamus placerat at felis eget tincidunt. Integer vitae mi sit amet felis mollis consequat. Aenean rutrum, ipsum porttitor molestie dictum, nulla nunc eleifend ligula, quis auctor lacus dolor vel felis. Curabitur nec dui sit amet mi blandit ornare. Integer sodales orci in elementum ornare. Aenean ut lacus eu libero faucibus porta. Pellentesque mattis non dui ac fermentum. Nulla non faucibus mi. Morbi feugiat tincidunt erat, a scelerisque risus. Quisque accumsan risus nec urna elementum cursus. Suspendisse potenti. Etiam in tortor feugiat, maximus leo eget, rhoncus turpis. Aliquam in purus nunc. Duis lobortis nibh ut pellentesque gravida. Donec non metus laoreet, eleifend lectus in, auctor ipsum.
-
+            <p>
+                The old website served us well, but now that we arrived in 2015... it is really time for an upgrade! We hope the new website is more informative, modern and a good promotion for vis.js!
+                It also allows us to keep the community updated through this blog and to <a href="./showcase/index.html" target="_blank">show off great projects that make use of vis.js in our showcase</a>.
+            </p><p>If you have made something and would like it featured,
+                please make an <a href="https://github.com/almende/vis/issues" target="_blank">issue on Github</a> with your project and how you'd like to be credited.</p>
+            </p><p>
+                The new website is in beta so if anyone spots a typo or other mistake, please let us know on our <a href="https://www.github.com/almende/vis" target="_blank">Github</a> page.
+            </p><p>
+                There is no forum on this website. We prefer to keep all the communication with the community through Github. We believe this is the best solution so everyone only has to check the Github issues
+                when there is a problem or suggestion.
+            </p><p>
+                A big change introduced with our new website, is the <a href="./featureRequests.html" target="_blank">feature request page</a>. There are a lot of issues on Github that suggest features but we do not
+                always have time to implement these ourselves. On the other hand, there have been issues where people tell us they want to contribute but are now sure where to start. To mediate this (and to make a clear overview
+                for ourselves) we listed everything <a href="./featureRequests.html" target="_blank">here</a>.
+                </p><p>Once a feature is added to <a href="./featureRequests.html" target="_blank">the list</a>, it is not the end of the line. At each new release, we'll look at the list and see which features we may want to pick up for the next one. Discussions on these features
+                can still continue on the referenced Github issues. When we have added a feature to this list, we will close the Github issue that requested it to keep our open issues more of a bug-todo list. The main motivation for this
+                is because we have noticed that old bugs (on pages after 2) would be overlooked from time to time.
+            </p><p>
+                This feature page is an experiment. If it turns out that the community does not like us closing issues with open feature requests or if it does not have the impact we'd like it to have, we'll revert back to the old model.
+            </p><p>
+                We thank you all for using vis! Last year has seen a great increase in our user base and it is a great motivating factor knowing that our work is used by others!
+            </p><p>
+                Here's to a great 2015!
+            </p>
         </div>
     </div>
 
+    <div class="post">
+        <div class="postHeader" id="Released version 3.8.0">Released version 3.8.0</div>
+        <div class="postAuthor">by <a href="https://github.com/AlexDM0">Alex</a></div>
+        <div class="postDate">9th of January 2015</div>
+        <div class="postContent">
+            <p>
+                We're proud to present a new version of the vis.js library: 3.8.0! This release has a lot of new features and bugfixes, nearly all of which were suggested and/or discovered
+                by our community on <a href="https://www.github.com/almende/vis" target="_blank">Github</a>. A lot of the issues on Github have been handled in this release and it is likely to be the
+                last release before 4.0.0. The 4.0.0 release will break compatibility with old code (only options will be revisited on the API side) but more on that in <a href="#The 2015 roadmap for vis.js">the roadmap post</a>.
+            </p>
+
+            <p>Changelog:</p>
+
+
+            <h3><a id="user-content-network" class="anchor" href="#network" aria-hidden="true"><span class="octicon octicon-link"></span></a>Network</h3>
+
+            <ul class="task-list">
+                <li>Fixed flipping of hierarchical network on update when using RL and DU.</li>
+                <li>Added zoomExtentOnStabilize option to network.</li>
+                <li>Improved destroy function, added them to the examples.</li>
+                <li>Nodes now have bounding boxes that are used for zoomExtent.</li>
+                <li>Made physics more stable (albeit a little slower).</li>
+                <li>Added a check so only one 'activator' overlay is created on clickToUse.</li>
+                <li>Made global color options for edges overrule the inheritColors.</li>
+                <li>Improved cleaning up of the physics configuration on destroy and in options.</li>
+                <li>Made nodes who lost their group revert back to default color.</li>
+                <li>Changed group behaviour, groups now extend the options, not replace. This allows partial defines of color.</li>
+                <li>Fixed bug where box shaped nodes did not use hover color.</li>
+                <li>Fixed Locales docs.</li>
+                <li>When hovering over a node that does not have a title, the title of one of the connected edges that HAS a title is no longer shown.</li>
+                <li>Fixed error in repulsion physics model.</li>
+                <li>Improved physics handling for smoother network simulation.</li>
+                <li>Fixed infinite loop when an image can not be found and no brokenImage is provided.</li>
+                <li>Added getBoundingBox method.</li>
+                <li>Community fix for SVG images in IE11, thanks @dponch!</li>
+            </ul>
+
+            <h3>
+                <a id="user-content-graph2d" class="anchor" href="#graph2d" aria-hidden="true"><span class="octicon octicon-link"></span></a>Graph2d</h3>
+
+            <ul class="task-list">
+                <li>Fixed round-off errors of zero on the y-axis.</li>
+                <li>added show major/minor lines options to dataAxis.</li>
+                <li>Fixed adapting to width and height changes.</li>
+                <li>Added a check so only one 'activator' overlay is created on clickToUse.</li>
+                <li>DataAxis width option now draws correctly.</li>
+            </ul>
+
+            <h3>
+                <a id="user-content-timeline" class="anchor" href="#timeline" aria-hidden="true"><span class="octicon octicon-link"></span></a>Timeline</h3>
+
+            <ul class="task-list">
+                <li>Implemented support for styling of the vertical grid.</li>
+                <li>Support for custom date formatting of the labels on the time axis.</li>
+                <li>added show major/minor lines options to timeline.</li>
+                <li>Added a check so only one 'activator' overlay is created on clickToUse.</li>
+            </ul>
+
+            <h3>
+                <a id="user-content-graph3d" class="anchor" href="#graph3d" aria-hidden="true"><span class="octicon octicon-link"></span></a>Graph3d</h3>
+
+            <ul class="task-list">
+                <li>Fixed mouse coordinates for tooltips.</li>
+            </ul>
+
+
+        </div>
+    </div>
+<br />
+<br />
+<br />
+<br />
+<br />
 </div>
+
 <!-- Bootstrap core JavaScript
 ================================================== -->
 <!-- Placed at the end of the document so the pages load faster -->
