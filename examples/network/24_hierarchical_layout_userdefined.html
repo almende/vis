@@ -23,7 +23,15 @@
     var network = null;
     var directionInput = document.getElementById("direction");
 
+    function destroy() {
+        if (network !== null) {
+            network.destroy();
+            network = null;
+        }
+    }
+
     function draw() {
+      destroy();
       nodes = [];
       edges = [];
       var connectionCount = [];
