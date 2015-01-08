@@ -7,7 +7,7 @@
     <title>Feature Requests</title>
 
     <!-- Bootstrap -->
-    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -18,14 +18,14 @@
 
 
     <style>
-        a {
-            text-decoration: none;
-        }
-
         body {
-            padding:10px;
             font-family: Lustria,Georgia,Times,"Times New Roman",serif !important;
         }
+
+        a:link {color: #ffaf12;}
+        a:visited {color: #ffaf12;}
+        a:hover {color: #ffaf12;}
+        a:active {color: #ffaf12;}
 
         div.textHTMLContent {
             display:block;
@@ -34,24 +34,29 @@
 
         img.showcase {
             position:relative;
+            left:-50px;
             border: 1px solid #dddddd;
-            border-radius:20px;
-            width:900px;
+            border-radius:5px;
+            width:880px;
             height:350px;
+            margin:30px;
         }
 
         div.description{
-            width:880px;
+            text-align:justify;
+            max-width:880px;
             position:relative;
-            border-radius:20px;
+            border-radius:5px;
             padding:20px;
             text-decoration: none;
             color:#ffffff;
-            background-color:#064880;
+            background-color: #455a6f;
             margin-top:-80px;
-            margin-left:20px;
             z-index:2;
             box-shadow: 0px 0px 8px #000000;
+            min-height:140px;
+            max-height:160px;
+            overflow:auto;
         }
 
         div.descriptionHeader {
@@ -59,35 +64,106 @@
             font-weight:bold;
             padding-bottom:5px;
         }
+
+        img {
+            border:1px solid #dddddd;
+            width:250px;
+            height:250px;
+            border-radius:10px;
+            margin-top:10px;
+        }
+        div.exampleTitle {
+            position:relative;
+            top:-7px;
+            width:100%;
+            max-width:250px;
+            height:30px;
+            border: 1px solid #dddddd;
+            background-color: #6787a6;
+            color:#ffffff;
+            text-align:center;
+            vertical-align:middle;
+            line-height: 30px;
+            border-bottom-left-radius:5px;
+            border-bottom-right-radius:5px;
+        }
+
     </style>
 
 </head>
 <body>
 <h1>Showcase projects</h1>
 
-<div class="textHTMLContent">
-    <a href="./projects/midas/index.html">
-        <div class="showcase">
-            <img src="./images/midas.png" class="showcase">
-            <div class="description">
-                <div class="descriptionHeader">
-                    M.I.D.A.S. : Manufacturing Incident Detection Agent Solution
-                </div>
-                <div class="descriptionContent">
-                    MIDAS collects statistics of incidents during the production process.
+<div class="container-fluid">
+    <div class="col-md-12 col-lg-6">
+        <a href="./projects/midas/index.html">
+            <img src="./images/midas.png" class="showcase img-responsive">
+        </a>
+        <div class="description">
+            <div class="descriptionHeader">
+                MIDAS, <a href="http://www.almende.com">&copy; Almende BV</a>
+            </div>
+            <div class="descriptionContent">
+                MIDAS collects statistics of incidents during the production process.
                     It analyses the manufacturing process and handles disruptive events during the ramp-up phase.
-                    Almende developed the software tool especially for this project, based on the inhouse toolchain,
-                    specifically Eve, AIM and vis.js.
-                </div>
+                    We developed the software tool especially for this project, based on our tools,
+                    <a href="http://eve.almende.com/">Eve</a> and <a href="http://visjs.org/">vis.js</a>.
             </div>
         </div>
-    </a>
+    </div>
+    <!--<br /><br /><br />-->
+
+    <div class="col-md-12 col-lg-6">
+        <a href="http://theantworks.herokuapp.com/industry-report/pfizer-az/">
+            <img src="./images/antworks_pfizer.png" class="showcase img-responsive">
+        </a>
+        <div class="description">
+            <div class="descriptionHeader">
+                Pfizer, <a href="http://www.theantworks.com">&copy; The ANTworks</a>
+            </div>
+            <div class="descriptionContent">
+                This and the next entree are two case studies Jeroen Coumans created for a startup that specialises in patent analysis, and were featured on CNN Money, The Guardian, CNBC and the Financial Times.
+                Both fully use vis.js for graph rendering, while the frontend is built with React.
+            </div>
+        </div>
+    </div>
+    <!--<br /><br /><br />-->
+
+    <div class="col-md-12 col-lg-6">
+        <a href="http://theantworks.herokuapp.com/industry-report/tesla/">
+            <img src="./images/antworks_tesla.png" class="showcase img-responsive">
+        </a>
+        <div class="description">
+            <div class="descriptionHeader">
+                Tesla, <a href="http://www.theantworks.com">&copy; The ANTworks</a>
+            </div>
+            <div class="descriptionContent">
+                This and the previous entree are two case studies Jeroen Coumans created for a startup that specialises in patent analysis, and were featured on CNN Money, The Guardian, CNBC and the Financial Times.
+                Both fully use vis.js for graph rendering, while the frontend is built with React.
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-12 col-lg-6">
+        <a href="http://theantworks.herokuapp.com/industry-report/tesla/">
+            <img src="./images/antworks_proto.png" class="showcase img-responsive">
+        </a>
+        <div class="description">
+            <div class="descriptionHeader">
+                Upcoming project, <a href="http://www.theantworks.com">&copy; The ANTworks</a>
+            </div>
+            <div class="descriptionContent">
+                These are a few screenshots from an upcoming project by The ANTworks, giving a great example of how the style of vis can be
+                customized.
+            </div>
+        </div>
+    </div>
 </div>
 
 
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 <!-- Include all compiled plugins (below), or include individual files as needed -->
-<script src="js/bootstrap.min.js"></script>
+<script src="../js/bootstrap.min.js"></script>
 </body>
 </html>

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>vis.js - A dynamic, browser based visualization library.</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="./css/bootstrap.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <style>
+
+        html {
+            height:100%;
+        }
+        body {
+            font-family: Lustria, Georgia, Times, "Times New Roman", serif !important;
+            height:100%;
+            background: url('./images/crosswordStrong.png') /* Background pattern from subtlepatterns.com */
+        }
+
+        img.icon {
+            position:relative;
+            top:-2px;
+        }
+
+
+        div.navbar-wrapper {
+            background-color:#07508E;
+            border-bottom: 3px solid #ffffff;
+        }
+
+        div.center {
+            width:970px;
+            margin-left:auto;
+            margin-right:auto;
+        }
+
+        div.container {
+            max-width:970px;
+        }
+
+        div.blogHeader {
+            margin-left:auto;
+            margin-right:auto;
+            text-align:center;
+            width:910px;
+            padding: 0px 30px 0px 30px;
+            margin-top:-150px;
+            color:#ffffff;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 1);
+            margin-bottom:60px;
+        }
+
+        div.post {
+            margin:40px 80px 0px 190px;
+            padding:10px 10px 10px 10px;;
+            border: 1px solid #eeeeee;
+        }
+
+        div.postHeader {
+            float:left;
+            font-size:30px;
+        }
+
+
+        div.postDate {
+            margin-top:19px;
+            float:right;
+            font-size:12px;
+        }
+
+        div.postAuthor {
+            padding-left:10px;
+            margin-top:19px;
+            float:right;
+            font-size:12px;
+        }
+
+
+        div.postContent {
+            font-size: 16px;
+            margin-top:50px;
+            padding:10px 20px 0px 20px;
+            text-align:justify;
+        }
+
+        div.full {
+            min-height:100%;
+            box-shadow:0px 2px 10px rgba(0,0,0,0.4);
+            padding:0px;
+            background-color:#ffffff;
+        }
+
+        div.postsMenu {
+            position:relative;
+            left:-15px;
+            top:-50px;
+            width:0px;
+            height:0px;
+        }
+
+        div.postsMenuContent {
+            padding:10px;
+            background-color:#6787a6;
+            width:180px;
+            height:500px;
+            border-radius:5px;
+            box-shadow:0px 2px 10px rgba(0,0,0,0.4);
+            color:#ffffff;
+            font-size:16px;
+        }
+
+        a.post {
+            font-size:12px;
+            text-decoration:none;
+            color:#ffffff;
+            display:block;
+            margin: 10px 0px 0px 0px;
+        }
+    </style>
+</head>
+<!-- NAVBAR
+================================================== -->
+<body>
+
+<div class="navbar-wrapper">
+    <div class="container">
+        <nav class="navbar navbar-inverse navbar-static-top" role="navigation">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand hidden-sm" href="./index.html">vis.js</a>
+                </div>
+                <div id="navbar" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        <li class="active"><a href="#about">Modules</a></li>
+                        <li><a href="./docs/index.html" target="_blank">Documentation <img class="icon" src="./images/external-link-icons/external-link-icon-white.png"></a></li>
+                        <li><a href="./blog.html">Blog</a></li>
+                        <li><a href="#download_install">About & download</a></li>
+                        <li><a href="#showcase">Showcase</a></li>
+                        <li><a href="#contributing">Contributing</a></li>
+                        <li><a href="#featureRequests">Feature requests</a></li>
+                        <li><a href="#licenses">Licenses</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+    </div>
+</div>
+
+<a href="https://github.com/almende/vis" class="hidden-xs hidden-sm hidden-md"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
+<div class="container full">
+    <div class="center">
+        <img src="./images/wallHeader.png">
+    </div>
+
+    <div class="blogHeader">
+        <h1>vis.js</h1>
+        <p>A dynamic, browser based visualization library.
+            The library consists of the components DataSet, Timeline, Network, Graph2d and Graph3d. This blog is about the latest developments, roadmap and releases.
+        </p>
+    </div>
+
+    <div class="postsMenu">
+        <div class="postsMenuContent">
+            Posts:
+            <a class="post" href="#Released version 3.7.3">- Released version 3.7.3</a>
+            <a class="post" href="#Released version 3.7.2">- Released version 3.7.2</a>
+        </div>
+    </div>
+
+    <div class="post">
+        <div class="postHeader" id="Released version 3.7.3">Released version 3.7.3</div>
+        <div class="postAuthor">by <a href="https://github.com/AlexDM0">Alex</a></div>
+        <div class="postDate">8th of January, 2015</div>
+        <div class="postContent">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris varius tellus felis, sed porttitor enim facilisis in. Sed lacinia est sit amet quam dapibus egestas. Integer laoreet, odio quis lobortis scelerisque, sapien mauris consequat nisl, nec maximus justo felis eget ligula. Aliquam tempus mattis porttitor. Pellentesque vitae massa nunc. Maecenas sit amet laoreet ligula. Proin tellus ex, eleifend eget velit eu, tincidunt facilisis purus. Sed at quam vel odio feugiat fringilla.
+
+            Nam pretium justo nec magna volutpat porttitor. Interdum et malesuada fames ac ante ipsum primis in faucibus. Duis a rhoncus arcu, quis sagittis lacus. Pellentesque sed convallis metus. Cras eu lorem ex. Donec ultricies dui congue, varius nulla pharetra, semper dolor. Sed ac elit tortor. Cras vestibulum risus lacus, ut varius risus congue sed. Aliquam in tincidunt libero. Aenean ac eleifend dolor, non pellentesque neque.
+
+            Nunc metus enim, tristique vel odio vel, dignissim ultricies massa. Nam posuere mauris erat. Vestibulum ornare nulla et purus placerat, ac venenatis mi facilisis. Ut non sapien a neque hendrerit finibus. Fusce rhoncus aliquet tristique. Donec eu nisl id dolor molestie convallis at vitae diam. Phasellus in tortor ut ante tincidunt mollis. Aliquam erat volutpat. Suspendisse eget odio ut dolor ultrices vestibulum a at nunc. Donec vel sodales nunc. In hac habitasse platea dictumst. Cras pharetra felis ut nisl commodo, eget sollicitudin justo fringilla. Quisque scelerisque lacus est, vestibulum dignissim lorem venenatis non. Nullam ac turpis elit. Sed quis lorem id nisi egestas semper quis non erat.
+
+            Nam quis elit vitae nibh volutpat facilisis eget sit amet tortor. Nam rutrum ante eget nisl cursus, nec eleifend lacus vulputate. Donec porta dui a tellus molestie, a dapibus nisl convallis. Aenean laoreet vehicula lorem in dictum. Phasellus ullamcorper lectus suscipit felis malesuada blandit. Vestibulum non posuere libero. Maecenas malesuada bibendum lacus eget congue. Sed id nibh in nulla vehicula luctus. Ut cursus metus ante, a lobortis lacus volutpat sit amet. Nullam elit augue, hendrerit id maximus at, viverra eget quam. Quisque tempor diam vitae purus posuere congue. Phasellus blandit dictum maximus. Nulla justo tortor, finibus sit amet malesuada et, bibendum eget urna.
+
+            Aliquam mattis libero id felis aliquet eleifend. Vivamus placerat at felis eget tincidunt. Integer vitae mi sit amet felis mollis consequat. Aenean rutrum, ipsum porttitor molestie dictum, nulla nunc eleifend ligula, quis auctor lacus dolor vel felis. Curabitur nec dui sit amet mi blandit ornare. Integer sodales orci in elementum ornare. Aenean ut lacus eu libero faucibus porta. Pellentesque mattis non dui ac fermentum. Nulla non faucibus mi. Morbi feugiat tincidunt erat, a scelerisque risus. Quisque accumsan risus nec urna elementum cursus. Suspendisse potenti. Etiam in tortor feugiat, maximus leo eget, rhoncus turpis. Aliquam in purus nunc. Duis lobortis nibh ut pellentesque gravida. Donec non metus laoreet, eleifend lectus in, auctor ipsum.
+
+        </div>
+    </div>
+    <div class="post">
+        <div class="postHeader" id="Released version 3.7.2">Released version 3.7.2</div>
+        <div class="postAuthor">by <a href="https://github.com/AlexDM0">Alex</a></div>
+        <div class="postDate">8th of January, 2015</div>
+
+        <div class="postContent">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris varius tellus felis, sed porttitor enim facilisis in. Sed lacinia est sit amet quam dapibus egestas. Integer laoreet, odio quis lobortis scelerisque, sapien mauris consequat nisl, nec maximus justo felis eget ligula. Aliquam tempus mattis porttitor. Pellentesque vitae massa nunc. Maecenas sit amet laoreet ligula. Proin tellus ex, eleifend eget velit eu, tincidunt facilisis purus. Sed at quam vel odio feugiat fringilla.
+
+            Nam pretium justo nec magna volutpat porttitor. Interdum et malesuada fames ac ante ipsum primis in faucibus. Duis a rhoncus arcu, quis sagittis lacus. Pellentesque sed convallis metus. Cras eu lorem ex. Donec ultricies dui congue, varius nulla pharetra, semper dolor. Sed ac elit tortor. Cras vestibulum risus lacus, ut varius risus congue sed. Aliquam in tincidunt libero. Aenean ac eleifend dolor, non pellentesque neque.
+
+            Nunc metus enim, tristique vel odio vel, dignissim ultricies massa. Nam posuere mauris erat. Vestibulum ornare nulla et purus placerat, ac venenatis mi facilisis. Ut non sapien a neque hendrerit finibus. Fusce rhoncus aliquet tristique. Donec eu nisl id dolor molestie convallis at vitae diam. Phasellus in tortor ut ante tincidunt mollis. Aliquam erat volutpat. Suspendisse eget odio ut dolor ultrices vestibulum a at nunc. Donec vel sodales nunc. In hac habitasse platea dictumst. Cras pharetra felis ut nisl commodo, eget sollicitudin justo fringilla. Quisque scelerisque lacus est, vestibulum dignissim lorem venenatis non. Nullam ac turpis elit. Sed quis lorem id nisi egestas semper quis non erat.
+
+            Nam quis elit vitae nibh volutpat facilisis eget sit amet tortor. Nam rutrum ante eget nisl cursus, nec eleifend lacus vulputate. Donec porta dui a tellus molestie, a dapibus nisl convallis. Aenean laoreet vehicula lorem in dictum. Phasellus ullamcorper lectus suscipit felis malesuada blandit. Vestibulum non posuere libero. Maecenas malesuada bibendum lacus eget congue. Sed id nibh in nulla vehicula luctus. Ut cursus metus ante, a lobortis lacus volutpat sit amet. Nullam elit augue, hendrerit id maximus at, viverra eget quam. Quisque tempor diam vitae purus posuere congue. Phasellus blandit dictum maximus. Nulla justo tortor, finibus sit amet malesuada et, bibendum eget urna.
+
+            Aliquam mattis libero id felis aliquet eleifend. Vivamus placerat at felis eget tincidunt. Integer vitae mi sit amet felis mollis consequat. Aenean rutrum, ipsum porttitor molestie dictum, nulla nunc eleifend ligula, quis auctor lacus dolor vel felis. Curabitur nec dui sit amet mi blandit ornare. Integer sodales orci in elementum ornare. Aenean ut lacus eu libero faucibus porta. Pellentesque mattis non dui ac fermentum. Nulla non faucibus mi. Morbi feugiat tincidunt erat, a scelerisque risus. Quisque accumsan risus nec urna elementum cursus. Suspendisse potenti. Etiam in tortor feugiat, maximus leo eget, rhoncus turpis. Aliquam in purus nunc. Duis lobortis nibh ut pellentesque gravida. Donec non metus laoreet, eleifend lectus in, auctor ipsum.
+
+        </div>
+    </div>
+
+</div>
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="./js/jquery.min.js"></script>
+<script src="./js/bootstrap.min.js"></script>
+<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+<script src="./js/ie10-viewport-bug-workaround.js"></script>
+

@@ -18,7 +18,8 @@
 
     <link href="./css/prettify.css" rel="stylesheet" type="text/css" />
     <script type="text/javascript" src="./js/prettify/prettify.js"></script>
-    <script type="text/javascript" src="./js/vis.js"></script>
+    <script src="./dist/vis.js"></script>
+    <link href="./dist/vis.css" rel="stylesheet" type="text/css" />
 
     <style>
         body {
@@ -63,12 +64,14 @@
             width:100%;
             max-width:250px;
             height:30px;
-            background-color:#064880;
+            border: 1px solid #dddddd;
+            background-color: #526b84;
             color:#ffffff;
             text-align:center;
             vertical-align:middle;
             line-height: 30px;
-            border-radius:10px;
+            border-bottom-left-radius:5px;
+            border-bottom-right-radius:5px;
         }
     </style>
     <script language="JavaScript">
@@ -95,7 +98,7 @@
                 nodes: nodes,
                 edges: edges
             };
-            var network = new vis.Network(container, data, {clickToUse:true});
+            var network = new vis.Network(container, data, {clickToUse:true, stabilize:false});
         }
     </script>
 
@@ -103,7 +106,7 @@
 <body onload="prettyPrint(); loadVis();">
 <h1>Network Examples</h1><a class="btn btn-default" href="#allExamples" role="button">View all examples »</a>  <a class="btn btn-primary" href="./docs/network.html" role="button">View docs »</a>
 
-<div class="textHTMLContent">This small code example shows the easiest way to get a network up and running. This code has been taken from example 1. The working example is shown next to it.</div>
+<div class="textHTMLContent">This small code example shows the easiest way to get a network up and running. This code has been taken from example 1. The working example is shown next to it. (click it to start interacting with it).</div>
 <pre class="prettyprint lang-html">
 &lt;div id="visualization"&gt;&lt;/div&gt;
 &lt;script type="text/javascript"&gt;
