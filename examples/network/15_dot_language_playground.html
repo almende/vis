@@ -92,8 +92,16 @@
     network.redraw()
   };
 
+  function destroy() {
+    if (network !== null) {
+      network.destroy();
+      network = null;
+    }
+  }
+
   // parse and draw the data
   function draw () {
+    destroy();
     try {
       txtError.innerHTML = '';
 

@@ -8,16 +8,40 @@ http://visjs.org
 
 - Fixed flipping of hierarchical network on update when using RL and DU.
 - Added zoomExtentOnStabilize option to network.
+- Improved destroy function, added them to the examples.
+- Nodes now have bounding boxes that are used for zoomExtent.
+- Made physics more stable (albeit a little slower).
+- Added a check so only one 'activator' overlay is created on clickToUse.
+- Made global color options for edges overrule the inheritColors.
+- Improved cleaning up of the physics configuration on destroy and in options.
+- Made nodes who lost their group revert back to default color.
+- Changed group behaviour, groups now extend the options, not replace. This allows partial defines of color.
+- Fixed bug where box shaped nodes did not use hover color.
+- Fixed Locales docs.
+- When hovering over a node that does not have a title, the title of one of the connected edges that HAS a title is no longer shown.
+- Fixed error in repulsion physics model.
+- Improved physics handling for smoother network simulation.
+- Fixed infinite loop when an image can not be found and no brokenImage is provided.
+- Added getBoundingBox method.
+- Community fix for SVG images in IE11, thanks @dponch!
 
 ### Graph2d
 
 - Fixed round-off errors of zero on the y-axis.
 - added show major/minor lines options to dataAxis.
+- Fixed adapting to width and height changes.
+- Added a check so only one 'activator' overlay is created on clickToUse.
+- DataAxis width option now draws correctly.
 
 ### Timeline
 
 - Support for custom date formatting of the labels on the time axis.
 - added show major/minor lines options to timeline.
+- Added a check so only one 'activator' overlay is created on clickToUse.
+
+### Graph3d
+
+- Fixed mouse coordinates for tooltips.
 
 
 ## 2014-12-09, version 3.7.2

@@ -21,7 +21,16 @@
         var network = null;
         var layoutMethod = "hubsize";
 
+        function destroy() {
+            if (network !== null) {
+                network.destroy();
+                network = null;
+            }
+        }
+
         function draw() {
+            destroy();
+
             var nodes = [];
             var edges = [];
             // randomly create some nodes and edges

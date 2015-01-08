@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.7.2-SNAPSHOT
- * @date    2014-12-24
+ * @date    2015-01-07
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -8058,8 +8058,9 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   Graph3d.prototype._onTooltip = function (event) {
     var delay = 300; // ms
-    var mouseX = getMouseX(event) - util.getAbsoluteLeft(this.frame);
-    var mouseY = getMouseY(event) - util.getAbsoluteTop(this.frame);
+    var boundingRect = this.frame.getBoundingClientRect();
+    var mouseX = getMouseX(event) - boundingRect.left;
+    var mouseY = getMouseY(event) - boundingRect.top;
 
     if (!this.showTooltip) {
       return;
@@ -13487,7 +13488,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
       if ('clickToUse' in options) {
         if (options.clickToUse) {
-          this.activator = new Activator(this.dom.root);
+          if (!this.activator) {
+            this.activator = new Activator(this.dom.root);
+          }
         }
         else {
           if (this.activator) {
@@ -17855,6 +17858,8 @@ return /******/ (function(modules) { // webpackBootstrap
     function keycharm(options) {
       var preventDefault = options && options.preventDefault || false;
 
+      var container = options && options.container || window;
+
       var _exportFunctions = {};
       var _bound = {keydown:{}, keyup:{}};
       var _keys = {};
@@ -18005,13 +18010,13 @@ return /******/ (function(modules) { // webpackBootstrap
       // unbind all listeners and reset all variables.
       _exportFunctions.destroy = function() {
         _bound = {keydown:{}, keyup:{}};
-        window.removeEventListener('keydown', down, true);
-        window.removeEventListener('keyup', up, true);
+        container.removeEventListener('keydown', down, true);
+        container.removeEventListener('keyup', up, true);
       };
 
       // create listeners.
-      window.addEventListener('keydown',down,true);
-      window.addEventListener('keyup',up,true);
+      container.addEventListener('keydown',down,true);
+      container.addEventListener('keyup',up,true);
 
       // return the public functions.
       return _exportFunctions;
@@ -18069,8 +18074,6 @@ return /******/ (function(modules) { // webpackBootstrap
       // TODO: implement timeaxis orientations 'left' and 'right'
       showMinorLabels: true,
       showMajorLabels: true,
-      showMajorLines: true,
-      showMinorLines: true,
       format: null
     };
     this.options = util.extend({}, this.defaultOptions);
@@ -18096,7 +18099,13 @@ return /******/ (function(modules) { // webpackBootstrap
   TimeAxis.prototype.setOptions = function(options) {
     if (options) {
       // copy all options that we know
-      util.selectiveExtend(['orientation', 'showMinorLabels', 'showMajorLabels', 'showMinorLines', 'showMajorLines','hiddenDates', 'format'], this.options, options);
+      util.selectiveExtend([
+        'orientation',
+        'showMinorLabels',
+        'showMajorLabels',
+        'hiddenDates',
+        'format'
+      ], this.options, options);
 
       // apply locale to moment.js
       // TODO: not so nice, this is applied globally to moment.js
@@ -18255,11 +18264,9 @@ return /******/ (function(modules) { // webpackBootstrap
           }
           this._repaintMajorText(x, step.getLabelMajor(), orientation);
         }
-        if (this.options.showMajorLines == true) {
-          this._repaintMajorLine(x, orientation);
-        }
+        this._repaintMajorLine(x, orientation);
       }
-      else if (this.options.showMinorLines == true) {
+      else {
         this._repaintMinorLine(x, orientation);
       }
 
@@ -18581,7 +18588,7 @@ return /******/ (function(modules) { // webpackBootstrap
   TimeStep.prototype.roundToMinor = function() {
     // round to floor
     // IMPORTANT: we have no breaks in this switch! (this is no bug)
-    //noinspection FallthroughInSwitchStatementJS
+    // noinspection FallThroughInSwitchStatementJS
     switch (this.scale) {
       case 'year':
         this.current.setFullYear(this.step * Math.floor(this.current.getFullYear() / this.step));
@@ -19682,8 +19689,6 @@ return /******/ (function(modules) { // webpackBootstrap
       dataAxis: {
         showMinorLabels: true,
         showMajorLabels: true,
-        showMinorLines: true,
-        showMajorLines: true,
         icons: false,
         width: '40px',
         visible: true,
@@ -19732,7 +19737,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.hammer = null;
     this.groups = {};
     this.abortedGraphUpdate = false;
-    this.autoSizeSVG = false;
+    this.updateSVGheight = false;
 
     var me = this;
     this.itemsData = null;    // DataSet
@@ -19775,7 +19780,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.COUNTER = 0;
     this.body.emitter.on('rangechanged', function() {
       me.lastStart = me.body.range.start;
-      me.svg.style.left = util.option.asSize(-me.width);
+      me.svg.style.left = util.option.asSize(-me.props.width);
       me.redraw.call(me,true);
     });
 
@@ -19824,13 +19829,13 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   LineGraph.prototype.setOptions = function(options) {
     if (options) {
-      var fields = ['sampling','defaultGroup','graphHeight','yAxisOrientation','style','barChart','dataAxis','sort','groups'];
+      var fields = ['sampling','defaultGroup','height','graphHeight','yAxisOrientation','style','barChart','dataAxis','sort','groups'];
       if (options.graphHeight === undefined && options.height !== undefined && this.body.domProps.centerContainer.height !== undefined) {
-        this.autoSizeSVG = true;
+        this.updateSVGheight = true;
       }
       else if (this.body.domProps.centerContainer.height !== undefined && options.graphHeight !== undefined) {
         if (parseInt((options.graphHeight + '').replace("px",'')) < this.body.domProps.centerContainer.height) {
-          this.autoSizeSVG = true;
+          this.updateSVGheight = true;
         }
       }
       util.selectiveDeepExtend(fields, this.options, options);
@@ -20175,49 +20180,67 @@ return /******/ (function(modules) { // webpackBootstrap
   LineGraph.prototype.redraw = function(forceGraphUpdate) {
     var resized = false;
 
-    this.svg.style.height = ('' + this.options.graphHeight).replace('px','') + 'px';
-    if (this.lastWidth === undefined && this.width || this.lastWidth != this.width) {
-      resized = true;
+    // calculate actual size and position
+    this.props.width = this.dom.frame.offsetWidth;
+    this.props.height = this.body.domProps.centerContainer.height;
+
+    // update the graph if there is no lastWidth or with, used for the initial draw
+    if (this.lastWidth === undefined && this.props.width) {
+      forceGraphUpdate = true;
     }
+
     // check if this component is resized
     resized = this._isResized() || resized;
+
     // check whether zoomed (in that case we need to re-stack everything)
     var visibleInterval = this.body.range.end - this.body.range.start;
-    var zoomed = (visibleInterval != this.lastVisibleInterval) || (this.width != this.lastWidth); // we get this from the range changed event
+    var zoomed = (visibleInterval != this.lastVisibleInterval);
     this.lastVisibleInterval = visibleInterval;
-    this.lastWidth = this.width;
 
-    // calculate actual size and position
-    this.width = this.dom.frame.offsetWidth;
 
     // the svg element is three times as big as the width, this allows for fully dragging left and right
     // without reloading the graph. the controls for this are bound to events in the constructor
     if (resized == true) {
-      this.svg.style.width = util.option.asSize(3*this.width);
-      this.svg.style.left = util.option.asSize(-this.width);
+      this.svg.style.width = util.option.asSize(3*this.props.width);
+      this.svg.style.left = util.option.asSize(-this.props.width);
+
+      // if the height of the graph is set as proportional, change the height of the svg
+      if ((this.options.height + '').indexOf("%") != -1) {
+        this.updateSVGheight = true;
+      }
+    }
+
+    // update the height of the graph on each redraw of the graph.
+    if (this.updateSVGheight == true) {
+      if (this.options.graphHeight != this.body.domProps.centerContainer.height + 'px') {
+        this.options.graphHeight = this.body.domProps.centerContainer.height + 'px';
+        this.svg.style.height = this.body.domProps.centerContainer.height + 'px';
+      }
+      this.updateSVGheight = false;
+    }
+    else {
+      this.svg.style.height = ('' + this.options.graphHeight).replace('px','') + 'px';
     }
 
     // zoomed is here to ensure that animations are shown correctly.
-    if (zoomed == true || this.abortedGraphUpdate == true || forceGraphUpdate == true) {
-      resized = resized || this._updateGraph();
+    if (resized == true || zoomed == true || this.abortedGraphUpdate == true || forceGraphUpdate == true) {
+      resized = this._updateGraph() || resized;
     }
     else {
       // move the whole svg while dragging
       if (this.lastStart != 0) {
         var offset = this.body.range.start - this.lastStart;
         var range = this.body.range.end - this.body.range.start;
-        if (this.width != 0) {
-          var rangePerPixelInv = this.width/range;
+        if (this.props.width != 0) {
+          var rangePerPixelInv = this.props.width/range;
           var xOffset = offset * rangePerPixelInv;
-          this.svg.style.left = (-this.width - xOffset) + 'px';
+          this.svg.style.left = (-this.props.width - xOffset) + 'px';
         }
       }
-
     }
 
     this.legendLeft.redraw();
     this.legendRight.redraw();
-
     return resized;
   };
 
@@ -20229,21 +20252,12 @@ return /******/ (function(modules) { // webpackBootstrap
   LineGraph.prototype._updateGraph = function () {
     // reset the svg elements
     DOMutil.prepareElements(this.svgElements);
-    if (this.width != 0 && this.itemsData != null) {
+    if (this.props.width != 0 && this.itemsData != null) {
       var group, i;
       var preprocessedGroupData = {};
       var processedGroupData = {};
       var groupRanges = {};
       var changeCalled = false;
-
-      // update the height of the graph on each redraw of the graph.
-      if (this.autoSizeSVG == true) {
-        if (this.options.graphHeight != this.body.domProps.centerContainer.height + 'px') {
-          this.options.graphHeight = this.body.domProps.centerContainer.height + 'px';
-          this.svg.style.height = this.body.domProps.centerContainer.height + 'px';
-        }
-        this.autoSizeSVG = false;
-      }
 
       // getting group Ids
       var groupIds = [];
@@ -20447,7 +20461,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   LineGraph.prototype._updateYAxis = function (groupIds, groupRanges) {
-    var changeCalled = false;
+    var resized = false;
     var yAxisLeftUsed = false;
     var yAxisRightUsed = false;
     var minLeft = 1e9, minRight = 1e9, maxLeft = -1e9, maxRight = -1e9, minVal, maxVal;
@@ -20496,9 +20510,8 @@ return /******/ (function(modules) { // webpackBootstrap
         this.yAxisRight.setRange(minRight, maxRight);
       }
     }
-    changeCalled = this._toggleAxisVisiblity(yAxisLeftUsed , this.yAxisLeft)  || changeCalled;
-    changeCalled = this._toggleAxisVisiblity(yAxisRightUsed, this.yAxisRight) || changeCalled;
-
+    resized = this._toggleAxisVisiblity(yAxisLeftUsed , this.yAxisLeft)  || resized;
+    resized = this._toggleAxisVisiblity(yAxisRightUsed, this.yAxisRight) || resized;
     if (yAxisRightUsed == true && yAxisLeftUsed == true) {
       this.yAxisLeft.drawIcons = true;
       this.yAxisRight.drawIcons = true;
@@ -20507,20 +20520,19 @@ return /******/ (function(modules) { // webpackBootstrap
       this.yAxisLeft.drawIcons = false;
       this.yAxisRight.drawIcons = false;
     }
-
     this.yAxisRight.master = !yAxisLeftUsed;
 
     if (this.yAxisRight.master == false) {
       if (yAxisRightUsed == true) {this.yAxisLeft.lineOffset = this.yAxisRight.width;}
       else                        {this.yAxisLeft.lineOffset = 0;}
 
-      changeCalled = this.yAxisLeft.redraw() || changeCalled;
+      resized = this.yAxisLeft.redraw() || resized;
       this.yAxisRight.stepPixelsForced = this.yAxisLeft.stepPixels;
       this.yAxisRight.zeroCrossing = this.yAxisLeft.zeroCrossing;
-      changeCalled = this.yAxisRight.redraw() || changeCalled;
+      resized = this.yAxisRight.redraw() || resized;
     }
     else {
-      changeCalled = this.yAxisRight.redraw() || changeCalled;
+      resized = this.yAxisRight.redraw() || resized;
     }
 
     // clean the accumulated lists
@@ -20531,7 +20543,7 @@ return /******/ (function(modules) { // webpackBootstrap
       groupIds.splice(groupIds.indexOf('__barchartRight'),1);
     }
 
-    return changeCalled;
+    return resized;
   };
 
 
@@ -20576,7 +20588,7 @@ return /******/ (function(modules) { // webpackBootstrap
     var toScreen = this.body.util.toScreen;
 
     for (var i = 0; i < datapoints.length; i++) {
-      xValue = toScreen(datapoints[i].x) + this.width;
+      xValue = toScreen(datapoints[i].x) + this.props.width;
       yValue = datapoints[i].y;
       extractedData.push({x: xValue, y: yValue});
     }
@@ -20606,7 +20618,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     for (var i = 0; i < datapoints.length; i++) {
-      xValue = toScreen(datapoints[i].x) + this.width;
+      xValue = toScreen(datapoints[i].x) + this.props.width;
       yValue = Math.round(axis.convertValue(datapoints[i].y));
       extractedData.push({x: xValue, y: yValue});
     }
@@ -20645,8 +20657,6 @@ return /******/ (function(modules) { // webpackBootstrap
       orientation: 'left',  // supported: 'left', 'right'
       showMinorLabels: true,
       showMajorLabels: true,
-      showMinorLines: true,
-      showMajorLines: true,
       icons: true,
       majorLinesOffset: 7,
       minorLinesOffset: 4,
@@ -20746,8 +20756,6 @@ return /******/ (function(modules) { // webpackBootstrap
         'orientation',
         'showMinorLabels',
         'showMajorLabels',
-        'showMajorLines',
-        'showMinorLines',
         'icons',
         'majorLinesOffset',
         'minorLinesOffset',
@@ -20887,7 +20895,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @return {boolean} Returns true if the component is resized
    */
   DataAxis.prototype.redraw = function () {
-    var changeCalled = false;
+    var resized = false;
     var activeGroups = 0;
     
     // Make sure the line container adheres to the vertical scrolling.
@@ -20940,6 +20948,8 @@ return /******/ (function(modules) { // webpackBootstrap
         frame.style.bottom = '';
         frame.style.width = this.width + 'px';
         frame.style.height = this.height + "px";
+        this.props.width = this.body.domProps.left.width;
+        this.props.height = this.body.domProps.left.height;
       }
       else { // right
         frame.style.top = '';
@@ -20947,8 +20957,12 @@ return /******/ (function(modules) { // webpackBootstrap
         frame.style.left = '0';
         frame.style.width = this.width + 'px';
         frame.style.height = this.height + "px";
+        this.props.width = this.body.domProps.right.width;
+        this.props.height = this.body.domProps.right.height;
       }
-      changeCalled = this._redrawLabels();
+
+      resized = this._redrawLabels();
+      resized = this._isResized() || resized;
 
       if (this.options.icons == true) {
         this._redrawGroupIcons();
@@ -20959,7 +20973,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
       this._redrawTitle(orientation);
     }
-    return changeCalled;
+    return resized;
   };
 
   /**
@@ -20967,6 +20981,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   DataAxis.prototype._redrawLabels = function () {
+    var resized = false;
     DOMutil.prepareElements(this.DOMelements.lines);
     DOMutil.prepareElements(this.DOMelements.labels);
 
@@ -21047,11 +21062,9 @@ return /******/ (function(modules) { // webpackBootstrap
         if (y >= 0) {
           this._redrawLabel(y - 2, step.getCurrent(decimals), orientation, 'yAxis major', this.props.majorCharHeight);
         }
-        if (this.options.showMajorLines == true) {
-          this._redrawLine(y, orientation, 'grid horizontal major', this.options.majorLinesOffset, this.props.majorLineWidth);
-        }
+        this._redrawLine(y, orientation, 'grid horizontal major', this.options.majorLinesOffset, this.props.majorLineWidth);
       }
-      else if (this.options.showMinorLines == true) {
+      else {
         this._redrawLine(y, orientation, 'grid horizontal minor', this.options.minorLinesOffset, this.props.minorLineWidth);
       }
 
@@ -21083,7 +21096,7 @@ return /******/ (function(modules) { // webpackBootstrap
       DOMutil.cleanupElements(this.DOMelements.lines);
       DOMutil.cleanupElements(this.DOMelements.labels);
       this.redraw();
-      return true;
+      resized = true;
     }
     // this will resize the yAxis if it is too big for the labels.
     else if (this.maxLabelSize < (this.width - offset) && this.options.visible == true && this.width > this.minWidth) {
@@ -21092,13 +21105,15 @@ return /******/ (function(modules) { // webpackBootstrap
       DOMutil.cleanupElements(this.DOMelements.lines);
       DOMutil.cleanupElements(this.DOMelements.labels);
       this.redraw();
-      return true;
+      resized = true;
     }
     else {
       DOMutil.cleanupElements(this.DOMelements.lines);
       DOMutil.cleanupElements(this.DOMelements.labels);
-      return false;
+      resized = false;
     }
+
+    return resized;
   };
 
   DataAxis.prototype.convertValue = function (value) {
@@ -22484,10 +22499,10 @@ return /******/ (function(modules) { // webpackBootstrap
   var Popup = __webpack_require__(56);
   var MixinLoader = __webpack_require__(59);
   var Activator = __webpack_require__(35);
-  var locales = __webpack_require__(60);
+  var locales = __webpack_require__(70);
 
   // Load custom shapes into CanvasRenderingContext2D
-  __webpack_require__(61);
+  __webpack_require__(71);
 
   /**
    * @constructor Network
@@ -22505,6 +22520,7 @@ return /******/ (function(modules) { // webpackBootstrap
       throw new SyntaxError('Constructor must be called with the new operator');
     }
 
+    this._determineBrowserMethod();
     this._initializeMixinLoaders();
 
     // create variables and set default values
@@ -22513,8 +22529,8 @@ return /******/ (function(modules) { // webpackBootstrap
     // render and calculation settings
     this.renderRefreshRate = 60;                         // hz (fps)
     this.renderTimestep = 1000 / this.renderRefreshRate; // ms -- saves calculation later on
-    this.renderTime = 0.5 * this.renderTimestep;         // measured time it takes to render a frame
-    this.maxPhysicsTicksPerRender = 3;                   // max amount of physics ticks per render step.
+    this.renderTime = 0;                                 // measured time it takes to render a frame
+    this.physicsTime = 0;                                 // measured time it takes to render a frame
     this.physicsDiscreteStepsize = 0.50;                 // discrete stepsize of the simulation
 
     this.initializing = true;
@@ -22549,9 +22565,6 @@ return /******/ (function(modules) { // webpackBootstrap
             background: '#D2E5FF'
           }
         },
-        borderColor: '#2B7CE9',
-        backgroundColor: '#97C2FC',
-        highlightColor: '#D2E5FF',
         group: undefined,
         borderWidth: 1,
         borderWidthSelected: undefined
@@ -22584,7 +22597,7 @@ return /******/ (function(modules) { // webpackBootstrap
       physics: {
         barnesHut: {
           enabled: true,
-          theta: 1 / 0.6, // inverted to save time during calculation
+          thetaInverted: 1 / 0.5, // inverted to save time during calculation
           gravitationalConstant: -2000,
           centralGravity: 0.3,
           springLength: 95,
@@ -22708,7 +22721,7 @@ return /******/ (function(modules) { // webpackBootstrap
     var network = this;
     this.groups = new Groups(); // object with groups
     this.images = new Images(); // object with images
-    this.images.setOnloadCallback(function () {
+    this.images.setOnloadCallback(function (status) {
       network._redraw();
     });
 
@@ -22823,6 +22836,25 @@ return /******/ (function(modules) { // webpackBootstrap
   Emitter(Network.prototype);
 
   /**
+   * Determine if the browser requires a setTimeout or a requestAnimationFrame. This was required because
+   * some implementations (safari and IE9) did not support requestAnimationFrame
+   * @private
+   */
+  Network.prototype._determineBrowserMethod = function() {
+    var browserType = navigator.userAgent.toLowerCase();
+    this.requiresTimeout = false;
+    if (browserType.indexOf('msie 9.0') != -1) { // IE 9
+      this.requiresTimeout = true;
+    }
+    else if (browserType.indexOf('safari') != -1) {  // safari
+      if (browserType.indexOf('chrome') <= -1) {
+        this.requiresTimeout = true;
+      }
+    }
+  }
+
+
+  /**
    * Get the script path where the vis.js library is located
    *
    * @returns {string | null} path   Path or null when not found. Path does not
@@ -22855,10 +22887,10 @@ return /******/ (function(modules) { // webpackBootstrap
     for (var nodeId in this.nodes) {
       if (this.nodes.hasOwnProperty(nodeId)) {
         node = this.nodes[nodeId];
-        if (minX > (node.x)) {minX = node.x;}
-        if (maxX < (node.x)) {maxX = node.x;}
-        if (minY > (node.y)) {minY = node.y;}
-        if (maxY < (node.y)) {maxY = node.y;}
+        if (minX > (node.boundingBox.left)) {minX = node.boundingBox.left;}
+        if (maxX < (node.boundingBox.right)) {maxX = node.boundingBox.right;}
+        if (minY > (node.boundingBox.bottom)) {minY = node.boundingBox.bottom;}
+        if (maxY < (node.boundingBox.top)) {maxY = node.boundingBox.top;}
       }
     }
     if (minX == 1e9 && maxX == -1e9 && minY == 1e9 && maxY == -1e9) {
@@ -22886,6 +22918,8 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {Boolean} [disableStart] | If true, start is not called.
    */
   Network.prototype.zoomExtent = function(animationOptions, initialZoom, disableStart) {
+    this._redraw(true);
+
     if (initialZoom === undefined) {
       initialZoom = false;
     }
@@ -23041,7 +23075,6 @@ return /******/ (function(modules) { // webpackBootstrap
   Network.prototype.setOptions = function (options) {
     if (options) {
       var prop;
-
       var fields = ['nodes','edges','smoothCurves','hierarchicalLayout','clustering','navigation',
         'keyboard','dataManipulation','onAdd','onEdit','onEditEdge','onConnect','onDelete','clickToUse'
       ];
@@ -23099,6 +23132,7 @@ return /******/ (function(modules) { // webpackBootstrap
             if (options.edges.color.highlight !== undefined) {this.constants.edges.color.highlight = options.edges.color.highlight;}
             if (options.edges.color.hover !== undefined)     {this.constants.edges.color.hover = options.edges.color.hover;}
           }
+          this.constants.edges.inheritColor = false;
         }
 
         if (!options.edges.fontColor) {
@@ -23142,8 +23176,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
       if ('clickToUse' in options) {
         if (options.clickToUse) {
-          this.activator = new Activator(this.frame);
-          this.activator.on('change', this._createKeyBinds.bind(this));
+          if (!this.activator) {
+            this.activator = new Activator(this.frame);
+            this.activator.on('change', this._createKeyBinds.bind(this));
+          }
         }
         else {
           if (this.activator) {
@@ -23156,24 +23192,25 @@ return /******/ (function(modules) { // webpackBootstrap
       if (options.labels) {
         throw new Error('Option "labels" is deprecated. Use options "locale" and "locales" instead.');
       }
+
+      // (Re)loading the mixins that can be enabled or disabled in the options.
+      // load the force calculation functions, grouped under the physics system.
+      this._loadPhysicsSystem();
+      // load the navigation system.
+      this._loadNavigationControls();
+      // load the data manipulation system
+      this._loadManipulationSystem();
+      // configure the smooth curves
+      this._configureSmoothCurves();
+
+
+      // bind keys. If disabled, this will not do anything;
+      this._createKeyBinds();
+
+      this.setSize(this.constants.width, this.constants.height);
+      this.moving = true;
+      this.start();
     }
-
-    // (Re)loading the mixins that can be enabled or disabled in the options.
-    // load the force calculation functions, grouped under the physics system.
-    this._loadPhysicsSystem();
-    // load the navigation system.
-    this._loadNavigationControls();
-    // load the data manipulation system
-    this._loadManipulationSystem();
-    // configure the smooth curves
-    this._configureSmoothCurves();
-
-
-    // bind keys. If disabled, this will not do anything;
-    this._createKeyBinds();
-    this.setSize(this.constants.width, this.constants.height);
-    this.moving = true;
-    this.start();
   };
 
 
@@ -23200,10 +23237,8 @@ return /******/ (function(modules) { // webpackBootstrap
   //////////////////////////////////////////////////////////////////
 
     this.frame.canvas = document.createElement("canvas");
-
     this.frame.canvas.style.position = 'relative';
     this.frame.appendChild(this.frame.canvas);
-
 
     if (!this.frame.canvas.getContext) {
       var noCanvas = document.createElement( 'DIV' );
@@ -23214,16 +23249,12 @@ return /******/ (function(modules) { // webpackBootstrap
       this.frame.canvas.appendChild(noCanvas);
     }
     else {
-
       var ctx = this.frame.canvas.getContext("2d");
-
       this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio ||
                 ctx.mozBackingStorePixelRatio ||
                 ctx.msBackingStorePixelRatio ||
                 ctx.oBackingStorePixelRatio ||
                 ctx.backingStorePixelRatio || 1);
-
-
 
       this.frame.canvas.getContext("2d").setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
     }
@@ -23252,7 +23283,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.hammerFrame = Hammer(this.frame, {
       prevent_default: true
     });
-    this.hammerFrame.on('release',   me._onRelease.bind(me) );
+    this.hammerFrame.on('release', me._onRelease.bind(me) );
 
     // add the frame to the container element
     this.containerElement.appendChild(this.frame);
@@ -23306,8 +23337,20 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   };
 
-
+  /**
+   * Cleans up all bindings of the network, removing it fully from the memory IF the variable is set to null after calling this function.
+   * var network = new vis.Network(..);
+   * network.destroy();
+   * network = null;
+   */
   Network.prototype.destroy = function() {
+    this.start = function () {};
+    this.redraw = function () {};
+    this.timer = false;
+
+    // cleanup physicsConfiguration if it exists
+    this._cleanupPhysicsConfiguration();
+
     // remove keybindings
     this.keycharm.reset();
 
@@ -23317,7 +23360,15 @@ return /******/ (function(modules) { // webpackBootstrap
     // clear events
     this.off();
 
+    // remove all elements from the container element.
+    while (this.frame.hasChildNodes()) {
+      this.frame.removeChild(this.frame.firstChild);
+    }
 
+    // remove all elements from the container element.
+    while (this.containerElement.hasChildNodes()) {
+      this.containerElement.removeChild(this.containerElement.firstChild);
+    }
   }
 
 
@@ -23755,6 +23806,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     var id;
     var lastPopupNode = this.popupObj;
+    var nodeUnderCursor = false;
 
     if (this.popupObj == undefined) {
       // search the nodes for overlap, select the top one in case of multiple nodes
@@ -23762,15 +23814,19 @@ return /******/ (function(modules) { // webpackBootstrap
       for (id in nodes) {
         if (nodes.hasOwnProperty(id)) {
           var node = nodes[id];
-          if (node.getTitle() !== undefined && node.isOverlappingWith(obj)) {
-            this.popupObj = node;
-            break;
+          if (node.isOverlappingWith(obj)) {
+            if (node.getTitle() !== undefined) {
+              this.popupObj = node;
+              break;
+            }
+            // if you hover over a node, the title of the edge is not supposed to be shown.
+            nodeUnderCursor = true;
           }
         }
       }
     }
 
-    if (this.popupObj === undefined) {
+    if (this.popupObj === undefined && nodeUnderCursor == false) {
       // search the edges for overlap
       var edges = this.edges;
       for (id in edges) {
@@ -24211,9 +24267,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
   /**
    * Redraw the network with the current data
+   * @param hidden | used to get the first estimate of the node sizes. only the nodes are drawn after which they are quickly drawn over.
    * @private
    */
-  Network.prototype._redraw = function() {
+  Network.prototype._redraw = function(hidden) {
     var ctx = this.frame.canvas.getContext('2d');
 
     ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
@@ -24237,18 +24294,21 @@ return /******/ (function(modules) { // webpackBootstrap
       "y": this._YconvertDOMtoCanvas(this.frame.canvas.clientHeight * this.pixelRatio)
     };
 
-
-    this._doInAllSectors("_drawAllSectorNodes",ctx);
-    if (this.drag.dragging == false || this.drag.dragging === undefined || this.constants.hideEdgesOnDrag == false) {
-      this._doInAllSectors("_drawEdges",ctx);
+    if (!(hidden == true)) {
+      this._doInAllSectors("_drawAllSectorNodes", ctx);
+      if (this.drag.dragging == false || this.drag.dragging === undefined || this.constants.hideEdgesOnDrag == false) {
+        this._doInAllSectors("_drawEdges", ctx);
+      }
     }
 
     if (this.drag.dragging == false || this.drag.dragging === undefined || this.constants.hideNodesOnDrag == false) {
       this._doInAllSectors("_drawNodes",ctx,false);
     }
 
-    if (this.controlNodesActive == true) {
-      this._doInAllSectors("_drawControlNodes",ctx);
+    if (!(hidden == true)) {
+      if (this.controlNodesActive == true) {
+        this._doInAllSectors("_drawControlNodes", ctx);
+      }
     }
 
   //  this._doInSupportSector("_drawNodes",ctx,true);
@@ -24256,6 +24316,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // restore original scaling and translation
     ctx.restore();
+
+    if (hidden == true) {
+      ctx.clearRect(0, 0, w, h);
+    }
   };
 
   /**
@@ -24586,6 +24650,7 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.constants.smoothCurves.enabled == true && this.constants.smoothCurves.dynamic == true) {
           supportMovingStatus = this._doInSupportSector("_discreteStepNodes");
         }
+
         // gather movement data from all sectors, if one moves, we are NOT stabilzied
         for (var i = 0; i < mainMoving.length; i++) {mainMovingStatus = mainMoving[0] || mainMovingStatus;}
 
@@ -24607,26 +24672,26 @@ return /******/ (function(modules) { // webpackBootstrap
   Network.prototype._animationStep = function() {
     // reset the timer so a new scheduled animation step can be set
     this.timer = undefined;
+
     // handle the keyboad movement
     this._handleNavigation();
 
+    var startTime = Date.now();
+    this._physicsTick();
+
+    // run double speed if it is a little graph
+    if (this.renderTimestep - this.renderTime > 2*this.physicsTime) {
+      this._physicsTick();
+    }
+
+    this.physicsTime = Date.now() - startTime;
+
+    var renderStartTime = Date.now();
+    this._redraw();
+    this.renderTime = Date.now() - renderStartTime;
+
     // this schedules a new animation step
     this.start();
-
-    // start the physics simulation
-    var calculationTime = Date.now();
-    var maxSteps = 1;
-    this._physicsTick();
-    var timeRequired = Date.now() - calculationTime;
-    while (timeRequired < 0.9*(this.renderTimestep - this.renderTime) && maxSteps < this.maxPhysicsTicksPerRender) {
-      this._physicsTick();
-      timeRequired = Date.now() - calculationTime;
-      maxSteps++;
-    }
-    // start the rendering process
-    var renderTime = Date.now();
-    this._redraw();
-    this.renderTime = Date.now() - renderTime;
   };
 
   if (typeof window !== 'undefined') {
@@ -24645,23 +24710,11 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       if (!this.timer) {
-        var ua = navigator.userAgent.toLowerCase();
-
-        var requiresTimeout = false;
-        if (ua.indexOf('msie 9.0') != -1) { // IE 9
-          requiresTimeout = true;
-        }
-        else if (ua.indexOf('safari') != -1) {  // safari
-          if (ua.indexOf('chrome') <= -1) {
-            requiresTimeout = true;
-          }
-        }
-
-        if (requiresTimeout == true) {
+        if (this.requiresTimeout == true) {
           this.timer = window.setTimeout(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
         }
-        else{
-          this.timer = window.requestAnimationFrame(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
+        else {
+          this.timer = window.requestAnimationFrame(this._animationStep.bind(this)); // wait this.renderTimeStep milliseconds and perform the animation step function
         }
       }
     }
@@ -24979,7 +25032,10 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   };
 
-
+  /**
+   * used to animate smoothly by hijacking the redraw function.
+   * @private
+   */
   Network.prototype._lockedRedraw = function () {
     var nodePosition = {x: this.nodes[this.lockedOnNodeId].x, y: this.nodes[this.lockedOnNodeId].y};
     var viewCenter = this.DOMtoCanvas({x: 0.5 * this.frame.canvas.clientWidth, y: 0.5 * this.frame.canvas.clientHeight});
@@ -25076,6 +25132,13 @@ return /******/ (function(modules) { // webpackBootstrap
   Network.prototype.getCenterCoordinates = function () {
     return this.DOMtoCanvas({x: 0.5 * this.frame.canvas.clientWidth, y: 0.5 * this.frame.canvas.clientHeight});
   };
+
+
+  Network.prototype.getBoundingBox = function(nodeId) {
+    if (this.nodes[nodeId] !== undefined) {
+      return this.nodes[nodeId].boundingBox;
+    }
+  }
 
   module.exports = Network;
 
@@ -26354,8 +26417,8 @@ return /******/ (function(modules) { // webpackBootstrap
     this.level = -1;
     this.preassignedLevel = false;
     this.hierarchyEnumerated = false;
-    this.labelDimensions = {top:0,left:0,width:0,height:0,yLine:0}; // could be cached
-
+    this.labelDimensions = {top:0, left:0, width:0, height:0, yLine:0}; // could be cached
+    this.boundingBox = {top:0, left:0, right:0, bottom:0};
 
     this.imagelist = imagelist;
     this.grouplist = grouplist;
@@ -26467,13 +26530,13 @@ return /******/ (function(modules) { // webpackBootstrap
     // copy group properties
     if (typeof this.options.group === 'number' || (typeof this.options.group === 'string' && this.options.group != '')) {
       var groupObj = this.grouplist.get(this.options.group);
-      for (var prop in groupObj) {
-        if (groupObj.hasOwnProperty(prop)) {
-          this.options[prop] = groupObj[prop];
-        }
-      }
+      util.deepExtend(this.options, groupObj);
+      // the color object needs to be completely defined. Since groups can partially overwrite the colors, we parse it again, just in case.
+      this.options.color = util.parseColor(this.options.color);
     }
-
+    else if (properties.color === undefined) {
+      this.options.color = constants.nodes.color;
+    }
 
     // individual shape properties
     if (properties.radius !== undefined)         {this.baseRadiusValue = this.options.radius;}
@@ -26511,8 +26574,6 @@ return /******/ (function(modules) { // webpackBootstrap
       this.options.radiusMin = constants.nodes.widthMin;
       this.options.radiusMax = constants.nodes.widthMax;
     }
-
-
 
     // choose draw method depending on the shape
     switch (this.options.shape) {
@@ -26840,7 +26901,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
   Node.prototype._drawImage = function (ctx) {
     this._resizeImage(ctx);
-
     this.left   = this.x - this.width / 2;
     this.top    = this.y - this.height / 2;
 
@@ -26866,7 +26926,16 @@ return /******/ (function(modules) { // webpackBootstrap
       yLabel = this.y;
     }
 
+
+    this.boundingBox.top = this.top;
+    this.boundingBox.left = this.left;
+    this.boundingBox.right = this.left + this.width;
+    this.boundingBox.bottom = this.top + this.height;
+
     this._label(ctx, this.label, this.x, yLabel, undefined, "top");
+    this.boundingBox.left = Math.min(this.boundingBox.left, this.labelDimensions.left);
+    this.boundingBox.right = Math.max(this.boundingBox.right, this.labelDimensions.left + this.labelDimensions.width);
+    this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelDimensions.height);
   };
 
 
@@ -26910,11 +26979,16 @@ return /******/ (function(modules) { // webpackBootstrap
     ctx.lineWidth *= this.networkScaleInv;
     ctx.lineWidth = Math.min(this.width,ctx.lineWidth);
 
-    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.options.color.background;
+    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
 
     ctx.roundRect(this.left, this.top, this.width, this.height, this.options.radius);
     ctx.fill();
     ctx.stroke();
+
+    this.boundingBox.top = this.top;
+    this.boundingBox.left = this.left;
+    this.boundingBox.right = this.left + this.width;
+    this.boundingBox.bottom = this.top + this.height;
 
     this._label(ctx, this.label, this.x, this.y);
   };
@@ -26964,6 +27038,11 @@ return /******/ (function(modules) { // webpackBootstrap
     ctx.database(this.x - this.width/2, this.y - this.height*0.5, this.width, this.height);
     ctx.fill();
     ctx.stroke();
+
+    this.boundingBox.top = this.top;
+    this.boundingBox.left = this.left;
+    this.boundingBox.right = this.left + this.width;
+    this.boundingBox.bottom = this.top + this.height;
 
     this._label(ctx, this.label, this.x, this.y);
   };
@@ -27016,6 +27095,11 @@ return /******/ (function(modules) { // webpackBootstrap
     ctx.fill();
     ctx.stroke();
 
+    this.boundingBox.top = this.y - this.options.radius;
+    this.boundingBox.left = this.x - this.options.radius;
+    this.boundingBox.right = this.x + this.options.radius;
+    this.boundingBox.bottom = this.y + this.options.radius;
+
     this._label(ctx, this.label, this.x, this.y);
   };
 
@@ -27067,6 +27151,12 @@ return /******/ (function(modules) { // webpackBootstrap
     ctx.ellipse(this.left, this.top, this.width, this.height);
     ctx.fill();
     ctx.stroke();
+
+    this.boundingBox.top = this.top;
+    this.boundingBox.left = this.left;
+    this.boundingBox.right = this.left + this.width;
+    this.boundingBox.bottom = this.top + this.height;
+
     this._label(ctx, this.label, this.x, this.y);
   };
 
@@ -27144,8 +27234,16 @@ return /******/ (function(modules) { // webpackBootstrap
     ctx.fill();
     ctx.stroke();
 
+    this.boundingBox.top = this.y - this.options.radius;
+    this.boundingBox.left = this.x - this.options.radius;
+    this.boundingBox.right = this.x + this.options.radius;
+    this.boundingBox.bottom = this.y + this.options.radius;
+
     if (this.label) {
       this._label(ctx, this.label, this.x, this.y + this.height / 2, undefined, 'top',true);
+      this.boundingBox.left = Math.min(this.boundingBox.left, this.labelDimensions.left);
+      this.boundingBox.right = Math.max(this.boundingBox.right, this.labelDimensions.left + this.labelDimensions.width);
+      this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelDimensions.height);
     }
   };
 
@@ -27170,6 +27268,11 @@ return /******/ (function(modules) { // webpackBootstrap
     this.top = this.y - this.height / 2;
 
     this._label(ctx, this.label, this.x, this.y);
+
+    this.boundingBox.top = this.top;
+    this.boundingBox.left = this.left;
+    this.boundingBox.right = this.left + this.width;
+    this.boundingBox.bottom = this.top + this.height;
   };
 
 
@@ -27399,9 +27502,6 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   Groups.prototype.add = function (groupname, style) {
     this.groups[groupname] = style;
-    if (style.color) {
-      style.color = util.parseColor(style.color);
-    }
     return style;
   };
 
@@ -27418,7 +27518,6 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   function Images() {
     this.images = {};
-
     this.callback = undefined;
   }
 
@@ -27438,25 +27537,39 @@ return /******/ (function(modules) { // webpackBootstrap
    * @return {Image} img          The image object
    */
   Images.prototype.load = function(url, brokenUrl) {
-    var img = this.images[url];
-    if (img == undefined) {
+    if (this.images[url] == undefined) {
       // create the image
-      var images = this;
-      img = new Image();
-      this.images[url] = img;
-      img.onload = function() {
-        if (images.callback) {
-          images.callback(this);
+      var me = this;
+      var img = new Image();
+      img.onload = function () {
+
+        // IE11 fix -- thanks dponch!
+        if (this.width == 0) {
+          document.body.appendChild(this);
+          this.width = this.offsetWidth;
+          this.height = this.offsetHeight;
+          document.body.removeChild(this);
+        }
+
+        if (me.callback) {
+          me.images[url] = img;
+          me.callback(this);
         }
       };
-      
+
       img.onerror = function () {
-  	  this.src = brokenUrl;
-  	  if (images.callback) {
-  		images.callback(this);
-  	  }
-  	};
-  	
+        if (brokenUrl === undefined) {
+          console.error("Could not load image:", url);
+          delete this.src;
+          if (me.callback) {
+            me.callback(this);
+          }
+        }
+        else {
+          this.src = brokenUrl;
+        }
+      };
+
       img.src = url;
     }
 
@@ -28513,13 +28626,13 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var PhysicsMixin = __webpack_require__(62);
-  var ClusterMixin = __webpack_require__(63);
-  var SectorsMixin = __webpack_require__(64);
-  var SelectionMixin = __webpack_require__(65);
-  var ManipulationMixin = __webpack_require__(66);
-  var NavigationMixin = __webpack_require__(67);
-  var HierarchicalLayoutMixin = __webpack_require__(68);
+  var PhysicsMixin = __webpack_require__(60);
+  var ClusterMixin = __webpack_require__(64);
+  var SectorsMixin = __webpack_require__(65);
+  var SelectionMixin = __webpack_require__(66);
+  var ManipulationMixin = __webpack_require__(67);
+  var NavigationMixin = __webpack_require__(68);
+  var HierarchicalLayoutMixin = __webpack_require__(69);
 
   /**
    * Load a mixin into the network object
@@ -28561,6 +28674,9 @@ return /******/ (function(modules) { // webpackBootstrap
     this._loadSelectedForceSolver();
     if (this.constants.configurePhysics == true) {
       this._loadPhysicsConfiguration();
+    }
+    else {
+      this._cleanupPhysicsConfiguration();
     }
   };
 
@@ -28714,282 +28830,10 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
-  // English
-  exports['en'] = {
-    edit: 'Edit',
-    del: 'Delete selected',
-    back: 'Back',
-    addNode: 'Add Node',
-    addEdge: 'Add Edge',
-    editNode: 'Edit Node',
-    editEdge: 'Edit Edge',
-    addDescription: 'Click in an empty space to place a new node.',
-    edgeDescription: 'Click on a node and drag the edge to another node to connect them.',
-    editEdgeDescription: 'Click on the control points and drag them to a node to connect to it.',
-    createEdgeError: 'Cannot link edges to a cluster.',
-    deleteClusterError: 'Clusters cannot be deleted.'
-  };
-  exports['en_EN'] = exports['en'];
-  exports['en_US'] = exports['en'];
-
-  // Dutch
-  exports['nl'] = {
-    edit: 'Wijzigen',
-    del: 'Selectie verwijderen',
-    back: 'Terug',
-    addNode: 'Node toevoegen',
-    addEdge: 'Link toevoegen',
-    editNode: 'Node wijzigen',
-    editEdge: 'Link wijzigen',
-    addDescription: 'Klik op een leeg gebied om een nieuwe node te maken.',
-    edgeDescription: 'Klik op een node en sleep de link naar een andere node om ze te verbinden.',
-    editEdgeDescription: 'Klik op de verbindingspunten en sleep ze naar een node om daarmee te verbinden.',
-    createEdgeError: 'Kan geen link maken naar een cluster.',
-    deleteClusterError: 'Clusters kunnen niet worden verwijderd.'
-  };
-  exports['nl_NL'] = exports['nl'];
-  exports['nl_BE'] = exports['nl'];
-
-
-/***/ },
-/* 61 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * Canvas shapes used by Network
-   */
-  if (typeof CanvasRenderingContext2D !== 'undefined') {
-
-    /**
-     * Draw a circle shape
-     */
-    CanvasRenderingContext2D.prototype.circle = function(x, y, r) {
-      this.beginPath();
-      this.arc(x, y, r, 0, 2*Math.PI, false);
-    };
-
-    /**
-     * Draw a square shape
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r   size, width and height of the square
-     */
-    CanvasRenderingContext2D.prototype.square = function(x, y, r) {
-      this.beginPath();
-      this.rect(x - r, y - r, r * 2, r * 2);
-    };
-
-    /**
-     * Draw a triangle shape
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r   radius, half the length of the sides of the triangle
-     */
-    CanvasRenderingContext2D.prototype.triangle = function(x, y, r) {
-      // http://en.wikipedia.org/wiki/Equilateral_triangle
-      this.beginPath();
-
-      var s = r * 2;
-      var s2 = s / 2;
-      var ir = Math.sqrt(3) / 6 * s;      // radius of inner circle
-      var h = Math.sqrt(s * s - s2 * s2); // height
-
-      this.moveTo(x, y - (h - ir));
-      this.lineTo(x + s2, y + ir);
-      this.lineTo(x - s2, y + ir);
-      this.lineTo(x, y - (h - ir));
-      this.closePath();
-    };
-
-    /**
-     * Draw a triangle shape in downward orientation
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r radius
-     */
-    CanvasRenderingContext2D.prototype.triangleDown = function(x, y, r) {
-      // http://en.wikipedia.org/wiki/Equilateral_triangle
-      this.beginPath();
-
-      var s = r * 2;
-      var s2 = s / 2;
-      var ir = Math.sqrt(3) / 6 * s;      // radius of inner circle
-      var h = Math.sqrt(s * s - s2 * s2); // height
-
-      this.moveTo(x, y + (h - ir));
-      this.lineTo(x + s2, y - ir);
-      this.lineTo(x - s2, y - ir);
-      this.lineTo(x, y + (h - ir));
-      this.closePath();
-    };
-
-    /**
-     * Draw a star shape, a star with 5 points
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r   radius, half the length of the sides of the triangle
-     */
-    CanvasRenderingContext2D.prototype.star = function(x, y, r) {
-      // http://www.html5canvastutorials.com/labs/html5-canvas-star-spinner/
-      this.beginPath();
-
-      for (var n = 0; n < 10; n++) {
-        var radius = (n % 2 === 0) ? r * 1.3 : r * 0.5;
-        this.lineTo(
-            x + radius * Math.sin(n * 2 * Math.PI / 10),
-            y - radius * Math.cos(n * 2 * Math.PI / 10)
-        );
-      }
-
-      this.closePath();
-    };
-
-    /**
-     * http://stackoverflow.com/questions/1255512/how-to-draw-a-rounded-rectangle-on-html-canvas
-     */
-    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
-      var r2d = Math.PI/180;
-      if( w - ( 2 * r ) < 0 ) { r = ( w / 2 ); } //ensure that the radius isn't too large for x
-      if( h - ( 2 * r ) < 0 ) { r = ( h / 2 ); } //ensure that the radius isn't too large for y
-      this.beginPath();
-      this.moveTo(x+r,y);
-      this.lineTo(x+w-r,y);
-      this.arc(x+w-r,y+r,r,r2d*270,r2d*360,false);
-      this.lineTo(x+w,y+h-r);
-      this.arc(x+w-r,y+h-r,r,0,r2d*90,false);
-      this.lineTo(x+r,y+h);
-      this.arc(x+r,y+h-r,r,r2d*90,r2d*180,false);
-      this.lineTo(x,y+r);
-      this.arc(x+r,y+r,r,r2d*180,r2d*270,false);
-    };
-
-    /**
-     * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
-     */
-    CanvasRenderingContext2D.prototype.ellipse = function(x, y, w, h) {
-      var kappa = .5522848,
-          ox = (w / 2) * kappa, // control point offset horizontal
-          oy = (h / 2) * kappa, // control point offset vertical
-          xe = x + w,           // x-end
-          ye = y + h,           // y-end
-          xm = x + w / 2,       // x-middle
-          ym = y + h / 2;       // y-middle
-
-      this.beginPath();
-      this.moveTo(x, ym);
-      this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
-      this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
-      this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
-      this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
-    };
-
-
-
-    /**
-     * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
-     */
-    CanvasRenderingContext2D.prototype.database = function(x, y, w, h) {
-      var f = 1/3;
-      var wEllipse = w;
-      var hEllipse = h * f;
-
-      var kappa = .5522848,
-          ox = (wEllipse / 2) * kappa, // control point offset horizontal
-          oy = (hEllipse / 2) * kappa, // control point offset vertical
-          xe = x + wEllipse,           // x-end
-          ye = y + hEllipse,           // y-end
-          xm = x + wEllipse / 2,       // x-middle
-          ym = y + hEllipse / 2,       // y-middle
-          ymb = y + (h - hEllipse/2),  // y-midlle, bottom ellipse
-          yeb = y + h;                 // y-end, bottom ellipse
-
-      this.beginPath();
-      this.moveTo(xe, ym);
-
-      this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
-      this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
-
-      this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
-      this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
-
-      this.lineTo(xe, ymb);
-
-      this.bezierCurveTo(xe, ymb + oy, xm + ox, yeb, xm, yeb);
-      this.bezierCurveTo(xm - ox, yeb, x, ymb + oy, x, ymb);
-
-      this.lineTo(x, ym);
-    };
-
-
-    /**
-     * Draw an arrow point (no line)
-     */
-    CanvasRenderingContext2D.prototype.arrow = function(x, y, angle, length) {
-      // tail
-      var xt = x - length * Math.cos(angle);
-      var yt = y - length * Math.sin(angle);
-
-      // inner tail
-      // TODO: allow to customize different shapes
-      var xi = x - length * 0.9 * Math.cos(angle);
-      var yi = y - length * 0.9 * Math.sin(angle);
-
-      // left
-      var xl = xt + length / 3 * Math.cos(angle + 0.5 * Math.PI);
-      var yl = yt + length / 3 * Math.sin(angle + 0.5 * Math.PI);
-
-      // right
-      var xr = xt + length / 3 * Math.cos(angle - 0.5 * Math.PI);
-      var yr = yt + length / 3 * Math.sin(angle - 0.5 * Math.PI);
-
-      this.beginPath();
-      this.moveTo(x, y);
-      this.lineTo(xl, yl);
-      this.lineTo(xi, yi);
-      this.lineTo(xr, yr);
-      this.closePath();
-    };
-
-    /**
-     * Sets up the dashedLine functionality for drawing
-     * Original code came from http://stackoverflow.com/questions/4576724/dotted-stroke-in-canvas
-     * @author David Jordan
-     * @date 2012-08-08
-     */
-    CanvasRenderingContext2D.prototype.dashedLine = function(x,y,x2,y2,dashArray){
-      if (!dashArray) dashArray=[10,5];
-      if (dashLength==0) dashLength = 0.001; // Hack for Safari
-      var dashCount = dashArray.length;
-      this.moveTo(x, y);
-      var dx = (x2-x), dy = (y2-y);
-      var slope = dy/dx;
-      var distRemaining = Math.sqrt( dx*dx + dy*dy );
-      var dashIndex=0, draw=true;
-      while (distRemaining>=0.1){
-        var dashLength = dashArray[dashIndex++%dashCount];
-        if (dashLength > distRemaining) dashLength = distRemaining;
-        var xStep = Math.sqrt( dashLength*dashLength / (1 + slope*slope) );
-        if (dx<0) xStep = -xStep;
-        x += xStep;
-        y += slope*xStep;
-        this[draw ? 'lineTo' : 'moveTo'](x,y);
-        distRemaining -= dashLength;
-        draw = !draw;
-      }
-    };
-
-    // TODO: add diamond shape
-  }
-
-
-/***/ },
-/* 62 */
-/***/ function(module, exports, __webpack_require__) {
-
   var util = __webpack_require__(1);
-  var RepulsionMixin = __webpack_require__(69);
-  var HierarchialRepulsionMixin = __webpack_require__(70);
-  var BarnesHutMixin = __webpack_require__(71);
+  var RepulsionMixin = __webpack_require__(61);
+  var HierarchialRepulsionMixin = __webpack_require__(62);
+  var BarnesHutMixin = __webpack_require__(63);
 
   /**
    * Toggling barnes Hut calculation on and off.
@@ -29292,6 +29136,17 @@ return /******/ (function(modules) { // webpackBootstrap
     node2.fy -= fy;
   };
 
+
+  exports._cleanupPhysicsConfiguration = function() {
+    if (this.physicsConfiguration !== undefined) {
+      while (this.physicsConfiguration.hasChildNodes()) {
+        this.physicsConfiguration.removeChild(this.physicsConfiguration.firstChild);
+      }
+
+      this.physicsConfiguration.parentNode.removeChild(this.physicsConfiguration);
+      this.physicsConfiguration = undefined;
+    }
+  }
 
   /**
    * Load the HTML for the physics config and bind it
@@ -29696,8 +29551,638 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 
+
+
+/***/ },
+/* 61 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Calculate the forces the nodes apply on each other based on a repulsion field.
+   * This field is linearly approximated.
+   *
+   * @private
+   */
+  exports._calculateNodeForces = function () {
+    var dx, dy, angle, distance, fx, fy, combinedClusterSize,
+      repulsingForce, node1, node2, i, j;
+
+    var nodes = this.calculationNodes;
+    var nodeIndices = this.calculationNodeIndices;
+
+    // approximation constants
+    var a_base = -2 / 3;
+    var b = 4 / 3;
+
+    // repulsing forces between nodes
+    var nodeDistance = this.constants.physics.repulsion.nodeDistance;
+    var minimumDistance = nodeDistance;
+
+    // we loop from i over all but the last entree in the array
+    // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
+    for (i = 0; i < nodeIndices.length - 1; i++) {
+      node1 = nodes[nodeIndices[i]];
+      for (j = i + 1; j < nodeIndices.length; j++) {
+        node2 = nodes[nodeIndices[j]];
+        combinedClusterSize = node1.clusterSize + node2.clusterSize - 2;
+
+        dx = node2.x - node1.x;
+        dy = node2.y - node1.y;
+        distance = Math.sqrt(dx * dx + dy * dy);
+
+        minimumDistance = (combinedClusterSize == 0) ? nodeDistance : (nodeDistance * (1 + combinedClusterSize * this.constants.clustering.distanceAmplification));
+        var a = a_base / minimumDistance;
+        if (distance < 2 * minimumDistance) {
+          if (distance < 0.5 * minimumDistance) {
+            repulsingForce = 1.0;
+          }
+          else {
+            repulsingForce = a * distance + b; // linear approx of  1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness))
+          }
+          // amplify the repulsion for clusters.
+          repulsingForce *= (combinedClusterSize == 0) ? 1 : 1 + combinedClusterSize * this.constants.clustering.forceAmplification;
+          repulsingForce = repulsingForce / Math.max(distance,0.01*minimumDistance);
+
+          fx = dx * repulsingForce;
+          fy = dy * repulsingForce;
+
+          node1.fx -= fx;
+          node1.fy -= fy;
+          node2.fx += fx;
+          node2.fy += fy;
+
+        }
+      }
+    }
+  };
+
+
+/***/ },
+/* 62 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Calculate the forces the nodes apply on eachother based on a repulsion field.
+   * This field is linearly approximated.
+   *
+   * @private
+   */
+  exports._calculateNodeForces = function () {
+    var dx, dy, distance, fx, fy,
+      repulsingForce, node1, node2, i, j;
+
+    var nodes = this.calculationNodes;
+    var nodeIndices = this.calculationNodeIndices;
+
+    // repulsing forces between nodes
+    var nodeDistance = this.constants.physics.hierarchicalRepulsion.nodeDistance;
+
+    // we loop from i over all but the last entree in the array
+    // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
+    for (i = 0; i < nodeIndices.length - 1; i++) {
+      node1 = nodes[nodeIndices[i]];
+      for (j = i + 1; j < nodeIndices.length; j++) {
+        node2 = nodes[nodeIndices[j]];
+
+        // nodes only affect nodes on their level
+        if (node1.level == node2.level) {
+
+          dx = node2.x - node1.x;
+          dy = node2.y - node1.y;
+          distance = Math.sqrt(dx * dx + dy * dy);
+
+
+          var steepness = 0.05;
+          if (distance < nodeDistance) {
+            repulsingForce = -Math.pow(steepness*distance,2) + Math.pow(steepness*nodeDistance,2);
+          }
+          else {
+            repulsingForce = 0;
+          }
+            // normalize force with
+            if (distance == 0) {
+              distance = 0.01;
+            }
+            else {
+              repulsingForce = repulsingForce / distance;
+            }
+            fx = dx * repulsingForce;
+            fy = dy * repulsingForce;
+
+            node1.fx -= fx;
+            node1.fy -= fy;
+            node2.fx += fx;
+            node2.fy += fy;
+        }
+      }
+    }
+  };
+
+
+  /**
+   * this function calculates the effects of the springs in the case of unsmooth curves.
+   *
+   * @private
+   */
+  exports._calculateHierarchicalSpringForces = function () {
+    var edgeLength, edge, edgeId;
+    var dx, dy, fx, fy, springForce, distance;
+    var edges = this.edges;
+
+    var nodes = this.calculationNodes;
+    var nodeIndices = this.calculationNodeIndices;
+
+
+    for (var i = 0; i < nodeIndices.length; i++) {
+      var node1 = nodes[nodeIndices[i]];
+      node1.springFx = 0;
+      node1.springFy = 0;
+    }
+
+
+    // forces caused by the edges, modelled as springs
+    for (edgeId in edges) {
+      if (edges.hasOwnProperty(edgeId)) {
+        edge = edges[edgeId];
+        if (edge.connected) {
+          // only calculate forces if nodes are in the same sector
+          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
+            edgeLength = edge.physics.springLength;
+            // this implies that the edges between big clusters are longer
+            edgeLength += (edge.to.clusterSize + edge.from.clusterSize - 2) * this.constants.clustering.edgeGrowth;
+
+            dx = (edge.from.x - edge.to.x);
+            dy = (edge.from.y - edge.to.y);
+            distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance == 0) {
+              distance = 0.01;
+            }
+
+            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+            springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
+
+            fx = dx * springForce;
+            fy = dy * springForce;
+
+
+
+            if (edge.to.level != edge.from.level) {
+              edge.to.springFx -= fx;
+              edge.to.springFy -= fy;
+              edge.from.springFx += fx;
+              edge.from.springFy += fy;
+            }
+            else {
+              var factor = 0.5;
+              edge.to.fx -= factor*fx;
+              edge.to.fy -= factor*fy;
+              edge.from.fx += factor*fx;
+              edge.from.fy += factor*fy;
+            }
+          }
+        }
+      }
+    }
+
+    // normalize spring forces
+    var springForce = 1;
+    var springFx, springFy;
+    for (i = 0; i < nodeIndices.length; i++) {
+      var node = nodes[nodeIndices[i]];
+      springFx = Math.min(springForce,Math.max(-springForce,node.springFx));
+      springFy = Math.min(springForce,Math.max(-springForce,node.springFy));
+
+      node.fx += springFx;
+      node.fy += springFy;
+    }
+
+    // retain energy balance
+    var totalFx = 0;
+    var totalFy = 0;
+    for (i = 0; i < nodeIndices.length; i++) {
+      var node = nodes[nodeIndices[i]];
+      totalFx += node.fx;
+      totalFy += node.fy;
+    }
+    var correctionFx = totalFx / nodeIndices.length;
+    var correctionFy = totalFy / nodeIndices.length;
+
+    for (i = 0; i < nodeIndices.length; i++) {
+      var node = nodes[nodeIndices[i]];
+      node.fx -= correctionFx;
+      node.fy -= correctionFy;
+    }
+
+  };
+
 /***/ },
 /* 63 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * This function calculates the forces the nodes apply on eachother based on a gravitational model.
+   * The Barnes Hut method is used to speed up this N-body simulation.
+   *
+   * @private
+   */
+  exports._calculateNodeForces = function() {
+    if (this.constants.physics.barnesHut.gravitationalConstant != 0) {
+      var node;
+      var nodes = this.calculationNodes;
+      var nodeIndices = this.calculationNodeIndices;
+      var nodeCount = nodeIndices.length;
+
+      this._formBarnesHutTree(nodes,nodeIndices);
+
+      var barnesHutTree = this.barnesHutTree;
+
+      // place the nodes one by one recursively
+      for (var i = 0; i < nodeCount; i++) {
+        node = nodes[nodeIndices[i]];
+        if (node.options.mass > 0) {
+        // starting with root is irrelevant, it never passes the BarnesHut condition
+          this._getForceContribution(barnesHutTree.root.children.NW,node);
+          this._getForceContribution(barnesHutTree.root.children.NE,node);
+          this._getForceContribution(barnesHutTree.root.children.SW,node);
+          this._getForceContribution(barnesHutTree.root.children.SE,node);
+        }
+      }
+    }
+  };
+
+
+  /**
+   * This function traverses the barnesHutTree. It checks when it can approximate distant nodes with their center of mass.
+   * If a region contains a single node, we check if it is not itself, then we apply the force.
+   *
+   * @param parentBranch
+   * @param node
+   * @private
+   */
+  exports._getForceContribution = function(parentBranch,node) {
+    // we get no force contribution from an empty region
+    if (parentBranch.childrenCount > 0) {
+      var dx,dy,distance;
+
+      // get the distance from the center of mass to the node.
+      dx = parentBranch.centerOfMass.x - node.x;
+      dy = parentBranch.centerOfMass.y - node.y;
+      distance = Math.sqrt(dx * dx + dy * dy);
+
+      // BarnesHut condition
+      // original condition : s/d < thetaInverted = passed  ===  d/s > 1/theta = passed
+      // calcSize = 1/s --> d * 1/s > 1/theta = passed
+      if (distance * parentBranch.calcSize > this.constants.physics.barnesHut.thetaInverted) {
+        // duplicate code to reduce function calls to speed up program
+        if (distance == 0) {
+          distance = 0.1*Math.random();
+          dx = distance;
+        }
+        var gravityForce = this.constants.physics.barnesHut.gravitationalConstant * parentBranch.mass * node.options.mass / (distance * distance * distance);
+        var fx = dx * gravityForce;
+        var fy = dy * gravityForce;
+        node.fx += fx;
+        node.fy += fy;
+      }
+      else {
+        // Did not pass the condition, go into children if available
+        if (parentBranch.childrenCount == 4) {
+          this._getForceContribution(parentBranch.children.NW,node);
+          this._getForceContribution(parentBranch.children.NE,node);
+          this._getForceContribution(parentBranch.children.SW,node);
+          this._getForceContribution(parentBranch.children.SE,node);
+        }
+        else { // parentBranch must have only one node, if it was empty we wouldnt be here
+          if (parentBranch.children.data.id != node.id) { // if it is not self
+            // duplicate code to reduce function calls to speed up program
+            if (distance == 0) {
+              distance = 0.5*Math.random();
+              dx = distance;
+            }
+            var gravityForce = this.constants.physics.barnesHut.gravitationalConstant * parentBranch.mass * node.options.mass / (distance * distance * distance);
+            var fx = dx * gravityForce;
+            var fy = dy * gravityForce;
+            node.fx += fx;
+            node.fy += fy;
+          }
+        }
+      }
+    }
+  };
+
+  /**
+   * This function constructs the barnesHut tree recursively. It creates the root, splits it and starts placing the nodes.
+   *
+   * @param nodes
+   * @param nodeIndices
+   * @private
+   */
+  exports._formBarnesHutTree = function(nodes,nodeIndices) {
+    var node;
+    var nodeCount = nodeIndices.length;
+
+    var minX = Number.MAX_VALUE,
+      minY = Number.MAX_VALUE,
+      maxX =-Number.MAX_VALUE,
+      maxY =-Number.MAX_VALUE;
+
+    // get the range of the nodes
+    for (var i = 0; i < nodeCount; i++) {
+      var x = nodes[nodeIndices[i]].x;
+      var y = nodes[nodeIndices[i]].y;
+      if (nodes[nodeIndices[i]].options.mass > 0) {
+        if (x < minX) { minX = x; }
+        if (x > maxX) { maxX = x; }
+        if (y < minY) { minY = y; }
+        if (y > maxY) { maxY = y; }
+      }
+    }
+    // make the range a square
+    var sizeDiff = Math.abs(maxX - minX) - Math.abs(maxY - minY); // difference between X and Y
+    if (sizeDiff > 0) {minY -= 0.5 * sizeDiff; maxY += 0.5 * sizeDiff;} // xSize > ySize
+    else              {minX += 0.5 * sizeDiff; maxX -= 0.5 * sizeDiff;} // xSize < ySize
+
+
+    var minimumTreeSize = 1e-5;
+    var rootSize = Math.max(minimumTreeSize,Math.abs(maxX - minX));
+    var halfRootSize = 0.5 * rootSize;
+    var centerX = 0.5 * (minX + maxX), centerY = 0.5 * (minY + maxY);
+
+    // construct the barnesHutTree
+    var barnesHutTree = {
+      root:{
+        centerOfMass: {x:0, y:0},
+        mass:0,
+        range: {
+          minX: centerX-halfRootSize,maxX:centerX+halfRootSize,
+          minY: centerY-halfRootSize,maxY:centerY+halfRootSize
+        },
+        size: rootSize,
+        calcSize: 1 / rootSize,
+        children: { data:null},
+        maxWidth: 0,
+        level: 0,
+        childrenCount: 4
+      }
+    };
+    this._splitBranch(barnesHutTree.root);
+
+    // place the nodes one by one recursively
+    for (i = 0; i < nodeCount; i++) {
+      node = nodes[nodeIndices[i]];
+      if (node.options.mass > 0) {
+        this._placeInTree(barnesHutTree.root,node);
+      }
+    }
+
+    // make global
+    this.barnesHutTree = barnesHutTree
+  };
+
+
+  /**
+   * this updates the mass of a branch. this is increased by adding a node.
+   *
+   * @param parentBranch
+   * @param node
+   * @private
+   */
+  exports._updateBranchMass = function(parentBranch, node) {
+    var totalMass = parentBranch.mass + node.options.mass;
+    var totalMassInv = 1/totalMass;
+
+    parentBranch.centerOfMass.x = parentBranch.centerOfMass.x * parentBranch.mass + node.x * node.options.mass;
+    parentBranch.centerOfMass.x *= totalMassInv;
+
+    parentBranch.centerOfMass.y = parentBranch.centerOfMass.y * parentBranch.mass + node.y * node.options.mass;
+    parentBranch.centerOfMass.y *= totalMassInv;
+
+    parentBranch.mass = totalMass;
+    var biggestSize = Math.max(Math.max(node.height,node.radius),node.width);
+    parentBranch.maxWidth = (parentBranch.maxWidth < biggestSize) ? biggestSize : parentBranch.maxWidth;
+
+  };
+
+
+  /**
+   * determine in which branch the node will be placed.
+   *
+   * @param parentBranch
+   * @param node
+   * @param skipMassUpdate
+   * @private
+   */
+  exports._placeInTree = function(parentBranch,node,skipMassUpdate) {
+    if (skipMassUpdate != true || skipMassUpdate === undefined) {
+      // update the mass of the branch.
+      this._updateBranchMass(parentBranch,node);
+    }
+
+    if (parentBranch.children.NW.range.maxX > node.x) { // in NW or SW
+      if (parentBranch.children.NW.range.maxY > node.y) { // in NW
+        this._placeInRegion(parentBranch,node,"NW");
+      }
+      else { // in SW
+        this._placeInRegion(parentBranch,node,"SW");
+      }
+    }
+    else { // in NE or SE
+      if (parentBranch.children.NW.range.maxY > node.y) { // in NE
+        this._placeInRegion(parentBranch,node,"NE");
+      }
+      else { // in SE
+        this._placeInRegion(parentBranch,node,"SE");
+      }
+    }
+  };
+
+
+  /**
+   * actually place the node in a region (or branch)
+   *
+   * @param parentBranch
+   * @param node
+   * @param region
+   * @private
+   */
+  exports._placeInRegion = function(parentBranch,node,region) {
+    switch (parentBranch.children[region].childrenCount) {
+      case 0: // place node here
+        parentBranch.children[region].children.data = node;
+        parentBranch.children[region].childrenCount = 1;
+        this._updateBranchMass(parentBranch.children[region],node);
+        break;
+      case 1: // convert into children
+        // if there are two nodes exactly overlapping (on init, on opening of cluster etc.)
+        // we move one node a pixel and we do not put it in the tree.
+        if (parentBranch.children[region].children.data.x == node.x &&
+            parentBranch.children[region].children.data.y == node.y) {
+          node.x += Math.random();
+          node.y += Math.random();
+        }
+        else {
+          this._splitBranch(parentBranch.children[region]);
+          this._placeInTree(parentBranch.children[region],node);
+        }
+        break;
+      case 4: // place in branch
+        this._placeInTree(parentBranch.children[region],node);
+        break;
+    }
+  };
+
+
+  /**
+   * this function splits a branch into 4 sub branches. If the branch contained a node, we place it in the subbranch
+   * after the split is complete.
+   *
+   * @param parentBranch
+   * @private
+   */
+  exports._splitBranch = function(parentBranch) {
+    // if the branch is shaded with a node, replace the node in the new subset.
+    var containedNode = null;
+    if (parentBranch.childrenCount == 1) {
+      containedNode = parentBranch.children.data;
+      parentBranch.mass = 0; parentBranch.centerOfMass.x = 0; parentBranch.centerOfMass.y = 0;
+    }
+    parentBranch.childrenCount = 4;
+    parentBranch.children.data = null;
+    this._insertRegion(parentBranch,"NW");
+    this._insertRegion(parentBranch,"NE");
+    this._insertRegion(parentBranch,"SW");
+    this._insertRegion(parentBranch,"SE");
+
+    if (containedNode != null) {
+      this._placeInTree(parentBranch,containedNode);
+    }
+  };
+
+
+  /**
+   * This function subdivides the region into four new segments.
+   * Specifically, this inserts a single new segment.
+   * It fills the children section of the parentBranch
+   *
+   * @param parentBranch
+   * @param region
+   * @param parentRange
+   * @private
+   */
+  exports._insertRegion = function(parentBranch, region) {
+    var minX,maxX,minY,maxY;
+    var childSize = 0.5 * parentBranch.size;
+    switch (region) {
+      case "NW":
+        minX = parentBranch.range.minX;
+        maxX = parentBranch.range.minX + childSize;
+        minY = parentBranch.range.minY;
+        maxY = parentBranch.range.minY + childSize;
+        break;
+      case "NE":
+        minX = parentBranch.range.minX + childSize;
+        maxX = parentBranch.range.maxX;
+        minY = parentBranch.range.minY;
+        maxY = parentBranch.range.minY + childSize;
+        break;
+      case "SW":
+        minX = parentBranch.range.minX;
+        maxX = parentBranch.range.minX + childSize;
+        minY = parentBranch.range.minY + childSize;
+        maxY = parentBranch.range.maxY;
+        break;
+      case "SE":
+        minX = parentBranch.range.minX + childSize;
+        maxX = parentBranch.range.maxX;
+        minY = parentBranch.range.minY + childSize;
+        maxY = parentBranch.range.maxY;
+        break;
+    }
+
+
+    parentBranch.children[region] = {
+      centerOfMass:{x:0,y:0},
+      mass:0,
+      range:{minX:minX,maxX:maxX,minY:minY,maxY:maxY},
+      size: 0.5 * parentBranch.size,
+      calcSize: 2 * parentBranch.calcSize,
+      children: {data:null},
+      maxWidth: 0,
+      level: parentBranch.level+1,
+      childrenCount: 0
+    };
+  };
+
+
+  /**
+   * This function is for debugging purposed, it draws the tree.
+   *
+   * @param ctx
+   * @param color
+   * @private
+   */
+  exports._drawTree = function(ctx,color) {
+    if (this.barnesHutTree !== undefined) {
+
+      ctx.lineWidth = 1;
+
+      this._drawBranch(this.barnesHutTree.root,ctx,color);
+    }
+  };
+
+
+  /**
+   * This function is for debugging purposes. It draws the branches recursively.
+   *
+   * @param branch
+   * @param ctx
+   * @param color
+   * @private
+   */
+  exports._drawBranch = function(branch,ctx,color) {
+    if (color === undefined) {
+      color = "#FF0000";
+    }
+
+    if (branch.childrenCount == 4) {
+      this._drawBranch(branch.children.NW,ctx);
+      this._drawBranch(branch.children.NE,ctx);
+      this._drawBranch(branch.children.SE,ctx);
+      this._drawBranch(branch.children.SW,ctx);
+    }
+    ctx.strokeStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(branch.range.minX,branch.range.minY);
+    ctx.lineTo(branch.range.maxX,branch.range.minY);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(branch.range.maxX,branch.range.minY);
+    ctx.lineTo(branch.range.maxX,branch.range.maxY);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(branch.range.maxX,branch.range.maxY);
+    ctx.lineTo(branch.range.minX,branch.range.maxY);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(branch.range.minX,branch.range.maxY);
+    ctx.lineTo(branch.range.minX,branch.range.minY);
+    ctx.stroke();
+
+    /*
+     if (branch.mass > 0) {
+     ctx.circle(branch.centerOfMass.x, branch.centerOfMass.y, 3*branch.mass);
+     ctx.stroke();
+     }
+     */
+  };
+
+
+/***/ },
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -30840,7 +31325,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 64 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -31399,7 +31884,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 65 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Node = __webpack_require__(53);
@@ -32113,7 +32598,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 66 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -32799,7 +33284,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 67 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
@@ -32979,7 +33464,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 68 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   exports._resetLevels = function() {
@@ -33396,631 +33881,275 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 69 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * Calculate the forces the nodes apply on each other based on a repulsion field.
-   * This field is linearly approximated.
-   *
-   * @private
-   */
-  exports._calculateNodeForces = function () {
-    var dx, dy, angle, distance, fx, fy, combinedClusterSize,
-      repulsingForce, node1, node2, i, j;
-
-    var nodes = this.calculationNodes;
-    var nodeIndices = this.calculationNodeIndices;
-
-    // approximation constants
-    var a_base = -2 / 3;
-    var b = 4 / 3;
-
-    // repulsing forces between nodes
-    var nodeDistance = this.constants.physics.repulsion.nodeDistance;
-    var minimumDistance = nodeDistance;
-
-    // we loop from i over all but the last entree in the array
-    // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
-    for (i = 0; i < nodeIndices.length - 1; i++) {
-      node1 = nodes[nodeIndices[i]];
-      for (j = i + 1; j < nodeIndices.length; j++) {
-        node2 = nodes[nodeIndices[j]];
-        combinedClusterSize = node1.clusterSize + node2.clusterSize - 2;
-
-        dx = node2.x - node1.x;
-        dy = node2.y - node1.y;
-        distance = Math.sqrt(dx * dx + dy * dy);
-
-        minimumDistance = (combinedClusterSize == 0) ? nodeDistance : (nodeDistance * (1 + combinedClusterSize * this.constants.clustering.distanceAmplification));
-        var a = a_base / minimumDistance;
-        if (distance < 2 * minimumDistance) {
-          if (distance < 0.5 * minimumDistance) {
-            repulsingForce = 1.0;
-          }
-          else {
-            repulsingForce = a * distance + b; // linear approx of  1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness))
-          }
-
-          // amplify the repulsion for clusters.
-          repulsingForce *= (combinedClusterSize == 0) ? 1 : 1 + combinedClusterSize * this.constants.clustering.forceAmplification;
-          repulsingForce = repulsingForce / distance;
-
-          fx = dx * repulsingForce;
-          fy = dy * repulsingForce;
-
-          node1.fx -= fx;
-          node1.fy -= fy;
-          node2.fx += fx;
-          node2.fy += fy;
-        }
-      }
-    }
-  };
-
-
-/***/ },
 /* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
-  /**
-   * Calculate the forces the nodes apply on eachother based on a repulsion field.
-   * This field is linearly approximated.
-   *
-   * @private
-   */
-  exports._calculateNodeForces = function () {
-    var dx, dy, distance, fx, fy,
-      repulsingForce, node1, node2, i, j;
-
-    var nodes = this.calculationNodes;
-    var nodeIndices = this.calculationNodeIndices;
-
-    // repulsing forces between nodes
-    var nodeDistance = this.constants.physics.hierarchicalRepulsion.nodeDistance;
-
-    // we loop from i over all but the last entree in the array
-    // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
-    for (i = 0; i < nodeIndices.length - 1; i++) {
-      node1 = nodes[nodeIndices[i]];
-      for (j = i + 1; j < nodeIndices.length; j++) {
-        node2 = nodes[nodeIndices[j]];
-
-        // nodes only affect nodes on their level
-        if (node1.level == node2.level) {
-
-          dx = node2.x - node1.x;
-          dy = node2.y - node1.y;
-          distance = Math.sqrt(dx * dx + dy * dy);
-
-
-          var steepness = 0.05;
-          if (distance < nodeDistance) {
-            repulsingForce = -Math.pow(steepness*distance,2) + Math.pow(steepness*nodeDistance,2);
-          }
-          else {
-            repulsingForce = 0;
-          }
-            // normalize force with
-            if (distance == 0) {
-              distance = 0.01;
-            }
-            else {
-              repulsingForce = repulsingForce / distance;
-            }
-            fx = dx * repulsingForce;
-            fy = dy * repulsingForce;
-
-            node1.fx -= fx;
-            node1.fy -= fy;
-            node2.fx += fx;
-            node2.fy += fy;
-        }
-      }
-    }
+  // English
+  exports['en'] = {
+    edit: 'Edit',
+    del: 'Delete selected',
+    back: 'Back',
+    addNode: 'Add Node',
+    addEdge: 'Add Edge',
+    editNode: 'Edit Node',
+    editEdge: 'Edit Edge',
+    addDescription: 'Click in an empty space to place a new node.',
+    edgeDescription: 'Click on a node and drag the edge to another node to connect them.',
+    editEdgeDescription: 'Click on the control points and drag them to a node to connect to it.',
+    createEdgeError: 'Cannot link edges to a cluster.',
+    deleteClusterError: 'Clusters cannot be deleted.'
   };
+  exports['en_EN'] = exports['en'];
+  exports['en_US'] = exports['en'];
 
-
-  /**
-   * this function calculates the effects of the springs in the case of unsmooth curves.
-   *
-   * @private
-   */
-  exports._calculateHierarchicalSpringForces = function () {
-    var edgeLength, edge, edgeId;
-    var dx, dy, fx, fy, springForce, distance;
-    var edges = this.edges;
-
-    var nodes = this.calculationNodes;
-    var nodeIndices = this.calculationNodeIndices;
-
-
-    for (var i = 0; i < nodeIndices.length; i++) {
-      var node1 = nodes[nodeIndices[i]];
-      node1.springFx = 0;
-      node1.springFy = 0;
-    }
-
-
-    // forces caused by the edges, modelled as springs
-    for (edgeId in edges) {
-      if (edges.hasOwnProperty(edgeId)) {
-        edge = edges[edgeId];
-        if (edge.connected) {
-          // only calculate forces if nodes are in the same sector
-          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
-            edgeLength = edge.physics.springLength;
-            // this implies that the edges between big clusters are longer
-            edgeLength += (edge.to.clusterSize + edge.from.clusterSize - 2) * this.constants.clustering.edgeGrowth;
-
-            dx = (edge.from.x - edge.to.x);
-            dy = (edge.from.y - edge.to.y);
-            distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance == 0) {
-              distance = 0.01;
-            }
-
-            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
-            springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
-
-            fx = dx * springForce;
-            fy = dy * springForce;
-
-
-
-            if (edge.to.level != edge.from.level) {
-              edge.to.springFx -= fx;
-              edge.to.springFy -= fy;
-              edge.from.springFx += fx;
-              edge.from.springFy += fy;
-            }
-            else {
-              var factor = 0.5;
-              edge.to.fx -= factor*fx;
-              edge.to.fy -= factor*fy;
-              edge.from.fx += factor*fx;
-              edge.from.fy += factor*fy;
-            }
-          }
-        }
-      }
-    }
-
-    // normalize spring forces
-    var springForce = 1;
-    var springFx, springFy;
-    for (i = 0; i < nodeIndices.length; i++) {
-      var node = nodes[nodeIndices[i]];
-      springFx = Math.min(springForce,Math.max(-springForce,node.springFx));
-      springFy = Math.min(springForce,Math.max(-springForce,node.springFy));
-
-      node.fx += springFx;
-      node.fy += springFy;
-    }
-
-    // retain energy balance
-    var totalFx = 0;
-    var totalFy = 0;
-    for (i = 0; i < nodeIndices.length; i++) {
-      var node = nodes[nodeIndices[i]];
-      totalFx += node.fx;
-      totalFy += node.fy;
-    }
-    var correctionFx = totalFx / nodeIndices.length;
-    var correctionFy = totalFy / nodeIndices.length;
-
-    for (i = 0; i < nodeIndices.length; i++) {
-      var node = nodes[nodeIndices[i]];
-      node.fx -= correctionFx;
-      node.fy -= correctionFy;
-    }
-
+  // Dutch
+  exports['nl'] = {
+    edit: 'Wijzigen',
+    del: 'Selectie verwijderen',
+    back: 'Terug',
+    addNode: 'Node toevoegen',
+    addEdge: 'Link toevoegen',
+    editNode: 'Node wijzigen',
+    editEdge: 'Link wijzigen',
+    addDescription: 'Klik op een leeg gebied om een nieuwe node te maken.',
+    edgeDescription: 'Klik op een node en sleep de link naar een andere node om ze te verbinden.',
+    editEdgeDescription: 'Klik op de verbindingspunten en sleep ze naar een node om daarmee te verbinden.',
+    createEdgeError: 'Kan geen link maken naar een cluster.',
+    deleteClusterError: 'Clusters kunnen niet worden verwijderd.'
   };
+  exports['nl_NL'] = exports['nl'];
+  exports['nl_BE'] = exports['nl'];
+
 
 /***/ },
 /* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
-   * This function calculates the forces the nodes apply on eachother based on a gravitational model.
-   * The Barnes Hut method is used to speed up this N-body simulation.
-   *
-   * @private
+   * Canvas shapes used by Network
    */
-  exports._calculateNodeForces = function() {
-    if (this.constants.physics.barnesHut.gravitationalConstant != 0) {
-      var node;
-      var nodes = this.calculationNodes;
-      var nodeIndices = this.calculationNodeIndices;
-      var nodeCount = nodeIndices.length;
+  if (typeof CanvasRenderingContext2D !== 'undefined') {
 
-      this._formBarnesHutTree(nodes,nodeIndices);
-
-      var barnesHutTree = this.barnesHutTree;
-
-      // place the nodes one by one recursively
-      for (var i = 0; i < nodeCount; i++) {
-        node = nodes[nodeIndices[i]];
-        if (node.options.mass > 0) {
-        // starting with root is irrelevant, it never passes the BarnesHut condition
-          this._getForceContribution(barnesHutTree.root.children.NW,node);
-          this._getForceContribution(barnesHutTree.root.children.NE,node);
-          this._getForceContribution(barnesHutTree.root.children.SW,node);
-          this._getForceContribution(barnesHutTree.root.children.SE,node);
-        }
-      }
-    }
-  };
-
-
-  /**
-   * This function traverses the barnesHutTree. It checks when it can approximate distant nodes with their center of mass.
-   * If a region contains a single node, we check if it is not itself, then we apply the force.
-   *
-   * @param parentBranch
-   * @param node
-   * @private
-   */
-  exports._getForceContribution = function(parentBranch,node) {
-    // we get no force contribution from an empty region
-    if (parentBranch.childrenCount > 0) {
-      var dx,dy,distance;
-
-      // get the distance from the center of mass to the node.
-      dx = parentBranch.centerOfMass.x - node.x;
-      dy = parentBranch.centerOfMass.y - node.y;
-      distance = Math.sqrt(dx * dx + dy * dy);
-
-      // BarnesHut condition
-      // original condition : s/d < theta = passed  ===  d/s > 1/theta = passed
-      // calcSize = 1/s --> d * 1/s > 1/theta = passed
-      if (distance * parentBranch.calcSize > this.constants.physics.barnesHut.theta) {
-        // duplicate code to reduce function calls to speed up program
-        if (distance == 0) {
-          distance = 0.1*Math.random();
-          dx = distance;
-        }
-        var gravityForce = this.constants.physics.barnesHut.gravitationalConstant * parentBranch.mass * node.options.mass / (distance * distance * distance);
-        var fx = dx * gravityForce;
-        var fy = dy * gravityForce;
-        node.fx += fx;
-        node.fy += fy;
-      }
-      else {
-        // Did not pass the condition, go into children if available
-        if (parentBranch.childrenCount == 4) {
-          this._getForceContribution(parentBranch.children.NW,node);
-          this._getForceContribution(parentBranch.children.NE,node);
-          this._getForceContribution(parentBranch.children.SW,node);
-          this._getForceContribution(parentBranch.children.SE,node);
-        }
-        else { // parentBranch must have only one node, if it was empty we wouldnt be here
-          if (parentBranch.children.data.id != node.id) { // if it is not self
-            // duplicate code to reduce function calls to speed up program
-            if (distance == 0) {
-              distance = 0.5*Math.random();
-              dx = distance;
-            }
-            var gravityForce = this.constants.physics.barnesHut.gravitationalConstant * parentBranch.mass * node.options.mass / (distance * distance * distance);
-            var fx = dx * gravityForce;
-            var fy = dy * gravityForce;
-            node.fx += fx;
-            node.fy += fy;
-          }
-        }
-      }
-    }
-  };
-
-  /**
-   * This function constructs the barnesHut tree recursively. It creates the root, splits it and starts placing the nodes.
-   *
-   * @param nodes
-   * @param nodeIndices
-   * @private
-   */
-  exports._formBarnesHutTree = function(nodes,nodeIndices) {
-    var node;
-    var nodeCount = nodeIndices.length;
-
-    var minX = Number.MAX_VALUE,
-      minY = Number.MAX_VALUE,
-      maxX =-Number.MAX_VALUE,
-      maxY =-Number.MAX_VALUE;
-
-    // get the range of the nodes
-    for (var i = 0; i < nodeCount; i++) {
-      var x = nodes[nodeIndices[i]].x;
-      var y = nodes[nodeIndices[i]].y;
-      if (nodes[nodeIndices[i]].options.mass > 0) {
-        if (x < minX) { minX = x; }
-        if (x > maxX) { maxX = x; }
-        if (y < minY) { minY = y; }
-        if (y > maxY) { maxY = y; }
-      }
-    }
-    // make the range a square
-    var sizeDiff = Math.abs(maxX - minX) - Math.abs(maxY - minY); // difference between X and Y
-    if (sizeDiff > 0) {minY -= 0.5 * sizeDiff; maxY += 0.5 * sizeDiff;} // xSize > ySize
-    else              {minX += 0.5 * sizeDiff; maxX -= 0.5 * sizeDiff;} // xSize < ySize
-
-
-    var minimumTreeSize = 1e-5;
-    var rootSize = Math.max(minimumTreeSize,Math.abs(maxX - minX));
-    var halfRootSize = 0.5 * rootSize;
-    var centerX = 0.5 * (minX + maxX), centerY = 0.5 * (minY + maxY);
-
-    // construct the barnesHutTree
-    var barnesHutTree = {
-      root:{
-        centerOfMass: {x:0, y:0},
-        mass:0,
-        range: {
-          minX: centerX-halfRootSize,maxX:centerX+halfRootSize,
-          minY: centerY-halfRootSize,maxY:centerY+halfRootSize
-        },
-        size: rootSize,
-        calcSize: 1 / rootSize,
-        children: { data:null},
-        maxWidth: 0,
-        level: 0,
-        childrenCount: 4
-      }
-    };
-    this._splitBranch(barnesHutTree.root);
-
-    // place the nodes one by one recursively
-    for (i = 0; i < nodeCount; i++) {
-      node = nodes[nodeIndices[i]];
-      if (node.options.mass > 0) {
-        this._placeInTree(barnesHutTree.root,node);
-      }
-    }
-
-    // make global
-    this.barnesHutTree = barnesHutTree
-  };
-
-
-  /**
-   * this updates the mass of a branch. this is increased by adding a node.
-   *
-   * @param parentBranch
-   * @param node
-   * @private
-   */
-  exports._updateBranchMass = function(parentBranch, node) {
-    var totalMass = parentBranch.mass + node.options.mass;
-    var totalMassInv = 1/totalMass;
-
-    parentBranch.centerOfMass.x = parentBranch.centerOfMass.x * parentBranch.mass + node.x * node.options.mass;
-    parentBranch.centerOfMass.x *= totalMassInv;
-
-    parentBranch.centerOfMass.y = parentBranch.centerOfMass.y * parentBranch.mass + node.y * node.options.mass;
-    parentBranch.centerOfMass.y *= totalMassInv;
-
-    parentBranch.mass = totalMass;
-    var biggestSize = Math.max(Math.max(node.height,node.radius),node.width);
-    parentBranch.maxWidth = (parentBranch.maxWidth < biggestSize) ? biggestSize : parentBranch.maxWidth;
-
-  };
-
-
-  /**
-   * determine in which branch the node will be placed.
-   *
-   * @param parentBranch
-   * @param node
-   * @param skipMassUpdate
-   * @private
-   */
-  exports._placeInTree = function(parentBranch,node,skipMassUpdate) {
-    if (skipMassUpdate != true || skipMassUpdate === undefined) {
-      // update the mass of the branch.
-      this._updateBranchMass(parentBranch,node);
-    }
-
-    if (parentBranch.children.NW.range.maxX > node.x) { // in NW or SW
-      if (parentBranch.children.NW.range.maxY > node.y) { // in NW
-        this._placeInRegion(parentBranch,node,"NW");
-      }
-      else { // in SW
-        this._placeInRegion(parentBranch,node,"SW");
-      }
-    }
-    else { // in NE or SE
-      if (parentBranch.children.NW.range.maxY > node.y) { // in NE
-        this._placeInRegion(parentBranch,node,"NE");
-      }
-      else { // in SE
-        this._placeInRegion(parentBranch,node,"SE");
-      }
-    }
-  };
-
-
-  /**
-   * actually place the node in a region (or branch)
-   *
-   * @param parentBranch
-   * @param node
-   * @param region
-   * @private
-   */
-  exports._placeInRegion = function(parentBranch,node,region) {
-    switch (parentBranch.children[region].childrenCount) {
-      case 0: // place node here
-        parentBranch.children[region].children.data = node;
-        parentBranch.children[region].childrenCount = 1;
-        this._updateBranchMass(parentBranch.children[region],node);
-        break;
-      case 1: // convert into children
-        // if there are two nodes exactly overlapping (on init, on opening of cluster etc.)
-        // we move one node a pixel and we do not put it in the tree.
-        if (parentBranch.children[region].children.data.x == node.x &&
-            parentBranch.children[region].children.data.y == node.y) {
-          node.x += Math.random();
-          node.y += Math.random();
-        }
-        else {
-          this._splitBranch(parentBranch.children[region]);
-          this._placeInTree(parentBranch.children[region],node);
-        }
-        break;
-      case 4: // place in branch
-        this._placeInTree(parentBranch.children[region],node);
-        break;
-    }
-  };
-
-
-  /**
-   * this function splits a branch into 4 sub branches. If the branch contained a node, we place it in the subbranch
-   * after the split is complete.
-   *
-   * @param parentBranch
-   * @private
-   */
-  exports._splitBranch = function(parentBranch) {
-    // if the branch is shaded with a node, replace the node in the new subset.
-    var containedNode = null;
-    if (parentBranch.childrenCount == 1) {
-      containedNode = parentBranch.children.data;
-      parentBranch.mass = 0; parentBranch.centerOfMass.x = 0; parentBranch.centerOfMass.y = 0;
-    }
-    parentBranch.childrenCount = 4;
-    parentBranch.children.data = null;
-    this._insertRegion(parentBranch,"NW");
-    this._insertRegion(parentBranch,"NE");
-    this._insertRegion(parentBranch,"SW");
-    this._insertRegion(parentBranch,"SE");
-
-    if (containedNode != null) {
-      this._placeInTree(parentBranch,containedNode);
-    }
-  };
-
-
-  /**
-   * This function subdivides the region into four new segments.
-   * Specifically, this inserts a single new segment.
-   * It fills the children section of the parentBranch
-   *
-   * @param parentBranch
-   * @param region
-   * @param parentRange
-   * @private
-   */
-  exports._insertRegion = function(parentBranch, region) {
-    var minX,maxX,minY,maxY;
-    var childSize = 0.5 * parentBranch.size;
-    switch (region) {
-      case "NW":
-        minX = parentBranch.range.minX;
-        maxX = parentBranch.range.minX + childSize;
-        minY = parentBranch.range.minY;
-        maxY = parentBranch.range.minY + childSize;
-        break;
-      case "NE":
-        minX = parentBranch.range.minX + childSize;
-        maxX = parentBranch.range.maxX;
-        minY = parentBranch.range.minY;
-        maxY = parentBranch.range.minY + childSize;
-        break;
-      case "SW":
-        minX = parentBranch.range.minX;
-        maxX = parentBranch.range.minX + childSize;
-        minY = parentBranch.range.minY + childSize;
-        maxY = parentBranch.range.maxY;
-        break;
-      case "SE":
-        minX = parentBranch.range.minX + childSize;
-        maxX = parentBranch.range.maxX;
-        minY = parentBranch.range.minY + childSize;
-        maxY = parentBranch.range.maxY;
-        break;
-    }
-
-
-    parentBranch.children[region] = {
-      centerOfMass:{x:0,y:0},
-      mass:0,
-      range:{minX:minX,maxX:maxX,minY:minY,maxY:maxY},
-      size: 0.5 * parentBranch.size,
-      calcSize: 2 * parentBranch.calcSize,
-      children: {data:null},
-      maxWidth: 0,
-      level: parentBranch.level+1,
-      childrenCount: 0
-    };
-  };
-
-
-  /**
-   * This function is for debugging purposed, it draws the tree.
-   *
-   * @param ctx
-   * @param color
-   * @private
-   */
-  exports._drawTree = function(ctx,color) {
-    if (this.barnesHutTree !== undefined) {
-
-      ctx.lineWidth = 1;
-
-      this._drawBranch(this.barnesHutTree.root,ctx,color);
-    }
-  };
-
-
-  /**
-   * This function is for debugging purposes. It draws the branches recursively.
-   *
-   * @param branch
-   * @param ctx
-   * @param color
-   * @private
-   */
-  exports._drawBranch = function(branch,ctx,color) {
-    if (color === undefined) {
-      color = "#FF0000";
-    }
-
-    if (branch.childrenCount == 4) {
-      this._drawBranch(branch.children.NW,ctx);
-      this._drawBranch(branch.children.NE,ctx);
-      this._drawBranch(branch.children.SE,ctx);
-      this._drawBranch(branch.children.SW,ctx);
-    }
-    ctx.strokeStyle = color;
-    ctx.beginPath();
-    ctx.moveTo(branch.range.minX,branch.range.minY);
-    ctx.lineTo(branch.range.maxX,branch.range.minY);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(branch.range.maxX,branch.range.minY);
-    ctx.lineTo(branch.range.maxX,branch.range.maxY);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(branch.range.maxX,branch.range.maxY);
-    ctx.lineTo(branch.range.minX,branch.range.maxY);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(branch.range.minX,branch.range.maxY);
-    ctx.lineTo(branch.range.minX,branch.range.minY);
-    ctx.stroke();
-
-    /*
-     if (branch.mass > 0) {
-     ctx.circle(branch.centerOfMass.x, branch.centerOfMass.y, 3*branch.mass);
-     ctx.stroke();
-     }
+    /**
+     * Draw a circle shape
      */
-  };
+    CanvasRenderingContext2D.prototype.circle = function(x, y, r) {
+      this.beginPath();
+      this.arc(x, y, r, 0, 2*Math.PI, false);
+    };
+
+    /**
+     * Draw a square shape
+     * @param {Number} x horizontal center
+     * @param {Number} y vertical center
+     * @param {Number} r   size, width and height of the square
+     */
+    CanvasRenderingContext2D.prototype.square = function(x, y, r) {
+      this.beginPath();
+      this.rect(x - r, y - r, r * 2, r * 2);
+    };
+
+    /**
+     * Draw a triangle shape
+     * @param {Number} x horizontal center
+     * @param {Number} y vertical center
+     * @param {Number} r   radius, half the length of the sides of the triangle
+     */
+    CanvasRenderingContext2D.prototype.triangle = function(x, y, r) {
+      // http://en.wikipedia.org/wiki/Equilateral_triangle
+      this.beginPath();
+
+      var s = r * 2;
+      var s2 = s / 2;
+      var ir = Math.sqrt(3) / 6 * s;      // radius of inner circle
+      var h = Math.sqrt(s * s - s2 * s2); // height
+
+      this.moveTo(x, y - (h - ir));
+      this.lineTo(x + s2, y + ir);
+      this.lineTo(x - s2, y + ir);
+      this.lineTo(x, y - (h - ir));
+      this.closePath();
+    };
+
+    /**
+     * Draw a triangle shape in downward orientation
+     * @param {Number} x horizontal center
+     * @param {Number} y vertical center
+     * @param {Number} r radius
+     */
+    CanvasRenderingContext2D.prototype.triangleDown = function(x, y, r) {
+      // http://en.wikipedia.org/wiki/Equilateral_triangle
+      this.beginPath();
+
+      var s = r * 2;
+      var s2 = s / 2;
+      var ir = Math.sqrt(3) / 6 * s;      // radius of inner circle
+      var h = Math.sqrt(s * s - s2 * s2); // height
+
+      this.moveTo(x, y + (h - ir));
+      this.lineTo(x + s2, y - ir);
+      this.lineTo(x - s2, y - ir);
+      this.lineTo(x, y + (h - ir));
+      this.closePath();
+    };
+
+    /**
+     * Draw a star shape, a star with 5 points
+     * @param {Number} x horizontal center
+     * @param {Number} y vertical center
+     * @param {Number} r   radius, half the length of the sides of the triangle
+     */
+    CanvasRenderingContext2D.prototype.star = function(x, y, r) {
+      // http://www.html5canvastutorials.com/labs/html5-canvas-star-spinner/
+      this.beginPath();
+
+      for (var n = 0; n < 10; n++) {
+        var radius = (n % 2 === 0) ? r * 1.3 : r * 0.5;
+        this.lineTo(
+            x + radius * Math.sin(n * 2 * Math.PI / 10),
+            y - radius * Math.cos(n * 2 * Math.PI / 10)
+        );
+      }
+
+      this.closePath();
+    };
+
+    /**
+     * http://stackoverflow.com/questions/1255512/how-to-draw-a-rounded-rectangle-on-html-canvas
+     */
+    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+      var r2d = Math.PI/180;
+      if( w - ( 2 * r ) < 0 ) { r = ( w / 2 ); } //ensure that the radius isn't too large for x
+      if( h - ( 2 * r ) < 0 ) { r = ( h / 2 ); } //ensure that the radius isn't too large for y
+      this.beginPath();
+      this.moveTo(x+r,y);
+      this.lineTo(x+w-r,y);
+      this.arc(x+w-r,y+r,r,r2d*270,r2d*360,false);
+      this.lineTo(x+w,y+h-r);
+      this.arc(x+w-r,y+h-r,r,0,r2d*90,false);
+      this.lineTo(x+r,y+h);
+      this.arc(x+r,y+h-r,r,r2d*90,r2d*180,false);
+      this.lineTo(x,y+r);
+      this.arc(x+r,y+r,r,r2d*180,r2d*270,false);
+    };
+
+    /**
+     * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
+     */
+    CanvasRenderingContext2D.prototype.ellipse = function(x, y, w, h) {
+      var kappa = .5522848,
+          ox = (w / 2) * kappa, // control point offset horizontal
+          oy = (h / 2) * kappa, // control point offset vertical
+          xe = x + w,           // x-end
+          ye = y + h,           // y-end
+          xm = x + w / 2,       // x-middle
+          ym = y + h / 2;       // y-middle
+
+      this.beginPath();
+      this.moveTo(x, ym);
+      this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
+      this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
+      this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
+      this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
+    };
+
+
+
+    /**
+     * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
+     */
+    CanvasRenderingContext2D.prototype.database = function(x, y, w, h) {
+      var f = 1/3;
+      var wEllipse = w;
+      var hEllipse = h * f;
+
+      var kappa = .5522848,
+          ox = (wEllipse / 2) * kappa, // control point offset horizontal
+          oy = (hEllipse / 2) * kappa, // control point offset vertical
+          xe = x + wEllipse,           // x-end
+          ye = y + hEllipse,           // y-end
+          xm = x + wEllipse / 2,       // x-middle
+          ym = y + hEllipse / 2,       // y-middle
+          ymb = y + (h - hEllipse/2),  // y-midlle, bottom ellipse
+          yeb = y + h;                 // y-end, bottom ellipse
+
+      this.beginPath();
+      this.moveTo(xe, ym);
+
+      this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
+      this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
+
+      this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
+      this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
+
+      this.lineTo(xe, ymb);
+
+      this.bezierCurveTo(xe, ymb + oy, xm + ox, yeb, xm, yeb);
+      this.bezierCurveTo(xm - ox, yeb, x, ymb + oy, x, ymb);
+
+      this.lineTo(x, ym);
+    };
+
+
+    /**
+     * Draw an arrow point (no line)
+     */
+    CanvasRenderingContext2D.prototype.arrow = function(x, y, angle, length) {
+      // tail
+      var xt = x - length * Math.cos(angle);
+      var yt = y - length * Math.sin(angle);
+
+      // inner tail
+      // TODO: allow to customize different shapes
+      var xi = x - length * 0.9 * Math.cos(angle);
+      var yi = y - length * 0.9 * Math.sin(angle);
+
+      // left
+      var xl = xt + length / 3 * Math.cos(angle + 0.5 * Math.PI);
+      var yl = yt + length / 3 * Math.sin(angle + 0.5 * Math.PI);
+
+      // right
+      var xr = xt + length / 3 * Math.cos(angle - 0.5 * Math.PI);
+      var yr = yt + length / 3 * Math.sin(angle - 0.5 * Math.PI);
+
+      this.beginPath();
+      this.moveTo(x, y);
+      this.lineTo(xl, yl);
+      this.lineTo(xi, yi);
+      this.lineTo(xr, yr);
+      this.closePath();
+    };
+
+    /**
+     * Sets up the dashedLine functionality for drawing
+     * Original code came from http://stackoverflow.com/questions/4576724/dotted-stroke-in-canvas
+     * @author David Jordan
+     * @date 2012-08-08
+     */
+    CanvasRenderingContext2D.prototype.dashedLine = function(x,y,x2,y2,dashArray){
+      if (!dashArray) dashArray=[10,5];
+      if (dashLength==0) dashLength = 0.001; // Hack for Safari
+      var dashCount = dashArray.length;
+      this.moveTo(x, y);
+      var dx = (x2-x), dy = (y2-y);
+      var slope = dy/dx;
+      var distRemaining = Math.sqrt( dx*dx + dy*dy );
+      var dashIndex=0, draw=true;
+      while (distRemaining>=0.1){
+        var dashLength = dashArray[dashIndex++%dashCount];
+        if (dashLength > distRemaining) dashLength = distRemaining;
+        var xStep = Math.sqrt( dashLength*dashLength / (1 + slope*slope) );
+        if (dx<0) xStep = -xStep;
+        x += xStep;
+        y += slope*xStep;
+        this[draw ? 'lineTo' : 'moveTo'](x,y);
+        distRemaining -= dashLength;
+        draw = !draw;
+      }
+    };
+
+    // TODO: add diamond shape
+  }
 
 
 /***/ }
