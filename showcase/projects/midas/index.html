@@ -1,0 +1,86 @@
+<!doctype html>
+<html>
+<head>
+    <title>ARUM - MIDAS</title>
+    <link href="./css/global.css" rel="stylesheet" type="text/css" />
+    <link href="./css/vis.css" rel="stylesheet" type="text/css" />
+
+    <script language="javascript">
+        var EVENT_DELAY = 1000;
+        var EVENTS_AGENT_ADDRESS = 'ws://localhost:8082/ws/events';
+        var AMOUNT_OF_INITIAL_EVENTS = 1;
+        var TIMELINE_START = '2014-09-18 10:00:00';
+        var TIMELINE_END = '2014-09-19 18:00:00';
+        var INCREASE_SPEED = true;
+        var ONLINE_ONLY = true;
+    </script>
+
+    <script type="text/javascript" src="./js/vis.js"></script>
+    <script type="text/javascript" src="./js/evejs.js"></script>
+    <script type="text/javascript" src="./arumAgents/job.js"></script>
+    <script type="text/javascript" src="./arumAgents/durationStats.js"></script>
+    <script type="text/javascript" src="./arumAgents/durationData.js"></script>
+    <script type="text/javascript" src="./arumAgents/jobManager.js"></script>
+    <script type="text/javascript" src="./arumAgents/jobAgent.js"></script>
+
+    <script type="text/javascript" src="./js/vis_eve_init.js"></script>
+
+    <script type="text/javascript" src="./arumAgents/genericAgent.js"></script>
+    <script type="text/javascript" src="./arumAgents/agentGenerator.js"></script>
+    <script type="text/javascript" src="./arumAgents/jobAgentGenerator.js"></script>
+    <script type="text/javascript" src="./arumAgents/eventGenerator.js"></script>
+    <script type="text/javascript" src="./js/init.js"></script>
+
+</head>
+<body onload="draw()">
+<img src="./images/arum_small.png" style="position:relative; top:-6px;"><img src="./images/midas_small.png" style="float:right;"><br>
+<div class="typeButton selected" onclick="showTimelineBtn()" id="showTimeline">Show by Timeline</div>
+<div class="typeButton" onclick="showGraphBtn()" id="showGraph">Show by Job</div>
+<div id="timelineWrapper">
+    <input type="button" value="Next Event" onclick="getNewEvent()">
+    eventNo:<div id="eventCounter" style="display:inline;">-1</div>
+    <input type="button" value="Next 10 Events" onclick="getTenNewEvents()">
+    <input type="button" value="Get All Events" onclick="getAllEvents()">
+    <input type="button" value="Get All Events Quickly" onclick="getAllEventsQuickly()"> <br>
+    <div id="timeline"></div>
+</div>
+
+<div id="graphWrapper">
+    <table class="wrapper">
+        <tr>
+            <td>
+                <div class="toggleButton" onclick="togglePrediction()" id="togglePrediction">Prediction</div>
+            </td>
+            <td width="6px">&nbsp;</td>
+            <td>
+                <div class="typeButton selected" onclick="turnOn('duration')" id="duration">Ideal</div>
+                <div class="typeButton" onclick="turnOn('durationWithPause')" id="durationWithPause">Ideal + Pause</div>
+                <div class="typeButton" onclick="turnOn('durationWithStartup')" id="durationWithStartup">Ideal + Prerequisites</div>
+                <div class="typeButton" onclick="turnOn('durationWithBoth')" id="durationWithBoth">Total Time</div>
+            </td>
+        </tr>
+        <tr>
+            <td id="selectTD">
+                <select name="jobs" id="multiselect" multiple onclick="updateGraph()"></select>
+            </td>
+            <td colspan="2">
+                <div class="graph2dContent">
+                    <div id="graph2d"></div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div class="toggleButton square" onclick="toggleDifference()" id="difference">Switch View</div>
+            </td>
+            <td colspan="2">
+                <div id="Legend" class="externalLegend"></div>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<p id="selection"></p>
+<p id="stabilization"></p>
+</body>
+</html>

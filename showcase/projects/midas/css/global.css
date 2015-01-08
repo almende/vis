@@ -1,0 +1,301 @@
+body {
+    font-family : Verdana, "Bitstream Vera Sans", "DejaVu Sans", Tahoma, Geneva, Arial, Sans-serif;
+    font-size: 13px;
+    min-width:980px;
+}
+
+div.group {
+    background-color: rgba(0, 0, 0, 0.005);
+}
+
+/*.vis.timeline .item.background {*/
+/*background-color: rgba(40, 148, 255, 0.20) !important;*/
+/*z-index:9999 !important;*/
+/*}*/
+.vis.timeline .item.range.prediction {
+    border: 1px solid rgba(0, 164, 255, 0.50) !important;
+    background-color: rgba(28, 183, 255, 0.10) !important;
+    box-shadow: rgba(0, 83, 128, 0.15) 0px 0px 10px !important;
+    z-index:-1 !important;
+    height:34px !important;
+}
+.vis.timeline .item.background.night {
+    background-color: rgba(60, 60, 60, 0.3) !important;
+    z-index:9999 !important;
+}
+.vis.timeline .labelset .timelineGroup .inner {
+    /*height:100px !important;*/
+    width:140px !important;
+}
+
+.vis.timeline .labelset .timelineGroup.worker{
+    background-color: #ffffff;
+}
+.vis.timeline .labelset .timelineGroup.rao{
+    background-color: #f5f5f5;
+}
+.vis.timeline .labelset .timelineGroup.pm{
+    background-color: #dfeaf2;
+}
+.vis.timeline .labelset .timelineGroup.mt{
+    background-color: #b8d6e6;
+}
+
+.vis.timeline .item.range {
+    height:34px !important;
+}
+
+.vis.timeline .item.range.pause{
+    height:34px !important;
+    width:26px !important;
+    box-shadow: rgba(0,0,0,0.2) 0px 0px 10px !important;
+    padding:3px !important;
+    z-index:999999;
+    background-color: #ffffff !important
+}
+
+.vis.timeline .item.range.pausedArea{
+    height:34px !important;
+    padding:3px !important;
+    z-index:999950;
+    border-width: 0px !important;
+    background: url('../images/shaded.png');
+    background-color: rgba(0,0,0,0) !important;
+}
+
+.vis.timeline .item {
+    border-radius: 0px !important;
+    border-color: #7d807d !important;
+    background-color: #ffffff !important;
+    /*background-color: #c4e0ff !important;*/
+
+}
+.vis.timeline .item.box {
+    height:22px !important;
+    border-radius: 0px !important;
+    border-color: #7d807d !important;
+    background-color: #ffffff !important;
+    box-shadow: rgba(0, 0, 0, 0.52) 0px 0px 12px 0px;
+}
+
+img.icon{
+    width:16px;
+    height:16px;
+}
+
+#multiselect {
+    position:relative;
+    top:1px;
+    width:200px;
+    height:452px;
+}
+
+table.wrapper {
+    position:relative;
+    height:500px;
+    width:100%;
+}
+
+/*table.wrapper td {*/
+    /*border:1px solid #ff0000;*/
+/*}*/
+
+#selectTD {
+    width:200px;
+}
+
+div.typeButtons {
+    height:50px;
+    width:100%;
+    overflow:hidden;
+}
+
+div.typeButton {
+    display:inline-block;
+    width:150px;
+    height:24px;
+    border:2px solid #ffffff;
+    border-radius: 40px;
+    text-align:center;
+    font-size:12px;
+    color: #848484;
+    padding-top:8px;
+    background-color: #dedede;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor:pointer;
+    margin:5px;
+    box-shadow: rgba(50,50,50,0.3) 0px 0px 3px;
+}
+
+div.typeButton.selected {
+    background-color: #9aff4d;
+    color: #000000;
+}
+
+div.toggleButton {
+    background-image: url("../images/toggleOff.png");
+    background-repeat: no-repeat;
+    background-position: 2px 2px;
+    display:inline-block;
+    width:138px;
+    height:24px;
+    font-size:12px;
+    border:1px solid #d0d0d0;
+    text-align:left;
+    padding-top:10px;
+    padding-left:60px;
+    padding-right:0px;
+    border-radius: 40px;
+    background-color: #ffffff;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor:pointer;
+}
+
+div.toggleButton.square{
+    height:28px;
+    border-radius: 0px;
+}
+
+div.toggleButton.selected {
+    background-image: url("../images/toggleOn.png");
+    background-color: #ffffff;
+}
+
+div.graph2dContent{
+    height:450px;
+    width:100%;
+}
+
+#graphWrapper {
+    display:none;
+    border: 1px solid #dddddd;
+    padding:5px;
+}
+
+#timelineWrapper {
+    display:block;
+    border: 1px solid #dddddd;
+    padding:5px;
+}
+
+.prediction_original {
+    fill: rgb(123, 199, 255);
+    fill-opacity:0;
+    stroke-width:2px;
+    stroke: rgb(123, 199, 255);
+}
+
+.prediction {
+    fill: #77da2e;
+    fill-opacity:0;
+    stroke-width:2px;
+    stroke: #77da2e;
+}
+
+.duration {
+    fill: rgb(170, 34, 206);
+    fill-opacity:0;
+    stroke-width:2px;
+    stroke: rgb(170, 34, 206);
+}
+
+.fill {
+    fill-opacity:0.1;
+    stroke: none;
+}
+
+
+.bar {
+    fill-opacity:0.5;
+    stroke-width:1px;
+}
+
+.point {
+    stroke-width:2px;
+    fill-opacity:1.0;
+}
+
+
+.legendBackground {
+    stroke-width:1px;
+    fill-opacity:0.9;
+    fill: #ffffff;
+    stroke: #c2c2c2;
+}
+
+
+.outline {
+    stroke-width:1px;
+    fill-opacity:1;
+    fill: #ffffff;
+    stroke: #e5e5e5;
+}
+
+.iconFill {
+    fill-opacity:0.3;
+    stroke: none;
+}
+
+div.descriptionContainer {
+    float:left;
+    height:30px;
+    min-width:160px;
+    padding-left:5px;
+    padding-right:5px;
+    line-height: 30px;
+}
+
+div.iconContainer {
+    float:left;
+}
+
+div.legendElementContainer {
+    display:inline-block;
+    height:30px;
+    border-style:solid;
+    border-width:1px;
+    border-color: #d0d0d0;
+    background-color: #ffffff;
+    margin-right:6px;
+    padding:4px;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor:pointer;
+}
+
+svg.legendIcon {
+    width:30px;
+    height:30px;
+}
+
+div.externalLegend {
+    position:relative;
+    top:1px;
+    width: 700px;
+}
+
+.differencePositive {
+    fill: #afff33;
+    stroke-width:2px;
+    stroke: #96db22;
+}
+
+.differenceNegative {
+    fill: #ff9f00;
+    stroke-width:2px;
+    stroke: #e58f00;
+}
