@@ -287,7 +287,7 @@ Then run the tests:
 
 ## License
 
-Copyright (C) 2010-2014 Almende B.V.
+Copyright (C) 2010-2015 Almende B.V.
 
 Vis.js is dual licensed under both
 
