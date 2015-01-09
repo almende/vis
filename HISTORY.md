@@ -35,6 +35,7 @@ http://visjs.org
 
 ### Timeline
 
+- Implemented support for styling of the vertical grid.
 - Support for custom date formatting of the labels on the time axis.
 - added show major/minor lines options to timeline.
 - Added a check so only one 'activator' overlay is created on clickToUse.

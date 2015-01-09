@@ -1326,6 +1326,67 @@ To load a locale into the Timeline not supported by default, one can add a new l
 &lt;/style&gt;
 </pre>
 
+<h3 id="Grid_Backgrounds">Grid Backgrounds</h3>
+<p>
+  The background grid of the time axis can be styled, for example to highlight
+  weekends or to create grids with an alternating white/lightgray background.
+</p>
+<p>
+  Depending on the zoom level, the grids get certain css classes attached.
+  The following classes are available:
+</p>
+
+<table>
+  <tr>
+    <th>Description</th><th>values</th>
+  </tr>
+  <tr>
+    <td>Alternating columns</td><td><code>even</code>, <code>odd</code></td>
+  </tr>
+  <tr>
+    <td>Current date</td><td><code>today</code>, <code>tomorrow</code>, <code>yesterday</code>, <code>current-week</code>, <code>current-month</code>, <code>current-year</code></td>
+  </tr>
+  <tr>
+    <td>Hours</td><td><code>0h</code>, <code>1h</code>, ..., <code>23h</code></td>
+  </tr>
+  <tr>
+    <td>Grouped hours</td><td><code>0-4h</code> to <code>20-24h</code></td>
+  </tr>
+  <tr>
+    <td>Weekday</td><td><code>monday</code>, <code>tuesday</code>, <code>wednesday</code>, <code>thursday</code>, <code>friday</code>, <code>saturday</code>, <code>sunday</code></td>
+  </tr>
+  <tr>
+    <td>Days</td><td><code>date1</code>, <code>date2</code>, ..., <code>date31</code></td>
+  </tr>
+  <tr>
+    <td>Months</td><td><code>januari</code>, <code>februari</code>, <code>march</code>, <code>april</code>, <code>may</code>, <code>june</code>, <code>july</code>, <code>august</code>, <code>september</code>, <code>october</code>, <code>november</code>, <code>december</code></td>
+  </tr>
+  <tr>
+    <td>Years</td><td><code>year2014</code>, <code>year2015</code>, ...</td>
+  </tr>
+</table>
+
+<p>Examples:</p>
+
+  <pre class="prettyprint lang-html">&lt;style&gt;
+  /* alternating column backgrounds */
+  .vis.timeline .timeaxis .grid.odd {
+    background: #f5f5f5;
+  }
+
+  /* gray background in weekends, white text color */
+  .vis.timeline .timeaxis .grid.saturday,
+  .vis.timeline .timeaxis .grid.sunday {
+    background: gray;
+  }
+  .vis.timeline .timeaxis .text.saturday,
+  .vis.timeline .timeaxis .text.sunday {
+    color: white;
+  }
+&lt;/style&gt;
+</pre>
+
+
 <h2 id="Data_Policy">Data Policy</h2>
 <p>
   All code and data is processed and rendered in the browser.
