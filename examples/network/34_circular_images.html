@@ -8,9 +8,10 @@
       font: 10pt arial;
     }
     #mynetwork {
-      width: 600px;
-      height: 600px;
+      width: 800px;
+      height: 800px;
       border: 1px solid lightgray;
+      background-color:#333333;
     }
   </style>
 
@@ -28,28 +29,41 @@
     function draw() {
       // create people.
       // value corresponds with the age of the person
-      var DIR = 'img/soft-scraps-icons/';
+      var DIR = 'img/indonesia/';
       nodes = [
-        {id: 3,  shape: 'circularImage', label: 'Barney', title: 'Barney (12 years old)', image: DIR + 'User-Administrator-Blue-icon.png'},
-        {id: 4,  shape: 'circularImage', label: 'Coley', title: 'Coley (16 years old)', image: DIR + 'User-Administrator-Green-icon.png'},
-        {id: 5,  shape: 'circularImage', label: 'Grant', title: 'Grant (17 years old)', image: DIR + 'User-Coat-Blue-icon.png'},
-        {id: 6,  shape: 'circularImage', label: 'Langdon', title: 'Langdon (15 years old)', image: DIR + 'User-Coat-Green-icon.png'},
-        {id: 7,  shape: 'circularImage', label: 'Lee', title: 'Lee (6 years old)', image: DIR + 'User-Coat-Red-icon.png'},
-        {id: 9,  shape: 'circularImage', label: 'Mick', title: 'Mick (30 years old)', image: DIR + 'User-Preppy-Blue-icon.png'},
-        {id: 10, shape: 'circularImage', label: 'Tod', title: 'Tod (18 years old)', image: DIR + 'User-Preppy-Red-icon.png'}
+        {id: 1,  shape: 'circularImage', image: DIR + '1.png'},
+        {id: 2,  shape: 'circularImage', image: DIR + '2.png'},
+        {id: 3,  shape: 'circularImage', image: DIR + '3.png'},
+        {id: 4, label:"pictures by this guy!", shape: 'circularImage', image: DIR + '4.png'},
+        {id: 5,  shape: 'circularImage', image: DIR + '5.png'},
+        {id: 6,  shape: 'circularImage', image: DIR + '6.png'},
+        {id: 7,  shape: 'circularImage', image: DIR + '7.png'},
+        {id: 8,  shape: 'circularImage', image: DIR + '8.png'},
+        {id: 9,  shape: 'circularImage', image: DIR + '9.png'},
+        {id: 10,  shape: 'circularImage', image: DIR + '10.png'},
+        {id: 11,  shape: 'circularImage', image: DIR + '11.png'},
+        {id: 12,  shape: 'circularImage', image: DIR + '12.png'},
+        {id: 13,  shape: 'circularImage', image: DIR + '13.png'},
+        {id: 14,  shape: 'circularImage', image: DIR + '14.png'}
       ];
 
       // create connetions between people
       // value corresponds with the amount of contact between two people
       edges = [
-        {from: 4, to: 6, title: '8 emails per week'},
-        {from: 5, to: 7, title: '2 emails per week'},
-        {from: 4, to: 5, title: '1 emails per week'},
-        {from: 9, to: 10, title: '2 emails per week'},
-        {from: 2, to: 3, title: '6 emails per week'},
-        {from: 3, to: 9, title: '4 emails per week'},
-        {from: 5, to: 3, title: '1 emails per week'},
-        {from: 2, to: 7, title: '4 emails per week'}
+        {from: 1, to: 2},
+        {from: 2, to: 3},
+        {from: 2, to: 4},
+        {from: 4, to: 5},
+        {from: 4, to: 10},
+        {from: 4, to: 6},
+        {from: 6, to: 7},
+        {from: 7, to: 8},
+        {from: 8, to: 9},
+        {from: 8, to: 10},
+        {from: 10, to: 11},
+        {from: 11, to: 12},
+        {from: 12, to: 13},
+        {from: 13, to: 14},
       ];
 
       // create a network
@@ -61,14 +75,16 @@
       var options = {
         nodes: {
 		  shape: 'circle',
+          borderWidth:4,
 	      color: {
-            border: 'orange',
-            background: 'yellow',
+            border: '#222222',
+            background: '#ffffff',
             highlight: {
-              border: 'darkorange',
-              background: 'gold'
+              border: '#428eff',
+              background: '#ffffff'
             }
-          }
+          },
+          fontColor:'#eeeeee'
         },
         edges: {
           color: 'lightgray'
