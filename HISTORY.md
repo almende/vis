@@ -24,6 +24,7 @@ http://visjs.org
 - Fixed infinite loop when an image can not be found and no brokenImage is provided.
 - Added getBoundingBox method.
 - Community fix for SVG images in IE11, thanks @dponch!
+- Fixed repeating stabilized event when the network is already stabilized.
 
 ### Graph2d
 
