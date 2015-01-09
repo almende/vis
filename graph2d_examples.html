@@ -24,9 +24,21 @@
 
     <style>
         body {
-            padding:10px;
             font-family: Lustria,Georgia,Times,"Times New Roman",serif !important;
+            background: url('./images/crossword.png') /* Background pattern from subtlepatterns.com */
         }
+
+        div.contentWrapper {
+            padding:10px;
+        }
+        div.container {
+            max-width:970px;
+        }
+        div.navbar-wrapper {
+            background-color:#07508E;
+            border-bottom: 3px solid #ffffff;
+        }
+
 
         pre {
             width:450px;
@@ -101,6 +113,39 @@
 
 </head>
 <body onload="prettyPrint(); loadVis();">
+
+
+<div class="navbar-wrapper">
+    <div class="container">
+        <nav class="navbar navbar-inverse navbar-static-top" role="navigation">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand hidden-sm" href="./index.html">vis.js</a>
+                </div>
+                <div id="navbar" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        <li class="active"><a href="./index.html#modules">Modules</a></li>
+                        <li><a href="./docs/index.html" target="_blank">Documentation <img class="icon" src="./images/external-link-icons/external-link-icon-white.png"></a></li>
+                        <li><a href="./blog.html">Blog</a></li>
+                        <li><a href="./index.html#download_install">Download</a></li>
+                        <li><a href="./index.html#showcase">Showcase</a></li>
+                        <li><a href="./index.html#contribute">Contribute</a></li>
+                        <li><a href="./index.html#featureRequests">Feature requests</a></li>
+                        <li><a href="./index.html#licenses">License</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+    </div>
+</div>
+<div class="contentWrapper">
 <h1>Graph2d Examples</h1><a class="btn btn-default" href="#allExamples" role="button">View all examples »</a>  <a class="btn btn-primary" href="./docs/graph2d.html" role="button">View docs »</a>
 
 <div class="textHTMLContent">This small code example shows the easiest way to get a Graph2d up and running. This code has been taken from example 1. The working example is shown next to it. Click it to start the interaction.</div>
@@ -131,103 +176,103 @@
 <div class="container-fluid">
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph2d/01_basic.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph2d/1.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph2d/1.png">
             <div class="exampleTitle">basic</div>
         </a>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph2d/02_bars.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph2d/2.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph2d/2.png">
             <div class="exampleTitle">bars</div>
         </a>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph2d/03_groups.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph2d/3.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph2d/3.png">
             <div class="exampleTitle">groups</div>
         </a>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph2d/04_rightAxis.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph2d/4.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph2d/4.png">
             <div class="exampleTitle">right axis</div>
         </a>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph2d/05_bothAxis.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph2d/5.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph2d/5.png">
             <div class="exampleTitle">both axis</div>
         </a>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph2d/06_interpolation.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph2d/6.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph2d/6.png">
             <div class="exampleTitle">interpolation</div>
         </a>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph2d/07_scrollingAndSorting.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph2d/7.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph2d/7.png">
             <div class="exampleTitle">scrolling and sorting</div>
         </a>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph2d/08_performance.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph2d/8.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph2d/8.png">
             <div class="exampleTitle">performance</div>
         </a>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph2d/09_external_legend.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph2d/9.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph2d/9.png">
             <div class="exampleTitle">external legend</div>
         </a>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph2d/10_barsSideBySide.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph2d/10.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph2d/10.png">
             <div class="exampleTitle">bars side by side</div>
         </a>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph2d/11_barsSideBySideGroups.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph2d/11.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph2d/11.png">
             <div class="exampleTitle">bars side by side groups</div>
         </a>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph2d/12_customRange.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph2d/12.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph2d/12.png">
             <div class="exampleTitle">custom range</div>
         </a>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph2d/13_localization.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph2d/13.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph2d/13.png">
             <div class="exampleTitle">localization</div>
         </a>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph2d/14_toggleGroups.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph2d/14.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph2d/14.png">
             <div class="exampleTitle">toggle groups</div>
         </a>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph2d/15_streaming_data.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph2d/15.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph2d/15.png">
             <div class="exampleTitle">streaming data</div>
         </a>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph2d/16_bothAxis_titles.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph2d/16.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph2d/16.png">
             <div class="exampleTitle">axis titles</div>
         </a>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph2d/17_dynamicStyling.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph2d/17.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph2d/17.png">
             <div class="exampleTitle">dynamic styling</div>
         </a>
     </div>
@@ -236,7 +281,7 @@
 <br />
 <br />
 <br />
-
+</div>
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 <!-- Include all compiled plugins (below), or include individual files as needed -->

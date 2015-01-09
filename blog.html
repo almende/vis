@@ -17,6 +17,12 @@
     <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 
+
+    <script src="./js/smooth-scroll.min.js"></script>
+    <script language="JavaScript">
+        smoothScroll.init();
+    </script>
+
     <style>
 
         html {
@@ -150,9 +156,9 @@
                 </div>
                 <div id="navbar" class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
-                        <li class="active"><a href="#about">Modules</a></li>
+                        <li><a href="./index.html#modules">Modules</a></li>
                         <li><a href="./docs/index.html" target="_blank">Documentation <img class="icon" src="./images/external-link-icons/external-link-icon-white.png"></a></li>
-                        <li><a href="#">Blog</a></li>
+                        <li class="active"><a href="#">Blog</a></li>
                         <li><a href="./index.html#download_install">Download</a></li>
                         <li><a href="./index.html#showcase">Showcase</a></li>
                         <li><a href="./index.html#contribute">Contribute</a></li>
@@ -182,10 +188,10 @@
     <div class="postsMenu">
         <div class="postsMenuContent">
             Posts:
-            <a class="post" href="#The 2015 roadmap for vis.js">- The 2015 roadmap for vis.js</a>
-            <a class="post" href="#A look back on vis.js">- A look back on vis.js</a>
-            <a class="post" href="#New website for vis.js!">- New website for vis.js!</a>
-            <a class="post" href="#Released version 3.8.0">- Released version 3.8.0</a>
+            <a data-scroll class="post" href="#The 2015 roadmap for vis.js">- The 2015 roadmap for vis.js</a>
+            <a data-scroll class="post" href="#A look back on vis.js">- A look back on vis.js</a>
+            <a data-scroll class="post" href="#New website for vis.js!">- New website for vis.js!</a>
+            <a data-scroll class="post" href="#Released version 3.8.0">- Released version 3.8.0</a>
         </div>
     </div>
 
@@ -245,11 +251,6 @@
             </p><p>
                 On the 16th of April 2014, exactly a year after the initial commit, <a href="https://twitter.com/hackernewsbot/status/456231005678874624" target="_blank">a twitterbot with a lot of followers</a> notified
                 the world that we were featured on hackernews! This was the boost we needed to really reach a large community. We saw the amount of visitors and Github stars increase greatly over the months that followed.
-            <br />
-            <br />
-            <i><b>TODO: insert graph2d with visitors?</b></i>
-            <br />
-            <br />
             </p><p>
                 The 14th of October, we have altered the license of vis.js to MIT or APACHE 2.0. This allowed <a href="http://tiddlywiki.com/" target="_blank">Tiddlywiki</a> to add vis.js to their keychain. From what we hear,
             their developers really enjoy working with vis and we look forward to hearing how their community uses our software!

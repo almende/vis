@@ -17,11 +17,19 @@
     <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 
+    <script src="./js/smooth-scroll.min.js"></script>
+    <script language="JavaScript">
+        smoothScroll.init();
+    </script>
     <style>
         body {
             font-family: Lustria,Georgia,Times,"Times New Roman",serif !important;
+            font-size:16px;
         }
 
+        a.btn {
+            width:130px;
+        }
         a.header{
             color:#8bb9fb;
         }
@@ -31,9 +39,18 @@
             top:-2px;
         }
 
+        img.featurette-image {
+            border-radius:4px;
+        }
+
+        img.header {
+            margin-bottom:10px;
+        }
+
         div.wall {
             background-image: url("./images/wall.png");
             background-repeat: no-repeat;
+            margin-top:5px;
         }
 
         div.trans {
@@ -63,6 +80,7 @@
         div.valign_child {
             margin:auto 0px;
         }
+
     </style>
 </head>
 <!-- NAVBAR
@@ -83,14 +101,14 @@
                 </div>
                 <div id="navbar" class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
-                        <li class="active"><a href="#about">Modules</a></li>
+                        <li class="active"><a href="#modules">Modules</a></li>
                         <li><a href="./docs/index.html" target="_blank">Documentation <img class="icon" src="./images/external-link-icons/external-link-icon-white.png"></a></li>
                         <li><a href="./blog.html">Blog</a></li>
-                        <li><a href="#download_install">Download</a></li>
-                        <li><a href="#showcase">Showcase</a></li>
-                        <li><a href="#contribute">Contribute</a></li>
-                        <li><a href="#featureRequests">Feature requests</a></li>
-                        <li><a href="#licenses">License</a></li>
+                        <li><a data-scroll href="#download_install">Download</a></li>
+                        <li><a data-scroll href="#showcase">Showcase</a></li>
+                        <li><a data-scroll href="#contribute">Contribute</a></li>
+                        <li><a data-scroll href="#featureRequests">Feature requests</a></li>
+                        <li><a data-scroll href="#licenses">License</a></li>
                     </ul>
                 </div>
             </div>
@@ -103,7 +121,7 @@
 
 <!-- Carousel
 ================================================== -->
-<div class="jumbotron wall">
+<div class="jumbotron wall hidden-xs">
     <div class="jumbotron trans">
         <div class="container jumbo">
             <h1>vis.js</h1>
@@ -121,6 +139,15 @@
     <!--</div>-->
 </div>
 
+<img src="./images/wall_small.png" class="header img-responsive visible-xs">
+<div class="container visible-xs">
+    <p>A dynamic, browser based visualization library.
+        The library is designed to be easy to use, to handle large amounts
+        of dynamic data, and to enable manipulation of and interaction with the data.
+        The library consists of the components DataSet, Timeline, Network, Graph2d and Graph3d. <a href="#download_install" class="header">Get it over here!</a></p>
+    <br /><hr class="featurette-divider"><br />
+</div>
+
 
 <!-- Marketing messaging and featurettes
 ================================================== -->
@@ -133,34 +160,31 @@
         <div class="col-md-3">
             <a href="./network_examples.html"><img class="img-thumbnail"  src="./images/network.png"alt="network examples" style="width: 240px; height: 140px;"></a>
             <h2>Network</h2>
-            <p class="text-justify">Network is a visualization to display networks and networks consisting of nodes and edges. The visualization is easy to use and supports custom shapes, styles, colors, sizes, images, and more.
-                To handle a larger amount of nodes, Network has clustering support. Network uses HTML canvas for rendering.</p>
+            <p>Display dynamic, automatically organised, customizable network views.</p>
             <p><a class="btn btn-default" href="./network_examples.html" role="button">View examples »</a></p>
             <p><a class="btn btn-primary" href="./docs/network.html" role="button">View docs »</a></p>
         </div><!-- /.col-lg-4 -->
+        <hr class="featurette-divider visible-xs">
         <div class="col-md-3">
             <a href="./timeline_examples.html"><img class="img-thumbnail"  src="./images/timeline.png" alt="timeline examples" style="width: 240px; height: 140px;"></a>
             <h2>Timeline</h2>
-            <p class="text-justify">The Timeline is an interactive chart to visualize data in time. The data items can take place on a single date, or have a start and end date (a range).
-                Timeline uses regular HTML DOM to render the timeline and items put on the timeline. This allows for flexible customization using css styling.</p>
+            <p>Create a fully customizable, interactive timeline with items and ranges.</p>
             <p><a class="btn btn-default" href="./timeline_examples.html" role="button">View examples »</a></p>
             <p><a class="btn btn-primary" href="./docs/timeline.html" role="button">View docs »</a></p>
         </div><!-- /.col-lg-4 -->
+        <hr class="featurette-divider visible-xs">
         <div class="col-md-3">
             <a href="./graph2d_examples.html"><img class="img-thumbnail"  src="./images/graph2d.png" alt="graph2d examples" style="width: 240px; height: 140px;"></a>
             <h2>Graph2d</h2>
-            <p class="text-justify">Graph2d is an interactive visualization chart to draw data in a 2D graph. It can plot lines, point and bars. You can freely move and zoom in the graph by dragging and scrolling in the window.
-                <br />
-                Graph2d uses HTML DOM and SVG for rendering. This allows for flexible customization using css styling.</p>
+            <p>Draw graphs and bar charts on an interactive timeline and personalize it any way you want.</p>
             <p><a class="btn btn-default" href="./graph2d_examples.html" role="button">View examples »</a></p>
             <p><a class="btn btn-primary" href="./docs/graph2d.html" role="button">View docs »</a></p>
         </div><!-- /.col-lg-4 -->
+        <hr class="featurette-divider visible-xs">
         <div class="col-md-3">
             <a href="./graph3d_examples.html"><img class="img-thumbnail" src="./images/graph3d.png" alt="graph3d examples" style="width: 240px; height: 140px;"></a>
             <h2>Graph3d</h2>
-            <p class="text-justify">Graph3d is an interactive visualization chart to draw data in a three dimensional graph.
-                You can freely move and zoom in the graph by dragging and scrolling in the window. Graph3d also supports animation of a graph.
-                Graph3d uses HTML canvas to render graphs, and can render up to a few thousands of data points smoothly.</p>
+            <p>Create interactive, animated 3d graphs. Surfaces, lines, dots and block styling out of the box.</p>
             <p><a class="btn btn-default" href="./graph3d_examples.html" role="button">View examples »</a></p>
             <p><a class="btn btn-primary" href="./docs/graph3d.html" role="button">View docs »</a></p>
         </div><!-- /.col-lg-4 -->
@@ -173,7 +197,7 @@
 
     <div class="row featurette" id="download_install">
         <div class="col-md-5">
-            <img class="featurette-image img-responsive hidden-xs hidden-sm  img-thumbnail" data-src="holder.js/500x500/auto" alt="500x500" src="./images/gettingstartedSlide.png" data-holder-rendered="true">
+            <img class="featurette-image img-responsive hidden-xs hidden-sm " data-src="holder.js/500x500/auto" alt="500x500" src="./images/gettingstartedSlide.png" data-holder-rendered="true">
         </div>
         <div class="col-md-7">
             <div class="valign_parent">
@@ -210,7 +234,7 @@
             </div>
         </div>
         <div class="col-md-5">
-            <a href="showcases.html"><img class="featurette-image img-responsive hidden-xs hidden-sm img-thumbnail" data-src="holder.js/500x500/auto" alt="500x500" src="./images/showcase.png" data-holder-rendered="true"></a>
+            <a href="showcases.html"><img class="featurette-image img-responsive hidden-xs hidden-sm " data-src="holder.js/500x500/auto" alt="500x500" src="./images/showcase.png" data-holder-rendered="true"></a>
         </div>
     </div>
 
@@ -218,7 +242,7 @@
 
     <div class="row featurette" id="contribute">
         <div class="col-md-5">
-            <a href="https://github.com/almende/vis/" target="_blank"><img class="featurette-image img-responsive hidden-xs hidden-sm  img-thumbnail" data-src="holder.js/500x500/auto" alt="500x500" src="./images/octocat.png" data-holder-rendered="true"></a>
+            <a href="https://github.com/almende/vis/" target="_blank"><img class="featurette-image img-responsive hidden-xs hidden-sm  " data-src="holder.js/500x500/auto" alt="500x500" src="./images/octocat.png" data-holder-rendered="true"></a>
         </div>
         <div class="col-md-7">
             <div class="valign_parent">
@@ -261,7 +285,7 @@
             </div>
         </div>
         <div class="col-md-5">
-            <a href="./featureRequests.html"><img class="featurette-image img-responsive hidden-xs hidden-sm  img-thumbnail" data-src="holder.js/500x500/auto" alt="500x500" src="./images/feature_requests.png" data-holder-rendered="true"></a>
+            <a href="./featureRequests.html"><img class="featurette-image img-responsive hidden-xs hidden-sm  " data-src="holder.js/500x500/auto" alt="500x500" src="./images/feature_requests.png" data-holder-rendered="true"></a>
         </div>
     </div>
 
@@ -269,7 +293,7 @@
 
     <div class="row featurette" id="licenses">
         <div class="col-md-5">
-            <img class="featurette-image img-responsive hidden-xs hidden-sm  img-thumbnail" data-src="holder.js/500x500/auto" alt="500x500" src="./images/license.png" data-holder-rendered="true">
+            <img class="featurette-image img-responsive hidden-xs hidden-sm" data-src="holder.js/500x500/auto" alt="500x500" src="./images/license.png" data-holder-rendered="true">
         </div>
         <div class="col-md-7">
             <div class="valign_parent">

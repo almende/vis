@@ -24,8 +24,19 @@
 
     <style>
         body {
-            padding:10px;
             font-family: Lustria,Georgia,Times,"Times New Roman",serif !important;
+            background: url('./images/crossword.png') /* Background pattern from subtlepatterns.com */
+        }
+
+        div.contentWrapper {
+            padding:10px;
+        }
+        div.container {
+            max-width:970px;
+        }
+        div.navbar-wrapper {
+            background-color:#07508E;
+            border-bottom: 3px solid #ffffff;
         }
 
         pre {
@@ -112,6 +123,39 @@
 
 </head>
 <body onload="prettyPrint(); loadVis();">
+
+
+<div class="navbar-wrapper">
+    <div class="container">
+        <nav class="navbar navbar-inverse navbar-static-top" role="navigation">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand hidden-sm" href="./index.html">vis.js</a>
+                </div>
+                <div id="navbar" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        <li class="active"><a href="./index.html#modules">Modules</a></li>
+                        <li><a href="./docs/index.html" target="_blank">Documentation <img class="icon" src="./images/external-link-icons/external-link-icon-white.png"></a></li>
+                        <li><a href="./blog.html">Blog</a></li>
+                        <li><a href="./index.html#download_install">Download</a></li>
+                        <li><a href="./index.html#showcase">Showcase</a></li>
+                        <li><a href="./index.html#contribute">Contribute</a></li>
+                        <li><a href="./index.html#featureRequests">Feature requests</a></li>
+                        <li><a href="./index.html#licenses">License</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+    </div>
+</div>
+<div class="contentWrapper">
 <h1>Graph3d Examples</h1><a class="btn btn-default" href="#allExamples" role="button">View all examples »</a>  <a class="btn btn-primary" href="./docs/graph3d.html" role="button">View docs »</a>
 
 <div class="textHTMLContent">This small code example shows the easiest way to get a Graph2d up and running. This code has been taken from example 1. The working example is shown next to it. Click it to start the interaction.</div>
@@ -155,73 +199,73 @@
 <div class="container-fluid">
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph3d/example01_basis.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph3d/1.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph3d/1.png">
             <div class="exampleTitle">basis</div>
         </a>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph3d/example02_camera.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph3d/2.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph3d/2.png">
             <div class="exampleTitle">camera</div>
         </a>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph3d/example03_filter.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph3d/3.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph3d/3.png">
             <div class="exampleTitle">filter</div>
         </a>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph3d/example04_animate.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph3d/4.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph3d/4.png">
             <div class="exampleTitle">animate</div>
         </a>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph3d/example05_line.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph3d/5.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph3d/5.png">
             <div class="exampleTitle">line</div>
         </a>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph3d/example06_moving_dots.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph3d/6.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph3d/6.png">
             <div class="exampleTitle">moving dots</div>
         </a>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph3d/example07_dot_cloud_colors.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph3d/7.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph3d/7.png">
             <div class="exampleTitle">dot cloud colors</div>
         </a>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph3d/example08_dot_cloud_size.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph3d/8.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph3d/8.png">
             <div class="exampleTitle">dot cloud size</div>
         </a>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph3d/example09_mobile.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph3d/9.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph3d/9.png">
             <div class="exampleTitle">mobile</div>
         </a>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph3d/example10_styles.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph3d/10.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph3d/10.png">
             <div class="exampleTitle">styles</div>
         </a>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph3d/example11_tooltips.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph3d/11.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph3d/11.png">
             <div class="exampleTitle">tooltips</div>
         </a>
     </div>
     <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/graph3d/playground/index.html">
-            <img class="img-responsive" src="./images/exampleScreenshots/graph3d/playground.png">
+            <img class="example img-responsive" src="./images/exampleScreenshots/graph3d/playground.png">
             <div class="exampleTitle">playground</div>
         </a>
     </div>
@@ -230,7 +274,7 @@
 <br />
 <br />
 <br />
-
+</div>
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 <!-- Include all compiled plugins (below), or include individual files as needed -->
