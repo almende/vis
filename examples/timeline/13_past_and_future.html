@@ -80,7 +80,7 @@
   // set a custom range from -2 minute to +3 minutes current time
   var start = new Date((new Date()).getTime() - 2 * 60 * 1000);
   var end   = new Date((new Date()).getTime() + 3 * 60 * 1000);
-  timeline.setWindow(start, end);
+  timeline.setWindow(start, end, {animate: false});
 
 </script>
 

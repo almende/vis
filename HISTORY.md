@@ -4,6 +4,10 @@ http://visjs.org
 
 ## not yet released, version 3.7.3-SNAPSHOT
 
+### General
+
+- Updated to moment.js v2.9.0
+
 ### Network
 
 - Fixed flipping of hierarchical network on update when using RL and DU.
