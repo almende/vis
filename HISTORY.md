@@ -2,6 +2,9 @@
 http://visjs.org
 
 
+## not yet released, version 3.8.1-SNAPSHOT
+
+
 ## 20145-01-09, version 3.8.0
 
 ### General
