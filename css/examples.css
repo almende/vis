@@ -6,12 +6,10 @@ body {
 div.contentWrapper {
     padding:10px;
 }
-div.container {
-    max-width:970px;
-}
 div.navbar-wrapper {
     background-color:#07508E;
     border-bottom: 3px solid #ffffff;
+    font-size:16px;
 }
 
 

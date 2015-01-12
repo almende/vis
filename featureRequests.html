@@ -8,7 +8,7 @@
     <link rel="icon" HREF="favicon.ico">
 
     <!-- Bootstrap -->
-    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/bootstrap.css" rel="stylesheet">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -19,9 +19,18 @@
 
 
     <style>
+
         body {
-            padding:10px;
             font-family: Lustria,Georgia,Times,"Times New Roman",serif !important;
+        }
+        div.navbar-wrapper {
+            background-color:#07508E;
+            border-bottom: 3px solid #ffffff;
+            font-size:16px;
+            font-weight:normal;
+        }
+        div.contentWrapper {
+            padding:20px;
         }
 
         div.textHTMLContent {
@@ -57,13 +66,45 @@
             max-width:900px;
         }
 
-        a {
-            font-weight:bold;
-        }
     </style>
 
 </head>
 <body>
+
+
+
+<div class="navbar-wrapper">
+    <div class="container">
+        <nav class="navbar navbar-inverse navbar-static-top" role="navigation">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand hidden-sm" href="./index.html">vis.js</a>
+                </div>
+                <div id="navbar" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        <li><a href="./index.html#modules">Modules</a></li>
+                        <li><a href="./docs/index.html" target="_blank">Documentation <img class="icon" src="./images/external-link-icons/external-link-icon-white.png"></a></li>
+                        <li><a href="./blog.html">Blog</a></li>
+                        <li><a href="./index.html#download_install">Download</a></li>
+                        <li><a href="./showcase/index.html">Showcase</a></li>
+                        <li><a href="./index.html#contribute">Contribute</a></li>
+                        <li class="active"><a href="./featureRequests.html">Feature requests</a></li>
+                        <li><a href="./index.html#licenses">License</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+    </div>
+</div>
+
+<div class="contentWrapper">
 <h1>Feature requests</h1>
 <hr class="featurette-divider">
 <div class="textHTMLContent">
@@ -157,7 +198,7 @@ Legend:
 <ul>
     <li class="normal">(<a href="https://github.com/almende/vis/issues/339" target="_blank">339</a>) Dynamically update the filter of a DataView.</li>
 </ul>
-
+</div>
 
 <br /><br /><br /><br />
 
