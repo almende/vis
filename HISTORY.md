@@ -8,6 +8,7 @@ http://visjs.org
 
 - reverted change in image class, fixed bug #552
 - improved (not neccesarily fixed) the fontFill offset between different browsers. #365
+- Added label stroke support to Nodes, Edges & Groups as per-object or global settings. Use `fontStrokeWidth` & `fontStrokeColor` (default values: 0 & 'white').
 
 ## 20145-01-09, version 3.8.0
 
