@@ -7,6 +7,7 @@ http://visjs.org
 ### Network
 
 - reverted change in image class, fixed bug #552
+- improved (not neccesarily fixed) the fontFill offset between different browsers. #365
 
 ## 20145-01-09, version 3.8.0
 
