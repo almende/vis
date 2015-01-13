@@ -14018,8 +14018,7 @@ return /******/ (function(modules) { // webpackBootstrap
         this.redraw();
       }
       else {
-        console.log('WARNING: infinite loop in redraw?')
-        throw new Error("bla")
+        console.log('WARNING: infinite loop in redraw?');
       }
       this.redrawCount = 0;
     }
@@ -22874,7 +22873,7 @@ return /******/ (function(modules) { // webpackBootstrap
         levelSeparation: 150,
         nodeSpacing: 100,
         direction: "UD",   // UD, DU, LR, RL
-        layout: "hubsize" // hubsize, directed
+        layout: "hubsize" // hubsize, directed, uniqueDirected
       },
       freezeForStabilization: false,
       smoothCurves: {
@@ -34070,36 +34069,24 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   };
 
+
+
   /**
-   * this function allocates nodes in levels based on the recursive branching from the largest hubs.
+   * this function allocates nodes in levels based on the direction of the edges
    *
    * @param hubsize
    * @private
    */
   exports._determineLevelsDirected = function() {
-    var nodeId, node;
+    var nodeId, node, firstNode;
+    var minLevel = 10000;
 
     // set first node to source
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        this.nodes[nodeId].level = 10000;
-        break;
-      }
-    }
+    firstNode = this.nodes[this.nodeIndices[0]];
+    firstNode.level = minLevel;
+    this._setLevelDirected(minLevel,firstNode.edges,firstNode.id);
 
-    // branch from hubs
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        node = this.nodes[nodeId];
-        if (node.level == 10000) {
-          this._setLevelDirected(10000,node.edges,node.id);
-        }
-      }
-    }
-
-
-    // branch from hubs
-    var minLevel = 10000;
+    // get the minimum level
     for (nodeId in this.nodes) {
       if (this.nodes.hasOwnProperty(nodeId)) {
         node = this.nodes[nodeId];
@@ -34107,7 +34094,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     }
 
-    // branch from hubs
+    // subtract the minimum from the set so we have a range starting from 0
     for (nodeId in this.nodes) {
       if (this.nodes.hasOwnProperty(nodeId)) {
         node = this.nodes[nodeId];
@@ -34213,7 +34200,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
   /**
-   * this function is called recursively to enumerate the barnches of the largest hubs and give each node a level.
+   * this function is called recursively to enumerate the branched of the first node and give each node a level based on edge direction
    *
    * @param level
    * @param edges
