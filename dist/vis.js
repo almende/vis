@@ -23563,17 +23563,15 @@ return /******/ (function(modules) { // webpackBootstrap
     // clear events
     this.off();
 
-    // remove all elements from the container element.
-    while (this.frame.hasChildNodes()) {
-      this.frame.removeChild(this.frame.firstChild);
-    }
-
-    // remove all elements from the container element.
-    while (this.containerElement.hasChildNodes()) {
-      this.containerElement.removeChild(this.containerElement.firstChild);
-    }
+    this._recursiveDOMDelete(this.containerElement);
   }
 
+  Network.prototype._recursiveDOMDelete = function(DOMobject) {
+    while (DOMobject.hasChildNodes() == true) {
+      this._recursiveDOMDelete(DOMobject.firstChild);
+      DOMobject.removeChild(DOMobject.firstChild);
+    }
+  }
 
   /**
    * Get the pointer location from a touch location
@@ -32916,9 +32914,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   exports._clearManipulatorBar = function() {
-    while (this.manipulationDiv.hasChildNodes()) {
-      this.manipulationDiv.removeChild(this.manipulationDiv.firstChild);
-    }
+    this._recursiveDOMDelete(this.manipulationDiv);
     this.manipulationDOM = {};
 
     this._manipulationReleaseOverload = function () {};
@@ -32938,6 +32934,7 @@ return /******/ (function(modules) { // webpackBootstrap
     for (var functionName in this.cachedFunctions) {
       if (this.cachedFunctions.hasOwnProperty(functionName)) {
         this[functionName] = this.cachedFunctions[functionName];
+        delete this.cachedFunctions[functionName];
       }
     }
   };
@@ -33083,7 +33080,8 @@ return /******/ (function(modules) { // webpackBootstrap
       }
       this.closeDiv.onclick = this._toggleEditMode.bind(this);
 
-      this.boundFunction = this._createManipulatorBar.bind(this);
+      var me = this;
+      this.boundFunction = me._createManipulatorBar;
       this.on('select', this.boundFunction);
     }
     else {
@@ -33146,7 +33144,8 @@ return /******/ (function(modules) { // webpackBootstrap
     this.manipulationDOM['backSpan'].onclick = this._createManipulatorBar.bind(this);
 
     // we use the boundFunction so we can reference it when we unbind it from the "select" event.
-    this.boundFunction = this._addNode.bind(this);
+    var me = this;
+    this.boundFunction = me._addNode;
     this.on('select', this.boundFunction);
   };
 
@@ -33195,10 +33194,11 @@ return /******/ (function(modules) { // webpackBootstrap
     this.manipulationDiv.appendChild(this.manipulationDOM['descriptionSpan']);
 
     // bind the icon
-    this.manipulationDOM['backSpan'].onclick = this._createManipulatorBar.bind(this);
+    var me = this; // we use me so we don't have to use bind(this). If we use bind, we cannot clean up after it.
+    this.manipulationDOM['backSpan'].onclick = me._createManipulatorBar;
 
     // we use the boundFunction so we can reference it when we unbind it from the "select" event.
-    this.boundFunction = this._handleConnect.bind(this);
+    this.boundFunction = me._handleConnect;
     this.on('select', this.boundFunction);
 
     // temporarily overload functions

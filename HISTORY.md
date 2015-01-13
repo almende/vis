@@ -8,6 +8,8 @@ http://visjs.org
 
 - reverted change in image class, fixed bug #552
 - improved (not neccesarily fixed) the fontFill offset between different browsers. #365
+- Fixed dashed lines on firefox on Unix systems
+- Altered the Manipulation Mixin to be succesfully destroyed from memory when calling destroy();
 
 ## 20145-01-09, version 3.8.0
 
