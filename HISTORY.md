@@ -13,6 +13,10 @@ http://visjs.org
 - Improved drawing of arrowheads on smooth curves. #349
 - Caught case where click originated on external DOM element and drag progressed to vis.
 
+### Timeline
+
+- Added byUser flag to options of the rangechange and rangechanged event.
+
 ## 20145-01-09, version 3.8.0
 
 ### General
