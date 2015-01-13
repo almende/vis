@@ -12,7 +12,7 @@ http://visjs.org
 - Altered the Manipulation Mixin to be succesfully destroyed from memory when calling destroy();
 - Improved drawing of arrowheads on smooth curves. #349
 - Caught case where click originated on external DOM element and drag progressed to vis.
-- Added label stroke support to Nodes, Edges & Groups as per-object or global settings. Use `fontStrokeWidth` & `fontStrokeColor` (default values: 0 & 'white').
+- Added label stroke support to Nodes, Edges & Groups as per-object or global settings. Thank you @klmdb!
 
 ### Timeline
 
