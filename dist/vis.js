@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.8.1-SNAPSHOT
- * @date    2015-01-12
+ * @date    2015-01-13
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -28191,7 +28191,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
     var via = null;
     // only firefox and chrome support this method, else we use the legacy one.
-    if (ctx.mozDash !== undefined || ctx.setLineDash !== undefined) {
+    if (ctx.setLineDash !== undefined) {
+      ctx.save();
       // configure the dash pattern
       var pattern = [0];
       if (this.options.dash.length !== undefined && this.options.dash.gap !== undefined) {
@@ -28202,27 +28203,16 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       // set dash settings for chrome or firefox
-      if (typeof ctx.setLineDash !== 'undefined') { //Chrome
-        ctx.setLineDash(pattern);
-        ctx.lineDashOffset = 0;
-
-      } else { //Firefox
-        ctx.mozDash = pattern;
-        ctx.mozDashOffset = 0;
-      }
+      ctx.setLineDash(pattern);
+      ctx.lineDashOffset = 0;
 
       // draw the line
       via = this._line(ctx);
 
       // restore the dash settings.
-      if (typeof ctx.setLineDash !== 'undefined') { //Chrome
-        ctx.setLineDash([0]);
-        ctx.lineDashOffset = 0;
-
-      } else { //Firefox
-        ctx.mozDash = [0];
-        ctx.mozDashOffset = 0;
-      }
+      ctx.setLineDash([0]);
+      ctx.lineDashOffset = 0;
+      ctx.restore();
     }
     else { // unsupporting smooth lines
       // draw dashed line
