@@ -11,6 +11,7 @@ http://visjs.org
 - Fixed dashed lines on firefox on Unix systems
 - Altered the Manipulation Mixin to be succesfully destroyed from memory when calling destroy();
 - Improved drawing of arrowheads on smooth curves. #349
+- Caught case where click originated on external DOM element and drag progressed to vis.
 
 ## 20145-01-09, version 3.8.0
 

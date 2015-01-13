@@ -23608,8 +23608,8 @@ return /******/ (function(modules) { // webpackBootstrap
    * handle drag start event
    * @private
    */
-  Network.prototype._onDragStart = function () {
-    this._handleDragStart();
+  Network.prototype._onDragStart = function (event) {
+    this._handleDragStart(event);
   };
 
 
@@ -23619,20 +23619,24 @@ return /******/ (function(modules) { // webpackBootstrap
    *
    * @private
    */
-  Network.prototype._handleDragStart = function() {
-    var drag = this.drag;
-    var node = this._getNodeAt(drag.pointer);
+  Network.prototype._handleDragStart = function(event) {
+    // in case the touch event was triggered on an external div, do the initial touch now.
+    if (this.drag.pointer === undefined) {
+      this._onTouch(event);
+    }
+
+    var node = this._getNodeAt(this.drag.pointer);
     // note: drag.pointer is set in _onTouch to get the initial touch location
 
-    drag.dragging = true;
-    drag.selection = [];
-    drag.translation = this._getTranslation();
-    drag.nodeId = null;
+    this.drag.dragging = true;
+    this.drag.selection = [];
+    this.drag.translation = this._getTranslation();
+    this.drag.nodeId = null;
     this.draggingNodes = false;
 
     if (node != null && this.constants.dragNodes == true) {
       this.draggingNodes = true;
-      drag.nodeId = node.id;
+      this.drag.nodeId = node.id;
       // select the clicked node if not yet selected
       if (!node.isSelected()) {
         this._selectObject(node,false);
@@ -23658,7 +23662,7 @@ return /******/ (function(modules) { // webpackBootstrap
           object.xFixed = true;
           object.yFixed = true;
 
-          drag.selection.push(s);
+          this.drag.selection.push(s);
         }
       }
     }
@@ -23718,8 +23722,13 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     }
     else {
+      // move the network
       if (this.constants.dragNetwork == true) {
-        // move the network
+        // if the drag was not started properly because the click started outside the network div, start it now.
+        if (this.drag.pointer === undefined) {
+          this._handleDragStart(event);
+          return;
+        }
         var diffX = pointer.x - this.drag.pointer.x;
         var diffY = pointer.y - this.drag.pointer.y;
 
@@ -23728,8 +23737,6 @@ return /******/ (function(modules) { // webpackBootstrap
           this.drag.translation.y + diffY
         );
         this._redraw();
-  //      this.moving = true;
-  //      this.start();
       }
     }
   };
