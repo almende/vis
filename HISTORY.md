@@ -19,6 +19,7 @@ http://visjs.org
 - Fixed issue #564 by resetting state to initial when no callback is performed in the return function.
 - Added condition to Repulsion similar to BarnesHut to ensure nodes do not overlap.
 - Added labelAlignment option to edges. Thanks @T-rav!
+- Close active sessions in dataManipulation when calling setData().
 
 ### Timeline
 
