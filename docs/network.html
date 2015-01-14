@@ -932,6 +932,18 @@ All options defined per-node override these global settings.
         <td>undefined</td>
         <td>If a color is supplied, there will be a background color behind the label. If left undefined, no background color is shown.</td>
     </tr>
+    <tr>
+        <td class="greenField">fontStrokeWidth</td>
+        <td>Number</td>
+        <td>0</td>
+        <td>The width of the label stroke (border around label's text) in pixels.</td>
+    </tr>
+    <tr>
+        <td class="greenField">fontStrokeColor</td>
+        <td>String</td>
+        <td>'white'</td>
+        <td>The color of the label stroke.</td>
+    </tr>
 
 <tr>
     <td  class="greenField">shape</td>
@@ -1156,6 +1168,20 @@ var options = {
       <td>Font fill for the background color of the text label of the edge.
       Only applicable when property <code>label</code> is defined.</td>
   </tr>
+  <tr>
+      <td class="greenField">fontStrokeWidth</td>
+      <td>Number</td>
+      <td>0</td>
+      <td>The width of the label stroke (border around label's text) in pixels.
+      Only applicable when property <code>label</code> is defined.</td>
+  </tr>
+  <tr>
+      <td class="greenField">fontStrokeColor</td>
+      <td>String</td>
+      <td>'white'</td>
+      <td>The color of the label stroke.
+      Only applicable when property <code>label</code> is defined.</td>
+  </tr>
 
   <tr>
   <td class="greenField">style</td>
@@ -1315,6 +1341,18 @@ var nodes = [
   <td>Number</td>
   <td>14</td>
   <td>Font size for the node in pixels.</td>
+</tr>
+<tr>
+  <td>fontStrokeWidth</td>
+  <td>Number</td>
+  <td>0</td>
+  <td>The width of the label stroke (border around label's text) in pixels.</td>
+</tr>
+<tr>
+  <td>fontStrokeColor</td>
+  <td>String</td>
+  <td>"white"</td>
+  <td>The color of the label stroke.</td>
 </tr>
 <tr>
   <td>shape</td>
