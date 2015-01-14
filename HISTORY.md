@@ -15,6 +15,8 @@ http://visjs.org
 - Added label stroke support to Nodes, Edges & Groups as per-object or global settings. Thank you @klmdb!
 - Reverted patch that made nodes return to 'default' setting if no group was assigned to fix issue #561. The correct way to 'remove' a group from a node is to assign it a different one.
 - Made the node/edge selected by the popup system the same as selected by the click-to-select system. Thank you @pavlos256!
+- Improved edit edge control nodes positions, altered style a little.
+- Fixed issue #564 by resetting state to initial when no callback is performed in the return function.
 
 ### Timeline
 
