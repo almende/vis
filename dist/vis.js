@@ -6395,7 +6395,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
-  var Core = __webpack_require__(47);
+  var Core = __webpack_require__(46);
   var TimeAxis = __webpack_require__(30);
   var CurrentTime = __webpack_require__(21);
   var CustomTime = __webpack_require__(22);
@@ -6715,7 +6715,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
-  var Core = __webpack_require__(47);
+  var Core = __webpack_require__(46);
   var TimeAxis = __webpack_require__(30);
   var CurrentTime = __webpack_require__(21);
   var CustomTime = __webpack_require__(22);
@@ -7711,7 +7711,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(46);
+  var hammerUtil = __webpack_require__(48);
   var moment = __webpack_require__(44);
   var Component = __webpack_require__(20);
   var DateUtil = __webpack_require__(15);
@@ -9197,7 +9197,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(20);
   var moment = __webpack_require__(44);
-  var locales = __webpack_require__(52);
+  var locales = __webpack_require__(47);
 
   /**
    * A current time bar
@@ -9367,7 +9367,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(20);
   var moment = __webpack_require__(44);
-  var locales = __webpack_require__(52);
+  var locales = __webpack_require__(47);
 
   /**
    * A custom time bar
@@ -15458,7 +15458,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var Hammer = __webpack_require__(45);
   var keycharm = __webpack_require__(57);
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(46);
+  var hammerUtil = __webpack_require__(48);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var dotparser = __webpack_require__(42);
@@ -15468,12 +15468,12 @@ return /******/ (function(modules) { // webpackBootstrap
   var Node = __webpack_require__(40);
   var Edge = __webpack_require__(37);
   var Popup = __webpack_require__(41);
-  var MixinLoader = __webpack_require__(50);
-  var Activator = __webpack_require__(51);
-  var locales = __webpack_require__(48);
+  var MixinLoader = __webpack_require__(51);
+  var Activator = __webpack_require__(52);
+  var locales = __webpack_require__(49);
 
   // Load custom shapes into CanvasRenderingContext2D
-  __webpack_require__(49);
+  __webpack_require__(50);
 
   /**
    * @constructor Network
@@ -18290,6 +18290,9 @@ return /******/ (function(modules) { // webpackBootstrap
       case 'dash-line':     this.draw = this._drawDashLine; break;
       default:              this.draw = this._drawLine; break;
     }
+    
+    // set the label alignment
+    this.options.labelAlignment = properties.labelAlignment;
   };
 
   /**
@@ -21881,40 +21884,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(45);
-
-  /**
-   * Fake a hammer.js gesture. Event can be a ScrollEvent or MouseMoveEvent
-   * @param {Element} element
-   * @param {Event} event
-   */
-  exports.fakeGesture = function(element, event) {
-    var eventType = null;
-
-    // for hammer.js 1.0.5
-    // var gesture = Hammer.event.collectEventData(this, eventType, event);
-
-    // for hammer.js 1.0.6+
-    var touches = Hammer.event.getTouchList(event, eventType);
-    var gesture = Hammer.event.collectEventData(this, eventType, touches, event);
-
-    // on IE in standards mode, no touches are recognized by hammer.js,
-    // resulting in NaN values for center.pageX and center.pageY
-    if (isNaN(gesture.center.pageX)) {
-      gesture.center.pageX = event.pageX;
-    }
-    if (isNaN(gesture.center.pageY)) {
-      gesture.center.pageY = event.pageY;
-    }
-
-    return gesture;
-  };
-
-
-/***/ },
-/* 47 */
-/***/ function(module, exports, __webpack_require__) {
-
   var Emitter = __webpack_require__(56);
   var Hammer = __webpack_require__(45);
   var util = __webpack_require__(1);
@@ -21922,7 +21891,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
   var ItemSet = __webpack_require__(27);
-  var Activator = __webpack_require__(51);
+  var Activator = __webpack_require__(52);
   var DateUtil = __webpack_require__(15);
 
   /**
@@ -22790,7 +22759,62 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
+/* 47 */
+/***/ function(module, exports, __webpack_require__) {
+
+  // English
+  exports['en'] = {
+    current: 'current',
+    time: 'time'
+  };
+  exports['en_EN'] = exports['en'];
+  exports['en_US'] = exports['en'];
+
+  // Dutch
+  exports['nl'] = {
+    custom: 'aangepaste',
+    time: 'tijd'
+  };
+  exports['nl_NL'] = exports['nl'];
+  exports['nl_BE'] = exports['nl'];
+
+
+/***/ },
 /* 48 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var Hammer = __webpack_require__(45);
+
+  /**
+   * Fake a hammer.js gesture. Event can be a ScrollEvent or MouseMoveEvent
+   * @param {Element} element
+   * @param {Event} event
+   */
+  exports.fakeGesture = function(element, event) {
+    var eventType = null;
+
+    // for hammer.js 1.0.5
+    // var gesture = Hammer.event.collectEventData(this, eventType, event);
+
+    // for hammer.js 1.0.6+
+    var touches = Hammer.event.getTouchList(event, eventType);
+    var gesture = Hammer.event.collectEventData(this, eventType, touches, event);
+
+    // on IE in standards mode, no touches are recognized by hammer.js,
+    // resulting in NaN values for center.pageX and center.pageY
+    if (isNaN(gesture.center.pageX)) {
+      gesture.center.pageX = event.pageX;
+    }
+    if (isNaN(gesture.center.pageY)) {
+      gesture.center.pageY = event.pageY;
+    }
+
+    return gesture;
+  };
+
+
+/***/ },
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -22831,7 +22855,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 49 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -23062,7 +23086,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 50 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   var PhysicsMixin = __webpack_require__(64);
@@ -23266,7 +23290,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 51 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
   var keycharm = __webpack_require__(57);
@@ -23420,27 +23444,6 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
   module.exports = Activator;
-
-
-/***/ },
-/* 52 */
-/***/ function(module, exports, __webpack_require__) {
-
-  // English
-  exports['en'] = {
-    current: 'current',
-    time: 'time'
-  };
-  exports['en_EN'] = exports['en'];
-  exports['en_US'] = exports['en'];
-
-  // Dutch
-  exports['nl'] = {
-    custom: 'aangepaste',
-    time: 'tijd'
-  };
-  exports['nl_NL'] = exports['nl'];
-  exports['nl_BE'] = exports['nl'];
 
 
 /***/ },
