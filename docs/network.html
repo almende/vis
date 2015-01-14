@@ -1182,22 +1182,29 @@ var options = {
       <td>The color of the label stroke.
       Only applicable when property <code>label</code> is defined.</td>
   </tr>
-
-  <tr>
-  <td class="greenField">style</td>
-      <td>string</td>
-      <td>line</td>
-      <td>Define a line style for the edge.
-      Choose from <code>line</code> (default), <code>arrow</code>,
-      <code>arrow-center</code>, or <code>dash-line</code>.
-      </td>
-  </tr>
   <tr>
       <td class="greenField">inheritColor</td>
       <td>String | Boolean</td>
       <td>from</td>
       <td>Possible values: <code>"to","from", true, false</code>. If this value is set to false, the edge color information is used. If the value is set to true or "from",
       the color data from the borders of the "from" node is used. If this value is "to", the color data from the borders of the "to" node is used.</td>
+  </tr>
+  <tr>
+      <td class="greenField">labelAlignment</td>
+      <td>String</td>
+      <td>horizontal</td>
+      <td>Possible values: <code>"line-above", "line-center", "line-below"</code>. The alignment of the label when drawn on the edge. 
+	  If <code>horizontal</code> it will align the label absolute horizontial.</td>
+  </tr>
+
+  <tr>
+   <td class="greenField">style</td>
+      <td>string</td>
+      <td>line</td>
+      <td>Define a line style for the edge.
+      Choose from <code>line</code> (default), <code>arrow</code>,
+      <code>arrow-center</code>, or <code>dash-line</code>.
+      </td>
   </tr>
   <tr>
       <td class="greenField">width</td>

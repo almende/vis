@@ -18,6 +18,7 @@ http://visjs.org
 - Improved edit edge control nodes positions, altered style a little.
 - Fixed issue #564 by resetting state to initial when no callback is performed in the return function.
 - Added condition to Repulsion similar to BarnesHut to ensure nodes do not overlap.
+- Added labelAlignment option to edges. Thanks @T-rav!
 
 ### Timeline
 
