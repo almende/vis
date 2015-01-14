@@ -17,6 +17,7 @@ http://visjs.org
 - Made the node/edge selected by the popup system the same as selected by the click-to-select system. Thank you @pavlos256!
 - Improved edit edge control nodes positions, altered style a little.
 - Fixed issue #564 by resetting state to initial when no callback is performed in the return function.
+- Added condition to Repulsion similar to BarnesHut to ensure nodes do not overlap.
 
 ### Timeline
 
