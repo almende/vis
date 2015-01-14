@@ -7711,7 +7711,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(48);
+  var hammerUtil = __webpack_require__(47);
   var moment = __webpack_require__(44);
   var Component = __webpack_require__(20);
   var DateUtil = __webpack_require__(15);
@@ -9197,7 +9197,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(20);
   var moment = __webpack_require__(44);
-  var locales = __webpack_require__(47);
+  var locales = __webpack_require__(48);
 
   /**
    * A current time bar
@@ -9367,7 +9367,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(20);
   var moment = __webpack_require__(44);
-  var locales = __webpack_require__(47);
+  var locales = __webpack_require__(48);
 
   /**
    * A custom time bar
@@ -15458,7 +15458,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var Hammer = __webpack_require__(45);
   var keycharm = __webpack_require__(57);
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(48);
+  var hammerUtil = __webpack_require__(47);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var dotparser = __webpack_require__(42);
@@ -18759,7 +18759,7 @@ return /******/ (function(modules) { // webpackBootstrap
   	
   	ctx.save();
   	
-  	if(labelAlignment == 'line-center' || labelAlignment == 'line-above'){
+  	if(labelAlignment == 'line-center' || labelAlignment == 'line-above' || labelAlignment == 'line-below'){
   		ctx.translate(x, yLine);
   		this._rotateForLabelAlignment(ctx);
   		x = 0;
@@ -18801,6 +18801,8 @@ return /******/ (function(modules) { // webpackBootstrap
   	if (this.options.fontFill !== undefined && this.options.fontFill !== null && this.options.fontFill !== "none") {
   		ctx.fillStyle = this.options.fontFill;
   		
+  		var lineMargin = 2;
+  		
   		if(labelAlignment == 'line-center'){
   			ctx.fillRect(-(this.labelDimensions.width/2),
   			-(this.labelDimensions.height/2),
@@ -18808,7 +18810,12 @@ return /******/ (function(modules) { // webpackBootstrap
   			this.labelDimensions.height);
   		}else if(labelAlignment == 'line-above'){
   			ctx.fillRect(-(this.labelDimensions.width/2),
-  			-(this.labelDimensions.height+2),
+  			-(this.labelDimensions.height+lineMargin),
+  			this.labelDimensions.width,
+  			this.labelDimensions.height);
+  		}else if(labelAlignment == 'line-below'){
+  			ctx.fillRect(-(this.labelDimensions.width/2),
+  			lineMargin,
   			this.labelDimensions.width,
   			this.labelDimensions.height);
   		}else{
@@ -18839,6 +18846,8 @@ return /******/ (function(modules) { // webpackBootstrap
   	ctx.textAlign = "center";
   	if(labelAlignment == 'line-above'){
   		ctx.textBaseline =  "bottom";
+  	}else if(labelAlignment == 'line-below'){
+  		ctx.textBaseline =  "top";
   	}else{
   		ctx.textBaseline =  "middle";
   	}
@@ -22762,27 +22771,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
-  // English
-  exports['en'] = {
-    current: 'current',
-    time: 'time'
-  };
-  exports['en_EN'] = exports['en'];
-  exports['en_US'] = exports['en'];
-
-  // Dutch
-  exports['nl'] = {
-    custom: 'aangepaste',
-    time: 'tijd'
-  };
-  exports['nl_NL'] = exports['nl'];
-  exports['nl_BE'] = exports['nl'];
-
-
-/***/ },
-/* 48 */
-/***/ function(module, exports, __webpack_require__) {
-
   var Hammer = __webpack_require__(45);
 
   /**
@@ -22811,6 +22799,27 @@ return /******/ (function(modules) { // webpackBootstrap
 
     return gesture;
   };
+
+
+/***/ },
+/* 48 */
+/***/ function(module, exports, __webpack_require__) {
+
+  // English
+  exports['en'] = {
+    current: 'current',
+    time: 'time'
+  };
+  exports['en_EN'] = exports['en'];
+  exports['en_US'] = exports['en'];
+
+  // Dutch
+  exports['nl'] = {
+    custom: 'aangepaste',
+    time: 'tijd'
+  };
+  exports['nl_NL'] = exports['nl'];
+  exports['nl_BE'] = exports['nl'];
 
 
 /***/ },
