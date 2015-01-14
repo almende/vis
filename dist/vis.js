@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.8.1-SNAPSHOT
- * @date    2015-01-13
+ * @date    2015-01-14
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -26639,7 +26639,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.options.color = util.parseColor(this.options.color);
     }
     else if (properties.color === undefined) {
-      this.options.color = constants.nodes.color;
+      //this.options.color = constants.nodes.color;
     }
 
     // individual shape properties
