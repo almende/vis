@@ -13,6 +13,8 @@ http://visjs.org
 - Improved drawing of arrowheads on smooth curves. #349
 - Caught case where click originated on external DOM element and drag progressed to vis.
 - Added label stroke support to Nodes, Edges & Groups as per-object or global settings. Thank you @klmdb!
+- Reverted patch that made nodes return to 'default' setting if no group was assigned to fix issue #561. The correct way to 'remove' a group from a node is to assign it a different one.
+- Made the node/edge selected by the popup system the same as selected by the click-to-select system. Thank you @pavlos256!
 
 ### Timeline
 
