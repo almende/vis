@@ -1,87 +1,51 @@
 <!doctype html>
 <html>
 <head>
-  <title>Network | Label Alignment</title>
-
-  <style type="text/css">
-    body {
-      font: 10pt arial;
-    }
-    #mynetwork {
-      width: 800px;
-      height: 800px;
-      border: 1px solid lightgray;
-      background-color:#333333;
-    }
-  </style>
+  <title>Network | Basic usage</title>
 
   <script type="text/javascript" src="../../dist/vis.js"></script>
   <link href="../../dist/vis.css" rel="stylesheet" type="text/css" />
 
-  <script type="text/javascript"> 
-    var DIR = 'img/soft-scraps-icons/';
-
-    var nodes = null;
-    var edges = null;
-    var network = null;
-
-    // Called when the Visualization API is loaded.
-    function draw() {
-      // create people.
-      // value corresponds with the age of the person
-      var DIR = 'img/languages/';
-      nodes = [
-        {id: 1, value:2, shape: 'circle', label: 'C#'},
-        {id: 2, value:2, shape: 'image', image: DIR + 'photo.jpg', label: 'codes'},
-        {id: 3, value:2, shape: 'circle', label: 'R'},
-        {id: 4, value:2, shape: 'circle', label: 'Java'},
-        {id: 5, value:2, shape: 'circle', label:'JavaScript'},
-        {id: 6, value:2, shape: 'circle', label: 'Bash'}
-      ];
-
-      // create connetions between people
-      // value corresponds with the amount of contact between two people
-      edges = [
-        {from: 1, to: 2, label: 'day job', labelAlignment:'line-center', fontFill:'orange'},
-        {from: 2, to: 3, label: 'learning'},
-        {from: 2, to: 4, label: 'favorites', labelAlignment:'line-above', fontFill:'none'},
-        {from: 4, to: 5 },
-        {from: 4, to: 6 }
-      ];
-
-      // create a network
-      var container = document.getElementById('mynetwork');
-      var data = {
-        nodes: nodes,
-        edges: edges
-      };
-      var options = {
-        nodes: {
-		  shape: 'circle',
-          borderWidth:4,
-	      color: {
-            border: '#222222',
-            background: '#aaa',
-            highlight: {
-              border: '#428eff',
-              background: '#999'
-            }
-          },
-          fontColor:'#eeeeee'
-        },
-        edges: {
-          color: '#fff',
-		  fontFill:'#aaa'
-        }
-      };
-      network = new vis.Network(container, data, options);
+  <style type="text/css">
+    #mynetwork {
+      width: 400px;
+      height: 400px;
+      border: 1px solid lightgray;
     }
-  </script>
+  </style>
 </head>
 
-<body onload="draw()">
+<body>
+
 <div id="mynetwork"></div>
 
-<div id="info"></div>
+<script type="text/javascript">
+  // create an array with nodes
+  var nodes = [
+    {id: 1, label: 'Node 1'},
+    {id: 2, label: 'Node 2'},
+    {id: 3, label: 'Node 3'},
+    {id: 4, label: 'Node 4'},
+    {id: 5, label: 'Node 5'}
+  ];
+
+  // create an array with edges
+  var edges = [
+    {from: 1, to: 2, label:'1 to 2' , labelAlignment:'line-center', fontFill:'orange' },
+    {from: 1, to: 3, label: '1 to 3', labelAlignment:'line-above', fontFill:'none'},
+    {from: 2, to: 4, label: '2 to 4', },
+    {from: 2, to: 5, label:'2 to 5' , labelAlignment:'line-center'}
+  ];
+
+  // create a network
+  var container = document.getElementById('mynetwork');
+  var data = {
+    nodes: nodes,
+    edges: edges
+  };
+  var options = {};
+  var network = new vis.Network(container, data, options);
+</script>
+
 </body>
 </html>
