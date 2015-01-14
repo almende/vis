@@ -22873,7 +22873,7 @@ return /******/ (function(modules) { // webpackBootstrap
         levelSeparation: 150,
         nodeSpacing: 100,
         direction: "UD",   // UD, DU, LR, RL
-        layout: "hubsize" // hubsize, directed, uniqueDirected
+        layout: "hubsize" // hubsize, directed
       },
       freezeForStabilization: false,
       smoothCurves: {
@@ -33903,23 +33903,6 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   exports._setupHierarchicalLayout = function() {
     if (this.constants.hierarchicalLayout.enabled == true && this.nodeIndices.length > 0) {
-      if (this.constants.hierarchicalLayout.direction == "RL" || this.constants.hierarchicalLayout.direction == "DU") {
-        this.constants.hierarchicalLayout.levelSeparation = this.constants.hierarchicalLayout.levelSeparation < 0 ? this.constants.hierarchicalLayout.levelSeparation : this.constants.hierarchicalLayout.levelSeparation * -1;
-      }
-      else {
-        this.constants.hierarchicalLayout.levelSeparation = Math.abs(this.constants.hierarchicalLayout.levelSeparation);
-      }
-
-      if (this.constants.hierarchicalLayout.direction == "RL" || this.constants.hierarchicalLayout.direction == "LR") {
-        if (this.constants.smoothCurves.enabled == true) {
-          this.constants.smoothCurves.type = "vertical";
-        }
-      }
-      else {
-        if (this.constants.smoothCurves.enabled == true) {
-          this.constants.smoothCurves.type = "horizontal";
-        }
-      }
       // get the size of the largest hubs and check if the user has defined a level for a node.
       var hubsize = 0;
       var node, nodeId;
@@ -33959,7 +33942,7 @@ return /******/ (function(modules) { // webpackBootstrap
             this._determineLevels(hubsize);
           }
           else {
-            this._determineLevelsDirected();
+            this._determineLevelsDirected(false);
           }
 
         }
@@ -34156,6 +34139,23 @@ return /******/ (function(modules) { // webpackBootstrap
       this.constants.smoothCurves.dynamic = false;
     }
     this._configureSmoothCurves();
+
+    var config = this.constants.hierarchicalLayout;
+    config.levelSeparation = Math.abs(config.levelSeparation);
+    if (config.direction == "RL" || config.direction == "DU") {
+      config.levelSeparation *= -1;
+    }
+
+    if (config.direction == "RL" || config.direction == "LR") {
+      if (this.constants.smoothCurves.enabled == true) {
+        this.constants.smoothCurves.type = "vertical";
+      }
+    }
+    else {
+      if (this.constants.smoothCurves.enabled == true) {
+        this.constants.smoothCurves.type = "horizontal";
+      }
+    }
   };
 
 
@@ -34243,9 +34243,9 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   exports._setLevelDirected = function(level, edges, parentId) {
     this.nodes[parentId].hierarchyEnumerated = true;
+    var childNode, direction;
     for (var i = 0; i < edges.length; i++) {
-      var childNode = null;
-      var direction = 1;
+      direction = 1;
       if (edges[i].toId == parentId) {
         childNode = edges[i].from;
         direction = -1;
@@ -34259,9 +34259,9 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     for (var i = 0; i < edges.length; i++) {
-      var childNode = null;
       if (edges[i].toId == parentId) {childNode = edges[i].from;}
       else {childNode = edges[i].to;}
+
       if (childNode.edges.length > 1 && childNode.hierarchyEnumerated === false) {
         this._setLevelDirected(childNode.level, childNode.edges, childNode.id);
       }

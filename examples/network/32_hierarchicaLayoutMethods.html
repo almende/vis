@@ -19,7 +19,7 @@
 
     <script type="text/javascript">
         var network = null;
-        var layoutMethod = "direction";
+        var layoutMethod = "hubsize";
 
         function destroy() {
             if (network !== null) {
@@ -84,10 +84,6 @@
                 to: 8
             });
             edges.push({
-                from: 10,
-                to: 2
-            });
-            edges.push({
                 from: 2,
                 to: 9
             });
@@ -134,9 +130,8 @@
 </div>
 Layout method:
 <select id="layout">
-    <option value="direction">direction</option>
     <option value="hubsize">hubsize</option>
-
+    <option value="direction">direction</option>
 </select><br/>
 <br />
 
