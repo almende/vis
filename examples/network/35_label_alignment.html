@@ -29,27 +29,24 @@
     function draw() {
       // create people.
       // value corresponds with the age of the person
-      var DIR = 'img/indonesia/';
+      var DIR = 'img/languages/';
       nodes = [
-        {id: 1,  shape: 'circularImage', image: DIR + '1.png'},
-        {id: 2,  shape: 'circularImage', image: DIR + '2.png'},
-        {id: 3,  shape: 'circularImage', image: DIR + '3.png'},
-        {id: 4, label:"pictures by this guy!", shape: 'circularImage', image: DIR + '4.png'},
-        {id: 5,  shape: 'circularImage', image: DIR + '5.png'},
-        {id: 6,  shape: 'circularImage', image: DIR + '6.png'},
-        {id: 7,  shape: 'circularImage', image: DIR + '7.png'}
+        {id: 1,  shape: 'circularImage', image: DIR + 'c-sharp.jpg'},
+        {id: 2,  shape: 'circularImage', image: DIR + 'photo.jpg'},
+        {id: 3,  shape: 'circularImage', image: DIR + 'r.jpg'},
+        {id: 4, label:"!", shape: 'circularImage', image: DIR + 'java.png'},
+        {id: 5,  shape: 'circularImage', image: DIR + 'javascript.png'},
+        {id: 6,  shape: 'circularImage', image: DIR + 'bash.jpg'}
       ];
 
       // create connetions between people
       // value corresponds with the amount of contact between two people
       edges = [
-        {from: 1, to: 2, label: 'foobar', labelAlignment:'line-center'},
-        {from: 2, to: 3, label: '2 to 3', labelAlignment:'line-center'},
-        {from: 2, to: 4, label: 'My Best Work', labelAlignment:'line-above'},
-        {from: 4, to: 5, label: 'My Worst Work'},
-        {from: 4, to: 10, label: 'Loves cats!', labelAlignment: 'line-above'},
-        {from: 4, to: 6},
-        {from: 6, to: 7}
+        {from: 1, to: 2, label: 'day job', labelAlignment:'line-center', fontFill:'orange'},
+        {from: 2, to: 3, label: 'learning'},
+        {from: 2, to: 4, label: 'favorites', labelAlignment:'line-above', fontFill:'none'},
+        {from: 4, to: 5 },
+        {from: 4, to: 6 }
       ];
 
       // create a network
@@ -73,7 +70,8 @@
           fontColor:'#eeeeee'
         },
         edges: {
-          color: 'lightgray'
+          color: '#fff',
+		  fontFill:'#aaa'
         }
       };
       network = new vis.Network(container, data, options);
