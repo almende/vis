@@ -28196,6 +28196,7 @@ return /******/ (function(modules) { // webpackBootstrap
   		x = 0;
   		yLine = 0;
   	}
+
   	
   	this._drawLabelRect(ctx);
   	this._drawLabelText(ctx,x,yLine, lines, lineCount, fontSize);
@@ -28244,7 +28245,6 @@ return /******/ (function(modules) { // webpackBootstrap
         ctx.fillRect(-this.labelDimensions.width * 0.5, lineMargin, this.labelDimensions.width, this.labelDimensions.height);
       }
       else {
-        ctx.fillStyle = this.options.fontFill;
         ctx.fillRect(this.labelDimensions.left, this.labelDimensions.top, this.labelDimensions.width, this.labelDimensions.height);
       }
     }
@@ -28279,6 +28279,9 @@ return /******/ (function(modules) { // webpackBootstrap
       else {
         ctx.textBaseline = "middle";
       }
+    }
+    else {
+      ctx.textBaseline = "middle";
     }
 
     // check for strokeWidth

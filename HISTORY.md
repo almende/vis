@@ -20,6 +20,7 @@ http://visjs.org
 - Added condition to Repulsion similar to BarnesHut to ensure nodes do not overlap.
 - Added labelAlignment option to edges. Thanks @T-rav!
 - Close active sessions in dataManipulation when calling setData().
+- Fixed alignment issue with edgelabels
 
 ### Timeline
 
