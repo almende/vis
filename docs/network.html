@@ -932,6 +932,18 @@ All options defined per-node override these global settings.
         <td>undefined</td>
         <td>If a color is supplied, there will be a background color behind the label. If left undefined, no background color is shown.</td>
     </tr>
+    <tr>
+        <td class="greenField">fontStrokeWidth</td>
+        <td>Number</td>
+        <td>0</td>
+        <td>The width of the label stroke (border around label's text) in pixels.</td>
+    </tr>
+    <tr>
+        <td class="greenField">fontStrokeColor</td>
+        <td>String</td>
+        <td>'white'</td>
+        <td>The color of the label stroke.</td>
+    </tr>
 
 <tr>
     <td  class="greenField">shape</td>
@@ -940,11 +952,11 @@ All options defined per-node override these global settings.
     <td>Define the shape for the node.
     Choose from
     <code>ellipse</code> (default), <code>circle</code>, <code>box</code>,
-    <code>database</code>, <code>image</code>, <code>label</code>, <code>dot</code>,
+    <code>database</code>, <code>image</code>, <code>circularImage</code>, <code>label</code>, <code>dot</code>,
     <code>star</code>, <code>triangle</code>, <code>triangleDown</code>, and <code>square</code>.
     <br><br>
 
-    In case of <code>image</code>, a property with name <code>image</code> must
+    In case of <code>image</code> and <code>circularImage</code>, a property with name <code>image</code> must
     be provided, containing image urls.
     <br><br>
 
@@ -1156,15 +1168,19 @@ var options = {
       <td>Font fill for the background color of the text label of the edge.
       Only applicable when property <code>label</code> is defined.</td>
   </tr>
-
   <tr>
-  <td class="greenField">style</td>
-      <td>string</td>
-      <td>line</td>
-      <td>Define a line style for the edge.
-      Choose from <code>line</code> (default), <code>arrow</code>,
-      <code>arrow-center</code>, or <code>dash-line</code>.
-      </td>
+      <td class="greenField">fontStrokeWidth</td>
+      <td>Number</td>
+      <td>0</td>
+      <td>The width of the label stroke (border around label's text) in pixels.
+      Only applicable when property <code>label</code> is defined.</td>
+  </tr>
+  <tr>
+      <td class="greenField">fontStrokeColor</td>
+      <td>String</td>
+      <td>'white'</td>
+      <td>The color of the label stroke.
+      Only applicable when property <code>label</code> is defined.</td>
   </tr>
   <tr>
       <td class="greenField">inheritColor</td>
@@ -1172,6 +1188,23 @@ var options = {
       <td>from</td>
       <td>Possible values: <code>"to","from", true, false</code>. If this value is set to false, the edge color information is used. If the value is set to true or "from",
       the color data from the borders of the "from" node is used. If this value is "to", the color data from the borders of the "to" node is used.</td>
+  </tr>
+  <tr>
+      <td class="greenField">labelAlignment</td>
+      <td>String</td>
+      <td>horizontal</td>
+      <td>Possible values: <code>"line-above", "line-center", "line-below"</code>. The alignment of the label when drawn on the edge. 
+	  If <code>horizontal</code> it will align the label absolute horizontial.</td>
+  </tr>
+
+  <tr>
+   <td class="greenField">style</td>
+      <td>string</td>
+      <td>line</td>
+      <td>Define a line style for the edge.
+      Choose from <code>line</code> (default), <code>arrow</code>,
+      <code>arrow-center</code>, or <code>dash-line</code>.
+      </td>
   </tr>
   <tr>
       <td class="greenField">width</td>
@@ -1315,6 +1348,18 @@ var nodes = [
   <td>Number</td>
   <td>14</td>
   <td>Font size for the node in pixels.</td>
+</tr>
+<tr>
+  <td>fontStrokeWidth</td>
+  <td>Number</td>
+  <td>0</td>
+  <td>The width of the label stroke (border around label's text) in pixels.</td>
+</tr>
+<tr>
+  <td>fontStrokeColor</td>
+  <td>String</td>
+  <td>"white"</td>
+  <td>The color of the label stroke.</td>
 </tr>
 <tr>
   <td>shape</td>
@@ -2017,15 +2062,15 @@ To load a locale into the Timeline not supported by default, one can add a new l
   locales: {
     // create a new locale (text strings should be replaced with localized strings)
     mylocale: {
-      add: 'Add Node',
       edit: 'Edit',
-      link: 'Add Link',
       del: 'Delete selected',
+      back: 'Back',
+      addNode: 'Add Node',
+      addEdge: 'Add Edge',
       editNode: 'Edit Node',
       editEdge: 'Edit Edge',
-      back: 'Back',
       addDescription: 'Click in an empty space to place a new node.',
-      linkDescription: 'Click on a node and drag the edge to another node to connect them.',
+      edgeDescription: 'Click on a node and drag the edge to another node to connect them.',
       editEdgeDescription: 'Click on the control points and drag them to a node to connect to it.',
       createEdgeError: 'Cannot link edges to a cluster.',
       deleteClusterError: 'Clusters cannot be deleted.'
@@ -2155,6 +2200,12 @@ var options = {
         <td>Returns the x and y coodinates of the center of the screen (in canvas space).
         </td>
     </tr>
+  <tr>
+    <td>getBoundingBox()</td>
+    <td>Object</td>
+    <td>Returns a bounding box for the node including label in the format: {top:Number,left:Number,right:Number,bottom:Number}. These values are in canvas space.
+    </td>
+  </tr>
     <tr>
     <td>getSelection()</td>
     <td>Array of ids</td>

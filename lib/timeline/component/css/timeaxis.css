@@ -35,8 +35,7 @@
 
 .vis.timeline .timeaxis .grid.vertical {
   position: absolute;
-  width: 0;
-  border-right: 1px solid;
+  border-left: 1px solid;
 }
 
 .vis.timeline .timeaxis .grid.minor {

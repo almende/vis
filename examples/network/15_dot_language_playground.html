@@ -80,7 +80,8 @@
 </table>
 
 <script type="text/javascript">
-  var network, data;
+  var network = null;
+  var data = null;
 
   var btnDraw = document.getElementById('draw');
   var txtData = document.getElementById('data');
@@ -92,8 +93,16 @@
     network.redraw()
   };
 
+  function destroy() {
+    if (network !== null) {
+      network.destroy();
+      network = null;
+    }
+  }
+
   // parse and draw the data
   function draw () {
+    destroy();
     try {
       txtError.innerHTML = '';
 

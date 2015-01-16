@@ -22,14 +22,24 @@
     var nodes = null;
     var edges = null;
     var network = null;
+    var nodesData = null;
 
     google.load('visualization', '1');
 
     // Set callback to run when API is loaded
     google.setOnLoadCallback(draw);
 
+    function destroy() {
+      if (network !== null) {
+        network.destroy();
+        network = null;
+      }
+    }
+
     // Called when the Visualization API is loaded.
     function draw() {
+      destroy();
+
       var from, to;
 
       nodes = [];
@@ -121,11 +131,11 @@
         nodeOffset += nodeCount;
         group++;
       }
-
+      nodesData = new vis.DataSet(nodes);
       // create a network
       var container = document.getElementById('mynetwork');
       var data = {
-        nodes: nodes,
+        nodes: nodesData,
         edges: edges
       };
       var options = {
@@ -137,6 +147,7 @@
       };
       network = new vis.Network(container, data, options);
     }
+
   </script>
 </head>
 
@@ -149,7 +160,6 @@
   <input type="submit" value="Go">
 </form>
 <br>
-
 <div id="mynetwork"></div>
 
 </body>

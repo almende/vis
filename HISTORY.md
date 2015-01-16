@@ -2,22 +2,80 @@
 http://visjs.org
 
 
-## not yet released, version 3.7.3-SNAPSHOT
+## 2015-01-16, version 3.9.0
+
+### Network
+
+- Reverted change in image class, fixed bug #552
+- Improved (not neccesarily fixed) the fontFill offset between different browsers. #365
+- Fixed dashed lines on firefox on Unix systems
+- Altered the Manipulation Mixin to be succesfully destroyed from memory when calling destroy();
+- Improved drawing of arrowheads on smooth curves. #349
+- Caught case where click originated on external DOM element and drag progressed to vis.
+- Added label stroke support to Nodes, Edges & Groups as per-object or global settings. Thank you @klmdb!
+- Reverted patch that made nodes return to 'default' setting if no group was assigned to fix issue #561. The correct way to 'remove' a group from a node is to assign it a different one.
+- Made the node/edge selected by the popup system the same as selected by the click-to-select system. Thank you @pavlos256!
+- Improved edit edge control nodes positions, altered style a little.
+- Fixed issue #564 by resetting state to initial when no callback is performed in the return function.
+- Added condition to Repulsion similar to BarnesHut to ensure nodes do not overlap.
+- Added labelAlignment option to edges. Thanks @T-rav!
+- Close active sessions in dataManipulation when calling setData().
+- Fixed alignment issue with edgelabels
+
+### Timeline
+
+- Added byUser flag to options of the rangechange and rangechanged event.
+
+
+## 2015-01-09, version 3.8.0
+
+### General
+
+- Updated to moment.js v2.9.0
 
 ### Network
 
 - Fixed flipping of hierarchical network on update when using RL and DU.
 - Added zoomExtentOnStabilize option to network.
+- Improved destroy function, added them to the examples.
+- Nodes now have bounding boxes that are used for zoomExtent.
+- Made physics more stable (albeit a little slower).
+- Added a check so only one 'activator' overlay is created on clickToUse.
+- Made global color options for edges overrule the inheritColors.
+- Improved cleaning up of the physics configuration on destroy and in options.
+- Made nodes who lost their group revert back to default color.
+- Changed group behaviour, groups now extend the options, not replace. This allows partial defines of color.
+- Fixed bug where box shaped nodes did not use hover color.
+- Fixed Locales docs.
+- When hovering over a node that does not have a title, the title of one of the connected edges that HAS a title is no longer shown.
+- Fixed error in repulsion physics model.
+- Improved physics handling for smoother network simulation.
+- Fixed infinite loop when an image can not be found and no brokenImage is provided.
+- Added getBoundingBox method.
+- Community fix for SVG images in IE11, thanks @dponch!
+- Fixed repeating stabilized event when the network is already stabilized.
+- Added circularImages, thanks for the contribution @brendon1982!
+- Stopped infinite loop when brokenImage is also not available.
+- Changed util color functions so they don't need eval. Thanks @naskooskov!
 
 ### Graph2d
 
 - Fixed round-off errors of zero on the y-axis.
 - added show major/minor lines options to dataAxis.
+- Fixed adapting to width and height changes.
+- Added a check so only one 'activator' overlay is created on clickToUse.
+- DataAxis width option now draws correctly.
 
 ### Timeline
 
+- Implemented support for styling of the vertical grid.
 - Support for custom date formatting of the labels on the time axis.
 - added show major/minor lines options to timeline.
+- Added a check so only one 'activator' overlay is created on clickToUse.
+
+### Graph3d
+
+- Fixed mouse coordinates for tooltips.
 
 
 ## 2014-12-09, version 3.7.2
