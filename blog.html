@@ -189,6 +189,7 @@
     <div class="postsMenu">
         <div class="postsMenuContent">
             Posts:
+            <a data-scroll class="post" href="#Released version 3.9.0">- Released version 3.9.0</a>
             <a data-scroll class="post" href="#The 2015 roadmap for vis.js">- The 2015 roadmap for vis.js</a>
             <a data-scroll class="post" href="#A look back on vis.js">- A look back on vis.js</a>
             <a data-scroll class="post" href="#New website for vis.js!">- New website for vis.js!</a>
@@ -196,6 +197,50 @@
         </div>
     </div>
 
+    <div class="post">
+        <div class="postHeader" id="Released version 3.9.0">Released version 3.9.0</div>
+        <div class="postAuthor">by <a href="https://github.com/AlexDM0">Alex</a></div>
+        <div class="postDate">16th of January 2015</div>
+        <div class="postContent">
+            <p>
+                We have been very busy fixing a lot of the open Github issues over the last week. We have also received multiple pull requests that could be added quickly! Special thanks to
+                our community members contributing this release: @klmdb, @pavlos256, @T-rav, @brendon1982.
+                Since this is a release with new features, we push the version number up to 3.9.0. Next up: big refactoring and version 4.0.0!
+            </p>
+
+            <p>Changelog:</p>
+
+                <h3>
+                    <a class="anchor" href="#network" aria-hidden="true"><span class="octicon octicon-link"></span></a>Network</h3>
+
+                <ul class="task-list">
+                    <li>Reverted change in image class, fixed bug #552</li>
+                    <li>Improved the fontFill offset between different browsers. #365</li>
+                    <li>Fixed dashed lines on firefox on Unix systems</li>
+                    <li>Altered the Manipulation Mixin to be succesfully destroyed from memory when calling destroy();</li>
+                    <li>Improved drawing of arrowheads on smooth curves. #349</li>
+                    <li>Caught case where click originated on external DOM element and drag progressed to vis.</li>
+                    <li>Added label stroke support to Nodes, Edges &amp; Groups as per-object or global settings. Thank you @klmdb!</li>
+                    <li>Reverted patch that made nodes return to 'default' setting if no group was assigned to fix issue #561.
+                        The correct way to 'remove' a group from a node is to assign it a different one.</li>
+                    <li>Made the node/edge selected by the popup system the same as selected by the click-to-select system. Thank you @pavlos256!</li>
+                    <li>Improved edit edge control nodes positions, altered style a little.</li>
+                    <li>Fixed issue #564 by resetting state to initial when no callback is performed in the return function.</li>
+                    <li>Added condition to Repulsion similar to BarnesHut to ensure nodes do not overlap.</li>
+                    <li>Added labelAlignment option to edges. Thanks @T-rav!</li>
+                    <li>Close active sessions in dataManipulation when calling setData().</li>
+                </ul>
+
+                <h3>
+                    <a class="anchor" href="#timeline" aria-hidden="true"><span class="octicon octicon-link"></span></a>Timeline</h3>
+
+                <ul class="task-list">
+                    <li>Added byUser flag to options of the rangechange and rangechanged event.</li>
+                </ul>
+
+
+        </div>
+    </div>
 
     <div class="post">
         <div class="postHeader" id="The 2015 roadmap for vis.js">The 2015 roadmap for vis.js</div>
@@ -312,7 +357,7 @@
             <p>Changelog:</p>
 
             <h3>
-                <a id="user-content-network" class="anchor" href="#network" aria-hidden="true"><span class="octicon octicon-link"></span></a>Network</h3>
+                <a class="anchor" href="#network" aria-hidden="true"><span class="octicon octicon-link"></span></a>Network</h3>
 
             <ul class="task-list">
                 <li>Fixed flipping of hierarchical network on update when using RL and DU.</li>
@@ -338,7 +383,7 @@
             </ul>
 
             <h3>
-                <a id="user-content-graph2d" class="anchor" href="#graph2d" aria-hidden="true"><span class="octicon octicon-link"></span></a>Graph2d</h3>
+                <a class="anchor" href="#graph2d" aria-hidden="true"><span class="octicon octicon-link"></span></a>Graph2d</h3>
 
             <ul class="task-list">
                 <li>Fixed round-off errors of zero on the y-axis.</li>
@@ -349,7 +394,7 @@
             </ul>
 
             <h3>
-                <a id="user-content-timeline" class="anchor" href="#timeline" aria-hidden="true"><span class="octicon octicon-link"></span></a>Timeline</h3>
+                <a class="anchor" href="#timeline" aria-hidden="true"><span class="octicon octicon-link"></span></a>Timeline</h3>
 
             <ul class="task-list">
                 <li>Implemented support for styling of the vertical grid.</li>
@@ -359,7 +404,7 @@
             </ul>
 
             <h3>
-                <a id="user-content-graph3d" class="anchor" href="#graph3d" aria-hidden="true"><span class="octicon octicon-link"></span></a>Graph3d</h3>
+                <a class="anchor" href="#graph3d" aria-hidden="true"><span class="octicon octicon-link"></span></a>Graph3d</h3>
 
             <ul class="task-list">
                 <li>Fixed mouse coordinates for tooltips.</li>
