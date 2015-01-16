@@ -7,6 +7,7 @@ http://visjs.org
 ### Network
 
 - Fixed bug where opening a cluster with smoothCurves off caused one child to go crazy.
+- Fixed bug where zoomExtent does not work as expected.
 
 ## 2015-01-16, version 3.9.0
 
