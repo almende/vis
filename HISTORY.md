@@ -2,6 +2,12 @@
 http://visjs.org
 
 
+## 2015-01-16, version 3.9.1 SNAPSHOT
+
+### Network
+
+- Fixed bug where opening a cluster with smoothCurves off caused one child to go crazy.
+
 ## 2015-01-16, version 3.9.0
 
 ### Network
