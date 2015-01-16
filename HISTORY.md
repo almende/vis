@@ -54,6 +54,7 @@ http://visjs.org
 - Community fix for SVG images in IE11, thanks @dponch!
 - Fixed repeating stabilized event when the network is already stabilized.
 - Added circularImages, thanks for the contribution @brendon1982!
+- Stopped infinite loop when brokenImage is also not available.
 
 ### Graph2d
 
