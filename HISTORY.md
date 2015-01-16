@@ -2,12 +2,12 @@
 http://visjs.org
 
 
-## not yet released, version 3.8.1-SNAPSHOT
+## 2015-01-16, version 3.9.0
 
 ### Network
 
-- reverted change in image class, fixed bug #552
-- improved (not neccesarily fixed) the fontFill offset between different browsers. #365
+- Reverted change in image class, fixed bug #552
+- Improved (not neccesarily fixed) the fontFill offset between different browsers. #365
 - Fixed dashed lines on firefox on Unix systems
 - Altered the Manipulation Mixin to be succesfully destroyed from memory when calling destroy();
 - Improved drawing of arrowheads on smooth curves. #349
@@ -27,7 +27,7 @@ http://visjs.org
 - Added byUser flag to options of the rangechange and rangechanged event.
 
 
-## 20145-01-09, version 3.8.0
+## 2015-01-09, version 3.8.0
 
 ### General
 
