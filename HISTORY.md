@@ -2,12 +2,12 @@
 http://visjs.org
 
 
-## not yet released, version 3.8.1-SNAPSHOT
+## 2015-01-16, version 3.9.0
 
 ### Network
 
-- reverted change in image class, fixed bug #552
-- improved (not neccesarily fixed) the fontFill offset between different browsers. #365
+- Reverted change in image class, fixed bug #552
+- Improved (not neccesarily fixed) the fontFill offset between different browsers. #365
 - Fixed dashed lines on firefox on Unix systems
 - Altered the Manipulation Mixin to be succesfully destroyed from memory when calling destroy();
 - Improved drawing of arrowheads on smooth curves. #349
@@ -18,13 +18,16 @@ http://visjs.org
 - Improved edit edge control nodes positions, altered style a little.
 - Fixed issue #564 by resetting state to initial when no callback is performed in the return function.
 - Added condition to Repulsion similar to BarnesHut to ensure nodes do not overlap.
+- Added labelAlignment option to edges. Thanks @T-rav!
+- Close active sessions in dataManipulation when calling setData().
+- Fixed alignment issue with edgelabels
 
 ### Timeline
 
 - Added byUser flag to options of the rangechange and rangechanged event.
 
 
-## 20145-01-09, version 3.8.0
+## 2015-01-09, version 3.8.0
 
 ### General
 
@@ -52,6 +55,8 @@ http://visjs.org
 - Community fix for SVG images in IE11, thanks @dponch!
 - Fixed repeating stabilized event when the network is already stabilized.
 - Added circularImages, thanks for the contribution @brendon1982!
+- Stopped infinite loop when brokenImage is also not available.
+- Changed util color functions so they don't need eval. Thanks @naskooskov!
 
 ### Graph2d
 

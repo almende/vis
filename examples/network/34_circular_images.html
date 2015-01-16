@@ -44,7 +44,8 @@
         {id: 11,  shape: 'circularImage', image: DIR + '11.png'},
         {id: 12,  shape: 'circularImage', image: DIR + '12.png'},
         {id: 13,  shape: 'circularImage', image: DIR + '13.png'},
-        {id: 14,  shape: 'circularImage', image: DIR + '14.png'}
+        {id: 14,  shape: 'circularImage', image: DIR + '14.png'},
+        {id: 15, label:"when images\nfail\nto load", shape: 'circularImage', image: DIR + 'missing.png', brokenImage: DIR + 'missingBrokenImage.png'}
       ];
 
       // create connetions between people
@@ -64,6 +65,7 @@
         {from: 11, to: 12},
         {from: 12, to: 13},
         {from: 13, to: 14},
+        {from: 14, to: 15}
       ];
 
       // create a network
@@ -74,15 +76,10 @@
       };
       var options = {
         nodes: {
-		  shape: 'circle',
           borderWidth:4,
 	      color: {
             border: '#222222',
-            background: '#ffffff',
-            highlight: {
-              border: '#428eff',
-              background: '#ffffff'
-            }
+            background: '#666666'
           },
           fontColor:'#eeeeee'
         },
