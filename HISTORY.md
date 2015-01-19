@@ -8,6 +8,7 @@ http://visjs.org
 
 - Fixed bug where opening a cluster with smoothCurves off caused one child to go crazy.
 - Fixed bug where zoomExtent does not work as expected.
+- Fixed nodes color data being overridden when having a group and a dataset update query.
 
 ## 2015-01-16, version 3.9.0
 
