@@ -1053,24 +1053,26 @@ timeline.off('select', onSelect);
 
     <tr>
     <td>rangechange</td>
-    <td>Fired repeatedly when the user is dragging the timeline window.
+    <td>Fired repeatedly when the timeline window is being changed.
     </td>
     <td>
       <ul>
         <li><code>start</code> (Number): timestamp of the current start of the window.</li>
         <li><code>end</code> (Number): timestamp of the current end of the window.</li>
+        <li><code>byUser</code> (Boolean): change happened because of user drag/zoom.</li>
       </ul>
     </td>
   </tr>
 
   <tr>
     <td>rangechanged</td>
-    <td>Fired once after the user has dragged the timeline window.
+    <td>Fired once after the timeline window has been changed.
     </td>
     <td>
       <ul>
         <li><code>start</code> (Number): timestamp of the current start of the window.</li>
         <li><code>end</code> (Number): timestamp of the current end of the window.</li>
+        <li><code>byUser</code> (Boolean): change happened because of user drag/zoom.</li>
       </ul>
     </td>
   </tr>
