@@ -303,7 +303,8 @@ When using a DataSet, the network is automatically updating to changes in the Da
   <td>level</td>
   <td>number</td>
   <td>no</td>
-  <td>This level is used in the hierarchical layout. If this is not selected, the level does not do anything.</td>
+  <td>This level is used in the hierarchical layout. If this is not selected, the level does not do anything. This must be a postive number (min value: 0).
+  Fractions are possible but only integers are supported.</td>
 </tr>
 
 <tr>
@@ -342,7 +343,7 @@ When using a DataSet, the network is automatically updating to changes in the Da
   <td>no</td>
   <td>Horizontal position in pixels.
     The horizontal position of the node will be fixed unless combined with the allowedToMoveX:true option.
-    The vertical position y may remain undefined.</td>
+    The vertical position y may remain undefined. This does not work with hierarchical layout.</td>
 </tr>
 <tr>
   <td>y</td>
@@ -350,7 +351,7 @@ When using a DataSet, the network is automatically updating to changes in the Da
   <td>no</td>
   <td>Vertical position in pixels.
     The vertical position of the node will be fixed unless combined with the allowedToMoveY:true option.
-    The horizontal position x may remain undefined.</td>
+    The horizontal position x may remain undefined. This does not work with hierarchical layout.</td>
 </tr>
 </table>
 
@@ -1000,13 +1001,13 @@ All options defined per-node override these global settings.
     <td>widthMin</td>
     <td>Number</td>
     <td>16</td>
-    <td>The minimum width for a scaled image. Only applicable to shape <code>image</code>.</td>
+    <td>The minimum width for a scaled image. Only applicable to shape <code>image</code>. This only does something if you supply a value.</td>
   </tr>
   <tr>
     <td>widthMax</td>
     <td>Number</td>
     <td>64</td>
-    <td>The maximum width for a scaled image. Only applicable to shape <code>image</code>.</td>
+    <td>The maximum width for a scaled image. Only applicable to shape <code>image</code>. This only does something if you supply a value.</td>
   </tr>
 
   <tr>
@@ -1021,14 +1022,14 @@ All options defined per-node override these global settings.
     <td>Number</td>
     <td>10</td>
     <td>The minimum radius for a scaled node. Only applicable to shapes <code>dot</code>,
-      <code>star</code>, <code>triangle</code>, <code>triangleDown</code>, and <code>square</code>.</td>
+      <code>star</code>, <code>triangle</code>, <code>triangleDown</code>, and <code>square</code>. This only does something if you supply a value.</td>
   </tr>
   <tr>
     <td>radiusMax</td>
     <td>Number</td>
     <td>30</td>
     <td>The maximum radius for a scaled node. Only applicable to shapes <code>dot</code>,
-      <code>star</code>, <code>triangle</code>, <code>triangleDown</code>, and <code>square</code>.</td>
+      <code>star</code>, <code>triangle</code>, <code>triangleDown</code>, and <code>square</code>. This only does something if you supply a value.</td>
   </tr>
 </table>
 
@@ -1224,13 +1225,13 @@ var options = {
         <td>widthMin</td>
         <td>Number</td>
         <td>1</td>
-        <td>The minimum thickness of the line when using per-edge defined values.</td>
+        <td>The minimum thickness of the line when using per-edge defined values. This does nothing if you have not defined a value.</td>
     </tr>
     <tr>
         <td>widthMax</td>
         <td>Number</td>
         <td>15</td>
-        <td>The maximum thickness of the line when using per-edge defined values.</td>
+        <td>The maximum thickness of the line when using per-edge defined values. This does nothing if you have not defined a value.</td>
     </tr>
 </table>
 
