@@ -4,7 +4,7 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 3.9.1
+ * @version 3.9.2-SNAPSHOT
  * @date    2015-01-22
  *
  * @license
@@ -29564,9 +29564,9 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var RepulsionMixin = __webpack_require__(67);
-  var HierarchialRepulsionMixin = __webpack_require__(68);
-  var BarnesHutMixin = __webpack_require__(69);
+  var RepulsionMixin = __webpack_require__(68);
+  var HierarchialRepulsionMixin = __webpack_require__(69);
+  var BarnesHutMixin = __webpack_require__(70);
 
   /**
    * Toggling barnes Hut calculation on and off.
@@ -33988,6 +33988,19 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
+  function webpackContext(req) {
+  	throw new Error("Cannot find module '" + req + "'.");
+  }
+  webpackContext.keys = function() { return []; };
+  webpackContext.resolve = webpackContext;
+  module.exports = webpackContext;
+  webpackContext.id = 67;
+
+
+/***/ },
+/* 68 */
+/***/ function(module, exports, __webpack_require__) {
+
   /**
    * Calculate the forces the nodes apply on each other based on a repulsion field.
    * This field is linearly approximated.
@@ -34055,7 +34068,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 68 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -34214,7 +34227,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 69 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -34616,19 +34629,6 @@ return /******/ (function(modules) { // webpackBootstrap
      }
      */
   };
-
-
-/***/ },
-/* 70 */
-/***/ function(module, exports, __webpack_require__) {
-
-  function webpackContext(req) {
-  	throw new Error("Cannot find module '" + req + "'.");
-  }
-  webpackContext.keys = function() { return []; };
-  webpackContext.resolve = webpackContext;
-  module.exports = webpackContext;
-  webpackContext.id = 70;
 
 
 /***/ },
