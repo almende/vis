@@ -2,7 +2,12 @@
 http://visjs.org
 
 
-## 2015-01-16, version 3.9.1 SNAPSHOT
+## 2015-01-16, version 3.9.1
+
+### General
+
+- Fixed wrong distribution file deployed on the website and the downloadable
+  zip file.
 
 ### Network
 
@@ -11,6 +16,7 @@ http://visjs.org
 - Fixed nodes color data being overridden when having a group and a dataset update query.
 - Decoupled animation from physics simulation.
 - Fixed scroll being blocked if zoomable is false.
+
 
 ## 2015-01-16, version 3.9.0
 
