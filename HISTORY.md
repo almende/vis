@@ -4,6 +4,9 @@ http://visjs.org
 
 ## not yet released, version 3.9.2-SNAPSHOT
 
+### DataSet
+
+- Added property `length` holding the total number of items in the DataSet.
 
 
 ## 2015-01-16, version 3.9.1
