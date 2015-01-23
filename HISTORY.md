@@ -9,6 +9,11 @@ http://visjs.org
 - Added property `length` holding the total number of items to the `DataSet`
   and `DataView`.
 
+### Timeline
+
+- Implemented option `timeAxis: {scale: string, step: number}` to set a
+  fixed scale.
+
 
 ## 2015-01-16, version 3.9.1
 
