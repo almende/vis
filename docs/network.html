@@ -1906,7 +1906,8 @@ var options = {
       x: 10,
       y: 10,
       zoom: 0.02
-    }
+    },
+    bindToWindow: true
   }
 }
 </pre>
@@ -1937,6 +1938,12 @@ var options = {
     <td>Number</td>
     <td>0.02</td>
     <td>This defines the zoomspeed when using the keyboard navigation.</td>
+  </tr>
+  <tr>
+    <td>bindToWindow</td>
+    <td>Boolean</td>
+    <td>true</td>
+    <td>If this is true, global keyboard events will be used. If it is false, the keyboard events are only used when the network is active. It is activated on mouseOver automatically.</td>
   </tr>
 </table>
 
