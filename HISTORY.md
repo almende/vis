@@ -4,6 +4,10 @@ http://visjs.org
 
 ## not yet released, version 3.9.2-SNAPSHOT
 
+### Network
+
+- Added option bindToWindow (default true) to choose whether the keyboard binds are global or to the network div.
+
 ### DataSet
 
 - Added property `length` holding the total number of items to the `DataSet`
