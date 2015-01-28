@@ -2,6 +2,39 @@
 http://visjs.org
 
 
+## not yet released, version 3.9.2-SNAPSHOT
+
+### Network
+
+- Added option bindToWindow (default true) to choose whether the keyboard binds are global or to the network div.
+
+### DataSet
+
+- Added property `length` holding the total number of items to the `DataSet`
+  and `DataView`.
+
+### Timeline
+
+- Implemented option `timeAxis: {scale: string, step: number}` to set a
+  fixed scale.
+
+
+## 2015-01-16, version 3.9.1
+
+### General
+
+- Fixed wrong distribution file deployed on the website and the downloadable
+  zip file.
+
+### Network
+
+- Fixed bug where opening a cluster with smoothCurves off caused one child to go crazy.
+- Fixed bug where zoomExtent does not work as expected.
+- Fixed nodes color data being overridden when having a group and a dataset update query.
+- Decoupled animation from physics simulation.
+- Fixed scroll being blocked if zoomable is false.
+
+
 ## 2015-01-16, version 3.9.0
 
 ### Network
