@@ -36,6 +36,7 @@
   "devDependencies": {
     "6to5": "^2.12.2",
     "6to5-loader": "^2.0.0",
+    "6to5ify": "^4.0.0",
     "clean-css": "latest",
     "gulp": "^3.8.5",
     "gulp-concat": "^2.2.0",
