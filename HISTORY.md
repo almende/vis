@@ -7,6 +7,7 @@ http://visjs.org
 ### Network
 
 - Added option bindToWindow (default true) to choose whether the keyboard binds are global or to the network div.
+- Improved images handling so broken images are shown on all references of images that are broken.
 
 ### DataSet
 
