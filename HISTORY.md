@@ -13,6 +13,7 @@ http://visjs.org
 
 - Added property `length` holding the total number of items to the `DataSet`
   and `DataView`.
+- Added a method `refresh()` to the `DataView`, to update filter results.
 
 ### Timeline
 

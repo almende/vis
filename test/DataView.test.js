@@ -94,4 +94,57 @@ describe('DataView', function () {
     assert.equal(group2.length, 0);
   });
 
+
+  it('should refresh a DataView with filter', function () {
+    var data = new DataSet([
+      {id:1, value:2},
+      {id:2, value:4},
+      {id:3, value:7}
+    ]);
+
+    var threshold = 5;
+
+    // create a view. The view has a filter with a dynamic property `threshold`
+    var view = new DataView(data, {
+      filter: function (item) {
+        return item.value < threshold;
+      }
+    });
+
+    var added, updated, removed;
+    view.on('add', function (event, props) {added = added.concat(props.items)});
+    view.on('update', function (event, props) {updated = updated.concat(props.items)});
+    view.on('remove', function (event, props) {removed = removed.concat(props.items)});
+
+    assert.deepEqual(view.get(), [
+      {id:1, value:2},
+      {id:2, value:4}
+    ]);
+
+    // change the threshold to 3
+    added = [];
+    updated = [];
+    removed = [];
+    threshold = 3;
+    view.refresh();
+    assert.deepEqual(view.get(), [{id:1, value:2}]);
+    assert.deepEqual(added, []);
+    assert.deepEqual(updated, []);
+    assert.deepEqual(removed, [2]);
+
+    // change threshold to 8
+    added = [];
+    updated = [];
+    removed = [];
+    threshold = 8;
+    view.refresh();
+    assert.deepEqual(view.get(), [
+      {id:1, value:2},
+      {id:2, value:4},
+      {id:3, value:7}
+    ]);
+    assert.deepEqual(added, [2, 3]);
+    assert.deepEqual(updated, []);
+    assert.deepEqual(removed, []);
+  })
 });
