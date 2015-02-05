@@ -9,11 +9,13 @@ http://visjs.org
 - Added option bindToWindow (default true) to choose whether the keyboard binds are global or to the network div.
 - Improved images handling so broken images are shown on all references of images that are broken.
 
-### DataSet
+### DataSet/DataView
 
 - Added property `length` holding the total number of items to the `DataSet`
   and `DataView`.
 - Added a method `refresh()` to the `DataView`, to update filter results.
+- Fixed a bug in the `DataSet` returning an empty object instead of `null` when
+  no item was found when using both a filter and specifying fields.
 
 ### Timeline
 
