@@ -31,6 +31,7 @@ function selectType(type) {
     totalValue = 0;
     populateTypeDiv();
     var allNodes = nodes.get();
+
     if (allNodes.length > 0) {
       if (selectedType == "connections") {
         for (var i = 0; i < allNodes.length; i++) {
@@ -39,14 +40,27 @@ function selectType(type) {
           node.value = Math.max(1,Math.pow(Number(node.euData[selectedType]),1.05));
           totalValue += node.value;
         }
+        network.setOptions({nodes:{radiusMax: nodeRadius, customScalingFunction:function (min,max,total,value) {
+          if (max == min) {
+            return 0.5;
+          }
+          else {
+            var scale = 1 / (max - min);
+            return Math.max(0,(value - min)*scale);
+          }
+        }}});
       }
-      else {
+      else { // by funding
         for (var i = 0; i < allNodes.length; i++) {
           var node = allNodes[i];
           node.title = node.id + ": " + Math.round(Number(node.euData[selectedType])) + " Euro";
-          node.value = Math.max(Math.round(0.0001 * Number(node.euData[selectedType])),1);
+          node.value = Number(node.euData[selectedType]);
           totalValue += node.value;
         }
+        network.setOptions({nodes:{radiusMax: 80*nodeRadius, customScalingFunction:function (min,max,total,value) {
+          var scale = value / total;
+          return scale;
+        }}});
       }
       nodes.update(allNodes);
     }
@@ -100,7 +114,10 @@ function drawAll(dataJSON, file) {
   var nodeEdgeRatio = Math.max(1,dataJSON.nodes.length) / Math.max(1,dataJSON.edges.length);
 
   var centralGravity = Math.min(5,Math.max(0.1,edgeNodeRatio));
+  var amountOfNodes = dataJSON.nodes.length;
+
   edgeOpacity = Math.min(1.0,Math.max(0.15,nodeEdgeRatio*2));
+  nodeRadius = amountOfNodes * 0.8;
 
   var container = document.getElementById('mynetwork');
   var data = {
@@ -108,7 +125,6 @@ function drawAll(dataJSON, file) {
     edges: edges
   };
 
-  var amountOfNodes = dataJSON.nodes.length;
   var options = {
     stabilize: false,
     stabilizationIterations: 15000,
@@ -121,11 +137,11 @@ function drawAll(dataJSON, file) {
     //physics: {barnesHut: {gravitationalConstant: 0, centralGravity: 0.0, springConstant: 0}},
     nodes: {
       shape: 'dot',
-      radiusMax: amountOfNodes * 0.5,
+      radiusMax: nodeRadius,
       fontColor: '#ffffff',
       fontDrawThreshold: 8,
       scaleFontWithValue: true,
-      fontSizeMin: 14,
+      fontSizeMin: 8,
       fontSizeMax: amountOfNodes * 0.25,
       fontSizeMaxVisible: 20,
       fontStrokeWidth: 1, // px
@@ -205,7 +221,7 @@ function highlightConnections(selectedItems) {
     }
 
     // we want to set the fontSizeMin just so that the node we're looking at has a good fontsize at the zoomLevel
-
+    console.log(totalValue, allNodes[mainNode].value)
 
     network.setOptions({nodes:{fontSizeMin:150},edges:{opacity:0.025}})
   }
@@ -313,96 +329,96 @@ function download() {
 }
 
 var filesList =  [
-  //'2010_FP7-ENERGY.json',
-  //'2010_FP7-ENVIRONMENT.json',
-  //'2010_FP7-EURATOM-FISSION.json',
-  //'2010_FP7-HEALTH.json',
-  //'2010_FP7-ICT.json',
-  //'2010_FP7-IDEAS-ERC.json',
-  //'2010_FP7-INCO.json',
-  //'2010_FP7-INFRASTRUCTURES.json',
-  //'2010_FP7-JTI.json',
-  //'2010_FP7-KBBE.json',
-  //'2010_FP7-NMP.json',
-  //'2010_FP7-PEOPLE.json',
-  //'2010_FP7-REGIONS.json',
-  //'2010_FP7-REGPOT.json',
-  //'2010_FP7-SIS.json',
-  //'2010_FP7-SME.json',
-  //'2010_FP7-SPACE.json',
-  //'2010_FP7-SSH.json',
-  //'2010_FP7-TRANSPORT.json',
-  //'2010_Other.json',
-  //'2011_FP7-COH.json',
-  //'2011_FP7-ENERGY.json',
-  //'2011_FP7-ENVIRONMENT.json',
-  //'2011_FP7-EURATOM-FISSION.json',
-  //'2011_FP7-GA.json',
-  //'2011_FP7-HEALTH.json',
-  //'2011_FP7-ICT,FP7-JTI.json',
-  //'2011_FP7-ICT.json',
-  //'2011_FP7-IDEAS-ERC.json',
-  //'2011_FP7-INCO.json',
-  //'2011_FP7-INFRASTRUCTURES.json',
-  //'2011_FP7-JTI.json',
-  //'2011_FP7-KBBE.json',
-  //'2011_FP7-NMP,FP7-INFRASTRUCTURES.json',
-  //'2011_FP7-NMP,FP7-TRANSPORT.json',
-  //'2011_FP7-NMP.json',
-  //'2011_FP7-PEOPLE.json',
-  //'2011_FP7-REGIONS.json',
-  //'2011_FP7-REGPOT.json',
-  //'2011_FP7-SECURITY.json',
-  //'2011_FP7-SIS.json',
-  //'2011_FP7-SME.json',
-  //'2011_FP7-SPACE.json',
-  //'2011_FP7-SSH.json',
-  //'2011_FP7-TRANSPORT.json',
-  //'2012_CIP.json',
-  //'2012_FP7-ENERGY.json',
-  //'2012_FP7-ENVIRONMENT.json',
-  //'2012_FP7-EURATOM-FISSION.json',
-  //'2012_FP7-HEALTH.json',
-  //'2012_FP7-ICT.json',
-  //'2012_FP7-IDEAS-ERC.json',
-  //'2012_FP7-INCO.json',
-  //'2012_FP7-INFRASTRUCTURES.json',
-  //'2012_FP7-JTI.json',
-  //'2012_FP7-KBBE.json',
-  //'2012_FP7-NMP.json',
-  //'2012_FP7-PEOPLE.json',
-  //'2012_FP7-REGIONS.json',
-  //'2012_FP7-REGPOT.json',
-  //'2012_FP7-SECURITY.json',
-  //'2012_FP7-SIS.json',
-  //'2012_FP7-SME.json',
-  //'2012_FP7-SPACE.json',
-  //'2012_FP7-SSH.json',
-  //'2012_FP7-TRANSPORT.json',
-  //'2012_Other.json',
-  //'2013_CIP.json',
-  //'2013_FP7-COH.json',
-  //'2013_FP7-ENERGY.json',
-  //'2013_FP7-ENVIRONMENT.json',
+  '2010_FP7-ENERGY.json',
+  '2010_FP7-ENVIRONMENT.json',
+  '2010_FP7-EURATOM-FISSION.json',
+  '2010_FP7-HEALTH.json',
+  '2010_FP7-ICT.json',
+  '2010_FP7-IDEAS-ERC.json',
+  '2010_FP7-INCO.json',
+  '2010_FP7-INFRASTRUCTURES.json',
+  '2010_FP7-JTI.json',
+  '2010_FP7-KBBE.json',
+  '2010_FP7-NMP.json',
+  '2010_FP7-PEOPLE.json',
+  '2010_FP7-REGIONS.json',
+  '2010_FP7-REGPOT.json',
+  '2010_FP7-SIS.json',
+  '2010_FP7-SME.json',
+  '2010_FP7-SPACE.json',
+  '2010_FP7-SSH.json',
+  '2010_FP7-TRANSPORT.json',
+  '2010_Other.json',
+  '2011_FP7-COH.json',
+  '2011_FP7-ENERGY.json',
+  '2011_FP7-ENVIRONMENT.json',
+  '2011_FP7-EURATOM-FISSION.json',
+  '2011_FP7-GA.json',
+  '2011_FP7-HEALTH.json',
+  '2011_FP7-ICT,FP7-JTI.json',
+  '2011_FP7-ICT.json',
+  '2011_FP7-IDEAS-ERC.json',
+  '2011_FP7-INCO.json',
+  '2011_FP7-INFRASTRUCTURES.json',
+  '2011_FP7-JTI.json',
+  '2011_FP7-KBBE.json',
+  '2011_FP7-NMP,FP7-INFRASTRUCTURES.json',
+  '2011_FP7-NMP,FP7-TRANSPORT.json',
+  '2011_FP7-NMP.json',
+  '2011_FP7-PEOPLE.json',
+  '2011_FP7-REGIONS.json',
+  '2011_FP7-REGPOT.json',
+  '2011_FP7-SECURITY.json',
+  '2011_FP7-SIS.json',
+  '2011_FP7-SME.json',
+  '2011_FP7-SPACE.json',
+  '2011_FP7-SSH.json',
+  '2011_FP7-TRANSPORT.json',
+  '2012_CIP.json',
+  '2012_FP7-ENERGY.json',
+  '2012_FP7-ENVIRONMENT.json',
+  '2012_FP7-EURATOM-FISSION.json',
+  '2012_FP7-HEALTH.json',
+  '2012_FP7-ICT.json',
+  '2012_FP7-IDEAS-ERC.json',
+  '2012_FP7-INCO.json',
+  '2012_FP7-INFRASTRUCTURES.json',
+  '2012_FP7-JTI.json',
+  '2012_FP7-KBBE.json',
+  '2012_FP7-NMP.json',
+  '2012_FP7-PEOPLE.json',
+  '2012_FP7-REGIONS.json',
+  '2012_FP7-REGPOT.json',
+  '2012_FP7-SECURITY.json',
+  '2012_FP7-SIS.json',
+  '2012_FP7-SME.json',
+  '2012_FP7-SPACE.json',
+  '2012_FP7-SSH.json',
+  '2012_FP7-TRANSPORT.json',
+  '2012_Other.json',
+  '2013_CIP.json',
+  '2013_FP7-COH.json',
+  '2013_FP7-ENERGY.json',
+  '2013_FP7-ENVIRONMENT.json',
   '2013_FP7-EURATOM-FISSION.json',
-  //'2013_FP7-HEALTH.json',
+  '2013_FP7-HEALTH.json',
   '2013_FP7-ICT.json',
-  //'2013_FP7-IDEAS-ERC.json',
-  //'2013_FP7-INCO.json',
-  //'2013_FP7-INFRASTRUCTURES,FP7-SME.json',
-  //'2013_FP7-INFRASTRUCTURES.json',
-  //'2013_FP7-JTI.json',
-  //'2013_FP7-KBBE.json',
-  //'2013_FP7-NMP.json',
-  //'2013_FP7-PEOPLE.json',
-  //'2013_FP7-REGIONS.json',
-  //'2013_FP7-REGPOT.json',
-  //'2013_FP7-SECURITY.json',
-  //'2013_FP7-SIS.json',
-  //'2013_FP7-SME.json',
-  //'2013_FP7-SPACE.json',
-  //'2013_FP7-SSH.json',
-  //'2013_FP7-TRANSPORT.json',
+  '2013_FP7-IDEAS-ERC.json',
+  '2013_FP7-INCO.json',
+  '2013_FP7-INFRASTRUCTURES,FP7-SME.json',
+  '2013_FP7-INFRASTRUCTURES.json',
+  '2013_FP7-JTI.json',
+  '2013_FP7-KBBE.json',
+  '2013_FP7-NMP.json',
+  '2013_FP7-PEOPLE.json',
+  '2013_FP7-REGIONS.json',
+  '2013_FP7-REGPOT.json',
+  '2013_FP7-SECURITY.json',
+  '2013_FP7-SIS.json',
+  '2013_FP7-SME.json',
+  '2013_FP7-SPACE.json',
+  '2013_FP7-SSH.json',
+  '2013_FP7-TRANSPORT.json',
 ]
 filesList.sort();
 
@@ -434,6 +450,7 @@ for (var i = 0; i < filesList.length; i++) {
 var selectedYear = years[years.length-1];
 var selectedType = "connections";
 var selectedProject = "";
+var nodeRadius = 1000;
 
 populateYearDiv();
 populateTypeDiv();
