@@ -8,6 +8,14 @@ http://visjs.org
 
 - Added option bindToWindow (default true) to choose whether the keyboard binds are global or to the network div.
 - Improved images handling so broken images are shown on all references of images that are broken.
+- Added getConnectedNodes method.
+- Added fontSizeMin, fontSizeMax, fontSizeMaxVisible, scaleFontWithValue, fontDrawThreshold to Nodes.
+- Added fade in of labels (on nodes) near the fontDrawThreshold.
+- Added nodes option to zoomExtent to zoom in on specific set of nodes.
+- Added stabilizationIterationsDone event which fires at the end of the internal stabilization run. Does not imply that the network is stabilized.
+- Added setFreezeSimulation method.
+- Added clusterByZoom option and increaseClusterLevel and decreaseClusterLevel methods.
+
 
 ### DataSet/DataView
 

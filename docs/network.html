@@ -2209,7 +2209,7 @@ var options = {
         </td>
     </tr>
   <tr>
-    <td>getBoundingBox()</td>
+    <td>getBoundingBox(nodeId)</td>
     <td>Object</td>
     <td>Returns a bounding box for the node including label in the format: {top:Number,left:Number,right:Number,bottom:Number}. These values are in canvas space.
     </td>
@@ -2330,6 +2330,12 @@ var options = {
     </td>
   </tr>
   <tr>
+    <td>getConnectedNodes(nodeId)</td>
+    <td>Array</td>
+    <td>Get an array of (unique) nodeIds that are directly connected to this node.
+    </td>
+  </tr>
+  <tr>
     <td>selectEdges(selection)</td>
     <td>none</td>
     <td>Select Edges.
@@ -2348,7 +2354,7 @@ var options = {
       or in percentages.</td>
   </tr>
     <tr>
-        <td>getPositions([ids])</td>
+        <td>getPositions([nodeIds])</td>
         <td>Object</td>
         <td>This will return an object of all nodes' positions. Data can be accessed with object[nodeId].x and .y. You can optionally supply an id as string or number or an array of ids. If no id or array of ids have been supplied, all positions are returned.
         </td>
@@ -2370,6 +2376,7 @@ var options = {
     options can just be a boolean. When true, the zoom is animated, when false there is no animation.
         Alternatively, you can supply an object.
         <br /><br /> The object can consist of:<br />
+        <b><code>nodes: [nodeIds]</code></b><br /> - an optional subset of nodes to zoom in on,<br />
         <b><code>duration: Number</code></b><br /> - the duration of the animation in milliseconds,<br />
         <b><code>easingFunction: String</code></b><br /> - the easing function of the animation, available are:<br />
         <code>linear, easeInQuad, easeOutQuad, easeInOutQuad, easeInCubic, easeOutCubic, easeInOutCubic,
@@ -2377,6 +2384,7 @@ var options = {
             easeInQuint, easeOutQuint, easeInOutQuint </code>
     </td>
   </tr>
+
 
 </table>
 

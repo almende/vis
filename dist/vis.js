@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.9.2-SNAPSHOT
- * @date    2015-02-05
+ * @date    2015-02-06
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -113,24 +113,24 @@ return /******/ (function(modules) { // webpackBootstrap
 
     components: {
       items: {
-        Item: __webpack_require__(20),
-        BackgroundItem: __webpack_require__(21),
-        BoxItem: __webpack_require__(22),
-        PointItem: __webpack_require__(23),
-        RangeItem: __webpack_require__(24)
+        Item: __webpack_require__(31),
+        BackgroundItem: __webpack_require__(32),
+        BoxItem: __webpack_require__(33),
+        PointItem: __webpack_require__(34),
+        RangeItem: __webpack_require__(35)
       },
 
-      Component: __webpack_require__(25),
-      CurrentTime: __webpack_require__(26),
-      CustomTime: __webpack_require__(27),
-      DataAxis: __webpack_require__(28),
-      GraphGroup: __webpack_require__(29),
-      Group: __webpack_require__(30),
-      BackgroundGroup: __webpack_require__(31),
-      ItemSet: __webpack_require__(32),
-      Legend: __webpack_require__(33),
-      LineGraph: __webpack_require__(34),
-      TimeAxis: __webpack_require__(35)
+      Component: __webpack_require__(20),
+      CurrentTime: __webpack_require__(21),
+      CustomTime: __webpack_require__(22),
+      DataAxis: __webpack_require__(23),
+      GraphGroup: __webpack_require__(24),
+      Group: __webpack_require__(25),
+      BackgroundGroup: __webpack_require__(26),
+      ItemSet: __webpack_require__(27),
+      Legend: __webpack_require__(28),
+      LineGraph: __webpack_require__(29),
+      TimeAxis: __webpack_require__(30)
     }
   };
 
@@ -918,6 +918,28 @@ return /******/ (function(modules) { // webpackBootstrap
         b: parseInt(result[3], 16)
     } : null;
   };
+
+  /**
+   * This function takes color in hex format or rgb() or rgba() format and overrides the opacity. Returns rgba() string.
+   * @param color
+   * @param opacity
+   * @returns {*}
+   */
+  exports.overrideOpacity = function(color,opacity) {
+    if (color.indexOf("rgb") != -1) {
+      var rgb = color.substr(color.indexOf("(")+1).replace(")","").split(",");
+      return "rgba(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + "," + opacity + ")"
+    }
+    else {
+      var rgb = exports.hexToRGB(color);
+      if (rgb == null) {
+        return color;
+      }
+      else {
+        return "rgba(" + rgb.r + "," + rgb.g + "," + rgb.b + "," + opacity + ")"
+      }
+    }
+  }
 
   /**
    *
@@ -6403,11 +6425,11 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
-  var Core = __webpack_require__(46);
-  var TimeAxis = __webpack_require__(35);
-  var CurrentTime = __webpack_require__(26);
-  var CustomTime = __webpack_require__(27);
-  var ItemSet = __webpack_require__(32);
+  var Core = __webpack_require__(48);
+  var TimeAxis = __webpack_require__(30);
+  var CurrentTime = __webpack_require__(21);
+  var CustomTime = __webpack_require__(22);
+  var ItemSet = __webpack_require__(27);
 
   /**
    * Create a timeline visualization
@@ -6723,11 +6745,11 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
-  var Core = __webpack_require__(46);
-  var TimeAxis = __webpack_require__(35);
-  var CurrentTime = __webpack_require__(26);
-  var CustomTime = __webpack_require__(27);
-  var LineGraph = __webpack_require__(34);
+  var Core = __webpack_require__(48);
+  var TimeAxis = __webpack_require__(30);
+  var CurrentTime = __webpack_require__(21);
+  var CustomTime = __webpack_require__(22);
+  var LineGraph = __webpack_require__(29);
 
   /**
    * Create a timeline visualization
@@ -7719,9 +7741,9 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(47);
+  var hammerUtil = __webpack_require__(46);
   var moment = __webpack_require__(44);
-  var Component = __webpack_require__(25);
+  var Component = __webpack_require__(20);
   var DateUtil = __webpack_require__(15);
 
   /**
@@ -9141,1211 +9163,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var Hammer = __webpack_require__(45);
-  var util = __webpack_require__(1);
-
-  /**
-   * @constructor Item
-   * @param {Object} data             Object containing (optional) parameters type,
-   *                                  start, end, content, group, className.
-   * @param {{toScreen: function, toTime: function}} conversion
-   *                                  Conversion functions from time to screen and vice versa
-   * @param {Object} options          Configuration options
-   *                                  // TODO: describe available options
-   */
-  function Item (data, conversion, options) {
-    this.id = null;
-    this.parent = null;
-    this.data = data;
-    this.dom = null;
-    this.conversion = conversion || {};
-    this.options = options || {};
-
-    this.selected = false;
-    this.displayed = false;
-    this.dirty = true;
-
-    this.top = null;
-    this.left = null;
-    this.width = null;
-    this.height = null;
-  }
-
-  Item.prototype.stack = true;
-
-  /**
-   * Select current item
-   */
-  Item.prototype.select = function() {
-    this.selected = true;
-    this.dirty = true;
-    if (this.displayed) this.redraw();
-  };
-
-  /**
-   * Unselect current item
-   */
-  Item.prototype.unselect = function() {
-    this.selected = false;
-    this.dirty = true;
-    if (this.displayed) this.redraw();
-  };
-
-  /**
-   * Set data for the item. Existing data will be updated. The id should not
-   * be changed. When the item is displayed, it will be redrawn immediately.
-   * @param {Object} data
-   */
-  Item.prototype.setData = function(data) {
-    this.data = data;
-    this.dirty = true;
-    if (this.displayed) this.redraw();
-  };
-
-  /**
-   * Set a parent for the item
-   * @param {ItemSet | Group} parent
-   */
-  Item.prototype.setParent = function(parent) {
-    if (this.displayed) {
-      this.hide();
-      this.parent = parent;
-      if (this.parent) {
-        this.show();
-      }
-    }
-    else {
-      this.parent = parent;
-    }
-  };
-
-  /**
-   * Check whether this item is visible inside given range
-   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
-   * @returns {boolean} True if visible
-   */
-  Item.prototype.isVisible = function(range) {
-    // Should be implemented by Item implementations
-    return false;
-  };
-
-  /**
-   * Show the Item in the DOM (when not already visible)
-   * @return {Boolean} changed
-   */
-  Item.prototype.show = function() {
-    return false;
-  };
-
-  /**
-   * Hide the Item from the DOM (when visible)
-   * @return {Boolean} changed
-   */
-  Item.prototype.hide = function() {
-    return false;
-  };
-
-  /**
-   * Repaint the item
-   */
-  Item.prototype.redraw = function() {
-    // should be implemented by the item
-  };
-
-  /**
-   * Reposition the Item horizontally
-   */
-  Item.prototype.repositionX = function() {
-    // should be implemented by the item
-  };
-
-  /**
-   * Reposition the Item vertically
-   */
-  Item.prototype.repositionY = function() {
-    // should be implemented by the item
-  };
-
-  /**
-   * Repaint a delete button on the top right of the item when the item is selected
-   * @param {HTMLElement} anchor
-   * @protected
-   */
-  Item.prototype._repaintDeleteButton = function (anchor) {
-    if (this.selected && this.options.editable.remove && !this.dom.deleteButton) {
-      // create and show button
-      var me = this;
-
-      var deleteButton = document.createElement('div');
-      deleteButton.className = 'delete';
-      deleteButton.title = 'Delete this item';
-
-      Hammer(deleteButton, {
-        preventDefault: true
-      }).on('tap', function (event) {
-        me.parent.removeFromDataSet(me);
-        event.stopPropagation();
-      });
-
-      anchor.appendChild(deleteButton);
-      this.dom.deleteButton = deleteButton;
-    }
-    else if (!this.selected && this.dom.deleteButton) {
-      // remove button
-      if (this.dom.deleteButton.parentNode) {
-        this.dom.deleteButton.parentNode.removeChild(this.dom.deleteButton);
-      }
-      this.dom.deleteButton = null;
-    }
-  };
-
-  /**
-   * Set HTML contents for the item
-   * @param {Element} element   HTML element to fill with the contents
-   * @private
-   */
-  Item.prototype._updateContents = function (element) {
-    var content;
-    if (this.options.template) {
-      var itemData = this.parent.itemSet.itemsData.get(this.id); // get a clone of the data from the dataset
-      content = this.options.template(itemData);
-    }
-    else {
-      content = this.data.content;
-    }
-
-    if(content !== this.content) {
-      // only replace the content when changed
-      if (content instanceof Element) {
-        element.innerHTML = '';
-        element.appendChild(content);
-      }
-      else if (content != undefined) {
-        element.innerHTML = content;
-      }
-      else {
-        if (!(this.data.type == 'background' && this.data.content === undefined)) {
-          throw new Error('Property "content" missing in item ' + this.id);
-        }
-      }
-
-      this.content = content;
-    }
-  };
-
-  /**
-   * Set HTML contents for the item
-   * @param {Element} element   HTML element to fill with the contents
-   * @private
-   */
-  Item.prototype._updateTitle = function (element) {
-    if (this.data.title != null) {
-      element.title = this.data.title || '';
-    }
-    else {
-      element.removeAttribute('title');
-    }
-  };
-
-  /**
-   * Process dataAttributes timeline option and set as data- attributes on dom.content
-   * @param {Element} element   HTML element to which the attributes will be attached
-   * @private
-   */
-   Item.prototype._updateDataAttributes = function(element) {
-    if (this.options.dataAttributes && this.options.dataAttributes.length > 0) {
-      var attributes = [];
-
-      if (Array.isArray(this.options.dataAttributes)) {
-        attributes = this.options.dataAttributes;
-      }
-      else if (this.options.dataAttributes == 'all') {
-        attributes = Object.keys(this.data);
-      }
-      else {
-        return;
-      }
-
-      for (var i = 0; i < attributes.length; i++) {
-        var name = attributes[i];
-        var value = this.data[name];
-
-        if (value != null) {
-          element.setAttribute('data-' + name, value);
-        }
-        else {
-          element.removeAttribute('data-' + name);
-        }
-      }
-    }
-  };
-
-  /**
-   * Update custom styles of the element
-   * @param element
-   * @private
-   */
-  Item.prototype._updateStyle = function(element) {
-    // remove old styles
-    if (this.style) {
-      util.removeCssText(element, this.style);
-      this.style = null;
-    }
-
-    // append new styles
-    if (this.data.style) {
-      util.addCssText(element, this.data.style);
-      this.style = this.data.style;
-    }
-  };
-
-  module.exports = Item;
-
-
-/***/ },
-/* 21 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var Hammer = __webpack_require__(45);
-  var Item = __webpack_require__(20);
-  var BackgroundGroup = __webpack_require__(31);
-  var RangeItem = __webpack_require__(24);
-
-  /**
-   * @constructor BackgroundItem
-   * @extends Item
-   * @param {Object} data             Object containing parameters start, end
-   *                                  content, className.
-   * @param {{toScreen: function, toTime: function}} conversion
-   *                                  Conversion functions from time to screen and vice versa
-   * @param {Object} [options]        Configuration options
-   *                                  // TODO: describe options
-   */
-  // TODO: implement support for the BackgroundItem just having a start, then being displayed as a sort of an annotation
-  function BackgroundItem (data, conversion, options) {
-    this.props = {
-      content: {
-        width: 0
-      }
-    };
-    this.overflow = false; // if contents can overflow (css styling), this flag is set to true
-
-    // validate data
-    if (data) {
-      if (data.start == undefined) {
-        throw new Error('Property "start" missing in item ' + data.id);
-      }
-      if (data.end == undefined) {
-        throw new Error('Property "end" missing in item ' + data.id);
-      }
-    }
-
-    Item.call(this, data, conversion, options);
-
-    this.emptyContent = false;
-  }
-
-  BackgroundItem.prototype = new Item (null, null, null);
-
-  BackgroundItem.prototype.baseClassName = 'item background';
-  BackgroundItem.prototype.stack = false;
-
-  /**
-   * Check whether this item is visible inside given range
-   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
-   * @returns {boolean} True if visible
-   */
-  BackgroundItem.prototype.isVisible = function(range) {
-    // determine visibility
-    return (this.data.start < range.end) && (this.data.end > range.start);
-  };
-
-  /**
-   * Repaint the item
-   */
-  BackgroundItem.prototype.redraw = function() {
-    var dom = this.dom;
-    if (!dom) {
-      // create DOM
-      this.dom = {};
-      dom = this.dom;
-
-      // background box
-      dom.box = document.createElement('div');
-      // className is updated in redraw()
-
-      // contents box
-      dom.content = document.createElement('div');
-      dom.content.className = 'content';
-      dom.box.appendChild(dom.content);
-
-      // Note: we do NOT attach this item as attribute to the DOM,
-      //       such that background items cannot be selected
-      //dom.box['timeline-item'] = this;
-
-      this.dirty = true;
-    }
-
-    // append DOM to parent DOM
-    if (!this.parent) {
-      throw new Error('Cannot redraw item: no parent attached');
-    }
-    if (!dom.box.parentNode) {
-      var background = this.parent.dom.background;
-      if (!background) {
-        throw new Error('Cannot redraw item: parent has no background container element');
-      }
-      background.appendChild(dom.box);
-    }
-    this.displayed = true;
-
-    // Update DOM when item is marked dirty. An item is marked dirty when:
-    // - the item is not yet rendered
-    // - the item's data is changed
-    // - the item is selected/deselected
-    if (this.dirty) {
-      this._updateContents(this.dom.content);
-      this._updateTitle(this.dom.content);
-      this._updateDataAttributes(this.dom.content);
-      this._updateStyle(this.dom.box);
-
-      // update class
-      var className = (this.data.className ? (' ' + this.data.className) : '') +
-          (this.selected ? ' selected' : '');
-      dom.box.className = this.baseClassName + className;
-
-      // determine from css whether this box has overflow
-      this.overflow = window.getComputedStyle(dom.content).overflow !== 'hidden';
-
-      // recalculate size
-      this.props.content.width = this.dom.content.offsetWidth;
-      this.height = 0; // set height zero, so this item will be ignored when stacking items
-
-      this.dirty = false;
-    }
-  };
-
-  /**
-   * Show the item in the DOM (when not already visible). The items DOM will
-   * be created when needed.
-   */
-  BackgroundItem.prototype.show = RangeItem.prototype.show;
-
-  /**
-   * Hide the item from the DOM (when visible)
-   * @return {Boolean} changed
-   */
-  BackgroundItem.prototype.hide = RangeItem.prototype.hide;
-
-  /**
-   * Reposition the item horizontally
-   * @Override
-   */
-  BackgroundItem.prototype.repositionX = RangeItem.prototype.repositionX;
-
-  /**
-   * Reposition the item vertically
-   * @Override
-   */
-  BackgroundItem.prototype.repositionY = function(margin) {
-    var onTop = this.options.orientation === 'top';
-    this.dom.content.style.top = onTop ? '' : '0';
-    this.dom.content.style.bottom = onTop ? '0' : '';
-    var height;
-
-    // special positioning for subgroups
-    if (this.data.subgroup !== undefined) {
-      var itemSubgroup = this.data.subgroup;
-      var subgroups = this.parent.subgroups;
-      var subgroupIndex = subgroups[itemSubgroup].index;
-      // if the orientation is top, we need to take the difference in height into account.
-      if (onTop == true) {
-        // the first subgroup will have to account for the distance from the top to the first item.
-        height = this.parent.subgroups[itemSubgroup].height + margin.item.vertical;
-        height += subgroupIndex == 0 ? margin.axis - 0.5*margin.item.vertical : 0;
-        var newTop = this.parent.top;
-        for (var subgroup in subgroups) {
-          if (subgroups.hasOwnProperty(subgroup)) {
-            if (subgroups[subgroup].visible == true && subgroups[subgroup].index < subgroupIndex) {
-              newTop += subgroups[subgroup].height + margin.item.vertical;
-            }
-          }
-        }
-
-        // the others will have to be offset downwards with this same distance.
-        newTop += subgroupIndex != 0 ? margin.axis - 0.5 * margin.item.vertical : 0;
-        this.dom.box.style.top = newTop + 'px';
-        this.dom.box.style.bottom = '';
-      }
-      // and when the orientation is bottom:
-      else {
-        var newTop = this.parent.top;
-        for (var subgroup in subgroups) {
-          if (subgroups.hasOwnProperty(subgroup)) {
-            if (subgroups[subgroup].visible == true && subgroups[subgroup].index > subgroupIndex) {
-              newTop += subgroups[subgroup].height + margin.item.vertical;
-            }
-          }
-        }
-        height = this.parent.subgroups[itemSubgroup].height + margin.item.vertical;
-        this.dom.box.style.top = newTop + 'px';
-        this.dom.box.style.bottom = '';
-      }
-    }
-    // and in the case of no subgroups:
-    else {
-      // we want backgrounds with groups to only show in groups.
-      if (this.parent instanceof BackgroundGroup) {
-        // if the item is not in a group:
-        height = Math.max(this.parent.height,
-            this.parent.itemSet.body.domProps.center.height,
-            this.parent.itemSet.body.domProps.centerContainer.height);
-        this.dom.box.style.top = onTop ? '0' : '';
-        this.dom.box.style.bottom = onTop ? '' : '0';
-      }
-      else {
-        height = this.parent.height;
-        // same alignment for items when orientation is top or bottom
-        this.dom.box.style.top = this.parent.top + 'px';
-        this.dom.box.style.bottom = '';
-      }
-    }
-    this.dom.box.style.height = height + 'px';
-  };
-
-  module.exports = BackgroundItem;
-
-
-/***/ },
-/* 22 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var Item = __webpack_require__(20);
-  var util = __webpack_require__(1);
-
-  /**
-   * @constructor BoxItem
-   * @extends Item
-   * @param {Object} data             Object containing parameters start
-   *                                  content, className.
-   * @param {{toScreen: function, toTime: function}} conversion
-   *                                  Conversion functions from time to screen and vice versa
-   * @param {Object} [options]        Configuration options
-   *                                  // TODO: describe available options
-   */
-  function BoxItem (data, conversion, options) {
-    this.props = {
-      dot: {
-        width: 0,
-        height: 0
-      },
-      line: {
-        width: 0,
-        height: 0
-      }
-    };
-
-    // validate data
-    if (data) {
-      if (data.start == undefined) {
-        throw new Error('Property "start" missing in item ' + data);
-      }
-    }
-
-    Item.call(this, data, conversion, options);
-  }
-
-  BoxItem.prototype = new Item (null, null, null);
-
-  /**
-   * Check whether this item is visible inside given range
-   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
-   * @returns {boolean} True if visible
-   */
-  BoxItem.prototype.isVisible = function(range) {
-    // determine visibility
-    // TODO: account for the real width of the item. Right now we just add 1/4 to the window
-    var interval = (range.end - range.start) / 4;
-    return (this.data.start > range.start - interval) && (this.data.start < range.end + interval);
-  };
-
-  /**
-   * Repaint the item
-   */
-  BoxItem.prototype.redraw = function() {
-    var dom = this.dom;
-    if (!dom) {
-      // create DOM
-      this.dom = {};
-      dom = this.dom;
-
-      // create main box
-      dom.box = document.createElement('DIV');
-
-      // contents box (inside the background box). used for making margins
-      dom.content = document.createElement('DIV');
-      dom.content.className = 'content';
-      dom.box.appendChild(dom.content);
-
-      // line to axis
-      dom.line = document.createElement('DIV');
-      dom.line.className = 'line';
-
-      // dot on axis
-      dom.dot = document.createElement('DIV');
-      dom.dot.className = 'dot';
-
-      // attach this item as attribute
-      dom.box['timeline-item'] = this;
-
-      this.dirty = true;
-    }
-
-    // append DOM to parent DOM
-    if (!this.parent) {
-      throw new Error('Cannot redraw item: no parent attached');
-    }
-    if (!dom.box.parentNode) {
-      var foreground = this.parent.dom.foreground;
-      if (!foreground) throw new Error('Cannot redraw item: parent has no foreground container element');
-      foreground.appendChild(dom.box);
-    }
-    if (!dom.line.parentNode) {
-      var background = this.parent.dom.background;
-      if (!background) throw new Error('Cannot redraw item: parent has no background container element');
-      background.appendChild(dom.line);
-    }
-    if (!dom.dot.parentNode) {
-      var axis = this.parent.dom.axis;
-      if (!background) throw new Error('Cannot redraw item: parent has no axis container element');
-      axis.appendChild(dom.dot);
-    }
-    this.displayed = true;
-
-    // Update DOM when item is marked dirty. An item is marked dirty when:
-    // - the item is not yet rendered
-    // - the item's data is changed
-    // - the item is selected/deselected
-    if (this.dirty) {
-      this._updateContents(this.dom.content);
-      this._updateTitle(this.dom.box);
-      this._updateDataAttributes(this.dom.box);
-      this._updateStyle(this.dom.box);
-
-      // update class
-      var className = (this.data.className? ' ' + this.data.className : '') +
-          (this.selected ? ' selected' : '');
-      dom.box.className = 'item box' + className;
-      dom.line.className = 'item line' + className;
-      dom.dot.className  = 'item dot' + className;
-
-      // recalculate size
-      this.props.dot.height = dom.dot.offsetHeight;
-      this.props.dot.width = dom.dot.offsetWidth;
-      this.props.line.width = dom.line.offsetWidth;
-      this.width = dom.box.offsetWidth;
-      this.height = dom.box.offsetHeight;
-
-      this.dirty = false;
-    }
-
-    this._repaintDeleteButton(dom.box);
-  };
-
-  /**
-   * Show the item in the DOM (when not already displayed). The items DOM will
-   * be created when needed.
-   */
-  BoxItem.prototype.show = function() {
-    if (!this.displayed) {
-      this.redraw();
-    }
-  };
-
-  /**
-   * Hide the item from the DOM (when visible)
-   */
-  BoxItem.prototype.hide = function() {
-    if (this.displayed) {
-      var dom = this.dom;
-
-      if (dom.box.parentNode)   dom.box.parentNode.removeChild(dom.box);
-      if (dom.line.parentNode)  dom.line.parentNode.removeChild(dom.line);
-      if (dom.dot.parentNode)   dom.dot.parentNode.removeChild(dom.dot);
-
-      this.top = null;
-      this.left = null;
-
-      this.displayed = false;
-    }
-  };
-
-  /**
-   * Reposition the item horizontally
-   * @Override
-   */
-  BoxItem.prototype.repositionX = function() {
-    var start = this.conversion.toScreen(this.data.start);
-    var align = this.options.align;
-    var left;
-    var box = this.dom.box;
-    var line = this.dom.line;
-    var dot = this.dom.dot;
-
-    // calculate left position of the box
-    if (align == 'right') {
-      this.left = start - this.width;
-    }
-    else if (align == 'left') {
-      this.left = start;
-    }
-    else {
-      // default or 'center'
-      this.left = start - this.width / 2;
-    }
-
-    // reposition box
-    box.style.left = this.left + 'px';
-
-    // reposition line
-    line.style.left = (start - this.props.line.width / 2) + 'px';
-
-    // reposition dot
-    dot.style.left = (start - this.props.dot.width / 2) + 'px';
-  };
-
-  /**
-   * Reposition the item vertically
-   * @Override
-   */
-  BoxItem.prototype.repositionY = function() {
-    var orientation = this.options.orientation;
-    var box = this.dom.box;
-    var line = this.dom.line;
-    var dot = this.dom.dot;
-
-    if (orientation == 'top') {
-      box.style.top     = (this.top || 0) + 'px';
-
-      line.style.top    = '0';
-      line.style.height = (this.parent.top + this.top + 1) + 'px';
-      line.style.bottom = '';
-    }
-    else { // orientation 'bottom'
-      var itemSetHeight = this.parent.itemSet.props.height; // TODO: this is nasty
-      var lineHeight = itemSetHeight - this.parent.top - this.parent.height + this.top;
-
-      box.style.top     = (this.parent.height - this.top - this.height || 0) + 'px';
-      line.style.top    = (itemSetHeight - lineHeight) + 'px';
-      line.style.bottom = '0';
-    }
-
-    dot.style.top = (-this.props.dot.height / 2) + 'px';
-  };
-
-  module.exports = BoxItem;
-
-
-/***/ },
-/* 23 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var Item = __webpack_require__(20);
-
-  /**
-   * @constructor PointItem
-   * @extends Item
-   * @param {Object} data             Object containing parameters start
-   *                                  content, className.
-   * @param {{toScreen: function, toTime: function}} conversion
-   *                                  Conversion functions from time to screen and vice versa
-   * @param {Object} [options]        Configuration options
-   *                                  // TODO: describe available options
-   */
-  function PointItem (data, conversion, options) {
-    this.props = {
-      dot: {
-        top: 0,
-        width: 0,
-        height: 0
-      },
-      content: {
-        height: 0,
-        marginLeft: 0
-      }
-    };
-
-    // validate data
-    if (data) {
-      if (data.start == undefined) {
-        throw new Error('Property "start" missing in item ' + data);
-      }
-    }
-
-    Item.call(this, data, conversion, options);
-  }
-
-  PointItem.prototype = new Item (null, null, null);
-
-  /**
-   * Check whether this item is visible inside given range
-   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
-   * @returns {boolean} True if visible
-   */
-  PointItem.prototype.isVisible = function(range) {
-    // determine visibility
-    // TODO: account for the real width of the item. Right now we just add 1/4 to the window
-    var interval = (range.end - range.start) / 4;
-    return (this.data.start > range.start - interval) && (this.data.start < range.end + interval);
-  };
-
-  /**
-   * Repaint the item
-   */
-  PointItem.prototype.redraw = function() {
-    var dom = this.dom;
-    if (!dom) {
-      // create DOM
-      this.dom = {};
-      dom = this.dom;
-
-      // background box
-      dom.point = document.createElement('div');
-      // className is updated in redraw()
-
-      // contents box, right from the dot
-      dom.content = document.createElement('div');
-      dom.content.className = 'content';
-      dom.point.appendChild(dom.content);
-
-      // dot at start
-      dom.dot = document.createElement('div');
-      dom.point.appendChild(dom.dot);
-
-      // attach this item as attribute
-      dom.point['timeline-item'] = this;
-
-      this.dirty = true;
-    }
-
-    // append DOM to parent DOM
-    if (!this.parent) {
-      throw new Error('Cannot redraw item: no parent attached');
-    }
-    if (!dom.point.parentNode) {
-      var foreground = this.parent.dom.foreground;
-      if (!foreground) {
-        throw new Error('Cannot redraw item: parent has no foreground container element');
-      }
-      foreground.appendChild(dom.point);
-    }
-    this.displayed = true;
-
-    // Update DOM when item is marked dirty. An item is marked dirty when:
-    // - the item is not yet rendered
-    // - the item's data is changed
-    // - the item is selected/deselected
-    if (this.dirty) {
-      this._updateContents(this.dom.content);
-      this._updateTitle(this.dom.point);
-      this._updateDataAttributes(this.dom.point);
-      this._updateStyle(this.dom.point);
-
-      // update class
-      var className = (this.data.className? ' ' + this.data.className : '') +
-          (this.selected ? ' selected' : '');
-      dom.point.className  = 'item point' + className;
-      dom.dot.className  = 'item dot' + className;
-
-      // recalculate size
-      this.width = dom.point.offsetWidth;
-      this.height = dom.point.offsetHeight;
-      this.props.dot.width = dom.dot.offsetWidth;
-      this.props.dot.height = dom.dot.offsetHeight;
-      this.props.content.height = dom.content.offsetHeight;
-
-      // resize contents
-      dom.content.style.marginLeft = 2 * this.props.dot.width + 'px';
-      //dom.content.style.marginRight = ... + 'px'; // TODO: margin right
-
-      dom.dot.style.top = ((this.height - this.props.dot.height) / 2) + 'px';
-      dom.dot.style.left = (this.props.dot.width / 2) + 'px';
-
-      this.dirty = false;
-    }
-
-    this._repaintDeleteButton(dom.point);
-  };
-
-  /**
-   * Show the item in the DOM (when not already visible). The items DOM will
-   * be created when needed.
-   */
-  PointItem.prototype.show = function() {
-    if (!this.displayed) {
-      this.redraw();
-    }
-  };
-
-  /**
-   * Hide the item from the DOM (when visible)
-   */
-  PointItem.prototype.hide = function() {
-    if (this.displayed) {
-      if (this.dom.point.parentNode) {
-        this.dom.point.parentNode.removeChild(this.dom.point);
-      }
-
-      this.top = null;
-      this.left = null;
-
-      this.displayed = false;
-    }
-  };
-
-  /**
-   * Reposition the item horizontally
-   * @Override
-   */
-  PointItem.prototype.repositionX = function() {
-    var start = this.conversion.toScreen(this.data.start);
-
-    this.left = start - this.props.dot.width;
-
-    // reposition point
-    this.dom.point.style.left = this.left + 'px';
-  };
-
-  /**
-   * Reposition the item vertically
-   * @Override
-   */
-  PointItem.prototype.repositionY = function() {
-    var orientation = this.options.orientation,
-        point = this.dom.point;
-
-    if (orientation == 'top') {
-      point.style.top = this.top + 'px';
-    }
-    else {
-      point.style.top = (this.parent.height - this.top - this.height) + 'px';
-    }
-  };
-
-  module.exports = PointItem;
-
-
-/***/ },
-/* 24 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var Hammer = __webpack_require__(45);
-  var Item = __webpack_require__(20);
-
-  /**
-   * @constructor RangeItem
-   * @extends Item
-   * @param {Object} data             Object containing parameters start, end
-   *                                  content, className.
-   * @param {{toScreen: function, toTime: function}} conversion
-   *                                  Conversion functions from time to screen and vice versa
-   * @param {Object} [options]        Configuration options
-   *                                  // TODO: describe options
-   */
-  function RangeItem (data, conversion, options) {
-    this.props = {
-      content: {
-        width: 0
-      }
-    };
-    this.overflow = false; // if contents can overflow (css styling), this flag is set to true
-
-    // validate data
-    if (data) {
-      if (data.start == undefined) {
-        throw new Error('Property "start" missing in item ' + data.id);
-      }
-      if (data.end == undefined) {
-        throw new Error('Property "end" missing in item ' + data.id);
-      }
-    }
-
-    Item.call(this, data, conversion, options);
-  }
-
-  RangeItem.prototype = new Item (null, null, null);
-
-  RangeItem.prototype.baseClassName = 'item range';
-
-  /**
-   * Check whether this item is visible inside given range
-   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
-   * @returns {boolean} True if visible
-   */
-  RangeItem.prototype.isVisible = function(range) {
-    // determine visibility
-    return (this.data.start < range.end) && (this.data.end > range.start);
-  };
-
-  /**
-   * Repaint the item
-   */
-  RangeItem.prototype.redraw = function() {
-    var dom = this.dom;
-    if (!dom) {
-      // create DOM
-      this.dom = {};
-      dom = this.dom;
-
-        // background box
-      dom.box = document.createElement('div');
-      // className is updated in redraw()
-
-      // contents box
-      dom.content = document.createElement('div');
-      dom.content.className = 'content';
-      dom.box.appendChild(dom.content);
-
-      // attach this item as attribute
-      dom.box['timeline-item'] = this;
-
-      this.dirty = true;
-    }
-
-    // append DOM to parent DOM
-    if (!this.parent) {
-      throw new Error('Cannot redraw item: no parent attached');
-    }
-    if (!dom.box.parentNode) {
-      var foreground = this.parent.dom.foreground;
-      if (!foreground) {
-        throw new Error('Cannot redraw item: parent has no foreground container element');
-      }
-      foreground.appendChild(dom.box);
-    }
-    this.displayed = true;
-
-    // Update DOM when item is marked dirty. An item is marked dirty when:
-    // - the item is not yet rendered
-    // - the item's data is changed
-    // - the item is selected/deselected
-    if (this.dirty) {
-      this._updateContents(this.dom.content);
-      this._updateTitle(this.dom.box);
-      this._updateDataAttributes(this.dom.box);
-      this._updateStyle(this.dom.box);
-
-      // update class
-      var className = (this.data.className ? (' ' + this.data.className) : '') +
-          (this.selected ? ' selected' : '');
-      dom.box.className = this.baseClassName + className;
-
-      // determine from css whether this box has overflow
-      this.overflow = window.getComputedStyle(dom.content).overflow !== 'hidden';
-
-      // recalculate size
-      // turn off max-width to be able to calculate the real width
-      // this causes an extra browser repaint/reflow, but so be it
-      this.dom.content.style.maxWidth = 'none';
-      this.props.content.width = this.dom.content.offsetWidth;
-      this.height = this.dom.box.offsetHeight;
-      this.dom.content.style.maxWidth = '';
-
-      this.dirty = false;
-    }
-
-    this._repaintDeleteButton(dom.box);
-    this._repaintDragLeft();
-    this._repaintDragRight();
-  };
-
-  /**
-   * Show the item in the DOM (when not already visible). The items DOM will
-   * be created when needed.
-   */
-  RangeItem.prototype.show = function() {
-    if (!this.displayed) {
-      this.redraw();
-    }
-  };
-
-  /**
-   * Hide the item from the DOM (when visible)
-   * @return {Boolean} changed
-   */
-  RangeItem.prototype.hide = function() {
-    if (this.displayed) {
-      var box = this.dom.box;
-
-      if (box.parentNode) {
-        box.parentNode.removeChild(box);
-      }
-
-      this.top = null;
-      this.left = null;
-
-      this.displayed = false;
-    }
-  };
-
-  /**
-   * Reposition the item horizontally
-   * @Override
-   */
-  RangeItem.prototype.repositionX = function() {
-    var parentWidth = this.parent.width;
-    var start = this.conversion.toScreen(this.data.start);
-    var end = this.conversion.toScreen(this.data.end);
-    var contentLeft;
-    var contentWidth;
-
-    // limit the width of the this, as browsers cannot draw very wide divs
-    if (start < -parentWidth) {
-      start = -parentWidth;
-    }
-    if (end > 2 * parentWidth) {
-      end = 2 * parentWidth;
-    }
-    var boxWidth = Math.max(end - start, 1);
-
-    if (this.overflow) {
-      this.left = start;
-      this.width = boxWidth + this.props.content.width;
-      contentWidth = this.props.content.width;
-
-      // Note: The calculation of width is an optimistic calculation, giving
-      //       a width which will not change when moving the Timeline
-      //       So no re-stacking needed, which is nicer for the eye;
-    }
-    else {
-      this.left = start;
-      this.width = boxWidth;
-      contentWidth = Math.min(end - start - 2 * this.options.padding, this.props.content.width);
-    }
-
-    this.dom.box.style.left = this.left + 'px';
-    this.dom.box.style.width = boxWidth + 'px';
-
-    switch (this.options.align) {
-      case 'left':
-        this.dom.content.style.left = '0';
-        break;
-
-      case 'right':
-        this.dom.content.style.left = Math.max((boxWidth - contentWidth - 2 * this.options.padding), 0) + 'px';
-        break;
-
-      case 'center':
-        this.dom.content.style.left = Math.max((boxWidth - contentWidth - 2 * this.options.padding) / 2, 0) + 'px';
-        break;
-
-      default: // 'auto'
-        // when range exceeds left of the window, position the contents at the left of the visible area
-        if (this.overflow) {
-          if (end > 0) {
-            contentLeft = Math.max(-start, 0);
-          }
-          else {
-            contentLeft = -contentWidth; // ensure it's not visible anymore
-          }
-        }
-        else {
-          if (start < 0) {
-            contentLeft = Math.min(-start,
-                (end - start - contentWidth - 2 * this.options.padding));
-            // TODO: remove the need for options.padding. it's terrible.
-          }
-          else {
-            contentLeft = 0;
-          }
-        }
-        this.dom.content.style.left = contentLeft + 'px';
-    }
-  };
-
-  /**
-   * Reposition the item vertically
-   * @Override
-   */
-  RangeItem.prototype.repositionY = function() {
-    var orientation = this.options.orientation,
-        box = this.dom.box;
-
-    if (orientation == 'top') {
-      box.style.top = this.top + 'px';
-    }
-    else {
-      box.style.top = (this.parent.height - this.top - this.height) + 'px';
-    }
-  };
-
-  /**
-   * Repaint a drag area on the left side of the range when the range is selected
-   * @protected
-   */
-  RangeItem.prototype._repaintDragLeft = function () {
-    if (this.selected && this.options.editable.updateTime && !this.dom.dragLeft) {
-      // create and show drag area
-      var dragLeft = document.createElement('div');
-      dragLeft.className = 'drag-left';
-      dragLeft.dragLeftItem = this;
-
-      // TODO: this should be redundant?
-      Hammer(dragLeft, {
-        preventDefault: true
-      }).on('drag', function () {
-            //console.log('drag left')
-          });
-
-      this.dom.box.appendChild(dragLeft);
-      this.dom.dragLeft = dragLeft;
-    }
-    else if (!this.selected && this.dom.dragLeft) {
-      // delete drag area
-      if (this.dom.dragLeft.parentNode) {
-        this.dom.dragLeft.parentNode.removeChild(this.dom.dragLeft);
-      }
-      this.dom.dragLeft = null;
-    }
-  };
-
-  /**
-   * Repaint a drag area on the right side of the range when the range is selected
-   * @protected
-   */
-  RangeItem.prototype._repaintDragRight = function () {
-    if (this.selected && this.options.editable.updateTime && !this.dom.dragRight) {
-      // create and show drag area
-      var dragRight = document.createElement('div');
-      dragRight.className = 'drag-right';
-      dragRight.dragRightItem = this;
-
-      // TODO: this should be redundant?
-      Hammer(dragRight, {
-        preventDefault: true
-      }).on('drag', function () {
-        //console.log('drag right')
-      });
-
-      this.dom.box.appendChild(dragRight);
-      this.dom.dragRight = dragRight;
-    }
-    else if (!this.selected && this.dom.dragRight) {
-      // delete drag area
-      if (this.dom.dragRight.parentNode) {
-        this.dom.dragRight.parentNode.removeChild(this.dom.dragRight);
-      }
-      this.dom.dragRight = null;
-    }
-  };
-
-  module.exports = RangeItem;
-
-
-/***/ },
-/* 25 */
-/***/ function(module, exports, __webpack_require__) {
-
   /**
    * Prototype for visual components
    * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} [body]
@@ -10403,13 +9220,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 26 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Component = __webpack_require__(25);
+  var Component = __webpack_require__(20);
   var moment = __webpack_require__(44);
-  var locales = __webpack_require__(48);
+  var locales = __webpack_require__(47);
 
   /**
    * A current time bar
@@ -10572,14 +9389,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 27 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Hammer = __webpack_require__(45);
   var util = __webpack_require__(1);
-  var Component = __webpack_require__(25);
+  var Component = __webpack_require__(20);
   var moment = __webpack_require__(44);
-  var locales = __webpack_require__(48);
+  var locales = __webpack_require__(47);
 
   /**
    * A custom time bar
@@ -10774,12 +9591,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 28 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(2);
-  var Component = __webpack_require__(25);
+  var Component = __webpack_require__(20);
   var DataStep = __webpack_require__(16);
 
   /**
@@ -11419,14 +10236,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 29 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(2);
-  var Line = __webpack_require__(49);
-  var Bar = __webpack_require__(50);
-  var Points = __webpack_require__(51);
+  var Line = __webpack_require__(54);
+  var Bar = __webpack_require__(53);
+  var Points = __webpack_require__(55);
 
   /**
    * /**
@@ -11624,12 +10441,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 30 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
   var stack = __webpack_require__(18);
-  var RangeItem = __webpack_require__(24);
+  var RangeItem = __webpack_require__(35);
 
   /**
    * @constructor Group
@@ -12199,11 +11016,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 31 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Group = __webpack_require__(30);
+  var Group = __webpack_require__(25);
 
   /**
    * @constructor BackgroundGroup
@@ -12262,20 +11079,20 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 32 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
   var Hammer = __webpack_require__(45);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
-  var Component = __webpack_require__(25);
-  var Group = __webpack_require__(30);
-  var BackgroundGroup = __webpack_require__(31);
-  var BoxItem = __webpack_require__(22);
-  var PointItem = __webpack_require__(23);
-  var RangeItem = __webpack_require__(24);
-  var BackgroundItem = __webpack_require__(21);
+  var Component = __webpack_require__(20);
+  var Group = __webpack_require__(25);
+  var BackgroundGroup = __webpack_require__(26);
+  var BoxItem = __webpack_require__(33);
+  var PointItem = __webpack_require__(34);
+  var RangeItem = __webpack_require__(35);
+  var BackgroundItem = __webpack_require__(32);
 
 
   var UNGROUPED = '__ungrouped__';   // reserved group id for ungrouped items
@@ -13800,12 +12617,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 33 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(2);
-  var Component = __webpack_require__(25);
+  var Component = __webpack_require__(20);
 
   /**
    * Legend for Graph2d
@@ -14010,18 +12827,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 34 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(2);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
-  var Component = __webpack_require__(25);
-  var DataAxis = __webpack_require__(28);
-  var GraphGroup = __webpack_require__(29);
-  var Legend = __webpack_require__(33);
-  var BarGraphFunctions = __webpack_require__(50);
+  var Component = __webpack_require__(20);
+  var DataAxis = __webpack_require__(23);
+  var GraphGroup = __webpack_require__(24);
+  var Legend = __webpack_require__(28);
+  var BarGraphFunctions = __webpack_require__(53);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -15011,11 +13828,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 35 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var Component = __webpack_require__(25);
+  var Component = __webpack_require__(20);
   var TimeStep = __webpack_require__(19);
   var DateUtil = __webpack_require__(15);
   var moment = __webpack_require__(44);
@@ -15463,6 +14280,1211 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
+/* 31 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var Hammer = __webpack_require__(45);
+  var util = __webpack_require__(1);
+
+  /**
+   * @constructor Item
+   * @param {Object} data             Object containing (optional) parameters type,
+   *                                  start, end, content, group, className.
+   * @param {{toScreen: function, toTime: function}} conversion
+   *                                  Conversion functions from time to screen and vice versa
+   * @param {Object} options          Configuration options
+   *                                  // TODO: describe available options
+   */
+  function Item (data, conversion, options) {
+    this.id = null;
+    this.parent = null;
+    this.data = data;
+    this.dom = null;
+    this.conversion = conversion || {};
+    this.options = options || {};
+
+    this.selected = false;
+    this.displayed = false;
+    this.dirty = true;
+
+    this.top = null;
+    this.left = null;
+    this.width = null;
+    this.height = null;
+  }
+
+  Item.prototype.stack = true;
+
+  /**
+   * Select current item
+   */
+  Item.prototype.select = function() {
+    this.selected = true;
+    this.dirty = true;
+    if (this.displayed) this.redraw();
+  };
+
+  /**
+   * Unselect current item
+   */
+  Item.prototype.unselect = function() {
+    this.selected = false;
+    this.dirty = true;
+    if (this.displayed) this.redraw();
+  };
+
+  /**
+   * Set data for the item. Existing data will be updated. The id should not
+   * be changed. When the item is displayed, it will be redrawn immediately.
+   * @param {Object} data
+   */
+  Item.prototype.setData = function(data) {
+    this.data = data;
+    this.dirty = true;
+    if (this.displayed) this.redraw();
+  };
+
+  /**
+   * Set a parent for the item
+   * @param {ItemSet | Group} parent
+   */
+  Item.prototype.setParent = function(parent) {
+    if (this.displayed) {
+      this.hide();
+      this.parent = parent;
+      if (this.parent) {
+        this.show();
+      }
+    }
+    else {
+      this.parent = parent;
+    }
+  };
+
+  /**
+   * Check whether this item is visible inside given range
+   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+   * @returns {boolean} True if visible
+   */
+  Item.prototype.isVisible = function(range) {
+    // Should be implemented by Item implementations
+    return false;
+  };
+
+  /**
+   * Show the Item in the DOM (when not already visible)
+   * @return {Boolean} changed
+   */
+  Item.prototype.show = function() {
+    return false;
+  };
+
+  /**
+   * Hide the Item from the DOM (when visible)
+   * @return {Boolean} changed
+   */
+  Item.prototype.hide = function() {
+    return false;
+  };
+
+  /**
+   * Repaint the item
+   */
+  Item.prototype.redraw = function() {
+    // should be implemented by the item
+  };
+
+  /**
+   * Reposition the Item horizontally
+   */
+  Item.prototype.repositionX = function() {
+    // should be implemented by the item
+  };
+
+  /**
+   * Reposition the Item vertically
+   */
+  Item.prototype.repositionY = function() {
+    // should be implemented by the item
+  };
+
+  /**
+   * Repaint a delete button on the top right of the item when the item is selected
+   * @param {HTMLElement} anchor
+   * @protected
+   */
+  Item.prototype._repaintDeleteButton = function (anchor) {
+    if (this.selected && this.options.editable.remove && !this.dom.deleteButton) {
+      // create and show button
+      var me = this;
+
+      var deleteButton = document.createElement('div');
+      deleteButton.className = 'delete';
+      deleteButton.title = 'Delete this item';
+
+      Hammer(deleteButton, {
+        preventDefault: true
+      }).on('tap', function (event) {
+        me.parent.removeFromDataSet(me);
+        event.stopPropagation();
+      });
+
+      anchor.appendChild(deleteButton);
+      this.dom.deleteButton = deleteButton;
+    }
+    else if (!this.selected && this.dom.deleteButton) {
+      // remove button
+      if (this.dom.deleteButton.parentNode) {
+        this.dom.deleteButton.parentNode.removeChild(this.dom.deleteButton);
+      }
+      this.dom.deleteButton = null;
+    }
+  };
+
+  /**
+   * Set HTML contents for the item
+   * @param {Element} element   HTML element to fill with the contents
+   * @private
+   */
+  Item.prototype._updateContents = function (element) {
+    var content;
+    if (this.options.template) {
+      var itemData = this.parent.itemSet.itemsData.get(this.id); // get a clone of the data from the dataset
+      content = this.options.template(itemData);
+    }
+    else {
+      content = this.data.content;
+    }
+
+    if(content !== this.content) {
+      // only replace the content when changed
+      if (content instanceof Element) {
+        element.innerHTML = '';
+        element.appendChild(content);
+      }
+      else if (content != undefined) {
+        element.innerHTML = content;
+      }
+      else {
+        if (!(this.data.type == 'background' && this.data.content === undefined)) {
+          throw new Error('Property "content" missing in item ' + this.id);
+        }
+      }
+
+      this.content = content;
+    }
+  };
+
+  /**
+   * Set HTML contents for the item
+   * @param {Element} element   HTML element to fill with the contents
+   * @private
+   */
+  Item.prototype._updateTitle = function (element) {
+    if (this.data.title != null) {
+      element.title = this.data.title || '';
+    }
+    else {
+      element.removeAttribute('title');
+    }
+  };
+
+  /**
+   * Process dataAttributes timeline option and set as data- attributes on dom.content
+   * @param {Element} element   HTML element to which the attributes will be attached
+   * @private
+   */
+   Item.prototype._updateDataAttributes = function(element) {
+    if (this.options.dataAttributes && this.options.dataAttributes.length > 0) {
+      var attributes = [];
+
+      if (Array.isArray(this.options.dataAttributes)) {
+        attributes = this.options.dataAttributes;
+      }
+      else if (this.options.dataAttributes == 'all') {
+        attributes = Object.keys(this.data);
+      }
+      else {
+        return;
+      }
+
+      for (var i = 0; i < attributes.length; i++) {
+        var name = attributes[i];
+        var value = this.data[name];
+
+        if (value != null) {
+          element.setAttribute('data-' + name, value);
+        }
+        else {
+          element.removeAttribute('data-' + name);
+        }
+      }
+    }
+  };
+
+  /**
+   * Update custom styles of the element
+   * @param element
+   * @private
+   */
+  Item.prototype._updateStyle = function(element) {
+    // remove old styles
+    if (this.style) {
+      util.removeCssText(element, this.style);
+      this.style = null;
+    }
+
+    // append new styles
+    if (this.data.style) {
+      util.addCssText(element, this.data.style);
+      this.style = this.data.style;
+    }
+  };
+
+  module.exports = Item;
+
+
+/***/ },
+/* 32 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var Hammer = __webpack_require__(45);
+  var Item = __webpack_require__(31);
+  var BackgroundGroup = __webpack_require__(26);
+  var RangeItem = __webpack_require__(35);
+
+  /**
+   * @constructor BackgroundItem
+   * @extends Item
+   * @param {Object} data             Object containing parameters start, end
+   *                                  content, className.
+   * @param {{toScreen: function, toTime: function}} conversion
+   *                                  Conversion functions from time to screen and vice versa
+   * @param {Object} [options]        Configuration options
+   *                                  // TODO: describe options
+   */
+  // TODO: implement support for the BackgroundItem just having a start, then being displayed as a sort of an annotation
+  function BackgroundItem (data, conversion, options) {
+    this.props = {
+      content: {
+        width: 0
+      }
+    };
+    this.overflow = false; // if contents can overflow (css styling), this flag is set to true
+
+    // validate data
+    if (data) {
+      if (data.start == undefined) {
+        throw new Error('Property "start" missing in item ' + data.id);
+      }
+      if (data.end == undefined) {
+        throw new Error('Property "end" missing in item ' + data.id);
+      }
+    }
+
+    Item.call(this, data, conversion, options);
+
+    this.emptyContent = false;
+  }
+
+  BackgroundItem.prototype = new Item (null, null, null);
+
+  BackgroundItem.prototype.baseClassName = 'item background';
+  BackgroundItem.prototype.stack = false;
+
+  /**
+   * Check whether this item is visible inside given range
+   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+   * @returns {boolean} True if visible
+   */
+  BackgroundItem.prototype.isVisible = function(range) {
+    // determine visibility
+    return (this.data.start < range.end) && (this.data.end > range.start);
+  };
+
+  /**
+   * Repaint the item
+   */
+  BackgroundItem.prototype.redraw = function() {
+    var dom = this.dom;
+    if (!dom) {
+      // create DOM
+      this.dom = {};
+      dom = this.dom;
+
+      // background box
+      dom.box = document.createElement('div');
+      // className is updated in redraw()
+
+      // contents box
+      dom.content = document.createElement('div');
+      dom.content.className = 'content';
+      dom.box.appendChild(dom.content);
+
+      // Note: we do NOT attach this item as attribute to the DOM,
+      //       such that background items cannot be selected
+      //dom.box['timeline-item'] = this;
+
+      this.dirty = true;
+    }
+
+    // append DOM to parent DOM
+    if (!this.parent) {
+      throw new Error('Cannot redraw item: no parent attached');
+    }
+    if (!dom.box.parentNode) {
+      var background = this.parent.dom.background;
+      if (!background) {
+        throw new Error('Cannot redraw item: parent has no background container element');
+      }
+      background.appendChild(dom.box);
+    }
+    this.displayed = true;
+
+    // Update DOM when item is marked dirty. An item is marked dirty when:
+    // - the item is not yet rendered
+    // - the item's data is changed
+    // - the item is selected/deselected
+    if (this.dirty) {
+      this._updateContents(this.dom.content);
+      this._updateTitle(this.dom.content);
+      this._updateDataAttributes(this.dom.content);
+      this._updateStyle(this.dom.box);
+
+      // update class
+      var className = (this.data.className ? (' ' + this.data.className) : '') +
+          (this.selected ? ' selected' : '');
+      dom.box.className = this.baseClassName + className;
+
+      // determine from css whether this box has overflow
+      this.overflow = window.getComputedStyle(dom.content).overflow !== 'hidden';
+
+      // recalculate size
+      this.props.content.width = this.dom.content.offsetWidth;
+      this.height = 0; // set height zero, so this item will be ignored when stacking items
+
+      this.dirty = false;
+    }
+  };
+
+  /**
+   * Show the item in the DOM (when not already visible). The items DOM will
+   * be created when needed.
+   */
+  BackgroundItem.prototype.show = RangeItem.prototype.show;
+
+  /**
+   * Hide the item from the DOM (when visible)
+   * @return {Boolean} changed
+   */
+  BackgroundItem.prototype.hide = RangeItem.prototype.hide;
+
+  /**
+   * Reposition the item horizontally
+   * @Override
+   */
+  BackgroundItem.prototype.repositionX = RangeItem.prototype.repositionX;
+
+  /**
+   * Reposition the item vertically
+   * @Override
+   */
+  BackgroundItem.prototype.repositionY = function(margin) {
+    var onTop = this.options.orientation === 'top';
+    this.dom.content.style.top = onTop ? '' : '0';
+    this.dom.content.style.bottom = onTop ? '0' : '';
+    var height;
+
+    // special positioning for subgroups
+    if (this.data.subgroup !== undefined) {
+      var itemSubgroup = this.data.subgroup;
+      var subgroups = this.parent.subgroups;
+      var subgroupIndex = subgroups[itemSubgroup].index;
+      // if the orientation is top, we need to take the difference in height into account.
+      if (onTop == true) {
+        // the first subgroup will have to account for the distance from the top to the first item.
+        height = this.parent.subgroups[itemSubgroup].height + margin.item.vertical;
+        height += subgroupIndex == 0 ? margin.axis - 0.5*margin.item.vertical : 0;
+        var newTop = this.parent.top;
+        for (var subgroup in subgroups) {
+          if (subgroups.hasOwnProperty(subgroup)) {
+            if (subgroups[subgroup].visible == true && subgroups[subgroup].index < subgroupIndex) {
+              newTop += subgroups[subgroup].height + margin.item.vertical;
+            }
+          }
+        }
+
+        // the others will have to be offset downwards with this same distance.
+        newTop += subgroupIndex != 0 ? margin.axis - 0.5 * margin.item.vertical : 0;
+        this.dom.box.style.top = newTop + 'px';
+        this.dom.box.style.bottom = '';
+      }
+      // and when the orientation is bottom:
+      else {
+        var newTop = this.parent.top;
+        for (var subgroup in subgroups) {
+          if (subgroups.hasOwnProperty(subgroup)) {
+            if (subgroups[subgroup].visible == true && subgroups[subgroup].index > subgroupIndex) {
+              newTop += subgroups[subgroup].height + margin.item.vertical;
+            }
+          }
+        }
+        height = this.parent.subgroups[itemSubgroup].height + margin.item.vertical;
+        this.dom.box.style.top = newTop + 'px';
+        this.dom.box.style.bottom = '';
+      }
+    }
+    // and in the case of no subgroups:
+    else {
+      // we want backgrounds with groups to only show in groups.
+      if (this.parent instanceof BackgroundGroup) {
+        // if the item is not in a group:
+        height = Math.max(this.parent.height,
+            this.parent.itemSet.body.domProps.center.height,
+            this.parent.itemSet.body.domProps.centerContainer.height);
+        this.dom.box.style.top = onTop ? '0' : '';
+        this.dom.box.style.bottom = onTop ? '' : '0';
+      }
+      else {
+        height = this.parent.height;
+        // same alignment for items when orientation is top or bottom
+        this.dom.box.style.top = this.parent.top + 'px';
+        this.dom.box.style.bottom = '';
+      }
+    }
+    this.dom.box.style.height = height + 'px';
+  };
+
+  module.exports = BackgroundItem;
+
+
+/***/ },
+/* 33 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var Item = __webpack_require__(31);
+  var util = __webpack_require__(1);
+
+  /**
+   * @constructor BoxItem
+   * @extends Item
+   * @param {Object} data             Object containing parameters start
+   *                                  content, className.
+   * @param {{toScreen: function, toTime: function}} conversion
+   *                                  Conversion functions from time to screen and vice versa
+   * @param {Object} [options]        Configuration options
+   *                                  // TODO: describe available options
+   */
+  function BoxItem (data, conversion, options) {
+    this.props = {
+      dot: {
+        width: 0,
+        height: 0
+      },
+      line: {
+        width: 0,
+        height: 0
+      }
+    };
+
+    // validate data
+    if (data) {
+      if (data.start == undefined) {
+        throw new Error('Property "start" missing in item ' + data);
+      }
+    }
+
+    Item.call(this, data, conversion, options);
+  }
+
+  BoxItem.prototype = new Item (null, null, null);
+
+  /**
+   * Check whether this item is visible inside given range
+   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+   * @returns {boolean} True if visible
+   */
+  BoxItem.prototype.isVisible = function(range) {
+    // determine visibility
+    // TODO: account for the real width of the item. Right now we just add 1/4 to the window
+    var interval = (range.end - range.start) / 4;
+    return (this.data.start > range.start - interval) && (this.data.start < range.end + interval);
+  };
+
+  /**
+   * Repaint the item
+   */
+  BoxItem.prototype.redraw = function() {
+    var dom = this.dom;
+    if (!dom) {
+      // create DOM
+      this.dom = {};
+      dom = this.dom;
+
+      // create main box
+      dom.box = document.createElement('DIV');
+
+      // contents box (inside the background box). used for making margins
+      dom.content = document.createElement('DIV');
+      dom.content.className = 'content';
+      dom.box.appendChild(dom.content);
+
+      // line to axis
+      dom.line = document.createElement('DIV');
+      dom.line.className = 'line';
+
+      // dot on axis
+      dom.dot = document.createElement('DIV');
+      dom.dot.className = 'dot';
+
+      // attach this item as attribute
+      dom.box['timeline-item'] = this;
+
+      this.dirty = true;
+    }
+
+    // append DOM to parent DOM
+    if (!this.parent) {
+      throw new Error('Cannot redraw item: no parent attached');
+    }
+    if (!dom.box.parentNode) {
+      var foreground = this.parent.dom.foreground;
+      if (!foreground) throw new Error('Cannot redraw item: parent has no foreground container element');
+      foreground.appendChild(dom.box);
+    }
+    if (!dom.line.parentNode) {
+      var background = this.parent.dom.background;
+      if (!background) throw new Error('Cannot redraw item: parent has no background container element');
+      background.appendChild(dom.line);
+    }
+    if (!dom.dot.parentNode) {
+      var axis = this.parent.dom.axis;
+      if (!background) throw new Error('Cannot redraw item: parent has no axis container element');
+      axis.appendChild(dom.dot);
+    }
+    this.displayed = true;
+
+    // Update DOM when item is marked dirty. An item is marked dirty when:
+    // - the item is not yet rendered
+    // - the item's data is changed
+    // - the item is selected/deselected
+    if (this.dirty) {
+      this._updateContents(this.dom.content);
+      this._updateTitle(this.dom.box);
+      this._updateDataAttributes(this.dom.box);
+      this._updateStyle(this.dom.box);
+
+      // update class
+      var className = (this.data.className? ' ' + this.data.className : '') +
+          (this.selected ? ' selected' : '');
+      dom.box.className = 'item box' + className;
+      dom.line.className = 'item line' + className;
+      dom.dot.className  = 'item dot' + className;
+
+      // recalculate size
+      this.props.dot.height = dom.dot.offsetHeight;
+      this.props.dot.width = dom.dot.offsetWidth;
+      this.props.line.width = dom.line.offsetWidth;
+      this.width = dom.box.offsetWidth;
+      this.height = dom.box.offsetHeight;
+
+      this.dirty = false;
+    }
+
+    this._repaintDeleteButton(dom.box);
+  };
+
+  /**
+   * Show the item in the DOM (when not already displayed). The items DOM will
+   * be created when needed.
+   */
+  BoxItem.prototype.show = function() {
+    if (!this.displayed) {
+      this.redraw();
+    }
+  };
+
+  /**
+   * Hide the item from the DOM (when visible)
+   */
+  BoxItem.prototype.hide = function() {
+    if (this.displayed) {
+      var dom = this.dom;
+
+      if (dom.box.parentNode)   dom.box.parentNode.removeChild(dom.box);
+      if (dom.line.parentNode)  dom.line.parentNode.removeChild(dom.line);
+      if (dom.dot.parentNode)   dom.dot.parentNode.removeChild(dom.dot);
+
+      this.top = null;
+      this.left = null;
+
+      this.displayed = false;
+    }
+  };
+
+  /**
+   * Reposition the item horizontally
+   * @Override
+   */
+  BoxItem.prototype.repositionX = function() {
+    var start = this.conversion.toScreen(this.data.start);
+    var align = this.options.align;
+    var left;
+    var box = this.dom.box;
+    var line = this.dom.line;
+    var dot = this.dom.dot;
+
+    // calculate left position of the box
+    if (align == 'right') {
+      this.left = start - this.width;
+    }
+    else if (align == 'left') {
+      this.left = start;
+    }
+    else {
+      // default or 'center'
+      this.left = start - this.width / 2;
+    }
+
+    // reposition box
+    box.style.left = this.left + 'px';
+
+    // reposition line
+    line.style.left = (start - this.props.line.width / 2) + 'px';
+
+    // reposition dot
+    dot.style.left = (start - this.props.dot.width / 2) + 'px';
+  };
+
+  /**
+   * Reposition the item vertically
+   * @Override
+   */
+  BoxItem.prototype.repositionY = function() {
+    var orientation = this.options.orientation;
+    var box = this.dom.box;
+    var line = this.dom.line;
+    var dot = this.dom.dot;
+
+    if (orientation == 'top') {
+      box.style.top     = (this.top || 0) + 'px';
+
+      line.style.top    = '0';
+      line.style.height = (this.parent.top + this.top + 1) + 'px';
+      line.style.bottom = '';
+    }
+    else { // orientation 'bottom'
+      var itemSetHeight = this.parent.itemSet.props.height; // TODO: this is nasty
+      var lineHeight = itemSetHeight - this.parent.top - this.parent.height + this.top;
+
+      box.style.top     = (this.parent.height - this.top - this.height || 0) + 'px';
+      line.style.top    = (itemSetHeight - lineHeight) + 'px';
+      line.style.bottom = '0';
+    }
+
+    dot.style.top = (-this.props.dot.height / 2) + 'px';
+  };
+
+  module.exports = BoxItem;
+
+
+/***/ },
+/* 34 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var Item = __webpack_require__(31);
+
+  /**
+   * @constructor PointItem
+   * @extends Item
+   * @param {Object} data             Object containing parameters start
+   *                                  content, className.
+   * @param {{toScreen: function, toTime: function}} conversion
+   *                                  Conversion functions from time to screen and vice versa
+   * @param {Object} [options]        Configuration options
+   *                                  // TODO: describe available options
+   */
+  function PointItem (data, conversion, options) {
+    this.props = {
+      dot: {
+        top: 0,
+        width: 0,
+        height: 0
+      },
+      content: {
+        height: 0,
+        marginLeft: 0
+      }
+    };
+
+    // validate data
+    if (data) {
+      if (data.start == undefined) {
+        throw new Error('Property "start" missing in item ' + data);
+      }
+    }
+
+    Item.call(this, data, conversion, options);
+  }
+
+  PointItem.prototype = new Item (null, null, null);
+
+  /**
+   * Check whether this item is visible inside given range
+   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+   * @returns {boolean} True if visible
+   */
+  PointItem.prototype.isVisible = function(range) {
+    // determine visibility
+    // TODO: account for the real width of the item. Right now we just add 1/4 to the window
+    var interval = (range.end - range.start) / 4;
+    return (this.data.start > range.start - interval) && (this.data.start < range.end + interval);
+  };
+
+  /**
+   * Repaint the item
+   */
+  PointItem.prototype.redraw = function() {
+    var dom = this.dom;
+    if (!dom) {
+      // create DOM
+      this.dom = {};
+      dom = this.dom;
+
+      // background box
+      dom.point = document.createElement('div');
+      // className is updated in redraw()
+
+      // contents box, right from the dot
+      dom.content = document.createElement('div');
+      dom.content.className = 'content';
+      dom.point.appendChild(dom.content);
+
+      // dot at start
+      dom.dot = document.createElement('div');
+      dom.point.appendChild(dom.dot);
+
+      // attach this item as attribute
+      dom.point['timeline-item'] = this;
+
+      this.dirty = true;
+    }
+
+    // append DOM to parent DOM
+    if (!this.parent) {
+      throw new Error('Cannot redraw item: no parent attached');
+    }
+    if (!dom.point.parentNode) {
+      var foreground = this.parent.dom.foreground;
+      if (!foreground) {
+        throw new Error('Cannot redraw item: parent has no foreground container element');
+      }
+      foreground.appendChild(dom.point);
+    }
+    this.displayed = true;
+
+    // Update DOM when item is marked dirty. An item is marked dirty when:
+    // - the item is not yet rendered
+    // - the item's data is changed
+    // - the item is selected/deselected
+    if (this.dirty) {
+      this._updateContents(this.dom.content);
+      this._updateTitle(this.dom.point);
+      this._updateDataAttributes(this.dom.point);
+      this._updateStyle(this.dom.point);
+
+      // update class
+      var className = (this.data.className? ' ' + this.data.className : '') +
+          (this.selected ? ' selected' : '');
+      dom.point.className  = 'item point' + className;
+      dom.dot.className  = 'item dot' + className;
+
+      // recalculate size
+      this.width = dom.point.offsetWidth;
+      this.height = dom.point.offsetHeight;
+      this.props.dot.width = dom.dot.offsetWidth;
+      this.props.dot.height = dom.dot.offsetHeight;
+      this.props.content.height = dom.content.offsetHeight;
+
+      // resize contents
+      dom.content.style.marginLeft = 2 * this.props.dot.width + 'px';
+      //dom.content.style.marginRight = ... + 'px'; // TODO: margin right
+
+      dom.dot.style.top = ((this.height - this.props.dot.height) / 2) + 'px';
+      dom.dot.style.left = (this.props.dot.width / 2) + 'px';
+
+      this.dirty = false;
+    }
+
+    this._repaintDeleteButton(dom.point);
+  };
+
+  /**
+   * Show the item in the DOM (when not already visible). The items DOM will
+   * be created when needed.
+   */
+  PointItem.prototype.show = function() {
+    if (!this.displayed) {
+      this.redraw();
+    }
+  };
+
+  /**
+   * Hide the item from the DOM (when visible)
+   */
+  PointItem.prototype.hide = function() {
+    if (this.displayed) {
+      if (this.dom.point.parentNode) {
+        this.dom.point.parentNode.removeChild(this.dom.point);
+      }
+
+      this.top = null;
+      this.left = null;
+
+      this.displayed = false;
+    }
+  };
+
+  /**
+   * Reposition the item horizontally
+   * @Override
+   */
+  PointItem.prototype.repositionX = function() {
+    var start = this.conversion.toScreen(this.data.start);
+
+    this.left = start - this.props.dot.width;
+
+    // reposition point
+    this.dom.point.style.left = this.left + 'px';
+  };
+
+  /**
+   * Reposition the item vertically
+   * @Override
+   */
+  PointItem.prototype.repositionY = function() {
+    var orientation = this.options.orientation,
+        point = this.dom.point;
+
+    if (orientation == 'top') {
+      point.style.top = this.top + 'px';
+    }
+    else {
+      point.style.top = (this.parent.height - this.top - this.height) + 'px';
+    }
+  };
+
+  module.exports = PointItem;
+
+
+/***/ },
+/* 35 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var Hammer = __webpack_require__(45);
+  var Item = __webpack_require__(31);
+
+  /**
+   * @constructor RangeItem
+   * @extends Item
+   * @param {Object} data             Object containing parameters start, end
+   *                                  content, className.
+   * @param {{toScreen: function, toTime: function}} conversion
+   *                                  Conversion functions from time to screen and vice versa
+   * @param {Object} [options]        Configuration options
+   *                                  // TODO: describe options
+   */
+  function RangeItem (data, conversion, options) {
+    this.props = {
+      content: {
+        width: 0
+      }
+    };
+    this.overflow = false; // if contents can overflow (css styling), this flag is set to true
+
+    // validate data
+    if (data) {
+      if (data.start == undefined) {
+        throw new Error('Property "start" missing in item ' + data.id);
+      }
+      if (data.end == undefined) {
+        throw new Error('Property "end" missing in item ' + data.id);
+      }
+    }
+
+    Item.call(this, data, conversion, options);
+  }
+
+  RangeItem.prototype = new Item (null, null, null);
+
+  RangeItem.prototype.baseClassName = 'item range';
+
+  /**
+   * Check whether this item is visible inside given range
+   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+   * @returns {boolean} True if visible
+   */
+  RangeItem.prototype.isVisible = function(range) {
+    // determine visibility
+    return (this.data.start < range.end) && (this.data.end > range.start);
+  };
+
+  /**
+   * Repaint the item
+   */
+  RangeItem.prototype.redraw = function() {
+    var dom = this.dom;
+    if (!dom) {
+      // create DOM
+      this.dom = {};
+      dom = this.dom;
+
+        // background box
+      dom.box = document.createElement('div');
+      // className is updated in redraw()
+
+      // contents box
+      dom.content = document.createElement('div');
+      dom.content.className = 'content';
+      dom.box.appendChild(dom.content);
+
+      // attach this item as attribute
+      dom.box['timeline-item'] = this;
+
+      this.dirty = true;
+    }
+
+    // append DOM to parent DOM
+    if (!this.parent) {
+      throw new Error('Cannot redraw item: no parent attached');
+    }
+    if (!dom.box.parentNode) {
+      var foreground = this.parent.dom.foreground;
+      if (!foreground) {
+        throw new Error('Cannot redraw item: parent has no foreground container element');
+      }
+      foreground.appendChild(dom.box);
+    }
+    this.displayed = true;
+
+    // Update DOM when item is marked dirty. An item is marked dirty when:
+    // - the item is not yet rendered
+    // - the item's data is changed
+    // - the item is selected/deselected
+    if (this.dirty) {
+      this._updateContents(this.dom.content);
+      this._updateTitle(this.dom.box);
+      this._updateDataAttributes(this.dom.box);
+      this._updateStyle(this.dom.box);
+
+      // update class
+      var className = (this.data.className ? (' ' + this.data.className) : '') +
+          (this.selected ? ' selected' : '');
+      dom.box.className = this.baseClassName + className;
+
+      // determine from css whether this box has overflow
+      this.overflow = window.getComputedStyle(dom.content).overflow !== 'hidden';
+
+      // recalculate size
+      // turn off max-width to be able to calculate the real width
+      // this causes an extra browser repaint/reflow, but so be it
+      this.dom.content.style.maxWidth = 'none';
+      this.props.content.width = this.dom.content.offsetWidth;
+      this.height = this.dom.box.offsetHeight;
+      this.dom.content.style.maxWidth = '';
+
+      this.dirty = false;
+    }
+
+    this._repaintDeleteButton(dom.box);
+    this._repaintDragLeft();
+    this._repaintDragRight();
+  };
+
+  /**
+   * Show the item in the DOM (when not already visible). The items DOM will
+   * be created when needed.
+   */
+  RangeItem.prototype.show = function() {
+    if (!this.displayed) {
+      this.redraw();
+    }
+  };
+
+  /**
+   * Hide the item from the DOM (when visible)
+   * @return {Boolean} changed
+   */
+  RangeItem.prototype.hide = function() {
+    if (this.displayed) {
+      var box = this.dom.box;
+
+      if (box.parentNode) {
+        box.parentNode.removeChild(box);
+      }
+
+      this.top = null;
+      this.left = null;
+
+      this.displayed = false;
+    }
+  };
+
+  /**
+   * Reposition the item horizontally
+   * @Override
+   */
+  RangeItem.prototype.repositionX = function() {
+    var parentWidth = this.parent.width;
+    var start = this.conversion.toScreen(this.data.start);
+    var end = this.conversion.toScreen(this.data.end);
+    var contentLeft;
+    var contentWidth;
+
+    // limit the width of the this, as browsers cannot draw very wide divs
+    if (start < -parentWidth) {
+      start = -parentWidth;
+    }
+    if (end > 2 * parentWidth) {
+      end = 2 * parentWidth;
+    }
+    var boxWidth = Math.max(end - start, 1);
+
+    if (this.overflow) {
+      this.left = start;
+      this.width = boxWidth + this.props.content.width;
+      contentWidth = this.props.content.width;
+
+      // Note: The calculation of width is an optimistic calculation, giving
+      //       a width which will not change when moving the Timeline
+      //       So no re-stacking needed, which is nicer for the eye;
+    }
+    else {
+      this.left = start;
+      this.width = boxWidth;
+      contentWidth = Math.min(end - start - 2 * this.options.padding, this.props.content.width);
+    }
+
+    this.dom.box.style.left = this.left + 'px';
+    this.dom.box.style.width = boxWidth + 'px';
+
+    switch (this.options.align) {
+      case 'left':
+        this.dom.content.style.left = '0';
+        break;
+
+      case 'right':
+        this.dom.content.style.left = Math.max((boxWidth - contentWidth - 2 * this.options.padding), 0) + 'px';
+        break;
+
+      case 'center':
+        this.dom.content.style.left = Math.max((boxWidth - contentWidth - 2 * this.options.padding) / 2, 0) + 'px';
+        break;
+
+      default: // 'auto'
+        // when range exceeds left of the window, position the contents at the left of the visible area
+        if (this.overflow) {
+          if (end > 0) {
+            contentLeft = Math.max(-start, 0);
+          }
+          else {
+            contentLeft = -contentWidth; // ensure it's not visible anymore
+          }
+        }
+        else {
+          if (start < 0) {
+            contentLeft = Math.min(-start,
+                (end - start - contentWidth - 2 * this.options.padding));
+            // TODO: remove the need for options.padding. it's terrible.
+          }
+          else {
+            contentLeft = 0;
+          }
+        }
+        this.dom.content.style.left = contentLeft + 'px';
+    }
+  };
+
+  /**
+   * Reposition the item vertically
+   * @Override
+   */
+  RangeItem.prototype.repositionY = function() {
+    var orientation = this.options.orientation,
+        box = this.dom.box;
+
+    if (orientation == 'top') {
+      box.style.top = this.top + 'px';
+    }
+    else {
+      box.style.top = (this.parent.height - this.top - this.height) + 'px';
+    }
+  };
+
+  /**
+   * Repaint a drag area on the left side of the range when the range is selected
+   * @protected
+   */
+  RangeItem.prototype._repaintDragLeft = function () {
+    if (this.selected && this.options.editable.updateTime && !this.dom.dragLeft) {
+      // create and show drag area
+      var dragLeft = document.createElement('div');
+      dragLeft.className = 'drag-left';
+      dragLeft.dragLeftItem = this;
+
+      // TODO: this should be redundant?
+      Hammer(dragLeft, {
+        preventDefault: true
+      }).on('drag', function () {
+            //console.log('drag left')
+          });
+
+      this.dom.box.appendChild(dragLeft);
+      this.dom.dragLeft = dragLeft;
+    }
+    else if (!this.selected && this.dom.dragLeft) {
+      // delete drag area
+      if (this.dom.dragLeft.parentNode) {
+        this.dom.dragLeft.parentNode.removeChild(this.dom.dragLeft);
+      }
+      this.dom.dragLeft = null;
+    }
+  };
+
+  /**
+   * Repaint a drag area on the right side of the range when the range is selected
+   * @protected
+   */
+  RangeItem.prototype._repaintDragRight = function () {
+    if (this.selected && this.options.editable.updateTime && !this.dom.dragRight) {
+      // create and show drag area
+      var dragRight = document.createElement('div');
+      dragRight.className = 'drag-right';
+      dragRight.dragRightItem = this;
+
+      // TODO: this should be redundant?
+      Hammer(dragRight, {
+        preventDefault: true
+      }).on('drag', function () {
+        //console.log('drag right')
+      });
+
+      this.dom.box.appendChild(dragRight);
+      this.dom.dragRight = dragRight;
+    }
+    else if (!this.selected && this.dom.dragRight) {
+      // delete drag area
+      if (this.dom.dragRight.parentNode) {
+        this.dom.dragRight.parentNode.removeChild(this.dom.dragRight);
+      }
+      this.dom.dragRight = null;
+    }
+  };
+
+  module.exports = RangeItem;
+
+
+/***/ },
 /* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -15470,7 +15492,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var Hammer = __webpack_require__(45);
   var keycharm = __webpack_require__(57);
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(47);
+  var hammerUtil = __webpack_require__(46);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var dotparser = __webpack_require__(42);
@@ -15480,12 +15502,12 @@ return /******/ (function(modules) { // webpackBootstrap
   var Node = __webpack_require__(40);
   var Edge = __webpack_require__(37);
   var Popup = __webpack_require__(41);
-  var MixinLoader = __webpack_require__(52);
-  var Activator = __webpack_require__(53);
-  var locales = __webpack_require__(54);
+  var MixinLoader = __webpack_require__(51);
+  var Activator = __webpack_require__(52);
+  var locales = __webpack_require__(49);
 
   // Load custom shapes into CanvasRenderingContext2D
-  __webpack_require__(55);
+  __webpack_require__(50);
 
   /**
    * @constructor Network
@@ -15537,7 +15559,12 @@ return /******/ (function(modules) { // webpackBootstrap
         fontFace: 'verdana',
         fontFill: undefined,
         fontStrokeWidth: 0, // px
-        fontStrokeColor: 'white',
+        fontStrokeColor: '#ffffff',
+        fontDrawThreshold: 3,
+        scaleFontWithValue: false,
+        fontSizeMin: 14,
+        fontSizeMax: 30,
+        fontSizeMaxVisible: 30,
         level: -1,
         color: {
             border: '#2B7CE9',
@@ -15567,6 +15594,7 @@ return /******/ (function(modules) { // webpackBootstrap
           highlight:'#848484',
           hover: '#848484'
         },
+        opacity:1.0,
         fontColor: '#343434',
         fontSize: 14, // px
         fontFace: 'arial',
@@ -15631,8 +15659,8 @@ return /******/ (function(modules) { // webpackBootstrap
                       height: 1,      // (px PNiC)             | growth of the height per node in cluster.
                       radius: 1},     // (px PNiC)             | growth of the radius per node in cluster.
         maxNodeSizeIncrements: 600,   // (# increments)        | max growth of the width  per node in cluster.
-        activeAreaBoxSize: 80,       // (px)                  | box area around the curser where clusters are popped open.
-        clusterLevelDifference: 2,
+        activeAreaBoxSize: 80,        // (px)                  | box area around the curser where clusters are popped open.
+        clusterLevelDifference: 2,    // used for normalization of the cluster levels
         clusterByZoom: true           // enable clustering through zooming in and out
       },
       navigation: {
@@ -15661,7 +15689,7 @@ return /******/ (function(modules) { // webpackBootstrap
         type: "continuous",
         roundness: 0.5
       },
-      maxVelocity:  30,
+      maxVelocity:  50,
       minVelocity:  0.1,   // px/s
       stabilize: true,  // stabilize before displaying the network
       stabilizationIterations: 1000,  // maximum number of iteration to stabilize
@@ -15814,7 +15842,7 @@ return /******/ (function(modules) { // webpackBootstrap
     else {
       // zoom so all data will fit on the screen, if clustering is enabled, we do not want start to be called here.
       if (this.constants.stabilize == false) {
-        this.zoomExtent(undefined, true,this.constants.clustering.enabled);
+        this.zoomExtent({duration:0}, true, this.constants.clustering.enabled);
       }
     }
 
@@ -15874,17 +15902,45 @@ return /******/ (function(modules) { // webpackBootstrap
    * Find the center position of the network
    * @private
    */
-  Network.prototype._getRange = function() {
+  Network.prototype._getRange = function(specificNodes) {
     var minY = 1e9, maxY = -1e9, minX = 1e9, maxX = -1e9, node;
-    for (var nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        node = this.nodes[nodeId];
-        if (minX > (node.boundingBox.left)) {minX = node.boundingBox.left;}
-        if (maxX < (node.boundingBox.right)) {maxX = node.boundingBox.right;}
-        if (minY > (node.boundingBox.bottom)) {minY = node.boundingBox.top;} // top is negative, bottom is positive
-        if (maxY < (node.boundingBox.top)) {maxY = node.boundingBox.bottom;} // top is negative, bottom is positive
+    if (specificNodes.length > 0) {
+      for (var i = 0; i < specificNodes.length; i++) {
+        node = this.nodes[specificNodes[i]];
+        if (minX > (node.boundingBox.left)) {
+          minX = node.boundingBox.left;
+        }
+        if (maxX < (node.boundingBox.right)) {
+          maxX = node.boundingBox.right;
+        }
+        if (minY > (node.boundingBox.bottom)) {
+          minY = node.boundingBox.top;
+        } // top is negative, bottom is positive
+        if (maxY < (node.boundingBox.top)) {
+          maxY = node.boundingBox.bottom;
+        } // top is negative, bottom is positive
       }
     }
+    else {
+      for (var nodeId in this.nodes) {
+        if (this.nodes.hasOwnProperty(nodeId)) {
+          node = this.nodes[nodeId];
+          if (minX > (node.boundingBox.left)) {
+            minX = node.boundingBox.left;
+          }
+          if (maxX < (node.boundingBox.right)) {
+            maxX = node.boundingBox.right;
+          }
+          if (minY > (node.boundingBox.bottom)) {
+            minY = node.boundingBox.top;
+          } // top is negative, bottom is positive
+          if (maxY < (node.boundingBox.top)) {
+            maxY = node.boundingBox.bottom;
+          } // top is negative, bottom is positive
+        }
+      }
+    }
+
     if (minX == 1e9 && maxX == -1e9 && minY == 1e9 && maxY == -1e9) {
       minY = 0, maxY = 0, minX = 0, maxX = 0;
     }
@@ -15909,17 +15965,37 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {Boolean} [initialZoom]  | zoom based on fitted formula or range, true = fitted, default = false;
    * @param {Boolean} [disableStart] | If true, start is not called.
    */
-  Network.prototype.zoomExtent = function(animationOptions, initialZoom, disableStart) {
+  Network.prototype.zoomExtent = function(options, initialZoom, disableStart) {
     this._redraw(true);
 
     if (initialZoom      === undefined) {initialZoom = false;}
     if (disableStart     === undefined) {disableStart = false;}
-    if (animationOptions === undefined) {animationOptions = false;}
+    if (options === undefined) {options = {nodes:[]};}
+    if (options.nodes === undefined) {
+      options.nodes = [];
+    }
 
-    var range = this._getRange();
+    var range;
     var zoomLevel;
 
     if (initialZoom == true) {
+      // check if more than half of the nodes have a predefined position. If so, we use the range, not the approximation.
+      var positionDefined = 0;
+      for (var nodeId in this.nodes) {
+        if (this.nodes.hasOwnProperty(nodeId)) {
+          var node = this.nodes[nodeId];
+          if (node.predefinedPosition == true) {
+            positionDefined += 1;
+          }
+        }
+      }
+      if (positionDefined > 0.5 * this.nodeIndices.length) {
+        this.zoomExtent(options,false,disableStart);
+        return;
+      }
+
+      range = this._getRange(options.nodes);
+
       var numberOfNodes = this.nodeIndices.length;
       if (this.constants.smoothCurves == true) {
         if (this.constants.clustering.enabled == true &&
@@ -15945,6 +16021,7 @@ return /******/ (function(modules) { // webpackBootstrap
       zoomLevel *= factor;
     }
     else {
+      range = this._getRange(options.nodes);
       var xDistance = Math.abs(range.maxX - range.minX) * 1.1;
       var yDistance = Math.abs(range.maxY - range.minY) * 1.1;
 
@@ -15960,7 +16037,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     var center = this._findCenter(range);
     if (disableStart == false) {
-      var options = {position: center, scale: zoomLevel, animation: animationOptions};
+      var options = {position: center, scale: zoomLevel, animation: options};
       this.moveTo(options);
       this.moving = true;
       this.start();
@@ -16049,7 +16126,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
       else {
         // find a stable position or start animating to a stable position
-        if (this.constants.stabilize) {
+        if (this.constants.stabilize == true) {
           this._stabilize();
         }
       }
@@ -16200,7 +16277,7 @@ return /******/ (function(modules) { // webpackBootstrap
       // bind keys. If disabled, this will not do anything;
       this._createKeyBinds();
 
-
+      this._markAllEdgesAsDirty();
       this.setSize(this.constants.width, this.constants.height);
       this.moving = true;
       this.start();
@@ -17067,7 +17144,15 @@ return /******/ (function(modules) { // webpackBootstrap
     }
     this._updateNodeIndexList();
     this._updateValueRange(nodes);
+    this._markAllEdgesAsDirty();
   };
+
+
+  Network.prototype._markAllEdgesAsDirty = function() {
+    for (var edgeId in this.edges) {
+      this.edges[edgeId].colorDirty = true;
+    }
+  }
 
   /**
    * Remove existing nodes. If nodes do not exist, the method will just ignore it.
@@ -17561,16 +17646,22 @@ return /******/ (function(modules) { // webpackBootstrap
     var count = 0;
     while (this.moving && count < this.constants.stabilizationIterations) {
       this._physicsTick();
+      if (count % 100 == 0) {
+        console.log("stabilizationIterations",count);
+      }
       count++;
     }
 
+
     if (this.constants.zoomExtentOnStabilize == true) {
-      this.zoomExtent(undefined, false, true);
+      this.zoomExtent({duration:0}, false, true);
     }
 
     if (this.constants.freezeForStabilization == true) {
       this._restoreFrozenNodes();
     }
+
+    this.emit("stabilizationIterationsDone");
   };
 
   /**
@@ -17620,8 +17711,10 @@ return /******/ (function(modules) { // webpackBootstrap
   Network.prototype._isMoving = function(vmin) {
     var nodes = this.nodes;
     for (var id in nodes) {
-      if (nodes.hasOwnProperty(id) && nodes[id].isMoving(vmin)) {
-        return true;
+      if (nodes[id] !== undefined) {
+        if (nodes[id].isMoving(vmin) == true) {
+          return true;
+        }
       }
     }
     return false;
@@ -17704,11 +17797,12 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         // gather movement data from all sectors, if one moves, we are NOT stabilzied
-        for (var i = 0; i < mainMoving.length; i++) {mainMovingStatus = mainMoving[0] || mainMovingStatus;}
+        for (var i = 0; i < mainMoving.length; i++) {
+          mainMovingStatus = mainMoving[i] || mainMovingStatus;
+        }
 
         // determine if the network has stabilzied
         this.moving = mainMovingStatus || supportMovingStatus;
-
         if (this.moving == false) {
           this._revertPhysicsTick();
         }
@@ -17831,12 +17925,14 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    *  Freeze the _animationStep
    */
-  Network.prototype.toggleFreeze = function() {
-    if (this.freezeSimulation == false) {
+  Network.prototype.setFreezeSimulation = function(freeze) {
+    if (freeze == true) {
       this.freezeSimulation = true;
+      this.moving = false;
     }
     else {
       this.freezeSimulation = false;
+      this.moving = true;
       this.start();
     }
   };
@@ -18209,6 +18305,30 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   }
 
+  Network.prototype.getConnectedNodes = function(nodeId) {
+    var nodeList = [];
+    if (this.nodes[nodeId] !== undefined) {
+      var node = this.nodes[nodeId];
+      var nodeObj = {nodeId : true}; // used to quickly check if node already exists
+      for (var i = 0; i < node.edges.length; i++) {
+        var edge = node.edges[i];
+        if (edge.toId == nodeId) {
+          if (nodeObj[edge.fromId] === undefined) {
+            nodeList.push(edge.fromId);
+            nodeObj[edge.fromId] = true;
+          }
+        }
+        else if (edge.fromId == nodeId) {
+          if (nodeObj[edge.toId] === undefined) {
+            nodeList.push(edge.toId)
+            nodeObj[edge.toId] = true;
+          }
+        }
+      }
+    }
+    return nodeList;
+  }
+
   module.exports = Network;
 
 
@@ -18258,6 +18378,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.hover = false;
     this.labelDimensions = {top:0,left:0,width:0,height:0,yLine:0}; // could be cached
     this.dirtyLabel = true;
+    this.colorDirty = true;
 
     this.from = null;   // a node
     this.to = null;     // a node
@@ -18289,12 +18410,13 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {Object} constants   and object with default, global properties
    */
   Edge.prototype.setProperties = function(properties) {
+    this.colorDirty = true;
     if (!properties) {
       return;
     }
 
     var fields = ['style','fontSize','fontFace','fontColor','fontFill','fontStrokeWidth','fontStrokeColor','width',
-      'widthSelectionMultiplier','hoverWidth','arrowScaleFactor','dash','inheritColor','labelAlignment'
+      'widthSelectionMultiplier','hoverWidth','arrowScaleFactor','dash','inheritColor','labelAlignment', 'opacity'
     ];
     util.selectiveDeepExtend(fields, this.options, properties);
 
@@ -18321,7 +18443,9 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     }
 
-    // A node is connected when it has a from and to node.
+
+
+      // A node is connected when it has a from and to node.
     this.connect();
 
     this.widthFixed = this.widthFixed || (properties.width !== undefined);
@@ -18337,8 +18461,8 @@ return /******/ (function(modules) { // webpackBootstrap
       case 'dash-line':     this.draw = this._drawDashLine; break;
       default:              this.draw = this._drawLine; break;
     }
-    
   };
+
 
   /**
    * Connect an edge to its nodes
@@ -18448,19 +18572,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
   Edge.prototype._getColor = function() {
     var colorObj = this.options.color;
-    if (this.options.inheritColor == "to") {
-      colorObj = {
-        highlight: this.to.options.color.highlight.border,
-        hover: this.to.options.color.hover.border,
-        color: this.to.options.color.border
-      };
-    }
-    else if (this.options.inheritColor == "from" || this.options.inheritColor == true) {
-      colorObj = {
-        highlight: this.from.options.color.highlight.border,
-        hover: this.from.options.color.hover.border,
-        color: this.from.options.color.border
-      };
+    if (this.colorDirty === true) {
+      if (this.options.inheritColor == "to") {
+        colorObj = {
+          highlight: this.to.options.color.highlight.border,
+          hover: this.to.options.color.hover.border,
+          color: util.overrideOpacity(this.from.options.color.border, this.options.opacity)
+        };
+      }
+      else if (this.options.inheritColor == "from" || this.options.inheritColor == true) {
+        colorObj = {
+          highlight: this.from.options.color.highlight.border,
+          hover: this.from.options.color.hover.border,
+          color: util.overrideOpacity(this.from.options.color.border, this.options.opacity)
+        };
+      }
+      this.options.color = colorObj;
+      this.colorDirty = false;
     }
 
     if (this.selected == true)   {return colorObj.highlight;}
@@ -19785,8 +19913,6 @@ return /******/ (function(modules) { // webpackBootstrap
     this.dynamicEdges = [];
     this.reroutedEdges = {};
 
-    this.fontDrawThreshold = 3;
-
     // set defaults for the properties
     this.id = undefined;
     this.allowedToMoveX = false;
@@ -19813,6 +19939,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.vy = 0.0;  // velocity y
     this.x = null;
     this.y = null;
+    this.predefinedPosition = false; // used to check if initial zoomExtent should just take the range or approximate
 
     // used for reverting to previous position on stabilization
     this.previousState = {vx:0,vy:0,x:0,y:0};
@@ -19824,7 +19951,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // creating the variables for clustering
     this.resetCluster();
-    this.dynamicEdgesLength = 0;
     this.clusterSession = 0;
     this.clusterSizeWidthFactor  = networkConstants.clustering.nodeScaling.width;
     this.clusterSizeHeightFactor = networkConstants.clustering.nodeScaling.height;
@@ -19875,7 +20001,6 @@ return /******/ (function(modules) { // webpackBootstrap
     if (this.dynamicEdges.indexOf(edge) == -1) {
       this.dynamicEdges.push(edge);
     }
-    this.dynamicEdgesLength = this.dynamicEdges.length;
   };
 
   /**
@@ -19891,7 +20016,6 @@ return /******/ (function(modules) { // webpackBootstrap
     if (index != -1) {
       this.dynamicEdges.splice(index, 1);
     }
-    this.dynamicEdgesLength = this.dynamicEdges.length;
   };
 
 
@@ -19906,7 +20030,8 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     var fields = ['borderWidth','borderWidthSelected','shape','image','brokenImage','radius','fontColor',
-      'fontSize','fontFace','fontFill','fontStrokeWidth','fontStrokeColor','group','mass'
+      'fontSize','fontFace','fontFill','fontStrokeWidth','fontStrokeColor','group','mass','fontDrawThreshold',
+      'scaleFontWithValue','fontSizeMaxVisible'
     ];
     util.selectiveDeepExtend(fields, this.options, properties);
 
@@ -19914,8 +20039,8 @@ return /******/ (function(modules) { // webpackBootstrap
     if (properties.id !== undefined)        {this.id = properties.id;}
     if (properties.label !== undefined)     {this.label = properties.label; this.originalLabel = properties.label;}
     if (properties.title !== undefined)     {this.title = properties.title;}
-    if (properties.x !== undefined)         {this.x = properties.x;}
-    if (properties.y !== undefined)         {this.y = properties.y;}
+    if (properties.x !== undefined)         {this.x = properties.x; this.predefinedPosition = true;}
+    if (properties.y !== undefined)         {this.y = properties.y; this.predefinedPosition = true;}
     if (properties.value !== undefined)     {this.value = properties.value;}
     if (properties.level !== undefined)     {this.level = properties.level; this.preassignedLevel = true;}
 
@@ -20235,12 +20360,20 @@ return /******/ (function(modules) { // webpackBootstrap
     if (!this.radiusFixed && this.value !== undefined) {
       if (max == min) {
         this.options.radius= (this.options.radiusMin + this.options.radiusMax) / 2;
+        if (this.options.scaleFontWithValue == true) {
+          this.options.fontSize = (this.options.fontSizeMin + this.options.fontSizeMax) / 2;
+        }
       }
       else {
         var scale = (this.options.radiusMax - this.options.radiusMin) / (max - min);
-        this.options.radius= (this.value - min) * scale + this.options.radiusMin;
+        var fontScale = (this.options.fontSizeMax - this.options.fontSizeMin) / (max - min);
+        if (this.options.scaleFontWithValue == true) {
+          this.options.fontSize = Math.max(this.options.fontSizeMin ,(this.value - min) * fontScale + this.options.fontSizeMin);
+        }
+        this.options.radius= Math.max(this.options.radiusMin,(this.value - min) * scale + this.options.radiusMin); // max function is protection against value = 0
       }
     }
+
     this.baseRadiusValue = this.options.radius;
   };
 
@@ -20764,12 +20897,29 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
   Node.prototype._label = function (ctx, text, x, y, align, baseline, labelUnderNode) {
-    if (text && Number(this.options.fontSize) * this.networkScale > this.fontDrawThreshold) {
-      ctx.font = (this.selected ? "bold " : "") + this.options.fontSize + "px " + this.options.fontFace;
+    var relativeFontSize = Number(this.options.fontSize) * this.networkScale;
+    if (text && relativeFontSize >= this.options.fontDrawThreshold - 1) {
+      var fontSize = Number(this.options.fontSize);
+
+      // this ensures that there will not be HUGE letters on screen by setting an upper limit on the visible text size (regardless of zoomLevel)
+      if (relativeFontSize >= this.options.fontSizeMaxVisible) {
+        fontSize = Number(this.options.fontSizeMaxVisible) * this.networkScaleInv;
+      }
+
+      // fade in when relative scale is between threshold and threshold - 1
+      var fontColor = this.options.fontColor || "#000000";
+      var strokecolor = this.options.fontStrokeColor;
+      if (relativeFontSize <= this.options.fontDrawThreshold) {
+        var opacity = Math.max(0,Math.min(1,1 - (this.options.fontDrawThreshold - relativeFontSize)));
+        fontColor   = util.overrideOpacity(fontColor,   opacity);
+        strokecolor = util.overrideOpacity(strokecolor, opacity);
+
+      }
+
+      ctx.font = (this.selected ? "bold " : "") + fontSize + "px " + this.options.fontFace;
 
       var lines = text.split('\n');
       var lineCount = lines.length;
-      var fontSize = Number(this.options.fontSize);
       var yLine = y + (1 - lineCount) / 2 * fontSize;
       if (labelUnderNode == true) {
         yLine = y + (1 - lineCount) / (2 * fontSize);
@@ -20781,7 +20931,7 @@ return /******/ (function(modules) { // webpackBootstrap
         var lineWidth = ctx.measureText(lines[i]).width;
         width = lineWidth > width ? lineWidth : width;
       }
-      var height = this.options.fontSize * lineCount;
+      var height = fontSize * lineCount;
       var left = x - width / 2;
       var top = y - height / 2;
       if (baseline == "hanging") {
@@ -20798,12 +20948,12 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       // draw text
-      ctx.fillStyle = this.options.fontColor || "black";
+      ctx.fillStyle = fontColor;
       ctx.textAlign = align || "center";
       ctx.textBaseline = baseline || "middle";
       if (this.options.fontStrokeWidth > 0){
         ctx.lineWidth   = this.options.fontStrokeWidth;
-        ctx.strokeStyle = this.options.fontStrokeColor;
+        ctx.strokeStyle = strokecolor;
         ctx.lineJoin    = 'round';
       }
       for (var i = 0; i < lineCount; i++) {
@@ -20819,10 +20969,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
   Node.prototype.getTextSize = function(ctx) {
     if (this.label !== undefined) {
-      ctx.font = (this.selected ? "bold " : "") + this.options.fontSize + "px " + this.options.fontFace;
+      var fontSize = Number(this.options.fontSize);
+      if (fontSize * this.networkScale > this.options.fontSizeMaxVisible) {
+        fontSize = Number(this.options.fontSizeMaxVisible) * this.networkScaleInv;
+      }
+      ctx.font = (this.selected ? "bold " : "") + fontSize + "px " + this.options.fontFace;
 
       var lines = this.label.split('\n'),
-          height = (Number(this.options.fontSize) + 4) * lines.length,
+          height = (fontSize + 4) * lines.length,
           width = 0;
 
       for (var i = 0, iMax = lines.length; i < iMax; i++) {
@@ -21968,7 +22122,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // first check if moment.js is already loaded in the browser window, if so,
   // use this instance. Else, load via commonjs.
-  module.exports = (typeof window !== 'undefined') && window['moment'] || __webpack_require__(58);
+  module.exports = (typeof window !== 'undefined') && window['moment'] || __webpack_require__(66);
 
 
 /***/ },
@@ -21978,7 +22132,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // Only load hammer.js when in a browser environment
   // (loading hammer.js in a node.js environment gives errors)
   if (typeof window !== 'undefined') {
-    module.exports = window['Hammer'] || __webpack_require__(59);
+    module.exports = window['Hammer'] || __webpack_require__(65);
   }
   else {
     module.exports = function () {
@@ -21991,14 +22145,69 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
+  var Hammer = __webpack_require__(45);
+
+  /**
+   * Fake a hammer.js gesture. Event can be a ScrollEvent or MouseMoveEvent
+   * @param {Element} element
+   * @param {Event} event
+   */
+  exports.fakeGesture = function(element, event) {
+    var eventType = null;
+
+    // for hammer.js 1.0.5
+    // var gesture = Hammer.event.collectEventData(this, eventType, event);
+
+    // for hammer.js 1.0.6+
+    var touches = Hammer.event.getTouchList(event, eventType);
+    var gesture = Hammer.event.collectEventData(this, eventType, touches, event);
+
+    // on IE in standards mode, no touches are recognized by hammer.js,
+    // resulting in NaN values for center.pageX and center.pageY
+    if (isNaN(gesture.center.pageX)) {
+      gesture.center.pageX = event.pageX;
+    }
+    if (isNaN(gesture.center.pageY)) {
+      gesture.center.pageY = event.pageY;
+    }
+
+    return gesture;
+  };
+
+
+/***/ },
+/* 47 */
+/***/ function(module, exports, __webpack_require__) {
+
+  // English
+  exports['en'] = {
+    current: 'current',
+    time: 'time'
+  };
+  exports['en_EN'] = exports['en'];
+  exports['en_US'] = exports['en'];
+
+  // Dutch
+  exports['nl'] = {
+    custom: 'aangepaste',
+    time: 'tijd'
+  };
+  exports['nl_NL'] = exports['nl'];
+  exports['nl_BE'] = exports['nl'];
+
+
+/***/ },
+/* 48 */
+/***/ function(module, exports, __webpack_require__) {
+
   var Emitter = __webpack_require__(56);
   var Hammer = __webpack_require__(45);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
-  var ItemSet = __webpack_require__(32);
-  var Activator = __webpack_require__(53);
+  var ItemSet = __webpack_require__(27);
+  var Activator = __webpack_require__(52);
   var DateUtil = __webpack_require__(15);
 
   /**
@@ -22866,929 +23075,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 47 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var Hammer = __webpack_require__(45);
-
-  /**
-   * Fake a hammer.js gesture. Event can be a ScrollEvent or MouseMoveEvent
-   * @param {Element} element
-   * @param {Event} event
-   */
-  exports.fakeGesture = function(element, event) {
-    var eventType = null;
-
-    // for hammer.js 1.0.5
-    // var gesture = Hammer.event.collectEventData(this, eventType, event);
-
-    // for hammer.js 1.0.6+
-    var touches = Hammer.event.getTouchList(event, eventType);
-    var gesture = Hammer.event.collectEventData(this, eventType, touches, event);
-
-    // on IE in standards mode, no touches are recognized by hammer.js,
-    // resulting in NaN values for center.pageX and center.pageY
-    if (isNaN(gesture.center.pageX)) {
-      gesture.center.pageX = event.pageX;
-    }
-    if (isNaN(gesture.center.pageY)) {
-      gesture.center.pageY = event.pageY;
-    }
-
-    return gesture;
-  };
-
-
-/***/ },
-/* 48 */
-/***/ function(module, exports, __webpack_require__) {
-
-  // English
-  exports['en'] = {
-    current: 'current',
-    time: 'time'
-  };
-  exports['en_EN'] = exports['en'];
-  exports['en_US'] = exports['en'];
-
-  // Dutch
-  exports['nl'] = {
-    custom: 'aangepaste',
-    time: 'tijd'
-  };
-  exports['nl_NL'] = exports['nl'];
-  exports['nl_BE'] = exports['nl'];
-
-
-/***/ },
 /* 49 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * Created by Alex on 11/11/2014.
-   */
-  var DOMutil = __webpack_require__(2);
-  var Points = __webpack_require__(51);
-
-  function Line(groupId, options) {
-    this.groupId = groupId;
-    this.options = options;
-  }
-
-  Line.prototype.getYRange = function(groupData) {
-    var yMin = groupData[0].y;
-    var yMax = groupData[0].y;
-    for (var j = 0; j < groupData.length; j++) {
-      yMin = yMin > groupData[j].y ? groupData[j].y : yMin;
-      yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
-    }
-    return {min: yMin, max: yMax, yAxisOrientation: this.options.yAxisOrientation};
-  };
-
-
-  /**
-   * draw a line graph
-   *
-   * @param dataset
-   * @param group
-   */
-  Line.prototype.draw = function (dataset, group, framework) {
-    if (dataset != null) {
-      if (dataset.length > 0) {
-        var path, d;
-        var svgHeight = Number(framework.svg.style.height.replace('px',''));
-        path = DOMutil.getSVGElement('path', framework.svgElements, framework.svg);
-        path.setAttributeNS(null, "class", group.className);
-        if(group.style !== undefined) {
-          path.setAttributeNS(null, "style", group.style);
-        }
-
-        // construct path from dataset
-        if (group.options.catmullRom.enabled == true) {
-          d = Line._catmullRom(dataset, group);
-        }
-        else {
-          d = Line._linear(dataset);
-        }
-
-        // append with points for fill and finalize the path
-        if (group.options.shaded.enabled == true) {
-          var fillPath = DOMutil.getSVGElement('path', framework.svgElements, framework.svg);
-          var dFill;
-          if (group.options.shaded.orientation == 'top') {
-            dFill = 'M' + dataset[0].x + ',' + 0 + ' ' + d + 'L' + dataset[dataset.length - 1].x + ',' + 0;
-          }
-          else {
-            dFill = 'M' + dataset[0].x + ',' + svgHeight + ' ' + d + 'L' + dataset[dataset.length - 1].x + ',' + svgHeight;
-          }
-          fillPath.setAttributeNS(null, "class", group.className + " fill");
-          if(group.options.shaded.style !== undefined) {
-            fillPath.setAttributeNS(null, "style", group.options.shaded.style);
-          }
-          fillPath.setAttributeNS(null, "d", dFill);
-        }
-        // copy properties to path for drawing.
-        path.setAttributeNS(null, 'd', 'M' + d);
-
-        // draw points
-        if (group.options.drawPoints.enabled == true) {
-          Points.draw(dataset, group, framework);
-        }
-      }
-    }
-  };
-
-
-
-  /**
-   * This uses an uniform parametrization of the CatmullRom algorithm:
-   * 'On the Parameterization of Catmull-Rom Curves' by Cem Yuksel et al.
-   * @param data
-   * @returns {string}
-   * @private
-   */
-  Line._catmullRomUniform = function(data) {
-    // catmull rom
-    var p0, p1, p2, p3, bp1, bp2;
-    var d = Math.round(data[0].x) + ',' + Math.round(data[0].y) + ' ';
-    var normalization = 1/6;
-    var length = data.length;
-    for (var i = 0; i < length - 1; i++) {
-
-      p0 = (i == 0) ? data[0] : data[i-1];
-      p1 = data[i];
-      p2 = data[i+1];
-      p3 = (i + 2 < length) ? data[i+2] : p2;
-
-
-      // Catmull-Rom to Cubic Bezier conversion matrix
-      //    0       1       0       0
-      //  -1/6      1      1/6      0
-      //    0      1/6      1     -1/6
-      //    0       0       1       0
-
-      //    bp0 = { x: p1.x,                               y: p1.y };
-      bp1 = { x: ((-p0.x + 6*p1.x + p2.x) *normalization), y: ((-p0.y + 6*p1.y + p2.y) *normalization)};
-      bp2 = { x: (( p1.x + 6*p2.x - p3.x) *normalization), y: (( p1.y + 6*p2.y - p3.y) *normalization)};
-      //    bp0 = { x: p2.x,                               y: p2.y };
-
-      d += 'C' +
-      bp1.x + ',' +
-      bp1.y + ' ' +
-      bp2.x + ',' +
-      bp2.y + ' ' +
-      p2.x + ',' +
-      p2.y + ' ';
-    }
-
-    return d;
-  };
-
-  /**
-   * This uses either the chordal or centripetal parameterization of the catmull-rom algorithm.
-   * By default, the centripetal parameterization is used because this gives the nicest results.
-   * These parameterizations are relatively heavy because the distance between 4 points have to be calculated.
-   *
-   * One optimization can be used to reuse distances since this is a sliding window approach.
-   * @param data
-   * @param group
-   * @returns {string}
-   * @private
-   */
-  Line._catmullRom = function(data, group) {
-    var alpha = group.options.catmullRom.alpha;
-    if (alpha == 0 || alpha === undefined) {
-      return this._catmullRomUniform(data);
-    }
-    else {
-      var p0, p1, p2, p3, bp1, bp2, d1,d2,d3, A, B, N, M;
-      var d3powA, d2powA, d3pow2A, d2pow2A, d1pow2A, d1powA;
-      var d = Math.round(data[0].x) + ',' + Math.round(data[0].y) + ' ';
-      var length = data.length;
-      for (var i = 0; i < length - 1; i++) {
-
-        p0 = (i == 0) ? data[0] : data[i-1];
-        p1 = data[i];
-        p2 = data[i+1];
-        p3 = (i + 2 < length) ? data[i+2] : p2;
-
-        d1 = Math.sqrt(Math.pow(p0.x - p1.x,2) + Math.pow(p0.y - p1.y,2));
-        d2 = Math.sqrt(Math.pow(p1.x - p2.x,2) + Math.pow(p1.y - p2.y,2));
-        d3 = Math.sqrt(Math.pow(p2.x - p3.x,2) + Math.pow(p2.y - p3.y,2));
-
-        // Catmull-Rom to Cubic Bezier conversion matrix
-
-        // A = 2d1^2a + 3d1^a * d2^a + d3^2a
-        // B = 2d3^2a + 3d3^a * d2^a + d2^2a
-
-        // [   0             1            0          0          ]
-        // [   -d2^2a /N     A/N          d1^2a /N   0          ]
-        // [   0             d3^2a /M     B/M        -d2^2a /M  ]
-        // [   0             0            1          0          ]
-
-        d3powA  = Math.pow(d3,  alpha);
-        d3pow2A = Math.pow(d3,2*alpha);
-        d2powA  = Math.pow(d2,  alpha);
-        d2pow2A = Math.pow(d2,2*alpha);
-        d1powA  = Math.pow(d1,  alpha);
-        d1pow2A = Math.pow(d1,2*alpha);
-
-        A = 2*d1pow2A + 3*d1powA * d2powA + d2pow2A;
-        B = 2*d3pow2A + 3*d3powA * d2powA + d2pow2A;
-        N = 3*d1powA * (d1powA + d2powA);
-        if (N > 0) {N = 1 / N;}
-        M = 3*d3powA * (d3powA + d2powA);
-        if (M > 0) {M = 1 / M;}
-
-        bp1 = { x: ((-d2pow2A * p0.x + A*p1.x + d1pow2A * p2.x) * N),
-          y: ((-d2pow2A * p0.y + A*p1.y + d1pow2A * p2.y) * N)};
-
-        bp2 = { x: (( d3pow2A * p1.x + B*p2.x - d2pow2A * p3.x) * M),
-          y: (( d3pow2A * p1.y + B*p2.y - d2pow2A * p3.y) * M)};
-
-        if (bp1.x == 0 && bp1.y == 0) {bp1 = p1;}
-        if (bp2.x == 0 && bp2.y == 0) {bp2 = p2;}
-        d += 'C' +
-        bp1.x + ',' +
-        bp1.y + ' ' +
-        bp2.x + ',' +
-        bp2.y + ' ' +
-        p2.x + ',' +
-        p2.y + ' ';
-      }
-
-      return d;
-    }
-  };
-
-  /**
-   * this generates the SVG path for a linear drawing between datapoints.
-   * @param data
-   * @returns {string}
-   * @private
-   */
-  Line._linear = function(data) {
-    // linear
-    var d = '';
-    for (var i = 0; i < data.length; i++) {
-      if (i == 0) {
-        d += data[i].x + ',' + data[i].y;
-      }
-      else {
-        d += ' ' + data[i].x + ',' + data[i].y;
-      }
-    }
-    return d;
-  };
-
-  module.exports = Line;
-
-
-/***/ },
-/* 50 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * Created by Alex on 11/11/2014.
-   */
-  var DOMutil = __webpack_require__(2);
-  var Points = __webpack_require__(51);
-
-  function Bargraph(groupId, options) {
-    this.groupId = groupId;
-    this.options = options;
-  }
-
-  Bargraph.prototype.getYRange = function(groupData) {
-    if (this.options.barChart.handleOverlap != 'stack') {
-      var yMin = groupData[0].y;
-      var yMax = groupData[0].y;
-      for (var j = 0; j < groupData.length; j++) {
-        yMin = yMin > groupData[j].y ? groupData[j].y : yMin;
-        yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
-      }
-      return {min: yMin, max: yMax, yAxisOrientation: this.options.yAxisOrientation};
-    }
-    else {
-      var barCombinedData = [];
-      for (var j = 0; j < groupData.length; j++) {
-        barCombinedData.push({
-          x: groupData[j].x,
-          y: groupData[j].y,
-          groupId: this.groupId
-        });
-      }
-      return barCombinedData;
-    }
-  };
-
-
-
-  /**
-   * draw a bar graph
-   *
-   * @param groupIds
-   * @param processedGroupData
-   */
-  Bargraph.draw = function (groupIds, processedGroupData, framework) {
-    var combinedData = [];
-    var intersections = {};
-    var coreDistance;
-    var key, drawData;
-    var group;
-    var i,j;
-    var barPoints = 0;
-
-    // combine all barchart data
-    for (i = 0; i < groupIds.length; i++) {
-      group = framework.groups[groupIds[i]];
-      if (group.options.style == 'bar') {
-        if (group.visible == true && (framework.options.groups.visibility[groupIds[i]] === undefined || framework.options.groups.visibility[groupIds[i]] == true)) {
-          for (j = 0; j < processedGroupData[groupIds[i]].length; j++) {
-            combinedData.push({
-              x: processedGroupData[groupIds[i]][j].x,
-              y: processedGroupData[groupIds[i]][j].y,
-              groupId: groupIds[i]
-            });
-            barPoints += 1;
-          }
-        }
-      }
-    }
-
-    if (barPoints == 0) {return;}
-
-    // sort by time and by group
-    combinedData.sort(function (a, b) {
-      if (a.x == b.x) {
-        return a.groupId - b.groupId;
-      } else {
-        return a.x - b.x;
-      }
-    });
-
-    // get intersections
-    Bargraph._getDataIntersections(intersections, combinedData);
-
-    // plot barchart
-    for (i = 0; i < combinedData.length; i++) {
-      group = framework.groups[combinedData[i].groupId];
-      var minWidth = 0.1 * group.options.barChart.width;
-
-      key = combinedData[i].x;
-      var heightOffset = 0;
-      if (intersections[key] === undefined) {
-        if (i+1 < combinedData.length) {coreDistance = Math.abs(combinedData[i+1].x - key);}
-        if (i > 0)                     {coreDistance = Math.min(coreDistance,Math.abs(combinedData[i-1].x - key));}
-        drawData = Bargraph._getSafeDrawData(coreDistance, group, minWidth);
-      }
-      else {
-        var nextKey = i + (intersections[key].amount - intersections[key].resolved);
-        var prevKey = i - (intersections[key].resolved + 1);
-        if (nextKey < combinedData.length) {coreDistance = Math.abs(combinedData[nextKey].x - key);}
-        if (prevKey > 0)                   {coreDistance = Math.min(coreDistance,Math.abs(combinedData[prevKey].x - key));}
-        drawData = Bargraph._getSafeDrawData(coreDistance, group, minWidth);
-        intersections[key].resolved += 1;
-
-        if (group.options.barChart.handleOverlap == 'stack') {
-          heightOffset = intersections[key].accumulated;
-          intersections[key].accumulated += group.zeroPosition - combinedData[i].y;
-        }
-        else if (group.options.barChart.handleOverlap == 'sideBySide') {
-          drawData.width = drawData.width / intersections[key].amount;
-          drawData.offset += (intersections[key].resolved) * drawData.width - (0.5*drawData.width * (intersections[key].amount+1));
-          if (group.options.barChart.align == 'left')       {drawData.offset -= 0.5*drawData.width;}
-          else if (group.options.barChart.align == 'right') {drawData.offset += 0.5*drawData.width;}
-        }
-      }
-      DOMutil.drawBar(combinedData[i].x + drawData.offset, combinedData[i].y - heightOffset, drawData.width, group.zeroPosition - combinedData[i].y, group.className + ' bar', framework.svgElements, framework.svg);
-      // draw points
-      if (group.options.drawPoints.enabled == true) {
-        DOMutil.drawPoint(combinedData[i].x + drawData.offset, combinedData[i].y, group, framework.svgElements, framework.svg);
-      }
-    }
-  };
-
-
-  /**
-   * Fill the intersections object with counters of how many datapoints share the same x coordinates
-   * @param intersections
-   * @param combinedData
-   * @private
-   */
-  Bargraph._getDataIntersections = function (intersections, combinedData) {
-    // get intersections
-    var coreDistance;
-    for (var i = 0; i < combinedData.length; i++) {
-      if (i + 1 < combinedData.length) {
-        coreDistance = Math.abs(combinedData[i + 1].x - combinedData[i].x);
-      }
-      if (i > 0) {
-        coreDistance = Math.min(coreDistance, Math.abs(combinedData[i - 1].x - combinedData[i].x));
-      }
-      if (coreDistance == 0) {
-        if (intersections[combinedData[i].x] === undefined) {
-          intersections[combinedData[i].x] = {amount: 0, resolved: 0, accumulated: 0};
-        }
-        intersections[combinedData[i].x].amount += 1;
-      }
-    }
-  };
-
-
-  /**
-   * Get the width and offset for bargraphs based on the coredistance between datapoints
-   *
-   * @param coreDistance
-   * @param group
-   * @param minWidth
-   * @returns {{width: Number, offset: Number}}
-   * @private
-   */
-  Bargraph._getSafeDrawData = function (coreDistance, group, minWidth) {
-    var width, offset;
-    if (coreDistance < group.options.barChart.width && coreDistance > 0) {
-      width = coreDistance < minWidth ? minWidth : coreDistance;
-
-      offset = 0; // recalculate offset with the new width;
-      if (group.options.barChart.align == 'left') {
-        offset -= 0.5 * coreDistance;
-      }
-      else if (group.options.barChart.align == 'right') {
-        offset += 0.5 * coreDistance;
-      }
-    }
-    else {
-      // default settings
-      width = group.options.barChart.width;
-      offset = 0;
-      if (group.options.barChart.align == 'left') {
-        offset -= 0.5 * group.options.barChart.width;
-      }
-      else if (group.options.barChart.align == 'right') {
-        offset += 0.5 * group.options.barChart.width;
-      }
-    }
-
-    return {width: width, offset: offset};
-  };
-
-  Bargraph.getStackedBarYRange = function(barCombinedData, groupRanges, groupIds, groupLabel, orientation) {
-    if (barCombinedData.length > 0) {
-      // sort by time and by group
-      barCombinedData.sort(function (a, b) {
-        if (a.x == b.x) {
-          return a.groupId - b.groupId;
-        } else {
-          return a.x - b.x;
-        }
-      });
-      var intersections = {};
-
-      Bargraph._getDataIntersections(intersections, barCombinedData);
-      groupRanges[groupLabel] = Bargraph._getStackedBarYRange(intersections, barCombinedData);
-      groupRanges[groupLabel].yAxisOrientation = orientation;
-      groupIds.push(groupLabel);
-    }
-  }
-
-  Bargraph._getStackedBarYRange = function (intersections, combinedData) {
-    var key;
-    var yMin = combinedData[0].y;
-    var yMax = combinedData[0].y;
-    for (var i = 0; i < combinedData.length; i++) {
-      key = combinedData[i].x;
-      if (intersections[key] === undefined) {
-        yMin = yMin > combinedData[i].y ? combinedData[i].y : yMin;
-        yMax = yMax < combinedData[i].y ? combinedData[i].y : yMax;
-      }
-      else {
-        intersections[key].accumulated += combinedData[i].y;
-      }
-    }
-    for (var xpos in intersections) {
-      if (intersections.hasOwnProperty(xpos)) {
-        yMin = yMin > intersections[xpos].accumulated ? intersections[xpos].accumulated : yMin;
-        yMax = yMax < intersections[xpos].accumulated ? intersections[xpos].accumulated : yMax;
-      }
-    }
-
-    return {min: yMin, max: yMax};
-  };
-
-  module.exports = Bargraph;
-
-/***/ },
-/* 51 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * Created by Alex on 11/11/2014.
-   */
-  var DOMutil = __webpack_require__(2);
-
-  function Points(groupId, options) {
-    this.groupId = groupId;
-    this.options = options;
-  }
-
-
-  Points.prototype.getYRange = function(groupData) {
-    var yMin = groupData[0].y;
-    var yMax = groupData[0].y;
-    for (var j = 0; j < groupData.length; j++) {
-      yMin = yMin > groupData[j].y ? groupData[j].y : yMin;
-      yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
-    }
-    return {min: yMin, max: yMax, yAxisOrientation: this.options.yAxisOrientation};
-  };
-
-  Points.prototype.draw = function(dataset, group, framework, offset) {
-    Points.draw(dataset, group, framework, offset);
-  }
-
-  /**
-   * draw the data points
-   *
-   * @param {Array} dataset
-   * @param {Object} JSONcontainer
-   * @param {Object} svg            | SVG DOM element
-   * @param {GraphGroup} group
-   * @param {Number} [offset]
-   */
-  Points.draw = function (dataset, group, framework, offset) {
-    if (offset === undefined) {offset = 0;}
-    for (var i = 0; i < dataset.length; i++) {
-      DOMutil.drawPoint(dataset[i].x + offset, dataset[i].y, group, framework.svgElements, framework.svg);
-    }
-  };
-
-
-  module.exports = Points;
-
-/***/ },
-/* 52 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var PhysicsMixin = __webpack_require__(60);
-  var ClusterMixin = __webpack_require__(61);
-  var SectorsMixin = __webpack_require__(62);
-  var SelectionMixin = __webpack_require__(63);
-  var ManipulationMixin = __webpack_require__(64);
-  var NavigationMixin = __webpack_require__(65);
-  var HierarchicalLayoutMixin = __webpack_require__(66);
-
-  /**
-   * Load a mixin into the network object
-   *
-   * @param {Object} sourceVariable | this object has to contain functions.
-   * @private
-   */
-  exports._loadMixin = function (sourceVariable) {
-    for (var mixinFunction in sourceVariable) {
-      if (sourceVariable.hasOwnProperty(mixinFunction)) {
-        this[mixinFunction] = sourceVariable[mixinFunction];
-      }
-    }
-  };
-
-
-  /**
-   * removes a mixin from the network object.
-   *
-   * @param {Object} sourceVariable | this object has to contain functions.
-   * @private
-   */
-  exports._clearMixin = function (sourceVariable) {
-    for (var mixinFunction in sourceVariable) {
-      if (sourceVariable.hasOwnProperty(mixinFunction)) {
-        this[mixinFunction] = undefined;
-      }
-    }
-  };
-
-
-  /**
-   * Mixin the physics system and initialize the parameters required.
-   *
-   * @private
-   */
-  exports._loadPhysicsSystem = function () {
-    this._loadMixin(PhysicsMixin);
-    this._loadSelectedForceSolver();
-    if (this.constants.configurePhysics == true) {
-      this._loadPhysicsConfiguration();
-    }
-    else {
-      this._cleanupPhysicsConfiguration();
-    }
-  };
-
-
-  /**
-   * Mixin the cluster system and initialize the parameters required.
-   *
-   * @private
-   */
-  exports._loadClusterSystem = function () {
-    this.clusterSession = 0;
-    this.hubThreshold = 5;
-    this._loadMixin(ClusterMixin);
-  };
-
-
-  /**
-   * Mixin the sector system and initialize the parameters required
-   *
-   * @private
-   */
-  exports._loadSectorSystem = function () {
-    this.sectors = {};
-    this.activeSector = ["default"];
-    this.sectors["active"] = {};
-    this.sectors["active"]["default"] = {"nodes": {},
-      "edges": {},
-      "nodeIndices": [],
-      "formationScale": 1.0,
-      "drawingNode": undefined };
-    this.sectors["frozen"] = {};
-    this.sectors["support"] = {"nodes": {},
-      "edges": {},
-      "nodeIndices": [],
-      "formationScale": 1.0,
-      "drawingNode": undefined };
-
-    this.nodeIndices = this.sectors["active"]["default"]["nodeIndices"];  // the node indices list is used to speed up the computation of the repulsion fields
-
-    this._loadMixin(SectorsMixin);
-  };
-
-
-  /**
-   * Mixin the selection system and initialize the parameters required
-   *
-   * @private
-   */
-  exports._loadSelectionSystem = function () {
-    this.selectionObj = {nodes: {}, edges: {}};
-
-    this._loadMixin(SelectionMixin);
-  };
-
-
-  /**
-   * Mixin the navigationUI (User Interface) system and initialize the parameters required
-   *
-   * @private
-   */
-  exports._loadManipulationSystem = function () {
-    // reset global variables -- these are used by the selection of nodes and edges.
-    this.blockConnectingEdgeSelection = false;
-    this.forceAppendSelection = false;
-
-    if (this.constants.dataManipulation.enabled == true) {
-      // load the manipulator HTML elements. All styling done in css.
-      if (this.manipulationDiv === undefined) {
-        this.manipulationDiv = document.createElement('div');
-        this.manipulationDiv.className = 'network-manipulationDiv';
-        if (this.editMode == true) {
-          this.manipulationDiv.style.display = "block";
-        }
-        else {
-          this.manipulationDiv.style.display = "none";
-        }
-        this.frame.appendChild(this.manipulationDiv);
-      }
-
-      if (this.editModeDiv === undefined) {
-        this.editModeDiv = document.createElement('div');
-        this.editModeDiv.className = 'network-manipulation-editMode';
-        if (this.editMode == true) {
-          this.editModeDiv.style.display = "none";
-        }
-        else {
-          this.editModeDiv.style.display = "block";
-        }
-        this.frame.appendChild(this.editModeDiv);
-      }
-
-      if (this.closeDiv === undefined) {
-        this.closeDiv = document.createElement('div');
-        this.closeDiv.className = 'network-manipulation-closeDiv';
-        this.closeDiv.style.display = this.manipulationDiv.style.display;
-        this.frame.appendChild(this.closeDiv);
-      }
-
-      // load the manipulation functions
-      this._loadMixin(ManipulationMixin);
-
-      // create the manipulator toolbar
-      this._createManipulatorBar();
-    }
-    else {
-      if (this.manipulationDiv !== undefined) {
-        // removes all the bindings and overloads
-        this._createManipulatorBar();
-
-        // remove the manipulation divs
-        this.frame.removeChild(this.manipulationDiv);
-        this.frame.removeChild(this.editModeDiv);
-        this.frame.removeChild(this.closeDiv);
-
-        this.manipulationDiv = undefined;
-        this.editModeDiv = undefined;
-        this.closeDiv = undefined;
-        // remove the mixin functions
-        this._clearMixin(ManipulationMixin);
-      }
-    }
-  };
-
-
-  /**
-   * Mixin the navigation (User Interface) system and initialize the parameters required
-   *
-   * @private
-   */
-  exports._loadNavigationControls = function () {
-    this._loadMixin(NavigationMixin);
-    // the clean function removes the button divs, this is done to remove the bindings.
-    this._cleanNavigation();
-    if (this.constants.navigation.enabled == true) {
-      this._loadNavigationElements();
-    }
-  };
-
-
-  /**
-   * Mixin the hierarchical layout system.
-   *
-   * @private
-   */
-  exports._loadHierarchySystem = function () {
-    this._loadMixin(HierarchicalLayoutMixin);
-  };
-
-
-/***/ },
-/* 53 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var keycharm = __webpack_require__(57);
-  var Emitter = __webpack_require__(56);
-  var Hammer = __webpack_require__(45);
-  var util = __webpack_require__(1);
-
-  /**
-   * Turn an element into an clickToUse element.
-   * When not active, the element has a transparent overlay. When the overlay is
-   * clicked, the mode is changed to active.
-   * When active, the element is displayed with a blue border around it, and
-   * the interactive contents of the element can be used. When clicked outside
-   * the element, the elements mode is changed to inactive.
-   * @param {Element} container
-   * @constructor
-   */
-  function Activator(container) {
-    this.active = false;
-
-    this.dom = {
-      container: container
-    };
-
-    this.dom.overlay = document.createElement('div');
-    this.dom.overlay.className = 'overlay';
-
-    this.dom.container.appendChild(this.dom.overlay);
-
-    this.hammer = Hammer(this.dom.overlay, {prevent_default: false});
-    this.hammer.on('tap', this._onTapOverlay.bind(this));
-
-    // block all touch events (except tap)
-    var me = this;
-    var events = [
-      'touch', 'pinch',
-      'doubletap', 'hold',
-      'dragstart', 'drag', 'dragend',
-      'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is needed for Firefox
-    ];
-    events.forEach(function (event) {
-      me.hammer.on(event, function (event) {
-        event.stopPropagation();
-      });
-    });
-
-    // attach a tap event to the window, in order to deactivate when clicking outside the timeline
-    this.windowHammer = Hammer(window, {prevent_default: false});
-    this.windowHammer.on('tap', function (event) {
-      // deactivate when clicked outside the container
-      if (!_hasParent(event.target, container)) {
-        me.deactivate();
-      }
-    });
-
-    if (this.keycharm !== undefined) {
-      this.keycharm.destroy();
-    }
-    this.keycharm = keycharm();
-
-    // keycharm listener only bounded when active)
-    this.escListener = this.deactivate.bind(this);
-  }
-
-  // turn into an event emitter
-  Emitter(Activator.prototype);
-
-  // The currently active activator
-  Activator.current = null;
-
-  /**
-   * Destroy the activator. Cleans up all created DOM and event listeners
-   */
-  Activator.prototype.destroy = function () {
-    this.deactivate();
-
-    // remove dom
-    this.dom.overlay.parentNode.removeChild(this.dom.overlay);
-
-    // cleanup hammer instances
-    this.hammer = null;
-    this.windowHammer = null;
-    // FIXME: cleaning up hammer instances doesn't work (Timeline not removed from memory)
-  };
-
-  /**
-   * Activate the element
-   * Overlay is hidden, element is decorated with a blue shadow border
-   */
-  Activator.prototype.activate = function () {
-    // we allow only one active activator at a time
-    if (Activator.current) {
-      Activator.current.deactivate();
-    }
-    Activator.current = this;
-
-    this.active = true;
-    this.dom.overlay.style.display = 'none';
-    util.addClassName(this.dom.container, 'vis-active');
-
-    this.emit('change');
-    this.emit('activate');
-
-    // ugly hack: bind ESC after emitting the events, as the Network rebinds all
-    // keyboard events on a 'change' event
-    this.keycharm.bind('esc', this.escListener);
-  };
-
-  /**
-   * Deactivate the element
-   * Overlay is displayed on top of the element
-   */
-  Activator.prototype.deactivate = function () {
-    this.active = false;
-    this.dom.overlay.style.display = '';
-    util.removeClassName(this.dom.container, 'vis-active');
-    this.keycharm.unbind('esc', this.escListener);
-
-    this.emit('change');
-    this.emit('deactivate');
-  };
-
-  /**
-   * Handle a tap event: activate the container
-   * @param event
-   * @private
-   */
-  Activator.prototype._onTapOverlay = function (event) {
-    // activate the container
-    this.activate();
-    event.stopPropagation();
-  };
-
-  /**
-   * Test whether the element has the requested parent element somewhere in
-   * its chain of parent nodes.
-   * @param {HTMLElement} element
-   * @param {HTMLElement} parent
-   * @returns {boolean} Returns true when the parent is found somewhere in the
-   *                    chain of parent nodes.
-   * @private
-   */
-  function _hasParent(element, parent) {
-    while (element) {
-      if (element === parent) {
-        return true
-      }
-      element = element.parentNode;
-    }
-    return false;
-  }
-
-  module.exports = Activator;
-
-
-/***/ },
-/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -23829,7 +23116,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 55 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -24060,6 +23347,873 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
+/* 51 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var PhysicsMixin = __webpack_require__(64);
+  var ClusterMixin = __webpack_require__(58);
+  var SectorsMixin = __webpack_require__(59);
+  var SelectionMixin = __webpack_require__(60);
+  var ManipulationMixin = __webpack_require__(61);
+  var NavigationMixin = __webpack_require__(62);
+  var HierarchicalLayoutMixin = __webpack_require__(63);
+
+  /**
+   * Load a mixin into the network object
+   *
+   * @param {Object} sourceVariable | this object has to contain functions.
+   * @private
+   */
+  exports._loadMixin = function (sourceVariable) {
+    for (var mixinFunction in sourceVariable) {
+      if (sourceVariable.hasOwnProperty(mixinFunction)) {
+        this[mixinFunction] = sourceVariable[mixinFunction];
+      }
+    }
+  };
+
+
+  /**
+   * removes a mixin from the network object.
+   *
+   * @param {Object} sourceVariable | this object has to contain functions.
+   * @private
+   */
+  exports._clearMixin = function (sourceVariable) {
+    for (var mixinFunction in sourceVariable) {
+      if (sourceVariable.hasOwnProperty(mixinFunction)) {
+        this[mixinFunction] = undefined;
+      }
+    }
+  };
+
+
+  /**
+   * Mixin the physics system and initialize the parameters required.
+   *
+   * @private
+   */
+  exports._loadPhysicsSystem = function () {
+    this._loadMixin(PhysicsMixin);
+    this._loadSelectedForceSolver();
+    if (this.constants.configurePhysics == true) {
+      this._loadPhysicsConfiguration();
+    }
+    else {
+      this._cleanupPhysicsConfiguration();
+    }
+  };
+
+
+  /**
+   * Mixin the cluster system and initialize the parameters required.
+   *
+   * @private
+   */
+  exports._loadClusterSystem = function () {
+    this.clusterSession = 0;
+    this.hubThreshold = 5;
+    this._loadMixin(ClusterMixin);
+  };
+
+
+  /**
+   * Mixin the sector system and initialize the parameters required
+   *
+   * @private
+   */
+  exports._loadSectorSystem = function () {
+    this.sectors = {};
+    this.activeSector = ["default"];
+    this.sectors["active"] = {};
+    this.sectors["active"]["default"] = {"nodes": {},
+      "edges": {},
+      "nodeIndices": [],
+      "formationScale": 1.0,
+      "drawingNode": undefined };
+    this.sectors["frozen"] = {};
+    this.sectors["support"] = {"nodes": {},
+      "edges": {},
+      "nodeIndices": [],
+      "formationScale": 1.0,
+      "drawingNode": undefined };
+
+    this.nodeIndices = this.sectors["active"]["default"]["nodeIndices"];  // the node indices list is used to speed up the computation of the repulsion fields
+
+    this._loadMixin(SectorsMixin);
+  };
+
+
+  /**
+   * Mixin the selection system and initialize the parameters required
+   *
+   * @private
+   */
+  exports._loadSelectionSystem = function () {
+    this.selectionObj = {nodes: {}, edges: {}};
+
+    this._loadMixin(SelectionMixin);
+  };
+
+
+  /**
+   * Mixin the navigationUI (User Interface) system and initialize the parameters required
+   *
+   * @private
+   */
+  exports._loadManipulationSystem = function () {
+    // reset global variables -- these are used by the selection of nodes and edges.
+    this.blockConnectingEdgeSelection = false;
+    this.forceAppendSelection = false;
+
+    if (this.constants.dataManipulation.enabled == true) {
+      // load the manipulator HTML elements. All styling done in css.
+      if (this.manipulationDiv === undefined) {
+        this.manipulationDiv = document.createElement('div');
+        this.manipulationDiv.className = 'network-manipulationDiv';
+        if (this.editMode == true) {
+          this.manipulationDiv.style.display = "block";
+        }
+        else {
+          this.manipulationDiv.style.display = "none";
+        }
+        this.frame.appendChild(this.manipulationDiv);
+      }
+
+      if (this.editModeDiv === undefined) {
+        this.editModeDiv = document.createElement('div');
+        this.editModeDiv.className = 'network-manipulation-editMode';
+        if (this.editMode == true) {
+          this.editModeDiv.style.display = "none";
+        }
+        else {
+          this.editModeDiv.style.display = "block";
+        }
+        this.frame.appendChild(this.editModeDiv);
+      }
+
+      if (this.closeDiv === undefined) {
+        this.closeDiv = document.createElement('div');
+        this.closeDiv.className = 'network-manipulation-closeDiv';
+        this.closeDiv.style.display = this.manipulationDiv.style.display;
+        this.frame.appendChild(this.closeDiv);
+      }
+
+      // load the manipulation functions
+      this._loadMixin(ManipulationMixin);
+
+      // create the manipulator toolbar
+      this._createManipulatorBar();
+    }
+    else {
+      if (this.manipulationDiv !== undefined) {
+        // removes all the bindings and overloads
+        this._createManipulatorBar();
+
+        // remove the manipulation divs
+        this.frame.removeChild(this.manipulationDiv);
+        this.frame.removeChild(this.editModeDiv);
+        this.frame.removeChild(this.closeDiv);
+
+        this.manipulationDiv = undefined;
+        this.editModeDiv = undefined;
+        this.closeDiv = undefined;
+        // remove the mixin functions
+        this._clearMixin(ManipulationMixin);
+      }
+    }
+  };
+
+
+  /**
+   * Mixin the navigation (User Interface) system and initialize the parameters required
+   *
+   * @private
+   */
+  exports._loadNavigationControls = function () {
+    this._loadMixin(NavigationMixin);
+    // the clean function removes the button divs, this is done to remove the bindings.
+    this._cleanNavigation();
+    if (this.constants.navigation.enabled == true) {
+      this._loadNavigationElements();
+    }
+  };
+
+
+  /**
+   * Mixin the hierarchical layout system.
+   *
+   * @private
+   */
+  exports._loadHierarchySystem = function () {
+    this._loadMixin(HierarchicalLayoutMixin);
+  };
+
+
+/***/ },
+/* 52 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var keycharm = __webpack_require__(57);
+  var Emitter = __webpack_require__(56);
+  var Hammer = __webpack_require__(45);
+  var util = __webpack_require__(1);
+
+  /**
+   * Turn an element into an clickToUse element.
+   * When not active, the element has a transparent overlay. When the overlay is
+   * clicked, the mode is changed to active.
+   * When active, the element is displayed with a blue border around it, and
+   * the interactive contents of the element can be used. When clicked outside
+   * the element, the elements mode is changed to inactive.
+   * @param {Element} container
+   * @constructor
+   */
+  function Activator(container) {
+    this.active = false;
+
+    this.dom = {
+      container: container
+    };
+
+    this.dom.overlay = document.createElement('div');
+    this.dom.overlay.className = 'overlay';
+
+    this.dom.container.appendChild(this.dom.overlay);
+
+    this.hammer = Hammer(this.dom.overlay, {prevent_default: false});
+    this.hammer.on('tap', this._onTapOverlay.bind(this));
+
+    // block all touch events (except tap)
+    var me = this;
+    var events = [
+      'touch', 'pinch',
+      'doubletap', 'hold',
+      'dragstart', 'drag', 'dragend',
+      'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is needed for Firefox
+    ];
+    events.forEach(function (event) {
+      me.hammer.on(event, function (event) {
+        event.stopPropagation();
+      });
+    });
+
+    // attach a tap event to the window, in order to deactivate when clicking outside the timeline
+    this.windowHammer = Hammer(window, {prevent_default: false});
+    this.windowHammer.on('tap', function (event) {
+      // deactivate when clicked outside the container
+      if (!_hasParent(event.target, container)) {
+        me.deactivate();
+      }
+    });
+
+    if (this.keycharm !== undefined) {
+      this.keycharm.destroy();
+    }
+    this.keycharm = keycharm();
+
+    // keycharm listener only bounded when active)
+    this.escListener = this.deactivate.bind(this);
+  }
+
+  // turn into an event emitter
+  Emitter(Activator.prototype);
+
+  // The currently active activator
+  Activator.current = null;
+
+  /**
+   * Destroy the activator. Cleans up all created DOM and event listeners
+   */
+  Activator.prototype.destroy = function () {
+    this.deactivate();
+
+    // remove dom
+    this.dom.overlay.parentNode.removeChild(this.dom.overlay);
+
+    // cleanup hammer instances
+    this.hammer = null;
+    this.windowHammer = null;
+    // FIXME: cleaning up hammer instances doesn't work (Timeline not removed from memory)
+  };
+
+  /**
+   * Activate the element
+   * Overlay is hidden, element is decorated with a blue shadow border
+   */
+  Activator.prototype.activate = function () {
+    // we allow only one active activator at a time
+    if (Activator.current) {
+      Activator.current.deactivate();
+    }
+    Activator.current = this;
+
+    this.active = true;
+    this.dom.overlay.style.display = 'none';
+    util.addClassName(this.dom.container, 'vis-active');
+
+    this.emit('change');
+    this.emit('activate');
+
+    // ugly hack: bind ESC after emitting the events, as the Network rebinds all
+    // keyboard events on a 'change' event
+    this.keycharm.bind('esc', this.escListener);
+  };
+
+  /**
+   * Deactivate the element
+   * Overlay is displayed on top of the element
+   */
+  Activator.prototype.deactivate = function () {
+    this.active = false;
+    this.dom.overlay.style.display = '';
+    util.removeClassName(this.dom.container, 'vis-active');
+    this.keycharm.unbind('esc', this.escListener);
+
+    this.emit('change');
+    this.emit('deactivate');
+  };
+
+  /**
+   * Handle a tap event: activate the container
+   * @param event
+   * @private
+   */
+  Activator.prototype._onTapOverlay = function (event) {
+    // activate the container
+    this.activate();
+    event.stopPropagation();
+  };
+
+  /**
+   * Test whether the element has the requested parent element somewhere in
+   * its chain of parent nodes.
+   * @param {HTMLElement} element
+   * @param {HTMLElement} parent
+   * @returns {boolean} Returns true when the parent is found somewhere in the
+   *                    chain of parent nodes.
+   * @private
+   */
+  function _hasParent(element, parent) {
+    while (element) {
+      if (element === parent) {
+        return true
+      }
+      element = element.parentNode;
+    }
+    return false;
+  }
+
+  module.exports = Activator;
+
+
+/***/ },
+/* 53 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Created by Alex on 11/11/2014.
+   */
+  var DOMutil = __webpack_require__(2);
+  var Points = __webpack_require__(55);
+
+  function Bargraph(groupId, options) {
+    this.groupId = groupId;
+    this.options = options;
+  }
+
+  Bargraph.prototype.getYRange = function(groupData) {
+    if (this.options.barChart.handleOverlap != 'stack') {
+      var yMin = groupData[0].y;
+      var yMax = groupData[0].y;
+      for (var j = 0; j < groupData.length; j++) {
+        yMin = yMin > groupData[j].y ? groupData[j].y : yMin;
+        yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
+      }
+      return {min: yMin, max: yMax, yAxisOrientation: this.options.yAxisOrientation};
+    }
+    else {
+      var barCombinedData = [];
+      for (var j = 0; j < groupData.length; j++) {
+        barCombinedData.push({
+          x: groupData[j].x,
+          y: groupData[j].y,
+          groupId: this.groupId
+        });
+      }
+      return barCombinedData;
+    }
+  };
+
+
+
+  /**
+   * draw a bar graph
+   *
+   * @param groupIds
+   * @param processedGroupData
+   */
+  Bargraph.draw = function (groupIds, processedGroupData, framework) {
+    var combinedData = [];
+    var intersections = {};
+    var coreDistance;
+    var key, drawData;
+    var group;
+    var i,j;
+    var barPoints = 0;
+
+    // combine all barchart data
+    for (i = 0; i < groupIds.length; i++) {
+      group = framework.groups[groupIds[i]];
+      if (group.options.style == 'bar') {
+        if (group.visible == true && (framework.options.groups.visibility[groupIds[i]] === undefined || framework.options.groups.visibility[groupIds[i]] == true)) {
+          for (j = 0; j < processedGroupData[groupIds[i]].length; j++) {
+            combinedData.push({
+              x: processedGroupData[groupIds[i]][j].x,
+              y: processedGroupData[groupIds[i]][j].y,
+              groupId: groupIds[i]
+            });
+            barPoints += 1;
+          }
+        }
+      }
+    }
+
+    if (barPoints == 0) {return;}
+
+    // sort by time and by group
+    combinedData.sort(function (a, b) {
+      if (a.x == b.x) {
+        return a.groupId - b.groupId;
+      } else {
+        return a.x - b.x;
+      }
+    });
+
+    // get intersections
+    Bargraph._getDataIntersections(intersections, combinedData);
+
+    // plot barchart
+    for (i = 0; i < combinedData.length; i++) {
+      group = framework.groups[combinedData[i].groupId];
+      var minWidth = 0.1 * group.options.barChart.width;
+
+      key = combinedData[i].x;
+      var heightOffset = 0;
+      if (intersections[key] === undefined) {
+        if (i+1 < combinedData.length) {coreDistance = Math.abs(combinedData[i+1].x - key);}
+        if (i > 0)                     {coreDistance = Math.min(coreDistance,Math.abs(combinedData[i-1].x - key));}
+        drawData = Bargraph._getSafeDrawData(coreDistance, group, minWidth);
+      }
+      else {
+        var nextKey = i + (intersections[key].amount - intersections[key].resolved);
+        var prevKey = i - (intersections[key].resolved + 1);
+        if (nextKey < combinedData.length) {coreDistance = Math.abs(combinedData[nextKey].x - key);}
+        if (prevKey > 0)                   {coreDistance = Math.min(coreDistance,Math.abs(combinedData[prevKey].x - key));}
+        drawData = Bargraph._getSafeDrawData(coreDistance, group, minWidth);
+        intersections[key].resolved += 1;
+
+        if (group.options.barChart.handleOverlap == 'stack') {
+          heightOffset = intersections[key].accumulated;
+          intersections[key].accumulated += group.zeroPosition - combinedData[i].y;
+        }
+        else if (group.options.barChart.handleOverlap == 'sideBySide') {
+          drawData.width = drawData.width / intersections[key].amount;
+          drawData.offset += (intersections[key].resolved) * drawData.width - (0.5*drawData.width * (intersections[key].amount+1));
+          if (group.options.barChart.align == 'left')       {drawData.offset -= 0.5*drawData.width;}
+          else if (group.options.barChart.align == 'right') {drawData.offset += 0.5*drawData.width;}
+        }
+      }
+      DOMutil.drawBar(combinedData[i].x + drawData.offset, combinedData[i].y - heightOffset, drawData.width, group.zeroPosition - combinedData[i].y, group.className + ' bar', framework.svgElements, framework.svg);
+      // draw points
+      if (group.options.drawPoints.enabled == true) {
+        DOMutil.drawPoint(combinedData[i].x + drawData.offset, combinedData[i].y, group, framework.svgElements, framework.svg);
+      }
+    }
+  };
+
+
+  /**
+   * Fill the intersections object with counters of how many datapoints share the same x coordinates
+   * @param intersections
+   * @param combinedData
+   * @private
+   */
+  Bargraph._getDataIntersections = function (intersections, combinedData) {
+    // get intersections
+    var coreDistance;
+    for (var i = 0; i < combinedData.length; i++) {
+      if (i + 1 < combinedData.length) {
+        coreDistance = Math.abs(combinedData[i + 1].x - combinedData[i].x);
+      }
+      if (i > 0) {
+        coreDistance = Math.min(coreDistance, Math.abs(combinedData[i - 1].x - combinedData[i].x));
+      }
+      if (coreDistance == 0) {
+        if (intersections[combinedData[i].x] === undefined) {
+          intersections[combinedData[i].x] = {amount: 0, resolved: 0, accumulated: 0};
+        }
+        intersections[combinedData[i].x].amount += 1;
+      }
+    }
+  };
+
+
+  /**
+   * Get the width and offset for bargraphs based on the coredistance between datapoints
+   *
+   * @param coreDistance
+   * @param group
+   * @param minWidth
+   * @returns {{width: Number, offset: Number}}
+   * @private
+   */
+  Bargraph._getSafeDrawData = function (coreDistance, group, minWidth) {
+    var width, offset;
+    if (coreDistance < group.options.barChart.width && coreDistance > 0) {
+      width = coreDistance < minWidth ? minWidth : coreDistance;
+
+      offset = 0; // recalculate offset with the new width;
+      if (group.options.barChart.align == 'left') {
+        offset -= 0.5 * coreDistance;
+      }
+      else if (group.options.barChart.align == 'right') {
+        offset += 0.5 * coreDistance;
+      }
+    }
+    else {
+      // default settings
+      width = group.options.barChart.width;
+      offset = 0;
+      if (group.options.barChart.align == 'left') {
+        offset -= 0.5 * group.options.barChart.width;
+      }
+      else if (group.options.barChart.align == 'right') {
+        offset += 0.5 * group.options.barChart.width;
+      }
+    }
+
+    return {width: width, offset: offset};
+  };
+
+  Bargraph.getStackedBarYRange = function(barCombinedData, groupRanges, groupIds, groupLabel, orientation) {
+    if (barCombinedData.length > 0) {
+      // sort by time and by group
+      barCombinedData.sort(function (a, b) {
+        if (a.x == b.x) {
+          return a.groupId - b.groupId;
+        } else {
+          return a.x - b.x;
+        }
+      });
+      var intersections = {};
+
+      Bargraph._getDataIntersections(intersections, barCombinedData);
+      groupRanges[groupLabel] = Bargraph._getStackedBarYRange(intersections, barCombinedData);
+      groupRanges[groupLabel].yAxisOrientation = orientation;
+      groupIds.push(groupLabel);
+    }
+  }
+
+  Bargraph._getStackedBarYRange = function (intersections, combinedData) {
+    var key;
+    var yMin = combinedData[0].y;
+    var yMax = combinedData[0].y;
+    for (var i = 0; i < combinedData.length; i++) {
+      key = combinedData[i].x;
+      if (intersections[key] === undefined) {
+        yMin = yMin > combinedData[i].y ? combinedData[i].y : yMin;
+        yMax = yMax < combinedData[i].y ? combinedData[i].y : yMax;
+      }
+      else {
+        intersections[key].accumulated += combinedData[i].y;
+      }
+    }
+    for (var xpos in intersections) {
+      if (intersections.hasOwnProperty(xpos)) {
+        yMin = yMin > intersections[xpos].accumulated ? intersections[xpos].accumulated : yMin;
+        yMax = yMax < intersections[xpos].accumulated ? intersections[xpos].accumulated : yMax;
+      }
+    }
+
+    return {min: yMin, max: yMax};
+  };
+
+  module.exports = Bargraph;
+
+/***/ },
+/* 54 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Created by Alex on 11/11/2014.
+   */
+  var DOMutil = __webpack_require__(2);
+  var Points = __webpack_require__(55);
+
+  function Line(groupId, options) {
+    this.groupId = groupId;
+    this.options = options;
+  }
+
+  Line.prototype.getYRange = function(groupData) {
+    var yMin = groupData[0].y;
+    var yMax = groupData[0].y;
+    for (var j = 0; j < groupData.length; j++) {
+      yMin = yMin > groupData[j].y ? groupData[j].y : yMin;
+      yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
+    }
+    return {min: yMin, max: yMax, yAxisOrientation: this.options.yAxisOrientation};
+  };
+
+
+  /**
+   * draw a line graph
+   *
+   * @param dataset
+   * @param group
+   */
+  Line.prototype.draw = function (dataset, group, framework) {
+    if (dataset != null) {
+      if (dataset.length > 0) {
+        var path, d;
+        var svgHeight = Number(framework.svg.style.height.replace('px',''));
+        path = DOMutil.getSVGElement('path', framework.svgElements, framework.svg);
+        path.setAttributeNS(null, "class", group.className);
+        if(group.style !== undefined) {
+          path.setAttributeNS(null, "style", group.style);
+        }
+
+        // construct path from dataset
+        if (group.options.catmullRom.enabled == true) {
+          d = Line._catmullRom(dataset, group);
+        }
+        else {
+          d = Line._linear(dataset);
+        }
+
+        // append with points for fill and finalize the path
+        if (group.options.shaded.enabled == true) {
+          var fillPath = DOMutil.getSVGElement('path', framework.svgElements, framework.svg);
+          var dFill;
+          if (group.options.shaded.orientation == 'top') {
+            dFill = 'M' + dataset[0].x + ',' + 0 + ' ' + d + 'L' + dataset[dataset.length - 1].x + ',' + 0;
+          }
+          else {
+            dFill = 'M' + dataset[0].x + ',' + svgHeight + ' ' + d + 'L' + dataset[dataset.length - 1].x + ',' + svgHeight;
+          }
+          fillPath.setAttributeNS(null, "class", group.className + " fill");
+          if(group.options.shaded.style !== undefined) {
+            fillPath.setAttributeNS(null, "style", group.options.shaded.style);
+          }
+          fillPath.setAttributeNS(null, "d", dFill);
+        }
+        // copy properties to path for drawing.
+        path.setAttributeNS(null, 'd', 'M' + d);
+
+        // draw points
+        if (group.options.drawPoints.enabled == true) {
+          Points.draw(dataset, group, framework);
+        }
+      }
+    }
+  };
+
+
+
+  /**
+   * This uses an uniform parametrization of the CatmullRom algorithm:
+   * 'On the Parameterization of Catmull-Rom Curves' by Cem Yuksel et al.
+   * @param data
+   * @returns {string}
+   * @private
+   */
+  Line._catmullRomUniform = function(data) {
+    // catmull rom
+    var p0, p1, p2, p3, bp1, bp2;
+    var d = Math.round(data[0].x) + ',' + Math.round(data[0].y) + ' ';
+    var normalization = 1/6;
+    var length = data.length;
+    for (var i = 0; i < length - 1; i++) {
+
+      p0 = (i == 0) ? data[0] : data[i-1];
+      p1 = data[i];
+      p2 = data[i+1];
+      p3 = (i + 2 < length) ? data[i+2] : p2;
+
+
+      // Catmull-Rom to Cubic Bezier conversion matrix
+      //    0       1       0       0
+      //  -1/6      1      1/6      0
+      //    0      1/6      1     -1/6
+      //    0       0       1       0
+
+      //    bp0 = { x: p1.x,                               y: p1.y };
+      bp1 = { x: ((-p0.x + 6*p1.x + p2.x) *normalization), y: ((-p0.y + 6*p1.y + p2.y) *normalization)};
+      bp2 = { x: (( p1.x + 6*p2.x - p3.x) *normalization), y: (( p1.y + 6*p2.y - p3.y) *normalization)};
+      //    bp0 = { x: p2.x,                               y: p2.y };
+
+      d += 'C' +
+      bp1.x + ',' +
+      bp1.y + ' ' +
+      bp2.x + ',' +
+      bp2.y + ' ' +
+      p2.x + ',' +
+      p2.y + ' ';
+    }
+
+    return d;
+  };
+
+  /**
+   * This uses either the chordal or centripetal parameterization of the catmull-rom algorithm.
+   * By default, the centripetal parameterization is used because this gives the nicest results.
+   * These parameterizations are relatively heavy because the distance between 4 points have to be calculated.
+   *
+   * One optimization can be used to reuse distances since this is a sliding window approach.
+   * @param data
+   * @param group
+   * @returns {string}
+   * @private
+   */
+  Line._catmullRom = function(data, group) {
+    var alpha = group.options.catmullRom.alpha;
+    if (alpha == 0 || alpha === undefined) {
+      return this._catmullRomUniform(data);
+    }
+    else {
+      var p0, p1, p2, p3, bp1, bp2, d1,d2,d3, A, B, N, M;
+      var d3powA, d2powA, d3pow2A, d2pow2A, d1pow2A, d1powA;
+      var d = Math.round(data[0].x) + ',' + Math.round(data[0].y) + ' ';
+      var length = data.length;
+      for (var i = 0; i < length - 1; i++) {
+
+        p0 = (i == 0) ? data[0] : data[i-1];
+        p1 = data[i];
+        p2 = data[i+1];
+        p3 = (i + 2 < length) ? data[i+2] : p2;
+
+        d1 = Math.sqrt(Math.pow(p0.x - p1.x,2) + Math.pow(p0.y - p1.y,2));
+        d2 = Math.sqrt(Math.pow(p1.x - p2.x,2) + Math.pow(p1.y - p2.y,2));
+        d3 = Math.sqrt(Math.pow(p2.x - p3.x,2) + Math.pow(p2.y - p3.y,2));
+
+        // Catmull-Rom to Cubic Bezier conversion matrix
+
+        // A = 2d1^2a + 3d1^a * d2^a + d3^2a
+        // B = 2d3^2a + 3d3^a * d2^a + d2^2a
+
+        // [   0             1            0          0          ]
+        // [   -d2^2a /N     A/N          d1^2a /N   0          ]
+        // [   0             d3^2a /M     B/M        -d2^2a /M  ]
+        // [   0             0            1          0          ]
+
+        d3powA  = Math.pow(d3,  alpha);
+        d3pow2A = Math.pow(d3,2*alpha);
+        d2powA  = Math.pow(d2,  alpha);
+        d2pow2A = Math.pow(d2,2*alpha);
+        d1powA  = Math.pow(d1,  alpha);
+        d1pow2A = Math.pow(d1,2*alpha);
+
+        A = 2*d1pow2A + 3*d1powA * d2powA + d2pow2A;
+        B = 2*d3pow2A + 3*d3powA * d2powA + d2pow2A;
+        N = 3*d1powA * (d1powA + d2powA);
+        if (N > 0) {N = 1 / N;}
+        M = 3*d3powA * (d3powA + d2powA);
+        if (M > 0) {M = 1 / M;}
+
+        bp1 = { x: ((-d2pow2A * p0.x + A*p1.x + d1pow2A * p2.x) * N),
+          y: ((-d2pow2A * p0.y + A*p1.y + d1pow2A * p2.y) * N)};
+
+        bp2 = { x: (( d3pow2A * p1.x + B*p2.x - d2pow2A * p3.x) * M),
+          y: (( d3pow2A * p1.y + B*p2.y - d2pow2A * p3.y) * M)};
+
+        if (bp1.x == 0 && bp1.y == 0) {bp1 = p1;}
+        if (bp2.x == 0 && bp2.y == 0) {bp2 = p2;}
+        d += 'C' +
+        bp1.x + ',' +
+        bp1.y + ' ' +
+        bp2.x + ',' +
+        bp2.y + ' ' +
+        p2.x + ',' +
+        p2.y + ' ';
+      }
+
+      return d;
+    }
+  };
+
+  /**
+   * this generates the SVG path for a linear drawing between datapoints.
+   * @param data
+   * @returns {string}
+   * @private
+   */
+  Line._linear = function(data) {
+    // linear
+    var d = '';
+    for (var i = 0; i < data.length; i++) {
+      if (i == 0) {
+        d += data[i].x + ',' + data[i].y;
+      }
+      else {
+        d += ' ' + data[i].x + ',' + data[i].y;
+      }
+    }
+    return d;
+  };
+
+  module.exports = Line;
+
+
+/***/ },
+/* 55 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Created by Alex on 11/11/2014.
+   */
+  var DOMutil = __webpack_require__(2);
+
+  function Points(groupId, options) {
+    this.groupId = groupId;
+    this.options = options;
+  }
+
+
+  Points.prototype.getYRange = function(groupData) {
+    var yMin = groupData[0].y;
+    var yMax = groupData[0].y;
+    for (var j = 0; j < groupData.length; j++) {
+      yMin = yMin > groupData[j].y ? groupData[j].y : yMin;
+      yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
+    }
+    return {min: yMin, max: yMax, yAxisOrientation: this.options.yAxisOrientation};
+  };
+
+  Points.prototype.draw = function(dataset, group, framework, offset) {
+    Points.draw(dataset, group, framework, offset);
+  }
+
+  /**
+   * draw the data points
+   *
+   * @param {Array} dataset
+   * @param {Object} JSONcontainer
+   * @param {Object} svg            | SVG DOM element
+   * @param {GraphGroup} group
+   * @param {Number} [offset]
+   */
+  Points.draw = function (dataset, group, framework, offset) {
+    if (offset === undefined) {offset = 0;}
+    for (var i = 0; i < dataset.length; i++) {
+      DOMutil.drawPoint(dataset[i].x + offset, dataset[i].y, group, framework.svgElements, framework.svg);
+    }
+  };
+
+
+  module.exports = Points;
+
+/***/ },
 /* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -24259,7 +24413,6 @@ return /******/ (function(modules) { // webpackBootstrap
       var preventDefault = options && options.preventDefault || false;
 
       var container = options && options.container || window;
-
       var _exportFunctions = {};
       var _bound = {keydown:{}, keyup:{}};
       var _keys = {};
@@ -24430,6 +24583,6595 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 58 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Creation of the ClusterMixin var.
+   *
+   * This contains all the functions the Network object can use to employ clustering
+   */
+
+  /**
+  * This is only called in the constructor of the network object
+  *
+  */
+  exports.startWithClustering = function() {
+   // cluster if the data set is big
+   this.clusterToFit(this.constants.clustering.initialMaxNodes, true);
+
+   // updates the lables after clustering
+   this.updateLabels();
+
+   // this is called here because if clusterin is disabled, the start and stabilize are called in
+   // the setData function.
+   if (this.constants.stabilize == true) {
+     this._stabilize();
+   }
+   this.start();
+  };
+
+  /**
+   * This function clusters until the initialMaxNodes has been reached
+   *
+   * @param {Number}  maxNumberOfNodes
+   * @param {Boolean} reposition
+   */
+  exports.clusterToFit = function(maxNumberOfNodes, reposition) {
+    var numberOfNodes = this.nodeIndices.length;
+
+    var maxLevels = 50;
+    var level = 0;
+
+    // we first cluster the hubs, then we pull in the outliers, repeat
+    while (numberOfNodes > maxNumberOfNodes && level < maxLevels) {
+      if (level % 3 == 0.0) {
+        this.forceAggregateHubs(true);
+        this.normalizeClusterLevels();
+      }
+      else {
+        this.increaseClusterLevel(); // this also includes a cluster normalization
+      }
+      this.forceAggregateHubs(true);
+      numberOfNodes = this.nodeIndices.length;
+      level += 1;
+    }
+
+    // after the clustering we reposition the nodes to reduce the initial chaos
+    if (level > 0 && reposition == true) {
+      this.repositionNodes();
+    }
+    this._updateCalculationNodes();
+  };
+
+  /**
+   * This function can be called to open up a specific cluster.
+   * It will unpack the cluster back one level.
+   *
+   * @param node    | Node object: cluster to open.
+   */
+  exports.openCluster = function(node) {
+    var isMovingBeforeClustering = this.moving;
+    if (node.clusterSize > this.constants.clustering.sectorThreshold && this._nodeInActiveArea(node) &&
+      !(this._sector() == "default" && this.nodeIndices.length == 1)) {
+      // this loads a new sector, loads the nodes and edges and nodeIndices of it.
+      this._addSector(node);
+      var level = 0;
+
+      // we decluster until we reach a decent number of nodes
+      while ((this.nodeIndices.length < this.constants.clustering.initialMaxNodes) && (level < 10)) {
+        this.decreaseClusterLevel();
+        level += 1;
+      }
+
+    }
+    else {
+      this._expandClusterNode(node,false,true);
+
+      // update the index list and labels
+      this._updateNodeIndexList();
+      this._updateCalculationNodes();
+      this.updateLabels();
+    }
+
+    // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
+    if (this.moving != isMovingBeforeClustering) {
+      this.start();
+    }
+  };
+
+
+  /**
+   * This calls the updateClustes with default arguments
+   */
+  exports.updateClustersDefault = function() {
+    if (this.constants.clustering.enabled == true && this.constants.clustering.clusterByZoom == true) {
+      this.updateClusters(0,false,false);
+    }
+  };
+
+
+  /**
+   * This function can be called to increase the cluster level. This means that the nodes with only one edge connection will
+   * be clustered with their connected node. This can be repeated as many times as needed.
+   * This can be called externally (by a keybind for instance) to reduce the complexity of big datasets.
+   */
+  exports.increaseClusterLevel = function() {
+    this.updateClusters(-1,false,true);
+  };
+
+
+  /**
+   * This function can be called to decrease the cluster level. This means that the nodes with only one edge connection will
+   * be unpacked if they are a cluster. This can be repeated as many times as needed.
+   * This can be called externally (by a key-bind for instance) to look into clusters without zooming.
+   */
+  exports.decreaseClusterLevel = function() {
+    this.updateClusters(1,false,true);
+  };
+
+
+  /**
+   * This is the main clustering function. It clusters and declusters on zoom or forced
+   * This function clusters on zoom, it can be called with a predefined zoom direction
+   * If out, check if we can form clusters, if in, check if we can open clusters.
+   * This function is only called from _zoom()
+   *
+   * @param {Number} zoomDirection  | -1 / 0 / +1   for  zoomOut / determineByZoom / zoomIn
+   * @param {Boolean} recursive     | enabled or disable recursive calling of the opening of clusters
+   * @param {Boolean} force         | enabled or disable forcing
+   * @param {Boolean} doNotStart    | if true do not call start
+   *
+   */
+  exports.updateClusters = function(zoomDirection,recursive,force,doNotStart) {
+    var isMovingBeforeClustering = this.moving;
+    var amountOfNodes = this.nodeIndices.length;
+
+    var detectedZoomingIn = (this.previousScale < this.scale && zoomDirection == 0);
+    var detectedZoomingOut = (this.previousScale > this.scale && zoomDirection == 0);
+
+    // on zoom out collapse the sector if the scale is at the level the sector was made
+    if (detectedZoomingOut == true) {
+      this._collapseSector();
+    }
+
+    // check if we zoom in or out
+    if (detectedZoomingOut == true || zoomDirection == -1) { // zoom out
+      // forming clusters when forced pulls outliers in. When not forced, the edge length of the
+      // outer nodes determines if it is being clustered
+      this._formClusters(force);
+    }
+    else if (detectedZoomingIn == true || zoomDirection == 1) { // zoom in
+      if (force == true) {
+        // _openClusters checks for each node if the formationScale of the cluster is smaller than
+        // the current scale and if so, declusters. When forced, all clusters are reduced by one step
+        this._openClusters(recursive,force);
+      }
+      else {
+        // if a cluster takes up a set percentage of the active window
+        //this._openClustersBySize();
+        this._openClusters(recursive, false);
+      }
+    }
+    this._updateNodeIndexList();
+
+    // if a cluster was NOT formed and the user zoomed out, we try clustering by hubs
+    if (this.nodeIndices.length == amountOfNodes && (detectedZoomingOut == true || zoomDirection == -1))  {
+      this._aggregateHubs(force);
+      this._updateNodeIndexList();
+    }
+
+    // we now reduce chains.
+    if (detectedZoomingOut == true || zoomDirection == -1) { // zoom out
+      this.handleChains();
+      this._updateNodeIndexList();
+    }
+
+    this.previousScale = this.scale;
+
+    // update labels
+    this.updateLabels();
+
+    // if a cluster was formed, we increase the clusterSession
+    if (this.nodeIndices.length < amountOfNodes) { // this means a clustering operation has taken place
+      this.clusterSession += 1;
+      // if clusters have been made, we normalize the cluster level
+      this.normalizeClusterLevels();
+    }
+
+    if (doNotStart == false || doNotStart === undefined) {
+      // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
+      if (this.moving != isMovingBeforeClustering) {
+        this.start();
+      }
+    }
+
+    this._updateCalculationNodes();
+  };
+
+  /**
+   * This function handles the chains. It is called on every updateClusters().
+   */
+  exports.handleChains = function() {
+    // after clustering we check how many chains there are
+    var chainPercentage = this._getChainFraction();
+    if (chainPercentage > this.constants.clustering.chainThreshold) {
+      this._reduceAmountOfChains(1 - this.constants.clustering.chainThreshold / chainPercentage)
+
+    }
+  };
+
+  /**
+   * this functions starts clustering by hubs
+   * The minimum hub threshold is set globally
+   *
+   * @private
+   */
+  exports._aggregateHubs = function(force) {
+    this._getHubSize();
+    this._formClustersByHub(force,false);
+  };
+
+
+  /**
+   * This function forces hubs to form.
+   *
+   */
+  exports.forceAggregateHubs = function(doNotStart) {
+    var isMovingBeforeClustering = this.moving;
+    var amountOfNodes = this.nodeIndices.length;
+
+    this._aggregateHubs(true);
+
+    // update the index list, dynamic edges and labels
+    this._updateNodeIndexList();
+    this.updateLabels();
+
+    this._updateCalculationNodes();
+
+    // if a cluster was formed, we increase the clusterSession
+    if (this.nodeIndices.length != amountOfNodes) {
+      this.clusterSession += 1;
+    }
+
+    if (doNotStart == false || doNotStart === undefined) {
+      // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
+      if (this.moving != isMovingBeforeClustering) {
+        this.start();
+      }
+    }
+  };
+
+  /**
+   * If a cluster takes up more than a set percentage of the screen, open the cluster
+   *
+   * @private
+   */
+  exports._openClustersBySize = function() {
+    if (this.constants.clustering.clusterByZoom == true) {
+      for (var nodeId in this.nodes) {
+        if (this.nodes.hasOwnProperty(nodeId)) {
+          var node = this.nodes[nodeId];
+          if (node.inView() == true) {
+            if ((node.width * this.scale > this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientWidth) ||
+              (node.height * this.scale > this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientHeight)) {
+              this.openCluster(node);
+            }
+          }
+        }
+      }
+    }
+  };
+
+
+  /**
+   * This function loops over all nodes in the nodeIndices list. For each node it checks if it is a cluster and if it
+   * has to be opened based on the current zoom level.
+   *
+   * @private
+   */
+  exports._openClusters = function(recursive,force) {
+    for (var i = 0; i < this.nodeIndices.length; i++) {
+      var node = this.nodes[this.nodeIndices[i]];
+      this._expandClusterNode(node,recursive,force);
+      this._updateCalculationNodes();
+    }
+  };
+
+  /**
+   * This function checks if a node has to be opened. This is done by checking the zoom level.
+   * If the node contains child nodes, this function is recursively called on the child nodes as well.
+   * This recursive behaviour is optional and can be set by the recursive argument.
+   *
+   * @param {Node}    parentNode    | to check for cluster and expand
+   * @param {Boolean} recursive     | enabled or disable recursive calling
+   * @param {Boolean} force         | enabled or disable forcing
+   * @param {Boolean} [openAll]     | This will recursively force all nodes in the parent to be released
+   * @private
+   */
+  exports._expandClusterNode = function(parentNode, recursive, force, openAll) {
+    // first check if node is a cluster
+    if (parentNode.clusterSize > 1) {
+      if (openAll === undefined) {
+        openAll = false;
+      }
+      // this means that on a double tap event or a zoom event, the cluster fully unpacks if it is smaller than 20
+
+      recursive = openAll || recursive;
+      // if the last child has been added on a smaller scale than current scale decluster
+      if (parentNode.formationScale < this.scale || force == true) {
+        // we will check if any of the contained child nodes should be removed from the cluster
+        for (var containedNodeId in parentNode.containedNodes) {
+          if (parentNode.containedNodes.hasOwnProperty(containedNodeId)) {
+            var childNode = parentNode.containedNodes[containedNodeId];
+
+            // force expand will expand the largest cluster size clusters. Since we cluster from outside in, we assume that
+            // the largest cluster is the one that comes from outside
+            if (force == true) {
+              if (childNode.clusterSession == parentNode.clusterSessions[parentNode.clusterSessions.length-1]
+                  || openAll) {
+                this._expelChildFromParent(parentNode,containedNodeId,recursive,force,openAll);
+              }
+            }
+            else {
+              if (this._nodeInActiveArea(parentNode)) {
+                this._expelChildFromParent(parentNode,containedNodeId,recursive,force,openAll);
+              }
+            }
+          }
+        }
+      }
+    }
+  };
+
+  /**
+   * ONLY CALLED FROM _expandClusterNode
+   *
+   * This function will expel a child_node from a parent_node. This is to de-cluster the node. This function will remove
+   * the child node from the parent contained_node object and put it back into the global nodes object.
+   * The same holds for the edge that was connected to the child node. It is moved back into the global edges object.
+   *
+   * @param {Node}    parentNode        | the parent node
+   * @param {String}  containedNodeId   | child_node id as it is contained in the containedNodes object of the parent node
+   * @param {Boolean} recursive         | This will also check if the child needs to be expanded.
+   *                                      With force and recursive both true, the entire cluster is unpacked
+   * @param {Boolean} force             | This will disregard the zoom level and will expel this child from the parent
+   * @param {Boolean} openAll           | This will recursively force all nodes in the parent to be released
+   * @private
+   */
+  exports._expelChildFromParent = function(parentNode, containedNodeId, recursive, force, openAll) {
+    var childNode = parentNode.containedNodes[containedNodeId]
+
+    // if child node has been added on smaller scale than current, kick out
+    if (childNode.formationScale < this.scale || force == true) {
+      // unselect all selected items
+      this._unselectAll();
+
+      // put the child node back in the global nodes object
+      this.nodes[containedNodeId] = childNode;
+
+      // release the contained edges from this childNode back into the global edges
+      this._releaseContainedEdges(parentNode,childNode);
+
+      // reconnect rerouted edges to the childNode
+      this._connectEdgeBackToChild(parentNode,childNode);
+
+      // validate all edges in dynamicEdges
+      this._validateEdges(parentNode);
+
+      // undo the changes from the clustering operation on the parent node
+      parentNode.options.mass -= childNode.options.mass;
+      parentNode.clusterSize -= childNode.clusterSize;
+      parentNode.options.fontSize = Math.min(this.constants.clustering.maxFontSize, this.constants.nodes.fontSize + this.constants.clustering.fontSizeMultiplier*(parentNode.clusterSize-1));
+
+      // place the child node near the parent, not at the exact same location to avoid chaos in the system
+      childNode.x = parentNode.x + parentNode.growthIndicator * (0.5 - Math.random());
+      childNode.y = parentNode.y + parentNode.growthIndicator * (0.5 - Math.random());
+
+      // remove node from the list
+      delete parentNode.containedNodes[containedNodeId];
+
+      // check if there are other childs with this clusterSession in the parent.
+      var othersPresent = false;
+      for (var childNodeId in parentNode.containedNodes) {
+        if (parentNode.containedNodes.hasOwnProperty(childNodeId)) {
+          if (parentNode.containedNodes[childNodeId].clusterSession == childNode.clusterSession) {
+            othersPresent = true;
+            break;
+          }
+        }
+      }
+      // if there are no others, remove the cluster session from the list
+      if (othersPresent == false) {
+        parentNode.clusterSessions.pop();
+      }
+
+      this._repositionBezierNodes(childNode);
+  //      this._repositionBezierNodes(parentNode);
+
+      // remove the clusterSession from the child node
+      childNode.clusterSession = 0;
+
+      // recalculate the size of the node on the next time the node is rendered
+      parentNode.clearSizeCache();
+
+      // restart the simulation to reorganise all nodes
+      this.moving = true;
+    }
+
+    // check if a further expansion step is possible if recursivity is enabled
+    if (recursive == true) {
+      this._expandClusterNode(childNode,recursive,force,openAll);
+    }
+  };
+
+
+  /**
+   * position the bezier nodes at the center of the edges
+   *
+   * @param node
+   * @private
+   */
+  exports._repositionBezierNodes = function(node) {
+    for (var i = 0; i < node.dynamicEdges.length; i++) {
+      node.dynamicEdges[i].positionBezierNode();
+    }
+  };
+
+
+  /**
+   * This function checks if any nodes at the end of their trees have edges below a threshold length
+   * This function is called only from updateClusters()
+   * forceLevelCollapse ignores the length of the edge and collapses one level
+   * This means that a node with only one edge will be clustered with its connected node
+   *
+   * @private
+   * @param {Boolean} force
+   */
+  exports._formClusters = function(force) {
+    if (force == false) {
+      if (this.constants.clustering.clusterByZoom == true) {
+        this._formClustersByZoom();
+      }
+    }
+    else {
+      this._forceClustersByZoom();
+    }
+  };
+
+
+  /**
+   * This function handles the clustering by zooming out, this is based on a minimum edge distance
+   *
+   * @private
+   */
+  exports._formClustersByZoom = function() {
+    var dx,dy,length;
+    var minLength = this.constants.clustering.clusterEdgeThreshold/this.scale;
+
+    // check if any edges are shorter than minLength and start the clustering
+    // the clustering favours the node with the larger mass
+    for (var edgeId in this.edges) {
+      if (this.edges.hasOwnProperty(edgeId)) {
+        var edge = this.edges[edgeId];
+        if (edge.connected) {
+          if (edge.toId != edge.fromId) {
+            dx = (edge.to.x - edge.from.x);
+            dy = (edge.to.y - edge.from.y);
+            length = Math.sqrt(dx * dx + dy * dy);
+
+
+            if (length < minLength) {
+              // first check which node is larger
+              var parentNode = edge.from;
+              var childNode = edge.to;
+              if (edge.to.options.mass > edge.from.options.mass) {
+                parentNode = edge.to;
+                childNode = edge.from;
+              }
+
+              if (childNode.dynamicEdges.length == 1) {
+                this._addToCluster(parentNode,childNode,false);
+              }
+              else if (parentNode.dynamicEdges.length == 1) {
+                this._addToCluster(childNode,parentNode,false);
+              }
+            }
+          }
+        }
+      }
+    }
+  };
+
+  /**
+   * This function forces the network to cluster all nodes with only one connecting edge to their
+   * connected node.
+   *
+   * @private
+   */
+  exports._forceClustersByZoom = function() {
+    for (var nodeId in this.nodes) {
+      // another node could have absorbed this child.
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        var childNode = this.nodes[nodeId];
+
+        // the edges can be swallowed by another decrease
+        if (childNode.dynamicEdges.length == 1) {
+          var edge = childNode.dynamicEdges[0];
+          var parentNode = (edge.toId == childNode.id) ? this.nodes[edge.fromId] : this.nodes[edge.toId];
+          // group to the largest node
+          if (childNode.id != parentNode.id) {
+            if (parentNode.options.mass > childNode.options.mass) {
+              this._addToCluster(parentNode,childNode,true);
+            }
+            else {
+              this._addToCluster(childNode,parentNode,true);
+            }
+          }
+        }
+      }
+    }
+  };
+
+
+  /**
+   * To keep the nodes of roughly equal size we normalize the cluster levels.
+   * This function clusters a node to its smallest connected neighbour.
+   *
+   * @param node
+   * @private
+   */
+  exports._clusterToSmallestNeighbour = function(node) {
+    var smallestNeighbour = -1;
+    var smallestNeighbourNode = null;
+    for (var i = 0; i < node.dynamicEdges.length; i++) {
+      if (node.dynamicEdges[i] !== undefined) {
+        var neighbour = null;
+        if (node.dynamicEdges[i].fromId != node.id) {
+          neighbour = node.dynamicEdges[i].from;
+        }
+        else if (node.dynamicEdges[i].toId != node.id) {
+          neighbour = node.dynamicEdges[i].to;
+        }
+
+
+        if (neighbour != null && smallestNeighbour > neighbour.clusterSessions.length) {
+          smallestNeighbour = neighbour.clusterSessions.length;
+          smallestNeighbourNode = neighbour;
+        }
+      }
+    }
+
+    if (neighbour != null && this.nodes[neighbour.id] !== undefined) {
+      this._addToCluster(neighbour, node, true);
+    }
+  };
+
+
+  /**
+   * This function forms clusters from hubs, it loops over all nodes
+   *
+   * @param {Boolean} force         |   Disregard zoom level
+   * @param {Boolean} onlyEqual     |   This only clusters a hub with a specific number of edges
+   * @private
+   */
+  exports._formClustersByHub = function(force, onlyEqual) {
+    // we loop over all nodes in the list
+    for (var nodeId in this.nodes) {
+      // we check if it is still available since it can be used by the clustering in this loop
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        this._formClusterFromHub(this.nodes[nodeId],force,onlyEqual);
+      }
+    }
+  };
+
+  /**
+   * This function forms a cluster from a specific preselected hub node
+   *
+   * @param {Node}    hubNode       |   the node we will cluster as a hub
+   * @param {Boolean} force         |   Disregard zoom level
+   * @param {Boolean} onlyEqual     |   This only clusters a hub with a specific number of edges
+   * @param {Number} [absorptionSizeOffset] |
+   * @private
+   */
+  exports._formClusterFromHub = function(hubNode, force, onlyEqual, absorptionSizeOffset) {
+    if (absorptionSizeOffset === undefined) {
+      absorptionSizeOffset = 0;
+    }
+    //this.hubThreshold = 43
+    //if (hubNode.dynamicEdgesLength < 0) {
+    // console.error(hubNode.dynamicEdgesLength, this.hubThreshold, onlyEqual)
+    //}
+    // we decide if the node is a hub
+    if ((hubNode.dynamicEdges.length >= this.hubThreshold && onlyEqual == false) ||
+      (hubNode.dynamicEdges.length == this.hubThreshold && onlyEqual == true)) {
+      // initialize variables
+      var dx,dy,length;
+      var minLength = this.constants.clustering.clusterEdgeThreshold/this.scale;
+      var allowCluster = false;
+
+      // we create a list of edges because the dynamicEdges change over the course of this loop
+      var edgesIdarray = [];
+      var amountOfInitialEdges = hubNode.dynamicEdges.length;
+      for (var j = 0; j < amountOfInitialEdges; j++) {
+        edgesIdarray.push(hubNode.dynamicEdges[j].id);
+      }
+
+      // if the hub clustering is not forced, we check if one of the edges connected
+      // to a cluster is small enough based on the constants.clustering.clusterEdgeThreshold
+      if (force == false) {
+        allowCluster = false;
+        for (j = 0; j < amountOfInitialEdges; j++) {
+          var edge = this.edges[edgesIdarray[j]];
+          if (edge !== undefined) {
+            if (edge.connected) {
+              if (edge.toId != edge.fromId) {
+                dx = (edge.to.x - edge.from.x);
+                dy = (edge.to.y - edge.from.y);
+                length = Math.sqrt(dx * dx + dy * dy);
+
+                if (length < minLength) {
+                  allowCluster = true;
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // start the clustering if allowed
+      if ((!force && allowCluster) || force) {
+        var children = [];
+        var childrenIds = {};
+        // we loop over all edges INITIALLY connected to this hub to get a list of the childNodes
+        for (j = 0; j < amountOfInitialEdges; j++) {
+          edge = this.edges[edgesIdarray[j]];
+          var childNode = this.nodes[(edge.fromId == hubNode.id) ? edge.toId : edge.fromId];
+          if (childrenIds[childNode.id] === undefined) {
+            childrenIds[childNode.id] = true;
+            children.push(childNode);
+          }
+        }
+
+        for (j = 0; j < children.length; j++) {
+          var childNode = children[j];
+          // we do not want hubs to merge with other hubs nor do we want to cluster itself.
+          if ((childNode.dynamicEdges.length <= (this.hubThreshold + absorptionSizeOffset)) &&
+            (childNode.id != hubNode.id)) {
+            this._addToCluster(hubNode,childNode,force);
+
+          }
+          else {
+            //console.log("WILL NOT MERGE:",childNode.dynamicEdges.length , (this.hubThreshold + absorptionSizeOffset))
+          }
+        }
+
+      }
+    }
+  };
+
+
+
+  /**
+   * This function adds the child node to the parent node, creating a cluster if it is not already.
+   *
+   * @param {Node} parentNode           | this is the node that will house the child node
+   * @param {Node} childNode            | this node will be deleted from the global this.nodes and stored in the parent node
+   * @param {Boolean} force             | true will only update the remainingEdges at the very end of the clustering, ensuring single level collapse
+   * @private
+   */
+  exports._addToCluster = function(parentNode, childNode, force) {
+    // join child node in the parent node
+    parentNode.containedNodes[childNode.id] = childNode;
+    //console.log(parentNode.id, childNode.id)
+    // manage all the edges connected to the child and parent nodes
+    for (var i = 0; i < childNode.dynamicEdges.length; i++) {
+      var edge = childNode.dynamicEdges[i];
+      if (edge.toId == parentNode.id || edge.fromId == parentNode.id) { // edge connected to parentNode
+        //console.log("COLLECT",parentNode.id, childNode.id, edge.toId, edge.fromId)
+        this._addToContainedEdges(parentNode,childNode,edge);
+      }
+      else {
+        //console.log("REWIRE",parentNode.id, childNode.id, edge.toId, edge.fromId)
+        this._connectEdgeToCluster(parentNode,childNode,edge);
+      }
+    }
+    // a contained node has no dynamic edges.
+    childNode.dynamicEdges = [];
+
+    // remove circular edges from clusters
+    this._containCircularEdgesFromNode(parentNode,childNode);
+
+
+    // remove the childNode from the global nodes object
+    delete this.nodes[childNode.id];
+
+    // update the properties of the child and parent
+    var massBefore = parentNode.options.mass;
+    childNode.clusterSession = this.clusterSession;
+    parentNode.options.mass += childNode.options.mass;
+    parentNode.clusterSize += childNode.clusterSize;
+    parentNode.options.fontSize = Math.min(this.constants.clustering.maxFontSize, this.constants.nodes.fontSize + this.constants.clustering.fontSizeMultiplier*parentNode.clusterSize);
+
+    // keep track of the clustersessions so we can open the cluster up as it has been formed.
+    if (parentNode.clusterSessions[parentNode.clusterSessions.length - 1] != this.clusterSession) {
+      parentNode.clusterSessions.push(this.clusterSession);
+    }
+
+    // forced clusters only open from screen size and double tap
+    if (force == true) {
+      parentNode.formationScale = 0;
+    }
+    else {
+      parentNode.formationScale = this.scale; // The latest child has been added on this scale
+    }
+
+    // recalculate the size of the node on the next time the node is rendered
+    parentNode.clearSizeCache();
+
+    // set the pop-out scale for the childnode
+    parentNode.containedNodes[childNode.id].formationScale = parentNode.formationScale;
+
+    // nullify the movement velocity of the child, this is to avoid hectic behaviour
+    childNode.clearVelocity();
+
+    // the mass has altered, preservation of energy dictates the velocity to be updated
+    parentNode.updateVelocity(massBefore);
+
+    // restart the simulation to reorganise all nodes
+    this.moving = true;
+  };
+
+
+  /**
+   * This adds an edge from the childNode to the contained edges of the parent node
+   *
+   * @param parentNode    | Node object
+   * @param childNode     | Node object
+   * @param edge          | Edge object
+   * @private
+   */
+  exports._addToContainedEdges = function(parentNode, childNode, edge) {
+    // create an array object if it does not yet exist for this childNode
+    if (parentNode.containedEdges[childNode.id] === undefined) {
+      parentNode.containedEdges[childNode.id] = []
+    }
+    // add this edge to the list
+    parentNode.containedEdges[childNode.id].push(edge);
+
+    // remove the edge from the global edges object
+    delete this.edges[edge.id];
+
+    // remove the edge from the parent object
+    for (var i = 0; i < parentNode.dynamicEdges.length; i++) {
+      if (parentNode.dynamicEdges[i].id == edge.id) {
+        parentNode.dynamicEdges.splice(i,1);
+        break;
+      }
+    }
+  };
+
+  /**
+   * This function connects an edge that was connected to a child node to the parent node.
+   * It keeps track of which nodes it has been connected to with the originalId array.
+   *
+   * @param {Node} parentNode    | Node object
+   * @param {Node} childNode     | Node object
+   * @param {Edge} edge          | Edge object
+   * @private
+   */
+  exports._connectEdgeToCluster = function(parentNode, childNode, edge) {
+    // handle circular edges
+    if (edge.toId == edge.fromId) {
+      this._addToContainedEdges(parentNode, childNode, edge);
+    }
+    else {
+      if (edge.toId == childNode.id) {    // edge connected to other node on the "to" side
+        edge.originalToId.push(childNode.id);
+        edge.to = parentNode;
+        edge.toId = parentNode.id;
+      }
+      else {          // edge connected to other node with the "from" side
+        edge.originalFromId.push(childNode.id);
+        edge.from = parentNode;
+        edge.fromId = parentNode.id;
+      }
+
+      this._addToReroutedEdges(parentNode,childNode,edge);
+    }
+  };
+
+
+  /**
+   * If a node is connected to itself, a circular edge is drawn. When clustering we want to contain
+   * these edges inside of the cluster.
+   *
+   * @param parentNode
+   * @param childNode
+   * @private
+   */
+  exports._containCircularEdgesFromNode = function(parentNode, childNode) {
+    // manage all the edges connected to the child and parent nodes
+    for (var i = 0; i < parentNode.dynamicEdges.length; i++) {
+      var edge = parentNode.dynamicEdges[i];
+      // handle circular edges
+      if (edge.toId == edge.fromId) {
+        this._addToContainedEdges(parentNode, childNode, edge);
+      }
+    }
+  };
+
+
+  /**
+   * This adds an edge from the childNode to the rerouted edges of the parent node
+   *
+   * @param parentNode    | Node object
+   * @param childNode     | Node object
+   * @param edge          | Edge object
+   * @private
+   */
+  exports._addToReroutedEdges = function(parentNode, childNode, edge) {
+    // create an array object if it does not yet exist for this childNode
+    // we store the edge in the rerouted edges so we can restore it when the cluster pops open
+    if (!(parentNode.reroutedEdges.hasOwnProperty(childNode.id))) {
+      parentNode.reroutedEdges[childNode.id] = [];
+    }
+    parentNode.reroutedEdges[childNode.id].push(edge);
+
+    // this edge becomes part of the dynamicEdges of the cluster node
+    parentNode.dynamicEdges.push(edge);
+   };
+
+
+
+  /**
+   * This function connects an edge that was connected to a cluster node back to the child node.
+   *
+   * @param parentNode    | Node object
+   * @param childNode     | Node object
+   * @private
+   */
+  exports._connectEdgeBackToChild = function(parentNode, childNode) {
+    if (parentNode.reroutedEdges.hasOwnProperty(childNode.id)) {
+      for (var i = 0; i < parentNode.reroutedEdges[childNode.id].length; i++) {
+        var edge = parentNode.reroutedEdges[childNode.id][i];
+        if (edge.originalFromId[edge.originalFromId.length-1] == childNode.id) {
+          edge.originalFromId.pop();
+          edge.fromId = childNode.id;
+          edge.from = childNode;
+        }
+        else {
+          edge.originalToId.pop();
+          edge.toId = childNode.id;
+          edge.to = childNode;
+        }
+
+        // append this edge to the list of edges connecting to the childnode
+        childNode.dynamicEdges.push(edge);
+
+        // remove the edge from the parent object
+        for (var j = 0; j < parentNode.dynamicEdges.length; j++) {
+          if (parentNode.dynamicEdges[j].id == edge.id) {
+            parentNode.dynamicEdges.splice(j,1);
+            break;
+          }
+        }
+      }
+      // remove the entry from the rerouted edges
+      delete parentNode.reroutedEdges[childNode.id];
+    }
+  };
+
+
+  /**
+   * When loops are clustered, an edge can be both in the rerouted array and the contained array.
+   * This function is called last to verify that all edges in dynamicEdges are in fact connected to the
+   * parentNode
+   *
+   * @param parentNode    | Node object
+   * @private
+   */
+  exports._validateEdges = function(parentNode) {
+    var dynamicEdges = []
+    for (var i = 0; i < parentNode.dynamicEdges.length; i++) {
+      var edge = parentNode.dynamicEdges[i];
+      if (parentNode.id == edge.toId || parentNode.id == edge.fromId) {
+        dynamicEdges.push(edge);
+      }
+    }
+    parentNode.dynamicEdges = dynamicEdges;
+  };
+
+
+  /**
+   * This function released the contained edges back into the global domain and puts them back into the
+   * dynamic edges of both parent and child.
+   *
+   * @param {Node} parentNode    |
+   * @param {Node} childNode     |
+   * @private
+   */
+  exports._releaseContainedEdges = function(parentNode, childNode) {
+    for (var i = 0; i < parentNode.containedEdges[childNode.id].length; i++) {
+      var edge = parentNode.containedEdges[childNode.id][i];
+
+      // put the edge back in the global edges object
+      this.edges[edge.id] = edge;
+
+      // put the edge back in the dynamic edges of the child and parent
+      childNode.dynamicEdges.push(edge);
+      parentNode.dynamicEdges.push(edge);
+    }
+    // remove the entry from the contained edges
+    delete parentNode.containedEdges[childNode.id];
+
+  };
+
+
+
+
+  // ------------------- UTILITY FUNCTIONS ---------------------------- //
+
+
+  /**
+   * This updates the node labels for all nodes (for debugging purposes)
+   */
+  exports.updateLabels = function() {
+    var nodeId;
+    // update node labels
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        var node = this.nodes[nodeId];
+        if (node.clusterSize > 1) {
+          node.label = "[".concat(String(node.clusterSize),"]");
+        }
+      }
+    }
+
+    // update node labels
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        node = this.nodes[nodeId];
+        if (node.clusterSize == 1) {
+          if (node.originalLabel !== undefined) {
+            node.label = node.originalLabel;
+          }
+          else {
+            node.label = String(node.id);
+          }
+        }
+      }
+    }
+
+  //    /* Debug Override */
+  //    for (nodeId in this.nodes) {
+  //      if (this.nodes.hasOwnProperty(nodeId)) {
+  //        node = this.nodes[nodeId];
+  //        node.label = String(node.clusterSize + ":" + node.dynamicEdges.length);
+  //      }
+  //    }
+
+  };
+
+
+  /**
+   * We want to keep the cluster level distribution rather small. This means we do not want unclustered nodes
+   * if the rest of the nodes are already a few cluster levels in.
+   * To fix this we use this function. It determines the min and max cluster level and sends nodes that have not
+   * clustered enough to the clusterToSmallestNeighbours function.
+   */
+  exports.normalizeClusterLevels = function() {
+    var maxLevel = 0;
+    var minLevel = 1e9;
+    var clusterLevel = 0;
+    var nodeId;
+
+    // we loop over all nodes in the list
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        clusterLevel = this.nodes[nodeId].clusterSessions.length;
+        if (maxLevel < clusterLevel) {maxLevel = clusterLevel;}
+        if (minLevel > clusterLevel) {minLevel = clusterLevel;}
+      }
+    }
+
+    if (maxLevel - minLevel > this.constants.clustering.clusterLevelDifference) {
+      var amountOfNodes = this.nodeIndices.length;
+      var targetLevel = maxLevel - this.constants.clustering.clusterLevelDifference;
+      // we loop over all nodes in the list
+      for (nodeId in this.nodes) {
+        if (this.nodes.hasOwnProperty(nodeId)) {
+          if (this.nodes[nodeId].clusterSessions.length < targetLevel) {
+            this._clusterToSmallestNeighbour(this.nodes[nodeId]);
+          }
+        }
+      }
+      this._updateNodeIndexList();
+      // if a cluster was formed, we increase the clusterSession
+      if (this.nodeIndices.length != amountOfNodes) {
+        this.clusterSession += 1;
+      }
+    }
+  };
+
+
+
+  /**
+   * This function determines if the cluster we want to decluster is in the active area
+   * this means around the zoom center
+   *
+   * @param {Node} node
+   * @returns {boolean}
+   * @private
+   */
+  exports._nodeInActiveArea = function(node) {
+    return (
+      Math.abs(node.x - this.areaCenter.x) <= this.constants.clustering.activeAreaBoxSize/this.scale
+        &&
+      Math.abs(node.y - this.areaCenter.y) <= this.constants.clustering.activeAreaBoxSize/this.scale
+      )
+  };
+
+
+  /**
+   * This is an adaptation of the original repositioning function. This is called if the system is clustered initially
+   * It puts large clusters away from the center and randomizes the order.
+   *
+   */
+  exports.repositionNodes = function() {
+    for (var i = 0; i < this.nodeIndices.length; i++) {
+      var node = this.nodes[this.nodeIndices[i]];
+      if ((node.xFixed == false || node.yFixed == false)) {
+        var radius = 10 * 0.1*this.nodeIndices.length * Math.min(100,node.options.mass);
+        var angle = 2 * Math.PI * Math.random();
+        if (node.xFixed == false) {node.x = radius * Math.cos(angle);}
+        if (node.yFixed == false) {node.y = radius * Math.sin(angle);}
+        this._repositionBezierNodes(node);
+      }
+    }
+  };
+
+
+  /**
+   * We determine how many connections denote an important hub.
+   * We take the mean + 2*std as the important hub size. (Assuming a normal distribution of data, ~2.2%)
+   *
+   * @private
+   */
+  exports._getHubSize = function() {
+    var average = 0;
+    var averageSquared = 0;
+    var hubCounter = 0;
+    var largestHub = 0;
+
+    for (var i = 0; i < this.nodeIndices.length; i++) {
+
+      var node = this.nodes[this.nodeIndices[i]];
+      if (node.dynamicEdges.length > largestHub) {
+        largestHub = node.dynamicEdges.length;
+      }
+      average += node.dynamicEdges.length;
+      averageSquared += Math.pow(node.dynamicEdges.length,2);
+      hubCounter += 1;
+    }
+    average = average / hubCounter;
+    averageSquared = averageSquared / hubCounter;
+
+    var variance = averageSquared - Math.pow(average,2);
+
+    var standardDeviation = Math.sqrt(variance);
+
+    this.hubThreshold = Math.floor(average + 2*standardDeviation);
+
+    // always have at least one to cluster
+    if (this.hubThreshold > largestHub) {
+      this.hubThreshold = largestHub;
+    }
+
+  //  console.log("average",average,"averageSQ",averageSquared,"var",variance,"std",standardDeviation);
+  //  console.log("hubThreshold:",this.hubThreshold);
+  };
+
+
+  /**
+   * We reduce the amount of "extension nodes" or chains. These are not quickly clustered with the outliers and hubs methods
+   * with this amount we can cluster specifically on these chains.
+   *
+   * @param   {Number} fraction     | between 0 and 1, the percentage of chains to reduce
+   * @private
+   */
+  exports._reduceAmountOfChains = function(fraction) {
+    this.hubThreshold = 2;
+    var reduceAmount = Math.floor(this.nodeIndices.length * fraction);
+    for (var nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        if (this.nodes[nodeId].dynamicEdges.length == 2) {
+          if (reduceAmount > 0) {
+            this._formClusterFromHub(this.nodes[nodeId],true,true,1);
+            reduceAmount -= 1;
+          }
+        }
+      }
+    }
+  };
+
+  /**
+   * We get the amount of "extension nodes" or chains. These are not quickly clustered with the outliers and hubs methods
+   * with this amount we can cluster specifically on these chains.
+   *
+   * @private
+   */
+  exports._getChainFraction = function() {
+    var chains = 0;
+    var total = 0;
+    for (var nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        if (this.nodes[nodeId].dynamicEdges.length == 2) {
+          chains += 1;
+        }
+        total += 1;
+      }
+    }
+    return chains/total;
+  };
+
+
+/***/ },
+/* 59 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var util = __webpack_require__(1);
+  var Node = __webpack_require__(40);
+
+  /**
+   * Creation of the SectorMixin var.
+   *
+   * This contains all the functions the Network object can use to employ the sector system.
+   * The sector system is always used by Network, though the benefits only apply to the use of clustering.
+   * If clustering is not used, there is no overhead except for a duplicate object with references to nodes and edges.
+   */
+
+  /**
+   * This function is only called by the setData function of the Network object.
+   * This loads the global references into the active sector. This initializes the sector.
+   *
+   * @private
+   */
+  exports._putDataInSector = function() {
+    this.sectors["active"][this._sector()].nodes = this.nodes;
+    this.sectors["active"][this._sector()].edges = this.edges;
+    this.sectors["active"][this._sector()].nodeIndices = this.nodeIndices;
+  };
+
+
+  /**
+   *  /**
+   * This function sets the global references to nodes, edges and nodeIndices back to
+   * those of the supplied (active) sector. If a type is defined, do the specific type
+   *
+   * @param {String} sectorId
+   * @param {String} [sectorType] | "active" or "frozen"
+   * @private
+   */
+  exports._switchToSector = function(sectorId, sectorType) {
+    if (sectorType === undefined || sectorType == "active") {
+      this._switchToActiveSector(sectorId);
+    }
+    else {
+      this._switchToFrozenSector(sectorId);
+    }
+  };
+
+
+  /**
+   * This function sets the global references to nodes, edges and nodeIndices back to
+   * those of the supplied active sector.
+   *
+   * @param sectorId
+   * @private
+   */
+  exports._switchToActiveSector = function(sectorId) {
+    this.nodeIndices = this.sectors["active"][sectorId]["nodeIndices"];
+    this.nodes       = this.sectors["active"][sectorId]["nodes"];
+    this.edges       = this.sectors["active"][sectorId]["edges"];
+  };
+
+
+  /**
+   * This function sets the global references to nodes, edges and nodeIndices back to
+   * those of the supplied active sector.
+   *
+   * @private
+   */
+  exports._switchToSupportSector = function() {
+    this.nodeIndices = this.sectors["support"]["nodeIndices"];
+    this.nodes       = this.sectors["support"]["nodes"];
+    this.edges       = this.sectors["support"]["edges"];
+  };
+
+
+  /**
+   * This function sets the global references to nodes, edges and nodeIndices back to
+   * those of the supplied frozen sector.
+   *
+   * @param sectorId
+   * @private
+   */
+  exports._switchToFrozenSector = function(sectorId) {
+    this.nodeIndices = this.sectors["frozen"][sectorId]["nodeIndices"];
+    this.nodes       = this.sectors["frozen"][sectorId]["nodes"];
+    this.edges       = this.sectors["frozen"][sectorId]["edges"];
+  };
+
+
+  /**
+   * This function sets the global references to nodes, edges and nodeIndices back to
+   * those of the currently active sector.
+   *
+   * @private
+   */
+  exports._loadLatestSector = function() {
+    this._switchToSector(this._sector());
+  };
+
+
+  /**
+   * This function returns the currently active sector Id
+   *
+   * @returns {String}
+   * @private
+   */
+  exports._sector = function() {
+    return this.activeSector[this.activeSector.length-1];
+  };
+
+
+  /**
+   * This function returns the previously active sector Id
+   *
+   * @returns {String}
+   * @private
+   */
+  exports._previousSector = function() {
+    if (this.activeSector.length > 1) {
+      return this.activeSector[this.activeSector.length-2];
+    }
+    else {
+      throw new TypeError('there are not enough sectors in the this.activeSector array.');
+    }
+  };
+
+
+  /**
+   * We add the active sector at the end of the this.activeSector array
+   * This ensures it is the currently active sector returned by _sector() and it reaches the top
+   * of the activeSector stack. When we reverse our steps we move from the end to the beginning of this stack.
+   *
+   * @param newId
+   * @private
+   */
+  exports._setActiveSector = function(newId) {
+    this.activeSector.push(newId);
+  };
+
+
+  /**
+   * We remove the currently active sector id from the active sector stack. This happens when
+   * we reactivate the previously active sector
+   *
+   * @private
+   */
+  exports._forgetLastSector = function() {
+    this.activeSector.pop();
+  };
+
+
+  /**
+   * This function creates a new active sector with the supplied newId. This newId
+   * is the expanding node id.
+   *
+   * @param {String} newId   | Id of the new active sector
+   * @private
+   */
+  exports._createNewSector = function(newId) {
+    // create the new sector
+    this.sectors["active"][newId] = {"nodes":{},
+                                     "edges":{},
+                                     "nodeIndices":[],
+                                     "formationScale": this.scale,
+                                     "drawingNode": undefined};
+
+    // create the new sector render node. This gives visual feedback that you are in a new sector.
+    this.sectors["active"][newId]['drawingNode'] = new Node(
+        {id:newId,
+          color: {
+            background: "#eaefef",
+            border: "495c5e"
+          }
+        },{},{},this.constants);
+    this.sectors["active"][newId]['drawingNode'].clusterSize = 2;
+  };
+
+
+  /**
+   * This function removes the currently active sector. This is called when we create a new
+   * active sector.
+   *
+   * @param {String} sectorId   | Id of the active sector that will be removed
+   * @private
+   */
+  exports._deleteActiveSector = function(sectorId) {
+    delete this.sectors["active"][sectorId];
+  };
+
+
+  /**
+   * This function removes the currently active sector. This is called when we reactivate
+   * the previously active sector.
+   *
+   * @param {String} sectorId   | Id of the active sector that will be removed
+   * @private
+   */
+  exports._deleteFrozenSector = function(sectorId) {
+    delete this.sectors["frozen"][sectorId];
+  };
+
+
+  /**
+   * Freezing an active sector means moving it from the "active" object to the "frozen" object.
+   * We copy the references, then delete the active entree.
+   *
+   * @param sectorId
+   * @private
+   */
+  exports._freezeSector = function(sectorId) {
+    // we move the set references from the active to the frozen stack.
+    this.sectors["frozen"][sectorId] = this.sectors["active"][sectorId];
+
+    // we have moved the sector data into the frozen set, we now remove it from the active set
+    this._deleteActiveSector(sectorId);
+  };
+
+
+  /**
+   * This is the reverse operation of _freezeSector. Activating means moving the sector from the "frozen"
+   * object to the "active" object.
+   *
+   * @param sectorId
+   * @private
+   */
+  exports._activateSector = function(sectorId) {
+    // we move the set references from the frozen to the active stack.
+    this.sectors["active"][sectorId] = this.sectors["frozen"][sectorId];
+
+    // we have moved the sector data into the active set, we now remove it from the frozen stack
+    this._deleteFrozenSector(sectorId);
+  };
+
+
+  /**
+   * This function merges the data from the currently active sector with a frozen sector. This is used
+   * in the process of reverting back to the previously active sector.
+   * The data that is placed in the frozen (the previously active) sector is the node that has been removed from it
+   * upon the creation of a new active sector.
+   *
+   * @param sectorId
+   * @private
+   */
+  exports._mergeThisWithFrozen = function(sectorId) {
+    // copy all nodes
+    for (var nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        this.sectors["frozen"][sectorId]["nodes"][nodeId] = this.nodes[nodeId];
+      }
+    }
+
+    // copy all edges (if not fully clustered, else there are no edges)
+    for (var edgeId in this.edges) {
+      if (this.edges.hasOwnProperty(edgeId)) {
+        this.sectors["frozen"][sectorId]["edges"][edgeId] = this.edges[edgeId];
+      }
+    }
+
+    // merge the nodeIndices
+    for (var i = 0; i < this.nodeIndices.length; i++) {
+      this.sectors["frozen"][sectorId]["nodeIndices"].push(this.nodeIndices[i]);
+    }
+  };
+
+
+  /**
+   * This clusters the sector to one cluster. It was a single cluster before this process started so
+   * we revert to that state. The clusterToFit function with a maximum size of 1 node does this.
+   *
+   * @private
+   */
+  exports._collapseThisToSingleCluster = function() {
+    this.clusterToFit(1,false);
+  };
+
+
+  /**
+   * We create a new active sector from the node that we want to open.
+   *
+   * @param node
+   * @private
+   */
+  exports._addSector = function(node) {
+    // this is the currently active sector
+    var sector = this._sector();
+
+  //    // this should allow me to select nodes from a frozen set.
+  //    if (this.sectors['active'][sector]["nodes"].hasOwnProperty(node.id)) {
+  //      console.log("the node is part of the active sector");
+  //    }
+  //    else {
+  //      console.log("I dont know what the fuck happened!!");
+  //    }
+
+    // when we switch to a new sector, we remove the node that will be expanded from the current nodes list.
+    delete this.nodes[node.id];
+
+    var unqiueIdentifier = util.randomUUID();
+
+    // we fully freeze the currently active sector
+    this._freezeSector(sector);
+
+    // we create a new active sector. This sector has the Id of the node to ensure uniqueness
+    this._createNewSector(unqiueIdentifier);
+
+    // we add the active sector to the sectors array to be able to revert these steps later on
+    this._setActiveSector(unqiueIdentifier);
+
+    // we redirect the global references to the new sector's references. this._sector() now returns unqiueIdentifier
+    this._switchToSector(this._sector());
+
+    // finally we add the node we removed from our previous active sector to the new active sector
+    this.nodes[node.id] = node;
+  };
+
+
+  /**
+   * We close the sector that is currently open and revert back to the one before.
+   * If the active sector is the "default" sector, nothing happens.
+   *
+   * @private
+   */
+  exports._collapseSector = function() {
+    // the currently active sector
+    var sector = this._sector();
+
+    // we cannot collapse the default sector
+    if (sector != "default") {
+      if ((this.nodeIndices.length == 1) ||
+       (this.sectors["active"][sector]["drawingNode"].width*this.scale < this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientWidth) ||
+       (this.sectors["active"][sector]["drawingNode"].height*this.scale < this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientHeight)) {
+        var previousSector = this._previousSector();
+
+        // we collapse the sector back to a single cluster
+        this._collapseThisToSingleCluster();
+
+        // we move the remaining nodes, edges and nodeIndices to the previous sector.
+        // This previous sector is the one we will reactivate
+        this._mergeThisWithFrozen(previousSector);
+
+        // the previously active (frozen) sector now has all the data from the currently active sector.
+        // we can now delete the active sector.
+        this._deleteActiveSector(sector);
+
+        // we activate the previously active (and currently frozen) sector.
+        this._activateSector(previousSector);
+
+        // we load the references from the newly active sector into the global references
+        this._switchToSector(previousSector);
+
+        // we forget the previously active sector because we reverted to the one before
+        this._forgetLastSector();
+
+        // finally, we update the node index list.
+        this._updateNodeIndexList();
+
+        // we refresh the list with calulation nodes and calculation node indices.
+        this._updateCalculationNodes();
+      }
+    }
+  };
+
+
+  /**
+   * This runs a function in all active sectors. This is used in _redraw() and the _initializeForceCalculation().
+   *
+   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
+   *                              |   we dont pass the function itself because then the "this" is the window object
+   *                              |   instead of the Network object
+   * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
+   * @private
+   */
+  exports._doInAllActiveSectors = function(runFunction,argument) {
+    var returnValues = [];
+    if (argument === undefined) {
+      for (var sector in this.sectors["active"]) {
+        if (this.sectors["active"].hasOwnProperty(sector)) {
+          // switch the global references to those of this sector
+          this._switchToActiveSector(sector);
+          returnValues.push( this[runFunction]() );
+        }
+      }
+    }
+    else {
+      for (var sector in this.sectors["active"]) {
+        if (this.sectors["active"].hasOwnProperty(sector)) {
+          // switch the global references to those of this sector
+          this._switchToActiveSector(sector);
+          var args = Array.prototype.splice.call(arguments, 1);
+          if (args.length > 1) {
+            returnValues.push( this[runFunction](args[0],args[1]) );
+          }
+          else {
+            returnValues.push( this[runFunction](argument) );
+          }
+        }
+      }
+    }
+    // we revert the global references back to our active sector
+    this._loadLatestSector();
+    return returnValues;
+  };
+
+
+  /**
+   * This runs a function in all active sectors. This is used in _redraw() and the _initializeForceCalculation().
+   *
+   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
+   *                              |   we dont pass the function itself because then the "this" is the window object
+   *                              |   instead of the Network object
+   * @param {*} [argument]        |   Optional: arguments to pass to the runFunction
+   * @private
+   */
+  exports._doInSupportSector = function(runFunction,argument) {
+    var returnValues = false;
+    if (argument === undefined) {
+      this._switchToSupportSector();
+      returnValues = this[runFunction]();
+    }
+    else {
+      this._switchToSupportSector();
+      var args = Array.prototype.splice.call(arguments, 1);
+      if (args.length > 1) {
+        returnValues = this[runFunction](args[0],args[1]);
+      }
+      else {
+        returnValues = this[runFunction](argument);
+      }
+    }
+    // we revert the global references back to our active sector
+    this._loadLatestSector();
+    return returnValues;
+  };
+
+
+  /**
+   * This runs a function in all frozen sectors. This is used in the _redraw().
+   *
+   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
+   *                              |   we don't pass the function itself because then the "this" is the window object
+   *                              |   instead of the Network object
+   * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
+   * @private
+   */
+  exports._doInAllFrozenSectors = function(runFunction,argument) {
+    if (argument === undefined) {
+      for (var sector in this.sectors["frozen"]) {
+        if (this.sectors["frozen"].hasOwnProperty(sector)) {
+          // switch the global references to those of this sector
+          this._switchToFrozenSector(sector);
+          this[runFunction]();
+        }
+      }
+    }
+    else {
+      for (var sector in this.sectors["frozen"]) {
+        if (this.sectors["frozen"].hasOwnProperty(sector)) {
+          // switch the global references to those of this sector
+          this._switchToFrozenSector(sector);
+          var args = Array.prototype.splice.call(arguments, 1);
+          if (args.length > 1) {
+            this[runFunction](args[0],args[1]);
+          }
+          else {
+            this[runFunction](argument);
+          }
+        }
+      }
+    }
+    this._loadLatestSector();
+  };
+
+
+  /**
+   * This runs a function in all sectors. This is used in the _redraw().
+   *
+   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
+   *                              |   we don't pass the function itself because then the "this" is the window object
+   *                              |   instead of the Network object
+   * @param {*} [argument]        |   Optional: arguments to pass to the runFunction
+   * @private
+   */
+  exports._doInAllSectors = function(runFunction,argument) {
+    var args = Array.prototype.splice.call(arguments, 1);
+    if (argument === undefined) {
+      this._doInAllActiveSectors(runFunction);
+      this._doInAllFrozenSectors(runFunction);
+    }
+    else {
+      if (args.length > 1) {
+        this._doInAllActiveSectors(runFunction,args[0],args[1]);
+        this._doInAllFrozenSectors(runFunction,args[0],args[1]);
+      }
+      else {
+        this._doInAllActiveSectors(runFunction,argument);
+        this._doInAllFrozenSectors(runFunction,argument);
+      }
+    }
+  };
+
+
+  /**
+   * This clears the nodeIndices list. We cannot use this.nodeIndices = [] because we would break the link with the
+   * active sector. Thus we clear the nodeIndices in the active sector, then reconnect the this.nodeIndices to it.
+   *
+   * @private
+   */
+  exports._clearNodeIndexList = function() {
+    var sector = this._sector();
+    this.sectors["active"][sector]["nodeIndices"] = [];
+    this.nodeIndices = this.sectors["active"][sector]["nodeIndices"];
+  };
+
+
+  /**
+   * Draw the encompassing sector node
+   *
+   * @param ctx
+   * @param sectorType
+   * @private
+   */
+  exports._drawSectorNodes = function(ctx,sectorType) {
+    var minY = 1e9, maxY = -1e9, minX = 1e9, maxX = -1e9, node;
+    for (var sector in this.sectors[sectorType]) {
+      if (this.sectors[sectorType].hasOwnProperty(sector)) {
+        if (this.sectors[sectorType][sector]["drawingNode"] !== undefined) {
+
+          this._switchToSector(sector,sectorType);
+
+          minY = 1e9; maxY = -1e9; minX = 1e9; maxX = -1e9;
+          for (var nodeId in this.nodes) {
+            if (this.nodes.hasOwnProperty(nodeId)) {
+              node = this.nodes[nodeId];
+              node.resize(ctx);
+              if (minX > node.x - 0.5 * node.width) {minX = node.x - 0.5 * node.width;}
+              if (maxX < node.x + 0.5 * node.width) {maxX = node.x + 0.5 * node.width;}
+              if (minY > node.y - 0.5 * node.height) {minY = node.y - 0.5 * node.height;}
+              if (maxY < node.y + 0.5 * node.height) {maxY = node.y + 0.5 * node.height;}
+            }
+          }
+          node = this.sectors[sectorType][sector]["drawingNode"];
+          node.x = 0.5 * (maxX + minX);
+          node.y = 0.5 * (maxY + minY);
+          node.width = 2 * (node.x - minX);
+          node.height = 2 * (node.y - minY);
+          node.options.radius = Math.sqrt(Math.pow(0.5*node.width,2) + Math.pow(0.5*node.height,2));
+          node.setScale(this.scale);
+          node._drawCircle(ctx);
+        }
+      }
+    }
+  };
+
+  exports._drawAllSectorNodes = function(ctx) {
+    this._drawSectorNodes(ctx,"frozen");
+    this._drawSectorNodes(ctx,"active");
+    this._loadLatestSector();
+  };
+
+
+/***/ },
+/* 60 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var Node = __webpack_require__(40);
+
+  /**
+   * This function can be called from the _doInAllSectors function
+   *
+   * @param object
+   * @param overlappingNodes
+   * @private
+   */
+  exports._getNodesOverlappingWith = function(object, overlappingNodes) {
+    var nodes = this.nodes;
+    for (var nodeId in nodes) {
+      if (nodes.hasOwnProperty(nodeId)) {
+        if (nodes[nodeId].isOverlappingWith(object)) {
+          overlappingNodes.push(nodeId);
+        }
+      }
+    }
+  };
+
+  /**
+   * retrieve all nodes overlapping with given object
+   * @param {Object} object  An object with parameters left, top, right, bottom
+   * @return {Number[]}   An array with id's of the overlapping nodes
+   * @private
+   */
+  exports._getAllNodesOverlappingWith = function (object) {
+    var overlappingNodes = [];
+    this._doInAllActiveSectors("_getNodesOverlappingWith",object,overlappingNodes);
+    return overlappingNodes;
+  };
+
+
+  /**
+   * Return a position object in canvasspace from a single point in screenspace
+   *
+   * @param pointer
+   * @returns {{left: number, top: number, right: number, bottom: number}}
+   * @private
+   */
+  exports._pointerToPositionObject = function(pointer) {
+    var x = this._XconvertDOMtoCanvas(pointer.x);
+    var y = this._YconvertDOMtoCanvas(pointer.y);
+
+    return {
+      left:   x,
+      top:    y,
+      right:  x,
+      bottom: y
+    };
+  };
+
+
+  /**
+   * Get the top node at the a specific point (like a click)
+   *
+   * @param {{x: Number, y: Number}} pointer
+   * @return {Node | null} node
+   * @private
+   */
+  exports._getNodeAt = function (pointer) {
+    // we first check if this is an navigation controls element
+    var positionObject = this._pointerToPositionObject(pointer);
+    var overlappingNodes = this._getAllNodesOverlappingWith(positionObject);
+
+    // if there are overlapping nodes, select the last one, this is the
+    // one which is drawn on top of the others
+    if (overlappingNodes.length > 0) {
+       return this.nodes[overlappingNodes[overlappingNodes.length - 1]];
+    }
+    else {
+      return null;
+    }
+  };
+
+
+  /**
+   * retrieve all edges overlapping with given object, selector is around center
+   * @param {Object} object  An object with parameters left, top, right, bottom
+   * @return {Number[]}   An array with id's of the overlapping nodes
+   * @private
+   */
+  exports._getEdgesOverlappingWith = function (object, overlappingEdges) {
+    var edges = this.edges;
+    for (var edgeId in edges) {
+      if (edges.hasOwnProperty(edgeId)) {
+        if (edges[edgeId].isOverlappingWith(object)) {
+          overlappingEdges.push(edgeId);
+        }
+      }
+    }
+  };
+
+
+  /**
+   * retrieve all nodes overlapping with given object
+   * @param {Object} object  An object with parameters left, top, right, bottom
+   * @return {Number[]}   An array with id's of the overlapping nodes
+   * @private
+   */
+  exports._getAllEdgesOverlappingWith = function (object) {
+    var overlappingEdges = [];
+    this._doInAllActiveSectors("_getEdgesOverlappingWith",object,overlappingEdges);
+    return overlappingEdges;
+  };
+
+  /**
+   * Place holder. To implement change the _getNodeAt to a _getObjectAt. Have the _getObjectAt call
+   * _getNodeAt and _getEdgesAt, then priortize the selection to user preferences.
+   *
+   * @param pointer
+   * @returns {null}
+   * @private
+   */
+  exports._getEdgeAt = function(pointer) {
+    var positionObject = this._pointerToPositionObject(pointer);
+    var overlappingEdges = this._getAllEdgesOverlappingWith(positionObject);
+
+    if (overlappingEdges.length > 0) {
+      return this.edges[overlappingEdges[overlappingEdges.length - 1]];
+    }
+    else {
+      return null;
+    }
+  };
+
+
+  /**
+   * Add object to the selection array.
+   *
+   * @param obj
+   * @private
+   */
+  exports._addToSelection = function(obj) {
+    if (obj instanceof Node) {
+      this.selectionObj.nodes[obj.id] = obj;
+    }
+    else {
+      this.selectionObj.edges[obj.id] = obj;
+    }
+  };
+
+  /**
+   * Add object to the selection array.
+   *
+   * @param obj
+   * @private
+   */
+  exports._addToHover = function(obj) {
+    if (obj instanceof Node) {
+      this.hoverObj.nodes[obj.id] = obj;
+    }
+    else {
+      this.hoverObj.edges[obj.id] = obj;
+    }
+  };
+
+
+  /**
+   * Remove a single option from selection.
+   *
+   * @param {Object} obj
+   * @private
+   */
+  exports._removeFromSelection = function(obj) {
+    if (obj instanceof Node) {
+      delete this.selectionObj.nodes[obj.id];
+    }
+    else {
+      delete this.selectionObj.edges[obj.id];
+    }
+  };
+
+  /**
+   * Unselect all. The selectionObj is useful for this.
+   *
+   * @param {Boolean} [doNotTrigger] | ignore trigger
+   * @private
+   */
+  exports._unselectAll = function(doNotTrigger) {
+    if (doNotTrigger === undefined) {
+      doNotTrigger = false;
+    }
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        this.selectionObj.nodes[nodeId].unselect();
+      }
+    }
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        this.selectionObj.edges[edgeId].unselect();
+      }
+    }
+
+    this.selectionObj = {nodes:{},edges:{}};
+
+    if (doNotTrigger == false) {
+      this.emit('select', this.getSelection());
+    }
+  };
+
+  /**
+   * Unselect all clusters. The selectionObj is useful for this.
+   *
+   * @param {Boolean} [doNotTrigger] | ignore trigger
+   * @private
+   */
+  exports._unselectClusters = function(doNotTrigger) {
+    if (doNotTrigger === undefined) {
+      doNotTrigger = false;
+    }
+
+    for (var nodeId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        if (this.selectionObj.nodes[nodeId].clusterSize > 1) {
+          this.selectionObj.nodes[nodeId].unselect();
+          this._removeFromSelection(this.selectionObj.nodes[nodeId]);
+        }
+      }
+    }
+
+    if (doNotTrigger == false) {
+      this.emit('select', this.getSelection());
+    }
+  };
+
+
+  /**
+   * return the number of selected nodes
+   *
+   * @returns {number}
+   * @private
+   */
+  exports._getSelectedNodeCount = function() {
+    var count = 0;
+    for (var nodeId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        count += 1;
+      }
+    }
+    return count;
+  };
+
+  /**
+   * return the selected node
+   *
+   * @returns {number}
+   * @private
+   */
+  exports._getSelectedNode = function() {
+    for (var nodeId in this.selectionObj.nodes) {
+      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        return this.selectionObj.nodes[nodeId];
+      }
+    }
+    return null;
+  };
+
+  /**
+   * return the selected edge
+   *
+   * @returns {number}
+   * @private
+   */
+  exports._getSelectedEdge = function() {
+    for (var edgeId in this.selectionObj.edges) {
+      if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        return this.selectionObj.edges[edgeId];
+      }
+    }
+    return null;
+  };
+
+
+  /**
+   * return the number of selected edges
+   *
+   * @returns {number}
+   * @private
+   */
+  exports._getSelectedEdgeCount = function() {
+    var count = 0;
+    for (var edgeId in this.selectionObj.edges) {
+      if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        count += 1;
+      }
+    }
+    return count;
+  };
+
+
+  /**
+   * return the number of selected objects.
+   *
+   * @returns {number}
+   * @private
+   */
+  exports._getSelectedObjectCount = function() {
+    var count = 0;
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        count += 1;
+      }
+    }
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        count += 1;
+      }
+    }
+    return count;
+  };
+
+  /**
+   * Check if anything is selected
+   *
+   * @returns {boolean}
+   * @private
+   */
+  exports._selectionIsEmpty = function() {
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        return false;
+      }
+    }
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+
+  /**
+   * check if one of the selected nodes is a cluster.
+   *
+   * @returns {boolean}
+   * @private
+   */
+  exports._clusterInSelection = function() {
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        if (this.selectionObj.nodes[nodeId].clusterSize > 1) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
+  /**
+   * select the edges connected to the node that is being selected
+   *
+   * @param {Node} node
+   * @private
+   */
+  exports._selectConnectedEdges = function(node) {
+    for (var i = 0; i < node.dynamicEdges.length; i++) {
+      var edge = node.dynamicEdges[i];
+      edge.select();
+      this._addToSelection(edge);
+    }
+  };
+
+  /**
+   * select the edges connected to the node that is being selected
+   *
+   * @param {Node} node
+   * @private
+   */
+  exports._hoverConnectedEdges = function(node) {
+    for (var i = 0; i < node.dynamicEdges.length; i++) {
+      var edge = node.dynamicEdges[i];
+      edge.hover = true;
+      this._addToHover(edge);
+    }
+  };
+
+
+  /**
+   * unselect the edges connected to the node that is being selected
+   *
+   * @param {Node} node
+   * @private
+   */
+  exports._unselectConnectedEdges = function(node) {
+    for (var i = 0; i < node.dynamicEdges.length; i++) {
+      var edge = node.dynamicEdges[i];
+      edge.unselect();
+      this._removeFromSelection(edge);
+    }
+  };
+
+
+
+
+  /**
+   * This is called when someone clicks on a node. either select or deselect it.
+   * If there is an existing selection and we don't want to append to it, clear the existing selection
+   *
+   * @param {Node || Edge} object
+   * @param {Boolean} append
+   * @param {Boolean} [doNotTrigger] | ignore trigger
+   * @private
+   */
+  exports._selectObject = function(object, append, doNotTrigger, highlightEdges, overrideSelectable) {
+    if (doNotTrigger === undefined) {
+      doNotTrigger = false;
+    }
+    if (highlightEdges === undefined) {
+      highlightEdges = true;
+    }
+
+    if (this._selectionIsEmpty() == false && append == false && this.forceAppendSelection == false) {
+      this._unselectAll(true);
+    }
+
+    // selectable allows the object to be selected. Override can be used if needed to bypass this.
+    if (object.selected == false && (this.constants.selectable == true || overrideSelectable)) {
+      object.select();
+      this._addToSelection(object);
+      if (object instanceof Node && this.blockConnectingEdgeSelection == false && highlightEdges == true) {
+        this._selectConnectedEdges(object);
+      }
+    }
+    // do not select the object if selectable is false, only add it to selection to allow drag to work
+    else if (object.selected == false) {
+      this._addToSelection(object);
+      doNotTrigger = true;
+    }
+    else {
+      object.unselect();
+      this._removeFromSelection(object);
+    }
+
+    if (doNotTrigger == false) {
+      this.emit('select', this.getSelection());
+    }
+  };
+
+
+  /**
+   * This is called when someone clicks on a node. either select or deselect it.
+   * If there is an existing selection and we don't want to append to it, clear the existing selection
+   *
+   * @param {Node || Edge} object
+   * @private
+   */
+  exports._blurObject = function(object) {
+    if (object.hover == true) {
+      object.hover = false;
+      this.emit("blurNode",{node:object.id});
+    }
+  };
+
+  /**
+   * This is called when someone clicks on a node. either select or deselect it.
+   * If there is an existing selection and we don't want to append to it, clear the existing selection
+   *
+   * @param {Node || Edge} object
+   * @private
+   */
+  exports._hoverObject = function(object) {
+    if (object.hover == false) {
+      object.hover = true;
+      this._addToHover(object);
+      if (object instanceof Node) {
+        this.emit("hoverNode",{node:object.id});
+      }
+    }
+    if (object instanceof Node) {
+      this._hoverConnectedEdges(object);
+    }
+  };
+
+
+  /**
+   * handles the selection part of the touch, only for navigation controls elements;
+   * Touch is triggered before tap, also before hold. Hold triggers after a while.
+   * This is the most responsive solution
+   *
+   * @param {Object} pointer
+   * @private
+   */
+  exports._handleTouch = function(pointer) {
+  };
+
+
+  /**
+   * handles the selection part of the tap;
+   *
+   * @param {Object} pointer
+   * @private
+   */
+  exports._handleTap = function(pointer) {
+    var node = this._getNodeAt(pointer);
+    if (node != null) {
+      this._selectObject(node, false);
+    }
+    else {
+      var edge = this._getEdgeAt(pointer);
+      if (edge != null) {
+        this._selectObject(edge, false);
+      }
+      else {
+        this._unselectAll();
+      }
+    }
+    var properties = this.getSelection();
+    properties['pointer'] = {
+      DOM: {x: pointer.x, y: pointer.y},
+      canvas: {x: this._XconvertDOMtoCanvas(pointer.x), y: this._YconvertDOMtoCanvas(pointer.y)}
+    }
+    this.emit("click", properties);
+    this._redraw();
+  };
+
+
+  /**
+   * handles the selection part of the double tap and opens a cluster if needed
+   *
+   * @param {Object} pointer
+   * @private
+   */
+  exports._handleDoubleTap = function(pointer) {
+    var node = this._getNodeAt(pointer);
+    if (node != null && node !== undefined) {
+      // we reset the areaCenter here so the opening of the node will occur
+      this.areaCenter =  {"x" : this._XconvertDOMtoCanvas(pointer.x),
+                          "y" : this._YconvertDOMtoCanvas(pointer.y)};
+      this.openCluster(node);
+    }
+    var properties = this.getSelection();
+    properties['pointer'] = {
+      DOM: {x: pointer.x, y: pointer.y},
+      canvas: {x: this._XconvertDOMtoCanvas(pointer.x), y: this._YconvertDOMtoCanvas(pointer.y)}
+    }
+    this.emit("doubleClick", properties);
+  };
+
+
+  /**
+   * Handle the onHold selection part
+   *
+   * @param pointer
+   * @private
+   */
+  exports._handleOnHold = function(pointer) {
+    var node = this._getNodeAt(pointer);
+    if (node != null) {
+      this._selectObject(node,true);
+    }
+    else {
+      var edge = this._getEdgeAt(pointer);
+      if (edge != null) {
+        this._selectObject(edge,true);
+      }
+    }
+    this._redraw();
+  };
+
+
+  /**
+   * handle the onRelease event. These functions are here for the navigation controls module
+   * and data manipulation module.
+   *
+    * @private
+   */
+  exports._handleOnRelease = function(pointer) {
+    this._manipulationReleaseOverload(pointer);
+    this._navigationReleaseOverload(pointer);
+  };
+
+  exports._manipulationReleaseOverload = function (pointer) {};
+  exports._navigationReleaseOverload = function (pointer) {};
+
+  /**
+   *
+   * retrieve the currently selected objects
+   * @return {{nodes: Array.<String>, edges: Array.<String>}} selection
+   */
+  exports.getSelection = function() {
+    var nodeIds = this.getSelectedNodes();
+    var edgeIds = this.getSelectedEdges();
+    return {nodes:nodeIds, edges:edgeIds};
+  };
+
+  /**
+   *
+   * retrieve the currently selected nodes
+   * @return {String[]} selection    An array with the ids of the
+   *                                            selected nodes.
+   */
+  exports.getSelectedNodes = function() {
+    var idArray = [];
+    if (this.constants.selectable == true) {
+      for (var nodeId in this.selectionObj.nodes) {
+        if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+          idArray.push(nodeId);
+        }
+      }
+    }
+    return idArray
+  };
+
+  /**
+   *
+   * retrieve the currently selected edges
+   * @return {Array} selection    An array with the ids of the
+   *                                            selected nodes.
+   */
+  exports.getSelectedEdges = function() {
+    var idArray = [];
+    if (this.constants.selectable == true) {
+      for (var edgeId in this.selectionObj.edges) {
+        if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+          idArray.push(edgeId);
+        }
+      }
+    }
+    return idArray;
+  };
+
+
+  /**
+   * select zero or more nodes DEPRICATED
+   * @param {Number[] | String[]} selection     An array with the ids of the
+   *                                            selected nodes.
+   */
+  exports.setSelection = function() {
+    console.log("setSelection is deprecated. Please use selectNodes instead.")
+  };
+
+
+  /**
+   * select zero or more nodes with the option to highlight edges
+   * @param {Number[] | String[]} selection     An array with the ids of the
+   *                                            selected nodes.
+   * @param {boolean} [highlightEdges]
+   */
+  exports.selectNodes = function(selection, highlightEdges) {
+    var i, iMax, id;
+
+    if (!selection || (selection.length == undefined))
+      throw 'Selection must be an array with ids';
+
+    // first unselect any selected node
+    this._unselectAll(true);
+
+    for (i = 0, iMax = selection.length; i < iMax; i++) {
+      id = selection[i];
+
+      var node = this.nodes[id];
+      if (!node) {
+        throw new RangeError('Node with id "' + id + '" not found');
+      }
+      this._selectObject(node,true,true,highlightEdges,true);
+    }
+    this.redraw();
+  };
+
+
+  /**
+   * select zero or more edges
+   * @param {Number[] | String[]} selection     An array with the ids of the
+   *                                            selected nodes.
+   */
+  exports.selectEdges = function(selection) {
+    var i, iMax, id;
+
+    if (!selection || (selection.length == undefined))
+      throw 'Selection must be an array with ids';
+
+    // first unselect any selected node
+    this._unselectAll(true);
+
+    for (i = 0, iMax = selection.length; i < iMax; i++) {
+      id = selection[i];
+
+      var edge = this.edges[id];
+      if (!edge) {
+        throw new RangeError('Edge with id "' + id + '" not found');
+      }
+      this._selectObject(edge,true,true,false,true);
+    }
+    this.redraw();
+  };
+
+  /**
+   * Validate the selection: remove ids of nodes which no longer exist
+   * @private
+   */
+  exports._updateSelection = function () {
+    for(var nodeId in this.selectionObj.nodes) {
+      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+        if (!this.nodes.hasOwnProperty(nodeId)) {
+          delete this.selectionObj.nodes[nodeId];
+        }
+      }
+    }
+    for(var edgeId in this.selectionObj.edges) {
+      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
+        if (!this.edges.hasOwnProperty(edgeId)) {
+          delete this.selectionObj.edges[edgeId];
+        }
+      }
+    }
+  };
+
+
+/***/ },
+/* 61 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var util = __webpack_require__(1);
+  var Node = __webpack_require__(40);
+  var Edge = __webpack_require__(37);
+
+  /**
+   * clears the toolbar div element of children
+   *
+   * @private
+   */
+  exports._clearManipulatorBar = function() {
+    this._recursiveDOMDelete(this.manipulationDiv);
+    this.manipulationDOM = {};
+
+    this._manipulationReleaseOverload = function () {};
+    delete this.sectors['support']['nodes']['targetNode'];
+    delete this.sectors['support']['nodes']['targetViaNode'];
+    this.controlNodesActive = false;
+    this.freezeSimulation = false;
+  };
+
+  /**
+   * Manipulation UI temporarily overloads certain functions to extend or replace them. To be able to restore
+   * these functions to their original functionality, we saved them in this.cachedFunctions.
+   * This function restores these functions to their original function.
+   *
+   * @private
+   */
+  exports._restoreOverloadedFunctions = function() {
+    for (var functionName in this.cachedFunctions) {
+      if (this.cachedFunctions.hasOwnProperty(functionName)) {
+        this[functionName] = this.cachedFunctions[functionName];
+        delete this.cachedFunctions[functionName];
+      }
+    }
+  };
+
+  /**
+   * Enable or disable edit-mode.
+   *
+   * @private
+   */
+  exports._toggleEditMode = function() {
+    this.editMode = !this.editMode;
+    var toolbar = this.manipulationDiv;
+    var closeDiv = this.closeDiv;
+    var editModeDiv = this.editModeDiv;
+    if (this.editMode == true) {
+      toolbar.style.display="block";
+      closeDiv.style.display="block";
+      editModeDiv.style.display="none";
+      closeDiv.onclick = this._toggleEditMode.bind(this);
+    }
+    else {
+      toolbar.style.display="none";
+      closeDiv.style.display="none";
+      editModeDiv.style.display="block";
+      closeDiv.onclick = null;
+    }
+    this._createManipulatorBar()
+  };
+
+  /**
+   * main function, creates the main toolbar. Removes functions bound to the select event. Binds all the buttons of the toolbar.
+   *
+   * @private
+   */
+  exports._createManipulatorBar = function() {
+    // remove bound functions
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
+
+    var locale = this.constants.locales[this.constants.locale];
+
+    if (this.edgeBeingEdited !== undefined) {
+      this.edgeBeingEdited._disableControlNodes();
+      this.edgeBeingEdited = undefined;
+      this.selectedControlNode = null;
+      this.controlNodesActive = false;
+      this._redraw();
+    }
+
+    // restore overloaded functions
+    this._restoreOverloadedFunctions();
+
+    // resume calculation
+    this.freezeSimulation = false;
+
+    // reset global variables
+    this.blockConnectingEdgeSelection = false;
+    this.forceAppendSelection = false;
+    this.manipulationDOM = {};
+
+    if (this.editMode == true) {
+      while (this.manipulationDiv.hasChildNodes()) {
+        this.manipulationDiv.removeChild(this.manipulationDiv.firstChild);
+      }
+
+      this.manipulationDOM['addNodeSpan'] = document.createElement('span');
+      this.manipulationDOM['addNodeSpan'].className = 'network-manipulationUI add';
+      this.manipulationDOM['addNodeLabelSpan'] = document.createElement('span');
+      this.manipulationDOM['addNodeLabelSpan'].className = 'network-manipulationLabel';
+      this.manipulationDOM['addNodeLabelSpan'].innerHTML = locale['addNode'];
+      this.manipulationDOM['addNodeSpan'].appendChild(this.manipulationDOM['addNodeLabelSpan']);
+
+      this.manipulationDOM['seperatorLineDiv1'] = document.createElement('div');
+      this.manipulationDOM['seperatorLineDiv1'].className = 'network-seperatorLine';
+
+      this.manipulationDOM['addEdgeSpan'] = document.createElement('span');
+      this.manipulationDOM['addEdgeSpan'].className = 'network-manipulationUI connect';
+      this.manipulationDOM['addEdgeLabelSpan'] = document.createElement('span');
+      this.manipulationDOM['addEdgeLabelSpan'].className = 'network-manipulationLabel';
+      this.manipulationDOM['addEdgeLabelSpan'].innerHTML = locale['addEdge'];
+      this.manipulationDOM['addEdgeSpan'].appendChild(this.manipulationDOM['addEdgeLabelSpan']);
+
+      this.manipulationDiv.appendChild(this.manipulationDOM['addNodeSpan']);
+      this.manipulationDiv.appendChild(this.manipulationDOM['seperatorLineDiv1']);
+      this.manipulationDiv.appendChild(this.manipulationDOM['addEdgeSpan']);
+
+      if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
+        this.manipulationDOM['seperatorLineDiv2'] = document.createElement('div');
+        this.manipulationDOM['seperatorLineDiv2'].className = 'network-seperatorLine';
+
+        this.manipulationDOM['editNodeSpan'] = document.createElement('span');
+        this.manipulationDOM['editNodeSpan'].className = 'network-manipulationUI edit';
+        this.manipulationDOM['editNodeLabelSpan'] = document.createElement('span');
+        this.manipulationDOM['editNodeLabelSpan'].className = 'network-manipulationLabel';
+        this.manipulationDOM['editNodeLabelSpan'].innerHTML = locale['editNode'];
+        this.manipulationDOM['editNodeSpan'].appendChild(this.manipulationDOM['editNodeLabelSpan']);
+
+        this.manipulationDiv.appendChild(this.manipulationDOM['seperatorLineDiv2']);
+        this.manipulationDiv.appendChild(this.manipulationDOM['editNodeSpan']);
+      }
+      else if (this._getSelectedEdgeCount() == 1 && this._getSelectedNodeCount() == 0) {
+        this.manipulationDOM['seperatorLineDiv3'] = document.createElement('div');
+        this.manipulationDOM['seperatorLineDiv3'].className = 'network-seperatorLine';
+
+        this.manipulationDOM['editEdgeSpan'] = document.createElement('span');
+        this.manipulationDOM['editEdgeSpan'].className = 'network-manipulationUI edit';
+        this.manipulationDOM['editEdgeLabelSpan'] = document.createElement('span');
+        this.manipulationDOM['editEdgeLabelSpan'].className = 'network-manipulationLabel';
+        this.manipulationDOM['editEdgeLabelSpan'].innerHTML = locale['editEdge'];
+        this.manipulationDOM['editEdgeSpan'].appendChild(this.manipulationDOM['editEdgeLabelSpan']);
+
+        this.manipulationDiv.appendChild(this.manipulationDOM['seperatorLineDiv3']);
+        this.manipulationDiv.appendChild(this.manipulationDOM['editEdgeSpan']);
+      }
+      if (this._selectionIsEmpty() == false) {
+        this.manipulationDOM['seperatorLineDiv4'] = document.createElement('div');
+        this.manipulationDOM['seperatorLineDiv4'].className = 'network-seperatorLine';
+
+        this.manipulationDOM['deleteSpan'] = document.createElement('span');
+        this.manipulationDOM['deleteSpan'].className = 'network-manipulationUI delete';
+        this.manipulationDOM['deleteLabelSpan'] = document.createElement('span');
+        this.manipulationDOM['deleteLabelSpan'].className = 'network-manipulationLabel';
+        this.manipulationDOM['deleteLabelSpan'].innerHTML = locale['del'];
+        this.manipulationDOM['deleteSpan'].appendChild(this.manipulationDOM['deleteLabelSpan']);
+
+        this.manipulationDiv.appendChild(this.manipulationDOM['seperatorLineDiv4']);
+        this.manipulationDiv.appendChild(this.manipulationDOM['deleteSpan']);
+      }
+
+
+      // bind the icons
+      this.manipulationDOM['addNodeSpan'].onclick = this._createAddNodeToolbar.bind(this);
+      this.manipulationDOM['addEdgeSpan'].onclick = this._createAddEdgeToolbar.bind(this);
+      if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
+        this.manipulationDOM['editNodeSpan'].onclick = this._editNode.bind(this);
+      }
+      else if (this._getSelectedEdgeCount() == 1 && this._getSelectedNodeCount() == 0) {
+        this.manipulationDOM['editEdgeSpan'].onclick = this._createEditEdgeToolbar.bind(this);
+      }
+      if (this._selectionIsEmpty() == false) {
+        this.manipulationDOM['deleteSpan'].onclick = this._deleteSelected.bind(this);
+      }
+      this.closeDiv.onclick = this._toggleEditMode.bind(this);
+
+      var me = this;
+      this.boundFunction = me._createManipulatorBar;
+      this.on('select', this.boundFunction);
+    }
+    else {
+      while (this.editModeDiv.hasChildNodes()) {
+        this.editModeDiv.removeChild(this.editModeDiv.firstChild);
+      }
+
+      this.manipulationDOM['editModeSpan'] = document.createElement('span');
+      this.manipulationDOM['editModeSpan'].className = 'network-manipulationUI edit editmode';
+      this.manipulationDOM['editModeLabelSpan'] = document.createElement('span');
+      this.manipulationDOM['editModeLabelSpan'].className = 'network-manipulationLabel';
+      this.manipulationDOM['editModeLabelSpan'].innerHTML = locale['edit'];
+      this.manipulationDOM['editModeSpan'].appendChild(this.manipulationDOM['editModeLabelSpan']);
+
+      this.editModeDiv.appendChild(this.manipulationDOM['editModeSpan']);
+
+      this.manipulationDOM['editModeSpan'].onclick = this._toggleEditMode.bind(this);
+    }
+  };
+
+
+
+  /**
+   * Create the toolbar for adding Nodes
+   *
+   * @private
+   */
+  exports._createAddNodeToolbar = function() {
+    // clear the toolbar
+    this._clearManipulatorBar();
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
+
+    var locale = this.constants.locales[this.constants.locale];
+
+    this.manipulationDOM = {};
+    this.manipulationDOM['backSpan'] = document.createElement('span');
+    this.manipulationDOM['backSpan'].className = 'network-manipulationUI back';
+    this.manipulationDOM['backLabelSpan'] = document.createElement('span');
+    this.manipulationDOM['backLabelSpan'].className = 'network-manipulationLabel';
+    this.manipulationDOM['backLabelSpan'].innerHTML = locale['back'];
+    this.manipulationDOM['backSpan'].appendChild(this.manipulationDOM['backLabelSpan']);
+
+    this.manipulationDOM['seperatorLineDiv1'] = document.createElement('div');
+    this.manipulationDOM['seperatorLineDiv1'].className = 'network-seperatorLine';
+
+    this.manipulationDOM['descriptionSpan'] = document.createElement('span');
+    this.manipulationDOM['descriptionSpan'].className = 'network-manipulationUI none';
+    this.manipulationDOM['descriptionLabelSpan'] = document.createElement('span');
+    this.manipulationDOM['descriptionLabelSpan'].className = 'network-manipulationLabel';
+    this.manipulationDOM['descriptionLabelSpan'].innerHTML = locale['addDescription'];
+    this.manipulationDOM['descriptionSpan'].appendChild(this.manipulationDOM['descriptionLabelSpan']);
+
+    this.manipulationDiv.appendChild(this.manipulationDOM['backSpan']);
+    this.manipulationDiv.appendChild(this.manipulationDOM['seperatorLineDiv1']);
+    this.manipulationDiv.appendChild(this.manipulationDOM['descriptionSpan']);
+
+    // bind the icon
+    this.manipulationDOM['backSpan'].onclick = this._createManipulatorBar.bind(this);
+
+    // we use the boundFunction so we can reference it when we unbind it from the "select" event.
+    var me = this;
+    this.boundFunction = me._addNode;
+    this.on('select', this.boundFunction);
+  };
+
+
+  /**
+   * create the toolbar to connect nodes
+   *
+   * @private
+   */
+  exports._createAddEdgeToolbar = function() {
+    // clear the toolbar
+    this._clearManipulatorBar();
+    this._unselectAll(true);
+    this.freezeSimulation = true;
+
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
+
+    var locale = this.constants.locales[this.constants.locale];
+
+    this._unselectAll();
+    this.forceAppendSelection = false;
+    this.blockConnectingEdgeSelection = true;
+
+    this.manipulationDOM = {};
+    this.manipulationDOM['backSpan'] = document.createElement('span');
+    this.manipulationDOM['backSpan'].className = 'network-manipulationUI back';
+    this.manipulationDOM['backLabelSpan'] = document.createElement('span');
+    this.manipulationDOM['backLabelSpan'].className = 'network-manipulationLabel';
+    this.manipulationDOM['backLabelSpan'].innerHTML = locale['back'];
+    this.manipulationDOM['backSpan'].appendChild(this.manipulationDOM['backLabelSpan']);
+
+    this.manipulationDOM['seperatorLineDiv1'] = document.createElement('div');
+    this.manipulationDOM['seperatorLineDiv1'].className = 'network-seperatorLine';
+
+    this.manipulationDOM['descriptionSpan'] = document.createElement('span');
+    this.manipulationDOM['descriptionSpan'].className = 'network-manipulationUI none';
+    this.manipulationDOM['descriptionLabelSpan'] = document.createElement('span');
+    this.manipulationDOM['descriptionLabelSpan'].className = 'network-manipulationLabel';
+    this.manipulationDOM['descriptionLabelSpan'].innerHTML = locale['edgeDescription'];
+    this.manipulationDOM['descriptionSpan'].appendChild(this.manipulationDOM['descriptionLabelSpan']);
+
+    this.manipulationDiv.appendChild(this.manipulationDOM['backSpan']);
+    this.manipulationDiv.appendChild(this.manipulationDOM['seperatorLineDiv1']);
+    this.manipulationDiv.appendChild(this.manipulationDOM['descriptionSpan']);
+
+    // bind the icon
+    this.manipulationDOM['backSpan'].onclick = this._createManipulatorBar.bind(this);
+
+    // we use the boundFunction so we can reference it when we unbind it from the "select" event.
+    var me = this;
+    this.boundFunction = me._handleConnect;
+    this.on('select', this.boundFunction);
+
+    // temporarily overload functions
+    this.cachedFunctions["_handleTouch"] = this._handleTouch;
+    this.cachedFunctions["_manipulationReleaseOverload"] = this._manipulationReleaseOverload;
+    this.cachedFunctions["_handleDragStart"] = this._handleDragStart;
+    this.cachedFunctions["_handleDragEnd"] = this._handleDragEnd;
+    this.cachedFunctions["_handleOnHold"] = this._handleOnHold;
+    this._handleTouch = this._handleConnect;
+    this._manipulationReleaseOverload = function () {};
+    this._handleOnHold    = function () {};
+    this._handleDragStart = function () {};
+    this._handleDragEnd   = this._finishConnect;
+
+    // redraw to show the unselect
+    this._redraw();
+  };
+
+  /**
+   * create the toolbar to edit edges
+   *
+   * @private
+   */
+  exports._createEditEdgeToolbar = function() {
+    // clear the toolbar
+    this._clearManipulatorBar();
+    this.controlNodesActive = true;
+
+    if (this.boundFunction) {
+      this.off('select', this.boundFunction);
+    }
+
+    this.edgeBeingEdited = this._getSelectedEdge();
+    this.edgeBeingEdited._enableControlNodes();
+
+    var locale = this.constants.locales[this.constants.locale];
+
+    this.manipulationDOM = {};
+    this.manipulationDOM['backSpan'] = document.createElement('span');
+    this.manipulationDOM['backSpan'].className = 'network-manipulationUI back';
+    this.manipulationDOM['backLabelSpan'] = document.createElement('span');
+    this.manipulationDOM['backLabelSpan'].className = 'network-manipulationLabel';
+    this.manipulationDOM['backLabelSpan'].innerHTML = locale['back'];
+    this.manipulationDOM['backSpan'].appendChild(this.manipulationDOM['backLabelSpan']);
+
+    this.manipulationDOM['seperatorLineDiv1'] = document.createElement('div');
+    this.manipulationDOM['seperatorLineDiv1'].className = 'network-seperatorLine';
+
+    this.manipulationDOM['descriptionSpan'] = document.createElement('span');
+    this.manipulationDOM['descriptionSpan'].className = 'network-manipulationUI none';
+    this.manipulationDOM['descriptionLabelSpan'] = document.createElement('span');
+    this.manipulationDOM['descriptionLabelSpan'].className = 'network-manipulationLabel';
+    this.manipulationDOM['descriptionLabelSpan'].innerHTML = locale['editEdgeDescription'];
+    this.manipulationDOM['descriptionSpan'].appendChild(this.manipulationDOM['descriptionLabelSpan']);
+
+    this.manipulationDiv.appendChild(this.manipulationDOM['backSpan']);
+    this.manipulationDiv.appendChild(this.manipulationDOM['seperatorLineDiv1']);
+    this.manipulationDiv.appendChild(this.manipulationDOM['descriptionSpan']);
+
+    // bind the icon
+    this.manipulationDOM['backSpan'].onclick = this._createManipulatorBar.bind(this);
+
+    // temporarily overload functions
+    this.cachedFunctions["_handleTouch"]      = this._handleTouch;
+    this.cachedFunctions["_manipulationReleaseOverload"]  = this._manipulationReleaseOverload;
+    this.cachedFunctions["_handleTap"]        = this._handleTap;
+    this.cachedFunctions["_handleDragStart"]  = this._handleDragStart;
+    this.cachedFunctions["_handleOnDrag"]     = this._handleOnDrag;
+    this._handleTouch     = this._selectControlNode;
+    this._handleTap       = function () {};
+    this._handleOnDrag    = this._controlNodeDrag;
+    this._handleDragStart = function () {}
+    this._manipulationReleaseOverload = this._releaseControlNode;
+
+    // redraw to show the unselect
+    this._redraw();
+  };
+
+
+  /**
+   * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
+   * to walk the user through the process.
+   *
+   * @private
+   */
+  exports._selectControlNode = function(pointer) {
+    this.edgeBeingEdited.controlNodes.from.unselect();
+    this.edgeBeingEdited.controlNodes.to.unselect();
+    this.selectedControlNode = this.edgeBeingEdited._getSelectedControlNode(this._XconvertDOMtoCanvas(pointer.x),this._YconvertDOMtoCanvas(pointer.y));
+    if (this.selectedControlNode !== null) {
+      this.selectedControlNode.select();
+      this.freezeSimulation = true;
+    }
+    this._redraw();
+  };
+
+
+  /**
+   * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
+   * to walk the user through the process.
+   *
+   * @private
+   */
+  exports._controlNodeDrag = function(event) {
+    var pointer = this._getPointer(event.gesture.center);
+    if (this.selectedControlNode !== null && this.selectedControlNode !== undefined) {
+      this.selectedControlNode.x = this._XconvertDOMtoCanvas(pointer.x);
+      this.selectedControlNode.y = this._YconvertDOMtoCanvas(pointer.y);
+    }
+    this._redraw();
+  };
+
+
+  /**
+   *
+   * @param pointer
+   * @private
+   */
+  exports._releaseControlNode = function(pointer) {
+    var newNode = this._getNodeAt(pointer);
+    if (newNode !== null) {
+      if (this.edgeBeingEdited.controlNodes.from.selected == true) {
+        this.edgeBeingEdited._restoreControlNodes();
+        this._editEdge(newNode.id, this.edgeBeingEdited.to.id);
+        this.edgeBeingEdited.controlNodes.from.unselect();
+      }
+      if (this.edgeBeingEdited.controlNodes.to.selected == true) {
+        this.edgeBeingEdited._restoreControlNodes();
+        this._editEdge(this.edgeBeingEdited.from.id, newNode.id);
+        this.edgeBeingEdited.controlNodes.to.unselect();
+      }
+    }
+    else {
+      this.edgeBeingEdited._restoreControlNodes();
+    }
+    this.freezeSimulation = false;
+    this._redraw();
+  };
+
+  /**
+   * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
+   * to walk the user through the process.
+   *
+   * @private
+   */
+  exports._handleConnect = function(pointer) {
+    if (this._getSelectedNodeCount() == 0) {
+      var node = this._getNodeAt(pointer);
+
+      if (node != null) {
+        if (node.clusterSize > 1) {
+          alert(this.constants.locales[this.constants.locale]['createEdgeError'])
+        }
+        else {
+          this._selectObject(node,false);
+          var supportNodes = this.sectors['support']['nodes'];
+
+          // create a node the temporary line can look at
+          supportNodes['targetNode'] = new Node({id:'targetNode'},{},{},this.constants);
+          var targetNode = supportNodes['targetNode'];
+          targetNode.x = node.x;
+          targetNode.y = node.y;
+
+          // create a temporary edge
+          this.edges['connectionEdge'] = new Edge({id:"connectionEdge",from:node.id,to:targetNode.id}, this, this.constants);
+          var connectionEdge = this.edges['connectionEdge'];
+          connectionEdge.from = node;
+          connectionEdge.connected = true;
+          connectionEdge.options.smoothCurves = {enabled: true,
+              dynamic: false,
+              type: "continuous",
+              roundness: 0.5
+          };
+          connectionEdge.selected = true;
+          connectionEdge.to = targetNode;
+
+          this.cachedFunctions["_handleOnDrag"] = this._handleOnDrag;
+          this._handleOnDrag = function(event) {
+            var pointer = this._getPointer(event.gesture.center);
+            var connectionEdge = this.edges['connectionEdge'];
+            connectionEdge.to.x = this._XconvertDOMtoCanvas(pointer.x);
+            connectionEdge.to.y = this._YconvertDOMtoCanvas(pointer.y);
+          };
+
+          this.moving = true;
+          this.start();
+        }
+      }
+    }
+  };
+
+  exports._finishConnect = function(event) {
+    if (this._getSelectedNodeCount() == 1) {
+      var pointer = this._getPointer(event.gesture.center);
+      // restore the drag function
+      this._handleOnDrag = this.cachedFunctions["_handleOnDrag"];
+      delete this.cachedFunctions["_handleOnDrag"];
+
+      // remember the edge id
+      var connectFromId = this.edges['connectionEdge'].fromId;
+
+      // remove the temporary nodes and edge
+      delete this.edges['connectionEdge'];
+      delete this.sectors['support']['nodes']['targetNode'];
+      delete this.sectors['support']['nodes']['targetViaNode'];
+
+      var node = this._getNodeAt(pointer);
+      if (node != null) {
+        if (node.clusterSize > 1) {
+          alert(this.constants.locales[this.constants.locale]["createEdgeError"])
+        }
+        else {
+          this._createEdge(connectFromId,node.id);
+          this._createManipulatorBar();
+        }
+      }
+      this._unselectAll();
+    }
+  };
+
+
+  /**
+   * Adds a node on the specified location
+   */
+  exports._addNode = function() {
+    if (this._selectionIsEmpty() && this.editMode == true) {
+      var positionObject = this._pointerToPositionObject(this.pointerPosition);
+      var defaultData = {id:util.randomUUID(),x:positionObject.left,y:positionObject.top,label:"new",allowedToMoveX:true,allowedToMoveY:true};
+      if (this.triggerFunctions.add) {
+        if (this.triggerFunctions.add.length == 2) {
+          var me = this;
+          this.triggerFunctions.add(defaultData, function(finalizedData) {
+            me.nodesData.add(finalizedData);
+            me._createManipulatorBar();
+            me.moving = true;
+            me.start();
+          });
+        }
+        else {
+          throw new Error('The function for add does not support two arguments (data,callback)');
+          this._createManipulatorBar();
+          this.moving = true;
+          this.start();
+        }
+      }
+      else {
+        this.nodesData.add(defaultData);
+        this._createManipulatorBar();
+        this.moving = true;
+        this.start();
+      }
+    }
+  };
+
+
+  /**
+   * connect two nodes with a new edge.
+   *
+   * @private
+   */
+  exports._createEdge = function(sourceNodeId,targetNodeId) {
+    if (this.editMode == true) {
+      var defaultData = {from:sourceNodeId, to:targetNodeId};
+      if (this.triggerFunctions.connect) {
+        if (this.triggerFunctions.connect.length == 2) {
+          var me = this;
+          this.triggerFunctions.connect(defaultData, function(finalizedData) {
+            me.edgesData.add(finalizedData);
+            me.moving = true;
+            me.start();
+          });
+        }
+        else {
+          throw new Error('The function for connect does not support two arguments (data,callback)');
+          this.moving = true;
+          this.start();
+        }
+      }
+      else {
+        this.edgesData.add(defaultData);
+        this.moving = true;
+        this.start();
+      }
+    }
+  };
+
+  /**
+   * connect two nodes with a new edge.
+   *
+   * @private
+   */
+  exports._editEdge = function(sourceNodeId,targetNodeId) {
+    if (this.editMode == true) {
+      var defaultData = {id: this.edgeBeingEdited.id, from:sourceNodeId, to:targetNodeId};
+      if (this.triggerFunctions.editEdge) {
+        if (this.triggerFunctions.editEdge.length == 2) {
+          var me = this;
+          this.triggerFunctions.editEdge(defaultData, function(finalizedData) {
+            me.edgesData.update(finalizedData);
+            me.moving = true;
+            me.start();
+          });
+        }
+        else {
+          throw new Error('The function for edit does not support two arguments (data, callback)');
+          this.moving = true;
+          this.start();
+        }
+      }
+      else {
+        this.edgesData.update(defaultData);
+        this.moving = true;
+        this.start();
+      }
+    }
+  };
+
+  /**
+   * Create the toolbar to edit the selected node. The label and the color can be changed. Other colors are derived from the chosen color.
+   *
+   * @private
+   */
+  exports._editNode = function() {
+    if (this.triggerFunctions.edit && this.editMode == true) {
+      var node = this._getSelectedNode();
+      var data = {id:node.id,
+        label: node.label,
+        group: node.options.group,
+        shape: node.options.shape,
+        color: {
+          background:node.options.color.background,
+          border:node.options.color.border,
+          highlight: {
+            background:node.options.color.highlight.background,
+            border:node.options.color.highlight.border
+          }
+        }};
+      if (this.triggerFunctions.edit.length == 2) {
+        var me = this;
+        this.triggerFunctions.edit(data, function (finalizedData) {
+          me.nodesData.update(finalizedData);
+          me._createManipulatorBar();
+          me.moving = true;
+          me.start();
+        });
+      }
+      else {
+        throw new Error('The function for edit does not support two arguments (data, callback)');
+      }
+    }
+    else {
+      throw new Error('No edit function has been bound to this button');
+    }
+  };
+
+
+
+
+  /**
+   * delete everything in the selection
+   *
+   * @private
+   */
+  exports._deleteSelected = function() {
+    if (!this._selectionIsEmpty() && this.editMode == true) {
+      if (!this._clusterInSelection()) {
+        var selectedNodes = this.getSelectedNodes();
+        var selectedEdges = this.getSelectedEdges();
+        if (this.triggerFunctions.del) {
+          var me = this;
+          var data = {nodes: selectedNodes, edges: selectedEdges};
+          if (this.triggerFunctions.del.length == 2) {
+            this.triggerFunctions.del(data, function (finalizedData) {
+              me.edgesData.remove(finalizedData.edges);
+              me.nodesData.remove(finalizedData.nodes);
+              me._unselectAll();
+              me.moving = true;
+              me.start();
+            });
+          }
+          else {
+            throw new Error('The function for delete does not support two arguments (data, callback)')
+          }
+        }
+        else {
+          this.edgesData.remove(selectedEdges);
+          this.nodesData.remove(selectedNodes);
+          this._unselectAll();
+          this.moving = true;
+          this.start();
+        }
+      }
+      else {
+        alert(this.constants.locales[this.constants.locale]["deleteClusterError"]);
+      }
+    }
+  };
+
+
+/***/ },
+/* 62 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var util = __webpack_require__(1);
+  var Hammer = __webpack_require__(45);
+
+  exports._cleanNavigation = function() {
+    // clean hammer bindings
+    if (this.navigationHammers.existing.length != 0) {
+      for (var i = 0; i < this.navigationHammers.existing.length; i++) {
+        this.navigationHammers.existing[i].dispose();
+      }
+      this.navigationHammers.existing = [];
+    }
+
+    this._navigationReleaseOverload = function () {};
+
+    // clean up previous navigation items
+    if (this.navigationDivs && this.navigationDivs['wrapper'] && this.navigationDivs['wrapper'].parentNode) {
+      this.navigationDivs['wrapper'].parentNode.removeChild(this.navigationDivs['wrapper']);
+    }
+  };
+
+  /**
+   * Creation of the navigation controls nodes. They are drawn over the rest of the nodes and are not affected by scale and translation
+   * they have a triggerFunction which is called on click. If the position of the navigation controls is dependent
+   * on this.frame.canvas.clientWidth or this.frame.canvas.clientHeight, we flag horizontalAlignLeft and verticalAlignTop false.
+   * This means that the location will be corrected by the _relocateNavigation function on a size change of the canvas.
+   *
+   * @private
+   */
+  exports._loadNavigationElements = function() {
+    this._cleanNavigation();
+
+    this.navigationDivs = {};
+    var navigationDivs = ['up','down','left','right','zoomIn','zoomOut','zoomExtends'];
+    var navigationDivActions = ['_moveUp','_moveDown','_moveLeft','_moveRight','_zoomIn','_zoomOut','_zoomExtent'];
+
+    this.navigationDivs['wrapper'] = document.createElement('div');
+    this.frame.appendChild(this.navigationDivs['wrapper']);
+
+    for (var i = 0; i < navigationDivs.length; i++) {
+      this.navigationDivs[navigationDivs[i]] = document.createElement('div');
+      this.navigationDivs[navigationDivs[i]].className = 'network-navigation ' + navigationDivs[i];
+      this.navigationDivs['wrapper'].appendChild(this.navigationDivs[navigationDivs[i]]);
+
+      var hammer = Hammer(this.navigationDivs[navigationDivs[i]], {prevent_default: true});
+      hammer.on('touch', this[navigationDivActions[i]].bind(this));
+      this.navigationHammers._new.push(hammer);
+    }
+
+    this._navigationReleaseOverload = this._stopMovement;
+
+    this.navigationHammers.existing = this.navigationHammers._new;
+  };
+
+
+  /**
+   * this stops all movement induced by the navigation buttons
+   *
+   * @private
+   */
+  exports._zoomExtent = function(event) {
+    this.zoomExtent({duration:700});
+    event.stopPropagation();
+  };
+
+  /**
+   * this stops all movement induced by the navigation buttons
+   *
+   * @private
+   */
+  exports._stopMovement = function() {
+    this._xStopMoving();
+    this._yStopMoving();
+    this._stopZoom();
+  };
+
+
+  /**
+   * move the screen up
+   * By using the increments, instead of adding a fixed number to the translation, we keep fluent and
+   * instant movement. The onKeypress event triggers immediately, then pauses, then triggers frequently
+   * To avoid this behaviour, we do the translation in the start loop.
+   *
+   * @private
+   */
+  exports._moveUp = function(event) {
+    this.yIncrement = this.constants.keyboard.speed.y;
+    this.start(); // if there is no node movement, the calculation wont be done
+    event.preventDefault();
+  };
+
+
+  /**
+   * move the screen down
+   * @private
+   */
+  exports._moveDown = function(event) {
+    this.yIncrement = -this.constants.keyboard.speed.y;
+    this.start(); // if there is no node movement, the calculation wont be done
+    event.preventDefault();
+  };
+
+
+  /**
+   * move the screen left
+   * @private
+   */
+  exports._moveLeft = function(event) {
+    this.xIncrement = this.constants.keyboard.speed.x;
+    this.start(); // if there is no node movement, the calculation wont be done
+    event.preventDefault();
+  };
+
+
+  /**
+   * move the screen right
+   * @private
+   */
+  exports._moveRight = function(event) {
+    this.xIncrement = -this.constants.keyboard.speed.y;
+    this.start(); // if there is no node movement, the calculation wont be done
+    event.preventDefault();
+  };
+
+
+  /**
+   * Zoom in, using the same method as the movement.
+   * @private
+   */
+  exports._zoomIn = function(event) {
+    this.zoomIncrement = this.constants.keyboard.speed.zoom;
+    this.start(); // if there is no node movement, the calculation wont be done
+    event.preventDefault();
+  };
+
+
+  /**
+   * Zoom out
+   * @private
+   */
+  exports._zoomOut = function(event) {
+    this.zoomIncrement = -this.constants.keyboard.speed.zoom;
+    this.start(); // if there is no node movement, the calculation wont be done
+    event.preventDefault();
+  };
+
+
+  /**
+   * Stop zooming and unhighlight the zoom controls
+   * @private
+   */
+  exports._stopZoom = function(event) {
+    this.zoomIncrement = 0;
+    event && event.preventDefault();
+  };
+
+
+  /**
+   * Stop moving in the Y direction and unHighlight the up and down
+   * @private
+   */
+  exports._yStopMoving = function(event) {
+    this.yIncrement = 0;
+    event && event.preventDefault();
+  };
+
+
+  /**
+   * Stop moving in the X direction and unHighlight left and right.
+   * @private
+   */
+  exports._xStopMoving = function(event) {
+    this.xIncrement = 0;
+    event && event.preventDefault();
+  };
+
+
+/***/ },
+/* 63 */
+/***/ function(module, exports, __webpack_require__) {
+
+  exports._resetLevels = function() {
+    for (var nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        var node = this.nodes[nodeId];
+        if (node.preassignedLevel == false) {
+          node.level = -1;
+          node.hierarchyEnumerated = false;
+        }
+      }
+    }
+  };
+
+  /**
+   * This is the main function to layout the nodes in a hierarchical way.
+   * It checks if the node details are supplied correctly
+   *
+   * @private
+   */
+  exports._setupHierarchicalLayout = function() {
+    if (this.constants.hierarchicalLayout.enabled == true && this.nodeIndices.length > 0) {
+      // get the size of the largest hubs and check if the user has defined a level for a node.
+      var hubsize = 0;
+      var node, nodeId;
+      var definedLevel = false;
+      var undefinedLevel = false;
+
+      for (nodeId in this.nodes) {
+        if (this.nodes.hasOwnProperty(nodeId)) {
+          node = this.nodes[nodeId];
+          if (node.level != -1) {
+            definedLevel = true;
+          }
+          else {
+            undefinedLevel = true;
+          }
+          if (hubsize < node.edges.length) {
+            hubsize = node.edges.length;
+          }
+        }
+      }
+
+      // if the user defined some levels but not all, alert and run without hierarchical layout
+      if (undefinedLevel == true && definedLevel == true) {
+        throw new Error("To use the hierarchical layout, nodes require either no predefined levels or levels have to be defined for all nodes.");
+        this.zoomExtent({duration:0},true,this.constants.clustering.enabled);
+        if (!this.constants.clustering.enabled) {
+          this.start();
+        }
+      }
+      else {
+        // setup the system to use hierarchical method.
+        this._changeConstants();
+
+        // define levels if undefined by the users. Based on hubsize
+        if (undefinedLevel == true) {
+          if (this.constants.hierarchicalLayout.layout == "hubsize") {
+            this._determineLevels(hubsize);
+          }
+          else {
+            this._determineLevelsDirected(false);
+          }
+
+        }
+        // check the distribution of the nodes per level.
+        var distribution = this._getDistribution();
+
+        // place the nodes on the canvas. This also stablilizes the system.
+        this._placeNodesByHierarchy(distribution);
+
+        // start the simulation.
+        this.start();
+      }
+    }
+  };
+
+
+  /**
+   * This function places the nodes on the canvas based on the hierarchial distribution.
+   *
+   * @param {Object} distribution | obtained by the function this._getDistribution()
+   * @private
+   */
+  exports._placeNodesByHierarchy = function(distribution) {
+    var nodeId, node;
+
+    // start placing all the level 0 nodes first. Then recursively position their branches.
+    for (var level in distribution) {
+      if (distribution.hasOwnProperty(level)) {
+
+        for (nodeId in distribution[level].nodes) {
+          if (distribution[level].nodes.hasOwnProperty(nodeId)) {
+            node = distribution[level].nodes[nodeId];
+            if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
+              if (node.xFixed) {
+                node.x = distribution[level].minPos;
+                node.xFixed = false;
+
+                distribution[level].minPos += distribution[level].nodeSpacing;
+              }
+            }
+            else {
+              if (node.yFixed) {
+                node.y = distribution[level].minPos;
+                node.yFixed = false;
+
+                distribution[level].minPos += distribution[level].nodeSpacing;
+              }
+            }
+            this._placeBranchNodes(node.edges,node.id,distribution,node.level);
+          }
+        }
+      }
+    }
+
+    // stabilize the system after positioning. This function calls zoomExtent.
+    this._stabilize();
+  };
+
+
+  /**
+   * This function get the distribution of levels based on hubsize
+   *
+   * @returns {Object}
+   * @private
+   */
+  exports._getDistribution = function() {
+    var distribution = {};
+    var nodeId, node, level;
+
+    // we fix Y because the hierarchy is vertical, we fix X so we do not give a node an x position for a second time.
+    // the fix of X is removed after the x value has been set.
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        node = this.nodes[nodeId];
+        node.xFixed = true;
+        node.yFixed = true;
+        if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
+          node.y = this.constants.hierarchicalLayout.levelSeparation*node.level;
+        }
+        else {
+          node.x = this.constants.hierarchicalLayout.levelSeparation*node.level;
+        }
+        if (distribution[node.level] === undefined) {
+          distribution[node.level] = {amount: 0, nodes: {}, minPos:0, nodeSpacing:0};
+        }
+        distribution[node.level].amount += 1;
+        distribution[node.level].nodes[nodeId] = node;
+      }
+    }
+
+    // determine the largest amount of nodes of all levels
+    var maxCount = 0;
+    for (level in distribution) {
+      if (distribution.hasOwnProperty(level)) {
+        if (maxCount < distribution[level].amount) {
+          maxCount = distribution[level].amount;
+        }
+      }
+    }
+
+    // set the initial position and spacing of each nodes accordingly
+    for (level in distribution) {
+      if (distribution.hasOwnProperty(level)) {
+        distribution[level].nodeSpacing = (maxCount + 1) * this.constants.hierarchicalLayout.nodeSpacing;
+        distribution[level].nodeSpacing /= (distribution[level].amount + 1);
+        distribution[level].minPos = distribution[level].nodeSpacing - (0.5 * (distribution[level].amount + 1) * distribution[level].nodeSpacing);
+      }
+    }
+
+    return distribution;
+  };
+
+
+  /**
+   * this function allocates nodes in levels based on the recursive branching from the largest hubs.
+   *
+   * @param hubsize
+   * @private
+   */
+  exports._determineLevels = function(hubsize) {
+    var nodeId, node;
+
+    // determine hubs
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        node = this.nodes[nodeId];
+        if (node.edges.length == hubsize) {
+          node.level = 0;
+        }
+      }
+    }
+
+    // branch from hubs
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        node = this.nodes[nodeId];
+        if (node.level == 0) {
+          this._setLevel(1,node.edges,node.id);
+        }
+      }
+    }
+  };
+
+
+
+  /**
+   * this function allocates nodes in levels based on the direction of the edges
+   *
+   * @param hubsize
+   * @private
+   */
+  exports._determineLevelsDirected = function() {
+    var nodeId, node, firstNode;
+    var minLevel = 10000;
+
+    // set first node to source
+    firstNode = this.nodes[this.nodeIndices[0]];
+    firstNode.level = minLevel;
+    this._setLevelDirected(minLevel,firstNode.edges,firstNode.id);
+
+    // get the minimum level
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        node = this.nodes[nodeId];
+        minLevel = node.level < minLevel ? node.level : minLevel;
+      }
+    }
+
+    // subtract the minimum from the set so we have a range starting from 0
+    for (nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        node = this.nodes[nodeId];
+        node.level -= minLevel;
+      }
+    }
+  };
+
+
+  /**
+   * Since hierarchical layout does not support:
+   *    - smooth curves (based on the physics),
+   *    - clustering (based on dynamic node counts)
+   *
+   * We disable both features so there will be no problems.
+   *
+   * @private
+   */
+  exports._changeConstants = function() {
+    this.constants.clustering.enabled = false;
+    this.constants.physics.barnesHut.enabled = false;
+    this.constants.physics.hierarchicalRepulsion.enabled = true;
+    this._loadSelectedForceSolver();
+    if (this.constants.smoothCurves.enabled == true) {
+      this.constants.smoothCurves.dynamic = false;
+    }
+    this._configureSmoothCurves();
+
+    var config = this.constants.hierarchicalLayout;
+    config.levelSeparation = Math.abs(config.levelSeparation);
+    if (config.direction == "RL" || config.direction == "DU") {
+      config.levelSeparation *= -1;
+    }
+
+    if (config.direction == "RL" || config.direction == "LR") {
+      if (this.constants.smoothCurves.enabled == true) {
+        this.constants.smoothCurves.type = "vertical";
+      }
+    }
+    else {
+      if (this.constants.smoothCurves.enabled == true) {
+        this.constants.smoothCurves.type = "horizontal";
+      }
+    }
+  };
+
+
+  /**
+   * This is a recursively called function to enumerate the branches from the largest hubs and place the nodes
+   * on a X position that ensures there will be no overlap.
+   *
+   * @param edges
+   * @param parentId
+   * @param distribution
+   * @param parentLevel
+   * @private
+   */
+  exports._placeBranchNodes = function(edges, parentId, distribution, parentLevel) {
+    for (var i = 0; i < edges.length; i++) {
+      var childNode = null;
+      if (edges[i].toId == parentId) {
+        childNode = edges[i].from;
+      }
+      else {
+        childNode = edges[i].to;
+      }
+
+      // if a node is conneceted to another node on the same level (or higher (means lower level))!, this is not handled here.
+      var nodeMoved = false;
+      if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
+        if (childNode.xFixed && childNode.level > parentLevel) {
+          childNode.xFixed = false;
+          childNode.x = distribution[childNode.level].minPos;
+          nodeMoved = true;
+        }
+      }
+      else {
+        if (childNode.yFixed && childNode.level > parentLevel) {
+          childNode.yFixed = false;
+          childNode.y = distribution[childNode.level].minPos;
+          nodeMoved = true;
+        }
+      }
+
+      if (nodeMoved == true) {
+        distribution[childNode.level].minPos += distribution[childNode.level].nodeSpacing;
+        if (childNode.edges.length > 1) {
+          this._placeBranchNodes(childNode.edges,childNode.id,distribution,childNode.level);
+        }
+      }
+    }
+  };
+
+
+  /**
+   * this function is called recursively to enumerate the barnches of the largest hubs and give each node a level.
+   *
+   * @param level
+   * @param edges
+   * @param parentId
+   * @private
+   */
+  exports._setLevel = function(level, edges, parentId) {
+    for (var i = 0; i < edges.length; i++) {
+      var childNode = null;
+      if (edges[i].toId == parentId) {
+        childNode = edges[i].from;
+      }
+      else {
+        childNode = edges[i].to;
+      }
+      if (childNode.level == -1 || childNode.level > level) {
+        childNode.level = level;
+        if (childNode.edges.length > 1) {
+          this._setLevel(level+1, childNode.edges, childNode.id);
+        }
+      }
+    }
+  };
+
+
+  /**
+   * this function is called recursively to enumerate the branched of the first node and give each node a level based on edge direction
+   *
+   * @param level
+   * @param edges
+   * @param parentId
+   * @private
+   */
+  exports._setLevelDirected = function(level, edges, parentId) {
+    this.nodes[parentId].hierarchyEnumerated = true;
+    var childNode, direction;
+    for (var i = 0; i < edges.length; i++) {
+      direction = 1;
+      if (edges[i].toId == parentId) {
+        childNode = edges[i].from;
+        direction = -1;
+      }
+      else {
+        childNode = edges[i].to;
+      }
+      if (childNode.level == -1) {
+        childNode.level = level + direction;
+      }
+    }
+
+    for (var i = 0; i < edges.length; i++) {
+      if (edges[i].toId == parentId) {childNode = edges[i].from;}
+      else {childNode = edges[i].to;}
+
+      if (childNode.edges.length > 1 && childNode.hierarchyEnumerated === false) {
+        this._setLevelDirected(childNode.level, childNode.edges, childNode.id);
+      }
+    }
+  };
+
+
+  /**
+   * Unfix nodes
+   *
+   * @private
+   */
+  exports._restoreNodes = function() {
+    for (var nodeId in this.nodes) {
+      if (this.nodes.hasOwnProperty(nodeId)) {
+        this.nodes[nodeId].xFixed = false;
+        this.nodes[nodeId].yFixed = false;
+      }
+    }
+  };
+
+
+/***/ },
+/* 64 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var util = __webpack_require__(1);
+  var RepulsionMixin = __webpack_require__(67);
+  var HierarchialRepulsionMixin = __webpack_require__(68);
+  var BarnesHutMixin = __webpack_require__(69);
+
+  /**
+   * Toggling barnes Hut calculation on and off.
+   *
+   * @private
+   */
+  exports._toggleBarnesHut = function () {
+    this.constants.physics.barnesHut.enabled = !this.constants.physics.barnesHut.enabled;
+    this._loadSelectedForceSolver();
+    this.moving = true;
+    this.start();
+  };
+
+
+  /**
+   * This loads the node force solver based on the barnes hut or repulsion algorithm
+   *
+   * @private
+   */
+  exports._loadSelectedForceSolver = function () {
+    // this overloads the this._calculateNodeForces
+    if (this.constants.physics.barnesHut.enabled == true) {
+      this._clearMixin(RepulsionMixin);
+      this._clearMixin(HierarchialRepulsionMixin);
+
+      this.constants.physics.centralGravity = this.constants.physics.barnesHut.centralGravity;
+      this.constants.physics.springLength = this.constants.physics.barnesHut.springLength;
+      this.constants.physics.springConstant = this.constants.physics.barnesHut.springConstant;
+      this.constants.physics.damping = this.constants.physics.barnesHut.damping;
+
+      this._loadMixin(BarnesHutMixin);
+    }
+    else if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
+      this._clearMixin(BarnesHutMixin);
+      this._clearMixin(RepulsionMixin);
+
+      this.constants.physics.centralGravity = this.constants.physics.hierarchicalRepulsion.centralGravity;
+      this.constants.physics.springLength = this.constants.physics.hierarchicalRepulsion.springLength;
+      this.constants.physics.springConstant = this.constants.physics.hierarchicalRepulsion.springConstant;
+      this.constants.physics.damping = this.constants.physics.hierarchicalRepulsion.damping;
+
+      this._loadMixin(HierarchialRepulsionMixin);
+    }
+    else {
+      this._clearMixin(BarnesHutMixin);
+      this._clearMixin(HierarchialRepulsionMixin);
+      this.barnesHutTree = undefined;
+
+      this.constants.physics.centralGravity = this.constants.physics.repulsion.centralGravity;
+      this.constants.physics.springLength = this.constants.physics.repulsion.springLength;
+      this.constants.physics.springConstant = this.constants.physics.repulsion.springConstant;
+      this.constants.physics.damping = this.constants.physics.repulsion.damping;
+
+      this._loadMixin(RepulsionMixin);
+    }
+  };
+
+  /**
+   * Before calculating the forces, we check if we need to cluster to keep up performance and we check
+   * if there is more than one node. If it is just one node, we dont calculate anything.
+   *
+   * @private
+   */
+  exports._initializeForceCalculation = function () {
+    // stop calculation if there is only one node
+    if (this.nodeIndices.length == 1) {
+      this.nodes[this.nodeIndices[0]]._setForce(0, 0);
+    }
+    else {
+      // if there are too many nodes on screen, we cluster without repositioning
+      if (this.nodeIndices.length > this.constants.clustering.clusterThreshold && this.constants.clustering.enabled == true) {
+        this.clusterToFit(this.constants.clustering.reduceToNodes, false);
+      }
+
+      // we now start the force calculation
+      this._calculateForces();
+    }
+  };
+
+
+  /**
+   * Calculate the external forces acting on the nodes
+   * Forces are caused by: edges, repulsing forces between nodes, gravity
+   * @private
+   */
+  exports._calculateForces = function () {
+    // Gravity is required to keep separated groups from floating off
+    // the forces are reset to zero in this loop by using _setForce instead
+    // of _addForce
+
+    this._calculateGravitationalForces();
+    this._calculateNodeForces();
+
+    if (this.constants.physics.springConstant > 0) {
+      if (this.constants.smoothCurves.enabled == true && this.constants.smoothCurves.dynamic == true) {
+        this._calculateSpringForcesWithSupport();
+      }
+      else {
+        if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
+          this._calculateHierarchicalSpringForces();
+        }
+        else {
+          this._calculateSpringForces();
+        }
+      }
+    }
+  };
+
+
+  /**
+   * Smooth curves are created by adding invisible nodes in the center of the edges. These nodes are also
+   * handled in the calculateForces function. We then use a quadratic curve with the center node as control.
+   * This function joins the datanodes and invisible (called support) nodes into one object.
+   * We do this so we do not contaminate this.nodes with the support nodes.
+   *
+   * @private
+   */
+  exports._updateCalculationNodes = function () {
+    if (this.constants.smoothCurves.enabled == true && this.constants.smoothCurves.dynamic == true) {
+      this.calculationNodes = {};
+      this.calculationNodeIndices = [];
+
+      for (var nodeId in this.nodes) {
+        if (this.nodes.hasOwnProperty(nodeId)) {
+          this.calculationNodes[nodeId] = this.nodes[nodeId];
+        }
+      }
+      var supportNodes = this.sectors['support']['nodes'];
+      for (var supportNodeId in supportNodes) {
+        if (supportNodes.hasOwnProperty(supportNodeId)) {
+          if (this.edges.hasOwnProperty(supportNodes[supportNodeId].parentEdgeId)) {
+            this.calculationNodes[supportNodeId] = supportNodes[supportNodeId];
+          }
+          else {
+            supportNodes[supportNodeId]._setForce(0, 0);
+          }
+        }
+      }
+
+      for (var idx in this.calculationNodes) {
+        if (this.calculationNodes.hasOwnProperty(idx)) {
+          this.calculationNodeIndices.push(idx);
+        }
+      }
+    }
+    else {
+      this.calculationNodes = this.nodes;
+      this.calculationNodeIndices = this.nodeIndices;
+    }
+  };
+
+
+  /**
+   * this function applies the central gravity effect to keep groups from floating off
+   *
+   * @private
+   */
+  exports._calculateGravitationalForces = function () {
+    var dx, dy, distance, node, i;
+    var nodes = this.calculationNodes;
+    var gravity = this.constants.physics.centralGravity;
+    var gravityForce = 0;
+
+    for (i = 0; i < this.calculationNodeIndices.length; i++) {
+      node = nodes[this.calculationNodeIndices[i]];
+      node.damping = this.constants.physics.damping; // possibly add function to alter damping properties of clusters.
+      // gravity does not apply when we are in a pocket sector
+      if (this._sector() == "default" && gravity != 0) {
+        dx = -node.x;
+        dy = -node.y;
+        distance = Math.sqrt(dx * dx + dy * dy);
+
+        gravityForce = (distance == 0) ? 0 : (gravity / distance);
+        node.fx = dx * gravityForce;
+        node.fy = dy * gravityForce;
+      }
+      else {
+        node.fx = 0;
+        node.fy = 0;
+      }
+    }
+  };
+
+
+
+
+  /**
+   * this function calculates the effects of the springs in the case of unsmooth curves.
+   *
+   * @private
+   */
+  exports._calculateSpringForces = function () {
+    var edgeLength, edge, edgeId;
+    var dx, dy, fx, fy, springForce, distance;
+    var edges = this.edges;
+
+    // forces caused by the edges, modelled as springs
+    for (edgeId in edges) {
+      if (edges.hasOwnProperty(edgeId)) {
+        edge = edges[edgeId];
+        if (edge.connected) {
+          // only calculate forces if nodes are in the same sector
+          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
+            edgeLength = edge.physics.springLength;
+            // this implies that the edges between big clusters are longer
+            edgeLength += (edge.to.clusterSize + edge.from.clusterSize - 2) * this.constants.clustering.edgeGrowth;
+
+            dx = (edge.from.x - edge.to.x);
+            dy = (edge.from.y - edge.to.y);
+            distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance == 0) {
+              distance = 0.01;
+            }
+
+            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+            springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
+
+            fx = dx * springForce;
+            fy = dy * springForce;
+
+            edge.from.fx += fx;
+            edge.from.fy += fy;
+            edge.to.fx -= fx;
+            edge.to.fy -= fy;
+          }
+        }
+      }
+    }
+  };
+
+
+
+
+  /**
+   * This function calculates the springforces on the nodes, accounting for the support nodes.
+   *
+   * @private
+   */
+  exports._calculateSpringForcesWithSupport = function () {
+    var edgeLength, edge, edgeId, combinedClusterSize;
+    var edges = this.edges;
+
+    // forces caused by the edges, modelled as springs
+    for (edgeId in edges) {
+      if (edges.hasOwnProperty(edgeId)) {
+        edge = edges[edgeId];
+        if (edge.connected) {
+          // only calculate forces if nodes are in the same sector
+          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
+            if (edge.via != null) {
+              var node1 = edge.to;
+              var node2 = edge.via;
+              var node3 = edge.from;
+
+              edgeLength = edge.physics.springLength;
+
+              combinedClusterSize = node1.clusterSize + node3.clusterSize - 2;
+
+              // this implies that the edges between big clusters are longer
+              edgeLength += combinedClusterSize * this.constants.clustering.edgeGrowth;
+              this._calculateSpringForce(node1, node2, 0.5 * edgeLength);
+              this._calculateSpringForce(node2, node3, 0.5 * edgeLength);
+            }
+          }
+        }
+      }
+    }
+  };
+
+
+  /**
+   * This is the code actually performing the calculation for the function above. It is split out to avoid repetition.
+   *
+   * @param node1
+   * @param node2
+   * @param edgeLength
+   * @private
+   */
+  exports._calculateSpringForce = function (node1, node2, edgeLength) {
+    var dx, dy, fx, fy, springForce, distance;
+
+    dx = (node1.x - node2.x);
+    dy = (node1.y - node2.y);
+    distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance == 0) {
+      distance = 0.01;
+    }
+
+    // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+    springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
+
+    fx = dx * springForce;
+    fy = dy * springForce;
+
+    node1.fx += fx;
+    node1.fy += fy;
+    node2.fx -= fx;
+    node2.fy -= fy;
+  };
+
+
+  exports._cleanupPhysicsConfiguration = function() {
+    if (this.physicsConfiguration !== undefined) {
+      while (this.physicsConfiguration.hasChildNodes()) {
+        this.physicsConfiguration.removeChild(this.physicsConfiguration.firstChild);
+      }
+
+      this.physicsConfiguration.parentNode.removeChild(this.physicsConfiguration);
+      this.physicsConfiguration = undefined;
+    }
+  }
+
+  /**
+   * Load the HTML for the physics config and bind it
+   * @private
+   */
+  exports._loadPhysicsConfiguration = function () {
+    if (this.physicsConfiguration === undefined) {
+      this.backupConstants = {};
+      util.deepExtend(this.backupConstants,this.constants);
+
+      var maxGravitational = Math.max(20000, (-1 * this.constants.physics.barnesHut.gravitationalConstant) * 10);
+      var maxSpring = Math.min(0.05, this.constants.physics.barnesHut.springConstant * 10)
+
+      var hierarchicalLayoutDirections = ["LR", "RL", "UD", "DU"];
+      this.physicsConfiguration = document.createElement('div');
+      this.physicsConfiguration.className = "PhysicsConfiguration";
+      this.physicsConfiguration.innerHTML = '' +
+        '<table><tr><td><b>Simulation Mode:</b></td></tr>' +
+        '<tr>' +
+        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod1" value="BH" checked="checked">Barnes Hut</td>' +
+        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod2" value="R">Repulsion</td>' +
+        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod3" value="H">Hierarchical</td>' +
+        '</tr>' +
+        '</table>' +
+        '<table id="graph_BH_table" style="display:none">' +
+        '<tr><td><b>Barnes Hut</b></td></tr>' +
+        '<tr>' +
+        '<td width="150px">gravitationalConstant</td><td>0</td><td><input type="range" min="0" max="'+maxGravitational+'" value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" step="25" style="width:300px" id="graph_BH_gc"></td><td  width="50px">-'+maxGravitational+'</td><td><input value="' + (this.constants.physics.barnesHut.gravitationalConstant) + '" id="graph_BH_gc_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="6"  value="' + this.constants.physics.barnesHut.centralGravity + '" step="0.05"  style="width:300px" id="graph_BH_cg"></td><td>3</td><td><input value="' + this.constants.physics.barnesHut.centralGravity + '" id="graph_BH_cg_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.barnesHut.springLength + '" step="1" style="width:300px" id="graph_BH_sl"></td><td>500</td><td><input value="' + this.constants.physics.barnesHut.springLength + '" id="graph_BH_sl_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="'+maxSpring+'" value="' + this.constants.physics.barnesHut.springConstant + '" step="0.0001" style="width:300px" id="graph_BH_sc"></td><td>'+maxSpring+'</td><td><input value="' + this.constants.physics.barnesHut.springConstant + '" id="graph_BH_sc_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.barnesHut.damping + '" step="0.005" style="width:300px" id="graph_BH_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.barnesHut.damping + '" id="graph_BH_damp_value" style="width:60px"></td>' +
+        '</tr>' +
+        '</table>' +
+        '<table id="graph_R_table" style="display:none">' +
+        '<tr><td><b>Repulsion</b></td></tr>' +
+        '<tr>' +
+        '<td width="150px">nodeDistance</td><td>0</td><td><input type="range" min="0" max="300" value="' + this.constants.physics.repulsion.nodeDistance + '" step="1" style="width:300px" id="graph_R_nd"></td><td width="50px">300</td><td><input value="' + this.constants.physics.repulsion.nodeDistance + '" id="graph_R_nd_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.repulsion.centralGravity + '" step="0.05"  style="width:300px" id="graph_R_cg"></td><td>3</td><td><input value="' + this.constants.physics.repulsion.centralGravity + '" id="graph_R_cg_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.repulsion.springLength + '" step="1" style="width:300px" id="graph_R_sl"></td><td>500</td><td><input value="' + this.constants.physics.repulsion.springLength + '" id="graph_R_sl_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.repulsion.springConstant + '" step="0.001" style="width:300px" id="graph_R_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.repulsion.springConstant + '" id="graph_R_sc_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.repulsion.damping + '" step="0.005" style="width:300px" id="graph_R_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.repulsion.damping + '" id="graph_R_damp_value" style="width:60px"></td>' +
+        '</tr>' +
+        '</table>' +
+        '<table id="graph_H_table" style="display:none">' +
+        '<tr><td width="150"><b>Hierarchical</b></td></tr>' +
+        '<tr>' +
+        '<td width="150px">nodeDistance</td><td>0</td><td><input type="range" min="0" max="300" value="' + this.constants.physics.hierarchicalRepulsion.nodeDistance + '" step="1" style="width:300px" id="graph_H_nd"></td><td width="50px">300</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.nodeDistance + '" id="graph_H_nd_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.hierarchicalRepulsion.centralGravity + '" step="0.05"  style="width:300px" id="graph_H_cg"></td><td>3</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.centralGravity + '" id="graph_H_cg_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.hierarchicalRepulsion.springLength + '" step="1" style="width:300px" id="graph_H_sl"></td><td>500</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.springLength + '" id="graph_H_sl_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.hierarchicalRepulsion.springConstant + '" step="0.001" style="width:300px" id="graph_H_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.springConstant + '" id="graph_H_sc_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.hierarchicalRepulsion.damping + '" step="0.005" style="width:300px" id="graph_H_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.damping + '" id="graph_H_damp_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">direction</td><td>1</td><td><input type="range" min="0" max="3" value="' + hierarchicalLayoutDirections.indexOf(this.constants.hierarchicalLayout.direction) + '" step="1" style="width:300px" id="graph_H_direction"></td><td>4</td><td><input value="' + this.constants.hierarchicalLayout.direction + '" id="graph_H_direction_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">levelSeparation</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.levelSeparation + '" step="1" style="width:300px" id="graph_H_levsep"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.levelSeparation + '" id="graph_H_levsep_value" style="width:60px"></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td width="150px">nodeSpacing</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.nodeSpacing + '" step="1" style="width:300px" id="graph_H_nspac"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.nodeSpacing + '" id="graph_H_nspac_value" style="width:60px"></td>' +
+        '</tr>' +
+        '</table>' +
+        '<table><tr><td><b>Options:</b></td></tr>' +
+        '<tr>' +
+        '<td width="180px"><input type="button" id="graph_toggleSmooth" value="Toggle smoothCurves" style="width:150px"></td>' +
+        '<td width="180px"><input type="button" id="graph_repositionNodes" value="Reinitialize" style="width:150px"></td>' +
+        '<td width="180px"><input type="button" id="graph_generateOptions" value="Generate Options" style="width:150px"></td>' +
+        '</tr>' +
+        '</table>'
+      this.containerElement.parentElement.insertBefore(this.physicsConfiguration, this.containerElement);
+      this.optionsDiv = document.createElement("div");
+      this.optionsDiv.style.fontSize = "14px";
+      this.optionsDiv.style.fontFamily = "verdana";
+      this.containerElement.parentElement.insertBefore(this.optionsDiv, this.containerElement);
+
+      var rangeElement;
+      rangeElement = document.getElementById('graph_BH_gc');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_gc', -1, "physics_barnesHut_gravitationalConstant");
+      rangeElement = document.getElementById('graph_BH_cg');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_cg', 1, "physics_centralGravity");
+      rangeElement = document.getElementById('graph_BH_sc');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_sc', 1, "physics_springConstant");
+      rangeElement = document.getElementById('graph_BH_sl');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_sl', 1, "physics_springLength");
+      rangeElement = document.getElementById('graph_BH_damp');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_damp', 1, "physics_damping");
+
+      rangeElement = document.getElementById('graph_R_nd');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_nd', 1, "physics_repulsion_nodeDistance");
+      rangeElement = document.getElementById('graph_R_cg');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_cg', 1, "physics_centralGravity");
+      rangeElement = document.getElementById('graph_R_sc');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_sc', 1, "physics_springConstant");
+      rangeElement = document.getElementById('graph_R_sl');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_sl', 1, "physics_springLength");
+      rangeElement = document.getElementById('graph_R_damp');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_damp', 1, "physics_damping");
+
+      rangeElement = document.getElementById('graph_H_nd');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_nd', 1, "physics_hierarchicalRepulsion_nodeDistance");
+      rangeElement = document.getElementById('graph_H_cg');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_cg', 1, "physics_centralGravity");
+      rangeElement = document.getElementById('graph_H_sc');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_sc', 1, "physics_springConstant");
+      rangeElement = document.getElementById('graph_H_sl');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_sl', 1, "physics_springLength");
+      rangeElement = document.getElementById('graph_H_damp');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_damp', 1, "physics_damping");
+      rangeElement = document.getElementById('graph_H_direction');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_direction', hierarchicalLayoutDirections, "hierarchicalLayout_direction");
+      rangeElement = document.getElementById('graph_H_levsep');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_levsep', 1, "hierarchicalLayout_levelSeparation");
+      rangeElement = document.getElementById('graph_H_nspac');
+      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_nspac', 1, "hierarchicalLayout_nodeSpacing");
+
+      var radioButton1 = document.getElementById("graph_physicsMethod1");
+      var radioButton2 = document.getElementById("graph_physicsMethod2");
+      var radioButton3 = document.getElementById("graph_physicsMethod3");
+      radioButton2.checked = true;
+      if (this.constants.physics.barnesHut.enabled) {
+        radioButton1.checked = true;
+      }
+      if (this.constants.hierarchicalLayout.enabled) {
+        radioButton3.checked = true;
+      }
+
+      var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
+      var graph_repositionNodes = document.getElementById("graph_repositionNodes");
+      var graph_generateOptions = document.getElementById("graph_generateOptions");
+
+      graph_toggleSmooth.onclick = graphToggleSmoothCurves.bind(this);
+      graph_repositionNodes.onclick = graphRepositionNodes.bind(this);
+      graph_generateOptions.onclick = graphGenerateOptions.bind(this);
+      if (this.constants.smoothCurves == true && this.constants.dynamicSmoothCurves == false) {
+        graph_toggleSmooth.style.background = "#A4FF56";
+      }
+      else {
+        graph_toggleSmooth.style.background = "#FF8532";
+      }
+
+
+      switchConfigurations.apply(this);
+
+      radioButton1.onchange = switchConfigurations.bind(this);
+      radioButton2.onchange = switchConfigurations.bind(this);
+      radioButton3.onchange = switchConfigurations.bind(this);
+    }
+  };
+
+  /**
+   * This overwrites the this.constants.
+   *
+   * @param constantsVariableName
+   * @param value
+   * @private
+   */
+  exports._overWriteGraphConstants = function (constantsVariableName, value) {
+    var nameArray = constantsVariableName.split("_");
+    if (nameArray.length == 1) {
+      this.constants[nameArray[0]] = value;
+    }
+    else if (nameArray.length == 2) {
+      this.constants[nameArray[0]][nameArray[1]] = value;
+    }
+    else if (nameArray.length == 3) {
+      this.constants[nameArray[0]][nameArray[1]][nameArray[2]] = value;
+    }
+  };
+
+
+  /**
+   * this function is bound to the toggle smooth curves button. That is also why it is not in the prototype.
+   */
+  function graphToggleSmoothCurves () {
+    this.constants.smoothCurves.enabled = !this.constants.smoothCurves.enabled;
+    var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
+    if (this.constants.smoothCurves.enabled == true) {graph_toggleSmooth.style.background = "#A4FF56";}
+    else                                     {graph_toggleSmooth.style.background = "#FF8532";}
+
+    this._configureSmoothCurves(false);
+  }
+
+  /**
+   * this function is used to scramble the nodes
+   *
+   */
+  function graphRepositionNodes () {
+    for (var nodeId in this.calculationNodes) {
+      if (this.calculationNodes.hasOwnProperty(nodeId)) {
+        this.calculationNodes[nodeId].vx = 0;  this.calculationNodes[nodeId].vy = 0;
+        this.calculationNodes[nodeId].fx = 0;  this.calculationNodes[nodeId].fy = 0;
+      }
+    }
+    if (this.constants.hierarchicalLayout.enabled == true) {
+      this._setupHierarchicalLayout();
+      showValueOfRange.call(this, 'graph_H_nd', 1, "physics_hierarchicalRepulsion_nodeDistance");
+      showValueOfRange.call(this, 'graph_H_cg', 1, "physics_centralGravity");
+      showValueOfRange.call(this, 'graph_H_sc', 1, "physics_springConstant");
+      showValueOfRange.call(this, 'graph_H_sl', 1, "physics_springLength");
+      showValueOfRange.call(this, 'graph_H_damp', 1, "physics_damping");
+    }
+    else {
+      this.repositionNodes();
+    }
+    this.moving = true;
+    this.start();
+  }
+
+  /**
+   *  this is used to generate an options file from the playing with physics system.
+   */
+  function graphGenerateOptions () {
+    var options = "No options are required, default values used.";
+    var optionsSpecific = [];
+    var radioButton1 = document.getElementById("graph_physicsMethod1");
+    var radioButton2 = document.getElementById("graph_physicsMethod2");
+    if (radioButton1.checked == true) {
+      if (this.constants.physics.barnesHut.gravitationalConstant != this.backupConstants.physics.barnesHut.gravitationalConstant) {optionsSpecific.push("gravitationalConstant: " + this.constants.physics.barnesHut.gravitationalConstant);}
+      if (this.constants.physics.centralGravity != this.backupConstants.physics.barnesHut.centralGravity)                         {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
+      if (this.constants.physics.springLength != this.backupConstants.physics.barnesHut.springLength)                             {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
+      if (this.constants.physics.springConstant != this.backupConstants.physics.barnesHut.springConstant)                         {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
+      if (this.constants.physics.damping != this.backupConstants.physics.barnesHut.damping)                                       {optionsSpecific.push("damping: " + this.constants.physics.damping);}
+      if (optionsSpecific.length != 0) {
+        options = "var options = {";
+        options += "physics: {barnesHut: {";
+        for (var i = 0; i < optionsSpecific.length; i++) {
+          options += optionsSpecific[i];
+          if (i < optionsSpecific.length - 1) {
+            options += ", "
+          }
+        }
+        options += '}}'
+      }
+      if (this.constants.smoothCurves.enabled != this.backupConstants.smoothCurves.enabled) {
+        if (optionsSpecific.length == 0) {options = "var options = {";}
+        else {options += ", "}
+        options += "smoothCurves: " + this.constants.smoothCurves.enabled;
+      }
+      if (options != "No options are required, default values used.") {
+        options += '};'
+      }
+    }
+    else if (radioButton2.checked == true) {
+      options = "var options = {";
+      options += "physics: {barnesHut: {enabled: false}";
+      if (this.constants.physics.repulsion.nodeDistance != this.backupConstants.physics.repulsion.nodeDistance)  {optionsSpecific.push("nodeDistance: " + this.constants.physics.repulsion.nodeDistance);}
+      if (this.constants.physics.centralGravity != this.backupConstants.physics.repulsion.centralGravity)        {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
+      if (this.constants.physics.springLength != this.backupConstants.physics.repulsion.springLength)            {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
+      if (this.constants.physics.springConstant != this.backupConstants.physics.repulsion.springConstant)        {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
+      if (this.constants.physics.damping != this.backupConstants.physics.repulsion.damping)                      {optionsSpecific.push("damping: " + this.constants.physics.damping);}
+      if (optionsSpecific.length != 0) {
+        options += ", repulsion: {";
+        for (var i = 0; i < optionsSpecific.length; i++) {
+          options += optionsSpecific[i];
+          if (i < optionsSpecific.length - 1) {
+            options += ", "
+          }
+        }
+        options += '}}'
+      }
+      if (optionsSpecific.length == 0) {options += "}"}
+      if (this.constants.smoothCurves != this.backupConstants.smoothCurves) {
+        options += ", smoothCurves: " + this.constants.smoothCurves;
+      }
+      options += '};'
+    }
+    else {
+      options = "var options = {";
+      if (this.constants.physics.hierarchicalRepulsion.nodeDistance != this.backupConstants.physics.hierarchicalRepulsion.nodeDistance)  {optionsSpecific.push("nodeDistance: " + this.constants.physics.hierarchicalRepulsion.nodeDistance);}
+      if (this.constants.physics.centralGravity != this.backupConstants.physics.hierarchicalRepulsion.centralGravity)        {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
+      if (this.constants.physics.springLength != this.backupConstants.physics.hierarchicalRepulsion.springLength)            {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
+      if (this.constants.physics.springConstant != this.backupConstants.physics.hierarchicalRepulsion.springConstant)        {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
+      if (this.constants.physics.damping != this.backupConstants.physics.hierarchicalRepulsion.damping)                      {optionsSpecific.push("damping: " + this.constants.physics.damping);}
+      if (optionsSpecific.length != 0) {
+        options += "physics: {hierarchicalRepulsion: {";
+        for (var i = 0; i < optionsSpecific.length; i++) {
+          options += optionsSpecific[i];
+          if (i < optionsSpecific.length - 1) {
+            options += ", ";
+          }
+        }
+        options += '}},';
+      }
+      options += 'hierarchicalLayout: {';
+      optionsSpecific = [];
+      if (this.constants.hierarchicalLayout.direction != this.backupConstants.hierarchicalLayout.direction)                       {optionsSpecific.push("direction: " + this.constants.hierarchicalLayout.direction);}
+      if (Math.abs(this.constants.hierarchicalLayout.levelSeparation) != this.backupConstants.hierarchicalLayout.levelSeparation) {optionsSpecific.push("levelSeparation: " + this.constants.hierarchicalLayout.levelSeparation);}
+      if (this.constants.hierarchicalLayout.nodeSpacing != this.backupConstants.hierarchicalLayout.nodeSpacing)                   {optionsSpecific.push("nodeSpacing: " + this.constants.hierarchicalLayout.nodeSpacing);}
+      if (optionsSpecific.length != 0) {
+        for (var i = 0; i < optionsSpecific.length; i++) {
+          options += optionsSpecific[i];
+          if (i < optionsSpecific.length - 1) {
+            options += ", "
+          }
+        }
+        options += '}'
+      }
+      else {
+        options += "enabled:true}";
+      }
+      options += '};'
+    }
+
+
+    this.optionsDiv.innerHTML = options;
+  }
+
+  /**
+   * this is used to switch between barnesHut, repulsion and hierarchical.
+   *
+   */
+  function switchConfigurations () {
+    var ids = ["graph_BH_table", "graph_R_table", "graph_H_table"];
+    var radioButton = document.querySelector('input[name="graph_physicsMethod"]:checked').value;
+    var tableId = "graph_" + radioButton + "_table";
+    var table = document.getElementById(tableId);
+    table.style.display = "block";
+    for (var i = 0; i < ids.length; i++) {
+      if (ids[i] != tableId) {
+        table = document.getElementById(ids[i]);
+        table.style.display = "none";
+      }
+    }
+    this._restoreNodes();
+    if (radioButton == "R") {
+      this.constants.hierarchicalLayout.enabled = false;
+      this.constants.physics.hierarchicalRepulsion.enabled = false;
+      this.constants.physics.barnesHut.enabled = false;
+    }
+    else if (radioButton == "H") {
+      if (this.constants.hierarchicalLayout.enabled == false) {
+        this.constants.hierarchicalLayout.enabled = true;
+        this.constants.physics.hierarchicalRepulsion.enabled = true;
+        this.constants.physics.barnesHut.enabled = false;
+        this.constants.smoothCurves.enabled = false;
+        this._setupHierarchicalLayout();
+      }
+    }
+    else {
+      this.constants.hierarchicalLayout.enabled = false;
+      this.constants.physics.hierarchicalRepulsion.enabled = false;
+      this.constants.physics.barnesHut.enabled = true;
+    }
+    this._loadSelectedForceSolver();
+    var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
+    if (this.constants.smoothCurves.enabled == true) {graph_toggleSmooth.style.background = "#A4FF56";}
+    else                                     {graph_toggleSmooth.style.background = "#FF8532";}
+    this.moving = true;
+    this.start();
+  }
+
+
+  /**
+   * this generates the ranges depending on the iniital values.
+   *
+   * @param id
+   * @param map
+   * @param constantsVariableName
+   */
+  function showValueOfRange (id,map,constantsVariableName) {
+    var valueId = id + "_value";
+    var rangeValue = document.getElementById(id).value;
+
+    if (Array.isArray(map)) {
+      document.getElementById(valueId).value = map[parseInt(rangeValue)];
+      this._overWriteGraphConstants(constantsVariableName,map[parseInt(rangeValue)]);
+    }
+    else {
+      document.getElementById(valueId).value = parseInt(map) * parseFloat(rangeValue);
+      this._overWriteGraphConstants(constantsVariableName, parseInt(map) * parseFloat(rangeValue));
+    }
+
+    if (constantsVariableName == "hierarchicalLayout_direction" ||
+      constantsVariableName == "hierarchicalLayout_levelSeparation" ||
+      constantsVariableName == "hierarchicalLayout_nodeSpacing") {
+      this._setupHierarchicalLayout();
+    }
+    this.moving = true;
+    this.start();
+  }
+
+
+
+
+/***/ },
+/* 65 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v1.1.3 - 2014-05-20
+   * http://eightmedia.github.io/hammer.js
+   *
+   * Copyright (c) 2014 Jorik Tangelder <j.tangelder@gmail.com>;
+   * Licensed under the MIT license */
+
+  (function(window, undefined) {
+    'use strict';
+
+  /**
+   * @main
+   * @module hammer
+   *
+   * @class Hammer
+   * @static
+   */
+
+  /**
+   * Hammer, use this to create instances
+   * ````
+   * var hammertime = new Hammer(myElement);
+   * ````
+   *
+   * @method Hammer
+   * @param {HTMLElement} element
+   * @param {Object} [options={}]
+   * @return {Hammer.Instance}
+   */
+  var Hammer = function Hammer(element, options) {
+      return new Hammer.Instance(element, options || {});
+  };
+
+  /**
+   * version, as defined in package.json
+   * the value will be set at each build
+   * @property VERSION
+   * @final
+   * @type {String}
+   */
+  Hammer.VERSION = '1.1.3';
+
+  /**
+   * default settings.
+   * more settings are defined per gesture at `/gestures`. Each gesture can be disabled/enabled
+   * by setting it's name (like `swipe`) to false.
+   * You can set the defaults for all instances by changing this object before creating an instance.
+   * @example
+   * ````
+   *  Hammer.defaults.drag = false;
+   *  Hammer.defaults.behavior.touchAction = 'pan-y';
+   *  delete Hammer.defaults.behavior.userSelect;
+   * ````
+   * @property defaults
+   * @type {Object}
+   */
+  Hammer.defaults = {
+      /**
+       * this setting object adds styles and attributes to the element to prevent the browser from doing
+       * its native behavior. The css properties are auto prefixed for the browsers when needed.
+       * @property defaults.behavior
+       * @type {Object}
+       */
+      behavior: {
+          /**
+           * Disables text selection to improve the dragging gesture. When the value is `none` it also sets
+           * `onselectstart=false` for IE on the element. Mainly for desktop browsers.
+           * @property defaults.behavior.userSelect
+           * @type {String}
+           * @default 'none'
+           */
+          userSelect: 'none',
+
+          /**
+           * Specifies whether and how a given region can be manipulated by the user (for instance, by panning or zooming).
+           * Used by Chrome 35> and IE10>. By default this makes the element blocking any touch event.
+           * @property defaults.behavior.touchAction
+           * @type {String}
+           * @default: 'pan-y'
+           */
+          touchAction: 'pan-y',
+
+          /**
+           * Disables the default callout shown when you touch and hold a touch target.
+           * On iOS, when you touch and hold a touch target such as a link, Safari displays
+           * a callout containing information about the link. This property allows you to disable that callout.
+           * @property defaults.behavior.touchCallout
+           * @type {String}
+           * @default 'none'
+           */
+          touchCallout: 'none',
+
+          /**
+           * Specifies whether zooming is enabled. Used by IE10>
+           * @property defaults.behavior.contentZooming
+           * @type {String}
+           * @default 'none'
+           */
+          contentZooming: 'none',
+
+          /**
+           * Specifies that an entire element should be draggable instead of its contents.
+           * Mainly for desktop browsers.
+           * @property defaults.behavior.userDrag
+           * @type {String}
+           * @default 'none'
+           */
+          userDrag: 'none',
+
+          /**
+           * Overrides the highlight color shown when the user taps a link or a JavaScript
+           * clickable element in Safari on iPhone. This property obeys the alpha value, if specified.
+           *
+           * If you don't specify an alpha value, Safari on iPhone applies a default alpha value
+           * to the color. To disable tap highlighting, set the alpha value to 0 (invisible).
+           * If you set the alpha value to 1.0 (opaque), the element is not visible when tapped.
+           * @property defaults.behavior.tapHighlightColor
+           * @type {String}
+           * @default 'rgba(0,0,0,0)'
+           */
+          tapHighlightColor: 'rgba(0,0,0,0)'
+      }
+  };
+
+  /**
+   * hammer document where the base events are added at
+   * @property DOCUMENT
+   * @type {HTMLElement}
+   * @default window.document
+   */
+  Hammer.DOCUMENT = document;
+
+  /**
+   * detect support for pointer events
+   * @property HAS_POINTEREVENTS
+   * @type {Boolean}
+   */
+  Hammer.HAS_POINTEREVENTS = navigator.pointerEnabled || navigator.msPointerEnabled;
+
+  /**
+   * detect support for touch events
+   * @property HAS_TOUCHEVENTS
+   * @type {Boolean}
+   */
+  Hammer.HAS_TOUCHEVENTS = ('ontouchstart' in window);
+
+  /**
+   * detect mobile browsers
+   * @property IS_MOBILE
+   * @type {Boolean}
+   */
+  Hammer.IS_MOBILE = /mobile|tablet|ip(ad|hone|od)|android|silk/i.test(navigator.userAgent);
+
+  /**
+   * detect if we want to support mouseevents at all
+   * @property NO_MOUSEEVENTS
+   * @type {Boolean}
+   */
+  Hammer.NO_MOUSEEVENTS = (Hammer.HAS_TOUCHEVENTS && Hammer.IS_MOBILE) || Hammer.HAS_POINTEREVENTS;
+
+  /**
+   * interval in which Hammer recalculates current velocity/direction/angle in ms
+   * @property CALCULATE_INTERVAL
+   * @type {Number}
+   * @default 25
+   */
+  Hammer.CALCULATE_INTERVAL = 25;
+
+  /**
+   * eventtypes per touchevent (start, move, end) are filled by `Event.determineEventTypes` on `setup`
+   * the object contains the DOM event names per type (`EVENT_START`, `EVENT_MOVE`, `EVENT_END`)
+   * @property EVENT_TYPES
+   * @private
+   * @writeOnce
+   * @type {Object}
+   */
+  var EVENT_TYPES = {};
+
+  /**
+   * direction strings, for safe comparisons
+   * @property DIRECTION_DOWN|LEFT|UP|RIGHT
+   * @final
+   * @type {String}
+   * @default 'down' 'left' 'up' 'right'
+   */
+  var DIRECTION_DOWN = Hammer.DIRECTION_DOWN = 'down';
+  var DIRECTION_LEFT = Hammer.DIRECTION_LEFT = 'left';
+  var DIRECTION_UP = Hammer.DIRECTION_UP = 'up';
+  var DIRECTION_RIGHT = Hammer.DIRECTION_RIGHT = 'right';
+
+  /**
+   * pointertype strings, for safe comparisons
+   * @property POINTER_MOUSE|TOUCH|PEN
+   * @final
+   * @type {String}
+   * @default 'mouse' 'touch' 'pen'
+   */
+  var POINTER_MOUSE = Hammer.POINTER_MOUSE = 'mouse';
+  var POINTER_TOUCH = Hammer.POINTER_TOUCH = 'touch';
+  var POINTER_PEN = Hammer.POINTER_PEN = 'pen';
+
+  /**
+   * eventtypes
+   * @property EVENT_START|MOVE|END|RELEASE|TOUCH
+   * @final
+   * @type {String}
+   * @default 'start' 'change' 'move' 'end' 'release' 'touch'
+   */
+  var EVENT_START = Hammer.EVENT_START = 'start';
+  var EVENT_MOVE = Hammer.EVENT_MOVE = 'move';
+  var EVENT_END = Hammer.EVENT_END = 'end';
+  var EVENT_RELEASE = Hammer.EVENT_RELEASE = 'release';
+  var EVENT_TOUCH = Hammer.EVENT_TOUCH = 'touch';
+
+  /**
+   * if the window events are set...
+   * @property READY
+   * @writeOnce
+   * @type {Boolean}
+   * @default false
+   */
+  Hammer.READY = false;
+
+  /**
+   * plugins namespace
+   * @property plugins
+   * @type {Object}
+   */
+  Hammer.plugins = Hammer.plugins || {};
+
+  /**
+   * gestures namespace
+   * see `/gestures` for the definitions
+   * @property gestures
+   * @type {Object}
+   */
+  Hammer.gestures = Hammer.gestures || {};
+
+  /**
+   * setup events to detect gestures on the document
+   * this function is called when creating an new instance
+   * @private
+   */
+  function setup() {
+      if(Hammer.READY) {
+          return;
+      }
+
+      // find what eventtypes we add listeners to
+      Event.determineEventTypes();
+
+      // Register all gestures inside Hammer.gestures
+      Utils.each(Hammer.gestures, function(gesture) {
+          Detection.register(gesture);
+      });
+
+      // Add touch events on the document
+      Event.onTouch(Hammer.DOCUMENT, EVENT_MOVE, Detection.detect);
+      Event.onTouch(Hammer.DOCUMENT, EVENT_END, Detection.detect);
+
+      // Hammer is ready...!
+      Hammer.READY = true;
+  }
+
+  /**
+   * @module hammer
+   *
+   * @class Utils
+   * @static
+   */
+  var Utils = Hammer.utils = {
+      /**
+       * extend method, could also be used for cloning when `dest` is an empty object.
+       * changes the dest object
+       * @method extend
+       * @param {Object} dest
+       * @param {Object} src
+       * @param {Boolean} [merge=false]  do a merge
+       * @return {Object} dest
+       */
+      extend: function extend(dest, src, merge) {
+          for(var key in src) {
+              if(!src.hasOwnProperty(key) || (dest[key] !== undefined && merge)) {
+                  continue;
+              }
+              dest[key] = src[key];
+          }
+          return dest;
+      },
+
+      /**
+       * simple addEventListener wrapper
+       * @method on
+       * @param {HTMLElement} element
+       * @param {String} type
+       * @param {Function} handler
+       */
+      on: function on(element, type, handler) {
+          element.addEventListener(type, handler, false);
+      },
+
+      /**
+       * simple removeEventListener wrapper
+       * @method off
+       * @param {HTMLElement} element
+       * @param {String} type
+       * @param {Function} handler
+       */
+      off: function off(element, type, handler) {
+          element.removeEventListener(type, handler, false);
+      },
+
+      /**
+       * forEach over arrays and objects
+       * @method each
+       * @param {Object|Array} obj
+       * @param {Function} iterator
+       * @param {any} iterator.item
+       * @param {Number} iterator.index
+       * @param {Object|Array} iterator.obj the source object
+       * @param {Object} context value to use as `this` in the iterator
+       */
+      each: function each(obj, iterator, context) {
+          var i, len;
+
+          // native forEach on arrays
+          if('forEach' in obj) {
+              obj.forEach(iterator, context);
+          // arrays
+          } else if(obj.length !== undefined) {
+              for(i = 0, len = obj.length; i < len; i++) {
+                  if(iterator.call(context, obj[i], i, obj) === false) {
+                      return;
+                  }
+              }
+          // objects
+          } else {
+              for(i in obj) {
+                  if(obj.hasOwnProperty(i) &&
+                      iterator.call(context, obj[i], i, obj) === false) {
+                      return;
+                  }
+              }
+          }
+      },
+
+      /**
+       * find if a string contains the string using indexOf
+       * @method inStr
+       * @param {String} src
+       * @param {String} find
+       * @return {Boolean} found
+       */
+      inStr: function inStr(src, find) {
+          return src.indexOf(find) > -1;
+      },
+
+      /**
+       * find if a array contains the object using indexOf or a simple polyfill
+       * @method inArray
+       * @param {String} src
+       * @param {String} find
+       * @return {Boolean|Number} false when not found, or the index
+       */
+      inArray: function inArray(src, find) {
+          if(src.indexOf) {
+              var index = src.indexOf(find);
+              return (index === -1) ? false : index;
+          } else {
+              for(var i = 0, len = src.length; i < len; i++) {
+                  if(src[i] === find) {
+                      return i;
+                  }
+              }
+              return false;
+          }
+      },
+
+      /**
+       * convert an array-like object (`arguments`, `touchlist`) to an array
+       * @method toArray
+       * @param {Object} obj
+       * @return {Array}
+       */
+      toArray: function toArray(obj) {
+          return Array.prototype.slice.call(obj, 0);
+      },
+
+      /**
+       * find if a node is in the given parent
+       * @method hasParent
+       * @param {HTMLElement} node
+       * @param {HTMLElement} parent
+       * @return {Boolean} found
+       */
+      hasParent: function hasParent(node, parent) {
+          while(node) {
+              if(node == parent) {
+                  return true;
+              }
+              node = node.parentNode;
+          }
+          return false;
+      },
+
+      /**
+       * get the center of all the touches
+       * @method getCenter
+       * @param {Array} touches
+       * @return {Object} center contains `pageX`, `pageY`, `clientX` and `clientY` properties
+       */
+      getCenter: function getCenter(touches) {
+          var pageX = [],
+              pageY = [],
+              clientX = [],
+              clientY = [],
+              min = Math.min,
+              max = Math.max;
+
+          // no need to loop when only one touch
+          if(touches.length === 1) {
+              return {
+                  pageX: touches[0].pageX,
+                  pageY: touches[0].pageY,
+                  clientX: touches[0].clientX,
+                  clientY: touches[0].clientY
+              };
+          }
+
+          Utils.each(touches, function(touch) {
+              pageX.push(touch.pageX);
+              pageY.push(touch.pageY);
+              clientX.push(touch.clientX);
+              clientY.push(touch.clientY);
+          });
+
+          return {
+              pageX: (min.apply(Math, pageX) + max.apply(Math, pageX)) / 2,
+              pageY: (min.apply(Math, pageY) + max.apply(Math, pageY)) / 2,
+              clientX: (min.apply(Math, clientX) + max.apply(Math, clientX)) / 2,
+              clientY: (min.apply(Math, clientY) + max.apply(Math, clientY)) / 2
+          };
+      },
+
+      /**
+       * calculate the velocity between two points. unit is in px per ms.
+       * @method getVelocity
+       * @param {Number} deltaTime
+       * @param {Number} deltaX
+       * @param {Number} deltaY
+       * @return {Object} velocity `x` and `y`
+       */
+      getVelocity: function getVelocity(deltaTime, deltaX, deltaY) {
+          return {
+              x: Math.abs(deltaX / deltaTime) || 0,
+              y: Math.abs(deltaY / deltaTime) || 0
+          };
+      },
+
+      /**
+       * calculate the angle between two coordinates
+       * @method getAngle
+       * @param {Touch} touch1
+       * @param {Touch} touch2
+       * @return {Number} angle
+       */
+      getAngle: function getAngle(touch1, touch2) {
+          var x = touch2.clientX - touch1.clientX,
+              y = touch2.clientY - touch1.clientY;
+
+          return Math.atan2(y, x) * 180 / Math.PI;
+      },
+
+      /**
+       * do a small comparision to get the direction between two touches.
+       * @method getDirection
+       * @param {Touch} touch1
+       * @param {Touch} touch2
+       * @return {String} direction matches `DIRECTION_LEFT|RIGHT|UP|DOWN`
+       */
+      getDirection: function getDirection(touch1, touch2) {
+          var x = Math.abs(touch1.clientX - touch2.clientX),
+              y = Math.abs(touch1.clientY - touch2.clientY);
+
+          if(x >= y) {
+              return touch1.clientX - touch2.clientX > 0 ? DIRECTION_LEFT : DIRECTION_RIGHT;
+          }
+          return touch1.clientY - touch2.clientY > 0 ? DIRECTION_UP : DIRECTION_DOWN;
+      },
+
+      /**
+       * calculate the distance between two touches
+       * @method getDistance
+       * @param {Touch}touch1
+       * @param {Touch} touch2
+       * @return {Number} distance
+       */
+      getDistance: function getDistance(touch1, touch2) {
+          var x = touch2.clientX - touch1.clientX,
+              y = touch2.clientY - touch1.clientY;
+
+          return Math.sqrt((x * x) + (y * y));
+      },
+
+      /**
+       * calculate the scale factor between two touchLists
+       * no scale is 1, and goes down to 0 when pinched together, and bigger when pinched out
+       * @method getScale
+       * @param {Array} start array of touches
+       * @param {Array} end array of touches
+       * @return {Number} scale
+       */
+      getScale: function getScale(start, end) {
+          // need two fingers...
+          if(start.length >= 2 && end.length >= 2) {
+              return this.getDistance(end[0], end[1]) / this.getDistance(start[0], start[1]);
+          }
+          return 1;
+      },
+
+      /**
+       * calculate the rotation degrees between two touchLists
+       * @method getRotation
+       * @param {Array} start array of touches
+       * @param {Array} end array of touches
+       * @return {Number} rotation
+       */
+      getRotation: function getRotation(start, end) {
+          // need two fingers
+          if(start.length >= 2 && end.length >= 2) {
+              return this.getAngle(end[1], end[0]) - this.getAngle(start[1], start[0]);
+          }
+          return 0;
+      },
+
+      /**
+       * find out if the direction is vertical   *
+       * @method isVertical
+       * @param {String} direction matches `DIRECTION_UP|DOWN`
+       * @return {Boolean} is_vertical
+       */
+      isVertical: function isVertical(direction) {
+          return direction == DIRECTION_UP || direction == DIRECTION_DOWN;
+      },
+
+      /**
+       * set css properties with their prefixes
+       * @param {HTMLElement} element
+       * @param {String} prop
+       * @param {String} value
+       * @param {Boolean} [toggle=true]
+       * @return {Boolean}
+       */
+      setPrefixedCss: function setPrefixedCss(element, prop, value, toggle) {
+          var prefixes = ['', 'Webkit', 'Moz', 'O', 'ms'];
+          prop = Utils.toCamelCase(prop);
+
+          for(var i = 0; i < prefixes.length; i++) {
+              var p = prop;
+              // prefixes
+              if(prefixes[i]) {
+                  p = prefixes[i] + p.slice(0, 1).toUpperCase() + p.slice(1);
+              }
+
+              // test the style
+              if(p in element.style) {
+                  element.style[p] = (toggle == null || toggle) && value || '';
+                  break;
+              }
+          }
+      },
+
+      /**
+       * toggle browser default behavior by setting css properties.
+       * `userSelect='none'` also sets `element.onselectstart` to false
+       * `userDrag='none'` also sets `element.ondragstart` to false
+       *
+       * @method toggleBehavior
+       * @param {HtmlElement} element
+       * @param {Object} props
+       * @param {Boolean} [toggle=true]
+       */
+      toggleBehavior: function toggleBehavior(element, props, toggle) {
+          if(!props || !element || !element.style) {
+              return;
+          }
+
+          // set the css properties
+          Utils.each(props, function(value, prop) {
+              Utils.setPrefixedCss(element, prop, value, toggle);
+          });
+
+          var falseFn = toggle && function() {
+              return false;
+          };
+
+          // also the disable onselectstart
+          if(props.userSelect == 'none') {
+              element.onselectstart = falseFn;
+          }
+          // and disable ondragstart
+          if(props.userDrag == 'none') {
+              element.ondragstart = falseFn;
+          }
+      },
+
+      /**
+       * convert a string with underscores to camelCase
+       * so prevent_default becomes preventDefault
+       * @param {String} str
+       * @return {String} camelCaseStr
+       */
+      toCamelCase: function toCamelCase(str) {
+          return str.replace(/[_-]([a-z])/g, function(s) {
+              return s[1].toUpperCase();
+          });
+      }
+  };
+
+
+  /**
+   * @module hammer
+   */
+  /**
+   * @class Event
+   * @static
+   */
+  var Event = Hammer.event = {
+      /**
+       * when touch events have been fired, this is true
+       * this is used to stop mouse events
+       * @property prevent_mouseevents
+       * @private
+       * @type {Boolean}
+       */
+      preventMouseEvents: false,
+
+      /**
+       * if EVENT_START has been fired
+       * @property started
+       * @private
+       * @type {Boolean}
+       */
+      started: false,
+
+      /**
+       * when the mouse is hold down, this is true
+       * @property should_detect
+       * @private
+       * @type {Boolean}
+       */
+      shouldDetect: false,
+
+      /**
+       * simple event binder with a hook and support for multiple types
+       * @method on
+       * @param {HTMLElement} element
+       * @param {String} type
+       * @param {Function} handler
+       * @param {Function} [hook]
+       * @param {Object} hook.type
+       */
+      on: function on(element, type, handler, hook) {
+          var types = type.split(' ');
+          Utils.each(types, function(type) {
+              Utils.on(element, type, handler);
+              hook && hook(type);
+          });
+      },
+
+      /**
+       * simple event unbinder with a hook and support for multiple types
+       * @method off
+       * @param {HTMLElement} element
+       * @param {String} type
+       * @param {Function} handler
+       * @param {Function} [hook]
+       * @param {Object} hook.type
+       */
+      off: function off(element, type, handler, hook) {
+          var types = type.split(' ');
+          Utils.each(types, function(type) {
+              Utils.off(element, type, handler);
+              hook && hook(type);
+          });
+      },
+
+      /**
+       * the core touch event handler.
+       * this finds out if we should to detect gestures
+       * @method onTouch
+       * @param {HTMLElement} element
+       * @param {String} eventType matches `EVENT_START|MOVE|END`
+       * @param {Function} handler
+       * @return onTouchHandler {Function} the core event handler
+       */
+      onTouch: function onTouch(element, eventType, handler) {
+          var self = this;
+
+          var onTouchHandler = function onTouchHandler(ev) {
+              var srcType = ev.type.toLowerCase(),
+                  isPointer = Hammer.HAS_POINTEREVENTS,
+                  isMouse = Utils.inStr(srcType, 'mouse'),
+                  triggerType;
+
+              // if we are in a mouseevent, but there has been a touchevent triggered in this session
+              // we want to do nothing. simply break out of the event.
+              if(isMouse && self.preventMouseEvents) {
+                  return;
+
+              // mousebutton must be down
+              } else if(isMouse && eventType == EVENT_START && ev.button === 0) {
+                  self.preventMouseEvents = false;
+                  self.shouldDetect = true;
+              } else if(isPointer && eventType == EVENT_START) {
+                  self.shouldDetect = (ev.buttons === 1 || PointerEvent.matchType(POINTER_TOUCH, ev));
+              // just a valid start event, but no mouse
+              } else if(!isMouse && eventType == EVENT_START) {
+                  self.preventMouseEvents = true;
+                  self.shouldDetect = true;
+              }
+
+              // update the pointer event before entering the detection
+              if(isPointer && eventType != EVENT_END) {
+                  PointerEvent.updatePointer(eventType, ev);
+              }
+
+              // we are in a touch/down state, so allowed detection of gestures
+              if(self.shouldDetect) {
+                  triggerType = self.doDetect.call(self, ev, eventType, element, handler);
+              }
+
+              // ...and we are done with the detection
+              // so reset everything to start each detection totally fresh
+              if(triggerType == EVENT_END) {
+                  self.preventMouseEvents = false;
+                  self.shouldDetect = false;
+                  PointerEvent.reset();
+              // update the pointerevent object after the detection
+              }
+
+              if(isPointer && eventType == EVENT_END) {
+                  PointerEvent.updatePointer(eventType, ev);
+              }
+          };
+
+          this.on(element, EVENT_TYPES[eventType], onTouchHandler);
+          return onTouchHandler;
+      },
+
+      /**
+       * the core detection method
+       * this finds out what hammer-touch-events to trigger
+       * @method doDetect
+       * @param {Object} ev
+       * @param {String} eventType matches `EVENT_START|MOVE|END`
+       * @param {HTMLElement} element
+       * @param {Function} handler
+       * @return {String} triggerType matches `EVENT_START|MOVE|END`
+       */
+      doDetect: function doDetect(ev, eventType, element, handler) {
+          var touchList = this.getTouchList(ev, eventType);
+          var touchListLength = touchList.length;
+          var triggerType = eventType;
+          var triggerChange = touchList.trigger; // used by fakeMultitouch plugin
+          var changedLength = touchListLength;
+
+          // at each touchstart-like event we want also want to trigger a TOUCH event...
+          if(eventType == EVENT_START) {
+              triggerChange = EVENT_TOUCH;
+          // ...the same for a touchend-like event
+          } else if(eventType == EVENT_END) {
+              triggerChange = EVENT_RELEASE;
+
+              // keep track of how many touches have been removed
+              changedLength = touchList.length - ((ev.changedTouches) ? ev.changedTouches.length : 1);
+          }
+
+          // after there are still touches on the screen,
+          // we just want to trigger a MOVE event. so change the START or END to a MOVE
+          // but only after detection has been started, the first time we actualy want a START
+          if(changedLength > 0 && this.started) {
+              triggerType = EVENT_MOVE;
+          }
+
+          // detection has been started, we keep track of this, see above
+          this.started = true;
+
+          // generate some event data, some basic information
+          var evData = this.collectEventData(element, triggerType, touchList, ev);
+
+          // trigger the triggerType event before the change (TOUCH, RELEASE) events
+          // but the END event should be at last
+          if(eventType != EVENT_END) {
+              handler.call(Detection, evData);
+          }
+
+          // trigger a change (TOUCH, RELEASE) event, this means the length of the touches changed
+          if(triggerChange) {
+              evData.changedLength = changedLength;
+              evData.eventType = triggerChange;
+
+              handler.call(Detection, evData);
+
+              evData.eventType = triggerType;
+              delete evData.changedLength;
+          }
+
+          // trigger the END event
+          if(triggerType == EVENT_END) {
+              handler.call(Detection, evData);
+
+              // ...and we are done with the detection
+              // so reset everything to start each detection totally fresh
+              this.started = false;
+          }
+
+          return triggerType;
+      },
+
+      /**
+       * we have different events for each device/browser
+       * determine what we need and set them in the EVENT_TYPES constant
+       * the `onTouch` method is bind to these properties.
+       * @method determineEventTypes
+       * @return {Object} events
+       */
+      determineEventTypes: function determineEventTypes() {
+          var types;
+          if(Hammer.HAS_POINTEREVENTS) {
+              if(window.PointerEvent) {
+                  types = [
+                      'pointerdown',
+                      'pointermove',
+                      'pointerup pointercancel lostpointercapture'
+                  ];
+              } else {
+                  types = [
+                      'MSPointerDown',
+                      'MSPointerMove',
+                      'MSPointerUp MSPointerCancel MSLostPointerCapture'
+                  ];
+              }
+          } else if(Hammer.NO_MOUSEEVENTS) {
+              types = [
+                  'touchstart',
+                  'touchmove',
+                  'touchend touchcancel'
+              ];
+          } else {
+              types = [
+                  'touchstart mousedown',
+                  'touchmove mousemove',
+                  'touchend touchcancel mouseup'
+              ];
+          }
+
+          EVENT_TYPES[EVENT_START] = types[0];
+          EVENT_TYPES[EVENT_MOVE] = types[1];
+          EVENT_TYPES[EVENT_END] = types[2];
+          return EVENT_TYPES;
+      },
+
+      /**
+       * create touchList depending on the event
+       * @method getTouchList
+       * @param {Object} ev
+       * @param {String} eventType
+       * @return {Array} touches
+       */
+      getTouchList: function getTouchList(ev, eventType) {
+          // get the fake pointerEvent touchlist
+          if(Hammer.HAS_POINTEREVENTS) {
+              return PointerEvent.getTouchList();
+          }
+
+          // get the touchlist
+          if(ev.touches) {
+              if(eventType == EVENT_MOVE) {
+                  return ev.touches;
+              }
+
+              var identifiers = [];
+              var concat = [].concat(Utils.toArray(ev.touches), Utils.toArray(ev.changedTouches));
+              var touchList = [];
+
+              Utils.each(concat, function(touch) {
+                  if(Utils.inArray(identifiers, touch.identifier) === false) {
+                      touchList.push(touch);
+                  }
+                  identifiers.push(touch.identifier);
+              });
+
+              return touchList;
+          }
+
+          // make fake touchList from mouse position
+          ev.identifier = 1;
+          return [ev];
+      },
+
+      /**
+       * collect basic event data
+       * @method collectEventData
+       * @param {HTMLElement} element
+       * @param {String} eventType matches `EVENT_START|MOVE|END`
+       * @param {Array} touches
+       * @param {Object} ev
+       * @return {Object} ev
+       */
+      collectEventData: function collectEventData(element, eventType, touches, ev) {
+          // find out pointerType
+          var pointerType = POINTER_TOUCH;
+          if(Utils.inStr(ev.type, 'mouse') || PointerEvent.matchType(POINTER_MOUSE, ev)) {
+              pointerType = POINTER_MOUSE;
+          } else if(PointerEvent.matchType(POINTER_PEN, ev)) {
+              pointerType = POINTER_PEN;
+          }
+
+          return {
+              center: Utils.getCenter(touches),
+              timeStamp: Date.now(),
+              target: ev.target,
+              touches: touches,
+              eventType: eventType,
+              pointerType: pointerType,
+              srcEvent: ev,
+
+              /**
+               * prevent the browser default actions
+               * mostly used to disable scrolling of the browser
+               */
+              preventDefault: function() {
+                  var srcEvent = this.srcEvent;
+                  srcEvent.preventManipulation && srcEvent.preventManipulation();
+                  srcEvent.preventDefault && srcEvent.preventDefault();
+              },
+
+              /**
+               * stop bubbling the event up to its parents
+               */
+              stopPropagation: function() {
+                  this.srcEvent.stopPropagation();
+              },
+
+              /**
+               * immediately stop gesture detection
+               * might be useful after a swipe was detected
+               * @return {*}
+               */
+              stopDetect: function() {
+                  return Detection.stopDetect();
+              }
+          };
+      }
+  };
+
+
+  /**
+   * @module hammer
+   *
+   * @class PointerEvent
+   * @static
+   */
+  var PointerEvent = Hammer.PointerEvent = {
+      /**
+       * holds all pointers, by `identifier`
+       * @property pointers
+       * @type {Object}
+       */
+      pointers: {},
+
+      /**
+       * get the pointers as an array
+       * @method getTouchList
+       * @return {Array} touchlist
+       */
+      getTouchList: function getTouchList() {
+          var touchlist = [];
+          // we can use forEach since pointerEvents only is in IE10
+          Utils.each(this.pointers, function(pointer) {
+              touchlist.push(pointer);
+          });
+          return touchlist;
+      },
+
+      /**
+       * update the position of a pointer
+       * @method updatePointer
+       * @param {String} eventType matches `EVENT_START|MOVE|END`
+       * @param {Object} pointerEvent
+       */
+      updatePointer: function updatePointer(eventType, pointerEvent) {
+          if(eventType == EVENT_END || (eventType != EVENT_END && pointerEvent.buttons !== 1)) {
+              delete this.pointers[pointerEvent.pointerId];
+          } else {
+              pointerEvent.identifier = pointerEvent.pointerId;
+              this.pointers[pointerEvent.pointerId] = pointerEvent;
+          }
+      },
+
+      /**
+       * check if ev matches pointertype
+       * @method matchType
+       * @param {String} pointerType matches `POINTER_MOUSE|TOUCH|PEN`
+       * @param {PointerEvent} ev
+       */
+      matchType: function matchType(pointerType, ev) {
+          if(!ev.pointerType) {
+              return false;
+          }
+
+          var pt = ev.pointerType,
+              types = {};
+
+          types[POINTER_MOUSE] = (pt === (ev.MSPOINTER_TYPE_MOUSE || POINTER_MOUSE));
+          types[POINTER_TOUCH] = (pt === (ev.MSPOINTER_TYPE_TOUCH || POINTER_TOUCH));
+          types[POINTER_PEN] = (pt === (ev.MSPOINTER_TYPE_PEN || POINTER_PEN));
+          return types[pointerType];
+      },
+
+      /**
+       * reset the stored pointers
+       * @method reset
+       */
+      reset: function resetList() {
+          this.pointers = {};
+      }
+  };
+
+
+  /**
+   * @module hammer
+   *
+   * @class Detection
+   * @static
+   */
+  var Detection = Hammer.detection = {
+      // contains all registred Hammer.gestures in the correct order
+      gestures: [],
+
+      // data of the current Hammer.gesture detection session
+      current: null,
+
+      // the previous Hammer.gesture session data
+      // is a full clone of the previous gesture.current object
+      previous: null,
+
+      // when this becomes true, no gestures are fired
+      stopped: false,
+
+      /**
+       * start Hammer.gesture detection
+       * @method startDetect
+       * @param {Hammer.Instance} inst
+       * @param {Object} eventData
+       */
+      startDetect: function startDetect(inst, eventData) {
+          // already busy with a Hammer.gesture detection on an element
+          if(this.current) {
+              return;
+          }
+
+          this.stopped = false;
+
+          // holds current session
+          this.current = {
+              inst: inst, // reference to HammerInstance we're working for
+              startEvent: Utils.extend({}, eventData), // start eventData for distances, timing etc
+              lastEvent: false, // last eventData
+              lastCalcEvent: false, // last eventData for calculations.
+              futureCalcEvent: false, // last eventData for calculations.
+              lastCalcData: {}, // last lastCalcData
+              name: '' // current gesture we're in/detected, can be 'tap', 'hold' etc
+          };
+
+          this.detect(eventData);
+      },
+
+      /**
+       * Hammer.gesture detection
+       * @method detect
+       * @param {Object} eventData
+       * @return {any}
+       */
+      detect: function detect(eventData) {
+          if(!this.current || this.stopped) {
+              return;
+          }
+
+          // extend event data with calculations about scale, distance etc
+          eventData = this.extendEventData(eventData);
+
+          // hammer instance and instance options
+          var inst = this.current.inst,
+              instOptions = inst.options;
+
+          // call Hammer.gesture handlers
+          Utils.each(this.gestures, function triggerGesture(gesture) {
+              // only when the instance options have enabled this gesture
+              if(!this.stopped && inst.enabled && instOptions[gesture.name]) {
+                  gesture.handler.call(gesture, eventData, inst);
+              }
+          }, this);
+
+          // store as previous event event
+          if(this.current) {
+              this.current.lastEvent = eventData;
+          }
+
+          if(eventData.eventType == EVENT_END) {
+              this.stopDetect();
+          }
+
+          return eventData;
+      },
+
+      /**
+       * clear the Hammer.gesture vars
+       * this is called on endDetect, but can also be used when a final Hammer.gesture has been detected
+       * to stop other Hammer.gestures from being fired
+       * @method stopDetect
+       */
+      stopDetect: function stopDetect() {
+          // clone current data to the store as the previous gesture
+          // used for the double tap gesture, since this is an other gesture detect session
+          this.previous = Utils.extend({}, this.current);
+
+          // reset the current
+          this.current = null;
+          this.stopped = true;
+      },
+
+      /**
+       * calculate velocity, angle and direction
+       * @method getVelocityData
+       * @param {Object} ev
+       * @param {Object} center
+       * @param {Number} deltaTime
+       * @param {Number} deltaX
+       * @param {Number} deltaY
+       */
+      getCalculatedData: function getCalculatedData(ev, center, deltaTime, deltaX, deltaY) {
+          var cur = this.current,
+              recalc = false,
+              calcEv = cur.lastCalcEvent,
+              calcData = cur.lastCalcData;
+
+          if(calcEv && ev.timeStamp - calcEv.timeStamp > Hammer.CALCULATE_INTERVAL) {
+              center = calcEv.center;
+              deltaTime = ev.timeStamp - calcEv.timeStamp;
+              deltaX = ev.center.clientX - calcEv.center.clientX;
+              deltaY = ev.center.clientY - calcEv.center.clientY;
+              recalc = true;
+          }
+
+          if(ev.eventType == EVENT_TOUCH || ev.eventType == EVENT_RELEASE) {
+              cur.futureCalcEvent = ev;
+          }
+
+          if(!cur.lastCalcEvent || recalc) {
+              calcData.velocity = Utils.getVelocity(deltaTime, deltaX, deltaY);
+              calcData.angle = Utils.getAngle(center, ev.center);
+              calcData.direction = Utils.getDirection(center, ev.center);
+
+              cur.lastCalcEvent = cur.futureCalcEvent || ev;
+              cur.futureCalcEvent = ev;
+          }
+
+          ev.velocityX = calcData.velocity.x;
+          ev.velocityY = calcData.velocity.y;
+          ev.interimAngle = calcData.angle;
+          ev.interimDirection = calcData.direction;
+      },
+
+      /**
+       * extend eventData for Hammer.gestures
+       * @method extendEventData
+       * @param {Object} ev
+       * @return {Object} ev
+       */
+      extendEventData: function extendEventData(ev) {
+          var cur = this.current,
+              startEv = cur.startEvent,
+              lastEv = cur.lastEvent || startEv;
+
+          // update the start touchlist to calculate the scale/rotation
+          if(ev.eventType == EVENT_TOUCH || ev.eventType == EVENT_RELEASE) {
+              startEv.touches = [];
+              Utils.each(ev.touches, function(touch) {
+                  startEv.touches.push({
+                      clientX: touch.clientX,
+                      clientY: touch.clientY
+                  });
+              });
+          }
+
+          var deltaTime = ev.timeStamp - startEv.timeStamp,
+              deltaX = ev.center.clientX - startEv.center.clientX,
+              deltaY = ev.center.clientY - startEv.center.clientY;
+
+          this.getCalculatedData(ev, lastEv.center, deltaTime, deltaX, deltaY);
+
+          Utils.extend(ev, {
+              startEvent: startEv,
+
+              deltaTime: deltaTime,
+              deltaX: deltaX,
+              deltaY: deltaY,
+
+              distance: Utils.getDistance(startEv.center, ev.center),
+              angle: Utils.getAngle(startEv.center, ev.center),
+              direction: Utils.getDirection(startEv.center, ev.center),
+              scale: Utils.getScale(startEv.touches, ev.touches),
+              rotation: Utils.getRotation(startEv.touches, ev.touches)
+          });
+
+          return ev;
+      },
+
+      /**
+       * register new gesture
+       * @method register
+       * @param {Object} gesture object, see `gestures/` for documentation
+       * @return {Array} gestures
+       */
+      register: function register(gesture) {
+          // add an enable gesture options if there is no given
+          var options = gesture.defaults || {};
+          if(options[gesture.name] === undefined) {
+              options[gesture.name] = true;
+          }
+
+          // extend Hammer default options with the Hammer.gesture options
+          Utils.extend(Hammer.defaults, options, true);
+
+          // set its index
+          gesture.index = gesture.index || 1000;
+
+          // add Hammer.gesture to the list
+          this.gestures.push(gesture);
+
+          // sort the list by index
+          this.gestures.sort(function(a, b) {
+              if(a.index < b.index) {
+                  return -1;
+              }
+              if(a.index > b.index) {
+                  return 1;
+              }
+              return 0;
+          });
+
+          return this.gestures;
+      }
+  };
+
+
+  /**
+   * @module hammer
+   */
+
+  /**
+   * create new hammer instance
+   * all methods should return the instance itself, so it is chainable.
+   *
+   * @class Instance
+   * @constructor
+   * @param {HTMLElement} element
+   * @param {Object} [options={}] options are merged with `Hammer.defaults`
+   * @return {Hammer.Instance}
+   */
+  Hammer.Instance = function(element, options) {
+      var self = this;
+
+      // setup HammerJS window events and register all gestures
+      // this also sets up the default options
+      setup();
+
+      /**
+       * @property element
+       * @type {HTMLElement}
+       */
+      this.element = element;
+
+      /**
+       * @property enabled
+       * @type {Boolean}
+       * @protected
+       */
+      this.enabled = true;
+
+      /**
+       * options, merged with the defaults
+       * options with an _ are converted to camelCase
+       * @property options
+       * @type {Object}
+       */
+      Utils.each(options, function(value, name) {
+          delete options[name];
+          options[Utils.toCamelCase(name)] = value;
+      });
+
+      this.options = Utils.extend(Utils.extend({}, Hammer.defaults), options || {});
+
+      // add some css to the element to prevent the browser from doing its native behavoir
+      if(this.options.behavior) {
+          Utils.toggleBehavior(this.element, this.options.behavior, true);
+      }
+
+      /**
+       * event start handler on the element to start the detection
+       * @property eventStartHandler
+       * @type {Object}
+       */
+      this.eventStartHandler = Event.onTouch(element, EVENT_START, function(ev) {
+          if(self.enabled && ev.eventType == EVENT_START) {
+              Detection.startDetect(self, ev);
+          } else if(ev.eventType == EVENT_TOUCH) {
+              Detection.detect(ev);
+          }
+      });
+
+      /**
+       * keep a list of user event handlers which needs to be removed when calling 'dispose'
+       * @property eventHandlers
+       * @type {Array}
+       */
+      this.eventHandlers = [];
+  };
+
+  Hammer.Instance.prototype = {
+      /**
+       * bind events to the instance
+       * @method on
+       * @chainable
+       * @param {String} gestures multiple gestures by splitting with a space
+       * @param {Function} handler
+       * @param {Object} handler.ev event object
+       */
+      on: function onEvent(gestures, handler) {
+          var self = this;
+          Event.on(self.element, gestures, handler, function(type) {
+              self.eventHandlers.push({ gesture: type, handler: handler });
+          });
+          return self;
+      },
+
+      /**
+       * unbind events to the instance
+       * @method off
+       * @chainable
+       * @param {String} gestures
+       * @param {Function} handler
+       */
+      off: function offEvent(gestures, handler) {
+          var self = this;
+
+          Event.off(self.element, gestures, handler, function(type) {
+              var index = Utils.inArray({ gesture: type, handler: handler });
+              if(index !== false) {
+                  self.eventHandlers.splice(index, 1);
+              }
+          });
+          return self;
+      },
+
+      /**
+       * trigger gesture event
+       * @method trigger
+       * @chainable
+       * @param {String} gesture
+       * @param {Object} [eventData]
+       */
+      trigger: function triggerEvent(gesture, eventData) {
+          // optional
+          if(!eventData) {
+              eventData = {};
+          }
+
+          // create DOM event
+          var event = Hammer.DOCUMENT.createEvent('Event');
+          event.initEvent(gesture, true, true);
+          event.gesture = eventData;
+
+          // trigger on the target if it is in the instance element,
+          // this is for event delegation tricks
+          var element = this.element;
+          if(Utils.hasParent(eventData.target, element)) {
+              element = eventData.target;
+          }
+
+          element.dispatchEvent(event);
+          return this;
+      },
+
+      /**
+       * enable of disable hammer.js detection
+       * @method enable
+       * @chainable
+       * @param {Boolean} state
+       */
+      enable: function enable(state) {
+          this.enabled = state;
+          return this;
+      },
+
+      /**
+       * dispose this hammer instance
+       * @method dispose
+       * @return {Null}
+       */
+      dispose: function dispose() {
+          var i, eh;
+
+          // undo all changes made by stop_browser_behavior
+          Utils.toggleBehavior(this.element, this.options.behavior, false);
+
+          // unbind all custom event handlers
+          for(i = -1; (eh = this.eventHandlers[++i]);) {
+              Utils.off(this.element, eh.gesture, eh.handler);
+          }
+
+          this.eventHandlers = [];
+
+          // unbind the start event listener
+          Event.off(this.element, EVENT_TYPES[EVENT_START], this.eventStartHandler);
+
+          return null;
+      }
+  };
+
+
+  /**
+   * @module gestures
+   */
+  /**
+   * Move with x fingers (default 1) around on the page.
+   * Preventing the default browser behavior is a good way to improve feel and working.
+   * ````
+   *  hammertime.on("drag", function(ev) {
+   *    console.log(ev);
+   *    ev.gesture.preventDefault();
+   *  });
+   * ````
+   *
+   * @class Drag
+   * @static
+   */
+  /**
+   * @event drag
+   * @param {Object} ev
+   */
+  /**
+   * @event dragstart
+   * @param {Object} ev
+   */
+  /**
+   * @event dragend
+   * @param {Object} ev
+   */
+  /**
+   * @event drapleft
+   * @param {Object} ev
+   */
+  /**
+   * @event dragright
+   * @param {Object} ev
+   */
+  /**
+   * @event dragup
+   * @param {Object} ev
+   */
+  /**
+   * @event dragdown
+   * @param {Object} ev
+   */
+
+  /**
+   * @param {String} name
+   */
+  (function(name) {
+      var triggered = false;
+
+      function dragGesture(ev, inst) {
+          var cur = Detection.current;
+
+          // max touches
+          if(inst.options.dragMaxTouches > 0 &&
+              ev.touches.length > inst.options.dragMaxTouches) {
+              return;
+          }
+
+          switch(ev.eventType) {
+              case EVENT_START:
+                  triggered = false;
+                  break;
+
+              case EVENT_MOVE:
+                  // when the distance we moved is too small we skip this gesture
+                  // or we can be already in dragging
+                  if(ev.distance < inst.options.dragMinDistance &&
+                      cur.name != name) {
+                      return;
+                  }
+
+                  var startCenter = cur.startEvent.center;
+
+                  // we are dragging!
+                  if(cur.name != name) {
+                      cur.name = name;
+                      if(inst.options.dragDistanceCorrection && ev.distance > 0) {
+                          // When a drag is triggered, set the event center to dragMinDistance pixels from the original event center.
+                          // Without this correction, the dragged distance would jumpstart at dragMinDistance pixels instead of at 0.
+                          // It might be useful to save the original start point somewhere
+                          var factor = Math.abs(inst.options.dragMinDistance / ev.distance);
+                          startCenter.pageX += ev.deltaX * factor;
+                          startCenter.pageY += ev.deltaY * factor;
+                          startCenter.clientX += ev.deltaX * factor;
+                          startCenter.clientY += ev.deltaY * factor;
+
+                          // recalculate event data using new start point
+                          ev = Detection.extendEventData(ev);
+                      }
+                  }
+
+                  // lock drag to axis?
+                  if(cur.lastEvent.dragLockToAxis ||
+                      ( inst.options.dragLockToAxis &&
+                          inst.options.dragLockMinDistance <= ev.distance
+                          )) {
+                      ev.dragLockToAxis = true;
+                  }
+
+                  // keep direction on the axis that the drag gesture started on
+                  var lastDirection = cur.lastEvent.direction;
+                  if(ev.dragLockToAxis && lastDirection !== ev.direction) {
+                      if(Utils.isVertical(lastDirection)) {
+                          ev.direction = (ev.deltaY < 0) ? DIRECTION_UP : DIRECTION_DOWN;
+                      } else {
+                          ev.direction = (ev.deltaX < 0) ? DIRECTION_LEFT : DIRECTION_RIGHT;
+                      }
+                  }
+
+                  // first time, trigger dragstart event
+                  if(!triggered) {
+                      inst.trigger(name + 'start', ev);
+                      triggered = true;
+                  }
+
+                  // trigger events
+                  inst.trigger(name, ev);
+                  inst.trigger(name + ev.direction, ev);
+
+                  var isVertical = Utils.isVertical(ev.direction);
+
+                  // block the browser events
+                  if((inst.options.dragBlockVertical && isVertical) ||
+                      (inst.options.dragBlockHorizontal && !isVertical)) {
+                      ev.preventDefault();
+                  }
+                  break;
+
+              case EVENT_RELEASE:
+                  if(triggered && ev.changedLength <= inst.options.dragMaxTouches) {
+                      inst.trigger(name + 'end', ev);
+                      triggered = false;
+                  }
+                  break;
+
+              case EVENT_END:
+                  triggered = false;
+                  break;
+          }
+      }
+
+      Hammer.gestures.Drag = {
+          name: name,
+          index: 50,
+          handler: dragGesture,
+          defaults: {
+              /**
+               * minimal movement that have to be made before the drag event gets triggered
+               * @property dragMinDistance
+               * @type {Number}
+               * @default 10
+               */
+              dragMinDistance: 10,
+
+              /**
+               * Set dragDistanceCorrection to true to make the starting point of the drag
+               * be calculated from where the drag was triggered, not from where the touch started.
+               * Useful to avoid a jerk-starting drag, which can make fine-adjustments
+               * through dragging difficult, and be visually unappealing.
+               * @property dragDistanceCorrection
+               * @type {Boolean}
+               * @default true
+               */
+              dragDistanceCorrection: true,
+
+              /**
+               * set 0 for unlimited, but this can conflict with transform
+               * @property dragMaxTouches
+               * @type {Number}
+               * @default 1
+               */
+              dragMaxTouches: 1,
+
+              /**
+               * prevent default browser behavior when dragging occurs
+               * be careful with it, it makes the element a blocking element
+               * when you are using the drag gesture, it is a good practice to set this true
+               * @property dragBlockHorizontal
+               * @type {Boolean}
+               * @default false
+               */
+              dragBlockHorizontal: false,
+
+              /**
+               * same as `dragBlockHorizontal`, but for vertical movement
+               * @property dragBlockVertical
+               * @type {Boolean}
+               * @default false
+               */
+              dragBlockVertical: false,
+
+              /**
+               * dragLockToAxis keeps the drag gesture on the axis that it started on,
+               * It disallows vertical directions if the initial direction was horizontal, and vice versa.
+               * @property dragLockToAxis
+               * @type {Boolean}
+               * @default false
+               */
+              dragLockToAxis: false,
+
+              /**
+               * drag lock only kicks in when distance > dragLockMinDistance
+               * This way, locking occurs only when the distance has become large enough to reliably determine the direction
+               * @property dragLockMinDistance
+               * @type {Number}
+               * @default 25
+               */
+              dragLockMinDistance: 25
+          }
+      };
+  })('drag');
+
+  /**
+   * @module gestures
+   */
+  /**
+   * trigger a simple gesture event, so you can do anything in your handler.
+   * only usable if you know what your doing...
+   *
+   * @class Gesture
+   * @static
+   */
+  /**
+   * @event gesture
+   * @param {Object} ev
+   */
+  Hammer.gestures.Gesture = {
+      name: 'gesture',
+      index: 1337,
+      handler: function releaseGesture(ev, inst) {
+          inst.trigger(this.name, ev);
+      }
+  };
+
+  /**
+   * @module gestures
+   */
+  /**
+   * Touch stays at the same place for x time
+   *
+   * @class Hold
+   * @static
+   */
+  /**
+   * @event hold
+   * @param {Object} ev
+   */
+
+  /**
+   * @param {String} name
+   */
+  (function(name) {
+      var timer;
+
+      function holdGesture(ev, inst) {
+          var options = inst.options,
+              current = Detection.current;
+
+          switch(ev.eventType) {
+              case EVENT_START:
+                  clearTimeout(timer);
+
+                  // set the gesture so we can check in the timeout if it still is
+                  current.name = name;
+
+                  // set timer and if after the timeout it still is hold,
+                  // we trigger the hold event
+                  timer = setTimeout(function() {
+                      if(current && current.name == name) {
+                          inst.trigger(name, ev);
+                      }
+                  }, options.holdTimeout);
+                  break;
+
+              case EVENT_MOVE:
+                  if(ev.distance > options.holdThreshold) {
+                      clearTimeout(timer);
+                  }
+                  break;
+
+              case EVENT_RELEASE:
+                  clearTimeout(timer);
+                  break;
+          }
+      }
+
+      Hammer.gestures.Hold = {
+          name: name,
+          index: 10,
+          defaults: {
+              /**
+               * @property holdTimeout
+               * @type {Number}
+               * @default 500
+               */
+              holdTimeout: 500,
+
+              /**
+               * movement allowed while holding
+               * @property holdThreshold
+               * @type {Number}
+               * @default 2
+               */
+              holdThreshold: 2
+          },
+          handler: holdGesture
+      };
+  })('hold');
+
+  /**
+   * @module gestures
+   */
+  /**
+   * when a touch is being released from the page
+   *
+   * @class Release
+   * @static
+   */
+  /**
+   * @event release
+   * @param {Object} ev
+   */
+  Hammer.gestures.Release = {
+      name: 'release',
+      index: Infinity,
+      handler: function releaseGesture(ev, inst) {
+          if(ev.eventType == EVENT_RELEASE) {
+              inst.trigger(this.name, ev);
+          }
+      }
+  };
+
+  /**
+   * @module gestures
+   */
+  /**
+   * triggers swipe events when the end velocity is above the threshold
+   * for best usage, set `preventDefault` (on the drag gesture) to `true`
+   * ````
+   *  hammertime.on("dragleft swipeleft", function(ev) {
+   *    console.log(ev);
+   *    ev.gesture.preventDefault();
+   *  });
+   * ````
+   *
+   * @class Swipe
+   * @static
+   */
+  /**
+   * @event swipe
+   * @param {Object} ev
+   */
+  /**
+   * @event swipeleft
+   * @param {Object} ev
+   */
+  /**
+   * @event swiperight
+   * @param {Object} ev
+   */
+  /**
+   * @event swipeup
+   * @param {Object} ev
+   */
+  /**
+   * @event swipedown
+   * @param {Object} ev
+   */
+  Hammer.gestures.Swipe = {
+      name: 'swipe',
+      index: 40,
+      defaults: {
+          /**
+           * @property swipeMinTouches
+           * @type {Number}
+           * @default 1
+           */
+          swipeMinTouches: 1,
+
+          /**
+           * @property swipeMaxTouches
+           * @type {Number}
+           * @default 1
+           */
+          swipeMaxTouches: 1,
+
+          /**
+           * horizontal swipe velocity
+           * @property swipeVelocityX
+           * @type {Number}
+           * @default 0.6
+           */
+          swipeVelocityX: 0.6,
+
+          /**
+           * vertical swipe velocity
+           * @property swipeVelocityY
+           * @type {Number}
+           * @default 0.6
+           */
+          swipeVelocityY: 0.6
+      },
+
+      handler: function swipeGesture(ev, inst) {
+          if(ev.eventType == EVENT_RELEASE) {
+              var touches = ev.touches.length,
+                  options = inst.options;
+
+              // max touches
+              if(touches < options.swipeMinTouches ||
+                  touches > options.swipeMaxTouches) {
+                  return;
+              }
+
+              // when the distance we moved is too small we skip this gesture
+              // or we can be already in dragging
+              if(ev.velocityX > options.swipeVelocityX ||
+                  ev.velocityY > options.swipeVelocityY) {
+                  // trigger swipe events
+                  inst.trigger(this.name, ev);
+                  inst.trigger(this.name + ev.direction, ev);
+              }
+          }
+      }
+  };
+
+  /**
+   * @module gestures
+   */
+  /**
+   * Single tap and a double tap on a place
+   *
+   * @class Tap
+   * @static
+   */
+  /**
+   * @event tap
+   * @param {Object} ev
+   */
+  /**
+   * @event doubletap
+   * @param {Object} ev
+   */
+
+  /**
+   * @param {String} name
+   */
+  (function(name) {
+      var hasMoved = false;
+
+      function tapGesture(ev, inst) {
+          var options = inst.options,
+              current = Detection.current,
+              prev = Detection.previous,
+              sincePrev,
+              didDoubleTap;
+
+          switch(ev.eventType) {
+              case EVENT_START:
+                  hasMoved = false;
+                  break;
+
+              case EVENT_MOVE:
+                  hasMoved = hasMoved || (ev.distance > options.tapMaxDistance);
+                  break;
+
+              case EVENT_END:
+                  if(!Utils.inStr(ev.srcEvent.type, 'cancel') && ev.deltaTime < options.tapMaxTime && !hasMoved) {
+                      // previous gesture, for the double tap since these are two different gesture detections
+                      sincePrev = prev && prev.lastEvent && ev.timeStamp - prev.lastEvent.timeStamp;
+                      didDoubleTap = false;
+
+                      // check if double tap
+                      if(prev && prev.name == name &&
+                          (sincePrev && sincePrev < options.doubleTapInterval) &&
+                          ev.distance < options.doubleTapDistance) {
+                          inst.trigger('doubletap', ev);
+                          didDoubleTap = true;
+                      }
+
+                      // do a single tap
+                      if(!didDoubleTap || options.tapAlways) {
+                          current.name = name;
+                          inst.trigger(current.name, ev);
+                      }
+                  }
+                  break;
+          }
+      }
+
+      Hammer.gestures.Tap = {
+          name: name,
+          index: 100,
+          handler: tapGesture,
+          defaults: {
+              /**
+               * max time of a tap, this is for the slow tappers
+               * @property tapMaxTime
+               * @type {Number}
+               * @default 250
+               */
+              tapMaxTime: 250,
+
+              /**
+               * max distance of movement of a tap, this is for the slow tappers
+               * @property tapMaxDistance
+               * @type {Number}
+               * @default 10
+               */
+              tapMaxDistance: 10,
+
+              /**
+               * always trigger the `tap` event, even while double-tapping
+               * @property tapAlways
+               * @type {Boolean}
+               * @default true
+               */
+              tapAlways: true,
+
+              /**
+               * max distance between two taps
+               * @property doubleTapDistance
+               * @type {Number}
+               * @default 20
+               */
+              doubleTapDistance: 20,
+
+              /**
+               * max time between two taps
+               * @property doubleTapInterval
+               * @type {Number}
+               * @default 300
+               */
+              doubleTapInterval: 300
+          }
+      };
+  })('tap');
+
+  /**
+   * @module gestures
+   */
+  /**
+   * when a touch is being touched at the page
+   *
+   * @class Touch
+   * @static
+   */
+  /**
+   * @event touch
+   * @param {Object} ev
+   */
+  Hammer.gestures.Touch = {
+      name: 'touch',
+      index: -Infinity,
+      defaults: {
+          /**
+           * call preventDefault at touchstart, and makes the element blocking by disabling the scrolling of the page,
+           * but it improves gestures like transforming and dragging.
+           * be careful with using this, it can be very annoying for users to be stuck on the page
+           * @property preventDefault
+           * @type {Boolean}
+           * @default false
+           */
+          preventDefault: false,
+
+          /**
+           * disable mouse events, so only touch (or pen!) input triggers events
+           * @property preventMouse
+           * @type {Boolean}
+           * @default false
+           */
+          preventMouse: false
+      },
+      handler: function touchGesture(ev, inst) {
+          if(inst.options.preventMouse && ev.pointerType == POINTER_MOUSE) {
+              ev.stopDetect();
+              return;
+          }
+
+          if(inst.options.preventDefault) {
+              ev.preventDefault();
+          }
+
+          if(ev.eventType == EVENT_TOUCH) {
+              inst.trigger('touch', ev);
+          }
+      }
+  };
+
+  /**
+   * @module gestures
+   */
+  /**
+   * User want to scale or rotate with 2 fingers
+   * Preventing the default browser behavior is a good way to improve feel and working. This can be done with the
+   * `preventDefault` option.
+   *
+   * @class Transform
+   * @static
+   */
+  /**
+   * @event transform
+   * @param {Object} ev
+   */
+  /**
+   * @event transformstart
+   * @param {Object} ev
+   */
+  /**
+   * @event transformend
+   * @param {Object} ev
+   */
+  /**
+   * @event pinchin
+   * @param {Object} ev
+   */
+  /**
+   * @event pinchout
+   * @param {Object} ev
+   */
+  /**
+   * @event rotate
+   * @param {Object} ev
+   */
+
+  /**
+   * @param {String} name
+   */
+  (function(name) {
+      var triggered = false;
+
+      function transformGesture(ev, inst) {
+          switch(ev.eventType) {
+              case EVENT_START:
+                  triggered = false;
+                  break;
+
+              case EVENT_MOVE:
+                  // at least multitouch
+                  if(ev.touches.length < 2) {
+                      return;
+                  }
+
+                  var scaleThreshold = Math.abs(1 - ev.scale);
+                  var rotationThreshold = Math.abs(ev.rotation);
+
+                  // when the distance we moved is too small we skip this gesture
+                  // or we can be already in dragging
+                  if(scaleThreshold < inst.options.transformMinScale &&
+                      rotationThreshold < inst.options.transformMinRotation) {
+                      return;
+                  }
+
+                  // we are transforming!
+                  Detection.current.name = name;
+
+                  // first time, trigger dragstart event
+                  if(!triggered) {
+                      inst.trigger(name + 'start', ev);
+                      triggered = true;
+                  }
+
+                  inst.trigger(name, ev); // basic transform event
+
+                  // trigger rotate event
+                  if(rotationThreshold > inst.options.transformMinRotation) {
+                      inst.trigger('rotate', ev);
+                  }
+
+                  // trigger pinch event
+                  if(scaleThreshold > inst.options.transformMinScale) {
+                      inst.trigger('pinch', ev);
+                      inst.trigger('pinch' + (ev.scale < 1 ? 'in' : 'out'), ev);
+                  }
+                  break;
+
+              case EVENT_RELEASE:
+                  if(triggered && ev.changedLength < 2) {
+                      inst.trigger(name + 'end', ev);
+                      triggered = false;
+                  }
+                  break;
+          }
+      }
+
+      Hammer.gestures.Transform = {
+          name: name,
+          index: 45,
+          defaults: {
+              /**
+               * minimal scale factor, no scale is 1, zoomin is to 0 and zoomout until higher then 1
+               * @property transformMinScale
+               * @type {Number}
+               * @default 0.01
+               */
+              transformMinScale: 0.01,
+
+              /**
+               * rotation in degrees
+               * @property transformMinRotation
+               * @type {Number}
+               * @default 1
+               */
+              transformMinRotation: 1
+          },
+
+          handler: transformGesture
+      };
+  })('transform');
+
+  /**
+   * @module hammer
+   */
+
+  // AMD export
+  if(true) {
+      !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
+          return Hammer;
+      }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+  // commonjs export
+  } else if(typeof module !== 'undefined' && module.exports) {
+      module.exports = Hammer;
+  // browser export
+  } else {
+      window.Hammer = Hammer;
+  }
+
+  })(window);
+
+/***/ },
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global, module) {//! moment.js
@@ -27479,6636 +34221,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(71)(module)))
 
 /***/ },
-/* 59 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v1.1.3 - 2014-05-20
-   * http://eightmedia.github.io/hammer.js
-   *
-   * Copyright (c) 2014 Jorik Tangelder <j.tangelder@gmail.com>;
-   * Licensed under the MIT license */
-
-  (function(window, undefined) {
-    'use strict';
-
-  /**
-   * @main
-   * @module hammer
-   *
-   * @class Hammer
-   * @static
-   */
-
-  /**
-   * Hammer, use this to create instances
-   * ````
-   * var hammertime = new Hammer(myElement);
-   * ````
-   *
-   * @method Hammer
-   * @param {HTMLElement} element
-   * @param {Object} [options={}]
-   * @return {Hammer.Instance}
-   */
-  var Hammer = function Hammer(element, options) {
-      return new Hammer.Instance(element, options || {});
-  };
-
-  /**
-   * version, as defined in package.json
-   * the value will be set at each build
-   * @property VERSION
-   * @final
-   * @type {String}
-   */
-  Hammer.VERSION = '1.1.3';
-
-  /**
-   * default settings.
-   * more settings are defined per gesture at `/gestures`. Each gesture can be disabled/enabled
-   * by setting it's name (like `swipe`) to false.
-   * You can set the defaults for all instances by changing this object before creating an instance.
-   * @example
-   * ````
-   *  Hammer.defaults.drag = false;
-   *  Hammer.defaults.behavior.touchAction = 'pan-y';
-   *  delete Hammer.defaults.behavior.userSelect;
-   * ````
-   * @property defaults
-   * @type {Object}
-   */
-  Hammer.defaults = {
-      /**
-       * this setting object adds styles and attributes to the element to prevent the browser from doing
-       * its native behavior. The css properties are auto prefixed for the browsers when needed.
-       * @property defaults.behavior
-       * @type {Object}
-       */
-      behavior: {
-          /**
-           * Disables text selection to improve the dragging gesture. When the value is `none` it also sets
-           * `onselectstart=false` for IE on the element. Mainly for desktop browsers.
-           * @property defaults.behavior.userSelect
-           * @type {String}
-           * @default 'none'
-           */
-          userSelect: 'none',
-
-          /**
-           * Specifies whether and how a given region can be manipulated by the user (for instance, by panning or zooming).
-           * Used by Chrome 35> and IE10>. By default this makes the element blocking any touch event.
-           * @property defaults.behavior.touchAction
-           * @type {String}
-           * @default: 'pan-y'
-           */
-          touchAction: 'pan-y',
-
-          /**
-           * Disables the default callout shown when you touch and hold a touch target.
-           * On iOS, when you touch and hold a touch target such as a link, Safari displays
-           * a callout containing information about the link. This property allows you to disable that callout.
-           * @property defaults.behavior.touchCallout
-           * @type {String}
-           * @default 'none'
-           */
-          touchCallout: 'none',
-
-          /**
-           * Specifies whether zooming is enabled. Used by IE10>
-           * @property defaults.behavior.contentZooming
-           * @type {String}
-           * @default 'none'
-           */
-          contentZooming: 'none',
-
-          /**
-           * Specifies that an entire element should be draggable instead of its contents.
-           * Mainly for desktop browsers.
-           * @property defaults.behavior.userDrag
-           * @type {String}
-           * @default 'none'
-           */
-          userDrag: 'none',
-
-          /**
-           * Overrides the highlight color shown when the user taps a link or a JavaScript
-           * clickable element in Safari on iPhone. This property obeys the alpha value, if specified.
-           *
-           * If you don't specify an alpha value, Safari on iPhone applies a default alpha value
-           * to the color. To disable tap highlighting, set the alpha value to 0 (invisible).
-           * If you set the alpha value to 1.0 (opaque), the element is not visible when tapped.
-           * @property defaults.behavior.tapHighlightColor
-           * @type {String}
-           * @default 'rgba(0,0,0,0)'
-           */
-          tapHighlightColor: 'rgba(0,0,0,0)'
-      }
-  };
-
-  /**
-   * hammer document where the base events are added at
-   * @property DOCUMENT
-   * @type {HTMLElement}
-   * @default window.document
-   */
-  Hammer.DOCUMENT = document;
-
-  /**
-   * detect support for pointer events
-   * @property HAS_POINTEREVENTS
-   * @type {Boolean}
-   */
-  Hammer.HAS_POINTEREVENTS = navigator.pointerEnabled || navigator.msPointerEnabled;
-
-  /**
-   * detect support for touch events
-   * @property HAS_TOUCHEVENTS
-   * @type {Boolean}
-   */
-  Hammer.HAS_TOUCHEVENTS = ('ontouchstart' in window);
-
-  /**
-   * detect mobile browsers
-   * @property IS_MOBILE
-   * @type {Boolean}
-   */
-  Hammer.IS_MOBILE = /mobile|tablet|ip(ad|hone|od)|android|silk/i.test(navigator.userAgent);
-
-  /**
-   * detect if we want to support mouseevents at all
-   * @property NO_MOUSEEVENTS
-   * @type {Boolean}
-   */
-  Hammer.NO_MOUSEEVENTS = (Hammer.HAS_TOUCHEVENTS && Hammer.IS_MOBILE) || Hammer.HAS_POINTEREVENTS;
-
-  /**
-   * interval in which Hammer recalculates current velocity/direction/angle in ms
-   * @property CALCULATE_INTERVAL
-   * @type {Number}
-   * @default 25
-   */
-  Hammer.CALCULATE_INTERVAL = 25;
-
-  /**
-   * eventtypes per touchevent (start, move, end) are filled by `Event.determineEventTypes` on `setup`
-   * the object contains the DOM event names per type (`EVENT_START`, `EVENT_MOVE`, `EVENT_END`)
-   * @property EVENT_TYPES
-   * @private
-   * @writeOnce
-   * @type {Object}
-   */
-  var EVENT_TYPES = {};
-
-  /**
-   * direction strings, for safe comparisons
-   * @property DIRECTION_DOWN|LEFT|UP|RIGHT
-   * @final
-   * @type {String}
-   * @default 'down' 'left' 'up' 'right'
-   */
-  var DIRECTION_DOWN = Hammer.DIRECTION_DOWN = 'down';
-  var DIRECTION_LEFT = Hammer.DIRECTION_LEFT = 'left';
-  var DIRECTION_UP = Hammer.DIRECTION_UP = 'up';
-  var DIRECTION_RIGHT = Hammer.DIRECTION_RIGHT = 'right';
-
-  /**
-   * pointertype strings, for safe comparisons
-   * @property POINTER_MOUSE|TOUCH|PEN
-   * @final
-   * @type {String}
-   * @default 'mouse' 'touch' 'pen'
-   */
-  var POINTER_MOUSE = Hammer.POINTER_MOUSE = 'mouse';
-  var POINTER_TOUCH = Hammer.POINTER_TOUCH = 'touch';
-  var POINTER_PEN = Hammer.POINTER_PEN = 'pen';
-
-  /**
-   * eventtypes
-   * @property EVENT_START|MOVE|END|RELEASE|TOUCH
-   * @final
-   * @type {String}
-   * @default 'start' 'change' 'move' 'end' 'release' 'touch'
-   */
-  var EVENT_START = Hammer.EVENT_START = 'start';
-  var EVENT_MOVE = Hammer.EVENT_MOVE = 'move';
-  var EVENT_END = Hammer.EVENT_END = 'end';
-  var EVENT_RELEASE = Hammer.EVENT_RELEASE = 'release';
-  var EVENT_TOUCH = Hammer.EVENT_TOUCH = 'touch';
-
-  /**
-   * if the window events are set...
-   * @property READY
-   * @writeOnce
-   * @type {Boolean}
-   * @default false
-   */
-  Hammer.READY = false;
-
-  /**
-   * plugins namespace
-   * @property plugins
-   * @type {Object}
-   */
-  Hammer.plugins = Hammer.plugins || {};
-
-  /**
-   * gestures namespace
-   * see `/gestures` for the definitions
-   * @property gestures
-   * @type {Object}
-   */
-  Hammer.gestures = Hammer.gestures || {};
-
-  /**
-   * setup events to detect gestures on the document
-   * this function is called when creating an new instance
-   * @private
-   */
-  function setup() {
-      if(Hammer.READY) {
-          return;
-      }
-
-      // find what eventtypes we add listeners to
-      Event.determineEventTypes();
-
-      // Register all gestures inside Hammer.gestures
-      Utils.each(Hammer.gestures, function(gesture) {
-          Detection.register(gesture);
-      });
-
-      // Add touch events on the document
-      Event.onTouch(Hammer.DOCUMENT, EVENT_MOVE, Detection.detect);
-      Event.onTouch(Hammer.DOCUMENT, EVENT_END, Detection.detect);
-
-      // Hammer is ready...!
-      Hammer.READY = true;
-  }
-
-  /**
-   * @module hammer
-   *
-   * @class Utils
-   * @static
-   */
-  var Utils = Hammer.utils = {
-      /**
-       * extend method, could also be used for cloning when `dest` is an empty object.
-       * changes the dest object
-       * @method extend
-       * @param {Object} dest
-       * @param {Object} src
-       * @param {Boolean} [merge=false]  do a merge
-       * @return {Object} dest
-       */
-      extend: function extend(dest, src, merge) {
-          for(var key in src) {
-              if(!src.hasOwnProperty(key) || (dest[key] !== undefined && merge)) {
-                  continue;
-              }
-              dest[key] = src[key];
-          }
-          return dest;
-      },
-
-      /**
-       * simple addEventListener wrapper
-       * @method on
-       * @param {HTMLElement} element
-       * @param {String} type
-       * @param {Function} handler
-       */
-      on: function on(element, type, handler) {
-          element.addEventListener(type, handler, false);
-      },
-
-      /**
-       * simple removeEventListener wrapper
-       * @method off
-       * @param {HTMLElement} element
-       * @param {String} type
-       * @param {Function} handler
-       */
-      off: function off(element, type, handler) {
-          element.removeEventListener(type, handler, false);
-      },
-
-      /**
-       * forEach over arrays and objects
-       * @method each
-       * @param {Object|Array} obj
-       * @param {Function} iterator
-       * @param {any} iterator.item
-       * @param {Number} iterator.index
-       * @param {Object|Array} iterator.obj the source object
-       * @param {Object} context value to use as `this` in the iterator
-       */
-      each: function each(obj, iterator, context) {
-          var i, len;
-
-          // native forEach on arrays
-          if('forEach' in obj) {
-              obj.forEach(iterator, context);
-          // arrays
-          } else if(obj.length !== undefined) {
-              for(i = 0, len = obj.length; i < len; i++) {
-                  if(iterator.call(context, obj[i], i, obj) === false) {
-                      return;
-                  }
-              }
-          // objects
-          } else {
-              for(i in obj) {
-                  if(obj.hasOwnProperty(i) &&
-                      iterator.call(context, obj[i], i, obj) === false) {
-                      return;
-                  }
-              }
-          }
-      },
-
-      /**
-       * find if a string contains the string using indexOf
-       * @method inStr
-       * @param {String} src
-       * @param {String} find
-       * @return {Boolean} found
-       */
-      inStr: function inStr(src, find) {
-          return src.indexOf(find) > -1;
-      },
-
-      /**
-       * find if a array contains the object using indexOf or a simple polyfill
-       * @method inArray
-       * @param {String} src
-       * @param {String} find
-       * @return {Boolean|Number} false when not found, or the index
-       */
-      inArray: function inArray(src, find) {
-          if(src.indexOf) {
-              var index = src.indexOf(find);
-              return (index === -1) ? false : index;
-          } else {
-              for(var i = 0, len = src.length; i < len; i++) {
-                  if(src[i] === find) {
-                      return i;
-                  }
-              }
-              return false;
-          }
-      },
-
-      /**
-       * convert an array-like object (`arguments`, `touchlist`) to an array
-       * @method toArray
-       * @param {Object} obj
-       * @return {Array}
-       */
-      toArray: function toArray(obj) {
-          return Array.prototype.slice.call(obj, 0);
-      },
-
-      /**
-       * find if a node is in the given parent
-       * @method hasParent
-       * @param {HTMLElement} node
-       * @param {HTMLElement} parent
-       * @return {Boolean} found
-       */
-      hasParent: function hasParent(node, parent) {
-          while(node) {
-              if(node == parent) {
-                  return true;
-              }
-              node = node.parentNode;
-          }
-          return false;
-      },
-
-      /**
-       * get the center of all the touches
-       * @method getCenter
-       * @param {Array} touches
-       * @return {Object} center contains `pageX`, `pageY`, `clientX` and `clientY` properties
-       */
-      getCenter: function getCenter(touches) {
-          var pageX = [],
-              pageY = [],
-              clientX = [],
-              clientY = [],
-              min = Math.min,
-              max = Math.max;
-
-          // no need to loop when only one touch
-          if(touches.length === 1) {
-              return {
-                  pageX: touches[0].pageX,
-                  pageY: touches[0].pageY,
-                  clientX: touches[0].clientX,
-                  clientY: touches[0].clientY
-              };
-          }
-
-          Utils.each(touches, function(touch) {
-              pageX.push(touch.pageX);
-              pageY.push(touch.pageY);
-              clientX.push(touch.clientX);
-              clientY.push(touch.clientY);
-          });
-
-          return {
-              pageX: (min.apply(Math, pageX) + max.apply(Math, pageX)) / 2,
-              pageY: (min.apply(Math, pageY) + max.apply(Math, pageY)) / 2,
-              clientX: (min.apply(Math, clientX) + max.apply(Math, clientX)) / 2,
-              clientY: (min.apply(Math, clientY) + max.apply(Math, clientY)) / 2
-          };
-      },
-
-      /**
-       * calculate the velocity between two points. unit is in px per ms.
-       * @method getVelocity
-       * @param {Number} deltaTime
-       * @param {Number} deltaX
-       * @param {Number} deltaY
-       * @return {Object} velocity `x` and `y`
-       */
-      getVelocity: function getVelocity(deltaTime, deltaX, deltaY) {
-          return {
-              x: Math.abs(deltaX / deltaTime) || 0,
-              y: Math.abs(deltaY / deltaTime) || 0
-          };
-      },
-
-      /**
-       * calculate the angle between two coordinates
-       * @method getAngle
-       * @param {Touch} touch1
-       * @param {Touch} touch2
-       * @return {Number} angle
-       */
-      getAngle: function getAngle(touch1, touch2) {
-          var x = touch2.clientX - touch1.clientX,
-              y = touch2.clientY - touch1.clientY;
-
-          return Math.atan2(y, x) * 180 / Math.PI;
-      },
-
-      /**
-       * do a small comparision to get the direction between two touches.
-       * @method getDirection
-       * @param {Touch} touch1
-       * @param {Touch} touch2
-       * @return {String} direction matches `DIRECTION_LEFT|RIGHT|UP|DOWN`
-       */
-      getDirection: function getDirection(touch1, touch2) {
-          var x = Math.abs(touch1.clientX - touch2.clientX),
-              y = Math.abs(touch1.clientY - touch2.clientY);
-
-          if(x >= y) {
-              return touch1.clientX - touch2.clientX > 0 ? DIRECTION_LEFT : DIRECTION_RIGHT;
-          }
-          return touch1.clientY - touch2.clientY > 0 ? DIRECTION_UP : DIRECTION_DOWN;
-      },
-
-      /**
-       * calculate the distance between two touches
-       * @method getDistance
-       * @param {Touch}touch1
-       * @param {Touch} touch2
-       * @return {Number} distance
-       */
-      getDistance: function getDistance(touch1, touch2) {
-          var x = touch2.clientX - touch1.clientX,
-              y = touch2.clientY - touch1.clientY;
-
-          return Math.sqrt((x * x) + (y * y));
-      },
-
-      /**
-       * calculate the scale factor between two touchLists
-       * no scale is 1, and goes down to 0 when pinched together, and bigger when pinched out
-       * @method getScale
-       * @param {Array} start array of touches
-       * @param {Array} end array of touches
-       * @return {Number} scale
-       */
-      getScale: function getScale(start, end) {
-          // need two fingers...
-          if(start.length >= 2 && end.length >= 2) {
-              return this.getDistance(end[0], end[1]) / this.getDistance(start[0], start[1]);
-          }
-          return 1;
-      },
-
-      /**
-       * calculate the rotation degrees between two touchLists
-       * @method getRotation
-       * @param {Array} start array of touches
-       * @param {Array} end array of touches
-       * @return {Number} rotation
-       */
-      getRotation: function getRotation(start, end) {
-          // need two fingers
-          if(start.length >= 2 && end.length >= 2) {
-              return this.getAngle(end[1], end[0]) - this.getAngle(start[1], start[0]);
-          }
-          return 0;
-      },
-
-      /**
-       * find out if the direction is vertical   *
-       * @method isVertical
-       * @param {String} direction matches `DIRECTION_UP|DOWN`
-       * @return {Boolean} is_vertical
-       */
-      isVertical: function isVertical(direction) {
-          return direction == DIRECTION_UP || direction == DIRECTION_DOWN;
-      },
-
-      /**
-       * set css properties with their prefixes
-       * @param {HTMLElement} element
-       * @param {String} prop
-       * @param {String} value
-       * @param {Boolean} [toggle=true]
-       * @return {Boolean}
-       */
-      setPrefixedCss: function setPrefixedCss(element, prop, value, toggle) {
-          var prefixes = ['', 'Webkit', 'Moz', 'O', 'ms'];
-          prop = Utils.toCamelCase(prop);
-
-          for(var i = 0; i < prefixes.length; i++) {
-              var p = prop;
-              // prefixes
-              if(prefixes[i]) {
-                  p = prefixes[i] + p.slice(0, 1).toUpperCase() + p.slice(1);
-              }
-
-              // test the style
-              if(p in element.style) {
-                  element.style[p] = (toggle == null || toggle) && value || '';
-                  break;
-              }
-          }
-      },
-
-      /**
-       * toggle browser default behavior by setting css properties.
-       * `userSelect='none'` also sets `element.onselectstart` to false
-       * `userDrag='none'` also sets `element.ondragstart` to false
-       *
-       * @method toggleBehavior
-       * @param {HtmlElement} element
-       * @param {Object} props
-       * @param {Boolean} [toggle=true]
-       */
-      toggleBehavior: function toggleBehavior(element, props, toggle) {
-          if(!props || !element || !element.style) {
-              return;
-          }
-
-          // set the css properties
-          Utils.each(props, function(value, prop) {
-              Utils.setPrefixedCss(element, prop, value, toggle);
-          });
-
-          var falseFn = toggle && function() {
-              return false;
-          };
-
-          // also the disable onselectstart
-          if(props.userSelect == 'none') {
-              element.onselectstart = falseFn;
-          }
-          // and disable ondragstart
-          if(props.userDrag == 'none') {
-              element.ondragstart = falseFn;
-          }
-      },
-
-      /**
-       * convert a string with underscores to camelCase
-       * so prevent_default becomes preventDefault
-       * @param {String} str
-       * @return {String} camelCaseStr
-       */
-      toCamelCase: function toCamelCase(str) {
-          return str.replace(/[_-]([a-z])/g, function(s) {
-              return s[1].toUpperCase();
-          });
-      }
-  };
-
-
-  /**
-   * @module hammer
-   */
-  /**
-   * @class Event
-   * @static
-   */
-  var Event = Hammer.event = {
-      /**
-       * when touch events have been fired, this is true
-       * this is used to stop mouse events
-       * @property prevent_mouseevents
-       * @private
-       * @type {Boolean}
-       */
-      preventMouseEvents: false,
-
-      /**
-       * if EVENT_START has been fired
-       * @property started
-       * @private
-       * @type {Boolean}
-       */
-      started: false,
-
-      /**
-       * when the mouse is hold down, this is true
-       * @property should_detect
-       * @private
-       * @type {Boolean}
-       */
-      shouldDetect: false,
-
-      /**
-       * simple event binder with a hook and support for multiple types
-       * @method on
-       * @param {HTMLElement} element
-       * @param {String} type
-       * @param {Function} handler
-       * @param {Function} [hook]
-       * @param {Object} hook.type
-       */
-      on: function on(element, type, handler, hook) {
-          var types = type.split(' ');
-          Utils.each(types, function(type) {
-              Utils.on(element, type, handler);
-              hook && hook(type);
-          });
-      },
-
-      /**
-       * simple event unbinder with a hook and support for multiple types
-       * @method off
-       * @param {HTMLElement} element
-       * @param {String} type
-       * @param {Function} handler
-       * @param {Function} [hook]
-       * @param {Object} hook.type
-       */
-      off: function off(element, type, handler, hook) {
-          var types = type.split(' ');
-          Utils.each(types, function(type) {
-              Utils.off(element, type, handler);
-              hook && hook(type);
-          });
-      },
-
-      /**
-       * the core touch event handler.
-       * this finds out if we should to detect gestures
-       * @method onTouch
-       * @param {HTMLElement} element
-       * @param {String} eventType matches `EVENT_START|MOVE|END`
-       * @param {Function} handler
-       * @return onTouchHandler {Function} the core event handler
-       */
-      onTouch: function onTouch(element, eventType, handler) {
-          var self = this;
-
-          var onTouchHandler = function onTouchHandler(ev) {
-              var srcType = ev.type.toLowerCase(),
-                  isPointer = Hammer.HAS_POINTEREVENTS,
-                  isMouse = Utils.inStr(srcType, 'mouse'),
-                  triggerType;
-
-              // if we are in a mouseevent, but there has been a touchevent triggered in this session
-              // we want to do nothing. simply break out of the event.
-              if(isMouse && self.preventMouseEvents) {
-                  return;
-
-              // mousebutton must be down
-              } else if(isMouse && eventType == EVENT_START && ev.button === 0) {
-                  self.preventMouseEvents = false;
-                  self.shouldDetect = true;
-              } else if(isPointer && eventType == EVENT_START) {
-                  self.shouldDetect = (ev.buttons === 1 || PointerEvent.matchType(POINTER_TOUCH, ev));
-              // just a valid start event, but no mouse
-              } else if(!isMouse && eventType == EVENT_START) {
-                  self.preventMouseEvents = true;
-                  self.shouldDetect = true;
-              }
-
-              // update the pointer event before entering the detection
-              if(isPointer && eventType != EVENT_END) {
-                  PointerEvent.updatePointer(eventType, ev);
-              }
-
-              // we are in a touch/down state, so allowed detection of gestures
-              if(self.shouldDetect) {
-                  triggerType = self.doDetect.call(self, ev, eventType, element, handler);
-              }
-
-              // ...and we are done with the detection
-              // so reset everything to start each detection totally fresh
-              if(triggerType == EVENT_END) {
-                  self.preventMouseEvents = false;
-                  self.shouldDetect = false;
-                  PointerEvent.reset();
-              // update the pointerevent object after the detection
-              }
-
-              if(isPointer && eventType == EVENT_END) {
-                  PointerEvent.updatePointer(eventType, ev);
-              }
-          };
-
-          this.on(element, EVENT_TYPES[eventType], onTouchHandler);
-          return onTouchHandler;
-      },
-
-      /**
-       * the core detection method
-       * this finds out what hammer-touch-events to trigger
-       * @method doDetect
-       * @param {Object} ev
-       * @param {String} eventType matches `EVENT_START|MOVE|END`
-       * @param {HTMLElement} element
-       * @param {Function} handler
-       * @return {String} triggerType matches `EVENT_START|MOVE|END`
-       */
-      doDetect: function doDetect(ev, eventType, element, handler) {
-          var touchList = this.getTouchList(ev, eventType);
-          var touchListLength = touchList.length;
-          var triggerType = eventType;
-          var triggerChange = touchList.trigger; // used by fakeMultitouch plugin
-          var changedLength = touchListLength;
-
-          // at each touchstart-like event we want also want to trigger a TOUCH event...
-          if(eventType == EVENT_START) {
-              triggerChange = EVENT_TOUCH;
-          // ...the same for a touchend-like event
-          } else if(eventType == EVENT_END) {
-              triggerChange = EVENT_RELEASE;
-
-              // keep track of how many touches have been removed
-              changedLength = touchList.length - ((ev.changedTouches) ? ev.changedTouches.length : 1);
-          }
-
-          // after there are still touches on the screen,
-          // we just want to trigger a MOVE event. so change the START or END to a MOVE
-          // but only after detection has been started, the first time we actualy want a START
-          if(changedLength > 0 && this.started) {
-              triggerType = EVENT_MOVE;
-          }
-
-          // detection has been started, we keep track of this, see above
-          this.started = true;
-
-          // generate some event data, some basic information
-          var evData = this.collectEventData(element, triggerType, touchList, ev);
-
-          // trigger the triggerType event before the change (TOUCH, RELEASE) events
-          // but the END event should be at last
-          if(eventType != EVENT_END) {
-              handler.call(Detection, evData);
-          }
-
-          // trigger a change (TOUCH, RELEASE) event, this means the length of the touches changed
-          if(triggerChange) {
-              evData.changedLength = changedLength;
-              evData.eventType = triggerChange;
-
-              handler.call(Detection, evData);
-
-              evData.eventType = triggerType;
-              delete evData.changedLength;
-          }
-
-          // trigger the END event
-          if(triggerType == EVENT_END) {
-              handler.call(Detection, evData);
-
-              // ...and we are done with the detection
-              // so reset everything to start each detection totally fresh
-              this.started = false;
-          }
-
-          return triggerType;
-      },
-
-      /**
-       * we have different events for each device/browser
-       * determine what we need and set them in the EVENT_TYPES constant
-       * the `onTouch` method is bind to these properties.
-       * @method determineEventTypes
-       * @return {Object} events
-       */
-      determineEventTypes: function determineEventTypes() {
-          var types;
-          if(Hammer.HAS_POINTEREVENTS) {
-              if(window.PointerEvent) {
-                  types = [
-                      'pointerdown',
-                      'pointermove',
-                      'pointerup pointercancel lostpointercapture'
-                  ];
-              } else {
-                  types = [
-                      'MSPointerDown',
-                      'MSPointerMove',
-                      'MSPointerUp MSPointerCancel MSLostPointerCapture'
-                  ];
-              }
-          } else if(Hammer.NO_MOUSEEVENTS) {
-              types = [
-                  'touchstart',
-                  'touchmove',
-                  'touchend touchcancel'
-              ];
-          } else {
-              types = [
-                  'touchstart mousedown',
-                  'touchmove mousemove',
-                  'touchend touchcancel mouseup'
-              ];
-          }
-
-          EVENT_TYPES[EVENT_START] = types[0];
-          EVENT_TYPES[EVENT_MOVE] = types[1];
-          EVENT_TYPES[EVENT_END] = types[2];
-          return EVENT_TYPES;
-      },
-
-      /**
-       * create touchList depending on the event
-       * @method getTouchList
-       * @param {Object} ev
-       * @param {String} eventType
-       * @return {Array} touches
-       */
-      getTouchList: function getTouchList(ev, eventType) {
-          // get the fake pointerEvent touchlist
-          if(Hammer.HAS_POINTEREVENTS) {
-              return PointerEvent.getTouchList();
-          }
-
-          // get the touchlist
-          if(ev.touches) {
-              if(eventType == EVENT_MOVE) {
-                  return ev.touches;
-              }
-
-              var identifiers = [];
-              var concat = [].concat(Utils.toArray(ev.touches), Utils.toArray(ev.changedTouches));
-              var touchList = [];
-
-              Utils.each(concat, function(touch) {
-                  if(Utils.inArray(identifiers, touch.identifier) === false) {
-                      touchList.push(touch);
-                  }
-                  identifiers.push(touch.identifier);
-              });
-
-              return touchList;
-          }
-
-          // make fake touchList from mouse position
-          ev.identifier = 1;
-          return [ev];
-      },
-
-      /**
-       * collect basic event data
-       * @method collectEventData
-       * @param {HTMLElement} element
-       * @param {String} eventType matches `EVENT_START|MOVE|END`
-       * @param {Array} touches
-       * @param {Object} ev
-       * @return {Object} ev
-       */
-      collectEventData: function collectEventData(element, eventType, touches, ev) {
-          // find out pointerType
-          var pointerType = POINTER_TOUCH;
-          if(Utils.inStr(ev.type, 'mouse') || PointerEvent.matchType(POINTER_MOUSE, ev)) {
-              pointerType = POINTER_MOUSE;
-          } else if(PointerEvent.matchType(POINTER_PEN, ev)) {
-              pointerType = POINTER_PEN;
-          }
-
-          return {
-              center: Utils.getCenter(touches),
-              timeStamp: Date.now(),
-              target: ev.target,
-              touches: touches,
-              eventType: eventType,
-              pointerType: pointerType,
-              srcEvent: ev,
-
-              /**
-               * prevent the browser default actions
-               * mostly used to disable scrolling of the browser
-               */
-              preventDefault: function() {
-                  var srcEvent = this.srcEvent;
-                  srcEvent.preventManipulation && srcEvent.preventManipulation();
-                  srcEvent.preventDefault && srcEvent.preventDefault();
-              },
-
-              /**
-               * stop bubbling the event up to its parents
-               */
-              stopPropagation: function() {
-                  this.srcEvent.stopPropagation();
-              },
-
-              /**
-               * immediately stop gesture detection
-               * might be useful after a swipe was detected
-               * @return {*}
-               */
-              stopDetect: function() {
-                  return Detection.stopDetect();
-              }
-          };
-      }
-  };
-
-
-  /**
-   * @module hammer
-   *
-   * @class PointerEvent
-   * @static
-   */
-  var PointerEvent = Hammer.PointerEvent = {
-      /**
-       * holds all pointers, by `identifier`
-       * @property pointers
-       * @type {Object}
-       */
-      pointers: {},
-
-      /**
-       * get the pointers as an array
-       * @method getTouchList
-       * @return {Array} touchlist
-       */
-      getTouchList: function getTouchList() {
-          var touchlist = [];
-          // we can use forEach since pointerEvents only is in IE10
-          Utils.each(this.pointers, function(pointer) {
-              touchlist.push(pointer);
-          });
-          return touchlist;
-      },
-
-      /**
-       * update the position of a pointer
-       * @method updatePointer
-       * @param {String} eventType matches `EVENT_START|MOVE|END`
-       * @param {Object} pointerEvent
-       */
-      updatePointer: function updatePointer(eventType, pointerEvent) {
-          if(eventType == EVENT_END || (eventType != EVENT_END && pointerEvent.buttons !== 1)) {
-              delete this.pointers[pointerEvent.pointerId];
-          } else {
-              pointerEvent.identifier = pointerEvent.pointerId;
-              this.pointers[pointerEvent.pointerId] = pointerEvent;
-          }
-      },
-
-      /**
-       * check if ev matches pointertype
-       * @method matchType
-       * @param {String} pointerType matches `POINTER_MOUSE|TOUCH|PEN`
-       * @param {PointerEvent} ev
-       */
-      matchType: function matchType(pointerType, ev) {
-          if(!ev.pointerType) {
-              return false;
-          }
-
-          var pt = ev.pointerType,
-              types = {};
-
-          types[POINTER_MOUSE] = (pt === (ev.MSPOINTER_TYPE_MOUSE || POINTER_MOUSE));
-          types[POINTER_TOUCH] = (pt === (ev.MSPOINTER_TYPE_TOUCH || POINTER_TOUCH));
-          types[POINTER_PEN] = (pt === (ev.MSPOINTER_TYPE_PEN || POINTER_PEN));
-          return types[pointerType];
-      },
-
-      /**
-       * reset the stored pointers
-       * @method reset
-       */
-      reset: function resetList() {
-          this.pointers = {};
-      }
-  };
-
-
-  /**
-   * @module hammer
-   *
-   * @class Detection
-   * @static
-   */
-  var Detection = Hammer.detection = {
-      // contains all registred Hammer.gestures in the correct order
-      gestures: [],
-
-      // data of the current Hammer.gesture detection session
-      current: null,
-
-      // the previous Hammer.gesture session data
-      // is a full clone of the previous gesture.current object
-      previous: null,
-
-      // when this becomes true, no gestures are fired
-      stopped: false,
-
-      /**
-       * start Hammer.gesture detection
-       * @method startDetect
-       * @param {Hammer.Instance} inst
-       * @param {Object} eventData
-       */
-      startDetect: function startDetect(inst, eventData) {
-          // already busy with a Hammer.gesture detection on an element
-          if(this.current) {
-              return;
-          }
-
-          this.stopped = false;
-
-          // holds current session
-          this.current = {
-              inst: inst, // reference to HammerInstance we're working for
-              startEvent: Utils.extend({}, eventData), // start eventData for distances, timing etc
-              lastEvent: false, // last eventData
-              lastCalcEvent: false, // last eventData for calculations.
-              futureCalcEvent: false, // last eventData for calculations.
-              lastCalcData: {}, // last lastCalcData
-              name: '' // current gesture we're in/detected, can be 'tap', 'hold' etc
-          };
-
-          this.detect(eventData);
-      },
-
-      /**
-       * Hammer.gesture detection
-       * @method detect
-       * @param {Object} eventData
-       * @return {any}
-       */
-      detect: function detect(eventData) {
-          if(!this.current || this.stopped) {
-              return;
-          }
-
-          // extend event data with calculations about scale, distance etc
-          eventData = this.extendEventData(eventData);
-
-          // hammer instance and instance options
-          var inst = this.current.inst,
-              instOptions = inst.options;
-
-          // call Hammer.gesture handlers
-          Utils.each(this.gestures, function triggerGesture(gesture) {
-              // only when the instance options have enabled this gesture
-              if(!this.stopped && inst.enabled && instOptions[gesture.name]) {
-                  gesture.handler.call(gesture, eventData, inst);
-              }
-          }, this);
-
-          // store as previous event event
-          if(this.current) {
-              this.current.lastEvent = eventData;
-          }
-
-          if(eventData.eventType == EVENT_END) {
-              this.stopDetect();
-          }
-
-          return eventData;
-      },
-
-      /**
-       * clear the Hammer.gesture vars
-       * this is called on endDetect, but can also be used when a final Hammer.gesture has been detected
-       * to stop other Hammer.gestures from being fired
-       * @method stopDetect
-       */
-      stopDetect: function stopDetect() {
-          // clone current data to the store as the previous gesture
-          // used for the double tap gesture, since this is an other gesture detect session
-          this.previous = Utils.extend({}, this.current);
-
-          // reset the current
-          this.current = null;
-          this.stopped = true;
-      },
-
-      /**
-       * calculate velocity, angle and direction
-       * @method getVelocityData
-       * @param {Object} ev
-       * @param {Object} center
-       * @param {Number} deltaTime
-       * @param {Number} deltaX
-       * @param {Number} deltaY
-       */
-      getCalculatedData: function getCalculatedData(ev, center, deltaTime, deltaX, deltaY) {
-          var cur = this.current,
-              recalc = false,
-              calcEv = cur.lastCalcEvent,
-              calcData = cur.lastCalcData;
-
-          if(calcEv && ev.timeStamp - calcEv.timeStamp > Hammer.CALCULATE_INTERVAL) {
-              center = calcEv.center;
-              deltaTime = ev.timeStamp - calcEv.timeStamp;
-              deltaX = ev.center.clientX - calcEv.center.clientX;
-              deltaY = ev.center.clientY - calcEv.center.clientY;
-              recalc = true;
-          }
-
-          if(ev.eventType == EVENT_TOUCH || ev.eventType == EVENT_RELEASE) {
-              cur.futureCalcEvent = ev;
-          }
-
-          if(!cur.lastCalcEvent || recalc) {
-              calcData.velocity = Utils.getVelocity(deltaTime, deltaX, deltaY);
-              calcData.angle = Utils.getAngle(center, ev.center);
-              calcData.direction = Utils.getDirection(center, ev.center);
-
-              cur.lastCalcEvent = cur.futureCalcEvent || ev;
-              cur.futureCalcEvent = ev;
-          }
-
-          ev.velocityX = calcData.velocity.x;
-          ev.velocityY = calcData.velocity.y;
-          ev.interimAngle = calcData.angle;
-          ev.interimDirection = calcData.direction;
-      },
-
-      /**
-       * extend eventData for Hammer.gestures
-       * @method extendEventData
-       * @param {Object} ev
-       * @return {Object} ev
-       */
-      extendEventData: function extendEventData(ev) {
-          var cur = this.current,
-              startEv = cur.startEvent,
-              lastEv = cur.lastEvent || startEv;
-
-          // update the start touchlist to calculate the scale/rotation
-          if(ev.eventType == EVENT_TOUCH || ev.eventType == EVENT_RELEASE) {
-              startEv.touches = [];
-              Utils.each(ev.touches, function(touch) {
-                  startEv.touches.push({
-                      clientX: touch.clientX,
-                      clientY: touch.clientY
-                  });
-              });
-          }
-
-          var deltaTime = ev.timeStamp - startEv.timeStamp,
-              deltaX = ev.center.clientX - startEv.center.clientX,
-              deltaY = ev.center.clientY - startEv.center.clientY;
-
-          this.getCalculatedData(ev, lastEv.center, deltaTime, deltaX, deltaY);
-
-          Utils.extend(ev, {
-              startEvent: startEv,
-
-              deltaTime: deltaTime,
-              deltaX: deltaX,
-              deltaY: deltaY,
-
-              distance: Utils.getDistance(startEv.center, ev.center),
-              angle: Utils.getAngle(startEv.center, ev.center),
-              direction: Utils.getDirection(startEv.center, ev.center),
-              scale: Utils.getScale(startEv.touches, ev.touches),
-              rotation: Utils.getRotation(startEv.touches, ev.touches)
-          });
-
-          return ev;
-      },
-
-      /**
-       * register new gesture
-       * @method register
-       * @param {Object} gesture object, see `gestures/` for documentation
-       * @return {Array} gestures
-       */
-      register: function register(gesture) {
-          // add an enable gesture options if there is no given
-          var options = gesture.defaults || {};
-          if(options[gesture.name] === undefined) {
-              options[gesture.name] = true;
-          }
-
-          // extend Hammer default options with the Hammer.gesture options
-          Utils.extend(Hammer.defaults, options, true);
-
-          // set its index
-          gesture.index = gesture.index || 1000;
-
-          // add Hammer.gesture to the list
-          this.gestures.push(gesture);
-
-          // sort the list by index
-          this.gestures.sort(function(a, b) {
-              if(a.index < b.index) {
-                  return -1;
-              }
-              if(a.index > b.index) {
-                  return 1;
-              }
-              return 0;
-          });
-
-          return this.gestures;
-      }
-  };
-
-
-  /**
-   * @module hammer
-   */
-
-  /**
-   * create new hammer instance
-   * all methods should return the instance itself, so it is chainable.
-   *
-   * @class Instance
-   * @constructor
-   * @param {HTMLElement} element
-   * @param {Object} [options={}] options are merged with `Hammer.defaults`
-   * @return {Hammer.Instance}
-   */
-  Hammer.Instance = function(element, options) {
-      var self = this;
-
-      // setup HammerJS window events and register all gestures
-      // this also sets up the default options
-      setup();
-
-      /**
-       * @property element
-       * @type {HTMLElement}
-       */
-      this.element = element;
-
-      /**
-       * @property enabled
-       * @type {Boolean}
-       * @protected
-       */
-      this.enabled = true;
-
-      /**
-       * options, merged with the defaults
-       * options with an _ are converted to camelCase
-       * @property options
-       * @type {Object}
-       */
-      Utils.each(options, function(value, name) {
-          delete options[name];
-          options[Utils.toCamelCase(name)] = value;
-      });
-
-      this.options = Utils.extend(Utils.extend({}, Hammer.defaults), options || {});
-
-      // add some css to the element to prevent the browser from doing its native behavoir
-      if(this.options.behavior) {
-          Utils.toggleBehavior(this.element, this.options.behavior, true);
-      }
-
-      /**
-       * event start handler on the element to start the detection
-       * @property eventStartHandler
-       * @type {Object}
-       */
-      this.eventStartHandler = Event.onTouch(element, EVENT_START, function(ev) {
-          if(self.enabled && ev.eventType == EVENT_START) {
-              Detection.startDetect(self, ev);
-          } else if(ev.eventType == EVENT_TOUCH) {
-              Detection.detect(ev);
-          }
-      });
-
-      /**
-       * keep a list of user event handlers which needs to be removed when calling 'dispose'
-       * @property eventHandlers
-       * @type {Array}
-       */
-      this.eventHandlers = [];
-  };
-
-  Hammer.Instance.prototype = {
-      /**
-       * bind events to the instance
-       * @method on
-       * @chainable
-       * @param {String} gestures multiple gestures by splitting with a space
-       * @param {Function} handler
-       * @param {Object} handler.ev event object
-       */
-      on: function onEvent(gestures, handler) {
-          var self = this;
-          Event.on(self.element, gestures, handler, function(type) {
-              self.eventHandlers.push({ gesture: type, handler: handler });
-          });
-          return self;
-      },
-
-      /**
-       * unbind events to the instance
-       * @method off
-       * @chainable
-       * @param {String} gestures
-       * @param {Function} handler
-       */
-      off: function offEvent(gestures, handler) {
-          var self = this;
-
-          Event.off(self.element, gestures, handler, function(type) {
-              var index = Utils.inArray({ gesture: type, handler: handler });
-              if(index !== false) {
-                  self.eventHandlers.splice(index, 1);
-              }
-          });
-          return self;
-      },
-
-      /**
-       * trigger gesture event
-       * @method trigger
-       * @chainable
-       * @param {String} gesture
-       * @param {Object} [eventData]
-       */
-      trigger: function triggerEvent(gesture, eventData) {
-          // optional
-          if(!eventData) {
-              eventData = {};
-          }
-
-          // create DOM event
-          var event = Hammer.DOCUMENT.createEvent('Event');
-          event.initEvent(gesture, true, true);
-          event.gesture = eventData;
-
-          // trigger on the target if it is in the instance element,
-          // this is for event delegation tricks
-          var element = this.element;
-          if(Utils.hasParent(eventData.target, element)) {
-              element = eventData.target;
-          }
-
-          element.dispatchEvent(event);
-          return this;
-      },
-
-      /**
-       * enable of disable hammer.js detection
-       * @method enable
-       * @chainable
-       * @param {Boolean} state
-       */
-      enable: function enable(state) {
-          this.enabled = state;
-          return this;
-      },
-
-      /**
-       * dispose this hammer instance
-       * @method dispose
-       * @return {Null}
-       */
-      dispose: function dispose() {
-          var i, eh;
-
-          // undo all changes made by stop_browser_behavior
-          Utils.toggleBehavior(this.element, this.options.behavior, false);
-
-          // unbind all custom event handlers
-          for(i = -1; (eh = this.eventHandlers[++i]);) {
-              Utils.off(this.element, eh.gesture, eh.handler);
-          }
-
-          this.eventHandlers = [];
-
-          // unbind the start event listener
-          Event.off(this.element, EVENT_TYPES[EVENT_START], this.eventStartHandler);
-
-          return null;
-      }
-  };
-
-
-  /**
-   * @module gestures
-   */
-  /**
-   * Move with x fingers (default 1) around on the page.
-   * Preventing the default browser behavior is a good way to improve feel and working.
-   * ````
-   *  hammertime.on("drag", function(ev) {
-   *    console.log(ev);
-   *    ev.gesture.preventDefault();
-   *  });
-   * ````
-   *
-   * @class Drag
-   * @static
-   */
-  /**
-   * @event drag
-   * @param {Object} ev
-   */
-  /**
-   * @event dragstart
-   * @param {Object} ev
-   */
-  /**
-   * @event dragend
-   * @param {Object} ev
-   */
-  /**
-   * @event drapleft
-   * @param {Object} ev
-   */
-  /**
-   * @event dragright
-   * @param {Object} ev
-   */
-  /**
-   * @event dragup
-   * @param {Object} ev
-   */
-  /**
-   * @event dragdown
-   * @param {Object} ev
-   */
-
-  /**
-   * @param {String} name
-   */
-  (function(name) {
-      var triggered = false;
-
-      function dragGesture(ev, inst) {
-          var cur = Detection.current;
-
-          // max touches
-          if(inst.options.dragMaxTouches > 0 &&
-              ev.touches.length > inst.options.dragMaxTouches) {
-              return;
-          }
-
-          switch(ev.eventType) {
-              case EVENT_START:
-                  triggered = false;
-                  break;
-
-              case EVENT_MOVE:
-                  // when the distance we moved is too small we skip this gesture
-                  // or we can be already in dragging
-                  if(ev.distance < inst.options.dragMinDistance &&
-                      cur.name != name) {
-                      return;
-                  }
-
-                  var startCenter = cur.startEvent.center;
-
-                  // we are dragging!
-                  if(cur.name != name) {
-                      cur.name = name;
-                      if(inst.options.dragDistanceCorrection && ev.distance > 0) {
-                          // When a drag is triggered, set the event center to dragMinDistance pixels from the original event center.
-                          // Without this correction, the dragged distance would jumpstart at dragMinDistance pixels instead of at 0.
-                          // It might be useful to save the original start point somewhere
-                          var factor = Math.abs(inst.options.dragMinDistance / ev.distance);
-                          startCenter.pageX += ev.deltaX * factor;
-                          startCenter.pageY += ev.deltaY * factor;
-                          startCenter.clientX += ev.deltaX * factor;
-                          startCenter.clientY += ev.deltaY * factor;
-
-                          // recalculate event data using new start point
-                          ev = Detection.extendEventData(ev);
-                      }
-                  }
-
-                  // lock drag to axis?
-                  if(cur.lastEvent.dragLockToAxis ||
-                      ( inst.options.dragLockToAxis &&
-                          inst.options.dragLockMinDistance <= ev.distance
-                          )) {
-                      ev.dragLockToAxis = true;
-                  }
-
-                  // keep direction on the axis that the drag gesture started on
-                  var lastDirection = cur.lastEvent.direction;
-                  if(ev.dragLockToAxis && lastDirection !== ev.direction) {
-                      if(Utils.isVertical(lastDirection)) {
-                          ev.direction = (ev.deltaY < 0) ? DIRECTION_UP : DIRECTION_DOWN;
-                      } else {
-                          ev.direction = (ev.deltaX < 0) ? DIRECTION_LEFT : DIRECTION_RIGHT;
-                      }
-                  }
-
-                  // first time, trigger dragstart event
-                  if(!triggered) {
-                      inst.trigger(name + 'start', ev);
-                      triggered = true;
-                  }
-
-                  // trigger events
-                  inst.trigger(name, ev);
-                  inst.trigger(name + ev.direction, ev);
-
-                  var isVertical = Utils.isVertical(ev.direction);
-
-                  // block the browser events
-                  if((inst.options.dragBlockVertical && isVertical) ||
-                      (inst.options.dragBlockHorizontal && !isVertical)) {
-                      ev.preventDefault();
-                  }
-                  break;
-
-              case EVENT_RELEASE:
-                  if(triggered && ev.changedLength <= inst.options.dragMaxTouches) {
-                      inst.trigger(name + 'end', ev);
-                      triggered = false;
-                  }
-                  break;
-
-              case EVENT_END:
-                  triggered = false;
-                  break;
-          }
-      }
-
-      Hammer.gestures.Drag = {
-          name: name,
-          index: 50,
-          handler: dragGesture,
-          defaults: {
-              /**
-               * minimal movement that have to be made before the drag event gets triggered
-               * @property dragMinDistance
-               * @type {Number}
-               * @default 10
-               */
-              dragMinDistance: 10,
-
-              /**
-               * Set dragDistanceCorrection to true to make the starting point of the drag
-               * be calculated from where the drag was triggered, not from where the touch started.
-               * Useful to avoid a jerk-starting drag, which can make fine-adjustments
-               * through dragging difficult, and be visually unappealing.
-               * @property dragDistanceCorrection
-               * @type {Boolean}
-               * @default true
-               */
-              dragDistanceCorrection: true,
-
-              /**
-               * set 0 for unlimited, but this can conflict with transform
-               * @property dragMaxTouches
-               * @type {Number}
-               * @default 1
-               */
-              dragMaxTouches: 1,
-
-              /**
-               * prevent default browser behavior when dragging occurs
-               * be careful with it, it makes the element a blocking element
-               * when you are using the drag gesture, it is a good practice to set this true
-               * @property dragBlockHorizontal
-               * @type {Boolean}
-               * @default false
-               */
-              dragBlockHorizontal: false,
-
-              /**
-               * same as `dragBlockHorizontal`, but for vertical movement
-               * @property dragBlockVertical
-               * @type {Boolean}
-               * @default false
-               */
-              dragBlockVertical: false,
-
-              /**
-               * dragLockToAxis keeps the drag gesture on the axis that it started on,
-               * It disallows vertical directions if the initial direction was horizontal, and vice versa.
-               * @property dragLockToAxis
-               * @type {Boolean}
-               * @default false
-               */
-              dragLockToAxis: false,
-
-              /**
-               * drag lock only kicks in when distance > dragLockMinDistance
-               * This way, locking occurs only when the distance has become large enough to reliably determine the direction
-               * @property dragLockMinDistance
-               * @type {Number}
-               * @default 25
-               */
-              dragLockMinDistance: 25
-          }
-      };
-  })('drag');
-
-  /**
-   * @module gestures
-   */
-  /**
-   * trigger a simple gesture event, so you can do anything in your handler.
-   * only usable if you know what your doing...
-   *
-   * @class Gesture
-   * @static
-   */
-  /**
-   * @event gesture
-   * @param {Object} ev
-   */
-  Hammer.gestures.Gesture = {
-      name: 'gesture',
-      index: 1337,
-      handler: function releaseGesture(ev, inst) {
-          inst.trigger(this.name, ev);
-      }
-  };
-
-  /**
-   * @module gestures
-   */
-  /**
-   * Touch stays at the same place for x time
-   *
-   * @class Hold
-   * @static
-   */
-  /**
-   * @event hold
-   * @param {Object} ev
-   */
-
-  /**
-   * @param {String} name
-   */
-  (function(name) {
-      var timer;
-
-      function holdGesture(ev, inst) {
-          var options = inst.options,
-              current = Detection.current;
-
-          switch(ev.eventType) {
-              case EVENT_START:
-                  clearTimeout(timer);
-
-                  // set the gesture so we can check in the timeout if it still is
-                  current.name = name;
-
-                  // set timer and if after the timeout it still is hold,
-                  // we trigger the hold event
-                  timer = setTimeout(function() {
-                      if(current && current.name == name) {
-                          inst.trigger(name, ev);
-                      }
-                  }, options.holdTimeout);
-                  break;
-
-              case EVENT_MOVE:
-                  if(ev.distance > options.holdThreshold) {
-                      clearTimeout(timer);
-                  }
-                  break;
-
-              case EVENT_RELEASE:
-                  clearTimeout(timer);
-                  break;
-          }
-      }
-
-      Hammer.gestures.Hold = {
-          name: name,
-          index: 10,
-          defaults: {
-              /**
-               * @property holdTimeout
-               * @type {Number}
-               * @default 500
-               */
-              holdTimeout: 500,
-
-              /**
-               * movement allowed while holding
-               * @property holdThreshold
-               * @type {Number}
-               * @default 2
-               */
-              holdThreshold: 2
-          },
-          handler: holdGesture
-      };
-  })('hold');
-
-  /**
-   * @module gestures
-   */
-  /**
-   * when a touch is being released from the page
-   *
-   * @class Release
-   * @static
-   */
-  /**
-   * @event release
-   * @param {Object} ev
-   */
-  Hammer.gestures.Release = {
-      name: 'release',
-      index: Infinity,
-      handler: function releaseGesture(ev, inst) {
-          if(ev.eventType == EVENT_RELEASE) {
-              inst.trigger(this.name, ev);
-          }
-      }
-  };
-
-  /**
-   * @module gestures
-   */
-  /**
-   * triggers swipe events when the end velocity is above the threshold
-   * for best usage, set `preventDefault` (on the drag gesture) to `true`
-   * ````
-   *  hammertime.on("dragleft swipeleft", function(ev) {
-   *    console.log(ev);
-   *    ev.gesture.preventDefault();
-   *  });
-   * ````
-   *
-   * @class Swipe
-   * @static
-   */
-  /**
-   * @event swipe
-   * @param {Object} ev
-   */
-  /**
-   * @event swipeleft
-   * @param {Object} ev
-   */
-  /**
-   * @event swiperight
-   * @param {Object} ev
-   */
-  /**
-   * @event swipeup
-   * @param {Object} ev
-   */
-  /**
-   * @event swipedown
-   * @param {Object} ev
-   */
-  Hammer.gestures.Swipe = {
-      name: 'swipe',
-      index: 40,
-      defaults: {
-          /**
-           * @property swipeMinTouches
-           * @type {Number}
-           * @default 1
-           */
-          swipeMinTouches: 1,
-
-          /**
-           * @property swipeMaxTouches
-           * @type {Number}
-           * @default 1
-           */
-          swipeMaxTouches: 1,
-
-          /**
-           * horizontal swipe velocity
-           * @property swipeVelocityX
-           * @type {Number}
-           * @default 0.6
-           */
-          swipeVelocityX: 0.6,
-
-          /**
-           * vertical swipe velocity
-           * @property swipeVelocityY
-           * @type {Number}
-           * @default 0.6
-           */
-          swipeVelocityY: 0.6
-      },
-
-      handler: function swipeGesture(ev, inst) {
-          if(ev.eventType == EVENT_RELEASE) {
-              var touches = ev.touches.length,
-                  options = inst.options;
-
-              // max touches
-              if(touches < options.swipeMinTouches ||
-                  touches > options.swipeMaxTouches) {
-                  return;
-              }
-
-              // when the distance we moved is too small we skip this gesture
-              // or we can be already in dragging
-              if(ev.velocityX > options.swipeVelocityX ||
-                  ev.velocityY > options.swipeVelocityY) {
-                  // trigger swipe events
-                  inst.trigger(this.name, ev);
-                  inst.trigger(this.name + ev.direction, ev);
-              }
-          }
-      }
-  };
-
-  /**
-   * @module gestures
-   */
-  /**
-   * Single tap and a double tap on a place
-   *
-   * @class Tap
-   * @static
-   */
-  /**
-   * @event tap
-   * @param {Object} ev
-   */
-  /**
-   * @event doubletap
-   * @param {Object} ev
-   */
-
-  /**
-   * @param {String} name
-   */
-  (function(name) {
-      var hasMoved = false;
-
-      function tapGesture(ev, inst) {
-          var options = inst.options,
-              current = Detection.current,
-              prev = Detection.previous,
-              sincePrev,
-              didDoubleTap;
-
-          switch(ev.eventType) {
-              case EVENT_START:
-                  hasMoved = false;
-                  break;
-
-              case EVENT_MOVE:
-                  hasMoved = hasMoved || (ev.distance > options.tapMaxDistance);
-                  break;
-
-              case EVENT_END:
-                  if(!Utils.inStr(ev.srcEvent.type, 'cancel') && ev.deltaTime < options.tapMaxTime && !hasMoved) {
-                      // previous gesture, for the double tap since these are two different gesture detections
-                      sincePrev = prev && prev.lastEvent && ev.timeStamp - prev.lastEvent.timeStamp;
-                      didDoubleTap = false;
-
-                      // check if double tap
-                      if(prev && prev.name == name &&
-                          (sincePrev && sincePrev < options.doubleTapInterval) &&
-                          ev.distance < options.doubleTapDistance) {
-                          inst.trigger('doubletap', ev);
-                          didDoubleTap = true;
-                      }
-
-                      // do a single tap
-                      if(!didDoubleTap || options.tapAlways) {
-                          current.name = name;
-                          inst.trigger(current.name, ev);
-                      }
-                  }
-                  break;
-          }
-      }
-
-      Hammer.gestures.Tap = {
-          name: name,
-          index: 100,
-          handler: tapGesture,
-          defaults: {
-              /**
-               * max time of a tap, this is for the slow tappers
-               * @property tapMaxTime
-               * @type {Number}
-               * @default 250
-               */
-              tapMaxTime: 250,
-
-              /**
-               * max distance of movement of a tap, this is for the slow tappers
-               * @property tapMaxDistance
-               * @type {Number}
-               * @default 10
-               */
-              tapMaxDistance: 10,
-
-              /**
-               * always trigger the `tap` event, even while double-tapping
-               * @property tapAlways
-               * @type {Boolean}
-               * @default true
-               */
-              tapAlways: true,
-
-              /**
-               * max distance between two taps
-               * @property doubleTapDistance
-               * @type {Number}
-               * @default 20
-               */
-              doubleTapDistance: 20,
-
-              /**
-               * max time between two taps
-               * @property doubleTapInterval
-               * @type {Number}
-               * @default 300
-               */
-              doubleTapInterval: 300
-          }
-      };
-  })('tap');
-
-  /**
-   * @module gestures
-   */
-  /**
-   * when a touch is being touched at the page
-   *
-   * @class Touch
-   * @static
-   */
-  /**
-   * @event touch
-   * @param {Object} ev
-   */
-  Hammer.gestures.Touch = {
-      name: 'touch',
-      index: -Infinity,
-      defaults: {
-          /**
-           * call preventDefault at touchstart, and makes the element blocking by disabling the scrolling of the page,
-           * but it improves gestures like transforming and dragging.
-           * be careful with using this, it can be very annoying for users to be stuck on the page
-           * @property preventDefault
-           * @type {Boolean}
-           * @default false
-           */
-          preventDefault: false,
-
-          /**
-           * disable mouse events, so only touch (or pen!) input triggers events
-           * @property preventMouse
-           * @type {Boolean}
-           * @default false
-           */
-          preventMouse: false
-      },
-      handler: function touchGesture(ev, inst) {
-          if(inst.options.preventMouse && ev.pointerType == POINTER_MOUSE) {
-              ev.stopDetect();
-              return;
-          }
-
-          if(inst.options.preventDefault) {
-              ev.preventDefault();
-          }
-
-          if(ev.eventType == EVENT_TOUCH) {
-              inst.trigger('touch', ev);
-          }
-      }
-  };
-
-  /**
-   * @module gestures
-   */
-  /**
-   * User want to scale or rotate with 2 fingers
-   * Preventing the default browser behavior is a good way to improve feel and working. This can be done with the
-   * `preventDefault` option.
-   *
-   * @class Transform
-   * @static
-   */
-  /**
-   * @event transform
-   * @param {Object} ev
-   */
-  /**
-   * @event transformstart
-   * @param {Object} ev
-   */
-  /**
-   * @event transformend
-   * @param {Object} ev
-   */
-  /**
-   * @event pinchin
-   * @param {Object} ev
-   */
-  /**
-   * @event pinchout
-   * @param {Object} ev
-   */
-  /**
-   * @event rotate
-   * @param {Object} ev
-   */
-
-  /**
-   * @param {String} name
-   */
-  (function(name) {
-      var triggered = false;
-
-      function transformGesture(ev, inst) {
-          switch(ev.eventType) {
-              case EVENT_START:
-                  triggered = false;
-                  break;
-
-              case EVENT_MOVE:
-                  // at least multitouch
-                  if(ev.touches.length < 2) {
-                      return;
-                  }
-
-                  var scaleThreshold = Math.abs(1 - ev.scale);
-                  var rotationThreshold = Math.abs(ev.rotation);
-
-                  // when the distance we moved is too small we skip this gesture
-                  // or we can be already in dragging
-                  if(scaleThreshold < inst.options.transformMinScale &&
-                      rotationThreshold < inst.options.transformMinRotation) {
-                      return;
-                  }
-
-                  // we are transforming!
-                  Detection.current.name = name;
-
-                  // first time, trigger dragstart event
-                  if(!triggered) {
-                      inst.trigger(name + 'start', ev);
-                      triggered = true;
-                  }
-
-                  inst.trigger(name, ev); // basic transform event
-
-                  // trigger rotate event
-                  if(rotationThreshold > inst.options.transformMinRotation) {
-                      inst.trigger('rotate', ev);
-                  }
-
-                  // trigger pinch event
-                  if(scaleThreshold > inst.options.transformMinScale) {
-                      inst.trigger('pinch', ev);
-                      inst.trigger('pinch' + (ev.scale < 1 ? 'in' : 'out'), ev);
-                  }
-                  break;
-
-              case EVENT_RELEASE:
-                  if(triggered && ev.changedLength < 2) {
-                      inst.trigger(name + 'end', ev);
-                      triggered = false;
-                  }
-                  break;
-          }
-      }
-
-      Hammer.gestures.Transform = {
-          name: name,
-          index: 45,
-          defaults: {
-              /**
-               * minimal scale factor, no scale is 1, zoomin is to 0 and zoomout until higher then 1
-               * @property transformMinScale
-               * @type {Number}
-               * @default 0.01
-               */
-              transformMinScale: 0.01,
-
-              /**
-               * rotation in degrees
-               * @property transformMinRotation
-               * @type {Number}
-               * @default 1
-               */
-              transformMinRotation: 1
-          },
-
-          handler: transformGesture
-      };
-  })('transform');
-
-  /**
-   * @module hammer
-   */
-
-  // AMD export
-  if(true) {
-      !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
-          return Hammer;
-      }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-  // commonjs export
-  } else if(typeof module !== 'undefined' && module.exports) {
-      module.exports = Hammer;
-  // browser export
-  } else {
-      window.Hammer = Hammer;
-  }
-
-  })(window);
-
-/***/ },
-/* 60 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var util = __webpack_require__(1);
-  var RepulsionMixin = __webpack_require__(68);
-  var HierarchialRepulsionMixin = __webpack_require__(69);
-  var BarnesHutMixin = __webpack_require__(70);
-
-  /**
-   * Toggling barnes Hut calculation on and off.
-   *
-   * @private
-   */
-  exports._toggleBarnesHut = function () {
-    this.constants.physics.barnesHut.enabled = !this.constants.physics.barnesHut.enabled;
-    this._loadSelectedForceSolver();
-    this.moving = true;
-    this.start();
-  };
-
-
-  /**
-   * This loads the node force solver based on the barnes hut or repulsion algorithm
-   *
-   * @private
-   */
-  exports._loadSelectedForceSolver = function () {
-    // this overloads the this._calculateNodeForces
-    if (this.constants.physics.barnesHut.enabled == true) {
-      this._clearMixin(RepulsionMixin);
-      this._clearMixin(HierarchialRepulsionMixin);
-
-      this.constants.physics.centralGravity = this.constants.physics.barnesHut.centralGravity;
-      this.constants.physics.springLength = this.constants.physics.barnesHut.springLength;
-      this.constants.physics.springConstant = this.constants.physics.barnesHut.springConstant;
-      this.constants.physics.damping = this.constants.physics.barnesHut.damping;
-
-      this._loadMixin(BarnesHutMixin);
-    }
-    else if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
-      this._clearMixin(BarnesHutMixin);
-      this._clearMixin(RepulsionMixin);
-
-      this.constants.physics.centralGravity = this.constants.physics.hierarchicalRepulsion.centralGravity;
-      this.constants.physics.springLength = this.constants.physics.hierarchicalRepulsion.springLength;
-      this.constants.physics.springConstant = this.constants.physics.hierarchicalRepulsion.springConstant;
-      this.constants.physics.damping = this.constants.physics.hierarchicalRepulsion.damping;
-
-      this._loadMixin(HierarchialRepulsionMixin);
-    }
-    else {
-      this._clearMixin(BarnesHutMixin);
-      this._clearMixin(HierarchialRepulsionMixin);
-      this.barnesHutTree = undefined;
-
-      this.constants.physics.centralGravity = this.constants.physics.repulsion.centralGravity;
-      this.constants.physics.springLength = this.constants.physics.repulsion.springLength;
-      this.constants.physics.springConstant = this.constants.physics.repulsion.springConstant;
-      this.constants.physics.damping = this.constants.physics.repulsion.damping;
-
-      this._loadMixin(RepulsionMixin);
-    }
-  };
-
-  /**
-   * Before calculating the forces, we check if we need to cluster to keep up performance and we check
-   * if there is more than one node. If it is just one node, we dont calculate anything.
-   *
-   * @private
-   */
-  exports._initializeForceCalculation = function () {
-    // stop calculation if there is only one node
-    if (this.nodeIndices.length == 1) {
-      this.nodes[this.nodeIndices[0]]._setForce(0, 0);
-    }
-    else {
-      // if there are too many nodes on screen, we cluster without repositioning
-      if (this.nodeIndices.length > this.constants.clustering.clusterThreshold && this.constants.clustering.enabled == true) {
-        this.clusterToFit(this.constants.clustering.reduceToNodes, false);
-      }
-
-      // we now start the force calculation
-      this._calculateForces();
-    }
-  };
-
-
-  /**
-   * Calculate the external forces acting on the nodes
-   * Forces are caused by: edges, repulsing forces between nodes, gravity
-   * @private
-   */
-  exports._calculateForces = function () {
-    // Gravity is required to keep separated groups from floating off
-    // the forces are reset to zero in this loop by using _setForce instead
-    // of _addForce
-
-    this._calculateGravitationalForces();
-    this._calculateNodeForces();
-
-    if (this.constants.physics.springConstant > 0) {
-      if (this.constants.smoothCurves.enabled == true && this.constants.smoothCurves.dynamic == true) {
-        this._calculateSpringForcesWithSupport();
-      }
-      else {
-        if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
-          this._calculateHierarchicalSpringForces();
-        }
-        else {
-          this._calculateSpringForces();
-        }
-      }
-    }
-  };
-
-
-  /**
-   * Smooth curves are created by adding invisible nodes in the center of the edges. These nodes are also
-   * handled in the calculateForces function. We then use a quadratic curve with the center node as control.
-   * This function joins the datanodes and invisible (called support) nodes into one object.
-   * We do this so we do not contaminate this.nodes with the support nodes.
-   *
-   * @private
-   */
-  exports._updateCalculationNodes = function () {
-    if (this.constants.smoothCurves.enabled == true && this.constants.smoothCurves.dynamic == true) {
-      this.calculationNodes = {};
-      this.calculationNodeIndices = [];
-
-      for (var nodeId in this.nodes) {
-        if (this.nodes.hasOwnProperty(nodeId)) {
-          this.calculationNodes[nodeId] = this.nodes[nodeId];
-        }
-      }
-      var supportNodes = this.sectors['support']['nodes'];
-      for (var supportNodeId in supportNodes) {
-        if (supportNodes.hasOwnProperty(supportNodeId)) {
-          if (this.edges.hasOwnProperty(supportNodes[supportNodeId].parentEdgeId)) {
-            this.calculationNodes[supportNodeId] = supportNodes[supportNodeId];
-          }
-          else {
-            supportNodes[supportNodeId]._setForce(0, 0);
-          }
-        }
-      }
-
-      for (var idx in this.calculationNodes) {
-        if (this.calculationNodes.hasOwnProperty(idx)) {
-          this.calculationNodeIndices.push(idx);
-        }
-      }
-    }
-    else {
-      this.calculationNodes = this.nodes;
-      this.calculationNodeIndices = this.nodeIndices;
-    }
-  };
-
-
-  /**
-   * this function applies the central gravity effect to keep groups from floating off
-   *
-   * @private
-   */
-  exports._calculateGravitationalForces = function () {
-    var dx, dy, distance, node, i;
-    var nodes = this.calculationNodes;
-    var gravity = this.constants.physics.centralGravity;
-    var gravityForce = 0;
-
-    for (i = 0; i < this.calculationNodeIndices.length; i++) {
-      node = nodes[this.calculationNodeIndices[i]];
-      node.damping = this.constants.physics.damping; // possibly add function to alter damping properties of clusters.
-      // gravity does not apply when we are in a pocket sector
-      if (this._sector() == "default" && gravity != 0) {
-        dx = -node.x;
-        dy = -node.y;
-        distance = Math.sqrt(dx * dx + dy * dy);
-
-        gravityForce = (distance == 0) ? 0 : (gravity / distance);
-        node.fx = dx * gravityForce;
-        node.fy = dy * gravityForce;
-      }
-      else {
-        node.fx = 0;
-        node.fy = 0;
-      }
-    }
-  };
-
-
-
-
-  /**
-   * this function calculates the effects of the springs in the case of unsmooth curves.
-   *
-   * @private
-   */
-  exports._calculateSpringForces = function () {
-    var edgeLength, edge, edgeId;
-    var dx, dy, fx, fy, springForce, distance;
-    var edges = this.edges;
-
-    // forces caused by the edges, modelled as springs
-    for (edgeId in edges) {
-      if (edges.hasOwnProperty(edgeId)) {
-        edge = edges[edgeId];
-        if (edge.connected) {
-          // only calculate forces if nodes are in the same sector
-          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
-            edgeLength = edge.physics.springLength;
-            // this implies that the edges between big clusters are longer
-            edgeLength += (edge.to.clusterSize + edge.from.clusterSize - 2) * this.constants.clustering.edgeGrowth;
-
-            dx = (edge.from.x - edge.to.x);
-            dy = (edge.from.y - edge.to.y);
-            distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance == 0) {
-              distance = 0.01;
-            }
-
-            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
-            springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
-
-            fx = dx * springForce;
-            fy = dy * springForce;
-
-            edge.from.fx += fx;
-            edge.from.fy += fy;
-            edge.to.fx -= fx;
-            edge.to.fy -= fy;
-          }
-        }
-      }
-    }
-  };
-
-
-
-
-  /**
-   * This function calculates the springforces on the nodes, accounting for the support nodes.
-   *
-   * @private
-   */
-  exports._calculateSpringForcesWithSupport = function () {
-    var edgeLength, edge, edgeId, combinedClusterSize;
-    var edges = this.edges;
-
-    // forces caused by the edges, modelled as springs
-    for (edgeId in edges) {
-      if (edges.hasOwnProperty(edgeId)) {
-        edge = edges[edgeId];
-        if (edge.connected) {
-          // only calculate forces if nodes are in the same sector
-          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
-            if (edge.via != null) {
-              var node1 = edge.to;
-              var node2 = edge.via;
-              var node3 = edge.from;
-
-              edgeLength = edge.physics.springLength;
-
-              combinedClusterSize = node1.clusterSize + node3.clusterSize - 2;
-
-              // this implies that the edges between big clusters are longer
-              edgeLength += combinedClusterSize * this.constants.clustering.edgeGrowth;
-              this._calculateSpringForce(node1, node2, 0.5 * edgeLength);
-              this._calculateSpringForce(node2, node3, 0.5 * edgeLength);
-            }
-          }
-        }
-      }
-    }
-  };
-
-
-  /**
-   * This is the code actually performing the calculation for the function above. It is split out to avoid repetition.
-   *
-   * @param node1
-   * @param node2
-   * @param edgeLength
-   * @private
-   */
-  exports._calculateSpringForce = function (node1, node2, edgeLength) {
-    var dx, dy, fx, fy, springForce, distance;
-
-    dx = (node1.x - node2.x);
-    dy = (node1.y - node2.y);
-    distance = Math.sqrt(dx * dx + dy * dy);
-
-    if (distance == 0) {
-      distance = 0.01;
-    }
-
-    // the 1/distance is so the fx and fy can be calculated without sine or cosine.
-    springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
-
-    fx = dx * springForce;
-    fy = dy * springForce;
-
-    node1.fx += fx;
-    node1.fy += fy;
-    node2.fx -= fx;
-    node2.fy -= fy;
-  };
-
-
-  exports._cleanupPhysicsConfiguration = function() {
-    if (this.physicsConfiguration !== undefined) {
-      while (this.physicsConfiguration.hasChildNodes()) {
-        this.physicsConfiguration.removeChild(this.physicsConfiguration.firstChild);
-      }
-
-      this.physicsConfiguration.parentNode.removeChild(this.physicsConfiguration);
-      this.physicsConfiguration = undefined;
-    }
-  }
-
-  /**
-   * Load the HTML for the physics config and bind it
-   * @private
-   */
-  exports._loadPhysicsConfiguration = function () {
-    if (this.physicsConfiguration === undefined) {
-      this.backupConstants = {};
-      util.deepExtend(this.backupConstants,this.constants);
-
-      var hierarchicalLayoutDirections = ["LR", "RL", "UD", "DU"];
-      this.physicsConfiguration = document.createElement('div');
-      this.physicsConfiguration.className = "PhysicsConfiguration";
-      this.physicsConfiguration.innerHTML = '' +
-        '<table><tr><td><b>Simulation Mode:</b></td></tr>' +
-        '<tr>' +
-        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod1" value="BH" checked="checked">Barnes Hut</td>' +
-        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod2" value="R">Repulsion</td>' +
-        '<td width="120px"><input type="radio" name="graph_physicsMethod" id="graph_physicsMethod3" value="H">Hierarchical</td>' +
-        '</tr>' +
-        '</table>' +
-        '<table id="graph_BH_table" style="display:none">' +
-        '<tr><td><b>Barnes Hut</b></td></tr>' +
-        '<tr>' +
-        '<td width="150px">gravitationalConstant</td><td>0</td><td><input type="range" min="0" max="20000" value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" step="25" style="width:300px" id="graph_BH_gc"></td><td  width="50px">-20000</td><td><input value="' + (-1 * this.constants.physics.barnesHut.gravitationalConstant) + '" id="graph_BH_gc_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.barnesHut.centralGravity + '" step="0.05"  style="width:300px" id="graph_BH_cg"></td><td>3</td><td><input value="' + this.constants.physics.barnesHut.centralGravity + '" id="graph_BH_cg_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.barnesHut.springLength + '" step="1" style="width:300px" id="graph_BH_sl"></td><td>500</td><td><input value="' + this.constants.physics.barnesHut.springLength + '" id="graph_BH_sl_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.barnesHut.springConstant + '" step="0.001" style="width:300px" id="graph_BH_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.barnesHut.springConstant + '" id="graph_BH_sc_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.barnesHut.damping + '" step="0.005" style="width:300px" id="graph_BH_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.barnesHut.damping + '" id="graph_BH_damp_value" style="width:60px"></td>' +
-        '</tr>' +
-        '</table>' +
-        '<table id="graph_R_table" style="display:none">' +
-        '<tr><td><b>Repulsion</b></td></tr>' +
-        '<tr>' +
-        '<td width="150px">nodeDistance</td><td>0</td><td><input type="range" min="0" max="300" value="' + this.constants.physics.repulsion.nodeDistance + '" step="1" style="width:300px" id="graph_R_nd"></td><td width="50px">300</td><td><input value="' + this.constants.physics.repulsion.nodeDistance + '" id="graph_R_nd_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.repulsion.centralGravity + '" step="0.05"  style="width:300px" id="graph_R_cg"></td><td>3</td><td><input value="' + this.constants.physics.repulsion.centralGravity + '" id="graph_R_cg_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.repulsion.springLength + '" step="1" style="width:300px" id="graph_R_sl"></td><td>500</td><td><input value="' + this.constants.physics.repulsion.springLength + '" id="graph_R_sl_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.repulsion.springConstant + '" step="0.001" style="width:300px" id="graph_R_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.repulsion.springConstant + '" id="graph_R_sc_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.repulsion.damping + '" step="0.005" style="width:300px" id="graph_R_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.repulsion.damping + '" id="graph_R_damp_value" style="width:60px"></td>' +
-        '</tr>' +
-        '</table>' +
-        '<table id="graph_H_table" style="display:none">' +
-        '<tr><td width="150"><b>Hierarchical</b></td></tr>' +
-        '<tr>' +
-        '<td width="150px">nodeDistance</td><td>0</td><td><input type="range" min="0" max="300" value="' + this.constants.physics.hierarchicalRepulsion.nodeDistance + '" step="1" style="width:300px" id="graph_H_nd"></td><td width="50px">300</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.nodeDistance + '" id="graph_H_nd_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">centralGravity</td><td>0</td><td><input type="range" min="0" max="3"  value="' + this.constants.physics.hierarchicalRepulsion.centralGravity + '" step="0.05"  style="width:300px" id="graph_H_cg"></td><td>3</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.centralGravity + '" id="graph_H_cg_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">springLength</td><td>0</td><td><input type="range" min="0" max="500" value="' + this.constants.physics.hierarchicalRepulsion.springLength + '" step="1" style="width:300px" id="graph_H_sl"></td><td>500</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.springLength + '" id="graph_H_sl_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">springConstant</td><td>0</td><td><input type="range" min="0" max="0.5" value="' + this.constants.physics.hierarchicalRepulsion.springConstant + '" step="0.001" style="width:300px" id="graph_H_sc"></td><td>0.5</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.springConstant + '" id="graph_H_sc_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">damping</td><td>0</td><td><input type="range" min="0" max="0.3" value="' + this.constants.physics.hierarchicalRepulsion.damping + '" step="0.005" style="width:300px" id="graph_H_damp"></td><td>0.3</td><td><input value="' + this.constants.physics.hierarchicalRepulsion.damping + '" id="graph_H_damp_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">direction</td><td>1</td><td><input type="range" min="0" max="3" value="' + hierarchicalLayoutDirections.indexOf(this.constants.hierarchicalLayout.direction) + '" step="1" style="width:300px" id="graph_H_direction"></td><td>4</td><td><input value="' + this.constants.hierarchicalLayout.direction + '" id="graph_H_direction_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">levelSeparation</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.levelSeparation + '" step="1" style="width:300px" id="graph_H_levsep"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.levelSeparation + '" id="graph_H_levsep_value" style="width:60px"></td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td width="150px">nodeSpacing</td><td>1</td><td><input type="range" min="0" max="500" value="' + this.constants.hierarchicalLayout.nodeSpacing + '" step="1" style="width:300px" id="graph_H_nspac"></td><td>500</td><td><input value="' + this.constants.hierarchicalLayout.nodeSpacing + '" id="graph_H_nspac_value" style="width:60px"></td>' +
-        '</tr>' +
-        '</table>' +
-        '<table><tr><td><b>Options:</b></td></tr>' +
-        '<tr>' +
-        '<td width="180px"><input type="button" id="graph_toggleSmooth" value="Toggle smoothCurves" style="width:150px"></td>' +
-        '<td width="180px"><input type="button" id="graph_repositionNodes" value="Reinitialize" style="width:150px"></td>' +
-        '<td width="180px"><input type="button" id="graph_generateOptions" value="Generate Options" style="width:150px"></td>' +
-        '</tr>' +
-        '</table>'
-      this.containerElement.parentElement.insertBefore(this.physicsConfiguration, this.containerElement);
-      this.optionsDiv = document.createElement("div");
-      this.optionsDiv.style.fontSize = "14px";
-      this.optionsDiv.style.fontFamily = "verdana";
-      this.containerElement.parentElement.insertBefore(this.optionsDiv, this.containerElement);
-
-      var rangeElement;
-      rangeElement = document.getElementById('graph_BH_gc');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_gc', -1, "physics_barnesHut_gravitationalConstant");
-      rangeElement = document.getElementById('graph_BH_cg');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_cg', 1, "physics_centralGravity");
-      rangeElement = document.getElementById('graph_BH_sc');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_sc', 1, "physics_springConstant");
-      rangeElement = document.getElementById('graph_BH_sl');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_sl', 1, "physics_springLength");
-      rangeElement = document.getElementById('graph_BH_damp');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_BH_damp', 1, "physics_damping");
-
-      rangeElement = document.getElementById('graph_R_nd');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_nd', 1, "physics_repulsion_nodeDistance");
-      rangeElement = document.getElementById('graph_R_cg');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_cg', 1, "physics_centralGravity");
-      rangeElement = document.getElementById('graph_R_sc');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_sc', 1, "physics_springConstant");
-      rangeElement = document.getElementById('graph_R_sl');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_sl', 1, "physics_springLength");
-      rangeElement = document.getElementById('graph_R_damp');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_R_damp', 1, "physics_damping");
-
-      rangeElement = document.getElementById('graph_H_nd');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_nd', 1, "physics_hierarchicalRepulsion_nodeDistance");
-      rangeElement = document.getElementById('graph_H_cg');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_cg', 1, "physics_centralGravity");
-      rangeElement = document.getElementById('graph_H_sc');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_sc', 1, "physics_springConstant");
-      rangeElement = document.getElementById('graph_H_sl');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_sl', 1, "physics_springLength");
-      rangeElement = document.getElementById('graph_H_damp');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_damp', 1, "physics_damping");
-      rangeElement = document.getElementById('graph_H_direction');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_direction', hierarchicalLayoutDirections, "hierarchicalLayout_direction");
-      rangeElement = document.getElementById('graph_H_levsep');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_levsep', 1, "hierarchicalLayout_levelSeparation");
-      rangeElement = document.getElementById('graph_H_nspac');
-      rangeElement.onchange = showValueOfRange.bind(this, 'graph_H_nspac', 1, "hierarchicalLayout_nodeSpacing");
-
-      var radioButton1 = document.getElementById("graph_physicsMethod1");
-      var radioButton2 = document.getElementById("graph_physicsMethod2");
-      var radioButton3 = document.getElementById("graph_physicsMethod3");
-      radioButton2.checked = true;
-      if (this.constants.physics.barnesHut.enabled) {
-        radioButton1.checked = true;
-      }
-      if (this.constants.hierarchicalLayout.enabled) {
-        radioButton3.checked = true;
-      }
-
-      var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
-      var graph_repositionNodes = document.getElementById("graph_repositionNodes");
-      var graph_generateOptions = document.getElementById("graph_generateOptions");
-
-      graph_toggleSmooth.onclick = graphToggleSmoothCurves.bind(this);
-      graph_repositionNodes.onclick = graphRepositionNodes.bind(this);
-      graph_generateOptions.onclick = graphGenerateOptions.bind(this);
-      if (this.constants.smoothCurves == true && this.constants.dynamicSmoothCurves == false) {
-        graph_toggleSmooth.style.background = "#A4FF56";
-      }
-      else {
-        graph_toggleSmooth.style.background = "#FF8532";
-      }
-
-
-      switchConfigurations.apply(this);
-
-      radioButton1.onchange = switchConfigurations.bind(this);
-      radioButton2.onchange = switchConfigurations.bind(this);
-      radioButton3.onchange = switchConfigurations.bind(this);
-    }
-  };
-
-  /**
-   * This overwrites the this.constants.
-   *
-   * @param constantsVariableName
-   * @param value
-   * @private
-   */
-  exports._overWriteGraphConstants = function (constantsVariableName, value) {
-    var nameArray = constantsVariableName.split("_");
-    if (nameArray.length == 1) {
-      this.constants[nameArray[0]] = value;
-    }
-    else if (nameArray.length == 2) {
-      this.constants[nameArray[0]][nameArray[1]] = value;
-    }
-    else if (nameArray.length == 3) {
-      this.constants[nameArray[0]][nameArray[1]][nameArray[2]] = value;
-    }
-  };
-
-
-  /**
-   * this function is bound to the toggle smooth curves button. That is also why it is not in the prototype.
-   */
-  function graphToggleSmoothCurves () {
-    this.constants.smoothCurves.enabled = !this.constants.smoothCurves.enabled;
-    var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
-    if (this.constants.smoothCurves.enabled == true) {graph_toggleSmooth.style.background = "#A4FF56";}
-    else                                     {graph_toggleSmooth.style.background = "#FF8532";}
-
-    this._configureSmoothCurves(false);
-  }
-
-  /**
-   * this function is used to scramble the nodes
-   *
-   */
-  function graphRepositionNodes () {
-    for (var nodeId in this.calculationNodes) {
-      if (this.calculationNodes.hasOwnProperty(nodeId)) {
-        this.calculationNodes[nodeId].vx = 0;  this.calculationNodes[nodeId].vy = 0;
-        this.calculationNodes[nodeId].fx = 0;  this.calculationNodes[nodeId].fy = 0;
-      }
-    }
-    if (this.constants.hierarchicalLayout.enabled == true) {
-      this._setupHierarchicalLayout();
-      showValueOfRange.call(this, 'graph_H_nd', 1, "physics_hierarchicalRepulsion_nodeDistance");
-      showValueOfRange.call(this, 'graph_H_cg', 1, "physics_centralGravity");
-      showValueOfRange.call(this, 'graph_H_sc', 1, "physics_springConstant");
-      showValueOfRange.call(this, 'graph_H_sl', 1, "physics_springLength");
-      showValueOfRange.call(this, 'graph_H_damp', 1, "physics_damping");
-    }
-    else {
-      this.repositionNodes();
-    }
-    this.moving = true;
-    this.start();
-  }
-
-  /**
-   *  this is used to generate an options file from the playing with physics system.
-   */
-  function graphGenerateOptions () {
-    var options = "No options are required, default values used.";
-    var optionsSpecific = [];
-    var radioButton1 = document.getElementById("graph_physicsMethod1");
-    var radioButton2 = document.getElementById("graph_physicsMethod2");
-    if (radioButton1.checked == true) {
-      if (this.constants.physics.barnesHut.gravitationalConstant != this.backupConstants.physics.barnesHut.gravitationalConstant) {optionsSpecific.push("gravitationalConstant: " + this.constants.physics.barnesHut.gravitationalConstant);}
-      if (this.constants.physics.centralGravity != this.backupConstants.physics.barnesHut.centralGravity)                         {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
-      if (this.constants.physics.springLength != this.backupConstants.physics.barnesHut.springLength)                             {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
-      if (this.constants.physics.springConstant != this.backupConstants.physics.barnesHut.springConstant)                         {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
-      if (this.constants.physics.damping != this.backupConstants.physics.barnesHut.damping)                                       {optionsSpecific.push("damping: " + this.constants.physics.damping);}
-      if (optionsSpecific.length != 0) {
-        options = "var options = {";
-        options += "physics: {barnesHut: {";
-        for (var i = 0; i < optionsSpecific.length; i++) {
-          options += optionsSpecific[i];
-          if (i < optionsSpecific.length - 1) {
-            options += ", "
-          }
-        }
-        options += '}}'
-      }
-      if (this.constants.smoothCurves.enabled != this.backupConstants.smoothCurves.enabled) {
-        if (optionsSpecific.length == 0) {options = "var options = {";}
-        else {options += ", "}
-        options += "smoothCurves: " + this.constants.smoothCurves.enabled;
-      }
-      if (options != "No options are required, default values used.") {
-        options += '};'
-      }
-    }
-    else if (radioButton2.checked == true) {
-      options = "var options = {";
-      options += "physics: {barnesHut: {enabled: false}";
-      if (this.constants.physics.repulsion.nodeDistance != this.backupConstants.physics.repulsion.nodeDistance)  {optionsSpecific.push("nodeDistance: " + this.constants.physics.repulsion.nodeDistance);}
-      if (this.constants.physics.centralGravity != this.backupConstants.physics.repulsion.centralGravity)        {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
-      if (this.constants.physics.springLength != this.backupConstants.physics.repulsion.springLength)            {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
-      if (this.constants.physics.springConstant != this.backupConstants.physics.repulsion.springConstant)        {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
-      if (this.constants.physics.damping != this.backupConstants.physics.repulsion.damping)                      {optionsSpecific.push("damping: " + this.constants.physics.damping);}
-      if (optionsSpecific.length != 0) {
-        options += ", repulsion: {";
-        for (var i = 0; i < optionsSpecific.length; i++) {
-          options += optionsSpecific[i];
-          if (i < optionsSpecific.length - 1) {
-            options += ", "
-          }
-        }
-        options += '}}'
-      }
-      if (optionsSpecific.length == 0) {options += "}"}
-      if (this.constants.smoothCurves != this.backupConstants.smoothCurves) {
-        options += ", smoothCurves: " + this.constants.smoothCurves;
-      }
-      options += '};'
-    }
-    else {
-      options = "var options = {";
-      if (this.constants.physics.hierarchicalRepulsion.nodeDistance != this.backupConstants.physics.hierarchicalRepulsion.nodeDistance)  {optionsSpecific.push("nodeDistance: " + this.constants.physics.hierarchicalRepulsion.nodeDistance);}
-      if (this.constants.physics.centralGravity != this.backupConstants.physics.hierarchicalRepulsion.centralGravity)        {optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);}
-      if (this.constants.physics.springLength != this.backupConstants.physics.hierarchicalRepulsion.springLength)            {optionsSpecific.push("springLength: " + this.constants.physics.springLength);}
-      if (this.constants.physics.springConstant != this.backupConstants.physics.hierarchicalRepulsion.springConstant)        {optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);}
-      if (this.constants.physics.damping != this.backupConstants.physics.hierarchicalRepulsion.damping)                      {optionsSpecific.push("damping: " + this.constants.physics.damping);}
-      if (optionsSpecific.length != 0) {
-        options += "physics: {hierarchicalRepulsion: {";
-        for (var i = 0; i < optionsSpecific.length; i++) {
-          options += optionsSpecific[i];
-          if (i < optionsSpecific.length - 1) {
-            options += ", ";
-          }
-        }
-        options += '}},';
-      }
-      options += 'hierarchicalLayout: {';
-      optionsSpecific = [];
-      if (this.constants.hierarchicalLayout.direction != this.backupConstants.hierarchicalLayout.direction)                       {optionsSpecific.push("direction: " + this.constants.hierarchicalLayout.direction);}
-      if (Math.abs(this.constants.hierarchicalLayout.levelSeparation) != this.backupConstants.hierarchicalLayout.levelSeparation) {optionsSpecific.push("levelSeparation: " + this.constants.hierarchicalLayout.levelSeparation);}
-      if (this.constants.hierarchicalLayout.nodeSpacing != this.backupConstants.hierarchicalLayout.nodeSpacing)                   {optionsSpecific.push("nodeSpacing: " + this.constants.hierarchicalLayout.nodeSpacing);}
-      if (optionsSpecific.length != 0) {
-        for (var i = 0; i < optionsSpecific.length; i++) {
-          options += optionsSpecific[i];
-          if (i < optionsSpecific.length - 1) {
-            options += ", "
-          }
-        }
-        options += '}'
-      }
-      else {
-        options += "enabled:true}";
-      }
-      options += '};'
-    }
-
-
-    this.optionsDiv.innerHTML = options;
-  }
-
-  /**
-   * this is used to switch between barnesHut, repulsion and hierarchical.
-   *
-   */
-  function switchConfigurations () {
-    var ids = ["graph_BH_table", "graph_R_table", "graph_H_table"];
-    var radioButton = document.querySelector('input[name="graph_physicsMethod"]:checked').value;
-    var tableId = "graph_" + radioButton + "_table";
-    var table = document.getElementById(tableId);
-    table.style.display = "block";
-    for (var i = 0; i < ids.length; i++) {
-      if (ids[i] != tableId) {
-        table = document.getElementById(ids[i]);
-        table.style.display = "none";
-      }
-    }
-    this._restoreNodes();
-    if (radioButton == "R") {
-      this.constants.hierarchicalLayout.enabled = false;
-      this.constants.physics.hierarchicalRepulsion.enabled = false;
-      this.constants.physics.barnesHut.enabled = false;
-    }
-    else if (radioButton == "H") {
-      if (this.constants.hierarchicalLayout.enabled == false) {
-        this.constants.hierarchicalLayout.enabled = true;
-        this.constants.physics.hierarchicalRepulsion.enabled = true;
-        this.constants.physics.barnesHut.enabled = false;
-        this.constants.smoothCurves.enabled = false;
-        this._setupHierarchicalLayout();
-      }
-    }
-    else {
-      this.constants.hierarchicalLayout.enabled = false;
-      this.constants.physics.hierarchicalRepulsion.enabled = false;
-      this.constants.physics.barnesHut.enabled = true;
-    }
-    this._loadSelectedForceSolver();
-    var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
-    if (this.constants.smoothCurves.enabled == true) {graph_toggleSmooth.style.background = "#A4FF56";}
-    else                                     {graph_toggleSmooth.style.background = "#FF8532";}
-    this.moving = true;
-    this.start();
-  }
-
-
-  /**
-   * this generates the ranges depending on the iniital values.
-   *
-   * @param id
-   * @param map
-   * @param constantsVariableName
-   */
-  function showValueOfRange (id,map,constantsVariableName) {
-    var valueId = id + "_value";
-    var rangeValue = document.getElementById(id).value;
-
-    if (Array.isArray(map)) {
-      document.getElementById(valueId).value = map[parseInt(rangeValue)];
-      this._overWriteGraphConstants(constantsVariableName,map[parseInt(rangeValue)]);
-    }
-    else {
-      document.getElementById(valueId).value = parseInt(map) * parseFloat(rangeValue);
-      this._overWriteGraphConstants(constantsVariableName, parseInt(map) * parseFloat(rangeValue));
-    }
-
-    if (constantsVariableName == "hierarchicalLayout_direction" ||
-      constantsVariableName == "hierarchicalLayout_levelSeparation" ||
-      constantsVariableName == "hierarchicalLayout_nodeSpacing") {
-      this._setupHierarchicalLayout();
-    }
-    this.moving = true;
-    this.start();
-  }
-
-
-
-
-/***/ },
-/* 61 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * Creation of the ClusterMixin var.
-   *
-   * This contains all the functions the Network object can use to employ clustering
-   */
-
-  /**
-  * This is only called in the constructor of the network object
-  *
-  */
-  exports.startWithClustering = function() {
-   // cluster if the data set is big
-   this.clusterToFit(this.constants.clustering.initialMaxNodes, true);
-
-   // updates the lables after clustering
-   this.updateLabels();
-
-   // this is called here because if clusterin is disabled, the start and stabilize are called in
-   // the setData function.
-   if (this.stabilize) {
-     this._stabilize();
-   }
-   this.start();
-  };
-
-  /**
-   * This function clusters until the initialMaxNodes has been reached
-   *
-   * @param {Number}  maxNumberOfNodes
-   * @param {Boolean} reposition
-   */
-  exports.clusterToFit = function(maxNumberOfNodes, reposition) {
-    var numberOfNodes = this.nodeIndices.length;
-
-    var maxLevels = 2;
-    var level = 0;
-
-    // we first cluster the hubs, then we pull in the outliers, repeat
-    while (numberOfNodes > maxNumberOfNodes && level < maxLevels) {
-      console.log("Performing clustering:", level, numberOfNodes, this.clusterSession);
-      if (level % 3 == 0.0) {
-        //this.forceAggregateHubs(true);
-        //this.normalizeClusterLevels();
-      }
-      else {
-        //this.increaseClusterLevel(); // this also includes a cluster normalization
-      }
-      //this.forceAggregateHubs(true);
-      numberOfNodes = this.nodeIndices.length;
-      level += 1;
-    }
-    console.log("finished")
-
-    // after the clustering we reposition the nodes to reduce the initial chaos
-    if (level > 0 && reposition == true) {
-      this.repositionNodes();
-    }
-    this._updateCalculationNodes();
-  };
-
-  /**
-   * This function can be called to open up a specific cluster. It is only called by
-   * It will unpack the cluster back one level.
-   *
-   * @param node    | Node object: cluster to open.
-   */
-  exports.openCluster = function(node) {
-    var isMovingBeforeClustering = this.moving;
-    if (node.clusterSize > this.constants.clustering.sectorThreshold && this._nodeInActiveArea(node) &&
-      !(this._sector() == "default" && this.nodeIndices.length == 1)) {
-      // this loads a new sector, loads the nodes and edges and nodeIndices of it.
-      this._addSector(node);
-      var level = 0;
-
-      // we decluster until we reach a decent number of nodes
-      while ((this.nodeIndices.length < this.constants.clustering.initialMaxNodes) && (level < 10)) {
-        this.decreaseClusterLevel();
-        level += 1;
-      }
-
-    }
-    else {
-      this._expandClusterNode(node,false,true);
-
-      // update the index list, dynamic edges and labels
-      this._updateNodeIndexList();
-      this._updateDynamicEdges();
-      this._updateCalculationNodes();
-      this.updateLabels();
-    }
-
-    // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
-    if (this.moving != isMovingBeforeClustering) {
-      this.start();
-    }
-  };
-
-
-  /**
-   * This calls the updateClustes with default arguments
-   */
-  exports.updateClustersDefault = function() {
-    if (this.constants.clustering.enabled == true && this.constants.clustering.clusterByZoom == true) {
-      this.updateClusters(0,false,false);
-    }
-  };
-
-
-  /**
-   * This function can be called to increase the cluster level. This means that the nodes with only one edge connection will
-   * be clustered with their connected node. This can be repeated as many times as needed.
-   * This can be called externally (by a keybind for instance) to reduce the complexity of big datasets.
-   */
-  exports.increaseClusterLevel = function() {
-    this.updateClusters(-1,false,true);
-  };
-
-
-  /**
-   * This function can be called to decrease the cluster level. This means that the nodes with only one edge connection will
-   * be unpacked if they are a cluster. This can be repeated as many times as needed.
-   * This can be called externally (by a key-bind for instance) to look into clusters without zooming.
-   */
-  exports.decreaseClusterLevel = function() {
-    this.updateClusters(1,false,true);
-  };
-
-
-  /**
-   * This is the main clustering function. It clusters and declusters on zoom or forced
-   * This function clusters on zoom, it can be called with a predefined zoom direction
-   * If out, check if we can form clusters, if in, check if we can open clusters.
-   * This function is only called from _zoom()
-   *
-   * @param {Number} zoomDirection  | -1 / 0 / +1   for  zoomOut / determineByZoom / zoomIn
-   * @param {Boolean} recursive     | enabled or disable recursive calling of the opening of clusters
-   * @param {Boolean} force         | enabled or disable forcing
-   * @param {Boolean} doNotStart    | if true do not call start
-   *
-   */
-  exports.updateClusters = function(zoomDirection,recursive,force,doNotStart) {
-    var isMovingBeforeClustering = this.moving;
-    var amountOfNodes = this.nodeIndices.length;
-
-    // on zoom out collapse the sector if the scale is at the level the sector was made
-    if (this.previousScale > this.scale && zoomDirection == 0) {
-      this._collapseSector();
-    }
-
-    // check if we zoom in or out
-    if (this.previousScale > this.scale || zoomDirection == -1) { // zoom out
-      // forming clusters when forced pulls outliers in. When not forced, the edge length of the
-      // outer nodes determines if it is being clustered
-      this._formClusters(force);
-    }
-    else if (this.previousScale < this.scale || zoomDirection == 1) { // zoom in
-      if (force == true) {
-        // _openClusters checks for each node if the formationScale of the cluster is smaller than
-        // the current scale and if so, declusters. When forced, all clusters are reduced by one step
-        this._openClusters(recursive,force);
-      }
-      else {
-        // if a cluster takes up a set percentage of the active window
-        this._openClustersBySize();
-      }
-    }
-    this._updateNodeIndexList();
-
-    // if a cluster was NOT formed and the user zoomed out, we try clustering by hubs
-    if (this.nodeIndices.length == amountOfNodes && (this.previousScale > this.scale || zoomDirection == -1))  {
-      this._aggregateHubs(force);
-      this._updateNodeIndexList();
-    }
-
-    // we now reduce chains.
-    if (this.previousScale > this.scale || zoomDirection == -1) { // zoom out
-      this.handleChains();
-      this._updateNodeIndexList();
-    }
-
-    this.previousScale = this.scale;
-
-    // rest of the update the index list, dynamic edges and labels
-    this._updateDynamicEdges();
-    this.updateLabels();
-
-    // if a cluster was formed, we increase the clusterSession
-    if (this.nodeIndices.length < amountOfNodes) { // this means a clustering operation has taken place
-      this.clusterSession += 1;
-      // if clusters have been made, we normalize the cluster level
-      this.normalizeClusterLevels();
-    }
-
-    if (doNotStart == false || doNotStart === undefined) {
-      // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
-      if (this.moving != isMovingBeforeClustering) {
-        this.start();
-      }
-    }
-
-    this._updateCalculationNodes();
-  };
-
-  /**
-   * This function handles the chains. It is called on every updateClusters().
-   */
-  exports.handleChains = function() {
-    // after clustering we check how many chains there are
-    var chainPercentage = this._getChainFraction();
-    if (chainPercentage > this.constants.clustering.chainThreshold) {
-      this._reduceAmountOfChains(1 - this.constants.clustering.chainThreshold / chainPercentage)
-
-    }
-  };
-
-  /**
-   * this functions starts clustering by hubs
-   * The minimum hub threshold is set globally
-   *
-   * @private
-   */
-  exports._aggregateHubs = function(force) {
-    this._getHubSize();
-    this._formClustersByHub(force,false);
-  };
-
-
-  /**
-   * This function forces hubs to form.
-   *
-   */
-  exports.forceAggregateHubs = function(doNotStart) {
-    var isMovingBeforeClustering = this.moving;
-    var amountOfNodes = this.nodeIndices.length;
-
-    this._aggregateHubs(true);
-
-    // update the index list, dynamic edges and labels
-    this._updateNodeIndexList();
-    this._updateCalculationNodes();
-    this._updateDynamicEdges();
-    this.updateLabels();
-
-    // if a cluster was formed, we increase the clusterSession
-    if (this.nodeIndices.length != amountOfNodes) {
-      this.clusterSession += 1;
-    }
-
-    if (doNotStart == false || doNotStart === undefined) {
-      // if the simulation was settled, we restart the simulation if a cluster has been formed or expanded
-      if (this.moving != isMovingBeforeClustering) {
-        this.start();
-      }
-    }
-  };
-
-  /**
-   * If a cluster takes up more than a set percentage of the screen, open the cluster
-   *
-   * @private
-   */
-  exports._openClustersBySize = function() {
-    for (var nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        var node = this.nodes[nodeId];
-        if (node.inView() == true) {
-          if ((node.width*this.scale > this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientWidth) ||
-              (node.height*this.scale > this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientHeight)) {
-            this.openCluster(node);
-          }
-        }
-      }
-    }
-  };
-
-
-  /**
-   * This function loops over all nodes in the nodeIndices list. For each node it checks if it is a cluster and if it
-   * has to be opened based on the current zoom level.
-   *
-   * @private
-   */
-  exports._openClusters = function(recursive,force) {
-    for (var i = 0; i < this.nodeIndices.length; i++) {
-      var node = this.nodes[this.nodeIndices[i]];
-      this._expandClusterNode(node,recursive,force);
-      this._updateCalculationNodes();
-    }
-  };
-
-  /**
-   * This function checks if a node has to be opened. This is done by checking the zoom level.
-   * If the node contains child nodes, this function is recursively called on the child nodes as well.
-   * This recursive behaviour is optional and can be set by the recursive argument.
-   *
-   * @param {Node}    parentNode    | to check for cluster and expand
-   * @param {Boolean} recursive     | enabled or disable recursive calling
-   * @param {Boolean} force         | enabled or disable forcing
-   * @param {Boolean} [openAll]     | This will recursively force all nodes in the parent to be released
-   * @private
-   */
-  exports._expandClusterNode = function(parentNode, recursive, force, openAll) {
-    // first check if node is a cluster
-    if (parentNode.clusterSize > 1) {
-      // this means that on a double tap event or a zoom event, the cluster fully unpacks if it is smaller than 20
-      if (parentNode.clusterSize < this.constants.clustering.sectorThreshold) {
-        openAll = true;
-      }
-      recursive = openAll ? true : recursive;
-
-      // if the last child has been added on a smaller scale than current scale decluster
-      if (parentNode.formationScale < this.scale || force == true) {
-        // we will check if any of the contained child nodes should be removed from the cluster
-        for (var containedNodeId in parentNode.containedNodes) {
-          if (parentNode.containedNodes.hasOwnProperty(containedNodeId)) {
-            var childNode = parentNode.containedNodes[containedNodeId];
-
-            // force expand will expand the largest cluster size clusters. Since we cluster from outside in, we assume that
-            // the largest cluster is the one that comes from outside
-            if (force == true) {
-              if (childNode.clusterSession == parentNode.clusterSessions[parentNode.clusterSessions.length-1]
-                  || openAll) {
-                this._expelChildFromParent(parentNode,containedNodeId,recursive,force,openAll);
-              }
-            }
-            else {
-              if (this._nodeInActiveArea(parentNode)) {
-                this._expelChildFromParent(parentNode,containedNodeId,recursive,force,openAll);
-              }
-            }
-          }
-        }
-      }
-    }
-  };
-
-  /**
-   * ONLY CALLED FROM _expandClusterNode
-   *
-   * This function will expel a child_node from a parent_node. This is to de-cluster the node. This function will remove
-   * the child node from the parent contained_node object and put it back into the global nodes object.
-   * The same holds for the edge that was connected to the child node. It is moved back into the global edges object.
-   *
-   * @param {Node}    parentNode        | the parent node
-   * @param {String}  containedNodeId   | child_node id as it is contained in the containedNodes object of the parent node
-   * @param {Boolean} recursive         | This will also check if the child needs to be expanded.
-   *                                      With force and recursive both true, the entire cluster is unpacked
-   * @param {Boolean} force             | This will disregard the zoom level and will expel this child from the parent
-   * @param {Boolean} openAll           | This will recursively force all nodes in the parent to be released
-   * @private
-   */
-  exports._expelChildFromParent = function(parentNode, containedNodeId, recursive, force, openAll) {
-    var childNode = parentNode.containedNodes[containedNodeId]
-
-    // if child node has been added on smaller scale than current, kick out
-    if (childNode.formationScale < this.scale || force == true) {
-      // unselect all selected items
-      this._unselectAll();
-
-      // put the child node back in the global nodes object
-      this.nodes[containedNodeId] = childNode;
-
-      // release the contained edges from this childNode back into the global edges
-      this._releaseContainedEdges(parentNode,childNode);
-
-      // reconnect rerouted edges to the childNode
-      this._connectEdgeBackToChild(parentNode,childNode);
-
-      // validate all edges in dynamicEdges
-      this._validateEdges(parentNode);
-
-      // undo the changes from the clustering operation on the parent node
-      parentNode.options.mass -= childNode.options.mass;
-      parentNode.clusterSize -= childNode.clusterSize;
-      parentNode.options.fontSize = Math.min(this.constants.clustering.maxFontSize, this.constants.nodes.fontSize + this.constants.clustering.fontSizeMultiplier*(parentNode.clusterSize-1));
-      parentNode.dynamicEdgesLength = parentNode.dynamicEdges.length;
-
-      // place the child node near the parent, not at the exact same location to avoid chaos in the system
-      childNode.x = parentNode.x + parentNode.growthIndicator * (0.5 - Math.random());
-      childNode.y = parentNode.y + parentNode.growthIndicator * (0.5 - Math.random());
-
-      // remove node from the list
-      delete parentNode.containedNodes[containedNodeId];
-
-      // check if there are other childs with this clusterSession in the parent.
-      var othersPresent = false;
-      for (var childNodeId in parentNode.containedNodes) {
-        if (parentNode.containedNodes.hasOwnProperty(childNodeId)) {
-          if (parentNode.containedNodes[childNodeId].clusterSession == childNode.clusterSession) {
-            othersPresent = true;
-            break;
-          }
-        }
-      }
-      // if there are no others, remove the cluster session from the list
-      if (othersPresent == false) {
-        parentNode.clusterSessions.pop();
-      }
-
-      this._repositionBezierNodes(childNode);
-  //      this._repositionBezierNodes(parentNode);
-
-      // remove the clusterSession from the child node
-      childNode.clusterSession = 0;
-
-      // recalculate the size of the node on the next time the node is rendered
-      parentNode.clearSizeCache();
-
-      // restart the simulation to reorganise all nodes
-      this.moving = true;
-    }
-
-    // check if a further expansion step is possible if recursivity is enabled
-    if (recursive == true) {
-      this._expandClusterNode(childNode,recursive,force,openAll);
-    }
-  };
-
-
-  /**
-   * position the bezier nodes at the center of the edges
-   *
-   * @param node
-   * @private
-   */
-  exports._repositionBezierNodes = function(node) {
-    for (var i = 0; i < node.dynamicEdges.length; i++) {
-      node.dynamicEdges[i].positionBezierNode();
-    }
-  };
-
-
-  /**
-   * This function checks if any nodes at the end of their trees have edges below a threshold length
-   * This function is called only from updateClusters()
-   * forceLevelCollapse ignores the length of the edge and collapses one level
-   * This means that a node with only one edge will be clustered with its connected node
-   *
-   * @private
-   * @param {Boolean} force
-   */
-  exports._formClusters = function(force) {
-    if (force == false) {
-      this._formClustersByZoom();
-    }
-    else {
-      this._forceClustersByZoom();
-    }
-  };
-
-
-  /**
-   * This function handles the clustering by zooming out, this is based on a minimum edge distance
-   *
-   * @private
-   */
-  exports._formClustersByZoom = function() {
-    var dx,dy,length,
-        minLength = this.constants.clustering.clusterEdgeThreshold/this.scale;
-
-    // check if any edges are shorter than minLength and start the clustering
-    // the clustering favours the node with the larger mass
-    for (var edgeId in this.edges) {
-      if (this.edges.hasOwnProperty(edgeId)) {
-        var edge = this.edges[edgeId];
-        if (edge.connected) {
-          if (edge.toId != edge.fromId) {
-            dx = (edge.to.x - edge.from.x);
-            dy = (edge.to.y - edge.from.y);
-            length = Math.sqrt(dx * dx + dy * dy);
-
-
-            if (length < minLength) {
-              // first check which node is larger
-              var parentNode = edge.from;
-              var childNode = edge.to;
-              if (edge.to.options.mass > edge.from.options.mass) {
-                parentNode = edge.to;
-                childNode = edge.from;
-              }
-
-              if (childNode.dynamicEdgesLength == 1) {
-                this._addToCluster(parentNode,childNode,false);
-              }
-              else if (parentNode.dynamicEdgesLength == 1) {
-                this._addToCluster(childNode,parentNode,false);
-              }
-            }
-          }
-        }
-      }
-    }
-  };
-
-  /**
-   * This function forces the network to cluster all nodes with only one connecting edge to their
-   * connected node.
-   *
-   * @private
-   */
-  exports._forceClustersByZoom = function() {
-    for (var nodeId in this.nodes) {
-      // another node could have absorbed this child.
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        var childNode = this.nodes[nodeId];
-
-        // the edges can be swallowed by another decrease
-
-        if (childNode.dynamicEdgesLength == 1 && childNode.dynamicEdges.length != 0) {
-          var edge = childNode.dynamicEdges[0];
-          var parentNode = (edge.toId == childNode.id) ? this.nodes[edge.fromId] : this.nodes[edge.toId];
-          // group to the largest node
-          if (childNode.id != parentNode.id) {
-            if (parentNode.options.mass > childNode.options.mass) {
-              this._addToCluster(parentNode,childNode,true);
-            }
-            else {
-              this._addToCluster(childNode,parentNode,true);
-            }
-          }
-        }
-      }
-    }
-  };
-
-
-  /**
-   * To keep the nodes of roughly equal size we normalize the cluster levels.
-   * This function clusters a node to its smallest connected neighbour.
-   *
-   * @param node
-   * @private
-   */
-  exports._clusterToSmallestNeighbour = function(node) {
-    var smallestNeighbour = -1;
-    var smallestNeighbourNode = null;
-    for (var i = 0; i < node.dynamicEdges.length; i++) {
-      if (node.dynamicEdges[i] !== undefined) {
-        var neighbour = null;
-        if (node.dynamicEdges[i].fromId != node.id) {
-          neighbour = node.dynamicEdges[i].from;
-        }
-        else if (node.dynamicEdges[i].toId != node.id) {
-          neighbour = node.dynamicEdges[i].to;
-        }
-
-
-        if (neighbour != null && smallestNeighbour > neighbour.clusterSessions.length) {
-          smallestNeighbour = neighbour.clusterSessions.length;
-          smallestNeighbourNode = neighbour;
-        }
-      }
-    }
-
-    if (neighbour != null && this.nodes[neighbour.id] !== undefined) {
-      this._addToCluster(neighbour, node, true);
-    }
-  };
-
-
-  /**
-   * This function forms clusters from hubs, it loops over all nodes
-   *
-   * @param {Boolean} force         |   Disregard zoom level
-   * @param {Boolean} onlyEqual     |   This only clusters a hub with a specific number of edges
-   * @private
-   */
-  exports._formClustersByHub = function(force, onlyEqual) {
-    // we loop over all nodes in the list
-    for (var nodeId in this.nodes) {
-      // we check if it is still available since it can be used by the clustering in this loop
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        this._formClusterFromHub(this.nodes[nodeId],force,onlyEqual);
-      }
-    }
-  };
-
-  /**
-   * This function forms a cluster from a specific preselected hub node
-   *
-   * @param {Node}    hubNode       |   the node we will cluster as a hub
-   * @param {Boolean} force         |   Disregard zoom level
-   * @param {Boolean} onlyEqual     |   This only clusters a hub with a specific number of edges
-   * @param {Number} [absorptionSizeOffset] |
-   * @private
-   */
-  exports._formClusterFromHub = function(hubNode, force, onlyEqual, absorptionSizeOffset) {
-    if (absorptionSizeOffset === undefined) {
-      absorptionSizeOffset = 0;
-    }
-
-    if (hubNode.dynamicEdgesLength < 0) {
-      console.error(hubNode.dynamicEdgesLength, this.hubThreshold, onlyEqual)
-    }
-    // we decide if the node is a hub
-    if ((hubNode.dynamicEdgesLength >= this.hubThreshold && onlyEqual == false) ||
-      (hubNode.dynamicEdgesLength == this.hubThreshold && onlyEqual == true)) {
-
-      // initialize variables
-      var dx,dy,length;
-      var minLength = this.constants.clustering.clusterEdgeThreshold/this.scale;
-      var allowCluster = false;
-
-      // we create a list of edges because the dynamicEdges change over the course of this loop
-      var edgesIdarray = [];
-      var amountOfInitialEdges = hubNode.dynamicEdges.length;
-      for (var j = 0; j < amountOfInitialEdges; j++) {
-        edgesIdarray.push(hubNode.dynamicEdges[j].id);
-      }
-
-      // if the hub clustering is not forced, we check if one of the edges connected
-      // to a cluster is small enough based on the constants.clustering.clusterEdgeThreshold
-      if (force == false) {
-        allowCluster = false;
-        for (j = 0; j < amountOfInitialEdges; j++) {
-          var edge = this.edges[edgesIdarray[j]];
-          if (edge !== undefined) {
-            if (edge.connected) {
-              if (edge.toId != edge.fromId) {
-                dx = (edge.to.x - edge.from.x);
-                dy = (edge.to.y - edge.from.y);
-                length = Math.sqrt(dx * dx + dy * dy);
-
-                if (length < minLength) {
-                  allowCluster = true;
-                  break;
-                }
-              }
-            }
-          }
-        }
-      }
-
-      // start the clustering if allowed
-      if ((!force && allowCluster) || force) {
-        var children = [];
-        var childrenIds = {};
-        // we loop over all edges INITIALLY connected to this hub to get a list of the childNodes
-        for (j = 0; j < amountOfInitialEdges; j++) {
-          edge = this.edges[edgesIdarray[j]];
-          var childNode = this.nodes[(edge.fromId == hubNode.id) ? edge.toId : edge.fromId];
-          if (childrenIds[childNode.id] === undefined) {
-            childrenIds[childNode.id] = true;
-            children.push(childNode);
-          }
-        }
-
-        for (j = 0; j < children.length; j++) {
-          var childNode = children[j];
-          // we do not want hubs to merge with other hubs nor do we want to cluster itself.
-          if ((childNode.dynamicEdges.length <= (this.hubThreshold + absorptionSizeOffset)) &&
-            (childNode.id != hubNode.id)) {
-            this._addToCluster(hubNode,childNode,force);
-          }
-        }
-      }
-    }
-  };
-
-
-
-  /**
-   * This function adds the child node to the parent node, creating a cluster if it is not already.
-   *
-   * @param {Node} parentNode           | this is the node that will house the child node
-   * @param {Node} childNode            | this node will be deleted from the global this.nodes and stored in the parent node
-   * @param {Boolean} force             | true will only update the remainingEdges at the very end of the clustering, ensuring single level collapse
-   * @private
-   */
-  exports._addToCluster = function(parentNode, childNode, force) {
-    // join child node in the parent node
-    parentNode.containedNodes[childNode.id] = childNode;
-    //console.log(parentNode.id, childNode.id)
-    // manage all the edges connected to the child and parent nodes
-    for (var i = 0; i < childNode.dynamicEdges.length; i++) {
-      var edge = childNode.dynamicEdges[i];
-      if (edge.toId == parentNode.id || edge.fromId == parentNode.id) { // edge connected to parentNode
-        //console.log("COLLECT",parentNode.id, childNode.id, edge.toId, edge.fromId)
-        this._addToContainedEdges(parentNode,childNode,edge);
-      }
-      else {
-        //console.log("REWIRE",parentNode.id, childNode.id, edge.toId, edge.fromId)
-        this._connectEdgeToCluster(parentNode,childNode,edge);
-      }
-    }
-    // a contained node has no dynamic edges.
-    childNode.dynamicEdges = [];
-
-    // remove circular edges from clusters
-    this._containCircularEdgesFromNode(parentNode,childNode);
-
-
-    // remove the childNode from the global nodes object
-    delete this.nodes[childNode.id];
-
-    // update the properties of the child and parent
-    var massBefore = parentNode.options.mass;
-    childNode.clusterSession = this.clusterSession;
-    parentNode.options.mass += childNode.options.mass;
-    parentNode.clusterSize += childNode.clusterSize;
-    parentNode.options.fontSize = Math.min(this.constants.clustering.maxFontSize, this.constants.nodes.fontSize + this.constants.clustering.fontSizeMultiplier*parentNode.clusterSize);
-
-    // keep track of the clustersessions so we can open the cluster up as it has been formed.
-    if (parentNode.clusterSessions[parentNode.clusterSessions.length - 1] != this.clusterSession) {
-      parentNode.clusterSessions.push(this.clusterSession);
-    }
-
-    // forced clusters only open from screen size and double tap
-    if (force == true) {
-      parentNode.formationScale = 0;
-    }
-    else {
-      parentNode.formationScale = this.scale; // The latest child has been added on this scale
-    }
-
-    // recalculate the size of the node on the next time the node is rendered
-    parentNode.clearSizeCache();
-
-    // set the pop-out scale for the childnode
-    parentNode.containedNodes[childNode.id].formationScale = parentNode.formationScale;
-
-    // nullify the movement velocity of the child, this is to avoid hectic behaviour
-    childNode.clearVelocity();
-
-    // the mass has altered, preservation of energy dictates the velocity to be updated
-    parentNode.updateVelocity(massBefore);
-
-    // restart the simulation to reorganise all nodes
-    this.moving = true;
-  };
-
-
-  /**
-   * This function will apply the changes made to the remainingEdges during the formation of the clusters.
-   * This is a seperate function to allow for level-wise collapsing of the node barnesHutTree.
-   * It has to be called if a level is collapsed. It is called by _formClusters().
-   * @private
-   */
-  exports._updateDynamicEdges = function() {
-    for (var i = 0; i < this.nodeIndices.length; i++) {
-      var node = this.nodes[this.nodeIndices[i]];
-      node.dynamicEdgesLength = node.dynamicEdges.length;
-
-      // this corrects for multiple edges pointing at the same other node
-      var correction = 0;
-      if (node.dynamicEdgesLength > 1) {
-        for (var j = 0; j < node.dynamicEdgesLength - 1; j++) {
-          var edgeToId = node.dynamicEdges[j].toId;
-          var edgeFromId = node.dynamicEdges[j].fromId;
-          for (var k = j+1; k < node.dynamicEdgesLength; k++) {
-            if ((node.dynamicEdges[k].toId == edgeToId && node.dynamicEdges[k].fromId == edgeFromId) ||
-                (node.dynamicEdges[k].fromId == edgeToId && node.dynamicEdges[k].toId == edgeFromId)) {
-              correction += 1;
-            }
-          }
-        }
-      }
-      if (node.dynamicEdgesLength < correction) {
-        console.error("overshoot", node.dynamicEdgesLength, correction)
-      }
-
-      node.dynamicEdgesLength -= correction;
-    }
-  };
-
-
-  /**
-   * This adds an edge from the childNode to the contained edges of the parent node
-   *
-   * @param parentNode    | Node object
-   * @param childNode     | Node object
-   * @param edge          | Edge object
-   * @private
-   */
-  exports._addToContainedEdges = function(parentNode, childNode, edge) {
-    // create an array object if it does not yet exist for this childNode
-    if (!(parentNode.containedEdges.hasOwnProperty(childNode.id))) {
-      parentNode.containedEdges[childNode.id] = []
-    }
-    // add this edge to the list
-    parentNode.containedEdges[childNode.id].push(edge);
-
-    // remove the edge from the global edges object
-    delete this.edges[edge.id];
-
-    // remove the edge from the parent object
-    for (var i = 0; i < parentNode.dynamicEdges.length; i++) {
-      if (parentNode.dynamicEdges[i].id == edge.id) {
-        parentNode.dynamicEdges.splice(i,1);
-        break;
-      }
-    }
-  };
-
-  /**
-   * This function connects an edge that was connected to a child node to the parent node.
-   * It keeps track of which nodes it has been connected to with the originalId array.
-   *
-   * @param {Node} parentNode    | Node object
-   * @param {Node} childNode     | Node object
-   * @param {Edge} edge          | Edge object
-   * @private
-   */
-  exports._connectEdgeToCluster = function(parentNode, childNode, edge) {
-    // handle circular edges
-    if (edge.toId == edge.fromId) {
-      this._addToContainedEdges(parentNode, childNode, edge);
-    }
-    else {
-      if (edge.toId == childNode.id) {    // edge connected to other node on the "to" side
-        edge.originalToId.push(childNode.id);
-        edge.to = parentNode;
-        edge.toId = parentNode.id;
-      }
-      else {          // edge connected to other node with the "from" side
-
-        edge.originalFromId.push(childNode.id);
-        edge.from = parentNode;
-        edge.fromId = parentNode.id;
-      }
-
-      this._addToReroutedEdges(parentNode,childNode,edge);
-    }
-  };
-
-
-  /**
-   * If a node is connected to itself, a circular edge is drawn. When clustering we want to contain
-   * these edges inside of the cluster.
-   *
-   * @param parentNode
-   * @param childNode
-   * @private
-   */
-  exports._containCircularEdgesFromNode = function(parentNode, childNode) {
-    // manage all the edges connected to the child and parent nodes
-    for (var i = 0; i < parentNode.dynamicEdges.length; i++) {
-      var edge = parentNode.dynamicEdges[i];
-      // handle circular edges
-      if (edge.toId == edge.fromId) {
-        this._addToContainedEdges(parentNode, childNode, edge);
-      }
-    }
-  };
-
-
-  /**
-   * This adds an edge from the childNode to the rerouted edges of the parent node
-   *
-   * @param parentNode    | Node object
-   * @param childNode     | Node object
-   * @param edge          | Edge object
-   * @private
-   */
-  exports._addToReroutedEdges = function(parentNode, childNode, edge) {
-    // create an array object if it does not yet exist for this childNode
-    // we store the edge in the rerouted edges so we can restore it when the cluster pops open
-    if (!(parentNode.reroutedEdges.hasOwnProperty(childNode.id))) {
-      parentNode.reroutedEdges[childNode.id] = [];
-    }
-    parentNode.reroutedEdges[childNode.id].push(edge);
-
-    // this edge becomes part of the dynamicEdges of the cluster node
-    parentNode.dynamicEdges.push(edge);
-   };
-
-
-
-  /**
-   * This function connects an edge that was connected to a cluster node back to the child node.
-   *
-   * @param parentNode    | Node object
-   * @param childNode     | Node object
-   * @private
-   */
-  exports._connectEdgeBackToChild = function(parentNode, childNode) {
-    if (parentNode.reroutedEdges.hasOwnProperty(childNode.id)) {
-      for (var i = 0; i < parentNode.reroutedEdges[childNode.id].length; i++) {
-        var edge = parentNode.reroutedEdges[childNode.id][i];
-        if (edge.originalFromId[edge.originalFromId.length-1] == childNode.id) {
-          edge.originalFromId.pop();
-          edge.fromId = childNode.id;
-          edge.from = childNode;
-        }
-        else {
-          edge.originalToId.pop();
-          edge.toId = childNode.id;
-          edge.to = childNode;
-        }
-
-        // append this edge to the list of edges connecting to the childnode
-        childNode.dynamicEdges.push(edge);
-
-        // remove the edge from the parent object
-        for (var j = 0; j < parentNode.dynamicEdges.length; j++) {
-          if (parentNode.dynamicEdges[j].id == edge.id) {
-            parentNode.dynamicEdges.splice(j,1);
-            break;
-          }
-        }
-      }
-      // remove the entry from the rerouted edges
-      delete parentNode.reroutedEdges[childNode.id];
-    }
-  };
-
-
-  /**
-   * When loops are clustered, an edge can be both in the rerouted array and the contained array.
-   * This function is called last to verify that all edges in dynamicEdges are in fact connected to the
-   * parentNode
-   *
-   * @param parentNode    | Node object
-   * @private
-   */
-  exports._validateEdges = function(parentNode) {
-    var dynamicEdges = []
-    for (var i = 0; i < parentNode.dynamicEdges.length; i++) {
-      var edge = parentNode.dynamicEdges[i];
-      if (parentNode.id == edge.toId || parentNode.id == edge.fromId) {
-        dynamicEdges.push(edge);
-      }
-    }
-    parentNode.dynamicEdges = dynamicEdges;
-  };
-
-
-  /**
-   * This function released the contained edges back into the global domain and puts them back into the
-   * dynamic edges of both parent and child.
-   *
-   * @param {Node} parentNode    |
-   * @param {Node} childNode     |
-   * @private
-   */
-  exports._releaseContainedEdges = function(parentNode, childNode) {
-    for (var i = 0; i < parentNode.containedEdges[childNode.id].length; i++) {
-      var edge = parentNode.containedEdges[childNode.id][i];
-
-      // put the edge back in the global edges object
-      this.edges[edge.id] = edge;
-
-      // put the edge back in the dynamic edges of the child and parent
-      childNode.dynamicEdges.push(edge);
-      parentNode.dynamicEdges.push(edge);
-    }
-    // remove the entry from the contained edges
-    delete parentNode.containedEdges[childNode.id];
-
-  };
-
-
-
-
-  // ------------------- UTILITY FUNCTIONS ---------------------------- //
-
-
-  /**
-   * This updates the node labels for all nodes (for debugging purposes)
-   */
-  exports.updateLabels = function() {
-    var nodeId;
-    // update node labels
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        var node = this.nodes[nodeId];
-        if (node.clusterSize > 1) {
-          node.label = "[".concat(String(node.clusterSize),"]");
-        }
-      }
-    }
-
-    // update node labels
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        node = this.nodes[nodeId];
-        if (node.clusterSize == 1) {
-          if (node.originalLabel !== undefined) {
-            node.label = node.originalLabel;
-          }
-          else {
-            node.label = String(node.id);
-          }
-        }
-      }
-    }
-
-  //    /* Debug Override */
-  //    for (nodeId in this.nodes) {
-  //      if (this.nodes.hasOwnProperty(nodeId)) {
-  //        node = this.nodes[nodeId];
-  //        node.label = String(node.level);
-  //      }
-  //    }
-
-  };
-
-
-  /**
-   * We want to keep the cluster level distribution rather small. This means we do not want unclustered nodes
-   * if the rest of the nodes are already a few cluster levels in.
-   * To fix this we use this function. It determines the min and max cluster level and sends nodes that have not
-   * clustered enough to the clusterToSmallestNeighbours function.
-   */
-  exports.normalizeClusterLevels = function() {
-    var maxLevel = 0;
-    var minLevel = 1e9;
-    var clusterLevel = 0;
-    var nodeId;
-
-    // we loop over all nodes in the list
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        clusterLevel = this.nodes[nodeId].clusterSessions.length;
-        if (maxLevel < clusterLevel) {maxLevel = clusterLevel;}
-        if (minLevel > clusterLevel) {minLevel = clusterLevel;}
-      }
-    }
-
-    if (maxLevel - minLevel > this.constants.clustering.clusterLevelDifference) {
-      var amountOfNodes = this.nodeIndices.length;
-      var targetLevel = maxLevel - this.constants.clustering.clusterLevelDifference;
-      // we loop over all nodes in the list
-      for (nodeId in this.nodes) {
-        if (this.nodes.hasOwnProperty(nodeId)) {
-          if (this.nodes[nodeId].clusterSessions.length < targetLevel) {
-            this._clusterToSmallestNeighbour(this.nodes[nodeId]);
-          }
-        }
-      }
-      this._updateNodeIndexList();
-      this._updateDynamicEdges();
-      // if a cluster was formed, we increase the clusterSession
-      if (this.nodeIndices.length != amountOfNodes) {
-        this.clusterSession += 1;
-      }
-    }
-  };
-
-
-
-  /**
-   * This function determines if the cluster we want to decluster is in the active area
-   * this means around the zoom center
-   *
-   * @param {Node} node
-   * @returns {boolean}
-   * @private
-   */
-  exports._nodeInActiveArea = function(node) {
-    return (
-      Math.abs(node.x - this.areaCenter.x) <= this.constants.clustering.activeAreaBoxSize/this.scale
-        &&
-      Math.abs(node.y - this.areaCenter.y) <= this.constants.clustering.activeAreaBoxSize/this.scale
-      )
-  };
-
-
-  /**
-   * This is an adaptation of the original repositioning function. This is called if the system is clustered initially
-   * It puts large clusters away from the center and randomizes the order.
-   *
-   */
-  exports.repositionNodes = function() {
-    for (var i = 0; i < this.nodeIndices.length; i++) {
-      var node = this.nodes[this.nodeIndices[i]];
-      if ((node.xFixed == false || node.yFixed == false)) {
-        var radius = 10 * 0.1*this.nodeIndices.length * Math.min(100,node.options.mass);
-        var angle = 2 * Math.PI * Math.random();
-        if (node.xFixed == false) {node.x = radius * Math.cos(angle);}
-        if (node.yFixed == false) {node.y = radius * Math.sin(angle);}
-        this._repositionBezierNodes(node);
-      }
-    }
-  };
-
-
-  /**
-   * We determine how many connections denote an important hub.
-   * We take the mean + 2*std as the important hub size. (Assuming a normal distribution of data, ~2.2%)
-   *
-   * @private
-   */
-  exports._getHubSize = function() {
-    var average = 0;
-    var averageSquared = 0;
-    var hubCounter = 0;
-    var largestHub = 0;
-
-    for (var i = 0; i < this.nodeIndices.length; i++) {
-
-      var node = this.nodes[this.nodeIndices[i]];
-      if (node.dynamicEdgesLength > largestHub) {
-        largestHub = node.dynamicEdgesLength;
-      }
-      average += node.dynamicEdgesLength;
-      averageSquared += Math.pow(node.dynamicEdgesLength,2);
-      hubCounter += 1;
-    }
-    average = average / hubCounter;
-    averageSquared = averageSquared / hubCounter;
-
-    var variance = averageSquared - Math.pow(average,2);
-
-    var standardDeviation = Math.sqrt(variance);
-
-    this.hubThreshold = Math.floor(average + 2*standardDeviation);
-
-    // always have at least one to cluster
-    if (this.hubThreshold > largestHub) {
-      this.hubThreshold = largestHub;
-    }
-
-  //  console.log("average",average,"averageSQ",averageSquared,"var",variance,"std",standardDeviation);
-  //  console.log("hubThreshold:",this.hubThreshold);
-  };
-
-
-  /**
-   * We reduce the amount of "extension nodes" or chains. These are not quickly clustered with the outliers and hubs methods
-   * with this amount we can cluster specifically on these chains.
-   *
-   * @param   {Number} fraction     | between 0 and 1, the percentage of chains to reduce
-   * @private
-   */
-  exports._reduceAmountOfChains = function(fraction) {
-    this.hubThreshold = 2;
-    var reduceAmount = Math.floor(this.nodeIndices.length * fraction);
-    for (var nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        if (this.nodes[nodeId].dynamicEdgesLength == 2 && this.nodes[nodeId].dynamicEdges.length >= 2) {
-          if (reduceAmount > 0) {
-            this._formClusterFromHub(this.nodes[nodeId],true,true,1);
-            reduceAmount -= 1;
-          }
-        }
-      }
-    }
-  };
-
-  /**
-   * We get the amount of "extension nodes" or chains. These are not quickly clustered with the outliers and hubs methods
-   * with this amount we can cluster specifically on these chains.
-   *
-   * @private
-   */
-  exports._getChainFraction = function() {
-    var chains = 0;
-    var total = 0;
-    for (var nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        if (this.nodes[nodeId].dynamicEdgesLength == 2 && this.nodes[nodeId].dynamicEdges.length >= 2) {
-          chains += 1;
-        }
-        total += 1;
-      }
-    }
-    return chains/total;
-  };
-
-
-/***/ },
-/* 62 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var util = __webpack_require__(1);
-  var Node = __webpack_require__(40);
-
-  /**
-   * Creation of the SectorMixin var.
-   *
-   * This contains all the functions the Network object can use to employ the sector system.
-   * The sector system is always used by Network, though the benefits only apply to the use of clustering.
-   * If clustering is not used, there is no overhead except for a duplicate object with references to nodes and edges.
-   */
-
-  /**
-   * This function is only called by the setData function of the Network object.
-   * This loads the global references into the active sector. This initializes the sector.
-   *
-   * @private
-   */
-  exports._putDataInSector = function() {
-    this.sectors["active"][this._sector()].nodes = this.nodes;
-    this.sectors["active"][this._sector()].edges = this.edges;
-    this.sectors["active"][this._sector()].nodeIndices = this.nodeIndices;
-  };
-
-
-  /**
-   *  /**
-   * This function sets the global references to nodes, edges and nodeIndices back to
-   * those of the supplied (active) sector. If a type is defined, do the specific type
-   *
-   * @param {String} sectorId
-   * @param {String} [sectorType] | "active" or "frozen"
-   * @private
-   */
-  exports._switchToSector = function(sectorId, sectorType) {
-    if (sectorType === undefined || sectorType == "active") {
-      this._switchToActiveSector(sectorId);
-    }
-    else {
-      this._switchToFrozenSector(sectorId);
-    }
-  };
-
-
-  /**
-   * This function sets the global references to nodes, edges and nodeIndices back to
-   * those of the supplied active sector.
-   *
-   * @param sectorId
-   * @private
-   */
-  exports._switchToActiveSector = function(sectorId) {
-    this.nodeIndices = this.sectors["active"][sectorId]["nodeIndices"];
-    this.nodes       = this.sectors["active"][sectorId]["nodes"];
-    this.edges       = this.sectors["active"][sectorId]["edges"];
-  };
-
-
-  /**
-   * This function sets the global references to nodes, edges and nodeIndices back to
-   * those of the supplied active sector.
-   *
-   * @private
-   */
-  exports._switchToSupportSector = function() {
-    this.nodeIndices = this.sectors["support"]["nodeIndices"];
-    this.nodes       = this.sectors["support"]["nodes"];
-    this.edges       = this.sectors["support"]["edges"];
-  };
-
-
-  /**
-   * This function sets the global references to nodes, edges and nodeIndices back to
-   * those of the supplied frozen sector.
-   *
-   * @param sectorId
-   * @private
-   */
-  exports._switchToFrozenSector = function(sectorId) {
-    this.nodeIndices = this.sectors["frozen"][sectorId]["nodeIndices"];
-    this.nodes       = this.sectors["frozen"][sectorId]["nodes"];
-    this.edges       = this.sectors["frozen"][sectorId]["edges"];
-  };
-
-
-  /**
-   * This function sets the global references to nodes, edges and nodeIndices back to
-   * those of the currently active sector.
-   *
-   * @private
-   */
-  exports._loadLatestSector = function() {
-    this._switchToSector(this._sector());
-  };
-
-
-  /**
-   * This function returns the currently active sector Id
-   *
-   * @returns {String}
-   * @private
-   */
-  exports._sector = function() {
-    return this.activeSector[this.activeSector.length-1];
-  };
-
-
-  /**
-   * This function returns the previously active sector Id
-   *
-   * @returns {String}
-   * @private
-   */
-  exports._previousSector = function() {
-    if (this.activeSector.length > 1) {
-      return this.activeSector[this.activeSector.length-2];
-    }
-    else {
-      throw new TypeError('there are not enough sectors in the this.activeSector array.');
-    }
-  };
-
-
-  /**
-   * We add the active sector at the end of the this.activeSector array
-   * This ensures it is the currently active sector returned by _sector() and it reaches the top
-   * of the activeSector stack. When we reverse our steps we move from the end to the beginning of this stack.
-   *
-   * @param newId
-   * @private
-   */
-  exports._setActiveSector = function(newId) {
-    this.activeSector.push(newId);
-  };
-
-
-  /**
-   * We remove the currently active sector id from the active sector stack. This happens when
-   * we reactivate the previously active sector
-   *
-   * @private
-   */
-  exports._forgetLastSector = function() {
-    this.activeSector.pop();
-  };
-
-
-  /**
-   * This function creates a new active sector with the supplied newId. This newId
-   * is the expanding node id.
-   *
-   * @param {String} newId   | Id of the new active sector
-   * @private
-   */
-  exports._createNewSector = function(newId) {
-    // create the new sector
-    this.sectors["active"][newId] = {"nodes":{},
-                                     "edges":{},
-                                     "nodeIndices":[],
-                                     "formationScale": this.scale,
-                                     "drawingNode": undefined};
-
-    // create the new sector render node. This gives visual feedback that you are in a new sector.
-    this.sectors["active"][newId]['drawingNode'] = new Node(
-        {id:newId,
-          color: {
-            background: "#eaefef",
-            border: "495c5e"
-          }
-        },{},{},this.constants);
-    this.sectors["active"][newId]['drawingNode'].clusterSize = 2;
-  };
-
-
-  /**
-   * This function removes the currently active sector. This is called when we create a new
-   * active sector.
-   *
-   * @param {String} sectorId   | Id of the active sector that will be removed
-   * @private
-   */
-  exports._deleteActiveSector = function(sectorId) {
-    delete this.sectors["active"][sectorId];
-  };
-
-
-  /**
-   * This function removes the currently active sector. This is called when we reactivate
-   * the previously active sector.
-   *
-   * @param {String} sectorId   | Id of the active sector that will be removed
-   * @private
-   */
-  exports._deleteFrozenSector = function(sectorId) {
-    delete this.sectors["frozen"][sectorId];
-  };
-
-
-  /**
-   * Freezing an active sector means moving it from the "active" object to the "frozen" object.
-   * We copy the references, then delete the active entree.
-   *
-   * @param sectorId
-   * @private
-   */
-  exports._freezeSector = function(sectorId) {
-    // we move the set references from the active to the frozen stack.
-    this.sectors["frozen"][sectorId] = this.sectors["active"][sectorId];
-
-    // we have moved the sector data into the frozen set, we now remove it from the active set
-    this._deleteActiveSector(sectorId);
-  };
-
-
-  /**
-   * This is the reverse operation of _freezeSector. Activating means moving the sector from the "frozen"
-   * object to the "active" object.
-   *
-   * @param sectorId
-   * @private
-   */
-  exports._activateSector = function(sectorId) {
-    // we move the set references from the frozen to the active stack.
-    this.sectors["active"][sectorId] = this.sectors["frozen"][sectorId];
-
-    // we have moved the sector data into the active set, we now remove it from the frozen stack
-    this._deleteFrozenSector(sectorId);
-  };
-
-
-  /**
-   * This function merges the data from the currently active sector with a frozen sector. This is used
-   * in the process of reverting back to the previously active sector.
-   * The data that is placed in the frozen (the previously active) sector is the node that has been removed from it
-   * upon the creation of a new active sector.
-   *
-   * @param sectorId
-   * @private
-   */
-  exports._mergeThisWithFrozen = function(sectorId) {
-    // copy all nodes
-    for (var nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        this.sectors["frozen"][sectorId]["nodes"][nodeId] = this.nodes[nodeId];
-      }
-    }
-
-    // copy all edges (if not fully clustered, else there are no edges)
-    for (var edgeId in this.edges) {
-      if (this.edges.hasOwnProperty(edgeId)) {
-        this.sectors["frozen"][sectorId]["edges"][edgeId] = this.edges[edgeId];
-      }
-    }
-
-    // merge the nodeIndices
-    for (var i = 0; i < this.nodeIndices.length; i++) {
-      this.sectors["frozen"][sectorId]["nodeIndices"].push(this.nodeIndices[i]);
-    }
-  };
-
-
-  /**
-   * This clusters the sector to one cluster. It was a single cluster before this process started so
-   * we revert to that state. The clusterToFit function with a maximum size of 1 node does this.
-   *
-   * @private
-   */
-  exports._collapseThisToSingleCluster = function() {
-    this.clusterToFit(1,false);
-  };
-
-
-  /**
-   * We create a new active sector from the node that we want to open.
-   *
-   * @param node
-   * @private
-   */
-  exports._addSector = function(node) {
-    // this is the currently active sector
-    var sector = this._sector();
-
-  //    // this should allow me to select nodes from a frozen set.
-  //    if (this.sectors['active'][sector]["nodes"].hasOwnProperty(node.id)) {
-  //      console.log("the node is part of the active sector");
-  //    }
-  //    else {
-  //      console.log("I dont know what the fuck happened!!");
-  //    }
-
-    // when we switch to a new sector, we remove the node that will be expanded from the current nodes list.
-    delete this.nodes[node.id];
-
-    var unqiueIdentifier = util.randomUUID();
-
-    // we fully freeze the currently active sector
-    this._freezeSector(sector);
-
-    // we create a new active sector. This sector has the Id of the node to ensure uniqueness
-    this._createNewSector(unqiueIdentifier);
-
-    // we add the active sector to the sectors array to be able to revert these steps later on
-    this._setActiveSector(unqiueIdentifier);
-
-    // we redirect the global references to the new sector's references. this._sector() now returns unqiueIdentifier
-    this._switchToSector(this._sector());
-
-    // finally we add the node we removed from our previous active sector to the new active sector
-    this.nodes[node.id] = node;
-  };
-
-
-  /**
-   * We close the sector that is currently open and revert back to the one before.
-   * If the active sector is the "default" sector, nothing happens.
-   *
-   * @private
-   */
-  exports._collapseSector = function() {
-    // the currently active sector
-    var sector = this._sector();
-
-    // we cannot collapse the default sector
-    if (sector != "default") {
-      if ((this.nodeIndices.length == 1) ||
-       (this.sectors["active"][sector]["drawingNode"].width*this.scale < this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientWidth) ||
-       (this.sectors["active"][sector]["drawingNode"].height*this.scale < this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientHeight)) {
-        var previousSector = this._previousSector();
-
-        // we collapse the sector back to a single cluster
-        this._collapseThisToSingleCluster();
-
-        // we move the remaining nodes, edges and nodeIndices to the previous sector.
-        // This previous sector is the one we will reactivate
-        this._mergeThisWithFrozen(previousSector);
-
-        // the previously active (frozen) sector now has all the data from the currently active sector.
-        // we can now delete the active sector.
-        this._deleteActiveSector(sector);
-
-        // we activate the previously active (and currently frozen) sector.
-        this._activateSector(previousSector);
-
-        // we load the references from the newly active sector into the global references
-        this._switchToSector(previousSector);
-
-        // we forget the previously active sector because we reverted to the one before
-        this._forgetLastSector();
-
-        // finally, we update the node index list.
-        this._updateNodeIndexList();
-
-        // we refresh the list with calulation nodes and calculation node indices.
-        this._updateCalculationNodes();
-      }
-    }
-  };
-
-
-  /**
-   * This runs a function in all active sectors. This is used in _redraw() and the _initializeForceCalculation().
-   *
-   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
-   *                              |   we dont pass the function itself because then the "this" is the window object
-   *                              |   instead of the Network object
-   * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
-   * @private
-   */
-  exports._doInAllActiveSectors = function(runFunction,argument) {
-    var returnValues = [];
-    if (argument === undefined) {
-      for (var sector in this.sectors["active"]) {
-        if (this.sectors["active"].hasOwnProperty(sector)) {
-          // switch the global references to those of this sector
-          this._switchToActiveSector(sector);
-          returnValues.push( this[runFunction]() );
-        }
-      }
-    }
-    else {
-      for (var sector in this.sectors["active"]) {
-        if (this.sectors["active"].hasOwnProperty(sector)) {
-          // switch the global references to those of this sector
-          this._switchToActiveSector(sector);
-          var args = Array.prototype.splice.call(arguments, 1);
-          if (args.length > 1) {
-            returnValues.push( this[runFunction](args[0],args[1]) );
-          }
-          else {
-            returnValues.push( this[runFunction](argument) );
-          }
-        }
-      }
-    }
-    // we revert the global references back to our active sector
-    this._loadLatestSector();
-    return returnValues;
-  };
-
-
-  /**
-   * This runs a function in all active sectors. This is used in _redraw() and the _initializeForceCalculation().
-   *
-   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
-   *                              |   we dont pass the function itself because then the "this" is the window object
-   *                              |   instead of the Network object
-   * @param {*} [argument]        |   Optional: arguments to pass to the runFunction
-   * @private
-   */
-  exports._doInSupportSector = function(runFunction,argument) {
-    var returnValues = false;
-    if (argument === undefined) {
-      this._switchToSupportSector();
-      returnValues = this[runFunction]();
-    }
-    else {
-      this._switchToSupportSector();
-      var args = Array.prototype.splice.call(arguments, 1);
-      if (args.length > 1) {
-        returnValues = this[runFunction](args[0],args[1]);
-      }
-      else {
-        returnValues = this[runFunction](argument);
-      }
-    }
-    // we revert the global references back to our active sector
-    this._loadLatestSector();
-    return returnValues;
-  };
-
-
-  /**
-   * This runs a function in all frozen sectors. This is used in the _redraw().
-   *
-   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
-   *                              |   we don't pass the function itself because then the "this" is the window object
-   *                              |   instead of the Network object
-   * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
-   * @private
-   */
-  exports._doInAllFrozenSectors = function(runFunction,argument) {
-    if (argument === undefined) {
-      for (var sector in this.sectors["frozen"]) {
-        if (this.sectors["frozen"].hasOwnProperty(sector)) {
-          // switch the global references to those of this sector
-          this._switchToFrozenSector(sector);
-          this[runFunction]();
-        }
-      }
-    }
-    else {
-      for (var sector in this.sectors["frozen"]) {
-        if (this.sectors["frozen"].hasOwnProperty(sector)) {
-          // switch the global references to those of this sector
-          this._switchToFrozenSector(sector);
-          var args = Array.prototype.splice.call(arguments, 1);
-          if (args.length > 1) {
-            this[runFunction](args[0],args[1]);
-          }
-          else {
-            this[runFunction](argument);
-          }
-        }
-      }
-    }
-    this._loadLatestSector();
-  };
-
-
-  /**
-   * This runs a function in all sectors. This is used in the _redraw().
-   *
-   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
-   *                              |   we don't pass the function itself because then the "this" is the window object
-   *                              |   instead of the Network object
-   * @param {*} [argument]        |   Optional: arguments to pass to the runFunction
-   * @private
-   */
-  exports._doInAllSectors = function(runFunction,argument) {
-    var args = Array.prototype.splice.call(arguments, 1);
-    if (argument === undefined) {
-      this._doInAllActiveSectors(runFunction);
-      this._doInAllFrozenSectors(runFunction);
-    }
-    else {
-      if (args.length > 1) {
-        this._doInAllActiveSectors(runFunction,args[0],args[1]);
-        this._doInAllFrozenSectors(runFunction,args[0],args[1]);
-      }
-      else {
-        this._doInAllActiveSectors(runFunction,argument);
-        this._doInAllFrozenSectors(runFunction,argument);
-      }
-    }
-  };
-
-
-  /**
-   * This clears the nodeIndices list. We cannot use this.nodeIndices = [] because we would break the link with the
-   * active sector. Thus we clear the nodeIndices in the active sector, then reconnect the this.nodeIndices to it.
-   *
-   * @private
-   */
-  exports._clearNodeIndexList = function() {
-    var sector = this._sector();
-    this.sectors["active"][sector]["nodeIndices"] = [];
-    this.nodeIndices = this.sectors["active"][sector]["nodeIndices"];
-  };
-
-
-  /**
-   * Draw the encompassing sector node
-   *
-   * @param ctx
-   * @param sectorType
-   * @private
-   */
-  exports._drawSectorNodes = function(ctx,sectorType) {
-    var minY = 1e9, maxY = -1e9, minX = 1e9, maxX = -1e9, node;
-    for (var sector in this.sectors[sectorType]) {
-      if (this.sectors[sectorType].hasOwnProperty(sector)) {
-        if (this.sectors[sectorType][sector]["drawingNode"] !== undefined) {
-
-          this._switchToSector(sector,sectorType);
-
-          minY = 1e9; maxY = -1e9; minX = 1e9; maxX = -1e9;
-          for (var nodeId in this.nodes) {
-            if (this.nodes.hasOwnProperty(nodeId)) {
-              node = this.nodes[nodeId];
-              node.resize(ctx);
-              if (minX > node.x - 0.5 * node.width) {minX = node.x - 0.5 * node.width;}
-              if (maxX < node.x + 0.5 * node.width) {maxX = node.x + 0.5 * node.width;}
-              if (minY > node.y - 0.5 * node.height) {minY = node.y - 0.5 * node.height;}
-              if (maxY < node.y + 0.5 * node.height) {maxY = node.y + 0.5 * node.height;}
-            }
-          }
-          node = this.sectors[sectorType][sector]["drawingNode"];
-          node.x = 0.5 * (maxX + minX);
-          node.y = 0.5 * (maxY + minY);
-          node.width = 2 * (node.x - minX);
-          node.height = 2 * (node.y - minY);
-          node.options.radius = Math.sqrt(Math.pow(0.5*node.width,2) + Math.pow(0.5*node.height,2));
-          node.setScale(this.scale);
-          node._drawCircle(ctx);
-        }
-      }
-    }
-  };
-
-  exports._drawAllSectorNodes = function(ctx) {
-    this._drawSectorNodes(ctx,"frozen");
-    this._drawSectorNodes(ctx,"active");
-    this._loadLatestSector();
-  };
-
-
-/***/ },
-/* 63 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var Node = __webpack_require__(40);
-
-  /**
-   * This function can be called from the _doInAllSectors function
-   *
-   * @param object
-   * @param overlappingNodes
-   * @private
-   */
-  exports._getNodesOverlappingWith = function(object, overlappingNodes) {
-    var nodes = this.nodes;
-    for (var nodeId in nodes) {
-      if (nodes.hasOwnProperty(nodeId)) {
-        if (nodes[nodeId].isOverlappingWith(object)) {
-          overlappingNodes.push(nodeId);
-        }
-      }
-    }
-  };
-
-  /**
-   * retrieve all nodes overlapping with given object
-   * @param {Object} object  An object with parameters left, top, right, bottom
-   * @return {Number[]}   An array with id's of the overlapping nodes
-   * @private
-   */
-  exports._getAllNodesOverlappingWith = function (object) {
-    var overlappingNodes = [];
-    this._doInAllActiveSectors("_getNodesOverlappingWith",object,overlappingNodes);
-    return overlappingNodes;
-  };
-
-
-  /**
-   * Return a position object in canvasspace from a single point in screenspace
-   *
-   * @param pointer
-   * @returns {{left: number, top: number, right: number, bottom: number}}
-   * @private
-   */
-  exports._pointerToPositionObject = function(pointer) {
-    var x = this._XconvertDOMtoCanvas(pointer.x);
-    var y = this._YconvertDOMtoCanvas(pointer.y);
-
-    return {
-      left:   x,
-      top:    y,
-      right:  x,
-      bottom: y
-    };
-  };
-
-
-  /**
-   * Get the top node at the a specific point (like a click)
-   *
-   * @param {{x: Number, y: Number}} pointer
-   * @return {Node | null} node
-   * @private
-   */
-  exports._getNodeAt = function (pointer) {
-    // we first check if this is an navigation controls element
-    var positionObject = this._pointerToPositionObject(pointer);
-    var overlappingNodes = this._getAllNodesOverlappingWith(positionObject);
-
-    // if there are overlapping nodes, select the last one, this is the
-    // one which is drawn on top of the others
-    if (overlappingNodes.length > 0) {
-       return this.nodes[overlappingNodes[overlappingNodes.length - 1]];
-    }
-    else {
-      return null;
-    }
-  };
-
-
-  /**
-   * retrieve all edges overlapping with given object, selector is around center
-   * @param {Object} object  An object with parameters left, top, right, bottom
-   * @return {Number[]}   An array with id's of the overlapping nodes
-   * @private
-   */
-  exports._getEdgesOverlappingWith = function (object, overlappingEdges) {
-    var edges = this.edges;
-    for (var edgeId in edges) {
-      if (edges.hasOwnProperty(edgeId)) {
-        if (edges[edgeId].isOverlappingWith(object)) {
-          overlappingEdges.push(edgeId);
-        }
-      }
-    }
-  };
-
-
-  /**
-   * retrieve all nodes overlapping with given object
-   * @param {Object} object  An object with parameters left, top, right, bottom
-   * @return {Number[]}   An array with id's of the overlapping nodes
-   * @private
-   */
-  exports._getAllEdgesOverlappingWith = function (object) {
-    var overlappingEdges = [];
-    this._doInAllActiveSectors("_getEdgesOverlappingWith",object,overlappingEdges);
-    return overlappingEdges;
-  };
-
-  /**
-   * Place holder. To implement change the _getNodeAt to a _getObjectAt. Have the _getObjectAt call
-   * _getNodeAt and _getEdgesAt, then priortize the selection to user preferences.
-   *
-   * @param pointer
-   * @returns {null}
-   * @private
-   */
-  exports._getEdgeAt = function(pointer) {
-    var positionObject = this._pointerToPositionObject(pointer);
-    var overlappingEdges = this._getAllEdgesOverlappingWith(positionObject);
-
-    if (overlappingEdges.length > 0) {
-      return this.edges[overlappingEdges[overlappingEdges.length - 1]];
-    }
-    else {
-      return null;
-    }
-  };
-
-
-  /**
-   * Add object to the selection array.
-   *
-   * @param obj
-   * @private
-   */
-  exports._addToSelection = function(obj) {
-    if (obj instanceof Node) {
-      this.selectionObj.nodes[obj.id] = obj;
-    }
-    else {
-      this.selectionObj.edges[obj.id] = obj;
-    }
-  };
-
-  /**
-   * Add object to the selection array.
-   *
-   * @param obj
-   * @private
-   */
-  exports._addToHover = function(obj) {
-    if (obj instanceof Node) {
-      this.hoverObj.nodes[obj.id] = obj;
-    }
-    else {
-      this.hoverObj.edges[obj.id] = obj;
-    }
-  };
-
-
-  /**
-   * Remove a single option from selection.
-   *
-   * @param {Object} obj
-   * @private
-   */
-  exports._removeFromSelection = function(obj) {
-    if (obj instanceof Node) {
-      delete this.selectionObj.nodes[obj.id];
-    }
-    else {
-      delete this.selectionObj.edges[obj.id];
-    }
-  };
-
-  /**
-   * Unselect all. The selectionObj is useful for this.
-   *
-   * @param {Boolean} [doNotTrigger] | ignore trigger
-   * @private
-   */
-  exports._unselectAll = function(doNotTrigger) {
-    if (doNotTrigger === undefined) {
-      doNotTrigger = false;
-    }
-    for(var nodeId in this.selectionObj.nodes) {
-      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-        this.selectionObj.nodes[nodeId].unselect();
-      }
-    }
-    for(var edgeId in this.selectionObj.edges) {
-      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
-        this.selectionObj.edges[edgeId].unselect();
-      }
-    }
-
-    this.selectionObj = {nodes:{},edges:{}};
-
-    if (doNotTrigger == false) {
-      this.emit('select', this.getSelection());
-    }
-  };
-
-  /**
-   * Unselect all clusters. The selectionObj is useful for this.
-   *
-   * @param {Boolean} [doNotTrigger] | ignore trigger
-   * @private
-   */
-  exports._unselectClusters = function(doNotTrigger) {
-    if (doNotTrigger === undefined) {
-      doNotTrigger = false;
-    }
-
-    for (var nodeId in this.selectionObj.nodes) {
-      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-        if (this.selectionObj.nodes[nodeId].clusterSize > 1) {
-          this.selectionObj.nodes[nodeId].unselect();
-          this._removeFromSelection(this.selectionObj.nodes[nodeId]);
-        }
-      }
-    }
-
-    if (doNotTrigger == false) {
-      this.emit('select', this.getSelection());
-    }
-  };
-
-
-  /**
-   * return the number of selected nodes
-   *
-   * @returns {number}
-   * @private
-   */
-  exports._getSelectedNodeCount = function() {
-    var count = 0;
-    for (var nodeId in this.selectionObj.nodes) {
-      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-        count += 1;
-      }
-    }
-    return count;
-  };
-
-  /**
-   * return the selected node
-   *
-   * @returns {number}
-   * @private
-   */
-  exports._getSelectedNode = function() {
-    for (var nodeId in this.selectionObj.nodes) {
-      if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-        return this.selectionObj.nodes[nodeId];
-      }
-    }
-    return null;
-  };
-
-  /**
-   * return the selected edge
-   *
-   * @returns {number}
-   * @private
-   */
-  exports._getSelectedEdge = function() {
-    for (var edgeId in this.selectionObj.edges) {
-      if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
-        return this.selectionObj.edges[edgeId];
-      }
-    }
-    return null;
-  };
-
-
-  /**
-   * return the number of selected edges
-   *
-   * @returns {number}
-   * @private
-   */
-  exports._getSelectedEdgeCount = function() {
-    var count = 0;
-    for (var edgeId in this.selectionObj.edges) {
-      if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
-        count += 1;
-      }
-    }
-    return count;
-  };
-
-
-  /**
-   * return the number of selected objects.
-   *
-   * @returns {number}
-   * @private
-   */
-  exports._getSelectedObjectCount = function() {
-    var count = 0;
-    for(var nodeId in this.selectionObj.nodes) {
-      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-        count += 1;
-      }
-    }
-    for(var edgeId in this.selectionObj.edges) {
-      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
-        count += 1;
-      }
-    }
-    return count;
-  };
-
-  /**
-   * Check if anything is selected
-   *
-   * @returns {boolean}
-   * @private
-   */
-  exports._selectionIsEmpty = function() {
-    for(var nodeId in this.selectionObj.nodes) {
-      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-        return false;
-      }
-    }
-    for(var edgeId in this.selectionObj.edges) {
-      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
-        return false;
-      }
-    }
-    return true;
-  };
-
-
-  /**
-   * check if one of the selected nodes is a cluster.
-   *
-   * @returns {boolean}
-   * @private
-   */
-  exports._clusterInSelection = function() {
-    for(var nodeId in this.selectionObj.nodes) {
-      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-        if (this.selectionObj.nodes[nodeId].clusterSize > 1) {
-          return true;
-        }
-      }
-    }
-    return false;
-  };
-
-  /**
-   * select the edges connected to the node that is being selected
-   *
-   * @param {Node} node
-   * @private
-   */
-  exports._selectConnectedEdges = function(node) {
-    for (var i = 0; i < node.dynamicEdges.length; i++) {
-      var edge = node.dynamicEdges[i];
-      edge.select();
-      this._addToSelection(edge);
-    }
-  };
-
-  /**
-   * select the edges connected to the node that is being selected
-   *
-   * @param {Node} node
-   * @private
-   */
-  exports._hoverConnectedEdges = function(node) {
-    for (var i = 0; i < node.dynamicEdges.length; i++) {
-      var edge = node.dynamicEdges[i];
-      edge.hover = true;
-      this._addToHover(edge);
-    }
-  };
-
-
-  /**
-   * unselect the edges connected to the node that is being selected
-   *
-   * @param {Node} node
-   * @private
-   */
-  exports._unselectConnectedEdges = function(node) {
-    for (var i = 0; i < node.dynamicEdges.length; i++) {
-      var edge = node.dynamicEdges[i];
-      edge.unselect();
-      this._removeFromSelection(edge);
-    }
-  };
-
-
-
-
-  /**
-   * This is called when someone clicks on a node. either select or deselect it.
-   * If there is an existing selection and we don't want to append to it, clear the existing selection
-   *
-   * @param {Node || Edge} object
-   * @param {Boolean} append
-   * @param {Boolean} [doNotTrigger] | ignore trigger
-   * @private
-   */
-  exports._selectObject = function(object, append, doNotTrigger, highlightEdges, overrideSelectable) {
-    if (doNotTrigger === undefined) {
-      doNotTrigger = false;
-    }
-    if (highlightEdges === undefined) {
-      highlightEdges = true;
-    }
-
-    if (this._selectionIsEmpty() == false && append == false && this.forceAppendSelection == false) {
-      this._unselectAll(true);
-    }
-
-    // selectable allows the object to be selected. Override can be used if needed to bypass this.
-    if (object.selected == false && (this.constants.selectable == true || overrideSelectable)) {
-      object.select();
-      this._addToSelection(object);
-      if (object instanceof Node && this.blockConnectingEdgeSelection == false && highlightEdges == true) {
-        this._selectConnectedEdges(object);
-      }
-    }
-    // do not select the object if selectable is false, only add it to selection to allow drag to work
-    else if (object.selected == false) {
-      this._addToSelection(object);
-      doNotTrigger = true;
-    }
-    else {
-      object.unselect();
-      this._removeFromSelection(object);
-    }
-
-    if (doNotTrigger == false) {
-      this.emit('select', this.getSelection());
-    }
-  };
-
-
-  /**
-   * This is called when someone clicks on a node. either select or deselect it.
-   * If there is an existing selection and we don't want to append to it, clear the existing selection
-   *
-   * @param {Node || Edge} object
-   * @private
-   */
-  exports._blurObject = function(object) {
-    if (object.hover == true) {
-      object.hover = false;
-      this.emit("blurNode",{node:object.id});
-    }
-  };
-
-  /**
-   * This is called when someone clicks on a node. either select or deselect it.
-   * If there is an existing selection and we don't want to append to it, clear the existing selection
-   *
-   * @param {Node || Edge} object
-   * @private
-   */
-  exports._hoverObject = function(object) {
-    if (object.hover == false) {
-      object.hover = true;
-      this._addToHover(object);
-      if (object instanceof Node) {
-        this.emit("hoverNode",{node:object.id});
-      }
-    }
-    if (object instanceof Node) {
-      this._hoverConnectedEdges(object);
-    }
-  };
-
-
-  /**
-   * handles the selection part of the touch, only for navigation controls elements;
-   * Touch is triggered before tap, also before hold. Hold triggers after a while.
-   * This is the most responsive solution
-   *
-   * @param {Object} pointer
-   * @private
-   */
-  exports._handleTouch = function(pointer) {
-  };
-
-
-  /**
-   * handles the selection part of the tap;
-   *
-   * @param {Object} pointer
-   * @private
-   */
-  exports._handleTap = function(pointer) {
-    var node = this._getNodeAt(pointer);
-    if (node != null) {
-      this._selectObject(node, false);
-    }
-    else {
-      var edge = this._getEdgeAt(pointer);
-      if (edge != null) {
-        this._selectObject(edge, false);
-      }
-      else {
-        this._unselectAll();
-      }
-    }
-    var properties = this.getSelection();
-    properties['pointer'] = {
-      DOM: {x: pointer.x, y: pointer.y},
-      canvas: {x: this._XconvertDOMtoCanvas(pointer.x), y: this._YconvertDOMtoCanvas(pointer.y)}
-    }
-    this.emit("click", properties);
-    this._redraw();
-  };
-
-
-  /**
-   * handles the selection part of the double tap and opens a cluster if needed
-   *
-   * @param {Object} pointer
-   * @private
-   */
-  exports._handleDoubleTap = function(pointer) {
-    var node = this._getNodeAt(pointer);
-    if (node != null && node !== undefined) {
-      // we reset the areaCenter here so the opening of the node will occur
-      this.areaCenter =  {"x" : this._XconvertDOMtoCanvas(pointer.x),
-                          "y" : this._YconvertDOMtoCanvas(pointer.y)};
-      this.openCluster(node);
-    }
-    var properties = this.getSelection();
-    properties['pointer'] = {
-      DOM: {x: pointer.x, y: pointer.y},
-      canvas: {x: this._XconvertDOMtoCanvas(pointer.x), y: this._YconvertDOMtoCanvas(pointer.y)}
-    }
-    this.emit("doubleClick", properties);
-  };
-
-
-  /**
-   * Handle the onHold selection part
-   *
-   * @param pointer
-   * @private
-   */
-  exports._handleOnHold = function(pointer) {
-    var node = this._getNodeAt(pointer);
-    if (node != null) {
-      this._selectObject(node,true);
-    }
-    else {
-      var edge = this._getEdgeAt(pointer);
-      if (edge != null) {
-        this._selectObject(edge,true);
-      }
-    }
-    this._redraw();
-  };
-
-
-  /**
-   * handle the onRelease event. These functions are here for the navigation controls module
-   * and data manipulation module.
-   *
-    * @private
-   */
-  exports._handleOnRelease = function(pointer) {
-    this._manipulationReleaseOverload(pointer);
-    this._navigationReleaseOverload(pointer);
-  };
-
-  exports._manipulationReleaseOverload = function (pointer) {};
-  exports._navigationReleaseOverload = function (pointer) {};
-
-  /**
-   *
-   * retrieve the currently selected objects
-   * @return {{nodes: Array.<String>, edges: Array.<String>}} selection
-   */
-  exports.getSelection = function() {
-    var nodeIds = this.getSelectedNodes();
-    var edgeIds = this.getSelectedEdges();
-    return {nodes:nodeIds, edges:edgeIds};
-  };
-
-  /**
-   *
-   * retrieve the currently selected nodes
-   * @return {String[]} selection    An array with the ids of the
-   *                                            selected nodes.
-   */
-  exports.getSelectedNodes = function() {
-    var idArray = [];
-    if (this.constants.selectable == true) {
-      for (var nodeId in this.selectionObj.nodes) {
-        if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-          idArray.push(nodeId);
-        }
-      }
-    }
-    return idArray
-  };
-
-  /**
-   *
-   * retrieve the currently selected edges
-   * @return {Array} selection    An array with the ids of the
-   *                                            selected nodes.
-   */
-  exports.getSelectedEdges = function() {
-    var idArray = [];
-    if (this.constants.selectable == true) {
-      for (var edgeId in this.selectionObj.edges) {
-        if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
-          idArray.push(edgeId);
-        }
-      }
-    }
-    return idArray;
-  };
-
-
-  /**
-   * select zero or more nodes DEPRICATED
-   * @param {Number[] | String[]} selection     An array with the ids of the
-   *                                            selected nodes.
-   */
-  exports.setSelection = function() {
-    console.log("setSelection is deprecated. Please use selectNodes instead.")
-  };
-
-
-  /**
-   * select zero or more nodes with the option to highlight edges
-   * @param {Number[] | String[]} selection     An array with the ids of the
-   *                                            selected nodes.
-   * @param {boolean} [highlightEdges]
-   */
-  exports.selectNodes = function(selection, highlightEdges) {
-    var i, iMax, id;
-
-    if (!selection || (selection.length == undefined))
-      throw 'Selection must be an array with ids';
-
-    // first unselect any selected node
-    this._unselectAll(true);
-
-    for (i = 0, iMax = selection.length; i < iMax; i++) {
-      id = selection[i];
-
-      var node = this.nodes[id];
-      if (!node) {
-        throw new RangeError('Node with id "' + id + '" not found');
-      }
-      this._selectObject(node,true,true,highlightEdges,true);
-    }
-    this.redraw();
-  };
-
-
-  /**
-   * select zero or more edges
-   * @param {Number[] | String[]} selection     An array with the ids of the
-   *                                            selected nodes.
-   */
-  exports.selectEdges = function(selection) {
-    var i, iMax, id;
-
-    if (!selection || (selection.length == undefined))
-      throw 'Selection must be an array with ids';
-
-    // first unselect any selected node
-    this._unselectAll(true);
-
-    for (i = 0, iMax = selection.length; i < iMax; i++) {
-      id = selection[i];
-
-      var edge = this.edges[id];
-      if (!edge) {
-        throw new RangeError('Edge with id "' + id + '" not found');
-      }
-      this._selectObject(edge,true,true,false,true);
-    }
-    this.redraw();
-  };
-
-  /**
-   * Validate the selection: remove ids of nodes which no longer exist
-   * @private
-   */
-  exports._updateSelection = function () {
-    for(var nodeId in this.selectionObj.nodes) {
-      if(this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-        if (!this.nodes.hasOwnProperty(nodeId)) {
-          delete this.selectionObj.nodes[nodeId];
-        }
-      }
-    }
-    for(var edgeId in this.selectionObj.edges) {
-      if(this.selectionObj.edges.hasOwnProperty(edgeId)) {
-        if (!this.edges.hasOwnProperty(edgeId)) {
-          delete this.selectionObj.edges[edgeId];
-        }
-      }
-    }
-  };
-
-
-/***/ },
-/* 64 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var util = __webpack_require__(1);
-  var Node = __webpack_require__(40);
-  var Edge = __webpack_require__(37);
-
-  /**
-   * clears the toolbar div element of children
-   *
-   * @private
-   */
-  exports._clearManipulatorBar = function() {
-    this._recursiveDOMDelete(this.manipulationDiv);
-    this.manipulationDOM = {};
-
-    this._manipulationReleaseOverload = function () {};
-    delete this.sectors['support']['nodes']['targetNode'];
-    delete this.sectors['support']['nodes']['targetViaNode'];
-    this.controlNodesActive = false;
-    this.freezeSimulation = false;
-  };
-
-  /**
-   * Manipulation UI temporarily overloads certain functions to extend or replace them. To be able to restore
-   * these functions to their original functionality, we saved them in this.cachedFunctions.
-   * This function restores these functions to their original function.
-   *
-   * @private
-   */
-  exports._restoreOverloadedFunctions = function() {
-    for (var functionName in this.cachedFunctions) {
-      if (this.cachedFunctions.hasOwnProperty(functionName)) {
-        this[functionName] = this.cachedFunctions[functionName];
-        delete this.cachedFunctions[functionName];
-      }
-    }
-  };
-
-  /**
-   * Enable or disable edit-mode.
-   *
-   * @private
-   */
-  exports._toggleEditMode = function() {
-    this.editMode = !this.editMode;
-    var toolbar = this.manipulationDiv;
-    var closeDiv = this.closeDiv;
-    var editModeDiv = this.editModeDiv;
-    if (this.editMode == true) {
-      toolbar.style.display="block";
-      closeDiv.style.display="block";
-      editModeDiv.style.display="none";
-      closeDiv.onclick = this._toggleEditMode.bind(this);
-    }
-    else {
-      toolbar.style.display="none";
-      closeDiv.style.display="none";
-      editModeDiv.style.display="block";
-      closeDiv.onclick = null;
-    }
-    this._createManipulatorBar()
-  };
-
-  /**
-   * main function, creates the main toolbar. Removes functions bound to the select event. Binds all the buttons of the toolbar.
-   *
-   * @private
-   */
-  exports._createManipulatorBar = function() {
-    // remove bound functions
-    if (this.boundFunction) {
-      this.off('select', this.boundFunction);
-    }
-
-    var locale = this.constants.locales[this.constants.locale];
-
-    if (this.edgeBeingEdited !== undefined) {
-      this.edgeBeingEdited._disableControlNodes();
-      this.edgeBeingEdited = undefined;
-      this.selectedControlNode = null;
-      this.controlNodesActive = false;
-      this._redraw();
-    }
-
-    // restore overloaded functions
-    this._restoreOverloadedFunctions();
-
-    // resume calculation
-    this.freezeSimulation = false;
-
-    // reset global variables
-    this.blockConnectingEdgeSelection = false;
-    this.forceAppendSelection = false;
-    this.manipulationDOM = {};
-
-    if (this.editMode == true) {
-      while (this.manipulationDiv.hasChildNodes()) {
-        this.manipulationDiv.removeChild(this.manipulationDiv.firstChild);
-      }
-
-      this.manipulationDOM['addNodeSpan'] = document.createElement('span');
-      this.manipulationDOM['addNodeSpan'].className = 'network-manipulationUI add';
-      this.manipulationDOM['addNodeLabelSpan'] = document.createElement('span');
-      this.manipulationDOM['addNodeLabelSpan'].className = 'network-manipulationLabel';
-      this.manipulationDOM['addNodeLabelSpan'].innerHTML = locale['addNode'];
-      this.manipulationDOM['addNodeSpan'].appendChild(this.manipulationDOM['addNodeLabelSpan']);
-
-      this.manipulationDOM['seperatorLineDiv1'] = document.createElement('div');
-      this.manipulationDOM['seperatorLineDiv1'].className = 'network-seperatorLine';
-
-      this.manipulationDOM['addEdgeSpan'] = document.createElement('span');
-      this.manipulationDOM['addEdgeSpan'].className = 'network-manipulationUI connect';
-      this.manipulationDOM['addEdgeLabelSpan'] = document.createElement('span');
-      this.manipulationDOM['addEdgeLabelSpan'].className = 'network-manipulationLabel';
-      this.manipulationDOM['addEdgeLabelSpan'].innerHTML = locale['addEdge'];
-      this.manipulationDOM['addEdgeSpan'].appendChild(this.manipulationDOM['addEdgeLabelSpan']);
-
-      this.manipulationDiv.appendChild(this.manipulationDOM['addNodeSpan']);
-      this.manipulationDiv.appendChild(this.manipulationDOM['seperatorLineDiv1']);
-      this.manipulationDiv.appendChild(this.manipulationDOM['addEdgeSpan']);
-
-      if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
-        this.manipulationDOM['seperatorLineDiv2'] = document.createElement('div');
-        this.manipulationDOM['seperatorLineDiv2'].className = 'network-seperatorLine';
-
-        this.manipulationDOM['editNodeSpan'] = document.createElement('span');
-        this.manipulationDOM['editNodeSpan'].className = 'network-manipulationUI edit';
-        this.manipulationDOM['editNodeLabelSpan'] = document.createElement('span');
-        this.manipulationDOM['editNodeLabelSpan'].className = 'network-manipulationLabel';
-        this.manipulationDOM['editNodeLabelSpan'].innerHTML = locale['editNode'];
-        this.manipulationDOM['editNodeSpan'].appendChild(this.manipulationDOM['editNodeLabelSpan']);
-
-        this.manipulationDiv.appendChild(this.manipulationDOM['seperatorLineDiv2']);
-        this.manipulationDiv.appendChild(this.manipulationDOM['editNodeSpan']);
-      }
-      else if (this._getSelectedEdgeCount() == 1 && this._getSelectedNodeCount() == 0) {
-        this.manipulationDOM['seperatorLineDiv3'] = document.createElement('div');
-        this.manipulationDOM['seperatorLineDiv3'].className = 'network-seperatorLine';
-
-        this.manipulationDOM['editEdgeSpan'] = document.createElement('span');
-        this.manipulationDOM['editEdgeSpan'].className = 'network-manipulationUI edit';
-        this.manipulationDOM['editEdgeLabelSpan'] = document.createElement('span');
-        this.manipulationDOM['editEdgeLabelSpan'].className = 'network-manipulationLabel';
-        this.manipulationDOM['editEdgeLabelSpan'].innerHTML = locale['editEdge'];
-        this.manipulationDOM['editEdgeSpan'].appendChild(this.manipulationDOM['editEdgeLabelSpan']);
-
-        this.manipulationDiv.appendChild(this.manipulationDOM['seperatorLineDiv3']);
-        this.manipulationDiv.appendChild(this.manipulationDOM['editEdgeSpan']);
-      }
-      if (this._selectionIsEmpty() == false) {
-        this.manipulationDOM['seperatorLineDiv4'] = document.createElement('div');
-        this.manipulationDOM['seperatorLineDiv4'].className = 'network-seperatorLine';
-
-        this.manipulationDOM['deleteSpan'] = document.createElement('span');
-        this.manipulationDOM['deleteSpan'].className = 'network-manipulationUI delete';
-        this.manipulationDOM['deleteLabelSpan'] = document.createElement('span');
-        this.manipulationDOM['deleteLabelSpan'].className = 'network-manipulationLabel';
-        this.manipulationDOM['deleteLabelSpan'].innerHTML = locale['del'];
-        this.manipulationDOM['deleteSpan'].appendChild(this.manipulationDOM['deleteLabelSpan']);
-
-        this.manipulationDiv.appendChild(this.manipulationDOM['seperatorLineDiv4']);
-        this.manipulationDiv.appendChild(this.manipulationDOM['deleteSpan']);
-      }
-
-
-      // bind the icons
-      this.manipulationDOM['addNodeSpan'].onclick = this._createAddNodeToolbar.bind(this);
-      this.manipulationDOM['addEdgeSpan'].onclick = this._createAddEdgeToolbar.bind(this);
-      if (this._getSelectedNodeCount() == 1 && this.triggerFunctions.edit) {
-        this.manipulationDOM['editNodeSpan'].onclick = this._editNode.bind(this);
-      }
-      else if (this._getSelectedEdgeCount() == 1 && this._getSelectedNodeCount() == 0) {
-        this.manipulationDOM['editEdgeSpan'].onclick = this._createEditEdgeToolbar.bind(this);
-      }
-      if (this._selectionIsEmpty() == false) {
-        this.manipulationDOM['deleteSpan'].onclick = this._deleteSelected.bind(this);
-      }
-      this.closeDiv.onclick = this._toggleEditMode.bind(this);
-
-      var me = this;
-      this.boundFunction = me._createManipulatorBar;
-      this.on('select', this.boundFunction);
-    }
-    else {
-      while (this.editModeDiv.hasChildNodes()) {
-        this.editModeDiv.removeChild(this.editModeDiv.firstChild);
-      }
-
-      this.manipulationDOM['editModeSpan'] = document.createElement('span');
-      this.manipulationDOM['editModeSpan'].className = 'network-manipulationUI edit editmode';
-      this.manipulationDOM['editModeLabelSpan'] = document.createElement('span');
-      this.manipulationDOM['editModeLabelSpan'].className = 'network-manipulationLabel';
-      this.manipulationDOM['editModeLabelSpan'].innerHTML = locale['edit'];
-      this.manipulationDOM['editModeSpan'].appendChild(this.manipulationDOM['editModeLabelSpan']);
-
-      this.editModeDiv.appendChild(this.manipulationDOM['editModeSpan']);
-
-      this.manipulationDOM['editModeSpan'].onclick = this._toggleEditMode.bind(this);
-    }
-  };
-
-
-
-  /**
-   * Create the toolbar for adding Nodes
-   *
-   * @private
-   */
-  exports._createAddNodeToolbar = function() {
-    // clear the toolbar
-    this._clearManipulatorBar();
-    if (this.boundFunction) {
-      this.off('select', this.boundFunction);
-    }
-
-    var locale = this.constants.locales[this.constants.locale];
-
-    this.manipulationDOM = {};
-    this.manipulationDOM['backSpan'] = document.createElement('span');
-    this.manipulationDOM['backSpan'].className = 'network-manipulationUI back';
-    this.manipulationDOM['backLabelSpan'] = document.createElement('span');
-    this.manipulationDOM['backLabelSpan'].className = 'network-manipulationLabel';
-    this.manipulationDOM['backLabelSpan'].innerHTML = locale['back'];
-    this.manipulationDOM['backSpan'].appendChild(this.manipulationDOM['backLabelSpan']);
-
-    this.manipulationDOM['seperatorLineDiv1'] = document.createElement('div');
-    this.manipulationDOM['seperatorLineDiv1'].className = 'network-seperatorLine';
-
-    this.manipulationDOM['descriptionSpan'] = document.createElement('span');
-    this.manipulationDOM['descriptionSpan'].className = 'network-manipulationUI none';
-    this.manipulationDOM['descriptionLabelSpan'] = document.createElement('span');
-    this.manipulationDOM['descriptionLabelSpan'].className = 'network-manipulationLabel';
-    this.manipulationDOM['descriptionLabelSpan'].innerHTML = locale['addDescription'];
-    this.manipulationDOM['descriptionSpan'].appendChild(this.manipulationDOM['descriptionLabelSpan']);
-
-    this.manipulationDiv.appendChild(this.manipulationDOM['backSpan']);
-    this.manipulationDiv.appendChild(this.manipulationDOM['seperatorLineDiv1']);
-    this.manipulationDiv.appendChild(this.manipulationDOM['descriptionSpan']);
-
-    // bind the icon
-    this.manipulationDOM['backSpan'].onclick = this._createManipulatorBar.bind(this);
-
-    // we use the boundFunction so we can reference it when we unbind it from the "select" event.
-    var me = this;
-    this.boundFunction = me._addNode;
-    this.on('select', this.boundFunction);
-  };
-
-
-  /**
-   * create the toolbar to connect nodes
-   *
-   * @private
-   */
-  exports._createAddEdgeToolbar = function() {
-    // clear the toolbar
-    this._clearManipulatorBar();
-    this._unselectAll(true);
-    this.freezeSimulation = true;
-
-    if (this.boundFunction) {
-      this.off('select', this.boundFunction);
-    }
-
-    var locale = this.constants.locales[this.constants.locale];
-
-    this._unselectAll();
-    this.forceAppendSelection = false;
-    this.blockConnectingEdgeSelection = true;
-
-    this.manipulationDOM = {};
-    this.manipulationDOM['backSpan'] = document.createElement('span');
-    this.manipulationDOM['backSpan'].className = 'network-manipulationUI back';
-    this.manipulationDOM['backLabelSpan'] = document.createElement('span');
-    this.manipulationDOM['backLabelSpan'].className = 'network-manipulationLabel';
-    this.manipulationDOM['backLabelSpan'].innerHTML = locale['back'];
-    this.manipulationDOM['backSpan'].appendChild(this.manipulationDOM['backLabelSpan']);
-
-    this.manipulationDOM['seperatorLineDiv1'] = document.createElement('div');
-    this.manipulationDOM['seperatorLineDiv1'].className = 'network-seperatorLine';
-
-    this.manipulationDOM['descriptionSpan'] = document.createElement('span');
-    this.manipulationDOM['descriptionSpan'].className = 'network-manipulationUI none';
-    this.manipulationDOM['descriptionLabelSpan'] = document.createElement('span');
-    this.manipulationDOM['descriptionLabelSpan'].className = 'network-manipulationLabel';
-    this.manipulationDOM['descriptionLabelSpan'].innerHTML = locale['edgeDescription'];
-    this.manipulationDOM['descriptionSpan'].appendChild(this.manipulationDOM['descriptionLabelSpan']);
-
-    this.manipulationDiv.appendChild(this.manipulationDOM['backSpan']);
-    this.manipulationDiv.appendChild(this.manipulationDOM['seperatorLineDiv1']);
-    this.manipulationDiv.appendChild(this.manipulationDOM['descriptionSpan']);
-
-    // bind the icon
-    this.manipulationDOM['backSpan'].onclick = this._createManipulatorBar.bind(this);
-
-    // we use the boundFunction so we can reference it when we unbind it from the "select" event.
-    var me = this;
-    this.boundFunction = me._handleConnect;
-    this.on('select', this.boundFunction);
-
-    // temporarily overload functions
-    this.cachedFunctions["_handleTouch"] = this._handleTouch;
-    this.cachedFunctions["_manipulationReleaseOverload"] = this._manipulationReleaseOverload;
-    this.cachedFunctions["_handleDragStart"] = this._handleDragStart;
-    this.cachedFunctions["_handleDragEnd"] = this._handleDragEnd;
-    this.cachedFunctions["_handleOnHold"] = this._handleOnHold;
-    this._handleTouch = this._handleConnect;
-    this._manipulationReleaseOverload = function () {};
-    this._handleOnHold    = function () {};
-    this._handleDragStart = function () {};
-    this._handleDragEnd   = this._finishConnect;
-
-    // redraw to show the unselect
-    this._redraw();
-  };
-
-  /**
-   * create the toolbar to edit edges
-   *
-   * @private
-   */
-  exports._createEditEdgeToolbar = function() {
-    // clear the toolbar
-    this._clearManipulatorBar();
-    this.controlNodesActive = true;
-
-    if (this.boundFunction) {
-      this.off('select', this.boundFunction);
-    }
-
-    this.edgeBeingEdited = this._getSelectedEdge();
-    this.edgeBeingEdited._enableControlNodes();
-
-    var locale = this.constants.locales[this.constants.locale];
-
-    this.manipulationDOM = {};
-    this.manipulationDOM['backSpan'] = document.createElement('span');
-    this.manipulationDOM['backSpan'].className = 'network-manipulationUI back';
-    this.manipulationDOM['backLabelSpan'] = document.createElement('span');
-    this.manipulationDOM['backLabelSpan'].className = 'network-manipulationLabel';
-    this.manipulationDOM['backLabelSpan'].innerHTML = locale['back'];
-    this.manipulationDOM['backSpan'].appendChild(this.manipulationDOM['backLabelSpan']);
-
-    this.manipulationDOM['seperatorLineDiv1'] = document.createElement('div');
-    this.manipulationDOM['seperatorLineDiv1'].className = 'network-seperatorLine';
-
-    this.manipulationDOM['descriptionSpan'] = document.createElement('span');
-    this.manipulationDOM['descriptionSpan'].className = 'network-manipulationUI none';
-    this.manipulationDOM['descriptionLabelSpan'] = document.createElement('span');
-    this.manipulationDOM['descriptionLabelSpan'].className = 'network-manipulationLabel';
-    this.manipulationDOM['descriptionLabelSpan'].innerHTML = locale['editEdgeDescription'];
-    this.manipulationDOM['descriptionSpan'].appendChild(this.manipulationDOM['descriptionLabelSpan']);
-
-    this.manipulationDiv.appendChild(this.manipulationDOM['backSpan']);
-    this.manipulationDiv.appendChild(this.manipulationDOM['seperatorLineDiv1']);
-    this.manipulationDiv.appendChild(this.manipulationDOM['descriptionSpan']);
-
-    // bind the icon
-    this.manipulationDOM['backSpan'].onclick = this._createManipulatorBar.bind(this);
-
-    // temporarily overload functions
-    this.cachedFunctions["_handleTouch"]      = this._handleTouch;
-    this.cachedFunctions["_manipulationReleaseOverload"]  = this._manipulationReleaseOverload;
-    this.cachedFunctions["_handleTap"]        = this._handleTap;
-    this.cachedFunctions["_handleDragStart"]  = this._handleDragStart;
-    this.cachedFunctions["_handleOnDrag"]     = this._handleOnDrag;
-    this._handleTouch     = this._selectControlNode;
-    this._handleTap       = function () {};
-    this._handleOnDrag    = this._controlNodeDrag;
-    this._handleDragStart = function () {}
-    this._manipulationReleaseOverload = this._releaseControlNode;
-
-    // redraw to show the unselect
-    this._redraw();
-  };
-
-
-  /**
-   * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
-   * to walk the user through the process.
-   *
-   * @private
-   */
-  exports._selectControlNode = function(pointer) {
-    this.edgeBeingEdited.controlNodes.from.unselect();
-    this.edgeBeingEdited.controlNodes.to.unselect();
-    this.selectedControlNode = this.edgeBeingEdited._getSelectedControlNode(this._XconvertDOMtoCanvas(pointer.x),this._YconvertDOMtoCanvas(pointer.y));
-    if (this.selectedControlNode !== null) {
-      this.selectedControlNode.select();
-      this.freezeSimulation = true;
-    }
-    this._redraw();
-  };
-
-
-  /**
-   * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
-   * to walk the user through the process.
-   *
-   * @private
-   */
-  exports._controlNodeDrag = function(event) {
-    var pointer = this._getPointer(event.gesture.center);
-    if (this.selectedControlNode !== null && this.selectedControlNode !== undefined) {
-      this.selectedControlNode.x = this._XconvertDOMtoCanvas(pointer.x);
-      this.selectedControlNode.y = this._YconvertDOMtoCanvas(pointer.y);
-    }
-    this._redraw();
-  };
-
-
-  /**
-   *
-   * @param pointer
-   * @private
-   */
-  exports._releaseControlNode = function(pointer) {
-    var newNode = this._getNodeAt(pointer);
-    if (newNode !== null) {
-      if (this.edgeBeingEdited.controlNodes.from.selected == true) {
-        this.edgeBeingEdited._restoreControlNodes();
-        this._editEdge(newNode.id, this.edgeBeingEdited.to.id);
-        this.edgeBeingEdited.controlNodes.from.unselect();
-      }
-      if (this.edgeBeingEdited.controlNodes.to.selected == true) {
-        this.edgeBeingEdited._restoreControlNodes();
-        this._editEdge(this.edgeBeingEdited.from.id, newNode.id);
-        this.edgeBeingEdited.controlNodes.to.unselect();
-      }
-    }
-    else {
-      this.edgeBeingEdited._restoreControlNodes();
-    }
-    this.freezeSimulation = false;
-    this._redraw();
-  };
-
-  /**
-   * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
-   * to walk the user through the process.
-   *
-   * @private
-   */
-  exports._handleConnect = function(pointer) {
-    if (this._getSelectedNodeCount() == 0) {
-      var node = this._getNodeAt(pointer);
-
-      if (node != null) {
-        if (node.clusterSize > 1) {
-          alert(this.constants.locales[this.constants.locale]['createEdgeError'])
-        }
-        else {
-          this._selectObject(node,false);
-          var supportNodes = this.sectors['support']['nodes'];
-
-          // create a node the temporary line can look at
-          supportNodes['targetNode'] = new Node({id:'targetNode'},{},{},this.constants);
-          var targetNode = supportNodes['targetNode'];
-          targetNode.x = node.x;
-          targetNode.y = node.y;
-
-          // create a temporary edge
-          this.edges['connectionEdge'] = new Edge({id:"connectionEdge",from:node.id,to:targetNode.id}, this, this.constants);
-          var connectionEdge = this.edges['connectionEdge'];
-          connectionEdge.from = node;
-          connectionEdge.connected = true;
-          connectionEdge.options.smoothCurves = {enabled: true,
-              dynamic: false,
-              type: "continuous",
-              roundness: 0.5
-          };
-          connectionEdge.selected = true;
-          connectionEdge.to = targetNode;
-
-          this.cachedFunctions["_handleOnDrag"] = this._handleOnDrag;
-          this._handleOnDrag = function(event) {
-            var pointer = this._getPointer(event.gesture.center);
-            var connectionEdge = this.edges['connectionEdge'];
-            connectionEdge.to.x = this._XconvertDOMtoCanvas(pointer.x);
-            connectionEdge.to.y = this._YconvertDOMtoCanvas(pointer.y);
-          };
-
-          this.moving = true;
-          this.start();
-        }
-      }
-    }
-  };
-
-  exports._finishConnect = function(event) {
-    if (this._getSelectedNodeCount() == 1) {
-      var pointer = this._getPointer(event.gesture.center);
-      // restore the drag function
-      this._handleOnDrag = this.cachedFunctions["_handleOnDrag"];
-      delete this.cachedFunctions["_handleOnDrag"];
-
-      // remember the edge id
-      var connectFromId = this.edges['connectionEdge'].fromId;
-
-      // remove the temporary nodes and edge
-      delete this.edges['connectionEdge'];
-      delete this.sectors['support']['nodes']['targetNode'];
-      delete this.sectors['support']['nodes']['targetViaNode'];
-
-      var node = this._getNodeAt(pointer);
-      if (node != null) {
-        if (node.clusterSize > 1) {
-          alert(this.constants.locales[this.constants.locale]["createEdgeError"])
-        }
-        else {
-          this._createEdge(connectFromId,node.id);
-          this._createManipulatorBar();
-        }
-      }
-      this._unselectAll();
-    }
-  };
-
-
-  /**
-   * Adds a node on the specified location
-   */
-  exports._addNode = function() {
-    if (this._selectionIsEmpty() && this.editMode == true) {
-      var positionObject = this._pointerToPositionObject(this.pointerPosition);
-      var defaultData = {id:util.randomUUID(),x:positionObject.left,y:positionObject.top,label:"new",allowedToMoveX:true,allowedToMoveY:true};
-      if (this.triggerFunctions.add) {
-        if (this.triggerFunctions.add.length == 2) {
-          var me = this;
-          this.triggerFunctions.add(defaultData, function(finalizedData) {
-            me.nodesData.add(finalizedData);
-            me._createManipulatorBar();
-            me.moving = true;
-            me.start();
-          });
-        }
-        else {
-          throw new Error('The function for add does not support two arguments (data,callback)');
-          this._createManipulatorBar();
-          this.moving = true;
-          this.start();
-        }
-      }
-      else {
-        this.nodesData.add(defaultData);
-        this._createManipulatorBar();
-        this.moving = true;
-        this.start();
-      }
-    }
-  };
-
-
-  /**
-   * connect two nodes with a new edge.
-   *
-   * @private
-   */
-  exports._createEdge = function(sourceNodeId,targetNodeId) {
-    if (this.editMode == true) {
-      var defaultData = {from:sourceNodeId, to:targetNodeId};
-      if (this.triggerFunctions.connect) {
-        if (this.triggerFunctions.connect.length == 2) {
-          var me = this;
-          this.triggerFunctions.connect(defaultData, function(finalizedData) {
-            me.edgesData.add(finalizedData);
-            me.moving = true;
-            me.start();
-          });
-        }
-        else {
-          throw new Error('The function for connect does not support two arguments (data,callback)');
-          this.moving = true;
-          this.start();
-        }
-      }
-      else {
-        this.edgesData.add(defaultData);
-        this.moving = true;
-        this.start();
-      }
-    }
-  };
-
-  /**
-   * connect two nodes with a new edge.
-   *
-   * @private
-   */
-  exports._editEdge = function(sourceNodeId,targetNodeId) {
-    if (this.editMode == true) {
-      var defaultData = {id: this.edgeBeingEdited.id, from:sourceNodeId, to:targetNodeId};
-      if (this.triggerFunctions.editEdge) {
-        if (this.triggerFunctions.editEdge.length == 2) {
-          var me = this;
-          this.triggerFunctions.editEdge(defaultData, function(finalizedData) {
-            me.edgesData.update(finalizedData);
-            me.moving = true;
-            me.start();
-          });
-        }
-        else {
-          throw new Error('The function for edit does not support two arguments (data, callback)');
-          this.moving = true;
-          this.start();
-        }
-      }
-      else {
-        this.edgesData.update(defaultData);
-        this.moving = true;
-        this.start();
-      }
-    }
-  };
-
-  /**
-   * Create the toolbar to edit the selected node. The label and the color can be changed. Other colors are derived from the chosen color.
-   *
-   * @private
-   */
-  exports._editNode = function() {
-    if (this.triggerFunctions.edit && this.editMode == true) {
-      var node = this._getSelectedNode();
-      var data = {id:node.id,
-        label: node.label,
-        group: node.options.group,
-        shape: node.options.shape,
-        color: {
-          background:node.options.color.background,
-          border:node.options.color.border,
-          highlight: {
-            background:node.options.color.highlight.background,
-            border:node.options.color.highlight.border
-          }
-        }};
-      if (this.triggerFunctions.edit.length == 2) {
-        var me = this;
-        this.triggerFunctions.edit(data, function (finalizedData) {
-          me.nodesData.update(finalizedData);
-          me._createManipulatorBar();
-          me.moving = true;
-          me.start();
-        });
-      }
-      else {
-        throw new Error('The function for edit does not support two arguments (data, callback)');
-      }
-    }
-    else {
-      throw new Error('No edit function has been bound to this button');
-    }
-  };
-
-
-
-
-  /**
-   * delete everything in the selection
-   *
-   * @private
-   */
-  exports._deleteSelected = function() {
-    if (!this._selectionIsEmpty() && this.editMode == true) {
-      if (!this._clusterInSelection()) {
-        var selectedNodes = this.getSelectedNodes();
-        var selectedEdges = this.getSelectedEdges();
-        if (this.triggerFunctions.del) {
-          var me = this;
-          var data = {nodes: selectedNodes, edges: selectedEdges};
-          if (this.triggerFunctions.del.length == 2) {
-            this.triggerFunctions.del(data, function (finalizedData) {
-              me.edgesData.remove(finalizedData.edges);
-              me.nodesData.remove(finalizedData.nodes);
-              me._unselectAll();
-              me.moving = true;
-              me.start();
-            });
-          }
-          else {
-            throw new Error('The function for delete does not support two arguments (data, callback)')
-          }
-        }
-        else {
-          this.edgesData.remove(selectedEdges);
-          this.nodesData.remove(selectedNodes);
-          this._unselectAll();
-          this.moving = true;
-          this.start();
-        }
-      }
-      else {
-        alert(this.constants.locales[this.constants.locale]["deleteClusterError"]);
-      }
-    }
-  };
-
-
-/***/ },
-/* 65 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var util = __webpack_require__(1);
-  var Hammer = __webpack_require__(45);
-
-  exports._cleanNavigation = function() {
-    // clean hammer bindings
-    if (this.navigationHammers.existing.length != 0) {
-      for (var i = 0; i < this.navigationHammers.existing.length; i++) {
-        this.navigationHammers.existing[i].dispose();
-      }
-      this.navigationHammers.existing = [];
-    }
-
-    this._navigationReleaseOverload = function () {};
-
-    // clean up previous navigation items
-    if (this.navigationDivs && this.navigationDivs['wrapper'] && this.navigationDivs['wrapper'].parentNode) {
-      this.navigationDivs['wrapper'].parentNode.removeChild(this.navigationDivs['wrapper']);
-    }
-  };
-
-  /**
-   * Creation of the navigation controls nodes. They are drawn over the rest of the nodes and are not affected by scale and translation
-   * they have a triggerFunction which is called on click. If the position of the navigation controls is dependent
-   * on this.frame.canvas.clientWidth or this.frame.canvas.clientHeight, we flag horizontalAlignLeft and verticalAlignTop false.
-   * This means that the location will be corrected by the _relocateNavigation function on a size change of the canvas.
-   *
-   * @private
-   */
-  exports._loadNavigationElements = function() {
-    this._cleanNavigation();
-
-    this.navigationDivs = {};
-    var navigationDivs = ['up','down','left','right','zoomIn','zoomOut','zoomExtends'];
-    var navigationDivActions = ['_moveUp','_moveDown','_moveLeft','_moveRight','_zoomIn','_zoomOut','_zoomExtent'];
-
-    this.navigationDivs['wrapper'] = document.createElement('div');
-    this.frame.appendChild(this.navigationDivs['wrapper']);
-
-    for (var i = 0; i < navigationDivs.length; i++) {
-      this.navigationDivs[navigationDivs[i]] = document.createElement('div');
-      this.navigationDivs[navigationDivs[i]].className = 'network-navigation ' + navigationDivs[i];
-      this.navigationDivs['wrapper'].appendChild(this.navigationDivs[navigationDivs[i]]);
-
-      var hammer = Hammer(this.navigationDivs[navigationDivs[i]], {prevent_default: true});
-      hammer.on('touch', this[navigationDivActions[i]].bind(this));
-      this.navigationHammers._new.push(hammer);
-    }
-
-    this._navigationReleaseOverload = this._stopMovement;
-
-    this.navigationHammers.existing = this.navigationHammers._new;
-  };
-
-
-  /**
-   * this stops all movement induced by the navigation buttons
-   *
-   * @private
-   */
-  exports._zoomExtent = function(event) {
-    this.zoomExtent({duration:700});
-    event.stopPropagation();
-  };
-
-  /**
-   * this stops all movement induced by the navigation buttons
-   *
-   * @private
-   */
-  exports._stopMovement = function() {
-    this._xStopMoving();
-    this._yStopMoving();
-    this._stopZoom();
-  };
-
-
-  /**
-   * move the screen up
-   * By using the increments, instead of adding a fixed number to the translation, we keep fluent and
-   * instant movement. The onKeypress event triggers immediately, then pauses, then triggers frequently
-   * To avoid this behaviour, we do the translation in the start loop.
-   *
-   * @private
-   */
-  exports._moveUp = function(event) {
-    this.yIncrement = this.constants.keyboard.speed.y;
-    this.start(); // if there is no node movement, the calculation wont be done
-    event.preventDefault();
-  };
-
-
-  /**
-   * move the screen down
-   * @private
-   */
-  exports._moveDown = function(event) {
-    this.yIncrement = -this.constants.keyboard.speed.y;
-    this.start(); // if there is no node movement, the calculation wont be done
-    event.preventDefault();
-  };
-
-
-  /**
-   * move the screen left
-   * @private
-   */
-  exports._moveLeft = function(event) {
-    this.xIncrement = this.constants.keyboard.speed.x;
-    this.start(); // if there is no node movement, the calculation wont be done
-    event.preventDefault();
-  };
-
-
-  /**
-   * move the screen right
-   * @private
-   */
-  exports._moveRight = function(event) {
-    this.xIncrement = -this.constants.keyboard.speed.y;
-    this.start(); // if there is no node movement, the calculation wont be done
-    event.preventDefault();
-  };
-
-
-  /**
-   * Zoom in, using the same method as the movement.
-   * @private
-   */
-  exports._zoomIn = function(event) {
-    this.zoomIncrement = this.constants.keyboard.speed.zoom;
-    this.start(); // if there is no node movement, the calculation wont be done
-    event.preventDefault();
-  };
-
-
-  /**
-   * Zoom out
-   * @private
-   */
-  exports._zoomOut = function(event) {
-    this.zoomIncrement = -this.constants.keyboard.speed.zoom;
-    this.start(); // if there is no node movement, the calculation wont be done
-    event.preventDefault();
-  };
-
-
-  /**
-   * Stop zooming and unhighlight the zoom controls
-   * @private
-   */
-  exports._stopZoom = function(event) {
-    this.zoomIncrement = 0;
-    event && event.preventDefault();
-  };
-
-
-  /**
-   * Stop moving in the Y direction and unHighlight the up and down
-   * @private
-   */
-  exports._yStopMoving = function(event) {
-    this.yIncrement = 0;
-    event && event.preventDefault();
-  };
-
-
-  /**
-   * Stop moving in the X direction and unHighlight left and right.
-   * @private
-   */
-  exports._xStopMoving = function(event) {
-    this.xIncrement = 0;
-    event && event.preventDefault();
-  };
-
-
-/***/ },
-/* 66 */
-/***/ function(module, exports, __webpack_require__) {
-
-  exports._resetLevels = function() {
-    for (var nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        var node = this.nodes[nodeId];
-        if (node.preassignedLevel == false) {
-          node.level = -1;
-          node.hierarchyEnumerated = false;
-        }
-      }
-    }
-  };
-
-  /**
-   * This is the main function to layout the nodes in a hierarchical way.
-   * It checks if the node details are supplied correctly
-   *
-   * @private
-   */
-  exports._setupHierarchicalLayout = function() {
-    if (this.constants.hierarchicalLayout.enabled == true && this.nodeIndices.length > 0) {
-      // get the size of the largest hubs and check if the user has defined a level for a node.
-      var hubsize = 0;
-      var node, nodeId;
-      var definedLevel = false;
-      var undefinedLevel = false;
-
-      for (nodeId in this.nodes) {
-        if (this.nodes.hasOwnProperty(nodeId)) {
-          node = this.nodes[nodeId];
-          if (node.level != -1) {
-            definedLevel = true;
-          }
-          else {
-            undefinedLevel = true;
-          }
-          if (hubsize < node.edges.length) {
-            hubsize = node.edges.length;
-          }
-        }
-      }
-
-      // if the user defined some levels but not all, alert and run without hierarchical layout
-      if (undefinedLevel == true && definedLevel == true) {
-        throw new Error("To use the hierarchical layout, nodes require either no predefined levels or levels have to be defined for all nodes.");
-        this.zoomExtent(undefined,true,this.constants.clustering.enabled);
-        if (!this.constants.clustering.enabled) {
-          this.start();
-        }
-      }
-      else {
-        // setup the system to use hierarchical method.
-        this._changeConstants();
-
-        // define levels if undefined by the users. Based on hubsize
-        if (undefinedLevel == true) {
-          if (this.constants.hierarchicalLayout.layout == "hubsize") {
-            this._determineLevels(hubsize);
-          }
-          else {
-            this._determineLevelsDirected(false);
-          }
-
-        }
-        // check the distribution of the nodes per level.
-        var distribution = this._getDistribution();
-
-        // place the nodes on the canvas. This also stablilizes the system.
-        this._placeNodesByHierarchy(distribution);
-
-        // start the simulation.
-        this.start();
-      }
-    }
-  };
-
-
-  /**
-   * This function places the nodes on the canvas based on the hierarchial distribution.
-   *
-   * @param {Object} distribution | obtained by the function this._getDistribution()
-   * @private
-   */
-  exports._placeNodesByHierarchy = function(distribution) {
-    var nodeId, node;
-
-    // start placing all the level 0 nodes first. Then recursively position their branches.
-    for (var level in distribution) {
-      if (distribution.hasOwnProperty(level)) {
-
-        for (nodeId in distribution[level].nodes) {
-          if (distribution[level].nodes.hasOwnProperty(nodeId)) {
-            node = distribution[level].nodes[nodeId];
-            if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
-              if (node.xFixed) {
-                node.x = distribution[level].minPos;
-                node.xFixed = false;
-
-                distribution[level].minPos += distribution[level].nodeSpacing;
-              }
-            }
-            else {
-              if (node.yFixed) {
-                node.y = distribution[level].minPos;
-                node.yFixed = false;
-
-                distribution[level].minPos += distribution[level].nodeSpacing;
-              }
-            }
-            this._placeBranchNodes(node.edges,node.id,distribution,node.level);
-          }
-        }
-      }
-    }
-
-    // stabilize the system after positioning. This function calls zoomExtent.
-    this._stabilize();
-  };
-
-
-  /**
-   * This function get the distribution of levels based on hubsize
-   *
-   * @returns {Object}
-   * @private
-   */
-  exports._getDistribution = function() {
-    var distribution = {};
-    var nodeId, node, level;
-
-    // we fix Y because the hierarchy is vertical, we fix X so we do not give a node an x position for a second time.
-    // the fix of X is removed after the x value has been set.
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        node = this.nodes[nodeId];
-        node.xFixed = true;
-        node.yFixed = true;
-        if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
-          node.y = this.constants.hierarchicalLayout.levelSeparation*node.level;
-        }
-        else {
-          node.x = this.constants.hierarchicalLayout.levelSeparation*node.level;
-        }
-        if (distribution[node.level] === undefined) {
-          distribution[node.level] = {amount: 0, nodes: {}, minPos:0, nodeSpacing:0};
-        }
-        distribution[node.level].amount += 1;
-        distribution[node.level].nodes[nodeId] = node;
-      }
-    }
-
-    // determine the largest amount of nodes of all levels
-    var maxCount = 0;
-    for (level in distribution) {
-      if (distribution.hasOwnProperty(level)) {
-        if (maxCount < distribution[level].amount) {
-          maxCount = distribution[level].amount;
-        }
-      }
-    }
-
-    // set the initial position and spacing of each nodes accordingly
-    for (level in distribution) {
-      if (distribution.hasOwnProperty(level)) {
-        distribution[level].nodeSpacing = (maxCount + 1) * this.constants.hierarchicalLayout.nodeSpacing;
-        distribution[level].nodeSpacing /= (distribution[level].amount + 1);
-        distribution[level].minPos = distribution[level].nodeSpacing - (0.5 * (distribution[level].amount + 1) * distribution[level].nodeSpacing);
-      }
-    }
-
-    return distribution;
-  };
-
-
-  /**
-   * this function allocates nodes in levels based on the recursive branching from the largest hubs.
-   *
-   * @param hubsize
-   * @private
-   */
-  exports._determineLevels = function(hubsize) {
-    var nodeId, node;
-
-    // determine hubs
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        node = this.nodes[nodeId];
-        if (node.edges.length == hubsize) {
-          node.level = 0;
-        }
-      }
-    }
-
-    // branch from hubs
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        node = this.nodes[nodeId];
-        if (node.level == 0) {
-          this._setLevel(1,node.edges,node.id);
-        }
-      }
-    }
-  };
-
-
-
-  /**
-   * this function allocates nodes in levels based on the direction of the edges
-   *
-   * @param hubsize
-   * @private
-   */
-  exports._determineLevelsDirected = function() {
-    var nodeId, node, firstNode;
-    var minLevel = 10000;
-
-    // set first node to source
-    firstNode = this.nodes[this.nodeIndices[0]];
-    firstNode.level = minLevel;
-    this._setLevelDirected(minLevel,firstNode.edges,firstNode.id);
-
-    // get the minimum level
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        node = this.nodes[nodeId];
-        minLevel = node.level < minLevel ? node.level : minLevel;
-      }
-    }
-
-    // subtract the minimum from the set so we have a range starting from 0
-    for (nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        node = this.nodes[nodeId];
-        node.level -= minLevel;
-      }
-    }
-  };
-
-
-  /**
-   * Since hierarchical layout does not support:
-   *    - smooth curves (based on the physics),
-   *    - clustering (based on dynamic node counts)
-   *
-   * We disable both features so there will be no problems.
-   *
-   * @private
-   */
-  exports._changeConstants = function() {
-    this.constants.clustering.enabled = false;
-    this.constants.physics.barnesHut.enabled = false;
-    this.constants.physics.hierarchicalRepulsion.enabled = true;
-    this._loadSelectedForceSolver();
-    if (this.constants.smoothCurves.enabled == true) {
-      this.constants.smoothCurves.dynamic = false;
-    }
-    this._configureSmoothCurves();
-
-    var config = this.constants.hierarchicalLayout;
-    config.levelSeparation = Math.abs(config.levelSeparation);
-    if (config.direction == "RL" || config.direction == "DU") {
-      config.levelSeparation *= -1;
-    }
-
-    if (config.direction == "RL" || config.direction == "LR") {
-      if (this.constants.smoothCurves.enabled == true) {
-        this.constants.smoothCurves.type = "vertical";
-      }
-    }
-    else {
-      if (this.constants.smoothCurves.enabled == true) {
-        this.constants.smoothCurves.type = "horizontal";
-      }
-    }
-  };
-
-
-  /**
-   * This is a recursively called function to enumerate the branches from the largest hubs and place the nodes
-   * on a X position that ensures there will be no overlap.
-   *
-   * @param edges
-   * @param parentId
-   * @param distribution
-   * @param parentLevel
-   * @private
-   */
-  exports._placeBranchNodes = function(edges, parentId, distribution, parentLevel) {
-    for (var i = 0; i < edges.length; i++) {
-      var childNode = null;
-      if (edges[i].toId == parentId) {
-        childNode = edges[i].from;
-      }
-      else {
-        childNode = edges[i].to;
-      }
-
-      // if a node is conneceted to another node on the same level (or higher (means lower level))!, this is not handled here.
-      var nodeMoved = false;
-      if (this.constants.hierarchicalLayout.direction == "UD" || this.constants.hierarchicalLayout.direction == "DU") {
-        if (childNode.xFixed && childNode.level > parentLevel) {
-          childNode.xFixed = false;
-          childNode.x = distribution[childNode.level].minPos;
-          nodeMoved = true;
-        }
-      }
-      else {
-        if (childNode.yFixed && childNode.level > parentLevel) {
-          childNode.yFixed = false;
-          childNode.y = distribution[childNode.level].minPos;
-          nodeMoved = true;
-        }
-      }
-
-      if (nodeMoved == true) {
-        distribution[childNode.level].minPos += distribution[childNode.level].nodeSpacing;
-        if (childNode.edges.length > 1) {
-          this._placeBranchNodes(childNode.edges,childNode.id,distribution,childNode.level);
-        }
-      }
-    }
-  };
-
-
-  /**
-   * this function is called recursively to enumerate the barnches of the largest hubs and give each node a level.
-   *
-   * @param level
-   * @param edges
-   * @param parentId
-   * @private
-   */
-  exports._setLevel = function(level, edges, parentId) {
-    for (var i = 0; i < edges.length; i++) {
-      var childNode = null;
-      if (edges[i].toId == parentId) {
-        childNode = edges[i].from;
-      }
-      else {
-        childNode = edges[i].to;
-      }
-      if (childNode.level == -1 || childNode.level > level) {
-        childNode.level = level;
-        if (childNode.edges.length > 1) {
-          this._setLevel(level+1, childNode.edges, childNode.id);
-        }
-      }
-    }
-  };
-
-
-  /**
-   * this function is called recursively to enumerate the branched of the first node and give each node a level based on edge direction
-   *
-   * @param level
-   * @param edges
-   * @param parentId
-   * @private
-   */
-  exports._setLevelDirected = function(level, edges, parentId) {
-    this.nodes[parentId].hierarchyEnumerated = true;
-    var childNode, direction;
-    for (var i = 0; i < edges.length; i++) {
-      direction = 1;
-      if (edges[i].toId == parentId) {
-        childNode = edges[i].from;
-        direction = -1;
-      }
-      else {
-        childNode = edges[i].to;
-      }
-      if (childNode.level == -1) {
-        childNode.level = level + direction;
-      }
-    }
-
-    for (var i = 0; i < edges.length; i++) {
-      if (edges[i].toId == parentId) {childNode = edges[i].from;}
-      else {childNode = edges[i].to;}
-
-      if (childNode.edges.length > 1 && childNode.hierarchyEnumerated === false) {
-        this._setLevelDirected(childNode.level, childNode.edges, childNode.id);
-      }
-    }
-  };
-
-
-  /**
-   * Unfix nodes
-   *
-   * @private
-   */
-  exports._restoreNodes = function() {
-    for (var nodeId in this.nodes) {
-      if (this.nodes.hasOwnProperty(nodeId)) {
-        this.nodes[nodeId].xFixed = false;
-        this.nodes[nodeId].yFixed = false;
-      }
-    }
-  };
-
-
-/***/ },
 /* 67 */
-/***/ function(module, exports, __webpack_require__) {
-
-  function webpackContext(req) {
-  	throw new Error("Cannot find module '" + req + "'.");
-  }
-  webpackContext.keys = function() { return []; };
-  webpackContext.resolve = webpackContext;
-  module.exports = webpackContext;
-  webpackContext.id = 67;
-
-
-/***/ },
-/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -34178,7 +34291,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 69 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -34337,7 +34450,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 70 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -34739,6 +34852,19 @@ return /******/ (function(modules) { // webpackBootstrap
      }
      */
   };
+
+
+/***/ },
+/* 70 */
+/***/ function(module, exports, __webpack_require__) {
+
+  function webpackContext(req) {
+  	throw new Error("Cannot find module '" + req + "'.");
+  }
+  webpackContext.keys = function() { return []; };
+  webpackContext.resolve = webpackContext;
+  module.exports = webpackContext;
+  webpackContext.id = 70;
 
 
 /***/ },
