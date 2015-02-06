@@ -384,7 +384,7 @@ var filesList =  [
   //'2013_FP7-COH.json',
   //'2013_FP7-ENERGY.json',
   //'2013_FP7-ENVIRONMENT.json',
-  //'2013_FP7-EURATOM-FISSION.json',
+  '2013_FP7-EURATOM-FISSION.json',
   //'2013_FP7-EURATOM-FUSION.json',
   //'2013_FP7-HEALTH.json',
   '2013_FP7-ICT.json',
