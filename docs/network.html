@@ -850,6 +850,13 @@ var options = {
 All options defined per-node override these global settings.
 <table>
     <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
         <td class="greenField">borderWidth</td>
         <td>Number</td>
         <td>1</td>
@@ -860,6 +867,31 @@ All options defined per-node override these global settings.
         <td>Number</td>
         <td>undefined</td>
         <td>The width of the border of the node when it is selected. If left at undefined, double the borderWidth will be used.</td>
+    </tr>
+
+    <tr>
+        <td>customScalingFunction</td>
+        <td>Function</td>
+        <td>Function</td>
+        <td>This is a function you can override to make the nodes scale the way you want them based on their values. The default function is this: <br>
+<pre class="prettyprint lang-js">
+function (min,max,total,value) {
+    if (max == min) {
+        return 0.5;
+    }
+    else {
+        var scale = 1 / (max - min);
+        return Math.max(0,(value - min)*scale);
+    }
+};
+</pre>
+             The function receives the minimum value of the set, the maximum value, the total sum of all values and finally the value of the node or edge it works on. It has to return a value between 0 and 1.
+            The nodes and edges then calculate their size as follows:
+<pre class="prettyprint lang-js">
+var scale = customScalingFunction(min,max,total,value);
+var diff = maxSize - minSize;
+mySize = minSize + diff * scale;</pre>
+        </td>
     </tr>
     <tr>
         <td class="greenField">color</td>
