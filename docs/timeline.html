@@ -941,7 +941,9 @@ timeline.clear({options: true}); // clear options only
   <tr>
     <td>redraw()</td>
     <td>none</td>
-    <td>Force a redraw of the Timeline. Can be useful to manually redraw when option autoResize=false.
+    <td>Force a redraw of the Timeline. The size of all items will be recalculated.
+      Can be useful to manually redraw when option <code>autoResize=false</code> and the window
+      has been resized, or when the items CSS has been changed.
     </td>
   </tr>
 

@@ -29,6 +29,7 @@ http://visjs.org
 
 ### Timeline
 
+- `Timeline.redraw()` now also recalculates the size of items.
 - Implemented option `timeAxis: {scale: string, step: number}` to set a
   fixed scale.
 - Fixed width of range items not always being maintained when moving due to
