@@ -23594,7 +23594,7 @@ return /******/ (function(modules) { // webpackBootstrap
                 ctx.oBackingStorePixelRatio ||
                 ctx.backingStorePixelRatio || 1);
 
-      this.pixelRatio = Math.max(1,this.pixelRatio); // this is to account for browser zooming out. The pixel ratio is ment to switch between 1 and 2 for HD screens.
+      //this.pixelRatio = Math.max(1,this.pixelRatio); // this is to account for browser zooming out. The pixel ratio is ment to switch between 1 and 2 for HD screens.
       this.frame.canvas.getContext("2d").setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
     }
 
@@ -24666,8 +24666,8 @@ return /******/ (function(modules) { // webpackBootstrap
     ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
 
     // clear the canvas
-    var w = this.frame.canvas.clientWidth  * this.pixelRatio;
-    var h = this.frame.canvas.clientHeight  * this.pixelRatio;
+    var w = this.frame.canvas.clientWidth;
+    var h = this.frame.canvas.clientHeight;
     ctx.clearRect(0, 0, w, h);
 
     // set scaling and translation
@@ -24680,8 +24680,8 @@ return /******/ (function(modules) { // webpackBootstrap
       "y": this._YconvertDOMtoCanvas(0)
     };
     this.canvasBottomRight = {
-      "x": this._XconvertDOMtoCanvas(this.frame.canvas.clientWidth * this.pixelRatio),
-      "y": this._YconvertDOMtoCanvas(this.frame.canvas.clientHeight * this.pixelRatio)
+      "x": this._XconvertDOMtoCanvas(this.frame.canvas.clientWidth),
+      "y": this._YconvertDOMtoCanvas(this.frame.canvas.clientHeight)
     };
 
     if (!(hidden == true)) {
