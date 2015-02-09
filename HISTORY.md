@@ -2,6 +2,17 @@
 http://visjs.org
 
 
+## not yet released, version 4.0.0-SNAPSHOT
+
+### Timeline
+
+- Fixed range items not being displayed smaller than 10 pixels (twice the
+  padding). In order to have overflowing text, one should now apply css style
+  `.vis.timeline .item.range { overflow: visible; }` instead of
+  `.vis.timeline .item.range .content { overflow: visible; }`.
+  See example 18_range_overflow.html.
+
+
 ## not yet released, version 3.9.2-SNAPSHOT
 
 ### Network
