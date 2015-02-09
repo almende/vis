@@ -21,6 +21,8 @@ http://visjs.org
 
 - Implemented option `timeAxis: {scale: string, step: number}` to set a
   fixed scale.
+- Fixed width of range items not always being maintained when moving due to
+  snapping to nice dates.
 
 
 ## 2015-01-16, version 3.9.1
