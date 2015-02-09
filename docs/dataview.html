@@ -220,6 +220,22 @@ var data = new vis.DataView(dataset, options)
   </tr>
 
   <tr>
+    <td>refresh()</td>
+    <td>none</td>
+    <td>
+      Refresh the filter results of a DataView. Useful when the filter function contains dynamic properties, like:
+
+      <pre class="prettyprint lang-js">var data = new vis.DataSet(...);
+var view = new vis.DataView(data, {
+  filter: function (item) {
+    return item.value > threshold;
+  }
+});</pre>
+      In this example, <code>threshold</code> is an external parameter. When the value of <code>threshold</code> changes, the DataView must be notified that the filter results may have changed by calling <code>DataView.refresh()</code>.
+    </td>
+  </tr>
+
+  <tr>
     <td>
       setDataSet(data)
     </td>

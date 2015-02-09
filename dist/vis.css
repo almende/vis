@@ -173,7 +173,7 @@
   border-width: 1px;
   background-color: #D5DDF6;
   display: inline-block;
-  padding: 5px;
+  overflow: hidden;
 }
 
 .vis.timeline .item.selected {
@@ -217,7 +217,6 @@
 }
 
 .vis.timeline .item.background {
-  overflow: hidden;
   border: none;
   background-color: rgba(213, 221, 246, 0.4);
   box-sizing: border-box;
@@ -229,13 +228,11 @@
   position: relative;
   display: inline-block;
   max-width: 100%;
-  overflow: hidden;
 }
 
 .vis.timeline .item.background .content {
   position: absolute;
   display: inline-block;
-  overflow: hidden;
   max-width: 100%;
   margin: 5px;
 }
@@ -250,7 +247,8 @@
 
 .vis.timeline .item .content {
   white-space: nowrap;
-  overflow: hidden;
+  box-sizing: border-box;
+  padding: 5px;
 }
 
 .vis.timeline .item .delete {
