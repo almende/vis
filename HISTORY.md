@@ -15,6 +15,7 @@ http://visjs.org
 - Added stabilizationIterationsDone event which fires at the end of the internal stabilization run. Does not imply that the network is stabilized.
 - Added setFreezeSimulation method.
 - Added clusterByZoom option and increaseClusterLevel and decreaseClusterLevel methods.
+- Fixed bug when redrawing was not right on zoomed-out browsers.
 
 
 ### DataSet/DataView
