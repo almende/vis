@@ -960,6 +960,38 @@ mySize = minSize + diff * scale;</pre>
         <td>Font size in pixels for label in the node.</td>
     </tr>
     <tr>
+        <td>scaleFontWithValue</td>
+        <td>Boolean</td>
+        <td>false</td>
+        <td>When using values, you can let the font scale with the size of the nodes if you enable the this option.</td>
+    </tr>
+    <tr>
+        <td>fontSizeMin</td>
+        <td>Number</td>
+        <td>14</td>
+        <td>When using values, you can let the font scale with the size of the nodes if you enable the scaleFontWithValue option. This is the minimum value of the fontSize.</td>
+    </tr>
+    <tr>
+        <td></td>fontSizeMax</td>
+        <td>Number</td>
+        <td>30</td>
+        <td>When using values, you can let the font scale with the size of the nodes if you enable the scaleFontWithValue option. This is the maximum value of the fontSize.</td>
+    </tr>
+    <tr>
+        <td>fontSizeMaxVisible</td>
+        <td>Number</td>
+        <td>30</td>
+        <td>When using values, you can let the font scale with the size of the nodes if you enable the scaleFontWithValue option. If you have a wide distribution of values and have a large max fontSize,
+            the text will become huge if you zoom in on it. This option limits the percieved fontSize to avoid this. If you set it to 20, no label will be larger than fontsize 20 (at scale = 1) regardless of the scale.</td>
+    </tr>
+    <tr>
+        <td>fontDrawThreshold</td>
+        <td>Number</td>
+        <td>3</td>
+        <td>When zooming out, the text becomes smaller. This option sets the minimum size of the label before not being drawn. Just like the fontSizeMaxVisible option, this is the relative fontSize (fontSize * scale).
+        You can combine this with the min and max values to have the labels of influential nodes show earlier when zooming in.</td>
+    </tr>
+    <tr>
         <td class="greenField">fontFill</td>
         <td>String</td>
         <td>undefined</td>
@@ -1229,7 +1261,12 @@ var options = {
       <td>Possible values: <code>"line-above", "line-center", "line-below"</code>. The alignment of the label when drawn on the edge. 
 	  If <code>horizontal</code> it will align the label absolute horizontial.</td>
   </tr>
-
+    <tr>
+        <td class="greenField">opacity</td>
+        <td>Number</td>
+        <td>1.0</td>
+        <td>Possible values: <code>[0 .. 1]</code>. This opacity value is added on top of the color information. This only happens for the unselected state.</td>
+    </tr>
   <tr>
    <td class="greenField">style</td>
       <td>string</td>
@@ -1759,7 +1796,8 @@ var options = {
                     radius: 1},
       maxNodeSizeIncrements: 600,
       activeAreaBoxSize: 100,
-      clusterLevelDifference: 2
+      clusterLevelDifference: 2,
+      clusterByZoom: true
     }
 }
 // OR to just load the module with default values:
@@ -1902,6 +1940,12 @@ var options = {
       If the highest level of your network at any given time is 3, nodes that have not clustered or
       have clustered only once will join their neighbour with the lowest cluster level.</td>
   </tr>
+    <tr>
+        <td>clusterByZoom</td>
+        <td>Boolean</td>
+        <td>true</td>
+        <td>You can toggle the clustering by zoom level using this option.</td>
+    </tr>
 </table>
 
 <h3 id="Navigation_controls">Navigation controls</h3>
@@ -2247,6 +2291,13 @@ var options = {
     </td>
   </tr>
     <tr>
+        <td>getConnectedNodes(nodeId)</td>
+        <td>Array</td>
+        <td>Returns an array with nodeIds of nodes that are connected to this node. Network keeps track of the connected nodes so this function allows you
+            to quickly get them without iterating over all edges manually. This is a lot faster for cases with many edges.
+        </td>
+    </tr>
+    <tr>
     <td>getSelection()</td>
     <td>Array of ids</td>
     <td>Returns an array with the ids of the selected nodes.
@@ -2272,6 +2323,13 @@ var options = {
             easeInQuint, easeOutQuint, easeInOutQuint </code> <br /><br />
     </td>
   </tr>
+    <tr>
+        <td>freezeSimulation(Boolean)</td>
+        <td>none</td>
+        <td>Calling freezeSimulation(true) immmediately stops the simulation and triggerst the stabilized event. This does not mean that the network
+            is physically stabilized but the nodes are not moving anymore. To continue the simulation call freezeSimulation(false).
+        </td>
+    </tr>
   <tr>
     <td>releaseNode()</td>
     <td>none</td>

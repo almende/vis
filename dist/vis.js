@@ -23037,7 +23037,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.setOptions(options);
 
     // other vars
-    this.freezeSimulation = false;// freeze the simulation
+    this.freezeSimulationEnabled = false;// freeze the simulation
     this.cachedFunctions = {};
     this.startedStabilization = false;
     this.stabilized = false;
@@ -25055,7 +25055,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   Network.prototype._physicsTick = function() {
-    if (!this.freezeSimulation) {
+    if (!this.freezeSimulationEnabled) {
       if (this.moving == true) {
         var mainMovingStatus = false;
         var supportMovingStatus = false;
@@ -25195,13 +25195,13 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    *  Freeze the _animationStep
    */
-  Network.prototype.setFreezeSimulation = function(freeze) {
+  Network.prototype.freezeSimulation = function(freeze) {
     if (freeze == true) {
-      this.freezeSimulation = true;
+      this.freezeSimulationEnabled = true;
       this.moving = false;
     }
     else {
-      this.freezeSimulation = false;
+      this.freezeSimulationEnabled = false;
       this.moving = true;
       this.start();
     }
@@ -33378,7 +33378,7 @@ return /******/ (function(modules) { // webpackBootstrap
     delete this.sectors['support']['nodes']['targetNode'];
     delete this.sectors['support']['nodes']['targetViaNode'];
     this.controlNodesActive = false;
-    this.freezeSimulation = false;
+    this.freezeSimulationEnabled = false;
   };
 
   /**
@@ -33447,7 +33447,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this._restoreOverloadedFunctions();
 
     // resume calculation
-    this.freezeSimulation = false;
+    this.freezeSimulationEnabled = false;
 
     // reset global variables
     this.blockConnectingEdgeSelection = false;
@@ -33617,7 +33617,7 @@ return /******/ (function(modules) { // webpackBootstrap
     // clear the toolbar
     this._clearManipulatorBar();
     this._unselectAll(true);
-    this.freezeSimulation = true;
+    this.freezeSimulationEnabled = true;
 
     if (this.boundFunction) {
       this.off('select', this.boundFunction);
@@ -33748,7 +33748,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.selectedControlNode = this.edgeBeingEdited._getSelectedControlNode(this._XconvertDOMtoCanvas(pointer.x),this._YconvertDOMtoCanvas(pointer.y));
     if (this.selectedControlNode !== null) {
       this.selectedControlNode.select();
-      this.freezeSimulation = true;
+      this.freezeSimulationEnabled = true;
     }
     this._redraw();
   };
@@ -33792,7 +33792,7 @@ return /******/ (function(modules) { // webpackBootstrap
     else {
       this.edgeBeingEdited._restoreControlNodes();
     }
-    this.freezeSimulation = false;
+    this.freezeSimulationEnabled = false;
     this._redraw();
   };
 

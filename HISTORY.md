@@ -13,9 +13,10 @@ http://visjs.org
 - Added fade in of labels (on nodes) near the fontDrawThreshold.
 - Added nodes option to zoomExtent to zoom in on specific set of nodes.
 - Added stabilizationIterationsDone event which fires at the end of the internal stabilization run. Does not imply that the network is stabilized.
-- Added setFreezeSimulation method.
-- Added clusterByZoom option and increaseClusterLevel and decreaseClusterLevel methods.
+- Added freezeSimulation method.
+- Added clusterByZoom option.
 - Fixed bug when redrawing was not right on zoomed-out browsers.
+- Added opacity to edges. Opacity is only used for the unselected state.
 
 
 ### DataSet/DataView
