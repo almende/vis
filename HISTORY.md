@@ -16,7 +16,8 @@ http://visjs.org
 - Added freezeSimulation method.
 - Added clusterByZoom option.
 - Fixed bug when redrawing was not right on zoomed-out browsers.
-- Added opacity to edges. Opacity is only used for the unselected state.
+- Added opacity option to edges. Opacity is only used for the unselected state.
+- Fixed bug where selections from removed data elements persisted.
 
 
 ### DataSet/DataView
