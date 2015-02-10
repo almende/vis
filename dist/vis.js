@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.9.1
- * @date    2015-01-22
+ * @date    2015-02-10
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -83,10 +83,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // utils
   exports.util = __webpack_require__(1);
-  exports.DOMutil = __webpack_require__(2);
+  exports.DOMutil = __webpack_require__(3);
 
   // data
-  exports.DataSet = __webpack_require__(3);
+  exports.DataSet = __webpack_require__(2);
   exports.DataView = __webpack_require__(4);
   exports.Queue = __webpack_require__(5);
 
@@ -107,9 +107,9 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.timeline = {
     DateUtil: __webpack_require__(15),
     DataStep: __webpack_require__(16),
-    Range: __webpack_require__(17),
-    stack: __webpack_require__(18),
-    TimeStep: __webpack_require__(19),
+    Range: __webpack_require__(19),
+    stack: __webpack_require__(17),
+    TimeStep: __webpack_require__(18),
 
     components: {
       items: {
@@ -1396,189 +1396,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
-  // DOM utility methods
-
-  /**
-   * this prepares the JSON container for allocating SVG elements
-   * @param JSONcontainer
-   * @private
-   */
-  exports.prepareElements = function(JSONcontainer) {
-    // cleanup the redundant svgElements;
-    for (var elementType in JSONcontainer) {
-      if (JSONcontainer.hasOwnProperty(elementType)) {
-        JSONcontainer[elementType].redundant = JSONcontainer[elementType].used;
-        JSONcontainer[elementType].used = [];
-      }
-    }
-  };
-
-  /**
-   * this cleans up all the unused SVG elements. By asking for the parentNode, we only need to supply the JSON container from
-   * which to remove the redundant elements.
-   *
-   * @param JSONcontainer
-   * @private
-   */
-  exports.cleanupElements = function(JSONcontainer) {
-    // cleanup the redundant svgElements;
-    for (var elementType in JSONcontainer) {
-      if (JSONcontainer.hasOwnProperty(elementType)) {
-        if (JSONcontainer[elementType].redundant) {
-          for (var i = 0; i < JSONcontainer[elementType].redundant.length; i++) {
-            JSONcontainer[elementType].redundant[i].parentNode.removeChild(JSONcontainer[elementType].redundant[i]);
-          }
-          JSONcontainer[elementType].redundant = [];
-        }
-      }
-    }
-  };
-
-  /**
-   * Allocate or generate an SVG element if needed. Store a reference to it in the JSON container and draw it in the svgContainer
-   * the JSON container and the SVG container have to be supplied so other svg containers (like the legend) can use this.
-   *
-   * @param elementType
-   * @param JSONcontainer
-   * @param svgContainer
-   * @returns {*}
-   * @private
-   */
-  exports.getSVGElement = function (elementType, JSONcontainer, svgContainer) {
-    var element;
-    // allocate SVG element, if it doesnt yet exist, create one.
-    if (JSONcontainer.hasOwnProperty(elementType)) { // this element has been created before
-      // check if there is an redundant element
-      if (JSONcontainer[elementType].redundant.length > 0) {
-        element = JSONcontainer[elementType].redundant[0];
-        JSONcontainer[elementType].redundant.shift();
-      }
-      else {
-        // create a new element and add it to the SVG
-        element = document.createElementNS('http://www.w3.org/2000/svg', elementType);
-        svgContainer.appendChild(element);
-      }
-    }
-    else {
-      // create a new element and add it to the SVG, also create a new object in the svgElements to keep track of it.
-      element = document.createElementNS('http://www.w3.org/2000/svg', elementType);
-      JSONcontainer[elementType] = {used: [], redundant: []};
-      svgContainer.appendChild(element);
-    }
-    JSONcontainer[elementType].used.push(element);
-    return element;
-  };
-
-
-  /**
-   * Allocate or generate an SVG element if needed. Store a reference to it in the JSON container and draw it in the svgContainer
-   * the JSON container and the SVG container have to be supplied so other svg containers (like the legend) can use this.
-   *
-   * @param elementType
-   * @param JSONcontainer
-   * @param DOMContainer
-   * @returns {*}
-   * @private
-   */
-  exports.getDOMElement = function (elementType, JSONcontainer, DOMContainer, insertBefore) {
-    var element;
-    // allocate DOM element, if it doesnt yet exist, create one.
-    if (JSONcontainer.hasOwnProperty(elementType)) { // this element has been created before
-      // check if there is an redundant element
-      if (JSONcontainer[elementType].redundant.length > 0) {
-        element = JSONcontainer[elementType].redundant[0];
-        JSONcontainer[elementType].redundant.shift();
-      }
-      else {
-        // create a new element and add it to the SVG
-        element = document.createElement(elementType);
-        if (insertBefore !== undefined) {
-          DOMContainer.insertBefore(element, insertBefore);
-        }
-        else {
-          DOMContainer.appendChild(element);
-        }
-      }
-    }
-    else {
-      // create a new element and add it to the SVG, also create a new object in the svgElements to keep track of it.
-      element = document.createElement(elementType);
-      JSONcontainer[elementType] = {used: [], redundant: []};
-      if (insertBefore !== undefined) {
-        DOMContainer.insertBefore(element, insertBefore);
-      }
-      else {
-        DOMContainer.appendChild(element);
-      }
-    }
-    JSONcontainer[elementType].used.push(element);
-    return element;
-  };
-
-
-
-
-  /**
-   * draw a point object. this is a seperate function because it can also be called by the legend.
-   * The reason the JSONcontainer and the target SVG svgContainer have to be supplied is so the legend can use these functions
-   * as well.
-   *
-   * @param x
-   * @param y
-   * @param group
-   * @param JSONcontainer
-   * @param svgContainer
-   * @returns {*}
-   */
-  exports.drawPoint = function(x, y, group, JSONcontainer, svgContainer) {
-    var point;
-    if (group.options.drawPoints.style == 'circle') {
-      point = exports.getSVGElement('circle',JSONcontainer,svgContainer);
-      point.setAttributeNS(null, "cx", x);
-      point.setAttributeNS(null, "cy", y);
-      point.setAttributeNS(null, "r", 0.5 * group.options.drawPoints.size);
-    }
-    else {
-      point = exports.getSVGElement('rect',JSONcontainer,svgContainer);
-      point.setAttributeNS(null, "x", x - 0.5*group.options.drawPoints.size);
-      point.setAttributeNS(null, "y", y - 0.5*group.options.drawPoints.size);
-      point.setAttributeNS(null, "width", group.options.drawPoints.size);
-      point.setAttributeNS(null, "height", group.options.drawPoints.size);
-    }
-
-    if(group.options.drawPoints.styles !== undefined) {
-      point.setAttributeNS(null, "style", group.group.options.drawPoints.styles);
-    }
-    point.setAttributeNS(null, "class", group.className + " point");
-    return point;
-  };
-
-  /**
-   * draw a bar SVG element centered on the X coordinate
-   *
-   * @param x
-   * @param y
-   * @param className
-   */
-  exports.drawBar = function (x, y, width, height, className, JSONcontainer, svgContainer) {
-    if (height != 0) {
-      if (height < 0) {
-        height *= -1;
-        y -= height;
-      }
-      var rect = exports.getSVGElement('rect',JSONcontainer, svgContainer);
-      rect.setAttributeNS(null, "x", x - 0.5 * width);
-      rect.setAttributeNS(null, "y", y);
-      rect.setAttributeNS(null, "width", width);
-      rect.setAttributeNS(null, "height", height);
-      rect.setAttributeNS(null, "class", className);
-    }
-  };
-
-/***/ },
-/* 3 */
-/***/ function(module, exports, __webpack_require__) {
-
   var util = __webpack_require__(1);
   var Queue = __webpack_require__(5);
 
@@ -2571,11 +2388,194 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
+/* 3 */
+/***/ function(module, exports, __webpack_require__) {
+
+  // DOM utility methods
+
+  /**
+   * this prepares the JSON container for allocating SVG elements
+   * @param JSONcontainer
+   * @private
+   */
+  exports.prepareElements = function(JSONcontainer) {
+    // cleanup the redundant svgElements;
+    for (var elementType in JSONcontainer) {
+      if (JSONcontainer.hasOwnProperty(elementType)) {
+        JSONcontainer[elementType].redundant = JSONcontainer[elementType].used;
+        JSONcontainer[elementType].used = [];
+      }
+    }
+  };
+
+  /**
+   * this cleans up all the unused SVG elements. By asking for the parentNode, we only need to supply the JSON container from
+   * which to remove the redundant elements.
+   *
+   * @param JSONcontainer
+   * @private
+   */
+  exports.cleanupElements = function(JSONcontainer) {
+    // cleanup the redundant svgElements;
+    for (var elementType in JSONcontainer) {
+      if (JSONcontainer.hasOwnProperty(elementType)) {
+        if (JSONcontainer[elementType].redundant) {
+          for (var i = 0; i < JSONcontainer[elementType].redundant.length; i++) {
+            JSONcontainer[elementType].redundant[i].parentNode.removeChild(JSONcontainer[elementType].redundant[i]);
+          }
+          JSONcontainer[elementType].redundant = [];
+        }
+      }
+    }
+  };
+
+  /**
+   * Allocate or generate an SVG element if needed. Store a reference to it in the JSON container and draw it in the svgContainer
+   * the JSON container and the SVG container have to be supplied so other svg containers (like the legend) can use this.
+   *
+   * @param elementType
+   * @param JSONcontainer
+   * @param svgContainer
+   * @returns {*}
+   * @private
+   */
+  exports.getSVGElement = function (elementType, JSONcontainer, svgContainer) {
+    var element;
+    // allocate SVG element, if it doesnt yet exist, create one.
+    if (JSONcontainer.hasOwnProperty(elementType)) { // this element has been created before
+      // check if there is an redundant element
+      if (JSONcontainer[elementType].redundant.length > 0) {
+        element = JSONcontainer[elementType].redundant[0];
+        JSONcontainer[elementType].redundant.shift();
+      }
+      else {
+        // create a new element and add it to the SVG
+        element = document.createElementNS('http://www.w3.org/2000/svg', elementType);
+        svgContainer.appendChild(element);
+      }
+    }
+    else {
+      // create a new element and add it to the SVG, also create a new object in the svgElements to keep track of it.
+      element = document.createElementNS('http://www.w3.org/2000/svg', elementType);
+      JSONcontainer[elementType] = {used: [], redundant: []};
+      svgContainer.appendChild(element);
+    }
+    JSONcontainer[elementType].used.push(element);
+    return element;
+  };
+
+
+  /**
+   * Allocate or generate an SVG element if needed. Store a reference to it in the JSON container and draw it in the svgContainer
+   * the JSON container and the SVG container have to be supplied so other svg containers (like the legend) can use this.
+   *
+   * @param elementType
+   * @param JSONcontainer
+   * @param DOMContainer
+   * @returns {*}
+   * @private
+   */
+  exports.getDOMElement = function (elementType, JSONcontainer, DOMContainer, insertBefore) {
+    var element;
+    // allocate DOM element, if it doesnt yet exist, create one.
+    if (JSONcontainer.hasOwnProperty(elementType)) { // this element has been created before
+      // check if there is an redundant element
+      if (JSONcontainer[elementType].redundant.length > 0) {
+        element = JSONcontainer[elementType].redundant[0];
+        JSONcontainer[elementType].redundant.shift();
+      }
+      else {
+        // create a new element and add it to the SVG
+        element = document.createElement(elementType);
+        if (insertBefore !== undefined) {
+          DOMContainer.insertBefore(element, insertBefore);
+        }
+        else {
+          DOMContainer.appendChild(element);
+        }
+      }
+    }
+    else {
+      // create a new element and add it to the SVG, also create a new object in the svgElements to keep track of it.
+      element = document.createElement(elementType);
+      JSONcontainer[elementType] = {used: [], redundant: []};
+      if (insertBefore !== undefined) {
+        DOMContainer.insertBefore(element, insertBefore);
+      }
+      else {
+        DOMContainer.appendChild(element);
+      }
+    }
+    JSONcontainer[elementType].used.push(element);
+    return element;
+  };
+
+
+
+
+  /**
+   * draw a point object. this is a seperate function because it can also be called by the legend.
+   * The reason the JSONcontainer and the target SVG svgContainer have to be supplied is so the legend can use these functions
+   * as well.
+   *
+   * @param x
+   * @param y
+   * @param group
+   * @param JSONcontainer
+   * @param svgContainer
+   * @returns {*}
+   */
+  exports.drawPoint = function(x, y, group, JSONcontainer, svgContainer) {
+    var point;
+    if (group.options.drawPoints.style == 'circle') {
+      point = exports.getSVGElement('circle',JSONcontainer,svgContainer);
+      point.setAttributeNS(null, "cx", x);
+      point.setAttributeNS(null, "cy", y);
+      point.setAttributeNS(null, "r", 0.5 * group.options.drawPoints.size);
+    }
+    else {
+      point = exports.getSVGElement('rect',JSONcontainer,svgContainer);
+      point.setAttributeNS(null, "x", x - 0.5*group.options.drawPoints.size);
+      point.setAttributeNS(null, "y", y - 0.5*group.options.drawPoints.size);
+      point.setAttributeNS(null, "width", group.options.drawPoints.size);
+      point.setAttributeNS(null, "height", group.options.drawPoints.size);
+    }
+
+    if(group.options.drawPoints.styles !== undefined) {
+      point.setAttributeNS(null, "style", group.group.options.drawPoints.styles);
+    }
+    point.setAttributeNS(null, "class", group.className + " point");
+    return point;
+  };
+
+  /**
+   * draw a bar SVG element centered on the X coordinate
+   *
+   * @param x
+   * @param y
+   * @param className
+   */
+  exports.drawBar = function (x, y, width, height, className, JSONcontainer, svgContainer) {
+    if (height != 0) {
+      if (height < 0) {
+        height *= -1;
+        y -= height;
+      }
+      var rect = exports.getSVGElement('rect',JSONcontainer, svgContainer);
+      rect.setAttributeNS(null, "x", x - 0.5 * width);
+      rect.setAttributeNS(null, "y", y);
+      rect.setAttributeNS(null, "width", width);
+      rect.setAttributeNS(null, "height", height);
+      rect.setAttributeNS(null, "class", className);
+    }
+  };
+
+/***/ },
 /* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(3);
+  var DataSet = __webpack_require__(2);
 
   /**
    * DataView
@@ -3087,7 +3087,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var Emitter = __webpack_require__(56);
-  var DataSet = __webpack_require__(3);
+  var DataSet = __webpack_require__(2);
   var DataView = __webpack_require__(4);
   var util = __webpack_require__(1);
   var Point3d = __webpack_require__(10);
@@ -6344,9 +6344,9 @@ return /******/ (function(modules) { // webpackBootstrap
   var Emitter = __webpack_require__(56);
   var Hammer = __webpack_require__(45);
   var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(3);
+  var DataSet = __webpack_require__(2);
   var DataView = __webpack_require__(4);
-  var Range = __webpack_require__(17);
+  var Range = __webpack_require__(19);
   var Core = __webpack_require__(46);
   var TimeAxis = __webpack_require__(35);
   var CurrentTime = __webpack_require__(26);
@@ -6664,9 +6664,9 @@ return /******/ (function(modules) { // webpackBootstrap
   var Emitter = __webpack_require__(56);
   var Hammer = __webpack_require__(45);
   var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(3);
+  var DataSet = __webpack_require__(2);
   var DataView = __webpack_require__(4);
-  var Range = __webpack_require__(17);
+  var Range = __webpack_require__(19);
   var Core = __webpack_require__(46);
   var TimeAxis = __webpack_require__(35);
   var CurrentTime = __webpack_require__(26);
@@ -7662,6 +7662,742 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
+  // Utility functions for ordering and stacking of items
+  var EPSILON = 0.001; // used when checking collisions, to prevent round-off errors
+
+  /**
+   * Order items by their start data
+   * @param {Item[]} items
+   */
+  exports.orderByStart = function(items) {
+    items.sort(function (a, b) {
+      return a.data.start - b.data.start;
+    });
+  };
+
+  /**
+   * Order items by their end date. If they have no end date, their start date
+   * is used.
+   * @param {Item[]} items
+   */
+  exports.orderByEnd = function(items) {
+    items.sort(function (a, b) {
+      var aTime = ('end' in a.data) ? a.data.end : a.data.start,
+          bTime = ('end' in b.data) ? b.data.end : b.data.start;
+
+      return aTime - bTime;
+    });
+  };
+
+  /**
+   * Adjust vertical positions of the items such that they don't overlap each
+   * other.
+   * @param {Item[]} items
+   *            All visible items
+   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
+   *            Margins between items and between items and the axis.
+   * @param {boolean} [force=false]
+   *            If true, all items will be repositioned. If false (default), only
+   *            items having a top===null will be re-stacked
+   */
+  exports.stack = function(items, margin, force) {
+    var i, iMax;
+
+    if (force) {
+      // reset top position of all items
+      for (i = 0, iMax = items.length; i < iMax; i++) {
+        items[i].top = null;
+      }
+    }
+
+    // calculate new, non-overlapping positions
+    for (i = 0, iMax = items.length; i < iMax; i++) {
+      var item = items[i];
+      if (item.stack && item.top === null) {
+        // initialize top position
+        item.top = margin.axis;
+
+        do {
+          // TODO: optimize checking for overlap. when there is a gap without items,
+          //       you only need to check for items from the next item on, not from zero
+          var collidingItem = null;
+          for (var j = 0, jj = items.length; j < jj; j++) {
+            var other = items[j];
+            if (other.top !== null && other !== item && other.stack && exports.collision(item, other, margin.item)) {
+              collidingItem = other;
+              break;
+            }
+          }
+
+          if (collidingItem != null) {
+            // There is a collision. Reposition the items above the colliding element
+            item.top = collidingItem.top + collidingItem.height + margin.item.vertical;
+          }
+        } while (collidingItem);
+      }
+    }
+  };
+
+
+  /**
+   * Adjust vertical positions of the items without stacking them
+   * @param {Item[]} items
+   *            All visible items
+   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
+   *            Margins between items and between items and the axis.
+   */
+  exports.nostack = function(items, margin, subgroups) {
+    var i, iMax, newTop;
+
+    // reset top position of all items
+    for (i = 0, iMax = items.length; i < iMax; i++) {
+      if (items[i].data.subgroup !== undefined) {
+        newTop = margin.axis;
+        for (var subgroup in subgroups) {
+          if (subgroups.hasOwnProperty(subgroup)) {
+            if (subgroups[subgroup].visible == true && subgroups[subgroup].index < subgroups[items[i].data.subgroup].index) {
+              newTop += subgroups[subgroup].height + margin.item.vertical;
+            }
+          }
+        }
+        items[i].top = newTop;
+      }
+      else {
+        items[i].top = margin.axis;
+      }
+    }
+  };
+
+  /**
+   * Test if the two provided items collide
+   * The items must have parameters left, width, top, and height.
+   * @param {Item} a          The first item
+   * @param {Item} b          The second item
+   * @param {{horizontal: number, vertical: number}} margin
+   *                          An object containing a horizontal and vertical
+   *                          minimum required margin.
+   * @return {boolean}        true if a and b collide, else false
+   */
+  exports.collision = function(a, b, margin) {
+    return ((a.left - margin.horizontal + EPSILON)       < (b.left + b.width) &&
+        (a.left + a.width + margin.horizontal - EPSILON) > b.left &&
+        (a.top - margin.vertical + EPSILON)              < (b.top + b.height) &&
+        (a.top + a.height + margin.vertical - EPSILON)   > b.top);
+  };
+
+
+/***/ },
+/* 18 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var moment = __webpack_require__(44);
+  var DateUtil = __webpack_require__(15);
+  var util = __webpack_require__(1);
+
+  /**
+   * @constructor  TimeStep
+   * The class TimeStep is an iterator for dates. You provide a start date and an
+   * end date. The class itself determines the best scale (step size) based on the
+   * provided start Date, end Date, and minimumStep.
+   *
+   * If minimumStep is provided, the step size is chosen as close as possible
+   * to the minimumStep but larger than minimumStep. If minimumStep is not
+   * provided, the scale is set to 1 DAY.
+   * The minimumStep should correspond with the onscreen size of about 6 characters
+   *
+   * Alternatively, you can set a scale by hand.
+   * After creation, you can initialize the class by executing first(). Then you
+   * can iterate from the start date to the end date via next(). You can check if
+   * the end date is reached with the function hasNext(). After each step, you can
+   * retrieve the current date via getCurrent().
+   * The TimeStep has scales ranging from milliseconds, seconds, minutes, hours,
+   * days, to years.
+   *
+   * Version: 1.2
+   *
+   * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
+   *                               or new Date(2010, 9, 21, 23, 45, 00)
+   * @param {Date} [end]           The end date
+   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
+   */
+  function TimeStep(start, end, minimumStep, hiddenDates) {
+    // variables
+    this.current = new Date();
+    this._start = new Date();
+    this._end = new Date();
+
+    this.autoScale  = true;
+    this.scale = 'day';
+    this.step = 1;
+
+    // initialize the range
+    this.setRange(start, end, minimumStep);
+
+    // hidden Dates options
+    this.switchedDay = false;
+    this.switchedMonth = false;
+    this.switchedYear = false;
+    this.hiddenDates = hiddenDates;
+    if (hiddenDates === undefined) {
+      this.hiddenDates = [];
+    }
+
+    this.format = TimeStep.FORMAT; // default formatting
+  }
+
+  // Time formatting
+  TimeStep.FORMAT = {
+    minorLabels: {
+      millisecond:'SSS',
+      second:     's',
+      minute:     'HH:mm',
+      hour:       'HH:mm',
+      weekday:    'ddd D',
+      day:        'D',
+      month:      'MMM',
+      year:       'YYYY'
+    },
+    majorLabels: {
+      millisecond:'HH:mm:ss',
+      second:     'D MMMM HH:mm',
+      minute:     'ddd D MMMM',
+      hour:       'ddd D MMMM',
+      weekday:    'MMMM YYYY',
+      day:        'MMMM YYYY',
+      month:      'YYYY',
+      year:       ''
+    }
+  };
+
+  /**
+   * Set custom formatting for the minor an major labels of the TimeStep.
+   * Both `minorLabels` and `majorLabels` are an Object with properties:
+   * 'millisecond, 'second, 'minute', 'hour', 'weekday, 'day, 'month, 'year'.
+   * @param {{minorLabels: Object, majorLabels: Object}} format
+   */
+  TimeStep.prototype.setFormat = function (format) {
+    var defaultFormat = util.deepExtend({}, TimeStep.FORMAT);
+    this.format = util.deepExtend(defaultFormat, format);
+  };
+
+  /**
+   * Set a new range
+   * If minimumStep is provided, the step size is chosen as close as possible
+   * to the minimumStep but larger than minimumStep. If minimumStep is not
+   * provided, the scale is set to 1 DAY.
+   * The minimumStep should correspond with the onscreen size of about 6 characters
+   * @param {Date} [start]      The start date and time.
+   * @param {Date} [end]        The end date and time.
+   * @param {int} [minimumStep] Optional. Minimum step size in milliseconds
+   */
+  TimeStep.prototype.setRange = function(start, end, minimumStep) {
+    if (!(start instanceof Date) || !(end instanceof Date)) {
+      throw  "No legal start or end date in method setRange";
+    }
+
+    this._start = (start != undefined) ? new Date(start.valueOf()) : new Date();
+    this._end = (end != undefined) ? new Date(end.valueOf()) : new Date();
+
+    if (this.autoScale) {
+      this.setMinimumStep(minimumStep);
+    }
+  };
+
+  /**
+   * Set the range iterator to the start date.
+   */
+  TimeStep.prototype.first = function() {
+    this.current = new Date(this._start.valueOf());
+    this.roundToMinor();
+  };
+
+  /**
+   * Round the current date to the first minor date value
+   * This must be executed once when the current date is set to start Date
+   */
+  TimeStep.prototype.roundToMinor = function() {
+    // round to floor
+    // IMPORTANT: we have no breaks in this switch! (this is no bug)
+    // noinspection FallThroughInSwitchStatementJS
+    switch (this.scale) {
+      case 'year':
+        this.current.setFullYear(this.step * Math.floor(this.current.getFullYear() / this.step));
+        this.current.setMonth(0);
+      case 'month':        this.current.setDate(1);
+      case 'day':          // intentional fall through
+      case 'weekday':      this.current.setHours(0);
+      case 'hour':         this.current.setMinutes(0);
+      case 'minute':       this.current.setSeconds(0);
+      case 'second':       this.current.setMilliseconds(0);
+      //case 'millisecond': // nothing to do for milliseconds
+    }
+
+    if (this.step != 1) {
+      // round down to the first minor value that is a multiple of the current step size
+      switch (this.scale) {
+        case 'millisecond':  this.current.setMilliseconds(this.current.getMilliseconds() - this.current.getMilliseconds() % this.step);  break;
+        case 'second':       this.current.setSeconds(this.current.getSeconds() - this.current.getSeconds() % this.step); break;
+        case 'minute':       this.current.setMinutes(this.current.getMinutes() - this.current.getMinutes() % this.step); break;
+        case 'hour':         this.current.setHours(this.current.getHours() - this.current.getHours() % this.step); break;
+        case 'weekday':      // intentional fall through
+        case 'day':          this.current.setDate((this.current.getDate()-1) - (this.current.getDate()-1) % this.step + 1); break;
+        case 'month':        this.current.setMonth(this.current.getMonth() - this.current.getMonth() % this.step);  break;
+        case 'year':         this.current.setFullYear(this.current.getFullYear() - this.current.getFullYear() % this.step); break;
+        default: break;
+      }
+    }
+  };
+
+  /**
+   * Check if the there is a next step
+   * @return {boolean}  true if the current date has not passed the end date
+   */
+  TimeStep.prototype.hasNext = function () {
+    return (this.current.valueOf() <= this._end.valueOf());
+  };
+
+  /**
+   * Do the next step
+   */
+  TimeStep.prototype.next = function() {
+    var prev = this.current.valueOf();
+
+    // Two cases, needed to prevent issues with switching daylight savings
+    // (end of March and end of October)
+    if (this.current.getMonth() < 6)   {
+      switch (this.scale) {
+        case 'millisecond':
+
+          this.current = new Date(this.current.valueOf() + this.step); break;
+        case 'second':       this.current = new Date(this.current.valueOf() + this.step * 1000); break;
+        case 'minute':       this.current = new Date(this.current.valueOf() + this.step * 1000 * 60); break;
+        case 'hour':
+          this.current = new Date(this.current.valueOf() + this.step * 1000 * 60 * 60);
+          // in case of skipping an hour for daylight savings, adjust the hour again (else you get: 0h 5h 9h ... instead of 0h 4h 8h ...)
+          var h = this.current.getHours();
+          this.current.setHours(h - (h % this.step));
+          break;
+        case 'weekday':      // intentional fall through
+        case 'day':          this.current.setDate(this.current.getDate() + this.step); break;
+        case 'month':        this.current.setMonth(this.current.getMonth() + this.step); break;
+        case 'year':         this.current.setFullYear(this.current.getFullYear() + this.step); break;
+        default:                      break;
+      }
+    }
+    else {
+      switch (this.scale) {
+        case 'millisecond':  this.current = new Date(this.current.valueOf() + this.step); break;
+        case 'second':       this.current.setSeconds(this.current.getSeconds() + this.step); break;
+        case 'minute':       this.current.setMinutes(this.current.getMinutes() + this.step); break;
+        case 'hour':         this.current.setHours(this.current.getHours() + this.step); break;
+        case 'weekday':      // intentional fall through
+        case 'day':          this.current.setDate(this.current.getDate() + this.step); break;
+        case 'month':        this.current.setMonth(this.current.getMonth() + this.step); break;
+        case 'year':         this.current.setFullYear(this.current.getFullYear() + this.step); break;
+        default:                      break;
+      }
+    }
+
+    if (this.step != 1) {
+      // round down to the correct major value
+      switch (this.scale) {
+        case 'millisecond':  if(this.current.getMilliseconds() < this.step) this.current.setMilliseconds(0);  break;
+        case 'second':       if(this.current.getSeconds() < this.step) this.current.setSeconds(0);  break;
+        case 'minute':       if(this.current.getMinutes() < this.step) this.current.setMinutes(0);  break;
+        case 'hour':         if(this.current.getHours() < this.step) this.current.setHours(0);  break;
+        case 'weekday':      // intentional fall through
+        case 'day':          if(this.current.getDate() < this.step+1) this.current.setDate(1); break;
+        case 'month':        if(this.current.getMonth() < this.step) this.current.setMonth(0);  break;
+        case 'year':         break; // nothing to do for year
+        default:                break;
+      }
+    }
+
+    // safety mechanism: if current time is still unchanged, move to the end
+    if (this.current.valueOf() == prev) {
+      this.current = new Date(this._end.valueOf());
+    }
+
+    DateUtil.stepOverHiddenDates(this, prev);
+  };
+
+
+  /**
+   * Get the current datetime
+   * @return {Date}  current The current date
+   */
+  TimeStep.prototype.getCurrent = function() {
+    return this.current;
+  };
+
+  /**
+   * Set a custom scale. Autoscaling will be disabled.
+   * For example setScale(SCALE.MINUTES, 5) will result
+   * in minor steps of 5 minutes, and major steps of an hour.
+   *
+   * @param {string} newScale
+   *                               A scale. Choose from 'millisecond, 'second,
+   *                               'minute', 'hour', 'weekday, 'day, 'month, 'year'.
+   * @param {Number}     newStep   A step size, by default 1. Choose for
+   *                               example 1, 2, 5, or 10.
+   */
+  TimeStep.prototype.setScale = function(newScale, newStep) {
+    this.scale = newScale;
+
+    if (newStep > 0) {
+      this.step = newStep;
+    }
+
+    this.autoScale = false;
+  };
+
+  /**
+   * Enable or disable autoscaling
+   * @param {boolean} enable  If true, autoascaling is set true
+   */
+  TimeStep.prototype.setAutoScale = function (enable) {
+    this.autoScale = enable;
+  };
+
+
+  /**
+   * Automatically determine the scale that bests fits the provided minimum step
+   * @param {Number} [minimumStep]  The minimum step size in milliseconds
+   */
+  TimeStep.prototype.setMinimumStep = function(minimumStep) {
+    if (minimumStep == undefined) {
+      return;
+    }
+
+    //var b = asc + ds;
+
+    var stepYear       = (1000 * 60 * 60 * 24 * 30 * 12);
+    var stepMonth      = (1000 * 60 * 60 * 24 * 30);
+    var stepDay        = (1000 * 60 * 60 * 24);
+    var stepHour       = (1000 * 60 * 60);
+    var stepMinute     = (1000 * 60);
+    var stepSecond     = (1000);
+    var stepMillisecond= (1);
+
+    // find the smallest step that is larger than the provided minimumStep
+    if (stepYear*1000 > minimumStep)        {this.scale = 'year';        this.step = 1000;}
+    if (stepYear*500 > minimumStep)         {this.scale = 'year';        this.step = 500;}
+    if (stepYear*100 > minimumStep)         {this.scale = 'year';        this.step = 100;}
+    if (stepYear*50 > minimumStep)          {this.scale = 'year';        this.step = 50;}
+    if (stepYear*10 > minimumStep)          {this.scale = 'year';        this.step = 10;}
+    if (stepYear*5 > minimumStep)           {this.scale = 'year';        this.step = 5;}
+    if (stepYear > minimumStep)             {this.scale = 'year';        this.step = 1;}
+    if (stepMonth*3 > minimumStep)          {this.scale = 'month';       this.step = 3;}
+    if (stepMonth > minimumStep)            {this.scale = 'month';       this.step = 1;}
+    if (stepDay*5 > minimumStep)            {this.scale = 'day';         this.step = 5;}
+    if (stepDay*2 > minimumStep)            {this.scale = 'day';         this.step = 2;}
+    if (stepDay > minimumStep)              {this.scale = 'day';         this.step = 1;}
+    if (stepDay/2 > minimumStep)            {this.scale = 'weekday';     this.step = 1;}
+    if (stepHour*4 > minimumStep)           {this.scale = 'hour';        this.step = 4;}
+    if (stepHour > minimumStep)             {this.scale = 'hour';        this.step = 1;}
+    if (stepMinute*15 > minimumStep)        {this.scale = 'minute';      this.step = 15;}
+    if (stepMinute*10 > minimumStep)        {this.scale = 'minute';      this.step = 10;}
+    if (stepMinute*5 > minimumStep)         {this.scale = 'minute';      this.step = 5;}
+    if (stepMinute > minimumStep)           {this.scale = 'minute';      this.step = 1;}
+    if (stepSecond*15 > minimumStep)        {this.scale = 'second';      this.step = 15;}
+    if (stepSecond*10 > minimumStep)        {this.scale = 'second';      this.step = 10;}
+    if (stepSecond*5 > minimumStep)         {this.scale = 'second';      this.step = 5;}
+    if (stepSecond > minimumStep)           {this.scale = 'second';      this.step = 1;}
+    if (stepMillisecond*200 > minimumStep)  {this.scale = 'millisecond'; this.step = 200;}
+    if (stepMillisecond*100 > minimumStep)  {this.scale = 'millisecond'; this.step = 100;}
+    if (stepMillisecond*50 > minimumStep)   {this.scale = 'millisecond'; this.step = 50;}
+    if (stepMillisecond*10 > minimumStep)   {this.scale = 'millisecond'; this.step = 10;}
+    if (stepMillisecond*5 > minimumStep)    {this.scale = 'millisecond'; this.step = 5;}
+    if (stepMillisecond > minimumStep)      {this.scale = 'millisecond'; this.step = 1;}
+  };
+
+  /**
+   * Snap a date to a rounded value.
+   * The snap intervals are dependent on the current scale and step.
+   * @param {Date} date   the date to be snapped.
+   * @return {Date} snappedDate
+   */
+  TimeStep.prototype.snap = function(date) {
+    var clone = new Date(date.valueOf());
+
+    if (this.scale == 'year') {
+      var year = clone.getFullYear() + Math.round(clone.getMonth() / 12);
+      clone.setFullYear(Math.round(year / this.step) * this.step);
+      clone.setMonth(0);
+      clone.setDate(0);
+      clone.setHours(0);
+      clone.setMinutes(0);
+      clone.setSeconds(0);
+      clone.setMilliseconds(0);
+    }
+    else if (this.scale == 'month') {
+      if (clone.getDate() > 15) {
+        clone.setDate(1);
+        clone.setMonth(clone.getMonth() + 1);
+        // important: first set Date to 1, after that change the month.
+      }
+      else {
+        clone.setDate(1);
+      }
+
+      clone.setHours(0);
+      clone.setMinutes(0);
+      clone.setSeconds(0);
+      clone.setMilliseconds(0);
+    }
+    else if (this.scale == 'day') {
+      //noinspection FallthroughInSwitchStatementJS
+      switch (this.step) {
+        case 5:
+        case 2:
+          clone.setHours(Math.round(clone.getHours() / 24) * 24); break;
+        default:
+          clone.setHours(Math.round(clone.getHours() / 12) * 12); break;
+      }
+      clone.setMinutes(0);
+      clone.setSeconds(0);
+      clone.setMilliseconds(0);
+    }
+    else if (this.scale == 'weekday') {
+      //noinspection FallthroughInSwitchStatementJS
+      switch (this.step) {
+        case 5:
+        case 2:
+          clone.setHours(Math.round(clone.getHours() / 12) * 12); break;
+        default:
+          clone.setHours(Math.round(clone.getHours() / 6) * 6); break;
+      }
+      clone.setMinutes(0);
+      clone.setSeconds(0);
+      clone.setMilliseconds(0);
+    }
+    else if (this.scale == 'hour') {
+      switch (this.step) {
+        case 4:
+          clone.setMinutes(Math.round(clone.getMinutes() / 60) * 60); break;
+        default:
+          clone.setMinutes(Math.round(clone.getMinutes() / 30) * 30); break;
+      }
+      clone.setSeconds(0);
+      clone.setMilliseconds(0);
+    } else if (this.scale == 'minute') {
+      //noinspection FallthroughInSwitchStatementJS
+      switch (this.step) {
+        case 15:
+        case 10:
+          clone.setMinutes(Math.round(clone.getMinutes() / 5) * 5);
+          clone.setSeconds(0);
+          break;
+        case 5:
+          clone.setSeconds(Math.round(clone.getSeconds() / 60) * 60); break;
+        default:
+          clone.setSeconds(Math.round(clone.getSeconds() / 30) * 30); break;
+      }
+      clone.setMilliseconds(0);
+    }
+    else if (this.scale == 'second') {
+      //noinspection FallthroughInSwitchStatementJS
+      switch (this.step) {
+        case 15:
+        case 10:
+          clone.setSeconds(Math.round(clone.getSeconds() / 5) * 5);
+          clone.setMilliseconds(0);
+          break;
+        case 5:
+          clone.setMilliseconds(Math.round(clone.getMilliseconds() / 1000) * 1000); break;
+        default:
+          clone.setMilliseconds(Math.round(clone.getMilliseconds() / 500) * 500); break;
+      }
+    }
+    else if (this.scale == 'millisecond') {
+      var step = this.step > 5 ? this.step / 2 : 1;
+      clone.setMilliseconds(Math.round(clone.getMilliseconds() / step) * step);
+    }
+    
+    return clone;
+  };
+
+  /**
+   * Check if the current value is a major value (for example when the step
+   * is DAY, a major value is each first day of the MONTH)
+   * @return {boolean} true if current date is major, else false.
+   */
+  TimeStep.prototype.isMajor = function() {
+    if (this.switchedYear == true) {
+      this.switchedYear = false;
+      switch (this.scale) {
+        case 'year':
+        case 'month':
+        case 'weekday':
+        case 'day':
+        case 'hour':
+        case 'minute':
+        case 'second':
+        case 'millisecond':
+          return true;
+        default:
+          return false;
+      }
+    }
+    else if (this.switchedMonth == true) {
+      this.switchedMonth = false;
+      switch (this.scale) {
+        case 'weekday':
+        case 'day':
+        case 'hour':
+        case 'minute':
+        case 'second':
+        case 'millisecond':
+          return true;
+        default:
+          return false;
+      }
+    }
+    else if (this.switchedDay == true) {
+      this.switchedDay = false;
+      switch (this.scale) {
+        case 'millisecond':
+        case 'second':
+        case 'minute':
+        case 'hour':
+          return true;
+        default:
+          return false;
+      }
+    }
+
+    switch (this.scale) {
+      case 'millisecond':
+        return (this.current.getMilliseconds() == 0);
+      case 'second':
+        return (this.current.getSeconds() == 0);
+      case 'minute':
+        return (this.current.getHours() == 0) && (this.current.getMinutes() == 0);
+      case 'hour':
+        return (this.current.getHours() == 0);
+      case 'weekday': // intentional fall through
+      case 'day':
+        return (this.current.getDate() == 1);
+      case 'month':
+        return (this.current.getMonth() == 0);
+      case 'year':
+        return false;
+      default:
+        return false;
+    }
+  };
+
+
+  /**
+   * Returns formatted text for the minor axislabel, depending on the current
+   * date and the scale. For example when scale is MINUTE, the current time is
+   * formatted as "hh:mm".
+   * @param {Date} [date] custom date. if not provided, current date is taken
+   */
+  TimeStep.prototype.getLabelMinor = function(date) {
+    if (date == undefined) {
+      date = this.current;
+    }
+
+    var format = this.format.minorLabels[this.scale];
+    return (format && format.length > 0) ? moment(date).format(format) : '';
+  };
+
+  /**
+   * Returns formatted text for the major axis label, depending on the current
+   * date and the scale. For example when scale is MINUTE, the major scale is
+   * hours, and the hour will be formatted as "hh".
+   * @param {Date} [date] custom date. if not provided, current date is taken
+   */
+  TimeStep.prototype.getLabelMajor = function(date) {
+    if (date == undefined) {
+      date = this.current;
+    }
+
+    var format = this.format.majorLabels[this.scale];
+    return (format && format.length > 0) ? moment(date).format(format) : '';
+  };
+
+  TimeStep.prototype.getClassName = function() {
+    var m = moment(this.current);
+    var date = m.locale ? m.locale('en') : m.lang('en'); // old versions of moment have .lang() function
+    var step = this.step;
+
+    function even(value) {
+      return (value / step % 2 == 0) ? ' even' : ' odd';
+    }
+
+    function today(date) {
+      if (date.isSame(new Date(), 'day')) {
+        return ' today';
+      }
+      if (date.isSame(moment().add(1, 'day'), 'day')) {
+        return ' tomorrow';
+      }
+      if (date.isSame(moment().add(-1, 'day'), 'day')) {
+        return ' yesterday';
+      }
+      return '';
+    }
+
+    function currentWeek(date) {
+      return date.isSame(new Date(), 'week') ? ' current-week' : '';
+    }
+
+    function currentMonth(date) {
+      return date.isSame(new Date(), 'month') ? ' current-month' : '';
+    }
+
+    function currentYear(date) {
+      return date.isSame(new Date(), 'year') ? ' current-year' : '';
+    }
+
+    switch (this.scale) {
+      case 'millisecond':
+        return even(date.milliseconds()).trim();
+
+      case 'second':
+        return even(date.seconds()).trim();
+
+      case 'minute':
+        return even(date.minutes()).trim();
+
+      case 'hour':
+        var hours = date.hours();
+        if (this.step == 4) {
+          hours = hours + '-' + (hours + 4);
+        }
+        return hours + 'h' + today(date) + even(date.hours());
+
+      case 'weekday':
+        return date.format('dddd').toLowerCase() +
+            today(date) + currentWeek(date) + even(date.date());
+
+      case 'day':
+        var day = date.date();
+        var month = date.format('MMMM').toLowerCase();
+        return 'day' + day + ' ' + month + currentMonth(date) + even(day - 1);
+
+      case 'month':
+        return date.format('MMMM').toLowerCase() +
+            currentMonth(date) + even(date.month());
+
+      case 'year':
+        var year = date.year();
+        return 'year' + year + currentYear(date)+ even(year);
+
+      default:
+        return '';
+    }
+  };
+
+  module.exports = TimeStep;
+
+
+/***/ },
+/* 19 */
+/***/ function(module, exports, __webpack_require__) {
+
   var util = __webpack_require__(1);
   var hammerUtil = __webpack_require__(47);
   var moment = __webpack_require__(44);
@@ -8344,742 +9080,6 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   module.exports = Range;
-
-
-/***/ },
-/* 18 */
-/***/ function(module, exports, __webpack_require__) {
-
-  // Utility functions for ordering and stacking of items
-  var EPSILON = 0.001; // used when checking collisions, to prevent round-off errors
-
-  /**
-   * Order items by their start data
-   * @param {Item[]} items
-   */
-  exports.orderByStart = function(items) {
-    items.sort(function (a, b) {
-      return a.data.start - b.data.start;
-    });
-  };
-
-  /**
-   * Order items by their end date. If they have no end date, their start date
-   * is used.
-   * @param {Item[]} items
-   */
-  exports.orderByEnd = function(items) {
-    items.sort(function (a, b) {
-      var aTime = ('end' in a.data) ? a.data.end : a.data.start,
-          bTime = ('end' in b.data) ? b.data.end : b.data.start;
-
-      return aTime - bTime;
-    });
-  };
-
-  /**
-   * Adjust vertical positions of the items such that they don't overlap each
-   * other.
-   * @param {Item[]} items
-   *            All visible items
-   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
-   *            Margins between items and between items and the axis.
-   * @param {boolean} [force=false]
-   *            If true, all items will be repositioned. If false (default), only
-   *            items having a top===null will be re-stacked
-   */
-  exports.stack = function(items, margin, force) {
-    var i, iMax;
-
-    if (force) {
-      // reset top position of all items
-      for (i = 0, iMax = items.length; i < iMax; i++) {
-        items[i].top = null;
-      }
-    }
-
-    // calculate new, non-overlapping positions
-    for (i = 0, iMax = items.length; i < iMax; i++) {
-      var item = items[i];
-      if (item.stack && item.top === null) {
-        // initialize top position
-        item.top = margin.axis;
-
-        do {
-          // TODO: optimize checking for overlap. when there is a gap without items,
-          //       you only need to check for items from the next item on, not from zero
-          var collidingItem = null;
-          for (var j = 0, jj = items.length; j < jj; j++) {
-            var other = items[j];
-            if (other.top !== null && other !== item && other.stack && exports.collision(item, other, margin.item)) {
-              collidingItem = other;
-              break;
-            }
-          }
-
-          if (collidingItem != null) {
-            // There is a collision. Reposition the items above the colliding element
-            item.top = collidingItem.top + collidingItem.height + margin.item.vertical;
-          }
-        } while (collidingItem);
-      }
-    }
-  };
-
-
-  /**
-   * Adjust vertical positions of the items without stacking them
-   * @param {Item[]} items
-   *            All visible items
-   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
-   *            Margins between items and between items and the axis.
-   */
-  exports.nostack = function(items, margin, subgroups) {
-    var i, iMax, newTop;
-
-    // reset top position of all items
-    for (i = 0, iMax = items.length; i < iMax; i++) {
-      if (items[i].data.subgroup !== undefined) {
-        newTop = margin.axis;
-        for (var subgroup in subgroups) {
-          if (subgroups.hasOwnProperty(subgroup)) {
-            if (subgroups[subgroup].visible == true && subgroups[subgroup].index < subgroups[items[i].data.subgroup].index) {
-              newTop += subgroups[subgroup].height + margin.item.vertical;
-            }
-          }
-        }
-        items[i].top = newTop;
-      }
-      else {
-        items[i].top = margin.axis;
-      }
-    }
-  };
-
-  /**
-   * Test if the two provided items collide
-   * The items must have parameters left, width, top, and height.
-   * @param {Item} a          The first item
-   * @param {Item} b          The second item
-   * @param {{horizontal: number, vertical: number}} margin
-   *                          An object containing a horizontal and vertical
-   *                          minimum required margin.
-   * @return {boolean}        true if a and b collide, else false
-   */
-  exports.collision = function(a, b, margin) {
-    return ((a.left - margin.horizontal + EPSILON)       < (b.left + b.width) &&
-        (a.left + a.width + margin.horizontal - EPSILON) > b.left &&
-        (a.top - margin.vertical + EPSILON)              < (b.top + b.height) &&
-        (a.top + a.height + margin.vertical - EPSILON)   > b.top);
-  };
-
-
-/***/ },
-/* 19 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var moment = __webpack_require__(44);
-  var DateUtil = __webpack_require__(15);
-  var util = __webpack_require__(1);
-
-  /**
-   * @constructor  TimeStep
-   * The class TimeStep is an iterator for dates. You provide a start date and an
-   * end date. The class itself determines the best scale (step size) based on the
-   * provided start Date, end Date, and minimumStep.
-   *
-   * If minimumStep is provided, the step size is chosen as close as possible
-   * to the minimumStep but larger than minimumStep. If minimumStep is not
-   * provided, the scale is set to 1 DAY.
-   * The minimumStep should correspond with the onscreen size of about 6 characters
-   *
-   * Alternatively, you can set a scale by hand.
-   * After creation, you can initialize the class by executing first(). Then you
-   * can iterate from the start date to the end date via next(). You can check if
-   * the end date is reached with the function hasNext(). After each step, you can
-   * retrieve the current date via getCurrent().
-   * The TimeStep has scales ranging from milliseconds, seconds, minutes, hours,
-   * days, to years.
-   *
-   * Version: 1.2
-   *
-   * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
-   *                               or new Date(2010, 9, 21, 23, 45, 00)
-   * @param {Date} [end]           The end date
-   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
-   */
-  function TimeStep(start, end, minimumStep, hiddenDates) {
-    // variables
-    this.current = new Date();
-    this._start = new Date();
-    this._end = new Date();
-
-    this.autoScale  = true;
-    this.scale = 'day';
-    this.step = 1;
-
-    // initialize the range
-    this.setRange(start, end, minimumStep);
-
-    // hidden Dates options
-    this.switchedDay = false;
-    this.switchedMonth = false;
-    this.switchedYear = false;
-    this.hiddenDates = hiddenDates;
-    if (hiddenDates === undefined) {
-      this.hiddenDates = [];
-    }
-
-    this.format = TimeStep.FORMAT; // default formatting
-  }
-
-  // Time formatting
-  TimeStep.FORMAT = {
-    minorLabels: {
-      millisecond:'SSS',
-      second:     's',
-      minute:     'HH:mm',
-      hour:       'HH:mm',
-      weekday:    'ddd D',
-      day:        'D',
-      month:      'MMM',
-      year:       'YYYY'
-    },
-    majorLabels: {
-      millisecond:'HH:mm:ss',
-      second:     'D MMMM HH:mm',
-      minute:     'ddd D MMMM',
-      hour:       'ddd D MMMM',
-      weekday:    'MMMM YYYY',
-      day:        'MMMM YYYY',
-      month:      'YYYY',
-      year:       ''
-    }
-  };
-
-  /**
-   * Set custom formatting for the minor an major labels of the TimeStep.
-   * Both `minorLabels` and `majorLabels` are an Object with properties:
-   * 'millisecond, 'second, 'minute', 'hour', 'weekday, 'day, 'month, 'year'.
-   * @param {{minorLabels: Object, majorLabels: Object}} format
-   */
-  TimeStep.prototype.setFormat = function (format) {
-    var defaultFormat = util.deepExtend({}, TimeStep.FORMAT);
-    this.format = util.deepExtend(defaultFormat, format);
-  };
-
-  /**
-   * Set a new range
-   * If minimumStep is provided, the step size is chosen as close as possible
-   * to the minimumStep but larger than minimumStep. If minimumStep is not
-   * provided, the scale is set to 1 DAY.
-   * The minimumStep should correspond with the onscreen size of about 6 characters
-   * @param {Date} [start]      The start date and time.
-   * @param {Date} [end]        The end date and time.
-   * @param {int} [minimumStep] Optional. Minimum step size in milliseconds
-   */
-  TimeStep.prototype.setRange = function(start, end, minimumStep) {
-    if (!(start instanceof Date) || !(end instanceof Date)) {
-      throw  "No legal start or end date in method setRange";
-    }
-
-    this._start = (start != undefined) ? new Date(start.valueOf()) : new Date();
-    this._end = (end != undefined) ? new Date(end.valueOf()) : new Date();
-
-    if (this.autoScale) {
-      this.setMinimumStep(minimumStep);
-    }
-  };
-
-  /**
-   * Set the range iterator to the start date.
-   */
-  TimeStep.prototype.first = function() {
-    this.current = new Date(this._start.valueOf());
-    this.roundToMinor();
-  };
-
-  /**
-   * Round the current date to the first minor date value
-   * This must be executed once when the current date is set to start Date
-   */
-  TimeStep.prototype.roundToMinor = function() {
-    // round to floor
-    // IMPORTANT: we have no breaks in this switch! (this is no bug)
-    // noinspection FallThroughInSwitchStatementJS
-    switch (this.scale) {
-      case 'year':
-        this.current.setFullYear(this.step * Math.floor(this.current.getFullYear() / this.step));
-        this.current.setMonth(0);
-      case 'month':        this.current.setDate(1);
-      case 'day':          // intentional fall through
-      case 'weekday':      this.current.setHours(0);
-      case 'hour':         this.current.setMinutes(0);
-      case 'minute':       this.current.setSeconds(0);
-      case 'second':       this.current.setMilliseconds(0);
-      //case 'millisecond': // nothing to do for milliseconds
-    }
-
-    if (this.step != 1) {
-      // round down to the first minor value that is a multiple of the current step size
-      switch (this.scale) {
-        case 'millisecond':  this.current.setMilliseconds(this.current.getMilliseconds() - this.current.getMilliseconds() % this.step);  break;
-        case 'second':       this.current.setSeconds(this.current.getSeconds() - this.current.getSeconds() % this.step); break;
-        case 'minute':       this.current.setMinutes(this.current.getMinutes() - this.current.getMinutes() % this.step); break;
-        case 'hour':         this.current.setHours(this.current.getHours() - this.current.getHours() % this.step); break;
-        case 'weekday':      // intentional fall through
-        case 'day':          this.current.setDate((this.current.getDate()-1) - (this.current.getDate()-1) % this.step + 1); break;
-        case 'month':        this.current.setMonth(this.current.getMonth() - this.current.getMonth() % this.step);  break;
-        case 'year':         this.current.setFullYear(this.current.getFullYear() - this.current.getFullYear() % this.step); break;
-        default: break;
-      }
-    }
-  };
-
-  /**
-   * Check if the there is a next step
-   * @return {boolean}  true if the current date has not passed the end date
-   */
-  TimeStep.prototype.hasNext = function () {
-    return (this.current.valueOf() <= this._end.valueOf());
-  };
-
-  /**
-   * Do the next step
-   */
-  TimeStep.prototype.next = function() {
-    var prev = this.current.valueOf();
-
-    // Two cases, needed to prevent issues with switching daylight savings
-    // (end of March and end of October)
-    if (this.current.getMonth() < 6)   {
-      switch (this.scale) {
-        case 'millisecond':
-
-          this.current = new Date(this.current.valueOf() + this.step); break;
-        case 'second':       this.current = new Date(this.current.valueOf() + this.step * 1000); break;
-        case 'minute':       this.current = new Date(this.current.valueOf() + this.step * 1000 * 60); break;
-        case 'hour':
-          this.current = new Date(this.current.valueOf() + this.step * 1000 * 60 * 60);
-          // in case of skipping an hour for daylight savings, adjust the hour again (else you get: 0h 5h 9h ... instead of 0h 4h 8h ...)
-          var h = this.current.getHours();
-          this.current.setHours(h - (h % this.step));
-          break;
-        case 'weekday':      // intentional fall through
-        case 'day':          this.current.setDate(this.current.getDate() + this.step); break;
-        case 'month':        this.current.setMonth(this.current.getMonth() + this.step); break;
-        case 'year':         this.current.setFullYear(this.current.getFullYear() + this.step); break;
-        default:                      break;
-      }
-    }
-    else {
-      switch (this.scale) {
-        case 'millisecond':  this.current = new Date(this.current.valueOf() + this.step); break;
-        case 'second':       this.current.setSeconds(this.current.getSeconds() + this.step); break;
-        case 'minute':       this.current.setMinutes(this.current.getMinutes() + this.step); break;
-        case 'hour':         this.current.setHours(this.current.getHours() + this.step); break;
-        case 'weekday':      // intentional fall through
-        case 'day':          this.current.setDate(this.current.getDate() + this.step); break;
-        case 'month':        this.current.setMonth(this.current.getMonth() + this.step); break;
-        case 'year':         this.current.setFullYear(this.current.getFullYear() + this.step); break;
-        default:                      break;
-      }
-    }
-
-    if (this.step != 1) {
-      // round down to the correct major value
-      switch (this.scale) {
-        case 'millisecond':  if(this.current.getMilliseconds() < this.step) this.current.setMilliseconds(0);  break;
-        case 'second':       if(this.current.getSeconds() < this.step) this.current.setSeconds(0);  break;
-        case 'minute':       if(this.current.getMinutes() < this.step) this.current.setMinutes(0);  break;
-        case 'hour':         if(this.current.getHours() < this.step) this.current.setHours(0);  break;
-        case 'weekday':      // intentional fall through
-        case 'day':          if(this.current.getDate() < this.step+1) this.current.setDate(1); break;
-        case 'month':        if(this.current.getMonth() < this.step) this.current.setMonth(0);  break;
-        case 'year':         break; // nothing to do for year
-        default:                break;
-      }
-    }
-
-    // safety mechanism: if current time is still unchanged, move to the end
-    if (this.current.valueOf() == prev) {
-      this.current = new Date(this._end.valueOf());
-    }
-
-    DateUtil.stepOverHiddenDates(this, prev);
-  };
-
-
-  /**
-   * Get the current datetime
-   * @return {Date}  current The current date
-   */
-  TimeStep.prototype.getCurrent = function() {
-    return this.current;
-  };
-
-  /**
-   * Set a custom scale. Autoscaling will be disabled.
-   * For example setScale(SCALE.MINUTES, 5) will result
-   * in minor steps of 5 minutes, and major steps of an hour.
-   *
-   * @param {string} newScale
-   *                               A scale. Choose from 'millisecond, 'second,
-   *                               'minute', 'hour', 'weekday, 'day, 'month, 'year'.
-   * @param {Number}     newStep   A step size, by default 1. Choose for
-   *                               example 1, 2, 5, or 10.
-   */
-  TimeStep.prototype.setScale = function(newScale, newStep) {
-    this.scale = newScale;
-
-    if (newStep > 0) {
-      this.step = newStep;
-    }
-
-    this.autoScale = false;
-  };
-
-  /**
-   * Enable or disable autoscaling
-   * @param {boolean} enable  If true, autoascaling is set true
-   */
-  TimeStep.prototype.setAutoScale = function (enable) {
-    this.autoScale = enable;
-  };
-
-
-  /**
-   * Automatically determine the scale that bests fits the provided minimum step
-   * @param {Number} [minimumStep]  The minimum step size in milliseconds
-   */
-  TimeStep.prototype.setMinimumStep = function(minimumStep) {
-    if (minimumStep == undefined) {
-      return;
-    }
-
-    //var b = asc + ds;
-
-    var stepYear       = (1000 * 60 * 60 * 24 * 30 * 12);
-    var stepMonth      = (1000 * 60 * 60 * 24 * 30);
-    var stepDay        = (1000 * 60 * 60 * 24);
-    var stepHour       = (1000 * 60 * 60);
-    var stepMinute     = (1000 * 60);
-    var stepSecond     = (1000);
-    var stepMillisecond= (1);
-
-    // find the smallest step that is larger than the provided minimumStep
-    if (stepYear*1000 > minimumStep)        {this.scale = 'year';        this.step = 1000;}
-    if (stepYear*500 > minimumStep)         {this.scale = 'year';        this.step = 500;}
-    if (stepYear*100 > minimumStep)         {this.scale = 'year';        this.step = 100;}
-    if (stepYear*50 > minimumStep)          {this.scale = 'year';        this.step = 50;}
-    if (stepYear*10 > minimumStep)          {this.scale = 'year';        this.step = 10;}
-    if (stepYear*5 > minimumStep)           {this.scale = 'year';        this.step = 5;}
-    if (stepYear > minimumStep)             {this.scale = 'year';        this.step = 1;}
-    if (stepMonth*3 > minimumStep)          {this.scale = 'month';       this.step = 3;}
-    if (stepMonth > minimumStep)            {this.scale = 'month';       this.step = 1;}
-    if (stepDay*5 > minimumStep)            {this.scale = 'day';         this.step = 5;}
-    if (stepDay*2 > minimumStep)            {this.scale = 'day';         this.step = 2;}
-    if (stepDay > minimumStep)              {this.scale = 'day';         this.step = 1;}
-    if (stepDay/2 > minimumStep)            {this.scale = 'weekday';     this.step = 1;}
-    if (stepHour*4 > minimumStep)           {this.scale = 'hour';        this.step = 4;}
-    if (stepHour > minimumStep)             {this.scale = 'hour';        this.step = 1;}
-    if (stepMinute*15 > minimumStep)        {this.scale = 'minute';      this.step = 15;}
-    if (stepMinute*10 > minimumStep)        {this.scale = 'minute';      this.step = 10;}
-    if (stepMinute*5 > minimumStep)         {this.scale = 'minute';      this.step = 5;}
-    if (stepMinute > minimumStep)           {this.scale = 'minute';      this.step = 1;}
-    if (stepSecond*15 > minimumStep)        {this.scale = 'second';      this.step = 15;}
-    if (stepSecond*10 > minimumStep)        {this.scale = 'second';      this.step = 10;}
-    if (stepSecond*5 > minimumStep)         {this.scale = 'second';      this.step = 5;}
-    if (stepSecond > minimumStep)           {this.scale = 'second';      this.step = 1;}
-    if (stepMillisecond*200 > minimumStep)  {this.scale = 'millisecond'; this.step = 200;}
-    if (stepMillisecond*100 > minimumStep)  {this.scale = 'millisecond'; this.step = 100;}
-    if (stepMillisecond*50 > minimumStep)   {this.scale = 'millisecond'; this.step = 50;}
-    if (stepMillisecond*10 > minimumStep)   {this.scale = 'millisecond'; this.step = 10;}
-    if (stepMillisecond*5 > minimumStep)    {this.scale = 'millisecond'; this.step = 5;}
-    if (stepMillisecond > minimumStep)      {this.scale = 'millisecond'; this.step = 1;}
-  };
-
-  /**
-   * Snap a date to a rounded value.
-   * The snap intervals are dependent on the current scale and step.
-   * @param {Date} date   the date to be snapped.
-   * @return {Date} snappedDate
-   */
-  TimeStep.prototype.snap = function(date) {
-    var clone = new Date(date.valueOf());
-
-    if (this.scale == 'year') {
-      var year = clone.getFullYear() + Math.round(clone.getMonth() / 12);
-      clone.setFullYear(Math.round(year / this.step) * this.step);
-      clone.setMonth(0);
-      clone.setDate(0);
-      clone.setHours(0);
-      clone.setMinutes(0);
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
-    }
-    else if (this.scale == 'month') {
-      if (clone.getDate() > 15) {
-        clone.setDate(1);
-        clone.setMonth(clone.getMonth() + 1);
-        // important: first set Date to 1, after that change the month.
-      }
-      else {
-        clone.setDate(1);
-      }
-
-      clone.setHours(0);
-      clone.setMinutes(0);
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
-    }
-    else if (this.scale == 'day') {
-      //noinspection FallthroughInSwitchStatementJS
-      switch (this.step) {
-        case 5:
-        case 2:
-          clone.setHours(Math.round(clone.getHours() / 24) * 24); break;
-        default:
-          clone.setHours(Math.round(clone.getHours() / 12) * 12); break;
-      }
-      clone.setMinutes(0);
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
-    }
-    else if (this.scale == 'weekday') {
-      //noinspection FallthroughInSwitchStatementJS
-      switch (this.step) {
-        case 5:
-        case 2:
-          clone.setHours(Math.round(clone.getHours() / 12) * 12); break;
-        default:
-          clone.setHours(Math.round(clone.getHours() / 6) * 6); break;
-      }
-      clone.setMinutes(0);
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
-    }
-    else if (this.scale == 'hour') {
-      switch (this.step) {
-        case 4:
-          clone.setMinutes(Math.round(clone.getMinutes() / 60) * 60); break;
-        default:
-          clone.setMinutes(Math.round(clone.getMinutes() / 30) * 30); break;
-      }
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
-    } else if (this.scale == 'minute') {
-      //noinspection FallthroughInSwitchStatementJS
-      switch (this.step) {
-        case 15:
-        case 10:
-          clone.setMinutes(Math.round(clone.getMinutes() / 5) * 5);
-          clone.setSeconds(0);
-          break;
-        case 5:
-          clone.setSeconds(Math.round(clone.getSeconds() / 60) * 60); break;
-        default:
-          clone.setSeconds(Math.round(clone.getSeconds() / 30) * 30); break;
-      }
-      clone.setMilliseconds(0);
-    }
-    else if (this.scale == 'second') {
-      //noinspection FallthroughInSwitchStatementJS
-      switch (this.step) {
-        case 15:
-        case 10:
-          clone.setSeconds(Math.round(clone.getSeconds() / 5) * 5);
-          clone.setMilliseconds(0);
-          break;
-        case 5:
-          clone.setMilliseconds(Math.round(clone.getMilliseconds() / 1000) * 1000); break;
-        default:
-          clone.setMilliseconds(Math.round(clone.getMilliseconds() / 500) * 500); break;
-      }
-    }
-    else if (this.scale == 'millisecond') {
-      var step = this.step > 5 ? this.step / 2 : 1;
-      clone.setMilliseconds(Math.round(clone.getMilliseconds() / step) * step);
-    }
-    
-    return clone;
-  };
-
-  /**
-   * Check if the current value is a major value (for example when the step
-   * is DAY, a major value is each first day of the MONTH)
-   * @return {boolean} true if current date is major, else false.
-   */
-  TimeStep.prototype.isMajor = function() {
-    if (this.switchedYear == true) {
-      this.switchedYear = false;
-      switch (this.scale) {
-        case 'year':
-        case 'month':
-        case 'weekday':
-        case 'day':
-        case 'hour':
-        case 'minute':
-        case 'second':
-        case 'millisecond':
-          return true;
-        default:
-          return false;
-      }
-    }
-    else if (this.switchedMonth == true) {
-      this.switchedMonth = false;
-      switch (this.scale) {
-        case 'weekday':
-        case 'day':
-        case 'hour':
-        case 'minute':
-        case 'second':
-        case 'millisecond':
-          return true;
-        default:
-          return false;
-      }
-    }
-    else if (this.switchedDay == true) {
-      this.switchedDay = false;
-      switch (this.scale) {
-        case 'millisecond':
-        case 'second':
-        case 'minute':
-        case 'hour':
-          return true;
-        default:
-          return false;
-      }
-    }
-
-    switch (this.scale) {
-      case 'millisecond':
-        return (this.current.getMilliseconds() == 0);
-      case 'second':
-        return (this.current.getSeconds() == 0);
-      case 'minute':
-        return (this.current.getHours() == 0) && (this.current.getMinutes() == 0);
-      case 'hour':
-        return (this.current.getHours() == 0);
-      case 'weekday': // intentional fall through
-      case 'day':
-        return (this.current.getDate() == 1);
-      case 'month':
-        return (this.current.getMonth() == 0);
-      case 'year':
-        return false;
-      default:
-        return false;
-    }
-  };
-
-
-  /**
-   * Returns formatted text for the minor axislabel, depending on the current
-   * date and the scale. For example when scale is MINUTE, the current time is
-   * formatted as "hh:mm".
-   * @param {Date} [date] custom date. if not provided, current date is taken
-   */
-  TimeStep.prototype.getLabelMinor = function(date) {
-    if (date == undefined) {
-      date = this.current;
-    }
-
-    var format = this.format.minorLabels[this.scale];
-    return (format && format.length > 0) ? moment(date).format(format) : '';
-  };
-
-  /**
-   * Returns formatted text for the major axis label, depending on the current
-   * date and the scale. For example when scale is MINUTE, the major scale is
-   * hours, and the hour will be formatted as "hh".
-   * @param {Date} [date] custom date. if not provided, current date is taken
-   */
-  TimeStep.prototype.getLabelMajor = function(date) {
-    if (date == undefined) {
-      date = this.current;
-    }
-
-    var format = this.format.majorLabels[this.scale];
-    return (format && format.length > 0) ? moment(date).format(format) : '';
-  };
-
-  TimeStep.prototype.getClassName = function() {
-    var m = moment(this.current);
-    var date = m.locale ? m.locale('en') : m.lang('en'); // old versions of moment have .lang() function
-    var step = this.step;
-
-    function even(value) {
-      return (value / step % 2 == 0) ? ' even' : ' odd';
-    }
-
-    function today(date) {
-      if (date.isSame(new Date(), 'day')) {
-        return ' today';
-      }
-      if (date.isSame(moment().add(1, 'day'), 'day')) {
-        return ' tomorrow';
-      }
-      if (date.isSame(moment().add(-1, 'day'), 'day')) {
-        return ' yesterday';
-      }
-      return '';
-    }
-
-    function currentWeek(date) {
-      return date.isSame(new Date(), 'week') ? ' current-week' : '';
-    }
-
-    function currentMonth(date) {
-      return date.isSame(new Date(), 'month') ? ' current-month' : '';
-    }
-
-    function currentYear(date) {
-      return date.isSame(new Date(), 'year') ? ' current-year' : '';
-    }
-
-    switch (this.scale) {
-      case 'millisecond':
-        return even(date.milliseconds()).trim();
-
-      case 'second':
-        return even(date.seconds()).trim();
-
-      case 'minute':
-        return even(date.minutes()).trim();
-
-      case 'hour':
-        var hours = date.hours();
-        if (this.step == 4) {
-          hours = hours + '-' + (hours + 4);
-        }
-        return hours + 'h' + today(date) + even(date.hours());
-
-      case 'weekday':
-        return date.format('dddd').toLowerCase() +
-            today(date) + currentWeek(date) + even(date.date());
-
-      case 'day':
-        var day = date.date();
-        var month = date.format('MMMM').toLowerCase();
-        return 'day' + day + ' ' + month + currentMonth(date) + even(day - 1);
-
-      case 'month':
-        return date.format('MMMM').toLowerCase() +
-            currentMonth(date) + even(date.month());
-
-      case 'year':
-        var year = date.year();
-        return 'year' + year + currentYear(date)+ even(year);
-
-      default:
-        return '';
-    }
-  };
-
-  module.exports = TimeStep;
 
 
 /***/ },
@@ -10723,7 +10723,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var DOMutil = __webpack_require__(2);
+  var DOMutil = __webpack_require__(3);
   var Component = __webpack_require__(25);
   var DataStep = __webpack_require__(16);
 
@@ -11368,7 +11368,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var DOMutil = __webpack_require__(2);
+  var DOMutil = __webpack_require__(3);
   var Line = __webpack_require__(49);
   var Bar = __webpack_require__(50);
   var Points = __webpack_require__(51);
@@ -11573,7 +11573,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var stack = __webpack_require__(18);
+  var stack = __webpack_require__(17);
   var RangeItem = __webpack_require__(24);
 
   /**
@@ -12212,7 +12212,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var Hammer = __webpack_require__(45);
   var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(3);
+  var DataSet = __webpack_require__(2);
   var DataView = __webpack_require__(4);
   var Component = __webpack_require__(25);
   var Group = __webpack_require__(30);
@@ -13749,7 +13749,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var DOMutil = __webpack_require__(2);
+  var DOMutil = __webpack_require__(3);
   var Component = __webpack_require__(25);
 
   /**
@@ -13959,8 +13959,8 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var DOMutil = __webpack_require__(2);
-  var DataSet = __webpack_require__(3);
+  var DOMutil = __webpack_require__(3);
+  var DataSet = __webpack_require__(2);
   var DataView = __webpack_require__(4);
   var Component = __webpack_require__(25);
   var DataAxis = __webpack_require__(28);
@@ -14960,8 +14960,9 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
+  var Hammer = __webpack_require__(45);
   var Component = __webpack_require__(25);
-  var TimeStep = __webpack_require__(19);
+  var TimeStep = __webpack_require__(18);
   var DateUtil = __webpack_require__(15);
   var moment = __webpack_require__(44);
 
@@ -15004,6 +15005,8 @@ return /******/ (function(modules) { // webpackBootstrap
     this.options = util.extend({}, this.defaultOptions);
 
     this.body = body;
+    
+    this.hammer = null;
 
     // create the HTML DOM
     this._create();
@@ -15043,6 +15046,13 @@ return /******/ (function(modules) { // webpackBootstrap
           moment.lang(options.locale);
         }
       }
+      
+      var container = (this.options.orientation == 'top') ? this.body.dom.top : this.body.dom.bottom;
+      this.hammer = Hammer(container, {
+        preventDefault: true
+      });
+    
+      this.hammer.on('tap', this._onSelectLabel.bind(this));
     }
   };
 
@@ -15070,6 +15080,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     this.body = null;
+    this.hammer = null;
   };
 
   /**
@@ -15190,7 +15201,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       if (this.options.showMinorLabels) {
-        this._repaintMinorText(x, step.getLabelMinor(), orientation, className);
+        this._repaintMinorText(x, step.getLabelMinor(), new Date(step.getCurrent()), orientation, className);
       }
 
       if (isMajor && this.options.showMajorLabels) {
@@ -15239,7 +15250,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {String} className
    * @private
    */
-  TimeAxis.prototype._repaintMinorText = function (x, text, orientation, className) {
+  TimeAxis.prototype._repaintMinorText = function (x, text, date, orientation, className) {
     // reuse redundant label
     var label = this.dom.redundant.minorTexts.shift();
 
@@ -15258,6 +15269,7 @@ return /******/ (function(modules) { // webpackBootstrap
     label.style.left = x + 'px';
     label.className = 'text minor ' + className;
     //label.title = title;  // TODO: this is a heavy operation
+    label['timeline-label'] = date;
   };
 
   /**
@@ -15390,6 +15402,32 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   /**
+   * Handle events when taping a label
+   * @param {Event} event
+   * @private
+   */
+  TimeAxis.prototype._onSelectLabel = function(event){
+    var label = TimeAxis.labelFromEvent(event);
+    if (label) {
+        this.body.emitter.emit('label', {
+        	label: label
+        });
+    }
+  }
+
+  TimeAxis.labelFromEvent = function(event){
+    var target = event.target;
+    while (target) {
+      if (target.hasOwnProperty('timeline-label')) {
+        return target['timeline-label'];
+      }
+      target = target.parentNode;
+    }
+
+    return null;
+  }
+
+  /**
    * Snap a date to a rounded value.
    * The snap intervals are dependent on the current scale and step.
    * @param {Date} date   the date to be snapped.
@@ -15411,7 +15449,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var keycharm = __webpack_require__(57);
   var util = __webpack_require__(1);
   var hammerUtil = __webpack_require__(47);
-  var DataSet = __webpack_require__(3);
+  var DataSet = __webpack_require__(2);
   var DataView = __webpack_require__(4);
   var dotparser = __webpack_require__(42);
   var gephiParser = __webpack_require__(43);
@@ -21908,9 +21946,9 @@ return /******/ (function(modules) { // webpackBootstrap
   var Emitter = __webpack_require__(56);
   var Hammer = __webpack_require__(45);
   var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(3);
+  var DataSet = __webpack_require__(2);
   var DataView = __webpack_require__(4);
-  var Range = __webpack_require__(17);
+  var Range = __webpack_require__(19);
   var ItemSet = __webpack_require__(32);
   var Activator = __webpack_require__(53);
   var DateUtil = __webpack_require__(15);
@@ -22841,7 +22879,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Created by Alex on 11/11/2014.
    */
-  var DOMutil = __webpack_require__(2);
+  var DOMutil = __webpack_require__(3);
   var Points = __webpack_require__(51);
 
   function Line(groupId, options) {
@@ -23065,7 +23103,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Created by Alex on 11/11/2014.
    */
-  var DOMutil = __webpack_require__(2);
+  var DOMutil = __webpack_require__(3);
   var Points = __webpack_require__(51);
 
   function Bargraph(groupId, options) {
@@ -23299,7 +23337,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Created by Alex on 11/11/2014.
    */
-  var DOMutil = __webpack_require__(2);
+  var DOMutil = __webpack_require__(3);
 
   function Points(groupId, options) {
     this.groupId = groupId;
@@ -29564,9 +29602,9 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var RepulsionMixin = __webpack_require__(67);
-  var HierarchialRepulsionMixin = __webpack_require__(68);
-  var BarnesHutMixin = __webpack_require__(69);
+  var RepulsionMixin = __webpack_require__(68);
+  var HierarchialRepulsionMixin = __webpack_require__(69);
+  var BarnesHutMixin = __webpack_require__(70);
 
   /**
    * Toggling barnes Hut calculation on and off.
@@ -33988,6 +34026,19 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
+  function webpackContext(req) {
+  	throw new Error("Cannot find module '" + req + "'.");
+  }
+  webpackContext.keys = function() { return []; };
+  webpackContext.resolve = webpackContext;
+  module.exports = webpackContext;
+  webpackContext.id = 67;
+
+
+/***/ },
+/* 68 */
+/***/ function(module, exports, __webpack_require__) {
+
   /**
    * Calculate the forces the nodes apply on each other based on a repulsion field.
    * This field is linearly approximated.
@@ -34055,7 +34106,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 68 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -34214,7 +34265,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 69 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -34616,19 +34667,6 @@ return /******/ (function(modules) { // webpackBootstrap
      }
      */
   };
-
-
-/***/ },
-/* 70 */
-/***/ function(module, exports, __webpack_require__) {
-
-  function webpackContext(req) {
-  	throw new Error("Cannot find module '" + req + "'.");
-  }
-  webpackContext.keys = function() { return []; };
-  webpackContext.resolve = webpackContext;
-  module.exports = webpackContext;
-  webpackContext.id = 70;
 
 
 /***/ },
