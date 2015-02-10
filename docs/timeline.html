@@ -742,11 +742,22 @@ var options = {
         <code>showMinorLabels</code> are false, no horizontal axis will be
         visible.</td>
 </tr>
+
 <tr>
     <td>stack</td>
     <td>Boolean</td>
     <td>true</td>
     <td>If true (default), items will be stacked on top of each other such that they do not overlap.</td>
+</tr>
+
+<tr>
+    <td>snap</td>
+    <td>function | null</td>
+    <td>function</td>
+    <td>When moving items on the Timeline, they will be snapped to nice dates like full hours or days, depending on the current scale. The <code>snap</code> function can be replaced with a custom function, or can be set to <code>null</code> to disable snapping. The signature of the snap function is:
+    <pre class="prettyprint lang-js">function snap(date: Date, scale: string, step: number) : Date | number</pre>
+
+    </td>
 </tr>
 
 <tr>
