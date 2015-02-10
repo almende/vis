@@ -16150,6 +16150,10 @@ return /******/ (function(modules) { // webpackBootstrap
     if (disableStart === undefined) {
       disableStart = false;
     }
+
+    // unselect all to ensure no selections from old data are carried over.
+    this._unselectAll(true);
+
     // we set initializing to true to ensure that the hierarchical layout is not performed until both nodes and edges are added.
     this.initializing = true;
 
@@ -17231,10 +17235,22 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   Network.prototype._removeNodes = function(ids) {
     var nodes = this.nodes;
+
+    // remove from selection
+    for (var i = 0, len = ids.length; i < len; i++) {
+      if (this.selectionObj.nodes[ids[i]] !== undefined) {
+        this.nodes[ids[i]].unselect();
+        this._removeFromSelection(this.nodes[ids[i]]);
+      }
+    }
+
     for (var i = 0, len = ids.length; i < len; i++) {
       var id = ids[i];
       delete nodes[id];
     }
+
+
+
     this._updateNodeIndexList();
     if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
       this._resetLevels();
@@ -17366,6 +17382,15 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   Network.prototype._removeEdges = function (ids) {
     var edges = this.edges;
+
+    // remove from selection
+    for (var i = 0, len = ids.length; i < len; i++) {
+      if (this.selectionObj.edges[ids[i]] !== undefined) {
+        edges[ids[i]].unselect();
+        this._removeFromSelection(edges[ids[i]]);
+      }
+    }
+
     for (var i = 0, len = ids.length; i < len; i++) {
       var id = ids[i];
       var edge = edges[id];
@@ -29879,9 +29904,9 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var RepulsionMixin = __webpack_require__(67);
-  var HierarchialRepulsionMixin = __webpack_require__(68);
-  var BarnesHutMixin = __webpack_require__(69);
+  var RepulsionMixin = __webpack_require__(68);
+  var HierarchialRepulsionMixin = __webpack_require__(69);
+  var BarnesHutMixin = __webpack_require__(70);
 
   /**
    * Toggling barnes Hut calculation on and off.
@@ -34300,6 +34325,19 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
+  function webpackContext(req) {
+  	throw new Error("Cannot find module '" + req + "'.");
+  }
+  webpackContext.keys = function() { return []; };
+  webpackContext.resolve = webpackContext;
+  module.exports = webpackContext;
+  webpackContext.id = 67;
+
+
+/***/ },
+/* 68 */
+/***/ function(module, exports, __webpack_require__) {
+
   /**
    * Calculate the forces the nodes apply on each other based on a repulsion field.
    * This field is linearly approximated.
@@ -34367,7 +34405,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 68 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -34526,7 +34564,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 69 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -34928,19 +34966,6 @@ return /******/ (function(modules) { // webpackBootstrap
      }
      */
   };
-
-
-/***/ },
-/* 70 */
-/***/ function(module, exports, __webpack_require__) {
-
-  function webpackContext(req) {
-  	throw new Error("Cannot find module '" + req + "'.");
-  }
-  webpackContext.keys = function() { return []; };
-  webpackContext.resolve = webpackContext;
-  module.exports = webpackContext;
-  webpackContext.id = 70;
 
 
 /***/ },
