@@ -756,7 +756,7 @@ var options = {
     <td>function</td>
     <td>When moving items on the Timeline, they will be snapped to nice dates like full hours or days, depending on the current scale. The <code>snap</code> function can be replaced with a custom function, or can be set to <code>null</code> to disable snapping. The signature of the snap function is:
     <pre class="prettyprint lang-js">function snap(date: Date, scale: string, step: number) : Date | number</pre>
-
+    The parameter <code>scale</code> can be can be 'millisecond', 'second', 'minute', 'hour', 'weekday, 'day, 'month, or 'year'. The parameter <code>step</code> is a number like 1, 2, 4, 5.
     </td>
 </tr>
 
