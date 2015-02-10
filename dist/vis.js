@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.9.2-SNAPSHOT
- * @date    2015-02-09
+ * @date    2015-02-10
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -6503,7 +6503,13 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       hiddenDates: [],
       util: {
-        snap: null, // will be specified after TimeAxis is created
+        getScale: function () {
+          return me.timeAxis.step.scale;
+        },
+        getStep: function () {
+          return me.timeAxis.step.step;
+        },
+
         toScreen: me._toScreen.bind(me),
         toGlobalScreen: me._toGlobalScreen.bind(me), // this refers to the root.width
         toTime: me._toTime.bind(me),
@@ -6519,7 +6525,6 @@ return /******/ (function(modules) { // webpackBootstrap
     // time axis
     this.timeAxis = new TimeAxis(this.body);
     this.components.push(this.timeAxis);
-    this.body.util.snap = this.timeAxis.snap.bind(this.timeAxis);
 
     // current time bar
     this.currentTime = new CurrentTime(this.body);
@@ -6828,7 +6833,6 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       hiddenDates: [],
       util: {
-        snap: null, // will be specified after TimeAxis is created
         toScreen: me._toScreen.bind(me),
         toGlobalScreen: me._toGlobalScreen.bind(me), // this refers to the root.width
         toTime: me._toTime.bind(me),
@@ -6844,7 +6848,7 @@ return /******/ (function(modules) { // webpackBootstrap
     // time axis
     this.timeAxis = new TimeAxis(this.body);
     this.components.push(this.timeAxis);
-    this.body.util.snap = this.timeAxis.snap.bind(this.timeAxis);
+    //this.body.util.snap = this.timeAxis.snap.bind(this.timeAxis);
 
     // current time bar
     this.currentTime = new CurrentTime(this.body);
@@ -7740,18 +7744,6 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     return toPrecision;
-  };
-
-
-
-  /**
-   * Snap a date to a rounded value.
-   * The snap intervals are dependent on the current scale and step.
-   * @param {Date} date   the date to be snapped.
-   * @return {Date} snappedDate
-   */
-  DataStep.prototype.snap = function(date) {
-
   };
 
   /**
@@ -8909,15 +8901,19 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Snap a date to a rounded value.
    * The snap intervals are dependent on the current scale and step.
-   * @param {Date} date   the date to be snapped.
+   * Static function
+   * @param {Date} date    the date to be snapped.
+   * @param {string} scale Current scale, can be 'millisecond', 'second',
+   *                       'minute', 'hour', 'weekday, 'day, 'month, 'year'.
+   * @param {number} step  Current step (1, 2, 4, 5, ...
    * @return {Date} snappedDate
    */
-  TimeStep.prototype.snap = function(date) {
+  TimeStep.snap = function(date, scale, step) {
     var clone = new Date(date.valueOf());
 
-    if (this.scale == 'year') {
+    if (scale == 'year') {
       var year = clone.getFullYear() + Math.round(clone.getMonth() / 12);
-      clone.setFullYear(Math.round(year / this.step) * this.step);
+      clone.setFullYear(Math.round(year / step) * step);
       clone.setMonth(0);
       clone.setDate(0);
       clone.setHours(0);
@@ -8925,7 +8921,7 @@ return /******/ (function(modules) { // webpackBootstrap
       clone.setSeconds(0);
       clone.setMilliseconds(0);
     }
-    else if (this.scale == 'month') {
+    else if (scale == 'month') {
       if (clone.getDate() > 15) {
         clone.setDate(1);
         clone.setMonth(clone.getMonth() + 1);
@@ -8940,9 +8936,9 @@ return /******/ (function(modules) { // webpackBootstrap
       clone.setSeconds(0);
       clone.setMilliseconds(0);
     }
-    else if (this.scale == 'day') {
+    else if (scale == 'day') {
       //noinspection FallthroughInSwitchStatementJS
-      switch (this.step) {
+      switch (step) {
         case 5:
         case 2:
           clone.setHours(Math.round(clone.getHours() / 24) * 24); break;
@@ -8953,9 +8949,9 @@ return /******/ (function(modules) { // webpackBootstrap
       clone.setSeconds(0);
       clone.setMilliseconds(0);
     }
-    else if (this.scale == 'weekday') {
+    else if (scale == 'weekday') {
       //noinspection FallthroughInSwitchStatementJS
-      switch (this.step) {
+      switch (step) {
         case 5:
         case 2:
           clone.setHours(Math.round(clone.getHours() / 12) * 12); break;
@@ -8966,8 +8962,8 @@ return /******/ (function(modules) { // webpackBootstrap
       clone.setSeconds(0);
       clone.setMilliseconds(0);
     }
-    else if (this.scale == 'hour') {
-      switch (this.step) {
+    else if (scale == 'hour') {
+      switch (step) {
         case 4:
           clone.setMinutes(Math.round(clone.getMinutes() / 60) * 60); break;
         default:
@@ -8975,9 +8971,9 @@ return /******/ (function(modules) { // webpackBootstrap
       }
       clone.setSeconds(0);
       clone.setMilliseconds(0);
-    } else if (this.scale == 'minute') {
+    } else if (scale == 'minute') {
       //noinspection FallthroughInSwitchStatementJS
-      switch (this.step) {
+      switch (step) {
         case 15:
         case 10:
           clone.setMinutes(Math.round(clone.getMinutes() / 5) * 5);
@@ -8990,9 +8986,9 @@ return /******/ (function(modules) { // webpackBootstrap
       }
       clone.setMilliseconds(0);
     }
-    else if (this.scale == 'second') {
+    else if (scale == 'second') {
       //noinspection FallthroughInSwitchStatementJS
-      switch (this.step) {
+      switch (step) {
         case 15:
         case 10:
           clone.setSeconds(Math.round(clone.getSeconds() / 5) * 5);
@@ -9004,9 +9000,9 @@ return /******/ (function(modules) { // webpackBootstrap
           clone.setMilliseconds(Math.round(clone.getMilliseconds() / 500) * 500); break;
       }
     }
-    else if (this.scale == 'millisecond') {
-      var step = this.step > 5 ? this.step / 2 : 1;
-      clone.setMilliseconds(Math.round(clone.getMilliseconds() / step) * step);
+    else if (scale == 'millisecond') {
+      var _step = step > 5 ? step / 2 : 1;
+      clone.setMilliseconds(Math.round(clone.getMilliseconds() / _step) * _step);
     }
     
     return clone;
@@ -11457,16 +11453,6 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   };
 
-  /**
-   * Snap a date to a rounded value.
-   * The snap intervals are dependent on the current scale and step.
-   * @param {Date} date   the date to be snapped.
-   * @return {Date} snappedDate
-   */
-  DataAxis.prototype.snap = function(date) {
-    return this.step.snap(date);
-  };
-
   module.exports = DataAxis;
 
 
@@ -12321,6 +12307,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
+  var TimeStep = __webpack_require__(19);
   var Component = __webpack_require__(25);
   var Group = __webpack_require__(30);
   var BackgroundGroup = __webpack_require__(31);
@@ -12359,6 +12346,8 @@ return /******/ (function(modules) { // webpackBootstrap
         add: false,
         remove: false
       },
+
+      snap:  TimeStep.snap,
 
       onAdd: function (item, callback) {
         callback(item);
@@ -12590,7 +12579,7 @@ return /******/ (function(modules) { // webpackBootstrap
   ItemSet.prototype.setOptions = function(options) {
     if (options) {
       // copy all options that we know
-      var fields = ['type', 'align', 'orientation', 'padding', 'stack', 'selectable', 'groupOrder', 'dataAttributes', 'template','hide'];
+      var fields = ['type', 'align', 'orientation', 'padding', 'stack', 'selectable', 'groupOrder', 'dataAttributes', 'template','hide', 'snap'];
       util.selectiveExtend(fields, this.options, options);
 
       if ('margin' in options) {
@@ -13490,8 +13479,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
     if (this.touchParams.itemProps) {
       var me = this;
-      var snap = this.body.util.snap || null;
+      var snap = this.options.snap || null;
       var xOffset = this.body.dom.root.offsetLeft + this.body.domProps.left.width;
+      var scale = this.body.util.getScale();
+      var step = this.body.util.getStep();
 
       // move
       this.touchParams.itemProps.forEach(function (props) {
@@ -13502,12 +13493,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
         if ('start' in props) {
           var start = new Date(props.start + offset);
-          newProps.start = snap ? snap(start) : start;
+          newProps.start = snap ? snap(start, scale, step) : start;
         }
 
         if ('end' in props) {
           var end = new Date(props.end + offset);
-          newProps.end = snap ? snap(end) : end;
+          newProps.end = snap ? snap(end, scale, step) : end;
         }
         else if ('duration' in props) {
           newProps.end = new Date(newProps.start.valueOf() + props.duration);
@@ -13515,7 +13506,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
         if ('group' in props) {
           // drag from one group to another
-          var group = ItemSet.groupFromTarget(event);
+          var group = me.groupFromTarget(event);
           newProps.group = group && group.groupId;
         }
 
@@ -13675,7 +13666,7 @@ return /******/ (function(modules) { // webpackBootstrap
     if (!this.options.editable.add) return;
 
     var me = this,
-        snap = this.body.util.snap || null,
+        snap = this.options.snap || null,
         item = ItemSet.itemFromTarget(event);
 
     if (item) {
@@ -13694,20 +13685,23 @@ return /******/ (function(modules) { // webpackBootstrap
       var xAbs = util.getAbsoluteLeft(this.dom.frame);
       var x = event.gesture.center.pageX - xAbs;
       var start = this.body.util.toTime(x);
+      var scale = this.body.util.getScale();
+      var step = this.body.util.getStep();
+
       var newItem = {
-        start: snap ? snap(start) : start,
+        start: snap ? snap(start, scale, step) : start,
         content: 'new item'
       };
 
       // when default type is a range, add a default end date to the new item
       if (this.options.type === 'range') {
         var end = this.body.util.toTime(x + this.props.width / 5);
-        newItem.end = snap ? snap(end) : end;
+        newItem.end = snap ? snap(end, scale, step) : end;
       }
 
       newItem[this.itemsData._fieldId] = util.randomUUID();
 
-      var group = ItemSet.groupFromTarget(event);
+      var group = this.groupFromTarget(event);
       if (group) {
         newItem.group = group.groupId;
       }
@@ -13837,13 +13831,37 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {Event} event
    * @return {Group | null} group
    */
-  ItemSet.groupFromTarget = function(event) {
-    var target = event.target;
-    while (target) {
-      if (target.hasOwnProperty('timeline-group')) {
-        return target['timeline-group'];
+  ItemSet.prototype.groupFromTarget = function(event) {
+    // TODO: cleanup when the new solution is stable (also on mobile)
+    //var target = event.target;
+    //while (target) {
+    //  if (target.hasOwnProperty('timeline-group')) {
+    //    return target['timeline-group'];
+    //  }
+    //  target = target.parentNode;
+    //}
+    //
+
+    var clientY = event.gesture.center.clientY;
+    for (var i = 0; i < this.groupIds.length; i++) {
+      var groupId = this.groupIds[i];
+      var group = this.groups[groupId];
+      var foreground = group.dom.foreground;
+      var top = util.getAbsoluteTop(foreground);
+      if (clientY > top && clientY < top + foreground.offsetHeight) {
+        return group;
       }
-      target = target.parentNode;
+
+      if (this.options.orientation === 'top') {
+        if (i === this.groupIds.length - 1 && clientY > top) {
+          return group;
+        }
+      }
+      else {
+        if (i === 0 && clientY < top + foreground.offset) {
+          return group;
+        }
+      }
     }
 
     return null;
@@ -15518,16 +15536,6 @@ return /******/ (function(modules) { // webpackBootstrap
     }
     this.props.majorCharHeight = this.dom.measureCharMajor.clientHeight;
     this.props.majorCharWidth = this.dom.measureCharMajor.clientWidth;
-  };
-
-  /**
-   * Snap a date to a rounded value.
-   * The snap intervals are dependent on the current scale and step.
-   * @param {Date} date   the date to be snapped.
-   * @return {Date} snappedDate
-   */
-  TimeAxis.prototype.snap = function(date) {
-    return this.step.snap(date);
   };
 
   module.exports = TimeAxis;
@@ -29871,9 +29879,9 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var RepulsionMixin = __webpack_require__(68);
-  var HierarchialRepulsionMixin = __webpack_require__(69);
-  var BarnesHutMixin = __webpack_require__(70);
+  var RepulsionMixin = __webpack_require__(67);
+  var HierarchialRepulsionMixin = __webpack_require__(68);
+  var BarnesHutMixin = __webpack_require__(69);
 
   /**
    * Toggling barnes Hut calculation on and off.
@@ -34292,19 +34300,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
-  function webpackContext(req) {
-  	throw new Error("Cannot find module '" + req + "'.");
-  }
-  webpackContext.keys = function() { return []; };
-  webpackContext.resolve = webpackContext;
-  module.exports = webpackContext;
-  webpackContext.id = 67;
-
-
-/***/ },
-/* 68 */
-/***/ function(module, exports, __webpack_require__) {
-
   /**
    * Calculate the forces the nodes apply on each other based on a repulsion field.
    * This field is linearly approximated.
@@ -34372,7 +34367,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 69 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -34531,7 +34526,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 70 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -34933,6 +34928,19 @@ return /******/ (function(modules) { // webpackBootstrap
      }
      */
   };
+
+
+/***/ },
+/* 70 */
+/***/ function(module, exports, __webpack_require__) {
+
+  function webpackContext(req) {
+  	throw new Error("Cannot find module '" + req + "'.");
+  }
+  webpackContext.keys = function() { return []; };
+  webpackContext.resolve = webpackContext;
+  module.exports = webpackContext;
+  webpackContext.id = 70;
 
 
 /***/ },

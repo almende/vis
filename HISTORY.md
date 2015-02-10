@@ -36,6 +36,7 @@ http://visjs.org
   fixed scale.
 - Fixed width of range items not always being maintained when moving due to
   snapping to nice dates.
+- Fixed not being able to drag items to an other group on mobile devices.
 
 
 ## 2015-01-16, version 3.9.1

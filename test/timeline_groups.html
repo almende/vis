@@ -173,6 +173,12 @@
   groups.on('update', console.log.bind(console));
   groups.on('remove', console.log.bind(console));
 
+  function log (msg) {
+    var logs = document.getElementById('logs');
+    logs.innerHTML = msg + '<br>' + logs.innerHTML;
+  }
+
 </script>
+<div id="logs"></div>
 </body>
 </html>
