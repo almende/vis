@@ -1,0 +1,13 @@
+div.network-tooltip {
+  position: absolute;
+  visibility: hidden;
+  padding: 5px;
+  white-space: nowrap;
+
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  border-radius: 3px;
+  border: 1px solid;
+
+  box-shadow: 3px 3px 10px rgba(128, 128, 128, 0.5);
+}

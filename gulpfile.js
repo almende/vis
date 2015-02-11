@@ -97,7 +97,8 @@ gulp.task('bundle-css', ['clean'], function () {
     './lib/timeline/component/css/pathStyles.css',
 
     './lib/network/css/network-manipulation.css',
-    './lib/network/css/network-navigation.css'
+    './lib/network/css/network-navigation.css',
+    './lib/network/css/network-tooltip.css'
   ];
 
   return gulp.src(files)

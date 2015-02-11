@@ -15,6 +15,7 @@ http://visjs.org
 - Added stabilizationIterationsDone event which fires at the end of the internal stabilization run. Does not imply that the network is stabilized.
 - Added freezeSimulation method.
 - Added clusterByZoom option.
+- Added class name 'network-tooltip' to the tooltip, allowing custom styling.
 - Fixed bug when redrawing was not right on zoomed-out browsers.
 - Added opacity option to edges. Opacity is only used for the unselected state.
 - Fixed bug where selections from removed data elements persisted.
