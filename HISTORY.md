@@ -22,11 +22,36 @@ http://visjs.org
 
 
 ## not yet released, version 3.9.2-SNAPSHOT
+## 2015-02-11, version 3.10.0
 
 ### Network
 
 - Added option bindToWindow (default true) to choose whether the keyboard binds are global or to the network div.
 - Improved images handling so broken images are shown on all references of images that are broken.
+- Added getConnectedNodes method.
+- Added fontSizeMin, fontSizeMax, fontSizeMaxVisible, scaleFontWithValue, fontDrawThreshold to Nodes.
+- Added fade in of labels (on nodes) near the fontDrawThreshold.
+- Added nodes option to zoomExtent to zoom in on specific set of nodes.
+- Added stabilizationIterationsDone event which fires at the end of the internal stabilization run. Does not imply that the network is stabilized.
+- Added freezeSimulation method.
+- Added clusterByZoom option.
+- Added class name 'network-tooltip' to the tooltip, allowing custom styling.
+- Fixed bug when redrawing was not right on zoomed-out browsers.
+- Added opacity option to edges. Opacity is only used for the unselected state.
+- Fixed bug where selections from removed data elements persisted.
+
+### Timeline
+
+- `Timeline.redraw()` now also recalculates the size of items.
+- Implemented option `snap: function` to customize snapping to nice dates
+  when dragging items.
+- Implemented option `timeAxis: {scale: string, step: number}` to set a
+  fixed scale.
+- Fixed width of range items not always being maintained when moving due to
+  snapping to nice dates.
+- Fixed not being able to drag items to an other group on mobile devices.
+- Fixed `setWindow` not working when applying an interval larger than the
+  configured `zoomMax`.
 
 ### DataSet/DataView
 

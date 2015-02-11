@@ -850,6 +850,13 @@ var options = {
 All options defined per-node override these global settings.
 <table>
     <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
         <td class="greenField">borderWidth</td>
         <td>Number</td>
         <td>1</td>
@@ -860,6 +867,31 @@ All options defined per-node override these global settings.
         <td>Number</td>
         <td>undefined</td>
         <td>The width of the border of the node when it is selected. If left at undefined, double the borderWidth will be used.</td>
+    </tr>
+
+    <tr>
+        <td>customScalingFunction</td>
+        <td>Function</td>
+        <td>Function</td>
+        <td>This is a function you can override to make the nodes scale the way you want them based on their values. The default function is this: <br>
+<pre class="prettyprint lang-js">
+function (min,max,total,value) {
+    if (max == min) {
+        return 0.5;
+    }
+    else {
+        var scale = 1 / (max - min);
+        return Math.max(0,(value - min)*scale);
+    }
+};
+</pre>
+             The function receives the minimum value of the set, the maximum value, the total sum of all values and finally the value of the node or edge it works on. It has to return a value between 0 and 1.
+            The nodes and edges then calculate their size as follows:
+<pre class="prettyprint lang-js">
+var scale = customScalingFunction(min,max,total,value);
+var diff = maxSize - minSize;
+mySize = minSize + diff * scale;</pre>
+        </td>
     </tr>
     <tr>
         <td class="greenField">color</td>
@@ -926,6 +958,38 @@ All options defined per-node override these global settings.
         <td>Number</td>
         <td>14</td>
         <td>Font size in pixels for label in the node.</td>
+    </tr>
+    <tr>
+        <td>scaleFontWithValue</td>
+        <td>Boolean</td>
+        <td>false</td>
+        <td>When using values, you can let the font scale with the size of the nodes if you enable the this option.</td>
+    </tr>
+    <tr>
+        <td>fontSizeMin</td>
+        <td>Number</td>
+        <td>14</td>
+        <td>When using values, you can let the font scale with the size of the nodes if you enable the scaleFontWithValue option. This is the minimum value of the fontSize.</td>
+    </tr>
+    <tr>
+        <td></td>fontSizeMax</td>
+        <td>Number</td>
+        <td>30</td>
+        <td>When using values, you can let the font scale with the size of the nodes if you enable the scaleFontWithValue option. This is the maximum value of the fontSize.</td>
+    </tr>
+    <tr>
+        <td>fontSizeMaxVisible</td>
+        <td>Number</td>
+        <td>30</td>
+        <td>When using values, you can let the font scale with the size of the nodes if you enable the scaleFontWithValue option. If you have a wide distribution of values and have a large max fontSize,
+            the text will become huge if you zoom in on it. This option limits the percieved fontSize to avoid this. If you set it to 20, no label will be larger than fontsize 20 (at scale = 1) regardless of the scale.</td>
+    </tr>
+    <tr>
+        <td>fontDrawThreshold</td>
+        <td>Number</td>
+        <td>3</td>
+        <td>When zooming out, the text becomes smaller. This option sets the minimum size of the label before not being drawn. Just like the fontSizeMaxVisible option, this is the relative fontSize (fontSize * scale).
+        You can combine this with the min and max values to have the labels of influential nodes show earlier when zooming in.</td>
     </tr>
     <tr>
         <td class="greenField">fontFill</td>
@@ -1197,7 +1261,12 @@ var options = {
       <td>Possible values: <code>"line-above", "line-center", "line-below"</code>. The alignment of the label when drawn on the edge. 
 	  If <code>horizontal</code> it will align the label absolute horizontial.</td>
   </tr>
-
+    <tr>
+        <td class="greenField">opacity</td>
+        <td>Number</td>
+        <td>1.0</td>
+        <td>Possible values: <code>[0 .. 1]</code>. This opacity value is added on top of the color information. This only happens for the unselected state.</td>
+    </tr>
   <tr>
    <td class="greenField">style</td>
       <td>string</td>
@@ -1727,7 +1796,8 @@ var options = {
                     radius: 1},
       maxNodeSizeIncrements: 600,
       activeAreaBoxSize: 100,
-      clusterLevelDifference: 2
+      clusterLevelDifference: 2,
+      clusterByZoom: true
     }
 }
 // OR to just load the module with default values:
@@ -1870,6 +1940,12 @@ var options = {
       If the highest level of your network at any given time is 3, nodes that have not clustered or
       have clustered only once will join their neighbour with the lowest cluster level.</td>
   </tr>
+    <tr>
+        <td>clusterByZoom</td>
+        <td>Boolean</td>
+        <td>true</td>
+        <td>You can toggle the clustering by zoom level using this option.</td>
+    </tr>
 </table>
 
 <h3 id="Navigation_controls">Navigation controls</h3>
@@ -2209,11 +2285,18 @@ var options = {
         </td>
     </tr>
   <tr>
-    <td>getBoundingBox()</td>
+    <td>getBoundingBox(nodeId)</td>
     <td>Object</td>
     <td>Returns a bounding box for the node including label in the format: {top:Number,left:Number,right:Number,bottom:Number}. These values are in canvas space.
     </td>
   </tr>
+    <tr>
+        <td>getConnectedNodes(nodeId)</td>
+        <td>Array</td>
+        <td>Returns an array with nodeIds of nodes that are connected to this node. Network keeps track of the connected nodes so this function allows you
+            to quickly get them without iterating over all edges manually. This is a lot faster for cases with many edges.
+        </td>
+    </tr>
     <tr>
     <td>getSelection()</td>
     <td>Array of ids</td>
@@ -2240,6 +2323,13 @@ var options = {
             easeInQuint, easeOutQuint, easeInOutQuint </code> <br /><br />
     </td>
   </tr>
+    <tr>
+        <td>freezeSimulation(Boolean)</td>
+        <td>none</td>
+        <td>Calling freezeSimulation(true) immmediately stops the simulation and triggerst the stabilized event. This does not mean that the network
+            is physically stabilized but the nodes are not moving anymore. To continue the simulation call freezeSimulation(false).
+        </td>
+    </tr>
   <tr>
     <td>releaseNode()</td>
     <td>none</td>
@@ -2330,6 +2420,12 @@ var options = {
     </td>
   </tr>
   <tr>
+    <td>getConnectedNodes(nodeId)</td>
+    <td>Array</td>
+    <td>Get an array of (unique) nodeIds that are directly connected to this node.
+    </td>
+  </tr>
+  <tr>
     <td>selectEdges(selection)</td>
     <td>none</td>
     <td>Select Edges.
@@ -2348,7 +2444,7 @@ var options = {
       or in percentages.</td>
   </tr>
     <tr>
-        <td>getPositions([ids])</td>
+        <td>getPositions([nodeIds])</td>
         <td>Object</td>
         <td>This will return an object of all nodes' positions. Data can be accessed with object[nodeId].x and .y. You can optionally supply an id as string or number or an array of ids. If no id or array of ids have been supplied, all positions are returned.
         </td>
@@ -2370,6 +2466,7 @@ var options = {
     options can just be a boolean. When true, the zoom is animated, when false there is no animation.
         Alternatively, you can supply an object.
         <br /><br /> The object can consist of:<br />
+        <b><code>nodes: [nodeIds]</code></b><br /> - an optional subset of nodes to zoom in on,<br />
         <b><code>duration: Number</code></b><br /> - the duration of the animation in milliseconds,<br />
         <b><code>easingFunction: String</code></b><br /> - the easing function of the animation, available are:<br />
         <code>linear, easeInQuad, easeOutQuad, easeInOutQuad, easeInCubic, easeOutCubic, easeInOutCubic,
@@ -2377,6 +2474,7 @@ var options = {
             easeInQuint, easeOutQuint, easeInOutQuint </code>
     </td>
   </tr>
+
 
 </table>
 

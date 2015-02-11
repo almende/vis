@@ -10027,7 +10027,12 @@ function redrawAll() {
             radiusMin: 10,
             radiusMax: 30,
             fontSize: 12,
-            fontFace: "Tahoma"
+            fontFace: "Tahoma",
+            scaleFontWithValue:true,
+            fontSizeMin:8,
+            fontSizeMax:20,
+            fontThreshold:12,
+            fontSizeMaxVisible:20
         },
         edges: {
             width: 0.15,
@@ -10071,8 +10076,6 @@ function onClick(selectedItems) {
         }
     }
     else {
-        var allEdges = edges.get();
-
         // we clear the level of separation in all nodes.
         clearLevelOfSeperation(allNodes);
 
@@ -10083,7 +10086,7 @@ function onClick(selectedItems) {
         // any data can be added to a node, this is just stored in the nodeObject.
         storeLevelOfSeperation(connectedNodes,0, allNodes);
         for (var i = 1; i < degrees + 1; i++) {
-            appendConnectedNodes(connectedNodes, allEdges);
+            appendConnectedNodes(connectedNodes);
             storeLevelOfSeperation(connectedNodes, i, allNodes);
         }
         for (nodeId in allNodes) {
@@ -10153,7 +10156,7 @@ function clearLevelOfSeperation(allNodes) {
  *
  *
  */
-function appendConnectedNodes(sourceNodes, allEdges) {
+function appendConnectedNodes(sourceNodes) {
     var tempSourceNodes = [];
     // first we make a copy of the nodes so we do not extend the array we loop over.
     for (var i = 0; i < sourceNodes.length; i++) {
@@ -10165,7 +10168,8 @@ function appendConnectedNodes(sourceNodes, allEdges) {
         if (sourceNodes.indexOf(nodeId) == -1) {
             sourceNodes.push(nodeId);
         }
-        addUnique(getConnectedNodes(nodeId, allEdges),sourceNodes);
+        var connectedNodes = network.getConnectedNodes(nodeId);
+        addUnique(connectedNodes,sourceNodes);
     }
     tempSourceNodes = null;
 }
@@ -10181,27 +10185,6 @@ function addUnique(fromArray, toArray) {
             toArray.push(fromArray[i]);
         }
     }
-}
-
-/**
- * Get a list of nodes that are connected to the supplied nodeId with edges.
- * @param nodeId
- * @returns {Array}
- */
-function getConnectedNodes(nodeId, allEdges) {
-    var edgesArray = allEdges;
-    var connectedNodes = [];
-
-    for (var i = 0; i < edgesArray.length; i++) {
-        var edge = edgesArray[i];
-        if (edge.to == nodeId) {
-            connectedNodes.push(edge.from);
-        }
-        else if (edge.from == nodeId) {
-            connectedNodes.push(edge.to)
-        }
-    }
-    return connectedNodes;
 }
 
 redrawAll()
