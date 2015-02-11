@@ -74,9 +74,7 @@ This generates the vis.js library in the folder `./dist`.
 - Check if there are new or updated examples, and update the gallery screenshots
   accordingly.
 
-- Go to the `github-pages` branch and run the following script:
-
-        node updateversion.js
+- Update the library version number in the index.html page.
 
 - Commit the changes in the `gh-pages` branch.
 
