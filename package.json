@@ -1,6 +1,6 @@
 {
   "name": "vis",
-  "version": "3.9.2-SNAPSHOT",
+  "version": "3.10.0",
   "description": "A dynamic, browser-based visualization library.",
   "homepage": "http://visjs.org/",
   "repository": {
@@ -35,16 +35,16 @@
   },
   "devDependencies": {
     "clean-css": "latest",
-    "gulp": "^3.8.5",
-    "gulp-concat": "^2.2.0",
-    "gulp-minify-css": "^0.3.6",
+    "gulp": "^3.8.11",
+    "gulp-concat": "^2.4.3",
+    "gulp-minify-css": "^0.4.5",
     "gulp-rename": "^1.2.0",
-    "gulp-util": "^2.2.19",
+    "gulp-util": "^3.0.3",
     "merge-stream": "^0.1.5",
-    "mocha": "^1.20.1",
+    "mocha": "^2.1.0",
     "rimraf": "^2.2.8",
-    "uglify-js": "^2.4.14",
-    "webpack": "^1.3.1-beta7",
-    "yargs": "^1.2.6"
+    "uglify-js": "^2.4.16",
+    "webpack": "^1.5.3",
+    "yargs": "^2.3.0"
   }
 }
