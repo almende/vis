@@ -7921,7 +7921,7 @@ return /******/ (function(modules) { // webpackBootstrap
             me.animateTimer = setTimeout(next, 20);
           }
         }
-      }
+      };
 
       return next();
     }
@@ -8015,7 +8015,7 @@ return /******/ (function(modules) { // webpackBootstrap
         zoomMin = 0;
       }
       if ((newEnd - newStart) < zoomMin) {
-        if ((this.end - this.start) === zoomMin) {
+        if ((this.end - this.start) === zoomMin && newStart > this.start && newEnd < this.end) {
           // ignore this action, we are already zoomed to the minimum
           newStart = this.start;
           newEnd = this.end;
@@ -8035,8 +8035,9 @@ return /******/ (function(modules) { // webpackBootstrap
       if (zoomMax < 0) {
         zoomMax = 0;
       }
+
       if ((newEnd - newStart) > zoomMax) {
-        if ((this.end - this.start) === zoomMax) {
+        if ((this.end - this.start) === zoomMax && newStart < this.start && newEnd > this.end) {
           // ignore this action, we are already zoomed to the maximum
           newStart = this.start;
           newEnd = this.end;
@@ -8052,7 +8053,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     var changed = (this.start != newStart || this.end != newEnd);
 
-    // if the new range does NOT overlap with the old range, emit checkRangedItems to avoid not showing ranged items (ranged meaning has end time, not neccesarily of type Range)
+    // if the new range does NOT overlap with the old range, emit checkRangedItems to avoid not showing ranged items (ranged meaning has end time, not necessarily of type Range)
     if (!((newStart >= this.start && newStart   <= this.end) || (newEnd   >= this.start && newEnd   <= this.end)) &&
         !((this.start >= newStart && this.start <= newEnd)   || (this.end >= newStart   && this.end <= newEnd) )) {
       this.body.emitter.emit('checkRangedItems');
@@ -22629,6 +22630,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * start or only end. Syntax:
    *
    *     TimeLine.setWindow(start, end)
+   *     TimeLine.setWindow(start, end, options)
    *     TimeLine.setWindow(range)
    *
    * Where start and end can be a Date, number, or string, and range is an
@@ -22644,12 +22646,14 @@ return /******/ (function(modules) { // webpackBootstrap
    *                                 for the animation. Default duration is 500 ms.
    */
   Core.prototype.setWindow = function(start, end, options) {
-    var animate = (options && options.animate !== undefined) ? options.animate : true;
+    var animate;
     if (arguments.length == 1) {
       var range = arguments[0];
+      animate = (range.animate !== undefined) ? range.animate : true;
       this.range.setRange(range.start, range.end, animate);
     }
     else {
+      animate = (options && options.animate !== undefined) ? options.animate : true;
       this.range.setRange(start, end, animate);
     }
   };

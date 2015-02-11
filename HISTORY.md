@@ -20,7 +20,6 @@ http://visjs.org
 - Added opacity option to edges. Opacity is only used for the unselected state.
 - Fixed bug where selections from removed data elements persisted.
 
-
 ### DataSet/DataView
 
 - Added property `length` holding the total number of items to the `DataSet`
@@ -39,7 +38,8 @@ http://visjs.org
 - Fixed width of range items not always being maintained when moving due to
   snapping to nice dates.
 - Fixed not being able to drag items to an other group on mobile devices.
-
+- Fixed `setWindow` not working when applying an interval larger than the
+  configured `zoomMax`.
 
 ## 2015-01-16, version 3.9.1
 
