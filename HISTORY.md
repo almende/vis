@@ -2,6 +2,13 @@
 http://visjs.org
 
 
+## not yet released, version 3.10.1-SNAPSHOT
+
+### Timeline
+
+- Fixed not property initializing with a DataView for groups.
+
+
 ## 2015-02-11, version 3.10.0
 
 ### Network
