@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+<head>
+  <title>Network | Fully random nodes clustering</title>
+
+  <style type="text/css">
+    body {
+      font: 10pt sans;
+    }
+    #mynetwork {
+      width: 600px;
+      height: 600px;
+      border: 1px solid lightgray;
+    }
+  </style>
+
+  <script type="text/javascript" src="../../dist/vis.js"></script>
+  <link href="../../dist/vis.css" rel="stylesheet" type="text/css" />
+
+  <script type="text/javascript">
+    var nodes = null;
+    var edges = null;
+    var network = null;
+
+    function destroy() {
+      if (network !== null) {
+        network.destroy();
+        network = null;
+      }
+    }
+
+    function draw() {
+      destroy();
+
+      nodes = [];
+      edges = [];
+      // randomly create some nodes and edges
+      var nodeCount = parseInt(document.getElementById('nodeCount').value);
+
+      for (var i = 0; i < nodeCount; i++) {
+        nodes.push({
+          id: i,
+          label: String(i)
+        });
+      }
+      for (var i = 0; i < nodeCount; i++) {
+        var from = i;
+        var to = i;
+        to = i;
+        while (to == i) {
+          to = Math.floor(Math.random() * (nodeCount));
+        }
+        edges.push({
+          from: from,
+          to: to
+        });
+      }
+      // create a network
+      var clusteringOn = document.getElementById('clustering').checked;
+      var container = document.getElementById('mynetwork');
+      var data = {
+        nodes: nodes,
+        edges: edges
+      };
+      var options = {
+        physics: {barnesHut:{springLength:120}}, // this is the correct way to set the length of the springs
+        clustering: {
+          enabled: clusteringOn
+        },
+        stabilize: false
+      };
+      network = new vis.Network(container, data, options);
+
+      // add event listeners
+      network.on('select', function(params) {
+        document.getElementById('selection').innerHTML = 'Selection: ' + params.nodes;
+      });
+    }
+  </script>
+</head>
+
+<body onload="draw();">
+<h2>Clustering - Fully random network</h2>
+<div style="width:700px; font-size:14px; text-align: justify;">
+  This example shows a fully randomly generated set of nodes and connected edges.
+  By clicking the checkbox you can turn clustering on and off. If you increase the number of nodes to
+  a value higher than 100, automatic clustering is used before the initial draw (assuming the checkbox is checked).
+  <br />
+  <br />
+  Clustering is done automatically when zooming out. When zooming in over the cluster, the cluster pops open. When the cluster is very big, a special instance
+  will be created and the cluster contents will only be simulated in there. Double click will also open a cluster.
+  <br />
+  <br />
+  Try values of 500 and 5000 with and without clustering. All thresholds can be changed to suit your dataset.
+</div>
+<br />
+<form onsubmit="draw(); return false;">
+  <label for="nodeCount">Number of nodes:</label>
+  <input id="nodeCount" type="text" value="50" style="width: 50px;">
+  <label for="clustering">Enable Clustering:</label>
+  <input id="clustering" type="checkbox" onChange="draw()" checked="true">
+  <input type="submit" value="Go">
+</form>
+<br>
+
+<div id="mynetwork"></div>
+
+<p id="selection"></p>
+</body>
+</html>

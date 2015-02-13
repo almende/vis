@@ -1,6 +1,7 @@
 {
   "name": "vis",
-  "version": "0.7.5-SNAPSHOT",
+  "version": "3.10.1-SNAPSHOT",
+  "main": ["dist/vis.min.js", "dist/vis.min.css"],
   "description": "A dynamic, browser-based visualization library.",
   "homepage": "http://visjs.org/",
   "repository": {
@@ -10,12 +11,9 @@
   "ignore": [
     "misc",
     "node_modules",
-    "src",
     "test",
     "tools",
     ".idea",
-    "Jakefile.js",
-    "package.json",
     ".npmignore",
     ".gitignore"
   ],

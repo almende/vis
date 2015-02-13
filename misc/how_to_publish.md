@@ -9,6 +9,7 @@ This document describes how to publish vis.js.
 - Open `HISTORY.md`, write down the changes, version number, and release date.
 - Build the library by running:
 
+        npm prune
         npm update
         npm run build
 
@@ -21,7 +22,7 @@ This generates the vis.js library in the folder `./dist`.
 
         npm test
 
-- Open some of the example in your browser and visually check if it works as expected.
+- Open some of the examples in your browser and visually check if it works as expected.
 
 
 ## Commit
@@ -31,7 +32,7 @@ This generates the vis.js library in the folder `./dist`.
 - Push the branches to github
 - Create a version tag (with the new version number) and push it to github:
 
-        git tag v0.3.0
+        git tag v3.1.0
         git push --tags
 
 
@@ -61,18 +62,19 @@ This generates the vis.js library in the folder `./dist`.
 ## Update website
 
 - Copy the `dist` folder from the `master` branch to the `github-pages` branch.
-- Copy the `examples` folder from the `master` branch to the `github-pages` branch.
 - Copy the `docs` folder from the `master` branch to the `github-pages` branch.
+- Copy the `examples` folder from the `master` branch to the `github-pages` branch.
 - Create a packaged version of vis.js. Go to the `master` branch and run:
 
-        zip vis.zip dist docs examples README.md HISTORY.md LICENSE NOTICE -r
+        zip vis.zip dist docs examples README.md HISTORY.md LICENSE* NOTICE -r
 
 - Move the created zip file `vis.zip` to the `download` folder in the
   `github-pages` branch. TODO: this should be automated.
 
-- Go to the `github-pages` branch and run the following script:
+- Check if there are new or updated examples, and update the gallery screenshots
+  accordingly.
 
-        node updateversion.js
+- Update the library version number in the index.html page.
 
 - Commit the changes in the `gh-pages` branch.
 

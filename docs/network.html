@@ -1,0 +1,2665 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>vis.js | network documentation</title>
+
+  <link href="css/prettify.css" type="text/css" rel="stylesheet" />
+  <link href='css/style.css' type='text/css' rel='stylesheet'>
+    <style>td.greenField {
+        background-color: #c9ffc7;
+    }</style>
+
+  <script type="text/javascript" src="lib/prettify/prettify.js"></script>
+</head>
+
+<body onload="prettyPrint();">
+<div id="container">
+
+<h1>Network documentation</h1>
+
+<h2 id="Overview">Overview</h2>
+<p>
+  Network is a visualization to display networks and networks consisting of nodes
+  and edges. The visualization is easy to use and supports custom shapes,
+  styles, colors, sizes, images, and more.
+</p>
+
+<p>
+  The network visualization works smooth on any modern browser for up to a
+  few thousand nodes and edges. To handle a larger amount of nodes, Network
+  has <a href="#Clustering">clustering</a> support. Network uses
+  <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Canvas">HTML canvas</a>
+  for rendering.
+</p>
+
+<p>
+  Every dataset is different. Nodes can have different sizes based on content, interconnectivity can be high or low etc. Because of this, network has a special option
+  that the user can use to explore which settings may be good for you. Use configurePhysics as described in the <u><a href="#PhysicsConfiguration">Physics</a></u> section or by
+  <u><a href="../examples/network/25_physics_configuration.html">example 25</a></u>.
+</p>
+
+<p>
+  To get started with Network, install or download the
+  <a href="http://visjs.org" target="_blank">vis.js</a> library.
+</p>
+
+
+<h2><a name="Contents"></a>Contents</h2>
+
+<ul>
+  <li><a href="#Overview">Overview</a></li>
+  <li><a href="#Example">Example</a></li>
+  <li><a href="#Loading">Loading</a></li>
+  <li>
+    <a href="#Data_format">Data format</a>
+    <ul>
+      <li><a href="#Nodes">Nodes</a></li>
+      <li><a href="#Edges">Edges</a></li>
+      <li><a href="#DOT_language">DOT language</a></li>
+      <li><a href="#Gephi_import">Gephi import</a></li>
+    </ul>
+  </li>
+  <li>
+    <a href="#Configuration_options">Configuration options</a>
+    <ul>
+      <li><a href="#Nodes_configuration">Nodes</a></li>
+      <li><a href="#Edges_configuration">Edges</a></li>
+      <li><a href="#Groups_configuration">Groups</a></li>
+      <li><a href="#Physics">Physics</a></li>
+      <li><a href="#Data_manipulation">Data manipulation</a></li>
+      <li><a href="#Clustering">Clustering</a></li>
+      <li><a href="#Navigation_controls">Navigation controls</a></li>
+      <li><a href="#Keyboard_navigation">Keyboard navigation</a></li>
+      <li><a href="#Hierarchical_layout">Hierarchical layout</a></li>
+      <li><a href="#Localization">Localization</a></li>
+      <li><a href="#Tooltips">Tooltips</a></li>
+    </ul>
+  </li>
+  <li><a href="#Methods">Methods</a></li>
+  <li><a href="#Events">Events</a></li>
+  <li><a href="#Data_policy">Data policy</a></li>
+</ul>
+
+<h2 id="Example">Example</h2>
+<p>
+  Here a basic network example. Note that unlike the
+  <a href="timeline.html">Timeline</a>, the Network does not need the vis.css
+  file.
+</p>
+
+<p>
+  More examples can be found in the
+  <a href="../examples" target="_blank">examples directory</a>.
+</p>
+
+<pre class="prettyprint lang-html">&lt;!doctype html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;title&gt;Network | Basic usage&lt;/title&gt;
+
+  &lt;script type="text/javascript" src="../../dist/vis.js"&gt;&lt;/script&gt;
+&lt;/head&gt;
+
+&lt;body&gt;
+
+&lt;div id="mynetwork"&gt;&lt;/div&gt;
+
+&lt;script type="text/javascript"&gt;
+  // create an array with nodes
+  var nodes = [
+    {id: 1, label: 'Node 1'},
+    {id: 2, label: 'Node 2'},
+    {id: 3, label: 'Node 3'},
+    {id: 4, label: 'Node 4'},
+    {id: 5, label: 'Node 5'}
+  ];
+
+  // create an array with edges
+  var edges = [
+    {from: 1, to: 2},
+    {from: 1, to: 3},
+    {from: 2, to: 4},
+    {from: 2, to: 5}
+  ];
+
+  // create a network
+  var container = document.getElementById('mynetwork');
+  var data= {
+    nodes: nodes,
+    edges: edges,
+  };
+  var options = {
+    width: '400px',
+    height: '400px'
+  };
+  var network = new vis.Network(container, data, options);
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</pre>
+
+
+<h2 id="Loading">Loading</h2>
+<p>
+  Install or download the <a href="http://visjs.org" target="_blank">vis.js</a> library.
+  in a subfolder of your project. Include the library script in the head of your html code:
+</p>
+
+<pre class="prettyprint lang-html">
+&lt;script type="text/javascript" src="vis/dist/vis.js"&gt;&lt;/script&gt;
+</pre>
+
+
+The constructor of the Network is <code>vis.Network</code>.
+<pre class="prettyprint lang-js">var network = new vis.Network(container, data, options);</pre>
+
+The constructor accepts three parameters:
+<ul>
+  <li>
+    <code>container</code> is the DOM element in which to create the network.
+  </li>
+  <li>
+    <code>data</code> is an Object containing properties <code>nodes</code> and
+    <code>edges</code>, which both contain an array with objects.
+    Optionally, data may contain an <code>options</code> object.
+    The parameter <code>data</code> is optional, data can also be set using
+    the method <code>setData</code>. Section <a href="#Data_Format">Data Format</a>
+    describes the data object.
+  </li>
+  <li>
+    <code>options</code> is an optional Object containing a name-value map
+    with options. Options can also be set using the method
+    <code>setOptions</code>.
+    Section <a href="#Configuration_Options">Configuration Options</a>
+    describes the available options.
+  </li>
+</ul>
+
+<h2 id="Data_format">Data format</h2>
+<p>
+  The <code>data</code> parameter of the Network constructor is an object
+  which can contain different types of data.
+  The following properties are supported in the <code>data</code> object:
+</p>
+
+<ul>
+  <li>
+    <span style="font-weight: bold;">A property pair <code>nodes</code> and <code>edges</code></span>,
+    both containing an Array with objects. The data formats are described
+    in the sections <a href="#Nodes">Nodes</a> and <a href="#Edges">Edges</a>.
+    Example:
+<pre class="prettyprint lang-js">
+var data = {
+  nodes: [...],
+  edges: [...]
+};
+</pre>
+  </li>
+  <li>
+    <span style="font-weight: bold;">A property <code>dot</code></span>,
+    containing a string with data in the
+    <a href="http://en.wikipedia.org/wiki/DOT_language" target="_blank">DOT language</a>.
+    DOT support is described in section <a href="#DOT_language">DOT_language</a>.
+
+    Example:
+<pre class="prettyprint lang-js">
+var data = {
+  dot: '...'
+};
+</pre>
+  </li>
+  <li>
+    <span style="font-weight: bold;">A property <code>options</code></span>,
+    containing an object with global options.
+    Options can be provided as third parameter in the network constructor
+    as well. Section <a href="#Configuration_Options">Configuration Options</a>
+    describes the available options.
+
+  </li>
+</ul>
+
+<h3 id="Nodes">Nodes</h3>
+
+<p>
+  Nodes typically have an <code>id</code> and <code>label</code>.
+  A node must contain at least a property <code>id</code>.
+  Nodes can have extra properties, used to define the shape and style of the
+  nodes.
+</p>
+
+<p>
+  A JavaScript Array with nodes is constructed like:
+</p>
+<pre class="prettyprint lang-js">
+var nodes = [
+  {
+    id: 1,
+    label: 'Node 1'
+  },
+  // ... more nodes
+];
+</pre>
+Alternatively, a vis DataSet can also be used:
+<pre class="prettyprint lang-js">
+var nodes = new vis.DataSet();
+nodes.add([
+    {id: '1', label: 'Node 1'},
+    {id: '2', label: 'Node 2'},
+    {id: '3', label: 'Node 3'},
+    {id: '4', label: 'Node 4'},
+    // ... more nodes
+]);
+</pre>
+When using a DataSet, the network is automatically updating to changes in the DataSet.
+
+<p>
+  Nodes support the properties listed below. Each node can be configured individually using
+  the properties highlighted in green over at the <a href="#Nodes_configuration">Nodes configuration</a>.
+</p>
+
+<table>
+<tr>
+  <th>Name</th>
+  <th>Type</th>
+  <th>Required</th>
+  <th>Description</th>
+</tr>
+
+<tr>
+  <td>group</td>
+  <td>Number | String</td>
+  <td>no</td>
+  <td>A group number or name. The type can be <code>number</code>,
+    <code>string</code>, or an other type. All nodes with the same group get
+    the same color schema.</td>
+</tr>
+
+<tr>
+  <td>allowedToMoveX</td>
+  <td>Boolean</td>
+  <td>no</td>
+  <td>If allowedToMoveX is false, then the node will not move in the X direction from its position.</td>
+</tr>
+<tr>
+  <td>allowedToMoveY</td>
+  <td>Boolean</td>
+  <td>no</td>
+  <td>If allowedToMoveY is false, then the node will not move in the Y direction from its position.</td>
+</tr>
+
+<tr>
+  <td>id</td>
+  <td>Number | String</td>
+  <td>yes</td>
+  <td>A unique id for this node.
+    Nodes may not have duplicate id's.
+    Id's do not need to be consecutive.
+    An id is normally a number, but may be any type.</td>
+</tr>
+
+<tr>
+  <td>level</td>
+  <td>number</td>
+  <td>no</td>
+  <td>This level is used in the hierarchical layout. If this is not selected, the level does not do anything. This must be a postive number (min value: 0).
+  Fractions are possible but only integers are supported.</td>
+</tr>
+
+<tr>
+  <td>label</td>
+  <td>string</td>
+  <td>no</td>
+  <td>Text label to be displayed in the node or under the image of the node.
+    Multiple lines can be separated by a newline character <code>\n</code> .</td>
+</tr>
+
+<tr>
+  <td>title</td>
+  <td>string | function | Element</td>
+  <td>no</td>
+  <td>Title to be displayed when the user hovers over the node.
+    The title can be an HTML element or a string containing plain text or HTML.
+    When title is a function, the returned result is displayed as tooltip, and returning <code>undefined</code>
+    will prevent the tooltip from being displayed.</td>
+</tr>
+
+<tr>
+  <td>value</td>
+  <td>number</td>
+  <td>no</td>
+  <td>A value for the node.
+    The radius of the nodes will be scaled automatically from minimum to
+    maximum value.
+    Only applicable when the shape of the node is <code>dot</code>.
+    If a <code>radius</code> is provided for the node too, it will override the
+    radius calculated from the value.</td>
+</tr>
+
+<tr>
+  <td>x</td>
+  <td>number</td>
+  <td>no</td>
+  <td>Horizontal position in pixels.
+    The horizontal position of the node will be fixed unless combined with the allowedToMoveX:true option.
+    The vertical position y may remain undefined. This does not work with hierarchical layout.</td>
+</tr>
+<tr>
+  <td>y</td>
+  <td>number</td>
+  <td>no</td>
+  <td>Vertical position in pixels.
+    The vertical position of the node will be fixed unless combined with the allowedToMoveY:true option.
+    The horizontal position x may remain undefined. This does not work with hierarchical layout.</td>
+</tr>
+</table>
+
+
+<h3 id="Edges">Edges</h3>
+
+<p>
+  Edges are connections between nodes.
+  An edge must at least contain properties <code>from</code> and
+  <code>to</code>, both referring to the <code>id</code> of a node.
+  Edges can have extra properties, used to define the type and style.
+</p>
+
+<p>
+  A JavaScript Array with edges is constructed as:
+</p>
+<pre class="prettyprint lang-js">
+var edges = [
+  {
+    from: 1,
+    to: 3
+  },
+  // ... more edges
+];
+</pre>
+Alternatively, a vis DataSet can also be used:
+<pre class="prettyprint lang-js">
+var edges = new vis.DataSet();
+edges.add([
+    {from: '1', to: '2'},
+    {from: '1', to: '3'},
+    {from: '2', to: '4'},
+    {from: '2', to: '5'},
+    // ... more edges
+]);
+</pre>
+When using a DataSet, the network is automatically updating to changes in the DataSet.
+
+<p>
+  Edges support properties listed below. Each edge can be configured individually using
+  the properties highlighted in green over at the <a href="#Edges_configuration">Edges configuration</a>.
+</p>
+
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Type</th>
+    <th>Required</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>from</td>
+    <td>Number | String</td>
+    <td>yes</td>
+    <td>The id of a node where the edge starts. The type must correspond with
+      the type of the node id's. This is normally a number, but can be any
+      type.</td>
+  </tr>
+
+  <tr>
+    <td>label</td>
+    <td>string</td>
+    <td>no</td>
+    <td>Text label to be displayed halfway the edge.</td>
+  </tr>
+  <tr>
+    <td>length</td>
+    <td>number</td>
+    <td>no</td>
+    <td>The resting length of the edge when modeled as a spring. By default the springLength determined by the physics is used. By using this setting you can make certain edges have different resting lengths.</td>
+  </tr>
+
+
+  <tr>
+    <td>title</td>
+    <td>string | function</td>
+    <td>no</td>
+    <td>Title to be displayed when the user hovers over the edge.
+      The title can be an HTML element or a string containing plain text or HTML.
+      When title is a function, the returned result is displayed as tooltip, and returning <code>undefined</code>
+      will prevent the tooltip from being displayed.</td>
+  </tr>
+
+  <tr>
+    <td>to</td>
+    <td>Number | String</td>
+    <td>yes</td>
+    <td>The id of a node where the edge ends. The type must correspond with
+      the type of the node id's. This is normally a number, but can be any
+      type.</td>
+  </tr>
+  <tr>
+    <td>value</td>
+    <td>number</td>
+    <td>no</td>
+    <td>A value for the edge.
+      The width of the edges will be scaled automatically from minimum to
+      maximum value.
+      If a <code>width</code> is provided for the edge too, it will override the
+      width calculated from the value.</td>
+  </tr>
+
+
+</table>
+
+
+
+<h3 id="DOT_language">DOT language</h3>
+
+<p>
+  Network supports data in the
+  <a href="http://en.wikipedia.org/wiki/DOT_language" target="_blank">DOT language</a>.
+  To provide data in the DOT language, the <code>data</code> object must contain
+  a property <code>dot</code> with a String containing the data.
+</p>
+
+<p>
+  Example usage:
+</p>
+
+<pre class="prettyprint lang-js">
+// provide data in the DOT language
+var data = {
+  dot: 'dinetwork {1 -> 1 -> 2; 2 -> 3; 2 -- 4; 2 -> 1 }'
+};
+
+// create a network
+var network = new vis.Network(container, data);
+</pre>
+
+<h3 id="Gephi_import">Gephi import (JSON)</h3>
+
+<p>
+  network can import data straight from an exported json file from gephi. You can get the JSON exporter here:
+  <a href="https://marketplace.gephi.org/plugin/json-exporter/" target="_blank">https://marketplace.gephi.org/plugin/json-exporter/</a>.
+  An example exists showing how to get a JSON file into Vis: <a href="../examples/network/30_importing_from_gephi.html">30_importing_from_gephi</a>.
+</p>
+
+<p>
+  Example usage:
+</p>
+
+<pre class="prettyprint lang-js">
+// load the JSON file containing the Gephi network.
+var gephiJSON = loadJSON("./data/WorldCup2014.json"); // code in example 30
+
+// create a data object with the gephi key:
+var data = {
+  gephi: gephiJSON
+};
+
+// create a network
+var network = new vis.Network(container, data);
+</pre>
+Alternatively you can use the parser manually:
+<pre class="prettyprint lang-js">
+// load the JSON file containing the Gephi network.
+var gephiJSON = loadJSON("./data/WorldCup2014.json"); // code in example 30
+
+// parse the gephi file to receive an object
+// containing nodes and edges in vis format.
+var parsed = vis.network.gephiParser.parseGephi(gephiJSON);
+
+// provide data in the normal fashion
+var data = {
+  nodes: parsed.nodes,
+  edged: parsed.edges
+};
+
+// create a network
+var network = new vis.Network(container, data);
+</pre>
+
+<h4>Gephi parser options</h4>
+
+There are a few options you can use to tell Vis what to do with the data from Gephi.
+
+<pre class="prettyprint lang-js">
+var parserOptions = {
+  allowedToMove: false,
+  parseColor: false
+}
+var parsed = vis.network.gephiParser.parseGephi(gephiJSON, parserOptions);
+</pre>
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+  </tr>
+
+  <tr>
+    <td>allowedToMove</td>
+    <td>Boolean</td>
+    <td>false</td>
+    <td>
+      If true, the nodes will move according to the physics model after import. If false, the nodes do not move at all.
+    </td>
+  </tr>
+  <tr>
+    <td>parseColor</td>
+    <td>Boolean</td>
+    <td>false</td>
+    <td>
+      If true, the color will be parsed by the vis parser, generating extra colors for the borders, highlighs and hover. If false, the node will be the supplied color.
+    </td>
+  </tr>
+</table>
+
+<h2 id="Configuration_options">Configuration options</h2>
+
+<p>
+  Options can be used to customize the network. Options are defined as a JSON object.
+  All options are optional.
+</p>
+
+<pre class="prettyprint lang-js">
+var options = {
+  width:  '100%',
+  height: '400px',
+  edges: {
+    color: 'red',
+    width: 2
+  }
+};
+</pre>
+
+<p>
+  The following options are available.
+</p>
+
+<table>
+<tr>
+  <th>Name</th>
+  <th>Type</th>
+  <th>Default</th>
+  <th>Description</th>
+</tr>
+
+<tr>
+  <td>clickToUse</td>
+  <td>boolean</td>
+  <td>false</td>
+  <td>When a Network is configured to be <code>clickToUse</code>, it will react to mouse, touch, and keyboard events only when active.
+    When active, a blue shadow border is displayed around the Network. The Network is set active by clicking on it, and is changed to inactive again by clicking outside the Network or by pressing the ESC key.</td>
+</tr>
+
+<tr>
+  <td><a href="#Physics">physics</a></td>
+  <td>Object</td>
+  <td>none</td>
+  <td>
+    Configuration of the physics system governing the simulation of the nodes and edges.
+    Barnes-Hut nBody simulation is used by default. See section <a href="#Physics">Physics</a> for an overview of the available options.
+  </td>
+</tr>
+<tr>
+  <td><a href="#Physics">configurePhysics</a></td>
+  <td>Boolean</td>
+  <td>false</td>
+  <td>
+    Enabling this setting will create a physics configuration div above the network. You can use this to fine tune the physics system to suit your needs.
+    Because of the many possible configurations, there is not a one-size-fits-all setting. By using this tool, you can adapt the physics to your dataset.
+  </td>
+</tr>
+
+<tr>
+  <td><a href="#Data_manipulation">dataManipulation</a></td>
+  <td>Object</td>
+  <td>none</td>
+  <td>
+    Settings for manipulating the Dataset. See section <a href="#Data_manipulation">Data manipulation</a> for an overview of the available options.
+  </td>
+</tr>
+
+<tr>
+  <td><a href="#Clustering">clustering</a></td>
+  <td>Object</td>
+  <td>none</td>
+  <td>
+    Clustering configuration. Clustering is turned off by default. See section <a href="#Clustering">Clustering</a> for an overview of the available options.
+  </td>
+</tr>
+
+<tr>
+  <td><a href="#Edges_configuration">edges</a></td>
+  <td>Object</td>
+  <td>none</td>
+  <td>
+    Configuration options applied to all edges. See section <a href="#Edges_configuration">Edges configuration</a> for an overview of the available options.
+  </td>
+</tr>
+
+<tr>
+  <td>freezeForStabilization</a></td>
+  <td>Boolean</td>
+  <td>false</td>
+  <td>
+    With the advent of the storePositions() function, the positions of the nodes can be saved after they are stabilized. The smoothCurves require support nodes and those positions are not stored. In order
+    to speed up the initialization of the network by using storePositions() and loading the nodes with the stored positions, the freezeForStabilization option freezes all nodes that have been supplied with
+    an x and y position in place during the stabilization. That way only the support nodes for the smooth curves have to stabilize, greatly speeding up the stabilization process with cached positions.
+  </td>
+</tr>
+
+<tr>
+  <td><a href="#Groups_configuration">groups</a></td>
+  <td>Object</td>
+  <td>none</td>
+  <td>It is possible to specify custom styles for groups.
+    Each node assigned a group gets the specified style.
+    See <a href="#Groups_configuration">Groups configuration</a> for an overview of the available styles
+    and an example.
+  </td>
+</tr>
+
+<tr>
+  <td>height</td>
+  <td>String</td>
+  <td>"400px"</td>
+  <td>The height of the network in pixels or as a percentage.</td>
+</tr>
+
+<tr>
+  <td>hover</td>
+  <td>Boolean</td>
+  <td>false</td>
+  <td>Enabling the change of the colors of nodes and edges when the mouse hovers over them. Enabling this may have a minor impact on performance.</td>
+</tr>
+
+<tr>
+  <td><a href="#Keyboard_navigation">keyboard</a></td>
+  <td>Object</td>
+  <td>none</td>
+  <td>
+    Configuration options for shortcuts keys. Shortcut keys are turned off by default. See section <a href="#Keyboard_navigation">Keyboard navigation</a> for an overview of the available options.
+  </td>
+</tr>
+<tr>
+  <td>dragNetwork</td>
+  <td>Boolean</td>
+  <td>true</td>
+  <td>
+    Toggle if the network can be dragged. This will not affect the dragging of nodes.
+  </td>
+</tr>
+<tr>
+  <td>dragNodes</td>
+  <td>Boolean</td>
+  <td>true</td>
+  <td>
+    Toggle if the nodes can be dragged. This will not affect the dragging of the network.
+  </td>
+</tr>
+<tr>
+  <td>hideNodesOnDrag</td>
+  <td>Boolean</td>
+  <td>false</td>
+  <td>
+    Toggle if the nodes are drawn during a drag. This can greatly improve performance if you have many nodes.
+  </td>
+</tr>
+<tr>
+  <td>hideEdgesOnDrag</td>
+  <td>Boolean</td>
+  <td>false</td>
+  <td>
+    Toggle if the edges are drawn during a drag. This can greatly improve performance if you have many edges.
+  </td>
+</tr>
+<tr>
+  <td><a href="#Navigation_controls">navigation</a></td>
+  <td>Object</td>
+  <td>none</td>
+  <td>
+    Configuration options for the navigation controls. See section <a href="#Navigation_controls">Navigation controls</a> for an overview of the available options.
+  </td>
+</tr>
+
+<tr>
+  <td><a href="#Nodes_configuration">nodes</a></td>
+  <td>Object</td>
+  <td>none</td>
+  <td>
+    Configuration options applied to all nodes. See section <a href="#Nodes_configuration">Nodes configuration</a> for an overview of the available options.
+  </td>
+</tr>
+
+<tr>
+  <td>smoothCurves</td>
+  <td>Boolean || object</td>
+  <td>object</td>
+  <td>If true, edges are drawn as smooth curves. This is more computationally intensive since the edge now is a quadratic Bezier curve. This can be further configured by the options below.</td>
+</tr>
+
+<tr>
+  <td>smoothCurves.dynamic</td>
+  <td>Boolean</td>
+  <td>true</td>
+  <td>By default, the edges are dynamic. This means there are support nodes placed in the middle of the edge. This support node is also handed by the physics simulation. If false, the smoothness will be based on the
+    relative positions of the to and from nodes. This is computationally cheaper but there is no self organisation.</td>
+</tr>
+<tr>
+  <td>smoothCurves.type</td>
+  <td>String</td>
+  <td>"continuous"</td>
+  <td>This option only affects NONdynamic smooth curves. The supported types are: <code>continuous, discrete, diagonalCross, straightCross, horizontal, vertical</code>. The effects of these types
+    are shown in examples <a href="../examples/network/26_staticSmoothCurves.html">26</a> and <a href="../examples/network/27_world_cup_network.html">27</a></td>
+</tr>
+<tr>
+  <td>smoothCurves.roundness</td>
+  <td>Number</td>
+  <td>0.5</td>
+  <td>This only affects NONdynamic smooth curves. The roundness can be tweaked with the parameter. The value range is from 0 to 1 with a maximum roundness at 0.5.</td>
+</tr>
+<tr>
+  <td>selectable</td>
+  <td>Boolean</td>
+  <td>true</td>
+  <td>If true, nodes in the network can be selected by clicking them.
+    Long press can be used to select multiple nodes.</td>
+</tr>
+
+<tr>
+  <td>stabilize</td>
+  <td>Boolean</td>
+  <td>true</td>
+  <td>If true, the network is stabilized before displaying it. If false,
+    the nodes move to a stabe position visibly in an animated way.</td>
+</tr>
+
+<tr>
+  <td>stabilizationIterations</td>
+  <td>Number</td>
+  <td>1000</td>
+  <td>If stabilize is set to true, this number is the (maximum) amount of physics steps the stabilization process takes
+    before showing the result. If your simulation takes too long to stabilize, this number can be reduced. On the other hand, if your network is not stabilized after loading, this number can be increased.</td>
+</tr>
+
+
+<tr>
+  <td>zoomExtentOnStabilize</td>
+  <td>Boolean</td>
+  <td>true</td>
+  <td>When the internal stabilize function is called because the stabilize option is set to true OR the hierarchical system (re)initializes, a call to zoomExtent is done by default. By setting this to false, you can avoid this call.</td>
+</tr>
+
+<tr>
+  <td>width</td>
+  <td>String</td>
+  <td>"400px"</td>
+  <td>The width of the network in pixels or as a percentage.</td>
+</tr>
+<tr>
+  <td>zoomable</td>
+  <td>Boolean</td>
+  <td>true</td>
+  <td>
+    Toggle if the network can be zoomed.
+  </td>
+</tr>
+
+</table>
+
+<br>
+
+<h3 id="Nodes_configuration">Nodes configuration</h3>
+<p>
+  Nodes can be configured with different styles and shapes. To configure nodes, provide an object named <code>nodes</code> in the <code>options</code> for the Network.
+</p>
+
+<p>
+  For example to give the nodes a custom color, shape, and size:
+</p>
+<pre class="prettyprint lang-js">
+var options = {
+  // ...
+  nodes: {
+    color: {
+      background: 'white',
+      border: 'red',
+      highlight: {
+        background: 'pink',
+        border: 'red'
+      }
+    },
+    shape: 'star',
+    radius: 24
+  }
+};
+</pre>
+
+<p>
+  The following options are available for nodes. These options must be created
+  inside an object <code>nodes</code> in the networks options object.</p> All options in green boxes can be defined per-node as well.
+All options defined per-node override these global settings.
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+    </tr>
+
+    <tr>
+        <td class="greenField">borderWidth</td>
+        <td>Number</td>
+        <td>1</td>
+        <td>The width of the border of the node when it is not selected, automatically limited by the width of the node.</td>
+    </tr>
+    <tr>
+        <td class="greenField">borderWidthSelected</td>
+        <td>Number</td>
+        <td>undefined</td>
+        <td>The width of the border of the node when it is selected. If left at undefined, double the borderWidth will be used.</td>
+    </tr>
+
+    <tr>
+        <td>customScalingFunction</td>
+        <td>Function</td>
+        <td>Function</td>
+        <td>This is a function you can override to make the nodes scale the way you want them based on their values. The default function is this: <br>
+<pre class="prettyprint lang-js">
+function (min,max,total,value) {
+    if (max == min) {
+        return 0.5;
+    }
+    else {
+        var scale = 1 / (max - min);
+        return Math.max(0,(value - min)*scale);
+    }
+};
+</pre>
+             The function receives the minimum value of the set, the maximum value, the total sum of all values and finally the value of the node or edge it works on. It has to return a value between 0 and 1.
+            The nodes and edges then calculate their size as follows:
+<pre class="prettyprint lang-js">
+var scale = customScalingFunction(min,max,total,value);
+var diff = maxSize - minSize;
+mySize = minSize + diff * scale;</pre>
+        </td>
+    </tr>
+    <tr>
+        <td class="greenField">color</td>
+        <td>String | Object</td>
+        <td>Object</td>
+        <td>Color for the node.</td>
+    </tr>
+    <tr>
+        <td class="greenField">color.background</td>
+        <td>String</td>
+        <td>#97C2FC</td>
+        <td>Background color for the node.</td>
+    </tr>
+    <tr>
+        <td class="greenField">color.border</td>
+        <td>String</td>
+        <td>#2B7CE9</td>
+        <td>Border color for the node.</td>
+    </tr>
+    <tr>
+        <td class="greenField">color.highlight</td>
+        <td>String | Object</td>
+        <td>Object</td>
+        <td>Color of the node when selected.</td>
+    </tr>
+    <tr>
+        <td class="greenField">color.highlight.background</td>
+        <td>String</td>
+        <td>#D2E5FF</td>
+        <td>Background color of the node when selected.</td>
+    </tr>
+    <tr>
+        <td class="greenField">color.highlight.border</td>
+        <td>String</td>
+        <td>#2B7CE9</td>
+        <td>Border color of the node when selected.</td>
+    </tr>
+    <tr>
+        <td class="greenField">color.hover.background</td>
+        <td>String</td>
+        <td>#D2E5FF</td>
+        <td>Background color of the node when the node is hovered over and the hover option is enabled.</td>
+    </tr>
+    <tr>
+        <td class="greenField">color.hover.border</td>
+        <td>String</td>
+        <td>#2B7CE9</td>
+        <td>Border color of the node when the node is hovered over and the hover option is enabled.</td>
+    </tr>
+    <tr>
+        <td class="greenField">fontColor</td>
+        <td>String</td>
+        <td>black</td>
+        <td>Font color for label in the node.</td>
+    </tr>
+    <tr>
+        <td class="greenField">fontFace</td>
+        <td>String</td>
+        <td>verdana</td>
+        <td>Font face for label in the node, for example "verdana" or "arial".</td>
+    </tr>
+    <tr>
+        <td class="greenField">fontSize</td>
+        <td>Number</td>
+        <td>14</td>
+        <td>Font size in pixels for label in the node.</td>
+    </tr>
+    <tr>
+        <td>scaleFontWithValue</td>
+        <td>Boolean</td>
+        <td>false</td>
+        <td>When using values, you can let the font scale with the size of the nodes if you enable the this option.</td>
+    </tr>
+    <tr>
+        <td>fontSizeMin</td>
+        <td>Number</td>
+        <td>14</td>
+        <td>When using values, you can let the font scale with the size of the nodes if you enable the scaleFontWithValue option. This is the minimum value of the fontSize.</td>
+    </tr>
+    <tr>
+        <td></td>fontSizeMax</td>
+        <td>Number</td>
+        <td>30</td>
+        <td>When using values, you can let the font scale with the size of the nodes if you enable the scaleFontWithValue option. This is the maximum value of the fontSize.</td>
+    </tr>
+    <tr>
+        <td>fontSizeMaxVisible</td>
+        <td>Number</td>
+        <td>30</td>
+        <td>When using values, you can let the font scale with the size of the nodes if you enable the scaleFontWithValue option. If you have a wide distribution of values and have a large max fontSize,
+            the text will become huge if you zoom in on it. This option limits the percieved fontSize to avoid this. If you set it to 20, no label will be larger than fontsize 20 (at scale = 1) regardless of the scale.</td>
+    </tr>
+    <tr>
+        <td>fontDrawThreshold</td>
+        <td>Number</td>
+        <td>3</td>
+        <td>When zooming out, the text becomes smaller. This option sets the minimum size of the label before not being drawn. Just like the fontSizeMaxVisible option, this is the relative fontSize (fontSize * scale).
+        You can combine this with the min and max values to have the labels of influential nodes show earlier when zooming in.</td>
+    </tr>
+    <tr>
+        <td class="greenField">fontFill</td>
+        <td>String</td>
+        <td>undefined</td>
+        <td>If a color is supplied, there will be a background color behind the label. If left undefined, no background color is shown.</td>
+    </tr>
+    <tr>
+        <td class="greenField">fontStrokeWidth</td>
+        <td>Number</td>
+        <td>0</td>
+        <td>The width of the label stroke (border around label's text) in pixels.</td>
+    </tr>
+    <tr>
+        <td class="greenField">fontStrokeColor</td>
+        <td>String</td>
+        <td>'white'</td>
+        <td>The color of the label stroke.</td>
+    </tr>
+
+<tr>
+    <td  class="greenField">shape</td>
+    <td>string</td>
+    <td>'ellipse'</td>
+    <td>Define the shape for the node.
+    Choose from
+    <code>ellipse</code> (default), <code>circle</code>, <code>box</code>,
+    <code>database</code>, <code>image</code>, <code>circularImage</code>, <code>label</code>, <code>dot</code>,
+    <code>star</code>, <code>triangle</code>, <code>triangleDown</code>, and <code>square</code>.
+    <br><br>
+
+    In case of <code>image</code> and <code>circularImage</code>, a property with name <code>image</code> must
+    be provided, containing image urls.
+    <br><br>
+
+    The shapes <code>dot</code>, <code>star</code>, <code>triangle</code>,
+    <code>triangleDown</code>, and <code>square</code>, are scalable.
+    The size is determined by the properties <code>radius</code> or
+    <code>value</code>.
+    <br><br>
+
+    When a property <code>label</code> is provided,
+    this label will be displayed inside the shape in case of shapes
+    <code>box</code>, <code>circle</code>, <code>ellipse</code>,
+    and <code>database</code>.
+    For all other shapes, the label will be displayed right below the shape.
+
+    This shape can be overridden by a group shape, or by a shape of an individual node.
+
+    </td>
+</tr>
+  <tr>
+    <td class="greenField">image</td>
+    <td>String</td>
+    <td>undefined</td>
+    <td>Default image url for the nodes. only applicable to shape <code>image</code>.</td>
+  </tr>
+  <tr>
+    <td class="greenField">brokenImage</td>
+    <td>String</td>
+    <td>undefined</td>
+    <td>Image url to use in the event that the url specified in the <code>image</code> property fails to load. only applicable to shape <code>image</code>.</td>
+  </tr>
+  <tr>
+    <td class="greenField">mass</td>
+    <td>number</td>
+    <td>1</td>
+    <td>When using the Barnes Hut simulation method (which is selected by default),
+      the mass of a node determines the gravitational repulsion during the simulation. Higher mass will push other nodes further away. Preferably use the physics configuration to
+      alter the simulation.</td>
+  </tr>
+  <tr>
+    <td>widthMin</td>
+    <td>Number</td>
+    <td>16</td>
+    <td>The minimum width for a scaled image. Only applicable to shape <code>image</code>. This only does something if you supply a value.</td>
+  </tr>
+  <tr>
+    <td>widthMax</td>
+    <td>Number</td>
+    <td>64</td>
+    <td>The maximum width for a scaled image. Only applicable to shape <code>image</code>. This only does something if you supply a value.</td>
+  </tr>
+
+  <tr>
+    <td class="greenField">radius</td>
+    <td>Number</td>
+    <td>10</td>
+    <td>The default radius for a node. Only applicable to shapes <code>dot</code>,
+      <code>star</code>, <code>triangle</code>, <code>triangleDown</code>, and <code>square</code>.</td>
+  </tr>
+  <tr>
+    <td>radiusMin</td>
+    <td>Number</td>
+    <td>10</td>
+    <td>The minimum radius for a scaled node. Only applicable to shapes <code>dot</code>,
+      <code>star</code>, <code>triangle</code>, <code>triangleDown</code>, and <code>square</code>. This only does something if you supply a value.</td>
+  </tr>
+  <tr>
+    <td>radiusMax</td>
+    <td>Number</td>
+    <td>30</td>
+    <td>The maximum radius for a scaled node. Only applicable to shapes <code>dot</code>,
+      <code>star</code>, <code>triangle</code>, <code>triangleDown</code>, and <code>square</code>. This only does something if you supply a value.</td>
+  </tr>
+</table>
+
+
+<h3 id="Edges_configuration">Edges configuration</h3>
+
+<p>
+  Edges can be configured with different length and styling. To configure edges, provide an object named <code>edges</code> in the <code>options</code> for the Network.
+  Because the length of an edge is a property of the physics simulation, you can change the length of the edge by changing the springLength in your selected physics solver.
+  To change the edge length of individual edges, you can use the <code>length</code> property in the <a href="#Edges">edge definition</a>.
+</p>
+
+<p>
+  For example to set the width of all edges to 2 pixels and give them a red color:
+</p>
+<pre class="prettyprint lang-js">
+var options = {
+  // ...
+  edges: {
+    color: 'red',
+    width: 2
+  }
+};
+</pre>
+
+<p>
+  The following options are available for edges. These options must be created
+  inside an object <code>edges</code> in the networks options object. All options in green boxes can be defined per-edge as well.
+  All options defined per-edge override these global settings.
+</p>
+
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+  </tr>
+
+  <tr>
+      <td class="greenField">arrowScaleFactor</td>
+      <td>Number</td>
+      <td>1</td>
+      <td>If you are using arrows, this will scale the arrow. Values < 1 give smaller arrows, > 1 larger arrows. Default: 1.</td>
+  </tr>
+  <tr>
+      <td class="greenField">color</td>
+      <td>String | Object</td>
+      <td>Object</td>
+      <td>Color for the edge.</td>
+  </tr>
+  <tr>
+      <td class="greenField">color.color</td>
+      <td>String</td>
+      <td>#848484</td>
+      <td>Color of the edge when not selected.</td>
+  </tr>
+  <tr>
+      <td class="greenField">color.highlight</td>
+      <td>String</td>
+      <td>#848484</td>
+      <td>Color of the edge when selected.</td>
+  </tr>
+  <tr>
+      <td class="greenField">color.hover</td>
+      <td>String</td>
+      <td>#848484</td>
+      <td>Color of the edge when the edge is hovered over and the hover option is enabled.</td>
+  </tr>
+  <tr>
+      <td class="greenField">hoverWidth</td>
+      <td>Number</td>
+      <td>1.5</td>
+      <td>This determines the thickness of the edge if it is hovered over. This will only manifest when the hover option is enabled.</td>
+  </tr>
+  <tr>
+      <td class="greenField">dash</td>
+      <td>Object</td>
+      <td>Object</td>
+      <td>
+      Object containing properties for dashed lines.
+      Available properties: <code>length</code>, <code>gap</code>,
+      <code>altLength</code>.
+      </td>
+  </tr>
+  <tr>
+      <td class="greenField">dash.altLength</td>
+      <td>number</td>
+      <td>undefined</td>
+      <td>Length of the alternated dash in pixels on a dashed line.
+      Specifying <code>dash.altLength</code> allows for creating
+      a dashed line with a dash-dot style, for example when
+      <code>dash.length=10</code> and <code>dash.altLength=5</code>.
+      See also the option <code>dahs.length</code>.
+      Only applicable when the line style is <code>dash-line</code>.</td>
+  </tr>
+  <tr>
+      <td class="greenField">dash.length</td>
+      <td>number</td>
+      <td>10</td>
+      <td>Length of a dash in pixels on a dashed line.
+      Only applicable when the line style is <code>dash-line</code>.</td>
+  </tr>
+  <tr>
+      <td class="greenField">dash.gap</td>
+      <td>number</td>
+      <td>5</td>
+      <td>Length of a gap in pixels on a dashed line.
+      Only applicable when the line style is <code>dash-line</code>.</td>
+  </tr>
+  <tr>
+      <td class="greenField">fontColor</td>
+      <td>String</td>
+      <td>#343434</td>
+      <td>Font color for the text label of the edge.
+      Only applicable when property <code>label</code> is defined.</td>
+  </tr>
+  <tr>
+      <td class="greenField">fontFace</td>
+      <td>String</td>
+      <td>arial</td>
+      <td>Font face for the text label of the edge,
+      for example "verdana" or "arial".
+      Only applicable when property <code>label</code> is defined.</td>
+  </tr>
+  <tr>
+      <td class="greenField">fontSize</td>
+      <td>Number</td>
+      <td>14</td>
+      <td>Font size in pixels for the text label of the edge.
+      Only applicable when property <code>label</code> is defined.</td>
+  </tr>
+  <tr>
+      <td class="greenField">fontFill</td>
+      <td>string</td>
+      <td>white</td>
+      <td>Font fill for the background color of the text label of the edge.
+      Only applicable when property <code>label</code> is defined.</td>
+  </tr>
+  <tr>
+      <td class="greenField">fontStrokeWidth</td>
+      <td>Number</td>
+      <td>0</td>
+      <td>The width of the label stroke (border around label's text) in pixels.
+      Only applicable when property <code>label</code> is defined.</td>
+  </tr>
+  <tr>
+      <td class="greenField">fontStrokeColor</td>
+      <td>String</td>
+      <td>'white'</td>
+      <td>The color of the label stroke.
+      Only applicable when property <code>label</code> is defined.</td>
+  </tr>
+  <tr>
+      <td class="greenField">inheritColor</td>
+      <td>String | Boolean</td>
+      <td>from</td>
+      <td>Possible values: <code>"to","from", true, false</code>. If this value is set to false, the edge color information is used. If the value is set to true or "from",
+      the color data from the borders of the "from" node is used. If this value is "to", the color data from the borders of the "to" node is used.</td>
+  </tr>
+  <tr>
+      <td class="greenField">labelAlignment</td>
+      <td>String</td>
+      <td>horizontal</td>
+      <td>Possible values: <code>"line-above", "line-center", "line-below"</code>. The alignment of the label when drawn on the edge. 
+	  If <code>horizontal</code> it will align the label absolute horizontial.</td>
+  </tr>
+    <tr>
+        <td class="greenField">opacity</td>
+        <td>Number</td>
+        <td>1.0</td>
+        <td>Possible values: <code>[0 .. 1]</code>. This opacity value is added on top of the color information. This only happens for the unselected state.</td>
+    </tr>
+  <tr>
+   <td class="greenField">style</td>
+      <td>string</td>
+      <td>line</td>
+      <td>Define a line style for the edge.
+      Choose from <code>line</code> (default), <code>arrow</code>,
+      <code>arrow-center</code>, or <code>dash-line</code>.
+      </td>
+  </tr>
+  <tr>
+      <td class="greenField">width</td>
+      <td>number</td>
+      <td>1</td>
+      <td>Width of the line in pixels. The <code>width</code> will
+      override a specified <code>value</code>, if a <code>value</code> is
+      specified too.</td>
+  </tr>
+<tr>
+  <td class="greenField">widthSelectionMultiplier</td>
+  <td>Number</td>
+  <td>2</td>
+  <td>Determines the thickness scaling of an selected edge. This is applied when an edge, or a node connected to it, is selected.</td>
+</tr>
+    <tr>
+        <td>widthMin</td>
+        <td>Number</td>
+        <td>1</td>
+        <td>The minimum thickness of the line when using per-edge defined values. This does nothing if you have not defined a value.</td>
+    </tr>
+    <tr>
+        <td>widthMax</td>
+        <td>Number</td>
+        <td>15</td>
+        <td>The maximum thickness of the line when using per-edge defined values. This does nothing if you have not defined a value.</td>
+    </tr>
+</table>
+
+<h3 id="Groups_configuration">Groups configuration</h3>
+
+<p>It is possible to specify custom styles for groups of nodes.
+Each node having assigned to this group gets the specified style.
+The options <code>groups</code> is an object containing one or multiple groups,
+identified by a unique string, the groupname.
+</p>
+<p>
+A group can have the following styles:
+</p>
+
+<pre class="prettyprint lang-js">
+var options = {
+// ...
+
+groups: {
+  mygroup: {
+    shape: 'circle',
+    color: {
+      border: 'black',
+      background: 'white',
+      highlight: {
+        border: 'yellow',
+        background: 'orange'
+      }
+    }
+    fontColor: 'red',
+    fontSize: 18
+  }
+  // add more groups here
+}
+};
+
+var nodes = [
+{id: 1, label: 'Node 1'},                    // will get the default style
+{id: 2, label: 'Node 2', group: 'mygroup'},  // will get the style from 'mygroup'
+// ... more nodes
+];
+</pre>
+
+
+<p>The following styles are available for groups:</p>
+<table>
+<tr>
+  <th>Name</th>
+  <th>Type</th>
+  <th>Default</th>
+  <th>Description</th>
+</tr>
+
+<tr>
+  <td>color</td>
+  <td>String | Object</td>
+  <td>Object</td>
+  <td>Color of the node</td>
+</tr>
+
+<tr>
+  <td>color.border</td>
+  <td>String</td>
+  <td>"#2B7CE9"</td>
+  <td>Border color of the node</td>
+</tr>
+
+<tr>
+  <td>color.background</td>
+  <td>String</td>
+  <td>"#97C2FC"</td>
+  <td>Background color of the node</td>
+</tr>
+<tr>
+  <td>color.highlight</td>
+  <td>String | Object</td>
+  <td>"#D2E5FF"</td>
+  <td>Default color of the node when the node is selected. In case of a string, the color is applied to
+    both border and background of the node.</td>
+</tr>
+<tr>
+  <td>color.highlight.background</td>
+  <td>String</td>
+  <td>"#D2E5FF"</td>
+  <td>Background color of the node when selected.</td>
+</tr>
+<tr>
+  <td>color.highlight.border</td>
+  <td>String</td>
+  <td>"#D2E5FF"</td>
+  <td>Border color of the node when selected.</td>
+</tr>
+<tr>
+  <td>image</td>
+  <td>String</td>
+  <td>none</td>
+  <td>Default image for the nodes. Only applicable in combination with
+    shape <code>image</code>.</td>
+</tr>
+
+<tr>
+  <td>fontColor</td>
+  <td>String</td>
+  <td>"black"</td>
+  <td>Font color of the node.</td>
+</tr>
+<tr>
+  <td>fontFace</td>
+  <td>String</td>
+  <td>"sans"</td>
+  <td>Font name of the node, for example "verdana" or "arial".</td>
+</tr>
+<tr>
+  <td>fontSize</td>
+  <td>Number</td>
+  <td>14</td>
+  <td>Font size for the node in pixels.</td>
+</tr>
+<tr>
+  <td>fontStrokeWidth</td>
+  <td>Number</td>
+  <td>0</td>
+  <td>The width of the label stroke (border around label's text) in pixels.</td>
+</tr>
+<tr>
+  <td>fontStrokeColor</td>
+  <td>String</td>
+  <td>"white"</td>
+  <td>The color of the label stroke.</td>
+</tr>
+<tr>
+  <td>shape</td>
+  <td>String</td>
+  <td>"ellipse"</td>
+  <td>Choose from
+    <code>ellipse</code> (default), <code>circle</code>, <code>box</code>,
+    <code>database</code>, <code>image</code>, <code>label</code>, <code>dot</code>,
+    <code>star</code>, <code>triangle</code>, <code>triangleDown</code>, and <code>square</code>.
+    In case of image, a property with name image must be provided, containing
+    image urls.</td>
+</tr>
+<tr>
+  <td>radius</td>
+  <td>Number</td>
+  <td>5</td>
+  <td>Default radius for the node. Only applicable in combination with
+    shapes <code>box</code> and <code>dot</code>.</td>
+</tr>
+
+</table>
+
+<h3 id="Physics">Physics</h3>
+<p>
+The original simulation method was based on particel physics with a repulsion field (potential) around each node,
+and the edges were modelled as springs. The new system employed the <a href="http://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation">Barnes-Hut</a> gravitational simulation model. The edges are still modelled as springs.
+To unify the physics system, the damping, repulsion distance and edge length have been combined in an physics option. To retain good behaviour, both the old repulsion model and the Barnes-Hut model have their own parameters.
+If no options for the physics system are supplied, the Barnes-Hut method will be used with the default parameters. If you want to customize the physics system easily, you can use the configurePhysics option. <br/>
+When using the hierarchical display option, hierarchicalRepulsion is automatically used as the physics solver. Similarly, if you use the hierarchicalRepulsion physics option, hierarchical display is automatically turned on with default settings.
+
+<p class="important_note">Note: if the behaviour of your network is not the way you want it, use configurePhysics as described <u><a href="#PhysicsConfiguration">below</a></u> or by <u><a href="../examples/network/25_physics_configuration.html">example 25</a></u>.</p>
+</p>
+<pre class="prettyprint">
+// These variables must be defined in an options object named physics.
+// If a variable is not supplied, the default value is used.
+var options = {
+  physics: {
+      barnesHut: {
+          enabled: true,
+          gravitationalConstant: -2000,
+          centralGravity: 0.1,
+          springLength: 95,
+          springConstant: 0.04,
+          damping: 0.09
+      },
+      repulsion: {
+          centralGravity: 0.1,
+          springLength: 50,
+          springConstant: 0.05,
+          nodeDistance: 100,
+          damping: 0.09
+      },
+      hierarchicalRepulsion: {
+          centralGravity: 0.5,
+          springLength: 150,
+          springConstant: 0.01,
+          nodeDistance: 60,
+          damping: 0.09
+      }
+  }
+</pre>
+<h5>barnesHut:</h5>
+<table>
+<tr>
+  <th>Name</th>
+  <th>Type</th>
+  <th>Default</th>
+  <th>Description</th>
+</tr>
+<tr>
+  <td>enabled</td>
+  <td>Boolean</td>
+  <td>true</td>
+  <td>This switches the Barnes-Hut simulation on or off. If it is turned off, the old repulsion model is used. Barnes-Hut is generally faster and yields better results.</td>
+</tr>
+<tr>
+  <td>gravitationalConstant</td>
+  <td>Number</td>
+  <td>-2000</td>
+  <td>This is the gravitational constand used to calculate the gravity forces. More information is available <a href="http://en.wikipedia.org/wiki/Newton's_law_of_universal_gravitation" target="_blank">here</a>.</td>
+</tr>
+<tr>
+  <td>centralGravity</td>
+  <td>Number</td>
+  <td>0.1</td>
+  <td>The central gravity is a force that pulls all nodes to the center. This ensures independent groups do not float apart.</td>
+</tr>
+<tr>
+  <td>springLength</td>
+  <td>Number</td>
+  <td>95</td>
+  <td>In the previous versions this was a property of the edges, called length. This is the length of the springs when they are at rest. During the simulation they will be streched by the gravitational fields.
+    To greatly reduce the edge length, the gravitationalConstant has to be reduced as well.</td>
+</tr>
+<tr>
+  <td>springConstant</td>
+  <td>Number</td>
+  <td>0.04</td>
+  <td>This is the spring constant used to calculate the spring forces based on Hooke&prime;s Law. More information is available <a href="http://en.wikipedia.org/wiki/Hooke's_law" target="_blank">here</a>.</td>
+  </tr>
+  <tr>
+    <td>damping</td>
+    <td>Number</td>
+    <td>0.09</td>
+    <td>This is the damping constant. It is used to dissipate energy from the system to have it settle in an equilibrium. More information is available <a href="http://en.wikipedia.org/wiki/Damping" target="_blank">here</a>.</td>
+  </tr>
+</table>
+<h5>repulsion:</h5>
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+  </tr>
+
+  <tr>
+    <td>centralGravity</td>
+    <td>Number</td>
+    <td>0.1</td>
+    <td>The central gravity is a force that pulls all nodes to the center. This ensures independent groups do not float apart.</td>
+  </tr>
+  <tr>
+    <td>nodeDistance</td>
+    <td>Number</td>
+    <td>100</td>
+    <td>This parameter is used to define the distance of influence of the repulsion field of the nodes. Below half this distance, the repulsion is maximal and beyond twice this distance the repulsion is zero.</td>
+  </tr>
+  <tr>
+    <td>springLength</td>
+    <td>Number</td>
+    <td>50</td>
+    <td>In the previous versions this was a property of the edges, called length. This is the length of the springs when they are at rest. During the simulation they will be streched by the gravitational fields.
+      To greatly reduce the edge length, the gravitationalConstant has to be reduced as well.</td>
+  </tr>
+
+
+  <tr>
+    <td>springConstant</td>
+    <td>Number</td>
+    <td>0.05</td>
+    <td>This is the spring constant used to calculate the spring forces based on Hooke&prime;s Law. More information is available <a href="http://en.wikipedia.org/wiki/Hooke's_law" target="_blank">here</a>.</td>
+  </tr>
+  <tr>
+    <td>damping</td>
+    <td>Number</td>
+    <td>0.09</td>
+    <td>This is the damping constant. It is used to dissipate energy from the system to have it settle in an equilibrium. More information is available <a href="http://en.wikipedia.org/wiki/Damping" target="_blank">here</a>.</td>
+  </tr>
+</table>
+<h5>hierarchicalRepulsion:</h5>
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+  </tr>
+
+  <tr>
+    <td>centralGravity</td>
+    <td>Number</td>
+    <td>0.5</td>
+    <td>The central gravity is a force that pulls all nodes to the center. This ensures independent groups do not float apart.</td>
+  </tr>
+  <tr>
+    <td>nodeDistance</td>
+    <td>Number</td>
+    <td>60</td>
+    <td>This parameter is used to define the distance of influence of the repulsion field of the nodes. Below half this distance, the repulsion is maximal and beyond twice this distance the repulsion is zero.</td>
+  </tr>
+  <tr>
+    <td>springLength</td>
+    <td>Number</td>
+    <td>100</td>
+    <td>In the previous versions this was a property of the edges, called length. This is the length of the springs when they are at rest. During the simulation they will be streched by the gravitational fields.
+      To greatly reduce the edge length, the gravitationalConstant has to be reduced as well.</td>
+  </tr>
+
+
+  <tr>
+    <td>springConstant</td>
+    <td>Number</td>
+    <td>0.01</td>
+    <td>This is the spring constant used to calculate the spring forces based on Hooke&prime;s Law. More information is available <a href="http://en.wikipedia.org/wiki/Hooke's_law" target="_blank">here</a>.</td>
+  </tr>
+  <tr>
+    <td>damping</td>
+    <td>Number</td>
+    <td>0.09</td>
+    <td>This is the damping constant. It is used to dissipate energy from the system to have it settle in an equilibrium. More information is available <a href="http://en.wikipedia.org/wiki/Damping" target="_blank">here</a>.</td>
+  </tr>
+</table>
+<h4 id="PhysicsConfiguration">Configuration:</h4>
+Every dataset is different. Nodes can have different sizes based on content, interconnectivity can be high or low etc. Because of this, network has a special option
+that the user can use to explore which settings may be good for him or her. This is ment to be used during the development phase when you are implementing vis.js. Once you have found
+settings you are happy with, you can supply them to network using the physics options as described above.
+
+On start, the default settings will be loaded. Keep in mind that selecting the hierarchical simulation mode <b>disables</b> smooth curves. These will not be enabled again afterwards.
+<pre class="prettyprint">
+var options = {
+    configurePhysics:true
+}
+</pre>
+<h3 id="Data_manipulation">Data manipulation</h3>
+<p>
+  By using the data manipulation feature of the network you can dynamically create nodes, connect nodes with edges, edit nodes or delete nodes and edges.
+  The toolbar is fully HTML and CSS so the user can style this to their preference. To control the behaviour of the data manipulation, users can insert custom functions
+  into the data manipulation process. For example, an injected function can show an detailed pop-up when a user wants to add a node. In <a href="../examples/network/21_data_manipulation.html">example 21</a>,
+  two functions have been injected into the add and edit functionality. This is described in more detail in the next subsection. To correctly display the manipulation icons, the <b>vis.css</b> file must be included.
+  The user is free to alter or overload the CSS classes but without them the navigation icons are not visible.
+</p>
+<pre class="prettyprint">
+// These variables must be defined in an options object named dataManipulation.
+// If a variable is not supplied, the default value is used.
+var options = {
+    dataManipulation: {
+      enabled: false,
+      initiallyVisible: false
+    }
+}
+// OR to just load the module with default values:
+var options = {
+    dataManipulation: true
+}
+</pre>
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+  </tr>
+
+  <tr>
+    <td>enabled</td>
+    <td>Boolean</td>
+    <td>false</td>
+    <td>Enabling or disabling of the data manipulation toolbar. If it is initially hidden, an edit button appears in the top left corner.</td>
+  </tr>
+  <tr>
+    <td>initiallyVisible</td>
+    <td>Boolean</td>
+    <td>false</td>
+    <td>Initially hide or show the data manipulation toolbar.</td>
+  </tr>
+</table>
+
+<h4 id="Data_manipulation_custom">Data manipulation: custom functionality</h4>
+<p>
+  Users can insert custom functions into the add node, edit node, connect nodes, and delete selected operations. This is done by supplying them in the options.
+  If the callback is NOT called, nothing happens. <a href="../examples/network/21_data_manipulation.html">Example 21</a> has two working examples
+  for the add and edit functions. The data the user is supplied with in these functions has been described in the code below.
+  For the add data, you can add any and all options that are accepted for node creation as described above. The same goes for edit, however only the fields described
+  in the code below contain information on the selected node. The callback for connect accepts any options that are used for edge creation. Only the callback for delete selected
+  requires the same data structure that is supplied to the user. <br /><br />
+  <b>If there is no injected function supplied for the edit operation, the button will not be shown in the toolbar.</b>
+</p>
+<pre class="prettyprint">
+// If a variable is not supplied, the default value is used.
+var options = {
+    dataManipulation: true,
+    onAdd: function(data,callback) {
+        /** data = {id: random unique id,
+        *           label: new,
+        *           x: x position of click (canvas space),
+        *           y: y position of click (canvas space),
+        *           allowedToMoveX: true,
+        *           allowedToMoveY: true
+        *          };
+        */
+        var newData = {..}; // alter the data as you want.
+                            // all fields normally accepted by a node can be used.
+        callback(newData);  // call the callback to add a node.
+    },
+    onEdit: function(data,callback) {
+        /** data = {id:...,
+        *           label: ...,
+        *           group: ...,
+        *           shape: ...,
+        *           color: {
+        *             background:...,
+        *             border:...,
+        *             highlight: {
+        *               background:...,
+        *               border:...
+        *             }
+        *           }
+        *          };
+        */
+        var newData = {..}; // alter the data as you want.
+                            // all fields normally accepted by a node can be used.
+        callback(newData);  // call the callback with the new data to edit the node.
+    }
+    onEditEdge: function(data,callback) {
+        /** data = {id: edgeID,
+        *           from: nodeId1,
+        *           to: nodeId2,
+        *          };
+        */
+        var newData = {..}; // alter the data as you want, except for the ID.
+                            // all fields normally accepted by an edge can be used.
+        callback(newData);  // call the callback with the new data to edit the edge.
+    }
+    onConnect: function(data,callback) {
+        // data = {from: nodeId1, to: nodeId2};
+        var newData = {..};      // check or alter data as you see fit.
+        callback(newData);       // call the callback to connect the nodes.
+    },
+    onDelete: function(data,callback) {
+        // data = {nodes: [selectedNodeIds], edges: [selectedEdgeIds]};
+        var newData = {..}; // alter the data as you want.
+                            // the same data structure is required.
+        callback(newData);  // call the callback to delete the objects.
+    }
+};
+</pre>
+<p>
+  Because the interface elements are CSS and HTML, the user will have to correct for size changes of the canvas. To facilitate this, a new event has been added called resize.
+  A function can be bound to this event. This function is supplied with the new widht and height of the canvas. The CSS can then be updated accordingly.
+  An code snippet from example 21 is shown below.
+</p>
+<pre class="prettyprint">
+network.on("resize", function(params) {console.log(params.width,params.height)});
+</pre>
+
+<h3 id="Clustering">Clustering</h3>
+<p>
+  The network now supports dynamic clustering of nodes. This allows a user to view a very large dataset (> 50.000 nodes) without
+  sacrificing performance. When loading a large dataset, the nodes are clustered initially (this may take a small while) to have a
+  responsive visualization to work with. The clustering is both outside-in and inside-out. Outside-in means that nodes with only one
+  connection will be contained, or clustered, in the node it is connected to. Inside-out clustering first determines which nodes are hubs.
+  Hubs are defined as the nodes with the top 3% highest amount of connections (assuming normal distribution). These hubs then "grow", meaning
+  they contain the nodes they are connected to within themselves. The edges that were connected to the nodes that are absorbed will be reconnected to the cluster.
+  <br />
+  <br />
+  A cluster is just a node that has references to the nodes and edges it contains. It has an internal counter to keep track of its size, which is then used
+  to calculate the required forces. The contained nodes are removed from the global nodes index, greatly speeding up the system.
+  <br />
+  <br />
+  The clustering has the following user-configurable settings. The default values have been tested with the Network examples and work well.
+  The default state for clustering is <b>off</b>.
+</p>
+
+<pre class="prettyprint">
+// These variables must be defined in an options object named clustering.
+// If a variable is not supplied, the default value is used.
+var options = {
+    clustering: {
+      initialMaxNodes: 100,
+      clusterThreshold:500,
+      reduceToNodes:300,
+      chainThreshold: 0.4,
+      clusterEdgeThreshold: 20,
+      sectorThreshold: 100,
+      screenSizeThreshold: 0.2,
+      fontSizeMultiplier:  4.0,
+      maxFontSize: 1000,
+      forceAmplification:  0.1,
+      distanceAmplification: 0.1,
+      edgeGrowth: 20,
+      nodeScaling: {width:  1,
+                    height: 1,
+                    radius: 1},
+      maxNodeSizeIncrements: 600,
+      activeAreaBoxSize: 100,
+      clusterLevelDifference: 2,
+      clusterByZoom: true
+    }
+}
+// OR to just load the module with default values:
+var options = {
+    clustering: true
+}
+</pre>
+
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+  </tr>
+
+  <tr>
+    <td>initialMaxNodes</td>
+    <td>Number</td>
+    <td>100</td>
+    <td>If the initial amount of nodes is larger than this value, clustering starts until the total number of nodes is less than this value.</td>
+  </tr>
+  <tr>
+    <td>clusterThreshold</td>
+    <td>Number</td>
+    <td>500</td>
+    <td>While zooming in and out, clusters can open up. Once there are more than <code>absoluteMaxNumberOfNodes</code> nodes,
+      clustering starts until <code>reduceToMaxNumberOfNodes</code> nodes are left. This is done to ensure performance is continuously fluid.</td>
+  </tr>
+  <tr>
+    <td>reduceToNodes</td>
+    <td>Number</td>
+    <td>300</td>
+    <td>While zooming in and out, clusters can open up. Once there are more than <code>absoluteMaxNumberOfNodes</code> nodes,
+      clustering starts until <code>reduceToMaxNumberOfNodes</code> nodes are left. This is done to ensure performance is continiously fluid.</td>
+  </tr>
+  <tr>
+    <td>chainThreshold</td>
+    <td>Number</td>
+    <td>0.4</td>
+    <td>Because of the clustering methods used, long chains of nodes can be formed. To reduce these chains, this threshold is used.
+      A <code>chainThreshold</code> of 0.4 means that no more than 40% of all nodes are allowed to be a chain node (two connections).
+      If there are more, they are clustered together.</td>
+  </tr>
+  <tr>
+    <td>clusterEdgeThreshold</td>
+    <td>Number</td>
+    <td>20</td>
+    <td>This is the absolute edge length threshold in pixels. If the edge is smaller on screen (that means zooming out reduces this length)
+      the node will be clustered. This is triggered when zooming out.</td>
+  </tr>
+  <tr>
+    <td>sectorThreshold</td>
+    <td>Integer</td>
+    <td>50</td>
+    <td>If a cluster larger than <code>sectorThreshold</code> is opened, a seperate instance called a sector, will be created. All the simulation of
+      nodes outside of this instance will be paused. This is to maintain performance and clarity when examining large clusters.
+      A sector is collapsed when zooming out far enough. Also, when opening a cluster, if this cluster is smaller than this value, it is fully unpacked.</td>
+  </tr>
+  <tr>
+    <td>screenSizeThreshold</td>
+    <td>Number</td>
+    <td>0.2</td>
+    <td>When zooming in, the clusters become bigger. A <code>screenSizeThreshold</code> of 0.2 means that if the width or height of this cluster
+      becomes bigger than 20% of the width or height of the canvas, the cluster is opened. If a sector has been created, if the sector is smaller than
+      20%, we collapse this sector.</td>
+  </tr>
+  <tr>
+    <td>fontSizeMultiplier</td>
+    <td>Number</td>
+    <td>4.0</td>
+    <td>This parameter denotes the increase in fontSize of the cluster when a single node is added to it.</td>
+  </tr>
+  <tr>
+    <td>maxFontSize</td>
+    <td>Number</td>
+    <td>1000</td>
+    <td>This parameter denotes the largest allowed font size. If the font becomes too large, some browsers experience problems displaying this.</td>
+  </tr>
+  <tr>
+    <td>forceAmplification</td>
+    <td>Number</td>
+    <td>0.6</td>
+    <td>This factor is used to calculate the increase of the repulsive force of a cluster. It is calculated by the following
+      formula: <code>repulsingForce *= 1 + (clusterSize * forceAmplification)</code>.</td>
+  </tr>
+  <tr>
+    <td>distanceAmplification</td>
+    <td>Number</td>
+    <td>0.2</td>
+    <td>This factor is used to calculate the increase in effective range of the repulsive force of the cluster.
+      A larger cluster has a longer range. It is calculated by the following
+      formula: <code>minDistance *= 1 + (clusterSize * distanceAmplification)</code>.</td>
+  </tr>
+  <tr>
+    <td>edgeGrowth</td>
+    <td>Number</td>
+    <td>20</td>
+    <td>This factor determines the elongation of edges connected to a cluster.</td>
+  </tr>
+  <tr>
+    <td>nodeScaling.width</td>
+    <td>Number</td>
+    <td>10</td>
+    <td>This factor determines how much the width of a cluster increases in pixels per added node.</td>
+  </tr>
+  <tr>
+    <td>nodeScaling.height</td>
+    <td>Number</td>
+    <td>10</td>
+    <td>This factor determines how much the height of a cluster increases in pixels per added node.</td>
+  </tr>
+  <tr>
+    <td>nodeScaling.radius</td>
+    <td>Number</td>
+    <td>10</td>
+    <td>This factor determines how much the radius of a cluster increases in pixels per added node.</td>
+  </tr>
+  <tr>
+    <td>maxNodeSizeIncrements</td>
+    <td>Number</td>
+    <td>600</td>
+    <td>This limits the size clusters can grow to. The default value, 600, implies that if a cluster contains more than 600 nodes, it will no longer grow.</td>
+  </tr>
+  <tr>
+    <td>activeAreaBoxSize</td>
+    <td>Number</td>
+    <td>100</td>
+    <td>Imagine a square with an edge length of <code>activeAreaBoxSize</code> pixels around your cursor.
+      If a cluster is in this box as you zoom in, the cluster can be opened in a seperate sector.
+      This is regardless of the zoom level.</td>
+  </tr>
+  <tr>
+    <td>clusterLevelDifference</td>
+    <td>Number</td>
+    <td>2</td>
+    <td>At every clustering session, Network will check if the difference between cluster levels is
+      acceptable. When a cluster is formed when zooming out, that is one cluster level.
+      If you zoom out further and it encompasses more nodes, that is another level. For example:
+      If the highest level of your network at any given time is 3, nodes that have not clustered or
+      have clustered only once will join their neighbour with the lowest cluster level.</td>
+  </tr>
+    <tr>
+        <td>clusterByZoom</td>
+        <td>Boolean</td>
+        <td>true</td>
+        <td>You can toggle the clustering by zoom level using this option.</td>
+    </tr>
+</table>
+
+<h3 id="Navigation_controls">Navigation controls</h3>
+<p>
+  Network has a menu with navigation controls, which is disabled by default.
+  It can be configured with the following settings. To correctly display the navigation icons, the <b>vis.css</b> file must be included.
+  The user is free to alter or overload the CSS classes but without them the navigation icons are not visible.
+</p>
+
+<pre class="prettyprint">
+// use of navigation controls
+var options = {
+  navigation: true
+}
+
+</pre>
+
+<h3 id="Keyboard_navigation">Keyboard navigation</h3>
+<p>
+  The network can be navigated using shortcut keys.
+  The default state for the keyboard navigation is <b>off</b>. The predefined keys can be found in the example <a href="../examples/network/20_navigation.html">20_navigation.html</a>.
+</p>
+
+<pre class="prettyprint">
+// simple use of keyboard controls
+var options = {
+    keyboard: true
+}
+
+// advanced configuration for keyboard controls
+var options = {
+  keyboard: {
+    speed: {
+      x: 10,
+      y: 10,
+      zoom: 0.02
+    },
+    bindToWindow: true
+  }
+}
+</pre>
+
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+  </tr>
+
+  <tr>
+    <td>speed.x</td>
+    <td>Number</td>
+    <td>10</td>
+    <td>This defines the speed of the camera movement in the x direction when using the keyboard navigation.
+    </td>
+  </tr>
+  <tr>
+    <td>speed.y</td>
+    <td>Number</td>
+    <td>10</td>
+    <td>This defines the speed of the camera movement in the y direction when using the keyboard navigation.</td>
+  </tr>
+  <tr>
+    <td>speed.zoom</td>
+    <td>Number</td>
+    <td>0.02</td>
+    <td>This defines the zoomspeed when using the keyboard navigation.</td>
+  </tr>
+  <tr>
+    <td>bindToWindow</td>
+    <td>Boolean</td>
+    <td>true</td>
+    <td>If this is true, global keyboard events will be used. If it is false, the keyboard events are only used when the network is active. It is activated on mouseOver automatically.</td>
+  </tr>
+</table>
+
+
+<h3 id="Hierarchical_layout">Hierarchical layout</h3>
+<p>
+  The network can be used to display nodes in a hierarchical way. This can be determined automatically, based on the amount of edges connected to each node, or defined by the user.
+  If the user wants to manually determine the hierarchy, each node has to be supplied with a level (from 0 being heighest to n). The automatic method
+  is shown in <a href="../examples/network/23_hierarchical_layout.html">example 23</a> and the user-defined method is shown in <a href="../examples/network/24_hierarchical_layout_userdefined.html">example 24</a>.
+  This layout method does not support smooth curves or clustering. It automatically turns these features off.
+</p>
+
+<pre class="prettyprint">
+// simple use of the hierarchical layout
+var options = {
+    hierarchicalLayout: true
+}
+
+// advanced configuration for hierarchical layout
+var options = {
+    hierarchicalLayout: {
+      enabled:false,
+      levelSeparation: 150,
+      nodeSpacing: 100,
+      direction: "UD",
+      layout: "hubsize"
+    }
+}
+// partial configuration automatically sets enabled to true
+var options = {
+    hierarchicalLayout: {
+      nodeSpacing: 100,
+      direction: "UD"
+    }
+}
+</pre>
+
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+  </tr>
+
+  <tr>
+    <td>enabled</td>
+    <td>Boolean</td>
+    <td>false</td>
+    <td>Enable or disable the hierarchical layout.
+    </td>
+  </tr>
+  <tr>
+    <td>levelSeparation</td>
+    <td>Number</td>
+    <td>150</td>
+    <td>This defines the space between levels (in the Y-direction, considering UP-DOWN direction).</td>
+  </tr>
+  <tr>
+    <td>nodeSpacing</td>
+    <td>Number</td>
+    <td>100</td>
+    <td>This defines the space between nodes in the same level (in the X-direction, considering UP-DOWN direction).
+      This is only relevant during the initial placing of nodes.</td>
+  </tr>
+  <tr>
+    <td>direction</td>
+    <td>String</td>
+    <td>UD</td>
+    <td>This defines the direction the network is drawn in. The supported directions are: Up-Down (UD), Down-Up (DU), Left-Right (LR) and Right-Left (RL).
+      These need to be supplied by the acronyms in parentheses.</td>
+  </tr>
+  <tr>
+    <td>layout</td>
+    <td>String</td>
+    <td>hubsize</td>
+    <td>This defines the way the nodes are distributed. Available options are <code>hubsize</code> and <code>direction</code>. The default value is hubsize, meaning the node with the most edges connected to it (largest hub) is on top.
+        Alternatively, direction arranges the nodes based on the direction of the edges. See <a href="../examples/network/32_hierarchicaLayoutMethods.html">example 32</a> for more information.</td>
+  </tr>
+</table>
+
+<h3 id="Localization">Localization</h3>
+<p>
+  When using vis.js in other languages, one can use the localization option to get a localized data manipulation interface.
+</p>
+
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+  </tr>
+
+  <tr>
+    <td>locale</td>
+    <td>String</td>
+    <td>none</td>
+    <td>Select a locale for the Network.</td>
+  </tr>
+
+  <tr>
+    <td>locales</td>
+    <td>Object</td>
+    <td>none</td>
+    <td>A map with i18n locales.</td>
+  </tr>
+</table>
+
+<p>
+  To set a locale for the Network, specify the option <code>locale</code>:
+</p>
+
+<pre class="prettyprint lang-js">var options = {
+  locale: 'nl'
+};
+</pre>
+
+<h4>Create a new locale</h4>
+
+To load a locale into the Timeline not supported by default, one can add a new locale to the option <code>locales</code>:
+
+<pre class="prettyprint lang-js">var options = {
+  locales: {
+    // create a new locale (text strings should be replaced with localized strings)
+    mylocale: {
+      edit: 'Edit',
+      del: 'Delete selected',
+      back: 'Back',
+      addNode: 'Add Node',
+      addEdge: 'Add Edge',
+      editNode: 'Edit Node',
+      editEdge: 'Edit Edge',
+      addDescription: 'Click in an empty space to place a new node.',
+      edgeDescription: 'Click on a node and drag the edge to another node to connect them.',
+      editEdgeDescription: 'Click on the control points and drag them to a node to connect to it.',
+      createEdgeError: 'Cannot link edges to a cluster.',
+      deleteClusterError: 'Clusters cannot be deleted.'
+    }
+  },
+
+  // use the new locale
+  locale: 'mylocale'
+};
+</pre>
+
+<h4 id="available-locales">Available locales</h4>
+
+<p>
+  Network comes with support for the following locales:
+</p>
+
+<table>
+  <tr><th>Language</th><th>Code</th></tr>
+  <tr>
+    <td>English</td>
+    <td>
+      <code>en</code><br>
+      <code>en_EN</code><br>
+      <code>en_US</code>
+    </td>
+  </tr>
+  <tr>
+    <td>Dutch</td>
+    <td>
+      <code>nl</code><br>
+      <code>nl_NL</code><br>
+      <code>nl_BE</code>
+    </td>
+  </tr>
+</table>
+
+<h3 id="Tooltips">Tooltips</h3>
+<p>
+  The behaviour and style of the tooltips used to display node and edge title attributes can be customized.
+</p>
+
+<pre class="prettyprint">
+// tooltip behaviour and style options
+var options = {
+  tooltip: {
+    delay: 300,
+    fontColor: "black",
+    fontSize: 14, // px
+    fontFace: "verdana",
+    color: {
+      border: "#666",
+      background: "#FFFFC6"
+    }
+  }
+}
+</pre>
+
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+  </tr>
+
+  <tr>
+    <td>delay</td>
+    <td>Number</td>
+    <td>300</td>
+    <td>Time in milliseconds a user must hover over a node or edge before a tooltip appears.</td>
+  </tr>
+  <tr>
+    <td>fontColor</td>
+    <td>String</td>
+    <td>"black"</td>
+    <td>Default color for tooltip text.</td>
+  </tr>
+  <tr>
+    <td>fontSize</td>
+    <td>Number</td>
+    <td>14</td>
+    <td>Size in pixels of tooltip text.</td>
+  </tr>
+  <tr>
+    <td>fontFace</td>
+    <td>String</td>
+    <td>"verdana"</td>
+    <td>Font family to used for tooltip text.</td>
+  </tr>
+  <tr>
+    <td>color.background</td>
+    <td>String</td>
+    <td>"#FFFFC6"</td>
+    <td>Background color for the node.</td>
+  </tr>
+  <tr>
+    <td>color.border</td>
+    <td>String</td>
+    <td>"#666"</td>
+    <td>Border color for the node.</td>
+  </tr>
+
+</table>
+
+<h2 id="Methods">Methods</h2>
+<p>
+  Network supports the following methods.
+</p>
+
+<table>
+  <tr>
+    <th>Method</th>
+    <th>Return Type</th>
+    <th>Description</th>
+  </tr>
+    <tr>
+        <td>getScale()</td>
+        <td>Number</td>
+        <td>Returns the scale of the network. This can be for animation. This scale is like a percentage, 1.0 = 100%.
+            Zooming in is > 1.0, zooming out is < 0. Scale cannot be smaller or equal to 0.
+        </td>
+    </tr>
+    <tr>
+        <td>getCenterCoordinates()</td>
+        <td>Number</td>
+        <td>Returns the x and y coodinates of the center of the screen (in canvas space).
+        </td>
+    </tr>
+  <tr>
+    <td>getBoundingBox(nodeId)</td>
+    <td>Object</td>
+    <td>Returns a bounding box for the node including label in the format: {top:Number,left:Number,right:Number,bottom:Number}. These values are in canvas space.
+    </td>
+  </tr>
+    <tr>
+        <td>getConnectedNodes(nodeId)</td>
+        <td>Array</td>
+        <td>Returns an array with nodeIds of nodes that are connected to this node. Network keeps track of the connected nodes so this function allows you
+            to quickly get them without iterating over all edges manually. This is a lot faster for cases with many edges.
+        </td>
+    </tr>
+    <tr>
+    <td>getSelection()</td>
+    <td>Array of ids</td>
+    <td>Returns an array with the ids of the selected nodes.
+      Returns an empty array if no nodes are selected.
+      The selections are not ordered.
+    </td>
+  </tr>
+  <tr>
+    <td>focusOnNode(nodeId, [options])</td>
+    <td>none</td>
+    <td>This function will move the view to center on the specified node. An optional options object can submitted where you can define the animation properties. <br />
+        The options that can be defined are:<br />
+        <b><code>scale:Number</code></b><br /> - to zoom to that scale,<br />
+        <b><code>offset:{x:Number, y:Number}</code></b><br /> - to offset the position from the center of the canvas (in pixels),<br />
+        <b><code>locked: boolean</code></b><br /> - if true, the view remains locked on this node until either another focusOnNode, moveTo, releaseNode or drag is done <br />
+        <b><code>animation: Object || Boolean</code></b><br /> - to define the specifics of the animation. True is animated with default settings, false is not animated.<br />
+        <br />
+        The animation object can consist of:<br />
+        <b><code>duration: Number</code></b><br /> - the duration of the animation in milliseconds,<br />
+        <b><code>easingFunction: String</code></b><br /> - the easing function of the animation, available are:<br />
+        <code>linear, easeInQuad, easeOutQuad, easeInOutQuad, easeInCubic, easeOutCubic, easeInOutCubic,
+            easeInQuart, easeOutQuart, easeInOutQuart,
+            easeInQuint, easeOutQuint, easeInOutQuint </code> <br /><br />
+    </td>
+  </tr>
+    <tr>
+        <td>freezeSimulation(Boolean)</td>
+        <td>none</td>
+        <td>Calling freezeSimulation(true) immmediately stops the simulation and triggerst the stabilized event. This does not mean that the network
+            is physically stabilized but the nodes are not moving anymore. To continue the simulation call freezeSimulation(false).
+        </td>
+    </tr>
+  <tr>
+    <td>releaseNode()</td>
+    <td>none</td>
+    <td>When locked on to a node, this function releases it again. If the view is not locked onto a node due to the focusOnNode locked option, nothing happens.
+    </td>
+  </tr>
+  <tr>
+    <td>DOMtoCanvas(pos)</td>
+    <td>object</td>
+    <td>This function converts DOM coordinates to coordinates on the canvas. Input and output are in the form of {x:xpos,y:ypos}. The DOM values are relative to the network container.
+    </td>
+  </tr>
+  <tr>
+    <td>canvasToDOM(pos)</td>
+    <td>object</td>
+    <td>This function converts canvas coordinates to coordinates on the DOM. Input and output are in the form of {x:xpos,y:ypos}. The DOM values are relative to the network container.
+    </td>
+  </tr>
+    <tr>
+        <td>moveTo(options)</td>
+        <td>object</td>
+        <td>This function allows you to programmatically move the view. The options that can be defined are:<br />
+            <b><code>position:{x:Number, y:Number}</code></b><br /> - to move to that position (in canvas units), <br />
+            <b><code>scale:Number</code></b><br /> - to zoom to that scale,<br />
+            <b><code>offset:{x:Number, y:Number}</code></b><br /> - to offset the position from the center of the canvas (in DOM units),<br />
+            <b><code>animation: Object || Boolean</code></b><br /> - to define the specifics of the animation.<br />
+            <br />
+            The animation object can consist of:<br />
+            <b><code>duration: Number</code></b><br /> - the duration of the animation in milliseconds,<br />
+            <b><code>easingFunction: String</code></b><br /> - the easing function of the animation, available are:<br />
+            <code>linear, easeInQuad, easeOutQuad, easeInOutQuad, easeInCubic, easeOutCubic, easeInOutCubic,
+            easeInQuart, easeOutQuart, easeInOutQuart,
+            easeInQuint, easeOutQuint, easeInOutQuint </code> <br /><br />
+
+            <i>You will have to define at least a scale or a position. Otherwise, there is nothing to move to.</i>
+        </td>
+    </tr>
+
+    <tr>
+    <td>on(event, callback)</td>
+    <td>none</td>
+    <td>Create an event listener. The callback function is invoked every time the event is triggered. Avialable events: <code>select</code>. The callback function is invoked as <code>callback(properties)</code>, where <code>properties</code> is an object containing event specific properties. See section <a href="#Events">Events</a> for more information.</td>
+  </tr>
+
+  <tr>
+    <td>off(event, callback)</td>
+    <td>none</td>
+    <td>Remove an event listener created before via function <code>on(event, callback)</code>. See section <a href="#Events">Events</a> for more information.</td>
+  </tr>
+  <tr>
+    <td>destroy()</td>
+    <td>none</td>
+    <td>Remove all bindings and clean up after the Network.</td>
+  </tr>
+  <tr>
+    <td>redraw()</td>
+    <td>none</td>
+    <td>Redraw the network. Useful when the layout of the webpage changed.</td>
+  </tr>
+
+  <tr>
+    <td>setData(data,[disableStart])</td>
+    <td>none</td>
+    <td>Loads data. Parameter <code>data</code> is an object containing
+      nodes, edges, and options. Parameters nodes, edges are an Array.
+      Options is a name-value map and is optional. Parameter <code>disableStart</code> is
+      an optional Boolean and can disable the start of the simulation that would begin at the end
+      of this function by default.
+    </td>
+  </tr>
+
+  <tr>
+    <td>setOptions(options)</td>
+    <td>none</td>
+    <td>Set options for the network. The available options are described in
+      the section <a href="#Configuration_options">Configuration Options</a>.
+    </td>
+  </tr>
+
+  <tr>
+    <td>selectNodes(selection, [highlightEdges])</td>
+    <td>none</td>
+    <td>Select nodes.
+      <code>selection</code> is an array with ids of nodes to be selected.
+      The array <code>selection</code> can contain zero or multiple ids.
+      Example usage: <code>network.selectNodes([3, 5]);</code> will select
+      nodes with id 3 and 5. The highlisghEdges boolean can be used to automatically select the edges connected to the node.
+    </td>
+  </tr>
+  <tr>
+    <td>getConnectedNodes(nodeId)</td>
+    <td>Array</td>
+    <td>Get an array of (unique) nodeIds that are directly connected to this node.
+    </td>
+  </tr>
+  <tr>
+    <td>selectEdges(selection)</td>
+    <td>none</td>
+    <td>Select Edges.
+      <code>selection</code> is an array with ids of edges to be selected.
+      The array <code>selection</code> can contain zero or multiple ids.
+      Example usage: <code>network.selectEdges([3, 5]);</code> will select
+      edges with id 3 and 5.
+    </td>
+  </tr>
+
+  <tr>
+    <td>setSize(width, height)</td>
+    <td>none</td>
+    <td>Parameters <code>width</code> and <code>height</code> are strings,
+      containing a new size for the visualization. Size can be provided in pixels
+      or in percentages.</td>
+  </tr>
+    <tr>
+        <td>getPositions([nodeIds])</td>
+        <td>Object</td>
+        <td>This will return an object of all nodes' positions. Data can be accessed with object[nodeId].x and .y. You can optionally supply an id as string or number or an array of ids. If no id or array of ids have been supplied, all positions are returned.
+        </td>
+    </tr>
+    <tr>
+        <td>storePositions()</td>
+        <td>none</td>
+        <td>When using the vis.DataSet to load your nodes into the network, this method will put the X and Y positions of all nodes into that dataset. It will also include allowedToMoveX and allowedToMoveY with the correct values.
+            If you're loading your nodes from a database and have this dynamically coupled with the DataSet, you can use this
+            to stablize your network once, then save the positions in that database through the DataSet so the next time you load the nodes, stabilization will be near instantaneous.
+            If the nodes are still moving and you're using dynamic smooth edges (which is on by default), you can use the option freezeForStabilization to improve initialization time.
+            <br><br><i><code>NOTE:</code>This method does not work with the hierarchical layout because the hierarchical algorithm is assigning X Y positions on load, regardless of the ones you supply it with.</i>
+        </td>
+    </tr>
+  <tr>
+    <td>zoomExtent([options])</td>
+    <td>none</td>
+    <td>Scales the network so all the nodes are in center view. Optionally you can supply options for animation. These
+    options can just be a boolean. When true, the zoom is animated, when false there is no animation.
+        Alternatively, you can supply an object.
+        <br /><br /> The object can consist of:<br />
+        <b><code>nodes: [nodeIds]</code></b><br /> - an optional subset of nodes to zoom in on,<br />
+        <b><code>duration: Number</code></b><br /> - the duration of the animation in milliseconds,<br />
+        <b><code>easingFunction: String</code></b><br /> - the easing function of the animation, available are:<br />
+        <code>linear, easeInQuad, easeOutQuad, easeInOutQuad, easeInCubic, easeOutCubic, easeInOutCubic,
+            easeInQuart, easeOutQuart, easeInOutQuart,
+            easeInQuint, easeOutQuint, easeInOutQuint </code>
+    </td>
+  </tr>
+
+
+</table>
+
+<h2 id="Events">Events</h2>
+<p>
+  Network fires events after one or multiple nodes are selected or deselected.
+  The event can be catched by creating a listener.
+</p>
+
+<p>
+  Here an example on how to catch a <code>select</code> event.
+</p>
+
+<pre class="prettyprint lang-js">
+network.on('select', function (properties) {
+  alert('selected nodes: ' + properties.nodes);
+});
+</pre>
+
+<p>
+  A listener can be removed via the function <code>off</code>:
+</p>
+
+<pre class="prettyprint lang-js">
+function onSelect (properties) {
+  alert('selected nodes: ' + properties.nodes);
+}
+
+// add event listener
+network.on('select', onSelect);
+
+// do stuff...
+
+// remove event listener
+network.off('select', onSelect);
+</pre>
+
+
+<p>
+  The following events are available.
+</p>
+
+<table>
+  <tr>
+    <th>name</th>
+    <th>Description</th>
+    <th>Properties</th>
+  </tr>
+
+  <tr>
+      <td>animationFinished</td>
+      <td>Fired after an animation is finished.
+      </td>
+      <td>
+          none
+      </td>
+  </tr>
+  <tr>
+    <td>select</td>
+    <td>Fired after the user selects or deselects a node by clicking it.
+      Not fired when the method <code>setSelection</code>is executed.
+    </td>
+    <td>
+      <ul>
+        <li><code>nodes</code>: an array with the ids of the selected nodes</li>
+        <li><code>edges</code>: an array with the ids of the selected edges</li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <td>click</td>
+    <td>Fired after the user clicks or taps on a touchscreen.</td>
+    <td>
+      <ul>
+        <li><code>nodes</code>: an array with the ids of the selected nodes</li>
+        <li><code>edges</code>: an array with the ids of the selected edges</li>
+        <li><code>pointer.DOM</code>:object containing XY coordinates in the DOM</li>
+        <li><code>pointer.canvas</code>:object containing XY coordinates in the canvas</li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <td>doubleClick</td>
+    <td>Fired after the user double clicks or double taps on a touchscreen.</td>
+    <td>
+      <ul>
+        <li><code>nodes</code>: an array with the ids of the selected nodes</li>
+        <li><code>edges</code>: an array with the ids of the selected edges</li>
+        <li><code>pointer.DOM</code>:object containing XY coordinates in the DOM</li>
+        <li><code>pointer.canvas</code>:object containing XY coordinates in the canvas</li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+  <tr>
+    <td>hoverNode</td>
+    <td>Fired when the mouse is moved over a node (assuming the hover option is enabled).</td>
+    <td>
+      <ul>
+        <li><code>node</code>: an object with the id of the hovered node.</li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+  <tr>
+    <td>blurNode</td>
+    <td>Fired when the mouse is moved off a node (assuming the hover option is enabled).</td>
+    <td>
+      <ul>
+        <li><code>node</code>: an object with the id of the hovered node.</li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <td>resize</td>
+    <td>Fired when the size of the canvas has been resized, either by a redraw call when the container div has changed in size, a setSize() call with new values or a setOptions() with new width and/or height values.</td>
+    <td>
+      <ul>
+        <li><code>width</code>: the new width of the canvas</li>
+        <li><code>height</code>: the new height of the canvas</li>
+        <li><code>oldWidth</code>: the old width of the canvas</li>
+        <li><code>oldHeight</code>: the old height of the canvas</li>
+      </ul>
+    </td>
+  </tr>
+    <tr>
+        <td>dragStart</td>
+        <td>Fired when a node is being dragged.</td>
+        <td>
+            <ul>
+                <li><code>nodeIds</code>: Array of ids of the nodes that are being dragged</li>
+            </ul>
+        </td>
+    </tr>
+    <tr>
+        <td>dragEnd</td>
+        <td>Fired when the dragging of a node(s) has ended.</td>
+        <td>
+            <ul>
+                <li><code>nodeIds</code>: Array of ids of the nodes that were being dragged</li>
+            </ul>
+        </td>
+    </tr>
+    <tr>
+        <td>startStabilization</td>
+        <td>Fired once when the network starts the physics calculation. This ends with the stabilized event.
+        <td>
+        none
+        </td>
+    </tr>
+    <tr>
+        <td>stabilized</td>
+        <td>Fired every time the network has been stabilized. This event can be used to trigger the .storePositions() function after stabilization. Fired with an object having the following properties:</td>
+        <td>
+        <ul>
+           <li><code>iterations</code>: number of iterations used to stabilize</li>
+        </ul>
+    </td>
+  </tr>
+  <tr>
+    <td>viewChanged</td>
+    <td>Fired when the view has changed. This is when the network has moved or zoomed.</td>
+    <td>
+      none
+    </td>
+  </tr>
+  <tr>
+    <td>zoom</td>
+    <td>Fired when the network has zoomed.  This event can be used to trigger the .storePositions() function after stabilization.</td>
+    <td>
+      <ul>
+        <li><code>direction: </code> "+" or "-" </li>
+      </ul>
+    </td>
+  </tr>
+
+</table>
+
+
+<h2 id="Data_policy">Data policy</h2>
+<p>
+  All code and data is processed and rendered in the browser.
+  No data is sent to any server.
+</p>
+
+</div>
+</body>
+</html>

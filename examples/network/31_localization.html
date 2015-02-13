@@ -1,0 +1,239 @@
+<!doctype html>
+<html>
+<head>
+  <title>Network | Localization</title>
+
+  <style type="text/css">
+    body, select {
+      font: 10pt sans;
+    }
+    #mynetwork {
+      position:relative;
+      width: 800px;
+      height: 600px;
+      border: 1px solid lightgray;
+    }
+    table.legend_table {
+      font-size: 11px;
+      border-width:1px;
+      border-color:#d3d3d3;
+      border-style:solid;
+    }
+    table.legend_table,td {
+      border-width:1px;
+      border-color:#d3d3d3;
+      border-style:solid;
+      padding: 2px;
+    }
+    div.table_content {
+      width:80px;
+      text-align:center;
+    }
+    div.table_description {
+      width:100px;
+    }
+
+    #operation {
+      font-size:28px;
+    }
+    #network-popUp {
+      display:none;
+      position:absolute;
+      top:350px;
+      left:170px;
+      z-index:299;
+      width:250px;
+      height:120px;
+      background-color: #f9f9f9;
+      border-style:solid;
+      border-width:3px;
+      border-color: #5394ed;
+      padding:10px;
+      text-align: center;
+    }
+  </style>
+  <script type="text/javascript" src="../../dist/vis.js"></script>
+  <link type="text/css" rel="stylesheet" href="../../dist/vis.css">
+
+  <script type="text/javascript">
+    var nodes = null;
+    var edges = null;
+    var network = null;
+
+    function destroy() {
+      if (network !== null) {
+        network.destroy();
+        network = null;
+      }
+    }
+
+    function draw() {
+      destroy();
+      nodes = [];
+      edges = [];
+      var connectionCount = [];
+
+      // randomly create some nodes and edges
+      var nodeCount = 25;
+      for (var i = 0; i < nodeCount; i++) {
+        nodes.push({
+          id: i,
+          label: String(i)
+        });
+
+        connectionCount[i] = 0;
+
+        // create edges in a scale-free-network way
+        if (i == 1) {
+          var from = i;
+          var to = 0;
+          edges.push({
+            from: from,
+            to: to
+          });
+          connectionCount[from]++;
+          connectionCount[to]++;
+        }
+        else if (i > 1) {
+          var conn = edges.length * 2;
+          var rand = Math.floor(Math.random() * conn);
+          var cum = 0;
+          var j = 0;
+          while (j < connectionCount.length && cum < rand) {
+            cum += connectionCount[j];
+            j++;
+          }
+
+          var from = i;
+          var to = j;
+          edges.push({
+            from: from,
+            to: to
+          });
+          connectionCount[from]++;
+          connectionCount[to]++;
+        }
+      }
+
+      // create a network
+      var container = document.getElementById('mynetwork');
+      var data = {
+        nodes: nodes,
+        edges: edges
+      };
+      var options = {
+        stabilize: false,
+        dataManipulation: true,
+        onAdd: function(data,callback) {
+          var span = document.getElementById('operation');
+          var idInput = document.getElementById('node-id');
+          var labelInput = document.getElementById('node-label');
+          var saveButton = document.getElementById('saveButton');
+          var cancelButton = document.getElementById('cancelButton');
+          var div = document.getElementById('network-popUp');
+          span.innerHTML = "Add Node";
+          idInput.value = data.id;
+          labelInput.value = data.label;
+          saveButton.onclick = saveData.bind(this,data,callback);
+          cancelButton.onclick = clearPopUp.bind();
+          div.style.display = 'block';
+        },
+        onEdit: function(data,callback) {
+          var span = document.getElementById('operation');
+          var idInput = document.getElementById('node-id');
+          var labelInput = document.getElementById('node-label');
+          var saveButton = document.getElementById('saveButton');
+          var cancelButton = document.getElementById('cancelButton');
+          var div = document.getElementById('network-popUp');
+          span.innerHTML = "Edit Node";
+          idInput.value = data.id;
+          labelInput.value = data.label;
+          saveButton.onclick = saveData.bind(this,data,callback);
+          cancelButton.onclick = clearPopUp.bind();
+          div.style.display = 'block';
+        },
+        onConnect: function(data,callback) {
+          if (data.from == data.to) {
+            var r=confirm("Do you want to connect the node to itself?");
+            if (r==true) {
+              callback(data);
+            }
+          }
+          else {
+            callback(data);
+          }
+        }
+      };
+      network = new vis.Network(container, data, options);
+
+      // add event listeners
+      network.on('select', function(params) {
+        document.getElementById('selection').innerHTML = 'Selection: ' + params.nodes;
+      });
+
+      network.on("resize", function(params) {console.log(params.width,params.height)});
+
+      function clearPopUp() {
+        var saveButton = document.getElementById('saveButton');
+        var cancelButton = document.getElementById('cancelButton');
+        saveButton.onclick = null;
+        cancelButton.onclick = null;
+        var div = document.getElementById('network-popUp');
+        div.style.display = 'none';
+      }
+
+      function saveData(data,callback) {
+        var idInput = document.getElementById('node-id');
+        var labelInput = document.getElementById('node-label');
+        var div = document.getElementById('network-popUp');
+        data.id = idInput.value;
+        data.label = labelInput.value;
+        clearPopUp();
+        callback(data);
+
+      }
+
+      // update the locale when changing the select box value
+      var select = document.getElementById('locale');
+      select.onchange = function () {
+        network.setOptions({
+          locale: this.value
+        });
+      };
+      select.onchange();
+    }
+  </script>
+</head>
+
+<body onload="draw();">
+<h2>Editing the dataset (localized)</h2>
+<p style="width: 700px; font-size:14px; text-align: justify;">
+  This is the same example as <a href="21_data_manipulation.html">21_data_manipulation.html</a>, except that there is a select box added which allows to switch locale. The localization is only relevant to the manipulation buttons.
+</p>
+
+<p>
+  <label for="locale">Select a locale:</label>
+  <select id="locale">
+    <option value="en" selected>en</option>
+    <option value="nl">nl</option>
+  </select>
+</p>
+
+<div id="network-popUp">
+  <span id="operation">node</span> <br>
+  <table style="margin:auto;"><tr>
+    <td>id</td><td><input id="node-id" value="new value"></td>
+  </tr>
+    <tr>
+      <td>label</td><td><input id="node-label" value="new value"> </td>
+    </tr></table>
+  <input type="button" value="save" id="saveButton"></button>
+  <input type="button" value="cancel" id="cancelButton"></button>
+</div>
+<br />
+<div id="mynetwork"></div>
+
+<p id="selection"></p>
+</body>
+</html>
+

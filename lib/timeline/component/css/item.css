@@ -1,0 +1,117 @@
+
+.vis.timeline .item {
+  position: absolute;
+  color: #1A1A1A;
+  border-color: #97B0F8;
+  border-width: 1px;
+  background-color: #D5DDF6;
+  display: inline-block;
+  padding: 5px;
+}
+
+.vis.timeline .item.selected {
+  border-color: #FFC200;
+  background-color: #FFF785;
+
+  /* z-index must be higher than the z-index of custom time bar and current time bar */
+  z-index: 2;
+}
+
+.vis.timeline .editable .item.selected {
+  cursor: move;
+}
+
+.vis.timeline .item.point.selected {
+  background-color: #FFF785;
+}
+
+.vis.timeline .item.box {
+  text-align: center;
+  border-style: solid;
+  border-radius: 2px;
+}
+
+.vis.timeline .item.point {
+  background: none;
+}
+
+.vis.timeline .item.dot {
+  position: absolute;
+  padding: 0;
+  border-width: 4px;
+  border-style: solid;
+  border-radius: 4px;
+}
+
+.vis.timeline .item.range {
+  border-style: solid;
+  border-radius: 2px;
+  box-sizing: border-box;
+}
+
+.vis.timeline .item.background {
+  overflow: hidden;
+  border: none;
+  background-color: rgba(213, 221, 246, 0.4);
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+.vis.timeline .item.range .content {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.vis.timeline .item.background .content {
+  position: absolute;
+  display: inline-block;
+  overflow: hidden;
+  max-width: 100%;
+  margin: 5px;
+}
+
+.vis.timeline .item.line {
+  padding: 0;
+  position: absolute;
+  width: 0;
+  border-left-width: 1px;
+  border-left-style: solid;
+}
+
+.vis.timeline .item .content {
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.vis.timeline .item .delete {
+  background: url('img/timeline/delete.png') no-repeat top center;
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  top: 0;
+  right: -24px;
+  cursor: pointer;
+}
+
+.vis.timeline .item.range .drag-left {
+  position: absolute;
+  width: 24px;
+  height: 100%;
+  top: 0;
+  left: -4px;
+
+  cursor: w-resize;
+}
+
+.vis.timeline .item.range .drag-right {
+  position: absolute;
+  width: 24px;
+  height: 100%;
+  top: 0;
+  right: -4px;
+
+  cursor: e-resize;
+}

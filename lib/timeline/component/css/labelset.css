@@ -1,0 +1,35 @@
+
+.vis.timeline .labelset {
+  position: relative;
+
+  overflow: hidden;
+
+  box-sizing: border-box;
+}
+
+.vis.timeline .labelset .vlabel {
+  position: relative;
+  left: 0;
+  top: 0;
+  width: 100%;
+  color: #4d4d4d;
+
+  box-sizing: border-box;
+}
+
+.vis.timeline .labelset .vlabel {
+  border-bottom: 1px solid #bfbfbf;
+}
+
+.vis.timeline .labelset .vlabel:last-child {
+  border-bottom: none;
+}
+
+.vis.timeline .labelset .vlabel .inner {
+  display: inline-block;
+  padding: 5px;
+}
+
+.vis.timeline .labelset .vlabel .inner.hidden {
+  padding: 0;
+}

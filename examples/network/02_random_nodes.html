@@ -1,0 +1,120 @@
+<!doctype html>
+<html>
+<head>
+  <title>Network | Random nodes</title>
+
+  <style type="text/css">
+    body {
+      font: 10pt sans;
+    }
+    #mynetwork {
+        width: 600px;
+        height: 600px;
+      border: 1px solid lightgray;
+    }
+  </style>
+
+  <script type="text/javascript" src="../../dist/vis.js"></script>
+  <link href="../../dist/vis.css" rel="stylesheet" type="text/css" />
+
+  <script type="text/javascript">
+    var nodes = null;
+    var edges = null;
+    var network = null;
+
+    function destroy() {
+      if (network !== null) {
+        network.destroy();
+        network = null;
+      }
+    }
+
+    function draw() {
+      destroy();
+
+      nodes = [];
+      edges = [];
+      var connectionCount = [];
+
+      // randomly create some nodes and edges
+      var nodeCount = document.getElementById('nodeCount').value;
+      for (var i = 0; i < nodeCount; i++) {
+          nodes.push({
+          id: i,
+          label: String(i)
+        });
+
+        connectionCount[i] = 0;
+
+        // create edges in a scale-free-network way
+        if (i == 1) {
+          var from = i;
+          var to = 0;
+          edges.push({
+            from: from,
+            to: to
+          });
+          connectionCount[from]++;
+          connectionCount[to]++;
+        }
+        else if (i > 1) {
+          var conn = edges.length * 2;
+          var rand = Math.floor(Math.random() * conn);
+          var cum = 0;
+          var j = 0;
+          while (j < connectionCount.length && cum < rand) {
+            cum += connectionCount[j];
+            j++;
+          }
+
+
+          var from = i;
+          var to = j;
+          edges.push({
+            from: from,
+            to: to
+          });
+          connectionCount[from]++;
+          connectionCount[to]++;
+        }
+      }
+      // create a network
+      var container = document.getElementById('mynetwork');
+      var data = {
+        nodes: nodes,
+        edges: edges
+      };
+      var options = {stabilize:false};
+      network = new vis.Network(container, data, options);
+
+      // add event listeners
+      network.on('select', function(params) {
+        document.getElementById('selection').innerHTML = 'Selection: ' + params.nodes;
+      });
+      network.on('stabilized', function (params) {
+        document.getElementById('stabilization').innerHTML = 'Stabilization took ' + params.iterations + ' iterations.';
+      });
+      network.on('startStabilization', function (params) {
+        document.getElementById('stabilization').innerHTML = 'Stabilizing...';
+      });
+    }
+
+
+  </script>
+</head>
+
+<body onload="draw();">
+<form onsubmit="draw(); return false;">
+  <label for="nodeCount">Number of nodes:</label>
+  <input id="nodeCount" type="text" value="25" style="width: 50px;">
+  <input type="submit" value="Go">
+</form>
+
+<br>
+
+<div id="mynetwork"></div>
+
+<p id="selection"></p>
+<p id="stabilization"></p>
+</body>
+</html>

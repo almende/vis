@@ -1,6 +1,6 @@
 {
   "name": "vis",
-  "version": "0.7.5-SNAPSHOT",
+  "version": "3.10.1-SNAPSHOT",
   "description": "A dynamic, browser-based visualization library.",
   "homepage": "http://visjs.org/",
   "repository": {
@@ -20,21 +20,31 @@
     "network",
     "browser"
   ],
+  "main": "./index",
   "scripts": {
-    "test": "jake test --trace",
-    "build": "jake --trace"
+    "test": "mocha",
+    "build": "gulp",
+    "watch": "gulp watch",
+    "watch-dev": "gulp watch --bundle"
   },
-  "dependencies": {},
+  "dependencies": {
+    "emitter-component": "^1.1.1",
+    "hammerjs": "^1.1.0",
+    "moment": "^2.9.0",
+    "keycharm": "^0.2.0"
+  },
   "devDependencies": {
-    "jake": "latest",
-    "jake-utils": "latest",
     "clean-css": "latest",
-    "browserify": "3.22",
-    "wrench": "latest",
-    "moment": "latest",
-    "hammerjs": "1.0.5",
-    "mousetrap": "latest",
-    "emitter-component": "latest",
-    "node-watch": "latest"
+    "gulp": "^3.8.11",
+    "gulp-concat": "^2.4.3",
+    "gulp-minify-css": "^0.4.5",
+    "gulp-rename": "^1.2.0",
+    "gulp-util": "^3.0.3",
+    "merge-stream": "^0.1.5",
+    "mocha": "^2.1.0",
+    "rimraf": "^2.2.8",
+    "uglify-js": "^2.4.16",
+    "webpack": "^1.5.3",
+    "yargs": "^2.3.0"
   }
 }

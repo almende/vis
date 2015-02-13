@@ -1,0 +1,132 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title>Network | Custom style</title>
+
+  <style type="text/css">
+    body {
+      font: 10pt arial;
+    }
+    #mynetwork {
+      width: 600px;
+      height: 600px;
+      border: 1px solid lightgray;
+    }
+  </style>
+
+  <script type="text/javascript" src="../../dist/vis.js"></script>
+  <link href="../../dist/vis.css" rel="stylesheet" type="text/css" />
+
+  <script type="text/javascript">
+    var nodes = null;
+    var edges = null;
+    var options = null;
+    var network = null;
+
+    // Called when the Visualization API is loaded.
+    function draw() {
+      // create nodes
+      nodes = [
+        {id: 1, label: 'black node', group: 'black'},
+        {id: 2, label: 'black node', group: 'black'},
+        {id: 3, label: 'black node', group: 'black'},
+        {id: 4, label: 'red node', group: 'black', color: 'red'},
+        {id: 5, label: 'gray node', group: 'gray'},
+        {id: 6, label: 'gray node', group: 'gray'},
+        {id: 7, label: 'gray node', group: 'gray'},
+        {id: 8, label: 'gray node', group: 'gray'},
+        {id: 9, label: 'image node', group: 'white'},
+        {id: 10, label: 'image node', group: 'white'},
+        {id: 11, label: 'default node'},
+        {id: 12, label: 'default node'}
+      ];
+
+      // create edges
+      edges = [
+        {from: 1, to: 2},
+        {from: 1, to: 3},
+        {from: 1, to: 4},
+        {from: 5, to: 6},
+        {from: 5, to: 7},
+        {from: 5, to: 8},
+        {from: 9, to: 10},
+        {from: 9, to: 11},
+        {from: 9, to: 12},
+
+        {from: 1, to: 5},
+        {from: 5, to: 9},
+        {from: 9, to: 1}
+      ];
+
+      // specify options
+      options = {
+        stabilize: false,
+        edges: {
+          width: 2,
+          style: 'arrow',
+          color: 'gray'
+        },
+        nodes: {
+          // default for all nodes
+          fontFace: 'times',
+          shape: 'circle',
+          color: {
+            border: 'orange',
+            background: 'yellow',
+            highlight: {
+              border: 'darkorange',
+              background: 'gold'
+            }
+          }
+        },
+        physics: {barnesHut:{springLength:200}}, // this is the correct way to set the length of the springs
+        groups: {
+          black: {
+            // defaults for nodes in this group
+            radius: 15,
+            color: 'black',
+            fontColor: 'white',
+            fontSize: 18,
+            fontFace: 'courier',
+            shape: 'rect'
+          },
+          gray: {
+            color: {
+              border: 'black',
+              background: 'gray',
+              highlight: {
+                border: 'black',
+                background: 'lightgray'
+              }
+            },
+            fontSize: 18,
+            fontFace: 'arial',
+            shape: 'circle'
+          },
+          white: {
+            color: {
+              border: 'black',
+              background: 'white'
+            },
+            fontColor: 'red',
+            shape: 'image',
+            image: 'img/soft-scraps-icons/User-Coat-Blue-icon.png'
+          }
+        }
+      };
+
+      // create the network
+      var container = document.getElementById('mynetwork');
+      var data = {
+        nodes: nodes,
+        edges: edges
+      };
+      network = new vis.Network(container, data, options);
+    }
+  </script>
+</head>
+
+<body onload="draw()">
+<div id="mynetwork"></div>
+</body>
+</html>

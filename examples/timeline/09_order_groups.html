@@ -33,6 +33,7 @@
   ]);
 
   // create a dataset with items
+  // note that months are zero-based in the JavaScript Date object, so month 3 is April
   var items = new vis.DataSet([
     {id: 0, group: 0, content: 'item 0', start: new Date(2014, 3, 17), end: new Date(2014, 3, 21)},
     {id: 1, group: 0, content: 'item 1', start: new Date(2014, 3, 19), end: new Date(2014, 3, 20)},

@@ -16,7 +16,7 @@ body, td, th {
   position: relative;
   margin: 0 auto;
   padding: 10px 10px 50px 10px;
-  width: 700px;
+  width: 970px;
   max-width: 100%;
   box-sizing: border-box;
 }
@@ -31,8 +31,8 @@ h1 {
 h2 {
   padding-top: 20px;
   padding-bottom: 10px;
-  border-bottom: 1px solid #a0c0f0;
-  color: #2B7CE9;
+  border-bottom: 1px solid #e0e0e0;
+  color: #064880;
 }
 
 h3 {
@@ -44,12 +44,13 @@ a > img {
 }
 
 a {
-  color: #2B7CE9;
+  color: #064880;
   text-decoration: none;
 }
 
 a:visited {
-  color: #2E60A4;
+  color: #064880;
+  text-decoration: none;
 }
 
 a:hover {
@@ -78,5 +79,5 @@ td {
 
 p.important_note {
   color: #3a6baa;
-    font-weight:bold;
+  font-weight:bold;
 }

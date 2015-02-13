@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+<head>
+  <title>Network | Dashed lines</title>
+
+  <style type="text/css">
+    body {
+      font: 10pt sans;
+    }
+    #mynetwork {
+      width: 600px;
+      height: 600px;
+      border: 1px solid lightgray;
+    }
+  </style>
+
+  <script type="text/javascript" src="../../dist/vis.js"></script>
+  <link href="../../dist/vis.css" rel="stylesheet" type="text/css" />
+
+  <script type="text/javascript">
+    // Called on page load
+    function draw() {
+      var nodes = [
+        {id: 1, label: 'dashed\nline\nexamples'},
+        {id: 2, label: 'default'},
+        {id: 3, label: 'dash.length: 20\ndash.gap: 20'},
+        {id: 4, label: 'dash.length: 20\ndash.gap: 5'},
+        {id: 5, label: 'dash.length: 5\ndash.gap: 20'},
+        {id: 6, label: 'dash.length: 20\ndash.gap: 5\ndash.altLength: 5'}
+      ];
+      var edges = [
+        {from: 1, to: 2, style: 'dash-line'},
+        {from: 1, to: 3, style: 'dash-line', dash: {length: 20, gap: 20}},
+        {from: 1, to: 4, style: 'dash-line', dash: {length: 20, gap: 5}},
+        {from: 1, to: 5, style: 'dash-line', dash: {length: 5, gap: 20}},
+        {from: 1, to: 6, style: 'dash-line', dash: {length: 20, gap: 5, altLength: 5}}
+      ];
+
+      // create the network
+      var container = document.getElementById('mynetwork');
+      var data = {
+        nodes: nodes,
+        edges: edges
+      };
+      var options = {
+        nodes: {
+          shape: 'box'
+        },
+        physics: {barnesHut:{springLength:150}}, // this is the correct way to set the length of the springs
+        stabilize: false
+      };
+      var network = new vis.Network(container, data, options);
+    }
+  </script>
+</head>
+
+<body onload="draw();">
+<p>
+  This example shows the different options for dashed lines.
+</p>
+
+<div id="mynetwork"></div>
+</body>
+</html>

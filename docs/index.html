@@ -34,6 +34,13 @@
     Vis.js contains of the following components:
   </p>
 
+  <div style="text-align: center; float: right; padding-left: 30px;">
+    <a href="img/vis_overview.png" target="_blank">
+      <img src="img/vis_overview.png" style="width: 350px; "/><br>
+      (click for a larger view)
+    </a>
+  </div>
+
   <ul>
     <li>
       <a href="dataset.html"><b>DataSet</b></a>.
@@ -46,24 +53,22 @@
       A filtered and/or formatted view on a DataSet.
     </li>
     <li>
-      <a href="graph.html"><b>Graph</b></a>.
-      Display a graph or network with nodes and edges.
+      <a href="network.html"><b>Network</b></a>.
+      Display a network (force directed graph) with nodes and edges (previously called Graph).
+    </li>
+    <li>
+      <a href="graph2d.html"><b>Graph2d</b></a>.
+      Plot data on a timeline with lines or barcharts.
+    </li>
+    <li>
+      <a href="graph3d.html"><b>Graph3d</b></a>.
+      Display data in a three dimensional graph.
     </li>
     <li>
       <a href="timeline.html"><b>Timeline</b></a>.
-      Display different types of data on a timeline. The timeline and the
-      items on the timeline can be interactively moved, zoomed, and
-      manipulated.
+      Display different types of data on a timeline.
     </li>
   </ul>
-
-  <div style="text-align: center;">
-    <a href="img/vis_overview.png" target="_blank">
-      <img src="img/vis_overview.png" style="width: 250px; "/><br>
-      (click for a larger view)
-    </a>
-  </div>
-
 
   <h2 id="Install">Install</h2>
 
@@ -161,16 +166,23 @@ var timeline = new vis.Timeline(container, data, options);
 &lt;div id="visualization"&gt;&lt;/div&gt;
 
 &lt;script type="text/javascript"&gt;
+  // DOM element where the Timeline will be attached
   var container = document.getElementById('visualization');
-  var data = [
+
+  // Create a DataSet (allows two way data-binding)
+  var data = new vis.DataSet([
     {id: 1, content: 'item 1', start: '2013-04-20'},
     {id: 2, content: 'item 2', start: '2013-04-14'},
     {id: 3, content: 'item 3', start: '2013-04-18'},
     {id: 4, content: 'item 4', start: '2013-04-16', end: '2013-04-19'},
     {id: 5, content: 'item 5', start: '2013-04-25'},
     {id: 6, content: 'item 6', start: '2013-04-27'}
-  ];
+  ]);
+
+    // Configuration for the Timeline
   var options = {};
+
+  // Create a Timeline
   var timeline = new vis.Timeline(container, data, options);
 &lt;/script&gt;
 &lt;/body&gt;
@@ -181,27 +193,32 @@ var timeline = new vis.Timeline(container, data, options);
   <h2 id="license">License</h2>
 
   <p>
-    Copyright (C) 2010-2014 Almende B.V.
+    Copyright 2010-2014 Almende B.V.
   </p>
 
   <p>
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+    Vis.js is dual licensed under both
   </p>
+  <ul>
+    <li>
+      The Apache 2.0 License<br>
+      <a href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a>
+    </li>
+  </ul>
+  <p>
+    and
+  </p>
+  <ul>
+    <li>
+      The MIT License<br>
+      <a href="http://opensource.org/licenses/MIT">http://opensource.org/licenses/MIT</a>
+    </li>
+  </ul>
 
   <p>
-    <a href="http://www.apache.org/licenses/LICENSE-2.0"
-       target="_blank">http://www.apache.org/licenses/LICENSE-2.0</a>
+    Vis.js may be distributed under either license.
   </p>
 
-  <p>
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
-  </p>
 
 </div>
 </body>

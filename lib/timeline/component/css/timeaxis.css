@@ -1,0 +1,47 @@
+.vis.timeline .timeaxis {
+  position: relative;
+  overflow: hidden;
+}
+
+.vis.timeline .timeaxis.foreground {
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+.vis.timeline .timeaxis.background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.vis.timeline .timeaxis .text {
+  position: absolute;
+  color: #4d4d4d;
+  padding: 3px;
+  white-space: nowrap;
+}
+
+.vis.timeline .timeaxis .text.measure {
+  position: absolute;
+  padding-left: 0;
+  padding-right: 0;
+  margin-left: 0;
+  margin-right: 0;
+  visibility: hidden;
+}
+
+.vis.timeline .timeaxis .grid.vertical {
+  position: absolute;
+  border-left: 1px solid;
+}
+
+.vis.timeline .timeaxis .grid.minor {
+  border-color: #e5e5e5;
+}
+
+.vis.timeline .timeaxis .grid.major {
+  border-color: #bfbfbf;
+}
