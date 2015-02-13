@@ -19,6 +19,8 @@ http://visjs.org
   `.vis.timeline .item.range { overflow: visible; }` instead of
   `.vis.timeline .item.range .content { overflow: visible; }`.
   See example 18_range_overflow.html.
+- Fixed invalid css names for time axis grid, renamed hours class names from
+  `4-8h` to `h4-h8`.
 
 
 ## not yet released, version 3.9.2-SNAPSHOT
