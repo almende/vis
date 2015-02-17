@@ -4,6 +4,11 @@ http://visjs.org
 
 ## not yet released, version 3.10.1-SNAPSHOT
 
+### Network
+
+- (added gradient coloring for lines, but set for release in 4.0 due to required refactoring of options)
+- Fixed bug where a network that has frozen physics would resume redrawing after setData, setOptions etc.
+
 ### Timeline
 
 - Fixed not property initializing with a DataView for groups.
