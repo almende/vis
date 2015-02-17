@@ -141,9 +141,11 @@
       var options = {
         stabilize: false,
         nodes: {
-          shape: 'dot'
+          shape: 'dot',
+            radius:30,
+            borderWidth:2
         },
-        physics: {barnesHut:{springLength: 200}}
+        physics: {barnesHut:{springLength: 100}}
       };
       network = new vis.Network(container, data, options);
     }
@@ -154,9 +156,9 @@
 <body onload="draw()">
 <form onsubmit= "javascript: draw(); return false;">
   Number of groups:
-  <input type="text" value="6" id="groupCount" style="width: 50px;">
+  <input type="text" value="23" id="groupCount" style="width: 50px;">
   Number of nodes per group:
-  <input type="text" value="7" id="nodeCount" style="width: 50px;">
+  <input type="text" value="1" id="nodeCount" style="width: 50px;">
   <input type="submit" value="Go">
 </form>
 <br>
