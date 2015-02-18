@@ -8,9 +8,15 @@ http://visjs.org
 
 - (added gradient coloring for lines, but set for release in 4.0 due to required refactoring of options)
 - Fixed bug where a network that has frozen physics would resume redrawing after setData, setOptions etc.
-- Added option to bypass default groups. If more groups are specified in the nodes than there are in the groups, loop over supplied groups instead of default.
-- Added two new static smooth curves modes: curveCW and curve CCW.
+- (add docs) Added option to bypass default groups. If more groups are specified in the nodes than there are in the groups, loop over supplied groups instead of default.
+- (add docs) Added two new static smooth curves modes: curveCW and curve CCW.
 - Added request redraw for certain internal processes to reduce number of draw calls.
+- Added pull request for usage of Icons. Thanks @Dude9177!
+- Allow hierarchical view to be set in setOptions.
+
+### Graph2d
+
+
 
 ### Timeline
 
