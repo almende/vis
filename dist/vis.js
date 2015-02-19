@@ -19325,6 +19325,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
+  var Hammer = __webpack_require__(19);
   var util = __webpack_require__(1);
   var Component = __webpack_require__(23);
   var moment = __webpack_require__(2);
@@ -19339,11 +19340,13 @@ return /******/ (function(modules) { // webpackBootstrap
    * @extends Component
    */
   function CurrentTime (body, options) {
+
     this.body = body;
 
     // default options
     this.defaultOptions = {
       showCurrentTime: true,
+      moveCurrentTime: false,
 
       locales: locales,
       locale: 'en'
@@ -19352,6 +19355,8 @@ return /******/ (function(modules) { // webpackBootstrap
     this.offset = 0;
 
     this._create();
+    this.currentTime = new Date();
+    this.eventParams = {};
 
     this.setOptions(options);
   }
@@ -19372,6 +19377,26 @@ return /******/ (function(modules) { // webpackBootstrap
     this.bar = bar;
   };
 
+  CurrentTime.prototype._enableMove = function() {
+    var drag = document.createElement('div');
+    drag.style.position = 'relative';
+    drag.style.top = '0px';
+    drag.style.left = '-10px';
+    drag.style.height = '100%';
+    drag.style.width = '20px';
+    drag.style.cursor = 'move';
+    
+    this.bar.appendChild(drag);
+
+    // attach event listeners
+    this.hammer = Hammer(this.bar, {
+      prevent_default: true
+    });
+    this.hammer.on('dragstart', this._onDragStart.bind(this));
+    this.hammer.on('drag', this._onDrag.bind(this));
+    this.hammer.on('dragend', this._onDragEnd.bind(this));
+  }
+
   /**
    * Destroy the CurrentTime bar
    */
@@ -19390,7 +19415,12 @@ return /******/ (function(modules) { // webpackBootstrap
   CurrentTime.prototype.setOptions = function(options) {
     if (options) {
       // copy all options that we know
-      util.selectiveExtend(['showCurrentTime', 'locale', 'locales'], this.options, options);
+      util.selectiveExtend(['showCurrentTime', 'moveCurrentTime', 'locale', 'locales'], this.options, options);
+
+      // enable move of the current time bar, if specified
+      if (this.options.moveCurrentTime) {
+        this._enableMove();
+      }
     }
   };
 
@@ -19430,6 +19460,62 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     return false;
+  };
+
+  /**
+   * Start moving horizontally
+   * @param {Event} event
+   * @private
+   */
+  CurrentTime.prototype._onDragStart = function(event) {
+    this.eventParams.dragging = true;
+    this.eventParams.currentTime = this.currentTime;
+
+    this.stop();
+    event.stopPropagation();
+    event.preventDefault();
+  };
+
+  /**
+   * Perform moving operating.
+   * @param {Event} event
+   * @private
+   */
+  CurrentTime.prototype._onDrag = function (event) {
+    if (!this.eventParams.dragging) return;
+
+    var deltaX = event.gesture.deltaX,
+        x = this.body.util.toScreen(this.eventParams.currentTime) + deltaX,
+        time = this.body.util.toTime(x);
+
+    this.currentTime = time;
+    this.setCurrentTime(time);
+
+    // fire a currenttimechange event
+    this.body.emitter.emit('currenttimechange', {
+      time: new Date(this.currentTime.valueOf())
+    });
+
+    event.stopPropagation();
+    event.preventDefault();
+  };
+
+  /**
+   * Stop moving operating.
+   * @param {event} event
+   * @private
+   */
+  CurrentTime.prototype._onDragEnd = function (event) {
+    if (!this.eventParams.dragging) return;
+
+    // fire a timechanged event
+    this.body.emitter.emit('currenttimechanged', {
+      time: new Date(this.currentTime.valueOf())
+    });
+
+    this.start();
+    event.stopPropagation();
+    event.preventDefault();
   };
 
   /**
