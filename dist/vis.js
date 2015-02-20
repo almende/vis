@@ -13477,6 +13477,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var ItemSet = __webpack_require__(26);
   var Activator = __webpack_require__(36);
   var DateUtil = __webpack_require__(24);
+  var CustomTime = __webpack_require__(41);
 
   /**
    * Create a timeline visualization
@@ -14135,6 +14136,63 @@ return /******/ (function(modules) { // webpackBootstrap
 
     return this.currentTime.getCurrentTime();
   };
+
+    /**
+     * Add custom vertical bar
+     * param {Date | String | Number} time  A Date, unix timestamp, or
+     *                                      ISO date string. Time point where the new bar should be placed
+     * @return {int} ID of the new bar
+     */
+    Core.prototype.addCustomTimeBar = function (time) {
+      if (!this.currentTime) {
+        throw new Error('Option showCurrentTime must be true');
+      }
+
+      if (time === undefined) {
+        throw new Error('Time parameter for the custom bar must be provided');
+      }
+
+      var ts = util.convert(time, 'Date').valueOf(),
+          customTime, id;
+
+      if ('customLastId' in this) {
+        id = ++this.customLastId;
+      } else {
+        id = this.customLastId = 1;
+      }
+
+      customTime = new CustomTime(this.body, {
+        showCustomTime : true,
+        time : ts,
+        id : id
+      });
+
+      this.components.push(customTime);
+      this.redraw();
+    }
+
+    /**
+     * Remove previously added custom bar
+     * @param {int} id ID of the custom bar to be removed
+     * @return {boolean} True if the bar exists and is removed, false otherwise
+     */
+    Core.prototype.removeCustomTimeBar = function (id) {
+      var self = this;
+
+      var reduceLastId = function() {
+          if ('customLastId' in self && self.customLastId > 0) {
+            self.customLastId--;
+          }
+        };
+
+      this.components.forEach(function (bar, index, components) {
+        if (bar instanceof CustomTime && bar.options.id === id) {
+          reduceLastId();
+          components.splice(index, 1);
+          bar.destroy();
+        }
+      });
+    }
 
   /**
    * Convert a position on screen (pixels) to a datetime
@@ -19537,11 +19595,16 @@ return /******/ (function(modules) { // webpackBootstrap
     this.defaultOptions = {
       showCustomTime: false,
       locales: locales,
-      locale: 'en'
+      locale: 'en',
+      id: 0
     };
     this.options = util.extend({}, this.defaultOptions);
 
-    this.customTime = new Date();
+    if (options && options.time) {
+      this.customTime = options.time;
+    } else {
+      this.customTime = new Date();
+    }
     this.eventParams = {}; // stores state parameters while dragging the bar
 
     // create the DOM
@@ -19560,7 +19623,12 @@ return /******/ (function(modules) { // webpackBootstrap
   CustomTime.prototype.setOptions = function(options) {
     if (options) {
       // copy all options that we know
-      util.selectiveExtend(['showCustomTime', 'locale', 'locales'], this.options, options);
+      util.selectiveExtend(['showCustomTime', 'locale', 'locales', 'id'], this.options, options);
+
+      // Triggered by addCustomTimeBar, redraw to add new bar
+      if (this.options.id) {
+        this.redraw();
+      }
     }
   };
 
@@ -19686,6 +19754,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // fire a timechange event
     this.body.emitter.emit('timechange', {
+      id: this.options.id,
       time: new Date(this.customTime.valueOf())
     });
 
@@ -19703,6 +19772,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // fire a timechanged event
     this.body.emitter.emit('timechanged', {
+      id: this.options.id,
       time: new Date(this.customTime.valueOf())
     });
 
@@ -27662,7 +27732,7 @@ return /******/ (function(modules) { // webpackBootstrap
     var clusterLineWidth = 2.5;
     var borderWidth = this.options.borderWidth;
     var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-      
+
     ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
 
     // draw the outer border
