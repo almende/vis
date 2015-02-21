@@ -855,6 +855,13 @@ var options = {
   </tr>
 
   <tr>
+    <td>addCustomTime(time)</td>
+    <td>Number</td>
+    <td>
+      Add new vertical bar representing custom time. Each new line is assigned a unique ID and can be dragged by the user. Parameter <code>time</code> can be a Date, Number, or String. Returns ID of the newly created bar. Only applicable when the option showCustomTime is true.
+    </td>
+  </tr>
+  <tr>
     <td>clear([what])</td>
     <td>none</td>
     <td>
@@ -1130,6 +1137,7 @@ timeline.off('select', onSelect);
     </td>
     <td>
       <ul>
+        <li><code>id</code> (Number): Vertical bar ID.</li>
         <li><code>time</code> (Date): the current time.</li>
       </ul>
     </td>
@@ -1142,6 +1150,7 @@ timeline.off('select', onSelect);
     </td>
     <td>
       <ul>
+        <li><code>id</code> (Number): Vertical bar ID.</li>
         <li><code>time</code> (Date): the current time.</li>
       </ul>
     </td>
