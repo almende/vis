@@ -16,18 +16,18 @@
 <body>
 
 <p>
-  <input type="button" id="add" value="Add custom vertical bar" />
-  <span id="addCustomTime"></span>
+  <input type="button" id="add" value="Add custom vertical bar">
+  <input type="text" id="barId" placeholder="custom bar ID">
 </p>
 <p>
-  <input type="button" id="remove" value="Remove custom vertical bar" />
-  <input type="text" id="barIndex" value="1" />
+  <input type="button" id="remove" value="Remove custom vertical bar">
+  <input type="text" id="barIndex" value="1" placeholder="custom bar ID">
 </p>
 <p>
-  <code><strong>timechange</strong></code> bar index: <span id="timechangeBar"></span> event: <span id="timechangeEvent"></span>
+  <code><strong>timechange</strong></code> bar index: <span id="timechangeBar"></span>. Time: <span id="timechangeEvent"></span>
 </p>
 <p>
-  <code><strong>timechanged</strong></code> bar index: <span id="timechangedBar"></span> event: <span id="timechangedEvent"></span>
+  <code><strong>timechanged</strong></code> bar index: <span id="timechangedBar"></span>. Time: <span id="timechangedEvent"></span>
 </p><br>
 
 <div id="visualization"></div>
@@ -46,16 +46,18 @@
 
   // Set first time bar
   customDate = new Date(customDate.getFullYear(), customDate.getMonth(), customDate.getDate() + 1);
-  timeline.addCustomTime(customDate);
+  timeline.addCustomTime(customDate, 1);
 
   document.getElementById('add').onclick = function () {
     customDate = new Date(customDate.getFullYear(), customDate.getMonth(), customDate.getDate() + 1);
-    timeline.addCustomTime(customDate);
+    var barId = document.getElementById('barId').value || undefined;
+    timeline.addCustomTime(customDate, barId);
+    document.getElementById('barId').value = '';
   };
 
   document.getElementById('remove').onclick = function () {
-    var index = document.getElementById('barIndex');
-    timeline.removeCustomTime(parseInt(index.value));
+    timeline.removeCustomTime(document.getElementById('barIndex').value);
+    document.getElementById('barIndex').value = '';
   };
 
   timeline.on('timechange', function (properties) {
