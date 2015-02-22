@@ -21,7 +21,7 @@
 </p>
 <p>
   <input type="button" id="remove" value="Remove custom vertical bar" />
-  <input type="text" id="barIndex" value="0" />
+  <input type="text" id="barIndex" value="1" />
 </p>
 <p>
   <code><strong>timechange</strong></code> bar index: <span id="timechangeBar"></span> event: <span id="timechangeEvent"></span>
@@ -43,6 +43,10 @@
     end: new Date(Date.now() + 1000 * 60 * 60 * 24 * 6)
   };
   var timeline = new vis.Timeline(container, items, options);
+
+  // Set first time bar
+  customDate = new Date(customDate.getFullYear(), customDate.getMonth(), customDate.getDate() + 1);
+  timeline.addCustomTime(customDate);
 
   document.getElementById('add').onclick = function () {
     customDate = new Date(customDate.getFullYear(), customDate.getMonth(), customDate.getDate() + 1);
