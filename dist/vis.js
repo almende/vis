@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.10.1-SNAPSHOT
- * @date    2015-02-20
+ * @date    2015-02-23
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -22874,7 +22874,6 @@ return /******/ (function(modules) { // webpackBootstrap
     this.renderRefreshRate = 60;                         // hz (fps)
     this.renderTimestep = 1000 / this.renderRefreshRate; // ms -- saves calculation later on
     this.renderTime = 0;                                 // measured time it takes to render a frame
-    this.physicsTime = 0;                                // measured time it takes to render a frame
     this.runDoubleSpeed = false;
     this.physicsDiscreteStepsize = 0.50;                 // discrete stepsize of the simulation
 
@@ -22996,32 +22995,6 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       clustering: {                   // Per Node in Cluster = PNiC
         enabled: false               // (Boolean)             | global on/off switch for clustering.
-
-
-
-
-
-
-        //
-        //initialMaxNodes: 100,         // (# nodes)             | if the initial amount of nodes is larger than this, we cluster until the total number is less than this threshold.
-        //clusterThreshold:500,         // (# nodes)             | during calculate forces, we check if the total number of nodes is larger than this. If it is, cluster until reduced to reduceToNodes
-        //reduceToNodes:300,            // (# nodes)             | during calculate forces, we check if the total number of nodes is larger than clusterThreshold. If it is, cluster until reduced to this
-        //chainThreshold: 0.4,          // (% of all drawn nodes)| maximum percentage of allowed chainnodes (long strings of connected nodes) within all nodes. (lower means less chains).
-        //clusterEdgeThreshold: 20,     // (px)                  | edge length threshold. if smaller, this node is clustered.
-        //sectorThreshold: 100,         // (# nodes in cluster)  | cluster size threshold. If larger, expanding in own sector.
-        //screenSizeThreshold: 0.2,     // (% of canvas)         | relative size threshold. If the width or height of a clusternode takes up this much of the screen, decluster node.
-        //fontSizeMultiplier: 4.0,      // (px PNiC)             | how much the cluster font size grows per node in cluster (in px).
-        //maxFontSize: 1000,
-        //forceAmplification: 0.1,      // (multiplier PNiC)     | factor of increase fo the repulsion force of a cluster (per node in cluster).
-        //distanceAmplification: 0.1,   // (multiplier PNiC)     | factor how much the repulsion distance of a cluster increases (per node in cluster).
-        //edgeGrowth: 20,               // (px PNiC)             | amount of clusterSize connected to the edge is multiplied with this and added to edgeLength.
-        //nodeScaling: {width:  1,      // (px PNiC)             | growth of the width  per node in cluster.
-        //              height: 1,      // (px PNiC)             | growth of the height per node in cluster.
-        //              radius: 1},     // (px PNiC)             | growth of the radius per node in cluster.
-        //maxNodeSizeIncrements: 600,   // (# increments)        | max growth of the width  per node in cluster.
-        //activeAreaBoxSize: 80,        // (px)                  | box area around the curser where clusters are popped open.
-        //clusterLevelDifference: 2,    // used for normalization of the cluster levels
-        //clusterByZoom: true           // enable clustering through zooming in and out
       },
       navigation: {
         enabled: false
@@ -23053,6 +23026,7 @@ return /******/ (function(modules) { // webpackBootstrap
       minVelocity:  0.1,   // px/s
       stabilize: true,  // stabilize before displaying the network
       stabilizationIterations: 1000,  // maximum number of iteration to stabilize
+      stabilizationStepsize: 100,
       zoomExtentOnStabilize: true,
       locale: 'en',
       locales: locales,
@@ -23151,9 +23125,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.canvasTopLeft     = {"x": 0,"y": 0};   // coordinates of the top left of the canvas.     they will be set during _redraw.
     this.canvasBottomRight = {"x": 0,"y": 0};   // coordinates of the bottom right of the canvas. they will be set during _redraw
     this.pointerPosition = {"x": 0,"y": 0};   // coordinates of the bottom right of the canvas. they will be set during _redraw
-    this.areaCenter = {};               // object with x and y elements used for determining the center of the zoom action
     this.scale = 1;                     // defining the global scale variable in the constructor
-    this.previousScale = this.scale;    // this is used to check if the zoom operation is zooming in or out
 
     // datasets or dataviews
     this.nodesData = null;      // A DataSet or DataView
@@ -23194,10 +23166,9 @@ return /******/ (function(modules) { // webpackBootstrap
     this.timer = undefined; // Scheduling function. Is definded in this.start();
 
     // load data (the disable start variable will be the same as the enabled clustering)
-    this.setData(data,this.constants.clustering.enabled || this.constants.hierarchicalLayout.enabled);
+    this.setData(data, this.constants.hierarchicalLayout.enabled);
 
     // hierarchical layout
-    this.initializing = false;
     if (this.constants.hierarchicalLayout.enabled == true) {
       this._setupHierarchicalLayout();
     }
@@ -23208,10 +23179,11 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     }
 
-    // if clustering is disabled, the simulation will have started in the setData function
-    if (this.constants.clustering.enabled) {
-      this.startWithClustering();
+    if (this.constants.stabilize == false) {
+      this.initializing = false;
     }
+
+    this.on("stabilizationIterationsDone", function () {this.initializing = false; this.start();}.bind(this));
   }
 
   // Extend Network with an Emitter mixin
@@ -23481,6 +23453,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this._setEdges(data && data.edges);
     }
     this._putDataInSector();
+
     if (disableStart == false) {
       if (this.constants.hierarchicalLayout.enabled == true) {
         this._resetLevels();
@@ -23491,10 +23464,15 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.constants.stabilize == true) {
           this._stabilize();
         }
+        else {
+          this.moving = true;
+          this.start();
+        }
       }
-      this.start();
     }
-    this.initializing = false;
+    else {
+      this.initializing = false;
+    }
   };
 
   /**
@@ -23623,7 +23601,6 @@ return /******/ (function(modules) { // webpackBootstrap
         throw new Error('Option "labels" is deprecated. Use options "locale" and "locales" instead.');
       }
 
-
       // (Re)loading the mixins that can be enabled or disabled in the options.
       // load the force calculation functions, grouped under the physics system.
       this._loadPhysicsSystem();
@@ -23642,12 +23619,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
       this._markAllEdgesAsDirty();
       this.setSize(this.constants.width, this.constants.height);
-      this.moving = true;
       if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
         this._resetLevels();
         this._setupHierarchicalLayout();
       }
-      this.start();
+
+      if (this.initializing !== true) {
+        this.moving = true;
+        this.start();
+      }
     }
   };
 
@@ -23671,7 +23651,6 @@ return /******/ (function(modules) { // webpackBootstrap
     this.frame.style.position = 'relative';
     this.frame.style.overflow = 'hidden';
     this.frame.tabIndex = 900;
-
 
   //////////////////////////////////////////////////////////////////
 
@@ -25076,15 +25055,29 @@ return /******/ (function(modules) { // webpackBootstrap
     if (this.constants.freezeForStabilization == true) {
       this._freezeDefinedNodes();
     }
+    this.stabilizationSteps = 0;
 
-    // find stable position
+    setTimeout(this._stabilizationBatch.bind(this),0);
+  };
+
+  Network.prototype._stabilizationBatch = function() {
     var count = 0;
-    while (this.moving && count < this.constants.stabilizationIterations) {
+    while (this.moving && count < this.constants.stabilizationStepsize && this.stabilizationSteps < this.constants.stabilizationIterations) {
       this._physicsTick();
+      this.stabilizationSteps++;
       count++;
     }
 
+    if (this.moving && this.stabilizationSteps < this.constants.stabilizationIterations) {
+      this.emit("stabilizationProgress", {steps: this.stabilizationSteps, total: this.constants.stabilizationIterations});
+      setTimeout(this._stabilizationBatch.bind(this),0);
+    }
+    else {
+      this._finalizeStabilization();
+    }
+  }
 
+  Network.prototype._finalizeStabilization = function() {
     if (this.constants.zoomExtentOnStabilize == true) {
       this.zoomExtent({duration:0}, false, true);
     }
@@ -25094,7 +25087,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     this.emit("stabilizationIterationsDone");
-  };
+  }
 
   /**
    * When initializing and stabilizing, we can freeze nodes with a predefined position. This greatly speeds up stabilization
@@ -29621,8 +29614,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   exports._loadClusterSystem = function () {
-    this.clusterSession = 0;
-    this.hubThreshold = 5;
+    this.clusteredNodes = {};
     this._loadMixin(ClusterMixin);
   };
 
@@ -31121,13 +31113,6 @@ return /******/ (function(modules) { // webpackBootstrap
   var Edge = __webpack_require__(57);
   var util = __webpack_require__(1);
 
-  exports.startWithClustering = function() {
-    this.clusteredNodes = {};
-    this.moving = true;
-    this.start();
-  }
-
-
   /**
    *
    * @param hubsize
@@ -31221,8 +31206,6 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     this._wrapUp();
-
-
   }
 
   /**
@@ -31284,7 +31267,6 @@ return /******/ (function(modules) { // webpackBootstrap
       clonedOptions.amountOfConnections = this.nodes[objId].edges.length;
     }
     else {
-      util.deepExtend(clonedOptions, this.edges[objId].options, true);
       util.deepExtend(clonedOptions, this.edges[objId].properties, true);
     }
     return clonedOptions;
@@ -31592,8 +31574,10 @@ return /******/ (function(modules) { // webpackBootstrap
     this._updateNodeIndexList();
     this._updateCalculationNodes();
     this._markAllEdgesAsDirty();
-    this.moving = true;
-    this.start();
+    if (this.initializing !== true) {
+      this.moving = true;
+      this.start();
+    }
   }
 
   exports._connectEdge = function(edge, nodeId, from) {
@@ -33901,11 +33885,8 @@ return /******/ (function(modules) { // webpackBootstrap
         // check the distribution of the nodes per level.
         var distribution = this._getDistribution();
 
-        // place the nodes on the canvas. This also stablilizes the system.
+        // place the nodes on the canvas. This also stablilizes the system. Redraw in started automatically after stabilize.
         this._placeNodesByHierarchy(distribution);
-
-        // start the simulation.
-        this.start();
       }
     }
   };

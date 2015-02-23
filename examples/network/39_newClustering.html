@@ -27,11 +27,11 @@
     {id: 3, label: 'Node 3'},
     {id: 4, label: 'Node 4'},
     {id: 5, label: 'Node 5'},
-      {id: 6, label: 'Node 6', cid:1},
-      {id: 7, label: 'Node 7', cid:1},
-      {id: 8, label: 'Node 8', cid:1},
-      {id: 9, label: 'Node 9', cid:1},
-      {id: 10, label: 'Node 10', cid:1}
+    {id: 6, label: 'Node 6', cid:1},
+    {id: 7, label: 'Node 7', cid:1},
+    {id: 8, label: 'Node 8', cid:1},
+    {id: 9, label: 'Node 9', cid:1},
+    {id: 10, label: 'Node 10', cid:1}
   ];
 
   // create an array with edges
@@ -40,11 +40,11 @@
     {from: 1, to: 3},
     {from: 10, to: 4},
     {from: 2, to: 5},
-      {from: 6, to: 2},
-      {from: 7, to: 5},
-      {from: 8, to: 6},
-      {from: 9, to: 7},
-      {from: 10, to: 9}
+    {from: 6, to: 2},
+    {from: 7, to: 5},
+    {from: 8, to: 6},
+    {from: 9, to: 7},
+    {from: 10, to: 9}
   ];
 
   // create a network
@@ -53,7 +53,7 @@
     nodes: nodes,
     edges: edges
   };
-  var options = {clustering:true};
+  var options = {};
   var network = new vis.Network(container, data, options);
 
   var clusterOptions = {
@@ -63,7 +63,7 @@
       processClusterProperties: function (properties, childNodes, childEdges) {
           return properties;
       },
-      clusterNodeProperties: {id:'bla', borderWidth:8},
+//      clusterNodeProperties: {id:'bla', borderWidth:8},
   }
 
   var clusterOptionsByData = {
@@ -73,12 +73,13 @@
       processClusterProperties: function (properties, childNodes, childEdges) {
           return properties;
       },
-      clusterNodeProperties: {id:'bla', borderWidth:8},
+//      clusterNodeProperties: {id:'bla', borderWidth:8}
   }
 
 //  network.clusterByNodeData(clusterOptionsByData)
-  network.clusterOutliers({clusterNodeProperties: {borderWidth:8}})
-//  network.clusterByConnection(2, clusterOptions);
+//  network.clusterOutliers({clusterNodeProperties: {borderWidth:8}})
+  network.clusterByConnection(2, clusterOptions);
+
 //  network.clusterByConnection(9, {
 //      joinCondition:function(parentOptions,childOptions) {return true;},
 //      processProperties:function (properties, childNodes, childEdges) {
