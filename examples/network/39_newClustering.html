@@ -63,7 +63,7 @@
       processClusterProperties: function (properties, childNodes, childEdges) {
           return properties;
       },
-//      clusterNodeProperties: {id:'bla', borderWidth:8},
+      clusterNodeProperties: {id:'bla', borderWidth:8},
   }
 
   var clusterOptionsByData = {
@@ -73,7 +73,7 @@
       processClusterProperties: function (properties, childNodes, childEdges) {
           return properties;
       },
-//      clusterNodeProperties: {id:'bla', borderWidth:8}
+      clusterNodeProperties: {id:'bla', borderWidth:8}
   }
 
 //  network.clusterByNodeData(clusterOptionsByData)
@@ -89,7 +89,7 @@
 //  });
     network.on("select", function(params) {
         if (params.nodes.length == 1) {
-            if (params.nodes[0].indexOf("cluster") != -1) {
+            if (network.isCluster(params.nodes[0]) == true) {
                 network.openCluster(params.nodes[0])
             }
         }
