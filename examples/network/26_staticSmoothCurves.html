@@ -32,19 +32,26 @@
 
 Smooth curve type:
 <select id="dropdownID">
-    <option value="continuous">continuous</option>
+    <option value="continuous" selected="selected">continuous</option>
     <option value="discrete">discrete</option>
     <option value="diagonalCross">diagonalCross</option>
     <option value="straightCross">straightCross</option>
     <option value="horizontal">horizontal</option>
     <option value="vertical">vertical</option>
-</select>
+    <option value="curvedCW">curvedCW</option>
+    <option value="curvedCCW">curvedCCW</option>
+</select><br/>
+Roundness (0..1): <input type="range" min="0" max="1" value="0.5" step="0.05" style="width:200px" id="roundnessSlider"> <input id="roundnessScreen" value="0.5"> (0.5 is max roundness for continuous, 1.0 for the others)
 <div id="mynetwork"></div>
 
 <script type="text/javascript">
 
 var dropdown = document.getElementById("dropdownID");
 dropdown.onchange = update;
+var roundnessSlider = document.getElementById("roundnessSlider");
+roundnessSlider.onchange = update;
+
+var roundnessScreen = document.getElementById("roundnessScreen");
   // create an array with nodes
   var nodes = [
     {id: 1, label: 'Node 1'},
@@ -53,7 +60,7 @@ dropdown.onchange = update;
 
   // create an array with edges
   var edges = [
-    {from: 1, to: 2}
+    {from: 1, to: 2, style:"arrow"}
   ];
 
   // create a network
@@ -68,8 +75,14 @@ dropdown.onchange = update;
 
     function update() {
         var type = dropdown.value;
-        network.setOptions({smoothCurves:{type:type}});
+        var roundness = roundnessSlider.value;
+        roundnessScreen.value = roundness;
+        var options = {smoothCurves:{type:type, roundness:roundness}}
+
+        network.setOptions(options);
     }
+
+    update();
 </script>
 
 </body>
