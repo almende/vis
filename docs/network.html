@@ -1009,7 +1009,6 @@ mySize = minSize + diff * scale;</pre>
         <td>'white'</td>
         <td>The color of the label stroke.</td>
     </tr>
-
 <tr>
     <td  class="greenField">shape</td>
     <td>string</td>
@@ -1018,7 +1017,7 @@ mySize = minSize + diff * scale;</pre>
     Choose from
     <code>ellipse</code> (default), <code>circle</code>, <code>box</code>,
     <code>database</code>, <code>image</code>, <code>circularImage</code>, <code>label</code>, <code>dot</code>,
-    <code>star</code>, <code>triangle</code>, <code>triangleDown</code>, and <code>square</code>.
+    <code>star</code>, <code>triangle</code>, <code>triangleDown</code>, <code>square</code> and <code>icon</code>.
     <br><br>
 
     In case of <code>image</code> and <code>circularImage</code>, a property with name <code>image</code> must
@@ -1095,6 +1094,30 @@ mySize = minSize + diff * scale;</pre>
     <td>The maximum radius for a scaled node. Only applicable to shapes <code>dot</code>,
       <code>star</code>, <code>triangle</code>, <code>triangleDown</code>, and <code>square</code>. This only does something if you supply a value.</td>
   </tr>
+  <tr>
+        <td class="greenField">iconFontFace</td>
+        <td>String</td>
+        <td>undefined</td>
+        <td>Font face for icons, for example <code>FontAwesome</code> or <code>Ionicon</code>.<br /><em>You have to link to the css defining the font by yourself (see Examples)</em></td>
+    </tr>
+    <tr>
+        <td class="greenField">icon</td>
+        <td>String</td>
+        <td>undefined</td>
+        <td>Unicode of the icon f.e. <code>\uf0c0</code> (user-icon in FontAwesome)</td>
+    </tr>
+    <tr>
+        <td class="greenField">iconSize</td>
+        <td>Number</td>
+        <td>50</td>
+        <td>Size of the icon</td>
+    </tr>
+    <tr>
+        <td class="greenField">color</td>
+        <td>String</td>
+        <td>black</td>
+        <td>Color of the icon</td>
+    </tr>
 </table>
 
 
