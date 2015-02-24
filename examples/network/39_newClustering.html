@@ -77,8 +77,8 @@
   }
 
 //  network.clusterByNodeData(clusterOptionsByData)
-//  network.clusterOutliers({clusterNodeProperties: {borderWidth:8}})
-  network.clusterByConnection(2, clusterOptions);
+  network.clustering.clusterOutliers({clusterNodeProperties: {borderWidth:8}})
+//  network.clusterByConnection(2, clusterOptions);
 
 //  network.clusterByConnection(9, {
 //      joinCondition:function(parentOptions,childOptions) {return true;},
@@ -89,8 +89,8 @@
 //  });
     network.on("select", function(params) {
         if (params.nodes.length == 1) {
-            if (network.isCluster(params.nodes[0]) == true) {
-                network.openCluster(params.nodes[0])
+            if (network.clustering.isCluster(params.nodes[0]) == true) {
+                network.clustering.openCluster(params.nodes[0])
             }
         }
     })
