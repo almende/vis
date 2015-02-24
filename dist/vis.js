@@ -31142,13 +31142,15 @@ return /******/ (function(modules) { // webpackBootstrap
     this._wrapUp();
   }
 
+
+  /**
+   * loop over all nodes, check if they adhere to the condition and cluster if needed.
+   * @param options
+   * @param doNotUpdateCalculationNodes
+   */
   exports.clusterByNodeData = function(options, doNotUpdateCalculationNodes) {
-    if (options === undefined) {
-      throw new Error("Cannot call clusterByNodeData without options.")
-    }
-    if (options.joinCondition === undefined) {
-      throw new Error("Cannot call clusterByNodeData without a joinCondition function in the options.");
-    }
+    if (options === undefined)               {throw new Error("Cannot call clusterByNodeData without options.");}
+    if (options.joinCondition === undefined) {throw new Error("Cannot call clusterByNodeData without a joinCondition function in the options.");}
 
     // check if the options object is fine, append if needed
     options = this._checkOptions(options);
@@ -31168,6 +31170,12 @@ return /******/ (function(modules) { // webpackBootstrap
     this._cluster(childNodesObj, childEdgesObj, options, doNotUpdateCalculationNodes);
   }
 
+
+  /**
+   * Cluster all nodes in the network that have only 1 edge
+   * @param options
+   * @param doNotUpdateCalculationNodes
+   */
   exports.clusterOutliers = function(options, doNotUpdateCalculationNodes) {
     options = this._checkOptions(options);
 
@@ -31205,7 +31213,9 @@ return /******/ (function(modules) { // webpackBootstrap
       this._cluster(clusters[i].nodes, clusters[i].edges, options, true)
     }
 
-    this._wrapUp();
+    if (doNotUpdateCalculationNodes !== true) {
+      this._wrapUp();
+    }
   }
 
   /**
@@ -31225,17 +31235,15 @@ return /******/ (function(modules) { // webpackBootstrap
     if (options.clusterNodeProperties.y === undefined)  {options.clusterNodeProperties.y = node.y; options.clusterNodeProperties.allowedToMoveY = !node.yFixed;}
 
     var childNodesObj = {};
-    var edge;
     var childEdgesObj = {}
-    var childNodeId;
     var parentNodeId = node.id;
     var parentClonedOptions = this._cloneOptions(parentNodeId);
     childNodesObj[parentNodeId] = node;
 
     // collect the nodes that will be in the cluster
     for (var i = 0; i < node.edges.length; i++) {
-      edge = node.edges[i];
-      childNodeId = this._getConnectedId(edge, parentNodeId);
+      var edge = node.edges[i];
+      var childNodeId = this._getConnectedId(edge, parentNodeId);
 
       if (childNodeId !== parentNodeId) {
         if (options.joinCondition === undefined) {
@@ -31259,6 +31267,14 @@ return /******/ (function(modules) { // webpackBootstrap
     this._cluster(childNodesObj, childEdgesObj, options, doNotUpdateCalculationNodes);
   }
 
+
+  /**
+   * This returns a clone of the options or properties of the edge or node to be used for construction of new edges or check functions for new nodes.
+   * @param objId
+   * @param type
+   * @returns {{}}
+   * @private
+   */
   exports._cloneOptions = function(objId, type) {
     var clonedOptions = {};
     if (type === undefined || type == 'node') {
@@ -31272,6 +31288,16 @@ return /******/ (function(modules) { // webpackBootstrap
     return clonedOptions;
   }
 
+
+  /**
+   * This function creates the edges that will be attached to the cluster.
+   *
+   * @param childNodesObj
+   * @param childEdgesObj
+   * @param newEdges
+   * @param options
+   * @private
+   */
   exports._createClusterEdges = function (childNodesObj, childEdgesObj, newEdges, options) {
     var edge, childNodeId, childNode;
 
@@ -31320,11 +31346,17 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 
+  /**
+   * This function checks the options that can be supplied to the different cluster functions
+   * for certain fields and inserts defaults if needed
+   * @param options
+   * @returns {*}
+   * @private
+   */
   exports._checkOptions = function(options) {
     if (options === undefined) {options = {};}
     if (options.clusterEdgeProperties === undefined)    {options.clusterEdgeProperties = {};}
     if (options.clusterNodeProperties === undefined)    {options.clusterNodeProperties = {};}
-
 
     return options;
   }
@@ -31398,6 +31430,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // create the clusterNode
     var clusterNode = new Node(clusterNodeProperties, this.images, this.groups, this.constants);
+    clusterNode.isCluster = true;
     clusterNode.containedNodes = childNodesObj;
     clusterNode.containedEdges = childEdgesObj;
 
@@ -31454,6 +31487,22 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   }
 
+
+  /**
+   * Check if a node is a cluster.
+   * @param nodeId
+   * @returns {*}
+   */
+  exports.isCluster = function(nodeId) {
+    if (this.nodes[nodeId] !== undefined) {
+      return this.nodes[nodeId].isCluster;
+    }
+    else {
+      console.log("Node does not exist.")
+      return false;
+    }
+
+  }
 
   /**
    * get the position of the cluster node based on what's inside
@@ -31570,6 +31619,11 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   }
 
+
+  /**
+   * Recalculate navigation nodes, color edges dirty, update nodes list etc.
+   * @private
+   */
   exports._wrapUp = function() {
     this._updateNodeIndexList();
     this._updateCalculationNodes();
@@ -31580,6 +31634,15 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   }
 
+
+  /**
+   * Connect an edge that was previously contained from cluster A to cluster B if the node that it was originally connected to
+   * is currently residing in cluster B
+   * @param edge
+   * @param nodeId
+   * @param from
+   * @private
+   */
   exports._connectEdge = function(edge, nodeId, from) {
     var clusterStack = this._getClusterStack(nodeId);
     if (from == true) {
@@ -31597,6 +31660,12 @@ return /******/ (function(modules) { // webpackBootstrap
     edge.connect();
   }
 
+  /**
+   * Get the stack clusterId's that a certain node resides in. cluster A -> cluster B -> cluster C -> node
+   * @param nodeId
+   * @returns {Array}
+   * @private
+   */
   exports._getClusterStack = function(nodeId) {
     var stack = [];
     var max = 100;
@@ -31612,6 +31681,13 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 
+  /**
+   * Get the Id the node is connected to
+   * @param edge
+   * @param nodeId
+   * @returns {*}
+   * @private
+   */
   exports._getConnectedId = function(edge, nodeId) {
     if (edge.toId != nodeId) {
       return edge.toId;
