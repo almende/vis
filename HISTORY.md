@@ -13,6 +13,7 @@ http://visjs.org
 - Added request redraw for certain internal processes to reduce number of draw calls.
 - Added pull request for usage of Icons. Thanks @Dude9177!
 - Allow hierarchical view to be set in setOptions.
+- Fixed manipulation bar for mobile.
 
 ### Graph2d
 
@@ -21,6 +22,7 @@ http://visjs.org
 ### Timeline
 
 - Fixed not property initializing with a DataView for groups.
+- Merged add custom timebar functionality, thanks @aytech!
 
 
 ## 2015-02-11, version 3.10.0
