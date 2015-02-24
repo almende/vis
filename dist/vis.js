@@ -23120,8 +23120,8 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     var me = this;
+    // this event will trigger a rebuilding of the cache of colors, nodes etc.
     this.on("_dataChanged", function () {
-      console.log("here");
       me._updateNodeIndexList();
       me._updateCalculationNodes();
       me._markAllEdgesAsDirty();
@@ -34441,7 +34441,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var ClusterEngine = (function () {
     function ClusterEngine(body) {
-      var options = arguments[1] === undefined ? {} : arguments[1];
       _classCallCheck(this, ClusterEngine);
 
       this.body = body;
