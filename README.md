@@ -28,6 +28,10 @@ Install via bower:
 
     bower install vis
 
+Link via cdnjs:
+
+    http://cdnjs.com
+
 Or download the library from the github project:
 [https://github.com/almende/vis.git](https://github.com/almende/vis.git).
 
