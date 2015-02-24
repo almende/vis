@@ -22,9 +22,8 @@ div.network-manipulationDiv {
 div.network-manipulation-editMode {
   position:absolute;
   left: 0;
-  top: 0;
+  top: 15px;
   height: 30px;
-  margin-top:20px;
 }
 
 div.network-manipulation-closeDiv {
@@ -50,7 +49,9 @@ div.network-manipulation-closeDiv:hover {
   opacity: 0.6;
 }
 
-span.network-manipulationUI {
+div.network-manipulationUI {
+    position:relative;
+    top:-7px;
   font-family: verdana;
   font-size: 12px;
   -moz-border-radius: 15px;
@@ -59,7 +60,7 @@ span.network-manipulationUI {
   background-position: 0px 0px;
   background-repeat:no-repeat;
   height:24px;
-  margin: -14px 0px 0px 10px;
+  margin: 0px 0px 0px 10px;
   vertical-align:middle;
   cursor: pointer;
   padding: 0px 8px 0px 8px;
@@ -71,57 +72,57 @@ span.network-manipulationUI {
   user-select: none;
 }
 
-span.network-manipulationUI:hover {
+div.network-manipulationUI:hover {
   box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.20);
 }
 
-span.network-manipulationUI:active {
+div.network-manipulationUI:active {
   box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.50);
 }
 
-span.network-manipulationUI.back {
+div.network-manipulationUI.back {
   background-image: url("img/network/backIcon.png");
 }
 
-span.network-manipulationUI.none:hover {
+div.network-manipulationUI.none:hover {
   box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.0);
   cursor: default;
 }
-span.network-manipulationUI.none:active {
+div.network-manipulationUI.none:active {
   box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.0);
 }
-span.network-manipulationUI.none {
+div.network-manipulationUI.none {
   padding: 0;
 }
-span.network-manipulationUI.notification{
+div.network-manipulationUI.notification{
   margin: 2px;
   font-weight: bold;
 }
 
-span.network-manipulationUI.add {
+div.network-manipulationUI.add {
   background-image: url("img/network/addNodeIcon.png");
 }
 
-span.network-manipulationUI.edit {
+div.network-manipulationUI.edit {
   background-image: url("img/network/editIcon.png");
 }
 
-span.network-manipulationUI.edit.editmode {
+div.network-manipulationUI.edit.editmode {
   background-color: #fcfcfc;
   border-style:solid;
   border-width:1px;
   border-color: #cccccc;
 }
 
-span.network-manipulationUI.connect {
+div.network-manipulationUI.connect {
   background-image: url("img/network/connectIcon.png");
 }
 
-span.network-manipulationUI.delete {
+div.network-manipulationUI.delete {
   background-image: url("img/network/deleteIcon.png");
 }
 /* top right bottom left */
-span.network-manipulationLabel {
+div.network-manipulationLabel {
   margin: 0px 0px 0px 23px;
   line-height: 25px;
 }
