@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.0.0-SNAPSHOT
- * @date    2015-02-24
+ * @date    2015-02-25
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -22767,7 +22767,7 @@ return /******/ (function(modules) { // webpackBootstrap
   __webpack_require__(71);
 
   var PhysicsEngine = __webpack_require__(72).PhysicsEngine;
-  var ClusterEngine = __webpack_require__(76).ClusterEngine;
+  var ClusterEngine = __webpack_require__(73).ClusterEngine;
 
 
   /**
@@ -24773,7 +24773,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     }
 
-    this._drawNodes(ctx, this.body.supportNodes, true);
+    //this._drawNodes(ctx,this.body.supportNodes,true);
     //  this.physics.nodesSolver._debug(ctx,"#F00F0F");
 
     // restore original scaling and translation
@@ -25105,11 +25105,9 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 
-  Network.prototype._revertPhysicsTick = function (nodes) {
-    for (var nodeId in nodes) {
-      if (nodes.hasOwnProperty(nodeId)) {
-        nodes[nodeId].revertPosition();
-      }
+  Network.prototype._revertPhysicsTick = function (nodes, nodeIndices) {
+    for (var i = 0; i < nodeIndices.length; i++) {
+      nodes[nodeIndices[i]].revertPosition();
     }
   };
 
@@ -25129,8 +25127,8 @@ return /******/ (function(modules) { // webpackBootstrap
         // determine if the network has stabilzied
         this.moving = mainMovingStatus || supportMovingStatus;
         if (this.moving == false) {
-          this._revertPhysicsTick(this.body.nodes);
-          this._revertPhysicsTick(this.body.supportNodes);
+          this._revertPhysicsTick(this.body.nodes, this.body.nodeIndices);
+          this._revertPhysicsTick(this.body.supportNodes, this.body.supportNodeIndices);
         } else {
           // this is here to ensure that there is no start event when the network is already stable.
           if (this.startedStabilization == false) {
@@ -27936,14 +27934,11 @@ return /******/ (function(modules) { // webpackBootstrap
     if (body === undefined) {
       throw "No body provided";
     }
-    var fields = ["edges", "physics"];
+    var fields = ["edges"];
     var constants = util.selectiveBridgeObject(fields, networkConstants);
     this.options = constants.edges;
 
-    this.physics = constants.physics;
     this.options.smoothCurves = networkConstants.smoothCurves;
-
-
     this.body = body;
 
     // initialize variables
@@ -28040,9 +28035,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     }
 
-
-
-    // A node is connected when it has a from and to node.
+    // A node is connected when it has a from and to node that both exist in the network.body.nodes.
     this.connect();
 
     this.widthFixed = this.widthFixed || properties.width !== undefined;
@@ -34363,16 +34356,12 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 2/23/2015.
    */
 
-  var BarnesHutSolver = __webpack_require__(73).BarnesHutSolver;
-  // TODO Create
-  //import {Repulsion} from "./components/physics/Repulsion";
-  //import {HierarchicalRepulsion} from "./components/physics/HierarchicalRepulsion";
-
-  var SpringSolver = __webpack_require__(74).SpringSolver;
-  // TODO Create
-  //import {HierarchicalSpringSolver} from "./components/physics/HierarchicalSpringSolver";
-
-  var CentralGravitySolver = __webpack_require__(75).CentralGravitySolver;
+  var BarnesHutSolver = __webpack_require__(74).BarnesHutSolver;
+  var Repulsion = __webpack_require__(75).Repulsion;
+  var HierarchicalRepulsion = __webpack_require__(76).HierarchicalRepulsion;
+  var SpringSolver = __webpack_require__(77).SpringSolver;
+  var HierarchicalSpringSolver = __webpack_require__(78).HierarchicalSpringSolver;
+  var CentralGravitySolver = __webpack_require__(79).CentralGravitySolver;
   var PhysicsEngine = (function () {
     function PhysicsEngine(body, options) {
       _classCallCheck(this, PhysicsEngine);
@@ -34398,14 +34387,12 @@ return /******/ (function(modules) { // webpackBootstrap
           var options;
           if (this.options.model == "repulsion") {
             options = this.options.repulsion;
-            // TODO uncomment when created
-            //this.nodesSolver = new Repulsion(this.body, this.physicsBody, options);
-            //this.edgesSolver = new SpringSolver(this.body, options);
+            this.nodesSolver = new Repulsion(this.body, this.physicsBody, options);
+            this.edgesSolver = new SpringSolver(this.body, options);
           } else if (this.options.model == "hierarchicalRepulsion") {
             options = this.options.hierarchicalRepulsion;
-            // TODO uncomment when created
-            //this.nodesSolver = new HierarchicalRepulsion(this.body, this.physicsBody, options);
-            //this.edgesSolver = new HierarchicalSpringSolver(this.body, options);
+            this.nodesSolver = new HierarchicalRepulsion(this.body, this.physicsBody, options);
+            this.edgesSolver = new HierarchicalSpringSolver(this.body, this.physicsBody, options);
           } else {
             // barnesHut
             options = this.options.barnesHut;
@@ -34447,38 +34434,16 @@ return /******/ (function(modules) { // webpackBootstrap
               console.error("Support node detected that does not have an edge!");
             }
           }
-          console.log("here", this.body);
           this.physicsBody.calculationNodeIndices = Object.keys(this.physicsBody.calculationNodes);
-        },
-        writable: true,
-        configurable: true
-      },
-      calculateField: {
-        value: function calculateField() {
-          this.nodesSolver.solve();
-        },
-        writable: true,
-        configurable: true
-      },
-      calculateSprings: {
-        value: function calculateSprings() {
-          this.edgesSolver.solve();
-        },
-        writable: true,
-        configurable: true
-      },
-      calculateCentralGravity: {
-        value: function calculateCentralGravity() {
-          this.gravitySolver.solve();
         },
         writable: true,
         configurable: true
       },
       step: {
         value: function step() {
-          this.calculateCentralGravity();
-          this.calculateField();
-          this.calculateSprings();
+          this.gravitySolver.solve();
+          this.nodesSolver.solve();
+          this.edgesSolver.solve();
         },
         writable: true,
         configurable: true
@@ -34495,685 +34460,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 73 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-  /**
-   * Created by Alex on 2/23/2015.
-   */
-
-  var BarnesHutSolver = (function () {
-    function BarnesHutSolver(body, physicsBody, options) {
-      _classCallCheck(this, BarnesHutSolver);
-
-      this.body = body;
-      this.physicsBody = physicsBody;
-      this.options = options;
-      this.barnesHutTree;
-    }
-
-    _prototypeProperties(BarnesHutSolver, null, {
-      solve: {
-
-
-        /**
-         * This function calculates the forces the nodes apply on eachother based on a gravitational model.
-         * The Barnes Hut method is used to speed up this N-body simulation.
-         *
-         * @private
-         */
-        value: function solve() {
-          if (this.options.gravitationalConstant != 0) {
-            var node;
-            var nodes = this.physicsBody.calculationNodes;
-            var nodeIndices = this.physicsBody.calculationNodeIndices;
-            var nodeCount = nodeIndices.length;
-
-            // create the tree
-            var barnesHutTree = this._formBarnesHutTree(nodes, nodeIndices);
-
-            // for debugging
-            this.barnesHutTree = barnesHutTree;
-
-            // place the nodes one by one recursively
-            for (var i = 0; i < nodeCount; i++) {
-              node = nodes[nodeIndices[i]];
-              if (node.options.mass > 0) {
-                // starting with root is irrelevant, it never passes the BarnesHutSolver condition
-                this._getForceContribution(barnesHutTree.root.children.NW, node);
-                this._getForceContribution(barnesHutTree.root.children.NE, node);
-                this._getForceContribution(barnesHutTree.root.children.SW, node);
-                this._getForceContribution(barnesHutTree.root.children.SE, node);
-              }
-            }
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _getForceContribution: {
-
-
-        /**
-         * This function traverses the barnesHutTree. It checks when it can approximate distant nodes with their center of mass.
-         * If a region contains a single node, we check if it is not itself, then we apply the force.
-         *
-         * @param parentBranch
-         * @param node
-         * @private
-         */
-        value: function _getForceContribution(parentBranch, node) {
-          // we get no force contribution from an empty region
-          if (parentBranch.childrenCount > 0) {
-            var dx, dy, distance;
-
-            // get the distance from the center of mass to the node.
-            dx = parentBranch.centerOfMass.x - node.x;
-            dy = parentBranch.centerOfMass.y - node.y;
-            distance = Math.sqrt(dx * dx + dy * dy);
-
-            // BarnesHutSolver condition
-            // original condition : s/d < thetaInverted = passed  ===  d/s > 1/theta = passed
-            // calcSize = 1/s --> d * 1/s > 1/theta = passed
-            if (distance * parentBranch.calcSize > this.options.thetaInverted) {
-              // duplicate code to reduce function calls to speed up program
-              if (distance == 0) {
-                distance = 0.1 * Math.random();
-                dx = distance;
-              }
-              var gravityForce = this.options.gravitationalConstant * parentBranch.mass * node.options.mass / (distance * distance * distance);
-              var fx = dx * gravityForce;
-              var fy = dy * gravityForce;
-              node.fx += fx;
-              node.fy += fy;
-            } else {
-              // Did not pass the condition, go into children if available
-              if (parentBranch.childrenCount == 4) {
-                this._getForceContribution(parentBranch.children.NW, node);
-                this._getForceContribution(parentBranch.children.NE, node);
-                this._getForceContribution(parentBranch.children.SW, node);
-                this._getForceContribution(parentBranch.children.SE, node);
-              } else {
-                // parentBranch must have only one node, if it was empty we wouldnt be here
-                if (parentBranch.children.data.id != node.id) {
-                  // if it is not self
-                  // duplicate code to reduce function calls to speed up program
-                  if (distance == 0) {
-                    distance = 0.5 * Math.random();
-                    dx = distance;
-                  }
-                  var gravityForce = this.options.gravitationalConstant * parentBranch.mass * node.options.mass / (distance * distance * distance);
-                  var fx = dx * gravityForce;
-                  var fy = dy * gravityForce;
-                  node.fx += fx;
-                  node.fy += fy;
-                }
-              }
-            }
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _formBarnesHutTree: {
-
-
-        /**
-         * This function constructs the barnesHut tree recursively. It creates the root, splits it and starts placing the nodes.
-         *
-         * @param nodes
-         * @param nodeIndices
-         * @private
-         */
-        value: function _formBarnesHutTree(nodes, nodeIndices) {
-          var node;
-          var nodeCount = nodeIndices.length;
-
-          var minX = Number.MAX_VALUE,
-              minY = Number.MAX_VALUE,
-              maxX = -Number.MAX_VALUE,
-              maxY = -Number.MAX_VALUE;
-
-          // get the range of the nodes
-          for (var i = 0; i < nodeCount; i++) {
-            var x = nodes[nodeIndices[i]].x;
-            var y = nodes[nodeIndices[i]].y;
-            if (nodes[nodeIndices[i]].options.mass > 0) {
-              if (x < minX) {
-                minX = x;
-              }
-              if (x > maxX) {
-                maxX = x;
-              }
-              if (y < minY) {
-                minY = y;
-              }
-              if (y > maxY) {
-                maxY = y;
-              }
-            }
-          }
-          // make the range a square
-          var sizeDiff = Math.abs(maxX - minX) - Math.abs(maxY - minY); // difference between X and Y
-          if (sizeDiff > 0) {
-            minY -= 0.5 * sizeDiff;
-            maxY += 0.5 * sizeDiff;
-          } // xSize > ySize
-          else {
-            minX += 0.5 * sizeDiff;
-            maxX -= 0.5 * sizeDiff;
-          } // xSize < ySize
-
-
-          var minimumTreeSize = 0.00001;
-          var rootSize = Math.max(minimumTreeSize, Math.abs(maxX - minX));
-          var halfRootSize = 0.5 * rootSize;
-          var centerX = 0.5 * (minX + maxX),
-              centerY = 0.5 * (minY + maxY);
-
-          // construct the barnesHutTree
-          var barnesHutTree = {
-            root: {
-              centerOfMass: { x: 0, y: 0 },
-              mass: 0,
-              range: {
-                minX: centerX - halfRootSize, maxX: centerX + halfRootSize,
-                minY: centerY - halfRootSize, maxY: centerY + halfRootSize
-              },
-              size: rootSize,
-              calcSize: 1 / rootSize,
-              children: { data: null },
-              maxWidth: 0,
-              level: 0,
-              childrenCount: 4
-            }
-          };
-          this._splitBranch(barnesHutTree.root);
-
-          // place the nodes one by one recursively
-          for (i = 0; i < nodeCount; i++) {
-            node = nodes[nodeIndices[i]];
-            if (node.options.mass > 0) {
-              this._placeInTree(barnesHutTree.root, node);
-            }
-          }
-
-          // make global
-          return barnesHutTree;
-        },
-        writable: true,
-        configurable: true
-      },
-      _updateBranchMass: {
-
-
-        /**
-         * this updates the mass of a branch. this is increased by adding a node.
-         *
-         * @param parentBranch
-         * @param node
-         * @private
-         */
-        value: function _updateBranchMass(parentBranch, node) {
-          var totalMass = parentBranch.mass + node.options.mass;
-          var totalMassInv = 1 / totalMass;
-
-          parentBranch.centerOfMass.x = parentBranch.centerOfMass.x * parentBranch.mass + node.x * node.options.mass;
-          parentBranch.centerOfMass.x *= totalMassInv;
-
-          parentBranch.centerOfMass.y = parentBranch.centerOfMass.y * parentBranch.mass + node.y * node.options.mass;
-          parentBranch.centerOfMass.y *= totalMassInv;
-
-          parentBranch.mass = totalMass;
-          var biggestSize = Math.max(Math.max(node.height, node.radius), node.width);
-          parentBranch.maxWidth = parentBranch.maxWidth < biggestSize ? biggestSize : parentBranch.maxWidth;
-        },
-        writable: true,
-        configurable: true
-      },
-      _placeInTree: {
-
-
-        /**
-         * determine in which branch the node will be placed.
-         *
-         * @param parentBranch
-         * @param node
-         * @param skipMassUpdate
-         * @private
-         */
-        value: function _placeInTree(parentBranch, node, skipMassUpdate) {
-          if (skipMassUpdate != true || skipMassUpdate === undefined) {
-            // update the mass of the branch.
-            this._updateBranchMass(parentBranch, node);
-          }
-
-          if (parentBranch.children.NW.range.maxX > node.x) {
-            // in NW or SW
-            if (parentBranch.children.NW.range.maxY > node.y) {
-              // in NW
-              this._placeInRegion(parentBranch, node, "NW");
-            } else {
-              // in SW
-              this._placeInRegion(parentBranch, node, "SW");
-            }
-          } else {
-            // in NE or SE
-            if (parentBranch.children.NW.range.maxY > node.y) {
-              // in NE
-              this._placeInRegion(parentBranch, node, "NE");
-            } else {
-              // in SE
-              this._placeInRegion(parentBranch, node, "SE");
-            }
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _placeInRegion: {
-
-
-        /**
-         * actually place the node in a region (or branch)
-         *
-         * @param parentBranch
-         * @param node
-         * @param region
-         * @private
-         */
-        value: function _placeInRegion(parentBranch, node, region) {
-          switch (parentBranch.children[region].childrenCount) {
-            case 0:
-              // place node here
-              parentBranch.children[region].children.data = node;
-              parentBranch.children[region].childrenCount = 1;
-              this._updateBranchMass(parentBranch.children[region], node);
-              break;
-            case 1:
-              // convert into children
-              // if there are two nodes exactly overlapping (on init, on opening of cluster etc.)
-              // we move one node a pixel and we do not put it in the tree.
-              if (parentBranch.children[region].children.data.x == node.x && parentBranch.children[region].children.data.y == node.y) {
-                node.x += Math.random();
-                node.y += Math.random();
-              } else {
-                this._splitBranch(parentBranch.children[region]);
-                this._placeInTree(parentBranch.children[region], node);
-              }
-              break;
-            case 4:
-              // place in branch
-              this._placeInTree(parentBranch.children[region], node);
-              break;
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _splitBranch: {
-
-
-        /**
-         * this function splits a branch into 4 sub branches. If the branch contained a node, we place it in the subbranch
-         * after the split is complete.
-         *
-         * @param parentBranch
-         * @private
-         */
-        value: function _splitBranch(parentBranch) {
-          // if the branch is shaded with a node, replace the node in the new subset.
-          var containedNode = null;
-          if (parentBranch.childrenCount == 1) {
-            containedNode = parentBranch.children.data;
-            parentBranch.mass = 0;
-            parentBranch.centerOfMass.x = 0;
-            parentBranch.centerOfMass.y = 0;
-          }
-          parentBranch.childrenCount = 4;
-          parentBranch.children.data = null;
-          this._insertRegion(parentBranch, "NW");
-          this._insertRegion(parentBranch, "NE");
-          this._insertRegion(parentBranch, "SW");
-          this._insertRegion(parentBranch, "SE");
-
-          if (containedNode != null) {
-            this._placeInTree(parentBranch, containedNode);
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _insertRegion: {
-
-
-        /**
-         * This function subdivides the region into four new segments.
-         * Specifically, this inserts a single new segment.
-         * It fills the children section of the parentBranch
-         *
-         * @param parentBranch
-         * @param region
-         * @param parentRange
-         * @private
-         */
-        value: function _insertRegion(parentBranch, region) {
-          var minX, maxX, minY, maxY;
-          var childSize = 0.5 * parentBranch.size;
-          switch (region) {
-            case "NW":
-              minX = parentBranch.range.minX;
-              maxX = parentBranch.range.minX + childSize;
-              minY = parentBranch.range.minY;
-              maxY = parentBranch.range.minY + childSize;
-              break;
-            case "NE":
-              minX = parentBranch.range.minX + childSize;
-              maxX = parentBranch.range.maxX;
-              minY = parentBranch.range.minY;
-              maxY = parentBranch.range.minY + childSize;
-              break;
-            case "SW":
-              minX = parentBranch.range.minX;
-              maxX = parentBranch.range.minX + childSize;
-              minY = parentBranch.range.minY + childSize;
-              maxY = parentBranch.range.maxY;
-              break;
-            case "SE":
-              minX = parentBranch.range.minX + childSize;
-              maxX = parentBranch.range.maxX;
-              minY = parentBranch.range.minY + childSize;
-              maxY = parentBranch.range.maxY;
-              break;
-          }
-
-
-          parentBranch.children[region] = {
-            centerOfMass: { x: 0, y: 0 },
-            mass: 0,
-            range: { minX: minX, maxX: maxX, minY: minY, maxY: maxY },
-            size: 0.5 * parentBranch.size,
-            calcSize: 2 * parentBranch.calcSize,
-            children: { data: null },
-            maxWidth: 0,
-            level: parentBranch.level + 1,
-            childrenCount: 0
-          };
-        },
-        writable: true,
-        configurable: true
-      },
-      _debug: {
-
-
-
-
-        //---------------------------  DEBUGGING BELOW  ---------------------------//
-
-
-        /**
-         * This function is for debugging purposed, it draws the tree.
-         *
-         * @param ctx
-         * @param color
-         * @private
-         */
-        value: function _debug(ctx, color) {
-          if (this.barnesHutTree !== undefined) {
-            ctx.lineWidth = 1;
-
-            this._drawBranch(this.barnesHutTree.root, ctx, color);
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _drawBranch: {
-
-
-        /**
-         * This function is for debugging purposes. It draws the branches recursively.
-         *
-         * @param branch
-         * @param ctx
-         * @param color
-         * @private
-         */
-        value: function _drawBranch(branch, ctx, color) {
-          if (color === undefined) {
-            color = "#FF0000";
-          }
-
-          if (branch.childrenCount == 4) {
-            this._drawBranch(branch.children.NW, ctx);
-            this._drawBranch(branch.children.NE, ctx);
-            this._drawBranch(branch.children.SE, ctx);
-            this._drawBranch(branch.children.SW, ctx);
-          }
-          ctx.strokeStyle = color;
-          ctx.beginPath();
-          ctx.moveTo(branch.range.minX, branch.range.minY);
-          ctx.lineTo(branch.range.maxX, branch.range.minY);
-          ctx.stroke();
-
-          ctx.beginPath();
-          ctx.moveTo(branch.range.maxX, branch.range.minY);
-          ctx.lineTo(branch.range.maxX, branch.range.maxY);
-          ctx.stroke();
-
-          ctx.beginPath();
-          ctx.moveTo(branch.range.maxX, branch.range.maxY);
-          ctx.lineTo(branch.range.minX, branch.range.maxY);
-          ctx.stroke();
-
-          ctx.beginPath();
-          ctx.moveTo(branch.range.minX, branch.range.maxY);
-          ctx.lineTo(branch.range.minX, branch.range.minY);
-          ctx.stroke();
-
-          /*
-           if (branch.mass > 0) {
-           ctx.circle(branch.centerOfMass.x, branch.centerOfMass.y, 3*branch.mass);
-           ctx.stroke();
-           }
-           */
-        },
-        writable: true,
-        configurable: true
-      }
-    });
-
-    return BarnesHutSolver;
-  })();
-
-  exports.BarnesHutSolver = BarnesHutSolver;
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-/***/ },
-/* 74 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-  /**
-   * Created by Alex on 2/23/2015.
-   */
-
-  var SpringSolver = (function () {
-    function SpringSolver(body, options) {
-      _classCallCheck(this, SpringSolver);
-
-      this.body = body;
-      this.options = options;
-    }
-
-    _prototypeProperties(SpringSolver, null, {
-      solve: {
-        value: function solve() {
-          this._calculateSpringForces();
-        },
-        writable: true,
-        configurable: true
-      },
-      _calculateSpringForces: {
-
-
-
-        /**
-         * This function calculates the springforces on the nodes, accounting for the support nodes.
-         *
-         * @private
-         */
-        value: function _calculateSpringForces() {
-          var edgeLength, edge, edgeId;
-          var edges = this.body.edges;
-
-          // forces caused by the edges, modelled as springs
-          for (edgeId in edges) {
-            if (edges.hasOwnProperty(edgeId)) {
-              edge = edges[edgeId];
-              if (edge.connected === true) {
-                // only calculate forces if nodes are in the same sector
-                if (this.body.nodes[edge.toId] !== undefined && this.body.nodes[edge.fromId] !== undefined) {
-                  edgeLength = edge.physics.springLength;
-                  if (edge.via != null) {
-                    var node1 = edge.to;
-                    var node2 = edge.via;
-                    var node3 = edge.from;
-
-                    this._calculateSpringForce(node1, node2, 0.5 * edgeLength);
-                    this._calculateSpringForce(node2, node3, 0.5 * edgeLength);
-                  } else {
-                    this._calculateSpringForce(edge.from, edge.to, edgeLength);
-                  }
-                }
-              }
-            }
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _calculateSpringForce: {
-
-
-        /**
-         * This is the code actually performing the calculation for the function above.
-         *
-         * @param node1
-         * @param node2
-         * @param edgeLength
-         * @private
-         */
-        value: function _calculateSpringForce(node1, node2, edgeLength) {
-          var dx, dy, fx, fy, springForce, distance;
-
-          dx = node1.x - node2.x;
-          dy = node1.y - node2.y;
-          distance = Math.sqrt(dx * dx + dy * dy);
-          distance = distance == 0 ? 0.01 : distance;
-
-          // the 1/distance is so the fx and fy can be calculated without sine or cosine.
-          springForce = this.options.springConstant * (edgeLength - distance) / distance;
-
-          fx = dx * springForce;
-          fy = dy * springForce;
-
-          node1.fx += fx;
-          node1.fy += fy;
-          node2.fx -= fx;
-          node2.fy -= fy;
-        },
-        writable: true,
-        configurable: true
-      }
-    });
-
-    return SpringSolver;
-  })();
-
-  exports.SpringSolver = SpringSolver;
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-/***/ },
-/* 75 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-  /**
-   * Created by Alex on 2/23/2015.
-   */
-
-  var CentralGravitySolver = (function () {
-    function CentralGravitySolver(body, physicsBody, options) {
-      _classCallCheck(this, CentralGravitySolver);
-
-      this.body = body;
-      this.physicsBody = physicsBody;
-      this.setOptions(options);
-    }
-
-    _prototypeProperties(CentralGravitySolver, null, {
-      setOptions: {
-        value: function setOptions(options) {
-          this.options = options;
-        },
-        writable: true,
-        configurable: true
-      },
-      solve: {
-        value: function solve() {
-          var dx, dy, distance, node, i;
-          var nodes = this.physicsBody.calculationNodes;
-          var calculationNodeIndices = this.physicsBody.calculationNodeIndices;
-          var gravity = this.options.centralGravity;
-          var gravityForce = 0;
-
-          for (i = 0; i < calculationNodeIndices.length; i++) {
-            node = nodes[calculationNodeIndices[i]];
-            node.damping = this.options.damping;
-            dx = -node.x;
-            dy = -node.y;
-            distance = Math.sqrt(dx * dx + dy * dy);
-
-            gravityForce = distance == 0 ? 0 : gravity / distance;
-            node.fx = dx * gravityForce;
-            node.fy = dy * gravityForce;
-          }
-        },
-        writable: true,
-        configurable: true
-      }
-    });
-
-    return CentralGravitySolver;
-  })();
-
-  exports.CentralGravitySolver = CentralGravitySolver;
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-/***/ },
-/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -35882,6 +35168,986 @@ return /******/ (function(modules) { // webpackBootstrap
   })();
 
   exports.ClusterEngine = ClusterEngine;
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+/***/ },
+/* 74 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  /**
+   * Created by Alex on 2/23/2015.
+   */
+
+  var BarnesHutSolver = (function () {
+    function BarnesHutSolver(body, physicsBody, options) {
+      _classCallCheck(this, BarnesHutSolver);
+
+      this.body = body;
+      this.physicsBody = physicsBody;
+      this.options = options;
+      this.barnesHutTree;
+    }
+
+    _prototypeProperties(BarnesHutSolver, null, {
+      solve: {
+
+
+        /**
+         * This function calculates the forces the nodes apply on eachother based on a gravitational model.
+         * The Barnes Hut method is used to speed up this N-body simulation.
+         *
+         * @private
+         */
+        value: function solve() {
+          if (this.options.gravitationalConstant != 0) {
+            var node;
+            var nodes = this.physicsBody.calculationNodes;
+            var nodeIndices = this.physicsBody.calculationNodeIndices;
+            var nodeCount = nodeIndices.length;
+
+            // create the tree
+            var barnesHutTree = this._formBarnesHutTree(nodes, nodeIndices);
+
+            // for debugging
+            this.barnesHutTree = barnesHutTree;
+
+            // place the nodes one by one recursively
+            for (var i = 0; i < nodeCount; i++) {
+              node = nodes[nodeIndices[i]];
+              if (node.options.mass > 0) {
+                // starting with root is irrelevant, it never passes the BarnesHutSolver condition
+                this._getForceContribution(barnesHutTree.root.children.NW, node);
+                this._getForceContribution(barnesHutTree.root.children.NE, node);
+                this._getForceContribution(barnesHutTree.root.children.SW, node);
+                this._getForceContribution(barnesHutTree.root.children.SE, node);
+              }
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _getForceContribution: {
+
+
+        /**
+         * This function traverses the barnesHutTree. It checks when it can approximate distant nodes with their center of mass.
+         * If a region contains a single node, we check if it is not itself, then we apply the force.
+         *
+         * @param parentBranch
+         * @param node
+         * @private
+         */
+        value: function _getForceContribution(parentBranch, node) {
+          // we get no force contribution from an empty region
+          if (parentBranch.childrenCount > 0) {
+            var dx, dy, distance;
+
+            // get the distance from the center of mass to the node.
+            dx = parentBranch.centerOfMass.x - node.x;
+            dy = parentBranch.centerOfMass.y - node.y;
+            distance = Math.sqrt(dx * dx + dy * dy);
+
+            // BarnesHutSolver condition
+            // original condition : s/d < thetaInverted = passed  ===  d/s > 1/theta = passed
+            // calcSize = 1/s --> d * 1/s > 1/theta = passed
+            if (distance * parentBranch.calcSize > this.options.thetaInverted) {
+              // duplicate code to reduce function calls to speed up program
+              if (distance == 0) {
+                distance = 0.1 * Math.random();
+                dx = distance;
+              }
+              var gravityForce = this.options.gravitationalConstant * parentBranch.mass * node.options.mass / (distance * distance * distance);
+              var fx = dx * gravityForce;
+              var fy = dy * gravityForce;
+              node.fx += fx;
+              node.fy += fy;
+            } else {
+              // Did not pass the condition, go into children if available
+              if (parentBranch.childrenCount == 4) {
+                this._getForceContribution(parentBranch.children.NW, node);
+                this._getForceContribution(parentBranch.children.NE, node);
+                this._getForceContribution(parentBranch.children.SW, node);
+                this._getForceContribution(parentBranch.children.SE, node);
+              } else {
+                // parentBranch must have only one node, if it was empty we wouldnt be here
+                if (parentBranch.children.data.id != node.id) {
+                  // if it is not self
+                  // duplicate code to reduce function calls to speed up program
+                  if (distance == 0) {
+                    distance = 0.5 * Math.random();
+                    dx = distance;
+                  }
+                  var gravityForce = this.options.gravitationalConstant * parentBranch.mass * node.options.mass / (distance * distance * distance);
+                  var fx = dx * gravityForce;
+                  var fy = dy * gravityForce;
+                  node.fx += fx;
+                  node.fy += fy;
+                }
+              }
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _formBarnesHutTree: {
+
+
+        /**
+         * This function constructs the barnesHut tree recursively. It creates the root, splits it and starts placing the nodes.
+         *
+         * @param nodes
+         * @param nodeIndices
+         * @private
+         */
+        value: function _formBarnesHutTree(nodes, nodeIndices) {
+          var node;
+          var nodeCount = nodeIndices.length;
+
+          var minX = Number.MAX_VALUE,
+              minY = Number.MAX_VALUE,
+              maxX = -Number.MAX_VALUE,
+              maxY = -Number.MAX_VALUE;
+
+          // get the range of the nodes
+          for (var i = 0; i < nodeCount; i++) {
+            var x = nodes[nodeIndices[i]].x;
+            var y = nodes[nodeIndices[i]].y;
+            if (nodes[nodeIndices[i]].options.mass > 0) {
+              if (x < minX) {
+                minX = x;
+              }
+              if (x > maxX) {
+                maxX = x;
+              }
+              if (y < minY) {
+                minY = y;
+              }
+              if (y > maxY) {
+                maxY = y;
+              }
+            }
+          }
+          // make the range a square
+          var sizeDiff = Math.abs(maxX - minX) - Math.abs(maxY - minY); // difference between X and Y
+          if (sizeDiff > 0) {
+            minY -= 0.5 * sizeDiff;
+            maxY += 0.5 * sizeDiff;
+          } // xSize > ySize
+          else {
+            minX += 0.5 * sizeDiff;
+            maxX -= 0.5 * sizeDiff;
+          } // xSize < ySize
+
+
+          var minimumTreeSize = 0.00001;
+          var rootSize = Math.max(minimumTreeSize, Math.abs(maxX - minX));
+          var halfRootSize = 0.5 * rootSize;
+          var centerX = 0.5 * (minX + maxX),
+              centerY = 0.5 * (minY + maxY);
+
+          // construct the barnesHutTree
+          var barnesHutTree = {
+            root: {
+              centerOfMass: { x: 0, y: 0 },
+              mass: 0,
+              range: {
+                minX: centerX - halfRootSize, maxX: centerX + halfRootSize,
+                minY: centerY - halfRootSize, maxY: centerY + halfRootSize
+              },
+              size: rootSize,
+              calcSize: 1 / rootSize,
+              children: { data: null },
+              maxWidth: 0,
+              level: 0,
+              childrenCount: 4
+            }
+          };
+          this._splitBranch(barnesHutTree.root);
+
+          // place the nodes one by one recursively
+          for (i = 0; i < nodeCount; i++) {
+            node = nodes[nodeIndices[i]];
+            if (node.options.mass > 0) {
+              this._placeInTree(barnesHutTree.root, node);
+            }
+          }
+
+          // make global
+          return barnesHutTree;
+        },
+        writable: true,
+        configurable: true
+      },
+      _updateBranchMass: {
+
+
+        /**
+         * this updates the mass of a branch. this is increased by adding a node.
+         *
+         * @param parentBranch
+         * @param node
+         * @private
+         */
+        value: function _updateBranchMass(parentBranch, node) {
+          var totalMass = parentBranch.mass + node.options.mass;
+          var totalMassInv = 1 / totalMass;
+
+          parentBranch.centerOfMass.x = parentBranch.centerOfMass.x * parentBranch.mass + node.x * node.options.mass;
+          parentBranch.centerOfMass.x *= totalMassInv;
+
+          parentBranch.centerOfMass.y = parentBranch.centerOfMass.y * parentBranch.mass + node.y * node.options.mass;
+          parentBranch.centerOfMass.y *= totalMassInv;
+
+          parentBranch.mass = totalMass;
+          var biggestSize = Math.max(Math.max(node.height, node.radius), node.width);
+          parentBranch.maxWidth = parentBranch.maxWidth < biggestSize ? biggestSize : parentBranch.maxWidth;
+        },
+        writable: true,
+        configurable: true
+      },
+      _placeInTree: {
+
+
+        /**
+         * determine in which branch the node will be placed.
+         *
+         * @param parentBranch
+         * @param node
+         * @param skipMassUpdate
+         * @private
+         */
+        value: function _placeInTree(parentBranch, node, skipMassUpdate) {
+          if (skipMassUpdate != true || skipMassUpdate === undefined) {
+            // update the mass of the branch.
+            this._updateBranchMass(parentBranch, node);
+          }
+
+          if (parentBranch.children.NW.range.maxX > node.x) {
+            // in NW or SW
+            if (parentBranch.children.NW.range.maxY > node.y) {
+              // in NW
+              this._placeInRegion(parentBranch, node, "NW");
+            } else {
+              // in SW
+              this._placeInRegion(parentBranch, node, "SW");
+            }
+          } else {
+            // in NE or SE
+            if (parentBranch.children.NW.range.maxY > node.y) {
+              // in NE
+              this._placeInRegion(parentBranch, node, "NE");
+            } else {
+              // in SE
+              this._placeInRegion(parentBranch, node, "SE");
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _placeInRegion: {
+
+
+        /**
+         * actually place the node in a region (or branch)
+         *
+         * @param parentBranch
+         * @param node
+         * @param region
+         * @private
+         */
+        value: function _placeInRegion(parentBranch, node, region) {
+          switch (parentBranch.children[region].childrenCount) {
+            case 0:
+              // place node here
+              parentBranch.children[region].children.data = node;
+              parentBranch.children[region].childrenCount = 1;
+              this._updateBranchMass(parentBranch.children[region], node);
+              break;
+            case 1:
+              // convert into children
+              // if there are two nodes exactly overlapping (on init, on opening of cluster etc.)
+              // we move one node a pixel and we do not put it in the tree.
+              if (parentBranch.children[region].children.data.x == node.x && parentBranch.children[region].children.data.y == node.y) {
+                node.x += Math.random();
+                node.y += Math.random();
+              } else {
+                this._splitBranch(parentBranch.children[region]);
+                this._placeInTree(parentBranch.children[region], node);
+              }
+              break;
+            case 4:
+              // place in branch
+              this._placeInTree(parentBranch.children[region], node);
+              break;
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _splitBranch: {
+
+
+        /**
+         * this function splits a branch into 4 sub branches. If the branch contained a node, we place it in the subbranch
+         * after the split is complete.
+         *
+         * @param parentBranch
+         * @private
+         */
+        value: function _splitBranch(parentBranch) {
+          // if the branch is shaded with a node, replace the node in the new subset.
+          var containedNode = null;
+          if (parentBranch.childrenCount == 1) {
+            containedNode = parentBranch.children.data;
+            parentBranch.mass = 0;
+            parentBranch.centerOfMass.x = 0;
+            parentBranch.centerOfMass.y = 0;
+          }
+          parentBranch.childrenCount = 4;
+          parentBranch.children.data = null;
+          this._insertRegion(parentBranch, "NW");
+          this._insertRegion(parentBranch, "NE");
+          this._insertRegion(parentBranch, "SW");
+          this._insertRegion(parentBranch, "SE");
+
+          if (containedNode != null) {
+            this._placeInTree(parentBranch, containedNode);
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _insertRegion: {
+
+
+        /**
+         * This function subdivides the region into four new segments.
+         * Specifically, this inserts a single new segment.
+         * It fills the children section of the parentBranch
+         *
+         * @param parentBranch
+         * @param region
+         * @param parentRange
+         * @private
+         */
+        value: function _insertRegion(parentBranch, region) {
+          var minX, maxX, minY, maxY;
+          var childSize = 0.5 * parentBranch.size;
+          switch (region) {
+            case "NW":
+              minX = parentBranch.range.minX;
+              maxX = parentBranch.range.minX + childSize;
+              minY = parentBranch.range.minY;
+              maxY = parentBranch.range.minY + childSize;
+              break;
+            case "NE":
+              minX = parentBranch.range.minX + childSize;
+              maxX = parentBranch.range.maxX;
+              minY = parentBranch.range.minY;
+              maxY = parentBranch.range.minY + childSize;
+              break;
+            case "SW":
+              minX = parentBranch.range.minX;
+              maxX = parentBranch.range.minX + childSize;
+              minY = parentBranch.range.minY + childSize;
+              maxY = parentBranch.range.maxY;
+              break;
+            case "SE":
+              minX = parentBranch.range.minX + childSize;
+              maxX = parentBranch.range.maxX;
+              minY = parentBranch.range.minY + childSize;
+              maxY = parentBranch.range.maxY;
+              break;
+          }
+
+
+          parentBranch.children[region] = {
+            centerOfMass: { x: 0, y: 0 },
+            mass: 0,
+            range: { minX: minX, maxX: maxX, minY: minY, maxY: maxY },
+            size: 0.5 * parentBranch.size,
+            calcSize: 2 * parentBranch.calcSize,
+            children: { data: null },
+            maxWidth: 0,
+            level: parentBranch.level + 1,
+            childrenCount: 0
+          };
+        },
+        writable: true,
+        configurable: true
+      },
+      _debug: {
+
+
+
+
+        //---------------------------  DEBUGGING BELOW  ---------------------------//
+
+
+        /**
+         * This function is for debugging purposed, it draws the tree.
+         *
+         * @param ctx
+         * @param color
+         * @private
+         */
+        value: function _debug(ctx, color) {
+          if (this.barnesHutTree !== undefined) {
+            ctx.lineWidth = 1;
+
+            this._drawBranch(this.barnesHutTree.root, ctx, color);
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawBranch: {
+
+
+        /**
+         * This function is for debugging purposes. It draws the branches recursively.
+         *
+         * @param branch
+         * @param ctx
+         * @param color
+         * @private
+         */
+        value: function _drawBranch(branch, ctx, color) {
+          if (color === undefined) {
+            color = "#FF0000";
+          }
+
+          if (branch.childrenCount == 4) {
+            this._drawBranch(branch.children.NW, ctx);
+            this._drawBranch(branch.children.NE, ctx);
+            this._drawBranch(branch.children.SE, ctx);
+            this._drawBranch(branch.children.SW, ctx);
+          }
+          ctx.strokeStyle = color;
+          ctx.beginPath();
+          ctx.moveTo(branch.range.minX, branch.range.minY);
+          ctx.lineTo(branch.range.maxX, branch.range.minY);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(branch.range.maxX, branch.range.minY);
+          ctx.lineTo(branch.range.maxX, branch.range.maxY);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(branch.range.maxX, branch.range.maxY);
+          ctx.lineTo(branch.range.minX, branch.range.maxY);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(branch.range.minX, branch.range.maxY);
+          ctx.lineTo(branch.range.minX, branch.range.minY);
+          ctx.stroke();
+
+          /*
+           if (branch.mass > 0) {
+           ctx.circle(branch.centerOfMass.x, branch.centerOfMass.y, 3*branch.mass);
+           ctx.stroke();
+           }
+           */
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return BarnesHutSolver;
+  })();
+
+  exports.BarnesHutSolver = BarnesHutSolver;
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+/***/ },
+/* 75 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  /**
+   * Created by Alex on 2/23/2015.
+   */
+
+  var RepulsionSolver = (function () {
+    function RepulsionSolver(body, physicsBody, options) {
+      _classCallCheck(this, RepulsionSolver);
+
+      this.body = body;
+      this.physicsBody = physicsBody;
+      this.options = options;
+    }
+
+    _prototypeProperties(RepulsionSolver, null, {
+      solve: {
+
+        /**
+         * Calculate the forces the nodes apply on each other based on a repulsion field.
+         * This field is linearly approximated.
+         *
+         * @private
+         */
+        value: function solve() {
+          var dx, dy, distance, fx, fy, repulsingForce, node1, node2;
+
+          var nodes = this.physicsBody.calculationNodes;
+          var nodeIndices = this.physicsBody.calculationNodeIndices;
+
+          // repulsing forces between nodes
+          var nodeDistance = this.options.nodeDistance;
+
+          // approximation constants
+          var a = -2 / 3 / nodeDistance;
+          var b = 4 / 3;
+
+          // we loop from i over all but the last entree in the array
+          // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
+          for (var i = 0; i < nodeIndices.length - 1; i++) {
+            node1 = nodes[nodeIndices[i]];
+            for (var j = i + 1; j < nodeIndices.length; j++) {
+              node2 = nodes[nodeIndices[j]];
+
+              dx = node2.x - node1.x;
+              dy = node2.y - node1.y;
+              distance = Math.sqrt(dx * dx + dy * dy);
+
+              // same condition as BarnesHutSolver, making sure nodes are never 100% overlapping.
+              if (distance == 0) {
+                distance = 0.1 * Math.random();
+                dx = distance;
+              }
+
+              if (distance < 2 * nodeDistance) {
+                if (distance < 0.5 * nodeDistance) {
+                  repulsingForce = 1;
+                } else {
+                  repulsingForce = a * distance + b; // linear approx of  1 / (1 + Math.exp((distance / nodeDistance - 1) * steepness))
+                }
+                repulsingForce = repulsingForce / distance;
+
+                fx = dx * repulsingForce;
+                fy = dy * repulsingForce;
+                node1.fx -= fx;
+                node1.fy -= fy;
+                node2.fx += fx;
+                node2.fy += fy;
+              }
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return RepulsionSolver;
+  })();
+
+  exports.RepulsionSolver = RepulsionSolver;
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+/***/ },
+/* 76 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  /**
+   * Created by Alex on 2/23/2015.
+   */
+
+  var HierarchicalRepulsionSolver = (function () {
+    function HierarchicalRepulsionSolver(body, physicsBody, options) {
+      _classCallCheck(this, HierarchicalRepulsionSolver);
+
+      this.body = body;
+      this.physicsBody = physicsBody;
+      this.options = options;
+    }
+
+    _prototypeProperties(HierarchicalRepulsionSolver, null, {
+      solve: {
+
+        /**
+         * Calculate the forces the nodes apply on each other based on a repulsion field.
+         * This field is linearly approximated.
+         *
+         * @private
+         */
+        value: function solve() {
+          var dx, dy, distance, fx, fy, repulsingForce, node1, node2, i, j;
+
+          var nodes = this.physicsBody.calculationNodes;
+          var nodeIndices = this.physicsBody.calculationNodeIndices;
+
+          // repulsing forces between nodes
+          var nodeDistance = this.options.nodeDistance;
+
+          // we loop from i over all but the last entree in the array
+          // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
+          for (i = 0; i < nodeIndices.length - 1; i++) {
+            node1 = nodes[nodeIndices[i]];
+            for (j = i + 1; j < nodeIndices.length; j++) {
+              node2 = nodes[nodeIndices[j]];
+
+              // nodes only affect nodes on their level
+              if (node1.level == node2.level) {
+                dx = node2.x - node1.x;
+                dy = node2.y - node1.y;
+                distance = Math.sqrt(dx * dx + dy * dy);
+
+
+                var steepness = 0.05;
+                if (distance < nodeDistance) {
+                  repulsingForce = -Math.pow(steepness * distance, 2) + Math.pow(steepness * nodeDistance, 2);
+                } else {
+                  repulsingForce = 0;
+                }
+                // normalize force with
+                if (distance == 0) {
+                  distance = 0.01;
+                } else {
+                  repulsingForce = repulsingForce / distance;
+                }
+                fx = dx * repulsingForce;
+                fy = dy * repulsingForce;
+
+                node1.fx -= fx;
+                node1.fy -= fy;
+                node2.fx += fx;
+                node2.fy += fy;
+              }
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return HierarchicalRepulsionSolver;
+  })();
+
+  exports.HierarchicalRepulsionSolver = HierarchicalRepulsionSolver;
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+/***/ },
+/* 77 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  /**
+   * Created by Alex on 2/23/2015.
+   */
+
+  var SpringSolver = (function () {
+    function SpringSolver(body, options) {
+      _classCallCheck(this, SpringSolver);
+
+      this.body = body;
+      this.options = options;
+    }
+
+    _prototypeProperties(SpringSolver, null, {
+      solve: {
+
+        /**
+         * This function calculates the springforces on the nodes, accounting for the support nodes.
+         *
+         * @private
+         */
+        value: function solve() {
+          var edgeLength, edge, edgeId;
+          var edges = this.body.edges;
+
+          // forces caused by the edges, modelled as springs
+          for (edgeId in edges) {
+            if (edges.hasOwnProperty(edgeId)) {
+              edge = edges[edgeId];
+              if (edge.connected === true) {
+                // only calculate forces if nodes are in the same sector
+                if (this.body.nodes[edge.toId] !== undefined && this.body.nodes[edge.fromId] !== undefined) {
+                  edgeLength = edge.properties.length === undefined ? this.options.springLength : edge.properties.length;
+                  if (edge.via != null) {
+                    var node1 = edge.to;
+                    var node2 = edge.via;
+                    var node3 = edge.from;
+
+                    this._calculateSpringForce(node1, node2, 0.5 * edgeLength);
+                    this._calculateSpringForce(node2, node3, 0.5 * edgeLength);
+                  } else {
+                    this._calculateSpringForce(edge.from, edge.to, edgeLength);
+                  }
+                }
+              }
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _calculateSpringForce: {
+
+
+        /**
+         * This is the code actually performing the calculation for the function above.
+         *
+         * @param node1
+         * @param node2
+         * @param edgeLength
+         * @private
+         */
+        value: function _calculateSpringForce(node1, node2, edgeLength) {
+          var dx, dy, fx, fy, springForce, distance;
+
+          dx = node1.x - node2.x;
+          dy = node1.y - node2.y;
+          distance = Math.sqrt(dx * dx + dy * dy);
+          distance = distance == 0 ? 0.01 : distance;
+
+          // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+          springForce = this.options.springConstant * (edgeLength - distance) / distance;
+
+          fx = dx * springForce;
+          fy = dy * springForce;
+
+          node1.fx += fx;
+          node1.fy += fy;
+          node2.fx -= fx;
+          node2.fy -= fy;
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return SpringSolver;
+  })();
+
+  exports.SpringSolver = SpringSolver;
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+/***/ },
+/* 78 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  /**
+   * Created by Alex on 2/25/2015.
+   */
+
+  var HierarchicalSpringSolver = (function () {
+    function HierarchicalSpringSolver(body, physicsBody, options) {
+      _classCallCheck(this, HierarchicalSpringSolver);
+
+      this.body = body;
+      this.physicsBody = physicsBody;
+      this.options = options;
+    }
+
+    _prototypeProperties(HierarchicalSpringSolver, null, {
+      solve: {
+
+        /**
+         * This function calculates the springforces on the nodes, accounting for the support nodes.
+         *
+         * @private
+         */
+        value: function solve() {
+          var edgeLength, edge, edgeId;
+          var dx, dy, fx, fy, springForce, distance;
+          var edges = this.body.edges;
+
+          var nodes = this.physicsBody.calculationNodes;
+          var nodeIndices = this.physicsBody.calculationNodeIndices;
+
+          // initialize the spring force counters
+          for (var i = 0; i < nodeIndices.length; i++) {
+            var node1 = nodes[nodeIndices[i]];
+            node1.springFx = 0;
+            node1.springFy = 0;
+          }
+
+
+          // forces caused by the edges, modelled as springs
+          for (edgeId in edges) {
+            if (edges.hasOwnProperty(edgeId)) {
+              edge = edges[edgeId];
+              if (edge.connected === true) {
+                // only calculate forces if nodes are in the same sector
+                if (this.body.nodes[edge.toId] !== undefined && this.body.nodes[edge.fromId] !== undefined) {
+                  edgeLength = edge.properties.length === undefined ? this.options.springLength : edge.properties.length;
+
+                  dx = edge.from.x - edge.to.x;
+                  dy = edge.from.y - edge.to.y;
+                  distance = Math.sqrt(dx * dx + dy * dy);
+                  distance = distance == 0 ? 0.01 : distance;
+
+                  // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+                  springForce = this.options.springConstant * (edgeLength - distance) / distance;
+
+                  fx = dx * springForce;
+                  fy = dy * springForce;
+
+                  if (edge.to.level != edge.from.level) {
+                    edge.to.springFx -= fx;
+                    edge.to.springFy -= fy;
+                    edge.from.springFx += fx;
+                    edge.from.springFy += fy;
+                  } else {
+                    var factor = 0.5;
+                    edge.to.fx -= factor * fx;
+                    edge.to.fy -= factor * fy;
+                    edge.from.fx += factor * fx;
+                    edge.from.fy += factor * fy;
+                  }
+                }
+              }
+            }
+          }
+
+          // normalize spring forces
+          var springForce = 1;
+          var springFx, springFy;
+          for (var i = 0; i < nodeIndices.length; i++) {
+            var node = nodes[nodeIndices[i]];
+            springFx = Math.min(springForce, Math.max(-springForce, node.springFx));
+            springFy = Math.min(springForce, Math.max(-springForce, node.springFy));
+
+            node.fx += springFx;
+            node.fy += springFy;
+          }
+
+          // retain energy balance
+          var totalFx = 0;
+          var totalFy = 0;
+          for (var i = 0; i < nodeIndices.length; i++) {
+            var node = nodes[nodeIndices[i]];
+            totalFx += node.fx;
+            totalFy += node.fy;
+          }
+          var correctionFx = totalFx / nodeIndices.length;
+          var correctionFy = totalFy / nodeIndices.length;
+
+          for (var i = 0; i < nodeIndices.length; i++) {
+            var node = nodes[nodeIndices[i]];
+            node.fx -= correctionFx;
+            node.fy -= correctionFy;
+          }
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return HierarchicalSpringSolver;
+  })();
+
+  exports.HierarchicalSpringSolver = HierarchicalSpringSolver;
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+/***/ },
+/* 79 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  /**
+   * Created by Alex on 2/23/2015.
+   */
+
+  var CentralGravitySolver = (function () {
+    function CentralGravitySolver(body, physicsBody, options) {
+      _classCallCheck(this, CentralGravitySolver);
+
+      this.body = body;
+      this.physicsBody = physicsBody;
+      this.setOptions(options);
+    }
+
+    _prototypeProperties(CentralGravitySolver, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          this.options = options;
+        },
+        writable: true,
+        configurable: true
+      },
+      solve: {
+        value: function solve() {
+          var dx, dy, distance, node, i;
+          var nodes = this.physicsBody.calculationNodes;
+          var calculationNodeIndices = this.physicsBody.calculationNodeIndices;
+          var gravity = this.options.centralGravity;
+          var gravityForce = 0;
+
+          for (i = 0; i < calculationNodeIndices.length; i++) {
+            node = nodes[calculationNodeIndices[i]];
+            node.damping = this.options.damping;
+            dx = -node.x;
+            dy = -node.y;
+            distance = Math.sqrt(dx * dx + dy * dy);
+
+            gravityForce = distance == 0 ? 0 : gravity / distance;
+            node.fx = dx * gravityForce;
+            node.fy = dy * gravityForce;
+          }
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return CentralGravitySolver;
+  })();
+
+  exports.CentralGravitySolver = CentralGravitySolver;
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
