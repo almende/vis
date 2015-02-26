@@ -19669,7 +19669,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
       me.redraw();
 
-      // start a timer to adjust for the new time
+      // start a renderTimer to adjust for the new time
       me.currentTimeTimer = setTimeout(update, interval);
     }
 
@@ -22768,6 +22768,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var PhysicsEngine = __webpack_require__(66).PhysicsEngine;
   var ClusterEngine = __webpack_require__(67).ClusterEngine;
+  var CanvasRenderer = __webpack_require__(68).CanvasRenderer;
+  var Canvas = __webpack_require__(69).Canvas;
+  var View = __webpack_require__(70).View;
 
 
   /**
@@ -22786,19 +22789,10 @@ return /******/ (function(modules) { // webpackBootstrap
       throw new SyntaxError("Constructor must be called with the new operator");
     }
 
-    this._determineBrowserMethod();
     this._initializeMixinLoaders();
 
-    // create variables and set default values
-    this.containerElement = container;
 
     // render and calculation settings
-    this.renderRefreshRate = 60; // hz (fps)
-    this.renderTimestep = 1000 / this.renderRefreshRate; // ms -- saves calculation later on
-    this.renderTime = 0; // measured time it takes to render a frame
-    this.runDoubleSpeed = false;
-    this.physicsDiscreteStepsize = 0.5; // discrete stepsize of the simulation
-
     this.initializing = true;
 
     this.triggerFunctions = { add: null, edit: null, editEdge: null, connect: null, del: null };
@@ -22885,34 +22879,6 @@ return /******/ (function(modules) { // webpackBootstrap
         useGradients: false // release in 4.0
       },
       configurePhysics: false,
-      physics: {
-        barnesHut: {
-          thetaInverted: 1 / 0.5, // inverted to save time during calculation
-          gravitationalConstant: -2000,
-          centralGravity: 0.3,
-          springLength: 95,
-          springConstant: 0.04,
-          damping: 0.09
-        },
-        repulsion: {
-          centralGravity: 0,
-          springLength: 200,
-          springConstant: 0.05,
-          nodeDistance: 100,
-          damping: 0.09
-        },
-        hierarchicalRepulsion: {
-          centralGravity: 0,
-          springLength: 100,
-          springConstant: 0.01,
-          nodeDistance: 150,
-          damping: 0.09
-        },
-        model: "BarnesHut",
-        timestep: 0.5,
-        maxVelocity: 50,
-        minVelocity: 0.1 // px/s
-      },
       navigation: {
         enabled: false
       },
@@ -22932,19 +22898,13 @@ return /******/ (function(modules) { // webpackBootstrap
         direction: "UD", // UD, DU, LR, RL
         layout: "hubsize" // hubsize, directed
       },
-      freezeForStabilization: false,
+
       smoothCurves: {
         enabled: true,
         dynamic: true,
         type: "continuous",
         roundness: 0.5
       },
-      maxVelocity: 50, // ---------------- MOVED TO PHYSICS ----------------------- //
-      minVelocity: 0.1, // px/s          // ---------------- MOVED TO PHYSICS ----------------------- //
-      stabilize: true, // stabilize before displaying the network
-      stabilizationIterations: 1000, // maximum number of iteration to stabilize
-      stabilizationStepsize: 100,
-      zoomExtentOnStabilize: true,
       locale: "en",
       locales: locales,
       tooltip: {
@@ -22983,43 +22943,44 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       functions: {
         createNode: this._createNode.bind(this),
-        createEdge: this._createEdge.bind(this),
-        getScale: (function () {
-          return this.scale;
-        }).bind(this)
+        createEdge: this._createEdge.bind(this)
       },
       emitter: {
         on: this.on.bind(this),
         off: this.off.bind(this),
-        emit: this.emit.bind(this)
-      }
+        emit: this.emit.bind(this),
+        once: this.once.bind(this)
+      },
+      eventListeners: {
+        onTap: function () {},
+        onTouch: function () {},
+        onDoubleTap: function () {},
+        onHold: function () {},
+        onDragStart: function () {},
+        onDrag: function () {},
+        onDragEnd: function () {},
+        onMouseWheel: function () {},
+        onPinch: function () {},
+        onMouseMove: function () {},
+        onRelease: function () {}
+      },
+      container: container
     };
 
     // modules
+    this.view = new View(this.body);
+    this.renderer = new CanvasRenderer(this.body);
     this.clustering = new ClusterEngine(this.body);
     this.physics = new PhysicsEngine(this.body);
+    this.canvas = new Canvas(this.body);
 
-    this.pixelRatio = 1;
-
+    this.renderer.setCanvas(this.canvas);
+    this.view.setCanvas(this.canvas);
 
     this.hoverObj = { nodes: {}, edges: {} };
     this.controlNodesActive = false;
     this.navigationHammers = [];
     this.manipulationHammers = [];
-
-    // animation properties
-    this.animationSpeed = 1 / this.renderRefreshRate;
-    this.animationEasingFunction = "easeInOutQuint";
-    this.animating = false;
-    this.easingTime = 0;
-    this.sourceScale = 0;
-    this.targetScale = 0;
-    this.sourceTranslation = 0;
-    this.targetTranslation = 0;
-    this.lockedOnNodeId = null;
-    this.lockedOnNodeOffset = null;
-    this.touchTime = 0;
-    this.redrawRequested = false;
 
     // Node variables
     var me = this;
@@ -23038,20 +22999,16 @@ return /******/ (function(modules) { // webpackBootstrap
     // load the force calculation functions, grouped under the physics system.
     //this._loadPhysicsSystem();
     // create a frame and canvas
-    this._create();
     // load the cluster system.   (mandatory, even when not using the cluster system, there are function calls to it)
     // load the selection system. (mandatory, required by Network)
     this._loadSelectionSystem();
     // load the selection system. (mandatory, required by Network)
-    this._loadHierarchySystem();
+    //this._loadHierarchySystem();
 
     // apply options
-    this._setTranslation(this.frame.clientWidth / 2, this.frame.clientHeight / 2);
-    this._setScale(1);
     this.setOptions(options);
 
     // other vars
-    this.freezeSimulationEnabled = false; // freeze the simulation
     this.cachedFunctions = {};
     this.startedStabilization = false;
     this.stabilized = false;
@@ -23059,8 +23016,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.draggingNodes = false;
 
     // position and scale variables and objects
-    this.canvasTopLeft = { x: 0, y: 0 }; // coordinates of the top left of the canvas.     they will be set during _redraw.
-    this.canvasBottomRight = { x: 0, y: 0 }; // coordinates of the bottom right of the canvas. they will be set during _redraw
+
     this.pointerPosition = { x: 0, y: 0 }; // coordinates of the bottom right of the canvas. they will be set during _redraw
     this.scale = 1; // defining the global scale variable in the constructor
 
@@ -23097,7 +23053,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // properties for the animation
     this.moving = true;
-    this.timer = undefined; // Scheduling function. Is definded in this.start();
+    this.renderTimer = undefined; // Scheduling function. Is definded in this.start();
 
     // load data (the disable start variable will be the same as the enabled clustering)
     this.setData(data, this.constants.hierarchicalLayout.enabled);
@@ -23129,9 +23085,7 @@ return /******/ (function(modules) { // webpackBootstrap
     });
 
     this.on("_newEdgesCreated", this._createBezierNodes.bind(this));
-    this.on("stabilizationIterationsDone", (function () {
-      this.initializing = false;this.start();
-    }).bind(this));
+    //this.on("stabilizationIterationsDone", function () {me.initializing = false; me.start();}.bind(this));
   }
 
   // Extend Network with an Emitter mixin
@@ -23147,205 +23101,6 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 
-  /**
-   * Determine if the browser requires a setTimeout or a requestAnimationFrame. This was required because
-   * some implementations (safari and IE9) did not support requestAnimationFrame
-   * @private
-   */
-  Network.prototype._determineBrowserMethod = function () {
-    var browserType = navigator.userAgent.toLowerCase();
-    this.requiresTimeout = false;
-    if (browserType.indexOf("msie 9.0") != -1) {
-      // IE 9
-      this.requiresTimeout = true;
-    } else if (browserType.indexOf("safari") != -1) {
-      // safari
-      if (browserType.indexOf("chrome") <= -1) {
-        this.requiresTimeout = true;
-      }
-    }
-  };
-
-
-  /**
-   * Get the script path where the vis.js library is located
-   *
-   * @returns {string | null} path   Path or null when not found. Path does not
-   *                                 end with a slash.
-   * @private
-   */
-  Network.prototype._getScriptPath = function () {
-    var scripts = document.getElementsByTagName("script");
-
-    // find script named vis.js or vis.min.js
-    for (var i = 0; i < scripts.length; i++) {
-      var src = scripts[i].src;
-      var match = src && /\/?vis(.min)?\.js$/.exec(src);
-      if (match) {
-        // return path without the script name
-        return src.substring(0, src.length - match[0].length);
-      }
-    }
-
-    return null;
-  };
-
-
-  /**
-   * Find the center position of the network
-   * @private
-   */
-  Network.prototype._getRange = function (specificNodes) {
-    var minY = 1000000000,
-        maxY = -1000000000,
-        minX = 1000000000,
-        maxX = -1000000000,
-        node;
-    if (specificNodes.length > 0) {
-      for (var i = 0; i < specificNodes.length; i++) {
-        node = this.body.nodes[specificNodes[i]];
-        if (minX > node.boundingBox.left) {
-          minX = node.boundingBox.left;
-        }
-        if (maxX < node.boundingBox.right) {
-          maxX = node.boundingBox.right;
-        }
-        if (minY > node.boundingBox.bottom) {
-          minY = node.boundingBox.top;
-        } // top is negative, bottom is positive
-        if (maxY < node.boundingBox.top) {
-          maxY = node.boundingBox.bottom;
-        } // top is negative, bottom is positive
-      }
-    } else {
-      for (var nodeId in this.body.nodes) {
-        if (this.body.nodes.hasOwnProperty(nodeId)) {
-          node = this.body.nodes[nodeId];
-          if (minX > node.boundingBox.left) {
-            minX = node.boundingBox.left;
-          }
-          if (maxX < node.boundingBox.right) {
-            maxX = node.boundingBox.right;
-          }
-          if (minY > node.boundingBox.bottom) {
-            minY = node.boundingBox.top;
-          } // top is negative, bottom is positive
-          if (maxY < node.boundingBox.top) {
-            maxY = node.boundingBox.bottom;
-          } // top is negative, bottom is positive
-        }
-      }
-    }
-
-    if (minX == 1000000000 && maxX == -1000000000 && minY == 1000000000 && maxY == -1000000000) {
-      minY = 0, maxY = 0, minX = 0, maxX = 0;
-    }
-    return { minX: minX, maxX: maxX, minY: minY, maxY: maxY };
-  };
-
-
-  /**
-   * @param {object} range = {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
-   * @returns {{x: number, y: number}}
-   * @private
-   */
-  Network.prototype._findCenter = function (range) {
-    return { x: 0.5 * (range.maxX + range.minX),
-      y: 0.5 * (range.maxY + range.minY) };
-  };
-
-
-  /**
-   * This function zooms out to fit all data on screen based on amount of nodes
-   *
-   * @param {Boolean} [initialZoom]  | zoom based on fitted formula or range, true = fitted, default = false;
-   * @param {Boolean} [disableStart] | If true, start is not called.
-   */
-  Network.prototype.zoomExtent = function (options, initialZoom, disableStart) {
-    this._redraw(true);
-
-    if (initialZoom === undefined) {
-      initialZoom = false;
-    }
-    if (disableStart === undefined) {
-      disableStart = false;
-    }
-    if (options === undefined) {
-      options = { nodes: [] };
-    }
-    if (options.nodes === undefined) {
-      options.nodes = [];
-    }
-
-    var range;
-    var zoomLevel;
-
-    if (initialZoom == true) {
-      // check if more than half of the nodes have a predefined position. If so, we use the range, not the approximation.
-      var positionDefined = 0;
-      for (var nodeId in this.body.nodes) {
-        if (this.body.nodes.hasOwnProperty(nodeId)) {
-          var node = this.body.nodes[nodeId];
-          if (node.predefinedPosition == true) {
-            positionDefined += 1;
-          }
-        }
-      }
-      if (positionDefined > 0.5 * this.body.nodeIndices.length) {
-        this.zoomExtent(options, false, disableStart);
-        return;
-      }
-
-      range = this._getRange(options.nodes);
-
-      var numberOfNodes = this.body.nodeIndices.length;
-      if (this.constants.smoothCurves == true) {
-        if (this.constants.clustering.enabled == true && numberOfNodes >= this.constants.clustering.initialMaxNodes) {
-          zoomLevel = 49.07548 / (numberOfNodes + 142.05338) + 0.00091444; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
-        } else {
-          zoomLevel = 12.662 / (numberOfNodes + 7.4147) + 0.0964822; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
-        }
-      } else {
-        if (this.constants.clustering.enabled == true && numberOfNodes >= this.constants.clustering.initialMaxNodes) {
-          zoomLevel = 77.5271985 / (numberOfNodes + 187.266146) + 0.0000476710517; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
-        } else {
-          zoomLevel = 30.5062972 / (numberOfNodes + 19.93597763) + 0.08413486; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
-        }
-      }
-
-      // correct for larger canvasses.
-      var factor = Math.min(this.frame.canvas.clientWidth / 600, this.frame.canvas.clientHeight / 600);
-      zoomLevel *= factor;
-    } else {
-      range = this._getRange(options.nodes);
-      var xDistance = Math.abs(range.maxX - range.minX) * 1.1;
-      var yDistance = Math.abs(range.maxY - range.minY) * 1.1;
-
-      var xZoomLevel = this.frame.canvas.clientWidth / xDistance;
-      var yZoomLevel = this.frame.canvas.clientHeight / yDistance;
-      zoomLevel = xZoomLevel <= yZoomLevel ? xZoomLevel : yZoomLevel;
-    }
-
-    if (zoomLevel > 1) {
-      zoomLevel = 1;
-    }
-
-
-    var center = this._findCenter(range);
-    if (disableStart == false) {
-      var options = { position: center, scale: zoomLevel, animation: options };
-      this.moveTo(options);
-      this.moving = true;
-      this.start();
-    } else {
-      center.x *= zoomLevel;
-      center.y *= zoomLevel;
-      center.x -= 0.5 * this.frame.canvas.clientWidth;
-      center.y -= 0.5 * this.frame.canvas.clientHeight;
-      this._setScale(zoomLevel);
-      this._setTranslation(-center.x, -center.y);
-    }
-  };
 
 
   /**
@@ -23417,12 +23172,7 @@ return /******/ (function(modules) { // webpackBootstrap
         this._setupHierarchicalLayout();
       } else {
         // find a stable position or start animating to a stable position
-        if (this.constants.stabilize == true) {
-          this._stabilize();
-        } else {
-          this.moving = true;
-          this.start();
-        }
+        this.physics.startSimulation();
       }
     } else {
       this.initializing = false;
@@ -23443,11 +23193,10 @@ return /******/ (function(modules) { // webpackBootstrap
       util.selectiveNotDeepExtend(["color", "length"], this.constants.edges, options.edges);
 
       this.groups.useDefaultGroups = this.constants.useDefaultGroups;
-      if (options.physics) {
-        util.mergeOptions(this.constants.physics, options.physics, "barnesHut");
-        util.mergeOptions(this.constants.physics, options.physics, "repulsion");
-        util.mergeOptions(this.constants.physics, options.physics, "hierarchicalRepulsion");
-      }
+
+      this.physics.setOptions(options.physics);
+      this.canvas.setOptions(this.constants);
+
 
       if (options.onAdd) {
         this.triggerFunctions.add = options.onAdd;
@@ -23562,22 +23311,21 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // (Re)loading the mixins that can be enabled or disabled in the options.
       // load the force calculation functions, grouped under the physics system.
-      this.physics.setOptions(this.constants.physics);
       // load the navigation system.
-      this._loadNavigationControls();
-      // load the data manipulation system
-      this._loadManipulationSystem();
-      // configure the smooth curves
-      this._configureSmoothCurves();
+      //this._loadNavigationControls();
+      //// load the data manipulation system
+      //this._loadManipulationSystem();
+      //// configure the smooth curves
+      //this._configureSmoothCurves();
 
       // bind hammer
-      this._bindHammer();
+      this.canvas._bindHammer();
 
       // bind keys. If disabled, this will not do anything;
-      this._createKeyBinds();
+      //this._createKeyBinds();
 
       this._markAllEdgesAsDirty();
-      this.setSize(this.constants.width, this.constants.height);
+      this.canvas.setSize(this.constants.width, this.constants.height);
       if (this.constants.hierarchicalLayout.enabled == true && this.initializing == false) {
         this._resetLevels();
         this._setupHierarchicalLayout();
@@ -23593,137 +23341,57 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
   /**
-   * Create the main frame for the Network.
-   * This function is executed once when a Network object is created. The frame
-   * contains a canvas, and this canvas contains all objects like the axis and
-   * nodes.
-   * @private
-   */
-  Network.prototype._create = function () {
-    // remove all elements from the container element.
-    while (this.containerElement.hasChildNodes()) {
-      this.containerElement.removeChild(this.containerElement.firstChild);
-    }
-
-    this.frame = document.createElement("div");
-    this.frame.className = "vis network-frame";
-    this.frame.style.position = "relative";
-    this.frame.style.overflow = "hidden";
-    this.frame.tabIndex = 900;
-
-    //////////////////////////////////////////////////////////////////
-
-    this.frame.canvas = document.createElement("canvas");
-    this.frame.canvas.style.position = "relative";
-    this.frame.appendChild(this.frame.canvas);
-
-    if (!this.frame.canvas.getContext) {
-      var noCanvas = document.createElement("DIV");
-      noCanvas.style.color = "red";
-      noCanvas.style.fontWeight = "bold";
-      noCanvas.style.padding = "10px";
-      noCanvas.innerHTML = "Error: your browser does not support HTML canvas";
-      this.frame.canvas.appendChild(noCanvas);
-    } else {
-      var ctx = this.frame.canvas.getContext("2d");
-      this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
-
-      //this.pixelRatio = Math.max(1,this.pixelRatio); // this is to account for browser zooming out. The pixel ratio is ment to switch between 1 and 2 for HD screens.
-      this.frame.canvas.getContext("2d").setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
-    }
-
-    this._bindHammer();
-  };
-
-
-  /**
-   * This function binds hammer, it can be repeated over and over due to the uniqueness check.
-   * @private
-   */
-  Network.prototype._bindHammer = function () {
-    var me = this;
-    if (this.hammer !== undefined) {
-      this.hammer.dispose();
-    }
-    this.drag = {};
-    this.pinch = {};
-    this.hammer = Hammer(this.frame.canvas, {
-      prevent_default: true
-    });
-    this.hammer.on("tap", me._onTap.bind(me));
-    this.hammer.on("doubletap", me._onDoubleTap.bind(me));
-    this.hammer.on("hold", me._onHold.bind(me));
-    this.hammer.on("touch", me._onTouch.bind(me));
-    this.hammer.on("dragstart", me._onDragStart.bind(me));
-    this.hammer.on("drag", me._onDrag.bind(me));
-    this.hammer.on("dragend", me._onDragEnd.bind(me));
-
-    if (this.constants.zoomable == true) {
-      this.hammer.on("mousewheel", me._onMouseWheel.bind(me));
-      this.hammer.on("DOMMouseScroll", me._onMouseWheel.bind(me)); // for FF
-      this.hammer.on("pinch", me._onPinch.bind(me));
-    }
-
-    this.hammer.on("mousemove", me._onMouseMoveTitle.bind(me));
-
-    this.hammerFrame = Hammer(this.frame, {
-      prevent_default: true
-    });
-    this.hammerFrame.on("release", me._onRelease.bind(me));
-
-    // add the frame to the container element
-    this.containerElement.appendChild(this.frame);
-  };
-
-  /**
    * Binding the keys for keyboard navigation. These functions are defined in the NavigationMixin
    * @private
    */
   Network.prototype._createKeyBinds = function () {
-    var me = this;
-    if (this.keycharm !== undefined) {
-      this.keycharm.destroy();
-    }
+    return;
 
-    if (this.constants.keyboard.bindToWindow == true) {
-      this.keycharm = keycharm({ container: window, preventDefault: false });
-    } else {
-      this.keycharm = keycharm({ container: this.frame, preventDefault: false });
-    }
-
-    this.keycharm.reset();
-
-    if (this.constants.keyboard.enabled && this.isActive()) {
-      this.keycharm.bind("up", this._moveUp.bind(me), "keydown");
-      this.keycharm.bind("up", this._yStopMoving.bind(me), "keyup");
-      this.keycharm.bind("down", this._moveDown.bind(me), "keydown");
-      this.keycharm.bind("down", this._yStopMoving.bind(me), "keyup");
-      this.keycharm.bind("left", this._moveLeft.bind(me), "keydown");
-      this.keycharm.bind("left", this._xStopMoving.bind(me), "keyup");
-      this.keycharm.bind("right", this._moveRight.bind(me), "keydown");
-      this.keycharm.bind("right", this._xStopMoving.bind(me), "keyup");
-      this.keycharm.bind("=", this._zoomIn.bind(me), "keydown");
-      this.keycharm.bind("=", this._stopZoom.bind(me), "keyup");
-      this.keycharm.bind("num+", this._zoomIn.bind(me), "keydown");
-      this.keycharm.bind("num+", this._stopZoom.bind(me), "keyup");
-      this.keycharm.bind("num-", this._zoomOut.bind(me), "keydown");
-      this.keycharm.bind("num-", this._stopZoom.bind(me), "keyup");
-      this.keycharm.bind("-", this._zoomOut.bind(me), "keydown");
-      this.keycharm.bind("-", this._stopZoom.bind(me), "keyup");
-      this.keycharm.bind("[", this._zoomIn.bind(me), "keydown");
-      this.keycharm.bind("[", this._stopZoom.bind(me), "keyup");
-      this.keycharm.bind("]", this._zoomOut.bind(me), "keydown");
-      this.keycharm.bind("]", this._stopZoom.bind(me), "keyup");
-      this.keycharm.bind("pageup", this._zoomIn.bind(me), "keydown");
-      this.keycharm.bind("pageup", this._stopZoom.bind(me), "keyup");
-      this.keycharm.bind("pagedown", this._zoomOut.bind(me), "keydown");
-      this.keycharm.bind("pagedown", this._stopZoom.bind(me), "keyup");
-    }
-
-    if (this.constants.dataManipulation.enabled == true) {
-      this.keycharm.bind("esc", this._createManipulatorBar.bind(me));
-      this.keycharm.bind("delete", this._deleteSelected.bind(me));
-    }
+    //var me = this;
+    //if (this.keycharm !== undefined) {
+    //  this.keycharm.destroy();
+    //}
+    //
+    //if (this.constants.keyboard.bindToWindow == true) {
+    //  this.keycharm = keycharm({container: window, preventDefault: false});
+    //}
+    //else {
+    //  this.keycharm = keycharm({container: this.frame, preventDefault: false});
+    //}
+    //
+    //this.keycharm.reset();
+    //
+    //if (this.constants.keyboard.enabled && this.isActive()) {
+    //  this.keycharm.bind("up",   this._moveUp.bind(me)   , "keydown");
+    //  this.keycharm.bind("up",   this._yStopMoving.bind(me), "keyup");
+    //  this.keycharm.bind("down", this._moveDown.bind(me) , "keydown");
+    //  this.keycharm.bind("down", this._yStopMoving.bind(me), "keyup");
+    //  this.keycharm.bind("left", this._moveLeft.bind(me) , "keydown");
+    //  this.keycharm.bind("left", this._xStopMoving.bind(me), "keyup");
+    //  this.keycharm.bind("right",this._moveRight.bind(me), "keydown");
+    //  this.keycharm.bind("right",this._xStopMoving.bind(me), "keyup");
+    //  this.keycharm.bind("=",    this._zoomIn.bind(me),    "keydown");
+    //  this.keycharm.bind("=",    this._stopZoom.bind(me),    "keyup");
+    //  this.keycharm.bind("num+", this._zoomIn.bind(me),    "keydown");
+    //  this.keycharm.bind("num+", this._stopZoom.bind(me),    "keyup");
+    //  this.keycharm.bind("num-", this._zoomOut.bind(me),   "keydown");
+    //  this.keycharm.bind("num-", this._stopZoom.bind(me),    "keyup");
+    //  this.keycharm.bind("-",    this._zoomOut.bind(me),   "keydown");
+    //  this.keycharm.bind("-",    this._stopZoom.bind(me),    "keyup");
+    //  this.keycharm.bind("[",    this._zoomIn.bind(me),    "keydown");
+    //  this.keycharm.bind("[",    this._stopZoom.bind(me),    "keyup");
+    //  this.keycharm.bind("]",    this._zoomOut.bind(me),   "keydown");
+    //  this.keycharm.bind("]",    this._stopZoom.bind(me),    "keyup");
+    //  this.keycharm.bind("pageup",this._zoomIn.bind(me),   "keydown");
+    //  this.keycharm.bind("pageup",this._stopZoom.bind(me),   "keyup");
+    //  this.keycharm.bind("pagedown",this._zoomOut.bind(me),"keydown");
+    //  this.keycharm.bind("pagedown",this._stopZoom.bind(me), "keyup");
+    //}
+    //
+    //if (this.constants.dataManipulation.enabled == true) {
+    //  this.keycharm.bind("esc",this._createManipulatorBar.bind(me));
+    //  this.keycharm.bind("delete",this._deleteSelected.bind(me));
+    //}
   };
 
   /**
@@ -23735,7 +23403,7 @@ return /******/ (function(modules) { // webpackBootstrap
   Network.prototype.destroy = function () {
     this.start = function () {};
     this.redraw = function () {};
-    this.timer = false;
+    this.renderTimer = false;
 
     // cleanup physicsConfiguration if it exists
     this._cleanupPhysicsConfiguration();
@@ -24313,50 +23981,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
   /**
-   * Set a new size for the network
-   * @param {string} width   Width in pixels or percentage (for example '800px'
-   *                         or '50%')
-   * @param {string} height  Height in pixels or percentage  (for example '400px'
-   *                         or '30%')
-   */
-  Network.prototype.setSize = function (width, height) {
-    var emitEvent = false;
-    var oldWidth = this.frame.canvas.width;
-    var oldHeight = this.frame.canvas.height;
-    if (width != this.constants.width || height != this.constants.height || this.frame.style.width != width || this.frame.style.height != height) {
-      this.frame.style.width = width;
-      this.frame.style.height = height;
-
-      this.frame.canvas.style.width = "100%";
-      this.frame.canvas.style.height = "100%";
-
-      this.frame.canvas.width = this.frame.canvas.clientWidth * this.pixelRatio;
-      this.frame.canvas.height = this.frame.canvas.clientHeight * this.pixelRatio;
-
-      this.constants.width = width;
-      this.constants.height = height;
-
-      emitEvent = true;
-    } else {
-      // this would adapt the width of the canvas to the width from 100% if and only if
-      // there is a change.
-
-      if (this.frame.canvas.width != this.frame.canvas.clientWidth * this.pixelRatio) {
-        this.frame.canvas.width = this.frame.canvas.clientWidth * this.pixelRatio;
-        emitEvent = true;
-      }
-      if (this.frame.canvas.height != this.frame.canvas.clientHeight * this.pixelRatio) {
-        this.frame.canvas.height = this.frame.canvas.clientHeight * this.pixelRatio;
-        emitEvent = true;
-      }
-    }
-
-    if (emitEvent == true) {
-      this.emit("resize", { width: this.frame.canvas.width * this.pixelRatio, height: this.frame.canvas.height * this.pixelRatio, oldWidth: oldWidth * this.pixelRatio, oldHeight: oldHeight * this.pixelRatio });
-    }
-  };
-
-  /**
    * Set a data set with nodes for the network
    * @param {Array | DataSet | DataView} nodes         The data containing the nodes.
    * @private
@@ -24711,83 +24335,6 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   };
 
-  /**
-   * Redraw the network with the current data
-   * chart will be resized too.
-   */
-  Network.prototype.redraw = function () {
-    this.setSize(this.constants.width, this.constants.height);
-    this._redraw();
-  };
-
-  /**
-   * Redraw the network with the current data
-   * @param hidden | used to get the first estimate of the node sizes. only the nodes are drawn after which they are quickly drawn over.
-   * @private
-   */
-  Network.prototype._requestRedraw = function (hidden) {
-    if (this.redrawRequested !== true) {
-      this.redrawRequested = true;
-      if (this.requiresTimeout === true) {
-        window.setTimeout(this._redraw.bind(this, hidden), 0);
-      } else {
-        window.requestAnimationFrame(this._redraw.bind(this, hidden, true));
-      }
-    }
-  };
-
-  Network.prototype._redraw = function () {
-    var hidden = arguments[0] === undefined ? false : arguments[0];
-    this.redrawRequested = false;
-    var ctx = this.frame.canvas.getContext("2d");
-
-    ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
-
-    // clear the canvas
-    var w = this.frame.canvas.clientWidth;
-    var h = this.frame.canvas.clientHeight;
-    ctx.clearRect(0, 0, w, h);
-
-    // set scaling and translation
-    ctx.save();
-    ctx.translate(this.translation.x, this.translation.y);
-    ctx.scale(this.scale, this.scale);
-
-    this.canvasTopLeft = {
-      x: this._XconvertDOMtoCanvas(0),
-      y: this._YconvertDOMtoCanvas(0)
-    };
-    this.canvasBottomRight = {
-      x: this._XconvertDOMtoCanvas(this.frame.canvas.clientWidth),
-      y: this._YconvertDOMtoCanvas(this.frame.canvas.clientHeight)
-    };
-
-    if (hidden === false) {
-      if (this.drag.dragging == false || this.drag.dragging === undefined || this.constants.hideEdgesOnDrag == false) {
-        this._drawEdges(ctx);
-      }
-    }
-
-    if (this.drag.dragging == false || this.drag.dragging === undefined || this.constants.hideNodesOnDrag == false) {
-      this._drawNodes(ctx, this.body.nodes, hidden);
-    }
-
-    if (hidden === false) {
-      if (this.controlNodesActive == true) {
-        this._drawControlNodes(ctx);
-      }
-    }
-
-    //this._drawNodes(ctx,this.body.supportNodes,true);
-    //  this.physics.nodesSolver._debug(ctx,"#F00F0F");
-
-    // restore original scaling and translation
-    ctx.restore();
-
-    if (hidden === true) {
-      ctx.clearRect(0, 0, w, h);
-    }
-  };
 
   /**
    * Set the translation of the network
@@ -24841,336 +24388,6 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   Network.prototype._getScale = function () {
     return this.scale;
-  };
-
-  /**
-   * Convert the X coordinate in DOM-space (coordinate point in browser relative to the container div) to
-   * the X coordinate in canvas-space (the simulation sandbox, which the camera looks upon)
-   * @param {number} x
-   * @returns {number}
-   * @private
-   */
-  Network.prototype._XconvertDOMtoCanvas = function (x) {
-    return (x - this.translation.x) / this.scale;
-  };
-
-  /**
-   * Convert the X coordinate in canvas-space (the simulation sandbox, which the camera looks upon) to
-   * the X coordinate in DOM-space (coordinate point in browser relative to the container div)
-   * @param {number} x
-   * @returns {number}
-   * @private
-   */
-  Network.prototype._XconvertCanvasToDOM = function (x) {
-    return x * this.scale + this.translation.x;
-  };
-
-  /**
-   * Convert the Y coordinate in DOM-space (coordinate point in browser relative to the container div) to
-   * the Y coordinate in canvas-space (the simulation sandbox, which the camera looks upon)
-   * @param {number} y
-   * @returns {number}
-   * @private
-   */
-  Network.prototype._YconvertDOMtoCanvas = function (y) {
-    return (y - this.translation.y) / this.scale;
-  };
-
-  /**
-   * Convert the Y coordinate in canvas-space (the simulation sandbox, which the camera looks upon) to
-   * the Y coordinate in DOM-space (coordinate point in browser relative to the container div)
-   * @param {number} y
-   * @returns {number}
-   * @private
-   */
-  Network.prototype._YconvertCanvasToDOM = function (y) {
-    return y * this.scale + this.translation.y;
-  };
-
-
-  /**
-   *
-   * @param {object} pos   = {x: number, y: number}
-   * @returns {{x: number, y: number}}
-   * @constructor
-   */
-  Network.prototype.canvasToDOM = function (pos) {
-    return { x: this._XconvertCanvasToDOM(pos.x), y: this._YconvertCanvasToDOM(pos.y) };
-  };
-
-  /**
-   *
-   * @param {object} pos   = {x: number, y: number}
-   * @returns {{x: number, y: number}}
-   * @constructor
-   */
-  Network.prototype.DOMtoCanvas = function (pos) {
-    return { x: this._XconvertDOMtoCanvas(pos.x), y: this._YconvertDOMtoCanvas(pos.y) };
-  };
-
-  /**
-   * Redraw all nodes
-   * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
-   * @param {CanvasRenderingContext2D}   ctx
-   * @param {Boolean} [alwaysShow]
-   * @private
-   */
-  Network.prototype._drawNodes = function (ctx, nodes) {
-    var alwaysShow = arguments[2] === undefined ? false : arguments[2];
-    // first draw the unselected nodes
-    var selected = [];
-
-    for (var id in nodes) {
-      if (nodes.hasOwnProperty(id)) {
-        nodes[id].setScaleAndPos(this.scale, this.canvasTopLeft, this.canvasBottomRight);
-        if (nodes[id].isSelected()) {
-          selected.push(id);
-        } else {
-          if (alwaysShow === true) {
-            nodes[id].draw(ctx);
-          } else if (nodes[id].inArea() === true) {
-            nodes[id].draw(ctx);
-          }
-        }
-      }
-    }
-
-    // draw the selected nodes on top
-    for (var s = 0, sMax = selected.length; s < sMax; s++) {
-      if (nodes[selected[s]].inArea() || alwaysShow) {
-        nodes[selected[s]].draw(ctx);
-      }
-    }
-  };
-
-  /**
-   * Redraw all edges
-   * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
-   * @param {CanvasRenderingContext2D}   ctx
-   * @private
-   */
-  Network.prototype._drawEdges = function (ctx) {
-    var edges = this.body.edges;
-    for (var id in edges) {
-      if (edges.hasOwnProperty(id)) {
-        var edge = edges[id];
-        edge.setScale(this.scale);
-        if (edge.connected === true) {
-          edges[id].draw(ctx);
-        }
-      }
-    }
-  };
-
-  /**
-   * Redraw all edges
-   * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
-   * @param {CanvasRenderingContext2D}   ctx
-   * @private
-   */
-  Network.prototype._drawControlNodes = function (ctx) {
-    var edges = this.body.edges;
-    for (var id in edges) {
-      if (edges.hasOwnProperty(id)) {
-        edges[id]._drawControlNodes(ctx);
-      }
-    }
-  };
-
-  /**
-   * Find a stable position for all nodes
-   * @private
-   */
-  Network.prototype._stabilize = function () {
-    if (this.constants.freezeForStabilization == true) {
-      this._freezeDefinedNodes();
-    }
-    this.stabilizationSteps = 0;
-
-    setTimeout(this._stabilizationBatch.bind(this), 0);
-  };
-
-  Network.prototype._stabilizationBatch = function () {
-    var count = 0;
-    while (this.moving && count < this.constants.stabilizationStepsize && this.stabilizationSteps < this.constants.stabilizationIterations) {
-      this._physicsTick();
-      this.stabilizationSteps++;
-      count++;
-    }
-
-    if (this.moving && this.stabilizationSteps < this.constants.stabilizationIterations) {
-      this.emit("stabilizationProgress", { steps: this.stabilizationSteps, total: this.constants.stabilizationIterations });
-      setTimeout(this._stabilizationBatch.bind(this), 0);
-    } else {
-      this._finalizeStabilization();
-    }
-  };
-
-  Network.prototype._finalizeStabilization = function () {
-    if (this.constants.zoomExtentOnStabilize == true) {
-      this.zoomExtent({ duration: 0 }, false, true);
-    }
-
-    if (this.constants.freezeForStabilization == true) {
-      this._restoreFrozenNodes();
-    }
-
-    this.emit("stabilizationIterationsDone");
-  };
-
-  /**
-   * When initializing and stabilizing, we can freeze nodes with a predefined position. This greatly speeds up stabilization
-   * because only the supportnodes for the smoothCurves have to settle.
-   *
-   * @private
-   */
-  Network.prototype._freezeDefinedNodes = function () {
-    var nodes = this.body.nodes;
-    for (var id in nodes) {
-      if (nodes.hasOwnProperty(id)) {
-        if (nodes[id].x != null && nodes[id].y != null) {
-          nodes[id].fixedData.x = nodes[id].xFixed;
-          nodes[id].fixedData.y = nodes[id].yFixed;
-          nodes[id].xFixed = true;
-          nodes[id].yFixed = true;
-        }
-      }
-    }
-  };
-
-  /**
-   * Unfreezes the nodes that have been frozen by _freezeDefinedNodes.
-   *
-   * @private
-   */
-  Network.prototype._restoreFrozenNodes = function () {
-    var nodes = this.body.nodes;
-    for (var id in nodes) {
-      if (nodes.hasOwnProperty(id)) {
-        if (nodes[id].fixedData.x != null) {
-          nodes[id].xFixed = nodes[id].fixedData.x;
-          nodes[id].yFixed = nodes[id].fixedData.y;
-        }
-      }
-    }
-  };
-
-
-  /**
-   * A single simulation step (or "tick") in the physics simulation
-   *
-   * @private
-   */
-  Network.prototype._physicsTick = function () {
-    if (!this.freezeSimulationEnabled) {
-      if (this.moving == true) {
-        this.physics.calculateForces();
-
-        this.moving = this.physics.moveNodes();
-
-        // determine if the network has stabilzied
-        if (this.moving == false) {
-          this.physics.revert();
-        } else {
-          // this is here to ensure that there is no start event when the network is already stable.
-          if (this.startedStabilization == false) {
-            this.emit("startStabilization");
-            this.startedStabilization = true;
-          }
-        }
-
-        this.stabilizationIterations++;
-      }
-    }
-  };
-
-
-  /**
-   * This function runs one step of the animation. It calls an x amount of physics ticks and one render tick.
-   * It reschedules itself at the beginning of the function
-   *
-   * @private
-   */
-  Network.prototype._animationStep = function () {
-    // reset the timer so a new scheduled animation step can be set
-    this.timer = undefined;
-
-    if (this.requiresTimeout == true) {
-      // this schedules a new animation step
-      this.start();
-    }
-
-    // handle the keyboad movement
-    this._handleNavigation();
-
-    // check if the physics have settled
-    if (this.moving == true) {
-      var startTime = Date.now();
-
-      this._physicsTick();
-      var physicsTime = Date.now() - startTime;
-
-      // run double speed if it is a little graph
-      if ((this.renderTimestep - this.renderTime > 2 * physicsTime || this.runDoubleSpeed == true) && this.moving == true) {
-        this._physicsTick();
-
-        // this makes sure there is no jitter. The decision is taken once to run it at double speed.
-        if (this.renderTime != 0) {
-          this.runDoubleSpeed = true;
-        }
-      }
-    }
-
-    var renderStartTime = Date.now();
-    this._redraw();
-    this.renderTime = Date.now() - renderStartTime;
-
-    if (this.requiresTimeout == false) {
-      // this schedules a new animation step
-      this.start();
-    }
-  };
-
-  if (typeof window !== "undefined") {
-    window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
-  }
-
-  /**
-   * Schedule a animation step with the refreshrate interval.
-   */
-  Network.prototype.start = function () {
-    if (this.freezeSimulationEnabled == true) {
-      this.moving = false;
-    }
-    if (this.moving == true || this.xIncrement != 0 || this.yIncrement != 0 || this.zoomIncrement != 0 || this.animating == true) {
-      if (!this.timer) {
-        if (this.requiresTimeout == true) {
-          this.timer = window.setTimeout(this._animationStep.bind(this), this.renderTimestep); // wait this.renderTimeStep milliseconds and perform the animation step function
-        } else {
-          this.timer = window.requestAnimationFrame(this._animationStep.bind(this)); // wait this.renderTimeStep milliseconds and perform the animation step function
-        }
-      }
-    } else {
-      this._requestRedraw();
-      // this check is to ensure that the network does not emit these events if it was already stabilized and setOptions is called (setting moving to true and calling start())
-      if (this.stabilizationIterations > 1) {
-        // trigger the "stabilized" event.
-        // The event is triggered on the next tick, to prevent the case that
-        // it is fired while initializing the Network, in which case you would not
-        // be able to catch it
-        var me = this;
-        var params = {
-          iterations: me.stabilizationIterations
-        };
-        this.stabilizationIterations = 0;
-        this.startedStabilization = false;
-        setTimeout(function () {
-          me.emit("stabilized", params);
-        }, 0);
-      } else {
-        this.stabilizationIterations = 0;
-      }
-    }
   };
 
 
@@ -25348,201 +24565,6 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 
-
-  /**
-   * Center a node in view.
-   *
-   * @param {Number} nodeId
-   * @param {Number} [options]
-   */
-  Network.prototype.focusOnNode = function (nodeId, options) {
-    if (this.body.nodes.hasOwnProperty(nodeId)) {
-      if (options === undefined) {
-        options = {};
-      }
-      var nodePosition = { x: this.body.nodes[nodeId].x, y: this.body.nodes[nodeId].y };
-      options.position = nodePosition;
-      options.lockedOnNode = nodeId;
-
-      this.moveTo(options);
-    } else {
-      console.log("This nodeId cannot be found.");
-    }
-  };
-
-  /**
-   *
-   * @param {Object} options  |  options.offset   = {x:Number, y:Number}   // offset from the center in DOM pixels
-   *                          |  options.scale    = Number                 // scale to move to
-   *                          |  options.position = {x:Number, y:Number}   // position to move to
-   *                          |  options.animation = {duration:Number, easingFunction:String} || Boolean   // position to move to
-   */
-  Network.prototype.moveTo = function (options) {
-    if (options === undefined) {
-      options = {};
-      return;
-    }
-    if (options.offset === undefined) {
-      options.offset = { x: 0, y: 0 };
-    }
-    if (options.offset.x === undefined) {
-      options.offset.x = 0;
-    }
-    if (options.offset.y === undefined) {
-      options.offset.y = 0;
-    }
-    if (options.scale === undefined) {
-      options.scale = this._getScale();
-    }
-    if (options.position === undefined) {
-      options.position = this._getTranslation();
-    }
-    if (options.animation === undefined) {
-      options.animation = { duration: 0 };
-    }
-    if (options.animation === false) {
-      options.animation = { duration: 0 };
-    }
-    if (options.animation === true) {
-      options.animation = {};
-    }
-    if (options.animation.duration === undefined) {
-      options.animation.duration = 1000;
-    } // default duration
-    if (options.animation.easingFunction === undefined) {
-      options.animation.easingFunction = "easeInOutQuad";
-    } // default easing function
-
-    this.animateView(options);
-  };
-
-  /**
-   *
-   * @param {Object} options  |  options.offset   = {x:Number, y:Number}   // offset from the center in DOM pixels
-   *                          |  options.time     = Number                 // animation time in milliseconds
-   *                          |  options.scale    = Number                 // scale to animate to
-   *                          |  options.position = {x:Number, y:Number}   // position to animate to
-   *                          |  options.easingFunction = String           // linear, easeInQuad, easeOutQuad, easeInOutQuad,
-   *                                                                       // easeInCubic, easeOutCubic, easeInOutCubic,
-   *                                                                       // easeInQuart, easeOutQuart, easeInOutQuart,
-   *                                                                       // easeInQuint, easeOutQuint, easeInOutQuint
-   */
-  Network.prototype.animateView = function (options) {
-    if (options === undefined) {
-      options = {};
-      return;
-    }
-
-    // release if something focussed on the node
-    this.releaseNode();
-    if (options.locked == true) {
-      this.lockedOnNodeId = options.lockedOnNode;
-      this.lockedOnNodeOffset = options.offset;
-    }
-
-    // forcefully complete the old animation if it was still running
-    if (this.easingTime != 0) {
-      this._transitionRedraw(1); // by setting easingtime to 1, we finish the animation.
-    }
-
-    this.sourceScale = this._getScale();
-    this.sourceTranslation = this._getTranslation();
-    this.targetScale = options.scale;
-
-    // set the scale so the viewCenter is based on the correct zoom level. This is overridden in the transitionRedraw
-    // but at least then we'll have the target transition
-    this._setScale(this.targetScale);
-    var viewCenter = this.DOMtoCanvas({ x: 0.5 * this.frame.canvas.clientWidth, y: 0.5 * this.frame.canvas.clientHeight });
-    var distanceFromCenter = { // offset from view, distance view has to change by these x and y to center the node
-      x: viewCenter.x - options.position.x,
-      y: viewCenter.y - options.position.y
-    };
-    this.targetTranslation = {
-      x: this.sourceTranslation.x + distanceFromCenter.x * this.targetScale + options.offset.x,
-      y: this.sourceTranslation.y + distanceFromCenter.y * this.targetScale + options.offset.y
-    };
-
-    // if the time is set to 0, don't do an animation
-    if (options.animation.duration == 0) {
-      if (this.lockedOnNodeId != null) {
-        this._classicRedraw = this._redraw;
-        this._redraw = this._lockedRedraw;
-      } else {
-        this._setScale(this.targetScale);
-        this._setTranslation(this.targetTranslation.x, this.targetTranslation.y);
-        this._redraw();
-      }
-    } else {
-      this.animating = true;
-      this.animationSpeed = 1 / (this.renderRefreshRate * options.animation.duration * 0.001) || 1 / this.renderRefreshRate;
-      this.animationEasingFunction = options.animation.easingFunction;
-      this._classicRedraw = this._redraw;
-      this._redraw = this._transitionRedraw;
-      this._redraw();
-      this.start();
-    }
-  };
-
-  /**
-   * used to animate smoothly by hijacking the redraw function.
-   * @private
-   */
-  Network.prototype._lockedRedraw = function () {
-    var nodePosition = { x: this.body.nodes[this.lockedOnNodeId].x, y: this.body.nodes[this.lockedOnNodeId].y };
-    var viewCenter = this.DOMtoCanvas({ x: 0.5 * this.frame.canvas.clientWidth, y: 0.5 * this.frame.canvas.clientHeight });
-    var distanceFromCenter = { // offset from view, distance view has to change by these x and y to center the node
-      x: viewCenter.x - nodePosition.x,
-      y: viewCenter.y - nodePosition.y
-    };
-    var sourceTranslation = this._getTranslation();
-    var targetTranslation = {
-      x: sourceTranslation.x + distanceFromCenter.x * this.scale + this.lockedOnNodeOffset.x,
-      y: sourceTranslation.y + distanceFromCenter.y * this.scale + this.lockedOnNodeOffset.y
-    };
-
-    this._setTranslation(targetTranslation.x, targetTranslation.y);
-    this._classicRedraw();
-  };
-
-  Network.prototype.releaseNode = function () {
-    if (this.lockedOnNodeId != null) {
-      this._redraw = this._classicRedraw;
-      this.lockedOnNodeId = null;
-      this.lockedOnNodeOffset = null;
-    }
-  };
-
-  /**
-   *
-   * @param easingTime
-   * @private
-   */
-  Network.prototype._transitionRedraw = function (easingTime) {
-    this.easingTime = easingTime || this.easingTime + this.animationSpeed;
-    this.easingTime += this.animationSpeed;
-
-    var progress = util.easingFunctions[this.animationEasingFunction](this.easingTime);
-
-    this._setScale(this.sourceScale + (this.targetScale - this.sourceScale) * progress);
-    this._setTranslation(this.sourceTranslation.x + (this.targetTranslation.x - this.sourceTranslation.x) * progress, this.sourceTranslation.y + (this.targetTranslation.y - this.sourceTranslation.y) * progress);
-
-    this._classicRedraw();
-
-    // cleanup
-    if (this.easingTime >= 1) {
-      this.animating = false;
-      this.easingTime = 0;
-      if (this.lockedOnNodeId != null) {
-        this._redraw = this._lockedRedraw;
-      } else {
-        this._redraw = this._classicRedraw;
-      }
-      this.emit("animationFinished");
-    }
-  };
-
-  Network.prototype._classicRedraw = function () {};
-
   /**
    * Returns true when the Network is active.
    * @returns {boolean}
@@ -25639,7 +24661,6 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   module.exports = Network;
-  // placeholder function to be overloaded by animations;
 
 /***/ },
 /* 52 */
@@ -26788,10 +25809,6 @@ return /******/ (function(modules) { // webpackBootstrap
     this.grouplist = grouplist;
 
     // physics properties
-    this.fx = 0; // external force x
-    this.fy = 0; // external force y
-    this.vx = 0; // velocity x
-    this.vy = 0; // velocity y
     this.x = null;
     this.y = null;
     this.predefinedPosition = false; // used to check if initial zoomExtent should just take the range or approximate
@@ -26799,7 +25816,6 @@ return /******/ (function(modules) { // webpackBootstrap
     // used for reverting to previous position on stabilization
     this.previousState = { vx: 0, vy: 0, x: 0, y: 0 };
 
-    this.damping = networkConstants.physics.damping; // written every time gravity is calculated
     this.fixedData = { x: null, y: null };
 
     this.setProperties(properties, constants);
@@ -27662,6 +26678,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   };
 
+
   /**
    * this is used to determine if a node is visible at all. this is used to determine when it needs to be drawn.
    * there is a safety margin of 0.3 * width;
@@ -27676,13 +26693,6 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   };
 
-  /**
-   * checks if the core of the node is in the display area, this is used for opening clusters around zoom
-   * @returns {boolean}
-   */
-  Node.prototype.inView = function () {
-    return this.x >= this.canvasTopLeft.x && this.x < this.canvasBottomRight.x && this.y >= this.canvasTopLeft.y && this.y < this.canvasBottomRight.y;
-  };
 
   /**
    * This allows the zoom level of the network to influence the rendering
@@ -31672,19 +30682,76 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 2/23/2015.
    */
 
-  var BarnesHutSolver = __webpack_require__(68).BarnesHutSolver;
-  var Repulsion = __webpack_require__(69).Repulsion;
-  var HierarchicalRepulsion = __webpack_require__(70).HierarchicalRepulsion;
-  var SpringSolver = __webpack_require__(71).SpringSolver;
-  var HierarchicalSpringSolver = __webpack_require__(72).HierarchicalSpringSolver;
-  var CentralGravitySolver = __webpack_require__(73).CentralGravitySolver;
+  var BarnesHutSolver = __webpack_require__(71).BarnesHutSolver;
+  var Repulsion = __webpack_require__(72).Repulsion;
+  var HierarchicalRepulsion = __webpack_require__(73).HierarchicalRepulsion;
+  var SpringSolver = __webpack_require__(74).SpringSolver;
+  var HierarchicalSpringSolver = __webpack_require__(75).HierarchicalSpringSolver;
+  var CentralGravitySolver = __webpack_require__(76).CentralGravitySolver;
+
+
+  var util = __webpack_require__(1);
+
+
   var PhysicsEngine = (function () {
     function PhysicsEngine(body, options) {
+      var _this = this;
       _classCallCheck(this, PhysicsEngine);
 
       this.body = body;
       this.physicsBody = { calculationNodes: {}, calculationNodeIndices: [], forces: {}, velocities: {} };
+      this.scale = 1;
+      this.viewFunction = undefined;
+
+      this.body.emitter.on("_setScale", function (scale) {
+        return _this.scale = scale;
+      });
+
+      this.simulationInterval = 1000 / 60;
+      this.requiresTimeout = true;
       this.previousStates = {};
+      this.renderTimer == undefined;
+
+      this.stabilized = false;
+      this.stabilizationIterations = 0;
+
+      // default options
+      this.options = {
+        barnesHut: {
+          thetaInverted: 1 / 0.5, // inverted to save time during calculation
+          gravitationalConstant: -2000,
+          centralGravity: 0.3,
+          springLength: 95,
+          springConstant: 0.04,
+          damping: 0.09
+        },
+        repulsion: {
+          centralGravity: 0,
+          springLength: 200,
+          springConstant: 0.05,
+          nodeDistance: 100,
+          damping: 0.09
+        },
+        hierarchicalRepulsion: {
+          centralGravity: 0,
+          springLength: 100,
+          springConstant: 0.01,
+          nodeDistance: 150,
+          damping: 0.09
+        },
+        model: "BarnesHut",
+        timestep: 0.5,
+        maxVelocity: 50,
+        minVelocity: 0.1, // px/s
+        stabilization: {
+          enabled: true,
+          iterations: 1000, // maximum number of iteration to stabilize
+          updateInterval: 100,
+          onlyDynamicEdges: false,
+          zoomExtent: true
+        }
+      };
+
       this.setOptions(options);
     }
 
@@ -31692,9 +30759,14 @@ return /******/ (function(modules) { // webpackBootstrap
       setOptions: {
         value: function setOptions(options) {
           if (options !== undefined) {
-            this.options = options;
-            this.init();
+            if (typeof options.stabilization == "boolean") {
+              options.stabilization = {
+                enabled: options.stabilization
+              };
+            }
+            util.deepExtend(this.options, options);
           }
+          this.init();
         },
         writable: true,
         configurable: true
@@ -31719,6 +30791,97 @@ return /******/ (function(modules) { // webpackBootstrap
 
           this.gravitySolver = new CentralGravitySolver(this.body, this.physicsBody, options);
           this.modelOptions = options;
+        },
+        writable: true,
+        configurable: true
+      },
+      startSimulation: {
+        value: function startSimulation() {
+          this.stabilized = false;
+          if (this.options.stabilization.enabled === true) {
+            this.stabilize();
+          } else {
+            this.runSimulation();
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      runSimulation: {
+        value: function runSimulation() {
+          if (this.viewFunction === undefined) {
+            this.viewFunction = this.simulationStep.bind(this);
+            this.body.emitter.on("_beforeRender", this.viewFunction);
+            this.body.emitter.emit("_startRendering");
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      simulationStep: {
+        value: function simulationStep() {
+          // check if the physics have settled
+          var startTime = Date.now();
+          this.physicsTick();
+          var physicsTime = Date.now() - startTime;
+
+          // run double speed if it is a little graph
+          if ((physicsTime < 0.4 * this.simulationInterval || this.runDoubleSpeed == true) && this.stabilized === false) {
+            this.physicsTick();
+
+            // this makes sure there is no jitter. The decision is taken once to run it at double speed.
+            this.runDoubleSpeed = true;
+          }
+
+          if (this.stabilized === true) {
+            if (this.stabilizationIterations > 1) {
+              // trigger the "stabilized" event.
+              // The event is triggered on the next tick, to prevent the case that
+              // it is fired while initializing the Network, in which case you would not
+              // be able to catch it
+              var me = this;
+              var params = {
+                iterations: this.stabilizationIterations
+              };
+              this.stabilizationIterations = 0;
+              this.startedStabilization = false;
+              setTimeout(function () {
+                me.body.emitter.emit("stabilized", params);
+              }, 0);
+            } else {
+              this.stabilizationIterations = 0;
+            }
+            this.body.emitter.emit("_stopRendering");
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      physicsTick: {
+
+        /**
+         * A single simulation step (or "tick") in the physics simulation
+         *
+         * @private
+         */
+        value: function physicsTick() {
+          if (this.stabilized === false) {
+            this.calculateForces();
+            this.stabilized = this.moveNodes();
+
+            // determine if the network has stabilzied
+            if (this.stabilized === true) {
+              this.revert();
+            } else {
+              // this is here to ensure that there is no start event when the network is already stable.
+              if (this.startedStabilization == false) {
+                this.body.emitter.emit("startStabilizing");
+                this.startedStabilization = true;
+              }
+            }
+
+            this.stabilizationIterations++;
+          }
         },
         writable: true,
         configurable: true
@@ -31801,25 +30964,26 @@ return /******/ (function(modules) { // webpackBootstrap
           var nodesPresent = false;
           var nodeIndices = this.physicsBody.calculationNodeIndices;
           var maxVelocity = this.options.maxVelocity === 0 ? 1000000000 : this.options.maxVelocity;
-          var moving = false;
-          var vminCorrected = this.options.minVelocity / Math.max(this.body.functions.getScale(), 0.05);
+          var stabilized = true;
+          var vminCorrected = this.options.minVelocity / Math.max(this.scale, 0.05);
 
           for (var i = 0; i < nodeIndices.length; i++) {
             var nodeId = nodeIndices[i];
             var nodeVelocity = this._performStep(nodeId, maxVelocity);
-            moving = nodeVelocity > vminCorrected;
+            // stabilized is true if stabilized is true and velocity is smaller than vmin --> all nodes must be stabilized
+            stabilized = nodeVelocity < vminCorrected && stabilized === true;
             nodesPresent = true;
           }
 
 
           if (nodesPresent == true) {
             if (vminCorrected > 0.5 * this.options.maxVelocity) {
-              return true;
+              return false;
             } else {
-              return moving;
+              return stabilized;
             }
           }
-          return false;
+          return true;
         },
         writable: true,
         configurable: true
@@ -31867,6 +31031,111 @@ return /******/ (function(modules) { // webpackBootstrap
           this.gravitySolver.solve();
           this.nodesSolver.solve();
           this.edgesSolver.solve();
+        },
+        writable: true,
+        configurable: true
+      },
+      _freezeNodes: {
+
+
+
+
+
+
+
+
+
+        /**
+         * When initializing and stabilizing, we can freeze nodes with a predefined position. This greatly speeds up stabilization
+         * because only the supportnodes for the smoothCurves have to settle.
+         *
+         * @private
+         */
+        value: function _freezeNodes() {
+          var nodes = this.body.nodes;
+          for (var id in nodes) {
+            if (nodes.hasOwnProperty(id)) {
+              if (nodes[id].x != null && nodes[id].y != null) {
+                nodes[id].fixedData.x = nodes[id].xFixed;
+                nodes[id].fixedData.y = nodes[id].yFixed;
+                nodes[id].xFixed = true;
+                nodes[id].yFixed = true;
+              }
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _restoreFrozenNodes: {
+
+        /**
+         * Unfreezes the nodes that have been frozen by _freezeDefinedNodes.
+         *
+         * @private
+         */
+        value: function _restoreFrozenNodes() {
+          var nodes = this.body.nodes;
+          for (var id in nodes) {
+            if (nodes.hasOwnProperty(id)) {
+              if (nodes[id].fixedData.x != null) {
+                nodes[id].xFixed = nodes[id].fixedData.x;
+                nodes[id].yFixed = nodes[id].fixedData.y;
+              }
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      stabilize: {
+
+        /**
+         * Find a stable position for all nodes
+         * @private
+         */
+        value: function stabilize() {
+          if (this.options.stabilization.onlyDynamicEdges == true) {
+            this._freezeNodes();
+          }
+          this.stabilizationSteps = 0;
+
+          setTimeout(this._stabilizationBatch.bind(this), 0);
+        },
+        writable: true,
+        configurable: true
+      },
+      _stabilizationBatch: {
+        value: function _stabilizationBatch() {
+          var count = 0;
+          while (this.stabilized == false && count < this.options.stabilization.updateInterval && this.stabilizationSteps < this.options.stabilization.iterations) {
+            this.physicsTick();
+            this.stabilizationSteps++;
+            count++;
+          }
+
+          if (this.stabilized == false && this.stabilizationSteps < this.options.stabilization.iterations) {
+            this.body.emitter.emit("stabilizationProgress", { steps: this.stabilizationSteps, total: this.options.stabilization.iterations });
+            setTimeout(this._stabilizationBatch.bind(this), 0);
+          } else {
+            this._finalizeStabilization();
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _finalizeStabilization: {
+        value: function _finalizeStabilization() {
+          if (this.options.stabilization.zoomExtent == true) {
+            this.body.emitter.emit("zoomExtent", { duration: 0 });
+          }
+
+          if (this.options.stabilization.onlyDynamicEdges == true) {
+            this._restoreFrozenNodes();
+          }
+
+          this.body.emitter.emit("stabilizationIterationsDone");
+          this.body.emitter.emit("_requestRedraw");
         },
         writable: true,
         configurable: true
@@ -32606,6 +31875,1028 @@ return /******/ (function(modules) { // webpackBootstrap
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
   /**
+   * Created by Alex on 26-Feb-15.
+   */
+
+  if (typeof window !== "undefined") {
+    window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+  }
+
+  var CanvasRenderer = (function () {
+    function CanvasRenderer(body) {
+      var _this = this;
+      _classCallCheck(this, CanvasRenderer);
+
+      this.body = body;
+
+      this.redrawRequested = false;
+      this.renderTimer = false;
+      this.requiresTimeout = true;
+      this.continueRendering = true;
+      this.renderRequests = 0;
+
+      this.translation = { x: 0, y: 0 };
+      this.scale = 1;
+      this.canvasTopLeft = { x: 0, y: 0 };
+      this.canvasBottomRight = { x: 0, y: 0 };
+
+      this.body.emitter.on("_setScale", function (scale) {
+        return _this.scale = scale;
+      });
+      this.body.emitter.on("_setTranslation", function (translation) {
+        _this.translation.x = translation.x;_this.translation.y = translation.y;
+      });
+      this.body.emitter.on("_redraw", this._redraw.bind(this));
+      this.body.emitter.on("_redrawHidden", this._redraw.bind(this, true));
+      this.body.emitter.on("_requestRedraw", this._requestRedraw.bind(this));
+      this.body.emitter.on("_startRendering", function () {
+        _this.renderRequests += 1;_this.continueRendering = true;_this.startRendering();
+      });
+      this.body.emitter.on("_stopRendering", function () {
+        _this.renderRequests -= 1;_this.continueRendering = _this.renderRequests > 0;
+      });
+
+      this._determineBrowserMethod();
+    }
+
+    _prototypeProperties(CanvasRenderer, null, {
+      startRendering: {
+        value: function startRendering() {
+          if (this.continueRendering === true) {
+            if (!this.renderTimer) {
+              if (this.requiresTimeout == true) {
+                this.renderTimer = window.setTimeout(this.renderStep.bind(this), this.simulationInterval); // wait this.renderTimeStep milliseconds and perform the animation step function
+              } else {
+                this.renderTimer = window.requestAnimationFrame(this.renderStep.bind(this)); // wait this.renderTimeStep milliseconds and perform the animation step function
+              }
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      renderStep: {
+        value: function renderStep() {
+          // reset the renderTimer so a new scheduled animation step can be set
+          this.renderTimer = undefined;
+
+          if (this.requiresTimeout == true) {
+            // this schedules a new simulation step
+            this.startRendering();
+          }
+
+          this._redraw();
+
+          if (this.requiresTimeout == false) {
+            // this schedules a new simulation step
+            this.startRendering();
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      setCanvas: {
+        value: function setCanvas(canvas) {
+          this.canvas = canvas;
+        },
+        writable: true,
+        configurable: true
+      },
+      redraw: {
+        /**
+         * Redraw the network with the current data
+         * chart will be resized too.
+         */
+        value: function redraw() {
+          this.setSize(this.constants.width, this.constants.height);
+          this._redraw();
+        },
+        writable: true,
+        configurable: true
+      },
+      _requestRedraw: {
+
+        /**
+         * Redraw the network with the current data
+         * @param hidden | used to get the first estimate of the node sizes. only the nodes are drawn after which they are quickly drawn over.
+         * @private
+         */
+        value: function _requestRedraw(hidden) {
+          if (this.redrawRequested !== true) {
+            this.redrawRequested = true;
+            if (this.requiresTimeout === true) {
+              window.setTimeout(this._redraw.bind(this, hidden), 0);
+            } else {
+              window.requestAnimationFrame(this._redraw.bind(this, hidden, true));
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _redraw: {
+        value: function _redraw() {
+          var hidden = arguments[0] === undefined ? false : arguments[0];
+          this.body.emitter.emit("_beforeRender");
+
+          this.redrawRequested = false;
+          var ctx = this.canvas.frame.canvas.getContext("2d");
+
+          ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+
+          // clear the canvas
+          var w = this.canvas.frame.canvas.clientWidth;
+          var h = this.canvas.frame.canvas.clientHeight;
+          ctx.clearRect(0, 0, w, h);
+
+          // set scaling and translation
+          ctx.save();
+          ctx.translate(this.translation.x, this.translation.y);
+          ctx.scale(this.scale, this.scale);
+
+          this.canvasTopLeft = this.canvas.DOMtoCanvas({ x: 0, y: 0 });
+          this.canvasBottomRight = this.canvas.DOMtoCanvas({ x: this.canvas.frame.canvas.clientWidth, y: this.canvas.frame.canvas.clientHeight });
+
+          if (hidden === false) {
+            // todo: solve this
+            //if (this.drag.dragging == false || this.drag.dragging === undefined || this.constants.hideEdgesOnDrag == false) {
+            this._drawEdges(ctx);
+            //}
+          }
+
+          // todo: solve this
+          //if (this.drag.dragging == false || this.drag.dragging === undefined || this.constants.hideNodesOnDrag == false) {
+          this._drawNodes(ctx, this.body.nodes, hidden);
+          //}
+
+          if (hidden === false) {
+            if (this.controlNodesActive == true) {
+              this._drawControlNodes(ctx);
+            }
+          }
+
+          //this._drawNodes(ctx,this.body.supportNodes,true);
+          //  this.physics.nodesSolver._debug(ctx,"#F00F0F");
+
+          // restore original scaling and translation
+          ctx.restore();
+
+          if (hidden === true) {
+            ctx.clearRect(0, 0, w, h);
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawNodes: {
+
+
+        /**
+         * Redraw all nodes
+         * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
+         * @param {CanvasRenderingContext2D}   ctx
+         * @param {Boolean} [alwaysShow]
+         * @private
+         */
+        value: function _drawNodes(ctx, nodes) {
+          var alwaysShow = arguments[2] === undefined ? false : arguments[2];
+          // first draw the unselected nodes
+          var selected = [];
+
+          for (var id in nodes) {
+            if (nodes.hasOwnProperty(id)) {
+              nodes[id].setScaleAndPos(this.scale, this.canvasTopLeft, this.canvasBottomRight);
+              if (nodes[id].isSelected()) {
+                selected.push(id);
+              } else {
+                if (alwaysShow === true) {
+                  nodes[id].draw(ctx);
+                } else if (nodes[id].inArea() === true) {
+                  nodes[id].draw(ctx);
+                }
+              }
+            }
+          }
+
+          // draw the selected nodes on top
+          for (var s = 0, sMax = selected.length; s < sMax; s++) {
+            if (nodes[selected[s]].inArea() || alwaysShow) {
+              nodes[selected[s]].draw(ctx);
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawEdges: {
+
+
+        /**
+         * Redraw all edges
+         * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
+         * @param {CanvasRenderingContext2D}   ctx
+         * @private
+         */
+        value: function _drawEdges(ctx) {
+          var edges = this.body.edges;
+          for (var id in edges) {
+            if (edges.hasOwnProperty(id)) {
+              var edge = edges[id];
+              edge.setScale(this.scale);
+              if (edge.connected === true) {
+                edges[id].draw(ctx);
+              }
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawControlNodes: {
+
+        /**
+         * Redraw all edges
+         * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
+         * @param {CanvasRenderingContext2D}   ctx
+         * @private
+         */
+        value: function _drawControlNodes(ctx) {
+          var edges = this.body.edges;
+          for (var id in edges) {
+            if (edges.hasOwnProperty(id)) {
+              edges[id]._drawControlNodes(ctx);
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _determineBrowserMethod: {
+
+        /**
+         * Determine if the browser requires a setTimeout or a requestAnimationFrame. This was required because
+         * some implementations (safari and IE9) did not support requestAnimationFrame
+         * @private
+         */
+        value: function _determineBrowserMethod() {
+          if (typeof window !== "undefined") {
+            var browserType = navigator.userAgent.toLowerCase();
+            this.requiresTimeout = false;
+            if (browserType.indexOf("msie 9.0") != -1) {
+              // IE 9
+              this.requiresTimeout = true;
+            } else if (browserType.indexOf("safari") != -1) {
+              // safari
+              if (browserType.indexOf("chrome") <= -1) {
+                this.requiresTimeout = true;
+              }
+            }
+          } else {
+            this.requiresTimeout = true;
+          }
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return CanvasRenderer;
+  })();
+
+  exports.CanvasRenderer = CanvasRenderer;
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+/***/ },
+/* 69 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  /**
+   * Created by Alex on 26-Feb-15.
+   */
+
+
+  var Hammer = __webpack_require__(19);
+
+  var Canvas = (function () {
+    /**
+     * Create the main frame for the Network.
+     * This function is executed once when a Network object is created. The frame
+     * contains a canvas, and this canvas contains all objects like the axis and
+     * nodes.
+     * @private
+     */
+    function Canvas(body, options) {
+      var _this = this;
+      _classCallCheck(this, Canvas);
+
+      this.body = body;
+      this.setOptions(options);
+
+      this.translation = { x: 0, y: 0 };
+      this.scale = 1;
+      this.body.emitter.on("_setScale", function (scale) {
+        _this.scale = scale;
+      });
+      this.body.emitter.on("_setTranslation", function (translation) {
+        _this.translation.x = translation.x;_this.translation.y = translation.y;
+      });
+      this.body.emitter.once("resize", function (obj) {
+        _this.translation.x = obj.width * 0.5;_this.translation.y = obj.height * 0.5;_this.body.emitter.emit("_setTranslation", _this.translation);
+      });
+
+      this.pixelRatio = 1;
+
+      // remove all elements from the container element.
+      while (this.body.container.hasChildNodes()) {
+        this.body.container.removeChild(this.body.container.firstChild);
+      }
+
+      this.frame = document.createElement("div");
+      this.frame.className = "vis network-frame";
+      this.frame.style.position = "relative";
+      this.frame.style.overflow = "hidden";
+      this.frame.tabIndex = 900;
+
+      //////////////////////////////////////////////////////////////////
+
+      this.frame.canvas = document.createElement("canvas");
+      this.frame.canvas.style.position = "relative";
+      this.frame.appendChild(this.frame.canvas);
+
+      if (!this.frame.canvas.getContext) {
+        var noCanvas = document.createElement("DIV");
+        noCanvas.style.color = "red";
+        noCanvas.style.fontWeight = "bold";
+        noCanvas.style.padding = "10px";
+        noCanvas.innerHTML = "Error: your browser does not support HTML canvas";
+        this.frame.canvas.appendChild(noCanvas);
+      } else {
+        var ctx = this.frame.canvas.getContext("2d");
+        this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
+
+        //this.pixelRatio = Math.max(1,this.pixelRatio); // this is to account for browser zooming out. The pixel ratio is ment to switch between 1 and 2 for HD screens.
+        this.frame.canvas.getContext("2d").setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+      }
+
+      // add the frame to the container element
+      this.body.container.appendChild(this.frame);
+
+      this.body.emitter.emit("_setScale", 1);;
+      this.body.emitter.emit("_setTranslation", { x: 0.5 * this.frame.canvas.clientWidth, y: 0.5 * this.frame.canvas.clientHeight });;
+
+      this._bindHammer();
+    }
+
+    _prototypeProperties(Canvas, null, {
+      _bindHammer: {
+
+
+        /**
+         * This function binds hammer, it can be repeated over and over due to the uniqueness check.
+         * @private
+         */
+        value: function _bindHammer() {
+          var me = this;
+          if (this.hammer !== undefined) {
+            this.hammer.dispose();
+          }
+          this.drag = {};
+          this.pinch = {};
+          this.hammer = Hammer(this.frame.canvas, {
+            prevent_default: true
+          });
+          this.hammer.on("tap", me.body.eventListeners.onTap);
+          this.hammer.on("doubletap", me.body.eventListeners.onDoubleTap);
+          this.hammer.on("hold", me.body.eventListeners.onHold);
+          this.hammer.on("touch", me.body.eventListeners.onTouch);
+          this.hammer.on("dragstart", me.body.eventListeners.onDragStart);
+          this.hammer.on("drag", me.body.eventListeners.onDrag);
+          this.hammer.on("dragend", me.body.eventListeners.onDragEnd);
+
+          if (this.options.zoomable == true) {
+            this.hammer.on("mousewheel", me.body.eventListeners.onMouseWheel.bind(me));
+            this.hammer.on("DOMMouseScroll", me.body.eventListeners.onMouseWheel.bind(me)); // for FF
+            this.hammer.on("pinch", me.body.eventListeners.onPinch.bind(me));
+          }
+
+          this.hammer.on("mousemove", me.body.eventListeners.onMouseMove.bind(me));
+
+          this.hammerFrame = Hammer(this.frame, {
+            prevent_default: true
+          });
+          this.hammerFrame.on("release", me.body.eventListeners.onRelease.bind(me));
+        },
+        writable: true,
+        configurable: true
+      },
+      setOptions: {
+        value: function setOptions() {
+          var options = arguments[0] === undefined ? {} : arguments[0];
+          this.options = options;
+        },
+        writable: true,
+        configurable: true
+      },
+      setSize: {
+
+        /**
+         * Set a new size for the network
+         * @param {string} width   Width in pixels or percentage (for example '800px'
+         *                         or '50%')
+         * @param {string} height  Height in pixels or percentage  (for example '400px'
+         *                         or '30%')
+         */
+        value: function setSize(width, height) {
+          var emitEvent = false;
+          var oldWidth = this.frame.canvas.width;
+          var oldHeight = this.frame.canvas.height;
+          if (width != this.options.width || height != this.options.height || this.frame.style.width != width || this.frame.style.height != height) {
+            this.frame.style.width = width;
+            this.frame.style.height = height;
+
+            this.frame.canvas.style.width = "100%";
+            this.frame.canvas.style.height = "100%";
+
+            this.frame.canvas.width = this.frame.canvas.clientWidth * this.pixelRatio;
+            this.frame.canvas.height = this.frame.canvas.clientHeight * this.pixelRatio;
+
+            this.options.width = width;
+            this.options.height = height;
+
+            emitEvent = true;
+          } else {
+            // this would adapt the width of the canvas to the width from 100% if and only if
+            // there is a change.
+
+            if (this.frame.canvas.width != this.frame.canvas.clientWidth * this.pixelRatio) {
+              this.frame.canvas.width = this.frame.canvas.clientWidth * this.pixelRatio;
+              emitEvent = true;
+            }
+            if (this.frame.canvas.height != this.frame.canvas.clientHeight * this.pixelRatio) {
+              this.frame.canvas.height = this.frame.canvas.clientHeight * this.pixelRatio;
+              emitEvent = true;
+            }
+          }
+
+          if (emitEvent === true) {
+            this.body.emitter.emit("resize", { width: this.frame.canvas.width * this.pixelRatio, height: this.frame.canvas.height * this.pixelRatio, oldWidth: oldWidth * this.pixelRatio, oldHeight: oldHeight * this.pixelRatio });
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _XconvertDOMtoCanvas: {
+
+
+        /**
+         * Convert the X coordinate in DOM-space (coordinate point in browser relative to the container div) to
+         * the X coordinate in canvas-space (the simulation sandbox, which the camera looks upon)
+         * @param {number} x
+         * @returns {number}
+         * @private
+         */
+        value: function _XconvertDOMtoCanvas(x) {
+          return (x - this.translation.x) / this.scale;
+        },
+        writable: true,
+        configurable: true
+      },
+      _XconvertCanvasToDOM: {
+
+        /**
+         * Convert the X coordinate in canvas-space (the simulation sandbox, which the camera looks upon) to
+         * the X coordinate in DOM-space (coordinate point in browser relative to the container div)
+         * @param {number} x
+         * @returns {number}
+         * @private
+         */
+        value: function _XconvertCanvasToDOM(x) {
+          return x * this.scale + this.translation.x;
+        },
+        writable: true,
+        configurable: true
+      },
+      _YconvertDOMtoCanvas: {
+
+        /**
+         * Convert the Y coordinate in DOM-space (coordinate point in browser relative to the container div) to
+         * the Y coordinate in canvas-space (the simulation sandbox, which the camera looks upon)
+         * @param {number} y
+         * @returns {number}
+         * @private
+         */
+        value: function _YconvertDOMtoCanvas(y) {
+          return (y - this.translation.y) / this.scale;
+        },
+        writable: true,
+        configurable: true
+      },
+      _YconvertCanvasToDOM: {
+
+        /**
+         * Convert the Y coordinate in canvas-space (the simulation sandbox, which the camera looks upon) to
+         * the Y coordinate in DOM-space (coordinate point in browser relative to the container div)
+         * @param {number} y
+         * @returns {number}
+         * @private
+         */
+        value: function _YconvertCanvasToDOM(y) {
+          return y * this.scale + this.translation.y;
+        },
+        writable: true,
+        configurable: true
+      },
+      canvasToDOM: {
+
+
+        /**
+         *
+         * @param {object} pos   = {x: number, y: number}
+         * @returns {{x: number, y: number}}
+         * @constructor
+         */
+        value: function canvasToDOM(pos) {
+          return { x: this._XconvertCanvasToDOM(pos.x), y: this._YconvertCanvasToDOM(pos.y) };
+        },
+        writable: true,
+        configurable: true
+      },
+      DOMtoCanvas: {
+
+        /**
+         *
+         * @param {object} pos   = {x: number, y: number}
+         * @returns {{x: number, y: number}}
+         * @constructor
+         */
+        value: function DOMtoCanvas(pos) {
+          return { x: this._XconvertDOMtoCanvas(pos.x), y: this._YconvertDOMtoCanvas(pos.y) };
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return Canvas;
+  })();
+
+  exports.Canvas = Canvas;
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+/***/ },
+/* 70 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  /**
+   * Created by Alex on 26-Feb-15.
+   */
+
+  var util = __webpack_require__(1);
+
+  var View = (function () {
+    function View(body, options) {
+      var _this = this;
+      _classCallCheck(this, View);
+
+      this.body = body;
+      this.setOptions(options);
+
+      this.animationSpeed = 1 / this.renderRefreshRate;
+      this.animationEasingFunction = "easeInOutQuint";
+      this.easingTime = 0;
+      this.sourceScale = 0;
+      this.targetScale = 0;
+      this.sourceTranslation = 0;
+      this.targetTranslation = 0;
+      this.lockedOnNodeId = null;
+      this.lockedOnNodeOffset = null;
+      this.touchTime = 0;
+
+      this.translation = { x: 0, y: 0 };
+      this.scale = 1;
+
+      this.viewFunction = undefined;
+
+      this.body.emitter.on("zoomExtent", this.zoomExtent.bind(this));
+      this.body.emitter.on("zoomExtentInstantly", this.zoomExtent.bind(this, { duration: 0 }));
+      this.body.emitter.on("_setScale", function (scale) {
+        return _this.scale = scale;
+      });
+      this.body.emitter.on("_setTranslation", function (translation) {
+        _this.translation.x = translation.x;_this.translation.y = translation.y;
+      });
+      this.body.emitter.on("animationFinished", function () {
+        _this.body.emitter.emit("_stopRendering");
+      });
+      this.body.emitter.on("unlockNode", this.releaseNode.bind(this));
+    }
+
+    _prototypeProperties(View, null, {
+      setOptions: {
+        value: function setOptions() {
+          var options = arguments[0] === undefined ? {} : arguments[0];
+          this.options = options;
+        },
+        writable: true,
+        configurable: true
+      },
+      setCanvas: {
+        value: function setCanvas(canvas) {
+          this.canvas = canvas;
+        },
+        writable: true,
+        configurable: true
+      },
+      _getRange: {
+
+        // zoomExtent
+        /**
+         * Find the center position of the network
+         * @private
+         */
+        value: function _getRange() {
+          var specificNodes = arguments[0] === undefined ? [] : arguments[0];
+          var minY = 1000000000,
+              maxY = -1000000000,
+              minX = 1000000000,
+              maxX = -1000000000,
+              node;
+          if (specificNodes.length > 0) {
+            for (var i = 0; i < specificNodes.length; i++) {
+              node = this.body.nodes[specificNodes[i]];
+              if (minX > node.boundingBox.left) {
+                minX = node.boundingBox.left;
+              }
+              if (maxX < node.boundingBox.right) {
+                maxX = node.boundingBox.right;
+              }
+              if (minY > node.boundingBox.bottom) {
+                minY = node.boundingBox.top;
+              } // top is negative, bottom is positive
+              if (maxY < node.boundingBox.top) {
+                maxY = node.boundingBox.bottom;
+              } // top is negative, bottom is positive
+            }
+          } else {
+            for (var nodeId in this.body.nodes) {
+              if (this.body.nodes.hasOwnProperty(nodeId)) {
+                node = this.body.nodes[nodeId];
+                if (minX > node.boundingBox.left) {
+                  minX = node.boundingBox.left;
+                }
+                if (maxX < node.boundingBox.right) {
+                  maxX = node.boundingBox.right;
+                }
+                if (minY > node.boundingBox.bottom) {
+                  minY = node.boundingBox.top;
+                } // top is negative, bottom is positive
+                if (maxY < node.boundingBox.top) {
+                  maxY = node.boundingBox.bottom;
+                } // top is negative, bottom is positive
+              }
+            }
+          }
+
+          if (minX == 1000000000 && maxX == -1000000000 && minY == 1000000000 && maxY == -1000000000) {
+            minY = 0, maxY = 0, minX = 0, maxX = 0;
+          }
+          return { minX: minX, maxX: maxX, minY: minY, maxY: maxY };
+        },
+        writable: true,
+        configurable: true
+      },
+      _findCenter: {
+
+
+        /**
+         * @param {object} range = {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
+         * @returns {{x: number, y: number}}
+         * @private
+         */
+        value: function _findCenter(range) {
+          return { x: 0.5 * (range.maxX + range.minX),
+            y: 0.5 * (range.maxY + range.minY) };
+        },
+        writable: true,
+        configurable: true
+      },
+      zoomExtent: {
+
+
+        /**
+         * This function zooms out to fit all data on screen based on amount of nodes
+         * @param {Object}
+         * @param {Boolean} [initialZoom]  | zoom based on fitted formula or range, true = fitted, default = false;
+         * @param {Boolean} [disableStart] | If true, start is not called.
+         */
+        value: function zoomExtent() {
+          var options = arguments[0] === undefined ? { nodes: [] } : arguments[0];
+          var initialZoom = arguments[1] === undefined ? false : arguments[1];
+          var range;
+          var zoomLevel;
+
+          if (initialZoom == true) {
+            // check if more than half of the nodes have a predefined position. If so, we use the range, not the approximation.
+            var positionDefined = 0;
+            for (var nodeId in this.body.nodes) {
+              if (this.body.nodes.hasOwnProperty(nodeId)) {
+                var node = this.body.nodes[nodeId];
+                if (node.predefinedPosition == true) {
+                  positionDefined += 1;
+                }
+              }
+            }
+            if (positionDefined > 0.5 * this.body.nodeIndices.length) {
+              this.zoomExtent(options, false);
+              return;
+            }
+
+            range = this._getRange(options.nodes);
+
+            var numberOfNodes = this.body.nodeIndices.length;
+            if (this.options.smoothCurves == true) {
+              zoomLevel = 12.662 / (numberOfNodes + 7.4147) + 0.0964822; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+            } else {
+              zoomLevel = 30.5062972 / (numberOfNodes + 19.93597763) + 0.08413486; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+            }
+
+            // correct for larger canvasses.
+            var factor = Math.min(this.canvas.frame.canvas.clientWidth / 600, this.canvas.frame.canvas.clientHeight / 600);
+            zoomLevel *= factor;
+          } else {
+            this.body.emitter.emit("_redrawHidden");
+            range = this._getRange(options.nodes);
+            var xDistance = Math.abs(range.maxX - range.minX) * 1.1;
+            var yDistance = Math.abs(range.maxY - range.minY) * 1.1;
+
+            var xZoomLevel = this.canvas.frame.canvas.clientWidth / xDistance;
+            var yZoomLevel = this.canvas.frame.canvas.clientHeight / yDistance;
+            zoomLevel = xZoomLevel <= yZoomLevel ? xZoomLevel : yZoomLevel;
+          }
+
+          if (zoomLevel > 1) {
+            zoomLevel = 1;
+          }
+
+
+          var center = this._findCenter(range);
+          var animationOptions = { position: center, scale: zoomLevel, animation: options };
+          this.moveTo(animationOptions);
+        },
+        writable: true,
+        configurable: true
+      },
+      focusOnNode: {
+
+        // animation
+
+        /**
+         * Center a node in view.
+         *
+         * @param {Number} nodeId
+         * @param {Number} [options]
+         */
+        value: function focusOnNode(nodeId) {
+          var options = arguments[1] === undefined ? {} : arguments[1];
+          if (this.body.nodes[nodeId] !== undefined) {
+            var nodePosition = { x: this.body.nodes[nodeId].x, y: this.body.nodes[nodeId].y };
+            options.position = nodePosition;
+            options.lockedOnNode = nodeId;
+
+            this.moveTo(options);
+          } else {
+            console.log("Node: " + nodeId + " cannot be found.");
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      moveTo: {
+
+        /**
+         *
+         * @param {Object} options  |  options.offset   = {x:Number, y:Number}   // offset from the center in DOM pixels
+         *                          |  options.scale    = Number                 // scale to move to
+         *                          |  options.position = {x:Number, y:Number}   // position to move to
+         *                          |  options.animation = {duration:Number, easingFunction:String} || Boolean   // position to move to
+         */
+        value: function moveTo(options) {
+          if (options === undefined) {
+            options = {};
+            return;
+          }
+          if (options.offset === undefined) {
+            options.offset = { x: 0, y: 0 };
+          }
+          if (options.offset.x === undefined) {
+            options.offset.x = 0;
+          }
+          if (options.offset.y === undefined) {
+            options.offset.y = 0;
+          }
+          if (options.scale === undefined) {
+            options.scale = this.scale;
+          }
+          if (options.position === undefined) {
+            options.position = this.translation;
+          }
+          if (options.animation === undefined) {
+            options.animation = { duration: 0 };
+          }
+          if (options.animation === false) {
+            options.animation = { duration: 0 };
+          }
+          if (options.animation === true) {
+            options.animation = {};
+          }
+          if (options.animation.duration === undefined) {
+            options.animation.duration = 1000;
+          } // default duration
+          if (options.animation.easingFunction === undefined) {
+            options.animation.easingFunction = "easeInOutQuad";
+          } // default easing function
+
+          this.animateView(options);
+        },
+        writable: true,
+        configurable: true
+      },
+      animateView: {
+
+        /**
+         *
+         * @param {Object} options  |  options.offset   = {x:Number, y:Number}   // offset from the center in DOM pixels
+         *                          |  options.time     = Number                 // animation time in milliseconds
+         *                          |  options.scale    = Number                 // scale to animate to
+         *                          |  options.position = {x:Number, y:Number}   // position to animate to
+         *                          |  options.easingFunction = String           // linear, easeInQuad, easeOutQuad, easeInOutQuad,
+         *                                                                       // easeInCubic, easeOutCubic, easeInOutCubic,
+         *                                                                       // easeInQuart, easeOutQuart, easeInOutQuart,
+         *                                                                       // easeInQuint, easeOutQuint, easeInOutQuint
+         */
+        value: function animateView(options) {
+          if (options === undefined) {
+            return;
+          }
+          this.animationEasingFunction = options.animation.easingFunction;
+          // release if something focussed on the node
+          this.releaseNode();
+          if (options.locked == true) {
+            this.lockedOnNodeId = options.lockedOnNode;
+            this.lockedOnNodeOffset = options.offset;
+          }
+
+          // forcefully complete the old animation if it was still running
+          if (this.easingTime != 0) {
+            this._transitionRedraw(true); // by setting easingtime to 1, we finish the animation.
+          }
+
+          this.sourceScale = this.scale;
+          this.sourceTranslation = this.translation;
+          this.targetScale = options.scale;
+
+          // set the scale so the viewCenter is based on the correct zoom level. This is overridden in the transitionRedraw
+          // but at least then we'll have the target transition
+          this.body.emitter.emit("_setScale", this.targetScale);
+          var viewCenter = this.canvas.DOMtoCanvas({ x: 0.5 * this.canvas.frame.canvas.clientWidth, y: 0.5 * this.canvas.frame.canvas.clientHeight });
+          var distanceFromCenter = { // offset from view, distance view has to change by these x and y to center the node
+            x: viewCenter.x - options.position.x,
+            y: viewCenter.y - options.position.y
+          };
+          this.targetTranslation = {
+            x: this.sourceTranslation.x + distanceFromCenter.x * this.targetScale + options.offset.x,
+            y: this.sourceTranslation.y + distanceFromCenter.y * this.targetScale + options.offset.y
+          };
+
+          // if the time is set to 0, don't do an animation
+          if (options.animation.duration == 0) {
+            if (this.lockedOnNodeId != null) {
+              this.viewFunction = this._lockedRedraw.bind(this);
+              this.body.emitter.on("_beforeRender", this.viewFunction);
+            } else {
+              this.body.emitter.emit("_setScale", this.targetScale);;
+              this.body.emitter.emit("_setTranslation", this.targetTranslation);
+              this.body.emitter.emit("_requestRedraw");
+            }
+          } else {
+            this.animationSpeed = 1 / (60 * options.animation.duration * 0.001) || 1 / 60; // 60 for 60 seconds, 0.001 for milli's
+            this.animationEasingFunction = options.animation.easingFunction;
+
+
+            this.viewFunction = this._transitionRedraw.bind(this);
+            this.body.emitter.on("_beforeRender", this.viewFunction);
+            this.body.emitter.emit("_startRendering");
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _lockedRedraw: {
+
+        /**
+         * used to animate smoothly by hijacking the redraw function.
+         * @private
+         */
+        value: function _lockedRedraw() {
+          var nodePosition = { x: this.body.nodes[this.lockedOnNodeId].x, y: this.body.nodes[this.lockedOnNodeId].y };
+          var viewCenter = this.DOMtoCanvas({ x: 0.5 * this.frame.canvas.clientWidth, y: 0.5 * this.frame.canvas.clientHeight });
+          var distanceFromCenter = { // offset from view, distance view has to change by these x and y to center the node
+            x: viewCenter.x - nodePosition.x,
+            y: viewCenter.y - nodePosition.y
+          };
+          var sourceTranslation = this.translation;
+          var targetTranslation = {
+            x: sourceTranslation.x + distanceFromCenter.x * this.scale + this.lockedOnNodeOffset.x,
+            y: sourceTranslation.y + distanceFromCenter.y * this.scale + this.lockedOnNodeOffset.y
+          };
+
+          this.body.emitter.emit("_setTranslation", targetTranslation);
+        },
+        writable: true,
+        configurable: true
+      },
+      releaseNode: {
+        value: function releaseNode() {
+          if (this.lockedOnNodeId !== undefined) {
+            this.body.emitter.off("_beforeRender", this.viewFunction);
+            this.lockedOnNodeId = undefined;
+            this.lockedOnNodeOffset = undefined;
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _transitionRedraw: {
+
+        /**
+         *
+         * @param easingTime
+         * @private
+         */
+        value: function _transitionRedraw() {
+          var finished = arguments[0] === undefined ? false : arguments[0];
+          this.easingTime += this.animationSpeed;
+          this.easingTime = finished === true ? 1 : this.easingTime;
+
+          var progress = util.easingFunctions[this.animationEasingFunction](this.easingTime);
+
+          this.body.emitter.emit("_setScale", this.sourceScale + (this.targetScale - this.sourceScale) * progress);
+          this.body.emitter.emit("_setTranslation", {
+            x: this.sourceTranslation.x + (this.targetTranslation.x - this.sourceTranslation.x) * progress,
+            y: this.sourceTranslation.y + (this.targetTranslation.y - this.sourceTranslation.y) * progress
+          });
+
+          // cleanup
+          if (this.easingTime >= 1) {
+            this.body.emitter.off("_beforeRender", this.viewFunction);
+            this.easingTime = 0;
+            if (this.lockedOnNodeId != null) {
+              this.viewFunction = this._lockedRedraw.bind(this);
+              this.body.emitter.on("_beforeRender", this.viewFunction);
+            }
+            this.body.emitter.emit("animationFinished");
+          }
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return View;
+  })();
+
+  exports.View = View;
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+/***/ },
+/* 71 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  /**
    * Created by Alex on 2/23/2015.
    */
 
@@ -33108,7 +33399,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 69 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33209,7 +33500,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 70 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33307,7 +33598,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 71 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33418,7 +33709,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 72 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33548,7 +33839,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 73 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
