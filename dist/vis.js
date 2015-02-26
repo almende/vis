@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.10.1-SNAPSHOT
- * @date    2015-02-24
+ * @date    2015-02-26
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -33801,7 +33801,7 @@ return /******/ (function(modules) { // webpackBootstrap
     delete this.sectors['support']['nodes']['targetNode'];
     delete this.sectors['support']['nodes']['targetViaNode'];
     this.controlNodesActive = false;
-    this.freezeSimulationEnabled = false;
+    this.freezeSimulation(false);
   };
 
 
@@ -33882,7 +33882,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this._restoreOverloadedFunctions();
 
     // resume calculation
-    this.freezeSimulationEnabled = false;
+    this.freezeSimulation(false);
 
     // reset global variables
     this.blockConnectingEdgeSelection = false;
@@ -34059,7 +34059,7 @@ return /******/ (function(modules) { // webpackBootstrap
     // clear the toolbar
     this._clearManipulatorBar();
     this._unselectAll(true);
-    this.freezeSimulationEnabled = true;
+    this.freezeSimulation(true);
 
     if (this.boundFunction) {
       this.off('select', this.boundFunction);
@@ -34190,7 +34190,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.selectedControlNode = this.edgeBeingEdited._getSelectedControlNode(this._XconvertDOMtoCanvas(pointer.x),this._YconvertDOMtoCanvas(pointer.y));
     if (this.selectedControlNode !== null) {
       this.selectedControlNode.select();
-      this.freezeSimulationEnabled = true;
+      this.freezeSimulation(true);
     }
     this._redraw();
   };
@@ -34234,7 +34234,7 @@ return /******/ (function(modules) { // webpackBootstrap
     else {
       this.edgeBeingEdited._restoreControlNodes();
     }
-    this.freezeSimulationEnabled = false;
+    this.freezeSimulation(false);
     this._redraw();
   };
 
@@ -34276,11 +34276,13 @@ return /******/ (function(modules) { // webpackBootstrap
           connectionEdge.to = targetNode;
 
           this.cachedFunctions["_handleOnDrag"] = this._handleOnDrag;
+          var me = this;
           this._handleOnDrag = function(event) {
             var pointer = this._getPointer(event.gesture.center);
-            var connectionEdge = this.edges['connectionEdge'];
-            connectionEdge.to.x = this._XconvertDOMtoCanvas(pointer.x);
-            connectionEdge.to.y = this._YconvertDOMtoCanvas(pointer.y);
+            var connectionEdge = me.edges['connectionEdge'];
+            connectionEdge.to.x = me._XconvertDOMtoCanvas(pointer.x);
+            connectionEdge.to.y = me._YconvertDOMtoCanvas(pointer.y);
+            me._redraw();
           };
 
           this.moving = true;
