@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.0.0-SNAPSHOT
- * @date    2015-02-25
+ * @date    2015-02-26
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -22761,13 +22761,13 @@ return /******/ (function(modules) { // webpackBootstrap
   var Popup = __webpack_require__(58);
   var MixinLoader = __webpack_require__(59);
   var Activator = __webpack_require__(36);
-  var locales = __webpack_require__(70);
+  var locales = __webpack_require__(64);
 
   // Load custom shapes into CanvasRenderingContext2D
-  __webpack_require__(71);
+  __webpack_require__(65);
 
-  var PhysicsEngine = __webpack_require__(72).PhysicsEngine;
-  var ClusterEngine = __webpack_require__(73).ClusterEngine;
+  var PhysicsEngine = __webpack_require__(66).PhysicsEngine;
+  var ClusterEngine = __webpack_require__(67).ClusterEngine;
 
 
   /**
@@ -22908,7 +22908,10 @@ return /******/ (function(modules) { // webpackBootstrap
           nodeDistance: 150,
           damping: 0.09
         },
-        model: "BarnesHut"
+        model: "BarnesHut",
+        timestep: 0.5,
+        maxVelocity: 50,
+        minVelocity: 0.1 // px/s
       },
       navigation: {
         enabled: false
@@ -22936,8 +22939,8 @@ return /******/ (function(modules) { // webpackBootstrap
         type: "continuous",
         roundness: 0.5
       },
-      maxVelocity: 50,
-      minVelocity: 0.1, // px/s
+      maxVelocity: 50, // ---------------- MOVED TO PHYSICS ----------------------- //
+      minVelocity: 0.1, // px/s          // ---------------- MOVED TO PHYSICS ----------------------- //
       stabilize: true, // stabilize before displaying the network
       stabilizationIterations: 1000, // maximum number of iteration to stabilize
       stabilizationStepsize: 100,
@@ -22980,7 +22983,10 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       functions: {
         createNode: this._createNode.bind(this),
-        createEdge: this._createEdge.bind(this)
+        createEdge: this._createEdge.bind(this),
+        getScale: (function () {
+          return this.scale;
+        }).bind(this)
       },
       emitter: {
         on: this.on.bind(this),
@@ -23034,7 +23040,6 @@ return /******/ (function(modules) { // webpackBootstrap
     // create a frame and canvas
     this._create();
     // load the cluster system.   (mandatory, even when not using the cluster system, there are function calls to it)
-    this._loadClusterSystem();
     // load the selection system. (mandatory, required by Network)
     this._loadSelectionSystem();
     // load the selection system. (mandatory, required by Network)
@@ -25052,66 +25057,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
   /**
-   * Check if any of the nodes is still moving
-   * @param {number} vmin   the minimum velocity considered as 'moving'
-   * @return {boolean}      true if moving, false if non of the nodes is moving
-   * @private
-   */
-  Network.prototype._isMoving = function (nodes, nodeIndices, vmin) {
-    for (var i = 0; i < nodeIndices.length; i++) {
-      var node = nodes[nodeIndices[i]];
-      if (node.isMoving(vmin) == true) {
-        return true;
-      }
-    }
-    return false;
-  };
-
-
-  /**
-   * /**
-   * Perform one discrete step for all nodes
-   *
-   * @private
-   */
-  Network.prototype._discreteStepNodes = function (nodes, nodeIndices) {
-    var interval = this.physicsDiscreteStepsize;
-    var nodesPresent = false;
-
-    if (this.constants.maxVelocity > 0) {
-      for (var i = 0; i < nodeIndices.length; i++) {
-        var node = nodes[nodeIndices[i]];
-        node.discreteStepLimited(interval, this.constants.maxVelocity);
-        nodesPresent = true;
-      }
-    } else {
-      for (var i = 0; i < nodeIndices.length; i++) {
-        var node = nodes[nodeIndices[i]];
-        node.discreteStep(interval);
-        nodesPresent = true;
-      }
-    }
-
-
-    if (nodesPresent == true) {
-      var vminCorrected = this.constants.minVelocity / Math.max(this.scale, 0.05);
-      if (vminCorrected > 0.5 * this.constants.maxVelocity) {
-        return true;
-      } else {
-        return this._isMoving(nodes, nodeIndices, vminCorrected);
-      }
-    }
-    return false;
-  };
-
-
-  Network.prototype._revertPhysicsTick = function (nodes, nodeIndices) {
-    for (var i = 0; i < nodeIndices.length; i++) {
-      nodes[nodeIndices[i]].revertPosition();
-    }
-  };
-
-  /**
    * A single simulation step (or "tick") in the physics simulation
    *
    * @private
@@ -25119,16 +25064,13 @@ return /******/ (function(modules) { // webpackBootstrap
   Network.prototype._physicsTick = function () {
     if (!this.freezeSimulationEnabled) {
       if (this.moving == true) {
-        this.physics.step();
+        this.physics.calculateForces();
 
-        var mainMovingStatus = this._discreteStepNodes(this.body.nodes, this.body.nodeIndices);
-        var supportMovingStatus = this._discreteStepNodes(this.body.supportNodes, this.body.supportNodeIndices);
+        this.moving = this.physics.moveNodes();
 
         // determine if the network has stabilzied
-        this.moving = mainMovingStatus || supportMovingStatus;
         if (this.moving == false) {
-          this._revertPhysicsTick(this.body.nodes, this.body.nodeIndices);
-          this._revertPhysicsTick(this.body.supportNodes, this.body.supportNodeIndices);
+          this.physics.revert();
         } else {
           // this is here to ensure that there is no start event when the network is already stable.
           if (this.startedStabilization == false) {
@@ -26872,17 +26814,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
   /**
-   *  Revert the position and velocity of the previous step.
-   */
-  Node.prototype.revertPosition = function () {
-    this.x = this.previousState.x;
-    this.y = this.previousState.y;
-    this.vx = this.previousState.vx;
-    this.vy = this.previousState.vy;
-  };
-
-
-  /**
    * Attach a edge to the node
    * @param {Edge} edge
    */
@@ -27123,95 +27054,6 @@ return /******/ (function(modules) { // webpackBootstrap
     // TODO: implement calculation of distance to border for all shapes
   };
 
-  /**
-   * Set forces acting on the node
-   * @param {number} fx   Force in horizontal direction
-   * @param {number} fy   Force in vertical direction
-   */
-  Node.prototype._setForce = function (fx, fy) {
-    this.fx = fx;
-    this.fy = fy;
-  };
-
-  /**
-   * Add forces acting on the node
-   * @param {number} fx   Force in horizontal direction
-   * @param {number} fy   Force in vertical direction
-   * @private
-   */
-  Node.prototype._addForce = function (fx, fy) {
-    this.fx += fx;
-    this.fy += fy;
-  };
-
-  /**
-   * Store the state before the next step
-   */
-  Node.prototype.storeState = function () {
-    this.previousState.x = this.x;
-    this.previousState.y = this.y;
-    this.previousState.vx = this.vx;
-    this.previousState.vy = this.vy;
-  };
-
-  /**
-   * Perform one discrete step for the node
-   * @param {number} interval    Time interval in seconds
-   */
-  Node.prototype.discreteStep = function (interval) {
-    this.storeState();
-    if (!this.xFixed) {
-      var dx = this.damping * this.vx; // damping force
-      var ax = (this.fx - dx) / this.options.mass; // acceleration
-      this.vx += ax * interval; // velocity
-      this.x += this.vx * interval; // position
-    } else {
-      this.fx = 0;
-      this.vx = 0;
-    }
-
-    if (!this.yFixed) {
-      var dy = this.damping * this.vy; // damping force
-      var ay = (this.fy - dy) / this.options.mass; // acceleration
-      this.vy += ay * interval; // velocity
-      this.y += this.vy * interval; // position
-    } else {
-      this.fy = 0;
-      this.vy = 0;
-    }
-  };
-
-
-
-  /**
-   * Perform one discrete step for the node
-   * @param {number} interval    Time interval in seconds
-   * @param {number} maxVelocity The speed limit imposed on the velocity
-   */
-  Node.prototype.discreteStepLimited = function (interval, maxVelocity) {
-    this.storeState();
-    if (!this.xFixed) {
-      var dx = this.damping * this.vx; // damping force
-      var ax = (this.fx - dx) / this.options.mass; // acceleration
-      this.vx += ax * interval; // velocity
-      this.vx = Math.abs(this.vx) > maxVelocity ? this.vx > 0 ? maxVelocity : -maxVelocity : this.vx;
-      this.x += this.vx * interval; // position
-    } else {
-      this.fx = 0;
-      this.vx = 0;
-    }
-
-    if (!this.yFixed) {
-      var dy = this.damping * this.vy; // damping force
-      var ay = (this.fy - dy) / this.options.mass; // acceleration
-      this.vy += ay * interval; // velocity
-      this.vy = Math.abs(this.vy) > maxVelocity ? this.vy > 0 ? maxVelocity : -maxVelocity : this.vy;
-      this.y += this.vy * interval; // position
-    } else {
-      this.fy = 0;
-      this.vy = 0;
-    }
-  };
 
   /**
    * Check if this node has a fixed x and y position
@@ -27219,17 +27061,6 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   Node.prototype.isFixed = function () {
     return this.xFixed && this.yFixed;
-  };
-
-  /**
-   * Check if this node is moving
-   * @param {number} vmin   the minimum velocity considered as "moving"
-   * @return {boolean}      true if moving, false if it has no velocity
-   */
-  Node.prototype.isMoving = function (vmin) {
-    var velocity = Math.sqrt(Math.pow(this.vx, 2) + Math.pow(this.vy, 2));
-    //  this.velocity = Math.sqrt(Math.pow(this.vx,2) + Math.pow(this.vy,2))
-    return velocity > vmin;
   };
 
   /**
@@ -29406,13 +29237,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
   "use strict";
 
-  var PhysicsMixin = __webpack_require__(60);
-  var ClusterMixin = __webpack_require__(64);
-  var SectorsMixin = __webpack_require__(65);
-  var SelectionMixin = __webpack_require__(66);
-  var ManipulationMixin = __webpack_require__(67);
-  var NavigationMixin = __webpack_require__(68);
-  var HierarchicalLayoutMixin = __webpack_require__(69);
+  var SelectionMixin = __webpack_require__(60);
+  var ManipulationMixin = __webpack_require__(61);
+  var NavigationMixin = __webpack_require__(62);
+  var HierarchicalLayoutMixin = __webpack_require__(63);
 
   /**
    * Load a mixin into the network object
@@ -29459,16 +29287,6 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   };
 
-
-  /**
-   * Mixin the cluster system and initialize the parameters required.
-   *
-   * @private
-   */
-  exports._loadClusterSystem = function () {
-    this.clusteredNodes = {};
-    this._loadMixin(ClusterMixin);
-  };
 
 
 
@@ -29576,2508 +29394,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 60 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var util = __webpack_require__(1);
-  var RepulsionMixin = __webpack_require__(61);
-  var HierarchialRepulsionMixin = __webpack_require__(62);
-  var BarnesHutMixin = __webpack_require__(63);
-
-  /**
-   * Toggling barnes Hut calculation on and off.
-   *
-   * @private
-   */
-  exports._toggleBarnesHut = function () {
-    this.constants.physics.barnesHut.enabled = !this.constants.physics.barnesHut.enabled;
-    this._loadSelectedForceSolver();
-    this.moving = true;
-    this.start();
-  };
-
-
-  /**
-   * This loads the node force solver based on the barnes hut or repulsion algorithm
-   *
-   * @private
-   */
-  exports._loadSelectedForceSolver = function () {
-    // this overloads the this._calculateNodeForces
-    if (this.constants.physics.barnesHut.enabled == true) {
-      this._clearMixin(RepulsionMixin);
-      this._clearMixin(HierarchialRepulsionMixin);
-
-      this.constants.physics.centralGravity = this.constants.physics.barnesHut.centralGravity;
-      this.constants.physics.springLength = this.constants.physics.barnesHut.springLength;
-      this.constants.physics.springConstant = this.constants.physics.barnesHut.springConstant;
-      this.constants.physics.damping = this.constants.physics.barnesHut.damping;
-
-      this._loadMixin(BarnesHutMixin);
-    } else if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
-      this._clearMixin(BarnesHutMixin);
-      this._clearMixin(RepulsionMixin);
-
-      this.constants.physics.centralGravity = this.constants.physics.hierarchicalRepulsion.centralGravity;
-      this.constants.physics.springLength = this.constants.physics.hierarchicalRepulsion.springLength;
-      this.constants.physics.springConstant = this.constants.physics.hierarchicalRepulsion.springConstant;
-      this.constants.physics.damping = this.constants.physics.hierarchicalRepulsion.damping;
-
-      this._loadMixin(HierarchialRepulsionMixin);
-    } else {
-      this._clearMixin(BarnesHutMixin);
-      this._clearMixin(HierarchialRepulsionMixin);
-      this.barnesHutTree = undefined;
-
-      this.constants.physics.centralGravity = this.constants.physics.repulsion.centralGravity;
-      this.constants.physics.springLength = this.constants.physics.repulsion.springLength;
-      this.constants.physics.springConstant = this.constants.physics.repulsion.springConstant;
-      this.constants.physics.damping = this.constants.physics.repulsion.damping;
-
-      this._loadMixin(RepulsionMixin);
-    }
-  };
-
-  /**
-   * Before calculating the forces, we check if we need to cluster to keep up performance and we check
-   * if there is more than one node. If it is just one node, we dont calculate anything.
-   *
-   * @private
-   */
-  exports._initializeForceCalculation = function () {
-    // stop calculation if there is only one node
-    if (this.calculationNodeIndices.length == 1) {
-      this.body.nodes[this.calculationNodeIndices[0]]._setForce(0, 0);
-    } else {
-      // we now start the force calculation
-      this._calculateForces();
-    }
-  };
-
-
-  /**
-   * Calculate the external forces acting on the nodes
-   * Forces are caused by: edges, repulsing forces between nodes, gravity
-   * @private
-   */
-  exports._calculateForces = function () {
-    // Gravity is required to keep separated groups from floating off
-    // the forces are reset to zero in this loop by using _setForce instead
-    // of _addForce
-
-    this._calculateGravitationalForces();
-    this._calculateNodeForces();
-
-    if (this.constants.physics.springConstant > 0) {
-      if (this.constants.smoothCurves.enabled == true && this.constants.smoothCurves.dynamic == true) {
-        this._calculateSpringForcesWithSupport();
-      } else {
-        if (this.constants.physics.hierarchicalRepulsion.enabled == true) {
-          this._calculateHierarchicalSpringForces();
-        } else {
-          this._calculateSpringForces();
-        }
-      }
-    }
-  };
-
-
-  /**
-   * Smooth curves are created by adding invisible nodes in the center of the edges. These nodes are also
-   * handled in the calculateForces function. We then use a quadratic curve with the center node as control.
-   * This function joins the datanodes and invisible (called support) nodes into one object.
-   * We do this so we do not contaminate this.body.nodes with the support nodes.
-   *
-   * @private
-   */
-  exports._updateCalculationNodes = function () {
-    if (this.constants.smoothCurves.enabled == true && this.constants.smoothCurves.dynamic == true) {
-      this.calculationNodes = {};
-      this.calculationNodeIndices = [];
-
-      for (var nodeId in this.body.nodes) {
-        if (this.body.nodes.hasOwnProperty(nodeId)) {
-          this.calculationNodes[nodeId] = this.body.nodes[nodeId];
-        }
-      }
-      var supportNodes = this.body.sectors.support.nodes;
-      for (var supportNodeId in supportNodes) {
-        if (supportNodes.hasOwnProperty(supportNodeId)) {
-          if (this.body.edges.hasOwnProperty(supportNodes[supportNodeId].parentEdgeId)) {
-            this.calculationNodes[supportNodeId] = supportNodes[supportNodeId];
-          } else {
-            supportNodes[supportNodeId]._setForce(0, 0);
-          }
-        }
-      }
-
-      this.calculationNodeIndices = Object.keys(this.calculationNodes);
-    } else {
-      this.calculationNodes = this.body.nodes;
-      this.calculationNodeIndices = this.body.nodeIndices;
-    }
-  };
-
-
-  /**
-   * this function applies the central gravity effect to keep groups from floating off
-   *
-   * @private
-   */
-  exports._calculateGravitationalForces = function () {
-    var dx, dy, distance, node, i;
-    var nodes = this.calculationNodes;
-    var gravity = this.constants.physics.centralGravity;
-    var gravityForce = 0;
-
-    for (i = 0; i < this.calculationNodeIndices.length; i++) {
-      node = nodes[this.calculationNodeIndices[i]];
-      node.damping = this.constants.physics.damping; // possibly add function to alter damping properties of clusters.
-      // gravity does not apply when we are in a pocket sector
-      if (this._sector() == "default" && gravity != 0) {
-        dx = -node.x;
-        dy = -node.y;
-        distance = Math.sqrt(dx * dx + dy * dy);
-
-        gravityForce = distance == 0 ? 0 : gravity / distance;
-        node.fx = dx * gravityForce;
-        node.fy = dy * gravityForce;
-      } else {
-        node.fx = 0;
-        node.fy = 0;
-      }
-    }
-  };
-
-
-
-
-  /**
-   * this function calculates the effects of the springs in the case of unsmooth curves.
-   *
-   * @private
-   */
-  exports._calculateSpringForces = function () {
-    var edgeLength, edge, edgeId;
-    var dx, dy, fx, fy, springForce, distance;
-    var edges = this.body.edges;
-
-    // forces caused by the edges, modelled as springs
-    for (edgeId in edges) {
-      if (edges.hasOwnProperty(edgeId)) {
-        edge = edges[edgeId];
-        if (edge.connected === true) {
-          // only calculate forces if nodes are in the same sector
-          if (this.body.nodes.hasOwnProperty(edge.toId) && this.body.nodes.hasOwnProperty(edge.fromId)) {
-            edgeLength = edge.physics.springLength;
-
-            dx = edge.from.x - edge.to.x;
-            dy = edge.from.y - edge.to.y;
-            distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance == 0) {
-              distance = 0.01;
-            }
-
-            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
-            springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
-
-            fx = dx * springForce;
-            fy = dy * springForce;
-
-            edge.from.fx += fx;
-            edge.from.fy += fy;
-            edge.to.fx -= fx;
-            edge.to.fy -= fy;
-          }
-        }
-      }
-    }
-  };
-
-
-
-
-  /**
-   * This function calculates the springforces on the nodes, accounting for the support nodes.
-   *
-   * @private
-   */
-  exports._calculateSpringForcesWithSupport = function () {
-    var edgeLength, edge, edgeId;
-    var edges = this.body.edges;
-    var calculationNodes = this.calculationNodes;
-
-    // forces caused by the edges, modelled as springs
-    for (edgeId in edges) {
-      if (edges.hasOwnProperty(edgeId)) {
-        edge = edges[edgeId];
-        if (edge.connected === true) {
-          // only calculate forces if nodes are in the same sector
-          if (calculationNodes[edge.toId] !== undefined && calculationNodes[edge.fromId] !== undefined) {
-            if (edge.via != null) {
-              var node1 = edge.to;
-              var node2 = edge.via;
-              var node3 = edge.from;
-
-              edgeLength = edge.physics.springLength;
-
-              this._calculateSpringForce(node1, node2, 0.5 * edgeLength);
-              this._calculateSpringForce(node2, node3, 0.5 * edgeLength);
-            }
-          }
-        }
-      }
-    }
-  };
-
-
-  /**
-   * This is the code actually performing the calculation for the function above. It is split out to avoid repetition.
-   *
-   * @param node1
-   * @param node2
-   * @param edgeLength
-   * @private
-   */
-  exports._calculateSpringForce = function (node1, node2, edgeLength) {
-    var dx, dy, fx, fy, springForce, distance;
-
-    dx = node1.x - node2.x;
-    dy = node1.y - node2.y;
-    distance = Math.sqrt(dx * dx + dy * dy);
-
-    if (distance == 0) {
-      distance = 0.01;
-    }
-
-    // the 1/distance is so the fx and fy can be calculated without sine or cosine.
-    springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
-
-    fx = dx * springForce;
-    fy = dy * springForce;
-
-    node1.fx += fx;
-    node1.fy += fy;
-    node2.fx -= fx;
-    node2.fy -= fy;
-  };
-
-
-  exports._cleanupPhysicsConfiguration = function () {
-    if (this.physicsConfiguration !== undefined) {
-      while (this.physicsConfiguration.hasChildNodes()) {
-        this.physicsConfiguration.removeChild(this.physicsConfiguration.firstChild);
-      }
-
-      this.physicsConfiguration.parentNode.removeChild(this.physicsConfiguration);
-      this.physicsConfiguration = undefined;
-    }
-  };
-
-  /**
-   * Load the HTML for the physics config and bind it
-   * @private
-   */
-  exports._loadPhysicsConfiguration = function () {
-    if (this.physicsConfiguration === undefined) {
-      this.backupConstants = {};
-      util.deepExtend(this.backupConstants, this.constants);
-
-      var maxGravitational = Math.max(20000, -1 * this.constants.physics.barnesHut.gravitationalConstant * 10);
-      var maxSpring = Math.min(0.05, this.constants.physics.barnesHut.springConstant * 10);
-
-      var hierarchicalLayoutDirections = ["LR", "RL", "UD", "DU"];
-      this.physicsConfiguration = document.createElement("div");
-      this.physicsConfiguration.className = "PhysicsConfiguration";
-      this.physicsConfiguration.innerHTML = "" + "<table><tr><td><b>Simulation Mode:</b></td></tr>" + "<tr>" + "<td width=\"120px\"><input type=\"radio\" name=\"graph_physicsMethod\" id=\"graph_physicsMethod1\" value=\"BH\" checked=\"checked\">Barnes Hut</td>" + "<td width=\"120px\"><input type=\"radio\" name=\"graph_physicsMethod\" id=\"graph_physicsMethod2\" value=\"R\">Repulsion</td>" + "<td width=\"120px\"><input type=\"radio\" name=\"graph_physicsMethod\" id=\"graph_physicsMethod3\" value=\"H\">Hierarchical</td>" + "</tr>" + "</table>" + "<table id=\"graph_BH_table\" style=\"display:none\">" + "<tr><td><b>Barnes Hut</b></td></tr>" + "<tr>" + "<td width=\"150px\">gravitationalConstant</td><td>0</td><td><input type=\"range\" min=\"0\" max=\"" + maxGravitational + "\" value=\"" + -1 * this.constants.physics.barnesHut.gravitationalConstant + "\" step=\"25\" style=\"width:300px\" id=\"graph_BH_gc\"></td><td  width=\"50px\">-" + maxGravitational + "</td><td><input value=\"" + this.constants.physics.barnesHut.gravitationalConstant + "\" id=\"graph_BH_gc_value\" style=\"width:60px\"></td>" + "</tr>" + "<tr>" + "<td width=\"150px\">centralGravity</td><td>0</td><td><input type=\"range\" min=\"0\" max=\"6\"  value=\"" + this.constants.physics.barnesHut.centralGravity + "\" step=\"0.05\"  style=\"width:300px\" id=\"graph_BH_cg\"></td><td>3</td><td><input value=\"" + this.constants.physics.barnesHut.centralGravity + "\" id=\"graph_BH_cg_value\" style=\"width:60px\"></td>" + "</tr>" + "<tr>" + "<td width=\"150px\">springLength</td><td>0</td><td><input type=\"range\" min=\"0\" max=\"500\" value=\"" + this.constants.physics.barnesHut.springLength + "\" step=\"1\" style=\"width:300px\" id=\"graph_BH_sl\"></td><td>500</td><td><input value=\"" + this.constants.physics.barnesHut.springLength + "\" id=\"graph_BH_sl_value\" style=\"width:60px\"></td>" + "</tr>" + "<tr>" + "<td width=\"150px\">springConstant</td><td>0</td><td><input type=\"range\" min=\"0\" max=\"" + maxSpring + "\" value=\"" + this.constants.physics.barnesHut.springConstant + "\" step=\"0.0001\" style=\"width:300px\" id=\"graph_BH_sc\"></td><td>" + maxSpring + "</td><td><input value=\"" + this.constants.physics.barnesHut.springConstant + "\" id=\"graph_BH_sc_value\" style=\"width:60px\"></td>" + "</tr>" + "<tr>" + "<td width=\"150px\">damping</td><td>0</td><td><input type=\"range\" min=\"0\" max=\"0.3\" value=\"" + this.constants.physics.barnesHut.damping + "\" step=\"0.005\" style=\"width:300px\" id=\"graph_BH_damp\"></td><td>0.3</td><td><input value=\"" + this.constants.physics.barnesHut.damping + "\" id=\"graph_BH_damp_value\" style=\"width:60px\"></td>" + "</tr>" + "</table>" + "<table id=\"graph_R_table\" style=\"display:none\">" + "<tr><td><b>Repulsion</b></td></tr>" + "<tr>" + "<td width=\"150px\">nodeDistance</td><td>0</td><td><input type=\"range\" min=\"0\" max=\"300\" value=\"" + this.constants.physics.repulsion.nodeDistance + "\" step=\"1\" style=\"width:300px\" id=\"graph_R_nd\"></td><td width=\"50px\">300</td><td><input value=\"" + this.constants.physics.repulsion.nodeDistance + "\" id=\"graph_R_nd_value\" style=\"width:60px\"></td>" + "</tr>" + "<tr>" + "<td width=\"150px\">centralGravity</td><td>0</td><td><input type=\"range\" min=\"0\" max=\"3\"  value=\"" + this.constants.physics.repulsion.centralGravity + "\" step=\"0.05\"  style=\"width:300px\" id=\"graph_R_cg\"></td><td>3</td><td><input value=\"" + this.constants.physics.repulsion.centralGravity + "\" id=\"graph_R_cg_value\" style=\"width:60px\"></td>" + "</tr>" + "<tr>" + "<td width=\"150px\">springLength</td><td>0</td><td><input type=\"range\" min=\"0\" max=\"500\" value=\"" + this.constants.physics.repulsion.springLength + "\" step=\"1\" style=\"width:300px\" id=\"graph_R_sl\"></td><td>500</td><td><input value=\"" + this.constants.physics.repulsion.springLength + "\" id=\"graph_R_sl_value\" style=\"width:60px\"></td>" + "</tr>" + "<tr>" + "<td width=\"150px\">springConstant</td><td>0</td><td><input type=\"range\" min=\"0\" max=\"0.5\" value=\"" + this.constants.physics.repulsion.springConstant + "\" step=\"0.001\" style=\"width:300px\" id=\"graph_R_sc\"></td><td>0.5</td><td><input value=\"" + this.constants.physics.repulsion.springConstant + "\" id=\"graph_R_sc_value\" style=\"width:60px\"></td>" + "</tr>" + "<tr>" + "<td width=\"150px\">damping</td><td>0</td><td><input type=\"range\" min=\"0\" max=\"0.3\" value=\"" + this.constants.physics.repulsion.damping + "\" step=\"0.005\" style=\"width:300px\" id=\"graph_R_damp\"></td><td>0.3</td><td><input value=\"" + this.constants.physics.repulsion.damping + "\" id=\"graph_R_damp_value\" style=\"width:60px\"></td>" + "</tr>" + "</table>" + "<table id=\"graph_H_table\" style=\"display:none\">" + "<tr><td width=\"150\"><b>Hierarchical</b></td></tr>" + "<tr>" + "<td width=\"150px\">nodeDistance</td><td>0</td><td><input type=\"range\" min=\"0\" max=\"300\" value=\"" + this.constants.physics.hierarchicalRepulsion.nodeDistance + "\" step=\"1\" style=\"width:300px\" id=\"graph_H_nd\"></td><td width=\"50px\">300</td><td><input value=\"" + this.constants.physics.hierarchicalRepulsion.nodeDistance + "\" id=\"graph_H_nd_value\" style=\"width:60px\"></td>" + "</tr>" + "<tr>" + "<td width=\"150px\">centralGravity</td><td>0</td><td><input type=\"range\" min=\"0\" max=\"3\"  value=\"" + this.constants.physics.hierarchicalRepulsion.centralGravity + "\" step=\"0.05\"  style=\"width:300px\" id=\"graph_H_cg\"></td><td>3</td><td><input value=\"" + this.constants.physics.hierarchicalRepulsion.centralGravity + "\" id=\"graph_H_cg_value\" style=\"width:60px\"></td>" + "</tr>" + "<tr>" + "<td width=\"150px\">springLength</td><td>0</td><td><input type=\"range\" min=\"0\" max=\"500\" value=\"" + this.constants.physics.hierarchicalRepulsion.springLength + "\" step=\"1\" style=\"width:300px\" id=\"graph_H_sl\"></td><td>500</td><td><input value=\"" + this.constants.physics.hierarchicalRepulsion.springLength + "\" id=\"graph_H_sl_value\" style=\"width:60px\"></td>" + "</tr>" + "<tr>" + "<td width=\"150px\">springConstant</td><td>0</td><td><input type=\"range\" min=\"0\" max=\"0.5\" value=\"" + this.constants.physics.hierarchicalRepulsion.springConstant + "\" step=\"0.001\" style=\"width:300px\" id=\"graph_H_sc\"></td><td>0.5</td><td><input value=\"" + this.constants.physics.hierarchicalRepulsion.springConstant + "\" id=\"graph_H_sc_value\" style=\"width:60px\"></td>" + "</tr>" + "<tr>" + "<td width=\"150px\">damping</td><td>0</td><td><input type=\"range\" min=\"0\" max=\"0.3\" value=\"" + this.constants.physics.hierarchicalRepulsion.damping + "\" step=\"0.005\" style=\"width:300px\" id=\"graph_H_damp\"></td><td>0.3</td><td><input value=\"" + this.constants.physics.hierarchicalRepulsion.damping + "\" id=\"graph_H_damp_value\" style=\"width:60px\"></td>" + "</tr>" + "<tr>" + "<td width=\"150px\">direction</td><td>1</td><td><input type=\"range\" min=\"0\" max=\"3\" value=\"" + hierarchicalLayoutDirections.indexOf(this.constants.hierarchicalLayout.direction) + "\" step=\"1\" style=\"width:300px\" id=\"graph_H_direction\"></td><td>4</td><td><input value=\"" + this.constants.hierarchicalLayout.direction + "\" id=\"graph_H_direction_value\" style=\"width:60px\"></td>" + "</tr>" + "<tr>" + "<td width=\"150px\">levelSeparation</td><td>1</td><td><input type=\"range\" min=\"0\" max=\"500\" value=\"" + this.constants.hierarchicalLayout.levelSeparation + "\" step=\"1\" style=\"width:300px\" id=\"graph_H_levsep\"></td><td>500</td><td><input value=\"" + this.constants.hierarchicalLayout.levelSeparation + "\" id=\"graph_H_levsep_value\" style=\"width:60px\"></td>" + "</tr>" + "<tr>" + "<td width=\"150px\">nodeSpacing</td><td>1</td><td><input type=\"range\" min=\"0\" max=\"500\" value=\"" + this.constants.hierarchicalLayout.nodeSpacing + "\" step=\"1\" style=\"width:300px\" id=\"graph_H_nspac\"></td><td>500</td><td><input value=\"" + this.constants.hierarchicalLayout.nodeSpacing + "\" id=\"graph_H_nspac_value\" style=\"width:60px\"></td>" + "</tr>" + "</table>" + "<table><tr><td><b>Options:</b></td></tr>" + "<tr>" + "<td width=\"180px\"><input type=\"button\" id=\"graph_toggleSmooth\" value=\"Toggle smoothCurves\" style=\"width:150px\"></td>" + "<td width=\"180px\"><input type=\"button\" id=\"graph_repositionNodes\" value=\"Reinitialize\" style=\"width:150px\"></td>" + "<td width=\"180px\"><input type=\"button\" id=\"graph_generateOptions\" value=\"Generate Options\" style=\"width:150px\"></td>" + "</tr>" + "</table>";
-      this.containerElement.parentElement.insertBefore(this.physicsConfiguration, this.containerElement);
-      this.optionsDiv = document.createElement("div");
-      this.optionsDiv.style.fontSize = "14px";
-      this.optionsDiv.style.fontFamily = "verdana";
-      this.containerElement.parentElement.insertBefore(this.optionsDiv, this.containerElement);
-
-      var rangeElement;
-      rangeElement = document.getElementById("graph_BH_gc");
-      rangeElement.onchange = showValueOfRange.bind(this, "graph_BH_gc", -1, "physics_barnesHut_gravitationalConstant");
-      rangeElement = document.getElementById("graph_BH_cg");
-      rangeElement.onchange = showValueOfRange.bind(this, "graph_BH_cg", 1, "physics_centralGravity");
-      rangeElement = document.getElementById("graph_BH_sc");
-      rangeElement.onchange = showValueOfRange.bind(this, "graph_BH_sc", 1, "physics_springConstant");
-      rangeElement = document.getElementById("graph_BH_sl");
-      rangeElement.onchange = showValueOfRange.bind(this, "graph_BH_sl", 1, "physics_springLength");
-      rangeElement = document.getElementById("graph_BH_damp");
-      rangeElement.onchange = showValueOfRange.bind(this, "graph_BH_damp", 1, "physics_damping");
-
-      rangeElement = document.getElementById("graph_R_nd");
-      rangeElement.onchange = showValueOfRange.bind(this, "graph_R_nd", 1, "physics_repulsion_nodeDistance");
-      rangeElement = document.getElementById("graph_R_cg");
-      rangeElement.onchange = showValueOfRange.bind(this, "graph_R_cg", 1, "physics_centralGravity");
-      rangeElement = document.getElementById("graph_R_sc");
-      rangeElement.onchange = showValueOfRange.bind(this, "graph_R_sc", 1, "physics_springConstant");
-      rangeElement = document.getElementById("graph_R_sl");
-      rangeElement.onchange = showValueOfRange.bind(this, "graph_R_sl", 1, "physics_springLength");
-      rangeElement = document.getElementById("graph_R_damp");
-      rangeElement.onchange = showValueOfRange.bind(this, "graph_R_damp", 1, "physics_damping");
-
-      rangeElement = document.getElementById("graph_H_nd");
-      rangeElement.onchange = showValueOfRange.bind(this, "graph_H_nd", 1, "physics_hierarchicalRepulsion_nodeDistance");
-      rangeElement = document.getElementById("graph_H_cg");
-      rangeElement.onchange = showValueOfRange.bind(this, "graph_H_cg", 1, "physics_centralGravity");
-      rangeElement = document.getElementById("graph_H_sc");
-      rangeElement.onchange = showValueOfRange.bind(this, "graph_H_sc", 1, "physics_springConstant");
-      rangeElement = document.getElementById("graph_H_sl");
-      rangeElement.onchange = showValueOfRange.bind(this, "graph_H_sl", 1, "physics_springLength");
-      rangeElement = document.getElementById("graph_H_damp");
-      rangeElement.onchange = showValueOfRange.bind(this, "graph_H_damp", 1, "physics_damping");
-      rangeElement = document.getElementById("graph_H_direction");
-      rangeElement.onchange = showValueOfRange.bind(this, "graph_H_direction", hierarchicalLayoutDirections, "hierarchicalLayout_direction");
-      rangeElement = document.getElementById("graph_H_levsep");
-      rangeElement.onchange = showValueOfRange.bind(this, "graph_H_levsep", 1, "hierarchicalLayout_levelSeparation");
-      rangeElement = document.getElementById("graph_H_nspac");
-      rangeElement.onchange = showValueOfRange.bind(this, "graph_H_nspac", 1, "hierarchicalLayout_nodeSpacing");
-
-      var radioButton1 = document.getElementById("graph_physicsMethod1");
-      var radioButton2 = document.getElementById("graph_physicsMethod2");
-      var radioButton3 = document.getElementById("graph_physicsMethod3");
-      radioButton2.checked = true;
-      if (this.constants.physics.barnesHut.enabled) {
-        radioButton1.checked = true;
-      }
-      if (this.constants.hierarchicalLayout.enabled) {
-        radioButton3.checked = true;
-      }
-
-      var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
-      var graph_repositionNodes = document.getElementById("graph_repositionNodes");
-      var graph_generateOptions = document.getElementById("graph_generateOptions");
-
-      graph_toggleSmooth.onclick = graphToggleSmoothCurves.bind(this);
-      graph_repositionNodes.onclick = graphRepositionNodes.bind(this);
-      graph_generateOptions.onclick = graphGenerateOptions.bind(this);
-      if (this.constants.smoothCurves == true && this.constants.dynamicSmoothCurves == false) {
-        graph_toggleSmooth.style.background = "#A4FF56";
-      } else {
-        graph_toggleSmooth.style.background = "#FF8532";
-      }
-
-
-      switchConfigurations.apply(this);
-
-      radioButton1.onchange = switchConfigurations.bind(this);
-      radioButton2.onchange = switchConfigurations.bind(this);
-      radioButton3.onchange = switchConfigurations.bind(this);
-    }
-  };
-
-  /**
-   * This overwrites the this.constants.
-   *
-   * @param constantsVariableName
-   * @param value
-   * @private
-   */
-  exports._overWriteGraphConstants = function (constantsVariableName, value) {
-    var nameArray = constantsVariableName.split("_");
-    if (nameArray.length == 1) {
-      this.constants[nameArray[0]] = value;
-    } else if (nameArray.length == 2) {
-      this.constants[nameArray[0]][nameArray[1]] = value;
-    } else if (nameArray.length == 3) {
-      this.constants[nameArray[0]][nameArray[1]][nameArray[2]] = value;
-    }
-  };
-
-
-  /**
-   * this function is bound to the toggle smooth curves button. That is also why it is not in the prototype.
-   */
-  function graphToggleSmoothCurves() {
-    this.constants.smoothCurves.enabled = !this.constants.smoothCurves.enabled;
-    var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
-    if (this.constants.smoothCurves.enabled == true) {
-      graph_toggleSmooth.style.background = "#A4FF56";
-    } else {
-      graph_toggleSmooth.style.background = "#FF8532";
-    }
-
-    this._configureSmoothCurves(false);
-  }
-
-  /**
-   * this function is used to scramble the nodes
-   *
-   */
-  function graphRepositionNodes() {
-    for (var nodeId in this.calculationNodes) {
-      if (this.calculationNodes.hasOwnProperty(nodeId)) {
-        this.calculationNodes[nodeId].vx = 0;this.calculationNodes[nodeId].vy = 0;
-        this.calculationNodes[nodeId].fx = 0;this.calculationNodes[nodeId].fy = 0;
-      }
-    }
-    if (this.constants.hierarchicalLayout.enabled == true) {
-      this._setupHierarchicalLayout();
-      showValueOfRange.call(this, "graph_H_nd", 1, "physics_hierarchicalRepulsion_nodeDistance");
-      showValueOfRange.call(this, "graph_H_cg", 1, "physics_centralGravity");
-      showValueOfRange.call(this, "graph_H_sc", 1, "physics_springConstant");
-      showValueOfRange.call(this, "graph_H_sl", 1, "physics_springLength");
-      showValueOfRange.call(this, "graph_H_damp", 1, "physics_damping");
-    } else {
-      this.repositionNodes();
-    }
-    this.moving = true;
-    this.start();
-  }
-
-  /**
-   *  this is used to generate an options file from the playing with physics system.
-   */
-  function graphGenerateOptions() {
-    var options = "No options are required, default values used.";
-    var optionsSpecific = [];
-    var radioButton1 = document.getElementById("graph_physicsMethod1");
-    var radioButton2 = document.getElementById("graph_physicsMethod2");
-    if (radioButton1.checked == true) {
-      if (this.constants.physics.barnesHut.gravitationalConstant != this.backupConstants.physics.barnesHut.gravitationalConstant) {
-        optionsSpecific.push("gravitationalConstant: " + this.constants.physics.barnesHut.gravitationalConstant);
-      }
-      if (this.constants.physics.centralGravity != this.backupConstants.physics.barnesHut.centralGravity) {
-        optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);
-      }
-      if (this.constants.physics.springLength != this.backupConstants.physics.barnesHut.springLength) {
-        optionsSpecific.push("springLength: " + this.constants.physics.springLength);
-      }
-      if (this.constants.physics.springConstant != this.backupConstants.physics.barnesHut.springConstant) {
-        optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);
-      }
-      if (this.constants.physics.damping != this.backupConstants.physics.barnesHut.damping) {
-        optionsSpecific.push("damping: " + this.constants.physics.damping);
-      }
-      if (optionsSpecific.length != 0) {
-        options = "var options = {";
-        options += "physics: {barnesHut: {";
-        for (var i = 0; i < optionsSpecific.length; i++) {
-          options += optionsSpecific[i];
-          if (i < optionsSpecific.length - 1) {
-            options += ", ";
-          }
-        }
-        options += "}}";
-      }
-      if (this.constants.smoothCurves.enabled != this.backupConstants.smoothCurves.enabled) {
-        if (optionsSpecific.length == 0) {
-          options = "var options = {";
-        } else {
-          options += ", ";
-        }
-        options += "smoothCurves: " + this.constants.smoothCurves.enabled;
-      }
-      if (options != "No options are required, default values used.") {
-        options += "};";
-      }
-    } else if (radioButton2.checked == true) {
-      options = "var options = {";
-      options += "physics: {barnesHut: {enabled: false}";
-      if (this.constants.physics.repulsion.nodeDistance != this.backupConstants.physics.repulsion.nodeDistance) {
-        optionsSpecific.push("nodeDistance: " + this.constants.physics.repulsion.nodeDistance);
-      }
-      if (this.constants.physics.centralGravity != this.backupConstants.physics.repulsion.centralGravity) {
-        optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);
-      }
-      if (this.constants.physics.springLength != this.backupConstants.physics.repulsion.springLength) {
-        optionsSpecific.push("springLength: " + this.constants.physics.springLength);
-      }
-      if (this.constants.physics.springConstant != this.backupConstants.physics.repulsion.springConstant) {
-        optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);
-      }
-      if (this.constants.physics.damping != this.backupConstants.physics.repulsion.damping) {
-        optionsSpecific.push("damping: " + this.constants.physics.damping);
-      }
-      if (optionsSpecific.length != 0) {
-        options += ", repulsion: {";
-        for (var i = 0; i < optionsSpecific.length; i++) {
-          options += optionsSpecific[i];
-          if (i < optionsSpecific.length - 1) {
-            options += ", ";
-          }
-        }
-        options += "}}";
-      }
-      if (optionsSpecific.length == 0) {
-        options += "}";
-      }
-      if (this.constants.smoothCurves != this.backupConstants.smoothCurves) {
-        options += ", smoothCurves: " + this.constants.smoothCurves;
-      }
-      options += "};";
-    } else {
-      options = "var options = {";
-      if (this.constants.physics.hierarchicalRepulsion.nodeDistance != this.backupConstants.physics.hierarchicalRepulsion.nodeDistance) {
-        optionsSpecific.push("nodeDistance: " + this.constants.physics.hierarchicalRepulsion.nodeDistance);
-      }
-      if (this.constants.physics.centralGravity != this.backupConstants.physics.hierarchicalRepulsion.centralGravity) {
-        optionsSpecific.push("centralGravity: " + this.constants.physics.centralGravity);
-      }
-      if (this.constants.physics.springLength != this.backupConstants.physics.hierarchicalRepulsion.springLength) {
-        optionsSpecific.push("springLength: " + this.constants.physics.springLength);
-      }
-      if (this.constants.physics.springConstant != this.backupConstants.physics.hierarchicalRepulsion.springConstant) {
-        optionsSpecific.push("springConstant: " + this.constants.physics.springConstant);
-      }
-      if (this.constants.physics.damping != this.backupConstants.physics.hierarchicalRepulsion.damping) {
-        optionsSpecific.push("damping: " + this.constants.physics.damping);
-      }
-      if (optionsSpecific.length != 0) {
-        options += "physics: {hierarchicalRepulsion: {";
-        for (var i = 0; i < optionsSpecific.length; i++) {
-          options += optionsSpecific[i];
-          if (i < optionsSpecific.length - 1) {
-            options += ", ";
-          }
-        }
-        options += "}},";
-      }
-      options += "hierarchicalLayout: {";
-      optionsSpecific = [];
-      if (this.constants.hierarchicalLayout.direction != this.backupConstants.hierarchicalLayout.direction) {
-        optionsSpecific.push("direction: " + this.constants.hierarchicalLayout.direction);
-      }
-      if (Math.abs(this.constants.hierarchicalLayout.levelSeparation) != this.backupConstants.hierarchicalLayout.levelSeparation) {
-        optionsSpecific.push("levelSeparation: " + this.constants.hierarchicalLayout.levelSeparation);
-      }
-      if (this.constants.hierarchicalLayout.nodeSpacing != this.backupConstants.hierarchicalLayout.nodeSpacing) {
-        optionsSpecific.push("nodeSpacing: " + this.constants.hierarchicalLayout.nodeSpacing);
-      }
-      if (optionsSpecific.length != 0) {
-        for (var i = 0; i < optionsSpecific.length; i++) {
-          options += optionsSpecific[i];
-          if (i < optionsSpecific.length - 1) {
-            options += ", ";
-          }
-        }
-        options += "}";
-      } else {
-        options += "enabled:true}";
-      }
-      options += "};";
-    }
-
-
-    this.optionsDiv.innerHTML = options;
-  }
-
-  /**
-   * this is used to switch between barnesHut, repulsion and hierarchical.
-   *
-   */
-  function switchConfigurations() {
-    var ids = ["graph_BH_table", "graph_R_table", "graph_H_table"];
-    var radioButton = document.querySelector("input[name=\"graph_physicsMethod\"]:checked").value;
-    var tableId = "graph_" + radioButton + "_table";
-    var table = document.getElementById(tableId);
-    table.style.display = "block";
-    for (var i = 0; i < ids.length; i++) {
-      if (ids[i] != tableId) {
-        table = document.getElementById(ids[i]);
-        table.style.display = "none";
-      }
-    }
-    this._restoreNodes();
-    if (radioButton == "R") {
-      this.constants.hierarchicalLayout.enabled = false;
-      this.constants.physics.hierarchicalRepulsion.enabled = false;
-      this.constants.physics.barnesHut.enabled = false;
-    } else if (radioButton == "H") {
-      if (this.constants.hierarchicalLayout.enabled == false) {
-        this.constants.hierarchicalLayout.enabled = true;
-        this.constants.physics.hierarchicalRepulsion.enabled = true;
-        this.constants.physics.barnesHut.enabled = false;
-        this.constants.smoothCurves.enabled = false;
-        this._setupHierarchicalLayout();
-      }
-    } else {
-      this.constants.hierarchicalLayout.enabled = false;
-      this.constants.physics.hierarchicalRepulsion.enabled = false;
-      this.constants.physics.barnesHut.enabled = true;
-    }
-    this._loadSelectedForceSolver();
-    var graph_toggleSmooth = document.getElementById("graph_toggleSmooth");
-    if (this.constants.smoothCurves.enabled == true) {
-      graph_toggleSmooth.style.background = "#A4FF56";
-    } else {
-      graph_toggleSmooth.style.background = "#FF8532";
-    }
-    this.moving = true;
-    this.start();
-  }
-
-
-  /**
-   * this generates the ranges depending on the iniital values.
-   *
-   * @param id
-   * @param map
-   * @param constantsVariableName
-   */
-  function showValueOfRange(id, map, constantsVariableName) {
-    var valueId = id + "_value";
-    var rangeValue = document.getElementById(id).value;
-
-    if (Array.isArray(map)) {
-      document.getElementById(valueId).value = map[parseInt(rangeValue)];
-      this._overWriteGraphConstants(constantsVariableName, map[parseInt(rangeValue)]);
-    } else {
-      document.getElementById(valueId).value = parseInt(map) * parseFloat(rangeValue);
-      this._overWriteGraphConstants(constantsVariableName, parseInt(map) * parseFloat(rangeValue));
-    }
-
-    if (constantsVariableName == "hierarchicalLayout_direction" || constantsVariableName == "hierarchicalLayout_levelSeparation" || constantsVariableName == "hierarchicalLayout_nodeSpacing") {
-      this._setupHierarchicalLayout();
-    }
-    this.moving = true;
-    this.start();
-  }
-
-/***/ },
-/* 61 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  /**
-   * Calculate the forces the nodes apply on each other based on a repulsion field.
-   * This field is linearly approximated.
-   *
-   * @private
-   */
-  exports._calculateNodeForces = function () {
-    var dx, dy, angle, distance, fx, fy, combinedClusterSize, repulsingForce, node1, node2, i, j;
-
-    var nodes = this.calculationNodes;
-    var nodeIndices = this.calculationNodeIndices;
-
-    // approximation constants
-    var a_base = -2 / 3;
-    var b = 4 / 3;
-
-    // repulsing forces between nodes
-    var nodeDistance = this.constants.physics.repulsion.nodeDistance;
-    var minimumDistance = nodeDistance;
-
-    // we loop from i over all but the last entree in the array
-    // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
-    for (i = 0; i < nodeIndices.length - 1; i++) {
-      node1 = nodes[nodeIndices[i]];
-      for (j = i + 1; j < nodeIndices.length; j++) {
-        node2 = nodes[nodeIndices[j]];
-        combinedClusterSize = node1.clusterSize + node2.clusterSize - 2;
-
-        dx = node2.x - node1.x;
-        dy = node2.y - node1.y;
-        distance = Math.sqrt(dx * dx + dy * dy);
-
-        // same condition as BarnesHutSolver, making sure nodes are never 100% overlapping.
-        if (distance == 0) {
-          distance = 0.1 * Math.random();
-          dx = distance;
-        }
-
-        minimumDistance = combinedClusterSize == 0 ? nodeDistance : nodeDistance * (1 + combinedClusterSize * this.constants.clustering.distanceAmplification);
-        var a = a_base / minimumDistance;
-        if (distance < 2 * minimumDistance) {
-          if (distance < 0.5 * minimumDistance) {
-            repulsingForce = 1;
-          } else {
-            repulsingForce = a * distance + b; // linear approx of  1 / (1 + Math.exp((distance / minimumDistance - 1) * steepness))
-          }
-
-          // amplify the repulsion for clusters.
-          repulsingForce *= combinedClusterSize == 0 ? 1 : 1 + combinedClusterSize * this.constants.clustering.forceAmplification;
-          repulsingForce = repulsingForce / Math.max(distance, 0.01 * minimumDistance);
-
-          fx = dx * repulsingForce;
-          fy = dy * repulsingForce;
-          node1.fx -= fx;
-          node1.fy -= fy;
-          node2.fx += fx;
-          node2.fy += fy;
-        }
-      }
-    }
-  };
-
-/***/ },
-/* 62 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  /**
-   * Calculate the forces the nodes apply on eachother based on a repulsion field.
-   * This field is linearly approximated.
-   *
-   * @private
-   */
-  exports._calculateNodeForces = function () {
-    var dx, dy, distance, fx, fy, repulsingForce, node1, node2, i, j;
-
-    var nodes = this.calculationNodes;
-    var nodeIndices = this.calculationNodeIndices;
-
-    // repulsing forces between nodes
-    var nodeDistance = this.constants.physics.hierarchicalRepulsion.nodeDistance;
-
-    // we loop from i over all but the last entree in the array
-    // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
-    for (i = 0; i < nodeIndices.length - 1; i++) {
-      node1 = nodes[nodeIndices[i]];
-      for (j = i + 1; j < nodeIndices.length; j++) {
-        node2 = nodes[nodeIndices[j]];
-
-        // nodes only affect nodes on their level
-        if (node1.level == node2.level) {
-          dx = node2.x - node1.x;
-          dy = node2.y - node1.y;
-          distance = Math.sqrt(dx * dx + dy * dy);
-
-
-          var steepness = 0.05;
-          if (distance < nodeDistance) {
-            repulsingForce = -Math.pow(steepness * distance, 2) + Math.pow(steepness * nodeDistance, 2);
-          } else {
-            repulsingForce = 0;
-          }
-          // normalize force with
-          if (distance == 0) {
-            distance = 0.01;
-          } else {
-            repulsingForce = repulsingForce / distance;
-          }
-          fx = dx * repulsingForce;
-          fy = dy * repulsingForce;
-
-          node1.fx -= fx;
-          node1.fy -= fy;
-          node2.fx += fx;
-          node2.fy += fy;
-        }
-      }
-    }
-  };
-
-
-  /**
-   * this function calculates the effects of the springs in the case of unsmooth curves.
-   *
-   * @private
-   */
-  exports._calculateHierarchicalSpringForces = function () {
-    var edgeLength, edge, edgeId;
-    var dx, dy, fx, fy, springForce, distance;
-    var edges = this.edges;
-
-    var nodes = this.calculationNodes;
-    var nodeIndices = this.calculationNodeIndices;
-
-
-    for (var i = 0; i < nodeIndices.length; i++) {
-      var node1 = nodes[nodeIndices[i]];
-      node1.springFx = 0;
-      node1.springFy = 0;
-    }
-
-
-    // forces caused by the edges, modelled as springs
-    for (edgeId in edges) {
-      if (edges.hasOwnProperty(edgeId)) {
-        edge = edges[edgeId];
-        if (edge.connected === true) {
-          // only calculate forces if nodes are in the same sector
-          if (this.nodes.hasOwnProperty(edge.toId) && this.nodes.hasOwnProperty(edge.fromId)) {
-            edgeLength = edge.physics.springLength;
-            // this implies that the edges between big clusters are longer
-            edgeLength += (edge.to.clusterSize + edge.from.clusterSize - 2) * this.constants.clustering.edgeGrowth;
-
-            dx = edge.from.x - edge.to.x;
-            dy = edge.from.y - edge.to.y;
-            distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance == 0) {
-              distance = 0.01;
-            }
-
-            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
-            springForce = this.constants.physics.springConstant * (edgeLength - distance) / distance;
-
-            fx = dx * springForce;
-            fy = dy * springForce;
-
-
-
-            if (edge.to.level != edge.from.level) {
-              edge.to.springFx -= fx;
-              edge.to.springFy -= fy;
-              edge.from.springFx += fx;
-              edge.from.springFy += fy;
-            } else {
-              var factor = 0.5;
-              edge.to.fx -= factor * fx;
-              edge.to.fy -= factor * fy;
-              edge.from.fx += factor * fx;
-              edge.from.fy += factor * fy;
-            }
-          }
-        }
-      }
-    }
-
-    // normalize spring forces
-    var springForce = 1;
-    var springFx, springFy;
-    for (i = 0; i < nodeIndices.length; i++) {
-      var node = nodes[nodeIndices[i]];
-      springFx = Math.min(springForce, Math.max(-springForce, node.springFx));
-      springFy = Math.min(springForce, Math.max(-springForce, node.springFy));
-
-      node.fx += springFx;
-      node.fy += springFy;
-    }
-
-    // retain energy balance
-    var totalFx = 0;
-    var totalFy = 0;
-    for (i = 0; i < nodeIndices.length; i++) {
-      var node = nodes[nodeIndices[i]];
-      totalFx += node.fx;
-      totalFy += node.fy;
-    }
-    var correctionFx = totalFx / nodeIndices.length;
-    var correctionFy = totalFy / nodeIndices.length;
-
-    for (i = 0; i < nodeIndices.length; i++) {
-      var node = nodes[nodeIndices[i]];
-      node.fx -= correctionFx;
-      node.fy -= correctionFy;
-    }
-  };
-
-/***/ },
-/* 63 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  /**
-   * This function calculates the forces the nodes apply on eachother based on a gravitational model.
-   * The Barnes Hut method is used to speed up this N-body simulation.
-   *
-   * @private
-   */
-  exports._calculateNodeForces = function () {
-    if (this.constants.physics.barnesHut.gravitationalConstant != 0) {
-      var node;
-      var nodes = this.calculationNodes;
-      var nodeIndices = this.calculationNodeIndices;
-      var nodeCount = nodeIndices.length;
-
-      this._formBarnesHutTree(nodes, nodeIndices);
-
-      var barnesHutTree = this.barnesHutTree;
-
-      // place the nodes one by one recursively
-      for (var i = 0; i < nodeCount; i++) {
-        node = nodes[nodeIndices[i]];
-        if (node.options.mass > 0) {
-          // starting with root is irrelevant, it never passes the BarnesHutSolver condition
-          this._getForceContribution(barnesHutTree.root.children.NW, node);
-          this._getForceContribution(barnesHutTree.root.children.NE, node);
-          this._getForceContribution(barnesHutTree.root.children.SW, node);
-          this._getForceContribution(barnesHutTree.root.children.SE, node);
-        }
-      }
-    }
-  };
-
-
-  /**
-   * This function traverses the barnesHutTree. It checks when it can approximate distant nodes with their center of mass.
-   * If a region contains a single node, we check if it is not itself, then we apply the force.
-   *
-   * @param parentBranch
-   * @param node
-   * @private
-   */
-  exports._getForceContribution = function (parentBranch, node) {
-    // we get no force contribution from an empty region
-    if (parentBranch.childrenCount > 0) {
-      var dx, dy, distance;
-
-      // get the distance from the center of mass to the node.
-      dx = parentBranch.centerOfMass.x - node.x;
-      dy = parentBranch.centerOfMass.y - node.y;
-      distance = Math.sqrt(dx * dx + dy * dy);
-
-      // BarnesHutSolver condition
-      // original condition : s/d < thetaInverted = passed  ===  d/s > 1/theta = passed
-      // calcSize = 1/s --> d * 1/s > 1/theta = passed
-      if (distance * parentBranch.calcSize > this.constants.physics.barnesHut.thetaInverted) {
-        // duplicate code to reduce function calls to speed up program
-        if (distance == 0) {
-          distance = 0.1 * Math.random();
-          dx = distance;
-        }
-        var gravityForce = this.constants.physics.barnesHut.gravitationalConstant * parentBranch.mass * node.options.mass / (distance * distance * distance);
-        var fx = dx * gravityForce;
-        var fy = dy * gravityForce;
-        node.fx += fx;
-        node.fy += fy;
-      } else {
-        // Did not pass the condition, go into children if available
-        if (parentBranch.childrenCount == 4) {
-          this._getForceContribution(parentBranch.children.NW, node);
-          this._getForceContribution(parentBranch.children.NE, node);
-          this._getForceContribution(parentBranch.children.SW, node);
-          this._getForceContribution(parentBranch.children.SE, node);
-        } else {
-          // parentBranch must have only one node, if it was empty we wouldnt be here
-          if (parentBranch.children.data.id != node.id) {
-            // if it is not self
-            // duplicate code to reduce function calls to speed up program
-            if (distance == 0) {
-              distance = 0.5 * Math.random();
-              dx = distance;
-            }
-            var gravityForce = this.constants.physics.barnesHut.gravitationalConstant * parentBranch.mass * node.options.mass / (distance * distance * distance);
-            var fx = dx * gravityForce;
-            var fy = dy * gravityForce;
-            node.fx += fx;
-            node.fy += fy;
-          }
-        }
-      }
-    }
-  };
-
-  /**
-   * This function constructs the barnesHut tree recursively. It creates the root, splits it and starts placing the nodes.
-   *
-   * @param nodes
-   * @param nodeIndices
-   * @private
-   */
-  exports._formBarnesHutTree = function (nodes, nodeIndices) {
-    var node;
-    var nodeCount = nodeIndices.length;
-
-    var minX = Number.MAX_VALUE,
-        minY = Number.MAX_VALUE,
-        maxX = -Number.MAX_VALUE,
-        maxY = -Number.MAX_VALUE;
-
-    // get the range of the nodes
-    for (var i = 0; i < nodeCount; i++) {
-      var x = nodes[nodeIndices[i]].x;
-      var y = nodes[nodeIndices[i]].y;
-      if (nodes[nodeIndices[i]].options.mass > 0) {
-        if (x < minX) {
-          minX = x;
-        }
-        if (x > maxX) {
-          maxX = x;
-        }
-        if (y < minY) {
-          minY = y;
-        }
-        if (y > maxY) {
-          maxY = y;
-        }
-      }
-    }
-    // make the range a square
-    var sizeDiff = Math.abs(maxX - minX) - Math.abs(maxY - minY); // difference between X and Y
-    if (sizeDiff > 0) {
-      minY -= 0.5 * sizeDiff;maxY += 0.5 * sizeDiff;
-    } // xSize > ySize
-    else {
-      minX += 0.5 * sizeDiff;maxX -= 0.5 * sizeDiff;
-    } // xSize < ySize
-
-
-    var minimumTreeSize = 0.00001;
-    var rootSize = Math.max(minimumTreeSize, Math.abs(maxX - minX));
-    var halfRootSize = 0.5 * rootSize;
-    var centerX = 0.5 * (minX + maxX),
-        centerY = 0.5 * (minY + maxY);
-
-    // construct the barnesHutTree
-    var barnesHutTree = {
-      root: {
-        centerOfMass: { x: 0, y: 0 },
-        mass: 0,
-        range: {
-          minX: centerX - halfRootSize, maxX: centerX + halfRootSize,
-          minY: centerY - halfRootSize, maxY: centerY + halfRootSize
-        },
-        size: rootSize,
-        calcSize: 1 / rootSize,
-        children: { data: null },
-        maxWidth: 0,
-        level: 0,
-        childrenCount: 4
-      }
-    };
-    this._splitBranch(barnesHutTree.root);
-
-    // place the nodes one by one recursively
-    for (i = 0; i < nodeCount; i++) {
-      node = nodes[nodeIndices[i]];
-      if (node.options.mass > 0) {
-        this._placeInTree(barnesHutTree.root, node);
-      }
-    }
-
-    // make global
-    this.barnesHutTree = barnesHutTree;
-  };
-
-
-  /**
-   * this updates the mass of a branch. this is increased by adding a node.
-   *
-   * @param parentBranch
-   * @param node
-   * @private
-   */
-  exports._updateBranchMass = function (parentBranch, node) {
-    var totalMass = parentBranch.mass + node.options.mass;
-    var totalMassInv = 1 / totalMass;
-
-    parentBranch.centerOfMass.x = parentBranch.centerOfMass.x * parentBranch.mass + node.x * node.options.mass;
-    parentBranch.centerOfMass.x *= totalMassInv;
-
-    parentBranch.centerOfMass.y = parentBranch.centerOfMass.y * parentBranch.mass + node.y * node.options.mass;
-    parentBranch.centerOfMass.y *= totalMassInv;
-
-    parentBranch.mass = totalMass;
-    var biggestSize = Math.max(Math.max(node.height, node.radius), node.width);
-    parentBranch.maxWidth = parentBranch.maxWidth < biggestSize ? biggestSize : parentBranch.maxWidth;
-  };
-
-
-  /**
-   * determine in which branch the node will be placed.
-   *
-   * @param parentBranch
-   * @param node
-   * @param skipMassUpdate
-   * @private
-   */
-  exports._placeInTree = function (parentBranch, node, skipMassUpdate) {
-    if (skipMassUpdate != true || skipMassUpdate === undefined) {
-      // update the mass of the branch.
-      this._updateBranchMass(parentBranch, node);
-    }
-
-    if (parentBranch.children.NW.range.maxX > node.x) {
-      // in NW or SW
-      if (parentBranch.children.NW.range.maxY > node.y) {
-        // in NW
-        this._placeInRegion(parentBranch, node, "NW");
-      } else {
-        // in SW
-        this._placeInRegion(parentBranch, node, "SW");
-      }
-    } else {
-      // in NE or SE
-      if (parentBranch.children.NW.range.maxY > node.y) {
-        // in NE
-        this._placeInRegion(parentBranch, node, "NE");
-      } else {
-        // in SE
-        this._placeInRegion(parentBranch, node, "SE");
-      }
-    }
-  };
-
-
-  /**
-   * actually place the node in a region (or branch)
-   *
-   * @param parentBranch
-   * @param node
-   * @param region
-   * @private
-   */
-  exports._placeInRegion = function (parentBranch, node, region) {
-    switch (parentBranch.children[region].childrenCount) {
-      case 0:
-        // place node here
-        parentBranch.children[region].children.data = node;
-        parentBranch.children[region].childrenCount = 1;
-        this._updateBranchMass(parentBranch.children[region], node);
-        break;
-      case 1:
-        // convert into children
-        // if there are two nodes exactly overlapping (on init, on opening of cluster etc.)
-        // we move one node a pixel and we do not put it in the tree.
-        if (parentBranch.children[region].children.data.x == node.x && parentBranch.children[region].children.data.y == node.y) {
-          node.x += Math.random();
-          node.y += Math.random();
-        } else {
-          this._splitBranch(parentBranch.children[region]);
-          this._placeInTree(parentBranch.children[region], node);
-        }
-        break;
-      case 4:
-        // place in branch
-        this._placeInTree(parentBranch.children[region], node);
-        break;
-    }
-  };
-
-
-  /**
-   * this function splits a branch into 4 sub branches. If the branch contained a node, we place it in the subbranch
-   * after the split is complete.
-   *
-   * @param parentBranch
-   * @private
-   */
-  exports._splitBranch = function (parentBranch) {
-    // if the branch is shaded with a node, replace the node in the new subset.
-    var containedNode = null;
-    if (parentBranch.childrenCount == 1) {
-      containedNode = parentBranch.children.data;
-      parentBranch.mass = 0;parentBranch.centerOfMass.x = 0;parentBranch.centerOfMass.y = 0;
-    }
-    parentBranch.childrenCount = 4;
-    parentBranch.children.data = null;
-    this._insertRegion(parentBranch, "NW");
-    this._insertRegion(parentBranch, "NE");
-    this._insertRegion(parentBranch, "SW");
-    this._insertRegion(parentBranch, "SE");
-
-    if (containedNode != null) {
-      this._placeInTree(parentBranch, containedNode);
-    }
-  };
-
-
-  /**
-   * This function subdivides the region into four new segments.
-   * Specifically, this inserts a single new segment.
-   * It fills the children section of the parentBranch
-   *
-   * @param parentBranch
-   * @param region
-   * @param parentRange
-   * @private
-   */
-  exports._insertRegion = function (parentBranch, region) {
-    var minX, maxX, minY, maxY;
-    var childSize = 0.5 * parentBranch.size;
-    switch (region) {
-      case "NW":
-        minX = parentBranch.range.minX;
-        maxX = parentBranch.range.minX + childSize;
-        minY = parentBranch.range.minY;
-        maxY = parentBranch.range.minY + childSize;
-        break;
-      case "NE":
-        minX = parentBranch.range.minX + childSize;
-        maxX = parentBranch.range.maxX;
-        minY = parentBranch.range.minY;
-        maxY = parentBranch.range.minY + childSize;
-        break;
-      case "SW":
-        minX = parentBranch.range.minX;
-        maxX = parentBranch.range.minX + childSize;
-        minY = parentBranch.range.minY + childSize;
-        maxY = parentBranch.range.maxY;
-        break;
-      case "SE":
-        minX = parentBranch.range.minX + childSize;
-        maxX = parentBranch.range.maxX;
-        minY = parentBranch.range.minY + childSize;
-        maxY = parentBranch.range.maxY;
-        break;
-    }
-
-
-    parentBranch.children[region] = {
-      centerOfMass: { x: 0, y: 0 },
-      mass: 0,
-      range: { minX: minX, maxX: maxX, minY: minY, maxY: maxY },
-      size: 0.5 * parentBranch.size,
-      calcSize: 2 * parentBranch.calcSize,
-      children: { data: null },
-      maxWidth: 0,
-      level: parentBranch.level + 1,
-      childrenCount: 0
-    };
-  };
-
-
-  /**
-   * This function is for debugging purposed, it draws the tree.
-   *
-   * @param ctx
-   * @param color
-   * @private
-   */
-  exports._drawTree = function (ctx, color) {
-    if (this.barnesHutTree !== undefined) {
-      ctx.lineWidth = 1;
-
-      this._drawBranch(this.barnesHutTree.root, ctx, color);
-    }
-  };
-
-
-  /**
-   * This function is for debugging purposes. It draws the branches recursively.
-   *
-   * @param branch
-   * @param ctx
-   * @param color
-   * @private
-   */
-  exports._drawBranch = function (branch, ctx, color) {
-    if (color === undefined) {
-      color = "#FF0000";
-    }
-
-    if (branch.childrenCount == 4) {
-      this._drawBranch(branch.children.NW, ctx);
-      this._drawBranch(branch.children.NE, ctx);
-      this._drawBranch(branch.children.SE, ctx);
-      this._drawBranch(branch.children.SW, ctx);
-    }
-    ctx.strokeStyle = color;
-    ctx.beginPath();
-    ctx.moveTo(branch.range.minX, branch.range.minY);
-    ctx.lineTo(branch.range.maxX, branch.range.minY);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(branch.range.maxX, branch.range.minY);
-    ctx.lineTo(branch.range.maxX, branch.range.maxY);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(branch.range.maxX, branch.range.maxY);
-    ctx.lineTo(branch.range.minX, branch.range.maxY);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(branch.range.minX, branch.range.maxY);
-    ctx.lineTo(branch.range.minX, branch.range.minY);
-    ctx.stroke();
-
-    /*
-     if (branch.mass > 0) {
-     ctx.circle(branch.centerOfMass.x, branch.centerOfMass.y, 3*branch.mass);
-     ctx.stroke();
-     }
-     */
-  };
-
-/***/ },
-/* 64 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var Node = __webpack_require__(56);
-  var Edge = __webpack_require__(57);
-  var util = __webpack_require__(1);
-
-  /**
-   *
-   * @param hubsize
-   * @param options
-   */
-  exports.clusterByConnectionCount = function (hubsize, options) {
-    if (hubsize === undefined) {
-      hubsize = this._getHubSize();
-    } else if (tyepof(hubsize) == "object") {
-      options = this._checkOptions(hubsize);
-      hubsize = this._getHubSize();
-    }
-
-    var nodesToCluster = [];
-    for (var i = 0; i < this.nodeIndices.length; i++) {
-      var node = this.nodes[this.nodeIndices[i]];
-      if (node.edges.length >= hubsize) {
-        nodesToCluster.push(node.id);
-      }
-    }
-
-    for (var i = 0; i < nodesToCluster.length; i++) {
-      var node = this.nodes[nodesToCluster[i]];
-      this.clusterByConnection(node, options, {}, {}, true);
-    }
-    this._wrapUp();
-  };
-
-
-  /**
-   * loop over all nodes, check if they adhere to the condition and cluster if needed.
-   * @param options
-   * @param doNotUpdateCalculationNodes
-   */
-  exports.clusterByNodeData = function (options, doNotUpdateCalculationNodes) {
-    if (options === undefined) {
-      throw new Error("Cannot call clusterByNodeData without options.");
-    }
-    if (options.joinCondition === undefined) {
-      throw new Error("Cannot call clusterByNodeData without a joinCondition function in the options.");
-    }
-
-    // check if the options object is fine, append if needed
-    options = this._checkOptions(options);
-
-    var childNodesObj = {};
-    var childEdgesObj = {};
-
-    // collect the nodes that will be in the cluster
-    for (var i = 0; i < this.nodeIndices.length; i++) {
-      var nodeId = this.nodeIndices[i];
-      var clonedOptions = this._cloneOptions(nodeId);
-      if (options.joinCondition(clonedOptions) == true) {
-        childNodesObj[nodeId] = this.nodes[nodeId];
-      }
-    }
-
-    this._cluster(childNodesObj, childEdgesObj, options, doNotUpdateCalculationNodes);
-  };
-
-
-  /**
-   * Cluster all nodes in the network that have only 1 edge
-   * @param options
-   * @param doNotUpdateCalculationNodes
-   */
-  exports.clusterOutliers = function (options, doNotUpdateCalculationNodes) {
-    options = this._checkOptions(options);
-
-    var clusters = [];
-
-    // collect the nodes that will be in the cluster
-    for (var i = 0; i < this.nodeIndices.length; i++) {
-      var childNodesObj = {};
-      var childEdgesObj = {};
-      var nodeId = this.nodeIndices[i];
-      if (this.nodes[nodeId].edges.length == 1) {
-        var edge = this.nodes[nodeId].edges[0];
-        var childNodeId = this._getConnectedId(edge, nodeId);
-        if (childNodeId != nodeId) {
-          if (options.joinCondition === undefined) {
-            childNodesObj[nodeId] = this.nodes[nodeId];
-            childNodesObj[childNodeId] = this.nodes[childNodeId];
-          } else {
-            var clonedOptions = this._cloneOptions(nodeId);
-            if (options.joinCondition(clonedOptions) == true) {
-              childNodesObj[nodeId] = this.nodes[nodeId];
-            }
-            clonedOptions = this._cloneOptions(childNodeId);
-            if (options.joinCondition(clonedOptions) == true) {
-              childNodesObj[childNodeId] = this.nodes[childNodeId];
-            }
-          }
-          clusters.push({ nodes: childNodesObj, edges: childEdgesObj });
-        }
-      }
-    }
-
-    for (var i = 0; i < clusters.length; i++) {
-      this._cluster(clusters[i].nodes, clusters[i].edges, options, true);
-    }
-
-    if (doNotUpdateCalculationNodes !== true) {
-      this._wrapUp();
-    }
-  };
-
-  /**
-   *
-   * @param nodeId
-   * @param options
-   * @param doNotUpdateCalculationNodes
-   */
-  exports.clusterByConnection = function (nodeId, options, doNotUpdateCalculationNodes) {
-    // kill conditions
-    if (nodeId === undefined) {
-      throw new Error("No nodeId supplied to clusterByConnection!");
-    }
-    if (this.nodes[nodeId] === undefined) {
-      throw new Error("The nodeId given to clusterByConnection does not exist!");
-    }
-
-    var node = this.nodes[nodeId];
-    options = this._checkOptions(options, node);
-    if (options.clusterNodeProperties.x === undefined) {
-      options.clusterNodeProperties.x = node.x;options.clusterNodeProperties.allowedToMoveX = !node.xFixed;
-    }
-    if (options.clusterNodeProperties.y === undefined) {
-      options.clusterNodeProperties.y = node.y;options.clusterNodeProperties.allowedToMoveY = !node.yFixed;
-    }
-
-    var childNodesObj = {};
-    var childEdgesObj = {};
-    var parentNodeId = node.id;
-    var parentClonedOptions = this._cloneOptions(parentNodeId);
-    childNodesObj[parentNodeId] = node;
-
-    // collect the nodes that will be in the cluster
-    for (var i = 0; i < node.edges.length; i++) {
-      var edge = node.edges[i];
-      var childNodeId = this._getConnectedId(edge, parentNodeId);
-
-      if (childNodeId !== parentNodeId) {
-        if (options.joinCondition === undefined) {
-          childEdgesObj[edge.id] = edge;
-          childNodesObj[childNodeId] = this.nodes[childNodeId];
-        } else {
-          // clone the options and insert some additional parameters that could be interesting.
-          var childClonedOptions = this._cloneOptions(childNodeId);
-          if (options.joinCondition(parentClonedOptions, childClonedOptions) == true) {
-            childEdgesObj[edge.id] = edge;
-            childNodesObj[childNodeId] = this.nodes[childNodeId];
-          }
-        }
-      } else {
-        childEdgesObj[edge.id] = edge;
-      }
-    }
-
-    this._cluster(childNodesObj, childEdgesObj, options, doNotUpdateCalculationNodes);
-  };
-
-
-  /**
-   * This returns a clone of the options or properties of the edge or node to be used for construction of new edges or check functions for new nodes.
-   * @param objId
-   * @param type
-   * @returns {{}}
-   * @private
-   */
-  exports._cloneOptions = function (objId, type) {
-    var clonedOptions = {};
-    if (type === undefined || type == "node") {
-      util.deepExtend(clonedOptions, this.nodes[objId].options, true);
-      util.deepExtend(clonedOptions, this.nodes[objId].properties, true);
-      clonedOptions.amountOfConnections = this.nodes[objId].edges.length;
-    } else {
-      util.deepExtend(clonedOptions, this.edges[objId].properties, true);
-    }
-    return clonedOptions;
-  };
-
-
-  /**
-   * This function creates the edges that will be attached to the cluster.
-   *
-   * @param childNodesObj
-   * @param childEdgesObj
-   * @param newEdges
-   * @param options
-   * @private
-   */
-  exports._createClusterEdges = function (childNodesObj, childEdgesObj, newEdges, options) {
-    var edge, childNodeId, childNode;
-
-    var childKeys = Object.keys(childNodesObj);
-    for (var i = 0; i < childKeys.length; i++) {
-      childNodeId = childKeys[i];
-      childNode = childNodesObj[childNodeId];
-
-      // mark all edges for removal from global and construct new edges from the cluster to others
-      for (var j = 0; j < childNode.edges.length; j++) {
-        edge = childNode.edges[j];
-        childEdgesObj[edge.id] = edge;
-
-        var otherNodeId = edge.toId;
-        var otherOnTo = true;
-        if (edge.toId != childNodeId) {
-          otherNodeId = edge.toId;
-          otherOnTo = true;
-        } else if (edge.fromId != childNodeId) {
-          otherNodeId = edge.fromId;
-          otherOnTo = false;
-        }
-
-        if (childNodesObj[otherNodeId] === undefined) {
-          var clonedOptions = this._cloneOptions(edge.id, "edge");
-          util.deepExtend(clonedOptions, options.clusterEdgeProperties);
-          // avoid forcing the default color on edges that inherit color
-          if (edge.properties.color === undefined) {
-            delete clonedOptions.color;
-          }
-
-          if (otherOnTo === true) {
-            clonedOptions.from = options.clusterNodeProperties.id;
-            clonedOptions.to = otherNodeId;
-          } else {
-            clonedOptions.from = otherNodeId;
-            clonedOptions.to = options.clusterNodeProperties.id;
-          }
-          clonedOptions.id = "clusterEdge:" + util.randomUUID();
-          newEdges.push(new Edge(clonedOptions, this, this.constants));
-        }
-      }
-    }
-  };
-
-
-  /**
-   * This function checks the options that can be supplied to the different cluster functions
-   * for certain fields and inserts defaults if needed
-   * @param options
-   * @returns {*}
-   * @private
-   */
-  exports._checkOptions = function (options) {
-    if (options === undefined) {
-      options = {};
-    }
-    if (options.clusterEdgeProperties === undefined) {
-      options.clusterEdgeProperties = {};
-    }
-    if (options.clusterNodeProperties === undefined) {
-      options.clusterNodeProperties = {};
-    }
-
-    return options;
-  };
-
-  /**
-   *
-   * @param {Object}    childNodesObj         | object with node objects, id as keys, same as childNodes except it also contains a source node
-   * @param {Object}    childEdgesObj         | object with edge objects, id as keys
-   * @param {Array}     options               | object with {clusterNodeProperties, clusterEdgeProperties, processProperties}
-   * @param {Boolean}   doNotUpdateCalculationNodes | when true, do not wrap up
-   * @private
-   */
-  exports._cluster = function (childNodesObj, childEdgesObj, options, doNotUpdateCalculationNodes) {
-    // kill condition: no children so cant cluster
-    if (Object.keys(childNodesObj).length == 0) {
-      return;
-    }
-
-    // check if we have an unique id;
-    if (options.clusterNodeProperties.id === undefined) {
-      options.clusterNodeProperties.id = "cluster:" + util.randomUUID();
-    }
-    var clusterId = options.clusterNodeProperties.id;
-
-    // create the new edges that will connect to the cluster
-    var newEdges = [];
-    this._createClusterEdges(childNodesObj, childEdgesObj, newEdges, options);
-
-    // construct the clusterNodeProperties
-    var clusterNodeProperties = options.clusterNodeProperties;
-    if (options.processProperties !== undefined) {
-      // get the childNode options
-      var childNodesOptions = [];
-      for (var nodeId in childNodesObj) {
-        var clonedOptions = this._cloneOptions(nodeId);
-        childNodesOptions.push(clonedOptions);
-      }
-
-      // get clusterproperties based on childNodes
-      var childEdgesOptions = [];
-      for (var edgeId in childEdgesObj) {
-        var clonedOptions = this._cloneOptions(edgeId, "edge");
-        childEdgesOptions.push(clonedOptions);
-      }
-
-      clusterNodeProperties = options.processProperties(clusterNodeProperties, childNodesOptions, childEdgesOptions);
-      if (!clusterNodeProperties) {
-        throw new Error("The processClusterProperties function does not return properties!");
-      }
-    }
-    if (clusterNodeProperties.label === undefined) {
-      clusterNodeProperties.label = "cluster";
-    }
-
-
-    // give the clusterNode a postion if it does not have one.
-    var pos = undefined;
-    if (clusterNodeProperties.x === undefined) {
-      pos = this._getClusterPosition(childNodesObj);
-      clusterNodeProperties.x = pos.x;
-      clusterNodeProperties.allowedToMoveX = true;
-    }
-    if (clusterNodeProperties.x === undefined) {
-      if (pos === undefined) {
-        pos = this._getClusterPosition(childNodesObj);
-      }
-      clusterNodeProperties.y = pos.y;
-      clusterNodeProperties.allowedToMoveY = true;
-    }
-
-
-    // force the ID to remain the same
-    clusterNodeProperties.id = clusterId;
-
-
-    // create the clusterNode
-    var clusterNode = new Node(clusterNodeProperties, this.images, this.groups, this.constants);
-    clusterNode.isCluster = true;
-    clusterNode.containedNodes = childNodesObj;
-    clusterNode.containedEdges = childEdgesObj;
-
-
-    // delete contained edges from global
-    for (var edgeId in childEdgesObj) {
-      if (childEdgesObj.hasOwnProperty(edgeId)) {
-        if (this.edges[edgeId] !== undefined) {
-          if (this.edges[edgeId].via !== null) {
-            var viaId = this.edges[edgeId].via.id;
-            if (viaId) {
-              this.edges[edgeId].via = null;
-              delete this.sectors.support.nodes[viaId];
-            }
-          }
-          this.edges[edgeId].disconnect();
-          delete this.edges[edgeId];
-        }
-      }
-    }
-
-
-    // remove contained nodes from global
-    for (var nodeId in childNodesObj) {
-      if (childNodesObj.hasOwnProperty(nodeId)) {
-        this.clusteredNodes[nodeId] = { clusterId: clusterNodeProperties.id, node: this.nodes[nodeId] };
-        delete this.nodes[nodeId];
-      }
-    }
-
-
-    // finally put the cluster node into global
-    this.nodes[clusterNodeProperties.id] = clusterNode;
-
-
-    // push new edges to global
-    for (var i = 0; i < newEdges.length; i++) {
-      this.edges[newEdges[i].id] = newEdges[i];
-      this.edges[newEdges[i].id].connect();
-    }
-
-
-    // create bezier nodes for smooth curves if needed
-    this._createBezierNodes(newEdges);
-
-
-    // set ID to undefined so no duplicates arise
-    clusterNodeProperties.id = undefined;
-
-
-    // wrap up
-    if (doNotUpdateCalculationNodes !== true) {
-      this._wrapUp();
-    }
-  };
-
-
-
-  /**
-   * get the position of the cluster node based on what's inside
-   * @param {object} childNodesObj    | object with node objects, id as keys
-   * @returns {{x: number, y: number}}
-   * @private
-   */
-  exports._getClusterPosition = function (childNodesObj) {
-    var childKeys = Object.keys(childNodesObj);
-    var minX = childNodesObj[childKeys[0]].x;
-    var maxX = childNodesObj[childKeys[0]].x;
-    var minY = childNodesObj[childKeys[0]].y;
-    var maxY = childNodesObj[childKeys[0]].y;
-    var node;
-    for (var i = 0; i < childKeys.lenght; i++) {
-      node = childNodesObj[childKeys[0]];
-      minX = node.x < minX ? node.x : minX;
-      maxX = node.x > maxX ? node.x : maxX;
-      minY = node.y < minY ? node.y : minY;
-      maxY = node.y > maxY ? node.y : maxY;
-    }
-    return { x: 0.5 * (minX + maxX), y: 0.5 * (minY + maxY) };
-  };
-
-
-  /**
-   * Open a cluster by calling this function.
-   * @param {String}  clusterNodeId               | the ID of the cluster node
-   * @param {Boolean} doNotUpdateCalculationNodes | wrap up afterwards if not true
-   */
-  exports.openCluster = function (clusterNodeId, doNotUpdateCalculationNodes) {
-    // kill conditions
-    if (clusterNodeId === undefined) {
-      throw new Error("No clusterNodeId supplied to openCluster.");
-    }
-    if (this.nodes[clusterNodeId] === undefined) {
-      throw new Error("The clusterNodeId supplied to openCluster does not exist.");
-    }
-    if (this.nodes[clusterNodeId].containedNodes === undefined) {
-      console.log("The node:" + clusterNodeId + " is not a cluster.");return;
-    };
-
-    var node = this.nodes[clusterNodeId];
-    var containedNodes = node.containedNodes;
-    var containedEdges = node.containedEdges;
-
-    // release nodes
-    for (var nodeId in containedNodes) {
-      if (containedNodes.hasOwnProperty(nodeId)) {
-        this.nodes[nodeId] = containedNodes[nodeId];
-        // inherit position
-        this.nodes[nodeId].x = node.x;
-        this.nodes[nodeId].y = node.y;
-
-        // inherit speed
-        this.nodes[nodeId].vx = node.vx;
-        this.nodes[nodeId].vy = node.vy;
-
-        delete this.clusteredNodes[nodeId];
-      }
-    }
-
-    // release edges
-    for (var edgeId in containedEdges) {
-      if (containedEdges.hasOwnProperty(edgeId)) {
-        this.edges[edgeId] = containedEdges[edgeId];
-        this.edges[edgeId].connect();
-        var edge = this.edges[edgeId];
-        if (edge.connected === false) {
-          if (this.clusteredNodes[edge.fromId] !== undefined) {
-            this._connectEdge(edge, edge.fromId, true);
-          }
-          if (this.clusteredNodes[edge.toId] !== undefined) {
-            this._connectEdge(edge, edge.toId, false);
-          }
-        }
-      }
-    }
-    this._createBezierNodes(containedEdges);
-
-    var edgeIds = [];
-    for (var i = 0; i < node.edges.length; i++) {
-      edgeIds.push(node.edges[i].id);
-    }
-
-    // remove edges in clusterNode
-    for (var i = 0; i < edgeIds.length; i++) {
-      var edge = this.edges[edgeIds[i]];
-      // if the edge should have been connected to a contained node
-      if (edge.fromArray.length > 0 && edge.fromId == clusterNodeId) {
-        // the node in the from array was contained in the cluster
-        if (this.nodes[edge.fromArray[0].id] !== undefined) {
-          this._connectEdge(edge, edge.fromArray[0].id, true);
-        }
-      } else if (edge.toArray.length > 0 && edge.toId == clusterNodeId) {
-        // the node in the to array was contained in the cluster
-        if (this.nodes[edge.toArray[0].id] !== undefined) {
-          this._connectEdge(edge, edge.toArray[0].id, false);
-        }
-      } else {
-        var edgeId = edgeIds[i];
-        var viaId = this.edges[edgeId].via.id;
-        if (viaId) {
-          this.edges[edgeId].via = null;
-          delete this.sectors.support.nodes[viaId];
-        }
-        // this removes the edge from node.edges, which is why edgeIds is formed
-        this.edges[edgeId].disconnect();
-        delete this.edges[edgeId];
-      }
-    }
-
-    // remove clusterNode
-    delete this.nodes[clusterNodeId];
-
-    if (doNotUpdateCalculationNodes !== true) {
-      this._wrapUp();
-    }
-  };
-
-
-  /**
-   * Recalculate navigation nodes, color edges dirty, update nodes list etc.
-   * @private
-   */
-  exports._wrapUp = function () {
-    this._updateNodeIndexList();
-    this._updateCalculationNodes();
-    this._markAllEdgesAsDirty();
-    if (this.initializing !== true) {
-      this.moving = true;
-      this.start();
-    }
-  };
-
-
-  /**
-   * Connect an edge that was previously contained from cluster A to cluster B if the node that it was originally connected to
-   * is currently residing in cluster B
-   * @param edge
-   * @param nodeId
-   * @param from
-   * @private
-   */
-  exports._connectEdge = function (edge, nodeId, from) {
-    var clusterStack = this._getClusterStack(nodeId);
-    if (from == true) {
-      edge.from = clusterStack[clusterStack.length - 1];
-      edge.fromId = clusterStack[clusterStack.length - 1].id;
-      clusterStack.pop();
-      edge.fromArray = clusterStack;
-    } else {
-      edge.to = clusterStack[clusterStack.length - 1];
-      edge.toId = clusterStack[clusterStack.length - 1].id;
-      clusterStack.pop();
-      edge.toArray = clusterStack;
-    }
-    edge.connect();
-  };
-
-  /**
-   * Get the stack clusterId's that a certain node resides in. cluster A -> cluster B -> cluster C -> node
-   * @param nodeId
-   * @returns {Array}
-   * @private
-   */
-  exports._getClusterStack = function (nodeId) {
-    var stack = [];
-    var max = 100;
-    var counter = 0;
-
-    while (this.clusteredNodes[nodeId] !== undefined && counter < max) {
-      stack.push(this.clusteredNodes[nodeId].node);
-      nodeId = this.clusteredNodes[nodeId].clusterId;
-      counter++;
-    }
-    stack.push(this.nodes[nodeId]);
-    return stack;
-  };
-
-
-  /**
-   * Get the Id the node is connected to
-   * @param edge
-   * @param nodeId
-   * @returns {*}
-   * @private
-   */
-  exports._getConnectedId = function (edge, nodeId) {
-    if (edge.toId != nodeId) {
-      return edge.toId;
-    } else if (edge.fromId != nodeId) {
-      return edge.fromId;
-    } else {
-      return edge.fromId;
-    }
-  };
-
-  /**
-   * We determine how many connections denote an important hub.
-   * We take the mean + 2*std as the important hub size. (Assuming a normal distribution of data, ~2.2%)
-   *
-   * @private
-   */
-  exports._getHubSize = function () {
-    var average = 0;
-    var averageSquared = 0;
-    var hubCounter = 0;
-    var largestHub = 0;
-
-    for (var i = 0; i < this.nodeIndices.length; i++) {
-      var node = this.nodes[this.nodeIndices[i]];
-      if (node.edges.length > largestHub) {
-        largestHub = node.edges.length;
-      }
-      average += node.edges.length;
-      averageSquared += Math.pow(node.edges.length, 2);
-      hubCounter += 1;
-    }
-    average = average / hubCounter;
-    averageSquared = averageSquared / hubCounter;
-
-    var variance = averageSquared - Math.pow(average, 2);
-    var standardDeviation = Math.sqrt(variance);
-
-    var hubThreshold = Math.floor(average + 2 * standardDeviation);
-
-    // always have at least one to cluster
-    if (hubThreshold > largestHub) {
-      hubThreshold = largestHub;
-    }
-
-    return hubThreshold;
-  };
-
-/***/ },
-/* 65 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var util = __webpack_require__(1);
-  var Node = __webpack_require__(56);
-
-  /**
-   * Creation of the SectorMixin var.
-   *
-   * This contains all the functions the Network object can use to employ the sector system.
-   * The sector system is always used by Network, though the benefits only apply to the use of clustering.
-   * If clustering is not used, there is no overhead except for a duplicate object with references to nodes and edges.
-   */
-
-  /**
-   * This function is only called by the setData function of the Network object.
-   * This loads the global references into the active sector. This initializes the sector.
-   *
-   * @private
-   */
-  exports._putDataInSector = function () {
-    this.body.sectors.active[this._sector()].nodes = this.body.nodes;
-    this.body.sectors.active[this._sector()].edges = this.body.edges;
-    this.body.sectors.active[this._sector()].nodeIndices = this.body.nodeIndices;
-  };
-
-
-  /**
-   *  /**
-   * This function sets the global references to nodes, edges and nodeIndices back to
-   * those of the supplied (active) sector. If a type is defined, do the specific type
-   *
-   * @param {String} sectorId
-   * @param {String} [sectorType] | "active" or "frozen"
-   * @private
-   */
-  exports._switchToSector = function (sectorId, sectorType) {
-    if (sectorType === undefined || sectorType == "active") {
-      this._switchToActiveSector(sectorId);
-    } else {
-      this._switchToFrozenSector(sectorId);
-    }
-  };
-
-
-  /**
-   * This function sets the global references to nodes, edges and nodeIndices back to
-   * those of the supplied active sector.
-   *
-   * @param sectorId
-   * @private
-   */
-  exports._switchToActiveSector = function (sectorId) {
-    this.body.nodeIndices = this.body.sectors.active[sectorId].nodeIndices;
-    this.body.nodes = this.body.sectors.active[sectorId].nodes;
-    this.body.edges = this.body.sectors.active[sectorId].edges;
-  };
-
-
-  /**
-   * This function sets the global references to nodes, edges and nodeIndices back to
-   * those of the supplied active sector.
-   *
-   * @private
-   */
-  exports._switchToSupportSector = function () {
-    this.body.nodeIndices = this.body.sectors.support.nodeIndices;
-    this.body.nodes = this.body.sectors.support.nodes;
-    this.body.edges = this.body.sectors.support.edges;
-  };
-
-
-  /**
-   * This function sets the global references to nodes, edges and nodeIndices back to
-   * those of the supplied frozen sector.
-   *
-   * @param sectorId
-   * @private
-   */
-  exports._switchToFrozenSector = function (sectorId) {
-    this.body.nodeIndices = this.body.sectors.frozen[sectorId].nodeIndices;
-    this.body.nodes = this.body.sectors.frozen[sectorId].nodes;
-    this.body.edges = this.body.sectors.frozen[sectorId].edges;
-  };
-
-
-  /**
-   * This function sets the global references to nodes, edges and nodeIndices back to
-   * those of the currently active sector.
-   *
-   * @private
-   */
-  exports._loadLatestSector = function () {
-    this._switchToSector(this._sector());
-  };
-
-
-  /**
-   * This function returns the currently active sector Id
-   *
-   * @returns {String}
-   * @private
-   */
-  exports._sector = function () {
-    return this.activeSector[this.activeSector.length - 1];
-  };
-
-
-  /**
-   * This function returns the previously active sector Id
-   *
-   * @returns {String}
-   * @private
-   */
-  exports._previousSector = function () {
-    if (this.activeSector.length > 1) {
-      return this.activeSector[this.activeSector.length - 2];
-    } else {
-      throw new TypeError("there are not enough sectors in the this.activeSector array.");
-    }
-  };
-
-
-  /**
-   * We add the active sector at the end of the this.activeSector array
-   * This ensures it is the currently active sector returned by _sector() and it reaches the top
-   * of the activeSector stack. When we reverse our steps we move from the end to the beginning of this stack.
-   *
-   * @param newId
-   * @private
-   */
-  exports._setActiveSector = function (newId) {
-    this.activeSector.push(newId);
-  };
-
-
-  /**
-   * We remove the currently active sector id from the active sector stack. This happens when
-   * we reactivate the previously active sector
-   *
-   * @private
-   */
-  exports._forgetLastSector = function () {
-    this.activeSector.pop();
-  };
-
-
-  /**
-   * This function creates a new active sector with the supplied newId. This newId
-   * is the expanding node id.
-   *
-   * @param {String} newId   | Id of the new active sector
-   * @private
-   */
-  exports._createNewSector = function (newId) {
-    // create the new sector
-    this.body.sectors.active[newId] = { nodes: {},
-      edges: {},
-      nodeIndices: [],
-      formationScale: this.scale,
-      drawingNode: undefined };
-
-    // create the new sector render node. This gives visual feedback that you are in a new sector.
-    this.body.sectors.active[newId].drawingNode = new Node({ id: newId,
-      color: {
-        background: "#eaefef",
-        border: "495c5e"
-      }
-    }, {}, {}, this.constants);
-    this.body.sectors.active[newId].drawingNode.clusterSize = 2;
-  };
-
-
-  /**
-   * This function removes the currently active sector. This is called when we create a new
-   * active sector.
-   *
-   * @param {String} sectorId   | Id of the active sector that will be removed
-   * @private
-   */
-  exports._deleteActiveSector = function (sectorId) {
-    delete this.body.sectors.active[sectorId];
-  };
-
-
-  /**
-   * This function removes the currently active sector. This is called when we reactivate
-   * the previously active sector.
-   *
-   * @param {String} sectorId   | Id of the active sector that will be removed
-   * @private
-   */
-  exports._deleteFrozenSector = function (sectorId) {
-    delete this.body.sectors.frozen[sectorId];
-  };
-
-
-  /**
-   * Freezing an active sector means moving it from the "active" object to the "frozen" object.
-   * We copy the references, then delete the active entree.
-   *
-   * @param sectorId
-   * @private
-   */
-  exports._freezeSector = function (sectorId) {
-    // we move the set references from the active to the frozen stack.
-    this.body.sectors.frozen[sectorId] = this.body.sectors.active[sectorId];
-
-    // we have moved the sector data into the frozen set, we now remove it from the active set
-    this._deleteActiveSector(sectorId);
-  };
-
-
-  /**
-   * This is the reverse operation of _freezeSector. Activating means moving the sector from the "frozen"
-   * object to the "active" object.
-   *
-   * @param sectorId
-   * @private
-   */
-  exports._activateSector = function (sectorId) {
-    // we move the set references from the frozen to the active stack.
-    this.body.sectors.active[sectorId] = this.body.sectors.frozen[sectorId];
-
-    // we have moved the sector data into the active set, we now remove it from the frozen stack
-    this._deleteFrozenSector(sectorId);
-  };
-
-
-  /**
-   * This function merges the data from the currently active sector with a frozen sector. This is used
-   * in the process of reverting back to the previously active sector.
-   * The data that is placed in the frozen (the previously active) sector is the node that has been removed from it
-   * upon the creation of a new active sector.
-   *
-   * @param sectorId
-   * @private
-   */
-  exports._mergeThisWithFrozen = function (sectorId) {
-    // copy all nodes
-    for (var nodeId in this.body.nodes) {
-      if (this.body.nodes.hasOwnProperty(nodeId)) {
-        this.body.sectors.frozen[sectorId].nodes[nodeId] = this.body.nodes[nodeId];
-      }
-    }
-
-    // copy all edges (if not fully clustered, else there are no edges)
-    for (var edgeId in this.body.edges) {
-      if (this.body.edges.hasOwnProperty(edgeId)) {
-        this.body.sectors.frozen[sectorId].edges[edgeId] = this.body.edges[edgeId];
-      }
-    }
-
-    // merge the nodeIndices
-    for (var i = 0; i < this.body.nodeIndices.length; i++) {
-      this.body.sectors.frozen[sectorId].nodeIndices.push(this.body.nodeIndices[i]);
-    }
-  };
-
-
-  /**
-   * This clusters the sector to one cluster. It was a single cluster before this process started so
-   * we revert to that state. The clusterToFit function with a maximum size of 1 node does this.
-   *
-   * @private
-   */
-  exports._collapseThisToSingleCluster = function () {
-    this.clusterToFit(1, false);
-  };
-
-
-  /**
-   * We create a new active sector from the node that we want to open.
-   *
-   * @param node
-   * @private
-   */
-  exports._addSector = function (node) {
-    // this is the currently active sector
-    var sector = this._sector();
-
-    //    // this should allow me to select nodes from a frozen set.
-    //    if (this.body.sectors['active'][sector]["nodes"].hasOwnProperty(node.id)) {
-    //      console.log("the node is part of the active sector");
-    //    }
-    //    else {
-    //      console.log("I dont know what the fuck happened!!");
-    //    }
-
-    // when we switch to a new sector, we remove the node that will be expanded from the current nodes list.
-    delete this.body.nodes[node.id];
-
-    var unqiueIdentifier = util.randomUUID();
-
-    // we fully freeze the currently active sector
-    this._freezeSector(sector);
-
-    // we create a new active sector. This sector has the Id of the node to ensure uniqueness
-    this._createNewSector(unqiueIdentifier);
-
-    // we add the active sector to the sectors array to be able to revert these steps later on
-    this._setActiveSector(unqiueIdentifier);
-
-    // we redirect the global references to the new sector's references. this._sector() now returns unqiueIdentifier
-    this._switchToSector(this._sector());
-
-    // finally we add the node we removed from our previous active sector to the new active sector
-    this.body.nodes[node.id] = node;
-  };
-
-
-  /**
-   * We close the sector that is currently open and revert back to the one before.
-   * If the active sector is the "default" sector, nothing happens.
-   *
-   * @private
-   */
-  exports._collapseSector = function () {
-    // the currently active sector
-    var sector = this._sector();
-
-    // we cannot collapse the default sector
-    if (sector != "default") {
-      if (this.body.nodeIndices.length == 1 || this.body.sectors.active[sector].drawingNode.width * this.scale < this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientWidth || this.body.sectors.active[sector].drawingNode.height * this.scale < this.constants.clustering.screenSizeThreshold * this.frame.canvas.clientHeight) {
-        var previousSector = this._previousSector();
-
-        // we collapse the sector back to a single cluster
-        this._collapseThisToSingleCluster();
-
-        // we move the remaining nodes, edges and nodeIndices to the previous sector.
-        // This previous sector is the one we will reactivate
-        this._mergeThisWithFrozen(previousSector);
-
-        // the previously active (frozen) sector now has all the data from the currently active sector.
-        // we can now delete the active sector.
-        this._deleteActiveSector(sector);
-
-        // we activate the previously active (and currently frozen) sector.
-        this._activateSector(previousSector);
-
-        // we load the references from the newly active sector into the global references
-        this._switchToSector(previousSector);
-
-        // we forget the previously active sector because we reverted to the one before
-        this._forgetLastSector();
-
-        // finally, we update the node index list.
-        this._updateNodeIndexList();
-
-        // we refresh the list with calulation nodes and calculation node indices.
-        this._updateCalculationNodes();
-      }
-    }
-  };
-
-
-  /**
-   * This runs a function in all active sectors. This is used in _redraw() and the _initializeForceCalculation().
-   *
-   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
-   *                              |   we dont pass the function itself because then the "this" is the window object
-   *                              |   instead of the Network object
-   * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
-   * @private
-   */
-  exports._doInAllActiveSectors = function (runFunction, argument) {
-    var returnValues = [];
-    if (argument === undefined) {
-      for (var sector in this.body.sectors.active) {
-        if (this.body.sectors.active.hasOwnProperty(sector)) {
-          // switch the global references to those of this sector
-          this._switchToActiveSector(sector);
-          returnValues.push(this[runFunction]());
-        }
-      }
-    } else {
-      for (var sector in this.body.sectors.active) {
-        if (this.body.sectors.active.hasOwnProperty(sector)) {
-          // switch the global references to those of this sector
-          this._switchToActiveSector(sector);
-          var args = Array.prototype.splice.call(arguments, 1);
-          if (args.length > 1) {
-            returnValues.push(this[runFunction](args[0], args[1]));
-          } else {
-            returnValues.push(this[runFunction](argument));
-          }
-        }
-      }
-    }
-    // we revert the global references back to our active sector
-    this._loadLatestSector();
-    return returnValues;
-  };
-
-
-  /**
-   * This runs a function in all active sectors. This is used in _redraw() and the _initializeForceCalculation().
-   *
-   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
-   *                              |   we dont pass the function itself because then the "this" is the window object
-   *                              |   instead of the Network object
-   * @param {*} [argument]        |   Optional: arguments to pass to the runFunction
-   * @private
-   */
-  exports._doInSupportSector = function (runFunction, argument) {
-    var returnValues = false;
-    if (argument === undefined) {
-      this._switchToSupportSector();
-      returnValues = this[runFunction]();
-    } else {
-      this._switchToSupportSector();
-      var args = Array.prototype.splice.call(arguments, 1);
-      if (args.length > 1) {
-        returnValues = this[runFunction](args[0], args[1]);
-      } else {
-        returnValues = this[runFunction](argument);
-      }
-    }
-    // we revert the global references back to our active sector
-    this._loadLatestSector();
-    return returnValues;
-  };
-
-
-  /**
-   * This runs a function in all frozen sectors. This is used in the _redraw().
-   *
-   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
-   *                              |   we don't pass the function itself because then the "this" is the window object
-   *                              |   instead of the Network object
-   * @param {*} [argument]            |   Optional: arguments to pass to the runFunction
-   * @private
-   */
-  exports._doInAllFrozenSectors = function (runFunction, argument) {
-    if (argument === undefined) {
-      for (var sector in this.body.sectors.frozen) {
-        if (this.body.sectors.frozen.hasOwnProperty(sector)) {
-          // switch the global references to those of this sector
-          this._switchToFrozenSector(sector);
-          this[runFunction]();
-        }
-      }
-    } else {
-      for (var sector in this.body.sectors.frozen) {
-        if (this.body.sectors.frozen.hasOwnProperty(sector)) {
-          // switch the global references to those of this sector
-          this._switchToFrozenSector(sector);
-          var args = Array.prototype.splice.call(arguments, 1);
-          if (args.length > 1) {
-            this[runFunction](args[0], args[1]);
-          } else {
-            this[runFunction](argument);
-          }
-        }
-      }
-    }
-    this._loadLatestSector();
-  };
-
-
-  /**
-   * This runs a function in all sectors. This is used in the _redraw().
-   *
-   * @param {String} runFunction  |   This is the NAME of a function we want to call in all active sectors
-   *                              |   we don't pass the function itself because then the "this" is the window object
-   *                              |   instead of the Network object
-   * @param {*} [argument]        |   Optional: arguments to pass to the runFunction
-   * @private
-   */
-  exports._doInAllSectors = function (runFunction, argument) {
-    var args = Array.prototype.splice.call(arguments, 1);
-    if (argument === undefined) {
-      this._doInAllActiveSectors(runFunction);
-      this._doInAllFrozenSectors(runFunction);
-    } else {
-      if (args.length > 1) {
-        this._doInAllActiveSectors(runFunction, args[0], args[1]);
-        this._doInAllFrozenSectors(runFunction, args[0], args[1]);
-      } else {
-        this._doInAllActiveSectors(runFunction, argument);
-        this._doInAllFrozenSectors(runFunction, argument);
-      }
-    }
-  };
-
-
-  /**
-   * This clears the nodeIndices list. We cannot use this.body.nodeIndices = [] because we would break the link with the
-   * active sector. Thus we clear the nodeIndices in the active sector, then reconnect the this.body.nodeIndices to it.
-   *
-   * @private
-   */
-  exports._clearNodeIndexList = function () {
-    var sector = this._sector();
-    this.body.sectors.active[sector].nodeIndices = [];
-    this.body.nodeIndices = this.body.sectors.active[sector].nodeIndices;
-  };
-
-
-  /**
-   * Draw the encompassing sector node
-   *
-   * @param ctx
-   * @param sectorType
-   * @private
-   */
-  exports._drawSectorNodes = function (ctx, sectorType) {
-    var minY = 1000000000,
-        maxY = -1000000000,
-        minX = 1000000000,
-        maxX = -1000000000,
-        node;
-    for (var sector in this.body.sectors[sectorType]) {
-      if (this.body.sectors[sectorType].hasOwnProperty(sector)) {
-        if (this.body.sectors[sectorType][sector].drawingNode !== undefined) {
-          this._switchToSector(sector, sectorType);
-
-          minY = 1000000000;maxY = -1000000000;minX = 1000000000;maxX = -1000000000;
-          for (var nodeId in this.body.nodes) {
-            if (this.body.nodes.hasOwnProperty(nodeId)) {
-              node = this.body.nodes[nodeId];
-              node.resize(ctx);
-              if (minX > node.x - 0.5 * node.width) {
-                minX = node.x - 0.5 * node.width;
-              }
-              if (maxX < node.x + 0.5 * node.width) {
-                maxX = node.x + 0.5 * node.width;
-              }
-              if (minY > node.y - 0.5 * node.height) {
-                minY = node.y - 0.5 * node.height;
-              }
-              if (maxY < node.y + 0.5 * node.height) {
-                maxY = node.y + 0.5 * node.height;
-              }
-            }
-          }
-          node = this.body.sectors[sectorType][sector].drawingNode;
-          node.x = 0.5 * (maxX + minX);
-          node.y = 0.5 * (maxY + minY);
-          node.width = 2 * (node.x - minX);
-          node.height = 2 * (node.y - minY);
-          node.options.radius = Math.sqrt(Math.pow(0.5 * node.width, 2) + Math.pow(0.5 * node.height, 2));
-          node.setScale(this.scale);
-          node._drawCircle(ctx);
-        }
-      }
-    }
-  };
-
-  exports._drawAllSectorNodes = function (ctx) {
-    this._drawSectorNodes(ctx, "frozen");
-    this._drawSectorNodes(ctx, "active");
-    this._loadLatestSector();
-  };
-
-/***/ },
-/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -32779,7 +30095,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 67 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33482,7 +30798,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 68 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33661,7 +30977,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 69 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34055,7 +31371,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 70 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34097,7 +31413,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.nl_BE = exports.nl;
 
 /***/ },
-/* 71 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34343,7 +31659,7 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 72 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34356,18 +31672,19 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 2/23/2015.
    */
 
-  var BarnesHutSolver = __webpack_require__(74).BarnesHutSolver;
-  var Repulsion = __webpack_require__(75).Repulsion;
-  var HierarchicalRepulsion = __webpack_require__(76).HierarchicalRepulsion;
-  var SpringSolver = __webpack_require__(77).SpringSolver;
-  var HierarchicalSpringSolver = __webpack_require__(78).HierarchicalSpringSolver;
-  var CentralGravitySolver = __webpack_require__(79).CentralGravitySolver;
+  var BarnesHutSolver = __webpack_require__(68).BarnesHutSolver;
+  var Repulsion = __webpack_require__(69).Repulsion;
+  var HierarchicalRepulsion = __webpack_require__(70).HierarchicalRepulsion;
+  var SpringSolver = __webpack_require__(71).SpringSolver;
+  var HierarchicalSpringSolver = __webpack_require__(72).HierarchicalSpringSolver;
+  var CentralGravitySolver = __webpack_require__(73).CentralGravitySolver;
   var PhysicsEngine = (function () {
     function PhysicsEngine(body, options) {
       _classCallCheck(this, PhysicsEngine);
 
       this.body = body;
-      this.physicsBody = { calculationNodes: {}, calculationNodeIndices: [] };
+      this.physicsBody = { calculationNodes: {}, calculationNodeIndices: [], forces: {}, velocities: {} };
+      this.previousStates = {};
       this.setOptions(options);
     }
 
@@ -34388,7 +31705,7 @@ return /******/ (function(modules) { // webpackBootstrap
           if (this.options.model == "repulsion") {
             options = this.options.repulsion;
             this.nodesSolver = new Repulsion(this.body, this.physicsBody, options);
-            this.edgesSolver = new SpringSolver(this.body, options);
+            this.edgesSolver = new SpringSolver(this.body, this.physicsBody, options);
           } else if (this.options.model == "hierarchicalRepulsion") {
             options = this.options.hierarchicalRepulsion;
             this.nodesSolver = new HierarchicalRepulsion(this.body, this.physicsBody, options);
@@ -34397,10 +31714,11 @@ return /******/ (function(modules) { // webpackBootstrap
             // barnesHut
             options = this.options.barnesHut;
             this.nodesSolver = new BarnesHutSolver(this.body, this.physicsBody, options);
-            this.edgesSolver = new SpringSolver(this.body, options);
+            this.edgesSolver = new SpringSolver(this.body, this.physicsBody, options);
           }
 
           this.gravitySolver = new CentralGravitySolver(this.body, this.physicsBody, options);
+          this.modelOptions = options;
         },
         writable: true,
         configurable: true
@@ -34417,6 +31735,7 @@ return /******/ (function(modules) { // webpackBootstrap
          */
         value: function _updateCalculationNodes() {
           this.physicsBody.calculationNodes = {};
+          this.physicsBody.forces = {};
           this.physicsBody.calculationNodeIndices = [];
 
           for (var i = 0; i < this.body.nodeIndices.length; i++) {
@@ -34434,13 +31753,117 @@ return /******/ (function(modules) { // webpackBootstrap
               console.error("Support node detected that does not have an edge!");
             }
           }
+
           this.physicsBody.calculationNodeIndices = Object.keys(this.physicsBody.calculationNodes);
+          for (var i = 0; i < this.physicsBody.calculationNodeIndices.length; i++) {
+            var nodeId = this.physicsBody.calculationNodeIndices[i];
+            this.physicsBody.forces[nodeId] = { x: 0, y: 0 };
+
+            // forces can be reset because they are recalculated. Velocities have to persist.
+            if (this.physicsBody.velocities[nodeId] === undefined) {
+              this.physicsBody.velocities[nodeId] = { x: 0, y: 0 };
+            }
+          }
+
+          // clean deleted nodes from the velocity vector
+          for (var nodeId in this.physicsBody.velocities) {
+            if (this.physicsBody.calculationNodes[nodeId] === undefined) {
+              delete this.physicsBody.velocities[nodeId];
+            }
+          }
         },
         writable: true,
         configurable: true
       },
-      step: {
-        value: function step() {
+      revert: {
+        value: function revert() {
+          var nodeIds = Object.keys(this.previousStates);
+          var nodes = this.physicsBody.calculationNodes;
+          var velocities = this.physicsBody.velocities;
+
+          for (var i = 0; i < nodeIds.length; i++) {
+            var nodeId = nodeIds[i];
+            if (nodes[nodeId] !== undefined) {
+              velocities[nodeId].x = this.previousStates[nodeId].vx;
+              velocities[nodeId].y = this.previousStates[nodeId].vy;
+              nodes[nodeId].x = this.previousStates[nodeId].x;
+              nodes[nodeId].y = this.previousStates[nodeId].y;
+            } else {
+              delete this.previousStates[nodeId];
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      moveNodes: {
+        value: function moveNodes() {
+          var nodesPresent = false;
+          var nodeIndices = this.physicsBody.calculationNodeIndices;
+          var maxVelocity = this.options.maxVelocity === 0 ? 1000000000 : this.options.maxVelocity;
+          var moving = false;
+          var vminCorrected = this.options.minVelocity / Math.max(this.body.functions.getScale(), 0.05);
+
+          for (var i = 0; i < nodeIndices.length; i++) {
+            var nodeId = nodeIndices[i];
+            var nodeVelocity = this._performStep(nodeId, maxVelocity);
+            moving = nodeVelocity > vminCorrected;
+            nodesPresent = true;
+          }
+
+
+          if (nodesPresent == true) {
+            if (vminCorrected > 0.5 * this.options.maxVelocity) {
+              return true;
+            } else {
+              return moving;
+            }
+          }
+          return false;
+        },
+        writable: true,
+        configurable: true
+      },
+      _performStep: {
+        value: function _performStep(nodeId, maxVelocity) {
+          var node = this.physicsBody.calculationNodes[nodeId];
+          var timestep = this.options.timestep;
+          var forces = this.physicsBody.forces;
+          var velocities = this.physicsBody.velocities;
+
+          // store the state so we can revert
+          this.previousStates[nodeId] = { x: node.x, y: node.y, vx: velocities[nodeId].x, vy: velocities[nodeId].y };
+
+          if (!node.xFixed) {
+            var dx = this.modelOptions.damping * velocities[nodeId].x; // damping force
+            var ax = (forces[nodeId].x - dx) / node.options.mass; // acceleration
+            velocities[nodeId].x += ax * timestep; // velocity
+            velocities[nodeId].x = Math.abs(velocities[nodeId].x) > maxVelocity ? velocities[nodeId].x > 0 ? maxVelocity : -maxVelocity : velocities[nodeId].x;
+            node.x += velocities[nodeId].x * timestep; // position
+          } else {
+            forces[nodeId].x = 0;
+            velocities[nodeId].x = 0;
+          }
+
+          if (!node.yFixed) {
+            var dy = this.modelOptions.damping * velocities[nodeId].y; // damping force
+            var ay = (forces[nodeId].y - dy) / node.options.mass; // acceleration
+            velocities[nodeId].y += ay * timestep; // velocity
+            velocities[nodeId].y = Math.abs(velocities[nodeId].y) > maxVelocity ? velocities[nodeId].y > 0 ? maxVelocity : -maxVelocity : velocities[nodeId].y;
+            node.y += velocities[nodeId].y * timestep; // position
+          } else {
+            forces[nodeId].y = 0;
+            velocities[nodeId].y = 0;
+          }
+
+          var totalVelocity = Math.sqrt(Math.pow(velocities[nodeId].x, 2) + Math.pow(velocities[nodeId].y, 2));
+          return totalVelocity;
+        },
+        writable: true,
+        configurable: true
+      },
+      calculateForces: {
+        value: function calculateForces() {
           this.gravitySolver.solve();
           this.nodesSolver.solve();
           this.edgesSolver.solve();
@@ -34459,7 +31882,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 73 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -35173,7 +32596,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 74 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -35192,11 +32615,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
       this.body = body;
       this.physicsBody = physicsBody;
-      this.options = options;
       this.barnesHutTree;
+      this.setOptions(options);
     }
 
     _prototypeProperties(BarnesHutSolver, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          this.options = options;
+        },
+        writable: true,
+        configurable: true
+      },
       solve: {
 
 
@@ -35268,8 +32698,9 @@ return /******/ (function(modules) { // webpackBootstrap
               var gravityForce = this.options.gravitationalConstant * parentBranch.mass * node.options.mass / (distance * distance * distance);
               var fx = dx * gravityForce;
               var fy = dy * gravityForce;
-              node.fx += fx;
-              node.fy += fy;
+
+              this.physicsBody.forces[node.id].x += fx;
+              this.physicsBody.forces[node.id].y += fy;
             } else {
               // Did not pass the condition, go into children if available
               if (parentBranch.childrenCount == 4) {
@@ -35289,8 +32720,9 @@ return /******/ (function(modules) { // webpackBootstrap
                   var gravityForce = this.options.gravitationalConstant * parentBranch.mass * node.options.mass / (distance * distance * distance);
                   var fx = dx * gravityForce;
                   var fy = dy * gravityForce;
-                  node.fx += fx;
-                  node.fy += fy;
+
+                  this.physicsBody.forces[node.id].x += fx;
+                  this.physicsBody.forces[node.id].y += fy;
                 }
               }
             }
@@ -35676,7 +33108,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 75 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -35695,12 +33127,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
       this.body = body;
       this.physicsBody = physicsBody;
-      this.options = options;
+      this.setOptions(options);
     }
 
     _prototypeProperties(RepulsionSolver, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          this.options = options;
+        },
+        writable: true,
+        configurable: true
+      },
       solve: {
-
         /**
          * Calculate the forces the nodes apply on each other based on a repulsion field.
          * This field is linearly approximated.
@@ -35712,6 +33150,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
           var nodes = this.physicsBody.calculationNodes;
           var nodeIndices = this.physicsBody.calculationNodeIndices;
+          var forces = this.physicsBody.forces;
 
           // repulsing forces between nodes
           var nodeDistance = this.options.nodeDistance;
@@ -35747,10 +33186,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
                 fx = dx * repulsingForce;
                 fy = dy * repulsingForce;
-                node1.fx -= fx;
-                node1.fy -= fy;
-                node2.fx += fx;
-                node2.fy += fy;
+
+                forces[node1.id].x -= fx;
+                forces[node1.id].y -= fy;
+                forces[node2.id].x += fx;
+                forces[node2.id].y += fy;
               }
             }
           }
@@ -35769,7 +33209,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 76 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -35788,10 +33228,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
       this.body = body;
       this.physicsBody = physicsBody;
-      this.options = options;
+      this.setOptions(options);
     }
 
     _prototypeProperties(HierarchicalRepulsionSolver, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          this.options = options;
+        },
+        writable: true,
+        configurable: true
+      },
       solve: {
 
         /**
@@ -35805,6 +33252,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
           var nodes = this.physicsBody.calculationNodes;
           var nodeIndices = this.physicsBody.calculationNodeIndices;
+          var forces = this.physicsBody.forces;
 
           // repulsing forces between nodes
           var nodeDistance = this.options.nodeDistance;
@@ -35822,7 +33270,6 @@ return /******/ (function(modules) { // webpackBootstrap
                 dy = node2.y - node1.y;
                 distance = Math.sqrt(dx * dx + dy * dy);
 
-
                 var steepness = 0.05;
                 if (distance < nodeDistance) {
                   repulsingForce = -Math.pow(steepness * distance, 2) + Math.pow(steepness * nodeDistance, 2);
@@ -35838,10 +33285,10 @@ return /******/ (function(modules) { // webpackBootstrap
                 fx = dx * repulsingForce;
                 fy = dy * repulsingForce;
 
-                node1.fx -= fx;
-                node1.fy -= fy;
-                node2.fx += fx;
-                node2.fy += fy;
+                forces[node1.id].x -= fx;
+                forces[node1.id].y -= fy;
+                forces[node2.id].x += fx;
+                forces[node2.id].y += fy;
               }
             }
           }
@@ -35860,7 +33307,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 77 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -35874,14 +33321,22 @@ return /******/ (function(modules) { // webpackBootstrap
    */
 
   var SpringSolver = (function () {
-    function SpringSolver(body, options) {
+    function SpringSolver(body, physicsBody, options) {
       _classCallCheck(this, SpringSolver);
 
       this.body = body;
-      this.options = options;
+      this.physicsBody = physicsBody;
+      this.setOptions(options);
     }
 
     _prototypeProperties(SpringSolver, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          this.options = options;
+        },
+        writable: true,
+        configurable: true
+      },
       solve: {
 
         /**
@@ -35944,10 +33399,10 @@ return /******/ (function(modules) { // webpackBootstrap
           fx = dx * springForce;
           fy = dy * springForce;
 
-          node1.fx += fx;
-          node1.fy += fy;
-          node2.fx -= fx;
-          node2.fy -= fy;
+          this.physicsBody.forces[node1.id].x += fx;
+          this.physicsBody.forces[node1.id].y += fy;
+          this.physicsBody.forces[node2.id].x -= fx;
+          this.physicsBody.forces[node2.id].y -= fy;
         },
         writable: true,
         configurable: true
@@ -35963,7 +33418,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 78 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -35982,10 +33437,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
       this.body = body;
       this.physicsBody = physicsBody;
-      this.options = options;
+      this.setOptions(options);
     }
 
     _prototypeProperties(HierarchicalSpringSolver, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          this.options = options;
+        },
+        writable: true,
+        configurable: true
+      },
       solve: {
 
         /**
@@ -35998,14 +33460,14 @@ return /******/ (function(modules) { // webpackBootstrap
           var dx, dy, fx, fy, springForce, distance;
           var edges = this.body.edges;
 
-          var nodes = this.physicsBody.calculationNodes;
           var nodeIndices = this.physicsBody.calculationNodeIndices;
+          var forces = this.physicsBody.forces;
 
           // initialize the spring force counters
           for (var i = 0; i < nodeIndices.length; i++) {
-            var node1 = nodes[nodeIndices[i]];
-            node1.springFx = 0;
-            node1.springFy = 0;
+            var nodeId = nodeIndices[i];
+            forces[nodeId].springFx = 0;
+            forces[nodeId].springFy = 0;
           }
 
 
@@ -36014,33 +33476,30 @@ return /******/ (function(modules) { // webpackBootstrap
             if (edges.hasOwnProperty(edgeId)) {
               edge = edges[edgeId];
               if (edge.connected === true) {
-                // only calculate forces if nodes are in the same sector
-                if (this.body.nodes[edge.toId] !== undefined && this.body.nodes[edge.fromId] !== undefined) {
-                  edgeLength = edge.properties.length === undefined ? this.options.springLength : edge.properties.length;
+                edgeLength = edge.properties.length === undefined ? this.options.springLength : edge.properties.length;
 
-                  dx = edge.from.x - edge.to.x;
-                  dy = edge.from.y - edge.to.y;
-                  distance = Math.sqrt(dx * dx + dy * dy);
-                  distance = distance == 0 ? 0.01 : distance;
+                dx = edge.from.x - edge.to.x;
+                dy = edge.from.y - edge.to.y;
+                distance = Math.sqrt(dx * dx + dy * dy);
+                distance = distance == 0 ? 0.01 : distance;
 
-                  // the 1/distance is so the fx and fy can be calculated without sine or cosine.
-                  springForce = this.options.springConstant * (edgeLength - distance) / distance;
+                // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+                springForce = this.options.springConstant * (edgeLength - distance) / distance;
 
-                  fx = dx * springForce;
-                  fy = dy * springForce;
+                fx = dx * springForce;
+                fy = dy * springForce;
 
-                  if (edge.to.level != edge.from.level) {
-                    edge.to.springFx -= fx;
-                    edge.to.springFy -= fy;
-                    edge.from.springFx += fx;
-                    edge.from.springFy += fy;
-                  } else {
-                    var factor = 0.5;
-                    edge.to.fx -= factor * fx;
-                    edge.to.fy -= factor * fy;
-                    edge.from.fx += factor * fx;
-                    edge.from.fy += factor * fy;
-                  }
+                if (edge.to.level != edge.from.level) {
+                  forces[edge.toId].springFx -= fx;
+                  forces[edge.toId].springFy -= fy;
+                  forces[edge.fromId].springFx += fx;
+                  forces[edge.fromId].springFy += fy;
+                } else {
+                  var factor = 0.5;
+                  forces[edge.toId].x -= factor * fx;
+                  forces[edge.toId].y -= factor * fy;
+                  forces[edge.fromId].x += factor * fx;
+                  forces[edge.fromId].y += factor * fy;
                 }
               }
             }
@@ -36050,29 +33509,29 @@ return /******/ (function(modules) { // webpackBootstrap
           var springForce = 1;
           var springFx, springFy;
           for (var i = 0; i < nodeIndices.length; i++) {
-            var node = nodes[nodeIndices[i]];
-            springFx = Math.min(springForce, Math.max(-springForce, node.springFx));
-            springFy = Math.min(springForce, Math.max(-springForce, node.springFy));
+            var nodeId = nodeIndices[i];
+            springFx = Math.min(springForce, Math.max(-springForce, forces[nodeId].springFx));
+            springFy = Math.min(springForce, Math.max(-springForce, forces[nodeId].springFy));
 
-            node.fx += springFx;
-            node.fy += springFy;
+            forces[nodeId].x += springFx;
+            forces[nodeId].y += springFy;
           }
 
           // retain energy balance
           var totalFx = 0;
           var totalFy = 0;
           for (var i = 0; i < nodeIndices.length; i++) {
-            var node = nodes[nodeIndices[i]];
-            totalFx += node.fx;
-            totalFy += node.fy;
+            var nodeId = nodeIndices[i];
+            totalFx += forces[nodeId].x;
+            totalFy += forces[nodeId].y;
           }
           var correctionFx = totalFx / nodeIndices.length;
           var correctionFy = totalFy / nodeIndices.length;
 
           for (var i = 0; i < nodeIndices.length; i++) {
-            var node = nodes[nodeIndices[i]];
-            node.fx -= correctionFx;
-            node.fy -= correctionFy;
+            var nodeId = nodeIndices[i];
+            forces[nodeId].x -= correctionFx;
+            forces[nodeId].y -= correctionFy;
           }
         },
         writable: true,
@@ -36089,7 +33548,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 79 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36123,20 +33582,22 @@ return /******/ (function(modules) { // webpackBootstrap
         value: function solve() {
           var dx, dy, distance, node, i;
           var nodes = this.physicsBody.calculationNodes;
-          var calculationNodeIndices = this.physicsBody.calculationNodeIndices;
+          var nodeIndices = this.physicsBody.calculationNodeIndices;
+          var forces = this.physicsBody.forces;
+
           var gravity = this.options.centralGravity;
           var gravityForce = 0;
 
-          for (i = 0; i < calculationNodeIndices.length; i++) {
-            node = nodes[calculationNodeIndices[i]];
-            node.damping = this.options.damping;
+          for (i = 0; i < nodeIndices.length; i++) {
+            var nodeId = nodeIndices[i];
+            node = nodes[nodeId];
             dx = -node.x;
             dy = -node.y;
             distance = Math.sqrt(dx * dx + dy * dy);
 
             gravityForce = distance == 0 ? 0 : gravity / distance;
-            node.fx = dx * gravityForce;
-            node.fy = dy * gravityForce;
+            forces[nodeId].x = dx * gravityForce;
+            forces[nodeId].y = dy * gravityForce;
           }
         },
         writable: true,
