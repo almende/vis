@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.0.0-SNAPSHOT
- * @date    2015-02-26
+ * @date    2015-02-27
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -22767,10 +22767,11 @@ return /******/ (function(modules) { // webpackBootstrap
   __webpack_require__(65);
 
   var PhysicsEngine = __webpack_require__(66).PhysicsEngine;
-  var ClusterEngine = __webpack_require__(67).ClusterEngine;
-  var CanvasRenderer = __webpack_require__(68).CanvasRenderer;
-  var Canvas = __webpack_require__(69).Canvas;
-  var View = __webpack_require__(70).View;
+  var ClusterEngine = __webpack_require__(73).ClusterEngine;
+  var CanvasRenderer = __webpack_require__(74).CanvasRenderer;
+  var Canvas = __webpack_require__(75).Canvas;
+  var View = __webpack_require__(76).View;
+  var TouchEventHandler = __webpack_require__(77).TouchEventHandler;
 
 
   /**
@@ -22973,9 +22974,11 @@ return /******/ (function(modules) { // webpackBootstrap
     this.clustering = new ClusterEngine(this.body);
     this.physics = new PhysicsEngine(this.body);
     this.canvas = new Canvas(this.body);
+    this.touchHandler = new TouchEventHandler(this.body);
 
     this.renderer.setCanvas(this.canvas);
     this.view.setCanvas(this.canvas);
+    this.touchHandler.setCanvas(this.canvas);
 
     this.hoverObj = { nodes: {}, edges: {} };
     this.controlNodesActive = false;
@@ -23424,435 +23427,6 @@ return /******/ (function(modules) { // webpackBootstrap
     while (DOMobject.hasChildNodes() == true) {
       this._recursiveDOMDelete(DOMobject.firstChild);
       DOMobject.removeChild(DOMobject.firstChild);
-    }
-  };
-
-  /**
-   * Get the pointer location from a touch location
-   * @param {{pageX: Number, pageY: Number}} touch
-   * @return {{x: Number, y: Number}} pointer
-   * @private
-   */
-  Network.prototype._getPointer = function (touch) {
-    return {
-      x: touch.pageX - util.getAbsoluteLeft(this.frame.canvas),
-      y: touch.pageY - util.getAbsoluteTop(this.frame.canvas)
-    };
-  };
-
-  /**
-   * On start of a touch gesture, store the pointer
-   * @param event
-   * @private
-   */
-  Network.prototype._onTouch = function (event) {
-    if (new Date().valueOf() - this.touchTime > 100) {
-      this.drag.pointer = this._getPointer(event.gesture.center);
-      this.drag.pinched = false;
-      this.pinch.scale = this._getScale();
-
-      // to avoid double fireing of this event because we have two hammer instances. (on canvas and on frame)
-      this.touchTime = new Date().valueOf();
-
-      this._handleTouch(this.drag.pointer);
-    }
-  };
-
-  /**
-   * handle drag start event
-   * @private
-   */
-  Network.prototype._onDragStart = function (event) {
-    this._handleDragStart(event);
-  };
-
-
-  /**
-   * This function is called by _onDragStart.
-   * It is separated out because we can then overload it for the datamanipulation system.
-   *
-   * @private
-   */
-  Network.prototype._handleDragStart = function (event) {
-    // in case the touch event was triggered on an external div, do the initial touch now.
-    if (this.drag.pointer === undefined) {
-      this._onTouch(event);
-    }
-
-    var node = this._getNodeAt(this.drag.pointer);
-    // note: drag.pointer is set in _onTouch to get the initial touch location
-
-    this.drag.dragging = true;
-    this.drag.selection = [];
-    this.drag.translation = this._getTranslation();
-    this.drag.nodeId = null;
-    this.draggingNodes = false;
-
-    if (node != null && this.constants.dragNodes == true) {
-      this.draggingNodes = true;
-      this.drag.nodeId = node.id;
-      // select the clicked node if not yet selected
-      if (!node.isSelected()) {
-        this._selectObject(node, false);
-      }
-
-      this.emit("dragStart", { nodeIds: this.getSelection().nodes });
-
-      // create an array with the selected nodes and their original location and status
-      for (var objectId in this.selectionObj.nodes) {
-        if (this.selectionObj.nodes.hasOwnProperty(objectId)) {
-          var object = this.selectionObj.nodes[objectId];
-          var s = {
-            id: object.id,
-            node: object,
-
-            // store original x, y, xFixed and yFixed, make the node temporarily Fixed
-            x: object.x,
-            y: object.y,
-            xFixed: object.xFixed,
-            yFixed: object.yFixed
-          };
-
-          object.xFixed = true;
-          object.yFixed = true;
-
-          this.drag.selection.push(s);
-        }
-      }
-    }
-  };
-
-
-  /**
-   * handle drag event
-   * @private
-   */
-  Network.prototype._onDrag = function (event) {
-    this._handleOnDrag(event);
-  };
-
-
-  /**
-   * This function is called by _onDrag.
-   * It is separated out because we can then overload it for the datamanipulation system.
-   *
-   * @private
-   */
-  Network.prototype._handleOnDrag = function (event) {
-    if (this.drag.pinched) {
-      return;
-    }
-
-    // remove the focus on node if it is focussed on by the focusOnNode
-    this.releaseNode();
-
-    var pointer = this._getPointer(event.gesture.center);
-    var me = this;
-    var drag = this.drag;
-    var selection = drag.selection;
-    if (selection && selection.length && this.constants.dragNodes == true) {
-      // calculate delta's and new location
-      var deltaX = pointer.x - drag.pointer.x;
-      var deltaY = pointer.y - drag.pointer.y;
-
-      // update position of all selected nodes
-      selection.forEach(function (s) {
-        var node = s.node;
-
-        if (!s.xFixed) {
-          node.x = me._XconvertDOMtoCanvas(me._XconvertCanvasToDOM(s.x) + deltaX);
-        }
-
-        if (!s.yFixed) {
-          node.y = me._YconvertDOMtoCanvas(me._YconvertCanvasToDOM(s.y) + deltaY);
-        }
-      });
-
-
-      // start _animationStep if not yet running
-      if (!this.moving) {
-        this.moving = true;
-        this.start();
-      }
-    } else {
-      // move the network
-      if (this.constants.dragNetwork == true) {
-        // if the drag was not started properly because the click started outside the network div, start it now.
-        if (this.drag.pointer === undefined) {
-          this._handleDragStart(event);
-          return;
-        }
-        var diffX = pointer.x - this.drag.pointer.x;
-        var diffY = pointer.y - this.drag.pointer.y;
-
-        this._setTranslation(this.drag.translation.x + diffX, this.drag.translation.y + diffY);
-        this._redraw();
-      }
-    }
-  };
-
-  /**
-   * handle drag start event
-   * @private
-   */
-  Network.prototype._onDragEnd = function (event) {
-    this._handleDragEnd(event);
-  };
-
-
-  Network.prototype._handleDragEnd = function (event) {
-    this.drag.dragging = false;
-    var selection = this.drag.selection;
-    if (selection && selection.length) {
-      selection.forEach(function (s) {
-        // restore original xFixed and yFixed
-        s.node.xFixed = s.xFixed;
-        s.node.yFixed = s.yFixed;
-      });
-      this.moving = true;
-      this.start();
-    } else {
-      this._redraw();
-    }
-    if (this.draggingNodes == false) {
-      this.emit("dragEnd", { nodeIds: [] });
-    } else {
-      this.emit("dragEnd", { nodeIds: this.getSelection().nodes });
-    }
-  };
-  /**
-   * handle tap/click event: select/unselect a node
-   * @private
-   */
-  Network.prototype._onTap = function (event) {
-    var pointer = this._getPointer(event.gesture.center);
-    this.pointerPosition = pointer;
-    this._handleTap(pointer);
-  };
-
-
-  /**
-   * handle doubletap event
-   * @private
-   */
-  Network.prototype._onDoubleTap = function (event) {
-    var pointer = this._getPointer(event.gesture.center);
-    this._handleDoubleTap(pointer);
-  };
-
-
-  /**
-   * handle long tap event: multi select nodes
-   * @private
-   */
-  Network.prototype._onHold = function (event) {
-    var pointer = this._getPointer(event.gesture.center);
-    this.pointerPosition = pointer;
-    this._handleOnHold(pointer);
-  };
-
-  /**
-   * handle the release of the screen
-   *
-   * @private
-   */
-  Network.prototype._onRelease = function (event) {
-    var pointer = this._getPointer(event.gesture.center);
-    this._handleOnRelease(pointer);
-  };
-
-  /**
-   * Handle pinch event
-   * @param event
-   * @private
-   */
-  Network.prototype._onPinch = function (event) {
-    var pointer = this._getPointer(event.gesture.center);
-
-    this.drag.pinched = true;
-    if (!("scale" in this.pinch)) {
-      this.pinch.scale = 1;
-    }
-
-    // TODO: enabled moving while pinching?
-    var scale = this.pinch.scale * event.gesture.scale;
-    this._zoom(scale, pointer);
-  };
-
-  /**
-   * Zoom the network in or out
-   * @param {Number} scale a number around 1, and between 0.01 and 10
-   * @param {{x: Number, y: Number}} pointer    Position on screen
-   * @return {Number} appliedScale    scale is limited within the boundaries
-   * @private
-   */
-  Network.prototype._zoom = function (scale, pointer) {
-    if (this.constants.zoomable == true) {
-      var scaleOld = this._getScale();
-      if (scale < 0.00001) {
-        scale = 0.00001;
-      }
-      if (scale > 10) {
-        scale = 10;
-      }
-
-      var preScaleDragPointer = null;
-      if (this.drag !== undefined) {
-        if (this.drag.dragging == true) {
-          preScaleDragPointer = this.DOMtoCanvas(this.drag.pointer);
-        }
-      }
-      // + this.frame.canvas.clientHeight / 2
-      var translation = this._getTranslation();
-
-      var scaleFrac = scale / scaleOld;
-      var tx = (1 - scaleFrac) * pointer.x + translation.x * scaleFrac;
-      var ty = (1 - scaleFrac) * pointer.y + translation.y * scaleFrac;
-
-      this.areaCenter = { x: this._XconvertDOMtoCanvas(pointer.x),
-        y: this._YconvertDOMtoCanvas(pointer.y) };
-
-      this._setScale(scale);
-      this._setTranslation(tx, ty);
-
-      if (preScaleDragPointer != null) {
-        var postScaleDragPointer = this.canvasToDOM(preScaleDragPointer);
-        this.drag.pointer.x = postScaleDragPointer.x;
-        this.drag.pointer.y = postScaleDragPointer.y;
-      }
-
-      this._redraw();
-
-      if (scaleOld < scale) {
-        this.emit("zoom", { direction: "+" });
-      } else {
-        this.emit("zoom", { direction: "-" });
-      }
-
-      return scale;
-    }
-  };
-
-
-  /**
-   * Event handler for mouse wheel event, used to zoom the timeline
-   * See http://adomas.org/javascript-mouse-wheel/
-   *     https://github.com/EightMedia/hammer.js/issues/256
-   * @param {MouseEvent}  event
-   * @private
-   */
-  Network.prototype._onMouseWheel = function (event) {
-    // retrieve delta
-    var delta = 0;
-    if (event.wheelDelta) {
-      /* IE/Opera. */
-      delta = event.wheelDelta / 120;
-    } else if (event.detail) {
-      /* Mozilla case. */
-      // In Mozilla, sign of delta is different than in IE.
-      // Also, delta is multiple of 3.
-      delta = -event.detail / 3;
-    }
-
-    // If delta is nonzero, handle it.
-    // Basically, delta is now positive if wheel was scrolled up,
-    // and negative, if wheel was scrolled down.
-    if (delta) {
-      // calculate the new scale
-      var scale = this._getScale();
-      var zoom = delta / 10;
-      if (delta < 0) {
-        zoom = zoom / (1 - zoom);
-      }
-      scale *= 1 + zoom;
-
-      // calculate the pointer location
-      var gesture = hammerUtil.fakeGesture(this, event);
-      var pointer = this._getPointer(gesture.center);
-
-      // apply the new scale
-      this._zoom(scale, pointer);
-    }
-
-    // Prevent default actions caused by mouse wheel.
-    event.preventDefault();
-  };
-
-
-  /**
-   * Mouse move handler for checking whether the title moves over a node with a title.
-   * @param  {Event} event
-   * @private
-   */
-  Network.prototype._onMouseMoveTitle = function (event) {
-    var gesture = hammerUtil.fakeGesture(this, event);
-    var pointer = this._getPointer(gesture.center);
-    var popupVisible = false;
-
-    // check if the previously selected node is still selected
-    if (this.popup !== undefined) {
-      if (this.popup.hidden === false) {
-        this._checkHidePopup(pointer);
-      }
-
-      // if the popup was not hidden above
-      if (this.popup.hidden === false) {
-        popupVisible = true;
-        this.popup.setPosition(pointer.x + 3, pointer.y - 5);
-        this.popup.show();
-      }
-    }
-
-    // if we bind the keyboard to the div, we have to highlight it to use it. This highlights it on mouse over
-    if (this.constants.keyboard.bindToWindow == false && this.constants.keyboard.enabled == true) {
-      this.frame.focus();
-    }
-
-    // start a timeout that will check if the mouse is positioned above an element
-    if (popupVisible === false) {
-      var me = this;
-      var checkShow = function () {
-        me._checkShowPopup(pointer);
-      };
-      if (this.popupTimer) {
-        clearInterval(this.popupTimer); // stop any running calculationTimer
-      }
-      if (!this.drag.dragging) {
-        this.popupTimer = setTimeout(checkShow, this.constants.tooltip.delay);
-      }
-    }
-
-    /**
-     * Adding hover highlights
-     */
-    if (this.constants.hover == true) {
-      // removing all hover highlights
-      for (var edgeId in this.hoverObj.edges) {
-        if (this.hoverObj.edges.hasOwnProperty(edgeId)) {
-          this.hoverObj.edges[edgeId].hover = false;
-          delete this.hoverObj.edges[edgeId];
-        }
-      }
-
-      // adding hover highlights
-      var obj = this._getNodeAt(pointer);
-      if (obj == null) {
-        obj = this._getEdgeAt(pointer);
-      }
-      if (obj != null) {
-        this._hoverObject(obj);
-      }
-
-      // removing all node hover highlights except for the selected one.
-      for (var nodeId in this.hoverObj.nodes) {
-        if (this.hoverObj.nodes.hasOwnProperty(nodeId)) {
-          if (obj instanceof Node && obj.id != nodeId || obj instanceof Edge || obj == null) {
-            this._blurObject(this.hoverObj.nodes[nodeId]);
-            delete this.hoverObj.nodes[nodeId];
-          }
-        }
-      }
-      this.redraw();
     }
   };
 
@@ -30682,12 +30256,12 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 2/23/2015.
    */
 
-  var BarnesHutSolver = __webpack_require__(71).BarnesHutSolver;
-  var Repulsion = __webpack_require__(72).Repulsion;
-  var HierarchicalRepulsion = __webpack_require__(73).HierarchicalRepulsion;
-  var SpringSolver = __webpack_require__(74).SpringSolver;
-  var HierarchicalSpringSolver = __webpack_require__(75).HierarchicalSpringSolver;
-  var CentralGravitySolver = __webpack_require__(76).CentralGravitySolver;
+  var BarnesHutSolver = __webpack_require__(67).BarnesHutSolver;
+  var Repulsion = __webpack_require__(68).Repulsion;
+  var HierarchicalRepulsion = __webpack_require__(69).HierarchicalRepulsion;
+  var SpringSolver = __webpack_require__(70).SpringSolver;
+  var HierarchicalSpringSolver = __webpack_require__(71).HierarchicalSpringSolver;
+  var CentralGravitySolver = __webpack_require__(72).CentralGravitySolver;
 
 
   var util = __webpack_require__(1);
@@ -31152,6 +30726,1024 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 67 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  /**
+   * Created by Alex on 2/23/2015.
+   */
+
+  var BarnesHutSolver = (function () {
+    function BarnesHutSolver(body, physicsBody, options) {
+      _classCallCheck(this, BarnesHutSolver);
+
+      this.body = body;
+      this.physicsBody = physicsBody;
+      this.barnesHutTree;
+      this.setOptions(options);
+    }
+
+    _prototypeProperties(BarnesHutSolver, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          this.options = options;
+        },
+        writable: true,
+        configurable: true
+      },
+      solve: {
+
+
+        /**
+         * This function calculates the forces the nodes apply on eachother based on a gravitational model.
+         * The Barnes Hut method is used to speed up this N-body simulation.
+         *
+         * @private
+         */
+        value: function solve() {
+          if (this.options.gravitationalConstant != 0) {
+            var node;
+            var nodes = this.physicsBody.calculationNodes;
+            var nodeIndices = this.physicsBody.calculationNodeIndices;
+            var nodeCount = nodeIndices.length;
+
+            // create the tree
+            var barnesHutTree = this._formBarnesHutTree(nodes, nodeIndices);
+
+            // for debugging
+            this.barnesHutTree = barnesHutTree;
+
+            // place the nodes one by one recursively
+            for (var i = 0; i < nodeCount; i++) {
+              node = nodes[nodeIndices[i]];
+              if (node.options.mass > 0) {
+                // starting with root is irrelevant, it never passes the BarnesHutSolver condition
+                this._getForceContribution(barnesHutTree.root.children.NW, node);
+                this._getForceContribution(barnesHutTree.root.children.NE, node);
+                this._getForceContribution(barnesHutTree.root.children.SW, node);
+                this._getForceContribution(barnesHutTree.root.children.SE, node);
+              }
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _getForceContribution: {
+
+
+        /**
+         * This function traverses the barnesHutTree. It checks when it can approximate distant nodes with their center of mass.
+         * If a region contains a single node, we check if it is not itself, then we apply the force.
+         *
+         * @param parentBranch
+         * @param node
+         * @private
+         */
+        value: function _getForceContribution(parentBranch, node) {
+          // we get no force contribution from an empty region
+          if (parentBranch.childrenCount > 0) {
+            var dx, dy, distance;
+
+            // get the distance from the center of mass to the node.
+            dx = parentBranch.centerOfMass.x - node.x;
+            dy = parentBranch.centerOfMass.y - node.y;
+            distance = Math.sqrt(dx * dx + dy * dy);
+
+            // BarnesHutSolver condition
+            // original condition : s/d < thetaInverted = passed  ===  d/s > 1/theta = passed
+            // calcSize = 1/s --> d * 1/s > 1/theta = passed
+            if (distance * parentBranch.calcSize > this.options.thetaInverted) {
+              // duplicate code to reduce function calls to speed up program
+              if (distance == 0) {
+                distance = 0.1 * Math.random();
+                dx = distance;
+              }
+              var gravityForce = this.options.gravitationalConstant * parentBranch.mass * node.options.mass / (distance * distance * distance);
+              var fx = dx * gravityForce;
+              var fy = dy * gravityForce;
+
+              this.physicsBody.forces[node.id].x += fx;
+              this.physicsBody.forces[node.id].y += fy;
+            } else {
+              // Did not pass the condition, go into children if available
+              if (parentBranch.childrenCount == 4) {
+                this._getForceContribution(parentBranch.children.NW, node);
+                this._getForceContribution(parentBranch.children.NE, node);
+                this._getForceContribution(parentBranch.children.SW, node);
+                this._getForceContribution(parentBranch.children.SE, node);
+              } else {
+                // parentBranch must have only one node, if it was empty we wouldnt be here
+                if (parentBranch.children.data.id != node.id) {
+                  // if it is not self
+                  // duplicate code to reduce function calls to speed up program
+                  if (distance == 0) {
+                    distance = 0.5 * Math.random();
+                    dx = distance;
+                  }
+                  var gravityForce = this.options.gravitationalConstant * parentBranch.mass * node.options.mass / (distance * distance * distance);
+                  var fx = dx * gravityForce;
+                  var fy = dy * gravityForce;
+
+                  this.physicsBody.forces[node.id].x += fx;
+                  this.physicsBody.forces[node.id].y += fy;
+                }
+              }
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _formBarnesHutTree: {
+
+
+        /**
+         * This function constructs the barnesHut tree recursively. It creates the root, splits it and starts placing the nodes.
+         *
+         * @param nodes
+         * @param nodeIndices
+         * @private
+         */
+        value: function _formBarnesHutTree(nodes, nodeIndices) {
+          var node;
+          var nodeCount = nodeIndices.length;
+
+          var minX = Number.MAX_VALUE,
+              minY = Number.MAX_VALUE,
+              maxX = -Number.MAX_VALUE,
+              maxY = -Number.MAX_VALUE;
+
+          // get the range of the nodes
+          for (var i = 0; i < nodeCount; i++) {
+            var x = nodes[nodeIndices[i]].x;
+            var y = nodes[nodeIndices[i]].y;
+            if (nodes[nodeIndices[i]].options.mass > 0) {
+              if (x < minX) {
+                minX = x;
+              }
+              if (x > maxX) {
+                maxX = x;
+              }
+              if (y < minY) {
+                minY = y;
+              }
+              if (y > maxY) {
+                maxY = y;
+              }
+            }
+          }
+          // make the range a square
+          var sizeDiff = Math.abs(maxX - minX) - Math.abs(maxY - minY); // difference between X and Y
+          if (sizeDiff > 0) {
+            minY -= 0.5 * sizeDiff;
+            maxY += 0.5 * sizeDiff;
+          } // xSize > ySize
+          else {
+            minX += 0.5 * sizeDiff;
+            maxX -= 0.5 * sizeDiff;
+          } // xSize < ySize
+
+
+          var minimumTreeSize = 0.00001;
+          var rootSize = Math.max(minimumTreeSize, Math.abs(maxX - minX));
+          var halfRootSize = 0.5 * rootSize;
+          var centerX = 0.5 * (minX + maxX),
+              centerY = 0.5 * (minY + maxY);
+
+          // construct the barnesHutTree
+          var barnesHutTree = {
+            root: {
+              centerOfMass: { x: 0, y: 0 },
+              mass: 0,
+              range: {
+                minX: centerX - halfRootSize, maxX: centerX + halfRootSize,
+                minY: centerY - halfRootSize, maxY: centerY + halfRootSize
+              },
+              size: rootSize,
+              calcSize: 1 / rootSize,
+              children: { data: null },
+              maxWidth: 0,
+              level: 0,
+              childrenCount: 4
+            }
+          };
+          this._splitBranch(barnesHutTree.root);
+
+          // place the nodes one by one recursively
+          for (i = 0; i < nodeCount; i++) {
+            node = nodes[nodeIndices[i]];
+            if (node.options.mass > 0) {
+              this._placeInTree(barnesHutTree.root, node);
+            }
+          }
+
+          // make global
+          return barnesHutTree;
+        },
+        writable: true,
+        configurable: true
+      },
+      _updateBranchMass: {
+
+
+        /**
+         * this updates the mass of a branch. this is increased by adding a node.
+         *
+         * @param parentBranch
+         * @param node
+         * @private
+         */
+        value: function _updateBranchMass(parentBranch, node) {
+          var totalMass = parentBranch.mass + node.options.mass;
+          var totalMassInv = 1 / totalMass;
+
+          parentBranch.centerOfMass.x = parentBranch.centerOfMass.x * parentBranch.mass + node.x * node.options.mass;
+          parentBranch.centerOfMass.x *= totalMassInv;
+
+          parentBranch.centerOfMass.y = parentBranch.centerOfMass.y * parentBranch.mass + node.y * node.options.mass;
+          parentBranch.centerOfMass.y *= totalMassInv;
+
+          parentBranch.mass = totalMass;
+          var biggestSize = Math.max(Math.max(node.height, node.radius), node.width);
+          parentBranch.maxWidth = parentBranch.maxWidth < biggestSize ? biggestSize : parentBranch.maxWidth;
+        },
+        writable: true,
+        configurable: true
+      },
+      _placeInTree: {
+
+
+        /**
+         * determine in which branch the node will be placed.
+         *
+         * @param parentBranch
+         * @param node
+         * @param skipMassUpdate
+         * @private
+         */
+        value: function _placeInTree(parentBranch, node, skipMassUpdate) {
+          if (skipMassUpdate != true || skipMassUpdate === undefined) {
+            // update the mass of the branch.
+            this._updateBranchMass(parentBranch, node);
+          }
+
+          if (parentBranch.children.NW.range.maxX > node.x) {
+            // in NW or SW
+            if (parentBranch.children.NW.range.maxY > node.y) {
+              // in NW
+              this._placeInRegion(parentBranch, node, "NW");
+            } else {
+              // in SW
+              this._placeInRegion(parentBranch, node, "SW");
+            }
+          } else {
+            // in NE or SE
+            if (parentBranch.children.NW.range.maxY > node.y) {
+              // in NE
+              this._placeInRegion(parentBranch, node, "NE");
+            } else {
+              // in SE
+              this._placeInRegion(parentBranch, node, "SE");
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _placeInRegion: {
+
+
+        /**
+         * actually place the node in a region (or branch)
+         *
+         * @param parentBranch
+         * @param node
+         * @param region
+         * @private
+         */
+        value: function _placeInRegion(parentBranch, node, region) {
+          switch (parentBranch.children[region].childrenCount) {
+            case 0:
+              // place node here
+              parentBranch.children[region].children.data = node;
+              parentBranch.children[region].childrenCount = 1;
+              this._updateBranchMass(parentBranch.children[region], node);
+              break;
+            case 1:
+              // convert into children
+              // if there are two nodes exactly overlapping (on init, on opening of cluster etc.)
+              // we move one node a pixel and we do not put it in the tree.
+              if (parentBranch.children[region].children.data.x == node.x && parentBranch.children[region].children.data.y == node.y) {
+                node.x += Math.random();
+                node.y += Math.random();
+              } else {
+                this._splitBranch(parentBranch.children[region]);
+                this._placeInTree(parentBranch.children[region], node);
+              }
+              break;
+            case 4:
+              // place in branch
+              this._placeInTree(parentBranch.children[region], node);
+              break;
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _splitBranch: {
+
+
+        /**
+         * this function splits a branch into 4 sub branches. If the branch contained a node, we place it in the subbranch
+         * after the split is complete.
+         *
+         * @param parentBranch
+         * @private
+         */
+        value: function _splitBranch(parentBranch) {
+          // if the branch is shaded with a node, replace the node in the new subset.
+          var containedNode = null;
+          if (parentBranch.childrenCount == 1) {
+            containedNode = parentBranch.children.data;
+            parentBranch.mass = 0;
+            parentBranch.centerOfMass.x = 0;
+            parentBranch.centerOfMass.y = 0;
+          }
+          parentBranch.childrenCount = 4;
+          parentBranch.children.data = null;
+          this._insertRegion(parentBranch, "NW");
+          this._insertRegion(parentBranch, "NE");
+          this._insertRegion(parentBranch, "SW");
+          this._insertRegion(parentBranch, "SE");
+
+          if (containedNode != null) {
+            this._placeInTree(parentBranch, containedNode);
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _insertRegion: {
+
+
+        /**
+         * This function subdivides the region into four new segments.
+         * Specifically, this inserts a single new segment.
+         * It fills the children section of the parentBranch
+         *
+         * @param parentBranch
+         * @param region
+         * @param parentRange
+         * @private
+         */
+        value: function _insertRegion(parentBranch, region) {
+          var minX, maxX, minY, maxY;
+          var childSize = 0.5 * parentBranch.size;
+          switch (region) {
+            case "NW":
+              minX = parentBranch.range.minX;
+              maxX = parentBranch.range.minX + childSize;
+              minY = parentBranch.range.minY;
+              maxY = parentBranch.range.minY + childSize;
+              break;
+            case "NE":
+              minX = parentBranch.range.minX + childSize;
+              maxX = parentBranch.range.maxX;
+              minY = parentBranch.range.minY;
+              maxY = parentBranch.range.minY + childSize;
+              break;
+            case "SW":
+              minX = parentBranch.range.minX;
+              maxX = parentBranch.range.minX + childSize;
+              minY = parentBranch.range.minY + childSize;
+              maxY = parentBranch.range.maxY;
+              break;
+            case "SE":
+              minX = parentBranch.range.minX + childSize;
+              maxX = parentBranch.range.maxX;
+              minY = parentBranch.range.minY + childSize;
+              maxY = parentBranch.range.maxY;
+              break;
+          }
+
+
+          parentBranch.children[region] = {
+            centerOfMass: { x: 0, y: 0 },
+            mass: 0,
+            range: { minX: minX, maxX: maxX, minY: minY, maxY: maxY },
+            size: 0.5 * parentBranch.size,
+            calcSize: 2 * parentBranch.calcSize,
+            children: { data: null },
+            maxWidth: 0,
+            level: parentBranch.level + 1,
+            childrenCount: 0
+          };
+        },
+        writable: true,
+        configurable: true
+      },
+      _debug: {
+
+
+
+
+        //---------------------------  DEBUGGING BELOW  ---------------------------//
+
+
+        /**
+         * This function is for debugging purposed, it draws the tree.
+         *
+         * @param ctx
+         * @param color
+         * @private
+         */
+        value: function _debug(ctx, color) {
+          if (this.barnesHutTree !== undefined) {
+            ctx.lineWidth = 1;
+
+            this._drawBranch(this.barnesHutTree.root, ctx, color);
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawBranch: {
+
+
+        /**
+         * This function is for debugging purposes. It draws the branches recursively.
+         *
+         * @param branch
+         * @param ctx
+         * @param color
+         * @private
+         */
+        value: function _drawBranch(branch, ctx, color) {
+          if (color === undefined) {
+            color = "#FF0000";
+          }
+
+          if (branch.childrenCount == 4) {
+            this._drawBranch(branch.children.NW, ctx);
+            this._drawBranch(branch.children.NE, ctx);
+            this._drawBranch(branch.children.SE, ctx);
+            this._drawBranch(branch.children.SW, ctx);
+          }
+          ctx.strokeStyle = color;
+          ctx.beginPath();
+          ctx.moveTo(branch.range.minX, branch.range.minY);
+          ctx.lineTo(branch.range.maxX, branch.range.minY);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(branch.range.maxX, branch.range.minY);
+          ctx.lineTo(branch.range.maxX, branch.range.maxY);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(branch.range.maxX, branch.range.maxY);
+          ctx.lineTo(branch.range.minX, branch.range.maxY);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(branch.range.minX, branch.range.maxY);
+          ctx.lineTo(branch.range.minX, branch.range.minY);
+          ctx.stroke();
+
+          /*
+           if (branch.mass > 0) {
+           ctx.circle(branch.centerOfMass.x, branch.centerOfMass.y, 3*branch.mass);
+           ctx.stroke();
+           }
+           */
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return BarnesHutSolver;
+  })();
+
+  exports.BarnesHutSolver = BarnesHutSolver;
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+/***/ },
+/* 68 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  /**
+   * Created by Alex on 2/23/2015.
+   */
+
+  var RepulsionSolver = (function () {
+    function RepulsionSolver(body, physicsBody, options) {
+      _classCallCheck(this, RepulsionSolver);
+
+      this.body = body;
+      this.physicsBody = physicsBody;
+      this.setOptions(options);
+    }
+
+    _prototypeProperties(RepulsionSolver, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          this.options = options;
+        },
+        writable: true,
+        configurable: true
+      },
+      solve: {
+        /**
+         * Calculate the forces the nodes apply on each other based on a repulsion field.
+         * This field is linearly approximated.
+         *
+         * @private
+         */
+        value: function solve() {
+          var dx, dy, distance, fx, fy, repulsingForce, node1, node2;
+
+          var nodes = this.physicsBody.calculationNodes;
+          var nodeIndices = this.physicsBody.calculationNodeIndices;
+          var forces = this.physicsBody.forces;
+
+          // repulsing forces between nodes
+          var nodeDistance = this.options.nodeDistance;
+
+          // approximation constants
+          var a = -2 / 3 / nodeDistance;
+          var b = 4 / 3;
+
+          // we loop from i over all but the last entree in the array
+          // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
+          for (var i = 0; i < nodeIndices.length - 1; i++) {
+            node1 = nodes[nodeIndices[i]];
+            for (var j = i + 1; j < nodeIndices.length; j++) {
+              node2 = nodes[nodeIndices[j]];
+
+              dx = node2.x - node1.x;
+              dy = node2.y - node1.y;
+              distance = Math.sqrt(dx * dx + dy * dy);
+
+              // same condition as BarnesHutSolver, making sure nodes are never 100% overlapping.
+              if (distance == 0) {
+                distance = 0.1 * Math.random();
+                dx = distance;
+              }
+
+              if (distance < 2 * nodeDistance) {
+                if (distance < 0.5 * nodeDistance) {
+                  repulsingForce = 1;
+                } else {
+                  repulsingForce = a * distance + b; // linear approx of  1 / (1 + Math.exp((distance / nodeDistance - 1) * steepness))
+                }
+                repulsingForce = repulsingForce / distance;
+
+                fx = dx * repulsingForce;
+                fy = dy * repulsingForce;
+
+                forces[node1.id].x -= fx;
+                forces[node1.id].y -= fy;
+                forces[node2.id].x += fx;
+                forces[node2.id].y += fy;
+              }
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return RepulsionSolver;
+  })();
+
+  exports.RepulsionSolver = RepulsionSolver;
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+/***/ },
+/* 69 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  /**
+   * Created by Alex on 2/23/2015.
+   */
+
+  var HierarchicalRepulsionSolver = (function () {
+    function HierarchicalRepulsionSolver(body, physicsBody, options) {
+      _classCallCheck(this, HierarchicalRepulsionSolver);
+
+      this.body = body;
+      this.physicsBody = physicsBody;
+      this.setOptions(options);
+    }
+
+    _prototypeProperties(HierarchicalRepulsionSolver, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          this.options = options;
+        },
+        writable: true,
+        configurable: true
+      },
+      solve: {
+
+        /**
+         * Calculate the forces the nodes apply on each other based on a repulsion field.
+         * This field is linearly approximated.
+         *
+         * @private
+         */
+        value: function solve() {
+          var dx, dy, distance, fx, fy, repulsingForce, node1, node2, i, j;
+
+          var nodes = this.physicsBody.calculationNodes;
+          var nodeIndices = this.physicsBody.calculationNodeIndices;
+          var forces = this.physicsBody.forces;
+
+          // repulsing forces between nodes
+          var nodeDistance = this.options.nodeDistance;
+
+          // we loop from i over all but the last entree in the array
+          // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
+          for (i = 0; i < nodeIndices.length - 1; i++) {
+            node1 = nodes[nodeIndices[i]];
+            for (j = i + 1; j < nodeIndices.length; j++) {
+              node2 = nodes[nodeIndices[j]];
+
+              // nodes only affect nodes on their level
+              if (node1.level == node2.level) {
+                dx = node2.x - node1.x;
+                dy = node2.y - node1.y;
+                distance = Math.sqrt(dx * dx + dy * dy);
+
+                var steepness = 0.05;
+                if (distance < nodeDistance) {
+                  repulsingForce = -Math.pow(steepness * distance, 2) + Math.pow(steepness * nodeDistance, 2);
+                } else {
+                  repulsingForce = 0;
+                }
+                // normalize force with
+                if (distance == 0) {
+                  distance = 0.01;
+                } else {
+                  repulsingForce = repulsingForce / distance;
+                }
+                fx = dx * repulsingForce;
+                fy = dy * repulsingForce;
+
+                forces[node1.id].x -= fx;
+                forces[node1.id].y -= fy;
+                forces[node2.id].x += fx;
+                forces[node2.id].y += fy;
+              }
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return HierarchicalRepulsionSolver;
+  })();
+
+  exports.HierarchicalRepulsionSolver = HierarchicalRepulsionSolver;
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+/***/ },
+/* 70 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  /**
+   * Created by Alex on 2/23/2015.
+   */
+
+  var SpringSolver = (function () {
+    function SpringSolver(body, physicsBody, options) {
+      _classCallCheck(this, SpringSolver);
+
+      this.body = body;
+      this.physicsBody = physicsBody;
+      this.setOptions(options);
+    }
+
+    _prototypeProperties(SpringSolver, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          this.options = options;
+        },
+        writable: true,
+        configurable: true
+      },
+      solve: {
+
+        /**
+         * This function calculates the springforces on the nodes, accounting for the support nodes.
+         *
+         * @private
+         */
+        value: function solve() {
+          var edgeLength, edge, edgeId;
+          var edges = this.body.edges;
+
+          // forces caused by the edges, modelled as springs
+          for (edgeId in edges) {
+            if (edges.hasOwnProperty(edgeId)) {
+              edge = edges[edgeId];
+              if (edge.connected === true) {
+                // only calculate forces if nodes are in the same sector
+                if (this.body.nodes[edge.toId] !== undefined && this.body.nodes[edge.fromId] !== undefined) {
+                  edgeLength = edge.properties.length === undefined ? this.options.springLength : edge.properties.length;
+                  if (edge.via != null) {
+                    var node1 = edge.to;
+                    var node2 = edge.via;
+                    var node3 = edge.from;
+
+                    this._calculateSpringForce(node1, node2, 0.5 * edgeLength);
+                    this._calculateSpringForce(node2, node3, 0.5 * edgeLength);
+                  } else {
+                    this._calculateSpringForce(edge.from, edge.to, edgeLength);
+                  }
+                }
+              }
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _calculateSpringForce: {
+
+
+        /**
+         * This is the code actually performing the calculation for the function above.
+         *
+         * @param node1
+         * @param node2
+         * @param edgeLength
+         * @private
+         */
+        value: function _calculateSpringForce(node1, node2, edgeLength) {
+          var dx, dy, fx, fy, springForce, distance;
+
+          dx = node1.x - node2.x;
+          dy = node1.y - node2.y;
+          distance = Math.sqrt(dx * dx + dy * dy);
+          distance = distance == 0 ? 0.01 : distance;
+
+          // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+          springForce = this.options.springConstant * (edgeLength - distance) / distance;
+
+          fx = dx * springForce;
+          fy = dy * springForce;
+
+          this.physicsBody.forces[node1.id].x += fx;
+          this.physicsBody.forces[node1.id].y += fy;
+          this.physicsBody.forces[node2.id].x -= fx;
+          this.physicsBody.forces[node2.id].y -= fy;
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return SpringSolver;
+  })();
+
+  exports.SpringSolver = SpringSolver;
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+/***/ },
+/* 71 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  /**
+   * Created by Alex on 2/25/2015.
+   */
+
+  var HierarchicalSpringSolver = (function () {
+    function HierarchicalSpringSolver(body, physicsBody, options) {
+      _classCallCheck(this, HierarchicalSpringSolver);
+
+      this.body = body;
+      this.physicsBody = physicsBody;
+      this.setOptions(options);
+    }
+
+    _prototypeProperties(HierarchicalSpringSolver, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          this.options = options;
+        },
+        writable: true,
+        configurable: true
+      },
+      solve: {
+
+        /**
+         * This function calculates the springforces on the nodes, accounting for the support nodes.
+         *
+         * @private
+         */
+        value: function solve() {
+          var edgeLength, edge, edgeId;
+          var dx, dy, fx, fy, springForce, distance;
+          var edges = this.body.edges;
+
+          var nodeIndices = this.physicsBody.calculationNodeIndices;
+          var forces = this.physicsBody.forces;
+
+          // initialize the spring force counters
+          for (var i = 0; i < nodeIndices.length; i++) {
+            var nodeId = nodeIndices[i];
+            forces[nodeId].springFx = 0;
+            forces[nodeId].springFy = 0;
+          }
+
+
+          // forces caused by the edges, modelled as springs
+          for (edgeId in edges) {
+            if (edges.hasOwnProperty(edgeId)) {
+              edge = edges[edgeId];
+              if (edge.connected === true) {
+                edgeLength = edge.properties.length === undefined ? this.options.springLength : edge.properties.length;
+
+                dx = edge.from.x - edge.to.x;
+                dy = edge.from.y - edge.to.y;
+                distance = Math.sqrt(dx * dx + dy * dy);
+                distance = distance == 0 ? 0.01 : distance;
+
+                // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+                springForce = this.options.springConstant * (edgeLength - distance) / distance;
+
+                fx = dx * springForce;
+                fy = dy * springForce;
+
+                if (edge.to.level != edge.from.level) {
+                  forces[edge.toId].springFx -= fx;
+                  forces[edge.toId].springFy -= fy;
+                  forces[edge.fromId].springFx += fx;
+                  forces[edge.fromId].springFy += fy;
+                } else {
+                  var factor = 0.5;
+                  forces[edge.toId].x -= factor * fx;
+                  forces[edge.toId].y -= factor * fy;
+                  forces[edge.fromId].x += factor * fx;
+                  forces[edge.fromId].y += factor * fy;
+                }
+              }
+            }
+          }
+
+          // normalize spring forces
+          var springForce = 1;
+          var springFx, springFy;
+          for (var i = 0; i < nodeIndices.length; i++) {
+            var nodeId = nodeIndices[i];
+            springFx = Math.min(springForce, Math.max(-springForce, forces[nodeId].springFx));
+            springFy = Math.min(springForce, Math.max(-springForce, forces[nodeId].springFy));
+
+            forces[nodeId].x += springFx;
+            forces[nodeId].y += springFy;
+          }
+
+          // retain energy balance
+          var totalFx = 0;
+          var totalFy = 0;
+          for (var i = 0; i < nodeIndices.length; i++) {
+            var nodeId = nodeIndices[i];
+            totalFx += forces[nodeId].x;
+            totalFy += forces[nodeId].y;
+          }
+          var correctionFx = totalFx / nodeIndices.length;
+          var correctionFy = totalFy / nodeIndices.length;
+
+          for (var i = 0; i < nodeIndices.length; i++) {
+            var nodeId = nodeIndices[i];
+            forces[nodeId].x -= correctionFx;
+            forces[nodeId].y -= correctionFy;
+          }
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return HierarchicalSpringSolver;
+  })();
+
+  exports.HierarchicalSpringSolver = HierarchicalSpringSolver;
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+/***/ },
+/* 72 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  /**
+   * Created by Alex on 2/23/2015.
+   */
+
+  var CentralGravitySolver = (function () {
+    function CentralGravitySolver(body, physicsBody, options) {
+      _classCallCheck(this, CentralGravitySolver);
+
+      this.body = body;
+      this.physicsBody = physicsBody;
+      this.setOptions(options);
+    }
+
+    _prototypeProperties(CentralGravitySolver, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          this.options = options;
+        },
+        writable: true,
+        configurable: true
+      },
+      solve: {
+        value: function solve() {
+          var dx, dy, distance, node, i;
+          var nodes = this.physicsBody.calculationNodes;
+          var nodeIndices = this.physicsBody.calculationNodeIndices;
+          var forces = this.physicsBody.forces;
+
+          var gravity = this.options.centralGravity;
+          var gravityForce = 0;
+
+          for (i = 0; i < nodeIndices.length; i++) {
+            var nodeId = nodeIndices[i];
+            node = nodes[nodeId];
+            dx = -node.x;
+            dy = -node.y;
+            distance = Math.sqrt(dx * dx + dy * dy);
+
+            gravityForce = distance == 0 ? 0 : gravity / distance;
+            forces[nodeId].x = dx * gravityForce;
+            forces[nodeId].y = dy * gravityForce;
+          }
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return CentralGravitySolver;
+  })();
+
+  exports.CentralGravitySolver = CentralGravitySolver;
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+/***/ },
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31865,7 +32457,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 68 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31930,7 +32522,7 @@ return /******/ (function(modules) { // webpackBootstrap
                 this.renderTimer = window.requestAnimationFrame(this.renderStep.bind(this)); // wait this.renderTimeStep milliseconds and perform the animation step function
               }
             }
-          }
+          } else {}
         },
         writable: true,
         configurable: true
@@ -32169,7 +32761,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 69 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -32454,7 +33046,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 70 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -32494,7 +33086,6 @@ return /******/ (function(modules) { // webpackBootstrap
       this.viewFunction = undefined;
 
       this.body.emitter.on("zoomExtent", this.zoomExtent.bind(this));
-      this.body.emitter.on("zoomExtentInstantly", this.zoomExtent.bind(this, { duration: 0 }));
       this.body.emitter.on("_setScale", function (scale) {
         return _this.scale = scale;
       });
@@ -32887,7 +33478,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 71 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -32897,767 +33488,720 @@ return /******/ (function(modules) { // webpackBootstrap
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
   /**
-   * Created by Alex on 2/23/2015.
+   * Created by Alex on 2/27/2015.
+   *
    */
 
-  var BarnesHutSolver = (function () {
-    function BarnesHutSolver(body, physicsBody, options) {
-      _classCallCheck(this, BarnesHutSolver);
+  var SelectionHandler = __webpack_require__(78).SelectionHandler;
+  var util = __webpack_require__(1);
+
+  var TouchEventHandler = (function () {
+    function TouchEventHandler(body) {
+      var _this = this;
+      _classCallCheck(this, TouchEventHandler);
 
       this.body = body;
-      this.physicsBody = physicsBody;
-      this.barnesHutTree;
-      this.setOptions(options);
+
+      this.body.eventListeners.onTap = this.onTap.bind(this);
+      this.body.eventListeners.onTouch = this.onTouch.bind(this);
+      this.body.eventListeners.onDoubleTap = this.onDoubleTap.bind(this);
+      this.body.eventListeners.onHold = this.onHold.bind(this);
+      this.body.eventListeners.onDragStart = this.onDragStart.bind(this);
+      this.body.eventListeners.onDrag = this.onDrag.bind(this);
+      this.body.eventListeners.onDragEnd = this.onDragEnd.bind(this);
+      this.body.eventListeners.onMouseWheel = this.onMouseWheel.bind(this);
+      this.body.eventListeners.onPinch = this.onPinch.bind(this);
+      this.body.eventListeners.onMouseMove = this.onMouseMove.bind(this);
+      this.body.eventListeners.onRelease = this.onRelease.bind(this);
+
+      this.touchTime = 0;
+      this.drag = {};
+      this.pinch = {};
+      this.pointerPosition = { x: 0, y: 0 };
+
+      this.scale = 1;
+      this.body.emitter.on("_setScale", function (scale) {
+        return _this.scale = scale;
+      });
+
+      this.selectionHandler = new SelectionHandler(body);
     }
 
-    _prototypeProperties(BarnesHutSolver, null, {
-      setOptions: {
-        value: function setOptions(options) {
-          this.options = options;
+    _prototypeProperties(TouchEventHandler, null, {
+      setCanvas: {
+        value: function setCanvas(canvas) {
+          this.canvas = canvas;
+          this.selectionHandler.setCanvas(canvas);
         },
         writable: true,
         configurable: true
       },
-      solve: {
-
-
-        /**
-         * This function calculates the forces the nodes apply on eachother based on a gravitational model.
-         * The Barnes Hut method is used to speed up this N-body simulation.
-         *
-         * @private
-         */
-        value: function solve() {
-          if (this.options.gravitationalConstant != 0) {
-            var node;
-            var nodes = this.physicsBody.calculationNodes;
-            var nodeIndices = this.physicsBody.calculationNodeIndices;
-            var nodeCount = nodeIndices.length;
-
-            // create the tree
-            var barnesHutTree = this._formBarnesHutTree(nodes, nodeIndices);
-
-            // for debugging
-            this.barnesHutTree = barnesHutTree;
-
-            // place the nodes one by one recursively
-            for (var i = 0; i < nodeCount; i++) {
-              node = nodes[nodeIndices[i]];
-              if (node.options.mass > 0) {
-                // starting with root is irrelevant, it never passes the BarnesHutSolver condition
-                this._getForceContribution(barnesHutTree.root.children.NW, node);
-                this._getForceContribution(barnesHutTree.root.children.NE, node);
-                this._getForceContribution(barnesHutTree.root.children.SW, node);
-                this._getForceContribution(barnesHutTree.root.children.SE, node);
-              }
-            }
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _getForceContribution: {
-
+      getPointer: {
 
         /**
-         * This function traverses the barnesHutTree. It checks when it can approximate distant nodes with their center of mass.
-         * If a region contains a single node, we check if it is not itself, then we apply the force.
-         *
-         * @param parentBranch
-         * @param node
+         * Get the pointer location from a touch location
+         * @param {{pageX: Number, pageY: Number}} touch
+         * @return {{x: Number, y: Number}} pointer
          * @private
          */
-        value: function _getForceContribution(parentBranch, node) {
-          // we get no force contribution from an empty region
-          if (parentBranch.childrenCount > 0) {
-            var dx, dy, distance;
-
-            // get the distance from the center of mass to the node.
-            dx = parentBranch.centerOfMass.x - node.x;
-            dy = parentBranch.centerOfMass.y - node.y;
-            distance = Math.sqrt(dx * dx + dy * dy);
-
-            // BarnesHutSolver condition
-            // original condition : s/d < thetaInverted = passed  ===  d/s > 1/theta = passed
-            // calcSize = 1/s --> d * 1/s > 1/theta = passed
-            if (distance * parentBranch.calcSize > this.options.thetaInverted) {
-              // duplicate code to reduce function calls to speed up program
-              if (distance == 0) {
-                distance = 0.1 * Math.random();
-                dx = distance;
-              }
-              var gravityForce = this.options.gravitationalConstant * parentBranch.mass * node.options.mass / (distance * distance * distance);
-              var fx = dx * gravityForce;
-              var fy = dy * gravityForce;
-
-              this.physicsBody.forces[node.id].x += fx;
-              this.physicsBody.forces[node.id].y += fy;
-            } else {
-              // Did not pass the condition, go into children if available
-              if (parentBranch.childrenCount == 4) {
-                this._getForceContribution(parentBranch.children.NW, node);
-                this._getForceContribution(parentBranch.children.NE, node);
-                this._getForceContribution(parentBranch.children.SW, node);
-                this._getForceContribution(parentBranch.children.SE, node);
-              } else {
-                // parentBranch must have only one node, if it was empty we wouldnt be here
-                if (parentBranch.children.data.id != node.id) {
-                  // if it is not self
-                  // duplicate code to reduce function calls to speed up program
-                  if (distance == 0) {
-                    distance = 0.5 * Math.random();
-                    dx = distance;
-                  }
-                  var gravityForce = this.options.gravitationalConstant * parentBranch.mass * node.options.mass / (distance * distance * distance);
-                  var fx = dx * gravityForce;
-                  var fy = dy * gravityForce;
-
-                  this.physicsBody.forces[node.id].x += fx;
-                  this.physicsBody.forces[node.id].y += fy;
-                }
-              }
-            }
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _formBarnesHutTree: {
-
-
-        /**
-         * This function constructs the barnesHut tree recursively. It creates the root, splits it and starts placing the nodes.
-         *
-         * @param nodes
-         * @param nodeIndices
-         * @private
-         */
-        value: function _formBarnesHutTree(nodes, nodeIndices) {
-          var node;
-          var nodeCount = nodeIndices.length;
-
-          var minX = Number.MAX_VALUE,
-              minY = Number.MAX_VALUE,
-              maxX = -Number.MAX_VALUE,
-              maxY = -Number.MAX_VALUE;
-
-          // get the range of the nodes
-          for (var i = 0; i < nodeCount; i++) {
-            var x = nodes[nodeIndices[i]].x;
-            var y = nodes[nodeIndices[i]].y;
-            if (nodes[nodeIndices[i]].options.mass > 0) {
-              if (x < minX) {
-                minX = x;
-              }
-              if (x > maxX) {
-                maxX = x;
-              }
-              if (y < minY) {
-                minY = y;
-              }
-              if (y > maxY) {
-                maxY = y;
-              }
-            }
-          }
-          // make the range a square
-          var sizeDiff = Math.abs(maxX - minX) - Math.abs(maxY - minY); // difference between X and Y
-          if (sizeDiff > 0) {
-            minY -= 0.5 * sizeDiff;
-            maxY += 0.5 * sizeDiff;
-          } // xSize > ySize
-          else {
-            minX += 0.5 * sizeDiff;
-            maxX -= 0.5 * sizeDiff;
-          } // xSize < ySize
-
-
-          var minimumTreeSize = 0.00001;
-          var rootSize = Math.max(minimumTreeSize, Math.abs(maxX - minX));
-          var halfRootSize = 0.5 * rootSize;
-          var centerX = 0.5 * (minX + maxX),
-              centerY = 0.5 * (minY + maxY);
-
-          // construct the barnesHutTree
-          var barnesHutTree = {
-            root: {
-              centerOfMass: { x: 0, y: 0 },
-              mass: 0,
-              range: {
-                minX: centerX - halfRootSize, maxX: centerX + halfRootSize,
-                minY: centerY - halfRootSize, maxY: centerY + halfRootSize
-              },
-              size: rootSize,
-              calcSize: 1 / rootSize,
-              children: { data: null },
-              maxWidth: 0,
-              level: 0,
-              childrenCount: 4
-            }
+        value: function getPointer(touch) {
+          return {
+            x: touch.pageX - util.getAbsoluteLeft(this.canvas.frame.canvas),
+            y: touch.pageY - util.getAbsoluteTop(this.canvas.frame.canvas)
           };
-          this._splitBranch(barnesHutTree.root);
+        },
+        writable: true,
+        configurable: true
+      },
+      onTouch: {
 
-          // place the nodes one by one recursively
-          for (i = 0; i < nodeCount; i++) {
-            node = nodes[nodeIndices[i]];
-            if (node.options.mass > 0) {
-              this._placeInTree(barnesHutTree.root, node);
+
+        /**
+         * On start of a touch gesture, store the pointer
+         * @param event
+         * @private
+         */
+        value: function onTouch(event) {
+          if (new Date().valueOf() - this.touchTime > 100) {
+            this.drag.pointer = this.getPointer(event.gesture.center);
+            this.drag.pinched = false;
+            this.pinch.scale = this.scale;
+
+            // to avoid double fireing of this event because we have two hammer instances. (on canvas and on frame)
+            this.touchTime = new Date().valueOf();
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      onTap: {
+
+        /**
+         * handle tap/click event: select/unselect a node
+         * @private
+         */
+        value: function onTap(event) {
+          console.log("tap", event);
+          var pointer = this.getPointer(event.gesture.center);
+          this.pointerPosition = pointer;
+          this.selectionHandler.selectOnPoint(pointer);
+        },
+        writable: true,
+        configurable: true
+      },
+      onDragStart: {
+
+        /**
+         * handle drag start event
+         * @private
+         */
+
+        /**
+         * This function is called by onDragStart.
+         * It is separated out because we can then overload it for the datamanipulation system.
+         *
+         * @private
+         */
+        value: function onDragStart(event) {},
+        writable: true,
+        configurable: true
+      },
+      onDrag: {
+
+
+        /**
+         * handle drag event
+         * @private
+         */
+        value: function onDrag(event) {},
+        writable: true,
+        configurable: true
+      },
+      onDragEnd: {
+
+
+        /**
+         * handle drag start event
+         * @private
+         */
+        value: function onDragEnd(event) {},
+        writable: true,
+        configurable: true
+      },
+      onDoubleTap: {
+
+        /**
+         * handle doubletap event
+         * @private
+         */
+        value: function onDoubleTap(event) {},
+        writable: true,
+        configurable: true
+      },
+      onHold: {
+
+
+
+        /**
+         * handle long tap event: multi select nodes
+         * @private
+         */
+        value: function onHold(event) {},
+        writable: true,
+        configurable: true
+      },
+      onRelease: {
+
+
+        /**
+         * handle the release of the screen
+         *
+         * @private
+         */
+        value: function onRelease(event) {},
+        writable: true,
+        configurable: true
+      },
+      onPinch: {
+
+
+        /**
+         * Handle pinch event
+         * @param event
+         * @private
+         */
+        value: function onPinch(event) {},
+        writable: true,
+        configurable: true
+      },
+      _zoom: {
+
+
+        /**
+         * Zoom the network in or out
+         * @param {Number} scale a number around 1, and between 0.01 and 10
+         * @param {{x: Number, y: Number}} pointer    Position on screen
+         * @return {Number} appliedScale    scale is limited within the boundaries
+         * @private
+         */
+        value: function _zoom(scale, pointer) {},
+        writable: true,
+        configurable: true
+      },
+      onMouseWheel: {
+
+
+        /**
+         * Event handler for mouse wheel event, used to zoom the timeline
+         * See http://adomas.org/javascript-mouse-wheel/
+         *     https://github.com/EightMedia/hammer.js/issues/256
+         * @param {MouseEvent}  event
+         * @private
+         */
+        value: function onMouseWheel(event) {},
+        writable: true,
+        configurable: true
+      },
+      onMouseMove: {
+
+
+        /**
+         * Mouse move handler for checking whether the title moves over a node with a title.
+         * @param  {Event} event
+         * @private
+         */
+        value: function onMouseMove(event) {},
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return TouchEventHandler;
+  })();
+
+  exports.TouchEventHandler = TouchEventHandler;
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  // in case the touch event was triggered on an external div, do the initial touch now.
+  //if (this.drag.pointer === undefined) {
+  //  this.onTouch(event);
+  //}
+  //
+  //var node = this._getNodeAt(this.drag.pointer);
+  //// note: drag.pointer is set in onTouch to get the initial touch location
+  //
+  //this.drag.dragging = true;
+  //this.drag.selection = [];
+  //this.drag.translation = this._getTranslation();
+  //this.drag.nodeId = null;
+  //this.draggingNodes = false;
+  //
+  //if (node != null && this.constants.dragNodes == true) {
+  //  this.draggingNodes = true;
+  //  this.drag.nodeId = node.id;
+  //  // select the clicked node if not yet selected
+  //  if (!node.isSelected()) {
+  //    this._selectObject(node, false);
+  //  }
+  //
+  //  this.emit("dragStart", {nodeIds: this.getSelection().nodes});
+  //
+  //  // create an array with the selected nodes and their original location and status
+  //  for (var objectId in this.selectionObj.nodes) {
+  //    if (this.selectionObj.nodes.hasOwnProperty(objectId)) {
+  //      var object = this.selectionObj.nodes[objectId];
+  //      var s = {
+  //        id: object.id,
+  //        node: object,
+  //
+  //        // store original x, y, xFixed and yFixed, make the node temporarily Fixed
+  //        x: object.x,
+  //        y: object.y,
+  //        xFixed: object.xFixed,
+  //        yFixed: object.yFixed
+  //      };
+  //
+  //      object.xFixed = true;
+  //      object.yFixed = true;
+  //
+  //      this.drag.selection.push(s);
+  //    }
+  //  }
+  //}
+  //if (this.drag.pinched) {
+  //  return;
+  //}
+  //
+  //// remove the focus on node if it is focussed on by the focusOnNode
+  //this.releaseNode();
+  //
+  //var pointer = this.getPointer(event.gesture.center);
+  //var me = this;
+  //var drag = this.drag;
+  //var selection = drag.selection;
+  //if (selection && selection.length && this.constants.dragNodes == true) {
+  //  // calculate delta's and new location
+  //  var deltaX = pointer.x - drag.pointer.x;
+  //  var deltaY = pointer.y - drag.pointer.y;
+  //
+  //  // update position of all selected nodes
+  //  selection.forEach(function (s) {
+  //    var node = s.node;
+  //
+  //    if (!s.xFixed) {
+  //      node.x = me._XconvertDOMtoCanvas(me._XconvertCanvasToDOM(s.x) + deltaX);
+  //    }
+  //
+  //    if (!s.yFixed) {
+  //      node.y = me._YconvertDOMtoCanvas(me._YconvertCanvasToDOM(s.y) + deltaY);
+  //    }
+  //  });
+  //
+  //
+  //  // start _animationStep if not yet running
+  //  if (!this.moving) {
+  //    this.moving = true;
+  //    this.start();
+  //  }
+  //}
+  //else {
+  //  // move the network
+  //  if (this.constants.dragNetwork == true) {
+  //    // if the drag was not started properly because the click started outside the network div, start it now.
+  //    if (this.drag.pointer === undefined) {
+  //      this._handleDragStart(event);
+  //      return;
+  //    }
+  //    var diffX = pointer.x - this.drag.pointer.x;
+  //    var diffY = pointer.y - this.drag.pointer.y;
+  //
+  //    this._setTranslation(
+  //      this.drag.translation.x + diffX,
+  //      this.drag.translation.y + diffY
+  //    );
+  //    this._redraw();
+  //  }
+  //}
+  //this.drag.dragging = false;
+  //var selection = this.drag.selection;
+  //if (selection && selection.length) {
+  //  selection.forEach(function (s) {
+  //    // restore original xFixed and yFixed
+  //    s.node.xFixed = s.xFixed;
+  //    s.node.yFixed = s.yFixed;
+  //  });
+  //  this.moving = true;
+  //  this.start();
+  //}
+  //else {
+  //  this._redraw();
+  //}
+  //if (this.draggingNodes == false) {
+  //  this.emit("dragEnd", {nodeIds: []});
+  //}
+  //else {
+  //  this.emit("dragEnd", {nodeIds: this.getSelection().nodes});
+  //}
+  //var pointer = this.getPointer(event.gesture.center);
+  //this._handleDoubleTap(pointer);
+  //var pointer = this.getPointer(event.gesture.center);
+  //this.pointerPosition = pointer;
+  //this._handleOnHold(pointer);
+  //var pointer = this.getPointer(event.gesture.center);
+  //this._handleOnRelease(pointer);
+  //var pointer = this.getPointer(event.gesture.center);
+  //
+  //this.drag.pinched = true;
+  //if (!('scale' in this.pinch)) {
+  //  this.pinch.scale = 1;
+  //}
+  //
+  //// TODO: enabled moving while pinching?
+  //var scale = this.pinch.scale * event.gesture.scale;
+  //this._zoom(scale, pointer)
+  //if (this.constants.zoomable == true) {
+  //  var scaleOld = this._getScale();
+  //  if (scale < 0.00001) {
+  //    scale = 0.00001;
+  //  }
+  //  if (scale > 10) {
+  //    scale = 10;
+  //  }
+  //
+  //  var preScaleDragPointer = null;
+  //  if (this.drag !== undefined) {
+  //    if (this.drag.dragging == true) {
+  //      preScaleDragPointer = this.canvas.DOMtoCanvas(this.drag.pointer);
+  //    }
+  //  }
+  //  // + this.canvas.frame.canvas.clientHeight / 2
+  //  var translation = this._getTranslation();
+  //
+  //  var scaleFrac = scale / scaleOld;
+  //  var tx = (1 - scaleFrac) * pointer.x + translation.x * scaleFrac;
+  //  var ty = (1 - scaleFrac) * pointer.y + translation.y * scaleFrac;
+  //
+  //    this._setScale(scale);
+  //  this._setTranslation(tx, ty);
+  //
+  //  if (preScaleDragPointer != null) {
+  //    var postScaleDragPointer = this.canvas.canvasToDOM(preScaleDragPointer);
+  //    this.drag.pointer.x = postScaleDragPointer.x;
+  //    this.drag.pointer.y = postScaleDragPointer.y;
+  //  }
+  //
+  //  this._redraw();
+  //
+  //  if (scaleOld < scale) {
+  //    this.emit("zoom", {direction: "+"});
+  //  }
+  //  else {
+  //    this.emit("zoom", {direction: "-"});
+  //  }
+  //
+  //  return scale;
+  //}
+  //// retrieve delta
+  //var delta = 0;
+  //if (event.wheelDelta) { /* IE/Opera. */
+  //  delta = event.wheelDelta / 120;
+  //} else if (event.detail) { /* Mozilla case. */
+  //  // In Mozilla, sign of delta is different than in IE.
+  //  // Also, delta is multiple of 3.
+  //  delta = -event.detail / 3;
+  //}
+  //
+  //// If delta is nonzero, handle it.
+  //// Basically, delta is now positive if wheel was scrolled up,
+  //// and negative, if wheel was scrolled down.
+  //if (delta) {
+  //
+  //  // calculate the new scale
+  //  var scale = this._getScale();
+  //  var zoom = delta / 10;
+  //  if (delta < 0) {
+  //    zoom = zoom / (1 - zoom);
+  //  }
+  //  scale *= (1 + zoom);
+  //
+  //  // calculate the pointer location
+  //  var gesture = hammerUtil.fakeGesture(this, event);
+  //  var pointer = this.getPointer(gesture.center);
+  //
+  //  // apply the new scale
+  //  this._zoom(scale, pointer);
+  //}
+  //
+  //// Prevent default actions caused by mouse wheel.
+  //event.preventDefault();
+  //var gesture = hammerUtil.fakeGesture(this, event);
+  //var pointer = this.getPointer(gesture.center);
+  //var popupVisible = false;
+  //
+  //// check if the previously selected node is still selected
+  //if (this.popup !== undefined) {
+  //  if (this.popup.hidden === false) {
+  //    this._checkHidePopup(pointer);
+  //  }
+  //
+  //  // if the popup was not hidden above
+  //  if (this.popup.hidden === false) {
+  //    popupVisible = true;
+  //    this.popup.setPosition(pointer.x + 3, pointer.y - 5)
+  //    this.popup.show();
+  //  }
+  //}
+  //
+  //// if we bind the keyboard to the div, we have to highlight it to use it. This highlights it on mouse over
+  //if (this.constants.keyboard.bindToWindow == false && this.constants.keyboard.enabled == true) {
+  //  this.canvas.frame.focus();
+  //}
+  //
+  //// start a timeout that will check if the mouse is positioned above an element
+  //if (popupVisible === false) {
+  //  var me = this;
+  //  var checkShow = function() {
+  //    me._checkShowPopup(pointer);
+  //  };
+  //
+  //  if (this.popupTimer) {
+  //    clearInterval(this.popupTimer); // stop any running calculationTimer
+  //  }
+  //  if (!this.drag.dragging) {
+  //    this.popupTimer = setTimeout(checkShow, this.constants.tooltip.delay);
+  //  }
+  //}
+  //
+  ///**
+  // * Adding hover highlights
+  // */
+  //if (this.constants.hover == true) {
+  //  // removing all hover highlights
+  //  for (var edgeId in this.hoverObj.edges) {
+  //    if (this.hoverObj.edges.hasOwnProperty(edgeId)) {
+  //      this.hoverObj.edges[edgeId].hover = false;
+  //      delete this.hoverObj.edges[edgeId];
+  //    }
+  //  }
+  //
+  //  // adding hover highlights
+  //  var obj = this._getNodeAt(pointer);
+  //  if (obj == null) {
+  //    obj = this._getEdgeAt(pointer);
+  //  }
+  //  if (obj != null) {
+  //    this._hoverObject(obj);
+  //  }
+  //
+  //  // removing all node hover highlights except for the selected one.
+  //  for (var nodeId in this.hoverObj.nodes) {
+  //    if (this.hoverObj.nodes.hasOwnProperty(nodeId)) {
+  //      if (obj instanceof Node && obj.id != nodeId || obj instanceof Edge || obj == null) {
+  //        this._blurObject(this.hoverObj.nodes[nodeId]);
+  //        delete this.hoverObj.nodes[nodeId];
+  //      }
+  //    }
+  //  }
+  //  this.redraw();
+  //}
+
+/***/ },
+/* 78 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  /**
+   * Created by Alex on 2/27/2015.
+   */
+
+  var Node = __webpack_require__(56);
+
+  var SelectionHandler = (function () {
+    function SelectionHandler(body) {
+      _classCallCheck(this, SelectionHandler);
+
+      this.body = body;
+      this.selectionObj = { nodes: [], edges: [] };
+
+      this.options = {
+        select: true,
+        selectConnectedEdges: true
+      };
+    }
+
+    _prototypeProperties(SelectionHandler, null, {
+      setCanvas: {
+        value: function setCanvas(canvas) {
+          this.canvas = canvas;
+        },
+        writable: true,
+        configurable: true
+      },
+      selectOnPoint: {
+
+
+        /**
+         * handles the selection part of the tap;
+         *
+         * @param {Object} pointer
+         * @private
+         */
+        value: function selectOnPoint(pointer) {
+          if (this.options.select === true) {
+            if (this._getSelectedObjectCount() > 0) {
+              this._unselectAll();
             }
-          }
 
-          // make global
-          return barnesHutTree;
+            this.selectObject(pointer);
+            this._generateClickEvent(pointer);
+
+            this.body.emitter.emit("_requestRedraw");
+          }
         },
         writable: true,
         configurable: true
       },
-      _updateBranchMass: {
-
-
-        /**
-         * this updates the mass of a branch. this is increased by adding a node.
-         *
-         * @param parentBranch
-         * @param node
-         * @private
-         */
-        value: function _updateBranchMass(parentBranch, node) {
-          var totalMass = parentBranch.mass + node.options.mass;
-          var totalMassInv = 1 / totalMass;
-
-          parentBranch.centerOfMass.x = parentBranch.centerOfMass.x * parentBranch.mass + node.x * node.options.mass;
-          parentBranch.centerOfMass.x *= totalMassInv;
-
-          parentBranch.centerOfMass.y = parentBranch.centerOfMass.y * parentBranch.mass + node.y * node.options.mass;
-          parentBranch.centerOfMass.y *= totalMassInv;
-
-          parentBranch.mass = totalMass;
-          var biggestSize = Math.max(Math.max(node.height, node.radius), node.width);
-          parentBranch.maxWidth = parentBranch.maxWidth < biggestSize ? biggestSize : parentBranch.maxWidth;
+      _generateClickEvent: {
+        value: function _generateClickEvent(pointer) {
+          var properties = this.getSelection();
+          properties.pointer = {
+            DOM: { x: pointer.x, y: pointer.y },
+            canvas: this.canvas.DOMtoCanvas(pointer)
+          };
+          this.body.emitter.emit("click", properties);
         },
         writable: true,
         configurable: true
       },
-      _placeInTree: {
-
-
-        /**
-         * determine in which branch the node will be placed.
-         *
-         * @param parentBranch
-         * @param node
-         * @param skipMassUpdate
-         * @private
-         */
-        value: function _placeInTree(parentBranch, node, skipMassUpdate) {
-          if (skipMassUpdate != true || skipMassUpdate === undefined) {
-            // update the mass of the branch.
-            this._updateBranchMass(parentBranch, node);
-          }
-
-          if (parentBranch.children.NW.range.maxX > node.x) {
-            // in NW or SW
-            if (parentBranch.children.NW.range.maxY > node.y) {
-              // in NW
-              this._placeInRegion(parentBranch, node, "NW");
-            } else {
-              // in SW
-              this._placeInRegion(parentBranch, node, "SW");
+      selectObject: {
+        value: function selectObject(pointer) {
+          var obj = this._getNodeAt(pointer);
+          if (obj != null) {
+            if (this.options.selectConnectedEdges === true) {
+              this._selectConnectedEdges(obj);
             }
           } else {
-            // in NE or SE
-            if (parentBranch.children.NW.range.maxY > node.y) {
-              // in NE
-              this._placeInRegion(parentBranch, node, "NE");
-            } else {
-              // in SE
-              this._placeInRegion(parentBranch, node, "SE");
+            obj = this._getEdgeAt(pointer);
+          }
+
+          if (obj !== null) {
+            obj.select();
+            this._addToSelection(obj);
+            this.body.emitter.emit("selected", this.getSelection());
+          }
+          return obj;
+        },
+        writable: true,
+        configurable: true
+      },
+      _getNodesOverlappingWith: {
+
+
+        /**
+         *
+         * @param object
+         * @param overlappingNodes
+         * @private
+         */
+        value: function _getNodesOverlappingWith(object, overlappingNodes) {
+          var nodes = this.body.nodes;
+          for (var nodeId in nodes) {
+            if (nodes.hasOwnProperty(nodeId)) {
+              if (nodes[nodeId].isOverlappingWith(object)) {
+                overlappingNodes.push(nodeId);
+              }
             }
           }
         },
         writable: true,
         configurable: true
       },
-      _placeInRegion: {
-
+      _getAllNodesOverlappingWith: {
 
         /**
-         * actually place the node in a region (or branch)
-         *
-         * @param parentBranch
-         * @param node
-         * @param region
+         * retrieve all nodes overlapping with given object
+         * @param {Object} object  An object with parameters left, top, right, bottom
+         * @return {Number[]}   An array with id's of the overlapping nodes
          * @private
          */
-        value: function _placeInRegion(parentBranch, node, region) {
-          switch (parentBranch.children[region].childrenCount) {
-            case 0:
-              // place node here
-              parentBranch.children[region].children.data = node;
-              parentBranch.children[region].childrenCount = 1;
-              this._updateBranchMass(parentBranch.children[region], node);
-              break;
-            case 1:
-              // convert into children
-              // if there are two nodes exactly overlapping (on init, on opening of cluster etc.)
-              // we move one node a pixel and we do not put it in the tree.
-              if (parentBranch.children[region].children.data.x == node.x && parentBranch.children[region].children.data.y == node.y) {
-                node.x += Math.random();
-                node.y += Math.random();
-              } else {
-                this._splitBranch(parentBranch.children[region]);
-                this._placeInTree(parentBranch.children[region], node);
-              }
-              break;
-            case 4:
-              // place in branch
-              this._placeInTree(parentBranch.children[region], node);
-              break;
-          }
+        value: function _getAllNodesOverlappingWith(object) {
+          var overlappingNodes = [];
+          this._getNodesOverlappingWith(object, overlappingNodes);
+          return overlappingNodes;
         },
         writable: true,
         configurable: true
       },
-      _splitBranch: {
+      _pointerToPositionObject: {
 
 
         /**
-         * this function splits a branch into 4 sub branches. If the branch contained a node, we place it in the subbranch
-         * after the split is complete.
+         * Return a position object in canvasspace from a single point in screenspace
          *
-         * @param parentBranch
+         * @param pointer
+         * @returns {{left: number, top: number, right: number, bottom: number}}
          * @private
          */
-        value: function _splitBranch(parentBranch) {
-          // if the branch is shaded with a node, replace the node in the new subset.
-          var containedNode = null;
-          if (parentBranch.childrenCount == 1) {
-            containedNode = parentBranch.children.data;
-            parentBranch.mass = 0;
-            parentBranch.centerOfMass.x = 0;
-            parentBranch.centerOfMass.y = 0;
-          }
-          parentBranch.childrenCount = 4;
-          parentBranch.children.data = null;
-          this._insertRegion(parentBranch, "NW");
-          this._insertRegion(parentBranch, "NE");
-          this._insertRegion(parentBranch, "SW");
-          this._insertRegion(parentBranch, "SE");
-
-          if (containedNode != null) {
-            this._placeInTree(parentBranch, containedNode);
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _insertRegion: {
-
-
-        /**
-         * This function subdivides the region into four new segments.
-         * Specifically, this inserts a single new segment.
-         * It fills the children section of the parentBranch
-         *
-         * @param parentBranch
-         * @param region
-         * @param parentRange
-         * @private
-         */
-        value: function _insertRegion(parentBranch, region) {
-          var minX, maxX, minY, maxY;
-          var childSize = 0.5 * parentBranch.size;
-          switch (region) {
-            case "NW":
-              minX = parentBranch.range.minX;
-              maxX = parentBranch.range.minX + childSize;
-              minY = parentBranch.range.minY;
-              maxY = parentBranch.range.minY + childSize;
-              break;
-            case "NE":
-              minX = parentBranch.range.minX + childSize;
-              maxX = parentBranch.range.maxX;
-              minY = parentBranch.range.minY;
-              maxY = parentBranch.range.minY + childSize;
-              break;
-            case "SW":
-              minX = parentBranch.range.minX;
-              maxX = parentBranch.range.minX + childSize;
-              minY = parentBranch.range.minY + childSize;
-              maxY = parentBranch.range.maxY;
-              break;
-            case "SE":
-              minX = parentBranch.range.minX + childSize;
-              maxX = parentBranch.range.maxX;
-              minY = parentBranch.range.minY + childSize;
-              maxY = parentBranch.range.maxY;
-              break;
-          }
-
-
-          parentBranch.children[region] = {
-            centerOfMass: { x: 0, y: 0 },
-            mass: 0,
-            range: { minX: minX, maxX: maxX, minY: minY, maxY: maxY },
-            size: 0.5 * parentBranch.size,
-            calcSize: 2 * parentBranch.calcSize,
-            children: { data: null },
-            maxWidth: 0,
-            level: parentBranch.level + 1,
-            childrenCount: 0
+        value: function _pointerToPositionObject(pointer) {
+          var canvasPos = this.canvas.DOMtoCanvas(pointer);
+          return {
+            left: canvasPos.x,
+            top: canvasPos.y,
+            right: canvasPos.x,
+            bottom: canvasPos.y
           };
         },
         writable: true,
         configurable: true
       },
-      _debug: {
-
-
-
-
-        //---------------------------  DEBUGGING BELOW  ---------------------------//
+      _getNodeAt: {
 
 
         /**
-         * This function is for debugging purposed, it draws the tree.
+         * Get the top node at the a specific point (like a click)
          *
-         * @param ctx
-         * @param color
+         * @param {{x: Number, y: Number}} pointer
+         * @return {Node | null} node
          * @private
          */
-        value: function _debug(ctx, color) {
-          if (this.barnesHutTree !== undefined) {
-            ctx.lineWidth = 1;
+        value: function _getNodeAt(pointer) {
+          // we first check if this is an navigation controls element
+          var positionObject = this._pointerToPositionObject(pointer);
+          var overlappingNodes = this._getAllNodesOverlappingWith(positionObject);
 
-            this._drawBranch(this.barnesHutTree.root, ctx, color);
+          // if there are overlapping nodes, select the last one, this is the
+          // one which is drawn on top of the others
+          if (overlappingNodes.length > 0) {
+            return this.body.nodes[overlappingNodes[overlappingNodes.length - 1]];
+          } else {
+            return null;
           }
         },
         writable: true,
         configurable: true
       },
-      _drawBranch: {
+      _getEdgesOverlappingWith: {
 
 
         /**
-         * This function is for debugging purposes. It draws the branches recursively.
-         *
-         * @param branch
-         * @param ctx
-         * @param color
+         * retrieve all edges overlapping with given object, selector is around center
+         * @param {Object} object  An object with parameters left, top, right, bottom
+         * @return {Number[]}   An array with id's of the overlapping nodes
          * @private
          */
-        value: function _drawBranch(branch, ctx, color) {
-          if (color === undefined) {
-            color = "#FF0000";
-          }
-
-          if (branch.childrenCount == 4) {
-            this._drawBranch(branch.children.NW, ctx);
-            this._drawBranch(branch.children.NE, ctx);
-            this._drawBranch(branch.children.SE, ctx);
-            this._drawBranch(branch.children.SW, ctx);
-          }
-          ctx.strokeStyle = color;
-          ctx.beginPath();
-          ctx.moveTo(branch.range.minX, branch.range.minY);
-          ctx.lineTo(branch.range.maxX, branch.range.minY);
-          ctx.stroke();
-
-          ctx.beginPath();
-          ctx.moveTo(branch.range.maxX, branch.range.minY);
-          ctx.lineTo(branch.range.maxX, branch.range.maxY);
-          ctx.stroke();
-
-          ctx.beginPath();
-          ctx.moveTo(branch.range.maxX, branch.range.maxY);
-          ctx.lineTo(branch.range.minX, branch.range.maxY);
-          ctx.stroke();
-
-          ctx.beginPath();
-          ctx.moveTo(branch.range.minX, branch.range.maxY);
-          ctx.lineTo(branch.range.minX, branch.range.minY);
-          ctx.stroke();
-
-          /*
-           if (branch.mass > 0) {
-           ctx.circle(branch.centerOfMass.x, branch.centerOfMass.y, 3*branch.mass);
-           ctx.stroke();
-           }
-           */
-        },
-        writable: true,
-        configurable: true
-      }
-    });
-
-    return BarnesHutSolver;
-  })();
-
-  exports.BarnesHutSolver = BarnesHutSolver;
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-/***/ },
-/* 72 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-  /**
-   * Created by Alex on 2/23/2015.
-   */
-
-  var RepulsionSolver = (function () {
-    function RepulsionSolver(body, physicsBody, options) {
-      _classCallCheck(this, RepulsionSolver);
-
-      this.body = body;
-      this.physicsBody = physicsBody;
-      this.setOptions(options);
-    }
-
-    _prototypeProperties(RepulsionSolver, null, {
-      setOptions: {
-        value: function setOptions(options) {
-          this.options = options;
-        },
-        writable: true,
-        configurable: true
-      },
-      solve: {
-        /**
-         * Calculate the forces the nodes apply on each other based on a repulsion field.
-         * This field is linearly approximated.
-         *
-         * @private
-         */
-        value: function solve() {
-          var dx, dy, distance, fx, fy, repulsingForce, node1, node2;
-
-          var nodes = this.physicsBody.calculationNodes;
-          var nodeIndices = this.physicsBody.calculationNodeIndices;
-          var forces = this.physicsBody.forces;
-
-          // repulsing forces between nodes
-          var nodeDistance = this.options.nodeDistance;
-
-          // approximation constants
-          var a = -2 / 3 / nodeDistance;
-          var b = 4 / 3;
-
-          // we loop from i over all but the last entree in the array
-          // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
-          for (var i = 0; i < nodeIndices.length - 1; i++) {
-            node1 = nodes[nodeIndices[i]];
-            for (var j = i + 1; j < nodeIndices.length; j++) {
-              node2 = nodes[nodeIndices[j]];
-
-              dx = node2.x - node1.x;
-              dy = node2.y - node1.y;
-              distance = Math.sqrt(dx * dx + dy * dy);
-
-              // same condition as BarnesHutSolver, making sure nodes are never 100% overlapping.
-              if (distance == 0) {
-                distance = 0.1 * Math.random();
-                dx = distance;
-              }
-
-              if (distance < 2 * nodeDistance) {
-                if (distance < 0.5 * nodeDistance) {
-                  repulsingForce = 1;
-                } else {
-                  repulsingForce = a * distance + b; // linear approx of  1 / (1 + Math.exp((distance / nodeDistance - 1) * steepness))
-                }
-                repulsingForce = repulsingForce / distance;
-
-                fx = dx * repulsingForce;
-                fy = dy * repulsingForce;
-
-                forces[node1.id].x -= fx;
-                forces[node1.id].y -= fy;
-                forces[node2.id].x += fx;
-                forces[node2.id].y += fy;
-              }
-            }
-          }
-        },
-        writable: true,
-        configurable: true
-      }
-    });
-
-    return RepulsionSolver;
-  })();
-
-  exports.RepulsionSolver = RepulsionSolver;
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-/***/ },
-/* 73 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-  /**
-   * Created by Alex on 2/23/2015.
-   */
-
-  var HierarchicalRepulsionSolver = (function () {
-    function HierarchicalRepulsionSolver(body, physicsBody, options) {
-      _classCallCheck(this, HierarchicalRepulsionSolver);
-
-      this.body = body;
-      this.physicsBody = physicsBody;
-      this.setOptions(options);
-    }
-
-    _prototypeProperties(HierarchicalRepulsionSolver, null, {
-      setOptions: {
-        value: function setOptions(options) {
-          this.options = options;
-        },
-        writable: true,
-        configurable: true
-      },
-      solve: {
-
-        /**
-         * Calculate the forces the nodes apply on each other based on a repulsion field.
-         * This field is linearly approximated.
-         *
-         * @private
-         */
-        value: function solve() {
-          var dx, dy, distance, fx, fy, repulsingForce, node1, node2, i, j;
-
-          var nodes = this.physicsBody.calculationNodes;
-          var nodeIndices = this.physicsBody.calculationNodeIndices;
-          var forces = this.physicsBody.forces;
-
-          // repulsing forces between nodes
-          var nodeDistance = this.options.nodeDistance;
-
-          // we loop from i over all but the last entree in the array
-          // j loops from i+1 to the last. This way we do not double count any of the indices, nor i == j
-          for (i = 0; i < nodeIndices.length - 1; i++) {
-            node1 = nodes[nodeIndices[i]];
-            for (j = i + 1; j < nodeIndices.length; j++) {
-              node2 = nodes[nodeIndices[j]];
-
-              // nodes only affect nodes on their level
-              if (node1.level == node2.level) {
-                dx = node2.x - node1.x;
-                dy = node2.y - node1.y;
-                distance = Math.sqrt(dx * dx + dy * dy);
-
-                var steepness = 0.05;
-                if (distance < nodeDistance) {
-                  repulsingForce = -Math.pow(steepness * distance, 2) + Math.pow(steepness * nodeDistance, 2);
-                } else {
-                  repulsingForce = 0;
-                }
-                // normalize force with
-                if (distance == 0) {
-                  distance = 0.01;
-                } else {
-                  repulsingForce = repulsingForce / distance;
-                }
-                fx = dx * repulsingForce;
-                fy = dy * repulsingForce;
-
-                forces[node1.id].x -= fx;
-                forces[node1.id].y -= fy;
-                forces[node2.id].x += fx;
-                forces[node2.id].y += fy;
-              }
-            }
-          }
-        },
-        writable: true,
-        configurable: true
-      }
-    });
-
-    return HierarchicalRepulsionSolver;
-  })();
-
-  exports.HierarchicalRepulsionSolver = HierarchicalRepulsionSolver;
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-/***/ },
-/* 74 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-  /**
-   * Created by Alex on 2/23/2015.
-   */
-
-  var SpringSolver = (function () {
-    function SpringSolver(body, physicsBody, options) {
-      _classCallCheck(this, SpringSolver);
-
-      this.body = body;
-      this.physicsBody = physicsBody;
-      this.setOptions(options);
-    }
-
-    _prototypeProperties(SpringSolver, null, {
-      setOptions: {
-        value: function setOptions(options) {
-          this.options = options;
-        },
-        writable: true,
-        configurable: true
-      },
-      solve: {
-
-        /**
-         * This function calculates the springforces on the nodes, accounting for the support nodes.
-         *
-         * @private
-         */
-        value: function solve() {
-          var edgeLength, edge, edgeId;
+        value: function _getEdgesOverlappingWith(object, overlappingEdges) {
           var edges = this.body.edges;
-
-          // forces caused by the edges, modelled as springs
-          for (edgeId in edges) {
+          for (var edgeId in edges) {
             if (edges.hasOwnProperty(edgeId)) {
-              edge = edges[edgeId];
-              if (edge.connected === true) {
-                // only calculate forces if nodes are in the same sector
-                if (this.body.nodes[edge.toId] !== undefined && this.body.nodes[edge.fromId] !== undefined) {
-                  edgeLength = edge.properties.length === undefined ? this.options.springLength : edge.properties.length;
-                  if (edge.via != null) {
-                    var node1 = edge.to;
-                    var node2 = edge.via;
-                    var node3 = edge.from;
-
-                    this._calculateSpringForce(node1, node2, 0.5 * edgeLength);
-                    this._calculateSpringForce(node2, node3, 0.5 * edgeLength);
-                  } else {
-                    this._calculateSpringForce(edge.from, edge.to, edgeLength);
-                  }
-                }
+              if (edges[edgeId].isOverlappingWith(object)) {
+                overlappingEdges.push(edgeId);
               }
             }
           }
@@ -33665,230 +34209,581 @@ return /******/ (function(modules) { // webpackBootstrap
         writable: true,
         configurable: true
       },
-      _calculateSpringForce: {
+      _getAllEdgesOverlappingWith: {
 
 
         /**
-         * This is the code actually performing the calculation for the function above.
-         *
-         * @param node1
-         * @param node2
-         * @param edgeLength
+         * retrieve all nodes overlapping with given object
+         * @param {Object} object  An object with parameters left, top, right, bottom
+         * @return {Number[]}   An array with id's of the overlapping nodes
          * @private
          */
-        value: function _calculateSpringForce(node1, node2, edgeLength) {
-          var dx, dy, fx, fy, springForce, distance;
-
-          dx = node1.x - node2.x;
-          dy = node1.y - node2.y;
-          distance = Math.sqrt(dx * dx + dy * dy);
-          distance = distance == 0 ? 0.01 : distance;
-
-          // the 1/distance is so the fx and fy can be calculated without sine or cosine.
-          springForce = this.options.springConstant * (edgeLength - distance) / distance;
-
-          fx = dx * springForce;
-          fy = dy * springForce;
-
-          this.physicsBody.forces[node1.id].x += fx;
-          this.physicsBody.forces[node1.id].y += fy;
-          this.physicsBody.forces[node2.id].x -= fx;
-          this.physicsBody.forces[node2.id].y -= fy;
-        },
-        writable: true,
-        configurable: true
-      }
-    });
-
-    return SpringSolver;
-  })();
-
-  exports.SpringSolver = SpringSolver;
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-/***/ },
-/* 75 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-  /**
-   * Created by Alex on 2/25/2015.
-   */
-
-  var HierarchicalSpringSolver = (function () {
-    function HierarchicalSpringSolver(body, physicsBody, options) {
-      _classCallCheck(this, HierarchicalSpringSolver);
-
-      this.body = body;
-      this.physicsBody = physicsBody;
-      this.setOptions(options);
-    }
-
-    _prototypeProperties(HierarchicalSpringSolver, null, {
-      setOptions: {
-        value: function setOptions(options) {
-          this.options = options;
+        value: function _getAllEdgesOverlappingWith(object) {
+          var overlappingEdges = [];
+          this._getEdgesOverlappingWith(object, overlappingEdges);
+          return overlappingEdges;
         },
         writable: true,
         configurable: true
       },
-      solve: {
+      _getEdgeAt: {
+
 
         /**
-         * This function calculates the springforces on the nodes, accounting for the support nodes.
+         * Place holder. To implement change the _getNodeAt to a _getObjectAt. Have the _getObjectAt call
+         * _getNodeAt and _getEdgesAt, then priortize the selection to user preferences.
          *
+         * @param pointer
+         * @returns {null}
          * @private
          */
-        value: function solve() {
-          var edgeLength, edge, edgeId;
-          var dx, dy, fx, fy, springForce, distance;
-          var edges = this.body.edges;
+        value: function _getEdgeAt(pointer) {
+          var positionObject = this._pointerToPositionObject(pointer);
+          var overlappingEdges = this._getAllEdgesOverlappingWith(positionObject);
 
-          var nodeIndices = this.physicsBody.calculationNodeIndices;
-          var forces = this.physicsBody.forces;
-
-          // initialize the spring force counters
-          for (var i = 0; i < nodeIndices.length; i++) {
-            var nodeId = nodeIndices[i];
-            forces[nodeId].springFx = 0;
-            forces[nodeId].springFy = 0;
+          if (overlappingEdges.length > 0) {
+            return this.body.edges[overlappingEdges[overlappingEdges.length - 1]];
+          } else {
+            return null;
           }
+        },
+        writable: true,
+        configurable: true
+      },
+      _addToSelection: {
 
 
-          // forces caused by the edges, modelled as springs
-          for (edgeId in edges) {
-            if (edges.hasOwnProperty(edgeId)) {
-              edge = edges[edgeId];
-              if (edge.connected === true) {
-                edgeLength = edge.properties.length === undefined ? this.options.springLength : edge.properties.length;
+        /**
+         * Add object to the selection array.
+         *
+         * @param obj
+         * @private
+         */
+        value: function _addToSelection(obj) {
+          if (obj instanceof Node) {
+            this.selectionObj.nodes[obj.id] = obj;
+          } else {
+            this.selectionObj.edges[obj.id] = obj;
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _addToHover: {
 
-                dx = edge.from.x - edge.to.x;
-                dy = edge.from.y - edge.to.y;
-                distance = Math.sqrt(dx * dx + dy * dy);
-                distance = distance == 0 ? 0.01 : distance;
+        /**
+         * Add object to the selection array.
+         *
+         * @param obj
+         * @private
+         */
+        value: function _addToHover(obj) {
+          if (obj instanceof Node) {
+            this.hoverObj.nodes[obj.id] = obj;
+          } else {
+            this.hoverObj.edges[obj.id] = obj;
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _removeFromSelection: {
 
-                // the 1/distance is so the fx and fy can be calculated without sine or cosine.
-                springForce = this.options.springConstant * (edgeLength - distance) / distance;
 
-                fx = dx * springForce;
-                fy = dy * springForce;
+        /**
+         * Remove a single option from selection.
+         *
+         * @param {Object} obj
+         * @private
+         */
+        value: function _removeFromSelection(obj) {
+          if (obj instanceof Node) {
+            delete this.selectionObj.nodes[obj.id];
+          } else {
+            delete this.selectionObj.edges[obj.id];
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _unselectAll: {
 
-                if (edge.to.level != edge.from.level) {
-                  forces[edge.toId].springFx -= fx;
-                  forces[edge.toId].springFy -= fy;
-                  forces[edge.fromId].springFx += fx;
-                  forces[edge.fromId].springFy += fy;
-                } else {
-                  var factor = 0.5;
-                  forces[edge.toId].x -= factor * fx;
-                  forces[edge.toId].y -= factor * fy;
-                  forces[edge.fromId].x += factor * fx;
-                  forces[edge.fromId].y += factor * fy;
-                }
-              }
+        /**
+         * Unselect all. The selectionObj is useful for this.
+         *
+         * @param {Boolean} [doNotTrigger] | ignore trigger
+         * @private
+         */
+        value: function _unselectAll() {
+          var doNotTrigger = arguments[0] === undefined ? false : arguments[0];
+          for (var nodeId in this.selectionObj.nodes) {
+            if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+              this.selectionObj.nodes[nodeId].unselect();
+            }
+          }
+          for (var edgeId in this.selectionObj.edges) {
+            if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+              this.selectionObj.edges[edgeId].unselect();
             }
           }
 
-          // normalize spring forces
-          var springForce = 1;
-          var springFx, springFy;
-          for (var i = 0; i < nodeIndices.length; i++) {
-            var nodeId = nodeIndices[i];
-            springFx = Math.min(springForce, Math.max(-springForce, forces[nodeId].springFx));
-            springFy = Math.min(springForce, Math.max(-springForce, forces[nodeId].springFy));
+          this.selectionObj = { nodes: {}, edges: {} };
 
-            forces[nodeId].x += springFx;
-            forces[nodeId].y += springFy;
+          if (doNotTrigger == false) {
+            this.body.emitter.emit("select", this.getSelection());
           }
-
-          // retain energy balance
-          var totalFx = 0;
-          var totalFy = 0;
-          for (var i = 0; i < nodeIndices.length; i++) {
-            var nodeId = nodeIndices[i];
-            totalFx += forces[nodeId].x;
-            totalFy += forces[nodeId].y;
-          }
-          var correctionFx = totalFx / nodeIndices.length;
-          var correctionFy = totalFy / nodeIndices.length;
-
-          for (var i = 0; i < nodeIndices.length; i++) {
-            var nodeId = nodeIndices[i];
-            forces[nodeId].x -= correctionFx;
-            forces[nodeId].y -= correctionFy;
-          }
-        },
-        writable: true,
-        configurable: true
-      }
-    });
-
-    return HierarchicalSpringSolver;
-  })();
-
-  exports.HierarchicalSpringSolver = HierarchicalSpringSolver;
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-/***/ },
-/* 76 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-  /**
-   * Created by Alex on 2/23/2015.
-   */
-
-  var CentralGravitySolver = (function () {
-    function CentralGravitySolver(body, physicsBody, options) {
-      _classCallCheck(this, CentralGravitySolver);
-
-      this.body = body;
-      this.physicsBody = physicsBody;
-      this.setOptions(options);
-    }
-
-    _prototypeProperties(CentralGravitySolver, null, {
-      setOptions: {
-        value: function setOptions(options) {
-          this.options = options;
         },
         writable: true,
         configurable: true
       },
-      solve: {
-        value: function solve() {
-          var dx, dy, distance, node, i;
-          var nodes = this.physicsBody.calculationNodes;
-          var nodeIndices = this.physicsBody.calculationNodeIndices;
-          var forces = this.physicsBody.forces;
+      _getSelectedNodeCount: {
 
-          var gravity = this.options.centralGravity;
-          var gravityForce = 0;
 
-          for (i = 0; i < nodeIndices.length; i++) {
-            var nodeId = nodeIndices[i];
-            node = nodes[nodeId];
-            dx = -node.x;
-            dy = -node.y;
-            distance = Math.sqrt(dx * dx + dy * dy);
+        /**
+         * return the number of selected nodes
+         *
+         * @returns {number}
+         * @private
+         */
+        value: function _getSelectedNodeCount() {
+          var count = 0;
+          for (var nodeId in this.selectionObj.nodes) {
+            if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+              count += 1;
+            }
+          }
+          return count;
+        },
+        writable: true,
+        configurable: true
+      },
+      _getSelectedNode: {
 
-            gravityForce = distance == 0 ? 0 : gravity / distance;
-            forces[nodeId].x = dx * gravityForce;
-            forces[nodeId].y = dy * gravityForce;
+        /**
+         * return the selected node
+         *
+         * @returns {number}
+         * @private
+         */
+        value: function _getSelectedNode() {
+          for (var nodeId in this.selectionObj.nodes) {
+            if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+              return this.selectionObj.nodes[nodeId];
+            }
+          }
+          return null;
+        },
+        writable: true,
+        configurable: true
+      },
+      _getSelectedEdge: {
+
+        /**
+         * return the selected edge
+         *
+         * @returns {number}
+         * @private
+         */
+        value: function _getSelectedEdge() {
+          for (var edgeId in this.selectionObj.edges) {
+            if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+              return this.selectionObj.edges[edgeId];
+            }
+          }
+          return null;
+        },
+        writable: true,
+        configurable: true
+      },
+      _getSelectedEdgeCount: {
+
+
+        /**
+         * return the number of selected edges
+         *
+         * @returns {number}
+         * @private
+         */
+        value: function _getSelectedEdgeCount() {
+          var count = 0;
+          for (var edgeId in this.selectionObj.edges) {
+            if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+              count += 1;
+            }
+          }
+          return count;
+        },
+        writable: true,
+        configurable: true
+      },
+      _getSelectedObjectCount: {
+
+
+        /**
+         * return the number of selected objects.
+         *
+         * @returns {number}
+         * @private
+         */
+        value: function _getSelectedObjectCount() {
+          var count = 0;
+          for (var nodeId in this.selectionObj.nodes) {
+            if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+              count += 1;
+            }
+          }
+          for (var edgeId in this.selectionObj.edges) {
+            if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+              count += 1;
+            }
+          }
+          return count;
+        },
+        writable: true,
+        configurable: true
+      },
+      _selectionIsEmpty: {
+
+        /**
+         * Check if anything is selected
+         *
+         * @returns {boolean}
+         * @private
+         */
+        value: function _selectionIsEmpty() {
+          for (var nodeId in this.selectionObj.nodes) {
+            if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+              return false;
+            }
+          }
+          for (var edgeId in this.selectionObj.edges) {
+            if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+              return false;
+            }
+          }
+          return true;
+        },
+        writable: true,
+        configurable: true
+      },
+      _clusterInSelection: {
+
+
+        /**
+         * check if one of the selected nodes is a cluster.
+         *
+         * @returns {boolean}
+         * @private
+         */
+        value: function _clusterInSelection() {
+          for (var nodeId in this.selectionObj.nodes) {
+            if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+              if (this.selectionObj.nodes[nodeId].clusterSize > 1) {
+                return true;
+              }
+            }
+          }
+          return false;
+        },
+        writable: true,
+        configurable: true
+      },
+      _selectConnectedEdges: {
+
+        /**
+         * select the edges connected to the node that is being selected
+         *
+         * @param {Node} node
+         * @private
+         */
+        value: function _selectConnectedEdges(node) {
+          for (var i = 0; i < node.edges.length; i++) {
+            var edge = node.edges[i];
+            edge.select();
+            this._addToSelection(edge);
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _hoverConnectedEdges: {
+
+        /**
+         * select the edges connected to the node that is being selected
+         *
+         * @param {Node} node
+         * @private
+         */
+        value: function _hoverConnectedEdges(node) {
+          for (var i = 0; i < node.edges.length; i++) {
+            var edge = node.edges[i];
+            edge.hover = true;
+            this._addToHover(edge);
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _unselectConnectedEdges: {
+
+
+        /**
+         * unselect the edges connected to the node that is being selected
+         *
+         * @param {Node} node
+         * @private
+         */
+        value: function _unselectConnectedEdges(node) {
+          for (var i = 0; i < node.edges.length; i++) {
+            var edge = node.edges[i];
+            edge.unselect();
+            this._removeFromSelection(edge);
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _blurObject: {
+
+
+
+
+
+
+        /**
+         * This is called when someone clicks on a node. either select or deselect it.
+         * If there is an existing selection and we don't want to append to it, clear the existing selection
+         *
+         * @param {Node || Edge} object
+         * @private
+         */
+        value: function _blurObject(object) {
+          if (object.hover == true) {
+            object.hover = false;
+            this.body.emitter.emit("blurNode", { node: object.id });
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _hoverObject: {
+
+        /**
+         * This is called when someone clicks on a node. either select or deselect it.
+         * If there is an existing selection and we don't want to append to it, clear the existing selection
+         *
+         * @param {Node || Edge} object
+         * @private
+         */
+        value: function _hoverObject(object) {
+          if (object.hover == false) {
+            object.hover = true;
+            this._addToHover(object);
+            if (object instanceof Node) {
+              this.body.emitter.emit("hoverNode", { node: object.id });
+            }
+          }
+          if (object instanceof Node) {
+            this._hoverConnectedEdges(object);
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _handleDoubleTap: {
+
+
+
+
+        /**
+         * handles the selection part of the double tap and opens a cluster if needed
+         *
+         * @param {Object} pointer
+         * @private
+         */
+        value: function _handleDoubleTap(pointer) {
+          var node = this._getNodeAt(pointer);
+          if (node != null && node !== undefined) {
+            // we reset the areaCenter here so the opening of the node will occur
+            this.areaCenter = { x: this._XconvertDOMtoCanvas(pointer.x),
+              y: this._YconvertDOMtoCanvas(pointer.y) };
+            this.openCluster(node);
+          }
+          var properties = this.getSelection();
+          properties.pointer = {
+            DOM: { x: pointer.x, y: pointer.y },
+            canvas: { x: this._XconvertDOMtoCanvas(pointer.x), y: this._YconvertDOMtoCanvas(pointer.y) }
+          };
+          this.body.emitter.emit("doubleClick", properties);
+        },
+        writable: true,
+        configurable: true
+      },
+      _handleOnHold: {
+
+
+        /**
+         * Handle the onHold selection part
+         *
+         * @param pointer
+         * @private
+         */
+        value: function _handleOnHold(pointer) {
+          var node = this._getNodeAt(pointer);
+          if (node != null) {
+            this._selectObject(node, true);
+          } else {
+            var edge = this._getEdgeAt(pointer);
+            if (edge != null) {
+              this._selectObject(edge, true);
+            }
+          }
+          this._requestRedraw();
+        },
+        writable: true,
+        configurable: true
+      },
+      getSelection: {
+
+
+        /**
+         *
+         * retrieve the currently selected objects
+         * @return {{nodes: Array.<String>, edges: Array.<String>}} selection
+         */
+        value: function getSelection() {
+          var nodeIds = this.getSelectedNodes();
+          var edgeIds = this.getSelectedEdges();
+          return { nodes: nodeIds, edges: edgeIds };
+        },
+        writable: true,
+        configurable: true
+      },
+      getSelectedNodes: {
+
+        /**
+         *
+         * retrieve the currently selected nodes
+         * @return {String[]} selection    An array with the ids of the
+         *                                            selected nodes.
+         */
+        value: function getSelectedNodes() {
+          var idArray = [];
+          if (this.options.select == true) {
+            for (var nodeId in this.selectionObj.nodes) {
+              if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+                idArray.push(nodeId);
+              }
+            }
+          }
+          return idArray;
+        },
+        writable: true,
+        configurable: true
+      },
+      getSelectedEdges: {
+
+        /**
+         *
+         * retrieve the currently selected edges
+         * @return {Array} selection    An array with the ids of the
+         *                                            selected nodes.
+         */
+        value: function getSelectedEdges() {
+          var idArray = [];
+          if (this.options.select == true) {
+            for (var edgeId in this.selectionObj.edges) {
+              if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+                idArray.push(edgeId);
+              }
+            }
+          }
+          return idArray;
+        },
+        writable: true,
+        configurable: true
+      },
+      selectNodes: {
+
+
+        /**
+         * select zero or more nodes with the option to highlight edges
+         * @param {Number[] | String[]} selection     An array with the ids of the
+         *                                            selected nodes.
+         * @param {boolean} [highlightEdges]
+         */
+        value: function selectNodes(selection, highlightEdges) {
+          var i, iMax, id;
+
+          if (!selection || selection.length == undefined) throw "Selection must be an array with ids";
+
+          // first unselect any selected node
+          this._unselectAll(true);
+
+          for (i = 0, iMax = selection.length; i < iMax; i++) {
+            id = selection[i];
+
+            var node = this.body.nodes[id];
+            if (!node) {
+              throw new RangeError("Node with id \"" + id + "\" not found");
+            }
+            this._selectObject(node, true, true, highlightEdges, true);
+          }
+          this.redraw();
+        },
+        writable: true,
+        configurable: true
+      },
+      selectEdges: {
+
+
+        /**
+         * select zero or more edges
+         * @param {Number[] | String[]} selection     An array with the ids of the
+         *                                            selected nodes.
+         */
+        value: function selectEdges(selection) {
+          var i, iMax, id;
+
+          if (!selection || selection.length == undefined) throw "Selection must be an array with ids";
+
+          // first unselect any selected node
+          this._unselectAll(true);
+
+          for (i = 0, iMax = selection.length; i < iMax; i++) {
+            id = selection[i];
+
+            var edge = this.body.edges[id];
+            if (!edge) {
+              throw new RangeError("Edge with id \"" + id + "\" not found");
+            }
+            this._selectObject(edge, true, true, false, true);
+          }
+          this.redraw();
+        },
+        writable: true,
+        configurable: true
+      },
+      _updateSelection: {
+
+        /**
+         * Validate the selection: remove ids of nodes which no longer exist
+         * @private
+         */
+        value: function _updateSelection() {
+          for (var nodeId in this.selectionObj.nodes) {
+            if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+              if (!this.body.nodes.hasOwnProperty(nodeId)) {
+                delete this.selectionObj.nodes[nodeId];
+              }
+            }
+          }
+          for (var edgeId in this.selectionObj.edges) {
+            if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+              if (!this.body.edges.hasOwnProperty(edgeId)) {
+                delete this.selectionObj.edges[edgeId];
+              }
+            }
           }
         },
         writable: true,
@@ -33896,10 +34791,10 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     });
 
-    return CentralGravitySolver;
+    return SelectionHandler;
   })();
 
-  exports.CentralGravitySolver = CentralGravitySolver;
+  exports.SelectionHandler = SelectionHandler;
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
