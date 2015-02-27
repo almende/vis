@@ -1,0 +1,68 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>Timeline | Basic demo</title>
+
+  <style type="text/css">
+    body, html {
+      font-family: sans-serif;
+    }
+  </style>
+
+  <script src="./js/vis.js"></script>
+  <link href="./css/vis.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<span id="status">Loading data...</span>
+<div id="visualization"></div>
+
+<script type="text/javascript">
+
+function loadJSON(path, success, error) {
+    selectedFile = path;
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                success(JSON.parse(xhr.responseText), path);
+            }
+            else {
+                if (error === undefined) {
+                    console.error("ERROR:", path)
+                }
+                else {
+                    error();
+                }
+            }
+        }
+    };
+    xhr.open("GET", path, true);
+
+    xhr.send();
+}
+
+function draw(data) {
+    document.getElementById("status").innerHTML = "";
+    // Create a DataSet (allows two way data-binding)
+    var items = new vis.DataSet(data.data);
+    var groups = new vis.DataSet(data.groups);
+
+
+    // create visualization
+    var container = document.getElementById('visualization');
+    var options = {
+        stack:false,
+        groupOrder: 'content'  // groupOrder can be a property name or a sorting function
+    };
+
+    var timeline = new vis.Timeline(container);
+    timeline.setOptions(options);
+    timeline.setGroups(groups);
+    timeline.setItems(items);
+}
+
+setTimeout(function () {loadJSON("./timeline.json",draw);}, 50);
+
+</script>
+</body>
+</html>
