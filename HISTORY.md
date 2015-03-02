@@ -2,6 +2,86 @@
 http://visjs.org
 
 
+## not yet released, version 3.10.1-SNAPSHOT
+
+### Network
+
+- (added gradient coloring for lines, but set for release in 4.0 due to required refactoring of options)
+- Fixed bug where a network that has frozen physics would resume redrawing after setData, setOptions etc.
+- (add docs) Added option to bypass default groups. If more groups are specified in the nodes than there are in the groups, loop over supplied groups instead of default.
+- (add docs) Added two new static smooth curves modes: curveCW and curve CCW.
+- Added request redraw for certain internal processes to reduce number of draw calls.
+- Added pull request for usage of Icons. Thanks @Dude9177!
+- Allow hierarchical view to be set in setOptions.
+- Fixed manipulation bar for mobile.
+
+### Graph2d
+
+
+
+### Timeline
+
+- Fixed not property initializing with a DataView for groups.
+- Merged add custom timebar functionality, thanks @aytech!
+- Fixed #664: end of item not restored when canceling a move event.
+
+
+## 2015-02-11, version 3.10.0
+
+### Network
+
+- Added option bindToWindow (default true) to choose whether the keyboard binds are global or to the network div.
+- Improved images handling so broken images are shown on all references of images that are broken.
+- Added getConnectedNodes method.
+- Added fontSizeMin, fontSizeMax, fontSizeMaxVisible, scaleFontWithValue, fontDrawThreshold to Nodes.
+- Added fade in of labels (on nodes) near the fontDrawThreshold.
+- Added nodes option to zoomExtent to zoom in on specific set of nodes.
+- Added stabilizationIterationsDone event which fires at the end of the internal stabilization run. Does not imply that the network is stabilized.
+- Added freezeSimulation method.
+- Added clusterByZoom option.
+- Added class name 'network-tooltip' to the tooltip, allowing custom styling.
+- Fixed bug when redrawing was not right on zoomed-out browsers.
+- Added opacity option to edges. Opacity is only used for the unselected state.
+- Fixed bug where selections from removed data elements persisted.
+
+### Timeline
+
+- `Timeline.redraw()` now also recalculates the size of items.
+- Implemented option `snap: function` to customize snapping to nice dates
+  when dragging items.
+- Implemented option `timeAxis: {scale: string, step: number}` to set a
+  fixed scale.
+- Fixed width of range items not always being maintained when moving due to
+  snapping to nice dates.
+- Fixed not being able to drag items to an other group on mobile devices.
+- Fixed `setWindow` not working when applying an interval larger than the
+  configured `zoomMax`.
+
+### DataSet/DataView
+
+- Added property `length` holding the total number of items to the `DataSet`
+  and `DataView`.
+- Added a method `refresh()` to the `DataView`, to update filter results.
+- Fixed a bug in the `DataSet` returning an empty object instead of `null` when
+  no item was found when using both a filter and specifying fields.
+
+
+## 2015-01-16, version 3.9.1
+
+### General
+
+- Fixed wrong distribution file deployed on the website and the downloadable
+  zip file.
+
+### Network
+
+- Fixed bug where opening a cluster with smoothCurves off caused one child to go crazy.
+- Fixed bug where zoomExtent does not work as expected.
+- Fixed nodes color data being overridden when having a group and a dataset update query.
+- Decoupled animation from physics simulation.
+- Fixed scroll being blocked if zoomable is false.
+
+
 ## 2015-01-16, version 3.9.0
 
 ### Network

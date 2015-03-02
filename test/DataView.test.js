@@ -28,6 +28,7 @@ describe('DataView', function () {
       {id: 2, content: 'Item 2', group: 2},
       {id: 3, content: 'Item 3', group: 2}
     ]);
+    assert.equal(group2.length, 2);
 
 // test filtering the view contents
     assert.deepEqual(group2.get({
@@ -51,19 +52,99 @@ describe('DataView', function () {
     groups.update({id:2, content: 'Item 2 (changed)'});
     assert.equal(groupsTriggerCount, 1);
     assert.equal(group2TriggerCount, 1);
+    assert.equal(group2.length, 2);
 
     groups.update({id:5, content: 'Item 5 (changed)'});
     assert.equal(groupsTriggerCount, 2);
     assert.equal(group2TriggerCount, 1);
+    assert.equal(group2.length, 2);
 
 // detach the view from groups
     group2.setData(null);
     assert.equal(groupsTriggerCount, 2);
     assert.equal(group2TriggerCount, 2);
+    assert.equal(group2.length, 0);
 
     groups.update({id:2, content: 'Item 2 (changed again)'});
     assert.equal(groupsTriggerCount, 3);
     assert.equal(group2TriggerCount, 2);
+
+    // test updating of .length property
+    group2.setData(groups);
+    assert.equal(group2.length, 2);
+
+    // add a new item
+    groups.add({id: 6, content: 'Item 6', group: 2});
+    assert.equal(group2.length, 3);
+
+    // change an items group to 2
+    groups.update({id: 4, group: 2});
+    assert.equal(group2.length, 4);
+
+    // change an items group to 1
+    groups.update({id: 4, group: 1});
+    assert.equal(group2.length, 3);
+
+    // remove an item
+    groups.remove(2);
+    assert.equal(group2.length, 2);
+
+    // remove all items
+    groups.clear();
+    assert.equal(group2.length, 0);
   });
 
+
+  it('should refresh a DataView with filter', function () {
+    var data = new DataSet([
+      {id:1, value:2},
+      {id:2, value:4},
+      {id:3, value:7}
+    ]);
+
+    var threshold = 5;
+
+    // create a view. The view has a filter with a dynamic property `threshold`
+    var view = new DataView(data, {
+      filter: function (item) {
+        return item.value < threshold;
+      }
+    });
+
+    var added, updated, removed;
+    view.on('add', function (event, props) {added = added.concat(props.items)});
+    view.on('update', function (event, props) {updated = updated.concat(props.items)});
+    view.on('remove', function (event, props) {removed = removed.concat(props.items)});
+
+    assert.deepEqual(view.get(), [
+      {id:1, value:2},
+      {id:2, value:4}
+    ]);
+
+    // change the threshold to 3
+    added = [];
+    updated = [];
+    removed = [];
+    threshold = 3;
+    view.refresh();
+    assert.deepEqual(view.get(), [{id:1, value:2}]);
+    assert.deepEqual(added, []);
+    assert.deepEqual(updated, []);
+    assert.deepEqual(removed, [2]);
+
+    // change threshold to 8
+    added = [];
+    updated = [];
+    removed = [];
+    threshold = 8;
+    view.refresh();
+    assert.deepEqual(view.get(), [
+      {id:1, value:2},
+      {id:2, value:4},
+      {id:3, value:7}
+    ]);
+    assert.deepEqual(added, [2, 3]);
+    assert.deepEqual(updated, []);
+    assert.deepEqual(removed, []);
+  })
 });

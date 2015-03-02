@@ -20,6 +20,8 @@
   <li><a href="#Overview">Overview</a></li>
   <li><a href="#Example">Example</a></li>
   <li><a href="#Construction">Construction</a></li>
+  <li><a href="#Methods">Methods</a></li>
+  <li><a href="#Properties">Properties</a></li>
   <li><a href="#Getting_Data">Getting Data</a></li>
   <li><a href="#Subscriptions">Subscriptions</a></li>
   <li><a href="#Data_Policy">Data Policy</a></li>
@@ -152,6 +154,122 @@ var data = new vis.DataView(dataset, options)
   </li>
 </ul>
 
+<h2 id="Methods">Methods</h2>
+
+<p>DataView contains the following methods.</p>
+
+<table>
+  <colgroup>
+    <col width="200">
+  </colgroup>
+
+  <tr>
+    <th>Method</th>
+    <th>Return Type</th>
+    <th>Description</th>
+  </tr>
+
+  <tr>
+    <td>
+      get([options] [, data])<br>
+      get(id [,options] [, data])<br>
+      get(ids [, options] [, data])
+    </td>
+    <td>Object | Array | DataTable</td>
+    <td>
+      Get a single item, multiple items, or all items from the DataView.
+      Usage examples can be found in section <a href="#Getting_Data">Getting Data</a>, and the available <code>options</code> are described in section <a href="#Data_Selection">Data Selection</a>. If parameter <code>data</code> is provided, items will be appended to this array or table, which is required in case of Google DataTable.
+    </td>
+  </tr>
+
+  <tr>
+    <td>
+      getDataSet()
+    </td>
+    <td>DataSet</td>
+    <td>
+      Get the DataSet to which the DataView is connected.
+    </td>
+  </tr>
+
+  <tr>
+    <td>
+      getIds([options])
+    </td>
+    <td>Number[]</td>
+    <td>
+      Get ids of all items or of a filtered set of items.
+      Available <code>options</code> are described in section <a href="dataset.html#Data_Selection">Data Selection</a>, except that options <code>fields</code> and <code>type</code> are not applicable in case of <code>getIds</code>.
+    </td>
+  </tr>
+
+  <tr>
+    <td>off(event, callback)</td>
+    <td>none</td>
+    <td>
+      Unsubscribe from an event, remove an event listener. See section <a href="#Subscriptions">Subscriptions</a>.
+    </td>
+  </tr>
+
+  <tr>
+    <td>on(event, callback)</td>
+    <td>none</td>
+    <td>
+      Subscribe to an event, add an event listener. See section <a href="#Subscriptions">Subscriptions</a>.
+    </td>
+  </tr>
+
+  <tr>
+    <td>refresh()</td>
+    <td>none</td>
+    <td>
+      Refresh the filter results of a DataView. Useful when the filter function contains dynamic properties, like:
+
+      <pre class="prettyprint lang-js">var data = new vis.DataSet(...);
+var view = new vis.DataView(data, {
+  filter: function (item) {
+    return item.value > threshold;
+  }
+});</pre>
+      In this example, <code>threshold</code> is an external parameter. When the value of <code>threshold</code> changes, the DataView must be notified that the filter results may have changed by calling <code>DataView.refresh()</code>.
+    </td>
+  </tr>
+
+  <tr>
+    <td>
+      setDataSet(data)
+    </td>
+    <td>none</td>
+    <td>
+      Replace the DataSet of the DataView. Parameter <code>data</code> can be a DataSet or a DataView.
+    </td>
+  </tr>
+
+</table>
+
+
+<h2 id="Properties">Properties</h2>
+
+<p>DataView contains the following properties.</p>
+
+<table>
+  <colgroup>
+    <col width="200">
+  </colgroup>
+
+  <tr>
+    <th>Property</th>
+    <th>Type</th>
+    <th>Description</th>
+  </tr>
+
+  <tr>
+    <td>length</td>
+    <td>Number</td>
+    <td>The number of items in the DataView.</td>
+  </tr>
+</table>
+
 <h2 id="Getting_Data">Getting Data</h2>
 
 <p>
@@ -165,8 +283,8 @@ var items = view.get();
 <p>
   Data of a DataView can be filtered and formatted again, in exactly the
   same way as in a DataSet. See sections
-  <a href="dataset.html#Data_Filtering">Data Filtering</a> and
-  <a href="dataset.html#Data_Formatting">Data Formatting</a> for more
+  <a href="dataset.html#Data_Manipulation">Data Manipulation</a> and
+  <a href="dataset.html#Data_Selection">Data Selection</a> for more
   information.
 </p>
 
