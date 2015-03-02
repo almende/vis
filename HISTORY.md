@@ -2,6 +2,32 @@
 http://visjs.org
 
 
+## not yet released, version 4.0.0-SNAPSHOT
+
+### General
+
+- Changed the build scripts to include a transpilation of ES6 to ES5
+  (using http://6to5.org), so we can use ES6 features in the vis.js code.
+  When creating a custom bundle using browserify, one now needs to add a
+  transform step using `6to5ify`, this is described in README.md.
+
+
+### Timeline
+
+- Fixed range items not being displayed smaller than 10 pixels (twice the
+  padding). In order to have overflowing text, one should now apply css style
+  `.vis.timeline .item.range { overflow: visible; }` instead of
+  `.vis.timeline .item.range .content { overflow: visible; }`.
+  See example 18_range_overflow.html.
+- Fixed invalid css names for time axis grid, renamed hours class names from
+  `4-8h` to `h4-h8`.
+
+### Network
+
+- Rebuilt the cluster system
+
+
+
 ## not yet released, version 3.10.1-SNAPSHOT
 
 ### Network
@@ -64,6 +90,11 @@ http://visjs.org
 - Added a method `refresh()` to the `DataView`, to update filter results.
 - Fixed a bug in the `DataSet` returning an empty object instead of `null` when
   no item was found when using both a filter and specifying fields.
+
+### Timeline
+
+- Implemented option `timeAxis: {scale: string, step: number}` to set a
+  fixed scale.
 
 
 ## 2015-01-16, version 3.9.1

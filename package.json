@@ -1,6 +1,6 @@
 {
   "name": "vis",
-  "version": "3.10.1-SNAPSHOT",
+  "version": "4.0.0-SNAPSHOT",
   "description": "A dynamic, browser-based visualization library.",
   "homepage": "http://visjs.org/",
   "repository": {
@@ -35,6 +35,9 @@
     "propagating-hammerjs": "^1.2.0"
   },
   "devDependencies": {
+    "6to5": "^3.5.3",
+    "6to5-loader": "^3.0.0",
+    "6to5ify": "^4.1.0",
     "clean-css": "latest",
     "gulp": "^3.8.11",
     "gulp-concat": "^2.4.3",

@@ -34,7 +34,6 @@ var bannerPlugin = new webpack.BannerPlugin(createBanner(), {
   raw: true
 });
 
-// TODO: the moment.js language files should be excluded by default (they are quite big)
 var webpackConfig = {
   entry: ENTRY,
   output: {
@@ -44,8 +43,12 @@ var webpackConfig = {
     filename: VIS_JS,
     sourcePrefix: '  '
   },
-  // exclude requires of moment.js language files
   module: {
+    loaders: [
+      { test: /\.js$/, exclude: /node_modules/, loader: '6to5-loader'}
+    ],
+
+    // exclude requires of moment.js language files
     wrappedContextRegExp: /$^/
   },
   plugins: [ bannerPlugin ],
