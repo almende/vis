@@ -14,19 +14,19 @@ http://visjs.org
 - Added pull request for usage of Icons. Thanks @Dude9177!
 - Allow hierarchical view to be set in setOptions.
 - Fixed manipulation bar for mobile.
-- Fixed #670:
-  - Bug when updating data in a DataSet, when Network is connected to the DataSet via a DataView.
-  - Fixed the DataView not passing a data property on update events (see #670)
-
-### Graph2d
-
-
+- Fixed #670: Bug when updating data in a DataSet, when Network is connected to the DataSet via a DataView.
 
 ### Timeline
 
 - Fixed not property initializing with a DataView for groups.
 - Merged add custom timebar functionality, thanks @aytech!
 - Fixed #664: end of item not restored when canceling a move event.
+
+
+### DataSet/DataView
+
+- Fixed #670: DataView not passing a data property on update events (see #670)
+
 
 
 ## 2015-02-11, version 3.10.0
