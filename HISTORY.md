@@ -14,7 +14,9 @@ http://visjs.org
 - Added pull request for usage of Icons. Thanks @Dude9177!
 - Allow hierarchical view to be set in setOptions.
 - Fixed manipulation bar for mobile.
-- Fixed #670: bug when updating data in a DataSet, when Network is connected to the DataSet via a DataView.
+- Fixed #670:
+  - Bug when updating data in a DataSet, when Network is connected to the DataSet via a DataView.
+  - Fixed the DataView not passing a data property on update events (see #670)
 
 ### Graph2d
 
