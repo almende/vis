@@ -23,6 +23,7 @@ http://visjs.org
 
 - Fixed not property initializing with a DataView for groups.
 - Merged add custom timebar functionality, thanks @aytech!
+- Fixed #664: end of item not restored when canceling a move event.
 
 
 ## 2015-02-11, version 3.10.0
