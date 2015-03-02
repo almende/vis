@@ -21,6 +21,8 @@ http://visjs.org
 - Fixed not property initializing with a DataView for groups.
 - Merged add custom timebar functionality, thanks @aytech!
 - Fixed #664: end of item not restored when canceling a move event.
+- Fixed #609: reduce the left/right dragarea when an item range is very small,
+  so you can still move it as a whole.
 
 
 ### DataSet/DataView
