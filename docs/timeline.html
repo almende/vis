@@ -1170,8 +1170,16 @@ timeline.off('select', onSelect);
 
 <h2 id="Editing_Items">Editing Items</h2>
 <p>
-  When the Timeline is configured to be editable (both options <code>selectable</code> and <code>editable</code> are <code>true</code>), the user can move items by dragging them, can create a new item by double tapping on an empty space, can update an item by double tapping it, and can delete a selected item by clicking the delete button on the top right.
+  When the Timeline is configured to be editable (both options <code>selectable</code> and <code>editable</code> are <code>true</code>), the user can:
 </p>
+<ul>
+  <li>Select an item by clicking it, and use ctrl+click to or shift+click to select multiple items</li>
+  <li>Move selected items by dragging them.</li>
+  <li>Create a new item by double tapping on an empty space.</li>
+  <li>Create a new range item by dragging on an empty space with the ctrl key down.</li>
+  <li>Update an item by double tapping it.</li>
+  <li>Delete a selected item by clicking the delete button on the top right.</li>
+</ul>
 
 <p>Option <code>editable</code> accepts a boolean or an object. When <code>editable</code> is a boolean, all manipulation actions will be either enabled or disabled. When <code>editable</code> is an object, one can enable individual manipulation actions:</p>
 

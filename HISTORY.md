@@ -20,6 +20,8 @@ http://visjs.org
 
 - Implemented orientation option `'both'`, displaying a time axis both on top
   and bottom (#665).
+- Implemented creating new range items by dragging in an empty space with the
+  ctrl key down.
 - Fixed not property initializing with a DataView for groups.
 - Merged add custom timebar functionality, thanks @aytech!
 - Fixed #664: end of item not restored when canceling a move event.
