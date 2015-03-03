@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.10.1-SNAPSHOT
- * @date    2015-03-02
+ * @date    2015-03-03
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -6504,7 +6504,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
       autoResize: true,
 
-      orientation: 'bottom',
+      orientation: 'bottom', // 'bottom', 'top', or 'both'
       width: null,
       height: null,
       maxHeight: null,
@@ -6549,6 +6549,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // time axis
     this.timeAxis = new TimeAxis(this.body);
+    this.timeAxis2 = null; // used in case of orientation option 'both'
     this.components.push(this.timeAxis);
 
     // current time bar
@@ -22503,6 +22504,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
   var ItemSet = __webpack_require__(32);
+  var TimeAxis = __webpack_require__(35);
   var Activator = __webpack_require__(53);
   var DateUtil = __webpack_require__(15);
   var CustomTime = __webpack_require__(27);
@@ -22689,6 +22691,28 @@ return /******/ (function(modules) { // webpackBootstrap
       // copy the known options
       var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'orientation', 'clickToUse', 'dataAttributes', 'hiddenDates'];
       util.selectiveExtend(fields, this.options, options);
+
+      if (this.options.orientation === 'both') {
+        if (!this.timeAxis2) {
+          var timeAxis2 = this.timeAxis2 = new TimeAxis(this.body);
+          timeAxis2.setOptions = function (options) {
+            var _options = options ? util.extend({}, options) : {};
+            _options.orientation = 'top'; // override the orientation option, always top
+            TimeAxis.prototype.setOptions.call(timeAxis2, _options);
+          };
+          this.components.push(timeAxis2);
+        }
+      }
+      else {
+        if (this.timeAxis2) {
+          var index = this.components.indexOf(this.timeAxis2);
+          if (index !== -1) {
+            this.components.splice(index, 1);
+          }
+          this.timeAxis2.destroy();
+          this.timeAxis2 = null;
+        }
+      }
 
       if ('hiddenDates' in this.options) {
         DateUtil.convertHiddenOptions(this.body, this.options.hiddenDates);

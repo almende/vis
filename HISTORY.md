@@ -18,6 +18,8 @@ http://visjs.org
 
 ### Timeline
 
+- Implemented orientation option `'both'`, displaying a time axis both on top
+  and bottom (#665).
 - Fixed not property initializing with a DataView for groups.
 - Merged add custom timebar functionality, thanks @aytech!
 - Fixed #664: end of item not restored when canceling a move event.
