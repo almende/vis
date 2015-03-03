@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.0.0-SNAPSHOT
- * @date    2015-03-02
+ * @date    2015-03-03
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -139,13 +139,13 @@ return /******/ (function(modules) { // webpackBootstrap
   // Network
   exports.Network = __webpack_require__(53);
   exports.network = {
-    Edge: __webpack_require__(54),
+    Edge: __webpack_require__(59),
     Groups: __webpack_require__(56),
     Images: __webpack_require__(57),
-    Node: __webpack_require__(55),
-    Popup: __webpack_require__(58),
-    dotparser: __webpack_require__(59),
-    gephiParser: __webpack_require__(60)
+    Node: __webpack_require__(58),
+    Popup: __webpack_require__(60),
+    dotparser: __webpack_require__(54),
+    gephiParser: __webpack_require__(55)
   };
 
   // Deprecated since v3.0.0
@@ -23264,13 +23264,13 @@ return /******/ (function(modules) { // webpackBootstrap
   var hammerUtil = __webpack_require__(24);
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(9);
-  var dotparser = __webpack_require__(59);
-  var gephiParser = __webpack_require__(60);
+  var dotparser = __webpack_require__(54);
+  var gephiParser = __webpack_require__(55);
   var Groups = __webpack_require__(56);
   var Images = __webpack_require__(57);
-  var Node = __webpack_require__(55);
-  var Edge = __webpack_require__(54);
-  var Popup = __webpack_require__(58);
+  var Node = __webpack_require__(58);
+  var Edge = __webpack_require__(59);
+  var Popup = __webpack_require__(60);
   var MixinLoader = __webpack_require__(61);
   var Activator = __webpack_require__(38);
   var locales = __webpack_require__(66);
@@ -23283,8 +23283,8 @@ return /******/ (function(modules) { // webpackBootstrap
   var CanvasRenderer = __webpack_require__(76).CanvasRenderer;
   var Canvas = __webpack_require__(77).Canvas;
   var View = __webpack_require__(78).View;
-  var TouchEventHandler = __webpack_require__(80).TouchEventHandler;
-  var SelectionHandler = __webpack_require__(79).SelectionHandler;
+  var InteractionHandler = __webpack_require__(79).InteractionHandler;
+  var SelectionHandler = __webpack_require__(80).SelectionHandler;
 
 
   /**
@@ -23487,7 +23487,7 @@ return /******/ (function(modules) { // webpackBootstrap
     // modules
     this.canvas = new Canvas(this.body);
     this.selectionHandler = new SelectionHandler(this.body, this.canvas);
-    this.touchHandler = new TouchEventHandler(this.body, this.canvas, this.selectionHandler);
+    this.interactionHandler = new InteractionHandler(this.body, this.canvas, this.selectionHandler);
     this.view = new View(this.body, this.canvas);
     this.renderer = new CanvasRenderer(this.body, this.canvas);
     this.clustering = new ClusterEngine(this.body);
@@ -23526,13 +23526,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // apply options
     this.setOptions(options);
-
-    // other vars
-    this.cachedFunctions = {};
-    this.startedStabilization = false;
-    this.stabilized = false;
-    this.stabilizationIterations = null;
-    this.draggingNodes = false;
 
     // position and scale variables and objects
 
@@ -23716,7 +23709,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.physics.setOptions(options.physics);
       this.canvas.setOptions(options.canvas);
       this.renderer.setOptions(options.rendering);
-      this.touchHandler.setOptions(options.interaction);
+      this.interactionHandler.setOptions(options.interaction);
       this.selectionHandler.setOptions(options.selection);
 
 
@@ -23841,7 +23834,7 @@ return /******/ (function(modules) { // webpackBootstrap
       //this._configureSmoothCurves();
 
       // bind hammer
-      this.canvas._bindHammer();
+      //this.canvas._bindHammer();
 
       // bind keys. If disabled, this will not do anything;
       //this._createKeyBinds();
@@ -24761,8 +24754,2086 @@ return /******/ (function(modules) { // webpackBootstrap
 
   "use strict";
 
+  /**
+   * Parse a text source containing data in DOT language into a JSON object.
+   * The object contains two lists: one with nodes and one with edges.
+   *
+   * DOT language reference: http://www.graphviz.org/doc/info/lang.html
+   *
+   * @param {String} data     Text containing a graph in DOT-notation
+   * @return {Object} graph   An object containing two parameters:
+   *                          {Object[]} nodes
+   *                          {Object[]} edges
+   */
+  function parseDOT(data) {
+    dot = data;
+    return parseGraph();
+  }
+
+  // token types enumeration
+  var TOKENTYPE = {
+    NULL: 0,
+    DELIMITER: 1,
+    IDENTIFIER: 2,
+    UNKNOWN: 3
+  };
+
+  // map with all delimiters
+  var DELIMITERS = {
+    "{": true,
+    "}": true,
+    "[": true,
+    "]": true,
+    ";": true,
+    "=": true,
+    ",": true,
+
+    "->": true,
+    "--": true
+  };
+
+  var dot = ""; // current dot file
+  var index = 0; // current index in dot file
+  var c = ""; // current token character in expr
+  var token = ""; // current token
+  var tokenType = TOKENTYPE.NULL; // type of the token
+
+  /**
+   * Get the first character from the dot file.
+   * The character is stored into the char c. If the end of the dot file is
+   * reached, the function puts an empty string in c.
+   */
+  function first() {
+    index = 0;
+    c = dot.charAt(0);
+  }
+
+  /**
+   * Get the next character from the dot file.
+   * The character is stored into the char c. If the end of the dot file is
+   * reached, the function puts an empty string in c.
+   */
+  function next() {
+    index++;
+    c = dot.charAt(index);
+  }
+
+  /**
+   * Preview the next character from the dot file.
+   * @return {String} cNext
+   */
+  function nextPreview() {
+    return dot.charAt(index + 1);
+  }
+
+  /**
+   * Test whether given character is alphabetic or numeric
+   * @param {String} c
+   * @return {Boolean} isAlphaNumeric
+   */
+  var regexAlphaNumeric = /[a-zA-Z_0-9.:#]/;
+  function isAlphaNumeric(c) {
+    return regexAlphaNumeric.test(c);
+  }
+
+  /**
+   * Merge all properties of object b into object b
+   * @param {Object} a
+   * @param {Object} b
+   * @return {Object} a
+   */
+  function merge(a, b) {
+    if (!a) {
+      a = {};
+    }
+
+    if (b) {
+      for (var name in b) {
+        if (b.hasOwnProperty(name)) {
+          a[name] = b[name];
+        }
+      }
+    }
+    return a;
+  }
+
+  /**
+   * Set a value in an object, where the provided parameter name can be a
+   * path with nested parameters. For example:
+   *
+   *     var obj = {a: 2};
+   *     setValue(obj, 'b.c', 3);     // obj = {a: 2, b: {c: 3}}
+   *
+   * @param {Object} obj
+   * @param {String} path  A parameter name or dot-separated parameter path,
+   *                      like "color.highlight.border".
+   * @param {*} value
+   */
+  function setValue(obj, path, value) {
+    var keys = path.split(".");
+    var o = obj;
+    while (keys.length) {
+      var key = keys.shift();
+      if (keys.length) {
+        // this isn't the end point
+        if (!o[key]) {
+          o[key] = {};
+        }
+        o = o[key];
+      } else {
+        // this is the end point
+        o[key] = value;
+      }
+    }
+  }
+
+  /**
+   * Add a node to a graph object. If there is already a node with
+   * the same id, their attributes will be merged.
+   * @param {Object} graph
+   * @param {Object} node
+   */
+  function addNode(graph, node) {
+    var i, len;
+    var current = null;
+
+    // find root graph (in case of subgraph)
+    var graphs = [graph]; // list with all graphs from current graph to root graph
+    var root = graph;
+    while (root.parent) {
+      graphs.push(root.parent);
+      root = root.parent;
+    }
+
+    // find existing node (at root level) by its id
+    if (root.nodes) {
+      for (i = 0, len = root.nodes.length; i < len; i++) {
+        if (node.id === root.nodes[i].id) {
+          current = root.nodes[i];
+          break;
+        }
+      }
+    }
+
+    if (!current) {
+      // this is a new node
+      current = {
+        id: node.id
+      };
+      if (graph.node) {
+        // clone default attributes
+        current.attr = merge(current.attr, graph.node);
+      }
+    }
+
+    // add node to this (sub)graph and all its parent graphs
+    for (i = graphs.length - 1; i >= 0; i--) {
+      var g = graphs[i];
+
+      if (!g.nodes) {
+        g.nodes = [];
+      }
+      if (g.nodes.indexOf(current) == -1) {
+        g.nodes.push(current);
+      }
+    }
+
+    // merge attributes
+    if (node.attr) {
+      current.attr = merge(current.attr, node.attr);
+    }
+  }
+
+  /**
+   * Add an edge to a graph object
+   * @param {Object} graph
+   * @param {Object} edge
+   */
+  function addEdge(graph, edge) {
+    if (!graph.edges) {
+      graph.edges = [];
+    }
+    graph.edges.push(edge);
+    if (graph.edge) {
+      var attr = merge({}, graph.edge); // clone default attributes
+      edge.attr = merge(attr, edge.attr); // merge attributes
+    }
+  }
+
+  /**
+   * Create an edge to a graph object
+   * @param {Object} graph
+   * @param {String | Number | Object} from
+   * @param {String | Number | Object} to
+   * @param {String} type
+   * @param {Object | null} attr
+   * @return {Object} edge
+   */
+  function createEdge(graph, from, to, type, attr) {
+    var edge = {
+      from: from,
+      to: to,
+      type: type
+    };
+
+    if (graph.edge) {
+      edge.attr = merge({}, graph.edge); // clone default attributes
+    }
+    edge.attr = merge(edge.attr || {}, attr); // merge attributes
+
+    return edge;
+  }
+
+  /**
+   * Get next token in the current dot file.
+   * The token and token type are available as token and tokenType
+   */
+  function getToken() {
+    tokenType = TOKENTYPE.NULL;
+    token = "";
+
+    // skip over whitespaces
+    while (c == " " || c == "\t" || c == "\n" || c == "\r") {
+      // space, tab, enter
+      next();
+    }
+
+    do {
+      var isComment = false;
+
+      // skip comment
+      if (c == "#") {
+        // find the previous non-space character
+        var i = index - 1;
+        while (dot.charAt(i) == " " || dot.charAt(i) == "\t") {
+          i--;
+        }
+        if (dot.charAt(i) == "\n" || dot.charAt(i) == "") {
+          // the # is at the start of a line, this is indeed a line comment
+          while (c != "" && c != "\n") {
+            next();
+          }
+          isComment = true;
+        }
+      }
+      if (c == "/" && nextPreview() == "/") {
+        // skip line comment
+        while (c != "" && c != "\n") {
+          next();
+        }
+        isComment = true;
+      }
+      if (c == "/" && nextPreview() == "*") {
+        // skip block comment
+        while (c != "") {
+          if (c == "*" && nextPreview() == "/") {
+            // end of block comment found. skip these last two characters
+            next();
+            next();
+            break;
+          } else {
+            next();
+          }
+        }
+        isComment = true;
+      }
+
+      // skip over whitespaces
+      while (c == " " || c == "\t" || c == "\n" || c == "\r") {
+        // space, tab, enter
+        next();
+      }
+    } while (isComment);
+
+    // check for end of dot file
+    if (c == "") {
+      // token is still empty
+      tokenType = TOKENTYPE.DELIMITER;
+      return;
+    }
+
+    // check for delimiters consisting of 2 characters
+    var c2 = c + nextPreview();
+    if (DELIMITERS[c2]) {
+      tokenType = TOKENTYPE.DELIMITER;
+      token = c2;
+      next();
+      next();
+      return;
+    }
+
+    // check for delimiters consisting of 1 character
+    if (DELIMITERS[c]) {
+      tokenType = TOKENTYPE.DELIMITER;
+      token = c;
+      next();
+      return;
+    }
+
+    // check for an identifier (number or string)
+    // TODO: more precise parsing of numbers/strings (and the port separator ':')
+    if (isAlphaNumeric(c) || c == "-") {
+      token += c;
+      next();
+
+      while (isAlphaNumeric(c)) {
+        token += c;
+        next();
+      }
+      if (token == "false") {
+        token = false; // convert to boolean
+      } else if (token == "true") {
+        token = true; // convert to boolean
+      } else if (!isNaN(Number(token))) {
+        token = Number(token); // convert to number
+      }
+      tokenType = TOKENTYPE.IDENTIFIER;
+      return;
+    }
+
+    // check for a string enclosed by double quotes
+    if (c == "\"") {
+      next();
+      while (c != "" && (c != "\"" || c == "\"" && nextPreview() == "\"")) {
+        token += c;
+        if (c == "\"") {
+          // skip the escape character
+          next();
+        }
+        next();
+      }
+      if (c != "\"") {
+        throw newSyntaxError("End of string \" expected");
+      }
+      next();
+      tokenType = TOKENTYPE.IDENTIFIER;
+      return;
+    }
+
+    // something unknown is found, wrong characters, a syntax error
+    tokenType = TOKENTYPE.UNKNOWN;
+    while (c != "") {
+      token += c;
+      next();
+    }
+    throw new SyntaxError("Syntax error in part \"" + chop(token, 30) + "\"");
+  }
+
+  /**
+   * Parse a graph.
+   * @returns {Object} graph
+   */
+  function parseGraph() {
+    var graph = {};
+
+    first();
+    getToken();
+
+    // optional strict keyword
+    if (token == "strict") {
+      graph.strict = true;
+      getToken();
+    }
+
+    // graph or digraph keyword
+    if (token == "graph" || token == "digraph") {
+      graph.type = token;
+      getToken();
+    }
+
+    // optional graph id
+    if (tokenType == TOKENTYPE.IDENTIFIER) {
+      graph.id = token;
+      getToken();
+    }
+
+    // open angle bracket
+    if (token != "{") {
+      throw newSyntaxError("Angle bracket { expected");
+    }
+    getToken();
+
+    // statements
+    parseStatements(graph);
+
+    // close angle bracket
+    if (token != "}") {
+      throw newSyntaxError("Angle bracket } expected");
+    }
+    getToken();
+
+    // end of file
+    if (token !== "") {
+      throw newSyntaxError("End of file expected");
+    }
+    getToken();
+
+    // remove temporary default properties
+    delete graph.node;
+    delete graph.edge;
+    delete graph.graph;
+
+    return graph;
+  }
+
+  /**
+   * Parse a list with statements.
+   * @param {Object} graph
+   */
+  function parseStatements(graph) {
+    while (token !== "" && token != "}") {
+      parseStatement(graph);
+      if (token == ";") {
+        getToken();
+      }
+    }
+  }
+
+  /**
+   * Parse a single statement. Can be a an attribute statement, node
+   * statement, a series of node statements and edge statements, or a
+   * parameter.
+   * @param {Object} graph
+   */
+  function parseStatement(graph) {
+    // parse subgraph
+    var subgraph = parseSubgraph(graph);
+    if (subgraph) {
+      // edge statements
+      parseEdge(graph, subgraph);
+
+      return;
+    }
+
+    // parse an attribute statement
+    var attr = parseAttributeStatement(graph);
+    if (attr) {
+      return;
+    }
+
+    // parse node
+    if (tokenType != TOKENTYPE.IDENTIFIER) {
+      throw newSyntaxError("Identifier expected");
+    }
+    var id = token; // id can be a string or a number
+    getToken();
+
+    if (token == "=") {
+      // id statement
+      getToken();
+      if (tokenType != TOKENTYPE.IDENTIFIER) {
+        throw newSyntaxError("Identifier expected");
+      }
+      graph[id] = token;
+      getToken();
+      // TODO: implement comma separated list with "a_list: ID=ID [','] [a_list] "
+    } else {
+      parseNodeStatement(graph, id);
+    }
+  }
+
+  /**
+   * Parse a subgraph
+   * @param {Object} graph    parent graph object
+   * @return {Object | null} subgraph
+   */
+  function parseSubgraph(graph) {
+    var subgraph = null;
+
+    // optional subgraph keyword
+    if (token == "subgraph") {
+      subgraph = {};
+      subgraph.type = "subgraph";
+      getToken();
+
+      // optional graph id
+      if (tokenType == TOKENTYPE.IDENTIFIER) {
+        subgraph.id = token;
+        getToken();
+      }
+    }
+
+    // open angle bracket
+    if (token == "{") {
+      getToken();
+
+      if (!subgraph) {
+        subgraph = {};
+      }
+      subgraph.parent = graph;
+      subgraph.node = graph.node;
+      subgraph.edge = graph.edge;
+      subgraph.graph = graph.graph;
+
+      // statements
+      parseStatements(subgraph);
+
+      // close angle bracket
+      if (token != "}") {
+        throw newSyntaxError("Angle bracket } expected");
+      }
+      getToken();
+
+      // remove temporary default properties
+      delete subgraph.node;
+      delete subgraph.edge;
+      delete subgraph.graph;
+      delete subgraph.parent;
+
+      // register at the parent graph
+      if (!graph.subgraphs) {
+        graph.subgraphs = [];
+      }
+      graph.subgraphs.push(subgraph);
+    }
+
+    return subgraph;
+  }
+
+  /**
+   * parse an attribute statement like "node [shape=circle fontSize=16]".
+   * Available keywords are 'node', 'edge', 'graph'.
+   * The previous list with default attributes will be replaced
+   * @param {Object} graph
+   * @returns {String | null} keyword Returns the name of the parsed attribute
+   *                                  (node, edge, graph), or null if nothing
+   *                                  is parsed.
+   */
+  function parseAttributeStatement(graph) {
+    // attribute statements
+    if (token == "node") {
+      getToken();
+
+      // node attributes
+      graph.node = parseAttributeList();
+      return "node";
+    } else if (token == "edge") {
+      getToken();
+
+      // edge attributes
+      graph.edge = parseAttributeList();
+      return "edge";
+    } else if (token == "graph") {
+      getToken();
+
+      // graph attributes
+      graph.graph = parseAttributeList();
+      return "graph";
+    }
+
+    return null;
+  }
+
+  /**
+   * parse a node statement
+   * @param {Object} graph
+   * @param {String | Number} id
+   */
+  function parseNodeStatement(graph, id) {
+    // node statement
+    var node = {
+      id: id
+    };
+    var attr = parseAttributeList();
+    if (attr) {
+      node.attr = attr;
+    }
+    addNode(graph, node);
+
+    // edge statements
+    parseEdge(graph, id);
+  }
+
+  /**
+   * Parse an edge or a series of edges
+   * @param {Object} graph
+   * @param {String | Number} from        Id of the from node
+   */
+  function parseEdge(graph, from) {
+    while (token == "->" || token == "--") {
+      var to;
+      var type = token;
+      getToken();
+
+      var subgraph = parseSubgraph(graph);
+      if (subgraph) {
+        to = subgraph;
+      } else {
+        if (tokenType != TOKENTYPE.IDENTIFIER) {
+          throw newSyntaxError("Identifier or subgraph expected");
+        }
+        to = token;
+        addNode(graph, {
+          id: to
+        });
+        getToken();
+      }
+
+      // parse edge attributes
+      var attr = parseAttributeList();
+
+      // create edge
+      var edge = createEdge(graph, from, to, type, attr);
+      addEdge(graph, edge);
+
+      from = to;
+    }
+  }
+
+  /**
+   * Parse a set with attributes,
+   * for example [label="1.000", shape=solid]
+   * @return {Object | null} attr
+   */
+  function parseAttributeList() {
+    var attr = null;
+
+    while (token == "[") {
+      getToken();
+      attr = {};
+      while (token !== "" && token != "]") {
+        if (tokenType != TOKENTYPE.IDENTIFIER) {
+          throw newSyntaxError("Attribute name expected");
+        }
+        var name = token;
+
+        getToken();
+        if (token != "=") {
+          throw newSyntaxError("Equal sign = expected");
+        }
+        getToken();
+
+        if (tokenType != TOKENTYPE.IDENTIFIER) {
+          throw newSyntaxError("Attribute value expected");
+        }
+        var value = token;
+        setValue(attr, name, value); // name can be a path
+
+        getToken();
+        if (token == ",") {
+          getToken();
+        }
+      }
+
+      if (token != "]") {
+        throw newSyntaxError("Bracket ] expected");
+      }
+      getToken();
+    }
+
+    return attr;
+  }
+
+  /**
+   * Create a syntax error with extra information on current token and index.
+   * @param {String} message
+   * @returns {SyntaxError} err
+   */
+  function newSyntaxError(message) {
+    return new SyntaxError(message + ", got \"" + chop(token, 30) + "\" (char " + index + ")");
+  }
+
+  /**
+   * Chop off text after a maximum length
+   * @param {String} text
+   * @param {Number} maxLength
+   * @returns {String}
+   */
+  function chop(text, maxLength) {
+    return text.length <= maxLength ? text : text.substr(0, 27) + "...";
+  }
+
+  /**
+   * Execute a function fn for each pair of elements in two arrays
+   * @param {Array | *} array1
+   * @param {Array | *} array2
+   * @param {function} fn
+   */
+  function forEach2(array1, array2, fn) {
+    if (Array.isArray(array1)) {
+      array1.forEach(function (elem1) {
+        if (Array.isArray(array2)) {
+          array2.forEach(function (elem2) {
+            fn(elem1, elem2);
+          });
+        } else {
+          fn(elem1, array2);
+        }
+      });
+    } else {
+      if (Array.isArray(array2)) {
+        array2.forEach(function (elem2) {
+          fn(array1, elem2);
+        });
+      } else {
+        fn(array1, array2);
+      }
+    }
+  }
+
+  /**
+   * Convert a string containing a graph in DOT language into a map containing
+   * with nodes and edges in the format of graph.
+   * @param {String} data         Text containing a graph in DOT-notation
+   * @return {Object} graphData
+   */
+  function DOTToGraph(data) {
+    // parse the DOT file
+    var dotData = parseDOT(data);
+    var graphData = {
+      nodes: [],
+      edges: [],
+      options: {}
+    };
+
+    // copy the nodes
+    if (dotData.nodes) {
+      dotData.nodes.forEach(function (dotNode) {
+        var graphNode = {
+          id: dotNode.id,
+          label: String(dotNode.label || dotNode.id)
+        };
+        merge(graphNode, dotNode.attr);
+        if (graphNode.image) {
+          graphNode.shape = "image";
+        }
+        graphData.nodes.push(graphNode);
+      });
+    }
+
+    // copy the edges
+    if (dotData.edges) {
+      /**
+       * Convert an edge in DOT format to an edge with VisGraph format
+       * @param {Object} dotEdge
+       * @returns {Object} graphEdge
+       */
+      var convertEdge = function (dotEdge) {
+        var graphEdge = {
+          from: dotEdge.from,
+          to: dotEdge.to
+        };
+        merge(graphEdge, dotEdge.attr);
+        graphEdge.style = dotEdge.type == "->" ? "arrow" : "line";
+        return graphEdge;
+      };
+
+      dotData.edges.forEach(function (dotEdge) {
+        var from, to;
+        if (dotEdge.from instanceof Object) {
+          from = dotEdge.from.nodes;
+        } else {
+          from = {
+            id: dotEdge.from
+          };
+        }
+
+        if (dotEdge.to instanceof Object) {
+          to = dotEdge.to.nodes;
+        } else {
+          to = {
+            id: dotEdge.to
+          };
+        }
+
+        if (dotEdge.from instanceof Object && dotEdge.from.edges) {
+          dotEdge.from.edges.forEach(function (subEdge) {
+            var graphEdge = convertEdge(subEdge);
+            graphData.edges.push(graphEdge);
+          });
+        }
+
+        forEach2(from, to, function (from, to) {
+          var subEdge = createEdge(graphData, from.id, to.id, dotEdge.type, dotEdge.attr);
+          var graphEdge = convertEdge(subEdge);
+          graphData.edges.push(graphEdge);
+        });
+
+        if (dotEdge.to instanceof Object && dotEdge.to.edges) {
+          dotEdge.to.edges.forEach(function (subEdge) {
+            var graphEdge = convertEdge(subEdge);
+            graphData.edges.push(graphEdge);
+          });
+        }
+      });
+    }
+
+    // copy the options
+    if (dotData.attr) {
+      graphData.options = dotData.attr;
+    }
+
+    return graphData;
+  }
+
+  // exports
+  exports.parseDOT = parseDOT;
+  exports.DOTToGraph = DOTToGraph;
+
+/***/ },
+/* 55 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  function parseGephi(gephiJSON, options) {
+    var edges = [];
+    var nodes = [];
+    this.options = {
+      edges: {
+        inheritColor: true
+      },
+      nodes: {
+        allowedToMove: false,
+        parseColor: false
+      }
+    };
+
+    if (options !== undefined) {
+      this.options.nodes.allowedToMove = options.allowedToMove | false;
+      this.options.nodes.parseColor = options.parseColor | false;
+      this.options.edges.inheritColor = options.inheritColor | true;
+    }
+
+    var gEdges = gephiJSON.edges;
+    var gNodes = gephiJSON.nodes;
+    for (var i = 0; i < gEdges.length; i++) {
+      var edge = {};
+      var gEdge = gEdges[i];
+      edge.id = gEdge.id;
+      edge.from = gEdge.source;
+      edge.to = gEdge.target;
+      edge.attributes = gEdge.attributes;
+      //    edge['value'] = gEdge.attributes !== undefined ? gEdge.attributes.Weight : undefined;
+      //    edge['width'] = edge['value'] !== undefined ? undefined : edgegEdge.size;
+      edge.color = gEdge.color;
+      edge.inheritColor = edge.color !== undefined ? false : this.options.inheritColor;
+      edges.push(edge);
+    }
+
+    for (var i = 0; i < gNodes.length; i++) {
+      var node = {};
+      var gNode = gNodes[i];
+      node.id = gNode.id;
+      node.attributes = gNode.attributes;
+      node.x = gNode.x;
+      node.y = gNode.y;
+      node.label = gNode.label;
+      if (this.options.nodes.parseColor == true) {
+        node.color = gNode.color;
+      } else {
+        node.color = gNode.color !== undefined ? { background: gNode.color, border: gNode.color } : undefined;
+      }
+      node.radius = gNode.size;
+      node.allowedToMoveX = this.options.nodes.allowedToMove;
+      node.allowedToMoveY = this.options.nodes.allowedToMove;
+      nodes.push(node);
+    }
+
+    return { nodes: nodes, edges: edges };
+  }
+
+  exports.parseGephi = parseGephi;
+
+/***/ },
+/* 56 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
   var util = __webpack_require__(1);
-  var Node = __webpack_require__(55);
+
+  /**
+   * @class Groups
+   * This class can store groups and properties specific for groups.
+   */
+  function Groups() {
+    this.clear();
+    this.defaultIndex = 0;
+    this.groupsArray = [];
+    this.groupIndex = 0;
+    this.useDefaultGroups = true;
+  }
+
+
+  /**
+   * default constants for group colors
+   */
+  Groups.DEFAULT = [{ border: "#2B7CE9", background: "#97C2FC", highlight: { border: "#2B7CE9", background: "#D2E5FF" }, hover: { border: "#2B7CE9", background: "#D2E5FF" } }, // 0: blue
+  { border: "#FFA500", background: "#FFFF00", highlight: { border: "#FFA500", background: "#FFFFA3" }, hover: { border: "#FFA500", background: "#FFFFA3" } }, // 1: yellow
+  { border: "#FA0A10", background: "#FB7E81", highlight: { border: "#FA0A10", background: "#FFAFB1" }, hover: { border: "#FA0A10", background: "#FFAFB1" } }, // 2: red
+  { border: "#41A906", background: "#7BE141", highlight: { border: "#41A906", background: "#A1EC76" }, hover: { border: "#41A906", background: "#A1EC76" } }, // 3: green
+  { border: "#E129F0", background: "#EB7DF4", highlight: { border: "#E129F0", background: "#F0B3F5" }, hover: { border: "#E129F0", background: "#F0B3F5" } }, // 4: magenta
+  { border: "#7C29F0", background: "#AD85E4", highlight: { border: "#7C29F0", background: "#D3BDF0" }, hover: { border: "#7C29F0", background: "#D3BDF0" } }, // 5: purple
+  { border: "#C37F00", background: "#FFA807", highlight: { border: "#C37F00", background: "#FFCA66" }, hover: { border: "#C37F00", background: "#FFCA66" } }, // 6: orange
+  { border: "#4220FB", background: "#6E6EFD", highlight: { border: "#4220FB", background: "#9B9BFD" }, hover: { border: "#4220FB", background: "#9B9BFD" } }, // 7: darkblue
+  { border: "#FD5A77", background: "#FFC0CB", highlight: { border: "#FD5A77", background: "#FFD1D9" }, hover: { border: "#FD5A77", background: "#FFD1D9" } }, // 8: pink
+  { border: "#4AD63A", background: "#C2FABC", highlight: { border: "#4AD63A", background: "#E6FFE3" }, hover: { border: "#4AD63A", background: "#E6FFE3" } }, // 9: mint
+
+  { border: "#990000", background: "#EE0000", highlight: { border: "#BB0000", background: "#FF3333" }, hover: { border: "#BB0000", background: "#FF3333" } }, // 10:bright red
+
+  { border: "#FF6000", background: "#FF6000", highlight: { border: "#FF6000", background: "#FF6000" }, hover: { border: "#FF6000", background: "#FF6000" } }, // 12: real orange
+  { border: "#97C2FC", background: "#2B7CE9", highlight: { border: "#D2E5FF", background: "#2B7CE9" }, hover: { border: "#D2E5FF", background: "#2B7CE9" } }, // 13: blue
+  { border: "#399605", background: "#255C03", highlight: { border: "#399605", background: "#255C03" }, hover: { border: "#399605", background: "#255C03" } }, // 14: green
+  { border: "#B70054", background: "#FF007E", highlight: { border: "#B70054", background: "#FF007E" }, hover: { border: "#B70054", background: "#FF007E" } }, // 15: magenta
+  { border: "#AD85E4", background: "#7C29F0", highlight: { border: "#D3BDF0", background: "#7C29F0" }, hover: { border: "#D3BDF0", background: "#7C29F0" } }, // 16: purple
+  { border: "#4557FA", background: "#000EA1", highlight: { border: "#6E6EFD", background: "#000EA1" }, hover: { border: "#6E6EFD", background: "#000EA1" } }, // 17: darkblue
+  { border: "#FFC0CB", background: "#FD5A77", highlight: { border: "#FFD1D9", background: "#FD5A77" }, hover: { border: "#FFD1D9", background: "#FD5A77" } }, // 18: pink
+  { border: "#C2FABC", background: "#74D66A", highlight: { border: "#E6FFE3", background: "#74D66A" }, hover: { border: "#E6FFE3", background: "#74D66A" } }, // 19: mint
+
+  { border: "#EE0000", background: "#990000", highlight: { border: "#FF3333", background: "#BB0000" }, hover: { border: "#FF3333", background: "#BB0000" } }];
+
+
+  /**
+   * Clear all groups
+   */
+  Groups.prototype.clear = function () {
+    this.groups = {};
+    this.groups.length = function () {
+      var i = 0;
+      for (var p in this) {
+        if (this.hasOwnProperty(p)) {
+          i++;
+        }
+      }
+      return i;
+    };
+  };
+
+
+  /**
+   * get group properties of a groupname. If groupname is not found, a new group
+   * is added.
+   * @param {*} groupname        Can be a number, string, Date, etc.
+   * @return {Object} group      The created group, containing all group properties
+   */
+  Groups.prototype.get = function (groupname) {
+    var group = this.groups[groupname];
+    if (group == undefined) {
+      if (this.useDefaultGroups === false && this.groupsArray.length > 0) {
+        // create new group
+        var index = this.groupIndex % this.groupsArray.length;
+        this.groupIndex++;
+        group = {};
+        group.color = this.groups[this.groupsArray[index]];
+        this.groups[groupname] = group;
+      } else {
+        // create new group
+        var index = this.defaultIndex % Groups.DEFAULT.length;
+        this.defaultIndex++;
+        group = {};
+        group.color = Groups.DEFAULT[index];
+        this.groups[groupname] = group;
+      }
+    }
+
+    return group;
+  };
+
+  /**
+   * Add a custom group style
+   * @param {String} groupName
+   * @param {Object} style       An object containing borderColor,
+   *                             backgroundColor, etc.
+   * @return {Object} group      The created group object
+   */
+  Groups.prototype.add = function (groupName, style) {
+    this.groups[groupName] = style;
+    this.groupsArray.push(groupName);
+    return style;
+  };
+
+  module.exports = Groups;
+  // 20:bright red
+
+/***/ },
+/* 57 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  /**
+   * @class Images
+   * This class loads images and keeps them stored.
+   */
+  function Images() {
+    this.images = {};
+    this.imageBroken = {};
+    this.callback = undefined;
+  }
+
+  /**
+   * Set an onload callback function. This will be called each time an image
+   * is loaded
+   * @param {function} callback
+   */
+  Images.prototype.setOnloadCallback = function (callback) {
+    this.callback = callback;
+  };
+
+  /**
+   *
+   * @param {string} url          Url of the image
+   * @param {string} url          Url of an image to use if the url image is not found
+   * @return {Image} img          The image object
+   */
+  Images.prototype.load = function (url, brokenUrl) {
+    var img = this.images[url]; // make a pointer
+    if (img === undefined) {
+      // create the image
+      var me = this;
+      img = new Image();
+      img.onload = function () {
+        // IE11 fix -- thanks dponch!
+        if (this.width == 0) {
+          document.body.appendChild(this);
+          this.width = this.offsetWidth;
+          this.height = this.offsetHeight;
+          document.body.removeChild(this);
+        }
+
+        if (me.callback) {
+          me.images[url] = img;
+          me.callback(this);
+        }
+      };
+
+      img.onerror = function () {
+        if (brokenUrl === undefined) {
+          console.error("Could not load image:", url);
+          delete this.src;
+          if (me.callback) {
+            me.callback(this);
+          }
+        } else {
+          if (me.imageBroken[url] === true) {
+            if (this.src == brokenUrl) {
+              console.error("Could not load brokenImage:", brokenUrl);
+              delete this.src;
+              if (me.callback) {
+                me.callback(this);
+              }
+            } else {
+              console.error("Could not load image:", url);
+              this.src = brokenUrl;
+            }
+          } else {
+            console.error("Could not load image:", url);
+            this.src = brokenUrl;
+            me.imageBroken[url] = true;
+          }
+        }
+      };
+
+      img.src = url;
+    }
+
+    return img;
+  };
+
+  module.exports = Images;
+
+/***/ },
+/* 58 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var util = __webpack_require__(1);
+
+  /**
+   * @class Node
+   * A node. A node can be connected to other nodes via one or multiple edges.
+   * @param {object} properties An object containing properties for the node. All
+   *                            properties are optional, except for the id.
+   *                              {number} id     Id of the node. Required
+   *                              {string} label  Text label for the node
+   *                              {number} x      Horizontal position of the node
+   *                              {number} y      Vertical position of the node
+   *                              {string} shape  Node shape, available:
+   *                                              "database", "circle", "ellipse",
+   *                                              "box", "image", "text", "dot",
+   *                                              "star", "triangle", "triangleDown",
+   *                                              "square", "icon"
+   *                              {string} image  An image url
+   *                              {string} title  An title text, can be HTML
+   *                              {anytype} group A group name or number
+   * @param {Network.Images} imagelist    A list with images. Only needed
+   *                                            when the node has an image
+   * @param {Network.Groups} grouplist    A list with groups. Needed for
+   *                                            retrieving group properties
+   * @param {Object}               constants    An object with default values for
+   *                                            example for the color
+   *
+   */
+  function Node(properties, imagelist, grouplist, networkConstants) {
+    var constants = util.selectiveBridgeObject(["nodes"], networkConstants);
+    this.options = constants.nodes;
+
+    this.selected = false;
+    this.hover = false;
+
+    this.edges = []; // all edges connected to this node
+
+    // set defaults for the properties
+    this.id = undefined;
+    this.allowedToMoveX = false;
+    this.allowedToMoveY = false;
+    this.xFixed = false;
+    this.yFixed = false;
+    this.horizontalAlignLeft = true; // these are for the navigation controls
+    this.verticalAlignTop = true; // these are for the navigation controls
+    this.baseRadiusValue = networkConstants.nodes.radius;
+    this.radiusFixed = false;
+    this.level = -1;
+    this.preassignedLevel = false;
+    this.hierarchyEnumerated = false;
+    this.labelDimensions = { top: 0, left: 0, width: 0, height: 0, yLine: 0 }; // could be cached
+    this.boundingBox = { top: 0, left: 0, right: 0, bottom: 0 };
+
+    this.imagelist = imagelist;
+    this.grouplist = grouplist;
+
+    // physics properties
+    this.x = null;
+    this.y = null;
+    this.predefinedPosition = false; // used to check if initial zoomExtent should just take the range or approximate
+
+    // used for reverting to previous position on stabilization
+    this.previousState = { vx: 0, vy: 0, x: 0, y: 0 };
+
+    this.fixedData = { x: null, y: null };
+
+    this.setProperties(properties, constants);
+
+    // variables to tell the node about the network.
+    this.networkScaleInv = 1;
+    this.networkScale = 1;
+    this.canvasTopLeft = { x: -300, y: -300 };
+    this.canvasBottomRight = { x: 300, y: 300 };
+    this.parentEdgeId = null;
+  }
+
+
+  /**
+   * Attach a edge to the node
+   * @param {Edge} edge
+   */
+  Node.prototype.attachEdge = function (edge) {
+    if (this.edges.indexOf(edge) == -1) {
+      this.edges.push(edge);
+    }
+  };
+
+  /**
+   * Detach a edge from the node
+   * @param {Edge} edge
+   */
+  Node.prototype.detachEdge = function (edge) {
+    var index = this.edges.indexOf(edge);
+    if (index != -1) {
+      this.edges.splice(index, 1);
+    }
+  };
+
+
+  /**
+   * Set or overwrite properties for the node
+   * @param {Object} properties an object with properties
+   * @param {Object} constants  and object with default, global properties
+   */
+  Node.prototype.setProperties = function (properties, constants) {
+    if (!properties) {
+      return;
+    }
+    this.properties = properties;
+
+    var fields = ["borderWidth", "borderWidthSelected", "shape", "image", "brokenImage", "radius", "fontColor", "fontSize", "fontFace", "fontFill", "fontStrokeWidth", "fontStrokeColor", "group", "mass", "fontDrawThreshold", "scaleFontWithValue", "fontSizeMaxVisible", "customScalingFunction", "iconFontFace", "icon", "iconColor", "iconSize", "value"];
+    util.selectiveDeepExtend(fields, this.options, properties);
+
+    // basic properties
+    if (properties.id !== undefined) {
+      this.id = properties.id;
+    }
+    if (properties.label !== undefined) {
+      this.label = properties.label;this.originalLabel = properties.label;
+    }
+    if (properties.title !== undefined) {
+      this.title = properties.title;
+    }
+    if (properties.x !== undefined) {
+      this.x = properties.x;this.predefinedPosition = true;
+    }
+    if (properties.y !== undefined) {
+      this.y = properties.y;this.predefinedPosition = true;
+    }
+    if (properties.value !== undefined) {
+      this.value = properties.value;
+    }
+    if (properties.level !== undefined) {
+      this.level = properties.level;this.preassignedLevel = true;
+    }
+
+    // navigation controls properties
+    if (properties.horizontalAlignLeft !== undefined) {
+      this.horizontalAlignLeft = properties.horizontalAlignLeft;
+    }
+    if (properties.verticalAlignTop !== undefined) {
+      this.verticalAlignTop = properties.verticalAlignTop;
+    }
+    if (properties.triggerFunction !== undefined) {
+      this.triggerFunction = properties.triggerFunction;
+    }
+
+    if (this.id === undefined) {
+      throw "Node must have an id";
+    }
+
+    // copy group properties
+    if (typeof properties.group === "number" || typeof properties.group === "string" && properties.group != "") {
+      var groupObj = this.grouplist.get(properties.group);
+      util.deepExtend(this.options, groupObj);
+      // the color object needs to be completely defined. Since groups can partially overwrite the colors, we parse it again, just in case.
+      this.options.color = util.parseColor(this.options.color);
+    }
+    // individual shape properties
+    if (properties.radius !== undefined) {
+      this.baseRadiusValue = this.options.radius;
+    }
+    if (properties.color !== undefined) {
+      this.options.color = util.parseColor(properties.color);
+    }
+
+    if (this.options.image !== undefined && this.options.image != "") {
+      if (this.imagelist) {
+        this.imageObj = this.imagelist.load(this.options.image, this.options.brokenImage);
+      } else {
+        throw "No imagelist provided";
+      }
+    }
+
+    if (properties.allowedToMoveX !== undefined) {
+      this.xFixed = !properties.allowedToMoveX;
+      this.allowedToMoveX = properties.allowedToMoveX;
+    } else if (properties.x !== undefined && this.allowedToMoveX == false) {
+      this.xFixed = true;
+    }
+
+
+    if (properties.allowedToMoveY !== undefined) {
+      this.yFixed = !properties.allowedToMoveY;
+      this.allowedToMoveY = properties.allowedToMoveY;
+    } else if (properties.y !== undefined && this.allowedToMoveY == false) {
+      this.yFixed = true;
+    }
+
+    this.radiusFixed = this.radiusFixed || properties.radius !== undefined;
+
+    if (this.options.shape === "image" || this.options.shape === "circularImage") {
+      this.options.radiusMin = constants.nodes.widthMin;
+      this.options.radiusMax = constants.nodes.widthMax;
+    }
+
+    // choose draw method depending on the shape
+    switch (this.options.shape) {
+      case "database":
+        this.draw = this._drawDatabase;this.resize = this._resizeDatabase;break;
+      case "box":
+        this.draw = this._drawBox;this.resize = this._resizeBox;break;
+      case "circle":
+        this.draw = this._drawCircle;this.resize = this._resizeCircle;break;
+      case "ellipse":
+        this.draw = this._drawEllipse;this.resize = this._resizeEllipse;break;
+      // TODO: add diamond shape
+      case "image":
+        this.draw = this._drawImage;this.resize = this._resizeImage;break;
+      case "circularImage":
+        this.draw = this._drawCircularImage;this.resize = this._resizeCircularImage;break;
+      case "text":
+        this.draw = this._drawText;this.resize = this._resizeText;break;
+      case "dot":
+        this.draw = this._drawDot;this.resize = this._resizeShape;break;
+      case "square":
+        this.draw = this._drawSquare;this.resize = this._resizeShape;break;
+      case "triangle":
+        this.draw = this._drawTriangle;this.resize = this._resizeShape;break;
+      case "triangleDown":
+        this.draw = this._drawTriangleDown;this.resize = this._resizeShape;break;
+      case "star":
+        this.draw = this._drawStar;this.resize = this._resizeShape;break;
+      case "icon":
+        this.draw = this._drawIcon;this.resize = this._resizeIcon;break;
+      default:
+        this.draw = this._drawEllipse;this.resize = this._resizeEllipse;break;
+    }
+    // reset the size of the node, this can be changed
+    this._reset();
+  };
+
+  /**
+   * select this node
+   */
+  Node.prototype.select = function () {
+    this.selected = true;
+    this._reset();
+  };
+
+  /**
+   * unselect this node
+   */
+  Node.prototype.unselect = function () {
+    this.selected = false;
+    this._reset();
+  };
+
+
+  /**
+   * Reset the calculated size of the node, forces it to recalculate its size
+   * @private
+   */
+  Node.prototype._reset = function () {
+    this.width = undefined;
+    this.height = undefined;
+  };
+
+  /**
+   * get the title of this node.
+   * @return {string} title    The title of the node, or undefined when no title
+   *                           has been set.
+   */
+  Node.prototype.getTitle = function () {
+    return typeof this.title === "function" ? this.title() : this.title;
+  };
+
+  /**
+   * Calculate the distance to the border of the Node
+   * @param {CanvasRenderingContext2D}   ctx
+   * @param {Number} angle        Angle in radians
+   * @returns {number} distance   Distance to the border in pixels
+   */
+  Node.prototype.distanceToBorder = function (ctx, angle) {
+    var borderWidth = 1;
+
+    if (!this.width) {
+      this.resize(ctx);
+    }
+
+    switch (this.options.shape) {
+      case "circle":
+      case "dot":
+        return this.options.radius + borderWidth;
+
+      case "ellipse":
+        var a = this.width / 2;
+        var b = this.height / 2;
+        var w = Math.sin(angle) * a;
+        var h = Math.cos(angle) * b;
+        return a * b / Math.sqrt(w * w + h * h);
+
+      // TODO: implement distanceToBorder for database
+      // TODO: implement distanceToBorder for triangle
+      // TODO: implement distanceToBorder for triangleDown
+
+      case "box":
+      case "image":
+      case "text":
+      default:
+        if (this.width) {
+          return Math.min(Math.abs(this.width / 2 / Math.cos(angle)), Math.abs(this.height / 2 / Math.sin(angle))) + borderWidth;
+          // TODO: reckon with border radius too in case of box
+        } else {
+          return 0;
+        }
+
+    }
+    // TODO: implement calculation of distance to border for all shapes
+  };
+
+
+  /**
+   * Check if this node has a fixed x and y position
+   * @return {boolean}      true if fixed, false if not
+   */
+  Node.prototype.isFixed = function () {
+    return this.xFixed && this.yFixed;
+  };
+
+  /**
+   * check if this node is selecte
+   * @return {boolean} selected   True if node is selected, else false
+   */
+  Node.prototype.isSelected = function () {
+    return this.selected;
+  };
+
+  /**
+   * Retrieve the value of the node. Can be undefined
+   * @return {Number} value
+   */
+  Node.prototype.getValue = function () {
+    return this.value;
+  };
+
+  /**
+   * Calculate the distance from the nodes location to the given location (x,y)
+   * @param {Number} x
+   * @param {Number} y
+   * @return {Number} value
+   */
+  Node.prototype.getDistance = function (x, y) {
+    var dx = this.x - x,
+        dy = this.y - y;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
+
+  /**
+   * Adjust the value range of the node. The node will adjust it's radius
+   * based on its value.
+   * @param {Number} min
+   * @param {Number} max
+   */
+  Node.prototype.setValueRange = function (min, max, total) {
+    if (!this.radiusFixed && this.value !== undefined) {
+      var scale = this.options.customScalingFunction(min, max, total, this.value);
+      var radiusDiff = this.options.radiusMax - this.options.radiusMin;
+      if (this.options.scaleFontWithValue == true) {
+        var fontDiff = this.options.fontSizeMax - this.options.fontSizeMin;
+        this.options.fontSize = this.options.fontSizeMin + scale * fontDiff;
+      }
+      this.options.radius = this.options.radiusMin + scale * radiusDiff;
+    }
+
+    this.baseRadiusValue = this.options.radius;
+  };
+
+  /**
+   * Draw this node in the given canvas
+   * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+   * @param {CanvasRenderingContext2D}   ctx
+   */
+  Node.prototype.draw = function (ctx) {
+    throw "Draw method not initialized for node";
+  };
+
+  /**
+   * Recalculate the size of this node in the given canvas
+   * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+   * @param {CanvasRenderingContext2D}   ctx
+   */
+  Node.prototype.resize = function (ctx) {
+    throw "Resize method not initialized for node";
+  };
+
+  /**
+   * Check if this object is overlapping with the provided object
+   * @param {Object} obj   an object with parameters left, top, right, bottom
+   * @return {boolean}     True if location is located on node
+   */
+  Node.prototype.isOverlappingWith = function (obj) {
+    return this.left < obj.right && this.left + this.width > obj.left && this.top < obj.bottom && this.top + this.height > obj.top;
+  };
+
+  Node.prototype._resizeImage = function (ctx) {
+    // TODO: pre calculate the image size
+
+    if (!this.width || !this.height) {
+      // undefined or 0
+      var width, height;
+      if (this.value) {
+        this.options.radius = this.baseRadiusValue;
+        var scale = this.imageObj.height / this.imageObj.width;
+        if (scale !== undefined) {
+          width = this.options.radius || this.imageObj.width;
+          height = this.options.radius * scale || this.imageObj.height;
+        } else {
+          width = 0;
+          height = 0;
+        }
+      } else {
+        width = this.imageObj.width;
+        height = this.imageObj.height;
+      }
+      this.width = width;
+      this.height = height;
+    }
+  };
+
+  Node.prototype._drawImageAtPosition = function (ctx) {
+    if (this.imageObj.width != 0) {
+      // draw the image
+      ctx.globalAlpha = 1;
+      ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
+    }
+  };
+
+  Node.prototype._drawImageLabel = function (ctx) {
+    var yLabel;
+    var offset = 0;
+
+    if (this.height) {
+      offset = this.height / 2;
+      var labelDimensions = this.getTextSize(ctx);
+
+      if (labelDimensions.lineCount >= 1) {
+        offset += labelDimensions.height / 2;
+        offset += 3;
+      }
+    }
+
+    yLabel = this.y + offset;
+
+    this._label(ctx, this.label, this.x, yLabel, undefined);
+  };
+
+  Node.prototype._drawImage = function (ctx) {
+    this._resizeImage(ctx);
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    this._drawImageAtPosition(ctx);
+
+    this.boundingBox.top = this.top;
+    this.boundingBox.left = this.left;
+    this.boundingBox.right = this.left + this.width;
+    this.boundingBox.bottom = this.top + this.height;
+
+    this._drawImageLabel(ctx);
+    this.boundingBox.left = Math.min(this.boundingBox.left, this.labelDimensions.left);
+    this.boundingBox.right = Math.max(this.boundingBox.right, this.labelDimensions.left + this.labelDimensions.width);
+    this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelDimensions.height);
+  };
+
+  Node.prototype._resizeCircularImage = function (ctx) {
+    if (!this.imageObj.src || !this.imageObj.width || !this.imageObj.height) {
+      if (!this.width) {
+        var diameter = this.options.radius * 2;
+        this.width = diameter;
+        this.height = diameter;
+        this._swapToImageResizeWhenImageLoaded = true;
+      }
+    } else {
+      if (this._swapToImageResizeWhenImageLoaded) {
+        this.width = 0;
+        this.height = 0;
+        delete this._swapToImageResizeWhenImageLoaded;
+      }
+      this._resizeImage(ctx);
+    }
+  };
+
+  Node.prototype._drawCircularImage = function (ctx) {
+    this._resizeCircularImage(ctx);
+
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    var centerX = this.left + this.width / 2;
+    var centerY = this.top + this.height / 2;
+    var radius = Math.abs(this.height / 2);
+
+    this._drawRawCircle(ctx, centerX, centerY, radius);
+
+    ctx.save();
+    ctx.circle(this.x, this.y, radius);
+    ctx.stroke();
+    ctx.clip();
+
+    this._drawImageAtPosition(ctx);
+
+    ctx.restore();
+
+    this.boundingBox.top = this.y - this.options.radius;
+    this.boundingBox.left = this.x - this.options.radius;
+    this.boundingBox.right = this.x + this.options.radius;
+    this.boundingBox.bottom = this.y + this.options.radius;
+
+    this._drawImageLabel(ctx);
+
+    this.boundingBox.left = Math.min(this.boundingBox.left, this.labelDimensions.left);
+    this.boundingBox.right = Math.max(this.boundingBox.right, this.labelDimensions.left + this.labelDimensions.width);
+    this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelDimensions.height);
+  };
+
+  Node.prototype._resizeBox = function (ctx) {
+    if (!this.width) {
+      var margin = 5;
+      var textSize = this.getTextSize(ctx);
+      this.width = textSize.width + 2 * margin;
+      this.height = textSize.height + 2 * margin;
+    }
+  };
+
+  Node.prototype._drawBox = function (ctx) {
+    this._resizeBox(ctx);
+
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    var borderWidth = this.options.borderWidth;
+    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+
+    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
+    ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
+    ctx.lineWidth *= this.networkScaleInv;
+    ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
+
+    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
+
+    ctx.roundRect(this.left, this.top, this.width, this.height, this.options.radius);
+    ctx.fill();
+    ctx.stroke();
+
+    this.boundingBox.top = this.top;
+    this.boundingBox.left = this.left;
+    this.boundingBox.right = this.left + this.width;
+    this.boundingBox.bottom = this.top + this.height;
+
+    this._label(ctx, this.label, this.x, this.y);
+  };
+
+
+  Node.prototype._resizeDatabase = function (ctx) {
+    if (!this.width) {
+      var margin = 5;
+      var textSize = this.getTextSize(ctx);
+      var size = textSize.width + 2 * margin;
+      this.width = size;
+      this.height = size;
+    }
+  };
+
+  Node.prototype._drawDatabase = function (ctx) {
+    this._resizeDatabase(ctx);
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    var borderWidth = this.options.borderWidth;
+    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+
+    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
+    ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
+    ctx.lineWidth *= this.networkScaleInv;
+    ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
+
+    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
+    ctx.database(this.x - this.width / 2, this.y - this.height * 0.5, this.width, this.height);
+    ctx.fill();
+    ctx.stroke();
+
+    this.boundingBox.top = this.top;
+    this.boundingBox.left = this.left;
+    this.boundingBox.right = this.left + this.width;
+    this.boundingBox.bottom = this.top + this.height;
+
+    this._label(ctx, this.label, this.x, this.y);
+  };
+
+
+  Node.prototype._resizeCircle = function (ctx) {
+    if (!this.width) {
+      var margin = 5;
+      var textSize = this.getTextSize(ctx);
+      var diameter = Math.max(textSize.width, textSize.height) + 2 * margin;
+      this.options.radius = diameter / 2;
+
+      this.width = diameter;
+      this.height = diameter;
+    }
+  };
+
+  Node.prototype._drawRawCircle = function (ctx, x, y, radius) {
+    var borderWidth = this.options.borderWidth;
+    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+
+    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
+
+    ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
+    ctx.lineWidth *= this.networkScaleInv;
+    ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
+
+    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
+    ctx.circle(this.x, this.y, radius);
+    ctx.fill();
+    ctx.stroke();
+  };
+
+  Node.prototype._drawCircle = function (ctx) {
+    this._resizeCircle(ctx);
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    this._drawRawCircle(ctx, this.x, this.y, this.options.radius);
+
+    this.boundingBox.top = this.y - this.options.radius;
+    this.boundingBox.left = this.x - this.options.radius;
+    this.boundingBox.right = this.x + this.options.radius;
+    this.boundingBox.bottom = this.y + this.options.radius;
+
+    this._label(ctx, this.label, this.x, this.y);
+  };
+
+  Node.prototype._resizeEllipse = function (ctx) {
+    if (this.width === undefined) {
+      var textSize = this.getTextSize(ctx);
+
+      this.width = textSize.width * 1.5;
+      this.height = textSize.height * 2;
+      if (this.width < this.height) {
+        this.width = this.height;
+      }
+      var defaultSize = this.width;
+    }
+  };
+
+  Node.prototype._drawEllipse = function (ctx) {
+    this._resizeEllipse(ctx);
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    var borderWidth = this.options.borderWidth;
+    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+
+    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
+
+    ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
+    ctx.lineWidth *= this.networkScaleInv;
+    ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
+
+    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
+
+    ctx.ellipse(this.left, this.top, this.width, this.height);
+    ctx.fill();
+    ctx.stroke();
+
+    this.boundingBox.top = this.top;
+    this.boundingBox.left = this.left;
+    this.boundingBox.right = this.left + this.width;
+    this.boundingBox.bottom = this.top + this.height;
+
+    this._label(ctx, this.label, this.x, this.y);
+  };
+
+  Node.prototype._drawDot = function (ctx) {
+    this._drawShape(ctx, "circle");
+  };
+
+  Node.prototype._drawTriangle = function (ctx) {
+    this._drawShape(ctx, "triangle");
+  };
+
+  Node.prototype._drawTriangleDown = function (ctx) {
+    this._drawShape(ctx, "triangleDown");
+  };
+
+  Node.prototype._drawSquare = function (ctx) {
+    this._drawShape(ctx, "square");
+  };
+
+  Node.prototype._drawStar = function (ctx) {
+    this._drawShape(ctx, "star");
+  };
+
+  Node.prototype._resizeShape = function (ctx) {
+    if (!this.width) {
+      this.options.radius = this.baseRadiusValue;
+      var size = 2 * this.options.radius;
+      this.width = size;
+      this.height = size;
+    }
+  };
+
+  Node.prototype._drawShape = function (ctx, shape) {
+    this._resizeShape(ctx);
+
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    var borderWidth = this.options.borderWidth;
+    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+    var radiusMultiplier = 2;
+
+    // choose draw method depending on the shape
+    switch (shape) {
+      case "dot":
+        radiusMultiplier = 2;break;
+      case "square":
+        radiusMultiplier = 2;break;
+      case "triangle":
+        radiusMultiplier = 3;break;
+      case "triangleDown":
+        radiusMultiplier = 3;break;
+      case "star":
+        radiusMultiplier = 4;break;
+    }
+
+    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
+    ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
+    ctx.lineWidth *= this.networkScaleInv;
+    ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
+
+    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
+    ctx[shape](this.x, this.y, this.options.radius);
+    ctx.fill();
+    ctx.stroke();
+
+    this.boundingBox.top = this.y - this.options.radius;
+    this.boundingBox.left = this.x - this.options.radius;
+    this.boundingBox.right = this.x + this.options.radius;
+    this.boundingBox.bottom = this.y + this.options.radius;
+
+    if (this.label) {
+      this._label(ctx, this.label, this.x, this.y + this.height / 2, undefined, "hanging", true);
+      this.boundingBox.left = Math.min(this.boundingBox.left, this.labelDimensions.left);
+      this.boundingBox.right = Math.max(this.boundingBox.right, this.labelDimensions.left + this.labelDimensions.width);
+      this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelDimensions.height);
+    }
+  };
+
+  Node.prototype._resizeText = function (ctx) {
+    if (!this.width) {
+      var margin = 5;
+      var textSize = this.getTextSize(ctx);
+      this.width = textSize.width + 2 * margin;
+      this.height = textSize.height + 2 * margin;
+    }
+  };
+
+  Node.prototype._drawText = function (ctx) {
+    this._resizeText(ctx);
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+
+    this._label(ctx, this.label, this.x, this.y);
+
+    this.boundingBox.top = this.top;
+    this.boundingBox.left = this.left;
+    this.boundingBox.right = this.left + this.width;
+    this.boundingBox.bottom = this.top + this.height;
+  };
+
+  Node.prototype._resizeIcon = function (ctx) {
+    if (!this.width) {
+      var margin = 5;
+      var iconSize = {
+        width: Number(this.options.iconSize),
+        height: Number(this.options.iconSize)
+      };
+      this.width = iconSize.width + 2 * margin;
+      this.height = iconSize.height + 2 * margin;
+    }
+  };
+
+  Node.prototype._drawIcon = function (ctx) {
+    this._resizeIcon(ctx);
+
+    this.options.iconSize = this.options.iconSize || 50;
+
+    this.left = this.x - this.width / 2;
+    this.top = this.y - this.height / 2;
+    this._icon(ctx);
+
+
+    this.boundingBox.top = this.y - this.options.iconSize / 2;
+    this.boundingBox.left = this.x - this.options.iconSize / 2;
+    this.boundingBox.right = this.x + this.options.iconSize / 2;
+    this.boundingBox.bottom = this.y + this.options.iconSize / 2;
+
+    if (this.label) {
+      var iconTextSpacing = 5;
+      this._label(ctx, this.label, this.x, this.y + this.height / 2 + iconTextSpacing, "top", true);
+
+      this.boundingBox.left = Math.min(this.boundingBox.left, this.labelDimensions.left);
+      this.boundingBox.right = Math.max(this.boundingBox.right, this.labelDimensions.left + this.labelDimensions.width);
+      this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelDimensions.height);
+    }
+  };
+
+  Node.prototype._icon = function (ctx) {
+    var relativeIconSize = Number(this.options.iconSize) * this.networkScale;
+
+    if (this.options.icon && relativeIconSize > this.options.fontDrawThreshold - 1) {
+      var iconSize = Number(this.options.iconSize);
+
+      ctx.font = (this.selected ? "bold " : "") + iconSize + "px " + this.options.iconFontFace;
+
+      // draw icon
+      ctx.fillStyle = this.options.iconColor || "black";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(this.options.icon, this.x, this.y);
+    }
+  };
+
+  Node.prototype._label = function (ctx, text, x, y, align, baseline, labelUnderNode) {
+    var relativeFontSize = Number(this.options.fontSize) * this.networkScale;
+    if (text && relativeFontSize >= this.options.fontDrawThreshold - 1) {
+      var fontSize = Number(this.options.fontSize);
+
+      // this ensures that there will not be HUGE letters on screen by setting an upper limit on the visible text size (regardless of zoomLevel)
+      if (relativeFontSize >= this.options.fontSizeMaxVisible) {
+        fontSize = Number(this.options.fontSizeMaxVisible) * this.networkScaleInv;
+      }
+
+      // fade in when relative scale is between threshold and threshold - 1
+      var fontColor = this.options.fontColor || "#000000";
+      var strokecolor = this.options.fontStrokeColor;
+      if (relativeFontSize <= this.options.fontDrawThreshold) {
+        var opacity = Math.max(0, Math.min(1, 1 - (this.options.fontDrawThreshold - relativeFontSize)));
+        fontColor = util.overrideOpacity(fontColor, opacity);
+        strokecolor = util.overrideOpacity(strokecolor, opacity);
+      }
+
+      ctx.font = (this.selected ? "bold " : "") + fontSize + "px " + this.options.fontFace;
+
+      var lines = text.split("\n");
+      var lineCount = lines.length;
+      var yLine = y + (1 - lineCount) / 2 * fontSize;
+      if (labelUnderNode == true) {
+        yLine = y + (1 - lineCount) / (2 * fontSize);
+      }
+
+      // font fill from edges now for nodes!
+      var width = ctx.measureText(lines[0]).width;
+      for (var i = 1; i < lineCount; i++) {
+        var lineWidth = ctx.measureText(lines[i]).width;
+        width = lineWidth > width ? lineWidth : width;
+      }
+      var height = fontSize * lineCount;
+      var left = x - width / 2;
+      var top = y - height / 2;
+      if (baseline == "hanging") {
+        top += 0.5 * fontSize;
+        top += 4; // distance from node, required because we use hanging. Hanging has less difference between browsers
+        yLine += 4; // distance from node
+      }
+      this.labelDimensions = { top: top, left: left, width: width, height: height, yLine: yLine };
+
+      // create the fontfill background
+      if (this.options.fontFill !== undefined && this.options.fontFill !== null && this.options.fontFill !== "none") {
+        ctx.fillStyle = this.options.fontFill;
+        ctx.fillRect(left, top, width, height);
+      }
+
+      // draw text
+      ctx.fillStyle = fontColor;
+      ctx.textAlign = align || "center";
+      ctx.textBaseline = baseline || "middle";
+      if (this.options.fontStrokeWidth > 0) {
+        ctx.lineWidth = this.options.fontStrokeWidth;
+        ctx.strokeStyle = strokecolor;
+        ctx.lineJoin = "round";
+      }
+      for (var i = 0; i < lineCount; i++) {
+        if (this.options.fontStrokeWidth) {
+          ctx.strokeText(lines[i], x, yLine);
+        }
+        ctx.fillText(lines[i], x, yLine);
+        yLine += fontSize;
+      }
+    }
+  };
+
+
+  Node.prototype.getTextSize = function (ctx) {
+    if (this.label !== undefined) {
+      var fontSize = Number(this.options.fontSize);
+      if (fontSize * this.networkScale > this.options.fontSizeMaxVisible) {
+        fontSize = Number(this.options.fontSizeMaxVisible) * this.networkScaleInv;
+      }
+      ctx.font = (this.selected ? "bold " : "") + fontSize + "px " + this.options.fontFace;
+
+      var lines = this.label.split("\n"),
+          height = (fontSize + 4) * lines.length,
+          width = 0;
+
+      for (var i = 0, iMax = lines.length; i < iMax; i++) {
+        width = Math.max(width, ctx.measureText(lines[i]).width);
+      }
+
+      return { width: width, height: height, lineCount: lines.length };
+    } else {
+      return { width: 0, height: 0, lineCount: 0 };
+    }
+  };
+
+
+  /**
+   * this is used to determine if a node is visible at all. this is used to determine when it needs to be drawn.
+   * there is a safety margin of 0.3 * width;
+   *
+   * @returns {boolean}
+   */
+  Node.prototype.inArea = function () {
+    if (this.width !== undefined) {
+      return this.x + this.width * this.networkScaleInv >= this.canvasTopLeft.x && this.x - this.width * this.networkScaleInv < this.canvasBottomRight.x && this.y + this.height * this.networkScaleInv >= this.canvasTopLeft.y && this.y - this.height * this.networkScaleInv < this.canvasBottomRight.y;
+    } else {
+      return true;
+    }
+  };
+
+
+  /**
+   * This allows the zoom level of the network to influence the rendering
+   * We store the inverted scale and the coordinates of the top left, and bottom right points of the canvas
+   *
+   * @param scale
+   * @param canvasTopLeft
+   * @param canvasBottomRight
+   */
+  Node.prototype.setScaleAndPos = function (scale, canvasTopLeft, canvasBottomRight) {
+    this.networkScaleInv = 1 / scale;
+    this.networkScale = scale;
+    this.canvasTopLeft = canvasTopLeft;
+    this.canvasBottomRight = canvasBottomRight;
+  };
+
+
+  /**
+   * This allows the zoom level of the network to influence the rendering
+   *
+   * @param scale
+   */
+  Node.prototype.setScale = function (scale) {
+    this.networkScaleInv = 1 / scale;
+    this.networkScale = scale;
+  };
+
+
+
+  /**
+   * set the velocity at 0. Is called when this node is contained in another during clustering
+   */
+  Node.prototype.clearVelocity = function () {
+    this.vx = 0;
+    this.vy = 0;
+  };
+
+
+  /**
+   * Basic preservation of (kinectic) energy
+   *
+   * @param massBeforeClustering
+   */
+  Node.prototype.updateVelocity = function (massBeforeClustering) {
+    var energyBefore = this.vx * this.vx * massBeforeClustering;
+    //this.vx = (this.vx < 0) ? -Math.sqrt(energyBefore/this.options.mass) : Math.sqrt(energyBefore/this.options.mass);
+    this.vx = Math.sqrt(energyBefore / this.options.mass);
+    energyBefore = this.vy * this.vy * massBeforeClustering;
+    //this.vy = (this.vy < 0) ? -Math.sqrt(energyBefore/this.options.mass) : Math.sqrt(energyBefore/this.options.mass);
+    this.vy = Math.sqrt(energyBefore / this.options.mass);
+  };
+
+  module.exports = Node;
+
+/***/ },
+/* 59 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var util = __webpack_require__(1);
+  var Node = __webpack_require__(58);
 
   /**
    * @class Edge
@@ -24954,6 +27025,14 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   Edge.prototype.getTitle = function () {
     return typeof this.title === "function" ? this.title() : this.title;
+  };
+
+  /**
+   * check if this node is selecte
+   * @return {boolean} selected   True if node is selected, else false
+   */
+  Edge.prototype.isSelected = function () {
+    return this.selected;
   };
 
 
@@ -26111,1198 +28190,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Edge;
 
 /***/ },
-/* 55 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var util = __webpack_require__(1);
-
-  /**
-   * @class Node
-   * A node. A node can be connected to other nodes via one or multiple edges.
-   * @param {object} properties An object containing properties for the node. All
-   *                            properties are optional, except for the id.
-   *                              {number} id     Id of the node. Required
-   *                              {string} label  Text label for the node
-   *                              {number} x      Horizontal position of the node
-   *                              {number} y      Vertical position of the node
-   *                              {string} shape  Node shape, available:
-   *                                              "database", "circle", "ellipse",
-   *                                              "box", "image", "text", "dot",
-   *                                              "star", "triangle", "triangleDown",
-   *                                              "square", "icon"
-   *                              {string} image  An image url
-   *                              {string} title  An title text, can be HTML
-   *                              {anytype} group A group name or number
-   * @param {Network.Images} imagelist    A list with images. Only needed
-   *                                            when the node has an image
-   * @param {Network.Groups} grouplist    A list with groups. Needed for
-   *                                            retrieving group properties
-   * @param {Object}               constants    An object with default values for
-   *                                            example for the color
-   *
-   */
-  function Node(properties, imagelist, grouplist, networkConstants) {
-    var constants = util.selectiveBridgeObject(["nodes"], networkConstants);
-    this.options = constants.nodes;
-
-    this.selected = false;
-    this.hover = false;
-
-    this.edges = []; // all edges connected to this node
-
-    // set defaults for the properties
-    this.id = undefined;
-    this.allowedToMoveX = false;
-    this.allowedToMoveY = false;
-    this.xFixed = false;
-    this.yFixed = false;
-    this.horizontalAlignLeft = true; // these are for the navigation controls
-    this.verticalAlignTop = true; // these are for the navigation controls
-    this.baseRadiusValue = networkConstants.nodes.radius;
-    this.radiusFixed = false;
-    this.level = -1;
-    this.preassignedLevel = false;
-    this.hierarchyEnumerated = false;
-    this.labelDimensions = { top: 0, left: 0, width: 0, height: 0, yLine: 0 }; // could be cached
-    this.boundingBox = { top: 0, left: 0, right: 0, bottom: 0 };
-
-    this.imagelist = imagelist;
-    this.grouplist = grouplist;
-
-    // physics properties
-    this.x = null;
-    this.y = null;
-    this.predefinedPosition = false; // used to check if initial zoomExtent should just take the range or approximate
-
-    // used for reverting to previous position on stabilization
-    this.previousState = { vx: 0, vy: 0, x: 0, y: 0 };
-
-    this.fixedData = { x: null, y: null };
-
-    this.setProperties(properties, constants);
-
-    // variables to tell the node about the network.
-    this.networkScaleInv = 1;
-    this.networkScale = 1;
-    this.canvasTopLeft = { x: -300, y: -300 };
-    this.canvasBottomRight = { x: 300, y: 300 };
-    this.parentEdgeId = null;
-  }
-
-
-  /**
-   * Attach a edge to the node
-   * @param {Edge} edge
-   */
-  Node.prototype.attachEdge = function (edge) {
-    if (this.edges.indexOf(edge) == -1) {
-      this.edges.push(edge);
-    }
-  };
-
-  /**
-   * Detach a edge from the node
-   * @param {Edge} edge
-   */
-  Node.prototype.detachEdge = function (edge) {
-    var index = this.edges.indexOf(edge);
-    if (index != -1) {
-      this.edges.splice(index, 1);
-    }
-  };
-
-
-  /**
-   * Set or overwrite properties for the node
-   * @param {Object} properties an object with properties
-   * @param {Object} constants  and object with default, global properties
-   */
-  Node.prototype.setProperties = function (properties, constants) {
-    if (!properties) {
-      return;
-    }
-    this.properties = properties;
-
-    var fields = ["borderWidth", "borderWidthSelected", "shape", "image", "brokenImage", "radius", "fontColor", "fontSize", "fontFace", "fontFill", "fontStrokeWidth", "fontStrokeColor", "group", "mass", "fontDrawThreshold", "scaleFontWithValue", "fontSizeMaxVisible", "customScalingFunction", "iconFontFace", "icon", "iconColor", "iconSize", "value"];
-    util.selectiveDeepExtend(fields, this.options, properties);
-
-    // basic properties
-    if (properties.id !== undefined) {
-      this.id = properties.id;
-    }
-    if (properties.label !== undefined) {
-      this.label = properties.label;this.originalLabel = properties.label;
-    }
-    if (properties.title !== undefined) {
-      this.title = properties.title;
-    }
-    if (properties.x !== undefined) {
-      this.x = properties.x;this.predefinedPosition = true;
-    }
-    if (properties.y !== undefined) {
-      this.y = properties.y;this.predefinedPosition = true;
-    }
-    if (properties.value !== undefined) {
-      this.value = properties.value;
-    }
-    if (properties.level !== undefined) {
-      this.level = properties.level;this.preassignedLevel = true;
-    }
-
-    // navigation controls properties
-    if (properties.horizontalAlignLeft !== undefined) {
-      this.horizontalAlignLeft = properties.horizontalAlignLeft;
-    }
-    if (properties.verticalAlignTop !== undefined) {
-      this.verticalAlignTop = properties.verticalAlignTop;
-    }
-    if (properties.triggerFunction !== undefined) {
-      this.triggerFunction = properties.triggerFunction;
-    }
-
-    if (this.id === undefined) {
-      throw "Node must have an id";
-    }
-
-    // copy group properties
-    if (typeof properties.group === "number" || typeof properties.group === "string" && properties.group != "") {
-      var groupObj = this.grouplist.get(properties.group);
-      util.deepExtend(this.options, groupObj);
-      // the color object needs to be completely defined. Since groups can partially overwrite the colors, we parse it again, just in case.
-      this.options.color = util.parseColor(this.options.color);
-    }
-    // individual shape properties
-    if (properties.radius !== undefined) {
-      this.baseRadiusValue = this.options.radius;
-    }
-    if (properties.color !== undefined) {
-      this.options.color = util.parseColor(properties.color);
-    }
-
-    if (this.options.image !== undefined && this.options.image != "") {
-      if (this.imagelist) {
-        this.imageObj = this.imagelist.load(this.options.image, this.options.brokenImage);
-      } else {
-        throw "No imagelist provided";
-      }
-    }
-
-    if (properties.allowedToMoveX !== undefined) {
-      this.xFixed = !properties.allowedToMoveX;
-      this.allowedToMoveX = properties.allowedToMoveX;
-    } else if (properties.x !== undefined && this.allowedToMoveX == false) {
-      this.xFixed = true;
-    }
-
-
-    if (properties.allowedToMoveY !== undefined) {
-      this.yFixed = !properties.allowedToMoveY;
-      this.allowedToMoveY = properties.allowedToMoveY;
-    } else if (properties.y !== undefined && this.allowedToMoveY == false) {
-      this.yFixed = true;
-    }
-
-    this.radiusFixed = this.radiusFixed || properties.radius !== undefined;
-
-    if (this.options.shape === "image" || this.options.shape === "circularImage") {
-      this.options.radiusMin = constants.nodes.widthMin;
-      this.options.radiusMax = constants.nodes.widthMax;
-    }
-
-    // choose draw method depending on the shape
-    switch (this.options.shape) {
-      case "database":
-        this.draw = this._drawDatabase;this.resize = this._resizeDatabase;break;
-      case "box":
-        this.draw = this._drawBox;this.resize = this._resizeBox;break;
-      case "circle":
-        this.draw = this._drawCircle;this.resize = this._resizeCircle;break;
-      case "ellipse":
-        this.draw = this._drawEllipse;this.resize = this._resizeEllipse;break;
-      // TODO: add diamond shape
-      case "image":
-        this.draw = this._drawImage;this.resize = this._resizeImage;break;
-      case "circularImage":
-        this.draw = this._drawCircularImage;this.resize = this._resizeCircularImage;break;
-      case "text":
-        this.draw = this._drawText;this.resize = this._resizeText;break;
-      case "dot":
-        this.draw = this._drawDot;this.resize = this._resizeShape;break;
-      case "square":
-        this.draw = this._drawSquare;this.resize = this._resizeShape;break;
-      case "triangle":
-        this.draw = this._drawTriangle;this.resize = this._resizeShape;break;
-      case "triangleDown":
-        this.draw = this._drawTriangleDown;this.resize = this._resizeShape;break;
-      case "star":
-        this.draw = this._drawStar;this.resize = this._resizeShape;break;
-      case "icon":
-        this.draw = this._drawIcon;this.resize = this._resizeIcon;break;
-      default:
-        this.draw = this._drawEllipse;this.resize = this._resizeEllipse;break;
-    }
-    // reset the size of the node, this can be changed
-    this._reset();
-  };
-
-  /**
-   * select this node
-   */
-  Node.prototype.select = function () {
-    this.selected = true;
-    this._reset();
-  };
-
-  /**
-   * unselect this node
-   */
-  Node.prototype.unselect = function () {
-    this.selected = false;
-    this._reset();
-  };
-
-
-  /**
-   * Reset the calculated size of the node, forces it to recalculate its size
-   * @private
-   */
-  Node.prototype._reset = function () {
-    this.width = undefined;
-    this.height = undefined;
-  };
-
-  /**
-   * get the title of this node.
-   * @return {string} title    The title of the node, or undefined when no title
-   *                           has been set.
-   */
-  Node.prototype.getTitle = function () {
-    return typeof this.title === "function" ? this.title() : this.title;
-  };
-
-  /**
-   * Calculate the distance to the border of the Node
-   * @param {CanvasRenderingContext2D}   ctx
-   * @param {Number} angle        Angle in radians
-   * @returns {number} distance   Distance to the border in pixels
-   */
-  Node.prototype.distanceToBorder = function (ctx, angle) {
-    var borderWidth = 1;
-
-    if (!this.width) {
-      this.resize(ctx);
-    }
-
-    switch (this.options.shape) {
-      case "circle":
-      case "dot":
-        return this.options.radius + borderWidth;
-
-      case "ellipse":
-        var a = this.width / 2;
-        var b = this.height / 2;
-        var w = Math.sin(angle) * a;
-        var h = Math.cos(angle) * b;
-        return a * b / Math.sqrt(w * w + h * h);
-
-      // TODO: implement distanceToBorder for database
-      // TODO: implement distanceToBorder for triangle
-      // TODO: implement distanceToBorder for triangleDown
-
-      case "box":
-      case "image":
-      case "text":
-      default:
-        if (this.width) {
-          return Math.min(Math.abs(this.width / 2 / Math.cos(angle)), Math.abs(this.height / 2 / Math.sin(angle))) + borderWidth;
-          // TODO: reckon with border radius too in case of box
-        } else {
-          return 0;
-        }
-
-    }
-    // TODO: implement calculation of distance to border for all shapes
-  };
-
-
-  /**
-   * Check if this node has a fixed x and y position
-   * @return {boolean}      true if fixed, false if not
-   */
-  Node.prototype.isFixed = function () {
-    return this.xFixed && this.yFixed;
-  };
-
-  /**
-   * check if this node is selecte
-   * @return {boolean} selected   True if node is selected, else false
-   */
-  Node.prototype.isSelected = function () {
-    return this.selected;
-  };
-
-  /**
-   * Retrieve the value of the node. Can be undefined
-   * @return {Number} value
-   */
-  Node.prototype.getValue = function () {
-    return this.value;
-  };
-
-  /**
-   * Calculate the distance from the nodes location to the given location (x,y)
-   * @param {Number} x
-   * @param {Number} y
-   * @return {Number} value
-   */
-  Node.prototype.getDistance = function (x, y) {
-    var dx = this.x - x,
-        dy = this.y - y;
-    return Math.sqrt(dx * dx + dy * dy);
-  };
-
-
-  /**
-   * Adjust the value range of the node. The node will adjust it's radius
-   * based on its value.
-   * @param {Number} min
-   * @param {Number} max
-   */
-  Node.prototype.setValueRange = function (min, max, total) {
-    if (!this.radiusFixed && this.value !== undefined) {
-      var scale = this.options.customScalingFunction(min, max, total, this.value);
-      var radiusDiff = this.options.radiusMax - this.options.radiusMin;
-      if (this.options.scaleFontWithValue == true) {
-        var fontDiff = this.options.fontSizeMax - this.options.fontSizeMin;
-        this.options.fontSize = this.options.fontSizeMin + scale * fontDiff;
-      }
-      this.options.radius = this.options.radiusMin + scale * radiusDiff;
-    }
-
-    this.baseRadiusValue = this.options.radius;
-  };
-
-  /**
-   * Draw this node in the given canvas
-   * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-   * @param {CanvasRenderingContext2D}   ctx
-   */
-  Node.prototype.draw = function (ctx) {
-    throw "Draw method not initialized for node";
-  };
-
-  /**
-   * Recalculate the size of this node in the given canvas
-   * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-   * @param {CanvasRenderingContext2D}   ctx
-   */
-  Node.prototype.resize = function (ctx) {
-    throw "Resize method not initialized for node";
-  };
-
-  /**
-   * Check if this object is overlapping with the provided object
-   * @param {Object} obj   an object with parameters left, top, right, bottom
-   * @return {boolean}     True if location is located on node
-   */
-  Node.prototype.isOverlappingWith = function (obj) {
-    return this.left < obj.right && this.left + this.width > obj.left && this.top < obj.bottom && this.top + this.height > obj.top;
-  };
-
-  Node.prototype._resizeImage = function (ctx) {
-    // TODO: pre calculate the image size
-
-    if (!this.width || !this.height) {
-      // undefined or 0
-      var width, height;
-      if (this.value) {
-        this.options.radius = this.baseRadiusValue;
-        var scale = this.imageObj.height / this.imageObj.width;
-        if (scale !== undefined) {
-          width = this.options.radius || this.imageObj.width;
-          height = this.options.radius * scale || this.imageObj.height;
-        } else {
-          width = 0;
-          height = 0;
-        }
-      } else {
-        width = this.imageObj.width;
-        height = this.imageObj.height;
-      }
-      this.width = width;
-      this.height = height;
-    }
-  };
-
-  Node.prototype._drawImageAtPosition = function (ctx) {
-    if (this.imageObj.width != 0) {
-      // draw the image
-      ctx.globalAlpha = 1;
-      ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
-    }
-  };
-
-  Node.prototype._drawImageLabel = function (ctx) {
-    var yLabel;
-    var offset = 0;
-
-    if (this.height) {
-      offset = this.height / 2;
-      var labelDimensions = this.getTextSize(ctx);
-
-      if (labelDimensions.lineCount >= 1) {
-        offset += labelDimensions.height / 2;
-        offset += 3;
-      }
-    }
-
-    yLabel = this.y + offset;
-
-    this._label(ctx, this.label, this.x, yLabel, undefined);
-  };
-
-  Node.prototype._drawImage = function (ctx) {
-    this._resizeImage(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    this._drawImageAtPosition(ctx);
-
-    this.boundingBox.top = this.top;
-    this.boundingBox.left = this.left;
-    this.boundingBox.right = this.left + this.width;
-    this.boundingBox.bottom = this.top + this.height;
-
-    this._drawImageLabel(ctx);
-    this.boundingBox.left = Math.min(this.boundingBox.left, this.labelDimensions.left);
-    this.boundingBox.right = Math.max(this.boundingBox.right, this.labelDimensions.left + this.labelDimensions.width);
-    this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelDimensions.height);
-  };
-
-  Node.prototype._resizeCircularImage = function (ctx) {
-    if (!this.imageObj.src || !this.imageObj.width || !this.imageObj.height) {
-      if (!this.width) {
-        var diameter = this.options.radius * 2;
-        this.width = diameter;
-        this.height = diameter;
-        this._swapToImageResizeWhenImageLoaded = true;
-      }
-    } else {
-      if (this._swapToImageResizeWhenImageLoaded) {
-        this.width = 0;
-        this.height = 0;
-        delete this._swapToImageResizeWhenImageLoaded;
-      }
-      this._resizeImage(ctx);
-    }
-  };
-
-  Node.prototype._drawCircularImage = function (ctx) {
-    this._resizeCircularImage(ctx);
-
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    var centerX = this.left + this.width / 2;
-    var centerY = this.top + this.height / 2;
-    var radius = Math.abs(this.height / 2);
-
-    this._drawRawCircle(ctx, centerX, centerY, radius);
-
-    ctx.save();
-    ctx.circle(this.x, this.y, radius);
-    ctx.stroke();
-    ctx.clip();
-
-    this._drawImageAtPosition(ctx);
-
-    ctx.restore();
-
-    this.boundingBox.top = this.y - this.options.radius;
-    this.boundingBox.left = this.x - this.options.radius;
-    this.boundingBox.right = this.x + this.options.radius;
-    this.boundingBox.bottom = this.y + this.options.radius;
-
-    this._drawImageLabel(ctx);
-
-    this.boundingBox.left = Math.min(this.boundingBox.left, this.labelDimensions.left);
-    this.boundingBox.right = Math.max(this.boundingBox.right, this.labelDimensions.left + this.labelDimensions.width);
-    this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelDimensions.height);
-  };
-
-  Node.prototype._resizeBox = function (ctx) {
-    if (!this.width) {
-      var margin = 5;
-      var textSize = this.getTextSize(ctx);
-      this.width = textSize.width + 2 * margin;
-      this.height = textSize.height + 2 * margin;
-    }
-  };
-
-  Node.prototype._drawBox = function (ctx) {
-    this._resizeBox(ctx);
-
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    var borderWidth = this.options.borderWidth;
-    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-
-    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
-    ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
-    ctx.lineWidth *= this.networkScaleInv;
-    ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
-
-    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
-
-    ctx.roundRect(this.left, this.top, this.width, this.height, this.options.radius);
-    ctx.fill();
-    ctx.stroke();
-
-    this.boundingBox.top = this.top;
-    this.boundingBox.left = this.left;
-    this.boundingBox.right = this.left + this.width;
-    this.boundingBox.bottom = this.top + this.height;
-
-    this._label(ctx, this.label, this.x, this.y);
-  };
-
-
-  Node.prototype._resizeDatabase = function (ctx) {
-    if (!this.width) {
-      var margin = 5;
-      var textSize = this.getTextSize(ctx);
-      var size = textSize.width + 2 * margin;
-      this.width = size;
-      this.height = size;
-    }
-  };
-
-  Node.prototype._drawDatabase = function (ctx) {
-    this._resizeDatabase(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    var borderWidth = this.options.borderWidth;
-    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-
-    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
-    ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
-    ctx.lineWidth *= this.networkScaleInv;
-    ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
-
-    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
-    ctx.database(this.x - this.width / 2, this.y - this.height * 0.5, this.width, this.height);
-    ctx.fill();
-    ctx.stroke();
-
-    this.boundingBox.top = this.top;
-    this.boundingBox.left = this.left;
-    this.boundingBox.right = this.left + this.width;
-    this.boundingBox.bottom = this.top + this.height;
-
-    this._label(ctx, this.label, this.x, this.y);
-  };
-
-
-  Node.prototype._resizeCircle = function (ctx) {
-    if (!this.width) {
-      var margin = 5;
-      var textSize = this.getTextSize(ctx);
-      var diameter = Math.max(textSize.width, textSize.height) + 2 * margin;
-      this.options.radius = diameter / 2;
-
-      this.width = diameter;
-      this.height = diameter;
-    }
-  };
-
-  Node.prototype._drawRawCircle = function (ctx, x, y, radius) {
-    var borderWidth = this.options.borderWidth;
-    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-
-    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
-
-    ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
-    ctx.lineWidth *= this.networkScaleInv;
-    ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
-
-    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
-    ctx.circle(this.x, this.y, radius);
-    ctx.fill();
-    ctx.stroke();
-  };
-
-  Node.prototype._drawCircle = function (ctx) {
-    this._resizeCircle(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    this._drawRawCircle(ctx, this.x, this.y, this.options.radius);
-
-    this.boundingBox.top = this.y - this.options.radius;
-    this.boundingBox.left = this.x - this.options.radius;
-    this.boundingBox.right = this.x + this.options.radius;
-    this.boundingBox.bottom = this.y + this.options.radius;
-
-    this._label(ctx, this.label, this.x, this.y);
-  };
-
-  Node.prototype._resizeEllipse = function (ctx) {
-    if (this.width === undefined) {
-      var textSize = this.getTextSize(ctx);
-
-      this.width = textSize.width * 1.5;
-      this.height = textSize.height * 2;
-      if (this.width < this.height) {
-        this.width = this.height;
-      }
-      var defaultSize = this.width;
-    }
-  };
-
-  Node.prototype._drawEllipse = function (ctx) {
-    this._resizeEllipse(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    var borderWidth = this.options.borderWidth;
-    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-
-    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
-
-    ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
-    ctx.lineWidth *= this.networkScaleInv;
-    ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
-
-    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
-
-    ctx.ellipse(this.left, this.top, this.width, this.height);
-    ctx.fill();
-    ctx.stroke();
-
-    this.boundingBox.top = this.top;
-    this.boundingBox.left = this.left;
-    this.boundingBox.right = this.left + this.width;
-    this.boundingBox.bottom = this.top + this.height;
-
-    this._label(ctx, this.label, this.x, this.y);
-  };
-
-  Node.prototype._drawDot = function (ctx) {
-    this._drawShape(ctx, "circle");
-  };
-
-  Node.prototype._drawTriangle = function (ctx) {
-    this._drawShape(ctx, "triangle");
-  };
-
-  Node.prototype._drawTriangleDown = function (ctx) {
-    this._drawShape(ctx, "triangleDown");
-  };
-
-  Node.prototype._drawSquare = function (ctx) {
-    this._drawShape(ctx, "square");
-  };
-
-  Node.prototype._drawStar = function (ctx) {
-    this._drawShape(ctx, "star");
-  };
-
-  Node.prototype._resizeShape = function (ctx) {
-    if (!this.width) {
-      this.options.radius = this.baseRadiusValue;
-      var size = 2 * this.options.radius;
-      this.width = size;
-      this.height = size;
-    }
-  };
-
-  Node.prototype._drawShape = function (ctx, shape) {
-    this._resizeShape(ctx);
-
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    var borderWidth = this.options.borderWidth;
-    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-    var radiusMultiplier = 2;
-
-    // choose draw method depending on the shape
-    switch (shape) {
-      case "dot":
-        radiusMultiplier = 2;break;
-      case "square":
-        radiusMultiplier = 2;break;
-      case "triangle":
-        radiusMultiplier = 3;break;
-      case "triangleDown":
-        radiusMultiplier = 3;break;
-      case "star":
-        radiusMultiplier = 4;break;
-    }
-
-    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
-    ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
-    ctx.lineWidth *= this.networkScaleInv;
-    ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
-
-    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
-    ctx[shape](this.x, this.y, this.options.radius);
-    ctx.fill();
-    ctx.stroke();
-
-    this.boundingBox.top = this.y - this.options.radius;
-    this.boundingBox.left = this.x - this.options.radius;
-    this.boundingBox.right = this.x + this.options.radius;
-    this.boundingBox.bottom = this.y + this.options.radius;
-
-    if (this.label) {
-      this._label(ctx, this.label, this.x, this.y + this.height / 2, undefined, "hanging", true);
-      this.boundingBox.left = Math.min(this.boundingBox.left, this.labelDimensions.left);
-      this.boundingBox.right = Math.max(this.boundingBox.right, this.labelDimensions.left + this.labelDimensions.width);
-      this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelDimensions.height);
-    }
-  };
-
-  Node.prototype._resizeText = function (ctx) {
-    if (!this.width) {
-      var margin = 5;
-      var textSize = this.getTextSize(ctx);
-      this.width = textSize.width + 2 * margin;
-      this.height = textSize.height + 2 * margin;
-    }
-  };
-
-  Node.prototype._drawText = function (ctx) {
-    this._resizeText(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    this._label(ctx, this.label, this.x, this.y);
-
-    this.boundingBox.top = this.top;
-    this.boundingBox.left = this.left;
-    this.boundingBox.right = this.left + this.width;
-    this.boundingBox.bottom = this.top + this.height;
-  };
-
-  Node.prototype._resizeIcon = function (ctx) {
-    if (!this.width) {
-      var margin = 5;
-      var iconSize = {
-        width: Number(this.options.iconSize),
-        height: Number(this.options.iconSize)
-      };
-      this.width = iconSize.width + 2 * margin;
-      this.height = iconSize.height + 2 * margin;
-    }
-  };
-
-  Node.prototype._drawIcon = function (ctx) {
-    this._resizeIcon(ctx);
-
-    this.options.iconSize = this.options.iconSize || 50;
-
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-    this._icon(ctx);
-
-
-    this.boundingBox.top = this.y - this.options.iconSize / 2;
-    this.boundingBox.left = this.x - this.options.iconSize / 2;
-    this.boundingBox.right = this.x + this.options.iconSize / 2;
-    this.boundingBox.bottom = this.y + this.options.iconSize / 2;
-
-    if (this.label) {
-      var iconTextSpacing = 5;
-      this._label(ctx, this.label, this.x, this.y + this.height / 2 + iconTextSpacing, "top", true);
-
-      this.boundingBox.left = Math.min(this.boundingBox.left, this.labelDimensions.left);
-      this.boundingBox.right = Math.max(this.boundingBox.right, this.labelDimensions.left + this.labelDimensions.width);
-      this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelDimensions.height);
-    }
-  };
-
-  Node.prototype._icon = function (ctx) {
-    var relativeIconSize = Number(this.options.iconSize) * this.networkScale;
-
-    if (this.options.icon && relativeIconSize > this.options.fontDrawThreshold - 1) {
-      var iconSize = Number(this.options.iconSize);
-
-      ctx.font = (this.selected ? "bold " : "") + iconSize + "px " + this.options.iconFontFace;
-
-      // draw icon
-      ctx.fillStyle = this.options.iconColor || "black";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(this.options.icon, this.x, this.y);
-    }
-  };
-
-  Node.prototype._label = function (ctx, text, x, y, align, baseline, labelUnderNode) {
-    var relativeFontSize = Number(this.options.fontSize) * this.networkScale;
-    if (text && relativeFontSize >= this.options.fontDrawThreshold - 1) {
-      var fontSize = Number(this.options.fontSize);
-
-      // this ensures that there will not be HUGE letters on screen by setting an upper limit on the visible text size (regardless of zoomLevel)
-      if (relativeFontSize >= this.options.fontSizeMaxVisible) {
-        fontSize = Number(this.options.fontSizeMaxVisible) * this.networkScaleInv;
-      }
-
-      // fade in when relative scale is between threshold and threshold - 1
-      var fontColor = this.options.fontColor || "#000000";
-      var strokecolor = this.options.fontStrokeColor;
-      if (relativeFontSize <= this.options.fontDrawThreshold) {
-        var opacity = Math.max(0, Math.min(1, 1 - (this.options.fontDrawThreshold - relativeFontSize)));
-        fontColor = util.overrideOpacity(fontColor, opacity);
-        strokecolor = util.overrideOpacity(strokecolor, opacity);
-      }
-
-      ctx.font = (this.selected ? "bold " : "") + fontSize + "px " + this.options.fontFace;
-
-      var lines = text.split("\n");
-      var lineCount = lines.length;
-      var yLine = y + (1 - lineCount) / 2 * fontSize;
-      if (labelUnderNode == true) {
-        yLine = y + (1 - lineCount) / (2 * fontSize);
-      }
-
-      // font fill from edges now for nodes!
-      var width = ctx.measureText(lines[0]).width;
-      for (var i = 1; i < lineCount; i++) {
-        var lineWidth = ctx.measureText(lines[i]).width;
-        width = lineWidth > width ? lineWidth : width;
-      }
-      var height = fontSize * lineCount;
-      var left = x - width / 2;
-      var top = y - height / 2;
-      if (baseline == "hanging") {
-        top += 0.5 * fontSize;
-        top += 4; // distance from node, required because we use hanging. Hanging has less difference between browsers
-        yLine += 4; // distance from node
-      }
-      this.labelDimensions = { top: top, left: left, width: width, height: height, yLine: yLine };
-
-      // create the fontfill background
-      if (this.options.fontFill !== undefined && this.options.fontFill !== null && this.options.fontFill !== "none") {
-        ctx.fillStyle = this.options.fontFill;
-        ctx.fillRect(left, top, width, height);
-      }
-
-      // draw text
-      ctx.fillStyle = fontColor;
-      ctx.textAlign = align || "center";
-      ctx.textBaseline = baseline || "middle";
-      if (this.options.fontStrokeWidth > 0) {
-        ctx.lineWidth = this.options.fontStrokeWidth;
-        ctx.strokeStyle = strokecolor;
-        ctx.lineJoin = "round";
-      }
-      for (var i = 0; i < lineCount; i++) {
-        if (this.options.fontStrokeWidth) {
-          ctx.strokeText(lines[i], x, yLine);
-        }
-        ctx.fillText(lines[i], x, yLine);
-        yLine += fontSize;
-      }
-    }
-  };
-
-
-  Node.prototype.getTextSize = function (ctx) {
-    if (this.label !== undefined) {
-      var fontSize = Number(this.options.fontSize);
-      if (fontSize * this.networkScale > this.options.fontSizeMaxVisible) {
-        fontSize = Number(this.options.fontSizeMaxVisible) * this.networkScaleInv;
-      }
-      ctx.font = (this.selected ? "bold " : "") + fontSize + "px " + this.options.fontFace;
-
-      var lines = this.label.split("\n"),
-          height = (fontSize + 4) * lines.length,
-          width = 0;
-
-      for (var i = 0, iMax = lines.length; i < iMax; i++) {
-        width = Math.max(width, ctx.measureText(lines[i]).width);
-      }
-
-      return { width: width, height: height, lineCount: lines.length };
-    } else {
-      return { width: 0, height: 0, lineCount: 0 };
-    }
-  };
-
-
-  /**
-   * this is used to determine if a node is visible at all. this is used to determine when it needs to be drawn.
-   * there is a safety margin of 0.3 * width;
-   *
-   * @returns {boolean}
-   */
-  Node.prototype.inArea = function () {
-    if (this.width !== undefined) {
-      return this.x + this.width * this.networkScaleInv >= this.canvasTopLeft.x && this.x - this.width * this.networkScaleInv < this.canvasBottomRight.x && this.y + this.height * this.networkScaleInv >= this.canvasTopLeft.y && this.y - this.height * this.networkScaleInv < this.canvasBottomRight.y;
-    } else {
-      return true;
-    }
-  };
-
-
-  /**
-   * This allows the zoom level of the network to influence the rendering
-   * We store the inverted scale and the coordinates of the top left, and bottom right points of the canvas
-   *
-   * @param scale
-   * @param canvasTopLeft
-   * @param canvasBottomRight
-   */
-  Node.prototype.setScaleAndPos = function (scale, canvasTopLeft, canvasBottomRight) {
-    this.networkScaleInv = 1 / scale;
-    this.networkScale = scale;
-    this.canvasTopLeft = canvasTopLeft;
-    this.canvasBottomRight = canvasBottomRight;
-  };
-
-
-  /**
-   * This allows the zoom level of the network to influence the rendering
-   *
-   * @param scale
-   */
-  Node.prototype.setScale = function (scale) {
-    this.networkScaleInv = 1 / scale;
-    this.networkScale = scale;
-  };
-
-
-
-  /**
-   * set the velocity at 0. Is called when this node is contained in another during clustering
-   */
-  Node.prototype.clearVelocity = function () {
-    this.vx = 0;
-    this.vy = 0;
-  };
-
-
-  /**
-   * Basic preservation of (kinectic) energy
-   *
-   * @param massBeforeClustering
-   */
-  Node.prototype.updateVelocity = function (massBeforeClustering) {
-    var energyBefore = this.vx * this.vx * massBeforeClustering;
-    //this.vx = (this.vx < 0) ? -Math.sqrt(energyBefore/this.options.mass) : Math.sqrt(energyBefore/this.options.mass);
-    this.vx = Math.sqrt(energyBefore / this.options.mass);
-    energyBefore = this.vy * this.vy * massBeforeClustering;
-    //this.vy = (this.vy < 0) ? -Math.sqrt(energyBefore/this.options.mass) : Math.sqrt(energyBefore/this.options.mass);
-    this.vy = Math.sqrt(energyBefore / this.options.mass);
-  };
-
-  module.exports = Node;
-
-/***/ },
-/* 56 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var util = __webpack_require__(1);
-
-  /**
-   * @class Groups
-   * This class can store groups and properties specific for groups.
-   */
-  function Groups() {
-    this.clear();
-    this.defaultIndex = 0;
-    this.groupsArray = [];
-    this.groupIndex = 0;
-    this.useDefaultGroups = true;
-  }
-
-
-  /**
-   * default constants for group colors
-   */
-  Groups.DEFAULT = [{ border: "#2B7CE9", background: "#97C2FC", highlight: { border: "#2B7CE9", background: "#D2E5FF" }, hover: { border: "#2B7CE9", background: "#D2E5FF" } }, // 0: blue
-  { border: "#FFA500", background: "#FFFF00", highlight: { border: "#FFA500", background: "#FFFFA3" }, hover: { border: "#FFA500", background: "#FFFFA3" } }, // 1: yellow
-  { border: "#FA0A10", background: "#FB7E81", highlight: { border: "#FA0A10", background: "#FFAFB1" }, hover: { border: "#FA0A10", background: "#FFAFB1" } }, // 2: red
-  { border: "#41A906", background: "#7BE141", highlight: { border: "#41A906", background: "#A1EC76" }, hover: { border: "#41A906", background: "#A1EC76" } }, // 3: green
-  { border: "#E129F0", background: "#EB7DF4", highlight: { border: "#E129F0", background: "#F0B3F5" }, hover: { border: "#E129F0", background: "#F0B3F5" } }, // 4: magenta
-  { border: "#7C29F0", background: "#AD85E4", highlight: { border: "#7C29F0", background: "#D3BDF0" }, hover: { border: "#7C29F0", background: "#D3BDF0" } }, // 5: purple
-  { border: "#C37F00", background: "#FFA807", highlight: { border: "#C37F00", background: "#FFCA66" }, hover: { border: "#C37F00", background: "#FFCA66" } }, // 6: orange
-  { border: "#4220FB", background: "#6E6EFD", highlight: { border: "#4220FB", background: "#9B9BFD" }, hover: { border: "#4220FB", background: "#9B9BFD" } }, // 7: darkblue
-  { border: "#FD5A77", background: "#FFC0CB", highlight: { border: "#FD5A77", background: "#FFD1D9" }, hover: { border: "#FD5A77", background: "#FFD1D9" } }, // 8: pink
-  { border: "#4AD63A", background: "#C2FABC", highlight: { border: "#4AD63A", background: "#E6FFE3" }, hover: { border: "#4AD63A", background: "#E6FFE3" } }, // 9: mint
-
-  { border: "#990000", background: "#EE0000", highlight: { border: "#BB0000", background: "#FF3333" }, hover: { border: "#BB0000", background: "#FF3333" } }, // 10:bright red
-
-  { border: "#FF6000", background: "#FF6000", highlight: { border: "#FF6000", background: "#FF6000" }, hover: { border: "#FF6000", background: "#FF6000" } }, // 12: real orange
-  { border: "#97C2FC", background: "#2B7CE9", highlight: { border: "#D2E5FF", background: "#2B7CE9" }, hover: { border: "#D2E5FF", background: "#2B7CE9" } }, // 13: blue
-  { border: "#399605", background: "#255C03", highlight: { border: "#399605", background: "#255C03" }, hover: { border: "#399605", background: "#255C03" } }, // 14: green
-  { border: "#B70054", background: "#FF007E", highlight: { border: "#B70054", background: "#FF007E" }, hover: { border: "#B70054", background: "#FF007E" } }, // 15: magenta
-  { border: "#AD85E4", background: "#7C29F0", highlight: { border: "#D3BDF0", background: "#7C29F0" }, hover: { border: "#D3BDF0", background: "#7C29F0" } }, // 16: purple
-  { border: "#4557FA", background: "#000EA1", highlight: { border: "#6E6EFD", background: "#000EA1" }, hover: { border: "#6E6EFD", background: "#000EA1" } }, // 17: darkblue
-  { border: "#FFC0CB", background: "#FD5A77", highlight: { border: "#FFD1D9", background: "#FD5A77" }, hover: { border: "#FFD1D9", background: "#FD5A77" } }, // 18: pink
-  { border: "#C2FABC", background: "#74D66A", highlight: { border: "#E6FFE3", background: "#74D66A" }, hover: { border: "#E6FFE3", background: "#74D66A" } }, // 19: mint
-
-  { border: "#EE0000", background: "#990000", highlight: { border: "#FF3333", background: "#BB0000" }, hover: { border: "#FF3333", background: "#BB0000" } }];
-
-
-  /**
-   * Clear all groups
-   */
-  Groups.prototype.clear = function () {
-    this.groups = {};
-    this.groups.length = function () {
-      var i = 0;
-      for (var p in this) {
-        if (this.hasOwnProperty(p)) {
-          i++;
-        }
-      }
-      return i;
-    };
-  };
-
-
-  /**
-   * get group properties of a groupname. If groupname is not found, a new group
-   * is added.
-   * @param {*} groupname        Can be a number, string, Date, etc.
-   * @return {Object} group      The created group, containing all group properties
-   */
-  Groups.prototype.get = function (groupname) {
-    var group = this.groups[groupname];
-    if (group == undefined) {
-      if (this.useDefaultGroups === false && this.groupsArray.length > 0) {
-        // create new group
-        var index = this.groupIndex % this.groupsArray.length;
-        this.groupIndex++;
-        group = {};
-        group.color = this.groups[this.groupsArray[index]];
-        this.groups[groupname] = group;
-      } else {
-        // create new group
-        var index = this.defaultIndex % Groups.DEFAULT.length;
-        this.defaultIndex++;
-        group = {};
-        group.color = Groups.DEFAULT[index];
-        this.groups[groupname] = group;
-      }
-    }
-
-    return group;
-  };
-
-  /**
-   * Add a custom group style
-   * @param {String} groupName
-   * @param {Object} style       An object containing borderColor,
-   *                             backgroundColor, etc.
-   * @return {Object} group      The created group object
-   */
-  Groups.prototype.add = function (groupName, style) {
-    this.groups[groupName] = style;
-    this.groupsArray.push(groupName);
-    return style;
-  };
-
-  module.exports = Groups;
-  // 20:bright red
-
-/***/ },
-/* 57 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  /**
-   * @class Images
-   * This class loads images and keeps them stored.
-   */
-  function Images() {
-    this.images = {};
-    this.imageBroken = {};
-    this.callback = undefined;
-  }
-
-  /**
-   * Set an onload callback function. This will be called each time an image
-   * is loaded
-   * @param {function} callback
-   */
-  Images.prototype.setOnloadCallback = function (callback) {
-    this.callback = callback;
-  };
-
-  /**
-   *
-   * @param {string} url          Url of the image
-   * @param {string} url          Url of an image to use if the url image is not found
-   * @return {Image} img          The image object
-   */
-  Images.prototype.load = function (url, brokenUrl) {
-    var img = this.images[url]; // make a pointer
-    if (img === undefined) {
-      // create the image
-      var me = this;
-      img = new Image();
-      img.onload = function () {
-        // IE11 fix -- thanks dponch!
-        if (this.width == 0) {
-          document.body.appendChild(this);
-          this.width = this.offsetWidth;
-          this.height = this.offsetHeight;
-          document.body.removeChild(this);
-        }
-
-        if (me.callback) {
-          me.images[url] = img;
-          me.callback(this);
-        }
-      };
-
-      img.onerror = function () {
-        if (brokenUrl === undefined) {
-          console.error("Could not load image:", url);
-          delete this.src;
-          if (me.callback) {
-            me.callback(this);
-          }
-        } else {
-          if (me.imageBroken[url] === true) {
-            if (this.src == brokenUrl) {
-              console.error("Could not load brokenImage:", brokenUrl);
-              delete this.src;
-              if (me.callback) {
-                me.callback(this);
-              }
-            } else {
-              console.error("Could not load image:", url);
-              this.src = brokenUrl;
-            }
-          } else {
-            console.error("Could not load image:", url);
-            this.src = brokenUrl;
-            me.imageBroken[url] = true;
-          }
-        }
-      };
-
-      img.src = url;
-    }
-
-    return img;
-  };
-
-  module.exports = Images;
-
-/***/ },
-/* 58 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -27439,893 +28327,6 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   module.exports = Popup;
-
-/***/ },
-/* 59 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  /**
-   * Parse a text source containing data in DOT language into a JSON object.
-   * The object contains two lists: one with nodes and one with edges.
-   *
-   * DOT language reference: http://www.graphviz.org/doc/info/lang.html
-   *
-   * @param {String} data     Text containing a graph in DOT-notation
-   * @return {Object} graph   An object containing two parameters:
-   *                          {Object[]} nodes
-   *                          {Object[]} edges
-   */
-  function parseDOT(data) {
-    dot = data;
-    return parseGraph();
-  }
-
-  // token types enumeration
-  var TOKENTYPE = {
-    NULL: 0,
-    DELIMITER: 1,
-    IDENTIFIER: 2,
-    UNKNOWN: 3
-  };
-
-  // map with all delimiters
-  var DELIMITERS = {
-    "{": true,
-    "}": true,
-    "[": true,
-    "]": true,
-    ";": true,
-    "=": true,
-    ",": true,
-
-    "->": true,
-    "--": true
-  };
-
-  var dot = ""; // current dot file
-  var index = 0; // current index in dot file
-  var c = ""; // current token character in expr
-  var token = ""; // current token
-  var tokenType = TOKENTYPE.NULL; // type of the token
-
-  /**
-   * Get the first character from the dot file.
-   * The character is stored into the char c. If the end of the dot file is
-   * reached, the function puts an empty string in c.
-   */
-  function first() {
-    index = 0;
-    c = dot.charAt(0);
-  }
-
-  /**
-   * Get the next character from the dot file.
-   * The character is stored into the char c. If the end of the dot file is
-   * reached, the function puts an empty string in c.
-   */
-  function next() {
-    index++;
-    c = dot.charAt(index);
-  }
-
-  /**
-   * Preview the next character from the dot file.
-   * @return {String} cNext
-   */
-  function nextPreview() {
-    return dot.charAt(index + 1);
-  }
-
-  /**
-   * Test whether given character is alphabetic or numeric
-   * @param {String} c
-   * @return {Boolean} isAlphaNumeric
-   */
-  var regexAlphaNumeric = /[a-zA-Z_0-9.:#]/;
-  function isAlphaNumeric(c) {
-    return regexAlphaNumeric.test(c);
-  }
-
-  /**
-   * Merge all properties of object b into object b
-   * @param {Object} a
-   * @param {Object} b
-   * @return {Object} a
-   */
-  function merge(a, b) {
-    if (!a) {
-      a = {};
-    }
-
-    if (b) {
-      for (var name in b) {
-        if (b.hasOwnProperty(name)) {
-          a[name] = b[name];
-        }
-      }
-    }
-    return a;
-  }
-
-  /**
-   * Set a value in an object, where the provided parameter name can be a
-   * path with nested parameters. For example:
-   *
-   *     var obj = {a: 2};
-   *     setValue(obj, 'b.c', 3);     // obj = {a: 2, b: {c: 3}}
-   *
-   * @param {Object} obj
-   * @param {String} path  A parameter name or dot-separated parameter path,
-   *                      like "color.highlight.border".
-   * @param {*} value
-   */
-  function setValue(obj, path, value) {
-    var keys = path.split(".");
-    var o = obj;
-    while (keys.length) {
-      var key = keys.shift();
-      if (keys.length) {
-        // this isn't the end point
-        if (!o[key]) {
-          o[key] = {};
-        }
-        o = o[key];
-      } else {
-        // this is the end point
-        o[key] = value;
-      }
-    }
-  }
-
-  /**
-   * Add a node to a graph object. If there is already a node with
-   * the same id, their attributes will be merged.
-   * @param {Object} graph
-   * @param {Object} node
-   */
-  function addNode(graph, node) {
-    var i, len;
-    var current = null;
-
-    // find root graph (in case of subgraph)
-    var graphs = [graph]; // list with all graphs from current graph to root graph
-    var root = graph;
-    while (root.parent) {
-      graphs.push(root.parent);
-      root = root.parent;
-    }
-
-    // find existing node (at root level) by its id
-    if (root.nodes) {
-      for (i = 0, len = root.nodes.length; i < len; i++) {
-        if (node.id === root.nodes[i].id) {
-          current = root.nodes[i];
-          break;
-        }
-      }
-    }
-
-    if (!current) {
-      // this is a new node
-      current = {
-        id: node.id
-      };
-      if (graph.node) {
-        // clone default attributes
-        current.attr = merge(current.attr, graph.node);
-      }
-    }
-
-    // add node to this (sub)graph and all its parent graphs
-    for (i = graphs.length - 1; i >= 0; i--) {
-      var g = graphs[i];
-
-      if (!g.nodes) {
-        g.nodes = [];
-      }
-      if (g.nodes.indexOf(current) == -1) {
-        g.nodes.push(current);
-      }
-    }
-
-    // merge attributes
-    if (node.attr) {
-      current.attr = merge(current.attr, node.attr);
-    }
-  }
-
-  /**
-   * Add an edge to a graph object
-   * @param {Object} graph
-   * @param {Object} edge
-   */
-  function addEdge(graph, edge) {
-    if (!graph.edges) {
-      graph.edges = [];
-    }
-    graph.edges.push(edge);
-    if (graph.edge) {
-      var attr = merge({}, graph.edge); // clone default attributes
-      edge.attr = merge(attr, edge.attr); // merge attributes
-    }
-  }
-
-  /**
-   * Create an edge to a graph object
-   * @param {Object} graph
-   * @param {String | Number | Object} from
-   * @param {String | Number | Object} to
-   * @param {String} type
-   * @param {Object | null} attr
-   * @return {Object} edge
-   */
-  function createEdge(graph, from, to, type, attr) {
-    var edge = {
-      from: from,
-      to: to,
-      type: type
-    };
-
-    if (graph.edge) {
-      edge.attr = merge({}, graph.edge); // clone default attributes
-    }
-    edge.attr = merge(edge.attr || {}, attr); // merge attributes
-
-    return edge;
-  }
-
-  /**
-   * Get next token in the current dot file.
-   * The token and token type are available as token and tokenType
-   */
-  function getToken() {
-    tokenType = TOKENTYPE.NULL;
-    token = "";
-
-    // skip over whitespaces
-    while (c == " " || c == "\t" || c == "\n" || c == "\r") {
-      // space, tab, enter
-      next();
-    }
-
-    do {
-      var isComment = false;
-
-      // skip comment
-      if (c == "#") {
-        // find the previous non-space character
-        var i = index - 1;
-        while (dot.charAt(i) == " " || dot.charAt(i) == "\t") {
-          i--;
-        }
-        if (dot.charAt(i) == "\n" || dot.charAt(i) == "") {
-          // the # is at the start of a line, this is indeed a line comment
-          while (c != "" && c != "\n") {
-            next();
-          }
-          isComment = true;
-        }
-      }
-      if (c == "/" && nextPreview() == "/") {
-        // skip line comment
-        while (c != "" && c != "\n") {
-          next();
-        }
-        isComment = true;
-      }
-      if (c == "/" && nextPreview() == "*") {
-        // skip block comment
-        while (c != "") {
-          if (c == "*" && nextPreview() == "/") {
-            // end of block comment found. skip these last two characters
-            next();
-            next();
-            break;
-          } else {
-            next();
-          }
-        }
-        isComment = true;
-      }
-
-      // skip over whitespaces
-      while (c == " " || c == "\t" || c == "\n" || c == "\r") {
-        // space, tab, enter
-        next();
-      }
-    } while (isComment);
-
-    // check for end of dot file
-    if (c == "") {
-      // token is still empty
-      tokenType = TOKENTYPE.DELIMITER;
-      return;
-    }
-
-    // check for delimiters consisting of 2 characters
-    var c2 = c + nextPreview();
-    if (DELIMITERS[c2]) {
-      tokenType = TOKENTYPE.DELIMITER;
-      token = c2;
-      next();
-      next();
-      return;
-    }
-
-    // check for delimiters consisting of 1 character
-    if (DELIMITERS[c]) {
-      tokenType = TOKENTYPE.DELIMITER;
-      token = c;
-      next();
-      return;
-    }
-
-    // check for an identifier (number or string)
-    // TODO: more precise parsing of numbers/strings (and the port separator ':')
-    if (isAlphaNumeric(c) || c == "-") {
-      token += c;
-      next();
-
-      while (isAlphaNumeric(c)) {
-        token += c;
-        next();
-      }
-      if (token == "false") {
-        token = false; // convert to boolean
-      } else if (token == "true") {
-        token = true; // convert to boolean
-      } else if (!isNaN(Number(token))) {
-        token = Number(token); // convert to number
-      }
-      tokenType = TOKENTYPE.IDENTIFIER;
-      return;
-    }
-
-    // check for a string enclosed by double quotes
-    if (c == "\"") {
-      next();
-      while (c != "" && (c != "\"" || c == "\"" && nextPreview() == "\"")) {
-        token += c;
-        if (c == "\"") {
-          // skip the escape character
-          next();
-        }
-        next();
-      }
-      if (c != "\"") {
-        throw newSyntaxError("End of string \" expected");
-      }
-      next();
-      tokenType = TOKENTYPE.IDENTIFIER;
-      return;
-    }
-
-    // something unknown is found, wrong characters, a syntax error
-    tokenType = TOKENTYPE.UNKNOWN;
-    while (c != "") {
-      token += c;
-      next();
-    }
-    throw new SyntaxError("Syntax error in part \"" + chop(token, 30) + "\"");
-  }
-
-  /**
-   * Parse a graph.
-   * @returns {Object} graph
-   */
-  function parseGraph() {
-    var graph = {};
-
-    first();
-    getToken();
-
-    // optional strict keyword
-    if (token == "strict") {
-      graph.strict = true;
-      getToken();
-    }
-
-    // graph or digraph keyword
-    if (token == "graph" || token == "digraph") {
-      graph.type = token;
-      getToken();
-    }
-
-    // optional graph id
-    if (tokenType == TOKENTYPE.IDENTIFIER) {
-      graph.id = token;
-      getToken();
-    }
-
-    // open angle bracket
-    if (token != "{") {
-      throw newSyntaxError("Angle bracket { expected");
-    }
-    getToken();
-
-    // statements
-    parseStatements(graph);
-
-    // close angle bracket
-    if (token != "}") {
-      throw newSyntaxError("Angle bracket } expected");
-    }
-    getToken();
-
-    // end of file
-    if (token !== "") {
-      throw newSyntaxError("End of file expected");
-    }
-    getToken();
-
-    // remove temporary default properties
-    delete graph.node;
-    delete graph.edge;
-    delete graph.graph;
-
-    return graph;
-  }
-
-  /**
-   * Parse a list with statements.
-   * @param {Object} graph
-   */
-  function parseStatements(graph) {
-    while (token !== "" && token != "}") {
-      parseStatement(graph);
-      if (token == ";") {
-        getToken();
-      }
-    }
-  }
-
-  /**
-   * Parse a single statement. Can be a an attribute statement, node
-   * statement, a series of node statements and edge statements, or a
-   * parameter.
-   * @param {Object} graph
-   */
-  function parseStatement(graph) {
-    // parse subgraph
-    var subgraph = parseSubgraph(graph);
-    if (subgraph) {
-      // edge statements
-      parseEdge(graph, subgraph);
-
-      return;
-    }
-
-    // parse an attribute statement
-    var attr = parseAttributeStatement(graph);
-    if (attr) {
-      return;
-    }
-
-    // parse node
-    if (tokenType != TOKENTYPE.IDENTIFIER) {
-      throw newSyntaxError("Identifier expected");
-    }
-    var id = token; // id can be a string or a number
-    getToken();
-
-    if (token == "=") {
-      // id statement
-      getToken();
-      if (tokenType != TOKENTYPE.IDENTIFIER) {
-        throw newSyntaxError("Identifier expected");
-      }
-      graph[id] = token;
-      getToken();
-      // TODO: implement comma separated list with "a_list: ID=ID [','] [a_list] "
-    } else {
-      parseNodeStatement(graph, id);
-    }
-  }
-
-  /**
-   * Parse a subgraph
-   * @param {Object} graph    parent graph object
-   * @return {Object | null} subgraph
-   */
-  function parseSubgraph(graph) {
-    var subgraph = null;
-
-    // optional subgraph keyword
-    if (token == "subgraph") {
-      subgraph = {};
-      subgraph.type = "subgraph";
-      getToken();
-
-      // optional graph id
-      if (tokenType == TOKENTYPE.IDENTIFIER) {
-        subgraph.id = token;
-        getToken();
-      }
-    }
-
-    // open angle bracket
-    if (token == "{") {
-      getToken();
-
-      if (!subgraph) {
-        subgraph = {};
-      }
-      subgraph.parent = graph;
-      subgraph.node = graph.node;
-      subgraph.edge = graph.edge;
-      subgraph.graph = graph.graph;
-
-      // statements
-      parseStatements(subgraph);
-
-      // close angle bracket
-      if (token != "}") {
-        throw newSyntaxError("Angle bracket } expected");
-      }
-      getToken();
-
-      // remove temporary default properties
-      delete subgraph.node;
-      delete subgraph.edge;
-      delete subgraph.graph;
-      delete subgraph.parent;
-
-      // register at the parent graph
-      if (!graph.subgraphs) {
-        graph.subgraphs = [];
-      }
-      graph.subgraphs.push(subgraph);
-    }
-
-    return subgraph;
-  }
-
-  /**
-   * parse an attribute statement like "node [shape=circle fontSize=16]".
-   * Available keywords are 'node', 'edge', 'graph'.
-   * The previous list with default attributes will be replaced
-   * @param {Object} graph
-   * @returns {String | null} keyword Returns the name of the parsed attribute
-   *                                  (node, edge, graph), or null if nothing
-   *                                  is parsed.
-   */
-  function parseAttributeStatement(graph) {
-    // attribute statements
-    if (token == "node") {
-      getToken();
-
-      // node attributes
-      graph.node = parseAttributeList();
-      return "node";
-    } else if (token == "edge") {
-      getToken();
-
-      // edge attributes
-      graph.edge = parseAttributeList();
-      return "edge";
-    } else if (token == "graph") {
-      getToken();
-
-      // graph attributes
-      graph.graph = parseAttributeList();
-      return "graph";
-    }
-
-    return null;
-  }
-
-  /**
-   * parse a node statement
-   * @param {Object} graph
-   * @param {String | Number} id
-   */
-  function parseNodeStatement(graph, id) {
-    // node statement
-    var node = {
-      id: id
-    };
-    var attr = parseAttributeList();
-    if (attr) {
-      node.attr = attr;
-    }
-    addNode(graph, node);
-
-    // edge statements
-    parseEdge(graph, id);
-  }
-
-  /**
-   * Parse an edge or a series of edges
-   * @param {Object} graph
-   * @param {String | Number} from        Id of the from node
-   */
-  function parseEdge(graph, from) {
-    while (token == "->" || token == "--") {
-      var to;
-      var type = token;
-      getToken();
-
-      var subgraph = parseSubgraph(graph);
-      if (subgraph) {
-        to = subgraph;
-      } else {
-        if (tokenType != TOKENTYPE.IDENTIFIER) {
-          throw newSyntaxError("Identifier or subgraph expected");
-        }
-        to = token;
-        addNode(graph, {
-          id: to
-        });
-        getToken();
-      }
-
-      // parse edge attributes
-      var attr = parseAttributeList();
-
-      // create edge
-      var edge = createEdge(graph, from, to, type, attr);
-      addEdge(graph, edge);
-
-      from = to;
-    }
-  }
-
-  /**
-   * Parse a set with attributes,
-   * for example [label="1.000", shape=solid]
-   * @return {Object | null} attr
-   */
-  function parseAttributeList() {
-    var attr = null;
-
-    while (token == "[") {
-      getToken();
-      attr = {};
-      while (token !== "" && token != "]") {
-        if (tokenType != TOKENTYPE.IDENTIFIER) {
-          throw newSyntaxError("Attribute name expected");
-        }
-        var name = token;
-
-        getToken();
-        if (token != "=") {
-          throw newSyntaxError("Equal sign = expected");
-        }
-        getToken();
-
-        if (tokenType != TOKENTYPE.IDENTIFIER) {
-          throw newSyntaxError("Attribute value expected");
-        }
-        var value = token;
-        setValue(attr, name, value); // name can be a path
-
-        getToken();
-        if (token == ",") {
-          getToken();
-        }
-      }
-
-      if (token != "]") {
-        throw newSyntaxError("Bracket ] expected");
-      }
-      getToken();
-    }
-
-    return attr;
-  }
-
-  /**
-   * Create a syntax error with extra information on current token and index.
-   * @param {String} message
-   * @returns {SyntaxError} err
-   */
-  function newSyntaxError(message) {
-    return new SyntaxError(message + ", got \"" + chop(token, 30) + "\" (char " + index + ")");
-  }
-
-  /**
-   * Chop off text after a maximum length
-   * @param {String} text
-   * @param {Number} maxLength
-   * @returns {String}
-   */
-  function chop(text, maxLength) {
-    return text.length <= maxLength ? text : text.substr(0, 27) + "...";
-  }
-
-  /**
-   * Execute a function fn for each pair of elements in two arrays
-   * @param {Array | *} array1
-   * @param {Array | *} array2
-   * @param {function} fn
-   */
-  function forEach2(array1, array2, fn) {
-    if (Array.isArray(array1)) {
-      array1.forEach(function (elem1) {
-        if (Array.isArray(array2)) {
-          array2.forEach(function (elem2) {
-            fn(elem1, elem2);
-          });
-        } else {
-          fn(elem1, array2);
-        }
-      });
-    } else {
-      if (Array.isArray(array2)) {
-        array2.forEach(function (elem2) {
-          fn(array1, elem2);
-        });
-      } else {
-        fn(array1, array2);
-      }
-    }
-  }
-
-  /**
-   * Convert a string containing a graph in DOT language into a map containing
-   * with nodes and edges in the format of graph.
-   * @param {String} data         Text containing a graph in DOT-notation
-   * @return {Object} graphData
-   */
-  function DOTToGraph(data) {
-    // parse the DOT file
-    var dotData = parseDOT(data);
-    var graphData = {
-      nodes: [],
-      edges: [],
-      options: {}
-    };
-
-    // copy the nodes
-    if (dotData.nodes) {
-      dotData.nodes.forEach(function (dotNode) {
-        var graphNode = {
-          id: dotNode.id,
-          label: String(dotNode.label || dotNode.id)
-        };
-        merge(graphNode, dotNode.attr);
-        if (graphNode.image) {
-          graphNode.shape = "image";
-        }
-        graphData.nodes.push(graphNode);
-      });
-    }
-
-    // copy the edges
-    if (dotData.edges) {
-      /**
-       * Convert an edge in DOT format to an edge with VisGraph format
-       * @param {Object} dotEdge
-       * @returns {Object} graphEdge
-       */
-      var convertEdge = function (dotEdge) {
-        var graphEdge = {
-          from: dotEdge.from,
-          to: dotEdge.to
-        };
-        merge(graphEdge, dotEdge.attr);
-        graphEdge.style = dotEdge.type == "->" ? "arrow" : "line";
-        return graphEdge;
-      };
-
-      dotData.edges.forEach(function (dotEdge) {
-        var from, to;
-        if (dotEdge.from instanceof Object) {
-          from = dotEdge.from.nodes;
-        } else {
-          from = {
-            id: dotEdge.from
-          };
-        }
-
-        if (dotEdge.to instanceof Object) {
-          to = dotEdge.to.nodes;
-        } else {
-          to = {
-            id: dotEdge.to
-          };
-        }
-
-        if (dotEdge.from instanceof Object && dotEdge.from.edges) {
-          dotEdge.from.edges.forEach(function (subEdge) {
-            var graphEdge = convertEdge(subEdge);
-            graphData.edges.push(graphEdge);
-          });
-        }
-
-        forEach2(from, to, function (from, to) {
-          var subEdge = createEdge(graphData, from.id, to.id, dotEdge.type, dotEdge.attr);
-          var graphEdge = convertEdge(subEdge);
-          graphData.edges.push(graphEdge);
-        });
-
-        if (dotEdge.to instanceof Object && dotEdge.to.edges) {
-          dotEdge.to.edges.forEach(function (subEdge) {
-            var graphEdge = convertEdge(subEdge);
-            graphData.edges.push(graphEdge);
-          });
-        }
-      });
-    }
-
-    // copy the options
-    if (dotData.attr) {
-      graphData.options = dotData.attr;
-    }
-
-    return graphData;
-  }
-
-  // exports
-  exports.parseDOT = parseDOT;
-  exports.DOTToGraph = DOTToGraph;
-
-/***/ },
-/* 60 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  function parseGephi(gephiJSON, options) {
-    var edges = [];
-    var nodes = [];
-    this.options = {
-      edges: {
-        inheritColor: true
-      },
-      nodes: {
-        allowedToMove: false,
-        parseColor: false
-      }
-    };
-
-    if (options !== undefined) {
-      this.options.nodes.allowedToMove = options.allowedToMove | false;
-      this.options.nodes.parseColor = options.parseColor | false;
-      this.options.edges.inheritColor = options.inheritColor | true;
-    }
-
-    var gEdges = gephiJSON.edges;
-    var gNodes = gephiJSON.nodes;
-    for (var i = 0; i < gEdges.length; i++) {
-      var edge = {};
-      var gEdge = gEdges[i];
-      edge.id = gEdge.id;
-      edge.from = gEdge.source;
-      edge.to = gEdge.target;
-      edge.attributes = gEdge.attributes;
-      //    edge['value'] = gEdge.attributes !== undefined ? gEdge.attributes.Weight : undefined;
-      //    edge['width'] = edge['value'] !== undefined ? undefined : edgegEdge.size;
-      edge.color = gEdge.color;
-      edge.inheritColor = edge.color !== undefined ? false : this.options.inheritColor;
-      edges.push(edge);
-    }
-
-    for (var i = 0; i < gNodes.length; i++) {
-      var node = {};
-      var gNode = gNodes[i];
-      node.id = gNode.id;
-      node.attributes = gNode.attributes;
-      node.x = gNode.x;
-      node.y = gNode.y;
-      node.label = gNode.label;
-      if (this.options.nodes.parseColor == true) {
-        node.color = gNode.color;
-      } else {
-        node.color = gNode.color !== undefined ? { background: gNode.color, border: gNode.color } : undefined;
-      }
-      node.radius = gNode.size;
-      node.allowedToMoveX = this.options.nodes.allowedToMove;
-      node.allowedToMoveY = this.options.nodes.allowedToMove;
-      nodes.push(node);
-    }
-
-    return { nodes: nodes, edges: edges };
-  }
-
-  exports.parseGephi = parseGephi;
 
 /***/ },
 /* 61 */
@@ -28494,7 +28495,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   "use strict";
 
-  var Node = __webpack_require__(55);
+  var Node = __webpack_require__(58);
 
   /**
    *
@@ -29197,8 +29198,8 @@ return /******/ (function(modules) { // webpackBootstrap
   "use strict";
 
   var util = __webpack_require__(1);
-  var Node = __webpack_require__(55);
-  var Edge = __webpack_require__(54);
+  var Node = __webpack_require__(58);
+  var Edge = __webpack_require__(59);
   var Hammer = __webpack_require__(19);
   var hammerUtil = __webpack_require__(24);
 
@@ -33018,8 +33019,9 @@ return /******/ (function(modules) { // webpackBootstrap
       this.redrawRequested = false;
       this.renderTimer = false;
       this.requiresTimeout = true;
-      this.continueRendering = false;
+      this.renderingActive = false;
       this.renderRequests = 0;
+      this.pixelRatio = undefined;
 
       this.canvasTopLeft = { x: 0, y: 0 };
       this.canvasBottomRight = { x: 0, y: 0 };
@@ -33027,18 +33029,22 @@ return /******/ (function(modules) { // webpackBootstrap
       this.dragging = false;
 
       this.body.emitter.on("dragStart", function () {
-        _this.dragging = true;console.log("here");
+        _this.dragging = true;
       });
       this.body.emitter.on("dragEnd", function () {
         return _this.dragging = false;
       });
-      this.body.emitter.on("_redraw", this._redraw.bind(this));
+      this.body.emitter.on("_redraw", function () {
+        if (_this.renderingActive === false) {
+          _this._redraw();
+        }
+      });
       this.body.emitter.on("_requestRedraw", this._requestRedraw.bind(this));
       this.body.emitter.on("_startRendering", function () {
-        _this.renderRequests += 1;_this.continueRendering = true;_this.startRendering();
+        _this.renderRequests += 1;_this.renderingActive = true;_this.startRendering();
       });
       this.body.emitter.on("_stopRendering", function () {
-        _this.renderRequests -= 1;_this.continueRendering = _this.renderRequests > 0;
+        _this.renderRequests -= 1;_this.renderingActive = _this.renderRequests > 0;
       });
 
       this.options = {};
@@ -33047,7 +33053,6 @@ return /******/ (function(modules) { // webpackBootstrap
         hideNodesOnDrag: false
       };
       util.extend(this.options, this.defaultOptions);
-
 
       this._determineBrowserMethod();
     }
@@ -33064,7 +33069,7 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       startRendering: {
         value: function startRendering() {
-          if (this.continueRendering === true) {
+          if (this.renderingActive === true) {
             if (!this.renderTimer) {
               if (this.requiresTimeout == true) {
                 this.renderTimer = window.setTimeout(this.renderStep.bind(this), this.simulationInterval); // wait this.renderTimeStep milliseconds and perform the animation step function
@@ -33118,7 +33123,7 @@ return /******/ (function(modules) { // webpackBootstrap
          * @private
          */
         value: function _requestRedraw() {
-          if (this.redrawRequested !== true) {
+          if (this.redrawRequested !== true && this.renderingActive === false) {
             this.redrawRequested = true;
             if (this.requiresTimeout === true) {
               window.setTimeout(this._redraw.bind(this, false), 0);
@@ -33138,6 +33143,10 @@ return /******/ (function(modules) { // webpackBootstrap
           this.redrawRequested = false;
           var ctx = this.canvas.frame.canvas.getContext("2d");
 
+          if (this.pixelRation === undefined) {
+            this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
+          }
+
           ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
 
           // clear the canvas
@@ -33155,8 +33164,6 @@ return /******/ (function(modules) { // webpackBootstrap
           this.canvasTopLeft = this.canvas.DOMtoCanvas({ x: 0, y: 0 });
           this.canvasBottomRight = this.canvas.DOMtoCanvas({ x: this.canvas.frame.canvas.clientWidth, y: this.canvas.frame.canvas.clientHeight });
 
-          console.log(this.dragging);
-
           if (hidden === false) {
             if (this.dragging === false || this.dragging === true && this.options.hideEdgesOnDrag === false) {
               this._drawEdges(ctx);
@@ -33167,14 +33174,12 @@ return /******/ (function(modules) { // webpackBootstrap
             this._drawNodes(ctx, this.body.nodes, hidden);
           }
 
-          if (hidden === false) {
-            if (this.controlNodesActive == true) {
-              this._drawControlNodes(ctx);
-            }
+          if (this.controlNodesActive === true) {
+            this._drawControlNodes(ctx);
           }
 
           //this._drawNodes(ctx,this.body.supportNodes,true);
-          //  this.physics.nodesSolver._debug(ctx,"#F00F0F");
+          //this.physics.nodesSolver._debug(ctx,"#F00F0F");
 
           // restore original scaling and translation
           ctx.restore();
@@ -33391,7 +33396,6 @@ return /******/ (function(modules) { // webpackBootstrap
             var ctx = this.frame.canvas.getContext("2d");
             this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
 
-            //this.pixelRatio = Math.max(1,this.pixelRatio); // this is to account for browser zooming out. The pixel ratio is ment to switch between 1 and 2 for HD screens.
             this.frame.canvas.getContext("2d").setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
           }
 
@@ -33414,30 +33418,31 @@ return /******/ (function(modules) { // webpackBootstrap
          * @private
          */
         value: function _bindHammer() {
-          var me = this;
           if (this.hammer !== undefined) {
             this.hammer.destroy();
           }
           this.drag = {};
           this.pinch = {};
           this.hammer = new Hammer(this.frame.canvas);
-          this.hammer.on("tap", me.body.eventListeners.onTap);
-          this.hammer.on("doubletap", me.body.eventListeners.onDoubleTap);
-          this.hammer.on("press", me.body.eventListeners.onHold);
-          hammerUtil.onTouch(this.hammer, me.body.eventListeners.onTouch);
-          this.hammer.on("panstart", me.body.eventListeners.onDragStart);
-          this.hammer.on("panmove", me.body.eventListeners.onDrag);
-          this.hammer.on("panend", me.body.eventListeners.onDragEnd);
-          this.hammer.on("pinch", me.body.eventListeners.onPinch.bind(me));
+          this.hammer.on("tap", this.body.eventListeners.onTap);
+          this.hammer.on("doubletap", this.body.eventListeners.onDoubleTap);
+          this.hammer.on("press", this.body.eventListeners.onHold);
+          hammerUtil.onTouch(this.hammer, this.body.eventListeners.onTouch);
+          this.hammer.on("panstart", this.body.eventListeners.onDragStart);
+          this.hammer.on("panmove", this.body.eventListeners.onDrag);
+          this.hammer.on("panend", this.body.eventListeners.onDragEnd);
+          this.hammer.on("pinch", function () {
+            console.log("pinching!");
+          }); //this.body.eventListeners.onPinch );
 
           // TODO: neatly cleanup these handlers when re-creating the Canvas, IF these are done with hammer, event.stopPropagation will not work?
-          this.frame.canvas.addEventListener("mousewheel", me.body.eventListeners.onMouseWheel.bind(me));
-          this.frame.canvas.addEventListener("DOMMouseScroll", me.body.eventListeners.onMouseWheel.bind(me));
+          this.frame.canvas.addEventListener("mousewheel", this.body.eventListeners.onMouseWheel);
+          this.frame.canvas.addEventListener("DOMMouseScroll", this.body.eventListeners.onMouseWheel);
 
-          this.frame.canvas.addEventListener("mousemove", me.body.eventListeners.onMouseMove.bind(me));
+          this.frame.canvas.addEventListener("mousemove", this.body.eventListeners.onMouseMove);
 
           this.hammerFrame = new Hammer(this.frame);
-          hammerUtil.onRelease(this.hammerFrame, me.body.eventListeners.onRelease.bind(me));
+          hammerUtil.onRelease(this.hammerFrame, this.body.eventListeners.onRelease);
         },
         writable: true,
         configurable: true
@@ -33487,7 +33492,7 @@ return /******/ (function(modules) { // webpackBootstrap
           }
 
           if (emitEvent === true) {
-            this.body.emitter.emit("resize", { width: this.frame.canvas.width * this.pixelRatio, height: this.frame.canvas.height * this.pixelRatio, oldWidth: oldWidth * this.pixelRatio, oldHeight: oldHeight * this.pixelRatio });
+            this.body.emitter.emit("resize", { width: this.frame.canvas.width / this.pixelRatio, height: this.frame.canvas.height / this.pixelRatio, oldWidth: oldWidth / this.pixelRatio, oldHeight: oldHeight / this.pixelRatio });
           }
         },
         writable: true,
@@ -33624,8 +33629,8 @@ return /******/ (function(modules) { // webpackBootstrap
       this.targetScale = 0;
       this.sourceTranslation = 0;
       this.targetTranslation = 0;
-      this.lockedOnNodeId = null;
-      this.lockedOnNodeOffset = null;
+      this.lockedOnNodeId = undefined;
+      this.lockedOnNodeOffset = undefined;
       this.touchTime = 0;
 
       this.viewFunction = undefined;
@@ -33910,7 +33915,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
           // if the time is set to 0, don't do an animation
           if (options.animation.duration == 0) {
-            if (this.lockedOnNodeId != null) {
+            if (this.lockedOnNodeId != undefined) {
               this.viewFunction = this._lockedRedraw.bind(this);
               this.body.emitter.on("_beforeRender", this.viewFunction);
             } else {
@@ -33957,7 +33962,7 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       releaseNode: {
         value: function releaseNode() {
-          if (this.lockedOnNodeId !== undefined) {
+          if (this.lockedOnNodeId !== undefined && this.viewFunction !== undefined) {
             this.body.emitter.off("_beforeRender", this.viewFunction);
             this.lockedOnNodeId = undefined;
             this.lockedOnNodeOffset = undefined;
@@ -33990,7 +33995,7 @@ return /******/ (function(modules) { // webpackBootstrap
           if (this.easingTime >= 1) {
             this.body.emitter.off("_beforeRender", this.viewFunction);
             this.easingTime = 0;
-            if (this.lockedOnNodeId != null) {
+            if (this.lockedOnNodeId != undefined) {
               this.viewFunction = this._lockedRedraw.bind(this);
               this.body.emitter.on("_beforeRender", this.viewFunction);
             }
@@ -34022,9 +34027,549 @@ return /******/ (function(modules) { // webpackBootstrap
 
   /**
    * Created by Alex on 2/27/2015.
+   *
    */
 
-  var Node = __webpack_require__(55);
+
+  var util = __webpack_require__(1);
+
+  var InteractionHandler = (function () {
+    function InteractionHandler(body, canvas, selectionHandler) {
+      _classCallCheck(this, InteractionHandler);
+
+      this.body = body;
+      this.canvas = canvas;
+      this.selectionHandler = selectionHandler;
+
+      // bind the events from hammer to functions in this object
+      this.body.eventListeners.onTap = this.onTap.bind(this);
+      this.body.eventListeners.onTouch = this.onTouch.bind(this);
+      this.body.eventListeners.onDoubleTap = this.onDoubleTap.bind(this);
+      this.body.eventListeners.onHold = this.onHold.bind(this);
+      this.body.eventListeners.onDragStart = this.onDragStart.bind(this);
+      this.body.eventListeners.onDrag = this.onDrag.bind(this);
+      this.body.eventListeners.onDragEnd = this.onDragEnd.bind(this);
+      this.body.eventListeners.onMouseWheel = this.onMouseWheel.bind(this);
+      this.body.eventListeners.onPinch = this.onPinch.bind(this);
+      this.body.eventListeners.onMouseMove = this.onMouseMove.bind(this);
+      this.body.eventListeners.onRelease = this.onRelease.bind(this);
+
+      this.touchTime = 0;
+      this.drag = {};
+      this.pinch = {};
+      this.pointerPosition = { x: 0, y: 0 };
+      this.hoverObj = { nodes: {}, edges: {} };
+
+
+      this.options = {};
+      this.defaultOptions = {
+        dragNodes: true,
+        dragView: true,
+        zoomView: true,
+        selectEnabled: true,
+        hoverEnabled: false
+      };
+      util.extend(this.options, this.defaultOptions);
+    }
+
+    _prototypeProperties(InteractionHandler, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          if (options !== undefined) {
+            util.deepExtend(this.options, options);
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      getPointer: {
+
+
+        /**
+         * Get the pointer location from a touch location
+         * @param {{x: Number, y: Number}} touch
+         * @return {{x: Number, y: Number}} pointer
+         * @private
+         */
+        value: function getPointer(touch) {
+          return {
+            x: touch.x - util.getAbsoluteLeft(this.canvas.frame.canvas),
+            y: touch.y - util.getAbsoluteTop(this.canvas.frame.canvas)
+          };
+        },
+        writable: true,
+        configurable: true
+      },
+      onTouch: {
+
+
+        /**
+         * On start of a touch gesture, store the pointer
+         * @param event
+         * @private
+         */
+        value: function onTouch(event) {
+          if (new Date().valueOf() - this.touchTime > 100) {
+            this.drag.pointer = this.getPointer(event.center);
+            this.drag.pinched = false;
+            this.pinch.scale = this.body.view.scale;
+
+            // to avoid double fireing of this event because we have two hammer instances. (on canvas and on frame)
+            this.touchTime = new Date().valueOf();
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      onTap: {
+
+        /**
+         * handle tap/click event: select/unselect a node
+         * @private
+         */
+        value: function onTap(event) {
+          var pointer = this.getPointer(event.center);
+
+          var previouslySelected = this.selectionHandler._getSelectedObjectCount() > 0;
+          var selected = this.selectionHandler.selectOnPoint(pointer);
+
+          if (selected === true || previouslySelected == true && selected === false) {
+            // select or unselect
+            this.body.emitter.emit("selected", this.selectionHandler.getSelection());
+          }
+
+          this.selectionHandler._generateClickEvent("click", pointer);
+        },
+        writable: true,
+        configurable: true
+      },
+      onDoubleTap: {
+
+
+        /**
+         * handle doubletap event
+         * @private
+         */
+        value: function onDoubleTap(event) {
+          var pointer = this.getPointer(event.center);
+          this.selectionHandler._generateClickEvent("doubleClick", pointer);
+        },
+        writable: true,
+        configurable: true
+      },
+      onHold: {
+
+
+
+        /**
+         * handle long tap event: multi select nodes
+         * @private
+         */
+        value: function onHold(event) {
+          var pointer = this.getPointer(event.center);
+
+          var selectionChanged = this.selectionHandler.selectAdditionalOnPoint(pointer);
+
+          if (selectionChanged === true) {
+            // select or longpress
+            this.body.emitter.emit("selected", this.selectionHandler.getSelection());
+          }
+
+          this.selectionHandler._generateClickEvent("click", pointer);
+        },
+        writable: true,
+        configurable: true
+      },
+      onRelease: {
+
+
+        /**
+         * handle the release of the screen
+         *
+         * @private
+         */
+        value: function onRelease() {},
+        writable: true,
+        configurable: true
+      },
+      onDragStart: {
+
+
+        /**
+         * This function is called by onDragStart.
+         * It is separated out because we can then overload it for the datamanipulation system.
+         *
+         * @private
+         */
+        value: function onDragStart(event) {
+          //in case the touch event was triggered on an external div, do the initial touch now.
+          if (this.drag.pointer === undefined) {
+            this.onTouch(event);
+          }
+
+          var node = this.selectionHandler.getNodeAt(this.drag.pointer);
+          // note: drag.pointer is set in onTouch to get the initial touch location
+
+          this.drag.dragging = true;
+          this.drag.selection = [];
+          this.drag.translation = util.extend({}, this.body.view.translation); // copy the object
+          this.drag.nodeId = null;
+
+          this.body.emitter.emit("dragStart", { nodeIds: this.selectionHandler.getSelection().nodes });
+
+          if (node != null && this.options.dragNodes === true) {
+            this.drag.nodeId = node.id;
+            // select the clicked node if not yet selected
+            if (node.isSelected() === false) {
+              this.selectionHandler.unselectAll();
+              this.selectionHandler.selectObject(node);
+            }
+
+            var selection = this.selectionHandler.selectionObj.nodes;
+            // create an array with the selected nodes and their original location and status
+            for (var nodeId in selection) {
+              if (selection.hasOwnProperty(nodeId)) {
+                var object = selection[nodeId];
+                var s = {
+                  id: object.id,
+                  node: object,
+
+                  // store original x, y, xFixed and yFixed, make the node temporarily Fixed
+                  x: object.x,
+                  y: object.y,
+                  xFixed: object.xFixed,
+                  yFixed: object.yFixed
+                };
+
+                object.xFixed = true;
+                object.yFixed = true;
+
+                this.drag.selection.push(s);
+              }
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      onDrag: {
+
+
+        /**
+         * handle drag event
+         * @private
+         */
+        value: function onDrag(event) {
+          var _this = this;
+          if (this.drag.pinched === true) {
+            return;
+          }
+
+          // remove the focus on node if it is focussed on by the focusOnNode
+          this.body.emitter.emit("unlockNode");
+
+          var pointer = this.getPointer(event.center);
+          var selection = this.drag.selection;
+          if (selection && selection.length && this.options.dragNodes === true) {
+            // calculate delta's and new location
+            var deltaX = pointer.x - this.drag.pointer.x;
+            var deltaY = pointer.y - this.drag.pointer.y;
+
+            // update position of all selected nodes
+            selection.forEach(function (selection) {
+              var node = selection.node;
+
+              if (!selection.xFixed) {
+                node.x = _this.canvas._XconvertDOMtoCanvas(_this.canvas._XconvertCanvasToDOM(selection.x) + deltaX);
+              }
+
+              if (!selection.yFixed) {
+                node.y = _this.canvas._YconvertDOMtoCanvas(_this.canvas._YconvertCanvasToDOM(selection.y) + deltaY);
+              }
+            });
+
+
+            // start the simulation of the physics
+            this.body.emitter.emit("startSimulation");
+          } else {
+            // move the network
+            if (this.options.dragView === true) {
+              // if the drag was not started properly because the click started outside the network div, start it now.
+              if (this.drag.pointer === undefined) {
+                this._handleDragStart(event);
+                return;
+              }
+              var diffX = pointer.x - this.drag.pointer.x;
+              var diffY = pointer.y - this.drag.pointer.y;
+
+              this.body.view.translation = { x: this.drag.translation.x + diffX, y: this.drag.translation.y + diffY };
+              this.body.emitter.emit("_redraw");
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      onDragEnd: {
+
+
+        /**
+         * handle drag start event
+         * @private
+         */
+        value: function onDragEnd(event) {
+          this.drag.dragging = false;
+          var selection = this.drag.selection;
+          if (selection && selection.length) {
+            selection.forEach(function (s) {
+              // restore original xFixed and yFixed
+              s.node.xFixed = s.xFixed;
+              s.node.yFixed = s.yFixed;
+            });
+            this.body.emitter.emit("startSimulation");
+          } else {
+            this.body.emitter.emit("_requestRedraw");
+          }
+
+          this.body.emitter.emit("dragEnd", { nodeIds: this.selectionHandler.getSelection().nodes });
+        },
+        writable: true,
+        configurable: true
+      },
+      onPinch: {
+
+
+
+        /**
+         * Handle pinch event
+         * @param event
+         * @private
+         */
+        value: function onPinch(event) {
+          console.log("on pinch");
+          var pointer = this.getPointer(event.center);
+
+          this.drag.pinched = true;
+          if (this.pinch[scale] === undefined) {
+            this.pinch.scale = 1;
+          }
+
+          // TODO: enabled moving while pinching?
+          var scale = this.pinch.scale * event.gesture.scale;
+          this.zoom(scale, pointer);
+        },
+        writable: true,
+        configurable: true
+      },
+      zoom: {
+
+
+        /**
+         * Zoom the network in or out
+         * @param {Number} scale a number around 1, and between 0.01 and 10
+         * @param {{x: Number, y: Number}} pointer    Position on screen
+         * @return {Number} appliedScale    scale is limited within the boundaries
+         * @private
+         */
+        value: function zoom(scale, pointer) {
+          if (this.options.zoomView === true) {
+            var scaleOld = this.body.view.scale;
+            if (scale < 0.00001) {
+              scale = 0.00001;
+            }
+            if (scale > 10) {
+              scale = 10;
+            }
+
+            var preScaleDragPointer = null;
+            if (this.drag !== undefined) {
+              if (this.drag.dragging === true) {
+                preScaleDragPointer = this.canvas.DOMtoCanvas(this.drag.pointer);
+              }
+            }
+            // + this.canvas.frame.canvas.clientHeight / 2
+            var translation = this.body.view.translation;
+
+            var scaleFrac = scale / scaleOld;
+            var tx = (1 - scaleFrac) * pointer.x + translation.x * scaleFrac;
+            var ty = (1 - scaleFrac) * pointer.y + translation.y * scaleFrac;
+
+            this.body.view.scale = scale;
+            this.body.view.translation = { x: tx, y: ty };
+
+            if (preScaleDragPointer != null) {
+              var postScaleDragPointer = this.canvas.canvasToDOM(preScaleDragPointer);
+              this.drag.pointer.x = postScaleDragPointer.x;
+              this.drag.pointer.y = postScaleDragPointer.y;
+            }
+
+            this.body.emitter.emit("_requestRedraw");
+
+            if (scaleOld < scale) {
+              this.body.emitter.emit("zoom", { direction: "+" });
+            } else {
+              this.body.emitter.emit("zoom", { direction: "-" });
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      onMouseWheel: {
+
+
+        /**
+         * Event handler for mouse wheel event, used to zoom the timeline
+         * See http://adomas.org/javascript-mouse-wheel/
+         *     https://github.com/EightMedia/hammer.js/issues/256
+         * @param {MouseEvent}  event
+         * @private
+         */
+        value: function onMouseWheel(event) {
+          // retrieve delta
+          var delta = 0;
+          if (event.wheelDelta) {
+            /* IE/Opera. */
+            delta = event.wheelDelta / 120;
+          } else if (event.detail) {
+            /* Mozilla case. */
+            // In Mozilla, sign of delta is different than in IE.
+            // Also, delta is multiple of 3.
+            delta = -event.detail / 3;
+          }
+
+          // If delta is nonzero, handle it.
+          // Basically, delta is now positive if wheel was scrolled up,
+          // and negative, if wheel was scrolled down.
+          if (delta) {
+            // calculate the new scale
+            var scale = this.body.view.scale;
+            var zoom = delta / 10;
+            if (delta < 0) {
+              zoom = zoom / (1 - zoom);
+            }
+            scale *= 1 + zoom;
+
+            // calculate the pointer location
+            var pointer = { x: event.pageX, y: event.pageY };
+
+            // apply the new scale
+            this.zoom(scale, pointer);
+          }
+
+          // Prevent default actions caused by mouse wheel.
+          event.preventDefault();
+        },
+        writable: true,
+        configurable: true
+      },
+      onMouseMove: {
+
+
+        /**
+         * Mouse move handler for checking whether the title moves over a node with a title.
+         * @param  {Event} event
+         * @private
+         */
+        value: function onMouseMove(event) {},
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return InteractionHandler;
+  })();
+
+  exports.InteractionHandler = InteractionHandler;
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  //  var pointer = {x:event.pageX, y:event.pageY};
+  //  var popupVisible = false;
+  //
+  //  // check if the previously selected node is still selected
+  //  if (this.popup !== undefined) {
+  //    if (this.popup.hidden === false) {
+  //      this._checkHidePopup(pointer);
+  //    }
+  //
+  //    // if the popup was not hidden above
+  //    if (this.popup.hidden === false) {
+  //      popupVisible = true;
+  //      this.popup.setPosition(pointer.x + 3, pointer.y - 5)
+  //      this.popup.show();
+  //    }
+  //  }
+  //
+  //  // if we bind the keyboard to the div, we have to highlight it to use it. This highlights it on mouse over
+  //  if (this.options.keyboard.bindToWindow == false && this.options.keyboard.enabled === true) {
+  //    this.canvas.frame.focus();
+  //  }
+  //
+  //  // start a timeout that will check if the mouse is positioned above an element
+  //  if (popupVisible === false) {
+  //    var me = this;
+  //    var checkShow = function() {
+  //      me._checkShowPopup(pointer);
+  //    };
+  //
+  //    if (this.popupTimer) {
+  //      clearInterval(this.popupTimer); // stop any running calculationTimer
+  //    }
+  //    if (!this.drag.dragging) {
+  //      this.popupTimer = setTimeout(checkShow, this.options.tooltip.delay);
+  //    }
+  //  }
+  //
+  //  /**
+  //  * Adding hover highlights
+  //  */
+  //  if (this.options.hoverEnabled === true) {
+  //    // removing all hover highlights
+  //    for (var edgeId in this.hoverObj.edges) {
+  //      if (this.hoverObj.edges.hasOwnProperty(edgeId)) {
+  //        this.hoverObj.edges[edgeId].hover = false;
+  //        delete this.hoverObj.edges[edgeId];
+  //      }
+  //    }
+  //
+  //    // adding hover highlights
+  //    var obj = this.selectionHandler.getNodeAt(pointer);
+  //    if (obj == null) {
+  //      obj = this.selectionHandler.getEdgeAt(pointer);
+  //    }
+  //    if (obj != null) {
+  //      this._hoverObject(obj);
+  //    }
+  //
+  //    // removing all node hover highlights except for the selected one.
+  //    for (var nodeId in this.hoverObj.nodes) {
+  //      if (this.hoverObj.nodes.hasOwnProperty(nodeId)) {
+  //        if (obj instanceof Node && obj.id != nodeId || obj instanceof Edge || obj == null) {
+  //          this._blurObject(this.hoverObj.nodes[nodeId]);
+  //          delete this.hoverObj.nodes[nodeId];
+  //        }
+  //      }
+  //    }
+  //    this.body.emitter.emit("_requestRedraw");
+  //  }
+
+/***/ },
+/* 80 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  /**
+   * Created by Alex on 2/27/2015.
+   */
+
+  var Node = __webpack_require__(58);
   var util = __webpack_require__(1);
 
   var SelectionHandler = (function () {
@@ -34066,15 +34611,11 @@ return /******/ (function(modules) { // webpackBootstrap
         value: function selectOnPoint(pointer) {
           var selected = false;
           if (this.options.select === true) {
+            this.unselectAll();
             var obj = this.getNodeAt(pointer) || this.getEdgeAt(pointer);;
-
-            // deselect
-            if (obj === undefined) {
-              this.unselectAll();
-            } else {
+            if (obj !== undefined) {
               selected = this.selectObject(obj);
             }
-
             this.body.emitter.emit("_requestRedraw");
           }
           return selected;
@@ -34767,545 +35308,6 @@ return /******/ (function(modules) { // webpackBootstrap
   })();
 
   exports.SelectionHandler = SelectionHandler;
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-/***/ },
-/* 80 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-  /**
-   * Created by Alex on 2/27/2015.
-   *
-   */
-
-
-  var util = __webpack_require__(1);
-
-  var InteractionHandler = (function () {
-    function InteractionHandler(body, canvas, selectionHandler) {
-      _classCallCheck(this, InteractionHandler);
-
-      this.body = body;
-      this.canvas = canvas;
-      this.selectionHandler = selectionHandler;
-
-      // bind the events from hammer to functions in this object
-      this.body.eventListeners.onTap = this.onTap.bind(this);
-      this.body.eventListeners.onTouch = this.onTouch.bind(this);
-      this.body.eventListeners.onDoubleTap = this.onDoubleTap.bind(this);
-      this.body.eventListeners.onHold = this.onHold.bind(this);
-      this.body.eventListeners.onDragStart = this.onDragStart.bind(this);
-      this.body.eventListeners.onDrag = this.onDrag.bind(this);
-      this.body.eventListeners.onDragEnd = this.onDragEnd.bind(this);
-      this.body.eventListeners.onMouseWheel = this.onMouseWheel.bind(this);
-      this.body.eventListeners.onPinch = this.onPinch.bind(this);
-      this.body.eventListeners.onMouseMove = this.onMouseMove.bind(this);
-      this.body.eventListeners.onRelease = this.onRelease.bind(this);
-
-      this.touchTime = 0;
-      this.drag = {};
-      this.pinch = {};
-      this.pointerPosition = { x: 0, y: 0 };
-      this.hoverObj = { nodes: {}, edges: {} };
-
-
-      this.options = {};
-      this.defaultOptions = {
-        dragNodes: true,
-        dragView: true,
-        zoomView: true,
-        selectEnabled: true,
-        hoverEnabled: false
-      };
-      util.extend(this.options, this.defaultOptions);
-    }
-
-    _prototypeProperties(InteractionHandler, null, {
-      setOptions: {
-        value: function setOptions(options) {
-          if (options !== undefined) {
-            util.deepExtend(this.options, options);
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      getPointer: {
-
-
-        /**
-         * Get the pointer location from a touch location
-         * @param {{x: Number, y: Number}} touch
-         * @return {{x: Number, y: Number}} pointer
-         * @private
-         */
-        value: function getPointer(touch) {
-          return {
-            x: touch.x - util.getAbsoluteLeft(this.canvas.frame.canvas),
-            y: touch.y - util.getAbsoluteTop(this.canvas.frame.canvas)
-          };
-        },
-        writable: true,
-        configurable: true
-      },
-      onTouch: {
-
-
-        /**
-         * On start of a touch gesture, store the pointer
-         * @param event
-         * @private
-         */
-        value: function onTouch(event) {
-          if (new Date().valueOf() - this.touchTime > 100) {
-            this.drag.pointer = this.getPointer(event.center);
-            this.drag.pinched = false;
-            this.pinch.scale = this.body.view.scale;
-
-            // to avoid double fireing of this event because we have two hammer instances. (on canvas and on frame)
-            this.touchTime = new Date().valueOf();
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      onTap: {
-
-        /**
-         * handle tap/click event: select/unselect a node
-         * @private
-         */
-        value: function onTap(event) {
-          var pointer = this.getPointer(event.center);
-
-          var previouslySelected = this.selectionHandler._getSelectedObjectCount() > 0;
-          var selected = this.selectionHandler.selectOnPoint(pointer);
-
-          if (selected === true || previouslySelected == true && selected === false) {
-            // select or unselect
-            this.body.emitter.emit("selected", this.selectionHandler.getSelection());
-          }
-
-          this.selectionHandler._generateClickEvent("click", pointer);
-        },
-        writable: true,
-        configurable: true
-      },
-      onDoubleTap: {
-
-
-        /**
-         * handle doubletap event
-         * @private
-         */
-        value: function onDoubleTap(event) {
-          var pointer = this.getPointer(event.center);
-          this.selectionHandler._generateClickEvent("doubleClick", pointer);
-        },
-        writable: true,
-        configurable: true
-      },
-      onHold: {
-
-
-
-        /**
-         * handle long tap event: multi select nodes
-         * @private
-         */
-        value: function onHold(event) {
-          var pointer = this.getPointer(event.center);
-
-          var selectionChanged = this.selectionHandler.selectAdditionalOnPoint(pointer);
-
-          if (selectionChanged === true) {
-            // select or longpress
-            this.body.emitter.emit("selected", this.selectionHandler.getSelection());
-          }
-
-          this.selectionHandler._generateClickEvent("click", pointer);
-        },
-        writable: true,
-        configurable: true
-      },
-      onRelease: {
-
-
-        /**
-         * handle the release of the screen
-         *
-         * @private
-         */
-        value: function onRelease() {},
-        writable: true,
-        configurable: true
-      },
-      onDragStart: {
-
-
-        /**
-         * This function is called by onDragStart.
-         * It is separated out because we can then overload it for the datamanipulation system.
-         *
-         * @private
-         */
-        value: function onDragStart(event) {
-          //in case the touch event was triggered on an external div, do the initial touch now.
-          if (this.drag.pointer === undefined) {
-            this.onTouch(event);
-          }
-
-          var node = this.selectionHandler.getNodeAt(this.drag.pointer);
-          // note: drag.pointer is set in onTouch to get the initial touch location
-
-          this.drag.dragging = true;
-          this.drag.selection = [];
-          this.drag.translation = util.extend({}, this.body.view.translation); // copy the object
-          this.drag.nodeId = null;
-          this.draggingNodes = false;
-
-          this.body.emitter.emit("dragStart", { nodeIds: this.selectionHandler.getSelection().nodes });
-
-          if (node != null && this.options.dragNodes === true) {
-            this.drag.nodeId = node.id;
-            // select the clicked node if not yet selected
-            if (node.isSelected() === false) {
-              this.selectionHandler.selectObject(node);
-            }
-
-            var selection = this.selectionHandler.selectionObj.nodes;
-            // create an array with the selected nodes and their original location and status
-            for (var nodeId in selection) {
-              if (selection.hasOwnProperty(nodeId)) {
-                var object = selection[nodeId];
-                var s = {
-                  id: object.id,
-                  node: object,
-
-                  // store original x, y, xFixed and yFixed, make the node temporarily Fixed
-                  x: object.x,
-                  y: object.y,
-                  xFixed: object.xFixed,
-                  yFixed: object.yFixed
-                };
-
-                object.xFixed = true;
-                object.yFixed = true;
-
-                this.drag.selection.push(s);
-              }
-            }
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      onDrag: {
-
-
-        /**
-         * handle drag event
-         * @private
-         */
-        value: function onDrag(event) {
-          var _this = this;
-          if (this.drag.pinched === true) {
-            return;
-          }
-
-          // remove the focus on node if it is focussed on by the focusOnNode
-          this.body.emitter.emit("unlockNode");
-
-          var pointer = this.getPointer(event.center);
-          var selection = this.drag.selection;
-          if (selection && selection.length && this.options.dragNodes === true) {
-            // calculate delta's and new location
-            var deltaX = pointer.x - this.drag.pointer.x;
-            var deltaY = pointer.y - this.drag.pointer.y;
-
-            // update position of all selected nodes
-            selection.forEach(function (selection) {
-              var node = selection.node;
-
-              if (!selection.xFixed) {
-                node.x = _this.canvas._XconvertDOMtoCanvas(_this.canvas._XconvertCanvasToDOM(selection.x) + deltaX);
-              }
-
-              if (!selection.yFixed) {
-                node.y = _this.canvas._YconvertDOMtoCanvas(_this.canvas._YconvertCanvasToDOM(selection.y) + deltaY);
-              }
-            });
-
-
-            // start the simulation of the physics
-            this.body.emitter.emit("startSimulation");
-          } else {
-            // move the network
-            if (this.options.dragView === true) {
-              // if the drag was not started properly because the click started outside the network div, start it now.
-              if (this.drag.pointer === undefined) {
-                this._handleDragStart(event);
-                return;
-              }
-              var diffX = pointer.x - this.drag.pointer.x;
-              var diffY = pointer.y - this.drag.pointer.y;
-
-              this.body.view.translation = { x: this.drag.translation.x + diffX, y: this.drag.translation.y + diffY };
-              this.body.emitter.emit("_redraw");
-            }
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      onDragEnd: {
-
-
-        /**
-         * handle drag start event
-         * @private
-         */
-        value: function onDragEnd(event) {
-          this.drag.dragging = false;
-          var selection = this.drag.selection;
-          if (selection && selection.length) {
-            selection.forEach(function (s) {
-              // restore original xFixed and yFixed
-              s.node.xFixed = s.xFixed;
-              s.node.yFixed = s.yFixed;
-            });
-            this.body.emitter.emit("startSimulation");
-          } else {
-            this.body.emitter.emit("_requestRedraw");
-          }
-
-          this.body.emitter.emit("dragEnd", { nodeIds: this.selectionHandler.getSelection().nodes });
-        },
-        writable: true,
-        configurable: true
-      },
-      onPinch: {
-
-
-
-        /**
-         * Handle pinch event
-         * @param event
-         * @private
-         */
-        value: function onPinch(event) {
-          var pointer = this.getPointer(event.center);
-
-          this.drag.pinched = true;
-          if (this.pinch[scale] === undefined) {
-            this.pinch.scale = 1;
-          }
-
-          // TODO: enabled moving while pinching?
-          var scale = this.pinch.scale * event.gesture.scale;
-          this.zoom(scale, pointer);
-        },
-        writable: true,
-        configurable: true
-      },
-      zoom: {
-
-
-        /**
-         * Zoom the network in or out
-         * @param {Number} scale a number around 1, and between 0.01 and 10
-         * @param {{x: Number, y: Number}} pointer    Position on screen
-         * @return {Number} appliedScale    scale is limited within the boundaries
-         * @private
-         */
-        value: function zoom(scale, pointer) {
-          if (this.options.zoomView === true) {
-            var scaleOld = this.body.view.scale;
-            if (scale < 0.00001) {
-              scale = 0.00001;
-            }
-            if (scale > 10) {
-              scale = 10;
-            }
-
-            var preScaleDragPointer = null;
-            if (this.drag !== undefined) {
-              if (this.drag.dragging === true) {
-                preScaleDragPointer = this.canvas.DOMtoCanvas(this.drag.pointer);
-              }
-            }
-            // + this.canvas.frame.canvas.clientHeight / 2
-            var translation = this.body.view.translation;
-
-            var scaleFrac = scale / scaleOld;
-            var tx = (1 - scaleFrac) * pointer.x + translation.x * scaleFrac;
-            var ty = (1 - scaleFrac) * pointer.y + translation.y * scaleFrac;
-
-            this.body.view.scale = scale;
-            this.body.view.translation = { x: tx, y: ty };
-
-            if (preScaleDragPointer != null) {
-              var postScaleDragPointer = this.canvas.canvasToDOM(preScaleDragPointer);
-              this.drag.pointer.x = postScaleDragPointer.x;
-              this.drag.pointer.y = postScaleDragPointer.y;
-            }
-
-            this.body.emitter.emit("_requestRedraw");
-
-            if (scaleOld < scale) {
-              this.body.emitter.emit("zoom", { direction: "+" });
-            } else {
-              this.body.emitter.emit("zoom", { direction: "-" });
-            }
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      onMouseWheel: {
-
-
-        /**
-         * Event handler for mouse wheel event, used to zoom the timeline
-         * See http://adomas.org/javascript-mouse-wheel/
-         *     https://github.com/EightMedia/hammer.js/issues/256
-         * @param {MouseEvent}  event
-         * @private
-         */
-        value: function onMouseWheel(event) {
-          // retrieve delta
-          var delta = 0;
-          if (event.wheelDelta) {
-            /* IE/Opera. */
-            delta = event.wheelDelta / 120;
-          } else if (event.detail) {
-            /* Mozilla case. */
-            // In Mozilla, sign of delta is different than in IE.
-            // Also, delta is multiple of 3.
-            delta = -event.detail / 3;
-          }
-
-          // If delta is nonzero, handle it.
-          // Basically, delta is now positive if wheel was scrolled up,
-          // and negative, if wheel was scrolled down.
-          if (delta) {
-            // calculate the new scale
-            var scale = this.body.view.scale;
-            var zoom = delta / 10;
-            if (delta < 0) {
-              zoom = zoom / (1 - zoom);
-            }
-            scale *= 1 + zoom;
-
-            // calculate the pointer location
-            var pointer = { x: event.pageX, y: event.pageY };
-
-            // apply the new scale
-            this.zoom(scale, pointer);
-          }
-
-          // Prevent default actions caused by mouse wheel.
-          event.preventDefault();
-        },
-        writable: true,
-        configurable: true
-      },
-      onMouseMove: {
-
-
-        /**
-         * Mouse move handler for checking whether the title moves over a node with a title.
-         * @param  {Event} event
-         * @private
-         */
-        value: function onMouseMove(event) {
-          var pointer = { x: event.pageX, y: event.pageY };
-          var popupVisible = false;
-
-          // check if the previously selected node is still selected
-          if (this.popup !== undefined) {
-            if (this.popup.hidden === false) {
-              this._checkHidePopup(pointer);
-            }
-
-            // if the popup was not hidden above
-            if (this.popup.hidden === false) {
-              popupVisible = true;
-              this.popup.setPosition(pointer.x + 3, pointer.y - 5);
-              this.popup.show();
-            }
-          }
-
-          // if we bind the keyboard to the div, we have to highlight it to use it. This highlights it on mouse over
-          if (this.options.keyboard.bindToWindow == false && this.options.keyboard.enabled === true) {
-            this.canvas.frame.focus();
-          }
-
-          // start a timeout that will check if the mouse is positioned above an element
-          if (popupVisible === false) {
-            var me = this;
-            var checkShow = function () {
-              me._checkShowPopup(pointer);
-            };
-
-            if (this.popupTimer) {
-              clearInterval(this.popupTimer); // stop any running calculationTimer
-            }
-            if (!this.drag.dragging) {
-              this.popupTimer = setTimeout(checkShow, this.options.tooltip.delay);
-            }
-          }
-
-          /**
-          * Adding hover highlights
-          */
-          if (this.options.hoverEnabled === true) {
-            // removing all hover highlights
-            for (var edgeId in this.hoverObj.edges) {
-              if (this.hoverObj.edges.hasOwnProperty(edgeId)) {
-                this.hoverObj.edges[edgeId].hover = false;
-                delete this.hoverObj.edges[edgeId];
-              }
-            }
-
-            // adding hover highlights
-            var obj = this.selectionHandler.getNodeAt(pointer);
-            if (obj == null) {
-              obj = this.selectionHandler.getEdgeAt(pointer);
-            }
-            if (obj != null) {
-              this._hoverObject(obj);
-            }
-
-            // removing all node hover highlights except for the selected one.
-            for (var nodeId in this.hoverObj.nodes) {
-              if (this.hoverObj.nodes.hasOwnProperty(nodeId)) {
-                if (obj instanceof Node && obj.id != nodeId || obj instanceof Edge || obj == null) {
-                  this._blurObject(this.hoverObj.nodes[nodeId]);
-                  delete this.hoverObj.nodes[nodeId];
-                }
-              }
-            }
-            this.body.emitter.emit("_requestRedraw");
-          }
-        },
-        writable: true,
-        configurable: true
-      }
-    });
-
-    return InteractionHandler;
-  })();
-
-  exports.TouchEventHandler = TouchEventHandler;
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
