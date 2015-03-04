@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.0.0-SNAPSHOT
- * @date    2015-03-03
+ * @date    2015-03-04
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -17322,7 +17322,6 @@ return /******/ (function(modules) { // webpackBootstrap
         if (item.data.subgroup !== undefined) {
           me.subgroups[item.data.subgroup].height = Math.max(me.subgroups[item.data.subgroup].height, item.height);
           me.subgroups[item.data.subgroup].visible = true;
-          //console.log(item.data.subgroup,me.subgroups[item.data.subgroup].height)
         }
       });
       if (min > margin.axis) {
@@ -23270,18 +23269,18 @@ return /******/ (function(modules) { // webpackBootstrap
   var Popup = __webpack_require__(60);
   var MixinLoader = __webpack_require__(!(function webpackMissingModule() { var e = new Error("Cannot find module \"./mixins/MixinLoader\""); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
   var Activator = __webpack_require__(38);
-  var locales = __webpack_require__(62);
+  var locales = __webpack_require__(61);
 
   // Load custom shapes into CanvasRenderingContext2D
-  __webpack_require__(63);
+  __webpack_require__(62);
 
-  var PhysicsEngine = __webpack_require__(64).PhysicsEngine;
-  var ClusterEngine = __webpack_require__(71).ClusterEngine;
-  var CanvasRenderer = __webpack_require__(72).CanvasRenderer;
-  var Canvas = __webpack_require__(73).Canvas;
-  var View = __webpack_require__(74).View;
-  var InteractionHandler = __webpack_require__(75).InteractionHandler;
-  var SelectionHandler = __webpack_require__(77).SelectionHandler;
+  var PhysicsEngine = __webpack_require__(63).PhysicsEngine;
+  var ClusterEngine = __webpack_require__(70).ClusterEngine;
+  var CanvasRenderer = __webpack_require__(71).CanvasRenderer;
+  var Canvas = __webpack_require__(72).Canvas;
+  var View = __webpack_require__(73).View;
+  var InteractionHandler = __webpack_require__(74).InteractionHandler;
+  var SelectionHandler = __webpack_require__(76).SelectionHandler;
 
 
   /**
@@ -28308,8 +28307,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Popup;
 
 /***/ },
-/* 61 */,
-/* 62 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -28351,7 +28349,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.nl_BE = exports.nl;
 
 /***/ },
-/* 63 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -28597,7 +28595,7 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 64 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -28610,12 +28608,12 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 2/23/2015.
    */
 
-  var BarnesHutSolver = __webpack_require__(65).BarnesHutSolver;
-  var Repulsion = __webpack_require__(66).Repulsion;
-  var HierarchicalRepulsion = __webpack_require__(67).HierarchicalRepulsion;
-  var SpringSolver = __webpack_require__(68).SpringSolver;
-  var HierarchicalSpringSolver = __webpack_require__(69).HierarchicalSpringSolver;
-  var CentralGravitySolver = __webpack_require__(70).CentralGravitySolver;
+  var BarnesHutSolver = __webpack_require__(64).BarnesHutSolver;
+  var Repulsion = __webpack_require__(65).Repulsion;
+  var HierarchicalRepulsion = __webpack_require__(66).HierarchicalRepulsion;
+  var SpringSolver = __webpack_require__(67).SpringSolver;
+  var HierarchicalSpringSolver = __webpack_require__(68).HierarchicalSpringSolver;
+  var CentralGravitySolver = __webpack_require__(69).CentralGravitySolver;
 
 
   var util = __webpack_require__(1);
@@ -29095,7 +29093,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 65 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -29607,7 +29605,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 66 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -29708,7 +29706,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 67 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -29806,7 +29804,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 68 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -29917,7 +29915,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 69 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -30047,7 +30045,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 70 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -30113,7 +30111,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 71 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -30827,7 +30825,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 72 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31153,7 +31151,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 73 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31440,7 +31438,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 74 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31857,7 +31855,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 75 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31874,7 +31872,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
 
-  var NavigationHandler = __webpack_require__(76).NavigationHandler;
+  var NavigationHandler = __webpack_require__(75).NavigationHandler;
   var InteractionHandler = (function () {
     function InteractionHandler(body, canvas, selectionHandler) {
       _classCallCheck(this, InteractionHandler);
@@ -32422,7 +32420,7 @@ return /******/ (function(modules) { // webpackBootstrap
   //  }
 
 /***/ },
-/* 76 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -32713,7 +32711,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 77 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
