@@ -22,6 +22,8 @@ http://visjs.org
   and bottom (#665).
 - Implemented creating new range items by dragging in an empty space with the
   ctrl key down.
+- Implemented configuration option `order: function` to define a custom ordering
+  for the items (see #538, #324).
 - Fixed not property initializing with a DataView for groups.
 - Merged add custom timebar functionality, thanks @aytech!
 - Fixed #664: end of item not restored when canceling a move event.

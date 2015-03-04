@@ -664,18 +664,19 @@ var options = {
     </td>
 </tr>
 
-<!-- TODO: cleanup option order
 <tr>
   <td>order</td>
   <td>Function</td>
   <td>none</td>
-  <td>Provide a custom sort function to order the items. The order of the
+  <td>
+    <p>Provide a custom sort function to order the items. The order of the
     items is determining the way they are stacked. The function
-    order is called with two parameters, both of type
-    `vis.components.items.Item`.
+    order is called with two arguments containing the data of two items to be
+    compared.
+    </p>
+    <p style="font-style: italic">IMPORTANT: Custom ordering is not suitable for large amounts of items. Keep the number of items in this configuration limited to not more than a few hundred.</p>
   </td>
 </tr>
--->
 
 <tr>
     <td>orientation</td>
