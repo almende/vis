@@ -205,7 +205,7 @@ var items = [
   </tr>
   <tr>
     <td>end</td>
-    <td>Date</td>
+    <td>Date | number | string | Moment</td>
     <td>no</td>
     <td>The end date of the item. The end date is optional, and can be left <code>null</code>.
       If end date is provided, the item is displayed as a range.
@@ -232,7 +232,7 @@ var items = [
   </tr>
   <tr>
     <td>start</td>
-    <td>Date</td>
+    <td>Date | number | string | Moment</td>
     <td>yes</td>
     <td>The start date of the item, for example <code>new Date(2010,9,23)</code>.</td>
   </tr>
@@ -468,7 +468,7 @@ var options = {
 
 <tr>
     <td>end</td>
-    <td>Date | Number | String</td>
+    <td>Date | Number | String | Moment</td>
     <td>none</td>
     <td>The initial end date for the axis of the timeline.
         If not provided, the latest date present in the items set is taken as
@@ -584,7 +584,7 @@ var options = {
 
 <tr>
     <td>max</td>
-    <td>Date | Number | String</td>
+    <td>Date | Number | String | Moment</td>
     <td>none</td>
     <td>Set a maximum Date for the visible range.
         It will not be possible to move beyond this maximum.
@@ -600,7 +600,7 @@ var options = {
 
 <tr>
     <td>min</td>
-    <td>Date | Number | String</td>
+    <td>Date | Number | String | Moment</td>
     <td>none</td>
     <td>Set a minimum Date for the visible range.
         It will not be possible to move beyond this minimum.
@@ -762,7 +762,7 @@ var options = {
 
 <tr>
     <td>start</td>
-    <td>Date | Number | String</td>
+    <td>Date | Number | String | Moment</td>
     <td>none</td>
     <td>The initial start date for the axis of the timeline.
         If not provided, the earliest date present in the events is taken as start date.</td>
