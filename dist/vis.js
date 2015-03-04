@@ -9860,9 +9860,6 @@ return /******/ (function(modules) { // webpackBootstrap
     var start = this.conversion.toScreen(this.data.start);
     var align = this.options.align;
     var left;
-    var box = this.dom.box;
-    var line = this.dom.line;
-    var dot = this.dom.dot;
 
     // calculate left position of the box
     if (align == 'right') {
@@ -9877,13 +9874,13 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     // reposition box
-    box.style.left = this.left + 'px';
+    this.dom.box.style.left = this.left + 'px';
 
     // reposition line
-    line.style.left = (start - this.props.line.width / 2) + 'px';
+    this.dom.line.style.left = (start - this.props.line.width / 2) + 'px';
 
     // reposition dot
-    dot.style.left = (start - this.props.dot.width / 2) + 'px';
+    this.dom.dot.style.left = (start - this.props.dot.width / 2) + 'px';
   };
 
   /**
@@ -10256,21 +10253,28 @@ return /******/ (function(modules) { // webpackBootstrap
 
   /**
    * Reposition the item horizontally
+   * @param {boolean} [limitSize=true] If true (default), the width of the range
+   *                                   item will be limited, as the browser cannot
+   *                                   display very wide divs. This means though
+   *                                   that the applied left and width may
+   *                                   not correspond to the ranges start and end
    * @Override
    */
-  RangeItem.prototype.repositionX = function() {
+  RangeItem.prototype.repositionX = function(limitSize) {
     var parentWidth = this.parent.width;
     var start = this.conversion.toScreen(this.data.start);
     var end = this.conversion.toScreen(this.data.end);
     var contentLeft;
     var contentWidth;
 
-    // limit the width of the this, as browsers cannot draw very wide divs
-    if (start < -parentWidth) {
-      start = -parentWidth;
-    }
-    if (end > 2 * parentWidth) {
-      end = 2 * parentWidth;
+    // limit the width of the range, as browsers cannot draw very wide divs
+    if (limitSize === undefined || limitSize === true) {
+      if (start < -parentWidth) {
+        start = -parentWidth;
+      }
+      if (end > 2 * parentWidth) {
+        end = 2 * parentWidth;
+      }
     }
     var boxWidth = Math.max(end - start, 1);
 
@@ -11869,12 +11873,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
         // show all items
         var me = this;
+        var limitSize = false;
         util.forEach(this.items, function (item) {
           if (!item.displayed) {
             item.redraw();
             me.visibleItems.push(item);
           }
-          item.repositionX();
+          item.repositionX(limitSize);
         });
 
         // order all items and force a restacking
