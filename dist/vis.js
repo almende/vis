@@ -2309,9 +2309,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
     var filteredItem = {};
 
-    for (var field in item) {
-      if (item.hasOwnProperty(field) && (fields.indexOf(field) != -1)) {
-        filteredItem[field] = item[field];
+    if(Array.isArray(fields)){
+      for (var field in item) {
+        if (item.hasOwnProperty(field) && (fields.indexOf(field) != -1)) {
+          filteredItem[field] = item[field];
+        }
+      }
+    }else{
+      for (var field in item) {
+        if (item.hasOwnProperty(field) && fields.hasOwnProperty(field)) {
+          filteredItem[fields[field]] = item[field];
+        }
       }
     }
 
@@ -9630,6 +9638,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // special positioning for subgroups
     if (this.data.subgroup !== undefined) {
+      // TODO: instead of calculating the top position of the subgroups here for every BackgroundItem, calculate the top of the subgroup once in Itemset
+
       var itemSubgroup = this.data.subgroup;
       var subgroups = this.parent.subgroups;
       var subgroupIndex = subgroups[itemSubgroup].index;
@@ -9655,15 +9665,20 @@ return /******/ (function(modules) { // webpackBootstrap
       // and when the orientation is bottom:
       else {
         var newTop = this.parent.top;
+        var totalHeight = 0;
         for (var subgroup in subgroups) {
           if (subgroups.hasOwnProperty(subgroup)) {
-            if (subgroups[subgroup].visible == true && subgroups[subgroup].index > subgroupIndex) {
-              newTop += subgroups[subgroup].height + margin.item.vertical;
+            if (subgroups[subgroup].visible == true) {
+              var newHeight = subgroups[subgroup].height + margin.item.vertical;
+              totalHeight += newHeight;
+              if (subgroups[subgroup].index > subgroupIndex) {
+                newTop += newHeight;
+              }
             }
           }
         }
         height = this.parent.subgroups[itemSubgroup].height + margin.item.vertical;
-        this.dom.box.style.top = newTop + 'px';
+        this.dom.box.style.top = (this.parent.height - totalHeight + newTop) + 'px';
         this.dom.box.style.bottom = '';
       }
     }

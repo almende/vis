@@ -29,6 +29,8 @@ http://visjs.org
 - Fixed #664: end of item not restored when canceling a move event.
 - Fixed #609: reduce the left/right dragarea when an item range is very small,
   so you can still move it as a whole.
+- Fixed #676: misalignment of background items when using subgroups and the
+  group label's height is larger than the contents.
 
 
 ### DataSet/DataView
