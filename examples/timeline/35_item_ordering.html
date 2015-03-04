@@ -25,10 +25,12 @@
 <p>
   To display and stack the items in a controlled order, you can provide a
   custom sorting function via the configuration option <code>order</code>.
-  This is only suitable for relatively small amounts of items, as it forces
-  the Timeline to order and re-stack all items with every redraw.
 </p>
-
+<p>
+  WARNING: Custom ordering is only suitable for small amounts of items (up to a few
+  hundred), as the Timeline has to render <i>all</i> items once on load to
+  determine their width and height.
+</p>
 <p>
   <label for="ordering"><input type="checkbox" id="ordering" checked/> Apply custom ordering. Order items by their id.</label>
 </p>
