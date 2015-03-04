@@ -33,6 +33,7 @@ http://visjs.org
 
 ### DataSet/DataView
 
+- Implemented support for mapping field names. Thanks @spatialillusions.
 - Fixed #670: DataView not passing a data property on update events (see #670)
 
 
