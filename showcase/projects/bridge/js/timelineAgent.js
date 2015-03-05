@@ -38,7 +38,7 @@ timelineAgent.prototype.connectToProxy = function() {
 };
 
 timelineAgent.prototype.rpcFunctions.addTimelineEvent = function(params,sender) {
-  addToDataset(params.item);
+  addToDataset(params);
 };
 
 timelineAgent.prototype.rpcFunctions.resetTimelineEvents = function(params,sender) {
