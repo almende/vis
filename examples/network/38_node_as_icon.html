@@ -1,0 +1,166 @@
+﻿<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Network | node as icon</title>
+
+    <script type="text/javascript" src="../../dist/vis.js"></script>
+    <link href="../../dist/vis.css" rel="stylesheet" type="text/css" />
+
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="http://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+
+    <script language="JavaScript">
+        function draw() {
+            /*
+             * Example for FontAwesome
+             */
+            var optionsFA = {
+                height: '300px',
+                groups: {
+                    usergroups: {
+                        shape: 'icon',
+                        iconFontFace: 'FontAwesome',
+                        icon: '\uf0c0',
+                        iconSize: 50,
+                        iconColor: '#57169a'
+                    },
+                    users: {
+                        shape: 'icon',
+                        iconFontFace: 'FontAwesome',
+                        icon: '\uf007',
+                        iconSize: 50,
+                        iconColor: '#aa00ff'
+                    }
+                }
+            };
+
+            // create an array with nodes
+            var nodesFA = [{
+                id: 1,
+                label: 'User 1',
+                group: 'users'
+            }, {
+                id: 2,
+                label: 'User 2',
+                group: 'users'
+            }, {
+                id: 3,
+                label: 'Usergroup 1',
+                group: 'usergroups'
+            }, {
+                id: 4,
+                label: 'Usergroup 2',
+                group: 'usergroups'
+            }, {
+                id: 5,
+                label: 'Organisation 1',
+                shape: 'icon',
+                iconFontFace: 'FontAwesome',
+                icon: '\uf1ad',
+                iconSize: 50,
+                iconColor: '#f0a30a'
+            }];
+
+            // create an array with edges
+            var edges = [{
+                from: 1,
+                to: 3
+            }, {
+                from: 1,
+                to: 4
+            }, {
+                from: 2,
+                to: 4
+            }, {
+                from: 3,
+                to: 5
+            }, {
+                from: 4,
+                to: 5
+            }];
+
+            // create a network
+            var containerFA = document.getElementById('mynetworkFA');
+            var dataFA = {
+                nodes: nodesFA,
+                edges: edges
+            };
+
+            var networkFA = new vis.Network(containerFA, dataFA, optionsFA);
+
+            /*
+             * Example for Ionicons
+             */
+            var optionsIO = {
+                height: '300px',
+                groups: {
+                    usergroups: {
+                        shape: 'icon',
+                        iconFontFace: 'Ionicons',
+                        icon: '\uf47c',
+                        iconSize: 50,
+                        iconColor: '#57169a'
+                    },
+                    users: {
+                        shape: 'icon',
+                        iconFontFace: 'Ionicons',
+                        icon: '\uf47e',
+                        iconSize: 50,
+                        iconColor: '#aa00ff'
+                    }
+                }
+            };
+
+            // create an array with nodes
+            var nodesIO = [{
+                id: 1,
+                label: 'User 1',
+                group: 'users'
+            }, {
+                id: 2,
+                label: 'User 2',
+                group: 'users'
+            }, {
+                id: 3,
+                label: 'Usergroup 1',
+                group: 'usergroups'
+            }, {
+                id: 4,
+                label: 'Usergroup 2',
+                group: 'usergroups'
+            }, {
+                id: 5,
+                label: 'Organisation 1',
+                shape: 'icon',
+                iconFontFace: 'Ionicons',
+                icon: '\uf276',
+                iconSize: 50,
+                iconColor: '#f0a30a'
+            }];
+
+
+            // create a network
+            var containerIO = document.getElementById('mynetworkIO');
+            var dataIO = {
+                nodes: nodesIO,
+                edges: edges
+            };
+
+            var networkIO = new vis.Network(containerIO, dataIO, optionsIO);
+        }
+    </script>
+</head>
+
+<body onload="draw()">
+    <h2>
+        <i class="fa fa-flag"></i> Use FontAwesome-icons for node</h2>
+    <div id="mynetworkFA"></div>
+    <h2>
+            <i class="ion ion-ionic"></i> Use Ionicons-icons for node</h2>
+    <div id="mynetworkIO"></div>
+
+</body>
+
+</html>
