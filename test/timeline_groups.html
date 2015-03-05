@@ -165,6 +165,18 @@
   });
   */
 
+  timeline.on('click', function (props) {
+    console.log('click', props);
+  });
+
+  timeline.on('doubleClick', function (props) {
+    console.log('doubleClick', props);
+  });
+
+  timeline.on('contextmenu', function (props) {
+    console.log('contextmenu', props);
+  });
+
   items.on('add',    console.log.bind(console));
   items.on('update', console.log.bind(console));
   items.on('remove', console.log.bind(console));

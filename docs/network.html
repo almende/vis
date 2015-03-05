@@ -165,14 +165,14 @@ The constructor accepts three parameters:
     <code>edges</code>, which both contain an array with objects.
     Optionally, data may contain an <code>options</code> object.
     The parameter <code>data</code> is optional, data can also be set using
-    the method <code>setData</code>. Section <a href="#Data_Format">Data Format</a>
+    the method <code>setData</code>. Section <a href="#Data_format">Data Format</a>
     describes the data object.
   </li>
   <li>
     <code>options</code> is an optional Object containing a name-value map
     with options. Options can also be set using the method
     <code>setOptions</code>.
-    Section <a href="#Configuration_Options">Configuration Options</a>
+    Section <a href="#Configuration_options">Configuration Options</a>
     describes the available options.
   </li>
 </ul>
@@ -214,7 +214,7 @@ var data = {
     <span style="font-weight: bold;">A property <code>options</code></span>,
     containing an object with global options.
     Options can be provided as third parameter in the network constructor
-    as well. Section <a href="#Configuration_Options">Configuration Options</a>
+    as well. Section <a href="#Configuration_options">Configuration Options</a>
     describes the available options.
 
   </li>
@@ -647,7 +647,7 @@ var options = {
 </tr>
 
 <tr>
-  <td>freezeForStabilization</a></td>
+  <td>freezeForStabilization</td>
   <td>Boolean</td>
   <td>false</td>
   <td>
@@ -972,7 +972,7 @@ mySize = minSize + diff * scale;</pre>
         <td>When using values, you can let the font scale with the size of the nodes if you enable the scaleFontWithValue option. This is the minimum value of the fontSize.</td>
     </tr>
     <tr>
-        <td></td>fontSizeMax</td>
+        <td>fontSizeMax</td>
         <td>Number</td>
         <td>30</td>
         <td>When using values, you can let the font scale with the size of the nodes if you enable the scaleFontWithValue option. This is the maximum value of the fontSize.</td>
@@ -1483,7 +1483,7 @@ To unify the physics system, the damping, repulsion distance and edge length hav
 If no options for the physics system are supplied, the Barnes-Hut method will be used with the default parameters. If you want to customize the physics system easily, you can use the configurePhysics option. <br/>
 When using the hierarchical display option, hierarchicalRepulsion is automatically used as the physics solver. Similarly, if you use the hierarchicalRepulsion physics option, hierarchical display is automatically turned on with default settings.
 
-<p class="important_note">Note: if the behaviour of your network is not the way you want it, use configurePhysics as described <u><a href="#PhysicsConfiguration">below</a></u> or by <u><a href="../examples/network/25_physics_configuration.html">example 25</a></u>.</p>
+<p class="important_note">Note: if the behaviour of your network is not the way you want it, use configurePhysics as described <u><a href="#PhysicsConfiguration">below</a></u> or by <u><a href="../examples/network/25_physics_configuration.html">example 25</a></u>.
 </p>
 <pre class="prettyprint">
 // These variables must be defined in an options object named physics.

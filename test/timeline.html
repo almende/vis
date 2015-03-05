@@ -26,12 +26,12 @@
 
     #visualization .grid.vertical.saturday,
     #visualization .grid.vertical.sunday {
-      background: gray;
+      background: #ffef9f;
     }
 
     #visualization .text.saturday,
     #visualization .text.sunday {
-      color: white;
+      color: #ff7c02;
     }
   </style>
 
@@ -138,6 +138,14 @@
 
   timeline.on('select', function (selection) {
     console.log('select', selection);
+  });
+
+  timeline.on('click', function (props) {
+    console.log('click', props);
+  });
+
+  timeline.on('contextmenu', function (props) {
+    console.log('contextmenu', props);
   });
 
   /*

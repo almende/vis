@@ -26,6 +26,8 @@ http://visjs.org
   ctrl key down.
 - Implemented configuration option `order: function` to define a custom ordering
   for the items (see #538, #234).
+- Implemented events `click`, `doubleClick`, and `contextMenu`.
+- Implemented method `getEventProperties(event)`.
 - Fixed not property initializing with a DataView for groups.
 - Merged add custom timebar functionality, thanks @aytech!
 - Fixed #664: end of item not restored when canceling a move event.

@@ -919,6 +919,26 @@ timeline.clear({options: true}); // clear options only
     </td>
   </tr>
 
+  <tr id="getEventProperties">
+    <td>getEventProperties(event)</td>
+    <td>Object</td>
+    <td>
+      Returns an Object with relevant properties from an event:
+      <ul>
+        <li><code>group</code> (Number | null): the id of the clicked group.</li>
+        <li><code>item</code> (Number | null): the id of the clicked item.</li>
+        <li><code>pageX</code> (Number): absolute horizontal position of the click event.</li>
+        <li><code>pageY</code> (Number): absolute vertical position of the click event.</li>
+        <li><code>x</code> (Number): relative horizontal position of the click event.</li>
+        <li><code>y</code> (Number): relative vertical position of the click event.</li>
+        <li><code>time</code> (Date): Date of the clicked event.</li>
+        <li><code>snappedTime</code> (Date): Date of the clicked event, snapped to a nice value.</li>
+        <li><code>what</code> (String | null): name of the clicked thing: <code>item</code>, <code>background</code>, <code>axis</code>, <code>group-label</code>, <code>custom-time</code>, or <code>current-time</code>.</li>
+        <li><code>event</code> (Object): the original click event.</li>
+      </ul>
+    </td>
+  </tr>
+
   <tr>
     <td>getSelection()</td>
     <td>Number[]</td>
@@ -1093,16 +1113,49 @@ timeline.off('select', onSelect);
     <th>Description</th>
     <th>Properties</th>
   </tr>
-    <tr>
-        <td>finishedRedraw</td>
-        <td>Fired after a redraw is complete. When moving the timeline around, this could be fired frequently.
-        </td>
-        <td>
-            none.
-        </td>
-    </tr>
 
-    <tr>
+  <tr>
+    <td>click</td>
+    <td>Fired when clicked inside the Timeline.
+    </td>
+    <td>
+      Passes a properties object as returned by the method <a href="#getEventProperties"><code>Timeline.getEventProperties(event)</code></a>.
+    </td>
+  </tr>
+
+  <tr>
+    <td>contextmenu</td>
+    <td>Fired when right-clicked inside the Timeline. Note that in order to prevent the context menu from showing up, default behavior of the event must be stopped:
+<pre class="prettyprint lang-js">timeline.on('contextmenu', function (props) {
+  alert('Right click!');
+  props.event.preventDefault();
+});
+</pre>
+    </td>
+    <td>
+      Passes a properties object as returned by the method <a href="#getEventProperties"><code>Timeline.getEventProperties(event)</code></a>.
+    </td>
+  </tr>
+
+  <tr>
+    <td>doubleClick</td>
+    <td>Fired when double clicked inside the Timeline.
+    </td>
+    <td>
+      Passes a properties object as returned by the method <a href="#getEventProperties"><code>Timeline.getEventProperties(event)</code></a>.
+    </td>
+  </tr>
+
+  <tr>
+    <td>finishedRedraw</td>
+    <td>Fired after a redraw is complete. When moving the timeline around, this could be fired frequently.
+    </td>
+    <td>
+      none.
+    </td>
+  </tr>
+
+  <tr>
     <td>rangechange</td>
     <td>Fired repeatedly when the timeline window is being changed.
     </td>
