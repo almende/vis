@@ -84,7 +84,7 @@
         nodes: nodes,
         edges: edges
       };
-      var options = {stabilize:false};
+      var options = {physics:{stabilization:false}};
       network = new vis.Network(container, data, options);
 
       // add event listeners
