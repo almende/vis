@@ -2656,6 +2656,13 @@ network.off('select', onSelect);
         </td>
     </tr>
     <tr>
+        <td>stabilizationIterationsDone</td>
+        <td>Fired once when the network finished the initial stabilization run. This is fired REGARDLESS if the network has stabilized. It only means that the amount of configured stabilizationIterations have been completed.
+        <td>
+        none
+        </td>
+    </tr>
+    <tr>
         <td>stabilized</td>
         <td>Fired every time the network has been stabilized. This event can be used to trigger the .storePositions() function after stabilization. Fired with an object having the following properties:</td>
         <td>
