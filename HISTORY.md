@@ -15,6 +15,8 @@ http://visjs.org
 - Allow hierarchical view to be set in setOptions.
 - Fixed manipulation bar for mobile.
 - Fixed #670: Bug when updating data in a DataSet, when Network is connected to the DataSet via a DataView.
+- Fixed #688: Added a css class to be able to distinguish buttons "Edit node"
+  and "Edit edge".
 
 ### Timeline
 

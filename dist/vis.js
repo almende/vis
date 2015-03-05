@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.10.1-SNAPSHOT
- * @date    2015-03-04
+ * @date    2015-03-05
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -33664,7 +33664,7 @@ return /******/ (function(modules) { // webpackBootstrap
         this.manipulationDOM['seperatorLineDiv2'].className = 'network-seperatorLine';
 
         this.manipulationDOM['editNodeSpan'] = document.createElement('div');
-        this.manipulationDOM['editNodeSpan'].className = 'network-manipulationUI edit';
+        this.manipulationDOM['editNodeSpan'].className = 'network-manipulationUI edit node';
         this.manipulationDOM['editNodeLabelSpan'] = document.createElement('div');
         this.manipulationDOM['editNodeLabelSpan'].className = 'network-manipulationLabel';
         this.manipulationDOM['editNodeLabelSpan'].innerHTML = locale['editNode'];
@@ -33678,7 +33678,7 @@ return /******/ (function(modules) { // webpackBootstrap
         this.manipulationDOM['seperatorLineDiv3'].className = 'network-seperatorLine';
 
         this.manipulationDOM['editEdgeSpan'] = document.createElement('div');
-        this.manipulationDOM['editEdgeSpan'].className = 'network-manipulationUI edit';
+        this.manipulationDOM['editEdgeSpan'].className = 'network-manipulationUI edit edge';
         this.manipulationDOM['editEdgeLabelSpan'] = document.createElement('div');
         this.manipulationDOM['editEdgeLabelSpan'].className = 'network-manipulationLabel';
         this.manipulationDOM['editEdgeLabelSpan'].innerHTML = locale['editEdge'];
