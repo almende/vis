@@ -2,7 +2,7 @@
 http://visjs.org
 
 
-## not yet released, version 3.11.0-SNAPSHOT
+## 2015-03-05, version 3.11.0
 
 ### Network
 
