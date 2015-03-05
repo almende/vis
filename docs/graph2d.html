@@ -814,9 +814,41 @@ Graph2d.clear({options: true}); // clear options only
   </tr>
 
   <tr>
+    <td>click</td>
+    <td>Fired when clicked inside the Graph2d.
+    </td>
+    <td>
+      Passes a properties object as returned by the method <a href="#getEventProperties"><code>Graph2d.getEventProperties(event)</code></a>.
+    </td>
+  </tr>
+
+  <tr>
+    <td>contextmenu</td>
+    <td>Fired when right-clicked inside the Graph2d. Note that in order to prevent the context menu from showing up, default behavior of the event must be stopped:
+<pre class="prettyprint lang-js">graph2d.on('contextmenu', function (props) {
+  alert('Right click!');
+  props.event.preventDefault();
+});
+</pre>
+    </td>
+    <td>
+      Passes a properties object as returned by the method <a href="#getEventProperties"><code>Graph2d.getEventProperties(event)</code></a>.
+    </td>
+  </tr>
+
+  <tr>
     <td>destroy()</td>
     <td>none</td>
     <td>Destroy the Graph2d. The Graph2d is removed from memory. all DOM elements and event listeners are cleaned up.
+    </td>
+  </tr>
+
+  <tr>
+    <td>doubleClick</td>
+    <td>Fired when double clicked inside the Graph2d.
+    </td>
+    <td>
+      Passes a properties object as returned by the method <a href="#getEventProperties"><code>Graph2d.getEventProperties(event)</code></a>.
     </td>
   </tr>
 
