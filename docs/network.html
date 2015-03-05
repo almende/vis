@@ -280,13 +280,13 @@ When using a DataSet, the network is automatically updating to changes in the Da
   <td>allowedToMoveX</td>
   <td>Boolean</td>
   <td>no</td>
-  <td>If allowedToMoveX is false, then the node will not move in the X direction from its position.</td>
+  <td>If allowedToMoveX is false, then the node will not move in the X direction from its position. This does not do anything in hierarchical views.</td>
 </tr>
 <tr>
   <td>allowedToMoveY</td>
   <td>Boolean</td>
   <td>no</td>
-  <td>If allowedToMoveY is false, then the node will not move in the Y direction from its position.</td>
+  <td>If allowedToMoveY is false, then the node will not move in the Y direction from its position. This does not do anything in hierarchical views.</td>
 </tr>
 
 <tr>
@@ -599,7 +599,14 @@ var options = {
   <td>When a Network is configured to be <code>clickToUse</code>, it will react to mouse, touch, and keyboard events only when active.
     When active, a blue shadow border is displayed around the Network. The Network is set active by clicking on it, and is changed to inactive again by clicking outside the Network or by pressing the ESC key.</td>
 </tr>
-
+    <tr>
+        <td>useDefaultGroups</td>
+        <td>boolean</td>
+        <td>true</td>
+        <td>If true, the default groups are used when groups are used. If you have defined your own groups those will be used. If you have an item with a group that is NOT in your own group list,
+            setting useDefaultGroups true will iterate over the default groups for unknown groups. If it is set to false, it will iterate over your own groups for unknown groups.
+        </td>
+    </tr>
 <tr>
   <td><a href="#Physics">physics</a></td>
   <td>Object</td>
@@ -758,7 +765,7 @@ var options = {
   <td>smoothCurves.type</td>
   <td>String</td>
   <td>"continuous"</td>
-  <td>This option only affects NONdynamic smooth curves. The supported types are: <code>continuous, discrete, diagonalCross, straightCross, horizontal, vertical</code>. The effects of these types
+  <td>This option only affects NONdynamic smooth curves. The supported types are: <code>continuous, discrete, diagonalCross, straightCross, horizontal, vertical, curvedCW, curvedCCW</code>. The effects of these types
     are shown in examples <a href="../examples/network/26_staticSmoothCurves.html">26</a> and <a href="../examples/network/27_world_cup_network.html">27</a></td>
 </tr>
 <tr>
