@@ -834,6 +834,24 @@ Graph2d.clear({options: true}); // clear options only
     </td>
   </tr>
 
+  <tr id="getEventProperties">
+    <td>getEventProperties(event)</td>
+    <td>Object</td>
+    <td>
+      Returns an Object with relevant properties from an event:
+      <ul>
+        <li><code>pageX</code> (Number): absolute horizontal position of the click event.</li>
+        <li><code>pageY</code> (Number): absolute vertical position of the click event.</li>
+        <li><code>x</code> (Number): relative horizontal position of the click event.</li>
+        <li><code>y</code> (Number): relative vertical position of the click event.</li>
+        <li><code>time</code> (Date): Date of the clicked event.</li>
+        <li><code>value</code> (Number[]): The data value of the click event. The array contains one value when there is one data axis visible, and two values when there are two visible data axes.</li>
+        <li><code>what</code> (String | null): name of the clicked thing: <code>background</code>, <code>axis</code>, <code>dat-axis</code>, <code>custom-time</code>, or <code>current-time</code>, <code>legend</code>.</li>
+        <li><code>event</code> (Object): the original click event.</li>
+      </ul>
+    </td>
+  </tr>
+
   <tr>
     <td>getLegend(groupId, iconWidth, iconHeight)</td>
     <td>SVGelement, String, String</td>

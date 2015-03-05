@@ -36,6 +36,10 @@ http://visjs.org
 - Fixed #676: misalignment of background items when using subgroups and the
   group label's height is larger than the contents.
 
+### Graph2d
+
+- Implemented events `click`, `doubleClick`, and `contextMenu`.
+- Implemented method `getEventProperties(event)`.
 
 ### DataSet/DataView
 
