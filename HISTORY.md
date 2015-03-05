@@ -14,15 +14,32 @@ http://visjs.org
 - Added pull request for usage of Icons. Thanks @Dude9177!
 - Allow hierarchical view to be set in setOptions.
 - Fixed manipulation bar for mobile.
-
-### Graph2d
-
-
+- Fixed #670: Bug when updating data in a DataSet, when Network is connected to the DataSet via a DataView.
+- Fixed #688: Added a css class to be able to distinguish buttons "Edit node"
+  and "Edit edge".
 
 ### Timeline
 
+- Implemented orientation option `'both'`, displaying a time axis both on top
+  and bottom (#665).
+- Implemented creating new range items by dragging in an empty space with the
+  ctrl key down.
+- Implemented configuration option `order: function` to define a custom ordering
+  for the items (see #538, #234).
 - Fixed not property initializing with a DataView for groups.
 - Merged add custom timebar functionality, thanks @aytech!
+- Fixed #664: end of item not restored when canceling a move event.
+- Fixed #609: reduce the left/right dragarea when an item range is very small,
+  so you can still move it as a whole.
+- Fixed #676: misalignment of background items when using subgroups and the
+  group label's height is larger than the contents.
+
+
+### DataSet/DataView
+
+- Implemented support for mapping field names. Thanks @spatialillusions.
+- Fixed #670: DataView not passing a data property on update events (see #670)
+
 
 
 ## 2015-02-11, version 3.10.0

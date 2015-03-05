@@ -146,5 +146,49 @@ describe('DataView', function () {
     assert.deepEqual(added, [2, 3]);
     assert.deepEqual(updated, []);
     assert.deepEqual(removed, []);
-  })
+  });
+
+  it('should pass data of changed items when updating a DataSet', function () {
+    var data = new DataSet([
+      {id: 1, title: 'Item 1', group: 1},
+      {id: 2, title: 'Item 2', group: 2},
+      {id: 3, title: 'Item 3', group: 2}
+    ]);
+    var view = new DataView(data, {
+      filter: function (item) {
+        return item.group === 2;
+      }
+    });
+
+    var dataUpdates = [];
+    var viewUpdates = [];
+
+
+    data.on('update', function (event, properties, senderId) {
+      dataUpdates.push([event, properties]);
+    });
+
+    view.on('update', function (event, properties, senderId) {
+      viewUpdates.push([event, properties]);
+    });
+
+    // make a change not affecting the DataView
+    data.update({id: 1, title: 'Item 1 (changed)'});
+    assert.deepEqual(dataUpdates, [
+      ['update', {items: [1], data: [{id: 1, title: 'Item 1 (changed)'}]}]
+    ]);
+    assert.deepEqual(viewUpdates, []);
+
+    // make a change affecting the DataView
+    data.update({id: 2, title: 'Item 2 (changed)'});
+    assert.deepEqual(dataUpdates, [
+      ['update', {items: [1], data: [{id: 1, title: 'Item 1 (changed)'}]}],
+      ['update', {items: [2], data: [{id: 2, title: 'Item 2 (changed)'}]}]
+    ]);
+    assert.deepEqual(viewUpdates, [
+      ['update', {items: [2], data: [{id: 2, title: 'Item 2 (changed)'}]}]
+    ]);
+
+  });
+
 });

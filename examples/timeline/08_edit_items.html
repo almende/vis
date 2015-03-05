@@ -64,6 +64,7 @@
     onMoving: function (item, callback) {
       if (item.start < min) item.start = min;
       if (item.start > max) item.start = max;
+      if (item.end   > max) item.end   = max;
 
       callback(item); // send back the (possibly) changed item
     },
