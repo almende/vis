@@ -1,67 +1,83 @@
-<!DOCTYPE HTML>
 <html>
 <head>
-  <title>Timeline | Basic demo</title>
+  <title>Timeline | Bridge</title>
 
-  <style type="text/css">
-    body, html {
-      font-family: sans-serif;
-    }
-  </style>
+  <script src="js/vis/vis.js"></script>
 
-  <script src="./js/vis.js"></script>
-  <link href="./css/vis.css" rel="stylesheet" type="text/css" />
+  <script src="js/eve.js"></script>
+    <script src="js/timelineAgent.js"></script>
+  <link href="js/vis/vis.css" rel="stylesheet" type="text/css" />
+
+  <link href="./css/timelineStyle.css" rel="stylesheet" type="text/css" />
+
 </head>
 <body>
-<span id="status">Loading data...</span>
-<div id="visualization"></div>
+<p>This page demonstrates the Timeline with custom css classes for individual items.</p>
+
+<div id="mytimeline"></div>
 
 <script type="text/javascript">
+  var connected = false;
+  // create data
+  // note that months are zero-based in the JavaScript Date object
+  var data = new vis.DataSet();
 
-function loadJSON(path, success, error) {
-    selectedFile = path;
-    var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4) {
-            if (xhr.status === 200) {
-                success(JSON.parse(xhr.responseText), path);
-            }
-            else {
-                if (error === undefined) {
-                    console.error("ERROR:", path)
-                }
-                else {
-                    error();
-                }
-            }
-        }
-    };
-    xhr.open("GET", path, true);
+  // called from agent
+  function addToDataset(item) {
+      console.log(item)
+      data.add(item);
+  }
+  // called from agent
+  function clearDataset() {
+      data.clear();
+  }
 
-    xhr.send();
-}
+  function sessionClosed() {
+      if (connected === true) {
+          document.getElementById("overlayNC").style.display = 'block';
+      }
+  }
 
-function draw(data) {
-    document.getElementById("status").innerHTML = "";
-    // Create a DataSet (allows two way data-binding)
-    var items = new vis.DataSet(data.data);
-    var groups = new vis.DataSet(data.groups);
+  // specify options
+  var options = {
+    editable: true
+  };
+
+  // to run this, also have webHttp.js running in node.
+  eve.system.init({
+      transports: [
+          {
+              type: 'ws',
+              url: 'ws://agents/:id'
+          },
+          {
+              type: 'http'
+          }
+      ]
+  });
+
+  var proxyAddress = 'ws://afternoon-beyond-2302.herokuapp.com/agents/proxy';
+  var proxyAddressHTTP = 'https://afternoon-beyond-2302.herokuapp.com/agents/proxy';
+
+//  proxyAddress = 'ws://127.0.0.1:5000/agents/proxy';
+//  proxyAddressHTTP = 'http://127.0.0.1:5000/agents/proxy';
+
+  timelineProxy = new timelineAgent('timelineAgent', proxyAddress);
+
+  timelineProxy.wakeProxy(proxyAddressHTTP);
+
+  timelineProxy.connectToProxy();
+
+  timelineProxy.getTimelineEvents().then(function (reply) {
+      addToDataset(reply);
+  }).catch(function (err) {
+      console.error(err);
+  });
 
 
-    // create visualization
-    var container = document.getElementById('visualization');
-    var options = {
-        stack:false,
-        groupOrder: 'content'  // groupOrder can be a property name or a sorting function
-    };
-
-    var timeline = new vis.Timeline(container);
-    timeline.setOptions(options);
-    timeline.setGroups(groups);
-    timeline.setItems(items);
-}
-
-setTimeout(function () {loadJSON("./timeline.json",draw);}, 50);
+  // create the timeline
+  var container = document.getElementById('mytimeline');
+  timeline = new vis.Timeline(container, data, options);
 
 </script>
 </body>
