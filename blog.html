@@ -198,6 +198,119 @@
     </div>
 
     <div class="post">
+        <div class="postHeader" id="Released version 3.11.0">Released version 3.11.0</div>
+        <div class="postAuthor">by <a href="https://github.com/josdejong">Jos</a></div>
+        <div class="postDate">6th of March 2015</div>
+        <div class="postContent">
+            <p>
+                Today we released vis.js version 3.11.0. The Timeline has gotten quite some attention in this release: For example, the Timeline finally has gotten more event handlers to enable custom behavior in a flexible way. Network is evolving at a steady speed. It's really great to get more and more substantial contributions from the community latest months! Thanks.
+            </p>
+
+            <p>Changelog:</p>
+
+            <h3>Network</h3>
+
+            <ul>
+                <li>(added gradient coloring for lines, but set for release in 4.0 due to required refactoring of options).</li>
+                <li>Fixed bug where a network that has frozen physics would resume redrawing after setData, setOptions etc.</li>
+                <li>Added option to bypass default groups. If more groups are specified in the nodes than there are in the groups, loop over supplied groups instead of default.</li>
+                <li>Added two new static smooth curves modes: curveCW and curve CCW.</li>
+                <li>Added request redraw for certain internal processes to reduce number of draw calls (performance improvements!).</li>
+                <li>Added pull request for usage of Icons. Thanks @Dude9177!
+                <li>Allow hierarchical view to be set in setOptions.</li>
+                <li>Fixed manipulation bar for mobile.</li>
+                <li>Fixed #670: Bug when updating data in a DataSet, when Network is connected to the DataSet via a DataView.</li>
+                <li>Fixed #688: Added a css class to be able to distinguish buttons "Edit node" and "Edit edge".</li>
+            </ul>
+
+            <h3>Timeline</h3>
+
+            <ul>
+                <li>Implemented orientation option `'both'`, displaying a time axis both on top
+                and bottom (#665).</li>
+                <li>Implemented creating new range items by dragging in an empty space with the
+                ctrl key down.</li>
+                <li>Implemented configuration option `order: function` to define a custom ordering
+                for the items (see #538, #234).</li>
+                <li>Implemented events `click`, `doubleClick`, and `contextMenu`.</li>
+                <li>Implemented method `getEventProperties(event)`.</li>
+                <li>Fixed not property initializing with a DataView for groups.</li>
+                <li>Merged add custom timebar functionality, thanks @aytech!
+                <li>Fixed #664: end of item not restored when canceling a move event.</li>
+                <li>Fixed #609: reduce the left/right dragarea when an item range is very small,
+                so you can still move it as a whole.</li>
+                <li>Fixed #676: misalignment of background items when using subgroups and the
+                group label's height is larger than the contents.</li>
+            </ul>
+
+            <h3>Graph2d</h3>
+
+            <ul>
+                <li>Implemented events `click`, `doubleClick`, and `contextMenu`.</li>
+                <li>Implemented method `getEventProperties(event)`.</li>
+            </ul>
+
+            <h3>DataSet/DataView</h3>
+
+            <ul>
+                <li>Implemented support for mapping field names. Thanks @spatialillusions.</li>
+                <li>Fixed #670: DataView not passing a data property on update events (see #670)
+            </ul>
+
+        </div>
+    </div>
+
+    <div class="post">
+        <div class="postHeader" id="Released version 3.10.0">Released version 3.10.0</div>
+        <div class="postAuthor">by <a href="https://github.com/josdejong">Jos</a></div>
+        <div class="postDate">11th of February 2015</div>
+        <div class="postContent">
+            <p>
+                Version 3.10.0 has been released. Lots of improvements in Network, and some smaller bug fixes and improvements in Timeline and DataSet.
+            </p>
+
+            <p>Changelog:</p>
+
+            <h3>Network</h3>
+
+            <ul class="task-list">
+                <li>Added option bindToWindow (default true) to choose whether the keyboard binds are global or to the network div.</li>
+                <li>Improved images handling so broken images are shown on all references of images that are broken.</li>
+                <li>Added getConnectedNodes method.</li>
+                <li>Added fontSizeMin, fontSizeMax, fontSizeMaxVisible, scaleFontWithValue, fontDrawThreshold to Nodes.</li>
+                <li>Added fade in of labels (on nodes) near the fontDrawThreshold.</li>
+                <li>Added nodes option to zoomExtent to zoom in on specific set of nodes.</li>
+                <li>Added stabilizationIterationsDone event which fires at the end of the internal stabilization run. Does not imply that the network is stabilized.</li>
+                <li>Added freezeSimulation method.</li>
+                <li>Added clusterByZoom option.</li>
+                <li>Added class name 'network-tooltip' to the tooltip, allowing custom styling.</li>
+                <li>Fixed bug when redrawing was not right on zoomed-out browsers.</li>
+                <li>Added opacity option to edges. Opacity is only used for the unselected state.</li>
+                <li>Fixed bug where selections from removed data elements persisted.</li>
+            </ul>
+
+            <h3>Timeline</h3>
+            <ul class="task-list">
+                <li>`Timeline.redraw()` now also recalculates the size of items.</li>
+                <li>Implemented option `snap: function` to customize snapping to nice date when dragging items.</li>
+                <li>Implemented option `timeAxis: {scale: string, step: number}` to set fixed scale.</li>
+                <li>Fixed width of range items not always being maintained when moving due to snapping to nice dates.</li>
+                <li>Fixed not being able to drag items to an other group on mobile devices.</li>
+                <li>Fixed `setWindow` not working when applying an interval larger than the configured `zoomMax`.</li>
+            </ul>
+
+            <h3>DataSet/DataView</h3>
+
+            <ul class="task-list">
+                <li>Added property `length` holding the total number of items to the `DataSet and `DataView`.</li>
+                <li>Added a method `refresh()` to the `DataView`, to update filter results.</li>
+                <li>Fixed a bug in the `DataSet` returning an empty object instead of `null` when no item was found when using both a filter and specifying fields.</li>
+            </ul>
+
+        </div>
+    </div>
+
+    <div class="post">
         <div class="postHeader" id="Released version 3.9.0">Released version 3.9.0</div>
         <div class="postAuthor">by <a href="https://github.com/AlexDM0">Alex</a></div>
         <div class="postDate">16th of January 2015</div>
@@ -210,33 +323,33 @@
 
             <p>Changelog:</p>
 
-                <h3>
-                    <a class="anchor" href="#network" aria-hidden="true"><span class="octicon octicon-link"></span></a>Network</h3>
+            <h3>
+                <a class="anchor" href="#network" aria-hidden="true"><span class="octicon octicon-link"></span></a>Network</h3>
 
-                <ul class="task-list">
-                    <li>Reverted change in image class, fixed bug #552</li>
-                    <li>Improved the fontFill offset between different browsers. #365</li>
-                    <li>Fixed dashed lines on firefox on Unix systems</li>
-                    <li>Altered the Manipulation Mixin to be succesfully destroyed from memory when calling destroy();</li>
-                    <li>Improved drawing of arrowheads on smooth curves. #349</li>
-                    <li>Caught case where click originated on external DOM element and drag progressed to vis.</li>
-                    <li>Added label stroke support to Nodes, Edges &amp; Groups as per-object or global settings. Thank you @klmdb!</li>
-                    <li>Reverted patch that made nodes return to 'default' setting if no group was assigned to fix issue #561.
-                        The correct way to 'remove' a group from a node is to assign it a different one.</li>
-                    <li>Made the node/edge selected by the popup system the same as selected by the click-to-select system. Thank you @pavlos256!</li>
-                    <li>Improved edit edge control nodes positions, altered style a little.</li>
-                    <li>Fixed issue #564 by resetting state to initial when no callback is performed in the return function.</li>
-                    <li>Added condition to Repulsion similar to BarnesHut to ensure nodes do not overlap.</li>
-                    <li>Added labelAlignment option to edges. Thanks @T-rav!</li>
-                    <li>Close active sessions in dataManipulation when calling setData().</li>
-                </ul>
+            <ul class="task-list">
+                <li>Reverted change in image class, fixed bug #552</li>
+                <li>Improved the fontFill offset between different browsers. #365</li>
+                <li>Fixed dashed lines on firefox on Unix systems</li>
+                <li>Altered the Manipulation Mixin to be succesfully destroyed from memory when calling destroy();</li>
+                <li>Improved drawing of arrowheads on smooth curves. #349</li>
+                <li>Caught case where click originated on external DOM element and drag progressed to vis.</li>
+                <li>Added label stroke support to Nodes, Edges &amp; Groups as per-object or global settings. Thank you @klmdb!</li>
+                <li>Reverted patch that made nodes return to 'default' setting if no group was assigned to fix issue #561.
+                    The correct way to 'remove' a group from a node is to assign it a different one.</li>
+                <li>Made the node/edge selected by the popup system the same as selected by the click-to-select system. Thank you @pavlos256!</li>
+                <li>Improved edit edge control nodes positions, altered style a little.</li>
+                <li>Fixed issue #564 by resetting state to initial when no callback is performed in the return function.</li>
+                <li>Added condition to Repulsion similar to BarnesHut to ensure nodes do not overlap.</li>
+                <li>Added labelAlignment option to edges. Thanks @T-rav!</li>
+                <li>Close active sessions in dataManipulation when calling setData().</li>
+            </ul>
 
-                <h3>
-                    <a class="anchor" href="#timeline" aria-hidden="true"><span class="octicon octicon-link"></span></a>Timeline</h3>
+            <h3>
+                <a class="anchor" href="#timeline" aria-hidden="true"><span class="octicon octicon-link"></span></a>Timeline</h3>
 
-                <ul class="task-list">
-                    <li>Added byUser flag to options of the rangechange and rangechanged event.</li>
-                </ul>
+            <ul class="task-list">
+                <li>Added byUser flag to options of the rangechange and rangechanged event.</li>
+            </ul>
 
 
         </div>
@@ -248,12 +361,12 @@
         <div class="postDate">9th of January 2015</div>
         <div class="postContent">
             <p>
-               I initially wanted to do a small recap of vis.js so far but it became larger (and more off topic) than I expected. To understand some of the motivations for our roadmap, <a href="#A look back on vis.js">take a look at the post below this one first</a>.
+                I initially wanted to do a small recap of vis.js so far but it became larger (and more off topic) than I expected. To understand some of the motivations for our roadmap, <a href="#A look back on vis.js">take a look at the post below this one first</a>.
             </p><p>
             So now for our plans for 2015! We have added a lot of features over the last year, and we have to be careful that vis does not die of option-obesity. To mediate this we thought of a few solutions.
             Firstly, we will make the docs collapsible using a similar system to <a href="https://www.jsoneditoronline.org/" target="_blank">Jos&prime;s great online JSON editor</a>. This is naturally a temporary fix but
             the docs are one of the most important ways to get information. We think we ourselves may be the most frequent visitor of those pages so it's a good start!
-            </p><p>
+        </p><p>
             Secondly, the actual changes, we plan to reorganize some of the option structure. This will unfortunately  (but by definition) be a breaking change from our old versions. The new structure will be clearer and more intuitive. The work our current
             users will have to do to update will be minimal. If you're using the options we reorganize, you'll have to update your options. Breaking releases are always a shame, but we feel it is necessary.
         </p><p>
@@ -261,7 +374,7 @@
         </p><p>
             Once everything is modularized, we want to change the API to allow users to plug their own parts of vis together. As an example: You start a network module, plug in the type of node module, edge module, physics module and optionally navigation module (etc.) and you're good to go!
             All of these modules will be individually configured. This means the huge list of options will be segmented into smaller, more manageable parts. Additionally, the docs will become smaller and clearer.
-            </p><p>
+        </p><p>
             Of course, we do not want to abandon all our plug-and-play functionality! We will also start to supply more preconfigured constructors (i.e. a vis.BarChart that will give you a preconfigured graph2d module). Apart from these constructors
             we will continue to publish examples which will include code snippets that you can use in your own project.
         </p><p>
@@ -272,15 +385,15 @@
         </p><p>
             To wrap up, there are a few things I did not mention here but I'd like to add to the post anyway.
             <ul>
-            <li>We want to improve the fusion of graph2d and the timeline, with the ideal that a graph2d can be used like a group in timeline now.</li>
-            <li>Examples will be split in simple option/configuration examples and larger, feature demonstration/exploration examples.</li>
-            <li>Graph2d will be expanded.</li>
-            <li>We will move to hammer.js 2.0.</li>
-            <li>We will add features <a href="./featureRequests.html" target="_blank">from the list</a> when we can</li>
-            <li>We hope to keep up the <communi></communi>cation with our community!</li>
+                <li>We want to improve the fusion of graph2d and the timeline, with the ideal that a graph2d can be used like a group in timeline now.</li>
+                <li>Examples will be split in simple option/configuration examples and larger, feature demonstration/exploration examples.</li>
+                <li>Graph2d will be expanded.</li>
+                <li>We will move to hammer.js 2.0.</li>
+                <li>We will add features <a href="./featureRequests.html" target="_blank">from the list</a> when we can</li>
+                <li>We hope to keep up the <communi></communi>cation with our community!</li>
             </ul>
             Let's make 2015 as good as last year!
-        </p>
+            </p>
         </div>
     </div>
 
@@ -292,22 +405,22 @@
             <p>
                 In April 2013, the initial commit was made for vis.js by <a href="https://github.com/josdejong">Jos</a> because the old CHAP LINKS library was becoming too large to expand and maintain.
                 Vis.js was a clean, new start using all the knowledge gathered from the CHAP library with the ideal that the new infrastructure would be more stable, faster and easier to maintain.
-                </p><p>
-                In January 2014, I joined the project and started to expand the Network module, which was called Graph back then. I have been working alongside Jos since then we have poured a lot of hours into vis.
             </p><p>
-                On the 16th of April 2014, exactly a year after the initial commit, <a href="https://twitter.com/hackernewsbot/status/456231005678874624" target="_blank">a twitterbot with a lot of followers</a> notified
-                the world that we were featured on hackernews! This was the boost we needed to really reach a large community. We saw the amount of visitors and Github stars increase greatly over the months that followed.
-            </p><p>
-                The 14th of October, we have altered the license of vis.js to MIT or APACHE 2.0. This allowed <a href="http://tiddlywiki.com/" target="_blank">Tiddlywiki</a> to add vis.js to their keychain. From what we hear,
+            In January 2014, I joined the project and started to expand the Network module, which was called Graph back then. I have been working alongside Jos since then we have poured a lot of hours into vis.
+        </p><p>
+            On the 16th of April 2014, exactly a year after the initial commit, <a href="https://twitter.com/hackernewsbot/status/456231005678874624" target="_blank">a twitterbot with a lot of followers</a> notified
+            the world that we were featured on hackernews! This was the boost we needed to really reach a large community. We saw the amount of visitors and Github stars increase greatly over the months that followed.
+        </p><p>
+            The 14th of October, we have altered the license of vis.js to MIT or APACHE 2.0. This allowed <a href="http://tiddlywiki.com/" target="_blank">Tiddlywiki</a> to add vis.js to their keychain. From what we hear,
             their developers really enjoy working with vis and we look forward to hearing how their community uses our software!
         </p><p>
             Now, we have a great community that helps out in issues, fixes our typos in the docs, notifies us of bugs and sometimes fixes them for us. We have received pull requests with new features and improvements and
             it has been fantastic!
         </p><p>
             This post started out as the roadmap for vis in 2015, but the review was longer than I initially expected thereby deserving its own post.
-            </p><p>
+        </p><p>
             Have fun using vis!
-            </p>
+        </p>
         </div>
     </div>
 
@@ -320,26 +433,26 @@
                 The old website served us well, but now that we arrived in 2015... it is really time for an upgrade! We hope the new website is more informative, modern and a good promotion for vis.js!
                 It also allows us to keep the community updated through this blog and to <a href="./showcase/index.html" target="_blank">show off great projects that make use of vis.js in our showcase</a>.
             </p><p>If you have made something and would like it featured,
-                please make an <a href="https://github.com/almende/vis/issues" target="_blank">issue on Github</a> with your project and how you'd like to be credited.</p>
+            please make an <a href="https://github.com/almende/vis/issues" target="_blank">issue on Github</a> with your project and how you'd like to be credited.</p>
             </p><p>
-                The new website is in beta so if anyone spots a typo or other mistake, please let us know on our <a href="https://www.github.com/almende/vis" target="_blank">Github</a> page.
-            </p><p>
-                There is no forum on this website. We prefer to keep all the communication with the community through Github. We believe this is the best solution so everyone only has to check the Github issues
-                when there is a problem or suggestion.
-            </p><p>
-                A big change introduced with our new website, is the <a href="./featureRequests.html" target="_blank">feature request page</a>. There are a lot of issues on Github that suggest features but we do not
-                always have time to implement these ourselves. On the other hand, there have been issues where people tell us they want to contribute but are now sure where to start. To mediate this (and to make a clear overview
-                for ourselves) we listed everything <a href="./featureRequests.html" target="_blank">here</a>.
-                </p><p>Once a feature is added to <a href="./featureRequests.html" target="_blank">the list</a>, it is not the end of the line. At each new release, we'll look at the list and see which features we may want to pick up for the next one. Discussions on these features
-                can still continue on the referenced Github issues. When we have added a feature to this list, we will close the Github issue that requested it to keep our open issues more of a bug-todo list. The main motivation for this
-                is because we have noticed that old bugs (on pages after 2) would be overlooked from time to time.
-            </p><p>
-                This feature page is an experiment. If it turns out that the community does not like us closing issues with open feature requests or if it does not have the impact we'd like it to have, we'll revert back to the old model.
-            </p><p>
-                We thank you all for using vis! Last year has seen a great increase in our user base and it is a great motivating factor knowing that our work is used by others!
-            </p><p>
-                Here's to a great 2015!
-            </p>
+            The new website is in beta so if anyone spots a typo or other mistake, please let us know on our <a href="https://www.github.com/almende/vis" target="_blank">Github</a> page.
+        </p><p>
+            There is no forum on this website. We prefer to keep all the communication with the community through Github. We believe this is the best solution so everyone only has to check the Github issues
+            when there is a problem or suggestion.
+        </p><p>
+            A big change introduced with our new website, is the <a href="./featureRequests.html" target="_blank">feature request page</a>. There are a lot of issues on Github that suggest features but we do not
+            always have time to implement these ourselves. On the other hand, there have been issues where people tell us they want to contribute but are now sure where to start. To mediate this (and to make a clear overview
+            for ourselves) we listed everything <a href="./featureRequests.html" target="_blank">here</a>.
+        </p><p>Once a feature is added to <a href="./featureRequests.html" target="_blank">the list</a>, it is not the end of the line. At each new release, we'll look at the list and see which features we may want to pick up for the next one. Discussions on these features
+            can still continue on the referenced Github issues. When we have added a feature to this list, we will close the Github issue that requested it to keep our open issues more of a bug-todo list. The main motivation for this
+            is because we have noticed that old bugs (on pages after 2) would be overlooked from time to time.
+        </p><p>
+            This feature page is an experiment. If it turns out that the community does not like us closing issues with open feature requests or if it does not have the impact we'd like it to have, we'll revert back to the old model.
+        </p><p>
+            We thank you all for using vis! Last year has seen a great increase in our user base and it is a great motivating factor knowing that our work is used by others!
+        </p><p>
+            Here's to a great 2015!
+        </p>
         </div>
     </div>
 
@@ -412,11 +525,11 @@
 
         </div>
     </div>
-<br />
-<br />
-<br />
-<br />
-<br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
 </div>
 
 <!-- Bootstrap core JavaScript
