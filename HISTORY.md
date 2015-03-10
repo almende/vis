@@ -2,6 +2,13 @@
 http://visjs.org
 
 
+## not yet released, version 3.11.1-SNAPSHOT
+
+### Network
+
+- Fixed support for DataSet with custom id fields (option `fieldId`).
+
+
 ## 2015-03-05, version 3.11.0
 
 ### Network
