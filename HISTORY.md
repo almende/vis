@@ -8,6 +8,10 @@ http://visjs.org
 
 - Fixed support for DataSet with custom id fields (option `fieldId`).
 
+### Timeline
+
+- Orientation can now be configured separately for axis and items.
+
 
 ## 2015-03-05, version 3.11.0
 

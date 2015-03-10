@@ -23,8 +23,9 @@
 <div>
   <label for="orientation">Orientation</label>
   <select id="orientation">
-    <option value="top">top</option>
+    <option value="both">both</option>
     <option value="bottom" selected>bottom</option>
+    <option value="top">top</option>
   </select>
 </div>
 <script>
@@ -81,6 +82,10 @@
       updateGroup: true
     },
 
+//    orientation: {
+//      item: 'top',
+//      axis: 'both'
+//    },
 
     onAdd: function (item, callback) {
       item.content = prompt('Enter text content for new item:', item.content);
