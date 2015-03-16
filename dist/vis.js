@@ -25644,19 +25644,21 @@ return /******/ (function(modules) { // webpackBootstrap
         image: undefined,
         widthMin: 16, // px
         widthMax: 64, // px
-        fontColor: "black",
-        fontSize: 14, // px
-        fontFace: "verdana",
-        fontFill: undefined,
-        fontStrokeWidth: 0, // px
-        fontStrokeColor: "#ffffff",
-        fontDrawThreshold: 3,
-        scaleFontWithValue: false,
-        fontSizeMin: 14,
-        fontSizeMax: 30,
-        fontSizeMaxVisible: 30,
+        label: undefined,
+        labelStyle: {
+          fontColor: "black",
+          fontSize: 14, // px
+          fontFace: "verdana",
+          fontFill: undefined,
+          fontStrokeWidth: 0, // px
+          fontStrokeColor: "#ffffff",
+          scaleFontWithValue: false,
+          fontSizeMin: 14,
+          fontSizeMax: 30,
+          fontSizeMaxVisible: 30,
+          fontDrawThreshold: 3
+        },
         value: 1,
-        level: -1,
         color: {
           border: "#2B7CE9",
           background: "#97C2FC",
@@ -25673,7 +25675,13 @@ return /******/ (function(modules) { // webpackBootstrap
         borderWidth: 1,
         borderWidthSelected: undefined,
         physics: true,
-        hidden: false
+        hidden: false,
+        icon: {
+          iconFontFace: undefined, //'FontAwesome',
+          code: undefined, //'\uf007',
+          iconSize: undefined, //50,
+          iconColor: undefined //'#aa00ff'
+        }
       };
 
       util.extend(this.options, this.defaultOptions);
@@ -25838,7 +25846,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * @class Node
    * A node. A node can be connected to other nodes via one or multiple edges.
-   * @param {object} properties An object containing options for the node. All
+   * @param {object} options An object containing options for the node. All
    *                            options are optional, except for the id.
    *                              {number} id     Id of the node. Required
    *                              {string} label  Text label for the node
@@ -25860,7 +25868,7 @@ return /******/ (function(modules) { // webpackBootstrap
    *                                            example for the color
    *
    */
-  function Node(properties, imagelist, grouplist, globalOptions) {
+  function Node(options, imagelist, grouplist, globalOptions) {
     this.options = util.bridgeObject(globalOptions);
 
     this.selected = false;
@@ -25879,9 +25887,6 @@ return /******/ (function(modules) { // webpackBootstrap
     this.baseRadiusValue = this.options.radius;
     this.radiusFixed = false;
 
-    this.level = -1;
-    this.preassignedLevel = false;
-    this.hierarchyEnumerated = false;
     this.labelDimensions = { top: 0, left: 0, width: 0, height: 0, yLine: 0 }; // could be cached
     this.boundingBox = { top: 0, left: 0, right: 0, bottom: 0 };
 
@@ -25896,7 +25901,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.fixedData = { x: null, y: null };
 
     // TODO: global options should not be needed here.
-    this.setOptions(properties, globalOptions);
+    this.setOptions(options, globalOptions);
 
     // variables to tell the node about the network.
     this.networkScaleInv = 1;
@@ -25931,50 +25936,49 @@ return /******/ (function(modules) { // webpackBootstrap
 
   /**
    * Set or overwrite options for the node
-   * @param {Object} properties an object with options
+   * @param {Object} options an object with options
    * @param {Object} constants  and object with default, global options
    */
-  Node.prototype.setOptions = function (properties, constants) {
-    if (!properties) {
+  Node.prototype.setOptions = function (options, constants) {
+    if (!options) {
       return;
     }
-    this.properties = properties;
 
-    var fields = ["borderWidth", "borderWidthSelected", "shape", "image", "brokenImage", "radius", "fontColor", "fontSize", "fontFace", "fontFill", "fontStrokeWidth", "fontStrokeColor", "group", "mass", "fontDrawThreshold", "scaleFontWithValue", "fontSizeMaxVisible", "customScalingFunction", "iconFontFace", "icon", "iconColor", "iconSize", "value", "hidden", "physics"];
-    util.selectiveDeepExtend(fields, this.options, properties);
+    var fields = ["borderWidth", "borderWidthSelected", "shape", "image", "brokenImage", "radius", "label", "customScalingFunction", "icon", "value", "hidden", "physics"];
+    util.selectiveDeepExtend(fields, this.options, options);
 
     // basic options
-    if (properties.id !== undefined) {
-      this.id = properties.id;
+    if (options.id !== undefined) {
+      this.id = options.id;
     }
-    if (properties.label !== undefined) {
-      this.label = properties.label;this.originalLabel = properties.label;
+    if (options.label !== undefined) {
+      this.label = options.label;this.originalLabel = options.label;
     }
-    if (properties.title !== undefined) {
-      this.title = properties.title;
+    if (options.title !== undefined) {
+      this.title = options.title;
     }
-    if (properties.x !== undefined) {
-      this.x = properties.x;this.predefinedPosition = true;
+    if (options.x !== undefined) {
+      this.x = options.x;this.predefinedPosition = true;
     }
-    if (properties.y !== undefined) {
-      this.y = properties.y;this.predefinedPosition = true;
+    if (options.y !== undefined) {
+      this.y = options.y;this.predefinedPosition = true;
     }
-    if (properties.value !== undefined) {
-      this.value = properties.value;
+    if (options.value !== undefined) {
+      this.value = options.value;
     }
-    if (properties.level !== undefined) {
-      this.level = properties.level;this.preassignedLevel = true;
+    if (options.level !== undefined) {
+      this.level = options.level;this.preassignedLevel = true;
     }
 
     // navigation controls options
-    if (properties.horizontalAlignLeft !== undefined) {
-      this.horizontalAlignLeft = properties.horizontalAlignLeft;
+    if (options.horizontalAlignLeft !== undefined) {
+      this.horizontalAlignLeft = options.horizontalAlignLeft;
     }
-    if (properties.verticalAlignTop !== undefined) {
-      this.verticalAlignTop = properties.verticalAlignTop;
+    if (options.verticalAlignTop !== undefined) {
+      this.verticalAlignTop = options.verticalAlignTop;
     }
-    if (properties.triggerFunction !== undefined) {
-      this.triggerFunction = properties.triggerFunction;
+    if (options.triggerFunction !== undefined) {
+      this.triggerFunction = options.triggerFunction;
     }
 
     if (this.id === undefined) {
@@ -25982,18 +25986,18 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     // copy group options
-    if (typeof properties.group === "number" || typeof properties.group === "string" && properties.group != "") {
-      var groupObj = this.grouplist.get(properties.group);
+    if (typeof options.group === "number" || typeof options.group === "string" && options.group != "") {
+      var groupObj = this.grouplist.get(options.group);
       util.deepExtend(this.options, groupObj);
       // the color object needs to be completely defined. Since groups can partially overwrite the colors, we parse it again, just in case.
       this.options.color = util.parseColor(this.options.color);
     }
     // individual shape options
-    if (properties.radius !== undefined) {
+    if (options.radius !== undefined) {
       this.baseRadiusValue = this.options.radius;
     }
-    if (properties.color !== undefined) {
-      this.options.color = util.parseColor(properties.color);
+    if (options.color !== undefined) {
+      this.options.color = util.parseColor(options.color);
     }
 
     if (this.options.image !== undefined && this.options.image != "") {
@@ -26004,22 +26008,22 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     }
 
-    if (properties.allowedToMoveX !== undefined) {
-      this.xFixed = !properties.allowedToMoveX;
-      this.allowedToMoveX = properties.allowedToMoveX;
-    } else if (properties.x !== undefined && this.allowedToMoveX == false) {
+    if (options.allowedToMoveX !== undefined) {
+      this.xFixed = !options.allowedToMoveX;
+      this.allowedToMoveX = options.allowedToMoveX;
+    } else if (options.x !== undefined && this.allowedToMoveX == false) {
       this.xFixed = true;
     }
 
 
-    if (properties.allowedToMoveY !== undefined) {
-      this.yFixed = !properties.allowedToMoveY;
-      this.allowedToMoveY = properties.allowedToMoveY;
-    } else if (properties.y !== undefined && this.allowedToMoveY == false) {
+    if (options.allowedToMoveY !== undefined) {
+      this.yFixed = !options.allowedToMoveY;
+      this.allowedToMoveY = options.allowedToMoveY;
+    } else if (options.y !== undefined && this.allowedToMoveY == false) {
       this.yFixed = true;
     }
 
-    this.radiusFixed = this.radiusFixed || properties.radius !== undefined;
+    this.radiusFixed = this.radiusFixed || options.radius !== undefined;
 
     if (this.options.shape === "image" || this.options.shape === "circularImage") {
       this.options.radiusMin = constants.nodes.widthMin;
@@ -26189,9 +26193,9 @@ return /******/ (function(modules) { // webpackBootstrap
     if (!this.radiusFixed && this.value !== undefined) {
       var scale = this.options.customScalingFunction(min, max, total, this.value);
       var radiusDiff = this.options.radiusMax - this.options.radiusMin;
-      if (this.options.scaleFontWithValue == true) {
-        var fontDiff = this.options.fontSizeMax - this.options.fontSizeMin;
-        this.options.fontSize = this.options.fontSizeMin + scale * fontDiff;
+      if (this.options.labelStyle.scaleFontWithValue == true) {
+        var fontDiff = this.options.labelStyle.fontSizeMax - this.options.labelStyle.fontSizeMin;
+        this.options.labelStyle.fontSize = this.options.labelStyle.fontSizeMin + scale * fontDiff;
       }
       this.options.radius = this.options.radiusMin + scale * radiusDiff;
     }
@@ -26608,8 +26612,8 @@ return /******/ (function(modules) { // webpackBootstrap
     if (!this.width) {
       var margin = 5;
       var iconSize = {
-        width: Number(this.options.iconSize),
-        height: Number(this.options.iconSize)
+        width: Number(this.options.icon.iconSize),
+        height: Number(this.options.icon.iconSize)
       };
       this.width = iconSize.width + 2 * margin;
       this.height = iconSize.height + 2 * margin;
@@ -26619,17 +26623,17 @@ return /******/ (function(modules) { // webpackBootstrap
   Node.prototype._drawIcon = function (ctx) {
     this._resizeIcon(ctx);
 
-    this.options.iconSize = this.options.iconSize || 50;
+    this.options.icon.iconSize = this.options.icon.iconSize || 50;
 
     this.left = this.x - this.width / 2;
     this.top = this.y - this.height / 2;
     this._icon(ctx);
 
 
-    this.boundingBox.top = this.y - this.options.iconSize / 2;
-    this.boundingBox.left = this.x - this.options.iconSize / 2;
-    this.boundingBox.right = this.x + this.options.iconSize / 2;
-    this.boundingBox.bottom = this.y + this.options.iconSize / 2;
+    this.boundingBox.top = this.y - this.options.icon.iconSize / 2;
+    this.boundingBox.left = this.x - this.options.icon.iconSize / 2;
+    this.boundingBox.right = this.x + this.options.icon.iconSize / 2;
+    this.boundingBox.bottom = this.y + this.options.icon.iconSize / 2;
 
     if (this.label) {
       var iconTextSpacing = 5;
@@ -26642,41 +26646,41 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   Node.prototype._icon = function (ctx) {
-    var relativeIconSize = Number(this.options.iconSize) * this.networkScale;
+    var relativeIconSize = Number(this.options.icon.iconSize) * this.networkScale;
 
-    if (this.options.icon && relativeIconSize > this.options.fontDrawThreshold - 1) {
-      var iconSize = Number(this.options.iconSize);
+    if (this.options.icon.code && relativeIconSize > this.options.labelStyle.fontDrawThreshold - 1) {
+      var iconSize = Number(this.options.icon.iconSize);
 
-      ctx.font = (this.selected ? "bold " : "") + iconSize + "px " + this.options.iconFontFace;
+      ctx.font = (this.selected ? "bold " : "") + iconSize + "px " + this.options.icon.iconFontFace;
 
       // draw icon
-      ctx.fillStyle = this.options.iconColor || "black";
+      ctx.fillStyle = this.options.icon.iconColor || "black";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(this.options.icon, this.x, this.y);
+      ctx.fillText(this.options.icon.code, this.x, this.y);
     }
   };
 
   Node.prototype._label = function (ctx, text, x, y, align, baseline, labelUnderNode) {
-    var relativeFontSize = Number(this.options.fontSize) * this.networkScale;
-    if (text && relativeFontSize >= this.options.fontDrawThreshold - 1) {
-      var fontSize = Number(this.options.fontSize);
+    var relativeFontSize = Number(this.options.labelStyle.fontSize) * this.networkScale;
+    if (text && relativeFontSize >= this.options.labelStyle.fontDrawThreshold - 1) {
+      var fontSize = Number(this.options.labelStyle.fontSize);
 
       // this ensures that there will not be HUGE letters on screen by setting an upper limit on the visible text size (regardless of zoomLevel)
-      if (relativeFontSize >= this.options.fontSizeMaxVisible) {
-        fontSize = Number(this.options.fontSizeMaxVisible) * this.networkScaleInv;
+      if (relativeFontSize >= this.options.labelStyle.fontSizeMaxVisible) {
+        fontSize = Number(this.options.labelStyle.fontSizeMaxVisible) * this.networkScaleInv;
       }
 
       // fade in when relative scale is between threshold and threshold - 1
-      var fontColor = this.options.fontColor || "#000000";
-      var strokecolor = this.options.fontStrokeColor;
-      if (relativeFontSize <= this.options.fontDrawThreshold) {
-        var opacity = Math.max(0, Math.min(1, 1 - (this.options.fontDrawThreshold - relativeFontSize)));
+      var fontColor = this.options.labelStyle.fontColor || "#000000";
+      var strokecolor = this.options.labelStyle.fontStrokeColor;
+      if (relativeFontSize <= this.options.labelStyle.fontDrawThreshold) {
+        var opacity = Math.max(0, Math.min(1, 1 - (this.options.labelStyle.fontDrawThreshold - relativeFontSize)));
         fontColor = util.overrideOpacity(fontColor, opacity);
         strokecolor = util.overrideOpacity(strokecolor, opacity);
       }
 
-      ctx.font = (this.selected ? "bold " : "") + fontSize + "px " + this.options.fontFace;
+      ctx.font = (this.selected ? "bold " : "") + fontSize + "px " + this.options.labelStyle.fontFace;
 
       var lines = text.split("\n");
       var lineCount = lines.length;
@@ -26702,8 +26706,8 @@ return /******/ (function(modules) { // webpackBootstrap
       this.labelDimensions = { top: top, left: left, width: width, height: height, yLine: yLine };
 
       // create the fontfill background
-      if (this.options.fontFill !== undefined && this.options.fontFill !== null && this.options.fontFill !== "none") {
-        ctx.fillStyle = this.options.fontFill;
+      if (this.options.labelStyle.fontFill !== undefined && this.options.labelStyle.fontFill !== null && this.options.labelStyle.fontFill !== "none") {
+        ctx.fillStyle = this.options.labelStyle.fontFill;
         ctx.fillRect(left, top, width, height);
       }
 
@@ -26711,13 +26715,13 @@ return /******/ (function(modules) { // webpackBootstrap
       ctx.fillStyle = fontColor;
       ctx.textAlign = align || "center";
       ctx.textBaseline = baseline || "middle";
-      if (this.options.fontStrokeWidth > 0) {
-        ctx.lineWidth = this.options.fontStrokeWidth;
+      if (this.options.labelStyle.fontStrokeWidth > 0) {
+        ctx.lineWidth = this.options.labelStyle.fontStrokeWidth;
         ctx.strokeStyle = strokecolor;
         ctx.lineJoin = "round";
       }
       for (var i = 0; i < lineCount; i++) {
-        if (this.options.fontStrokeWidth) {
+        if (this.options.labelStyle.fontStrokeWidth) {
           ctx.strokeText(lines[i], x, yLine);
         }
         ctx.fillText(lines[i], x, yLine);
@@ -26729,11 +26733,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   Node.prototype.getTextSize = function (ctx) {
     if (this.label !== undefined) {
-      var fontSize = Number(this.options.fontSize);
-      if (fontSize * this.networkScale > this.options.fontSizeMaxVisible) {
-        fontSize = Number(this.options.fontSizeMaxVisible) * this.networkScaleInv;
+      var fontSize = Number(this.options.labelStyle.fontSize);
+      if (fontSize * this.networkScale > this.options.labelStyle.fontSizeMaxVisible) {
+        fontSize = Number(this.options.labelStyle.fontSizeMaxVisible) * this.networkScaleInv;
       }
-      ctx.font = (this.selected ? "bold " : "") + fontSize + "px " + this.options.fontFace;
+      ctx.font = (this.selected ? "bold " : "") + fontSize + "px " + this.options.labelStyle.fontFace;
 
       var lines = this.label.split("\n"),
           height = (fontSize + 4) * lines.length,
@@ -26872,34 +26876,43 @@ return /******/ (function(modules) { // webpackBootstrap
             return Math.max(0, (value - min) * scale);
           }
         },
-        widthMin: 1, //
-        widthMax: 15, //
-        width: 1,
-        widthSelectionMultiplier: 2,
-        hoverWidth: 1.5,
-        value: 1,
-        style: "line",
-        color: {
-          color: "#848484",
-          highlight: "#848484",
-          hover: "#848484"
+        style: {
+          widthMin: 1, //
+          widthMax: 15, //
+          width: 1,
+          widthSelectionMultiplier: 2,
+          hoverWidth: 1.5,
+          type: "line",
+          color: {
+            color: "#848484",
+            highlight: "#848484",
+            hover: "#848484",
+            inherit: {
+              enabled: true,
+              source: "from", // from / true
+              useGradients: false // release in 4.0
+            }
+          },
+          opacity: 1
         },
-        opacity: 1,
-        fontColor: "#343434",
-        fontSize: 14, // px
-        fontFace: "arial",
-        fontFill: "white",
-        fontStrokeWidth: 0, // px
-        fontStrokeColor: "white",
-        labelAlignment: "horizontal",
+        value: 1,
+        label: undefined,
+        labelStyle: {
+          fontColor: "#343434",
+          fontSize: 14, // px
+          fontFace: "arial",
+          fontFill: "white",
+          fontStrokeWidth: 0, // px
+          fontStrokeColor: "white",
+          labelAlignment: "horizontal"
+        },
+        length: undefined,
         arrowScaleFactor: 1,
         dash: {
           length: 10,
           gap: 5,
           altLength: undefined
         },
-        inheritColor: "from", // to, from, false, true (== from)
-        useGradients: false, // release in 4.0
         smooth: {
           enabled: true,
           dynamic: true,
@@ -27125,7 +27138,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.fromId = undefined;
       this.toId = undefined;
       this.title = undefined;
-      this.widthSelected = this.options.width * this.options.widthSelectionMultiplier;
+      this.widthSelected = this.options.style.width * this.options.style.widthSelectionMultiplier;
       this.value = undefined;
       this.selected = false;
       this.hover = false;
@@ -27146,9 +27159,6 @@ return /******/ (function(modules) { // webpackBootstrap
       this.toArray = [];
 
       this.connected = false;
-
-      this.widthFixed = false;
-      this.lengthFixed = false;
 
       this.setOptions(options);
 
@@ -27174,8 +27184,11 @@ return /******/ (function(modules) { // webpackBootstrap
           }
           this.colorDirty = true;
 
-          var fields = ["style", "fontSize", "fontFace", "fontColor", "fontFill", "fontStrokeWidth", "fontStrokeColor", "width", "widthSelectionMultiplier", "hoverWidth", "arrowScaleFactor", "dash", "inheritColor", "labelAlignment", "opacity", "customScalingFunction", "useGradients", "value", "smooth", "hidden", "physics"];
+          var fields = ["style", "label", "labelStyle", "arrowScaleFactor", "dash", "opacity", "customScalingFunction", "value", "hidden", "physics"];
           util.selectiveDeepExtend(fields, this.options, options);
+
+          util.mergeOptions(this.options, options, "inheritColor");
+          util.mergeOptions(this.options, options, "smooth");
 
           if (options.from !== undefined) {
             this.fromId = options.from;
@@ -27202,38 +27215,35 @@ return /******/ (function(modules) { // webpackBootstrap
             this.physics.springLength = options.length;
           }
 
-          if (options.color !== undefined) {
-            this.options.inheritColor = false;
-            if (util.isString(options.color)) {
-              this.options.color.color = options.color;
-              this.options.color.highlight = options.color;
-            } else {
-              if (options.color.color !== undefined) {
-                this.options.color.color = options.color.color;
-              }
-              if (options.color.highlight !== undefined) {
-                this.options.color.highlight = options.color.highlight;
-              }
-              if (options.color.hover !== undefined) {
-                this.options.color.hover = options.color.hover;
+          if (options.style !== undefined) {
+            if (options.style.color !== undefined) {
+              this.options.style.color.inherit.enabled = false;
+              if (util.isString(options.style.color)) {
+                this.options.style.color.color = options.style.color;
+                this.options.style.color.highlight = options.style.color;
+              } else {
+                if (options.style.color.color !== undefined) {
+                  this.options.style.color.color = options.style.color.color;
+                }
+                if (options.style.color.highlight !== undefined) {
+                  this.options.style.color.highlight = options.style.color.highlight;
+                }
+                if (options.style.color.hover !== undefined) {
+                  this.options.style.color.hover = options.style.color.hover;
+                }
               }
             }
           }
 
-          util.mergeOptions(this.options, options, "smooth");
-
           // A node is connected when it has a from and to node that both exist in the network.body.nodes.
           this.connect();
 
-          this.widthFixed = this.widthFixed || options.width !== undefined;
-          this.lengthFixed = this.lengthFixed || options.length !== undefined;
-
-          this.widthSelected = this.options.width * this.options.widthSelectionMultiplier;
+          this.widthSelected = this.options.style.width * this.options.style.widthSelectionMultiplier;
 
           this.setupSmoothEdges(this.initializing === false);
 
           // set draw method based on style
-          switch (this.options.style) {
+          switch (this.options.style.type) {
             case "line":
               this.draw = this._drawLine;
               break;
@@ -27401,9 +27411,9 @@ return /******/ (function(modules) { // webpackBootstrap
         value: function setValueRange(min, max, total) {
           if (!this.widthFixed && this.value !== undefined) {
             var scale = this.options.customScalingFunction(min, max, total, this.value);
-            var widthDiff = this.options.widthMax - this.options.widthMin;
-            this.options.width = this.options.widthMin + scale * widthDiff;
-            this.widthSelected = this.options.width * this.options.widthSelectionMultiplier;
+            var widthDiff = this.options.style.widthMax - this.options.style.widthMin;
+            this.options.style.width = this.options.style.widthMin + scale * widthDiff;
+            this.widthSelected = this.options.style.width * this.options.style.widthSelectionMultiplier;
           }
         },
         writable: true,
@@ -27454,45 +27464,46 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       _getColor: {
         value: function _getColor(ctx) {
-          var colorObj = this.options.color;
-          if (this.options.useGradients == true) {
-            var grd = ctx.createLinearGradient(this.from.x, this.from.y, this.to.x, this.to.y);
-            var fromColor, toColor;
-            fromColor = this.from.options.color.highlight.border;
-            toColor = this.to.options.color.highlight.border;
+          var colorObj = this.options.style.color;
 
+          if (colorObj.inherit.enabled === true) {
+            if (colorObj.inherit.useGradients == true) {
+              var grd = ctx.createLinearGradient(this.from.x, this.from.y, this.to.x, this.to.y);
+              var fromColor, toColor;
+              fromColor = this.from.options.color.highlight.border;
+              toColor = this.to.options.color.highlight.border;
 
-            if (this.from.selected == false && this.to.selected == false) {
-              fromColor = util.overrideOpacity(this.from.options.color.border, this.options.opacity);
-              toColor = util.overrideOpacity(this.to.options.color.border, this.options.opacity);
-            } else if (this.from.selected == true && this.to.selected == false) {
-              toColor = this.to.options.color.border;
-            } else if (this.from.selected == false && this.to.selected == true) {
-              fromColor = this.from.options.color.border;
+              if (this.from.selected == false && this.to.selected == false) {
+                fromColor = util.overrideOpacity(this.from.options.color.border, this.options.style.opacity);
+                toColor = util.overrideOpacity(this.to.options.color.border, this.options.style.opacity);
+              } else if (this.from.selected == true && this.to.selected == false) {
+                toColor = this.to.options.color.border;
+              } else if (this.from.selected == false && this.to.selected == true) {
+                fromColor = this.from.options.color.border;
+              }
+              grd.addColorStop(0, fromColor);
+              grd.addColorStop(1, toColor);
+
+              // -------------------- this returns the function -------------------- //
+              return grd;
             }
-            grd.addColorStop(0, fromColor);
-            grd.addColorStop(1, toColor);
-            return grd;
+
+            if (this.colorDirty === true) {
+              if (colorObj.inherit.source == "to") {
+                colorObj.highlight = this.to.options.color.highlight.border;
+                colorObj.hover = this.to.options.color.hover.border;
+                colorObj.color = util.overrideOpacity(this.to.options.color.border, this.options.style.opacity);
+              } else {
+                // (this.options.style.color.inherit.source == "from") {
+                colorObj.highlight = this.from.options.color.highlight.border;
+                colorObj.hover = this.from.options.color.hover.border;
+                colorObj.color = util.overrideOpacity(this.from.options.color.border, this.options.style.opacity);
+              }
+            }
           }
 
-          if (this.colorDirty === true) {
-            if (this.options.inheritColor == "to") {
-              colorObj = {
-                highlight: this.to.options.color.highlight.border,
-                hover: this.to.options.color.hover.border,
-                color: util.overrideOpacity(this.from.options.color.border, this.options.opacity)
-              };
-            } else if (this.options.inheritColor == "from" || this.options.inheritColor == true) {
-              colorObj = {
-                highlight: this.from.options.color.highlight.border,
-                hover: this.from.options.color.hover.border,
-                color: util.overrideOpacity(this.from.options.color.border, this.options.opacity)
-              };
-            }
-            this.options.color = colorObj;
-            this.colorDirty = false;
-          }
-
+          // if color inherit is on and gradients are used, the function has already returned by now.
+          this.colorDirty = false;
 
           if (this.selected == true) {
             return colorObj.highlight;
@@ -27570,12 +27581,12 @@ return /******/ (function(modules) { // webpackBootstrap
          */
         value: function _getLineWidth() {
           if (this.selected == true) {
-            return Math.max(Math.min(this.widthSelected, this.options.widthMax), 0.3 * this.networkScaleInv);
+            return Math.max(Math.min(this.widthSelected, this.options.style.widthMax), 0.3 * this.networkScaleInv);
           } else {
             if (this.hover == true) {
-              return Math.max(Math.min(this.options.hoverWidth, this.options.widthMax), 0.3 * this.networkScaleInv);
+              return Math.max(Math.min(this.options.style.hoverWidth, this.options.style.widthMax), 0.3 * this.networkScaleInv);
             } else {
-              return Math.max(this.options.width, 0.3 * this.networkScaleInv);
+              return Math.max(this.options.style.width, 0.3 * this.networkScaleInv);
             }
           }
         },
@@ -27824,13 +27835,13 @@ return /******/ (function(modules) { // webpackBootstrap
          */
         value: function _label(ctx, text, x, y) {
           if (text) {
-            ctx.font = (this.from.selected || this.to.selected ? "bold " : "") + this.options.fontSize + "px " + this.options.fontFace;
+            ctx.font = (this.from.selected || this.to.selected ? "bold " : "") + this.options.labelStyle.fontSize + "px " + this.options.labelStyle.fontFace;
             var yLine;
 
             if (this.labelDirty == true) {
               var lines = String(text).split("\n");
               var lineCount = lines.length;
-              var fontSize = Number(this.options.fontSize);
+              var fontSize = Number(this.options.labelStyle.fontSize);
               yLine = y + (1 - lineCount) / 2 * fontSize;
 
               var width = ctx.measureText(lines[0]).width;
@@ -27838,7 +27849,7 @@ return /******/ (function(modules) { // webpackBootstrap
                 var lineWidth = ctx.measureText(lines[i]).width;
                 width = lineWidth > width ? lineWidth : width;
               }
-              var height = this.options.fontSize * lineCount;
+              var height = this.options.labelStyle.fontSize * lineCount;
               var left = x - width / 2;
               var top = y - height / 2;
 
@@ -27850,7 +27861,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
             ctx.save();
 
-            if (this.options.labelAlignment != "horizontal") {
+            if (this.options.labelStyle.labelAlignment != "horizontal") {
               ctx.translate(x, yLine);
               this._rotateForLabelAlignment(ctx);
               x = 0;
@@ -27900,16 +27911,16 @@ return /******/ (function(modules) { // webpackBootstrap
          * @private
          */
         value: function _drawLabelRect(ctx) {
-          if (this.options.fontFill !== undefined && this.options.fontFill !== undefined && this.options.fontFill !== "none") {
-            ctx.fillStyle = this.options.fontFill;
+          if (this.options.labelStyle.fontFill !== undefined && this.options.labelStyle.fontFill !== undefined && this.options.labelStyle.fontFill !== "none") {
+            ctx.fillStyle = this.options.labelStyle.fontFill;
 
             var lineMargin = 2;
 
-            if (this.options.labelAlignment == "line-center") {
+            if (this.options.labelStyle.labelAlignment == "line-center") {
               ctx.fillRect(-this.labelDimensions.width * 0.5, -this.labelDimensions.height * 0.5, this.labelDimensions.width, this.labelDimensions.height);
-            } else if (this.options.labelAlignment == "line-above") {
+            } else if (this.options.labelStyle.labelAlignment == "line-above") {
               ctx.fillRect(-this.labelDimensions.width * 0.5, -(this.labelDimensions.height + lineMargin), this.labelDimensions.width, this.labelDimensions.height);
-            } else if (this.options.labelAlignment == "line-below") {
+            } else if (this.options.labelStyle.labelAlignment == "line-below") {
               ctx.fillRect(-this.labelDimensions.width * 0.5, lineMargin, this.labelDimensions.width, this.labelDimensions.height);
             } else {
               ctx.fillRect(this.labelDimensions.left, this.labelDimensions.top, this.labelDimensions.width, this.labelDimensions.height);
@@ -27934,16 +27945,16 @@ return /******/ (function(modules) { // webpackBootstrap
          */
         value: function _drawLabelText(ctx, x, yLine, lines, lineCount, fontSize) {
           // draw text
-          ctx.fillStyle = this.options.fontColor || "black";
+          ctx.fillStyle = this.options.labelStyle.fontColor || "black";
           ctx.textAlign = "center";
 
           // check for label alignment
-          if (this.options.labelAlignment != "horizontal") {
+          if (this.options.labelStyle.labelAlignment != "horizontal") {
             var lineMargin = 2;
-            if (this.options.labelAlignment == "line-above") {
+            if (this.options.labelStyle.labelAlignment == "line-above") {
               ctx.textBaseline = "alphabetic";
               yLine -= 2 * lineMargin; // distance from edge, required because we use alphabetic. Alphabetic has less difference between browsers
-            } else if (this.options.labelAlignment == "line-below") {
+            } else if (this.options.labelStyle.labelAlignment == "line-below") {
               ctx.textBaseline = "hanging";
               yLine += 2 * lineMargin; // distance from edge, required because we use hanging. Hanging has less difference between browsers
             } else {
@@ -27954,13 +27965,13 @@ return /******/ (function(modules) { // webpackBootstrap
           }
 
           // check for strokeWidth
-          if (this.options.fontStrokeWidth > 0) {
-            ctx.lineWidth = this.options.fontStrokeWidth;
-            ctx.strokeStyle = this.options.fontStrokeColor;
+          if (this.options.labelStyle.fontStrokeWidth > 0) {
+            ctx.lineWidth = this.options.labelStyle.fontStrokeWidth;
+            ctx.strokeStyle = this.options.labelStyle.fontStrokeColor;
             ctx.lineJoin = "round";
           }
           for (var i = 0; i < lineCount; i++) {
-            if (this.options.fontStrokeWidth > 0) {
+            if (this.options.labelStyle.fontStrokeWidth > 0) {
               ctx.strokeText(lines[i], x, yLine);
             }
             ctx.fillText(lines[i], x, yLine);
@@ -28107,7 +28118,7 @@ return /******/ (function(modules) { // webpackBootstrap
             var via = this._line(ctx);
 
             var angle = Math.atan2(this.to.y - this.from.y, this.to.x - this.from.x);
-            var length = (10 + 5 * this.options.width) * this.options.arrowScaleFactor;
+            var length = (10 + 5 * this.options.style.width) * this.options.arrowScaleFactor;
             // draw an arrow halfway the line
             if (this.options.smooth.enabled == true && via != undefined) {
               var midpointX = 0.5 * (0.5 * (this.from.x + via.x) + 0.5 * (this.to.x + via.x));
@@ -28144,7 +28155,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
             // draw all arrows
             var angle = 0.2 * Math.PI;
-            var length = (10 + 5 * this.options.width) * this.options.arrowScaleFactor;
+            var length = (10 + 5 * this.options.style.width) * this.options.arrowScaleFactor;
             point = this._pointOnCircle(x, y, radius, 0.5);
             ctx.arrow(point.x, point.y, angle, length);
             ctx.fill();
@@ -28272,7 +28283,7 @@ return /******/ (function(modules) { // webpackBootstrap
             }
 
             // draw arrow at the end of the line
-            length = (10 + 5 * this.options.width) * this.options.arrowScaleFactor;
+            length = (10 + 5 * this.options.style.width) * this.options.arrowScaleFactor;
             ctx.arrow(arrowPos.x, arrowPos.y, angle, length);
             ctx.fill();
             ctx.stroke();
@@ -28318,7 +28329,7 @@ return /******/ (function(modules) { // webpackBootstrap
             ctx.stroke();
 
             // draw all arrows
-            var length = (10 + 5 * this.options.width) * this.options.arrowScaleFactor;
+            var length = (10 + 5 * this.options.style.width) * this.options.arrowScaleFactor;
             ctx.arrow(arrow.x, arrow.y, arrow.angle, length);
             ctx.fill();
             ctx.stroke();
