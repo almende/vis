@@ -85,67 +85,67 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // utils
   exports.util = __webpack_require__(1);
-  exports.DOMutil = __webpack_require__(2);
+  exports.DOMutil = __webpack_require__(6);
 
   // data
-  exports.DataSet = __webpack_require__(3);
-  exports.DataView = __webpack_require__(5);
-  exports.Queue = __webpack_require__(4);
+  exports.DataSet = __webpack_require__(7);
+  exports.DataView = __webpack_require__(9);
+  exports.Queue = __webpack_require__(8);
 
   // Graph3d
-  exports.Graph3d = __webpack_require__(6);
+  exports.Graph3d = __webpack_require__(10);
   exports.graph3d = {
-    Camera: __webpack_require__(10),
-    Filter: __webpack_require__(11),
-    Point2d: __webpack_require__(9),
-    Point3d: __webpack_require__(8),
-    Slider: __webpack_require__(12),
-    StepNumber: __webpack_require__(13)
+    Camera: __webpack_require__(14),
+    Filter: __webpack_require__(15),
+    Point2d: __webpack_require__(13),
+    Point3d: __webpack_require__(12),
+    Slider: __webpack_require__(16),
+    StepNumber: __webpack_require__(17)
   };
 
   // Timeline
-  exports.Timeline = __webpack_require__(14);
-  exports.Graph2d = __webpack_require__(33);
+  exports.Timeline = __webpack_require__(18);
+  exports.Graph2d = __webpack_require__(44);
   exports.timeline = {
-    DateUtil: __webpack_require__(24),
-    DataStep: __webpack_require__(35),
-    Range: __webpack_require__(19),
-    stack: __webpack_require__(36),
-    TimeStep: __webpack_require__(23),
+    DateUtil: __webpack_require__(26),
+    DataStep: __webpack_require__(47),
+    Range: __webpack_require__(23),
+    stack: __webpack_require__(31),
+    TimeStep: __webpack_require__(29),
 
     components: {
       items: {
-        Item: __webpack_require__(37),
-        BackgroundItem: __webpack_require__(38),
-        BoxItem: __webpack_require__(42),
-        PointItem: __webpack_require__(43),
-        RangeItem: __webpack_require__(41)
+        Item: __webpack_require__(33),
+        BackgroundItem: __webpack_require__(37),
+        BoxItem: __webpack_require__(35),
+        PointItem: __webpack_require__(36),
+        RangeItem: __webpack_require__(32)
       },
 
-      Component: __webpack_require__(22),
-      CurrentTime: __webpack_require__(29),
-      CustomTime: __webpack_require__(31),
-      DataAxis: __webpack_require__(44),
-      GraphGroup: __webpack_require__(45),
-      Group: __webpack_require__(40),
-      BackgroundGroup: __webpack_require__(39),
-      ItemSet: __webpack_require__(32),
-      Legend: __webpack_require__(49),
-      LineGraph: __webpack_require__(34),
-      TimeAxis: __webpack_require__(21)
+      Component: __webpack_require__(25),
+      CurrentTime: __webpack_require__(43),
+      CustomTime: __webpack_require__(40),
+      DataAxis: __webpack_require__(46),
+      GraphGroup: __webpack_require__(48),
+      Group: __webpack_require__(30),
+      BackgroundGroup: __webpack_require__(34),
+      ItemSet: __webpack_require__(28),
+      Legend: __webpack_require__(52),
+      LineGraph: __webpack_require__(45),
+      TimeAxis: __webpack_require__(42)
     }
   };
 
   // Network
-  exports.Network = __webpack_require__(50);
+  exports.Network = __webpack_require__(53);
   exports.network = {
     //Edge: require('./lib/network/Edge'),
-    Groups: __webpack_require__(53),
-    Images: __webpack_require__(54),
+    Groups: __webpack_require__(56),
+    Images: __webpack_require__(57),
     //Node: require('./lib/network/Node'),
-    Popup: __webpack_require__(55),
-    dotparser: __webpack_require__(51),
-    gephiParser: __webpack_require__(52)
+    Popup: __webpack_require__(58),
+    dotparser: __webpack_require__(54),
+    gephiParser: __webpack_require__(55)
   };
 
   // Deprecated since v3.0.0
@@ -154,9 +154,9 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   // bundled external libraries
-  exports.moment = __webpack_require__(25);
-  exports.hammer = __webpack_require__(15); // TODO: deprecate exports.hammer some day
-  exports.Hammer = __webpack_require__(15);
+  exports.moment = __webpack_require__(2);
+  exports.hammer = __webpack_require__(19); // TODO: deprecate exports.hammer some day
+  exports.Hammer = __webpack_require__(19);
 
 /***/ },
 /* 1 */
@@ -168,7 +168,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // first check if moment.js is already loaded in the browser window, if so,
   // use this instance. Else, load via commonjs.
-  var moment = __webpack_require__(25);
+  var moment = __webpack_require__(2);
 
   /**
    * Test whether given object is a number
@@ -1397,11433 +1397,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
   "use strict";
 
-  // DOM utility methods
-
-  /**
-   * this prepares the JSON container for allocating SVG elements
-   * @param JSONcontainer
-   * @private
-   */
-  exports.prepareElements = function (JSONcontainer) {
-    // cleanup the redundant svgElements;
-    for (var elementType in JSONcontainer) {
-      if (JSONcontainer.hasOwnProperty(elementType)) {
-        JSONcontainer[elementType].redundant = JSONcontainer[elementType].used;
-        JSONcontainer[elementType].used = [];
-      }
-    }
-  };
-
-  /**
-   * this cleans up all the unused SVG elements. By asking for the parentNode, we only need to supply the JSON container from
-   * which to remove the redundant elements.
-   *
-   * @param JSONcontainer
-   * @private
-   */
-  exports.cleanupElements = function (JSONcontainer) {
-    // cleanup the redundant svgElements;
-    for (var elementType in JSONcontainer) {
-      if (JSONcontainer.hasOwnProperty(elementType)) {
-        if (JSONcontainer[elementType].redundant) {
-          for (var i = 0; i < JSONcontainer[elementType].redundant.length; i++) {
-            JSONcontainer[elementType].redundant[i].parentNode.removeChild(JSONcontainer[elementType].redundant[i]);
-          }
-          JSONcontainer[elementType].redundant = [];
-        }
-      }
-    }
-  };
-
-  /**
-   * Allocate or generate an SVG element if needed. Store a reference to it in the JSON container and draw it in the svgContainer
-   * the JSON container and the SVG container have to be supplied so other svg containers (like the legend) can use this.
-   *
-   * @param elementType
-   * @param JSONcontainer
-   * @param svgContainer
-   * @returns {*}
-   * @private
-   */
-  exports.getSVGElement = function (elementType, JSONcontainer, svgContainer) {
-    var element;
-    // allocate SVG element, if it doesnt yet exist, create one.
-    if (JSONcontainer.hasOwnProperty(elementType)) {
-      // this element has been created before
-      // check if there is an redundant element
-      if (JSONcontainer[elementType].redundant.length > 0) {
-        element = JSONcontainer[elementType].redundant[0];
-        JSONcontainer[elementType].redundant.shift();
-      } else {
-        // create a new element and add it to the SVG
-        element = document.createElementNS("http://www.w3.org/2000/svg", elementType);
-        svgContainer.appendChild(element);
-      }
-    } else {
-      // create a new element and add it to the SVG, also create a new object in the svgElements to keep track of it.
-      element = document.createElementNS("http://www.w3.org/2000/svg", elementType);
-      JSONcontainer[elementType] = { used: [], redundant: [] };
-      svgContainer.appendChild(element);
-    }
-    JSONcontainer[elementType].used.push(element);
-    return element;
-  };
-
-
-  /**
-   * Allocate or generate an SVG element if needed. Store a reference to it in the JSON container and draw it in the svgContainer
-   * the JSON container and the SVG container have to be supplied so other svg containers (like the legend) can use this.
-   *
-   * @param elementType
-   * @param JSONcontainer
-   * @param DOMContainer
-   * @returns {*}
-   * @private
-   */
-  exports.getDOMElement = function (elementType, JSONcontainer, DOMContainer, insertBefore) {
-    var element;
-    // allocate DOM element, if it doesnt yet exist, create one.
-    if (JSONcontainer.hasOwnProperty(elementType)) {
-      // this element has been created before
-      // check if there is an redundant element
-      if (JSONcontainer[elementType].redundant.length > 0) {
-        element = JSONcontainer[elementType].redundant[0];
-        JSONcontainer[elementType].redundant.shift();
-      } else {
-        // create a new element and add it to the SVG
-        element = document.createElement(elementType);
-        if (insertBefore !== undefined) {
-          DOMContainer.insertBefore(element, insertBefore);
-        } else {
-          DOMContainer.appendChild(element);
-        }
-      }
-    } else {
-      // create a new element and add it to the SVG, also create a new object in the svgElements to keep track of it.
-      element = document.createElement(elementType);
-      JSONcontainer[elementType] = { used: [], redundant: [] };
-      if (insertBefore !== undefined) {
-        DOMContainer.insertBefore(element, insertBefore);
-      } else {
-        DOMContainer.appendChild(element);
-      }
-    }
-    JSONcontainer[elementType].used.push(element);
-    return element;
-  };
-
-
-
-
-  /**
-   * draw a point object. this is a seperate function because it can also be called by the legend.
-   * The reason the JSONcontainer and the target SVG svgContainer have to be supplied is so the legend can use these functions
-   * as well.
-   *
-   * @param x
-   * @param y
-   * @param group
-   * @param JSONcontainer
-   * @param svgContainer
-   * @param labelObj
-   * @returns {*}
-   */
-  exports.drawPoint = function (x, y, group, JSONcontainer, svgContainer, labelObj) {
-    var point;
-    if (group.options.drawPoints.style == "circle") {
-      point = exports.getSVGElement("circle", JSONcontainer, svgContainer);
-      point.setAttributeNS(null, "cx", x);
-      point.setAttributeNS(null, "cy", y);
-      point.setAttributeNS(null, "r", 0.5 * group.options.drawPoints.size);
-    } else {
-      point = exports.getSVGElement("rect", JSONcontainer, svgContainer);
-      point.setAttributeNS(null, "x", x - 0.5 * group.options.drawPoints.size);
-      point.setAttributeNS(null, "y", y - 0.5 * group.options.drawPoints.size);
-      point.setAttributeNS(null, "width", group.options.drawPoints.size);
-      point.setAttributeNS(null, "height", group.options.drawPoints.size);
-    }
-
-    if (group.options.drawPoints.styles !== undefined) {
-      point.setAttributeNS(null, "style", group.group.options.drawPoints.styles);
-    }
-    point.setAttributeNS(null, "class", group.className + " point");
-    //handle label
-    var label = exports.getSVGElement("text", JSONcontainer, svgContainer);
-    if (labelObj) {
-      if (labelObj.xOffset) {
-        x = x + labelObj.xOffset;
-      }
-
-      if (labelObj.yOffset) {
-        y = y + labelObj.yOffset;
-      }
-      if (labelObj.content) {
-        label.textContent = labelObj.content;
-      }
-
-      if (labelObj.className) {
-        label.setAttributeNS(null, "class", labelObj.className + " label");
-      }
-
-    }
-    label.setAttributeNS(null, "x", x);
-    label.setAttributeNS(null, "y", y);
-    return point;
-  };
-
-  /**
-   * draw a bar SVG element centered on the X coordinate
-   *
-   * @param x
-   * @param y
-   * @param className
-   */
-  exports.drawBar = function (x, y, width, height, className, JSONcontainer, svgContainer) {
-    if (height != 0) {
-      if (height < 0) {
-        height *= -1;
-        y -= height;
-      }
-      var rect = exports.getSVGElement("rect", JSONcontainer, svgContainer);
-      rect.setAttributeNS(null, "x", x - 0.5 * width);
-      rect.setAttributeNS(null, "y", y);
-      rect.setAttributeNS(null, "width", width);
-      rect.setAttributeNS(null, "height", height);
-      rect.setAttributeNS(null, "class", className);
-    }
-  };
+  // first check if moment.js is already loaded in the browser window, if so,
+  // use this instance. Else, load via commonjs.
+  module.exports = typeof window !== "undefined" && window.moment || __webpack_require__(3);
 
 /***/ },
 /* 3 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var util = __webpack_require__(1);
-  var Queue = __webpack_require__(4);
-
-  /**
-   * DataSet
-   *
-   * Usage:
-   *     var dataSet = new DataSet({
-   *         fieldId: '_id',
-   *         type: {
-   *             // ...
-   *         }
-   *     });
-   *
-   *     dataSet.add(item);
-   *     dataSet.add(data);
-   *     dataSet.update(item);
-   *     dataSet.update(data);
-   *     dataSet.remove(id);
-   *     dataSet.remove(ids);
-   *     var data = dataSet.get();
-   *     var data = dataSet.get(id);
-   *     var data = dataSet.get(ids);
-   *     var data = dataSet.get(ids, options, data);
-   *     dataSet.clear();
-   *
-   * A data set can:
-   * - add/remove/update data
-   * - gives triggers upon changes in the data
-   * - can  import/export data in various data formats
-   *
-   * @param {Array | DataTable} [data]    Optional array with initial data
-   * @param {Object} [options]   Available options:
-   *                             {String} fieldId Field name of the id in the
-   *                                              items, 'id' by default.
-   *                             {Object.<String, String} type
-   *                                              A map with field names as key,
-   *                                              and the field type as value.
-   *                             {Object} queue   Queue changes to the DataSet,
-   *                                              flush them all at once.
-   *                                              Queue options:
-   *                                              - {number} delay  Delay in ms, null by default
-   *                                              - {number} max    Maximum number of entries in the queue, Infinity by default
-   * @constructor DataSet
-   */
-  // TODO: add a DataSet constructor DataSet(data, options)
-  function DataSet(data, options) {
-    // correctly read optional arguments
-    if (data && !Array.isArray(data) && !util.isDataTable(data)) {
-      options = data;
-      data = null;
-    }
-
-    this._options = options || {};
-    this._data = {}; // map with data indexed by id
-    this.length = 0; // number of items in the DataSet
-    this._fieldId = this._options.fieldId || "id"; // name of the field containing id
-    this._type = {}; // internal field types (NOTE: this can differ from this._options.type)
-
-    // all variants of a Date are internally stored as Date, so we can convert
-    // from everything to everything (also from ISODate to Number for example)
-    if (this._options.type) {
-      for (var field in this._options.type) {
-        if (this._options.type.hasOwnProperty(field)) {
-          var value = this._options.type[field];
-          if (value == "Date" || value == "ISODate" || value == "ASPDate") {
-            this._type[field] = "Date";
-          } else {
-            this._type[field] = value;
-          }
-        }
-      }
-    }
-
-    // TODO: deprecated since version 1.1.1 (or 2.0.0?)
-    if (this._options.convert) {
-      throw new Error("Option \"convert\" is deprecated. Use \"type\" instead.");
-    }
-
-    this._subscribers = {}; // event subscribers
-
-    // add initial data when provided
-    if (data) {
-      this.add(data);
-    }
-
-    this.setOptions(options);
-  }
-
-  /**
-   * @param {Object} [options]   Available options:
-   *                             {Object} queue   Queue changes to the DataSet,
-   *                                              flush them all at once.
-   *                                              Queue options:
-   *                                              - {number} delay  Delay in ms, null by default
-   *                                              - {number} max    Maximum number of entries in the queue, Infinity by default
-   * @param options
-   */
-  DataSet.prototype.setOptions = function (options) {
-    if (options && options.queue !== undefined) {
-      if (options.queue === false) {
-        // delete queue if loaded
-        if (this._queue) {
-          this._queue.destroy();
-          delete this._queue;
-        }
-      } else {
-        // create queue and update its options
-        if (!this._queue) {
-          this._queue = Queue.extend(this, {
-            replace: ["add", "update", "remove"]
-          });
-        }
-
-        if (typeof options.queue === "object") {
-          this._queue.setOptions(options.queue);
-        }
-      }
-    }
-  };
-
-  /**
-   * Subscribe to an event, add an event listener
-   * @param {String} event        Event name. Available events: 'put', 'update',
-   *                              'remove'
-   * @param {function} callback   Callback method. Called with three parameters:
-   *                                  {String} event
-   *                                  {Object | null} params
-   *                                  {String | Number} senderId
-   */
-  DataSet.prototype.on = function (event, callback) {
-    var subscribers = this._subscribers[event];
-    if (!subscribers) {
-      subscribers = [];
-      this._subscribers[event] = subscribers;
-    }
-
-    subscribers.push({
-      callback: callback
-    });
-  };
-
-  // TODO: make this function deprecated (replaced with `on` since version 0.5)
-  DataSet.prototype.subscribe = DataSet.prototype.on;
-
-  /**
-   * Unsubscribe from an event, remove an event listener
-   * @param {String} event
-   * @param {function} callback
-   */
-  DataSet.prototype.off = function (event, callback) {
-    var subscribers = this._subscribers[event];
-    if (subscribers) {
-      this._subscribers[event] = subscribers.filter(function (listener) {
-        return listener.callback != callback;
-      });
-    }
-  };
-
-  // TODO: make this function deprecated (replaced with `on` since version 0.5)
-  DataSet.prototype.unsubscribe = DataSet.prototype.off;
-
-  /**
-   * Trigger an event
-   * @param {String} event
-   * @param {Object | null} params
-   * @param {String} [senderId]       Optional id of the sender.
-   * @private
-   */
-  DataSet.prototype._trigger = function (event, params, senderId) {
-    if (event == "*") {
-      throw new Error("Cannot trigger event *");
-    }
-
-    var subscribers = [];
-    if (event in this._subscribers) {
-      subscribers = subscribers.concat(this._subscribers[event]);
-    }
-    if ("*" in this._subscribers) {
-      subscribers = subscribers.concat(this._subscribers["*"]);
-    }
-
-    for (var i = 0; i < subscribers.length; i++) {
-      var subscriber = subscribers[i];
-      if (subscriber.callback) {
-        subscriber.callback(event, params, senderId || null);
-      }
-    }
-  };
-
-  /**
-   * Add data.
-   * Adding an item will fail when there already is an item with the same id.
-   * @param {Object | Array | DataTable} data
-   * @param {String} [senderId] Optional sender id
-   * @return {Array} addedIds      Array with the ids of the added items
-   */
-  DataSet.prototype.add = function (data, senderId) {
-    var addedIds = [],
-        id,
-        me = this;
-
-    if (Array.isArray(data)) {
-      // Array
-      for (var i = 0, len = data.length; i < len; i++) {
-        id = me._addItem(data[i]);
-        addedIds.push(id);
-      }
-    } else if (util.isDataTable(data)) {
-      // Google DataTable
-      var columns = this._getColumnNames(data);
-      for (var row = 0, rows = data.getNumberOfRows(); row < rows; row++) {
-        var item = {};
-        for (var col = 0, cols = columns.length; col < cols; col++) {
-          var field = columns[col];
-          item[field] = data.getValue(row, col);
-        }
-
-        id = me._addItem(item);
-        addedIds.push(id);
-      }
-    } else if (data instanceof Object) {
-      // Single item
-      id = me._addItem(data);
-      addedIds.push(id);
-    } else {
-      throw new Error("Unknown dataType");
-    }
-
-    if (addedIds.length) {
-      this._trigger("add", { items: addedIds }, senderId);
-    }
-
-    return addedIds;
-  };
-
-  /**
-   * Update existing items. When an item does not exist, it will be created
-   * @param {Object | Array | DataTable} data
-   * @param {String} [senderId] Optional sender id
-   * @return {Array} updatedIds     The ids of the added or updated items
-   */
-  DataSet.prototype.update = function (data, senderId) {
-    var addedIds = [];
-    var updatedIds = [];
-    var updatedData = [];
-    var me = this;
-    var fieldId = me._fieldId;
-
-    var addOrUpdate = function (item) {
-      var id = item[fieldId];
-      if (me._data[id]) {
-        // update item
-        id = me._updateItem(item);
-        updatedIds.push(id);
-        updatedData.push(item);
-      } else {
-        // add new item
-        id = me._addItem(item);
-        addedIds.push(id);
-      }
-    };
-
-    if (Array.isArray(data)) {
-      // Array
-      for (var i = 0, len = data.length; i < len; i++) {
-        addOrUpdate(data[i]);
-      }
-    } else if (util.isDataTable(data)) {
-      // Google DataTable
-      var columns = this._getColumnNames(data);
-      for (var row = 0, rows = data.getNumberOfRows(); row < rows; row++) {
-        var item = {};
-        for (var col = 0, cols = columns.length; col < cols; col++) {
-          var field = columns[col];
-          item[field] = data.getValue(row, col);
-        }
-
-        addOrUpdate(item);
-      }
-    } else if (data instanceof Object) {
-      // Single item
-      addOrUpdate(data);
-    } else {
-      throw new Error("Unknown dataType");
-    }
-
-    if (addedIds.length) {
-      this._trigger("add", { items: addedIds }, senderId);
-    }
-    if (updatedIds.length) {
-      this._trigger("update", { items: updatedIds, data: updatedData }, senderId);
-    }
-
-    return addedIds.concat(updatedIds);
-  };
-
-  /**
-   * Get a data item or multiple items.
-   *
-   * Usage:
-   *
-   *     get()
-   *     get(options: Object)
-   *     get(options: Object, data: Array | DataTable)
-   *
-   *     get(id: Number | String)
-   *     get(id: Number | String, options: Object)
-   *     get(id: Number | String, options: Object, data: Array | DataTable)
-   *
-   *     get(ids: Number[] | String[])
-   *     get(ids: Number[] | String[], options: Object)
-   *     get(ids: Number[] | String[], options: Object, data: Array | DataTable)
-   *
-   * Where:
-   *
-   * {Number | String} id         The id of an item
-   * {Number[] | String{}} ids    An array with ids of items
-   * {Object} options             An Object with options. Available options:
-   *                              {String} [returnType] Type of data to be
-   *                                  returned. Can be 'DataTable' or 'Array' (default)
-   *                              {Object.<String, String>} [type]
-   *                              {String[]} [fields] field names to be returned
-   *                              {function} [filter] filter items
-   *                              {String | function} [order] Order the items by
-   *                                  a field name or custom sort function.
-   * {Array | DataTable} [data]   If provided, items will be appended to this
-   *                              array or table. Required in case of Google
-   *                              DataTable.
-   *
-   * @throws Error
-   */
-  DataSet.prototype.get = function (args) {
-    var me = this;
-
-    // parse the arguments
-    var id, ids, options, data;
-    var firstType = util.getType(arguments[0]);
-    if (firstType == "String" || firstType == "Number") {
-      // get(id [, options] [, data])
-      id = arguments[0];
-      options = arguments[1];
-      data = arguments[2];
-    } else if (firstType == "Array") {
-      // get(ids [, options] [, data])
-      ids = arguments[0];
-      options = arguments[1];
-      data = arguments[2];
-    } else {
-      // get([, options] [, data])
-      options = arguments[0];
-      data = arguments[1];
-    }
-
-    // determine the return type
-    var returnType;
-    if (options && options.returnType) {
-      var allowedValues = ["DataTable", "Array", "Object"];
-      returnType = allowedValues.indexOf(options.returnType) == -1 ? "Array" : options.returnType;
-
-      if (data && returnType != util.getType(data)) {
-        throw new Error("Type of parameter \"data\" (" + util.getType(data) + ") " + "does not correspond with specified options.type (" + options.type + ")");
-      }
-      if (returnType == "DataTable" && !util.isDataTable(data)) {
-        throw new Error("Parameter \"data\" must be a DataTable " + "when options.type is \"DataTable\"");
-      }
-    } else if (data) {
-      returnType = util.getType(data) == "DataTable" ? "DataTable" : "Array";
-    } else {
-      returnType = "Array";
-    }
-
-    // build options
-    var type = options && options.type || this._options.type;
-    var filter = options && options.filter;
-    var items = [],
-        item,
-        itemId,
-        i,
-        len;
-
-    // convert items
-    if (id != undefined) {
-      // return a single item
-      item = me._getItem(id, type);
-      if (filter && !filter(item)) {
-        item = null;
-      }
-    } else if (ids != undefined) {
-      // return a subset of items
-      for (i = 0, len = ids.length; i < len; i++) {
-        item = me._getItem(ids[i], type);
-        if (!filter || filter(item)) {
-          items.push(item);
-        }
-      }
-    } else {
-      // return all items
-      for (itemId in this._data) {
-        if (this._data.hasOwnProperty(itemId)) {
-          item = me._getItem(itemId, type);
-          if (!filter || filter(item)) {
-            items.push(item);
-          }
-        }
-      }
-    }
-
-    // order the results
-    if (options && options.order && id == undefined) {
-      this._sort(items, options.order);
-    }
-
-    // filter fields of the items
-    if (options && options.fields) {
-      var fields = options.fields;
-      if (id != undefined) {
-        item = this._filterFields(item, fields);
-      } else {
-        for (i = 0, len = items.length; i < len; i++) {
-          items[i] = this._filterFields(items[i], fields);
-        }
-      }
-    }
-
-    // return the results
-    if (returnType == "DataTable") {
-      var columns = this._getColumnNames(data);
-      if (id != undefined) {
-        // append a single item to the data table
-        me._appendRow(data, columns, item);
-      } else {
-        // copy the items to the provided data table
-        for (i = 0; i < items.length; i++) {
-          me._appendRow(data, columns, items[i]);
-        }
-      }
-      return data;
-    } else if (returnType == "Object") {
-      var result = {};
-      for (i = 0; i < items.length; i++) {
-        result[items[i].id] = items[i];
-      }
-      return result;
-    } else {
-      // return an array
-      if (id != undefined) {
-        // a single item
-        return item;
-      } else {
-        // multiple items
-        if (data) {
-          // copy the items to the provided array
-          for (i = 0, len = items.length; i < len; i++) {
-            data.push(items[i]);
-          }
-          return data;
-        } else {
-          // just return our array
-          return items;
-        }
-      }
-    }
-  };
-
-  /**
-   * Get ids of all items or from a filtered set of items.
-   * @param {Object} [options]    An Object with options. Available options:
-   *                              {function} [filter] filter items
-   *                              {String | function} [order] Order the items by
-   *                                  a field name or custom sort function.
-   * @return {Array} ids
-   */
-  DataSet.prototype.getIds = function (options) {
-    var data = this._data,
-        filter = options && options.filter,
-        order = options && options.order,
-        type = options && options.type || this._options.type,
-        i,
-        len,
-        id,
-        item,
-        items,
-        ids = [];
-
-    if (filter) {
-      // get filtered items
-      if (order) {
-        // create ordered list
-        items = [];
-        for (id in data) {
-          if (data.hasOwnProperty(id)) {
-            item = this._getItem(id, type);
-            if (filter(item)) {
-              items.push(item);
-            }
-          }
-        }
-
-        this._sort(items, order);
-
-        for (i = 0, len = items.length; i < len; i++) {
-          ids[i] = items[i][this._fieldId];
-        }
-      } else {
-        // create unordered list
-        for (id in data) {
-          if (data.hasOwnProperty(id)) {
-            item = this._getItem(id, type);
-            if (filter(item)) {
-              ids.push(item[this._fieldId]);
-            }
-          }
-        }
-      }
-    } else {
-      // get all items
-      if (order) {
-        // create an ordered list
-        items = [];
-        for (id in data) {
-          if (data.hasOwnProperty(id)) {
-            items.push(data[id]);
-          }
-        }
-
-        this._sort(items, order);
-
-        for (i = 0, len = items.length; i < len; i++) {
-          ids[i] = items[i][this._fieldId];
-        }
-      } else {
-        // create unordered list
-        for (id in data) {
-          if (data.hasOwnProperty(id)) {
-            item = data[id];
-            ids.push(item[this._fieldId]);
-          }
-        }
-      }
-    }
-
-    return ids;
-  };
-
-  /**
-   * Returns the DataSet itself. Is overwritten for example by the DataView,
-   * which returns the DataSet it is connected to instead.
-   */
-  DataSet.prototype.getDataSet = function () {
-    return this;
-  };
-
-  /**
-   * Execute a callback function for every item in the dataset.
-   * @param {function} callback
-   * @param {Object} [options]    Available options:
-   *                              {Object.<String, String>} [type]
-   *                              {String[]} [fields] filter fields
-   *                              {function} [filter] filter items
-   *                              {String | function} [order] Order the items by
-   *                                  a field name or custom sort function.
-   */
-  DataSet.prototype.forEach = function (callback, options) {
-    var filter = options && options.filter,
-        type = options && options.type || this._options.type,
-        data = this._data,
-        item,
-        id;
-
-    if (options && options.order) {
-      // execute forEach on ordered list
-      var items = this.get(options);
-
-      for (var i = 0, len = items.length; i < len; i++) {
-        item = items[i];
-        id = item[this._fieldId];
-        callback(item, id);
-      }
-    } else {
-      // unordered
-      for (id in data) {
-        if (data.hasOwnProperty(id)) {
-          item = this._getItem(id, type);
-          if (!filter || filter(item)) {
-            callback(item, id);
-          }
-        }
-      }
-    }
-  };
-
-  /**
-   * Map every item in the dataset.
-   * @param {function} callback
-   * @param {Object} [options]    Available options:
-   *                              {Object.<String, String>} [type]
-   *                              {String[]} [fields] filter fields
-   *                              {function} [filter] filter items
-   *                              {String | function} [order] Order the items by
-   *                                  a field name or custom sort function.
-   * @return {Object[]} mappedItems
-   */
-  DataSet.prototype.map = function (callback, options) {
-    var filter = options && options.filter,
-        type = options && options.type || this._options.type,
-        mappedItems = [],
-        data = this._data,
-        item;
-
-    // convert and filter items
-    for (var id in data) {
-      if (data.hasOwnProperty(id)) {
-        item = this._getItem(id, type);
-        if (!filter || filter(item)) {
-          mappedItems.push(callback(item, id));
-        }
-      }
-    }
-
-    // order items
-    if (options && options.order) {
-      this._sort(mappedItems, options.order);
-    }
-
-    return mappedItems;
-  };
-
-  /**
-   * Filter the fields of an item
-   * @param {Object | null} item
-   * @param {String[]} fields     Field names
-   * @return {Object | null} filteredItem or null if no item is provided
-   * @private
-   */
-  DataSet.prototype._filterFields = function (item, fields) {
-    if (!item) {
-      // item is null
-      return item;
-    }
-
-    var filteredItem = {};
-
-    for (var field in item) {
-      if (item.hasOwnProperty(field) && fields.indexOf(field) != -1) {
-        filteredItem[field] = item[field];
-      }
-    }
-
-    return filteredItem;
-  };
-
-  /**
-   * Sort the provided array with items
-   * @param {Object[]} items
-   * @param {String | function} order      A field name or custom sort function.
-   * @private
-   */
-  DataSet.prototype._sort = function (items, order) {
-    if (util.isString(order)) {
-      // order by provided field name
-      var name = order; // field name
-      items.sort(function (a, b) {
-        var av = a[name];
-        var bv = b[name];
-        return av > bv ? 1 : av < bv ? -1 : 0;
-      });
-    } else if (typeof order === "function") {
-      // order by sort function
-      items.sort(order);
-    }
-    // TODO: extend order by an Object {field:String, direction:String}
-    //       where direction can be 'asc' or 'desc'
-    else {
-      throw new TypeError("Order must be a function or a string");
-    }
-  };
-
-  /**
-   * Remove an object by pointer or by id
-   * @param {String | Number | Object | Array} id Object or id, or an array with
-   *                                              objects or ids to be removed
-   * @param {String} [senderId] Optional sender id
-   * @return {Array} removedIds
-   */
-  DataSet.prototype.remove = function (id, senderId) {
-    var removedIds = [],
-        i,
-        len,
-        removedId;
-
-    if (Array.isArray(id)) {
-      for (i = 0, len = id.length; i < len; i++) {
-        removedId = this._remove(id[i]);
-        if (removedId != null) {
-          removedIds.push(removedId);
-        }
-      }
-    } else {
-      removedId = this._remove(id);
-      if (removedId != null) {
-        removedIds.push(removedId);
-      }
-    }
-
-    if (removedIds.length) {
-      this._trigger("remove", { items: removedIds }, senderId);
-    }
-
-    return removedIds;
-  };
-
-  /**
-   * Remove an item by its id
-   * @param {Number | String | Object} id   id or item
-   * @returns {Number | String | null} id
-   * @private
-   */
-  DataSet.prototype._remove = function (id) {
-    if (util.isNumber(id) || util.isString(id)) {
-      if (this._data[id]) {
-        delete this._data[id];
-        this.length--;
-        return id;
-      }
-    } else if (id instanceof Object) {
-      var itemId = id[this._fieldId];
-      if (itemId && this._data[itemId]) {
-        delete this._data[itemId];
-        this.length--;
-        return itemId;
-      }
-    }
-    return null;
-  };
-
-  /**
-   * Clear the data
-   * @param {String} [senderId] Optional sender id
-   * @return {Array} removedIds    The ids of all removed items
-   */
-  DataSet.prototype.clear = function (senderId) {
-    var ids = Object.keys(this._data);
-
-    this._data = {};
-    this.length = 0;
-
-    this._trigger("remove", { items: ids }, senderId);
-
-    return ids;
-  };
-
-  /**
-   * Find the item with maximum value of a specified field
-   * @param {String} field
-   * @return {Object | null} item  Item containing max value, or null if no items
-   */
-  DataSet.prototype.max = function (field) {
-    var data = this._data,
-        max = null,
-        maxField = null;
-
-    for (var id in data) {
-      if (data.hasOwnProperty(id)) {
-        var item = data[id];
-        var itemField = item[field];
-        if (itemField != null && (!max || itemField > maxField)) {
-          max = item;
-          maxField = itemField;
-        }
-      }
-    }
-
-    return max;
-  };
-
-  /**
-   * Find the item with minimum value of a specified field
-   * @param {String} field
-   * @return {Object | null} item  Item containing max value, or null if no items
-   */
-  DataSet.prototype.min = function (field) {
-    var data = this._data,
-        min = null,
-        minField = null;
-
-    for (var id in data) {
-      if (data.hasOwnProperty(id)) {
-        var item = data[id];
-        var itemField = item[field];
-        if (itemField != null && (!min || itemField < minField)) {
-          min = item;
-          minField = itemField;
-        }
-      }
-    }
-
-    return min;
-  };
-
-  /**
-   * Find all distinct values of a specified field
-   * @param {String} field
-   * @return {Array} values  Array containing all distinct values. If data items
-   *                         do not contain the specified field are ignored.
-   *                         The returned array is unordered.
-   */
-  DataSet.prototype.distinct = function (field) {
-    var data = this._data;
-    var values = [];
-    var fieldType = this._options.type && this._options.type[field] || null;
-    var count = 0;
-    var i;
-
-    for (var prop in data) {
-      if (data.hasOwnProperty(prop)) {
-        var item = data[prop];
-        var value = item[field];
-        var exists = false;
-        for (i = 0; i < count; i++) {
-          if (values[i] == value) {
-            exists = true;
-            break;
-          }
-        }
-        if (!exists && value !== undefined) {
-          values[count] = value;
-          count++;
-        }
-      }
-    }
-
-    if (fieldType) {
-      for (i = 0; i < values.length; i++) {
-        values[i] = util.convert(values[i], fieldType);
-      }
-    }
-
-    return values;
-  };
-
-  /**
-   * Add a single item. Will fail when an item with the same id already exists.
-   * @param {Object} item
-   * @return {String} id
-   * @private
-   */
-  DataSet.prototype._addItem = function (item) {
-    var id = item[this._fieldId];
-
-    if (id != undefined) {
-      // check whether this id is already taken
-      if (this._data[id]) {
-        // item already exists
-        throw new Error("Cannot add item: item with id " + id + " already exists");
-      }
-    } else {
-      // generate an id
-      id = util.randomUUID();
-      item[this._fieldId] = id;
-    }
-
-    var d = {};
-    for (var field in item) {
-      if (item.hasOwnProperty(field)) {
-        var fieldType = this._type[field]; // type may be undefined
-        d[field] = util.convert(item[field], fieldType);
-      }
-    }
-    this._data[id] = d;
-    this.length++;
-
-    return id;
-  };
-
-  /**
-   * Get an item. Fields can be converted to a specific type
-   * @param {String} id
-   * @param {Object.<String, String>} [types]  field types to convert
-   * @return {Object | null} item
-   * @private
-   */
-  DataSet.prototype._getItem = function (id, types) {
-    var field, value;
-
-    // get the item from the dataset
-    var raw = this._data[id];
-    if (!raw) {
-      return null;
-    }
-
-    // convert the items field types
-    var converted = {};
-    if (types) {
-      for (field in raw) {
-        if (raw.hasOwnProperty(field)) {
-          value = raw[field];
-          converted[field] = util.convert(value, types[field]);
-        }
-      }
-    } else {
-      // no field types specified, no converting needed
-      for (field in raw) {
-        if (raw.hasOwnProperty(field)) {
-          value = raw[field];
-          converted[field] = value;
-        }
-      }
-    }
-    return converted;
-  };
-
-  /**
-   * Update a single item: merge with existing item.
-   * Will fail when the item has no id, or when there does not exist an item
-   * with the same id.
-   * @param {Object} item
-   * @return {String} id
-   * @private
-   */
-  DataSet.prototype._updateItem = function (item) {
-    var id = item[this._fieldId];
-    if (id == undefined) {
-      throw new Error("Cannot update item: item has no id (item: " + JSON.stringify(item) + ")");
-    }
-    var d = this._data[id];
-    if (!d) {
-      // item doesn't exist
-      throw new Error("Cannot update item: no item with id " + id + " found");
-    }
-
-    // merge with current item
-    for (var field in item) {
-      if (item.hasOwnProperty(field)) {
-        var fieldType = this._type[field]; // type may be undefined
-        d[field] = util.convert(item[field], fieldType);
-      }
-    }
-
-    return id;
-  };
-
-  /**
-   * Get an array with the column names of a Google DataTable
-   * @param {DataTable} dataTable
-   * @return {String[]} columnNames
-   * @private
-   */
-  DataSet.prototype._getColumnNames = function (dataTable) {
-    var columns = [];
-    for (var col = 0, cols = dataTable.getNumberOfColumns(); col < cols; col++) {
-      columns[col] = dataTable.getColumnId(col) || dataTable.getColumnLabel(col);
-    }
-    return columns;
-  };
-
-  /**
-   * Append an item as a row to the dataTable
-   * @param dataTable
-   * @param columns
-   * @param item
-   * @private
-   */
-  DataSet.prototype._appendRow = function (dataTable, columns, item) {
-    var row = dataTable.addRow();
-
-    for (var col = 0, cols = columns.length; col < cols; col++) {
-      var field = columns[col];
-      dataTable.setValue(row, col, item[field]);
-    }
-  };
-
-  module.exports = DataSet;
-
-/***/ },
-/* 4 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  /**
-   * A queue
-   * @param {Object} options
-   *            Available options:
-   *            - delay: number    When provided, the queue will be flushed
-   *                               automatically after an inactivity of this delay
-   *                               in milliseconds.
-   *                               Default value is null.
-   *            - max: number      When the queue exceeds the given maximum number
-   *                               of entries, the queue is flushed automatically.
-   *                               Default value of max is Infinity.
-   * @constructor
-   */
-  function Queue(options) {
-    // options
-    this.delay = null;
-    this.max = Infinity;
-
-    // properties
-    this._queue = [];
-    this._timeout = null;
-    this._extended = null;
-
-    this.setOptions(options);
-  }
-
-  /**
-   * Update the configuration of the queue
-   * @param {Object} options
-   *            Available options:
-   *            - delay: number    When provided, the queue will be flushed
-   *                               automatically after an inactivity of this delay
-   *                               in milliseconds.
-   *                               Default value is null.
-   *            - max: number      When the queue exceeds the given maximum number
-   *                               of entries, the queue is flushed automatically.
-   *                               Default value of max is Infinity.
-   * @param options
-   */
-  Queue.prototype.setOptions = function (options) {
-    if (options && typeof options.delay !== "undefined") {
-      this.delay = options.delay;
-    }
-    if (options && typeof options.max !== "undefined") {
-      this.max = options.max;
-    }
-
-    this._flushIfNeeded();
-  };
-
-  /**
-   * Extend an object with queuing functionality.
-   * The object will be extended with a function flush, and the methods provided
-   * in options.replace will be replaced with queued ones.
-   * @param {Object} object
-   * @param {Object} options
-   *            Available options:
-   *            - replace: Array.<string>
-   *                               A list with method names of the methods
-   *                               on the object to be replaced with queued ones.
-   *            - delay: number    When provided, the queue will be flushed
-   *                               automatically after an inactivity of this delay
-   *                               in milliseconds.
-   *                               Default value is null.
-   *            - max: number      When the queue exceeds the given maximum number
-   *                               of entries, the queue is flushed automatically.
-   *                               Default value of max is Infinity.
-   * @return {Queue} Returns the created queue
-   */
-  Queue.extend = function (object, options) {
-    var queue = new Queue(options);
-
-    if (object.flush !== undefined) {
-      throw new Error("Target object already has a property flush");
-    }
-    object.flush = function () {
-      queue.flush();
-    };
-
-    var methods = [{
-      name: "flush",
-      original: undefined
-    }];
-
-    if (options && options.replace) {
-      for (var i = 0; i < options.replace.length; i++) {
-        var name = options.replace[i];
-        methods.push({
-          name: name,
-          original: object[name]
-        });
-        queue.replace(object, name);
-      }
-    }
-
-    queue._extended = {
-      object: object,
-      methods: methods
-    };
-
-    return queue;
-  };
-
-  /**
-   * Destroy the queue. The queue will first flush all queued actions, and in
-   * case it has extended an object, will restore the original object.
-   */
-  Queue.prototype.destroy = function () {
-    this.flush();
-
-    if (this._extended) {
-      var object = this._extended.object;
-      var methods = this._extended.methods;
-      for (var i = 0; i < methods.length; i++) {
-        var method = methods[i];
-        if (method.original) {
-          object[method.name] = method.original;
-        } else {
-          delete object[method.name];
-        }
-      }
-      this._extended = null;
-    }
-  };
-
-  /**
-   * Replace a method on an object with a queued version
-   * @param {Object} object   Object having the method
-   * @param {string} method   The method name
-   */
-  Queue.prototype.replace = function (object, method) {
-    var me = this;
-    var original = object[method];
-    if (!original) {
-      throw new Error("Method " + method + " undefined");
-    }
-
-    object[method] = function () {
-      // create an Array with the arguments
-      var args = [];
-      for (var i = 0; i < arguments.length; i++) {
-        args[i] = arguments[i];
-      }
-
-      // add this call to the queue
-      me.queue({
-        args: args,
-        fn: original,
-        context: this
-      });
-    };
-  };
-
-  /**
-   * Queue a call
-   * @param {function | {fn: function, args: Array} | {fn: function, args: Array, context: Object}} entry
-   */
-  Queue.prototype.queue = function (entry) {
-    if (typeof entry === "function") {
-      this._queue.push({ fn: entry });
-    } else {
-      this._queue.push(entry);
-    }
-
-    this._flushIfNeeded();
-  };
-
-  /**
-   * Check whether the queue needs to be flushed
-   * @private
-   */
-  Queue.prototype._flushIfNeeded = function () {
-    // flush when the maximum is exceeded.
-    if (this._queue.length > this.max) {
-      this.flush();
-    }
-
-    // flush after a period of inactivity when a delay is configured
-    clearTimeout(this._timeout);
-    if (this.queue.length > 0 && typeof this.delay === "number") {
-      var me = this;
-      this._timeout = setTimeout(function () {
-        me.flush();
-      }, this.delay);
-    }
-  };
-
-  /**
-   * Flush all queued calls
-   */
-  Queue.prototype.flush = function () {
-    while (this._queue.length > 0) {
-      var entry = this._queue.shift();
-      entry.fn.apply(entry.context || entry.fn, entry.args || []);
-    }
-  };
-
-  module.exports = Queue;
-
-/***/ },
-/* 5 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(3);
-
-  /**
-   * DataView
-   *
-   * a dataview offers a filtered view on a dataset or an other dataview.
-   *
-   * @param {DataSet | DataView} data
-   * @param {Object} [options]   Available options: see method get
-   *
-   * @constructor DataView
-   */
-  function DataView(data, options) {
-    this._data = null;
-    this._ids = {}; // ids of the items currently in memory (just contains a boolean true)
-    this.length = 0; // number of items in the DataView
-    this._options = options || {};
-    this._fieldId = "id"; // name of the field containing id
-    this._subscribers = {}; // event subscribers
-
-    var me = this;
-    this.listener = function () {
-      me._onEvent.apply(me, arguments);
-    };
-
-    this.setData(data);
-  }
-
-  // TODO: implement a function .config() to dynamically update things like configured filter
-  // and trigger changes accordingly
-
-  /**
-   * Set a data source for the view
-   * @param {DataSet | DataView} data
-   */
-  DataView.prototype.setData = function (data) {
-    var ids, i, len;
-
-    if (this._data) {
-      // unsubscribe from current dataset
-      if (this._data.unsubscribe) {
-        this._data.unsubscribe("*", this.listener);
-      }
-
-      // trigger a remove of all items in memory
-      ids = [];
-      for (var id in this._ids) {
-        if (this._ids.hasOwnProperty(id)) {
-          ids.push(id);
-        }
-      }
-      this._ids = {};
-      this.length = 0;
-      this._trigger("remove", { items: ids });
-    }
-
-    this._data = data;
-
-    if (this._data) {
-      // update fieldId
-      this._fieldId = this._options.fieldId || this._data && this._data.options && this._data.options.fieldId || "id";
-
-      // trigger an add of all added items
-      ids = this._data.getIds({ filter: this._options && this._options.filter });
-      for (i = 0, len = ids.length; i < len; i++) {
-        id = ids[i];
-        this._ids[id] = true;
-      }
-      this.length = ids.length;
-      this._trigger("add", { items: ids });
-
-      // subscribe to new dataset
-      if (this._data.on) {
-        this._data.on("*", this.listener);
-      }
-    }
-  };
-
-  /**
-   * Refresh the DataView. Useful when the DataView has a filter function
-   * containing a variable parameter.
-   */
-  DataView.prototype.refresh = function () {
-    var id;
-    var ids = this._data.getIds({ filter: this._options && this._options.filter });
-    var newIds = {};
-    var added = [];
-    var removed = [];
-
-    // check for additions
-    for (var i = 0; i < ids.length; i++) {
-      id = ids[i];
-      newIds[id] = true;
-      if (!this._ids[id]) {
-        added.push(id);
-        this._ids[id] = true;
-        this.length++;
-      }
-    }
-
-    // check for removals
-    for (id in this._ids) {
-      if (this._ids.hasOwnProperty(id)) {
-        if (!newIds[id]) {
-          removed.push(id);
-          delete this._ids[id];
-          this.length--;
-        }
-      }
-    }
-
-    // trigger events
-    if (added.length) {
-      this._trigger("add", { items: added });
-    }
-    if (removed.length) {
-      this._trigger("remove", { items: removed });
-    }
-  };
-
-  /**
-   * Get data from the data view
-   *
-   * Usage:
-   *
-   *     get()
-   *     get(options: Object)
-   *     get(options: Object, data: Array | DataTable)
-   *
-   *     get(id: Number)
-   *     get(id: Number, options: Object)
-   *     get(id: Number, options: Object, data: Array | DataTable)
-   *
-   *     get(ids: Number[])
-   *     get(ids: Number[], options: Object)
-   *     get(ids: Number[], options: Object, data: Array | DataTable)
-   *
-   * Where:
-   *
-   * {Number | String} id         The id of an item
-   * {Number[] | String{}} ids    An array with ids of items
-   * {Object} options             An Object with options. Available options:
-   *                              {String} [type] Type of data to be returned. Can
-   *                                              be 'DataTable' or 'Array' (default)
-   *                              {Object.<String, String>} [convert]
-   *                              {String[]} [fields] field names to be returned
-   *                              {function} [filter] filter items
-   *                              {String | function} [order] Order the items by
-   *                                  a field name or custom sort function.
-   * {Array | DataTable} [data]   If provided, items will be appended to this
-   *                              array or table. Required in case of Google
-   *                              DataTable.
-   * @param args
-   */
-  DataView.prototype.get = function (args) {
-    var me = this;
-
-    // parse the arguments
-    var ids, options, data;
-    var firstType = util.getType(arguments[0]);
-    if (firstType == "String" || firstType == "Number" || firstType == "Array") {
-      // get(id(s) [, options] [, data])
-      ids = arguments[0]; // can be a single id or an array with ids
-      options = arguments[1];
-      data = arguments[2];
-    } else {
-      // get([, options] [, data])
-      options = arguments[0];
-      data = arguments[1];
-    }
-
-    // extend the options with the default options and provided options
-    var viewOptions = util.extend({}, this._options, options);
-
-    // create a combined filter method when needed
-    if (this._options.filter && options && options.filter) {
-      viewOptions.filter = function (item) {
-        return me._options.filter(item) && options.filter(item);
-      };
-    }
-
-    // build up the call to the linked data set
-    var getArguments = [];
-    if (ids != undefined) {
-      getArguments.push(ids);
-    }
-    getArguments.push(viewOptions);
-    getArguments.push(data);
-
-    return this._data && this._data.get.apply(this._data, getArguments);
-  };
-
-  /**
-   * Get ids of all items or from a filtered set of items.
-   * @param {Object} [options]    An Object with options. Available options:
-   *                              {function} [filter] filter items
-   *                              {String | function} [order] Order the items by
-   *                                  a field name or custom sort function.
-   * @return {Array} ids
-   */
-  DataView.prototype.getIds = function (options) {
-    var ids;
-
-    if (this._data) {
-      var defaultFilter = this._options.filter;
-      var filter;
-
-      if (options && options.filter) {
-        if (defaultFilter) {
-          filter = function (item) {
-            return defaultFilter(item) && options.filter(item);
-          };
-        } else {
-          filter = options.filter;
-        }
-      } else {
-        filter = defaultFilter;
-      }
-
-      ids = this._data.getIds({
-        filter: filter,
-        order: options && options.order
-      });
-    } else {
-      ids = [];
-    }
-
-    return ids;
-  };
-
-  /**
-   * Get the DataSet to which this DataView is connected. In case there is a chain
-   * of multiple DataViews, the root DataSet of this chain is returned.
-   * @return {DataSet} dataSet
-   */
-  DataView.prototype.getDataSet = function () {
-    var dataSet = this;
-    while (dataSet instanceof DataView) {
-      dataSet = dataSet._data;
-    }
-    return dataSet || null;
-  };
-
-  /**
-   * Event listener. Will propagate all events from the connected data set to
-   * the subscribers of the DataView, but will filter the items and only trigger
-   * when there are changes in the filtered data set.
-   * @param {String} event
-   * @param {Object | null} params
-   * @param {String} senderId
-   * @private
-   */
-  DataView.prototype._onEvent = function (event, params, senderId) {
-    var i,
-        len,
-        id,
-        item,
-        ids = params && params.items,
-        data = this._data,
-        added = [],
-        updated = [],
-        removed = [];
-
-    if (ids && data) {
-      switch (event) {
-        case "add":
-          // filter the ids of the added items
-          for (i = 0, len = ids.length; i < len; i++) {
-            id = ids[i];
-            item = this.get(id);
-            if (item) {
-              this._ids[id] = true;
-              added.push(id);
-            }
-          }
-
-          break;
-
-        case "update":
-          // determine the event from the views viewpoint: an updated
-          // item can be added, updated, or removed from this view.
-          for (i = 0, len = ids.length; i < len; i++) {
-            id = ids[i];
-            item = this.get(id);
-
-            if (item) {
-              if (this._ids[id]) {
-                updated.push(id);
-              } else {
-                this._ids[id] = true;
-                added.push(id);
-              }
-            } else {
-              if (this._ids[id]) {
-                delete this._ids[id];
-                removed.push(id);
-              } else {}
-            }
-          }
-
-          break;
-
-        case "remove":
-          // filter the ids of the removed items
-          for (i = 0, len = ids.length; i < len; i++) {
-            id = ids[i];
-            if (this._ids[id]) {
-              delete this._ids[id];
-              removed.push(id);
-            }
-          }
-
-          break;
-      }
-
-      this.length += added.length - removed.length;
-
-      if (added.length) {
-        this._trigger("add", { items: added }, senderId);
-      }
-      if (updated.length) {
-        this._trigger("update", { items: updated }, senderId);
-      }
-      if (removed.length) {
-        this._trigger("remove", { items: removed }, senderId);
-      }
-    }
-  };
-
-  // copy subscription functionality from DataSet
-  DataView.prototype.on = DataSet.prototype.on;
-  DataView.prototype.off = DataSet.prototype.off;
-  DataView.prototype._trigger = DataSet.prototype._trigger;
-
-  // TODO: make these functions deprecated (replaced with `on` and `off` since version 0.5)
-  DataView.prototype.subscribe = DataView.prototype.on;
-  DataView.prototype.unsubscribe = DataView.prototype.off;
-
-  module.exports = DataView;
-  // nothing interesting for me :-(
-
-/***/ },
-/* 6 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var Emitter = __webpack_require__(7);
-  var DataSet = __webpack_require__(3);
-  var DataView = __webpack_require__(5);
-  var util = __webpack_require__(1);
-  var Point3d = __webpack_require__(8);
-  var Point2d = __webpack_require__(9);
-  var Camera = __webpack_require__(10);
-  var Filter = __webpack_require__(11);
-  var Slider = __webpack_require__(12);
-  var StepNumber = __webpack_require__(13);
-
-  /**
-   * @constructor Graph3d
-   * Graph3d displays data in 3d.
-   *
-   * Graph3d is developed in javascript as a Google Visualization Chart.
-   *
-   * @param {Element} container   The DOM element in which the Graph3d will
-   *                              be created. Normally a div element.
-   * @param {DataSet | DataView | Array} [data]
-   * @param {Object} [options]
-   */
-  function Graph3d(container, data, options) {
-    if (!(this instanceof Graph3d)) {
-      throw new SyntaxError("Constructor must be called with the new operator");
-    }
-
-    // create variables and set default values
-    this.containerElement = container;
-    this.width = "400px";
-    this.height = "400px";
-    this.margin = 10; // px
-    this.defaultXCenter = "55%";
-    this.defaultYCenter = "50%";
-
-    this.xLabel = "x";
-    this.yLabel = "y";
-    this.zLabel = "z";
-
-    var passValueFn = function (v) {
-      return v;
-    };
-    this.xValueLabel = passValueFn;
-    this.yValueLabel = passValueFn;
-    this.zValueLabel = passValueFn;
-
-    this.filterLabel = "time";
-    this.legendLabel = "value";
-
-    this.style = Graph3d.STYLE.DOT;
-    this.showPerspective = true;
-    this.showGrid = true;
-    this.keepAspectRatio = true;
-    this.showShadow = false;
-    this.showGrayBottom = false; // TODO: this does not work correctly
-    this.showTooltip = false;
-    this.verticalRatio = 0.5; // 0.1 to 1.0, where 1.0 results in a 'cube'
-
-    this.animationInterval = 1000; // milliseconds
-    this.animationPreload = false;
-
-    this.camera = new Camera();
-    this.eye = new Point3d(0, 0, -1); // TODO: set eye.z about 3/4 of the width of the window?
-
-    this.dataTable = null; // The original data table
-    this.dataPoints = null; // The table with point objects
-
-    // the column indexes
-    this.colX = undefined;
-    this.colY = undefined;
-    this.colZ = undefined;
-    this.colValue = undefined;
-    this.colFilter = undefined;
-
-    this.xMin = 0;
-    this.xStep = undefined; // auto by default
-    this.xMax = 1;
-    this.yMin = 0;
-    this.yStep = undefined; // auto by default
-    this.yMax = 1;
-    this.zMin = 0;
-    this.zStep = undefined; // auto by default
-    this.zMax = 1;
-    this.valueMin = 0;
-    this.valueMax = 1;
-    this.xBarWidth = 1;
-    this.yBarWidth = 1;
-    // TODO: customize axis range
-
-    // constants
-    this.colorAxis = "#4D4D4D";
-    this.colorGrid = "#D3D3D3";
-    this.colorDot = "#7DC1FF";
-    this.colorDotBorder = "#3267D2";
-
-    // create a frame and canvas
-    this.create();
-
-    // apply options (also when undefined)
-    this.setOptions(options);
-
-    // apply data
-    if (data) {
-      this.setData(data);
-    }
-  }
-
-  // Extend Graph3d with an Emitter mixin
-  Emitter(Graph3d.prototype);
-
-  /**
-   * Calculate the scaling values, dependent on the range in x, y, and z direction
-   */
-  Graph3d.prototype._setScale = function () {
-    this.scale = new Point3d(1 / (this.xMax - this.xMin), 1 / (this.yMax - this.yMin), 1 / (this.zMax - this.zMin));
-
-    // keep aspect ration between x and y scale if desired
-    if (this.keepAspectRatio) {
-      if (this.scale.x < this.scale.y) {
-        //noinspection JSSuspiciousNameCombination
-        this.scale.y = this.scale.x;
-      } else {
-        //noinspection JSSuspiciousNameCombination
-        this.scale.x = this.scale.y;
-      }
-    }
-
-    // scale the vertical axis
-    this.scale.z *= this.verticalRatio;
-    // TODO: can this be automated? verticalRatio?
-
-    // determine scale for (optional) value
-    this.scale.value = 1 / (this.valueMax - this.valueMin);
-
-    // position the camera arm
-    var xCenter = (this.xMax + this.xMin) / 2 * this.scale.x;
-    var yCenter = (this.yMax + this.yMin) / 2 * this.scale.y;
-    var zCenter = (this.zMax + this.zMin) / 2 * this.scale.z;
-    this.camera.setArmLocation(xCenter, yCenter, zCenter);
-  };
-
-
-  /**
-   * Convert a 3D location to a 2D location on screen
-   * http://en.wikipedia.org/wiki/3D_projection
-   * @param {Point3d} point3d   A 3D point with parameters x, y, z
-   * @return {Point2d} point2d  A 2D point with parameters x, y
-   */
-  Graph3d.prototype._convert3Dto2D = function (point3d) {
-    var translation = this._convertPointToTranslation(point3d);
-    return this._convertTranslationToScreen(translation);
-  };
-
-  /**
-   * Convert a 3D location its translation seen from the camera
-   * http://en.wikipedia.org/wiki/3D_projection
-   * @param {Point3d} point3d    A 3D point with parameters x, y, z
-   * @return {Point3d} translation A 3D point with parameters x, y, z This is
-   *                   the translation of the point, seen from the
-   *                   camera
-   */
-  Graph3d.prototype._convertPointToTranslation = function (point3d) {
-    var ax = point3d.x * this.scale.x,
-        ay = point3d.y * this.scale.y,
-        az = point3d.z * this.scale.z,
-        cx = this.camera.getCameraLocation().x,
-        cy = this.camera.getCameraLocation().y,
-        cz = this.camera.getCameraLocation().z,
-
-
-    // calculate angles
-    sinTx = Math.sin(this.camera.getCameraRotation().x),
-        cosTx = Math.cos(this.camera.getCameraRotation().x),
-        sinTy = Math.sin(this.camera.getCameraRotation().y),
-        cosTy = Math.cos(this.camera.getCameraRotation().y),
-        sinTz = Math.sin(this.camera.getCameraRotation().z),
-        cosTz = Math.cos(this.camera.getCameraRotation().z),
-
-
-    // calculate translation
-    dx = cosTy * (sinTz * (ay - cy) + cosTz * (ax - cx)) - sinTy * (az - cz),
-        dy = sinTx * (cosTy * (az - cz) + sinTy * (sinTz * (ay - cy) + cosTz * (ax - cx))) + cosTx * (cosTz * (ay - cy) - sinTz * (ax - cx)),
-        dz = cosTx * (cosTy * (az - cz) + sinTy * (sinTz * (ay - cy) + cosTz * (ax - cx))) - sinTx * (cosTz * (ay - cy) - sinTz * (ax - cx));
-
-    return new Point3d(dx, dy, dz);
-  };
-
-  /**
-   * Convert a translation point to a point on the screen
-   * @param {Point3d} translation   A 3D point with parameters x, y, z This is
-   *                    the translation of the point, seen from the
-   *                    camera
-   * @return {Point2d} point2d    A 2D point with parameters x, y
-   */
-  Graph3d.prototype._convertTranslationToScreen = function (translation) {
-    var ex = this.eye.x,
-        ey = this.eye.y,
-        ez = this.eye.z,
-        dx = translation.x,
-        dy = translation.y,
-        dz = translation.z;
-
-    // calculate position on screen from translation
-    var bx;
-    var by;
-    if (this.showPerspective) {
-      bx = (dx - ex) * (ez / dz);
-      by = (dy - ey) * (ez / dz);
-    } else {
-      bx = dx * -(ez / this.camera.getArmLength());
-      by = dy * -(ez / this.camera.getArmLength());
-    }
-
-    // shift and scale the point to the center of the screen
-    // use the width of the graph to scale both horizontally and vertically.
-    return new Point2d(this.xcenter + bx * this.frame.canvas.clientWidth, this.ycenter - by * this.frame.canvas.clientWidth);
-  };
-
-  /**
-   * Set the background styling for the graph
-   * @param {string | {fill: string, stroke: string, strokeWidth: string}} backgroundColor
-   */
-  Graph3d.prototype._setBackgroundColor = function (backgroundColor) {
-    var fill = "white";
-    var stroke = "gray";
-    var strokeWidth = 1;
-
-    if (typeof backgroundColor === "string") {
-      fill = backgroundColor;
-      stroke = "none";
-      strokeWidth = 0;
-    } else if (typeof backgroundColor === "object") {
-      if (backgroundColor.fill !== undefined) fill = backgroundColor.fill;
-      if (backgroundColor.stroke !== undefined) stroke = backgroundColor.stroke;
-      if (backgroundColor.strokeWidth !== undefined) strokeWidth = backgroundColor.strokeWidth;
-    } else if (backgroundColor === undefined) {} else {
-      throw "Unsupported type of backgroundColor";
-    }
-
-    this.frame.style.backgroundColor = fill;
-    this.frame.style.borderColor = stroke;
-    this.frame.style.borderWidth = strokeWidth + "px";
-    this.frame.style.borderStyle = "solid";
-  };
-
-
-  /// enumerate the available styles
-  Graph3d.STYLE = {
-    BAR: 0,
-    BARCOLOR: 1,
-    BARSIZE: 2,
-    DOT: 3,
-    DOTLINE: 4,
-    DOTCOLOR: 5,
-    DOTSIZE: 6,
-    GRID: 7,
-    LINE: 8,
-    SURFACE: 9
-  };
-
-  /**
-   * Retrieve the style index from given styleName
-   * @param {string} styleName  Style name such as 'dot', 'grid', 'dot-line'
-   * @return {Number} styleNumber Enumeration value representing the style, or -1
-   *                when not found
-   */
-  Graph3d.prototype._getStyleNumber = function (styleName) {
-    switch (styleName) {
-      case "dot":
-        return Graph3d.STYLE.DOT;
-      case "dot-line":
-        return Graph3d.STYLE.DOTLINE;
-      case "dot-color":
-        return Graph3d.STYLE.DOTCOLOR;
-      case "dot-size":
-        return Graph3d.STYLE.DOTSIZE;
-      case "line":
-        return Graph3d.STYLE.LINE;
-      case "grid":
-        return Graph3d.STYLE.GRID;
-      case "surface":
-        return Graph3d.STYLE.SURFACE;
-      case "bar":
-        return Graph3d.STYLE.BAR;
-      case "bar-color":
-        return Graph3d.STYLE.BARCOLOR;
-      case "bar-size":
-        return Graph3d.STYLE.BARSIZE;
-    }
-
-    return -1;
-  };
-
-  /**
-   * Determine the indexes of the data columns, based on the given style and data
-   * @param {DataSet} data
-   * @param {Number}  style
-   */
-  Graph3d.prototype._determineColumnIndexes = function (data, style) {
-    if (this.style === Graph3d.STYLE.DOT || this.style === Graph3d.STYLE.DOTLINE || this.style === Graph3d.STYLE.LINE || this.style === Graph3d.STYLE.GRID || this.style === Graph3d.STYLE.SURFACE || this.style === Graph3d.STYLE.BAR) {
-      // 3 columns expected, and optionally a 4th with filter values
-      this.colX = 0;
-      this.colY = 1;
-      this.colZ = 2;
-      this.colValue = undefined;
-
-      if (data.getNumberOfColumns() > 3) {
-        this.colFilter = 3;
-      }
-    } else if (this.style === Graph3d.STYLE.DOTCOLOR || this.style === Graph3d.STYLE.DOTSIZE || this.style === Graph3d.STYLE.BARCOLOR || this.style === Graph3d.STYLE.BARSIZE) {
-      // 4 columns expected, and optionally a 5th with filter values
-      this.colX = 0;
-      this.colY = 1;
-      this.colZ = 2;
-      this.colValue = 3;
-
-      if (data.getNumberOfColumns() > 4) {
-        this.colFilter = 4;
-      }
-    } else {
-      throw "Unknown style \"" + this.style + "\"";
-    }
-  };
-
-  Graph3d.prototype.getNumberOfRows = function (data) {
-    return data.length;
-  };
-
-
-  Graph3d.prototype.getNumberOfColumns = function (data) {
-    var counter = 0;
-    for (var column in data[0]) {
-      if (data[0].hasOwnProperty(column)) {
-        counter++;
-      }
-    }
-    return counter;
-  };
-
-
-  Graph3d.prototype.getDistinctValues = function (data, column) {
-    var distinctValues = [];
-    for (var i = 0; i < data.length; i++) {
-      if (distinctValues.indexOf(data[i][column]) == -1) {
-        distinctValues.push(data[i][column]);
-      }
-    }
-    return distinctValues;
-  };
-
-
-  Graph3d.prototype.getColumnRange = function (data, column) {
-    var minMax = { min: data[0][column], max: data[0][column] };
-    for (var i = 0; i < data.length; i++) {
-      if (minMax.min > data[i][column]) {
-        minMax.min = data[i][column];
-      }
-      if (minMax.max < data[i][column]) {
-        minMax.max = data[i][column];
-      }
-    }
-    return minMax;
-  };
-
-  /**
-   * Initialize the data from the data table. Calculate minimum and maximum values
-   * and column index values
-   * @param {Array | DataSet | DataView} rawData   The data containing the items for the Graph.
-   * @param {Number}     style   Style Number
-   */
-  Graph3d.prototype._dataInitialize = function (rawData, style) {
-    var me = this;
-
-    // unsubscribe from the dataTable
-    if (this.dataSet) {
-      this.dataSet.off("*", this._onChange);
-    }
-
-    if (rawData === undefined) return;
-
-    if (Array.isArray(rawData)) {
-      rawData = new DataSet(rawData);
-    }
-
-    var data;
-    if (rawData instanceof DataSet || rawData instanceof DataView) {
-      data = rawData.get();
-    } else {
-      throw new Error("Array, DataSet, or DataView expected");
-    }
-
-    if (data.length == 0) return;
-
-    this.dataSet = rawData;
-    this.dataTable = data;
-
-    // subscribe to changes in the dataset
-    this._onChange = function () {
-      me.setData(me.dataSet);
-    };
-    this.dataSet.on("*", this._onChange);
-
-    // _determineColumnIndexes
-    // getNumberOfRows (points)
-    // getNumberOfColumns (x,y,z,v,t,t1,t2...)
-    // getDistinctValues (unique values?)
-    // getColumnRange
-
-    // determine the location of x,y,z,value,filter columns
-    this.colX = "x";
-    this.colY = "y";
-    this.colZ = "z";
-    this.colValue = "style";
-    this.colFilter = "filter";
-
-
-
-    // check if a filter column is provided
-    if (data[0].hasOwnProperty("filter")) {
-      if (this.dataFilter === undefined) {
-        this.dataFilter = new Filter(rawData, this.colFilter, this);
-        this.dataFilter.setOnLoadCallback(function () {
-          me.redraw();
-        });
-      }
-    }
-
-
-    var withBars = this.style == Graph3d.STYLE.BAR || this.style == Graph3d.STYLE.BARCOLOR || this.style == Graph3d.STYLE.BARSIZE;
-
-    // determine barWidth from data
-    if (withBars) {
-      if (this.defaultXBarWidth !== undefined) {
-        this.xBarWidth = this.defaultXBarWidth;
-      } else {
-        var dataX = this.getDistinctValues(data, this.colX);
-        this.xBarWidth = dataX[1] - dataX[0] || 1;
-      }
-
-      if (this.defaultYBarWidth !== undefined) {
-        this.yBarWidth = this.defaultYBarWidth;
-      } else {
-        var dataY = this.getDistinctValues(data, this.colY);
-        this.yBarWidth = dataY[1] - dataY[0] || 1;
-      }
-    }
-
-    // calculate minimums and maximums
-    var xRange = this.getColumnRange(data, this.colX);
-    if (withBars) {
-      xRange.min -= this.xBarWidth / 2;
-      xRange.max += this.xBarWidth / 2;
-    }
-    this.xMin = this.defaultXMin !== undefined ? this.defaultXMin : xRange.min;
-    this.xMax = this.defaultXMax !== undefined ? this.defaultXMax : xRange.max;
-    if (this.xMax <= this.xMin) this.xMax = this.xMin + 1;
-    this.xStep = this.defaultXStep !== undefined ? this.defaultXStep : (this.xMax - this.xMin) / 5;
-
-    var yRange = this.getColumnRange(data, this.colY);
-    if (withBars) {
-      yRange.min -= this.yBarWidth / 2;
-      yRange.max += this.yBarWidth / 2;
-    }
-    this.yMin = this.defaultYMin !== undefined ? this.defaultYMin : yRange.min;
-    this.yMax = this.defaultYMax !== undefined ? this.defaultYMax : yRange.max;
-    if (this.yMax <= this.yMin) this.yMax = this.yMin + 1;
-    this.yStep = this.defaultYStep !== undefined ? this.defaultYStep : (this.yMax - this.yMin) / 5;
-
-    var zRange = this.getColumnRange(data, this.colZ);
-    this.zMin = this.defaultZMin !== undefined ? this.defaultZMin : zRange.min;
-    this.zMax = this.defaultZMax !== undefined ? this.defaultZMax : zRange.max;
-    if (this.zMax <= this.zMin) this.zMax = this.zMin + 1;
-    this.zStep = this.defaultZStep !== undefined ? this.defaultZStep : (this.zMax - this.zMin) / 5;
-
-    if (this.colValue !== undefined) {
-      var valueRange = this.getColumnRange(data, this.colValue);
-      this.valueMin = this.defaultValueMin !== undefined ? this.defaultValueMin : valueRange.min;
-      this.valueMax = this.defaultValueMax !== undefined ? this.defaultValueMax : valueRange.max;
-      if (this.valueMax <= this.valueMin) this.valueMax = this.valueMin + 1;
-    }
-
-    // set the scale dependent on the ranges.
-    this._setScale();
-  };
-
-
-
-  /**
-   * Filter the data based on the current filter
-   * @param {Array} data
-   * @return {Array} dataPoints   Array with point objects which can be drawn on screen
-   */
-  Graph3d.prototype._getDataPoints = function (data) {
-    // TODO: store the created matrix dataPoints in the filters instead of reloading each time
-    var x, y, i, z, obj, point;
-
-    var dataPoints = [];
-
-    if (this.style === Graph3d.STYLE.GRID || this.style === Graph3d.STYLE.SURFACE) {
-      // copy all values from the google data table to a matrix
-      // the provided values are supposed to form a grid of (x,y) positions
-
-      // create two lists with all present x and y values
-      var dataX = [];
-      var dataY = [];
-      for (i = 0; i < this.getNumberOfRows(data); i++) {
-        x = data[i][this.colX] || 0;
-        y = data[i][this.colY] || 0;
-
-        if (dataX.indexOf(x) === -1) {
-          dataX.push(x);
-        }
-        if (dataY.indexOf(y) === -1) {
-          dataY.push(y);
-        }
-      }
-
-      var sortNumber = function (a, b) {
-        return a - b;
-      };
-      dataX.sort(sortNumber);
-      dataY.sort(sortNumber);
-
-      // create a grid, a 2d matrix, with all values.
-      var dataMatrix = []; // temporary data matrix
-      for (i = 0; i < data.length; i++) {
-        x = data[i][this.colX] || 0;
-        y = data[i][this.colY] || 0;
-        z = data[i][this.colZ] || 0;
-
-        var xIndex = dataX.indexOf(x); // TODO: implement Array().indexOf() for Internet Explorer
-        var yIndex = dataY.indexOf(y);
-
-        if (dataMatrix[xIndex] === undefined) {
-          dataMatrix[xIndex] = [];
-        }
-
-        var point3d = new Point3d();
-        point3d.x = x;
-        point3d.y = y;
-        point3d.z = z;
-
-        obj = {};
-        obj.point = point3d;
-        obj.trans = undefined;
-        obj.screen = undefined;
-        obj.bottom = new Point3d(x, y, this.zMin);
-
-        dataMatrix[xIndex][yIndex] = obj;
-
-        dataPoints.push(obj);
-      }
-
-      // fill in the pointers to the neighbors.
-      for (x = 0; x < dataMatrix.length; x++) {
-        for (y = 0; y < dataMatrix[x].length; y++) {
-          if (dataMatrix[x][y]) {
-            dataMatrix[x][y].pointRight = x < dataMatrix.length - 1 ? dataMatrix[x + 1][y] : undefined;
-            dataMatrix[x][y].pointTop = y < dataMatrix[x].length - 1 ? dataMatrix[x][y + 1] : undefined;
-            dataMatrix[x][y].pointCross = x < dataMatrix.length - 1 && y < dataMatrix[x].length - 1 ? dataMatrix[x + 1][y + 1] : undefined;
-          }
-        }
-      }
-    } else {
-      // 'dot', 'dot-line', etc.
-      // copy all values from the google data table to a list with Point3d objects
-      for (i = 0; i < data.length; i++) {
-        point = new Point3d();
-        point.x = data[i][this.colX] || 0;
-        point.y = data[i][this.colY] || 0;
-        point.z = data[i][this.colZ] || 0;
-
-        if (this.colValue !== undefined) {
-          point.value = data[i][this.colValue] || 0;
-        }
-
-        obj = {};
-        obj.point = point;
-        obj.bottom = new Point3d(point.x, point.y, this.zMin);
-        obj.trans = undefined;
-        obj.screen = undefined;
-
-        dataPoints.push(obj);
-      }
-    }
-
-    return dataPoints;
-  };
-
-  /**
-   * Create the main frame for the Graph3d.
-   * This function is executed once when a Graph3d object is created. The frame
-   * contains a canvas, and this canvas contains all objects like the axis and
-   * nodes.
-   */
-  Graph3d.prototype.create = function () {
-    // remove all elements from the container element.
-    while (this.containerElement.hasChildNodes()) {
-      this.containerElement.removeChild(this.containerElement.firstChild);
-    }
-
-    this.frame = document.createElement("div");
-    this.frame.style.position = "relative";
-    this.frame.style.overflow = "hidden";
-
-    // create the graph canvas (HTML canvas element)
-    this.frame.canvas = document.createElement("canvas");
-    this.frame.canvas.style.position = "relative";
-    this.frame.appendChild(this.frame.canvas);
-    //if (!this.frame.canvas.getContext) {
-    {
-      var noCanvas = document.createElement("DIV");
-      noCanvas.style.color = "red";
-      noCanvas.style.fontWeight = "bold";
-      noCanvas.style.padding = "10px";
-      noCanvas.innerHTML = "Error: your browser does not support HTML canvas";
-      this.frame.canvas.appendChild(noCanvas);
-    }
-
-    this.frame.filter = document.createElement("div");
-    this.frame.filter.style.position = "absolute";
-    this.frame.filter.style.bottom = "0px";
-    this.frame.filter.style.left = "0px";
-    this.frame.filter.style.width = "100%";
-    this.frame.appendChild(this.frame.filter);
-
-    // add event listeners to handle moving and zooming the contents
-    var me = this;
-    var onmousedown = function (event) {
-      me._onMouseDown(event);
-    };
-    var ontouchstart = function (event) {
-      me._onTouchStart(event);
-    };
-    var onmousewheel = function (event) {
-      me._onWheel(event);
-    };
-    var ontooltip = function (event) {
-      me._onTooltip(event);
-    };
-    // TODO: these events are never cleaned up... can give a 'memory leakage'
-
-    util.addEventListener(this.frame.canvas, "keydown", onkeydown);
-    util.addEventListener(this.frame.canvas, "mousedown", onmousedown);
-    util.addEventListener(this.frame.canvas, "touchstart", ontouchstart);
-    util.addEventListener(this.frame.canvas, "mousewheel", onmousewheel);
-    util.addEventListener(this.frame.canvas, "mousemove", ontooltip);
-
-    // add the new graph to the container element
-    this.containerElement.appendChild(this.frame);
-  };
-
-
-  /**
-   * Set a new size for the graph
-   * @param {string} width   Width in pixels or percentage (for example '800px'
-   *             or '50%')
-   * @param {string} height  Height in pixels or percentage  (for example '400px'
-   *             or '30%')
-   */
-  Graph3d.prototype.setSize = function (width, height) {
-    this.frame.style.width = width;
-    this.frame.style.height = height;
-
-    this._resizeCanvas();
-  };
-
-  /**
-   * Resize the canvas to the current size of the frame
-   */
-  Graph3d.prototype._resizeCanvas = function () {
-    this.frame.canvas.style.width = "100%";
-    this.frame.canvas.style.height = "100%";
-
-    this.frame.canvas.width = this.frame.canvas.clientWidth;
-    this.frame.canvas.height = this.frame.canvas.clientHeight;
-
-    // adjust with for margin
-    this.frame.filter.style.width = this.frame.canvas.clientWidth - 2 * 10 + "px";
-  };
-
-  /**
-   * Start animation
-   */
-  Graph3d.prototype.animationStart = function () {
-    if (!this.frame.filter || !this.frame.filter.slider) throw "No animation available";
-
-    this.frame.filter.slider.play();
-  };
-
-
-  /**
-   * Stop animation
-   */
-  Graph3d.prototype.animationStop = function () {
-    if (!this.frame.filter || !this.frame.filter.slider) return;
-
-    this.frame.filter.slider.stop();
-  };
-
-
-  /**
-   * Resize the center position based on the current values in this.defaultXCenter
-   * and this.defaultYCenter (which are strings with a percentage or a value
-   * in pixels). The center positions are the variables this.xCenter
-   * and this.yCenter
-   */
-  Graph3d.prototype._resizeCenter = function () {
-    // calculate the horizontal center position
-    if (this.defaultXCenter.charAt(this.defaultXCenter.length - 1) === "%") {
-      this.xcenter = parseFloat(this.defaultXCenter) / 100 * this.frame.canvas.clientWidth;
-    } else {
-      this.xcenter = parseFloat(this.defaultXCenter); // supposed to be in px
-    }
-
-    // calculate the vertical center position
-    if (this.defaultYCenter.charAt(this.defaultYCenter.length - 1) === "%") {
-      this.ycenter = parseFloat(this.defaultYCenter) / 100 * (this.frame.canvas.clientHeight - this.frame.filter.clientHeight);
-    } else {
-      this.ycenter = parseFloat(this.defaultYCenter); // supposed to be in px
-    }
-  };
-
-  /**
-   * Set the rotation and distance of the camera
-   * @param {Object} pos   An object with the camera position. The object
-   *             contains three parameters:
-   *             - horizontal {Number}
-   *             The horizontal rotation, between 0 and 2*PI.
-   *             Optional, can be left undefined.
-   *             - vertical {Number}
-   *             The vertical rotation, between 0 and 0.5*PI
-   *             if vertical=0.5*PI, the graph is shown from the
-   *             top. Optional, can be left undefined.
-   *             - distance {Number}
-   *             The (normalized) distance of the camera to the
-   *             center of the graph, a value between 0.71 and 5.0.
-   *             Optional, can be left undefined.
-   */
-  Graph3d.prototype.setCameraPosition = function (pos) {
-    if (pos === undefined) {
-      return;
-    }
-
-    if (pos.horizontal !== undefined && pos.vertical !== undefined) {
-      this.camera.setArmRotation(pos.horizontal, pos.vertical);
-    }
-
-    if (pos.distance !== undefined) {
-      this.camera.setArmLength(pos.distance);
-    }
-
-    this.redraw();
-  };
-
-
-  /**
-   * Retrieve the current camera rotation
-   * @return {object}   An object with parameters horizontal, vertical, and
-   *          distance
-   */
-  Graph3d.prototype.getCameraPosition = function () {
-    var pos = this.camera.getArmRotation();
-    pos.distance = this.camera.getArmLength();
-    return pos;
-  };
-
-  /**
-   * Load data into the 3D Graph
-   */
-  Graph3d.prototype._readData = function (data) {
-    // read the data
-    this._dataInitialize(data, this.style);
-
-
-    if (this.dataFilter) {
-      // apply filtering
-      this.dataPoints = this.dataFilter._getDataPoints();
-    } else {
-      // no filtering. load all data
-      this.dataPoints = this._getDataPoints(this.dataTable);
-    }
-
-    // draw the filter
-    this._redrawFilter();
-  };
-
-  /**
-   * Replace the dataset of the Graph3d
-   * @param {Array | DataSet | DataView} data
-   */
-  Graph3d.prototype.setData = function (data) {
-    this._readData(data);
-    this.redraw();
-
-    // start animation when option is true
-    if (this.animationAutoStart && this.dataFilter) {
-      this.animationStart();
-    }
-  };
-
-  /**
-   * Update the options. Options will be merged with current options
-   * @param {Object} options
-   */
-  Graph3d.prototype.setOptions = function (options) {
-    var cameraPosition = undefined;
-
-    this.animationStop();
-
-    if (options !== undefined) {
-      // retrieve parameter values
-      if (options.width !== undefined) this.width = options.width;
-      if (options.height !== undefined) this.height = options.height;
-
-      if (options.xCenter !== undefined) this.defaultXCenter = options.xCenter;
-      if (options.yCenter !== undefined) this.defaultYCenter = options.yCenter;
-
-      if (options.filterLabel !== undefined) this.filterLabel = options.filterLabel;
-      if (options.legendLabel !== undefined) this.legendLabel = options.legendLabel;
-      if (options.xLabel !== undefined) this.xLabel = options.xLabel;
-      if (options.yLabel !== undefined) this.yLabel = options.yLabel;
-      if (options.zLabel !== undefined) this.zLabel = options.zLabel;
-
-      if (options.xValueLabel !== undefined) this.xValueLabel = options.xValueLabel;
-      if (options.yValueLabel !== undefined) this.yValueLabel = options.yValueLabel;
-      if (options.zValueLabel !== undefined) this.zValueLabel = options.zValueLabel;
-
-      if (options.style !== undefined) {
-        var styleNumber = this._getStyleNumber(options.style);
-        if (styleNumber !== -1) {
-          this.style = styleNumber;
-        }
-      }
-      if (options.showGrid !== undefined) this.showGrid = options.showGrid;
-      if (options.showPerspective !== undefined) this.showPerspective = options.showPerspective;
-      if (options.showShadow !== undefined) this.showShadow = options.showShadow;
-      if (options.tooltip !== undefined) this.showTooltip = options.tooltip;
-      if (options.showAnimationControls !== undefined) this.showAnimationControls = options.showAnimationControls;
-      if (options.keepAspectRatio !== undefined) this.keepAspectRatio = options.keepAspectRatio;
-      if (options.verticalRatio !== undefined) this.verticalRatio = options.verticalRatio;
-
-      if (options.animationInterval !== undefined) this.animationInterval = options.animationInterval;
-      if (options.animationPreload !== undefined) this.animationPreload = options.animationPreload;
-      if (options.animationAutoStart !== undefined) this.animationAutoStart = options.animationAutoStart;
-
-      if (options.xBarWidth !== undefined) this.defaultXBarWidth = options.xBarWidth;
-      if (options.yBarWidth !== undefined) this.defaultYBarWidth = options.yBarWidth;
-
-      if (options.xMin !== undefined) this.defaultXMin = options.xMin;
-      if (options.xStep !== undefined) this.defaultXStep = options.xStep;
-      if (options.xMax !== undefined) this.defaultXMax = options.xMax;
-      if (options.yMin !== undefined) this.defaultYMin = options.yMin;
-      if (options.yStep !== undefined) this.defaultYStep = options.yStep;
-      if (options.yMax !== undefined) this.defaultYMax = options.yMax;
-      if (options.zMin !== undefined) this.defaultZMin = options.zMin;
-      if (options.zStep !== undefined) this.defaultZStep = options.zStep;
-      if (options.zMax !== undefined) this.defaultZMax = options.zMax;
-      if (options.valueMin !== undefined) this.defaultValueMin = options.valueMin;
-      if (options.valueMax !== undefined) this.defaultValueMax = options.valueMax;
-
-      if (options.cameraPosition !== undefined) cameraPosition = options.cameraPosition;
-
-      if (cameraPosition !== undefined) {
-        this.camera.setArmRotation(cameraPosition.horizontal, cameraPosition.vertical);
-        this.camera.setArmLength(cameraPosition.distance);
-      } else {
-        this.camera.setArmRotation(1, 0.5);
-        this.camera.setArmLength(1.7);
-      }
-    }
-
-    this._setBackgroundColor(options && options.backgroundColor);
-
-    this.setSize(this.width, this.height);
-
-    // re-load the data
-    if (this.dataTable) {
-      this.setData(this.dataTable);
-    }
-
-    // start animation when option is true
-    if (this.animationAutoStart && this.dataFilter) {
-      this.animationStart();
-    }
-  };
-
-  /**
-   * Redraw the Graph.
-   */
-  Graph3d.prototype.redraw = function () {
-    if (this.dataPoints === undefined) {
-      throw "Error: graph data not initialized";
-    }
-
-    this._resizeCanvas();
-    this._resizeCenter();
-    this._redrawSlider();
-    this._redrawClear();
-    this._redrawAxis();
-
-    if (this.style === Graph3d.STYLE.GRID || this.style === Graph3d.STYLE.SURFACE) {
-      this._redrawDataGrid();
-    } else if (this.style === Graph3d.STYLE.LINE) {
-      this._redrawDataLine();
-    } else if (this.style === Graph3d.STYLE.BAR || this.style === Graph3d.STYLE.BARCOLOR || this.style === Graph3d.STYLE.BARSIZE) {
-      this._redrawDataBar();
-    } else {
-      // style is DOT, DOTLINE, DOTCOLOR, DOTSIZE
-      this._redrawDataDot();
-    }
-
-    this._redrawInfo();
-    this._redrawLegend();
-  };
-
-  /**
-   * Clear the canvas before redrawing
-   */
-  Graph3d.prototype._redrawClear = function () {
-    var canvas = this.frame.canvas;
-    var ctx = canvas.getContext("2d");
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  };
-
-
-  /**
-   * Redraw the legend showing the colors
-   */
-  Graph3d.prototype._redrawLegend = function () {
-    var y;
-
-    if (this.style === Graph3d.STYLE.DOTCOLOR || this.style === Graph3d.STYLE.DOTSIZE) {
-      var dotSize = this.frame.clientWidth * 0.02;
-
-      var widthMin, widthMax;
-      if (this.style === Graph3d.STYLE.DOTSIZE) {
-        widthMin = dotSize / 2; // px
-        widthMax = dotSize / 2 + dotSize * 2; // Todo: put this in one function
-      } else {
-        widthMin = 20; // px
-        widthMax = 20; // px
-      }
-
-      var height = Math.max(this.frame.clientHeight * 0.25, 100);
-      var top = this.margin;
-      var right = this.frame.clientWidth - this.margin;
-      var left = right - widthMax;
-      var bottom = top + height;
-    }
-
-    var canvas = this.frame.canvas;
-    var ctx = canvas.getContext("2d");
-    ctx.lineWidth = 1;
-    ctx.font = "14px arial"; // TODO: put in options
-
-    if (this.style === Graph3d.STYLE.DOTCOLOR) {
-      // draw the color bar
-      var ymin = 0;
-      var ymax = height; // Todo: make height customizable
-      for (y = ymin; y < ymax; y++) {
-        var f = (y - ymin) / (ymax - ymin);
-
-        //var width = (dotSize / 2 + (1-f) * dotSize * 2); // Todo: put this in one function
-        var hue = f * 240;
-        var color = this._hsv2rgb(hue, 1, 1);
-
-        ctx.strokeStyle = color;
-        ctx.beginPath();
-        ctx.moveTo(left, top + y);
-        ctx.lineTo(right, top + y);
-        ctx.stroke();
-      }
-
-      ctx.strokeStyle = this.colorAxis;
-      ctx.strokeRect(left, top, widthMax, height);
-    }
-
-    if (this.style === Graph3d.STYLE.DOTSIZE) {
-      // draw border around color bar
-      ctx.strokeStyle = this.colorAxis;
-      ctx.fillStyle = this.colorDot;
-      ctx.beginPath();
-      ctx.moveTo(left, top);
-      ctx.lineTo(right, top);
-      ctx.lineTo(right - widthMax + widthMin, bottom);
-      ctx.lineTo(left, bottom);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-    }
-
-    if (this.style === Graph3d.STYLE.DOTCOLOR || this.style === Graph3d.STYLE.DOTSIZE) {
-      // print values along the color bar
-      var gridLineLen = 5; // px
-      var step = new StepNumber(this.valueMin, this.valueMax, (this.valueMax - this.valueMin) / 5, true);
-      step.start();
-      if (step.getCurrent() < this.valueMin) {
-        step.next();
-      }
-      while (!step.end()) {
-        y = bottom - (step.getCurrent() - this.valueMin) / (this.valueMax - this.valueMin) * height;
-
-        ctx.beginPath();
-        ctx.moveTo(left - gridLineLen, y);
-        ctx.lineTo(left, y);
-        ctx.stroke();
-
-        ctx.textAlign = "right";
-        ctx.textBaseline = "middle";
-        ctx.fillStyle = this.colorAxis;
-        ctx.fillText(step.getCurrent(), left - 2 * gridLineLen, y);
-
-        step.next();
-      }
-
-      ctx.textAlign = "right";
-      ctx.textBaseline = "top";
-      var label = this.legendLabel;
-      ctx.fillText(label, right, bottom + this.margin);
-    }
-  };
-
-  /**
-   * Redraw the filter
-   */
-  Graph3d.prototype._redrawFilter = function () {
-    this.frame.filter.innerHTML = "";
-
-    if (this.dataFilter) {
-      var options = {
-        visible: this.showAnimationControls
-      };
-      var slider = new Slider(this.frame.filter, options);
-      this.frame.filter.slider = slider;
-
-      // TODO: css here is not nice here...
-      this.frame.filter.style.padding = "10px";
-      //this.frame.filter.style.backgroundColor = '#EFEFEF';
-
-      slider.setValues(this.dataFilter.values);
-      slider.setPlayInterval(this.animationInterval);
-
-      // create an event handler
-      var me = this;
-      var onchange = function () {
-        var index = slider.getIndex();
-
-        me.dataFilter.selectValue(index);
-        me.dataPoints = me.dataFilter._getDataPoints();
-
-        me.redraw();
-      };
-      slider.setOnChangeCallback(onchange);
-    } else {
-      this.frame.filter.slider = undefined;
-    }
-  };
-
-  /**
-   * Redraw the slider
-   */
-  Graph3d.prototype._redrawSlider = function () {
-    if (this.frame.filter.slider !== undefined) {
-      this.frame.filter.slider.redraw();
-    }
-  };
-
-
-  /**
-   * Redraw common information
-   */
-  Graph3d.prototype._redrawInfo = function () {
-    if (this.dataFilter) {
-      var canvas = this.frame.canvas;
-      var ctx = canvas.getContext("2d");
-
-      ctx.font = "14px arial"; // TODO: put in options
-      ctx.lineStyle = "gray";
-      ctx.fillStyle = "gray";
-      ctx.textAlign = "left";
-      ctx.textBaseline = "top";
-
-      var x = this.margin;
-      var y = this.margin;
-      ctx.fillText(this.dataFilter.getLabel() + ": " + this.dataFilter.getSelectedValue(), x, y);
-    }
-  };
-
-
-  /**
-   * Redraw the axis
-   */
-  Graph3d.prototype._redrawAxis = function () {
-    var canvas = this.frame.canvas,
-        ctx = canvas.getContext("2d"),
-        from,
-        to,
-        step,
-        prettyStep,
-        text,
-        xText,
-        yText,
-        zText,
-        offset,
-        xOffset,
-        yOffset,
-        xMin2d,
-        xMax2d;
-
-    // TODO: get the actual rendered style of the containerElement
-    //ctx.font = this.containerElement.style.font;
-    ctx.font = 24 / this.camera.getArmLength() + "px arial";
-
-    // calculate the length for the short grid lines
-    var gridLenX = 0.025 / this.scale.x;
-    var gridLenY = 0.025 / this.scale.y;
-    var textMargin = 5 / this.camera.getArmLength(); // px
-    var armAngle = this.camera.getArmRotation().horizontal;
-
-    // draw x-grid lines
-    ctx.lineWidth = 1;
-    prettyStep = this.defaultXStep === undefined;
-    step = new StepNumber(this.xMin, this.xMax, this.xStep, prettyStep);
-    step.start();
-    if (step.getCurrent() < this.xMin) {
-      step.next();
-    }
-    while (!step.end()) {
-      var x = step.getCurrent();
-
-      if (this.showGrid) {
-        from = this._convert3Dto2D(new Point3d(x, this.yMin, this.zMin));
-        to = this._convert3Dto2D(new Point3d(x, this.yMax, this.zMin));
-        ctx.strokeStyle = this.colorGrid;
-        ctx.beginPath();
-        ctx.moveTo(from.x, from.y);
-        ctx.lineTo(to.x, to.y);
-        ctx.stroke();
-      } else {
-        from = this._convert3Dto2D(new Point3d(x, this.yMin, this.zMin));
-        to = this._convert3Dto2D(new Point3d(x, this.yMin + gridLenX, this.zMin));
-        ctx.strokeStyle = this.colorAxis;
-        ctx.beginPath();
-        ctx.moveTo(from.x, from.y);
-        ctx.lineTo(to.x, to.y);
-        ctx.stroke();
-
-        from = this._convert3Dto2D(new Point3d(x, this.yMax, this.zMin));
-        to = this._convert3Dto2D(new Point3d(x, this.yMax - gridLenX, this.zMin));
-        ctx.strokeStyle = this.colorAxis;
-        ctx.beginPath();
-        ctx.moveTo(from.x, from.y);
-        ctx.lineTo(to.x, to.y);
-        ctx.stroke();
-      }
-
-      yText = Math.cos(armAngle) > 0 ? this.yMin : this.yMax;
-      text = this._convert3Dto2D(new Point3d(x, yText, this.zMin));
-      if (Math.cos(armAngle * 2) > 0) {
-        ctx.textAlign = "center";
-        ctx.textBaseline = "top";
-        text.y += textMargin;
-      } else if (Math.sin(armAngle * 2) < 0) {
-        ctx.textAlign = "right";
-        ctx.textBaseline = "middle";
-      } else {
-        ctx.textAlign = "left";
-        ctx.textBaseline = "middle";
-      }
-      ctx.fillStyle = this.colorAxis;
-      ctx.fillText("  " + this.xValueLabel(step.getCurrent()) + "  ", text.x, text.y);
-
-      step.next();
-    }
-
-    // draw y-grid lines
-    ctx.lineWidth = 1;
-    prettyStep = this.defaultYStep === undefined;
-    step = new StepNumber(this.yMin, this.yMax, this.yStep, prettyStep);
-    step.start();
-    if (step.getCurrent() < this.yMin) {
-      step.next();
-    }
-    while (!step.end()) {
-      if (this.showGrid) {
-        from = this._convert3Dto2D(new Point3d(this.xMin, step.getCurrent(), this.zMin));
-        to = this._convert3Dto2D(new Point3d(this.xMax, step.getCurrent(), this.zMin));
-        ctx.strokeStyle = this.colorGrid;
-        ctx.beginPath();
-        ctx.moveTo(from.x, from.y);
-        ctx.lineTo(to.x, to.y);
-        ctx.stroke();
-      } else {
-        from = this._convert3Dto2D(new Point3d(this.xMin, step.getCurrent(), this.zMin));
-        to = this._convert3Dto2D(new Point3d(this.xMin + gridLenY, step.getCurrent(), this.zMin));
-        ctx.strokeStyle = this.colorAxis;
-        ctx.beginPath();
-        ctx.moveTo(from.x, from.y);
-        ctx.lineTo(to.x, to.y);
-        ctx.stroke();
-
-        from = this._convert3Dto2D(new Point3d(this.xMax, step.getCurrent(), this.zMin));
-        to = this._convert3Dto2D(new Point3d(this.xMax - gridLenY, step.getCurrent(), this.zMin));
-        ctx.strokeStyle = this.colorAxis;
-        ctx.beginPath();
-        ctx.moveTo(from.x, from.y);
-        ctx.lineTo(to.x, to.y);
-        ctx.stroke();
-      }
-
-      xText = Math.sin(armAngle) > 0 ? this.xMin : this.xMax;
-      text = this._convert3Dto2D(new Point3d(xText, step.getCurrent(), this.zMin));
-      if (Math.cos(armAngle * 2) < 0) {
-        ctx.textAlign = "center";
-        ctx.textBaseline = "top";
-        text.y += textMargin;
-      } else if (Math.sin(armAngle * 2) > 0) {
-        ctx.textAlign = "right";
-        ctx.textBaseline = "middle";
-      } else {
-        ctx.textAlign = "left";
-        ctx.textBaseline = "middle";
-      }
-      ctx.fillStyle = this.colorAxis;
-      ctx.fillText("  " + this.yValueLabel(step.getCurrent()) + "  ", text.x, text.y);
-
-      step.next();
-    }
-
-    // draw z-grid lines and axis
-    ctx.lineWidth = 1;
-    prettyStep = this.defaultZStep === undefined;
-    step = new StepNumber(this.zMin, this.zMax, this.zStep, prettyStep);
-    step.start();
-    if (step.getCurrent() < this.zMin) {
-      step.next();
-    }
-    xText = Math.cos(armAngle) > 0 ? this.xMin : this.xMax;
-    yText = Math.sin(armAngle) < 0 ? this.yMin : this.yMax;
-    while (!step.end()) {
-      // TODO: make z-grid lines really 3d?
-      from = this._convert3Dto2D(new Point3d(xText, yText, step.getCurrent()));
-      ctx.strokeStyle = this.colorAxis;
-      ctx.beginPath();
-      ctx.moveTo(from.x, from.y);
-      ctx.lineTo(from.x - textMargin, from.y);
-      ctx.stroke();
-
-      ctx.textAlign = "right";
-      ctx.textBaseline = "middle";
-      ctx.fillStyle = this.colorAxis;
-      ctx.fillText(this.zValueLabel(step.getCurrent()) + " ", from.x - 5, from.y);
-
-      step.next();
-    }
-    ctx.lineWidth = 1;
-    from = this._convert3Dto2D(new Point3d(xText, yText, this.zMin));
-    to = this._convert3Dto2D(new Point3d(xText, yText, this.zMax));
-    ctx.strokeStyle = this.colorAxis;
-    ctx.beginPath();
-    ctx.moveTo(from.x, from.y);
-    ctx.lineTo(to.x, to.y);
-    ctx.stroke();
-
-    // draw x-axis
-    ctx.lineWidth = 1;
-    // line at yMin
-    xMin2d = this._convert3Dto2D(new Point3d(this.xMin, this.yMin, this.zMin));
-    xMax2d = this._convert3Dto2D(new Point3d(this.xMax, this.yMin, this.zMin));
-    ctx.strokeStyle = this.colorAxis;
-    ctx.beginPath();
-    ctx.moveTo(xMin2d.x, xMin2d.y);
-    ctx.lineTo(xMax2d.x, xMax2d.y);
-    ctx.stroke();
-    // line at ymax
-    xMin2d = this._convert3Dto2D(new Point3d(this.xMin, this.yMax, this.zMin));
-    xMax2d = this._convert3Dto2D(new Point3d(this.xMax, this.yMax, this.zMin));
-    ctx.strokeStyle = this.colorAxis;
-    ctx.beginPath();
-    ctx.moveTo(xMin2d.x, xMin2d.y);
-    ctx.lineTo(xMax2d.x, xMax2d.y);
-    ctx.stroke();
-
-    // draw y-axis
-    ctx.lineWidth = 1;
-    // line at xMin
-    from = this._convert3Dto2D(new Point3d(this.xMin, this.yMin, this.zMin));
-    to = this._convert3Dto2D(new Point3d(this.xMin, this.yMax, this.zMin));
-    ctx.strokeStyle = this.colorAxis;
-    ctx.beginPath();
-    ctx.moveTo(from.x, from.y);
-    ctx.lineTo(to.x, to.y);
-    ctx.stroke();
-    // line at xMax
-    from = this._convert3Dto2D(new Point3d(this.xMax, this.yMin, this.zMin));
-    to = this._convert3Dto2D(new Point3d(this.xMax, this.yMax, this.zMin));
-    ctx.strokeStyle = this.colorAxis;
-    ctx.beginPath();
-    ctx.moveTo(from.x, from.y);
-    ctx.lineTo(to.x, to.y);
-    ctx.stroke();
-
-    // draw x-label
-    var xLabel = this.xLabel;
-    if (xLabel.length > 0) {
-      yOffset = 0.1 / this.scale.y;
-      xText = (this.xMin + this.xMax) / 2;
-      yText = Math.cos(armAngle) > 0 ? this.yMin - yOffset : this.yMax + yOffset;
-      text = this._convert3Dto2D(new Point3d(xText, yText, this.zMin));
-      if (Math.cos(armAngle * 2) > 0) {
-        ctx.textAlign = "center";
-        ctx.textBaseline = "top";
-      } else if (Math.sin(armAngle * 2) < 0) {
-        ctx.textAlign = "right";
-        ctx.textBaseline = "middle";
-      } else {
-        ctx.textAlign = "left";
-        ctx.textBaseline = "middle";
-      }
-      ctx.fillStyle = this.colorAxis;
-      ctx.fillText(xLabel, text.x, text.y);
-    }
-
-    // draw y-label
-    var yLabel = this.yLabel;
-    if (yLabel.length > 0) {
-      xOffset = 0.1 / this.scale.x;
-      xText = Math.sin(armAngle) > 0 ? this.xMin - xOffset : this.xMax + xOffset;
-      yText = (this.yMin + this.yMax) / 2;
-      text = this._convert3Dto2D(new Point3d(xText, yText, this.zMin));
-      if (Math.cos(armAngle * 2) < 0) {
-        ctx.textAlign = "center";
-        ctx.textBaseline = "top";
-      } else if (Math.sin(armAngle * 2) > 0) {
-        ctx.textAlign = "right";
-        ctx.textBaseline = "middle";
-      } else {
-        ctx.textAlign = "left";
-        ctx.textBaseline = "middle";
-      }
-      ctx.fillStyle = this.colorAxis;
-      ctx.fillText(yLabel, text.x, text.y);
-    }
-
-    // draw z-label
-    var zLabel = this.zLabel;
-    if (zLabel.length > 0) {
-      offset = 30; // pixels.  // TODO: relate to the max width of the values on the z axis?
-      xText = Math.cos(armAngle) > 0 ? this.xMin : this.xMax;
-      yText = Math.sin(armAngle) < 0 ? this.yMin : this.yMax;
-      zText = (this.zMin + this.zMax) / 2;
-      text = this._convert3Dto2D(new Point3d(xText, yText, zText));
-      ctx.textAlign = "right";
-      ctx.textBaseline = "middle";
-      ctx.fillStyle = this.colorAxis;
-      ctx.fillText(zLabel, text.x - offset, text.y);
-    }
-  };
-
-  /**
-   * Calculate the color based on the given value.
-   * @param {Number} H   Hue, a value be between 0 and 360
-   * @param {Number} S   Saturation, a value between 0 and 1
-   * @param {Number} V   Value, a value between 0 and 1
-   */
-  Graph3d.prototype._hsv2rgb = function (H, S, V) {
-    var R, G, B, C, Hi, X;
-
-    C = V * S;
-    Hi = Math.floor(H / 60); // hi = 0,1,2,3,4,5
-    X = C * (1 - Math.abs(H / 60 % 2 - 1));
-
-    switch (Hi) {
-      case 0:
-        R = C;G = X;B = 0;break;
-      case 1:
-        R = X;G = C;B = 0;break;
-      case 2:
-        R = 0;G = C;B = X;break;
-      case 3:
-        R = 0;G = X;B = C;break;
-      case 4:
-        R = X;G = 0;B = C;break;
-      case 5:
-        R = C;G = 0;B = X;break;
-
-      default:
-        R = 0;G = 0;B = 0;break;
-    }
-
-    return "RGB(" + parseInt(R * 255) + "," + parseInt(G * 255) + "," + parseInt(B * 255) + ")";
-  };
-
-
-  /**
-   * Draw all datapoints as a grid
-   * This function can be used when the style is 'grid'
-   */
-  Graph3d.prototype._redrawDataGrid = function () {
-    var canvas = this.frame.canvas,
-        ctx = canvas.getContext("2d"),
-        point,
-        right,
-        top,
-        cross,
-        i,
-        topSideVisible,
-        fillStyle,
-        strokeStyle,
-        lineWidth,
-        h,
-        s,
-        v,
-        zAvg;
-
-
-    if (this.dataPoints === undefined || this.dataPoints.length <= 0) return; // TODO: throw exception?
-
-    // calculate the translations and screen position of all points
-    for (i = 0; i < this.dataPoints.length; i++) {
-      var trans = this._convertPointToTranslation(this.dataPoints[i].point);
-      var screen = this._convertTranslationToScreen(trans);
-
-      this.dataPoints[i].trans = trans;
-      this.dataPoints[i].screen = screen;
-
-      // calculate the translation of the point at the bottom (needed for sorting)
-      var transBottom = this._convertPointToTranslation(this.dataPoints[i].bottom);
-      this.dataPoints[i].dist = this.showPerspective ? transBottom.length() : -transBottom.z;
-    }
-
-    // sort the points on depth of their (x,y) position (not on z)
-    var sortDepth = function (a, b) {
-      return b.dist - a.dist;
-    };
-    this.dataPoints.sort(sortDepth);
-
-    if (this.style === Graph3d.STYLE.SURFACE) {
-      for (i = 0; i < this.dataPoints.length; i++) {
-        point = this.dataPoints[i];
-        right = this.dataPoints[i].pointRight;
-        top = this.dataPoints[i].pointTop;
-        cross = this.dataPoints[i].pointCross;
-
-        if (point !== undefined && right !== undefined && top !== undefined && cross !== undefined) {
-          if (this.showGrayBottom || this.showShadow) {
-            // calculate the cross product of the two vectors from center
-            // to left and right, in order to know whether we are looking at the
-            // bottom or at the top side. We can also use the cross product
-            // for calculating light intensity
-            var aDiff = Point3d.subtract(cross.trans, point.trans);
-            var bDiff = Point3d.subtract(top.trans, right.trans);
-            var crossproduct = Point3d.crossProduct(aDiff, bDiff);
-            var len = crossproduct.length();
-            // FIXME: there is a bug with determining the surface side (shadow or colored)
-
-            topSideVisible = crossproduct.z > 0;
-          } else {
-            topSideVisible = true;
-          }
-
-          if (topSideVisible) {
-            // calculate Hue from the current value. At zMin the hue is 240, at zMax the hue is 0
-            zAvg = (point.point.z + right.point.z + top.point.z + cross.point.z) / 4;
-            h = (1 - (zAvg - this.zMin) * this.scale.z / this.verticalRatio) * 240;
-            s = 1; // saturation
-
-            if (this.showShadow) {
-              v = Math.min(1 + crossproduct.x / len / 2, 1); // value. TODO: scale
-              fillStyle = this._hsv2rgb(h, s, v);
-              strokeStyle = fillStyle;
-            } else {
-              v = 1;
-              fillStyle = this._hsv2rgb(h, s, v);
-              strokeStyle = this.colorAxis;
-            }
-          } else {
-            fillStyle = "gray";
-            strokeStyle = this.colorAxis;
-          }
-          lineWidth = 0.5;
-
-          ctx.lineWidth = lineWidth;
-          ctx.fillStyle = fillStyle;
-          ctx.strokeStyle = strokeStyle;
-          ctx.beginPath();
-          ctx.moveTo(point.screen.x, point.screen.y);
-          ctx.lineTo(right.screen.x, right.screen.y);
-          ctx.lineTo(cross.screen.x, cross.screen.y);
-          ctx.lineTo(top.screen.x, top.screen.y);
-          ctx.closePath();
-          ctx.fill();
-          ctx.stroke();
-        }
-      }
-    } else {
-      // grid style
-      for (i = 0; i < this.dataPoints.length; i++) {
-        point = this.dataPoints[i];
-        right = this.dataPoints[i].pointRight;
-        top = this.dataPoints[i].pointTop;
-
-        if (point !== undefined) {
-          if (this.showPerspective) {
-            lineWidth = 2 / -point.trans.z;
-          } else {
-            lineWidth = 2 * -(this.eye.z / this.camera.getArmLength());
-          }
-        }
-
-        if (point !== undefined && right !== undefined) {
-          // calculate Hue from the current value. At zMin the hue is 240, at zMax the hue is 0
-          zAvg = (point.point.z + right.point.z) / 2;
-          h = (1 - (zAvg - this.zMin) * this.scale.z / this.verticalRatio) * 240;
-
-          ctx.lineWidth = lineWidth;
-          ctx.strokeStyle = this._hsv2rgb(h, 1, 1);
-          ctx.beginPath();
-          ctx.moveTo(point.screen.x, point.screen.y);
-          ctx.lineTo(right.screen.x, right.screen.y);
-          ctx.stroke();
-        }
-
-        if (point !== undefined && top !== undefined) {
-          // calculate Hue from the current value. At zMin the hue is 240, at zMax the hue is 0
-          zAvg = (point.point.z + top.point.z) / 2;
-          h = (1 - (zAvg - this.zMin) * this.scale.z / this.verticalRatio) * 240;
-
-          ctx.lineWidth = lineWidth;
-          ctx.strokeStyle = this._hsv2rgb(h, 1, 1);
-          ctx.beginPath();
-          ctx.moveTo(point.screen.x, point.screen.y);
-          ctx.lineTo(top.screen.x, top.screen.y);
-          ctx.stroke();
-        }
-      }
-    }
-  };
-
-
-  /**
-   * Draw all datapoints as dots.
-   * This function can be used when the style is 'dot' or 'dot-line'
-   */
-  Graph3d.prototype._redrawDataDot = function () {
-    var canvas = this.frame.canvas;
-    var ctx = canvas.getContext("2d");
-    var i;
-
-    if (this.dataPoints === undefined || this.dataPoints.length <= 0) return; // TODO: throw exception?
-
-    // calculate the translations of all points
-    for (i = 0; i < this.dataPoints.length; i++) {
-      var trans = this._convertPointToTranslation(this.dataPoints[i].point);
-      var screen = this._convertTranslationToScreen(trans);
-      this.dataPoints[i].trans = trans;
-      this.dataPoints[i].screen = screen;
-
-      // calculate the distance from the point at the bottom to the camera
-      var transBottom = this._convertPointToTranslation(this.dataPoints[i].bottom);
-      this.dataPoints[i].dist = this.showPerspective ? transBottom.length() : -transBottom.z;
-    }
-
-    // order the translated points by depth
-    var sortDepth = function (a, b) {
-      return b.dist - a.dist;
-    };
-    this.dataPoints.sort(sortDepth);
-
-    // draw the datapoints as colored circles
-    var dotSize = this.frame.clientWidth * 0.02; // px
-    for (i = 0; i < this.dataPoints.length; i++) {
-      var point = this.dataPoints[i];
-
-      if (this.style === Graph3d.STYLE.DOTLINE) {
-        // draw a vertical line from the bottom to the graph value
-        //var from = this._convert3Dto2D(new Point3d(point.point.x, point.point.y, this.zMin));
-        var from = this._convert3Dto2D(point.bottom);
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = this.colorGrid;
-        ctx.beginPath();
-        ctx.moveTo(from.x, from.y);
-        ctx.lineTo(point.screen.x, point.screen.y);
-        ctx.stroke();
-      }
-
-      // calculate radius for the circle
-      var size;
-      if (this.style === Graph3d.STYLE.DOTSIZE) {
-        size = dotSize / 2 + 2 * dotSize * (point.point.value - this.valueMin) / (this.valueMax - this.valueMin);
-      } else {
-        size = dotSize;
-      }
-
-      var radius;
-      if (this.showPerspective) {
-        radius = size / -point.trans.z;
-      } else {
-        radius = size * -(this.eye.z / this.camera.getArmLength());
-      }
-      if (radius < 0) {
-        radius = 0;
-      }
-
-      var hue, color, borderColor;
-      if (this.style === Graph3d.STYLE.DOTCOLOR) {
-        // calculate the color based on the value
-        hue = (1 - (point.point.value - this.valueMin) * this.scale.value) * 240;
-        color = this._hsv2rgb(hue, 1, 1);
-        borderColor = this._hsv2rgb(hue, 1, 0.8);
-      } else if (this.style === Graph3d.STYLE.DOTSIZE) {
-        color = this.colorDot;
-        borderColor = this.colorDotBorder;
-      } else {
-        // calculate Hue from the current value. At zMin the hue is 240, at zMax the hue is 0
-        hue = (1 - (point.point.z - this.zMin) * this.scale.z / this.verticalRatio) * 240;
-        color = this._hsv2rgb(hue, 1, 1);
-        borderColor = this._hsv2rgb(hue, 1, 0.8);
-      }
-
-      // draw the circle
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = borderColor;
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.arc(point.screen.x, point.screen.y, radius, 0, Math.PI * 2, true);
-      ctx.fill();
-      ctx.stroke();
-    }
-  };
-
-  /**
-   * Draw all datapoints as bars.
-   * This function can be used when the style is 'bar', 'bar-color', or 'bar-size'
-   */
-  Graph3d.prototype._redrawDataBar = function () {
-    var canvas = this.frame.canvas;
-    var ctx = canvas.getContext("2d");
-    var i, j, surface, corners;
-
-    if (this.dataPoints === undefined || this.dataPoints.length <= 0) return; // TODO: throw exception?
-
-    // calculate the translations of all points
-    for (i = 0; i < this.dataPoints.length; i++) {
-      var trans = this._convertPointToTranslation(this.dataPoints[i].point);
-      var screen = this._convertTranslationToScreen(trans);
-      this.dataPoints[i].trans = trans;
-      this.dataPoints[i].screen = screen;
-
-      // calculate the distance from the point at the bottom to the camera
-      var transBottom = this._convertPointToTranslation(this.dataPoints[i].bottom);
-      this.dataPoints[i].dist = this.showPerspective ? transBottom.length() : -transBottom.z;
-    }
-
-    // order the translated points by depth
-    var sortDepth = function (a, b) {
-      return b.dist - a.dist;
-    };
-    this.dataPoints.sort(sortDepth);
-
-    // draw the datapoints as bars
-    var xWidth = this.xBarWidth / 2;
-    var yWidth = this.yBarWidth / 2;
-    for (i = 0; i < this.dataPoints.length; i++) {
-      var point = this.dataPoints[i];
-
-      // determine color
-      var hue, color, borderColor;
-      if (this.style === Graph3d.STYLE.BARCOLOR) {
-        // calculate the color based on the value
-        hue = (1 - (point.point.value - this.valueMin) * this.scale.value) * 240;
-        color = this._hsv2rgb(hue, 1, 1);
-        borderColor = this._hsv2rgb(hue, 1, 0.8);
-      } else if (this.style === Graph3d.STYLE.BARSIZE) {
-        color = this.colorDot;
-        borderColor = this.colorDotBorder;
-      } else {
-        // calculate Hue from the current value. At zMin the hue is 240, at zMax the hue is 0
-        hue = (1 - (point.point.z - this.zMin) * this.scale.z / this.verticalRatio) * 240;
-        color = this._hsv2rgb(hue, 1, 1);
-        borderColor = this._hsv2rgb(hue, 1, 0.8);
-      }
-
-      // calculate size for the bar
-      if (this.style === Graph3d.STYLE.BARSIZE) {
-        xWidth = this.xBarWidth / 2 * ((point.point.value - this.valueMin) / (this.valueMax - this.valueMin) * 0.8 + 0.2);
-        yWidth = this.yBarWidth / 2 * ((point.point.value - this.valueMin) / (this.valueMax - this.valueMin) * 0.8 + 0.2);
-      }
-
-      // calculate all corner points
-      var me = this;
-      var point3d = point.point;
-      var top = [{ point: new Point3d(point3d.x - xWidth, point3d.y - yWidth, point3d.z) }, { point: new Point3d(point3d.x + xWidth, point3d.y - yWidth, point3d.z) }, { point: new Point3d(point3d.x + xWidth, point3d.y + yWidth, point3d.z) }, { point: new Point3d(point3d.x - xWidth, point3d.y + yWidth, point3d.z) }];
-      var bottom = [{ point: new Point3d(point3d.x - xWidth, point3d.y - yWidth, this.zMin) }, { point: new Point3d(point3d.x + xWidth, point3d.y - yWidth, this.zMin) }, { point: new Point3d(point3d.x + xWidth, point3d.y + yWidth, this.zMin) }, { point: new Point3d(point3d.x - xWidth, point3d.y + yWidth, this.zMin) }];
-
-      // calculate screen location of the points
-      top.forEach(function (obj) {
-        obj.screen = me._convert3Dto2D(obj.point);
-      });
-      bottom.forEach(function (obj) {
-        obj.screen = me._convert3Dto2D(obj.point);
-      });
-
-      // create five sides, calculate both corner points and center points
-      var surfaces = [{ corners: top, center: Point3d.avg(bottom[0].point, bottom[2].point) }, { corners: [top[0], top[1], bottom[1], bottom[0]], center: Point3d.avg(bottom[1].point, bottom[0].point) }, { corners: [top[1], top[2], bottom[2], bottom[1]], center: Point3d.avg(bottom[2].point, bottom[1].point) }, { corners: [top[2], top[3], bottom[3], bottom[2]], center: Point3d.avg(bottom[3].point, bottom[2].point) }, { corners: [top[3], top[0], bottom[0], bottom[3]], center: Point3d.avg(bottom[0].point, bottom[3].point) }];
-      point.surfaces = surfaces;
-
-      // calculate the distance of each of the surface centers to the camera
-      for (j = 0; j < surfaces.length; j++) {
-        surface = surfaces[j];
-        var transCenter = this._convertPointToTranslation(surface.center);
-        surface.dist = this.showPerspective ? transCenter.length() : -transCenter.z;
-        // TODO: this dept calculation doesn't work 100% of the cases due to perspective,
-        //     but the current solution is fast/simple and works in 99.9% of all cases
-        //     the issue is visible in example 14, with graph.setCameraPosition({horizontal: 2.97, vertical: 0.5, distance: 0.9})
-      }
-
-      // order the surfaces by their (translated) depth
-      surfaces.sort(function (a, b) {
-        var diff = b.dist - a.dist;
-        if (diff) return diff;
-
-        // if equal depth, sort the top surface last
-        if (a.corners === top) return 1;
-        if (b.corners === top) return -1;
-
-        // both are equal
-        return 0;
-      });
-
-      // draw the ordered surfaces
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = borderColor;
-      ctx.fillStyle = color;
-      // NOTE: we start at j=2 instead of j=0 as we don't need to draw the two surfaces at the backside
-      for (j = 2; j < surfaces.length; j++) {
-        surface = surfaces[j];
-        corners = surface.corners;
-        ctx.beginPath();
-        ctx.moveTo(corners[3].screen.x, corners[3].screen.y);
-        ctx.lineTo(corners[0].screen.x, corners[0].screen.y);
-        ctx.lineTo(corners[1].screen.x, corners[1].screen.y);
-        ctx.lineTo(corners[2].screen.x, corners[2].screen.y);
-        ctx.lineTo(corners[3].screen.x, corners[3].screen.y);
-        ctx.fill();
-        ctx.stroke();
-      }
-    }
-  };
-
-
-  /**
-   * Draw a line through all datapoints.
-   * This function can be used when the style is 'line'
-   */
-  Graph3d.prototype._redrawDataLine = function () {
-    var canvas = this.frame.canvas,
-        ctx = canvas.getContext("2d"),
-        point,
-        i;
-
-    if (this.dataPoints === undefined || this.dataPoints.length <= 0) return; // TODO: throw exception?
-
-    // calculate the translations of all points
-    for (i = 0; i < this.dataPoints.length; i++) {
-      var trans = this._convertPointToTranslation(this.dataPoints[i].point);
-      var screen = this._convertTranslationToScreen(trans);
-
-      this.dataPoints[i].trans = trans;
-      this.dataPoints[i].screen = screen;
-    }
-
-    // start the line
-    if (this.dataPoints.length > 0) {
-      point = this.dataPoints[0];
-
-      ctx.lineWidth = 1; // TODO: make customizable
-      ctx.strokeStyle = "blue"; // TODO: make customizable
-      ctx.beginPath();
-      ctx.moveTo(point.screen.x, point.screen.y);
-    }
-
-    // draw the datapoints as colored circles
-    for (i = 1; i < this.dataPoints.length; i++) {
-      point = this.dataPoints[i];
-      ctx.lineTo(point.screen.x, point.screen.y);
-    }
-
-    // finish the line
-    if (this.dataPoints.length > 0) {
-      ctx.stroke();
-    }
-  };
-
-  /**
-   * Start a moving operation inside the provided parent element
-   * @param {Event}     event     The event that occurred (required for
-   *                  retrieving the  mouse position)
-   */
-  Graph3d.prototype._onMouseDown = function (event) {
-    event = event || window.event;
-
-    // check if mouse is still down (may be up when focus is lost for example
-    // in an iframe)
-    if (this.leftButtonDown) {
-      this._onMouseUp(event);
-    }
-
-    // only react on left mouse button down
-    this.leftButtonDown = event.which ? event.which === 1 : event.button === 1;
-    if (!this.leftButtonDown && !this.touchDown) return;
-
-    // get mouse position (different code for IE and all other browsers)
-    this.startMouseX = getMouseX(event);
-    this.startMouseY = getMouseY(event);
-
-    this.startStart = new Date(this.start);
-    this.startEnd = new Date(this.end);
-    this.startArmRotation = this.camera.getArmRotation();
-
-    this.frame.style.cursor = "move";
-
-    // add event listeners to handle moving the contents
-    // we store the function onmousemove and onmouseup in the graph, so we can
-    // remove the eventlisteners lateron in the function mouseUp()
-    var me = this;
-    this.onmousemove = function (event) {
-      me._onMouseMove(event);
-    };
-    this.onmouseup = function (event) {
-      me._onMouseUp(event);
-    };
-    util.addEventListener(document, "mousemove", me.onmousemove);
-    util.addEventListener(document, "mouseup", me.onmouseup);
-    util.preventDefault(event);
-  };
-
-
-  /**
-   * Perform moving operating.
-   * This function activated from within the funcion Graph.mouseDown().
-   * @param {Event}   event  Well, eehh, the event
-   */
-  Graph3d.prototype._onMouseMove = function (event) {
-    event = event || window.event;
-
-    // calculate change in mouse position
-    var diffX = parseFloat(getMouseX(event)) - this.startMouseX;
-    var diffY = parseFloat(getMouseY(event)) - this.startMouseY;
-
-    var horizontalNew = this.startArmRotation.horizontal + diffX / 200;
-    var verticalNew = this.startArmRotation.vertical + diffY / 200;
-
-    var snapAngle = 4; // degrees
-    var snapValue = Math.sin(snapAngle / 360 * 2 * Math.PI);
-
-    // snap horizontally to nice angles at 0pi, 0.5pi, 1pi, 1.5pi, etc...
-    // the -0.001 is to take care that the vertical axis is always drawn at the left front corner
-    if (Math.abs(Math.sin(horizontalNew)) < snapValue) {
-      horizontalNew = Math.round(horizontalNew / Math.PI) * Math.PI - 0.001;
-    }
-    if (Math.abs(Math.cos(horizontalNew)) < snapValue) {
-      horizontalNew = (Math.round(horizontalNew / Math.PI - 0.5) + 0.5) * Math.PI - 0.001;
-    }
-
-    // snap vertically to nice angles
-    if (Math.abs(Math.sin(verticalNew)) < snapValue) {
-      verticalNew = Math.round(verticalNew / Math.PI) * Math.PI;
-    }
-    if (Math.abs(Math.cos(verticalNew)) < snapValue) {
-      verticalNew = (Math.round(verticalNew / Math.PI - 0.5) + 0.5) * Math.PI;
-    }
-
-    this.camera.setArmRotation(horizontalNew, verticalNew);
-    this.redraw();
-
-    // fire a cameraPositionChange event
-    var parameters = this.getCameraPosition();
-    this.emit("cameraPositionChange", parameters);
-
-    util.preventDefault(event);
-  };
-
-
-  /**
-   * Stop moving operating.
-   * This function activated from within the funcion Graph.mouseDown().
-   * @param {event}  event   The event
-   */
-  Graph3d.prototype._onMouseUp = function (event) {
-    this.frame.style.cursor = "auto";
-    this.leftButtonDown = false;
-
-    // remove event listeners here
-    util.removeEventListener(document, "mousemove", this.onmousemove);
-    util.removeEventListener(document, "mouseup", this.onmouseup);
-    util.preventDefault(event);
-  };
-
-  /**
-   * After having moved the mouse, a tooltip should pop up when the mouse is resting on a data point
-   * @param {Event}  event   A mouse move event
-   */
-  Graph3d.prototype._onTooltip = function (event) {
-    var delay = 300; // ms
-    var boundingRect = this.frame.getBoundingClientRect();
-    var mouseX = getMouseX(event) - boundingRect.left;
-    var mouseY = getMouseY(event) - boundingRect.top;
-
-    if (!this.showTooltip) {
-      return;
-    }
-
-    if (this.tooltipTimeout) {
-      clearTimeout(this.tooltipTimeout);
-    }
-
-    // (delayed) display of a tooltip only if no mouse button is down
-    if (this.leftButtonDown) {
-      this._hideTooltip();
-      return;
-    }
-
-    if (this.tooltip && this.tooltip.dataPoint) {
-      // tooltip is currently visible
-      var dataPoint = this._dataPointFromXY(mouseX, mouseY);
-      if (dataPoint !== this.tooltip.dataPoint) {
-        // datapoint changed
-        if (dataPoint) {
-          this._showTooltip(dataPoint);
-        } else {
-          this._hideTooltip();
-        }
-      }
-    } else {
-      // tooltip is currently not visible
-      var me = this;
-      this.tooltipTimeout = setTimeout(function () {
-        me.tooltipTimeout = null;
-
-        // show a tooltip if we have a data point
-        var dataPoint = me._dataPointFromXY(mouseX, mouseY);
-        if (dataPoint) {
-          me._showTooltip(dataPoint);
-        }
-      }, delay);
-    }
-  };
-
-  /**
-   * Event handler for touchstart event on mobile devices
-   */
-  Graph3d.prototype._onTouchStart = function (event) {
-    this.touchDown = true;
-
-    var me = this;
-    this.ontouchmove = function (event) {
-      me._onTouchMove(event);
-    };
-    this.ontouchend = function (event) {
-      me._onTouchEnd(event);
-    };
-    util.addEventListener(document, "touchmove", me.ontouchmove);
-    util.addEventListener(document, "touchend", me.ontouchend);
-
-    this._onMouseDown(event);
-  };
-
-  /**
-   * Event handler for touchmove event on mobile devices
-   */
-  Graph3d.prototype._onTouchMove = function (event) {
-    this._onMouseMove(event);
-  };
-
-  /**
-   * Event handler for touchend event on mobile devices
-   */
-  Graph3d.prototype._onTouchEnd = function (event) {
-    this.touchDown = false;
-
-    util.removeEventListener(document, "touchmove", this.ontouchmove);
-    util.removeEventListener(document, "touchend", this.ontouchend);
-
-    this._onMouseUp(event);
-  };
-
-
-  /**
-   * Event handler for mouse wheel event, used to zoom the graph
-   * Code from http://adomas.org/javascript-mouse-wheel/
-   * @param {event}  event   The event
-   */
-  Graph3d.prototype._onWheel = function (event) {
-    if (!event) /* For IE. */
-      event = window.event;
-
-    // retrieve delta
-    var delta = 0;
-    if (event.wheelDelta) {
-      /* IE/Opera. */
-      delta = event.wheelDelta / 120;
-    } else if (event.detail) {
-      /* Mozilla case. */
-      // In Mozilla, sign of delta is different than in IE.
-      // Also, delta is multiple of 3.
-      delta = -event.detail / 3;
-    }
-
-    // If delta is nonzero, handle it.
-    // Basically, delta is now positive if wheel was scrolled up,
-    // and negative, if wheel was scrolled down.
-    if (delta) {
-      var oldLength = this.camera.getArmLength();
-      var newLength = oldLength * (1 - delta / 10);
-
-      this.camera.setArmLength(newLength);
-      this.redraw();
-
-      this._hideTooltip();
-    }
-
-    // fire a cameraPositionChange event
-    var parameters = this.getCameraPosition();
-    this.emit("cameraPositionChange", parameters);
-
-    // Prevent default actions caused by mouse wheel.
-    // That might be ugly, but we handle scrolls somehow
-    // anyway, so don't bother here..
-    util.preventDefault(event);
-  };
-
-  /**
-   * Test whether a point lies inside given 2D triangle
-   * @param {Point2d} point
-   * @param {Point2d[]} triangle
-   * @return {boolean} Returns true if given point lies inside or on the edge of the triangle
-   * @private
-   */
-  Graph3d.prototype._insideTriangle = function (point, triangle) {
-    var a = triangle[0],
-        b = triangle[1],
-        c = triangle[2];
-
-    function sign(x) {
-      return x > 0 ? 1 : x < 0 ? -1 : 0;
-    }
-
-    var as = sign((b.x - a.x) * (point.y - a.y) - (b.y - a.y) * (point.x - a.x));
-    var bs = sign((c.x - b.x) * (point.y - b.y) - (c.y - b.y) * (point.x - b.x));
-    var cs = sign((a.x - c.x) * (point.y - c.y) - (a.y - c.y) * (point.x - c.x));
-
-    // each of the three signs must be either equal to each other or zero
-    return (as == 0 || bs == 0 || as == bs) && (bs == 0 || cs == 0 || bs == cs) && (as == 0 || cs == 0 || as == cs);
-  };
-
-  /**
-   * Find a data point close to given screen position (x, y)
-   * @param {Number} x
-   * @param {Number} y
-   * @return {Object | null} The closest data point or null if not close to any data point
-   * @private
-   */
-  Graph3d.prototype._dataPointFromXY = function (x, y) {
-    var i,
-        distMax = 100,
-        // px
-    dataPoint = null,
-        closestDataPoint = null,
-        closestDist = null,
-        center = new Point2d(x, y);
-
-    if (this.style === Graph3d.STYLE.BAR || this.style === Graph3d.STYLE.BARCOLOR || this.style === Graph3d.STYLE.BARSIZE) {
-      // the data points are ordered from far away to closest
-      for (i = this.dataPoints.length - 1; i >= 0; i--) {
-        dataPoint = this.dataPoints[i];
-        var surfaces = dataPoint.surfaces;
-        if (surfaces) {
-          for (var s = surfaces.length - 1; s >= 0; s--) {
-            // split each surface in two triangles, and see if the center point is inside one of these
-            var surface = surfaces[s];
-            var corners = surface.corners;
-            var triangle1 = [corners[0].screen, corners[1].screen, corners[2].screen];
-            var triangle2 = [corners[2].screen, corners[3].screen, corners[0].screen];
-            if (this._insideTriangle(center, triangle1) || this._insideTriangle(center, triangle2)) {
-              // return immediately at the first hit
-              return dataPoint;
-            }
-          }
-        }
-      }
-    } else {
-      // find the closest data point, using distance to the center of the point on 2d screen
-      for (i = 0; i < this.dataPoints.length; i++) {
-        dataPoint = this.dataPoints[i];
-        var point = dataPoint.screen;
-        if (point) {
-          var distX = Math.abs(x - point.x);
-          var distY = Math.abs(y - point.y);
-          var dist = Math.sqrt(distX * distX + distY * distY);
-
-          if ((closestDist === null || dist < closestDist) && dist < distMax) {
-            closestDist = dist;
-            closestDataPoint = dataPoint;
-          }
-        }
-      }
-    }
-
-
-    return closestDataPoint;
-  };
-
-  /**
-   * Display a tooltip for given data point
-   * @param {Object} dataPoint
-   * @private
-   */
-  Graph3d.prototype._showTooltip = function (dataPoint) {
-    var content, line, dot;
-
-    if (!this.tooltip) {
-      content = document.createElement("div");
-      content.style.position = "absolute";
-      content.style.padding = "10px";
-      content.style.border = "1px solid #4d4d4d";
-      content.style.color = "#1a1a1a";
-      content.style.background = "rgba(255,255,255,0.7)";
-      content.style.borderRadius = "2px";
-      content.style.boxShadow = "5px 5px 10px rgba(128,128,128,0.5)";
-
-      line = document.createElement("div");
-      line.style.position = "absolute";
-      line.style.height = "40px";
-      line.style.width = "0";
-      line.style.borderLeft = "1px solid #4d4d4d";
-
-      dot = document.createElement("div");
-      dot.style.position = "absolute";
-      dot.style.height = "0";
-      dot.style.width = "0";
-      dot.style.border = "5px solid #4d4d4d";
-      dot.style.borderRadius = "5px";
-
-      this.tooltip = {
-        dataPoint: null,
-        dom: {
-          content: content,
-          line: line,
-          dot: dot
-        }
-      };
-    } else {
-      content = this.tooltip.dom.content;
-      line = this.tooltip.dom.line;
-      dot = this.tooltip.dom.dot;
-    }
-
-    this._hideTooltip();
-
-    this.tooltip.dataPoint = dataPoint;
-    if (typeof this.showTooltip === "function") {
-      content.innerHTML = this.showTooltip(dataPoint.point);
-    } else {
-      content.innerHTML = "<table>" + "<tr><td>x:</td><td>" + dataPoint.point.x + "</td></tr>" + "<tr><td>y:</td><td>" + dataPoint.point.y + "</td></tr>" + "<tr><td>z:</td><td>" + dataPoint.point.z + "</td></tr>" + "</table>";
-    }
-
-    content.style.left = "0";
-    content.style.top = "0";
-    this.frame.appendChild(content);
-    this.frame.appendChild(line);
-    this.frame.appendChild(dot);
-
-    // calculate sizes
-    var contentWidth = content.offsetWidth;
-    var contentHeight = content.offsetHeight;
-    var lineHeight = line.offsetHeight;
-    var dotWidth = dot.offsetWidth;
-    var dotHeight = dot.offsetHeight;
-
-    var left = dataPoint.screen.x - contentWidth / 2;
-    left = Math.min(Math.max(left, 10), this.frame.clientWidth - 10 - contentWidth);
-
-    line.style.left = dataPoint.screen.x + "px";
-    line.style.top = dataPoint.screen.y - lineHeight + "px";
-    content.style.left = left + "px";
-    content.style.top = dataPoint.screen.y - lineHeight - contentHeight + "px";
-    dot.style.left = dataPoint.screen.x - dotWidth / 2 + "px";
-    dot.style.top = dataPoint.screen.y - dotHeight / 2 + "px";
-  };
-
-  /**
-   * Hide the tooltip when displayed
-   * @private
-   */
-  Graph3d.prototype._hideTooltip = function () {
-    if (this.tooltip) {
-      this.tooltip.dataPoint = null;
-
-      for (var prop in this.tooltip.dom) {
-        if (this.tooltip.dom.hasOwnProperty(prop)) {
-          var elem = this.tooltip.dom[prop];
-          if (elem && elem.parentNode) {
-            elem.parentNode.removeChild(elem);
-          }
-        }
-      }
-    }
-  };
-
-  /**--------------------------------------------------------------------------**/
-
-
-  /**
-   * Get the horizontal mouse position from a mouse event
-   * @param {Event} event
-   * @return {Number} mouse x
-   */
-  function getMouseX(event) {
-    if ("clientX" in event) {
-      return event.clientX;
-    }return event.targetTouches[0] && event.targetTouches[0].clientX || 0;
-  }
-
-  /**
-   * Get the vertical mouse position from a mouse event
-   * @param {Event} event
-   * @return {Number} mouse y
-   */
-  function getMouseY(event) {
-    if ("clientY" in event) {
-      return event.clientY;
-    }return event.targetTouches[0] && event.targetTouches[0].clientY || 0;
-  }
-
-  module.exports = Graph3d;
-  // use use defaults
-
-/***/ },
-/* 7 */
-/***/ function(module, exports, __webpack_require__) {
-
-  
-  /**
-   * Expose `Emitter`.
-   */
-
-  module.exports = Emitter;
-
-  /**
-   * Initialize a new `Emitter`.
-   *
-   * @api public
-   */
-
-  function Emitter(obj) {
-    if (obj) return mixin(obj);
-  };
-
-  /**
-   * Mixin the emitter properties.
-   *
-   * @param {Object} obj
-   * @return {Object}
-   * @api private
-   */
-
-  function mixin(obj) {
-    for (var key in Emitter.prototype) {
-      obj[key] = Emitter.prototype[key];
-    }
-    return obj;
-  }
-
-  /**
-   * Listen on the given `event` with `fn`.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.on =
-  Emitter.prototype.addEventListener = function(event, fn){
-    this._callbacks = this._callbacks || {};
-    (this._callbacks[event] = this._callbacks[event] || [])
-      .push(fn);
-    return this;
-  };
-
-  /**
-   * Adds an `event` listener that will be invoked a single
-   * time then automatically removed.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.once = function(event, fn){
-    var self = this;
-    this._callbacks = this._callbacks || {};
-
-    function on() {
-      self.off(event, on);
-      fn.apply(this, arguments);
-    }
-
-    on.fn = fn;
-    this.on(event, on);
-    return this;
-  };
-
-  /**
-   * Remove the given callback for `event` or all
-   * registered callbacks.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.off =
-  Emitter.prototype.removeListener =
-  Emitter.prototype.removeAllListeners =
-  Emitter.prototype.removeEventListener = function(event, fn){
-    this._callbacks = this._callbacks || {};
-
-    // all
-    if (0 == arguments.length) {
-      this._callbacks = {};
-      return this;
-    }
-
-    // specific event
-    var callbacks = this._callbacks[event];
-    if (!callbacks) return this;
-
-    // remove all handlers
-    if (1 == arguments.length) {
-      delete this._callbacks[event];
-      return this;
-    }
-
-    // remove specific handler
-    var cb;
-    for (var i = 0; i < callbacks.length; i++) {
-      cb = callbacks[i];
-      if (cb === fn || cb.fn === fn) {
-        callbacks.splice(i, 1);
-        break;
-      }
-    }
-    return this;
-  };
-
-  /**
-   * Emit `event` with the given args.
-   *
-   * @param {String} event
-   * @param {Mixed} ...
-   * @return {Emitter}
-   */
-
-  Emitter.prototype.emit = function(event){
-    this._callbacks = this._callbacks || {};
-    var args = [].slice.call(arguments, 1)
-      , callbacks = this._callbacks[event];
-
-    if (callbacks) {
-      callbacks = callbacks.slice(0);
-      for (var i = 0, len = callbacks.length; i < len; ++i) {
-        callbacks[i].apply(this, args);
-      }
-    }
-
-    return this;
-  };
-
-  /**
-   * Return array of callbacks for `event`.
-   *
-   * @param {String} event
-   * @return {Array}
-   * @api public
-   */
-
-  Emitter.prototype.listeners = function(event){
-    this._callbacks = this._callbacks || {};
-    return this._callbacks[event] || [];
-  };
-
-  /**
-   * Check if this emitter has `event` handlers.
-   *
-   * @param {String} event
-   * @return {Boolean}
-   * @api public
-   */
-
-  Emitter.prototype.hasListeners = function(event){
-    return !! this.listeners(event).length;
-  };
-
-
-/***/ },
-/* 8 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  /**
-   * @prototype Point3d
-   * @param {Number} [x]
-   * @param {Number} [y]
-   * @param {Number} [z]
-   */
-  function Point3d(x, y, z) {
-    this.x = x !== undefined ? x : 0;
-    this.y = y !== undefined ? y : 0;
-    this.z = z !== undefined ? z : 0;
-  };
-
-  /**
-   * Subtract the two provided points, returns a-b
-   * @param {Point3d} a
-   * @param {Point3d} b
-   * @return {Point3d} a-b
-   */
-  Point3d.subtract = function (a, b) {
-    var sub = new Point3d();
-    sub.x = a.x - b.x;
-    sub.y = a.y - b.y;
-    sub.z = a.z - b.z;
-    return sub;
-  };
-
-  /**
-   * Add the two provided points, returns a+b
-   * @param {Point3d} a
-   * @param {Point3d} b
-   * @return {Point3d} a+b
-   */
-  Point3d.add = function (a, b) {
-    var sum = new Point3d();
-    sum.x = a.x + b.x;
-    sum.y = a.y + b.y;
-    sum.z = a.z + b.z;
-    return sum;
-  };
-
-  /**
-   * Calculate the average of two 3d points
-   * @param {Point3d} a
-   * @param {Point3d} b
-   * @return {Point3d} The average, (a+b)/2
-   */
-  Point3d.avg = function (a, b) {
-    return new Point3d((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
-  };
-
-  /**
-   * Calculate the cross product of the two provided points, returns axb
-   * Documentation: http://en.wikipedia.org/wiki/Cross_product
-   * @param {Point3d} a
-   * @param {Point3d} b
-   * @return {Point3d} cross product axb
-   */
-  Point3d.crossProduct = function (a, b) {
-    var crossproduct = new Point3d();
-
-    crossproduct.x = a.y * b.z - a.z * b.y;
-    crossproduct.y = a.z * b.x - a.x * b.z;
-    crossproduct.z = a.x * b.y - a.y * b.x;
-
-    return crossproduct;
-  };
-
-
-  /**
-   * Rtrieve the length of the vector (or the distance from this point to the origin
-   * @return {Number}  length
-   */
-  Point3d.prototype.length = function () {
-    return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
-  };
-
-  module.exports = Point3d;
-
-/***/ },
-/* 9 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  /**
-   * @prototype Point2d
-   * @param {Number} [x]
-   * @param {Number} [y]
-   */
-  function Point2d(x, y) {
-    this.x = x !== undefined ? x : 0;
-    this.y = y !== undefined ? y : 0;
-  }
-
-  module.exports = Point2d;
-
-/***/ },
-/* 10 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var Point3d = __webpack_require__(8);
-
-  /**
-   * @class Camera
-   * The camera is mounted on a (virtual) camera arm. The camera arm can rotate
-   * The camera is always looking in the direction of the origin of the arm.
-   * This way, the camera always rotates around one fixed point, the location
-   * of the camera arm.
-   *
-   * Documentation:
-   *   http://en.wikipedia.org/wiki/3D_projection
-   */
-  function Camera() {
-    this.armLocation = new Point3d();
-    this.armRotation = {};
-    this.armRotation.horizontal = 0;
-    this.armRotation.vertical = 0;
-    this.armLength = 1.7;
-
-    this.cameraLocation = new Point3d();
-    this.cameraRotation = new Point3d(0.5 * Math.PI, 0, 0);
-
-    this.calculateCameraOrientation();
-  }
-
-  /**
-   * Set the location (origin) of the arm
-   * @param {Number} x  Normalized value of x
-   * @param {Number} y  Normalized value of y
-   * @param {Number} z  Normalized value of z
-   */
-  Camera.prototype.setArmLocation = function (x, y, z) {
-    this.armLocation.x = x;
-    this.armLocation.y = y;
-    this.armLocation.z = z;
-
-    this.calculateCameraOrientation();
-  };
-
-  /**
-   * Set the rotation of the camera arm
-   * @param {Number} horizontal   The horizontal rotation, between 0 and 2*PI.
-   *                Optional, can be left undefined.
-   * @param {Number} vertical   The vertical rotation, between 0 and 0.5*PI
-   *                if vertical=0.5*PI, the graph is shown from the
-   *                top. Optional, can be left undefined.
-   */
-  Camera.prototype.setArmRotation = function (horizontal, vertical) {
-    if (horizontal !== undefined) {
-      this.armRotation.horizontal = horizontal;
-    }
-
-    if (vertical !== undefined) {
-      this.armRotation.vertical = vertical;
-      if (this.armRotation.vertical < 0) this.armRotation.vertical = 0;
-      if (this.armRotation.vertical > 0.5 * Math.PI) this.armRotation.vertical = 0.5 * Math.PI;
-    }
-
-    if (horizontal !== undefined || vertical !== undefined) {
-      this.calculateCameraOrientation();
-    }
-  };
-
-  /**
-   * Retrieve the current arm rotation
-   * @return {object}   An object with parameters horizontal and vertical
-   */
-  Camera.prototype.getArmRotation = function () {
-    var rot = {};
-    rot.horizontal = this.armRotation.horizontal;
-    rot.vertical = this.armRotation.vertical;
-
-    return rot;
-  };
-
-  /**
-   * Set the (normalized) length of the camera arm.
-   * @param {Number} length A length between 0.71 and 5.0
-   */
-  Camera.prototype.setArmLength = function (length) {
-    if (length === undefined) return;
-
-    this.armLength = length;
-
-    // Radius must be larger than the corner of the graph,
-    // which has a distance of sqrt(0.5^2+0.5^2) = 0.71 from the center of the
-    // graph
-    if (this.armLength < 0.71) this.armLength = 0.71;
-    if (this.armLength > 5) this.armLength = 5;
-
-    this.calculateCameraOrientation();
-  };
-
-  /**
-   * Retrieve the arm length
-   * @return {Number} length
-   */
-  Camera.prototype.getArmLength = function () {
-    return this.armLength;
-  };
-
-  /**
-   * Retrieve the camera location
-   * @return {Point3d} cameraLocation
-   */
-  Camera.prototype.getCameraLocation = function () {
-    return this.cameraLocation;
-  };
-
-  /**
-   * Retrieve the camera rotation
-   * @return {Point3d} cameraRotation
-   */
-  Camera.prototype.getCameraRotation = function () {
-    return this.cameraRotation;
-  };
-
-  /**
-   * Calculate the location and rotation of the camera based on the
-   * position and orientation of the camera arm
-   */
-  Camera.prototype.calculateCameraOrientation = function () {
-    // calculate location of the camera
-    this.cameraLocation.x = this.armLocation.x - this.armLength * Math.sin(this.armRotation.horizontal) * Math.cos(this.armRotation.vertical);
-    this.cameraLocation.y = this.armLocation.y - this.armLength * Math.cos(this.armRotation.horizontal) * Math.cos(this.armRotation.vertical);
-    this.cameraLocation.z = this.armLocation.z + this.armLength * Math.sin(this.armRotation.vertical);
-
-    // calculate rotation of the camera
-    this.cameraRotation.x = Math.PI / 2 - this.armRotation.vertical;
-    this.cameraRotation.y = 0;
-    this.cameraRotation.z = -this.armRotation.horizontal;
-  };
-
-  module.exports = Camera;
-
-/***/ },
-/* 11 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var DataView = __webpack_require__(5);
-
-  /**
-   * @class Filter
-   *
-   * @param {DataSet} data The google data table
-   * @param {Number}  column             The index of the column to be filtered
-   * @param {Graph} graph           The graph
-   */
-  function Filter(data, column, graph) {
-    this.data = data;
-    this.column = column;
-    this.graph = graph; // the parent graph
-
-    this.index = undefined;
-    this.value = undefined;
-
-    // read all distinct values and select the first one
-    this.values = graph.getDistinctValues(data.get(), this.column);
-
-    // sort both numeric and string values correctly
-    this.values.sort(function (a, b) {
-      return a > b ? 1 : a < b ? -1 : 0;
-    });
-
-    if (this.values.length > 0) {
-      this.selectValue(0);
-    }
-
-    // create an array with the filtered datapoints. this will be loaded afterwards
-    this.dataPoints = [];
-
-    this.loaded = false;
-    this.onLoadCallback = undefined;
-
-    if (graph.animationPreload) {
-      this.loaded = false;
-      this.loadInBackground();
-    } else {
-      this.loaded = true;
-    }
-  };
-
-
-  /**
-   * Return the label
-   * @return {string} label
-   */
-  Filter.prototype.isLoaded = function () {
-    return this.loaded;
-  };
-
-
-  /**
-   * Return the loaded progress
-   * @return {Number} percentage between 0 and 100
-   */
-  Filter.prototype.getLoadedProgress = function () {
-    var len = this.values.length;
-
-    var i = 0;
-    while (this.dataPoints[i]) {
-      i++;
-    }
-
-    return Math.round(i / len * 100);
-  };
-
-
-  /**
-   * Return the label
-   * @return {string} label
-   */
-  Filter.prototype.getLabel = function () {
-    return this.graph.filterLabel;
-  };
-
-
-  /**
-   * Return the columnIndex of the filter
-   * @return {Number} columnIndex
-   */
-  Filter.prototype.getColumn = function () {
-    return this.column;
-  };
-
-  /**
-   * Return the currently selected value. Returns undefined if there is no selection
-   * @return {*} value
-   */
-  Filter.prototype.getSelectedValue = function () {
-    if (this.index === undefined) return undefined;
-
-    return this.values[this.index];
-  };
-
-  /**
-   * Retrieve all values of the filter
-   * @return {Array} values
-   */
-  Filter.prototype.getValues = function () {
-    return this.values;
-  };
-
-  /**
-   * Retrieve one value of the filter
-   * @param {Number}  index
-   * @return {*} value
-   */
-  Filter.prototype.getValue = function (index) {
-    if (index >= this.values.length) throw "Error: index out of range";
-
-    return this.values[index];
-  };
-
-
-  /**
-   * Retrieve the (filtered) dataPoints for the currently selected filter index
-   * @param {Number} [index] (optional)
-   * @return {Array} dataPoints
-   */
-  Filter.prototype._getDataPoints = function (index) {
-    if (index === undefined) index = this.index;
-
-    if (index === undefined) return [];
-
-    var dataPoints;
-    if (this.dataPoints[index]) {
-      dataPoints = this.dataPoints[index];
-    } else {
-      var f = {};
-      f.column = this.column;
-      f.value = this.values[index];
-
-      var dataView = new DataView(this.data, { filter: function (item) {
-          return item[f.column] == f.value;
-        } }).get();
-      dataPoints = this.graph._getDataPoints(dataView);
-
-      this.dataPoints[index] = dataPoints;
-    }
-
-    return dataPoints;
-  };
-
-
-
-  /**
-   * Set a callback function when the filter is fully loaded.
-   */
-  Filter.prototype.setOnLoadCallback = function (callback) {
-    this.onLoadCallback = callback;
-  };
-
-
-  /**
-   * Add a value to the list with available values for this filter
-   * No double entries will be created.
-   * @param {Number} index
-   */
-  Filter.prototype.selectValue = function (index) {
-    if (index >= this.values.length) throw "Error: index out of range";
-
-    this.index = index;
-    this.value = this.values[index];
-  };
-
-  /**
-   * Load all filtered rows in the background one by one
-   * Start this method without providing an index!
-   */
-  Filter.prototype.loadInBackground = function (index) {
-    if (index === undefined) index = 0;
-
-    var frame = this.graph.frame;
-
-    if (index < this.values.length) {
-      var dataPointsTemp = this._getDataPoints(index);
-      //this.graph.redrawInfo(); // TODO: not neat
-
-      // create a progress box
-      if (frame.progress === undefined) {
-        frame.progress = document.createElement("DIV");
-        frame.progress.style.position = "absolute";
-        frame.progress.style.color = "gray";
-        frame.appendChild(frame.progress);
-      }
-      var progress = this.getLoadedProgress();
-      frame.progress.innerHTML = "Loading animation... " + progress + "%";
-      // TODO: this is no nice solution...
-      frame.progress.style.bottom = 60 + "px"; // TODO: use height of slider
-      frame.progress.style.left = 10 + "px";
-
-      var me = this;
-      setTimeout(function () {
-        me.loadInBackground(index + 1);
-      }, 10);
-      this.loaded = false;
-    } else {
-      this.loaded = true;
-
-      // remove the progress box
-      if (frame.progress !== undefined) {
-        frame.removeChild(frame.progress);
-        frame.progress = undefined;
-      }
-
-      if (this.onLoadCallback) this.onLoadCallback();
-    }
-  };
-
-  module.exports = Filter;
-
-/***/ },
-/* 12 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var util = __webpack_require__(1);
-
-  /**
-   * @constructor Slider
-   *
-   * An html slider control with start/stop/prev/next buttons
-   * @param {Element} container  The element where the slider will be created
-   * @param {Object} options   Available options:
-   *                 {boolean} visible   If true (default) the
-   *                           slider is visible.
-   */
-  function Slider(container, options) {
-    if (container === undefined) {
-      throw "Error: No container element defined";
-    }
-    this.container = container;
-    this.visible = options && options.visible != undefined ? options.visible : true;
-
-    if (this.visible) {
-      this.frame = document.createElement("DIV");
-      //this.frame.style.backgroundColor = '#E5E5E5';
-      this.frame.style.width = "100%";
-      this.frame.style.position = "relative";
-      this.container.appendChild(this.frame);
-
-      this.frame.prev = document.createElement("INPUT");
-      this.frame.prev.type = "BUTTON";
-      this.frame.prev.value = "Prev";
-      this.frame.appendChild(this.frame.prev);
-
-      this.frame.play = document.createElement("INPUT");
-      this.frame.play.type = "BUTTON";
-      this.frame.play.value = "Play";
-      this.frame.appendChild(this.frame.play);
-
-      this.frame.next = document.createElement("INPUT");
-      this.frame.next.type = "BUTTON";
-      this.frame.next.value = "Next";
-      this.frame.appendChild(this.frame.next);
-
-      this.frame.bar = document.createElement("INPUT");
-      this.frame.bar.type = "BUTTON";
-      this.frame.bar.style.position = "absolute";
-      this.frame.bar.style.border = "1px solid red";
-      this.frame.bar.style.width = "100px";
-      this.frame.bar.style.height = "6px";
-      this.frame.bar.style.borderRadius = "2px";
-      this.frame.bar.style.MozBorderRadius = "2px";
-      this.frame.bar.style.border = "1px solid #7F7F7F";
-      this.frame.bar.style.backgroundColor = "#E5E5E5";
-      this.frame.appendChild(this.frame.bar);
-
-      this.frame.slide = document.createElement("INPUT");
-      this.frame.slide.type = "BUTTON";
-      this.frame.slide.style.margin = "0px";
-      this.frame.slide.value = " ";
-      this.frame.slide.style.position = "relative";
-      this.frame.slide.style.left = "-100px";
-      this.frame.appendChild(this.frame.slide);
-
-      // create events
-      var me = this;
-      this.frame.slide.onmousedown = function (event) {
-        me._onMouseDown(event);
-      };
-      this.frame.prev.onclick = function (event) {
-        me.prev(event);
-      };
-      this.frame.play.onclick = function (event) {
-        me.togglePlay(event);
-      };
-      this.frame.next.onclick = function (event) {
-        me.next(event);
-      };
-    }
-
-    this.onChangeCallback = undefined;
-
-    this.values = [];
-    this.index = undefined;
-
-    this.playTimeout = undefined;
-    this.playInterval = 1000; // milliseconds
-    this.playLoop = true;
-  }
-
-  /**
-   * Select the previous index
-   */
-  Slider.prototype.prev = function () {
-    var index = this.getIndex();
-    if (index > 0) {
-      index--;
-      this.setIndex(index);
-    }
-  };
-
-  /**
-   * Select the next index
-   */
-  Slider.prototype.next = function () {
-    var index = this.getIndex();
-    if (index < this.values.length - 1) {
-      index++;
-      this.setIndex(index);
-    }
-  };
-
-  /**
-   * Select the next index
-   */
-  Slider.prototype.playNext = function () {
-    var start = new Date();
-
-    var index = this.getIndex();
-    if (index < this.values.length - 1) {
-      index++;
-      this.setIndex(index);
-    } else if (this.playLoop) {
-      // jump to the start
-      index = 0;
-      this.setIndex(index);
-    }
-
-    var end = new Date();
-    var diff = end - start;
-
-    // calculate how much time it to to set the index and to execute the callback
-    // function.
-    var interval = Math.max(this.playInterval - diff, 0);
-    // document.title = diff // TODO: cleanup
-
-    var me = this;
-    this.playTimeout = setTimeout(function () {
-      me.playNext();
-    }, interval);
-  };
-
-  /**
-   * Toggle start or stop playing
-   */
-  Slider.prototype.togglePlay = function () {
-    if (this.playTimeout === undefined) {
-      this.play();
-    } else {
-      this.stop();
-    }
-  };
-
-  /**
-   * Start playing
-   */
-  Slider.prototype.play = function () {
-    // Test whether already playing
-    if (this.playTimeout) return;
-
-    this.playNext();
-
-    if (this.frame) {
-      this.frame.play.value = "Stop";
-    }
-  };
-
-  /**
-   * Stop playing
-   */
-  Slider.prototype.stop = function () {
-    clearInterval(this.playTimeout);
-    this.playTimeout = undefined;
-
-    if (this.frame) {
-      this.frame.play.value = "Play";
-    }
-  };
-
-  /**
-   * Set a callback function which will be triggered when the value of the
-   * slider bar has changed.
-   */
-  Slider.prototype.setOnChangeCallback = function (callback) {
-    this.onChangeCallback = callback;
-  };
-
-  /**
-   * Set the interval for playing the list
-   * @param {Number} interval   The interval in milliseconds
-   */
-  Slider.prototype.setPlayInterval = function (interval) {
-    this.playInterval = interval;
-  };
-
-  /**
-   * Retrieve the current play interval
-   * @return {Number} interval   The interval in milliseconds
-   */
-  Slider.prototype.getPlayInterval = function (interval) {
-    return this.playInterval;
-  };
-
-  /**
-   * Set looping on or off
-   * @pararm {boolean} doLoop  If true, the slider will jump to the start when
-   *               the end is passed, and will jump to the end
-   *               when the start is passed.
-   */
-  Slider.prototype.setPlayLoop = function (doLoop) {
-    this.playLoop = doLoop;
-  };
-
-
-  /**
-   * Execute the onchange callback function
-   */
-  Slider.prototype.onChange = function () {
-    if (this.onChangeCallback !== undefined) {
-      this.onChangeCallback();
-    }
-  };
-
-  /**
-   * redraw the slider on the correct place
-   */
-  Slider.prototype.redraw = function () {
-    if (this.frame) {
-      // resize the bar
-      this.frame.bar.style.top = this.frame.clientHeight / 2 - this.frame.bar.offsetHeight / 2 + "px";
-      this.frame.bar.style.width = this.frame.clientWidth - this.frame.prev.clientWidth - this.frame.play.clientWidth - this.frame.next.clientWidth - 30 + "px";
-
-      // position the slider button
-      var left = this.indexToLeft(this.index);
-      this.frame.slide.style.left = left + "px";
-    }
-  };
-
-
-  /**
-   * Set the list with values for the slider
-   * @param {Array} values   A javascript array with values (any type)
-   */
-  Slider.prototype.setValues = function (values) {
-    this.values = values;
-
-    if (this.values.length > 0) this.setIndex(0);else this.index = undefined;
-  };
-
-  /**
-   * Select a value by its index
-   * @param {Number} index
-   */
-  Slider.prototype.setIndex = function (index) {
-    if (index < this.values.length) {
-      this.index = index;
-
-      this.redraw();
-      this.onChange();
-    } else {
-      throw "Error: index out of range";
-    }
-  };
-
-  /**
-   * retrieve the index of the currently selected vaue
-   * @return {Number} index
-   */
-  Slider.prototype.getIndex = function () {
-    return this.index;
-  };
-
-
-  /**
-   * retrieve the currently selected value
-   * @return {*} value
-   */
-  Slider.prototype.get = function () {
-    return this.values[this.index];
-  };
-
-
-  Slider.prototype._onMouseDown = function (event) {
-    // only react on left mouse button down
-    var leftButtonDown = event.which ? event.which === 1 : event.button === 1;
-    if (!leftButtonDown) return;
-
-    this.startClientX = event.clientX;
-    this.startSlideX = parseFloat(this.frame.slide.style.left);
-
-    this.frame.style.cursor = "move";
-
-    // add event listeners to handle moving the contents
-    // we store the function onmousemove and onmouseup in the graph, so we can
-    // remove the eventlisteners lateron in the function mouseUp()
-    var me = this;
-    this.onmousemove = function (event) {
-      me._onMouseMove(event);
-    };
-    this.onmouseup = function (event) {
-      me._onMouseUp(event);
-    };
-    util.addEventListener(document, "mousemove", this.onmousemove);
-    util.addEventListener(document, "mouseup", this.onmouseup);
-    util.preventDefault(event);
-  };
-
-
-  Slider.prototype.leftToIndex = function (left) {
-    var width = parseFloat(this.frame.bar.style.width) - this.frame.slide.clientWidth - 10;
-    var x = left - 3;
-
-    var index = Math.round(x / width * (this.values.length - 1));
-    if (index < 0) index = 0;
-    if (index > this.values.length - 1) index = this.values.length - 1;
-
-    return index;
-  };
-
-  Slider.prototype.indexToLeft = function (index) {
-    var width = parseFloat(this.frame.bar.style.width) - this.frame.slide.clientWidth - 10;
-
-    var x = index / (this.values.length - 1) * width;
-    var left = x + 3;
-
-    return left;
-  };
-
-
-
-  Slider.prototype._onMouseMove = function (event) {
-    var diff = event.clientX - this.startClientX;
-    var x = this.startSlideX + diff;
-
-    var index = this.leftToIndex(x);
-
-    this.setIndex(index);
-
-    util.preventDefault();
-  };
-
-
-  Slider.prototype._onMouseUp = function (event) {
-    this.frame.style.cursor = "auto";
-
-    // remove event listeners
-    util.removeEventListener(document, "mousemove", this.onmousemove);
-    util.removeEventListener(document, "mouseup", this.onmouseup);
-
-    util.preventDefault();
-  };
-
-  module.exports = Slider;
-
-/***/ },
-/* 13 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  /**
-   * @prototype StepNumber
-   * The class StepNumber is an iterator for Numbers. You provide a start and end
-   * value, and a best step size. StepNumber itself rounds to fixed values and
-   * a finds the step that best fits the provided step.
-   *
-   * If prettyStep is true, the step size is chosen as close as possible to the
-   * provided step, but being a round value like 1, 2, 5, 10, 20, 50, ....
-   *
-   * Example usage:
-   *   var step = new StepNumber(0, 10, 2.5, true);
-   *   step.start();
-   *   while (!step.end()) {
-   *   alert(step.getCurrent());
-   *   step.next();
-   *   }
-   *
-   * Version: 1.0
-   *
-   * @param {Number} start     The start value
-   * @param {Number} end     The end value
-   * @param {Number} step    Optional. Step size. Must be a positive value.
-   * @param {boolean} prettyStep Optional. If true, the step size is rounded
-   *               To a pretty step size (like 1, 2, 5, 10, 20, 50, ...)
-   */
-  function StepNumber(start, end, step, prettyStep) {
-    // set default values
-    this._start = 0;
-    this._end = 0;
-    this._step = 1;
-    this.prettyStep = true;
-    this.precision = 5;
-
-    this._current = 0;
-    this.setRange(start, end, step, prettyStep);
-  };
-
-  /**
-   * Set a new range: start, end and step.
-   *
-   * @param {Number} start     The start value
-   * @param {Number} end     The end value
-   * @param {Number} step    Optional. Step size. Must be a positive value.
-   * @param {boolean} prettyStep Optional. If true, the step size is rounded
-   *               To a pretty step size (like 1, 2, 5, 10, 20, 50, ...)
-   */
-  StepNumber.prototype.setRange = function (start, end, step, prettyStep) {
-    this._start = start ? start : 0;
-    this._end = end ? end : 0;
-
-    this.setStep(step, prettyStep);
-  };
-
-  /**
-   * Set a new step size
-   * @param {Number} step    New step size. Must be a positive value
-   * @param {boolean} prettyStep Optional. If true, the provided step is rounded
-   *               to a pretty step size (like 1, 2, 5, 10, 20, 50, ...)
-   */
-  StepNumber.prototype.setStep = function (step, prettyStep) {
-    if (step === undefined || step <= 0) return;
-
-    if (prettyStep !== undefined) this.prettyStep = prettyStep;
-
-    if (this.prettyStep === true) this._step = StepNumber.calculatePrettyStep(step);else this._step = step;
-  };
-
-  /**
-   * Calculate a nice step size, closest to the desired step size.
-   * Returns a value in one of the ranges 1*10^n, 2*10^n, or 5*10^n, where n is an
-   * integer Number. For example 1, 2, 5, 10, 20, 50, etc...
-   * @param {Number}  step  Desired step size
-   * @return {Number}     Nice step size
-   */
-  StepNumber.calculatePrettyStep = function (step) {
-    var log10 = function (x) {
-      return Math.log(x) / Math.LN10;
-    };
-
-    // try three steps (multiple of 1, 2, or 5
-    var step1 = Math.pow(10, Math.round(log10(step))),
-        step2 = 2 * Math.pow(10, Math.round(log10(step / 2))),
-        step5 = 5 * Math.pow(10, Math.round(log10(step / 5)));
-
-    // choose the best step (closest to minimum step)
-    var prettyStep = step1;
-    if (Math.abs(step2 - step) <= Math.abs(prettyStep - step)) prettyStep = step2;
-    if (Math.abs(step5 - step) <= Math.abs(prettyStep - step)) prettyStep = step5;
-
-    // for safety
-    if (prettyStep <= 0) {
-      prettyStep = 1;
-    }
-
-    return prettyStep;
-  };
-
-  /**
-   * returns the current value of the step
-   * @return {Number} current value
-   */
-  StepNumber.prototype.getCurrent = function () {
-    return parseFloat(this._current.toPrecision(this.precision));
-  };
-
-  /**
-   * returns the current step size
-   * @return {Number} current step size
-   */
-  StepNumber.prototype.getStep = function () {
-    return this._step;
-  };
-
-  /**
-   * Set the current value to the largest value smaller than start, which
-   * is a multiple of the step size
-   */
-  StepNumber.prototype.start = function () {
-    this._current = this._start - this._start % this._step;
-  };
-
-  /**
-   * Do a step, add the step size to the current value
-   */
-  StepNumber.prototype.next = function () {
-    this._current += this._step;
-  };
-
-  /**
-   * Returns true whether the end is reached
-   * @return {boolean}  True if the current value has passed the end value.
-   */
-  StepNumber.prototype.end = function () {
-    return this._current > this._end;
-  };
-
-  module.exports = StepNumber;
-
-/***/ },
-/* 14 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var Emitter = __webpack_require__(7);
-  var Hammer = __webpack_require__(15);
-  var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(3);
-  var DataView = __webpack_require__(5);
-  var Range = __webpack_require__(19);
-  var Core = __webpack_require__(20);
-  var TimeAxis = __webpack_require__(21);
-  var CurrentTime = __webpack_require__(29);
-  var CustomTime = __webpack_require__(31);
-  var ItemSet = __webpack_require__(32);
-
-  /**
-   * Create a timeline visualization
-   * @param {HTMLElement} container
-   * @param {vis.DataSet | vis.DataView | Array | google.visualization.DataTable} [items]
-   * @param {vis.DataSet | vis.DataView | Array | google.visualization.DataTable} [groups]
-   * @param {Object} [options]  See Timeline.setOptions for the available options.
-   * @constructor
-   * @extends Core
-   */
-  function Timeline(container, items, groups, options) {
-    if (!(this instanceof Timeline)) {
-      throw new SyntaxError("Constructor must be called with the new operator");
-    }
-
-    // if the third element is options, the forth is groups (optionally);
-    if (!(Array.isArray(groups) || groups instanceof DataSet || groups instanceof DataView) && groups instanceof Object) {
-      var forthArgument = options;
-      options = groups;
-      groups = forthArgument;
-    }
-
-    var me = this;
-    this.defaultOptions = {
-      start: null,
-      end: null,
-
-      autoResize: true,
-
-      orientation: "bottom",
-      width: null,
-      height: null,
-      maxHeight: null,
-      minHeight: null
-    };
-    this.options = util.deepExtend({}, this.defaultOptions);
-
-    // Create the DOM, props, and emitter
-    this._create(container);
-
-    // all components listed here will be repainted automatically
-    this.components = [];
-
-    this.body = {
-      dom: this.dom,
-      domProps: this.props,
-      emitter: {
-        on: this.on.bind(this),
-        off: this.off.bind(this),
-        emit: this.emit.bind(this)
-      },
-      hiddenDates: [],
-      util: {
-        getScale: function () {
-          return me.timeAxis.step.scale;
-        },
-        getStep: function () {
-          return me.timeAxis.step.step;
-        },
-
-        toScreen: me._toScreen.bind(me),
-        toGlobalScreen: me._toGlobalScreen.bind(me), // this refers to the root.width
-        toTime: me._toTime.bind(me),
-        toGlobalTime: me._toGlobalTime.bind(me)
-      }
-    };
-
-    // range
-    this.range = new Range(this.body);
-    this.components.push(this.range);
-    this.body.range = this.range;
-
-    // time axis
-    this.timeAxis = new TimeAxis(this.body);
-    this.components.push(this.timeAxis);
-
-    // current time bar
-    this.currentTime = new CurrentTime(this.body);
-    this.components.push(this.currentTime);
-
-    // custom time bar
-    // Note: time bar will be attached in this.setOptions when selected
-    this.customTime = new CustomTime(this.body);
-    this.components.push(this.customTime);
-
-    // item set
-    this.itemSet = new ItemSet(this.body);
-    this.components.push(this.itemSet);
-
-    this.itemsData = null; // DataSet
-    this.groupsData = null; // DataSet
-
-    // apply options
-    if (options) {
-      this.setOptions(options);
-    }
-
-    // IMPORTANT: THIS HAPPENS BEFORE SET ITEMS!
-    if (groups) {
-      this.setGroups(groups);
-    }
-
-    // create itemset
-    if (items) {
-      this.setItems(items);
-    } else {
-      this._redraw();
-    }
-  }
-
-  // Extend the functionality from Core
-  Timeline.prototype = new Core();
-
-  /**
-   * Force a redraw. The size of all items will be recalculated.
-   * Can be useful to manually redraw when option autoResize=false and the window
-   * has been resized, or when the items CSS has been changed.
-   */
-  Timeline.prototype.redraw = function () {
-    this.itemSet && this.itemSet.markDirty({ refreshItems: true });
-    this._redraw();
-  };
-
-  /**
-   * Set items
-   * @param {vis.DataSet | Array | google.visualization.DataTable | null} items
-   */
-  Timeline.prototype.setItems = function (items) {
-    var initialLoad = this.itemsData == null;
-
-    // convert to type DataSet when needed
-    var newDataSet;
-    if (!items) {
-      newDataSet = null;
-    } else if (items instanceof DataSet || items instanceof DataView) {
-      newDataSet = items;
-    } else {
-      // turn an array into a dataset
-      newDataSet = new DataSet(items, {
-        type: {
-          start: "Date",
-          end: "Date"
-        }
-      });
-    }
-
-    // set items
-    this.itemsData = newDataSet;
-    this.itemSet && this.itemSet.setItems(newDataSet);
-
-    if (initialLoad) {
-      if (this.options.start != undefined || this.options.end != undefined) {
-        if (this.options.start == undefined || this.options.end == undefined) {
-          var dataRange = this._getDataRange();
-        }
-
-        var start = this.options.start != undefined ? this.options.start : dataRange.start;
-        var end = this.options.end != undefined ? this.options.end : dataRange.end;
-
-        this.setWindow(start, end, { animate: false });
-      } else {
-        this.fit({ animate: false });
-      }
-    }
-  };
-
-  /**
-   * Set groups
-   * @param {vis.DataSet | Array | google.visualization.DataTable} groups
-   */
-  Timeline.prototype.setGroups = function (groups) {
-    // convert to type DataSet when needed
-    var newDataSet;
-    if (!groups) {
-      newDataSet = null;
-    } else if (groups instanceof DataSet || groups instanceof DataView) {
-      newDataSet = groups;
-    } else {
-      // turn an array into a dataset
-      newDataSet = new DataSet(groups);
-    }
-
-    this.groupsData = newDataSet;
-    this.itemSet.setGroups(newDataSet);
-  };
-
-  /**
-   * Set selected items by their id. Replaces the current selection
-   * Unknown id's are silently ignored.
-   * @param {string[] | string} [ids]  An array with zero or more id's of the items to be
-   *                                selected. If ids is an empty array, all items will be
-   *                                unselected.
-   * @param {Object} [options]      Available options:
-   *                                `focus: boolean`
-   *                                    If true, focus will be set to the selected item(s)
-   *                                `animate: boolean | number`
-   *                                    If true (default), the range is animated
-   *                                    smoothly to the new window.
-   *                                    If a number, the number is taken as duration
-   *                                    for the animation. Default duration is 500 ms.
-   *                                    Only applicable when option focus is true.
-   */
-  Timeline.prototype.setSelection = function (ids, options) {
-    this.itemSet && this.itemSet.setSelection(ids);
-
-    if (options && options.focus) {
-      this.focus(ids, options);
-    }
-  };
-
-  /**
-   * Get the selected items by their id
-   * @return {Array} ids  The ids of the selected items
-   */
-  Timeline.prototype.getSelection = function () {
-    return this.itemSet && this.itemSet.getSelection() || [];
-  };
-
-  /**
-   * Adjust the visible window such that the selected item (or multiple items)
-   * are centered on screen.
-   * @param {String | String[]} id     An item id or array with item ids
-   * @param {Object} [options]      Available options:
-   *                                `animate: boolean | number`
-   *                                    If true (default), the range is animated
-   *                                    smoothly to the new window.
-   *                                    If a number, the number is taken as duration
-   *                                    for the animation. Default duration is 500 ms.
-   *                                    Only applicable when option focus is true
-   */
-  Timeline.prototype.focus = function (id, options) {
-    if (!this.itemsData || id == undefined) return;
-
-    var ids = Array.isArray(id) ? id : [id];
-
-    // get the specified item(s)
-    var itemsData = this.itemsData.getDataSet().get(ids, {
-      type: {
-        start: "Date",
-        end: "Date"
-      }
-    });
-
-    // calculate minimum start and maximum end of specified items
-    var start = null;
-    var end = null;
-    itemsData.forEach(function (itemData) {
-      var s = itemData.start.valueOf();
-      var e = "end" in itemData ? itemData.end.valueOf() : itemData.start.valueOf();
-
-      if (start === null || s < start) {
-        start = s;
-      }
-
-      if (end === null || e > end) {
-        end = e;
-      }
-    });
-
-    if (start !== null && end !== null) {
-      // calculate the new middle and interval for the window
-      var middle = (start + end) / 2;
-      var interval = Math.max(this.range.end - this.range.start, (end - start) * 1.1);
-
-      var animate = options && options.animate !== undefined ? options.animate : true;
-      this.range.setRange(middle - interval / 2, middle + interval / 2, animate);
-    }
-  };
-
-  /**
-   * Get the data range of the item set.
-   * @returns {{min: Date, max: Date}} range  A range with a start and end Date.
-   *                                          When no minimum is found, min==null
-   *                                          When no maximum is found, max==null
-   */
-  Timeline.prototype.getItemRange = function () {
-    // calculate min from start filed
-    var dataset = this.itemsData.getDataSet(),
-        min = null,
-        max = null;
-
-    if (dataset) {
-      // calculate the minimum value of the field 'start'
-      var minItem = dataset.min("start");
-      min = minItem ? util.convert(minItem.start, "Date").valueOf() : null;
-      // Note: we convert first to Date and then to number because else
-      // a conversion from ISODate to Number will fail
-
-      // calculate maximum value of fields 'start' and 'end'
-      var maxStartItem = dataset.max("start");
-      if (maxStartItem) {
-        max = util.convert(maxStartItem.start, "Date").valueOf();
-      }
-      var maxEndItem = dataset.max("end");
-      if (maxEndItem) {
-        if (max == null) {
-          max = util.convert(maxEndItem.end, "Date").valueOf();
-        } else {
-          max = Math.max(max, util.convert(maxEndItem.end, "Date").valueOf());
-        }
-      }
-    }
-
-    return {
-      min: min != null ? new Date(min) : null,
-      max: max != null ? new Date(max) : null
-    };
-  };
-
-
-  module.exports = Timeline;
-
-/***/ },
-/* 15 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  // Only load hammer.js when in a browser environment
-  // (loading hammer.js in a node.js environment gives errors)
-  if (typeof window !== "undefined") {
-    var propagating = __webpack_require__(16);
-    var Hammer = window.Hammer || __webpack_require__(17);
-    module.exports = propagating(Hammer);
-  } else {
-    module.exports = function () {
-      throw Error("hammer.js is only available in a browser, not in node.js.");
-    };
-  }
-
-/***/ },
-/* 16 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
-
-  (function (factory) {
-    if (true) {
-      // AMD. Register as an anonymous module.
-      !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-    } else if (typeof exports === 'object') {
-      // Node. Does not work with strict CommonJS, but
-      // only CommonJS-like environments that support module.exports,
-      // like Node.
-      module.exports = factory();
-    } else {
-      // Browser globals (root is window)
-      window.propagating = factory();
-    }
-  }(function () {
-    // will contain the target element where the gesture started
-    var _firstTarget = null; // singleton
-
-    /**
-     * Extend an Hammer.js instance with event propagation.
-     *
-     * Features:
-     * - Events emitted by hammer will propagate in order from child to parent
-     *   elements.
-     * - Events are extended with a function `event.stopPropagation()` to stop
-     *   propagation to parent elements.
-     *
-     * Usage:
-     *   var hammer = propagatingHammer(new Hammer(element));
-     *
-     * @param {Hammer.Manager} hammer   An hammer instance.
-     * @return {Hammer.Manager} Returns the same hammer instance with extended
-     *                          functionality
-     */
-    return function propagating(hammer) {
-      if (hammer.Manager) {
-        // This looks like the Hammer constructor.
-        // Overload the constructors with our own.
-        var Hammer = hammer;
-
-        var PropagatingHammer = function(element, options) {
-          return propagating(new Hammer(element, options));
-        };
-        Hammer.extend(PropagatingHammer, Hammer);
-        PropagatingHammer.Manager = function (element, options) {
-          return propagating(new Hammer.Manager(element, options));
-        };
-
-        return PropagatingHammer;
-      }
-
-      // attach to DOM element
-      var element = hammer.element;
-      element.hammer = hammer;
-
-      // move the original functions that we will wrap
-      hammer._on = hammer.on;
-      hammer._off = hammer.off;
-      hammer._emit = hammer.emit;
-      hammer._destroy = hammer.destroy;
-
-      /** @type {Object.<String, Array.<function>>} */
-      hammer._handlers = {};
-
-      // register an event to catch the start of a gesture and store the
-      // target in a singleton
-      hammer._on('hammer.input', function (event) {
-        if (event.isFirst) {
-          _firstTarget = event.target;
-        }
-      });
-
-      /**
-       * Register a handler for one or multiple events
-       * @param {String} events    A space separated string with events
-       * @param {function} handler A callback function, called as handler(event)
-       * @returns {Hammer.Manager} Returns the hammer instance
-       */
-      hammer.on = function (events, handler) {
-        // register the handler
-        split(events).forEach(function (event) {
-          var _handlers = hammer._handlers[event];
-          if (!_handlers) {
-            hammer._handlers[event] = _handlers = [];
-
-            // register the static, propagated handler
-            hammer._on(event, propagatedHandler);
-          }
-          _handlers.push(handler);
-        });
-
-        return hammer;
-      };
-
-      /**
-       * Unregister a handler for one or multiple events
-       * @param {String} events      A space separated string with events
-       * @param {function} [handler] Optional. The registered handler. If not
-       *                             provided, all handlers for given events
-       *                             are removed.
-       * @returns {Hammer.Manager}   Returns the hammer instance
-       */
-      hammer.off = function (events, handler) {
-        // unregister the handler
-        split(events).forEach(function (event) {
-          var _handlers = hammer._handlers[event];
-          if (_handlers) {
-            _handlers = handler ? _handlers.filter(function (h) {
-              return h !== handler;
-            }) : [];
-
-            if (_handlers.length > 0) {
-              hammer._handlers[event] = _handlers;
-            }
-            else {
-              // remove static, propagated handler
-              hammer._off(event, propagatedHandler);
-              delete hammer._handlers[event];
-            }
-          }
-        });
-
-        return hammer;
-      };
-
-      /**
-       * Emit to the event listeners
-       * @param {string} eventType
-       * @param {Event} event
-       */
-      hammer.emit = function(eventType, event) {
-        _firstTarget = event.target;
-        hammer._emit(eventType, event);
-      };
-
-      hammer.destroy = function () {
-        // Detach from DOM element
-        var element = hammer.element;
-        delete element.hammer;
-
-        // clear all handlers
-        hammer._handlers = {};
-
-        // call original hammer destroy
-        hammer._destroy();
-      };
-
-      // split a string with space separated words
-      function split(events) {
-        return events.match(/[^ ]+/g);
-      }
-
-      /**
-       * A static event handler, applying event propagation.
-       * @param {Object} event
-       */
-      function propagatedHandler(event) {
-        // let only a single hammer instance handle this event
-        if (event.type !== 'hammer.input') {
-          if (event.srcEvent._handled && event.srcEvent._handled[event.type]) {
-            return;
-          }
-          else {
-            // it is possible that the same srcEvent is used with multiple hammer events
-            event.srcEvent._handled = {};
-            event.srcEvent._handled[event.type] = true;
-          }
-        }
-
-        // attach a stopPropagation function to the event
-        var stopped = false;
-        event.stopPropagation = function () {
-          stopped = true;
-        };
-
-        // attach firstTarget property to the event
-        event.firstTarget = _firstTarget;
-
-        // propagate over all elements (until stopped)
-        var elem = _firstTarget;
-        while (elem && !stopped) {
-          var _handlers = elem.hammer && elem.hammer._handlers[event.type];
-          if (_handlers) {
-            for (var i = 0; i < _handlers.length && !stopped; i++) {
-              _handlers[i](event);
-            }
-          }
-
-          elem = elem.parentNode;
-        }
-      }
-
-      return hammer;
-    };
-  }));
-
-
-/***/ },
-/* 17 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v2.0.4 - 2014-09-28
-   * http://hammerjs.github.io/
-   *
-   * Copyright (c) 2014 Jorik Tangelder;
-   * Licensed under the MIT license */
-  (function(window, document, exportName, undefined) {
-    'use strict';
-
-  var VENDOR_PREFIXES = ['', 'webkit', 'moz', 'MS', 'ms', 'o'];
-  var TEST_ELEMENT = document.createElement('div');
-
-  var TYPE_FUNCTION = 'function';
-
-  var round = Math.round;
-  var abs = Math.abs;
-  var now = Date.now;
-
-  /**
-   * set a timeout with a given scope
-   * @param {Function} fn
-   * @param {Number} timeout
-   * @param {Object} context
-   * @returns {number}
-   */
-  function setTimeoutContext(fn, timeout, context) {
-      return setTimeout(bindFn(fn, context), timeout);
-  }
-
-  /**
-   * if the argument is an array, we want to execute the fn on each entry
-   * if it aint an array we don't want to do a thing.
-   * this is used by all the methods that accept a single and array argument.
-   * @param {*|Array} arg
-   * @param {String} fn
-   * @param {Object} [context]
-   * @returns {Boolean}
-   */
-  function invokeArrayArg(arg, fn, context) {
-      if (Array.isArray(arg)) {
-          each(arg, context[fn], context);
-          return true;
-      }
-      return false;
-  }
-
-  /**
-   * walk objects and arrays
-   * @param {Object} obj
-   * @param {Function} iterator
-   * @param {Object} context
-   */
-  function each(obj, iterator, context) {
-      var i;
-
-      if (!obj) {
-          return;
-      }
-
-      if (obj.forEach) {
-          obj.forEach(iterator, context);
-      } else if (obj.length !== undefined) {
-          i = 0;
-          while (i < obj.length) {
-              iterator.call(context, obj[i], i, obj);
-              i++;
-          }
-      } else {
-          for (i in obj) {
-              obj.hasOwnProperty(i) && iterator.call(context, obj[i], i, obj);
-          }
-      }
-  }
-
-  /**
-   * extend object.
-   * means that properties in dest will be overwritten by the ones in src.
-   * @param {Object} dest
-   * @param {Object} src
-   * @param {Boolean} [merge]
-   * @returns {Object} dest
-   */
-  function extend(dest, src, merge) {
-      var keys = Object.keys(src);
-      var i = 0;
-      while (i < keys.length) {
-          if (!merge || (merge && dest[keys[i]] === undefined)) {
-              dest[keys[i]] = src[keys[i]];
-          }
-          i++;
-      }
-      return dest;
-  }
-
-  /**
-   * merge the values from src in the dest.
-   * means that properties that exist in dest will not be overwritten by src
-   * @param {Object} dest
-   * @param {Object} src
-   * @returns {Object} dest
-   */
-  function merge(dest, src) {
-      return extend(dest, src, true);
-  }
-
-  /**
-   * simple class inheritance
-   * @param {Function} child
-   * @param {Function} base
-   * @param {Object} [properties]
-   */
-  function inherit(child, base, properties) {
-      var baseP = base.prototype,
-          childP;
-
-      childP = child.prototype = Object.create(baseP);
-      childP.constructor = child;
-      childP._super = baseP;
-
-      if (properties) {
-          extend(childP, properties);
-      }
-  }
-
-  /**
-   * simple function bind
-   * @param {Function} fn
-   * @param {Object} context
-   * @returns {Function}
-   */
-  function bindFn(fn, context) {
-      return function boundFn() {
-          return fn.apply(context, arguments);
-      };
-  }
-
-  /**
-   * let a boolean value also be a function that must return a boolean
-   * this first item in args will be used as the context
-   * @param {Boolean|Function} val
-   * @param {Array} [args]
-   * @returns {Boolean}
-   */
-  function boolOrFn(val, args) {
-      if (typeof val == TYPE_FUNCTION) {
-          return val.apply(args ? args[0] || undefined : undefined, args);
-      }
-      return val;
-  }
-
-  /**
-   * use the val2 when val1 is undefined
-   * @param {*} val1
-   * @param {*} val2
-   * @returns {*}
-   */
-  function ifUndefined(val1, val2) {
-      return (val1 === undefined) ? val2 : val1;
-  }
-
-  /**
-   * addEventListener with multiple events at once
-   * @param {EventTarget} target
-   * @param {String} types
-   * @param {Function} handler
-   */
-  function addEventListeners(target, types, handler) {
-      each(splitStr(types), function(type) {
-          target.addEventListener(type, handler, false);
-      });
-  }
-
-  /**
-   * removeEventListener with multiple events at once
-   * @param {EventTarget} target
-   * @param {String} types
-   * @param {Function} handler
-   */
-  function removeEventListeners(target, types, handler) {
-      each(splitStr(types), function(type) {
-          target.removeEventListener(type, handler, false);
-      });
-  }
-
-  /**
-   * find if a node is in the given parent
-   * @method hasParent
-   * @param {HTMLElement} node
-   * @param {HTMLElement} parent
-   * @return {Boolean} found
-   */
-  function hasParent(node, parent) {
-      while (node) {
-          if (node == parent) {
-              return true;
-          }
-          node = node.parentNode;
-      }
-      return false;
-  }
-
-  /**
-   * small indexOf wrapper
-   * @param {String} str
-   * @param {String} find
-   * @returns {Boolean} found
-   */
-  function inStr(str, find) {
-      return str.indexOf(find) > -1;
-  }
-
-  /**
-   * split string on whitespace
-   * @param {String} str
-   * @returns {Array} words
-   */
-  function splitStr(str) {
-      return str.trim().split(/\s+/g);
-  }
-
-  /**
-   * find if a array contains the object using indexOf or a simple polyFill
-   * @param {Array} src
-   * @param {String} find
-   * @param {String} [findByKey]
-   * @return {Boolean|Number} false when not found, or the index
-   */
-  function inArray(src, find, findByKey) {
-      if (src.indexOf && !findByKey) {
-          return src.indexOf(find);
-      } else {
-          var i = 0;
-          while (i < src.length) {
-              if ((findByKey && src[i][findByKey] == find) || (!findByKey && src[i] === find)) {
-                  return i;
-              }
-              i++;
-          }
-          return -1;
-      }
-  }
-
-  /**
-   * convert array-like objects to real arrays
-   * @param {Object} obj
-   * @returns {Array}
-   */
-  function toArray(obj) {
-      return Array.prototype.slice.call(obj, 0);
-  }
-
-  /**
-   * unique array with objects based on a key (like 'id') or just by the array's value
-   * @param {Array} src [{id:1},{id:2},{id:1}]
-   * @param {String} [key]
-   * @param {Boolean} [sort=False]
-   * @returns {Array} [{id:1},{id:2}]
-   */
-  function uniqueArray(src, key, sort) {
-      var results = [];
-      var values = [];
-      var i = 0;
-
-      while (i < src.length) {
-          var val = key ? src[i][key] : src[i];
-          if (inArray(values, val) < 0) {
-              results.push(src[i]);
-          }
-          values[i] = val;
-          i++;
-      }
-
-      if (sort) {
-          if (!key) {
-              results = results.sort();
-          } else {
-              results = results.sort(function sortUniqueArray(a, b) {
-                  return a[key] > b[key];
-              });
-          }
-      }
-
-      return results;
-  }
-
-  /**
-   * get the prefixed property
-   * @param {Object} obj
-   * @param {String} property
-   * @returns {String|Undefined} prefixed
-   */
-  function prefixed(obj, property) {
-      var prefix, prop;
-      var camelProp = property[0].toUpperCase() + property.slice(1);
-
-      var i = 0;
-      while (i < VENDOR_PREFIXES.length) {
-          prefix = VENDOR_PREFIXES[i];
-          prop = (prefix) ? prefix + camelProp : property;
-
-          if (prop in obj) {
-              return prop;
-          }
-          i++;
-      }
-      return undefined;
-  }
-
-  /**
-   * get a unique id
-   * @returns {number} uniqueId
-   */
-  var _uniqueId = 1;
-  function uniqueId() {
-      return _uniqueId++;
-  }
-
-  /**
-   * get the window object of an element
-   * @param {HTMLElement} element
-   * @returns {DocumentView|Window}
-   */
-  function getWindowForElement(element) {
-      var doc = element.ownerDocument;
-      return (doc.defaultView || doc.parentWindow);
-  }
-
-  var MOBILE_REGEX = /mobile|tablet|ip(ad|hone|od)|android/i;
-
-  var SUPPORT_TOUCH = ('ontouchstart' in window);
-  var SUPPORT_POINTER_EVENTS = prefixed(window, 'PointerEvent') !== undefined;
-  var SUPPORT_ONLY_TOUCH = SUPPORT_TOUCH && MOBILE_REGEX.test(navigator.userAgent);
-
-  var INPUT_TYPE_TOUCH = 'touch';
-  var INPUT_TYPE_PEN = 'pen';
-  var INPUT_TYPE_MOUSE = 'mouse';
-  var INPUT_TYPE_KINECT = 'kinect';
-
-  var COMPUTE_INTERVAL = 25;
-
-  var INPUT_START = 1;
-  var INPUT_MOVE = 2;
-  var INPUT_END = 4;
-  var INPUT_CANCEL = 8;
-
-  var DIRECTION_NONE = 1;
-  var DIRECTION_LEFT = 2;
-  var DIRECTION_RIGHT = 4;
-  var DIRECTION_UP = 8;
-  var DIRECTION_DOWN = 16;
-
-  var DIRECTION_HORIZONTAL = DIRECTION_LEFT | DIRECTION_RIGHT;
-  var DIRECTION_VERTICAL = DIRECTION_UP | DIRECTION_DOWN;
-  var DIRECTION_ALL = DIRECTION_HORIZONTAL | DIRECTION_VERTICAL;
-
-  var PROPS_XY = ['x', 'y'];
-  var PROPS_CLIENT_XY = ['clientX', 'clientY'];
-
-  /**
-   * create new input type manager
-   * @param {Manager} manager
-   * @param {Function} callback
-   * @returns {Input}
-   * @constructor
-   */
-  function Input(manager, callback) {
-      var self = this;
-      this.manager = manager;
-      this.callback = callback;
-      this.element = manager.element;
-      this.target = manager.options.inputTarget;
-
-      // smaller wrapper around the handler, for the scope and the enabled state of the manager,
-      // so when disabled the input events are completely bypassed.
-      this.domHandler = function(ev) {
-          if (boolOrFn(manager.options.enable, [manager])) {
-              self.handler(ev);
-          }
-      };
-
-      this.init();
-
-  }
-
-  Input.prototype = {
-      /**
-       * should handle the inputEvent data and trigger the callback
-       * @virtual
-       */
-      handler: function() { },
-
-      /**
-       * bind the events
-       */
-      init: function() {
-          this.evEl && addEventListeners(this.element, this.evEl, this.domHandler);
-          this.evTarget && addEventListeners(this.target, this.evTarget, this.domHandler);
-          this.evWin && addEventListeners(getWindowForElement(this.element), this.evWin, this.domHandler);
-      },
-
-      /**
-       * unbind the events
-       */
-      destroy: function() {
-          this.evEl && removeEventListeners(this.element, this.evEl, this.domHandler);
-          this.evTarget && removeEventListeners(this.target, this.evTarget, this.domHandler);
-          this.evWin && removeEventListeners(getWindowForElement(this.element), this.evWin, this.domHandler);
-      }
-  };
-
-  /**
-   * create new input type manager
-   * called by the Manager constructor
-   * @param {Hammer} manager
-   * @returns {Input}
-   */
-  function createInputInstance(manager) {
-      var Type;
-      var inputClass = manager.options.inputClass;
-
-      if (inputClass) {
-          Type = inputClass;
-      } else if (SUPPORT_POINTER_EVENTS) {
-          Type = PointerEventInput;
-      } else if (SUPPORT_ONLY_TOUCH) {
-          Type = TouchInput;
-      } else if (!SUPPORT_TOUCH) {
-          Type = MouseInput;
-      } else {
-          Type = TouchMouseInput;
-      }
-      return new (Type)(manager, inputHandler);
-  }
-
-  /**
-   * handle input events
-   * @param {Manager} manager
-   * @param {String} eventType
-   * @param {Object} input
-   */
-  function inputHandler(manager, eventType, input) {
-      var pointersLen = input.pointers.length;
-      var changedPointersLen = input.changedPointers.length;
-      var isFirst = (eventType & INPUT_START && (pointersLen - changedPointersLen === 0));
-      var isFinal = (eventType & (INPUT_END | INPUT_CANCEL) && (pointersLen - changedPointersLen === 0));
-
-      input.isFirst = !!isFirst;
-      input.isFinal = !!isFinal;
-
-      if (isFirst) {
-          manager.session = {};
-      }
-
-      // source event is the normalized value of the domEvents
-      // like 'touchstart, mouseup, pointerdown'
-      input.eventType = eventType;
-
-      // compute scale, rotation etc
-      computeInputData(manager, input);
-
-      // emit secret event
-      manager.emit('hammer.input', input);
-
-      manager.recognize(input);
-      manager.session.prevInput = input;
-  }
-
-  /**
-   * extend the data with some usable properties like scale, rotate, velocity etc
-   * @param {Object} manager
-   * @param {Object} input
-   */
-  function computeInputData(manager, input) {
-      var session = manager.session;
-      var pointers = input.pointers;
-      var pointersLength = pointers.length;
-
-      // store the first input to calculate the distance and direction
-      if (!session.firstInput) {
-          session.firstInput = simpleCloneInputData(input);
-      }
-
-      // to compute scale and rotation we need to store the multiple touches
-      if (pointersLength > 1 && !session.firstMultiple) {
-          session.firstMultiple = simpleCloneInputData(input);
-      } else if (pointersLength === 1) {
-          session.firstMultiple = false;
-      }
-
-      var firstInput = session.firstInput;
-      var firstMultiple = session.firstMultiple;
-      var offsetCenter = firstMultiple ? firstMultiple.center : firstInput.center;
-
-      var center = input.center = getCenter(pointers);
-      input.timeStamp = now();
-      input.deltaTime = input.timeStamp - firstInput.timeStamp;
-
-      input.angle = getAngle(offsetCenter, center);
-      input.distance = getDistance(offsetCenter, center);
-
-      computeDeltaXY(session, input);
-      input.offsetDirection = getDirection(input.deltaX, input.deltaY);
-
-      input.scale = firstMultiple ? getScale(firstMultiple.pointers, pointers) : 1;
-      input.rotation = firstMultiple ? getRotation(firstMultiple.pointers, pointers) : 0;
-
-      computeIntervalInputData(session, input);
-
-      // find the correct target
-      var target = manager.element;
-      if (hasParent(input.srcEvent.target, target)) {
-          target = input.srcEvent.target;
-      }
-      input.target = target;
-  }
-
-  function computeDeltaXY(session, input) {
-      var center = input.center;
-      var offset = session.offsetDelta || {};
-      var prevDelta = session.prevDelta || {};
-      var prevInput = session.prevInput || {};
-
-      if (input.eventType === INPUT_START || prevInput.eventType === INPUT_END) {
-          prevDelta = session.prevDelta = {
-              x: prevInput.deltaX || 0,
-              y: prevInput.deltaY || 0
-          };
-
-          offset = session.offsetDelta = {
-              x: center.x,
-              y: center.y
-          };
-      }
-
-      input.deltaX = prevDelta.x + (center.x - offset.x);
-      input.deltaY = prevDelta.y + (center.y - offset.y);
-  }
-
-  /**
-   * velocity is calculated every x ms
-   * @param {Object} session
-   * @param {Object} input
-   */
-  function computeIntervalInputData(session, input) {
-      var last = session.lastInterval || input,
-          deltaTime = input.timeStamp - last.timeStamp,
-          velocity, velocityX, velocityY, direction;
-
-      if (input.eventType != INPUT_CANCEL && (deltaTime > COMPUTE_INTERVAL || last.velocity === undefined)) {
-          var deltaX = last.deltaX - input.deltaX;
-          var deltaY = last.deltaY - input.deltaY;
-
-          var v = getVelocity(deltaTime, deltaX, deltaY);
-          velocityX = v.x;
-          velocityY = v.y;
-          velocity = (abs(v.x) > abs(v.y)) ? v.x : v.y;
-          direction = getDirection(deltaX, deltaY);
-
-          session.lastInterval = input;
-      } else {
-          // use latest velocity info if it doesn't overtake a minimum period
-          velocity = last.velocity;
-          velocityX = last.velocityX;
-          velocityY = last.velocityY;
-          direction = last.direction;
-      }
-
-      input.velocity = velocity;
-      input.velocityX = velocityX;
-      input.velocityY = velocityY;
-      input.direction = direction;
-  }
-
-  /**
-   * create a simple clone from the input used for storage of firstInput and firstMultiple
-   * @param {Object} input
-   * @returns {Object} clonedInputData
-   */
-  function simpleCloneInputData(input) {
-      // make a simple copy of the pointers because we will get a reference if we don't
-      // we only need clientXY for the calculations
-      var pointers = [];
-      var i = 0;
-      while (i < input.pointers.length) {
-          pointers[i] = {
-              clientX: round(input.pointers[i].clientX),
-              clientY: round(input.pointers[i].clientY)
-          };
-          i++;
-      }
-
-      return {
-          timeStamp: now(),
-          pointers: pointers,
-          center: getCenter(pointers),
-          deltaX: input.deltaX,
-          deltaY: input.deltaY
-      };
-  }
-
-  /**
-   * get the center of all the pointers
-   * @param {Array} pointers
-   * @return {Object} center contains `x` and `y` properties
-   */
-  function getCenter(pointers) {
-      var pointersLength = pointers.length;
-
-      // no need to loop when only one touch
-      if (pointersLength === 1) {
-          return {
-              x: round(pointers[0].clientX),
-              y: round(pointers[0].clientY)
-          };
-      }
-
-      var x = 0, y = 0, i = 0;
-      while (i < pointersLength) {
-          x += pointers[i].clientX;
-          y += pointers[i].clientY;
-          i++;
-      }
-
-      return {
-          x: round(x / pointersLength),
-          y: round(y / pointersLength)
-      };
-  }
-
-  /**
-   * calculate the velocity between two points. unit is in px per ms.
-   * @param {Number} deltaTime
-   * @param {Number} x
-   * @param {Number} y
-   * @return {Object} velocity `x` and `y`
-   */
-  function getVelocity(deltaTime, x, y) {
-      return {
-          x: x / deltaTime || 0,
-          y: y / deltaTime || 0
-      };
-  }
-
-  /**
-   * get the direction between two points
-   * @param {Number} x
-   * @param {Number} y
-   * @return {Number} direction
-   */
-  function getDirection(x, y) {
-      if (x === y) {
-          return DIRECTION_NONE;
-      }
-
-      if (abs(x) >= abs(y)) {
-          return x > 0 ? DIRECTION_LEFT : DIRECTION_RIGHT;
-      }
-      return y > 0 ? DIRECTION_UP : DIRECTION_DOWN;
-  }
-
-  /**
-   * calculate the absolute distance between two points
-   * @param {Object} p1 {x, y}
-   * @param {Object} p2 {x, y}
-   * @param {Array} [props] containing x and y keys
-   * @return {Number} distance
-   */
-  function getDistance(p1, p2, props) {
-      if (!props) {
-          props = PROPS_XY;
-      }
-      var x = p2[props[0]] - p1[props[0]],
-          y = p2[props[1]] - p1[props[1]];
-
-      return Math.sqrt((x * x) + (y * y));
-  }
-
-  /**
-   * calculate the angle between two coordinates
-   * @param {Object} p1
-   * @param {Object} p2
-   * @param {Array} [props] containing x and y keys
-   * @return {Number} angle
-   */
-  function getAngle(p1, p2, props) {
-      if (!props) {
-          props = PROPS_XY;
-      }
-      var x = p2[props[0]] - p1[props[0]],
-          y = p2[props[1]] - p1[props[1]];
-      return Math.atan2(y, x) * 180 / Math.PI;
-  }
-
-  /**
-   * calculate the rotation degrees between two pointersets
-   * @param {Array} start array of pointers
-   * @param {Array} end array of pointers
-   * @return {Number} rotation
-   */
-  function getRotation(start, end) {
-      return getAngle(end[1], end[0], PROPS_CLIENT_XY) - getAngle(start[1], start[0], PROPS_CLIENT_XY);
-  }
-
-  /**
-   * calculate the scale factor between two pointersets
-   * no scale is 1, and goes down to 0 when pinched together, and bigger when pinched out
-   * @param {Array} start array of pointers
-   * @param {Array} end array of pointers
-   * @return {Number} scale
-   */
-  function getScale(start, end) {
-      return getDistance(end[0], end[1], PROPS_CLIENT_XY) / getDistance(start[0], start[1], PROPS_CLIENT_XY);
-  }
-
-  var MOUSE_INPUT_MAP = {
-      mousedown: INPUT_START,
-      mousemove: INPUT_MOVE,
-      mouseup: INPUT_END
-  };
-
-  var MOUSE_ELEMENT_EVENTS = 'mousedown';
-  var MOUSE_WINDOW_EVENTS = 'mousemove mouseup';
-
-  /**
-   * Mouse events input
-   * @constructor
-   * @extends Input
-   */
-  function MouseInput() {
-      this.evEl = MOUSE_ELEMENT_EVENTS;
-      this.evWin = MOUSE_WINDOW_EVENTS;
-
-      this.allow = true; // used by Input.TouchMouse to disable mouse events
-      this.pressed = false; // mousedown state
-
-      Input.apply(this, arguments);
-  }
-
-  inherit(MouseInput, Input, {
-      /**
-       * handle mouse events
-       * @param {Object} ev
-       */
-      handler: function MEhandler(ev) {
-          var eventType = MOUSE_INPUT_MAP[ev.type];
-
-          // on start we want to have the left mouse button down
-          if (eventType & INPUT_START && ev.button === 0) {
-              this.pressed = true;
-          }
-
-          if (eventType & INPUT_MOVE && ev.which !== 1) {
-              eventType = INPUT_END;
-          }
-
-          // mouse must be down, and mouse events are allowed (see the TouchMouse input)
-          if (!this.pressed || !this.allow) {
-              return;
-          }
-
-          if (eventType & INPUT_END) {
-              this.pressed = false;
-          }
-
-          this.callback(this.manager, eventType, {
-              pointers: [ev],
-              changedPointers: [ev],
-              pointerType: INPUT_TYPE_MOUSE,
-              srcEvent: ev
-          });
-      }
-  });
-
-  var POINTER_INPUT_MAP = {
-      pointerdown: INPUT_START,
-      pointermove: INPUT_MOVE,
-      pointerup: INPUT_END,
-      pointercancel: INPUT_CANCEL,
-      pointerout: INPUT_CANCEL
-  };
-
-  // in IE10 the pointer types is defined as an enum
-  var IE10_POINTER_TYPE_ENUM = {
-      2: INPUT_TYPE_TOUCH,
-      3: INPUT_TYPE_PEN,
-      4: INPUT_TYPE_MOUSE,
-      5: INPUT_TYPE_KINECT // see https://twitter.com/jacobrossi/status/480596438489890816
-  };
-
-  var POINTER_ELEMENT_EVENTS = 'pointerdown';
-  var POINTER_WINDOW_EVENTS = 'pointermove pointerup pointercancel';
-
-  // IE10 has prefixed support, and case-sensitive
-  if (window.MSPointerEvent) {
-      POINTER_ELEMENT_EVENTS = 'MSPointerDown';
-      POINTER_WINDOW_EVENTS = 'MSPointerMove MSPointerUp MSPointerCancel';
-  }
-
-  /**
-   * Pointer events input
-   * @constructor
-   * @extends Input
-   */
-  function PointerEventInput() {
-      this.evEl = POINTER_ELEMENT_EVENTS;
-      this.evWin = POINTER_WINDOW_EVENTS;
-
-      Input.apply(this, arguments);
-
-      this.store = (this.manager.session.pointerEvents = []);
-  }
-
-  inherit(PointerEventInput, Input, {
-      /**
-       * handle mouse events
-       * @param {Object} ev
-       */
-      handler: function PEhandler(ev) {
-          var store = this.store;
-          var removePointer = false;
-
-          var eventTypeNormalized = ev.type.toLowerCase().replace('ms', '');
-          var eventType = POINTER_INPUT_MAP[eventTypeNormalized];
-          var pointerType = IE10_POINTER_TYPE_ENUM[ev.pointerType] || ev.pointerType;
-
-          var isTouch = (pointerType == INPUT_TYPE_TOUCH);
-
-          // get index of the event in the store
-          var storeIndex = inArray(store, ev.pointerId, 'pointerId');
-
-          // start and mouse must be down
-          if (eventType & INPUT_START && (ev.button === 0 || isTouch)) {
-              if (storeIndex < 0) {
-                  store.push(ev);
-                  storeIndex = store.length - 1;
-              }
-          } else if (eventType & (INPUT_END | INPUT_CANCEL)) {
-              removePointer = true;
-          }
-
-          // it not found, so the pointer hasn't been down (so it's probably a hover)
-          if (storeIndex < 0) {
-              return;
-          }
-
-          // update the event in the store
-          store[storeIndex] = ev;
-
-          this.callback(this.manager, eventType, {
-              pointers: store,
-              changedPointers: [ev],
-              pointerType: pointerType,
-              srcEvent: ev
-          });
-
-          if (removePointer) {
-              // remove from the store
-              store.splice(storeIndex, 1);
-          }
-      }
-  });
-
-  var SINGLE_TOUCH_INPUT_MAP = {
-      touchstart: INPUT_START,
-      touchmove: INPUT_MOVE,
-      touchend: INPUT_END,
-      touchcancel: INPUT_CANCEL
-  };
-
-  var SINGLE_TOUCH_TARGET_EVENTS = 'touchstart';
-  var SINGLE_TOUCH_WINDOW_EVENTS = 'touchstart touchmove touchend touchcancel';
-
-  /**
-   * Touch events input
-   * @constructor
-   * @extends Input
-   */
-  function SingleTouchInput() {
-      this.evTarget = SINGLE_TOUCH_TARGET_EVENTS;
-      this.evWin = SINGLE_TOUCH_WINDOW_EVENTS;
-      this.started = false;
-
-      Input.apply(this, arguments);
-  }
-
-  inherit(SingleTouchInput, Input, {
-      handler: function TEhandler(ev) {
-          var type = SINGLE_TOUCH_INPUT_MAP[ev.type];
-
-          // should we handle the touch events?
-          if (type === INPUT_START) {
-              this.started = true;
-          }
-
-          if (!this.started) {
-              return;
-          }
-
-          var touches = normalizeSingleTouches.call(this, ev, type);
-
-          // when done, reset the started state
-          if (type & (INPUT_END | INPUT_CANCEL) && touches[0].length - touches[1].length === 0) {
-              this.started = false;
-          }
-
-          this.callback(this.manager, type, {
-              pointers: touches[0],
-              changedPointers: touches[1],
-              pointerType: INPUT_TYPE_TOUCH,
-              srcEvent: ev
-          });
-      }
-  });
-
-  /**
-   * @this {TouchInput}
-   * @param {Object} ev
-   * @param {Number} type flag
-   * @returns {undefined|Array} [all, changed]
-   */
-  function normalizeSingleTouches(ev, type) {
-      var all = toArray(ev.touches);
-      var changed = toArray(ev.changedTouches);
-
-      if (type & (INPUT_END | INPUT_CANCEL)) {
-          all = uniqueArray(all.concat(changed), 'identifier', true);
-      }
-
-      return [all, changed];
-  }
-
-  var TOUCH_INPUT_MAP = {
-      touchstart: INPUT_START,
-      touchmove: INPUT_MOVE,
-      touchend: INPUT_END,
-      touchcancel: INPUT_CANCEL
-  };
-
-  var TOUCH_TARGET_EVENTS = 'touchstart touchmove touchend touchcancel';
-
-  /**
-   * Multi-user touch events input
-   * @constructor
-   * @extends Input
-   */
-  function TouchInput() {
-      this.evTarget = TOUCH_TARGET_EVENTS;
-      this.targetIds = {};
-
-      Input.apply(this, arguments);
-  }
-
-  inherit(TouchInput, Input, {
-      handler: function MTEhandler(ev) {
-          var type = TOUCH_INPUT_MAP[ev.type];
-          var touches = getTouches.call(this, ev, type);
-          if (!touches) {
-              return;
-          }
-
-          this.callback(this.manager, type, {
-              pointers: touches[0],
-              changedPointers: touches[1],
-              pointerType: INPUT_TYPE_TOUCH,
-              srcEvent: ev
-          });
-      }
-  });
-
-  /**
-   * @this {TouchInput}
-   * @param {Object} ev
-   * @param {Number} type flag
-   * @returns {undefined|Array} [all, changed]
-   */
-  function getTouches(ev, type) {
-      var allTouches = toArray(ev.touches);
-      var targetIds = this.targetIds;
-
-      // when there is only one touch, the process can be simplified
-      if (type & (INPUT_START | INPUT_MOVE) && allTouches.length === 1) {
-          targetIds[allTouches[0].identifier] = true;
-          return [allTouches, allTouches];
-      }
-
-      var i,
-          targetTouches,
-          changedTouches = toArray(ev.changedTouches),
-          changedTargetTouches = [],
-          target = this.target;
-
-      // get target touches from touches
-      targetTouches = allTouches.filter(function(touch) {
-          return hasParent(touch.target, target);
-      });
-
-      // collect touches
-      if (type === INPUT_START) {
-          i = 0;
-          while (i < targetTouches.length) {
-              targetIds[targetTouches[i].identifier] = true;
-              i++;
-          }
-      }
-
-      // filter changed touches to only contain touches that exist in the collected target ids
-      i = 0;
-      while (i < changedTouches.length) {
-          if (targetIds[changedTouches[i].identifier]) {
-              changedTargetTouches.push(changedTouches[i]);
-          }
-
-          // cleanup removed touches
-          if (type & (INPUT_END | INPUT_CANCEL)) {
-              delete targetIds[changedTouches[i].identifier];
-          }
-          i++;
-      }
-
-      if (!changedTargetTouches.length) {
-          return;
-      }
-
-      return [
-          // merge targetTouches with changedTargetTouches so it contains ALL touches, including 'end' and 'cancel'
-          uniqueArray(targetTouches.concat(changedTargetTouches), 'identifier', true),
-          changedTargetTouches
-      ];
-  }
-
-  /**
-   * Combined touch and mouse input
-   *
-   * Touch has a higher priority then mouse, and while touching no mouse events are allowed.
-   * This because touch devices also emit mouse events while doing a touch.
-   *
-   * @constructor
-   * @extends Input
-   */
-  function TouchMouseInput() {
-      Input.apply(this, arguments);
-
-      var handler = bindFn(this.handler, this);
-      this.touch = new TouchInput(this.manager, handler);
-      this.mouse = new MouseInput(this.manager, handler);
-  }
-
-  inherit(TouchMouseInput, Input, {
-      /**
-       * handle mouse and touch events
-       * @param {Hammer} manager
-       * @param {String} inputEvent
-       * @param {Object} inputData
-       */
-      handler: function TMEhandler(manager, inputEvent, inputData) {
-          var isTouch = (inputData.pointerType == INPUT_TYPE_TOUCH),
-              isMouse = (inputData.pointerType == INPUT_TYPE_MOUSE);
-
-          // when we're in a touch event, so  block all upcoming mouse events
-          // most mobile browser also emit mouseevents, right after touchstart
-          if (isTouch) {
-              this.mouse.allow = false;
-          } else if (isMouse && !this.mouse.allow) {
-              return;
-          }
-
-          // reset the allowMouse when we're done
-          if (inputEvent & (INPUT_END | INPUT_CANCEL)) {
-              this.mouse.allow = true;
-          }
-
-          this.callback(manager, inputEvent, inputData);
-      },
-
-      /**
-       * remove the event listeners
-       */
-      destroy: function destroy() {
-          this.touch.destroy();
-          this.mouse.destroy();
-      }
-  });
-
-  var PREFIXED_TOUCH_ACTION = prefixed(TEST_ELEMENT.style, 'touchAction');
-  var NATIVE_TOUCH_ACTION = PREFIXED_TOUCH_ACTION !== undefined;
-
-  // magical touchAction value
-  var TOUCH_ACTION_COMPUTE = 'compute';
-  var TOUCH_ACTION_AUTO = 'auto';
-  var TOUCH_ACTION_MANIPULATION = 'manipulation'; // not implemented
-  var TOUCH_ACTION_NONE = 'none';
-  var TOUCH_ACTION_PAN_X = 'pan-x';
-  var TOUCH_ACTION_PAN_Y = 'pan-y';
-
-  /**
-   * Touch Action
-   * sets the touchAction property or uses the js alternative
-   * @param {Manager} manager
-   * @param {String} value
-   * @constructor
-   */
-  function TouchAction(manager, value) {
-      this.manager = manager;
-      this.set(value);
-  }
-
-  TouchAction.prototype = {
-      /**
-       * set the touchAction value on the element or enable the polyfill
-       * @param {String} value
-       */
-      set: function(value) {
-          // find out the touch-action by the event handlers
-          if (value == TOUCH_ACTION_COMPUTE) {
-              value = this.compute();
-          }
-
-          if (NATIVE_TOUCH_ACTION) {
-              this.manager.element.style[PREFIXED_TOUCH_ACTION] = value;
-          }
-          this.actions = value.toLowerCase().trim();
-      },
-
-      /**
-       * just re-set the touchAction value
-       */
-      update: function() {
-          this.set(this.manager.options.touchAction);
-      },
-
-      /**
-       * compute the value for the touchAction property based on the recognizer's settings
-       * @returns {String} value
-       */
-      compute: function() {
-          var actions = [];
-          each(this.manager.recognizers, function(recognizer) {
-              if (boolOrFn(recognizer.options.enable, [recognizer])) {
-                  actions = actions.concat(recognizer.getTouchAction());
-              }
-          });
-          return cleanTouchActions(actions.join(' '));
-      },
-
-      /**
-       * this method is called on each input cycle and provides the preventing of the browser behavior
-       * @param {Object} input
-       */
-      preventDefaults: function(input) {
-          // not needed with native support for the touchAction property
-          if (NATIVE_TOUCH_ACTION) {
-              return;
-          }
-
-          var srcEvent = input.srcEvent;
-          var direction = input.offsetDirection;
-
-          // if the touch action did prevented once this session
-          if (this.manager.session.prevented) {
-              srcEvent.preventDefault();
-              return;
-          }
-
-          var actions = this.actions;
-          var hasNone = inStr(actions, TOUCH_ACTION_NONE);
-          var hasPanY = inStr(actions, TOUCH_ACTION_PAN_Y);
-          var hasPanX = inStr(actions, TOUCH_ACTION_PAN_X);
-
-          if (hasNone ||
-              (hasPanY && direction & DIRECTION_HORIZONTAL) ||
-              (hasPanX && direction & DIRECTION_VERTICAL)) {
-              return this.preventSrc(srcEvent);
-          }
-      },
-
-      /**
-       * call preventDefault to prevent the browser's default behavior (scrolling in most cases)
-       * @param {Object} srcEvent
-       */
-      preventSrc: function(srcEvent) {
-          this.manager.session.prevented = true;
-          srcEvent.preventDefault();
-      }
-  };
-
-  /**
-   * when the touchActions are collected they are not a valid value, so we need to clean things up. *
-   * @param {String} actions
-   * @returns {*}
-   */
-  function cleanTouchActions(actions) {
-      // none
-      if (inStr(actions, TOUCH_ACTION_NONE)) {
-          return TOUCH_ACTION_NONE;
-      }
-
-      var hasPanX = inStr(actions, TOUCH_ACTION_PAN_X);
-      var hasPanY = inStr(actions, TOUCH_ACTION_PAN_Y);
-
-      // pan-x and pan-y can be combined
-      if (hasPanX && hasPanY) {
-          return TOUCH_ACTION_PAN_X + ' ' + TOUCH_ACTION_PAN_Y;
-      }
-
-      // pan-x OR pan-y
-      if (hasPanX || hasPanY) {
-          return hasPanX ? TOUCH_ACTION_PAN_X : TOUCH_ACTION_PAN_Y;
-      }
-
-      // manipulation
-      if (inStr(actions, TOUCH_ACTION_MANIPULATION)) {
-          return TOUCH_ACTION_MANIPULATION;
-      }
-
-      return TOUCH_ACTION_AUTO;
-  }
-
-  /**
-   * Recognizer flow explained; *
-   * All recognizers have the initial state of POSSIBLE when a input session starts.
-   * The definition of a input session is from the first input until the last input, with all it's movement in it. *
-   * Example session for mouse-input: mousedown -> mousemove -> mouseup
-   *
-   * On each recognizing cycle (see Manager.recognize) the .recognize() method is executed
-   * which determines with state it should be.
-   *
-   * If the recognizer has the state FAILED, CANCELLED or RECOGNIZED (equals ENDED), it is reset to
-   * POSSIBLE to give it another change on the next cycle.
-   *
-   *               Possible
-   *                  |
-   *            +-----+---------------+
-   *            |                     |
-   *      +-----+-----+               |
-   *      |           |               |
-   *   Failed      Cancelled          |
-   *                          +-------+------+
-   *                          |              |
-   *                      Recognized       Began
-   *                                         |
-   *                                      Changed
-   *                                         |
-   *                                  Ended/Recognized
-   */
-  var STATE_POSSIBLE = 1;
-  var STATE_BEGAN = 2;
-  var STATE_CHANGED = 4;
-  var STATE_ENDED = 8;
-  var STATE_RECOGNIZED = STATE_ENDED;
-  var STATE_CANCELLED = 16;
-  var STATE_FAILED = 32;
-
-  /**
-   * Recognizer
-   * Every recognizer needs to extend from this class.
-   * @constructor
-   * @param {Object} options
-   */
-  function Recognizer(options) {
-      this.id = uniqueId();
-
-      this.manager = null;
-      this.options = merge(options || {}, this.defaults);
-
-      // default is enable true
-      this.options.enable = ifUndefined(this.options.enable, true);
-
-      this.state = STATE_POSSIBLE;
-
-      this.simultaneous = {};
-      this.requireFail = [];
-  }
-
-  Recognizer.prototype = {
-      /**
-       * @virtual
-       * @type {Object}
-       */
-      defaults: {},
-
-      /**
-       * set options
-       * @param {Object} options
-       * @return {Recognizer}
-       */
-      set: function(options) {
-          extend(this.options, options);
-
-          // also update the touchAction, in case something changed about the directions/enabled state
-          this.manager && this.manager.touchAction.update();
-          return this;
-      },
-
-      /**
-       * recognize simultaneous with an other recognizer.
-       * @param {Recognizer} otherRecognizer
-       * @returns {Recognizer} this
-       */
-      recognizeWith: function(otherRecognizer) {
-          if (invokeArrayArg(otherRecognizer, 'recognizeWith', this)) {
-              return this;
-          }
-
-          var simultaneous = this.simultaneous;
-          otherRecognizer = getRecognizerByNameIfManager(otherRecognizer, this);
-          if (!simultaneous[otherRecognizer.id]) {
-              simultaneous[otherRecognizer.id] = otherRecognizer;
-              otherRecognizer.recognizeWith(this);
-          }
-          return this;
-      },
-
-      /**
-       * drop the simultaneous link. it doesnt remove the link on the other recognizer.
-       * @param {Recognizer} otherRecognizer
-       * @returns {Recognizer} this
-       */
-      dropRecognizeWith: function(otherRecognizer) {
-          if (invokeArrayArg(otherRecognizer, 'dropRecognizeWith', this)) {
-              return this;
-          }
-
-          otherRecognizer = getRecognizerByNameIfManager(otherRecognizer, this);
-          delete this.simultaneous[otherRecognizer.id];
-          return this;
-      },
-
-      /**
-       * recognizer can only run when an other is failing
-       * @param {Recognizer} otherRecognizer
-       * @returns {Recognizer} this
-       */
-      requireFailure: function(otherRecognizer) {
-          if (invokeArrayArg(otherRecognizer, 'requireFailure', this)) {
-              return this;
-          }
-
-          var requireFail = this.requireFail;
-          otherRecognizer = getRecognizerByNameIfManager(otherRecognizer, this);
-          if (inArray(requireFail, otherRecognizer) === -1) {
-              requireFail.push(otherRecognizer);
-              otherRecognizer.requireFailure(this);
-          }
-          return this;
-      },
-
-      /**
-       * drop the requireFailure link. it does not remove the link on the other recognizer.
-       * @param {Recognizer} otherRecognizer
-       * @returns {Recognizer} this
-       */
-      dropRequireFailure: function(otherRecognizer) {
-          if (invokeArrayArg(otherRecognizer, 'dropRequireFailure', this)) {
-              return this;
-          }
-
-          otherRecognizer = getRecognizerByNameIfManager(otherRecognizer, this);
-          var index = inArray(this.requireFail, otherRecognizer);
-          if (index > -1) {
-              this.requireFail.splice(index, 1);
-          }
-          return this;
-      },
-
-      /**
-       * has require failures boolean
-       * @returns {boolean}
-       */
-      hasRequireFailures: function() {
-          return this.requireFail.length > 0;
-      },
-
-      /**
-       * if the recognizer can recognize simultaneous with an other recognizer
-       * @param {Recognizer} otherRecognizer
-       * @returns {Boolean}
-       */
-      canRecognizeWith: function(otherRecognizer) {
-          return !!this.simultaneous[otherRecognizer.id];
-      },
-
-      /**
-       * You should use `tryEmit` instead of `emit` directly to check
-       * that all the needed recognizers has failed before emitting.
-       * @param {Object} input
-       */
-      emit: function(input) {
-          var self = this;
-          var state = this.state;
-
-          function emit(withState) {
-              self.manager.emit(self.options.event + (withState ? stateStr(state) : ''), input);
-          }
-
-          // 'panstart' and 'panmove'
-          if (state < STATE_ENDED) {
-              emit(true);
-          }
-
-          emit(); // simple 'eventName' events
-
-          // panend and pancancel
-          if (state >= STATE_ENDED) {
-              emit(true);
-          }
-      },
-
-      /**
-       * Check that all the require failure recognizers has failed,
-       * if true, it emits a gesture event,
-       * otherwise, setup the state to FAILED.
-       * @param {Object} input
-       */
-      tryEmit: function(input) {
-          if (this.canEmit()) {
-              return this.emit(input);
-          }
-          // it's failing anyway
-          this.state = STATE_FAILED;
-      },
-
-      /**
-       * can we emit?
-       * @returns {boolean}
-       */
-      canEmit: function() {
-          var i = 0;
-          while (i < this.requireFail.length) {
-              if (!(this.requireFail[i].state & (STATE_FAILED | STATE_POSSIBLE))) {
-                  return false;
-              }
-              i++;
-          }
-          return true;
-      },
-
-      /**
-       * update the recognizer
-       * @param {Object} inputData
-       */
-      recognize: function(inputData) {
-          // make a new copy of the inputData
-          // so we can change the inputData without messing up the other recognizers
-          var inputDataClone = extend({}, inputData);
-
-          // is is enabled and allow recognizing?
-          if (!boolOrFn(this.options.enable, [this, inputDataClone])) {
-              this.reset();
-              this.state = STATE_FAILED;
-              return;
-          }
-
-          // reset when we've reached the end
-          if (this.state & (STATE_RECOGNIZED | STATE_CANCELLED | STATE_FAILED)) {
-              this.state = STATE_POSSIBLE;
-          }
-
-          this.state = this.process(inputDataClone);
-
-          // the recognizer has recognized a gesture
-          // so trigger an event
-          if (this.state & (STATE_BEGAN | STATE_CHANGED | STATE_ENDED | STATE_CANCELLED)) {
-              this.tryEmit(inputDataClone);
-          }
-      },
-
-      /**
-       * return the state of the recognizer
-       * the actual recognizing happens in this method
-       * @virtual
-       * @param {Object} inputData
-       * @returns {Const} STATE
-       */
-      process: function(inputData) { }, // jshint ignore:line
-
-      /**
-       * return the preferred touch-action
-       * @virtual
-       * @returns {Array}
-       */
-      getTouchAction: function() { },
-
-      /**
-       * called when the gesture isn't allowed to recognize
-       * like when another is being recognized or it is disabled
-       * @virtual
-       */
-      reset: function() { }
-  };
-
-  /**
-   * get a usable string, used as event postfix
-   * @param {Const} state
-   * @returns {String} state
-   */
-  function stateStr(state) {
-      if (state & STATE_CANCELLED) {
-          return 'cancel';
-      } else if (state & STATE_ENDED) {
-          return 'end';
-      } else if (state & STATE_CHANGED) {
-          return 'move';
-      } else if (state & STATE_BEGAN) {
-          return 'start';
-      }
-      return '';
-  }
-
-  /**
-   * direction cons to string
-   * @param {Const} direction
-   * @returns {String}
-   */
-  function directionStr(direction) {
-      if (direction == DIRECTION_DOWN) {
-          return 'down';
-      } else if (direction == DIRECTION_UP) {
-          return 'up';
-      } else if (direction == DIRECTION_LEFT) {
-          return 'left';
-      } else if (direction == DIRECTION_RIGHT) {
-          return 'right';
-      }
-      return '';
-  }
-
-  /**
-   * get a recognizer by name if it is bound to a manager
-   * @param {Recognizer|String} otherRecognizer
-   * @param {Recognizer} recognizer
-   * @returns {Recognizer}
-   */
-  function getRecognizerByNameIfManager(otherRecognizer, recognizer) {
-      var manager = recognizer.manager;
-      if (manager) {
-          return manager.get(otherRecognizer);
-      }
-      return otherRecognizer;
-  }
-
-  /**
-   * This recognizer is just used as a base for the simple attribute recognizers.
-   * @constructor
-   * @extends Recognizer
-   */
-  function AttrRecognizer() {
-      Recognizer.apply(this, arguments);
-  }
-
-  inherit(AttrRecognizer, Recognizer, {
-      /**
-       * @namespace
-       * @memberof AttrRecognizer
-       */
-      defaults: {
-          /**
-           * @type {Number}
-           * @default 1
-           */
-          pointers: 1
-      },
-
-      /**
-       * Used to check if it the recognizer receives valid input, like input.distance > 10.
-       * @memberof AttrRecognizer
-       * @param {Object} input
-       * @returns {Boolean} recognized
-       */
-      attrTest: function(input) {
-          var optionPointers = this.options.pointers;
-          return optionPointers === 0 || input.pointers.length === optionPointers;
-      },
-
-      /**
-       * Process the input and return the state for the recognizer
-       * @memberof AttrRecognizer
-       * @param {Object} input
-       * @returns {*} State
-       */
-      process: function(input) {
-          var state = this.state;
-          var eventType = input.eventType;
-
-          var isRecognized = state & (STATE_BEGAN | STATE_CHANGED);
-          var isValid = this.attrTest(input);
-
-          // on cancel input and we've recognized before, return STATE_CANCELLED
-          if (isRecognized && (eventType & INPUT_CANCEL || !isValid)) {
-              return state | STATE_CANCELLED;
-          } else if (isRecognized || isValid) {
-              if (eventType & INPUT_END) {
-                  return state | STATE_ENDED;
-              } else if (!(state & STATE_BEGAN)) {
-                  return STATE_BEGAN;
-              }
-              return state | STATE_CHANGED;
-          }
-          return STATE_FAILED;
-      }
-  });
-
-  /**
-   * Pan
-   * Recognized when the pointer is down and moved in the allowed direction.
-   * @constructor
-   * @extends AttrRecognizer
-   */
-  function PanRecognizer() {
-      AttrRecognizer.apply(this, arguments);
-
-      this.pX = null;
-      this.pY = null;
-  }
-
-  inherit(PanRecognizer, AttrRecognizer, {
-      /**
-       * @namespace
-       * @memberof PanRecognizer
-       */
-      defaults: {
-          event: 'pan',
-          threshold: 10,
-          pointers: 1,
-          direction: DIRECTION_ALL
-      },
-
-      getTouchAction: function() {
-          var direction = this.options.direction;
-          var actions = [];
-          if (direction & DIRECTION_HORIZONTAL) {
-              actions.push(TOUCH_ACTION_PAN_Y);
-          }
-          if (direction & DIRECTION_VERTICAL) {
-              actions.push(TOUCH_ACTION_PAN_X);
-          }
-          return actions;
-      },
-
-      directionTest: function(input) {
-          var options = this.options;
-          var hasMoved = true;
-          var distance = input.distance;
-          var direction = input.direction;
-          var x = input.deltaX;
-          var y = input.deltaY;
-
-          // lock to axis?
-          if (!(direction & options.direction)) {
-              if (options.direction & DIRECTION_HORIZONTAL) {
-                  direction = (x === 0) ? DIRECTION_NONE : (x < 0) ? DIRECTION_LEFT : DIRECTION_RIGHT;
-                  hasMoved = x != this.pX;
-                  distance = Math.abs(input.deltaX);
-              } else {
-                  direction = (y === 0) ? DIRECTION_NONE : (y < 0) ? DIRECTION_UP : DIRECTION_DOWN;
-                  hasMoved = y != this.pY;
-                  distance = Math.abs(input.deltaY);
-              }
-          }
-          input.direction = direction;
-          return hasMoved && distance > options.threshold && direction & options.direction;
-      },
-
-      attrTest: function(input) {
-          return AttrRecognizer.prototype.attrTest.call(this, input) &&
-              (this.state & STATE_BEGAN || (!(this.state & STATE_BEGAN) && this.directionTest(input)));
-      },
-
-      emit: function(input) {
-          this.pX = input.deltaX;
-          this.pY = input.deltaY;
-
-          var direction = directionStr(input.direction);
-          if (direction) {
-              this.manager.emit(this.options.event + direction, input);
-          }
-
-          this._super.emit.call(this, input);
-      }
-  });
-
-  /**
-   * Pinch
-   * Recognized when two or more pointers are moving toward (zoom-in) or away from each other (zoom-out).
-   * @constructor
-   * @extends AttrRecognizer
-   */
-  function PinchRecognizer() {
-      AttrRecognizer.apply(this, arguments);
-  }
-
-  inherit(PinchRecognizer, AttrRecognizer, {
-      /**
-       * @namespace
-       * @memberof PinchRecognizer
-       */
-      defaults: {
-          event: 'pinch',
-          threshold: 0,
-          pointers: 2
-      },
-
-      getTouchAction: function() {
-          return [TOUCH_ACTION_NONE];
-      },
-
-      attrTest: function(input) {
-          return this._super.attrTest.call(this, input) &&
-              (Math.abs(input.scale - 1) > this.options.threshold || this.state & STATE_BEGAN);
-      },
-
-      emit: function(input) {
-          this._super.emit.call(this, input);
-          if (input.scale !== 1) {
-              var inOut = input.scale < 1 ? 'in' : 'out';
-              this.manager.emit(this.options.event + inOut, input);
-          }
-      }
-  });
-
-  /**
-   * Press
-   * Recognized when the pointer is down for x ms without any movement.
-   * @constructor
-   * @extends Recognizer
-   */
-  function PressRecognizer() {
-      Recognizer.apply(this, arguments);
-
-      this._timer = null;
-      this._input = null;
-  }
-
-  inherit(PressRecognizer, Recognizer, {
-      /**
-       * @namespace
-       * @memberof PressRecognizer
-       */
-      defaults: {
-          event: 'press',
-          pointers: 1,
-          time: 500, // minimal time of the pointer to be pressed
-          threshold: 5 // a minimal movement is ok, but keep it low
-      },
-
-      getTouchAction: function() {
-          return [TOUCH_ACTION_AUTO];
-      },
-
-      process: function(input) {
-          var options = this.options;
-          var validPointers = input.pointers.length === options.pointers;
-          var validMovement = input.distance < options.threshold;
-          var validTime = input.deltaTime > options.time;
-
-          this._input = input;
-
-          // we only allow little movement
-          // and we've reached an end event, so a tap is possible
-          if (!validMovement || !validPointers || (input.eventType & (INPUT_END | INPUT_CANCEL) && !validTime)) {
-              this.reset();
-          } else if (input.eventType & INPUT_START) {
-              this.reset();
-              this._timer = setTimeoutContext(function() {
-                  this.state = STATE_RECOGNIZED;
-                  this.tryEmit();
-              }, options.time, this);
-          } else if (input.eventType & INPUT_END) {
-              return STATE_RECOGNIZED;
-          }
-          return STATE_FAILED;
-      },
-
-      reset: function() {
-          clearTimeout(this._timer);
-      },
-
-      emit: function(input) {
-          if (this.state !== STATE_RECOGNIZED) {
-              return;
-          }
-
-          if (input && (input.eventType & INPUT_END)) {
-              this.manager.emit(this.options.event + 'up', input);
-          } else {
-              this._input.timeStamp = now();
-              this.manager.emit(this.options.event, this._input);
-          }
-      }
-  });
-
-  /**
-   * Rotate
-   * Recognized when two or more pointer are moving in a circular motion.
-   * @constructor
-   * @extends AttrRecognizer
-   */
-  function RotateRecognizer() {
-      AttrRecognizer.apply(this, arguments);
-  }
-
-  inherit(RotateRecognizer, AttrRecognizer, {
-      /**
-       * @namespace
-       * @memberof RotateRecognizer
-       */
-      defaults: {
-          event: 'rotate',
-          threshold: 0,
-          pointers: 2
-      },
-
-      getTouchAction: function() {
-          return [TOUCH_ACTION_NONE];
-      },
-
-      attrTest: function(input) {
-          return this._super.attrTest.call(this, input) &&
-              (Math.abs(input.rotation) > this.options.threshold || this.state & STATE_BEGAN);
-      }
-  });
-
-  /**
-   * Swipe
-   * Recognized when the pointer is moving fast (velocity), with enough distance in the allowed direction.
-   * @constructor
-   * @extends AttrRecognizer
-   */
-  function SwipeRecognizer() {
-      AttrRecognizer.apply(this, arguments);
-  }
-
-  inherit(SwipeRecognizer, AttrRecognizer, {
-      /**
-       * @namespace
-       * @memberof SwipeRecognizer
-       */
-      defaults: {
-          event: 'swipe',
-          threshold: 10,
-          velocity: 0.65,
-          direction: DIRECTION_HORIZONTAL | DIRECTION_VERTICAL,
-          pointers: 1
-      },
-
-      getTouchAction: function() {
-          return PanRecognizer.prototype.getTouchAction.call(this);
-      },
-
-      attrTest: function(input) {
-          var direction = this.options.direction;
-          var velocity;
-
-          if (direction & (DIRECTION_HORIZONTAL | DIRECTION_VERTICAL)) {
-              velocity = input.velocity;
-          } else if (direction & DIRECTION_HORIZONTAL) {
-              velocity = input.velocityX;
-          } else if (direction & DIRECTION_VERTICAL) {
-              velocity = input.velocityY;
-          }
-
-          return this._super.attrTest.call(this, input) &&
-              direction & input.direction &&
-              input.distance > this.options.threshold &&
-              abs(velocity) > this.options.velocity && input.eventType & INPUT_END;
-      },
-
-      emit: function(input) {
-          var direction = directionStr(input.direction);
-          if (direction) {
-              this.manager.emit(this.options.event + direction, input);
-          }
-
-          this.manager.emit(this.options.event, input);
-      }
-  });
-
-  /**
-   * A tap is ecognized when the pointer is doing a small tap/click. Multiple taps are recognized if they occur
-   * between the given interval and position. The delay option can be used to recognize multi-taps without firing
-   * a single tap.
-   *
-   * The eventData from the emitted event contains the property `tapCount`, which contains the amount of
-   * multi-taps being recognized.
-   * @constructor
-   * @extends Recognizer
-   */
-  function TapRecognizer() {
-      Recognizer.apply(this, arguments);
-
-      // previous time and center,
-      // used for tap counting
-      this.pTime = false;
-      this.pCenter = false;
-
-      this._timer = null;
-      this._input = null;
-      this.count = 0;
-  }
-
-  inherit(TapRecognizer, Recognizer, {
-      /**
-       * @namespace
-       * @memberof PinchRecognizer
-       */
-      defaults: {
-          event: 'tap',
-          pointers: 1,
-          taps: 1,
-          interval: 300, // max time between the multi-tap taps
-          time: 250, // max time of the pointer to be down (like finger on the screen)
-          threshold: 2, // a minimal movement is ok, but keep it low
-          posThreshold: 10 // a multi-tap can be a bit off the initial position
-      },
-
-      getTouchAction: function() {
-          return [TOUCH_ACTION_MANIPULATION];
-      },
-
-      process: function(input) {
-          var options = this.options;
-
-          var validPointers = input.pointers.length === options.pointers;
-          var validMovement = input.distance < options.threshold;
-          var validTouchTime = input.deltaTime < options.time;
-
-          this.reset();
-
-          if ((input.eventType & INPUT_START) && (this.count === 0)) {
-              return this.failTimeout();
-          }
-
-          // we only allow little movement
-          // and we've reached an end event, so a tap is possible
-          if (validMovement && validTouchTime && validPointers) {
-              if (input.eventType != INPUT_END) {
-                  return this.failTimeout();
-              }
-
-              var validInterval = this.pTime ? (input.timeStamp - this.pTime < options.interval) : true;
-              var validMultiTap = !this.pCenter || getDistance(this.pCenter, input.center) < options.posThreshold;
-
-              this.pTime = input.timeStamp;
-              this.pCenter = input.center;
-
-              if (!validMultiTap || !validInterval) {
-                  this.count = 1;
-              } else {
-                  this.count += 1;
-              }
-
-              this._input = input;
-
-              // if tap count matches we have recognized it,
-              // else it has began recognizing...
-              var tapCount = this.count % options.taps;
-              if (tapCount === 0) {
-                  // no failing requirements, immediately trigger the tap event
-                  // or wait as long as the multitap interval to trigger
-                  if (!this.hasRequireFailures()) {
-                      return STATE_RECOGNIZED;
-                  } else {
-                      this._timer = setTimeoutContext(function() {
-                          this.state = STATE_RECOGNIZED;
-                          this.tryEmit();
-                      }, options.interval, this);
-                      return STATE_BEGAN;
-                  }
-              }
-          }
-          return STATE_FAILED;
-      },
-
-      failTimeout: function() {
-          this._timer = setTimeoutContext(function() {
-              this.state = STATE_FAILED;
-          }, this.options.interval, this);
-          return STATE_FAILED;
-      },
-
-      reset: function() {
-          clearTimeout(this._timer);
-      },
-
-      emit: function() {
-          if (this.state == STATE_RECOGNIZED ) {
-              this._input.tapCount = this.count;
-              this.manager.emit(this.options.event, this._input);
-          }
-      }
-  });
-
-  /**
-   * Simple way to create an manager with a default set of recognizers.
-   * @param {HTMLElement} element
-   * @param {Object} [options]
-   * @constructor
-   */
-  function Hammer(element, options) {
-      options = options || {};
-      options.recognizers = ifUndefined(options.recognizers, Hammer.defaults.preset);
-      return new Manager(element, options);
-  }
-
-  /**
-   * @const {string}
-   */
-  Hammer.VERSION = '2.0.4';
-
-  /**
-   * default settings
-   * @namespace
-   */
-  Hammer.defaults = {
-      /**
-       * set if DOM events are being triggered.
-       * But this is slower and unused by simple implementations, so disabled by default.
-       * @type {Boolean}
-       * @default false
-       */
-      domEvents: false,
-
-      /**
-       * The value for the touchAction property/fallback.
-       * When set to `compute` it will magically set the correct value based on the added recognizers.
-       * @type {String}
-       * @default compute
-       */
-      touchAction: TOUCH_ACTION_COMPUTE,
-
-      /**
-       * @type {Boolean}
-       * @default true
-       */
-      enable: true,
-
-      /**
-       * EXPERIMENTAL FEATURE -- can be removed/changed
-       * Change the parent input target element.
-       * If Null, then it is being set the to main element.
-       * @type {Null|EventTarget}
-       * @default null
-       */
-      inputTarget: null,
-
-      /**
-       * force an input class
-       * @type {Null|Function}
-       * @default null
-       */
-      inputClass: null,
-
-      /**
-       * Default recognizer setup when calling `Hammer()`
-       * When creating a new Manager these will be skipped.
-       * @type {Array}
-       */
-      preset: [
-          // RecognizerClass, options, [recognizeWith, ...], [requireFailure, ...]
-          [RotateRecognizer, { enable: false }],
-          [PinchRecognizer, { enable: false }, ['rotate']],
-          [SwipeRecognizer,{ direction: DIRECTION_HORIZONTAL }],
-          [PanRecognizer, { direction: DIRECTION_HORIZONTAL }, ['swipe']],
-          [TapRecognizer],
-          [TapRecognizer, { event: 'doubletap', taps: 2 }, ['tap']],
-          [PressRecognizer]
-      ],
-
-      /**
-       * Some CSS properties can be used to improve the working of Hammer.
-       * Add them to this method and they will be set when creating a new Manager.
-       * @namespace
-       */
-      cssProps: {
-          /**
-           * Disables text selection to improve the dragging gesture. Mainly for desktop browsers.
-           * @type {String}
-           * @default 'none'
-           */
-          userSelect: 'none',
-
-          /**
-           * Disable the Windows Phone grippers when pressing an element.
-           * @type {String}
-           * @default 'none'
-           */
-          touchSelect: 'none',
-
-          /**
-           * Disables the default callout shown when you touch and hold a touch target.
-           * On iOS, when you touch and hold a touch target such as a link, Safari displays
-           * a callout containing information about the link. This property allows you to disable that callout.
-           * @type {String}
-           * @default 'none'
-           */
-          touchCallout: 'none',
-
-          /**
-           * Specifies whether zooming is enabled. Used by IE10>
-           * @type {String}
-           * @default 'none'
-           */
-          contentZooming: 'none',
-
-          /**
-           * Specifies that an entire element should be draggable instead of its contents. Mainly for desktop browsers.
-           * @type {String}
-           * @default 'none'
-           */
-          userDrag: 'none',
-
-          /**
-           * Overrides the highlight color shown when the user taps a link or a JavaScript
-           * clickable element in iOS. This property obeys the alpha value, if specified.
-           * @type {String}
-           * @default 'rgba(0,0,0,0)'
-           */
-          tapHighlightColor: 'rgba(0,0,0,0)'
-      }
-  };
-
-  var STOP = 1;
-  var FORCED_STOP = 2;
-
-  /**
-   * Manager
-   * @param {HTMLElement} element
-   * @param {Object} [options]
-   * @constructor
-   */
-  function Manager(element, options) {
-      options = options || {};
-
-      this.options = merge(options, Hammer.defaults);
-      this.options.inputTarget = this.options.inputTarget || element;
-
-      this.handlers = {};
-      this.session = {};
-      this.recognizers = [];
-
-      this.element = element;
-      this.input = createInputInstance(this);
-      this.touchAction = new TouchAction(this, this.options.touchAction);
-
-      toggleCssProps(this, true);
-
-      each(options.recognizers, function(item) {
-          var recognizer = this.add(new (item[0])(item[1]));
-          item[2] && recognizer.recognizeWith(item[2]);
-          item[3] && recognizer.requireFailure(item[3]);
-      }, this);
-  }
-
-  Manager.prototype = {
-      /**
-       * set options
-       * @param {Object} options
-       * @returns {Manager}
-       */
-      set: function(options) {
-          extend(this.options, options);
-
-          // Options that need a little more setup
-          if (options.touchAction) {
-              this.touchAction.update();
-          }
-          if (options.inputTarget) {
-              // Clean up existing event listeners and reinitialize
-              this.input.destroy();
-              this.input.target = options.inputTarget;
-              this.input.init();
-          }
-          return this;
-      },
-
-      /**
-       * stop recognizing for this session.
-       * This session will be discarded, when a new [input]start event is fired.
-       * When forced, the recognizer cycle is stopped immediately.
-       * @param {Boolean} [force]
-       */
-      stop: function(force) {
-          this.session.stopped = force ? FORCED_STOP : STOP;
-      },
-
-      /**
-       * run the recognizers!
-       * called by the inputHandler function on every movement of the pointers (touches)
-       * it walks through all the recognizers and tries to detect the gesture that is being made
-       * @param {Object} inputData
-       */
-      recognize: function(inputData) {
-          var session = this.session;
-          if (session.stopped) {
-              return;
-          }
-
-          // run the touch-action polyfill
-          this.touchAction.preventDefaults(inputData);
-
-          var recognizer;
-          var recognizers = this.recognizers;
-
-          // this holds the recognizer that is being recognized.
-          // so the recognizer's state needs to be BEGAN, CHANGED, ENDED or RECOGNIZED
-          // if no recognizer is detecting a thing, it is set to `null`
-          var curRecognizer = session.curRecognizer;
-
-          // reset when the last recognizer is recognized
-          // or when we're in a new session
-          if (!curRecognizer || (curRecognizer && curRecognizer.state & STATE_RECOGNIZED)) {
-              curRecognizer = session.curRecognizer = null;
-          }
-
-          var i = 0;
-          while (i < recognizers.length) {
-              recognizer = recognizers[i];
-
-              // find out if we are allowed try to recognize the input for this one.
-              // 1.   allow if the session is NOT forced stopped (see the .stop() method)
-              // 2.   allow if we still haven't recognized a gesture in this session, or the this recognizer is the one
-              //      that is being recognized.
-              // 3.   allow if the recognizer is allowed to run simultaneous with the current recognized recognizer.
-              //      this can be setup with the `recognizeWith()` method on the recognizer.
-              if (session.stopped !== FORCED_STOP && ( // 1
-                      !curRecognizer || recognizer == curRecognizer || // 2
-                      recognizer.canRecognizeWith(curRecognizer))) { // 3
-                  recognizer.recognize(inputData);
-              } else {
-                  recognizer.reset();
-              }
-
-              // if the recognizer has been recognizing the input as a valid gesture, we want to store this one as the
-              // current active recognizer. but only if we don't already have an active recognizer
-              if (!curRecognizer && recognizer.state & (STATE_BEGAN | STATE_CHANGED | STATE_ENDED)) {
-                  curRecognizer = session.curRecognizer = recognizer;
-              }
-              i++;
-          }
-      },
-
-      /**
-       * get a recognizer by its event name.
-       * @param {Recognizer|String} recognizer
-       * @returns {Recognizer|Null}
-       */
-      get: function(recognizer) {
-          if (recognizer instanceof Recognizer) {
-              return recognizer;
-          }
-
-          var recognizers = this.recognizers;
-          for (var i = 0; i < recognizers.length; i++) {
-              if (recognizers[i].options.event == recognizer) {
-                  return recognizers[i];
-              }
-          }
-          return null;
-      },
-
-      /**
-       * add a recognizer to the manager
-       * existing recognizers with the same event name will be removed
-       * @param {Recognizer} recognizer
-       * @returns {Recognizer|Manager}
-       */
-      add: function(recognizer) {
-          if (invokeArrayArg(recognizer, 'add', this)) {
-              return this;
-          }
-
-          // remove existing
-          var existing = this.get(recognizer.options.event);
-          if (existing) {
-              this.remove(existing);
-          }
-
-          this.recognizers.push(recognizer);
-          recognizer.manager = this;
-
-          this.touchAction.update();
-          return recognizer;
-      },
-
-      /**
-       * remove a recognizer by name or instance
-       * @param {Recognizer|String} recognizer
-       * @returns {Manager}
-       */
-      remove: function(recognizer) {
-          if (invokeArrayArg(recognizer, 'remove', this)) {
-              return this;
-          }
-
-          var recognizers = this.recognizers;
-          recognizer = this.get(recognizer);
-          recognizers.splice(inArray(recognizers, recognizer), 1);
-
-          this.touchAction.update();
-          return this;
-      },
-
-      /**
-       * bind event
-       * @param {String} events
-       * @param {Function} handler
-       * @returns {EventEmitter} this
-       */
-      on: function(events, handler) {
-          var handlers = this.handlers;
-          each(splitStr(events), function(event) {
-              handlers[event] = handlers[event] || [];
-              handlers[event].push(handler);
-          });
-          return this;
-      },
-
-      /**
-       * unbind event, leave emit blank to remove all handlers
-       * @param {String} events
-       * @param {Function} [handler]
-       * @returns {EventEmitter} this
-       */
-      off: function(events, handler) {
-          var handlers = this.handlers;
-          each(splitStr(events), function(event) {
-              if (!handler) {
-                  delete handlers[event];
-              } else {
-                  handlers[event].splice(inArray(handlers[event], handler), 1);
-              }
-          });
-          return this;
-      },
-
-      /**
-       * emit event to the listeners
-       * @param {String} event
-       * @param {Object} data
-       */
-      emit: function(event, data) {
-          // we also want to trigger dom events
-          if (this.options.domEvents) {
-              triggerDomEvent(event, data);
-          }
-
-          // no handlers, so skip it all
-          var handlers = this.handlers[event] && this.handlers[event].slice();
-          if (!handlers || !handlers.length) {
-              return;
-          }
-
-          data.type = event;
-          data.preventDefault = function() {
-              data.srcEvent.preventDefault();
-          };
-
-          var i = 0;
-          while (i < handlers.length) {
-              handlers[i](data);
-              i++;
-          }
-      },
-
-      /**
-       * destroy the manager and unbinds all events
-       * it doesn't unbind dom events, that is the user own responsibility
-       */
-      destroy: function() {
-          this.element && toggleCssProps(this, false);
-
-          this.handlers = {};
-          this.session = {};
-          this.input.destroy();
-          this.element = null;
-      }
-  };
-
-  /**
-   * add/remove the css properties as defined in manager.options.cssProps
-   * @param {Manager} manager
-   * @param {Boolean} add
-   */
-  function toggleCssProps(manager, add) {
-      var element = manager.element;
-      each(manager.options.cssProps, function(value, name) {
-          element.style[prefixed(element.style, name)] = add ? value : '';
-      });
-  }
-
-  /**
-   * trigger dom event
-   * @param {String} event
-   * @param {Object} data
-   */
-  function triggerDomEvent(event, data) {
-      var gestureEvent = document.createEvent('Event');
-      gestureEvent.initEvent(event, true, true);
-      gestureEvent.gesture = data;
-      data.target.dispatchEvent(gestureEvent);
-  }
-
-  extend(Hammer, {
-      INPUT_START: INPUT_START,
-      INPUT_MOVE: INPUT_MOVE,
-      INPUT_END: INPUT_END,
-      INPUT_CANCEL: INPUT_CANCEL,
-
-      STATE_POSSIBLE: STATE_POSSIBLE,
-      STATE_BEGAN: STATE_BEGAN,
-      STATE_CHANGED: STATE_CHANGED,
-      STATE_ENDED: STATE_ENDED,
-      STATE_RECOGNIZED: STATE_RECOGNIZED,
-      STATE_CANCELLED: STATE_CANCELLED,
-      STATE_FAILED: STATE_FAILED,
-
-      DIRECTION_NONE: DIRECTION_NONE,
-      DIRECTION_LEFT: DIRECTION_LEFT,
-      DIRECTION_RIGHT: DIRECTION_RIGHT,
-      DIRECTION_UP: DIRECTION_UP,
-      DIRECTION_DOWN: DIRECTION_DOWN,
-      DIRECTION_HORIZONTAL: DIRECTION_HORIZONTAL,
-      DIRECTION_VERTICAL: DIRECTION_VERTICAL,
-      DIRECTION_ALL: DIRECTION_ALL,
-
-      Manager: Manager,
-      Input: Input,
-      TouchAction: TouchAction,
-
-      TouchInput: TouchInput,
-      MouseInput: MouseInput,
-      PointerEventInput: PointerEventInput,
-      TouchMouseInput: TouchMouseInput,
-      SingleTouchInput: SingleTouchInput,
-
-      Recognizer: Recognizer,
-      AttrRecognizer: AttrRecognizer,
-      Tap: TapRecognizer,
-      Pan: PanRecognizer,
-      Swipe: SwipeRecognizer,
-      Pinch: PinchRecognizer,
-      Rotate: RotateRecognizer,
-      Press: PressRecognizer,
-
-      on: addEventListeners,
-      off: removeEventListeners,
-      each: each,
-      merge: merge,
-      extend: extend,
-      inherit: inherit,
-      bindFn: bindFn,
-      prefixed: prefixed
-  });
-
-  if ("function" == TYPE_FUNCTION && __webpack_require__(18)) {
-      !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
-          return Hammer;
-      }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-  } else if (typeof module != 'undefined' && module.exports) {
-      module.exports = Hammer;
-  } else {
-      window[exportName] = Hammer;
-  }
-
-  })(window, document, 'Hammer');
-
-
-/***/ },
-/* 18 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
-
-  /* WEBPACK VAR INJECTION */}.call(exports, {}))
-
-/***/ },
-/* 19 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(74);
-  var moment = __webpack_require__(25);
-  var Component = __webpack_require__(22);
-  var DateUtil = __webpack_require__(24);
-
-  /**
-   * @constructor Range
-   * A Range controls a numeric range with a start and end value.
-   * The Range adjusts the range based on mouse events or programmatic changes,
-   * and triggers events when the range is changing or has been changed.
-   * @param {{dom: Object, domProps: Object, emitter: Emitter}} body
-   * @param {Object} [options]    See description at Range.setOptions
-   */
-  function Range(body, options) {
-    var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
-    this.start = now.clone().add(-3, "days").valueOf(); // Number
-    this.end = now.clone().add(4, "days").valueOf(); // Number
-
-    this.body = body;
-    this.deltaDifference = 0;
-    this.scaleOffset = 0;
-    this.startToFront = false;
-    this.endToFront = true;
-
-    // default options
-    this.defaultOptions = {
-      start: null,
-      end: null,
-      direction: "horizontal", // 'horizontal' or 'vertical'
-      moveable: true,
-      zoomable: true,
-      min: null,
-      max: null,
-      zoomMin: 10, // milliseconds
-      zoomMax: 1000 * 60 * 60 * 24 * 365 * 10000 // milliseconds
-    };
-    this.options = util.extend({}, this.defaultOptions);
-
-    this.props = {
-      touch: {}
-    };
-    this.animateTimer = null;
-
-    // drag listeners for dragging
-    this.body.emitter.on("panstart", this._onDragStart.bind(this));
-    this.body.emitter.on("panmove", this._onDrag.bind(this));
-    this.body.emitter.on("panend", this._onDragEnd.bind(this));
-
-    // ignore dragging when holding
-    this.body.emitter.on("press", this._onHold.bind(this));
-
-    // mouse wheel for zooming
-    this.body.emitter.on("mousewheel", this._onMouseWheel.bind(this));
-
-    // pinch to zoom
-    this.body.emitter.on("touch", this._onTouch.bind(this));
-    this.body.emitter.on("pinch", this._onPinch.bind(this));
-
-    this.setOptions(options);
-  }
-
-  Range.prototype = new Component();
-
-  /**
-   * Set options for the range controller
-   * @param {Object} options      Available options:
-   *                              {Number | Date | String} start  Start date for the range
-   *                              {Number | Date | String} end    End date for the range
-   *                              {Number} min    Minimum value for start
-   *                              {Number} max    Maximum value for end
-   *                              {Number} zoomMin    Set a minimum value for
-   *                                                  (end - start).
-   *                              {Number} zoomMax    Set a maximum value for
-   *                                                  (end - start).
-   *                              {Boolean} moveable Enable moving of the range
-   *                                                 by dragging. True by default
-   *                              {Boolean} zoomable Enable zooming of the range
-   *                                                 by pinching/scrolling. True by default
-   */
-  Range.prototype.setOptions = function (options) {
-    if (options) {
-      // copy the options that we know
-      var fields = ["direction", "min", "max", "zoomMin", "zoomMax", "moveable", "zoomable", "activate", "hiddenDates"];
-      util.selectiveExtend(fields, this.options, options);
-
-      if ("start" in options || "end" in options) {
-        // apply a new range. both start and end are optional
-        this.setRange(options.start, options.end);
-      }
-    }
-  };
-
-  /**
-   * Test whether direction has a valid value
-   * @param {String} direction    'horizontal' or 'vertical'
-   */
-  function validateDirection(direction) {
-    if (direction != "horizontal" && direction != "vertical") {
-      throw new TypeError("Unknown direction \"" + direction + "\". " + "Choose \"horizontal\" or \"vertical\".");
-    }
-  }
-
-  /**
-   * Set a new start and end range
-   * @param {Date | Number | String} [start]
-   * @param {Date | Number | String} [end]
-   * @param {boolean | number} [animate=false]     If true, the range is animated
-   *                                               smoothly to the new window.
-   *                                               If animate is a number, the
-   *                                               number is taken as duration
-   *                                               Default duration is 500 ms.
-   * @param {Boolean} [byUser=false]
-   *
-   */
-  Range.prototype.setRange = function (start, end, animate, byUser) {
-    if (byUser !== true) {
-      byUser = false;
-    }
-    var _start = start != undefined ? util.convert(start, "Date").valueOf() : null;
-    var _end = end != undefined ? util.convert(end, "Date").valueOf() : null;
-    this._cancelAnimation();
-
-    if (animate) {
-      var me = this;
-      var initStart = this.start;
-      var initEnd = this.end;
-      var duration = typeof animate === "number" ? animate : 500;
-      var initTime = new Date().valueOf();
-      var anyChanged = false;
-
-      var next = function () {
-        if (!me.props.touch.dragging) {
-          var now = new Date().valueOf();
-          var time = now - initTime;
-          var done = time > duration;
-          var s = done || _start === null ? _start : util.easeInOutQuad(time, initStart, _start, duration);
-          var e = done || _end === null ? _end : util.easeInOutQuad(time, initEnd, _end, duration);
-
-          changed = me._applyRange(s, e);
-          DateUtil.updateHiddenDates(me.body, me.options.hiddenDates);
-          anyChanged = anyChanged || changed;
-          if (changed) {
-            me.body.emitter.emit("rangechange", { start: new Date(me.start), end: new Date(me.end), byUser: byUser });
-          }
-
-          if (done) {
-            if (anyChanged) {
-              me.body.emitter.emit("rangechanged", { start: new Date(me.start), end: new Date(me.end), byUser: byUser });
-            }
-          } else {
-            // animate with as high as possible frame rate, leave 20 ms in between
-            // each to prevent the browser from blocking
-            me.animateTimer = setTimeout(next, 20);
-          }
-        }
-      };
-
-      return next();
-    } else {
-      var changed = this._applyRange(_start, _end);
-      DateUtil.updateHiddenDates(this.body, this.options.hiddenDates);
-      if (changed) {
-        var params = { start: new Date(this.start), end: new Date(this.end), byUser: byUser };
-        this.body.emitter.emit("rangechange", params);
-        this.body.emitter.emit("rangechanged", params);
-      }
-    }
-  };
-
-  /**
-   * Stop an animation
-   * @private
-   */
-  Range.prototype._cancelAnimation = function () {
-    if (this.animateTimer) {
-      clearTimeout(this.animateTimer);
-      this.animateTimer = null;
-    }
-  };
-
-  /**
-   * Set a new start and end range. This method is the same as setRange, but
-   * does not trigger a range change and range changed event, and it returns
-   * true when the range is changed
-   * @param {Number} [start]
-   * @param {Number} [end]
-   * @return {Boolean} changed
-   * @private
-   */
-  Range.prototype._applyRange = function (start, end) {
-    var newStart = start != null ? util.convert(start, "Date").valueOf() : this.start,
-        newEnd = end != null ? util.convert(end, "Date").valueOf() : this.end,
-        max = this.options.max != null ? util.convert(this.options.max, "Date").valueOf() : null,
-        min = this.options.min != null ? util.convert(this.options.min, "Date").valueOf() : null,
-        diff;
-
-    // check for valid number
-    if (isNaN(newStart) || newStart === null) {
-      throw new Error("Invalid start \"" + start + "\"");
-    }
-    if (isNaN(newEnd) || newEnd === null) {
-      throw new Error("Invalid end \"" + end + "\"");
-    }
-
-    // prevent start < end
-    if (newEnd < newStart) {
-      newEnd = newStart;
-    }
-
-    // prevent start < min
-    if (min !== null) {
-      if (newStart < min) {
-        diff = min - newStart;
-        newStart += diff;
-        newEnd += diff;
-
-        // prevent end > max
-        if (max != null) {
-          if (newEnd > max) {
-            newEnd = max;
-          }
-        }
-      }
-    }
-
-    // prevent end > max
-    if (max !== null) {
-      if (newEnd > max) {
-        diff = newEnd - max;
-        newStart -= diff;
-        newEnd -= diff;
-
-        // prevent start < min
-        if (min != null) {
-          if (newStart < min) {
-            newStart = min;
-          }
-        }
-      }
-    }
-
-    // prevent (end-start) < zoomMin
-    if (this.options.zoomMin !== null) {
-      var zoomMin = parseFloat(this.options.zoomMin);
-      if (zoomMin < 0) {
-        zoomMin = 0;
-      }
-      if (newEnd - newStart < zoomMin) {
-        if (this.end - this.start === zoomMin && newStart > this.start && newEnd < this.end) {
-          // ignore this action, we are already zoomed to the minimum
-          newStart = this.start;
-          newEnd = this.end;
-        } else {
-          // zoom to the minimum
-          diff = zoomMin - (newEnd - newStart);
-          newStart -= diff / 2;
-          newEnd += diff / 2;
-        }
-      }
-    }
-
-    // prevent (end-start) > zoomMax
-    if (this.options.zoomMax !== null) {
-      var zoomMax = parseFloat(this.options.zoomMax);
-      if (zoomMax < 0) {
-        zoomMax = 0;
-      }
-
-      if (newEnd - newStart > zoomMax) {
-        if (this.end - this.start === zoomMax && newStart < this.start && newEnd > this.end) {
-          // ignore this action, we are already zoomed to the maximum
-          newStart = this.start;
-          newEnd = this.end;
-        } else {
-          // zoom to the maximum
-          diff = newEnd - newStart - zoomMax;
-          newStart += diff / 2;
-          newEnd -= diff / 2;
-        }
-      }
-    }
-
-    var changed = this.start != newStart || this.end != newEnd;
-
-    // if the new range does NOT overlap with the old range, emit checkRangedItems to avoid not showing ranged items (ranged meaning has end time, not necessarily of type Range)
-    if (!(newStart >= this.start && newStart <= this.end || newEnd >= this.start && newEnd <= this.end) && !(this.start >= newStart && this.start <= newEnd || this.end >= newStart && this.end <= newEnd)) {
-      this.body.emitter.emit("checkRangedItems");
-    }
-
-    this.start = newStart;
-    this.end = newEnd;
-    return changed;
-  };
-
-  /**
-   * Retrieve the current range.
-   * @return {Object} An object with start and end properties
-   */
-  Range.prototype.getRange = function () {
-    return {
-      start: this.start,
-      end: this.end
-    };
-  };
-
-  /**
-   * Calculate the conversion offset and scale for current range, based on
-   * the provided width
-   * @param {Number} width
-   * @returns {{offset: number, scale: number}} conversion
-   */
-  Range.prototype.conversion = function (width, totalHidden) {
-    return Range.conversion(this.start, this.end, width, totalHidden);
-  };
-
-  /**
-   * Static method to calculate the conversion offset and scale for a range,
-   * based on the provided start, end, and width
-   * @param {Number} start
-   * @param {Number} end
-   * @param {Number} width
-   * @returns {{offset: number, scale: number}} conversion
-   */
-  Range.conversion = function (start, end, width, totalHidden) {
-    if (totalHidden === undefined) {
-      totalHidden = 0;
-    }
-    if (width != 0 && end - start != 0) {
-      return {
-        offset: start,
-        scale: width / (end - start - totalHidden)
-      };
-    } else {
-      return {
-        offset: 0,
-        scale: 1
-      };
-    }
-  };
-
-  /**
-   * Start dragging horizontally or vertically
-   * @param {Event} event
-   * @private
-   */
-  Range.prototype._onDragStart = function (event) {
-    this.deltaDifference = 0;
-    this.previousDelta = 0;
-    // only allow dragging when configured as movable
-    if (!this.options.moveable) return;
-
-    // refuse to drag when we where pinching to prevent the timeline make a jump
-    // when releasing the fingers in opposite order from the touch screen
-    if (!this.props.touch.allowDragging) return;
-
-    this.props.touch.start = this.start;
-    this.props.touch.end = this.end;
-    this.props.touch.dragging = true;
-
-    if (this.body.dom.root) {
-      this.body.dom.root.style.cursor = "move";
-    }
-
-    event.preventDefault();
-  };
-
-  /**
-   * Perform dragging operation
-   * @param {Event} event
-   * @private
-   */
-  Range.prototype._onDrag = function (event) {
-    // only allow dragging when configured as movable
-    if (!this.options.moveable) return;
-
-    // TODO: this may be redundant in hammerjs2
-    // refuse to drag when we where pinching to prevent the timeline make a jump
-    // when releasing the fingers in opposite order from the touch screen
-    if (!this.props.touch.allowDragging) return;
-
-    var direction = this.options.direction;
-    validateDirection(direction);
-    var delta = direction == "horizontal" ? event.deltaX : event.deltaY;
-    delta -= this.deltaDifference;
-    var interval = this.props.touch.end - this.props.touch.start;
-
-    // normalize dragging speed if cutout is in between.
-    var duration = DateUtil.getHiddenDurationBetween(this.body.hiddenDates, this.start, this.end);
-    interval -= duration;
-
-    var width = direction == "horizontal" ? this.body.domProps.center.width : this.body.domProps.center.height;
-    var diffRange = -delta / width * interval;
-    var newStart = this.props.touch.start + diffRange;
-    var newEnd = this.props.touch.end + diffRange;
-
-    // snapping times away from hidden zones
-    var safeStart = DateUtil.snapAwayFromHidden(this.body.hiddenDates, newStart, this.previousDelta - delta, true);
-    var safeEnd = DateUtil.snapAwayFromHidden(this.body.hiddenDates, newEnd, this.previousDelta - delta, true);
-    if (safeStart != newStart || safeEnd != newEnd) {
-      this.deltaDifference += delta;
-      this.props.touch.start = safeStart;
-      this.props.touch.end = safeEnd;
-      this._onDrag(event);
-      return;
-    }
-
-    this.previousDelta = delta;
-    this._applyRange(newStart, newEnd);
-
-    // fire a rangechange event
-    this.body.emitter.emit("rangechange", {
-      start: new Date(this.start),
-      end: new Date(this.end),
-      byUser: true
-    });
-
-    event.preventDefault();
-  };
-
-  /**
-   * Stop dragging operation
-   * @param {event} event
-   * @private
-   */
-  Range.prototype._onDragEnd = function (event) {
-    // only allow dragging when configured as movable
-    if (!this.options.moveable) return;
-
-    // TODO: this may be redundant in hammerjs2
-    // refuse to drag when we where pinching to prevent the timeline make a jump
-    // when releasing the fingers in opposite order from the touch screen
-    if (!this.props.touch.allowDragging) return;
-
-    this.props.touch.dragging = false;
-    if (this.body.dom.root) {
-      this.body.dom.root.style.cursor = "auto";
-    }
-
-    // fire a rangechanged event
-    this.body.emitter.emit("rangechanged", {
-      start: new Date(this.start),
-      end: new Date(this.end),
-      byUser: true
-    });
-  };
-
-  /**
-   * Event handler for mouse wheel event, used to zoom
-   * Code from http://adomas.org/javascript-mouse-wheel/
-   * @param {Event} event
-   * @private
-   */
-  Range.prototype._onMouseWheel = function (event) {
-    // only allow zooming when configured as zoomable and moveable
-    if (!(this.options.zoomable && this.options.moveable)) return;
-
-    // retrieve delta
-    var delta = 0;
-    if (event.wheelDelta) {
-      /* IE/Opera. */
-      delta = event.wheelDelta / 120;
-    } else if (event.detail) {
-      /* Mozilla case. */
-      // In Mozilla, sign of delta is different than in IE.
-      // Also, delta is multiple of 3.
-      delta = -event.detail / 3;
-    }
-
-    // If delta is nonzero, handle it.
-    // Basically, delta is now positive if wheel was scrolled up,
-    // and negative, if wheel was scrolled down.
-    if (delta) {
-      // perform the zoom action. Delta is normally 1 or -1
-
-      // adjust a negative delta such that zooming in with delta 0.1
-      // equals zooming out with a delta -0.1
-      var scale;
-      if (delta < 0) {
-        scale = 1 - delta / 5;
-      } else {
-        scale = 1 / (1 + delta / 5);
-      }
-
-      // calculate center, the date to zoom around
-      var pointer = getPointer({ x: event.pageX, y: event.pageY }, this.body.dom.center);
-      var pointerDate = this._pointerToDate(pointer);
-
-      this.zoom(scale, pointerDate, delta);
-    }
-
-    // Prevent default actions caused by mouse wheel
-    // (else the page and timeline both zoom and scroll)
-    event.preventDefault();
-  };
-
-  /**
-   * Start of a touch gesture
-   * @private
-   */
-  Range.prototype._onTouch = function (event) {
-    this.props.touch.start = this.start;
-    this.props.touch.end = this.end;
-    this.props.touch.allowDragging = true;
-    this.props.touch.center = null;
-    this.scaleOffset = 0;
-    this.deltaDifference = 0;
-  };
-
-  /**
-   * On start of a hold gesture
-   * @private
-   */
-  Range.prototype._onHold = function () {
-    this.props.touch.allowDragging = false;
-  };
-
-  /**
-   * Handle pinch event
-   * @param {Event} event
-   * @private
-   */
-  Range.prototype._onPinch = function (event) {
-    // only allow zooming when configured as zoomable and moveable
-    if (!(this.options.zoomable && this.options.moveable)) return;
-
-    this.props.touch.allowDragging = false;
-
-    if (!this.props.touch.center) {
-      this.props.touch.center = getPointer(event.center, this.body.dom.center);
-    }
-
-    var scale = 1 / (event.scale + this.scaleOffset);
-    var centerDate = this._pointerToDate(this.props.touch.center);
-
-    var hiddenDuration = DateUtil.getHiddenDurationBetween(this.body.hiddenDates, this.start, this.end);
-    var hiddenDurationBefore = DateUtil.getHiddenDurationBefore(this.body.hiddenDates, this, centerDate);
-    var hiddenDurationAfter = hiddenDuration - hiddenDurationBefore;
-
-    // calculate new start and end
-    var newStart = centerDate - hiddenDurationBefore + (this.props.touch.start - (centerDate - hiddenDurationBefore)) * scale;
-    var newEnd = centerDate + hiddenDurationAfter + (this.props.touch.end - (centerDate + hiddenDurationAfter)) * scale;
-
-    // snapping times away from hidden zones
-    this.startToFront = 1 - scale <= 0; // used to do the right auto correction with periodic hidden times
-    this.endToFront = scale - 1 <= 0; // used to do the right auto correction with periodic hidden times
-
-    var safeStart = DateUtil.snapAwayFromHidden(this.body.hiddenDates, newStart, 1 - scale, true);
-    var safeEnd = DateUtil.snapAwayFromHidden(this.body.hiddenDates, newEnd, scale - 1, true);
-    if (safeStart != newStart || safeEnd != newEnd) {
-      this.props.touch.start = safeStart;
-      this.props.touch.end = safeEnd;
-      this.scaleOffset = 1 - event.scale;
-      newStart = safeStart;
-      newEnd = safeEnd;
-    }
-
-    this.setRange(newStart, newEnd, false, true);
-
-    this.startToFront = false; // revert to default
-    this.endToFront = true; // revert to default
-
-    event.preventDefault();
-  };
-
-  /**
-   * Helper function to calculate the center date for zooming
-   * @param {{x: Number, y: Number}} pointer
-   * @return {number} date
-   * @private
-   */
-  Range.prototype._pointerToDate = function (pointer) {
-    var conversion;
-    var direction = this.options.direction;
-
-    validateDirection(direction);
-
-    if (direction == "horizontal") {
-      return this.body.util.toTime(pointer.x).valueOf();
-    } else {
-      var height = this.body.domProps.center.height;
-      conversion = this.conversion(height);
-      return pointer.y / conversion.scale + conversion.offset;
-    }
-  };
-
-  /**
-   * Get the pointer location relative to the location of the dom element
-   * @param {{x: Number, y: Number}} touch
-   * @param {Element} element   HTML DOM element
-   * @return {{x: Number, y: Number}} pointer
-   * @private
-   */
-  function getPointer(touch, element) {
-    return {
-      x: touch.x - util.getAbsoluteLeft(element),
-      y: touch.y - util.getAbsoluteTop(element)
-    };
-  }
-
-  /**
-   * Zoom the range the given scale in or out. Start and end date will
-   * be adjusted, and the timeline will be redrawn. You can optionally give a
-   * date around which to zoom.
-   * For example, try scale = 0.9 or 1.1
-   * @param {Number} scale      Scaling factor. Values above 1 will zoom out,
-   *                            values below 1 will zoom in.
-   * @param {Number} [center]   Value representing a date around which will
-   *                            be zoomed.
-   */
-  Range.prototype.zoom = function (scale, center, delta) {
-    // if centerDate is not provided, take it half between start Date and end Date
-    if (center == null) {
-      center = (this.start + this.end) / 2;
-    }
-
-    var hiddenDuration = DateUtil.getHiddenDurationBetween(this.body.hiddenDates, this.start, this.end);
-    var hiddenDurationBefore = DateUtil.getHiddenDurationBefore(this.body.hiddenDates, this, center);
-    var hiddenDurationAfter = hiddenDuration - hiddenDurationBefore;
-
-    // calculate new start and end
-    var newStart = center - hiddenDurationBefore + (this.start - (center - hiddenDurationBefore)) * scale;
-    var newEnd = center + hiddenDurationAfter + (this.end - (center + hiddenDurationAfter)) * scale;
-
-    // snapping times away from hidden zones
-    this.startToFront = delta > 0 ? false : true; // used to do the right autocorrection with periodic hidden times
-    this.endToFront = -delta > 0 ? false : true; // used to do the right autocorrection with periodic hidden times
-    var safeStart = DateUtil.snapAwayFromHidden(this.body.hiddenDates, newStart, delta, true);
-    var safeEnd = DateUtil.snapAwayFromHidden(this.body.hiddenDates, newEnd, -delta, true);
-    if (safeStart != newStart || safeEnd != newEnd) {
-      newStart = safeStart;
-      newEnd = safeEnd;
-    }
-
-    this.setRange(newStart, newEnd, false, true);
-
-    this.startToFront = false; // revert to default
-    this.endToFront = true; // revert to default
-  };
-
-
-
-  /**
-   * Move the range with a given delta to the left or right. Start and end
-   * value will be adjusted. For example, try delta = 0.1 or -0.1
-   * @param {Number}  delta     Moving amount. Positive value will move right,
-   *                            negative value will move left
-   */
-  Range.prototype.move = function (delta) {
-    // zoom start Date and end Date relative to the centerDate
-    var diff = this.end - this.start;
-
-    // apply new values
-    var newStart = this.start + diff * delta;
-    var newEnd = this.end + diff * delta;
-
-    // TODO: reckon with min and max range
-
-    this.start = newStart;
-    this.end = newEnd;
-  };
-
-  /**
-   * Move the range to a new center point
-   * @param {Number} moveTo      New center point of the range
-   */
-  Range.prototype.moveTo = function (moveTo) {
-    var center = (this.start + this.end) / 2;
-
-    var diff = center - moveTo;
-
-    // calculate new start and end
-    var newStart = this.start - diff;
-    var newEnd = this.end - diff;
-
-    this.setRange(newStart, newEnd);
-  };
-
-  module.exports = Range;
-
-/***/ },
-/* 20 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var Emitter = __webpack_require__(7);
-  var Hammer = __webpack_require__(15);
-  var hammerUtil = __webpack_require__(74);
-  var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(3);
-  var DataView = __webpack_require__(5);
-  var Range = __webpack_require__(19);
-  var ItemSet = __webpack_require__(32);
-  var Activator = __webpack_require__(56);
-  var DateUtil = __webpack_require__(24);
-  var CustomTime = __webpack_require__(31);
-
-  /**
-   * Create a timeline visualization
-   * @param {HTMLElement} container
-   * @param {vis.DataSet | Array | google.visualization.DataTable} [items]
-   * @param {Object} [options]  See Core.setOptions for the available options.
-   * @constructor
-   */
-  function Core() {}
-
-  // turn Core into an event emitter
-  Emitter(Core.prototype);
-
-  /**
-   * Create the main DOM for the Core: a root panel containing left, right,
-   * top, bottom, content, and background panel.
-   * @param {Element} container  The container element where the Core will
-   *                             be attached.
-   * @private
-   */
-  Core.prototype._create = function (container) {
-    this.dom = {};
-
-    this.dom.root = document.createElement("div");
-    this.dom.background = document.createElement("div");
-    this.dom.backgroundVertical = document.createElement("div");
-    this.dom.backgroundHorizontal = document.createElement("div");
-    this.dom.centerContainer = document.createElement("div");
-    this.dom.leftContainer = document.createElement("div");
-    this.dom.rightContainer = document.createElement("div");
-    this.dom.center = document.createElement("div");
-    this.dom.left = document.createElement("div");
-    this.dom.right = document.createElement("div");
-    this.dom.top = document.createElement("div");
-    this.dom.bottom = document.createElement("div");
-    this.dom.shadowTop = document.createElement("div");
-    this.dom.shadowBottom = document.createElement("div");
-    this.dom.shadowTopLeft = document.createElement("div");
-    this.dom.shadowBottomLeft = document.createElement("div");
-    this.dom.shadowTopRight = document.createElement("div");
-    this.dom.shadowBottomRight = document.createElement("div");
-
-    this.dom.root.className = "vis timeline root";
-    this.dom.background.className = "vispanel background";
-    this.dom.backgroundVertical.className = "vispanel background vertical";
-    this.dom.backgroundHorizontal.className = "vispanel background horizontal";
-    this.dom.centerContainer.className = "vispanel center";
-    this.dom.leftContainer.className = "vispanel left";
-    this.dom.rightContainer.className = "vispanel right";
-    this.dom.top.className = "vispanel top";
-    this.dom.bottom.className = "vispanel bottom";
-    this.dom.left.className = "content";
-    this.dom.center.className = "content";
-    this.dom.right.className = "content";
-    this.dom.shadowTop.className = "shadow top";
-    this.dom.shadowBottom.className = "shadow bottom";
-    this.dom.shadowTopLeft.className = "shadow top";
-    this.dom.shadowBottomLeft.className = "shadow bottom";
-    this.dom.shadowTopRight.className = "shadow top";
-    this.dom.shadowBottomRight.className = "shadow bottom";
-
-    this.dom.root.appendChild(this.dom.background);
-    this.dom.root.appendChild(this.dom.backgroundVertical);
-    this.dom.root.appendChild(this.dom.backgroundHorizontal);
-    this.dom.root.appendChild(this.dom.centerContainer);
-    this.dom.root.appendChild(this.dom.leftContainer);
-    this.dom.root.appendChild(this.dom.rightContainer);
-    this.dom.root.appendChild(this.dom.top);
-    this.dom.root.appendChild(this.dom.bottom);
-
-    this.dom.centerContainer.appendChild(this.dom.center);
-    this.dom.leftContainer.appendChild(this.dom.left);
-    this.dom.rightContainer.appendChild(this.dom.right);
-
-    this.dom.centerContainer.appendChild(this.dom.shadowTop);
-    this.dom.centerContainer.appendChild(this.dom.shadowBottom);
-    this.dom.leftContainer.appendChild(this.dom.shadowTopLeft);
-    this.dom.leftContainer.appendChild(this.dom.shadowBottomLeft);
-    this.dom.rightContainer.appendChild(this.dom.shadowTopRight);
-    this.dom.rightContainer.appendChild(this.dom.shadowBottomRight);
-
-    this.on("rangechange", this.redraw.bind(this));
-
-    var me = this;
-    this.on("change", function (properties) {
-      if (properties && properties.queue == true) {
-        // redraw once on next tick
-        if (!me._redrawTimer) {
-          me._redrawTimer = setTimeout(function () {
-            me._redrawTimer = null;
-            me._redraw();
-          }, 0);
-        }
-      } else {
-        // redraw immediately
-        me._redraw();
-      }
-    });
-
-    // create event listeners for all interesting events, these events will be
-    // emitted via emitter
-    this.hammer = new Hammer(this.dom.root, { touchAction: "pan-y" });
-    this.hammer.get("pinch").set({ enable: true });
-    this.listeners = {};
-
-    var events = ["tap", "doubletap", "press", "pinch", "pan", "panstart", "panmove", "panend"
-    // TODO: cleanup
-    //'touch', 'pinch',
-    //'tap', 'doubletap', 'hold',
-    //'dragstart', 'drag', 'dragend',
-    //'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is needed for Firefox
-    ];
-    events.forEach(function (type) {
-      var listener = function (event) {
-        if (me.isActive()) {
-          me.emit(type, event);
-        }
-      };
-      me.hammer.on(type, listener);
-      me.listeners[type] = listener;
-    });
-
-    // emulate a touch event (emitted before the start of a pan, pinch, tap, or press)
-    hammerUtil.onTouch(this.hammer, (function (event) {
-      me.emit("touch", event);
-    }).bind(this));
-
-    function onMouseWheel(event) {
-      if (me.isActive()) {
-        me.emit("mousewheel", event);
-      }
-    }
-    this.dom.root.addEventListener("mousewheel", onMouseWheel);
-    this.dom.root.addEventListener("DOMMouseScroll", onMouseWheel);
-
-    // size properties of each of the panels
-    this.props = {
-      root: {},
-      background: {},
-      centerContainer: {},
-      leftContainer: {},
-      rightContainer: {},
-      center: {},
-      left: {},
-      right: {},
-      top: {},
-      bottom: {},
-      border: {},
-      scrollTop: 0,
-      scrollTopMin: 0
-    };
-
-    this.redrawCount = 0;
-
-    // attach the root panel to the provided container
-    if (!container) throw new Error("No container provided");
-    container.appendChild(this.dom.root);
-  };
-
-  /**
-   * Set options. Options will be passed to all components loaded in the Timeline.
-   * @param {Object} [options]
-   *                           {String} orientation
-   *                              Vertical orientation for the Timeline,
-   *                              can be 'bottom' (default) or 'top'.
-   *                           {String | Number} width
-   *                              Width for the timeline, a number in pixels or
-   *                              a css string like '1000px' or '75%'. '100%' by default.
-   *                           {String | Number} height
-   *                              Fixed height for the Timeline, a number in pixels or
-   *                              a css string like '400px' or '75%'. If undefined,
-   *                              The Timeline will automatically size such that
-   *                              its contents fit.
-   *                           {String | Number} minHeight
-   *                              Minimum height for the Timeline, a number in pixels or
-   *                              a css string like '400px' or '75%'.
-   *                           {String | Number} maxHeight
-   *                              Maximum height for the Timeline, a number in pixels or
-   *                              a css string like '400px' or '75%'.
-   *                           {Number | Date | String} start
-   *                              Start date for the visible window
-   *                           {Number | Date | String} end
-   *                              End date for the visible window
-   */
-  Core.prototype.setOptions = function (options) {
-    if (options) {
-      // copy the known options
-      var fields = ["width", "height", "minHeight", "maxHeight", "autoResize", "start", "end", "orientation", "clickToUse", "dataAttributes", "hiddenDates"];
-      util.selectiveExtend(fields, this.options, options);
-
-      if ("hiddenDates" in this.options) {
-        DateUtil.convertHiddenOptions(this.body, this.options.hiddenDates);
-      }
-
-      if ("clickToUse" in options) {
-        if (options.clickToUse) {
-          if (!this.activator) {
-            this.activator = new Activator(this.dom.root);
-          }
-        } else {
-          if (this.activator) {
-            this.activator.destroy();
-            delete this.activator;
-          }
-        }
-      }
-
-      // enable/disable autoResize
-      this._initAutoResize();
-    }
-
-    // propagate options to all components
-    this.components.forEach(function (component) {
-      return component.setOptions(options);
-    });
-
-    // TODO: remove deprecation error one day (deprecated since version 0.8.0)
-    if (options && options.order) {
-      throw new Error("Option order is deprecated. There is no replacement for this feature.");
-    }
-
-    // redraw everything
-    this._redraw();
-  };
-
-  /**
-   * Returns true when the Timeline is active.
-   * @returns {boolean}
-   */
-  Core.prototype.isActive = function () {
-    return !this.activator || this.activator.active;
-  };
-
-  /**
-   * Destroy the Core, clean up all DOM elements and event listeners.
-   */
-  Core.prototype.destroy = function () {
-    // unbind datasets
-    this.clear();
-
-    // remove all event listeners
-    this.off();
-
-    // stop checking for changed size
-    this._stopAutoResize();
-
-    // remove from DOM
-    if (this.dom.root.parentNode) {
-      this.dom.root.parentNode.removeChild(this.dom.root);
-    }
-    this.dom = null;
-
-    // remove Activator
-    if (this.activator) {
-      this.activator.destroy();
-      delete this.activator;
-    }
-
-    // cleanup hammer touch events
-    for (var event in this.listeners) {
-      if (this.listeners.hasOwnProperty(event)) {
-        delete this.listeners[event];
-      }
-    }
-    this.listeners = null;
-    this.hammer = null;
-
-    // give all components the opportunity to cleanup
-    this.components.forEach(function (component) {
-      return component.destroy();
-    });
-
-    this.body = null;
-  };
-
-
-  /**
-   * Set a custom time bar
-   * @param {Date} time
-   * @param {int} id
-   */
-  Core.prototype.setCustomTime = function (time, id) {
-    if (!this.customTime) {
-      throw new Error("Cannot get custom time: Custom time bar is not enabled");
-    }
-
-    var barId = id || 0;
-
-    this.components.forEach(function (element, index, components) {
-      if (element instanceof CustomTime && element.options.id === barId) {
-        element.setCustomTime(time);
-      }
-    });
-  };
-
-  /**
-   * Retrieve the current custom time.
-   * @return {Date} customTime
-   * @param {int} id
-   */
-  Core.prototype.getCustomTime = function (id) {
-    if (!this.customTime) {
-      throw new Error("Cannot get custom time: Custom time bar is not enabled");
-    }
-
-    var barId = id || 0,
-        customTime = this.customTime.getCustomTime();
-
-    this.components.forEach(function (element, index, components) {
-      if (element instanceof CustomTime && element.options.id === barId) {
-        customTime = element.getCustomTime();
-      }
-    });
-
-    return customTime;
-  };
-
-  /**
-   * Add custom vertical bar
-   * @param {Date | String | Number} time  A Date, unix timestamp, or
-   *                                      ISO date string. Time point where the new bar should be placed
-   * @param {Number | String} ID of the new bar
-   * @return {Number | String} ID of the new bar
-   */
-  Core.prototype.addCustomTime = function (time, id) {
-    if (!this.currentTime) {
-      throw new Error("Option showCurrentTime must be true");
-    }
-
-    if (time === undefined) {
-      throw new Error("Time parameter for the custom bar must be provided");
-    }
-
-    var ts = util.convert(time, "Date").valueOf(),
-        numIds,
-        customTime,
-        customBarId;
-
-    // All bar IDs are kept in 1 array, mixed types
-    // Bar with ID 0 is the default bar.
-    if (!this.customBarIds || this.customBarIds.constructor !== Array) {
-      this.customBarIds = [0];
-    }
-
-    // If the ID is not provided, generate one, otherwise just use it
-    if (id === undefined) {
-      numIds = this.customBarIds.filter(function (element) {
-        return util.isNumber(element);
-      });
-
-      customBarId = numIds.length > 0 ? Math.max.apply(null, numIds) + 1 : 1;
-    } else {
-      // Check for duplicates
-      this.customBarIds.forEach(function (element) {
-        if (element === id) {
-          throw new Error("Custom time ID already exists");
-        }
-      });
-
-      customBarId = id;
-    }
-
-    this.customBarIds.push(customBarId);
-
-    customTime = new CustomTime(this.body, {
-      showCustomTime: true,
-      time: ts,
-      id: customBarId
-    });
-
-    this.components.push(customTime);
-    this.redraw();
-
-    return customBarId;
-  };
-
-  /**
-   * Remove previously added custom bar
-   * @param {int} id ID of the custom bar to be removed
-   * @return {boolean} True if the bar exists and is removed, false otherwise
-   */
-  Core.prototype.removeCustomTime = function (id) {
-    var me = this;
-
-    this.components.forEach(function (bar, index, components) {
-      if (bar instanceof CustomTime && bar.options.id === id) {
-        // Only the lines added by the user will be removed
-        if (bar.options.id !== 0) {
-          me.customBarIds.splice(me.customBarIds.indexOf(id), 1);
-          components.splice(index, 1);
-          bar.destroy();
-        }
-      }
-    });
-  };
-
-
-  /**
-   * Get the id's of the currently visible items.
-   * @returns {Array} The ids of the visible items
-   */
-  Core.prototype.getVisibleItems = function () {
-    return this.itemSet && this.itemSet.getVisibleItems() || [];
-  };
-
-
-
-  /**
-   * Clear the Core. By Default, items, groups and options are cleared.
-   * Example usage:
-   *
-   *     timeline.clear();                // clear items, groups, and options
-   *     timeline.clear({options: true}); // clear options only
-   *
-   * @param {Object} [what]      Optionally specify what to clear. By default:
-   *                             {items: true, groups: true, options: true}
-   */
-  Core.prototype.clear = function (what) {
-    // clear items
-    if (!what || what.items) {
-      this.setItems(null);
-    }
-
-    // clear groups
-    if (!what || what.groups) {
-      this.setGroups(null);
-    }
-
-    // clear options of timeline and of each of the components
-    if (!what || what.options) {
-      this.components.forEach(function (component) {
-        return component.setOptions(component.defaultOptions);
-      });
-
-      this.setOptions(this.defaultOptions); // this will also do a redraw
-    }
-  };
-
-  /**
-   * Set Core window such that it fits all items
-   * @param {Object} [options]  Available options:
-   *                            `animate: boolean | number`
-   *                                 If true (default), the range is animated
-   *                                 smoothly to the new window.
-   *                                 If a number, the number is taken as duration
-   *                                 for the animation. Default duration is 500 ms.
-   */
-  Core.prototype.fit = function (options) {
-    var range = this._getDataRange();
-
-    // skip range set if there is no start and end date
-    if (range.start === null && range.end === null) {
-      return;
-    }
-
-    var animate = options && options.animate !== undefined ? options.animate : true;
-    this.range.setRange(range.start, range.end, animate);
-  };
-
-  /**
-   * Calculate the data range of the items and applies a 5% window around it.
-   * @returns {{start: Date | null, end: Date | null}}
-   * @protected
-   */
-  Core.prototype._getDataRange = function () {
-    // apply the data range as range
-    var dataRange = this.getItemRange();
-
-    // add 5% space on both sides
-    var start = dataRange.min;
-    var end = dataRange.max;
-    if (start != null && end != null) {
-      var interval = end.valueOf() - start.valueOf();
-      if (interval <= 0) {
-        // prevent an empty interval
-        interval = 24 * 60 * 60 * 1000; // 1 day
-      }
-      start = new Date(start.valueOf() - interval * 0.05);
-      end = new Date(end.valueOf() + interval * 0.05);
-    }
-
-    return {
-      start: start,
-      end: end
-    };
-  };
-
-  /**
-   * Set the visible window. Both parameters are optional, you can change only
-   * start or only end. Syntax:
-   *
-   *     TimeLine.setWindow(start, end)
-   *     TimeLine.setWindow(start, end, options)
-   *     TimeLine.setWindow(range)
-   *
-   * Where start and end can be a Date, number, or string, and range is an
-   * object with properties start and end.
-   *
-   * @param {Date | Number | String | Object} [start] Start date of visible window
-   * @param {Date | Number | String} [end]            End date of visible window
-   * @param {Object} [options]  Available options:
-   *                            `animate: boolean | number`
-   *                                 If true (default), the range is animated
-   *                                 smoothly to the new window.
-   *                                 If a number, the number is taken as duration
-   *                                 for the animation. Default duration is 500 ms.
-   */
-  Core.prototype.setWindow = function (start, end, options) {
-    var animate;
-    if (arguments.length == 1) {
-      var range = arguments[0];
-      animate = range.animate !== undefined ? range.animate : true;
-      this.range.setRange(range.start, range.end, animate);
-    } else {
-      animate = options && options.animate !== undefined ? options.animate : true;
-      this.range.setRange(start, end, animate);
-    }
-  };
-
-  /**
-   * Move the window such that given time is centered on screen.
-   * @param {Date | Number | String} time
-   * @param {Object} [options]  Available options:
-   *                            `animate: boolean | number`
-   *                                 If true (default), the range is animated
-   *                                 smoothly to the new window.
-   *                                 If a number, the number is taken as duration
-   *                                 for the animation. Default duration is 500 ms.
-   */
-  Core.prototype.moveTo = function (time, options) {
-    var interval = this.range.end - this.range.start;
-    var t = util.convert(time, "Date").valueOf();
-
-    var start = t - interval / 2;
-    var end = t + interval / 2;
-    var animate = options && options.animate !== undefined ? options.animate : true;
-
-    this.range.setRange(start, end, animate);
-  };
-
-  /**
-   * Get the visible window
-   * @return {{start: Date, end: Date}}   Visible range
-   */
-  Core.prototype.getWindow = function () {
-    var range = this.range.getRange();
-    return {
-      start: new Date(range.start),
-      end: new Date(range.end)
-    };
-  };
-
-  /**
-   * Force a redraw. Can be overridden by implementations of Core
-   */
-  Core.prototype.redraw = function () {
-    this._redraw();
-  };
-
-  /**
-   * Redraw for internal use. Redraws all components. See also the public
-   * method redraw.
-   * @protected
-   */
-  Core.prototype._redraw = function () {
-    var resized = false;
-    var options = this.options;
-    var props = this.props;
-    var dom = this.dom;
-
-    if (!dom) return; // when destroyed
-
-    DateUtil.updateHiddenDates(this.body, this.options.hiddenDates);
-
-    // update class names
-    if (options.orientation == "top") {
-      util.addClassName(dom.root, "top");
-      util.removeClassName(dom.root, "bottom");
-    } else {
-      util.removeClassName(dom.root, "top");
-      util.addClassName(dom.root, "bottom");
-    }
-
-    // update root width and height options
-    dom.root.style.maxHeight = util.option.asSize(options.maxHeight, "");
-    dom.root.style.minHeight = util.option.asSize(options.minHeight, "");
-    dom.root.style.width = util.option.asSize(options.width, "");
-
-    // calculate border widths
-    props.border.left = (dom.centerContainer.offsetWidth - dom.centerContainer.clientWidth) / 2;
-    props.border.right = props.border.left;
-    props.border.top = (dom.centerContainer.offsetHeight - dom.centerContainer.clientHeight) / 2;
-    props.border.bottom = props.border.top;
-    var borderRootHeight = dom.root.offsetHeight - dom.root.clientHeight;
-    var borderRootWidth = dom.root.offsetWidth - dom.root.clientWidth;
-
-    // workaround for a bug in IE: the clientWidth of an element with
-    // a height:0px and overflow:hidden is not calculated and always has value 0
-    if (dom.centerContainer.clientHeight === 0) {
-      props.border.left = props.border.top;
-      props.border.right = props.border.left;
-    }
-    if (dom.root.clientHeight === 0) {
-      borderRootWidth = borderRootHeight;
-    }
-
-    // calculate the heights. If any of the side panels is empty, we set the height to
-    // minus the border width, such that the border will be invisible
-    props.center.height = dom.center.offsetHeight;
-    props.left.height = dom.left.offsetHeight;
-    props.right.height = dom.right.offsetHeight;
-    props.top.height = dom.top.clientHeight || -props.border.top;
-    props.bottom.height = dom.bottom.clientHeight || -props.border.bottom;
-
-    // TODO: compensate borders when any of the panels is empty.
-
-    // apply auto height
-    // TODO: only calculate autoHeight when needed (else we cause an extra reflow/repaint of the DOM)
-    var contentHeight = Math.max(props.left.height, props.center.height, props.right.height);
-    var autoHeight = props.top.height + contentHeight + props.bottom.height + borderRootHeight + props.border.top + props.border.bottom;
-    dom.root.style.height = util.option.asSize(options.height, autoHeight + "px");
-
-    // calculate heights of the content panels
-    props.root.height = dom.root.offsetHeight;
-    props.background.height = props.root.height - borderRootHeight;
-    var containerHeight = props.root.height - props.top.height - props.bottom.height - borderRootHeight;
-    props.centerContainer.height = containerHeight;
-    props.leftContainer.height = containerHeight;
-    props.rightContainer.height = props.leftContainer.height;
-
-    // calculate the widths of the panels
-    props.root.width = dom.root.offsetWidth;
-    props.background.width = props.root.width - borderRootWidth;
-    props.left.width = dom.leftContainer.clientWidth || -props.border.left;
-    props.leftContainer.width = props.left.width;
-    props.right.width = dom.rightContainer.clientWidth || -props.border.right;
-    props.rightContainer.width = props.right.width;
-    var centerWidth = props.root.width - props.left.width - props.right.width - borderRootWidth;
-    props.center.width = centerWidth;
-    props.centerContainer.width = centerWidth;
-    props.top.width = centerWidth;
-    props.bottom.width = centerWidth;
-
-    // resize the panels
-    dom.background.style.height = props.background.height + "px";
-    dom.backgroundVertical.style.height = props.background.height + "px";
-    dom.backgroundHorizontal.style.height = props.centerContainer.height + "px";
-    dom.centerContainer.style.height = props.centerContainer.height + "px";
-    dom.leftContainer.style.height = props.leftContainer.height + "px";
-    dom.rightContainer.style.height = props.rightContainer.height + "px";
-
-    dom.background.style.width = props.background.width + "px";
-    dom.backgroundVertical.style.width = props.centerContainer.width + "px";
-    dom.backgroundHorizontal.style.width = props.background.width + "px";
-    dom.centerContainer.style.width = props.center.width + "px";
-    dom.top.style.width = props.top.width + "px";
-    dom.bottom.style.width = props.bottom.width + "px";
-
-    // reposition the panels
-    dom.background.style.left = "0";
-    dom.background.style.top = "0";
-    dom.backgroundVertical.style.left = props.left.width + props.border.left + "px";
-    dom.backgroundVertical.style.top = "0";
-    dom.backgroundHorizontal.style.left = "0";
-    dom.backgroundHorizontal.style.top = props.top.height + "px";
-    dom.centerContainer.style.left = props.left.width + "px";
-    dom.centerContainer.style.top = props.top.height + "px";
-    dom.leftContainer.style.left = "0";
-    dom.leftContainer.style.top = props.top.height + "px";
-    dom.rightContainer.style.left = props.left.width + props.center.width + "px";
-    dom.rightContainer.style.top = props.top.height + "px";
-    dom.top.style.left = props.left.width + "px";
-    dom.top.style.top = "0";
-    dom.bottom.style.left = props.left.width + "px";
-    dom.bottom.style.top = props.top.height + props.centerContainer.height + "px";
-
-    // update the scrollTop, feasible range for the offset can be changed
-    // when the height of the Core or of the contents of the center changed
-    this._updateScrollTop();
-
-    // reposition the scrollable contents
-    var offset = this.props.scrollTop;
-    if (options.orientation == "bottom") {
-      offset += Math.max(this.props.centerContainer.height - this.props.center.height - this.props.border.top - this.props.border.bottom, 0);
-    }
-    dom.center.style.left = "0";
-    dom.center.style.top = offset + "px";
-    dom.left.style.left = "0";
-    dom.left.style.top = offset + "px";
-    dom.right.style.left = "0";
-    dom.right.style.top = offset + "px";
-
-    // show shadows when vertical scrolling is available
-    var visibilityTop = this.props.scrollTop == 0 ? "hidden" : "";
-    var visibilityBottom = this.props.scrollTop == this.props.scrollTopMin ? "hidden" : "";
-    dom.shadowTop.style.visibility = visibilityTop;
-    dom.shadowBottom.style.visibility = visibilityBottom;
-    dom.shadowTopLeft.style.visibility = visibilityTop;
-    dom.shadowBottomLeft.style.visibility = visibilityBottom;
-    dom.shadowTopRight.style.visibility = visibilityTop;
-    dom.shadowBottomRight.style.visibility = visibilityBottom;
-
-    // redraw all components
-    this.components.forEach(function (component) {
-      resized = component.redraw() || resized;
-    });
-    if (resized) {
-      // keep repainting until all sizes are settled
-      var MAX_REDRAWS = 3; // maximum number of consecutive redraws
-      if (this.redrawCount < MAX_REDRAWS) {
-        this.redrawCount++;
-        this._redraw();
-      } else {
-        console.log("WARNING: infinite loop in redraw?");
-      }
-      this.redrawCount = 0;
-    }
-
-    this.emit("finishedRedraw");
-  };
-
-  // TODO: deprecated since version 1.1.0, remove some day
-  Core.prototype.repaint = function () {
-    throw new Error("Function repaint is deprecated. Use redraw instead.");
-  };
-
-  /**
-   * Set a current time. This can be used for example to ensure that a client's
-   * time is synchronized with a shared server time.
-   * Only applicable when option `showCurrentTime` is true.
-   * @param {Date | String | Number} time     A Date, unix timestamp, or
-   *                                          ISO date string.
-   */
-  Core.prototype.setCurrentTime = function (time) {
-    if (!this.currentTime) {
-      throw new Error("Option showCurrentTime must be true");
-    }
-
-    this.currentTime.setCurrentTime(time);
-  };
-
-  /**
-   * Get the current time.
-   * Only applicable when option `showCurrentTime` is true.
-   * @return {Date} Returns the current time.
-   */
-  Core.prototype.getCurrentTime = function () {
-    if (!this.currentTime) {
-      throw new Error("Option showCurrentTime must be true");
-    }
-
-    return this.currentTime.getCurrentTime();
-  };
-
-  /**
-   * Convert a position on screen (pixels) to a datetime
-   * @param {int}     x    Position on the screen in pixels
-   * @return {Date}   time The datetime the corresponds with given position x
-   * @private
-   */
-  // TODO: move this function to Range
-  Core.prototype._toTime = function (x) {
-    return DateUtil.toTime(this, x, this.props.center.width);
-  };
-
-  /**
-   * Convert a position on the global screen (pixels) to a datetime
-   * @param {int}     x    Position on the screen in pixels
-   * @return {Date}   time The datetime the corresponds with given position x
-   * @private
-   */
-  // TODO: move this function to Range
-  Core.prototype._toGlobalTime = function (x) {
-    return DateUtil.toTime(this, x, this.props.root.width);
-    //var conversion = this.range.conversion(this.props.root.width);
-    //return new Date(x / conversion.scale + conversion.offset);
-  };
-
-  /**
-   * Convert a datetime (Date object) into a position on the screen
-   * @param {Date}   time A date
-   * @return {int}   x    The position on the screen in pixels which corresponds
-   *                      with the given date.
-   * @private
-   */
-  // TODO: move this function to Range
-  Core.prototype._toScreen = function (time) {
-    return DateUtil.toScreen(this, time, this.props.center.width);
-  };
-
-
-
-  /**
-   * Convert a datetime (Date object) into a position on the root
-   * This is used to get the pixel density estimate for the screen, not the center panel
-   * @param {Date}   time A date
-   * @return {int}   x    The position on root in pixels which corresponds
-   *                      with the given date.
-   * @private
-   */
-  // TODO: move this function to Range
-  Core.prototype._toGlobalScreen = function (time) {
-    return DateUtil.toScreen(this, time, this.props.root.width);
-    //var conversion = this.range.conversion(this.props.root.width);
-    //return (time.valueOf() - conversion.offset) * conversion.scale;
-  };
-
-
-  /**
-   * Initialize watching when option autoResize is true
-   * @private
-   */
-  Core.prototype._initAutoResize = function () {
-    if (this.options.autoResize == true) {
-      this._startAutoResize();
-    } else {
-      this._stopAutoResize();
-    }
-  };
-
-  /**
-   * Watch for changes in the size of the container. On resize, the Panel will
-   * automatically redraw itself.
-   * @private
-   */
-  Core.prototype._startAutoResize = function () {
-    var me = this;
-
-    this._stopAutoResize();
-
-    this._onResize = function () {
-      if (me.options.autoResize != true) {
-        // stop watching when the option autoResize is changed to false
-        me._stopAutoResize();
-        return;
-      }
-
-      if (me.dom.root) {
-        // check whether the frame is resized
-        // Note: we compare offsetWidth here, not clientWidth. For some reason,
-        // IE does not restore the clientWidth from 0 to the actual width after
-        // changing the timeline's container display style from none to visible
-        if (me.dom.root.offsetWidth != me.props.lastWidth || me.dom.root.offsetHeight != me.props.lastHeight) {
-          me.props.lastWidth = me.dom.root.offsetWidth;
-          me.props.lastHeight = me.dom.root.offsetHeight;
-
-          me.emit("change");
-        }
-      }
-    };
-
-    // add event listener to window resize
-    util.addEventListener(window, "resize", this._onResize);
-
-    this.watchTimer = setInterval(this._onResize, 1000);
-  };
-
-  /**
-   * Stop watching for a resize of the frame.
-   * @private
-   */
-  Core.prototype._stopAutoResize = function () {
-    if (this.watchTimer) {
-      clearInterval(this.watchTimer);
-      this.watchTimer = undefined;
-    }
-
-    // remove event listener on window.resize
-    util.removeEventListener(window, "resize", this._onResize);
-    this._onResize = null;
-  };
-
-  /**
-   * Apply a scrollTop
-   * @param {Number} scrollTop
-   * @returns {Number} scrollTop  Returns the applied scrollTop
-   * @private
-   */
-  Core.prototype._setScrollTop = function (scrollTop) {
-    this.props.scrollTop = scrollTop;
-    this._updateScrollTop();
-    return this.props.scrollTop;
-  };
-
-  /**
-   * Update the current scrollTop when the height of  the containers has been changed
-   * @returns {Number} scrollTop  Returns the applied scrollTop
-   * @private
-   */
-  Core.prototype._updateScrollTop = function () {
-    // recalculate the scrollTopMin
-    var scrollTopMin = Math.min(this.props.centerContainer.height - this.props.center.height, 0); // is negative or zero
-    if (scrollTopMin != this.props.scrollTopMin) {
-      // in case of bottom orientation, change the scrollTop such that the contents
-      // do not move relative to the time axis at the bottom
-      if (this.options.orientation == "bottom") {
-        this.props.scrollTop += scrollTopMin - this.props.scrollTopMin;
-      }
-      this.props.scrollTopMin = scrollTopMin;
-    }
-
-    // limit the scrollTop to the feasible scroll range
-    if (this.props.scrollTop > 0) this.props.scrollTop = 0;
-    if (this.props.scrollTop < scrollTopMin) this.props.scrollTop = scrollTopMin;
-
-    return this.props.scrollTop;
-  };
-
-  /**
-   * Get the current scrollTop
-   * @returns {number} scrollTop
-   * @private
-   */
-  Core.prototype._getScrollTop = function () {
-    return this.props.scrollTop;
-  };
-
-  module.exports = Core;
-
-/***/ },
-/* 21 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var util = __webpack_require__(1);
-  var Component = __webpack_require__(22);
-  var TimeStep = __webpack_require__(23);
-  var DateUtil = __webpack_require__(24);
-  var moment = __webpack_require__(25);
-
-  /**
-   * A horizontal time axis
-   * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} body
-   * @param {Object} [options]        See TimeAxis.setOptions for the available
-   *                                  options.
-   * @constructor TimeAxis
-   * @extends Component
-   */
-  function TimeAxis(body, options) {
-    this.dom = {
-      foreground: null,
-      lines: [],
-      majorTexts: [],
-      minorTexts: [],
-      redundant: {
-        lines: [],
-        majorTexts: [],
-        minorTexts: []
-      }
-    };
-    this.props = {
-      range: {
-        start: 0,
-        end: 0,
-        minimumStep: 0
-      },
-      lineTop: 0
-    };
-
-    this.defaultOptions = {
-      orientation: "bottom", // supported: 'top', 'bottom'
-      // TODO: implement timeaxis orientations 'left' and 'right'
-      showMinorLabels: true,
-      showMajorLabels: true,
-      format: null,
-      timeAxis: null
-    };
-    this.options = util.extend({}, this.defaultOptions);
-
-    this.body = body;
-
-    // create the HTML DOM
-    this._create();
-
-    this.setOptions(options);
-  }
-
-  TimeAxis.prototype = new Component();
-
-  /**
-   * Set options for the TimeAxis.
-   * Parameters will be merged in current options.
-   * @param {Object} options  Available options:
-   *                          {string} [orientation]
-   *                          {boolean} [showMinorLabels]
-   *                          {boolean} [showMajorLabels]
-   */
-  TimeAxis.prototype.setOptions = function (options) {
-    if (options) {
-      // copy all options that we know
-      util.selectiveExtend(["orientation", "showMinorLabels", "showMajorLabels", "hiddenDates", "format", "timeAxis"], this.options, options);
-
-      // apply locale to moment.js
-      // TODO: not so nice, this is applied globally to moment.js
-      if ("locale" in options) {
-        if (typeof moment.locale === "function") {
-          // moment.js 2.8.1+
-          moment.locale(options.locale);
-        } else {
-          moment.lang(options.locale);
-        }
-      }
-    }
-  };
-
-  /**
-   * Create the HTML DOM for the TimeAxis
-   */
-  TimeAxis.prototype._create = function () {
-    this.dom.foreground = document.createElement("div");
-    this.dom.background = document.createElement("div");
-
-    this.dom.foreground.className = "timeaxis foreground";
-    this.dom.background.className = "timeaxis background";
-  };
-
-  /**
-   * Destroy the TimeAxis
-   */
-  TimeAxis.prototype.destroy = function () {
-    // remove from DOM
-    if (this.dom.foreground.parentNode) {
-      this.dom.foreground.parentNode.removeChild(this.dom.foreground);
-    }
-    if (this.dom.background.parentNode) {
-      this.dom.background.parentNode.removeChild(this.dom.background);
-    }
-
-    this.body = null;
-  };
-
-  /**
-   * Repaint the component
-   * @return {boolean} Returns true if the component is resized
-   */
-  TimeAxis.prototype.redraw = function () {
-    var options = this.options;
-    var props = this.props;
-    var foreground = this.dom.foreground;
-    var background = this.dom.background;
-
-    // determine the correct parent DOM element (depending on option orientation)
-    var parent = options.orientation == "top" ? this.body.dom.top : this.body.dom.bottom;
-    var parentChanged = foreground.parentNode !== parent;
-
-    // calculate character width and height
-    this._calculateCharSize();
-
-    // TODO: recalculate sizes only needed when parent is resized or options is changed
-    var orientation = this.options.orientation,
-        showMinorLabels = this.options.showMinorLabels,
-        showMajorLabels = this.options.showMajorLabels;
-
-    // determine the width and height of the elemens for the axis
-    props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
-    props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
-    props.height = props.minorLabelHeight + props.majorLabelHeight;
-    props.width = foreground.offsetWidth;
-
-    props.minorLineHeight = this.body.domProps.root.height - props.majorLabelHeight - (options.orientation == "top" ? this.body.domProps.bottom.height : this.body.domProps.top.height);
-    props.minorLineWidth = 1; // TODO: really calculate width
-    props.majorLineHeight = props.minorLineHeight + props.majorLabelHeight;
-    props.majorLineWidth = 1; // TODO: really calculate width
-
-    //  take foreground and background offline while updating (is almost twice as fast)
-    var foregroundNextSibling = foreground.nextSibling;
-    var backgroundNextSibling = background.nextSibling;
-    foreground.parentNode && foreground.parentNode.removeChild(foreground);
-    background.parentNode && background.parentNode.removeChild(background);
-
-    foreground.style.height = this.props.height + "px";
-
-    this._repaintLabels();
-
-    // put DOM online again (at the same place)
-    if (foregroundNextSibling) {
-      parent.insertBefore(foreground, foregroundNextSibling);
-    } else {
-      parent.appendChild(foreground);
-    }
-    if (backgroundNextSibling) {
-      this.body.dom.backgroundVertical.insertBefore(background, backgroundNextSibling);
-    } else {
-      this.body.dom.backgroundVertical.appendChild(background);
-    }
-
-    return this._isResized() || parentChanged;
-  };
-
-  /**
-   * Repaint major and minor text labels and vertical grid lines
-   * @private
-   */
-  TimeAxis.prototype._repaintLabels = function () {
-    var orientation = this.options.orientation;
-
-    // calculate range and step (step such that we have space for 7 characters per label)
-    var start = util.convert(this.body.range.start, "Number");
-    var end = util.convert(this.body.range.end, "Number");
-    var timeLabelsize = this.body.util.toTime((this.props.minorCharWidth || 10) * 7).valueOf();
-    var minimumStep = timeLabelsize - DateUtil.getHiddenDurationBefore(this.body.hiddenDates, this.body.range, timeLabelsize);
-    minimumStep -= this.body.util.toTime(0).valueOf();
-
-    var step = new TimeStep(new Date(start), new Date(end), minimumStep, this.body.hiddenDates);
-    if (this.options.format) {
-      step.setFormat(this.options.format);
-    }
-    if (this.options.timeAxis) {
-      step.setScale(this.options.timeAxis);
-    }
-    this.step = step;
-
-    // Move all DOM elements to a "redundant" list, where they
-    // can be picked for re-use, and clear the lists with lines and texts.
-    // At the end of the function _repaintLabels, left over elements will be cleaned up
-    var dom = this.dom;
-    dom.redundant.lines = dom.lines;
-    dom.redundant.majorTexts = dom.majorTexts;
-    dom.redundant.minorTexts = dom.minorTexts;
-    dom.lines = [];
-    dom.majorTexts = [];
-    dom.minorTexts = [];
-
-    var cur;
-    var x = 0;
-    var isMajor;
-    var xPrev = 0;
-    var width = 0;
-    var prevLine;
-    var xFirstMajorLabel = undefined;
-    var max = 0;
-    var className;
-
-    step.first();
-    while (step.hasNext() && max < 1000) {
-      max++;
-
-      cur = step.getCurrent();
-      isMajor = step.isMajor();
-      className = step.getClassName();
-
-      xPrev = x;
-      x = this.body.util.toScreen(cur);
-      width = x - xPrev;
-      if (prevLine) {
-        prevLine.style.width = width + "px";
-      }
-
-      if (this.options.showMinorLabels) {
-        this._repaintMinorText(x, step.getLabelMinor(), orientation, className);
-      }
-
-      if (isMajor && this.options.showMajorLabels) {
-        if (x > 0) {
-          if (xFirstMajorLabel == undefined) {
-            xFirstMajorLabel = x;
-          }
-          this._repaintMajorText(x, step.getLabelMajor(), orientation, className);
-        }
-        prevLine = this._repaintMajorLine(x, orientation, className);
-      } else {
-        prevLine = this._repaintMinorLine(x, orientation, className);
-      }
-
-      step.next();
-    }
-
-    // create a major label on the left when needed
-    if (this.options.showMajorLabels) {
-      var leftTime = this.body.util.toTime(0),
-          leftText = step.getLabelMajor(leftTime),
-          widthText = leftText.length * (this.props.majorCharWidth || 10) + 10; // upper bound estimation
-
-      if (xFirstMajorLabel == undefined || widthText < xFirstMajorLabel) {
-        this._repaintMajorText(0, leftText, orientation, className);
-      }
-    }
-
-    // Cleanup leftover DOM elements from the redundant list
-    util.forEach(this.dom.redundant, function (arr) {
-      while (arr.length) {
-        var elem = arr.pop();
-        if (elem && elem.parentNode) {
-          elem.parentNode.removeChild(elem);
-        }
-      }
-    });
-  };
-
-  /**
-   * Create a minor label for the axis at position x
-   * @param {Number} x
-   * @param {String} text
-   * @param {String} orientation   "top" or "bottom" (default)
-   * @param {String} className
-   * @private
-   */
-  TimeAxis.prototype._repaintMinorText = function (x, text, orientation, className) {
-    // reuse redundant label
-    var label = this.dom.redundant.minorTexts.shift();
-
-    if (!label) {
-      // create new label
-      var content = document.createTextNode("");
-      label = document.createElement("div");
-      label.appendChild(content);
-      this.dom.foreground.appendChild(label);
-    }
-    this.dom.minorTexts.push(label);
-
-    label.childNodes[0].nodeValue = text;
-
-    label.style.top = orientation == "top" ? this.props.majorLabelHeight + "px" : "0";
-    label.style.left = x + "px";
-    label.className = "text minor " + className;
-    //label.title = title;  // TODO: this is a heavy operation
-  };
-
-  /**
-   * Create a Major label for the axis at position x
-   * @param {Number} x
-   * @param {String} text
-   * @param {String} orientation   "top" or "bottom" (default)
-   * @param {String} className
-   * @private
-   */
-  TimeAxis.prototype._repaintMajorText = function (x, text, orientation, className) {
-    // reuse redundant label
-    var label = this.dom.redundant.majorTexts.shift();
-
-    if (!label) {
-      // create label
-      var content = document.createTextNode(text);
-      label = document.createElement("div");
-      label.appendChild(content);
-      this.dom.foreground.appendChild(label);
-    }
-    this.dom.majorTexts.push(label);
-
-    label.childNodes[0].nodeValue = text;
-    label.className = "text major " + className;
-    //label.title = title; // TODO: this is a heavy operation
-
-    label.style.top = orientation == "top" ? "0" : this.props.minorLabelHeight + "px";
-    label.style.left = x + "px";
-  };
-
-  /**
-   * Create a minor line for the axis at position x
-   * @param {Number} x
-   * @param {String} orientation   "top" or "bottom" (default)
-   * @param {String} className
-   * @return {Element} Returns the created line
-   * @private
-   */
-  TimeAxis.prototype._repaintMinorLine = function (x, orientation, className) {
-    // reuse redundant line
-    var line = this.dom.redundant.lines.shift();
-    if (!line) {
-      // create vertical line
-      line = document.createElement("div");
-      this.dom.background.appendChild(line);
-    }
-    this.dom.lines.push(line);
-
-    var props = this.props;
-    if (orientation == "top") {
-      line.style.top = props.majorLabelHeight + "px";
-    } else {
-      line.style.top = this.body.domProps.top.height + "px";
-    }
-    line.style.height = props.minorLineHeight + "px";
-    line.style.left = x - props.minorLineWidth / 2 + "px";
-
-    line.className = "grid vertical minor " + className;
-
-    return line;
-  };
-
-  /**
-   * Create a Major line for the axis at position x
-   * @param {Number} x
-   * @param {String} orientation   "top" or "bottom" (default)
-   * @param {String} className
-   * @return {Element} Returns the created line
-   * @private
-   */
-  TimeAxis.prototype._repaintMajorLine = function (x, orientation, className) {
-    // reuse redundant line
-    var line = this.dom.redundant.lines.shift();
-    if (!line) {
-      // create vertical line
-      line = document.createElement("div");
-      this.dom.background.appendChild(line);
-    }
-    this.dom.lines.push(line);
-
-    var props = this.props;
-    if (orientation == "top") {
-      line.style.top = "0";
-    } else {
-      line.style.top = this.body.domProps.top.height + "px";
-    }
-    line.style.left = x - props.majorLineWidth / 2 + "px";
-    line.style.height = props.majorLineHeight + "px";
-
-    line.className = "grid vertical major " + className;
-
-    return line;
-  };
-
-  /**
-   * Determine the size of text on the axis (both major and minor axis).
-   * The size is calculated only once and then cached in this.props.
-   * @private
-   */
-  TimeAxis.prototype._calculateCharSize = function () {
-    // Note: We calculate char size with every redraw. Size may change, for
-    // example when any of the timelines parents had display:none for example.
-
-    // determine the char width and height on the minor axis
-    if (!this.dom.measureCharMinor) {
-      this.dom.measureCharMinor = document.createElement("DIV");
-      this.dom.measureCharMinor.className = "text minor measure";
-      this.dom.measureCharMinor.style.position = "absolute";
-
-      this.dom.measureCharMinor.appendChild(document.createTextNode("0"));
-      this.dom.foreground.appendChild(this.dom.measureCharMinor);
-    }
-    this.props.minorCharHeight = this.dom.measureCharMinor.clientHeight;
-    this.props.minorCharWidth = this.dom.measureCharMinor.clientWidth;
-
-    // determine the char width and height on the major axis
-    if (!this.dom.measureCharMajor) {
-      this.dom.measureCharMajor = document.createElement("DIV");
-      this.dom.measureCharMajor.className = "text major measure";
-      this.dom.measureCharMajor.style.position = "absolute";
-
-      this.dom.measureCharMajor.appendChild(document.createTextNode("0"));
-      this.dom.foreground.appendChild(this.dom.measureCharMajor);
-    }
-    this.props.majorCharHeight = this.dom.measureCharMajor.clientHeight;
-    this.props.majorCharWidth = this.dom.measureCharMajor.clientWidth;
-  };
-
-  module.exports = TimeAxis;
-
-/***/ },
-/* 22 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  /**
-   * Prototype for visual components
-   * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} [body]
-   * @param {Object} [options]
-   */
-  function Component(body, options) {
-    this.options = null;
-    this.props = null;
-  }
-
-  /**
-   * Set options for the component. The new options will be merged into the
-   * current options.
-   * @param {Object} options
-   */
-  Component.prototype.setOptions = function (options) {
-    if (options) {
-      util.extend(this.options, options);
-    }
-  };
-
-  /**
-   * Repaint the component
-   * @return {boolean} Returns true if the component is resized
-   */
-  Component.prototype.redraw = function () {
-    // should be implemented by the component
-    return false;
-  };
-
-  /**
-   * Destroy the component. Cleanup DOM and event listeners
-   */
-  Component.prototype.destroy = function () {};
-
-  /**
-   * Test whether the component is resized since the last time _isResized() was
-   * called.
-   * @return {Boolean} Returns true if the component is resized
-   * @protected
-   */
-  Component.prototype._isResized = function () {
-    var resized = this.props._previousWidth !== this.props.width || this.props._previousHeight !== this.props.height;
-
-    this.props._previousWidth = this.props.width;
-    this.props._previousHeight = this.props.height;
-
-    return resized;
-  };
-
-  module.exports = Component;
-  // should be implemented by the component
-
-/***/ },
-/* 23 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var moment = __webpack_require__(25);
-  var DateUtil = __webpack_require__(24);
-  var util = __webpack_require__(1);
-
-  /**
-   * @constructor  TimeStep
-   * The class TimeStep is an iterator for dates. You provide a start date and an
-   * end date. The class itself determines the best scale (step size) based on the
-   * provided start Date, end Date, and minimumStep.
-   *
-   * If minimumStep is provided, the step size is chosen as close as possible
-   * to the minimumStep but larger than minimumStep. If minimumStep is not
-   * provided, the scale is set to 1 DAY.
-   * The minimumStep should correspond with the onscreen size of about 6 characters
-   *
-   * Alternatively, you can set a scale by hand.
-   * After creation, you can initialize the class by executing first(). Then you
-   * can iterate from the start date to the end date via next(). You can check if
-   * the end date is reached with the function hasNext(). After each step, you can
-   * retrieve the current date via getCurrent().
-   * The TimeStep has scales ranging from milliseconds, seconds, minutes, hours,
-   * days, to years.
-   *
-   * Version: 1.2
-   *
-   * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
-   *                               or new Date(2010, 9, 21, 23, 45, 00)
-   * @param {Date} [end]           The end date
-   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
-   */
-  function TimeStep(start, end, minimumStep, hiddenDates) {
-    // variables
-    this.current = new Date();
-    this._start = new Date();
-    this._end = new Date();
-
-    this.autoScale = true;
-    this.scale = "day";
-    this.step = 1;
-
-    // initialize the range
-    this.setRange(start, end, minimumStep);
-
-    // hidden Dates options
-    this.switchedDay = false;
-    this.switchedMonth = false;
-    this.switchedYear = false;
-    this.hiddenDates = hiddenDates;
-    if (hiddenDates === undefined) {
-      this.hiddenDates = [];
-    }
-
-    this.format = TimeStep.FORMAT; // default formatting
-  }
-
-  // Time formatting
-  TimeStep.FORMAT = {
-    minorLabels: {
-      millisecond: "SSS",
-      second: "s",
-      minute: "HH:mm",
-      hour: "HH:mm",
-      weekday: "ddd D",
-      day: "D",
-      month: "MMM",
-      year: "YYYY"
-    },
-    majorLabels: {
-      millisecond: "HH:mm:ss",
-      second: "D MMMM HH:mm",
-      minute: "ddd D MMMM",
-      hour: "ddd D MMMM",
-      weekday: "MMMM YYYY",
-      day: "MMMM YYYY",
-      month: "YYYY",
-      year: ""
-    }
-  };
-
-  /**
-   * Set custom formatting for the minor an major labels of the TimeStep.
-   * Both `minorLabels` and `majorLabels` are an Object with properties:
-   * 'millisecond, 'second, 'minute', 'hour', 'weekday, 'day, 'month, 'year'.
-   * @param {{minorLabels: Object, majorLabels: Object}} format
-   */
-  TimeStep.prototype.setFormat = function (format) {
-    var defaultFormat = util.deepExtend({}, TimeStep.FORMAT);
-    this.format = util.deepExtend(defaultFormat, format);
-  };
-
-  /**
-   * Set a new range
-   * If minimumStep is provided, the step size is chosen as close as possible
-   * to the minimumStep but larger than minimumStep. If minimumStep is not
-   * provided, the scale is set to 1 DAY.
-   * The minimumStep should correspond with the onscreen size of about 6 characters
-   * @param {Date} [start]      The start date and time.
-   * @param {Date} [end]        The end date and time.
-   * @param {int} [minimumStep] Optional. Minimum step size in milliseconds
-   */
-  TimeStep.prototype.setRange = function (start, end, minimumStep) {
-    if (!(start instanceof Date) || !(end instanceof Date)) {
-      throw "No legal start or end date in method setRange";
-    }
-
-    this._start = start != undefined ? new Date(start.valueOf()) : new Date();
-    this._end = end != undefined ? new Date(end.valueOf()) : new Date();
-
-    if (this.autoScale) {
-      this.setMinimumStep(minimumStep);
-    }
-  };
-
-  /**
-   * Set the range iterator to the start date.
-   */
-  TimeStep.prototype.first = function () {
-    this.current = new Date(this._start.valueOf());
-    this.roundToMinor();
-  };
-
-  /**
-   * Round the current date to the first minor date value
-   * This must be executed once when the current date is set to start Date
-   */
-  TimeStep.prototype.roundToMinor = function () {
-    // round to floor
-    // IMPORTANT: we have no breaks in this switch! (this is no bug)
-    // noinspection FallThroughInSwitchStatementJS
-    switch (this.scale) {
-      case "year":
-        this.current.setFullYear(this.step * Math.floor(this.current.getFullYear() / this.step));
-        this.current.setMonth(0);
-      case "month":
-        this.current.setDate(1);
-      case "day":
-      // intentional fall through
-      case "weekday":
-        this.current.setHours(0);
-      case "hour":
-        this.current.setMinutes(0);
-      case "minute":
-        this.current.setSeconds(0);
-      case "second":
-        this.current.setMilliseconds(0);
-        //case 'millisecond': // nothing to do for milliseconds
-    }
-
-    if (this.step != 1) {
-      // round down to the first minor value that is a multiple of the current step size
-      switch (this.scale) {
-        case "millisecond":
-          this.current.setMilliseconds(this.current.getMilliseconds() - this.current.getMilliseconds() % this.step);break;
-        case "second":
-          this.current.setSeconds(this.current.getSeconds() - this.current.getSeconds() % this.step);break;
-        case "minute":
-          this.current.setMinutes(this.current.getMinutes() - this.current.getMinutes() % this.step);break;
-        case "hour":
-          this.current.setHours(this.current.getHours() - this.current.getHours() % this.step);break;
-        case "weekday":
-        // intentional fall through
-        case "day":
-          this.current.setDate(this.current.getDate() - 1 - (this.current.getDate() - 1) % this.step + 1);break;
-        case "month":
-          this.current.setMonth(this.current.getMonth() - this.current.getMonth() % this.step);break;
-        case "year":
-          this.current.setFullYear(this.current.getFullYear() - this.current.getFullYear() % this.step);break;
-        default:
-          break;
-      }
-    }
-  };
-
-  /**
-   * Check if the there is a next step
-   * @return {boolean}  true if the current date has not passed the end date
-   */
-  TimeStep.prototype.hasNext = function () {
-    return this.current.valueOf() <= this._end.valueOf();
-  };
-
-  /**
-   * Do the next step
-   */
-  TimeStep.prototype.next = function () {
-    var prev = this.current.valueOf();
-
-    // Two cases, needed to prevent issues with switching daylight savings
-    // (end of March and end of October)
-    if (this.current.getMonth() < 6) {
-      switch (this.scale) {
-        case "millisecond":
-
-
-          this.current = new Date(this.current.valueOf() + this.step);break;
-        case "second":
-          this.current = new Date(this.current.valueOf() + this.step * 1000);break;
-        case "minute":
-          this.current = new Date(this.current.valueOf() + this.step * 1000 * 60);break;
-        case "hour":
-          this.current = new Date(this.current.valueOf() + this.step * 1000 * 60 * 60);
-          // in case of skipping an hour for daylight savings, adjust the hour again (else you get: 0h 5h 9h ... instead of 0h 4h 8h ...)
-          var h = this.current.getHours();
-          this.current.setHours(h - h % this.step);
-          break;
-        case "weekday":
-        // intentional fall through
-        case "day":
-          this.current.setDate(this.current.getDate() + this.step);break;
-        case "month":
-          this.current.setMonth(this.current.getMonth() + this.step);break;
-        case "year":
-          this.current.setFullYear(this.current.getFullYear() + this.step);break;
-        default:
-          break;
-      }
-    } else {
-      switch (this.scale) {
-        case "millisecond":
-          this.current = new Date(this.current.valueOf() + this.step);break;
-        case "second":
-          this.current.setSeconds(this.current.getSeconds() + this.step);break;
-        case "minute":
-          this.current.setMinutes(this.current.getMinutes() + this.step);break;
-        case "hour":
-          this.current.setHours(this.current.getHours() + this.step);break;
-        case "weekday":
-        // intentional fall through
-        case "day":
-          this.current.setDate(this.current.getDate() + this.step);break;
-        case "month":
-          this.current.setMonth(this.current.getMonth() + this.step);break;
-        case "year":
-          this.current.setFullYear(this.current.getFullYear() + this.step);break;
-        default:
-          break;
-      }
-    }
-
-    if (this.step != 1) {
-      // round down to the correct major value
-      switch (this.scale) {
-        case "millisecond":
-          if (this.current.getMilliseconds() < this.step) this.current.setMilliseconds(0);break;
-        case "second":
-          if (this.current.getSeconds() < this.step) this.current.setSeconds(0);break;
-        case "minute":
-          if (this.current.getMinutes() < this.step) this.current.setMinutes(0);break;
-        case "hour":
-          if (this.current.getHours() < this.step) this.current.setHours(0);break;
-        case "weekday":
-        // intentional fall through
-        case "day":
-          if (this.current.getDate() < this.step + 1) this.current.setDate(1);break;
-        case "month":
-          if (this.current.getMonth() < this.step) this.current.setMonth(0);break;
-        case "year":
-          break; // nothing to do for year
-        default:
-          break;
-      }
-    }
-
-    // safety mechanism: if current time is still unchanged, move to the end
-    if (this.current.valueOf() == prev) {
-      this.current = new Date(this._end.valueOf());
-    }
-
-    DateUtil.stepOverHiddenDates(this, prev);
-  };
-
-
-  /**
-   * Get the current datetime
-   * @return {Date}  current The current date
-   */
-  TimeStep.prototype.getCurrent = function () {
-    return this.current;
-  };
-
-  /**
-   * Set a custom scale. Autoscaling will be disabled.
-   * For example setScale('minute', 5) will result
-   * in minor steps of 5 minutes, and major steps of an hour.
-   *
-   * @param {{scale: string, step: number}} params
-   *                               An object containing two properties:
-   *                               - A string 'scale'. Choose from 'millisecond', 'second',
-   *                                 'minute', 'hour', 'weekday, 'day, 'month, 'year'.
-   *                               - A number 'step'. A step size, by default 1.
-   *                                 Choose for example 1, 2, 5, or 10.
-   */
-  TimeStep.prototype.setScale = function (params) {
-    if (params && typeof params.scale == "string") {
-      this.scale = params.scale;
-      this.step = params.step > 0 ? params.step : 1;
-      this.autoScale = false;
-    }
-  };
-
-  /**
-   * Enable or disable autoscaling
-   * @param {boolean} enable  If true, autoascaling is set true
-   */
-  TimeStep.prototype.setAutoScale = function (enable) {
-    this.autoScale = enable;
-  };
-
-
-  /**
-   * Automatically determine the scale that bests fits the provided minimum step
-   * @param {Number} [minimumStep]  The minimum step size in milliseconds
-   */
-  TimeStep.prototype.setMinimumStep = function (minimumStep) {
-    if (minimumStep == undefined) {
-      return;
-    }
-
-    //var b = asc + ds;
-
-    var stepYear = 1000 * 60 * 60 * 24 * 30 * 12;
-    var stepMonth = 1000 * 60 * 60 * 24 * 30;
-    var stepDay = 1000 * 60 * 60 * 24;
-    var stepHour = 1000 * 60 * 60;
-    var stepMinute = 1000 * 60;
-    var stepSecond = 1000;
-    var stepMillisecond = 1;
-
-    // find the smallest step that is larger than the provided minimumStep
-    if (stepYear * 1000 > minimumStep) {
-      this.scale = "year";this.step = 1000;
-    }
-    if (stepYear * 500 > minimumStep) {
-      this.scale = "year";this.step = 500;
-    }
-    if (stepYear * 100 > minimumStep) {
-      this.scale = "year";this.step = 100;
-    }
-    if (stepYear * 50 > minimumStep) {
-      this.scale = "year";this.step = 50;
-    }
-    if (stepYear * 10 > minimumStep) {
-      this.scale = "year";this.step = 10;
-    }
-    if (stepYear * 5 > minimumStep) {
-      this.scale = "year";this.step = 5;
-    }
-    if (stepYear > minimumStep) {
-      this.scale = "year";this.step = 1;
-    }
-    if (stepMonth * 3 > minimumStep) {
-      this.scale = "month";this.step = 3;
-    }
-    if (stepMonth > minimumStep) {
-      this.scale = "month";this.step = 1;
-    }
-    if (stepDay * 5 > minimumStep) {
-      this.scale = "day";this.step = 5;
-    }
-    if (stepDay * 2 > minimumStep) {
-      this.scale = "day";this.step = 2;
-    }
-    if (stepDay > minimumStep) {
-      this.scale = "day";this.step = 1;
-    }
-    if (stepDay / 2 > minimumStep) {
-      this.scale = "weekday";this.step = 1;
-    }
-    if (stepHour * 4 > minimumStep) {
-      this.scale = "hour";this.step = 4;
-    }
-    if (stepHour > minimumStep) {
-      this.scale = "hour";this.step = 1;
-    }
-    if (stepMinute * 15 > minimumStep) {
-      this.scale = "minute";this.step = 15;
-    }
-    if (stepMinute * 10 > minimumStep) {
-      this.scale = "minute";this.step = 10;
-    }
-    if (stepMinute * 5 > minimumStep) {
-      this.scale = "minute";this.step = 5;
-    }
-    if (stepMinute > minimumStep) {
-      this.scale = "minute";this.step = 1;
-    }
-    if (stepSecond * 15 > minimumStep) {
-      this.scale = "second";this.step = 15;
-    }
-    if (stepSecond * 10 > minimumStep) {
-      this.scale = "second";this.step = 10;
-    }
-    if (stepSecond * 5 > minimumStep) {
-      this.scale = "second";this.step = 5;
-    }
-    if (stepSecond > minimumStep) {
-      this.scale = "second";this.step = 1;
-    }
-    if (stepMillisecond * 200 > minimumStep) {
-      this.scale = "millisecond";this.step = 200;
-    }
-    if (stepMillisecond * 100 > minimumStep) {
-      this.scale = "millisecond";this.step = 100;
-    }
-    if (stepMillisecond * 50 > minimumStep) {
-      this.scale = "millisecond";this.step = 50;
-    }
-    if (stepMillisecond * 10 > minimumStep) {
-      this.scale = "millisecond";this.step = 10;
-    }
-    if (stepMillisecond * 5 > minimumStep) {
-      this.scale = "millisecond";this.step = 5;
-    }
-    if (stepMillisecond > minimumStep) {
-      this.scale = "millisecond";this.step = 1;
-    }
-  };
-
-  /**
-   * Snap a date to a rounded value.
-   * The snap intervals are dependent on the current scale and step.
-   * Static function
-   * @param {Date} date    the date to be snapped.
-   * @param {string} scale Current scale, can be 'millisecond', 'second',
-   *                       'minute', 'hour', 'weekday, 'day, 'month, 'year'.
-   * @param {number} step  Current step (1, 2, 4, 5, ...
-   * @return {Date} snappedDate
-   */
-  TimeStep.snap = function (date, scale, step) {
-    var clone = new Date(date.valueOf());
-
-    if (scale == "year") {
-      var year = clone.getFullYear() + Math.round(clone.getMonth() / 12);
-      clone.setFullYear(Math.round(year / step) * step);
-      clone.setMonth(0);
-      clone.setDate(0);
-      clone.setHours(0);
-      clone.setMinutes(0);
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
-    } else if (scale == "month") {
-      if (clone.getDate() > 15) {
-        clone.setDate(1);
-        clone.setMonth(clone.getMonth() + 1);
-        // important: first set Date to 1, after that change the month.
-      } else {
-        clone.setDate(1);
-      }
-
-      clone.setHours(0);
-      clone.setMinutes(0);
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
-    } else if (scale == "day") {
-      //noinspection FallthroughInSwitchStatementJS
-      switch (step) {
-        case 5:
-        case 2:
-          clone.setHours(Math.round(clone.getHours() / 24) * 24);break;
-        default:
-          clone.setHours(Math.round(clone.getHours() / 12) * 12);break;
-      }
-      clone.setMinutes(0);
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
-    } else if (scale == "weekday") {
-      //noinspection FallthroughInSwitchStatementJS
-      switch (step) {
-        case 5:
-        case 2:
-          clone.setHours(Math.round(clone.getHours() / 12) * 12);break;
-        default:
-          clone.setHours(Math.round(clone.getHours() / 6) * 6);break;
-      }
-      clone.setMinutes(0);
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
-    } else if (scale == "hour") {
-      switch (step) {
-        case 4:
-          clone.setMinutes(Math.round(clone.getMinutes() / 60) * 60);break;
-        default:
-          clone.setMinutes(Math.round(clone.getMinutes() / 30) * 30);break;
-      }
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
-    } else if (scale == "minute") {
-      //noinspection FallthroughInSwitchStatementJS
-      switch (step) {
-        case 15:
-        case 10:
-          clone.setMinutes(Math.round(clone.getMinutes() / 5) * 5);
-          clone.setSeconds(0);
-          break;
-        case 5:
-          clone.setSeconds(Math.round(clone.getSeconds() / 60) * 60);break;
-        default:
-          clone.setSeconds(Math.round(clone.getSeconds() / 30) * 30);break;
-      }
-      clone.setMilliseconds(0);
-    } else if (scale == "second") {
-      //noinspection FallthroughInSwitchStatementJS
-      switch (step) {
-        case 15:
-        case 10:
-          clone.setSeconds(Math.round(clone.getSeconds() / 5) * 5);
-          clone.setMilliseconds(0);
-          break;
-        case 5:
-          clone.setMilliseconds(Math.round(clone.getMilliseconds() / 1000) * 1000);break;
-        default:
-          clone.setMilliseconds(Math.round(clone.getMilliseconds() / 500) * 500);break;
-      }
-    } else if (scale == "millisecond") {
-      var _step = step > 5 ? step / 2 : 1;
-      clone.setMilliseconds(Math.round(clone.getMilliseconds() / _step) * _step);
-    }
-
-    return clone;
-  };
-
-  /**
-   * Check if the current value is a major value (for example when the step
-   * is DAY, a major value is each first day of the MONTH)
-   * @return {boolean} true if current date is major, else false.
-   */
-  TimeStep.prototype.isMajor = function () {
-    if (this.switchedYear == true) {
-      this.switchedYear = false;
-      switch (this.scale) {
-        case "year":
-        case "month":
-        case "weekday":
-        case "day":
-        case "hour":
-        case "minute":
-        case "second":
-        case "millisecond":
-          return true;
-        default:
-          return false;
-      }
-    } else if (this.switchedMonth == true) {
-      this.switchedMonth = false;
-      switch (this.scale) {
-        case "weekday":
-        case "day":
-        case "hour":
-        case "minute":
-        case "second":
-        case "millisecond":
-          return true;
-        default:
-          return false;
-      }
-    } else if (this.switchedDay == true) {
-      this.switchedDay = false;
-      switch (this.scale) {
-        case "millisecond":
-        case "second":
-        case "minute":
-        case "hour":
-          return true;
-        default:
-          return false;
-      }
-    }
-
-    switch (this.scale) {
-      case "millisecond":
-        return this.current.getMilliseconds() == 0;
-      case "second":
-        return this.current.getSeconds() == 0;
-      case "minute":
-        return this.current.getHours() == 0 && this.current.getMinutes() == 0;
-      case "hour":
-        return this.current.getHours() == 0;
-      case "weekday":
-      // intentional fall through
-      case "day":
-        return this.current.getDate() == 1;
-      case "month":
-        return this.current.getMonth() == 0;
-      case "year":
-        return false;
-      default:
-        return false;
-    }
-  };
-
-
-  /**
-   * Returns formatted text for the minor axislabel, depending on the current
-   * date and the scale. For example when scale is MINUTE, the current time is
-   * formatted as "hh:mm".
-   * @param {Date} [date] custom date. if not provided, current date is taken
-   */
-  TimeStep.prototype.getLabelMinor = function (date) {
-    if (date == undefined) {
-      date = this.current;
-    }
-
-    var format = this.format.minorLabels[this.scale];
-    return format && format.length > 0 ? moment(date).format(format) : "";
-  };
-
-  /**
-   * Returns formatted text for the major axis label, depending on the current
-   * date and the scale. For example when scale is MINUTE, the major scale is
-   * hours, and the hour will be formatted as "hh".
-   * @param {Date} [date] custom date. if not provided, current date is taken
-   */
-  TimeStep.prototype.getLabelMajor = function (date) {
-    if (date == undefined) {
-      date = this.current;
-    }
-
-    var format = this.format.majorLabels[this.scale];
-    return format && format.length > 0 ? moment(date).format(format) : "";
-  };
-
-  TimeStep.prototype.getClassName = function () {
-    var m = moment(this.current);
-    var date = m.locale ? m.locale("en") : m.lang("en"); // old versions of moment have .lang() function
-    var step = this.step;
-
-    function even(value) {
-      return value / step % 2 == 0 ? " even" : " odd";
-    }
-
-    function today(date) {
-      if (date.isSame(new Date(), "day")) {
-        return " today";
-      }
-      if (date.isSame(moment().add(1, "day"), "day")) {
-        return " tomorrow";
-      }
-      if (date.isSame(moment().add(-1, "day"), "day")) {
-        return " yesterday";
-      }
-      return "";
-    }
-
-    function currentWeek(date) {
-      return date.isSame(new Date(), "week") ? " current-week" : "";
-    }
-
-    function currentMonth(date) {
-      return date.isSame(new Date(), "month") ? " current-month" : "";
-    }
-
-    function currentYear(date) {
-      return date.isSame(new Date(), "year") ? " current-year" : "";
-    }
-
-    switch (this.scale) {
-      case "millisecond":
-        return even(date.milliseconds()).trim();
-
-      case "second":
-        return even(date.seconds()).trim();
-
-      case "minute":
-        return even(date.minutes()).trim();
-
-      case "hour":
-        var hours = date.hours();
-        if (this.step == 4) {
-          hours = hours + "-h" + (hours + 4);
-        }
-        return "h" + hours + today(date) + even(date.hours());
-
-      case "weekday":
-        return date.format("dddd").toLowerCase() + today(date) + currentWeek(date) + even(date.date());
-
-      case "day":
-        var day = date.date();
-        var month = date.format("MMMM").toLowerCase();
-        return "day" + day + " " + month + currentMonth(date) + even(day - 1);
-
-      case "month":
-        return date.format("MMMM").toLowerCase() + currentMonth(date) + even(date.month());
-
-      case "year":
-        var year = date.year();
-        return "year" + year + currentYear(date) + even(year);
-
-      default:
-        return "";
-    }
-  };
-
-  module.exports = TimeStep;
-
-/***/ },
-/* 24 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  /**
-   * Created by Alex on 10/3/2014.
-   */
-  var moment = __webpack_require__(25);
-
-
-  /**
-   * used in Core to convert the options into a volatile variable
-   * 
-   * @param Core
-   */
-  exports.convertHiddenOptions = function (body, hiddenDates) {
-    body.hiddenDates = [];
-    if (hiddenDates) {
-      if (Array.isArray(hiddenDates) == true) {
-        for (var i = 0; i < hiddenDates.length; i++) {
-          if (hiddenDates[i].repeat === undefined) {
-            var dateItem = {};
-            dateItem.start = moment(hiddenDates[i].start).toDate().valueOf();
-            dateItem.end = moment(hiddenDates[i].end).toDate().valueOf();
-            body.hiddenDates.push(dateItem);
-          }
-        }
-        body.hiddenDates.sort(function (a, b) {
-          return a.start - b.start;
-        }); // sort by start time
-      }
-    }
-  };
-
-
-  /**
-   * create new entrees for the repeating hidden dates
-   * @param body
-   * @param hiddenDates
-   */
-  exports.updateHiddenDates = function (body, hiddenDates) {
-    if (hiddenDates && body.domProps.centerContainer.width !== undefined) {
-      exports.convertHiddenOptions(body, hiddenDates);
-
-      var start = moment(body.range.start);
-      var end = moment(body.range.end);
-
-      var totalRange = body.range.end - body.range.start;
-      var pixelTime = totalRange / body.domProps.centerContainer.width;
-
-      for (var i = 0; i < hiddenDates.length; i++) {
-        if (hiddenDates[i].repeat !== undefined) {
-          var startDate = moment(hiddenDates[i].start);
-          var endDate = moment(hiddenDates[i].end);
-
-          if (startDate._d == "Invalid Date") {
-            throw new Error("Supplied start date is not valid: " + hiddenDates[i].start);
-          }
-          if (endDate._d == "Invalid Date") {
-            throw new Error("Supplied end date is not valid: " + hiddenDates[i].end);
-          }
-
-          var duration = endDate - startDate;
-          if (duration >= 4 * pixelTime) {
-            var offset = 0;
-            var runUntil = end.clone();
-            switch (hiddenDates[i].repeat) {
-              case "daily":
-                // case of time
-                if (startDate.day() != endDate.day()) {
-                  offset = 1;
-                }
-                startDate.dayOfYear(start.dayOfYear());
-                startDate.year(start.year());
-                startDate.subtract(7, "days");
-
-                endDate.dayOfYear(start.dayOfYear());
-                endDate.year(start.year());
-                endDate.subtract(7 - offset, "days");
-
-                runUntil.add(1, "weeks");
-                break;
-              case "weekly":
-                var dayOffset = endDate.diff(startDate, "days");
-                var day = startDate.day();
-
-                // set the start date to the range.start
-                startDate.date(start.date());
-                startDate.month(start.month());
-                startDate.year(start.year());
-                endDate = startDate.clone();
-
-                // force
-                startDate.day(day);
-                endDate.day(day);
-                endDate.add(dayOffset, "days");
-
-                startDate.subtract(1, "weeks");
-                endDate.subtract(1, "weeks");
-
-                runUntil.add(1, "weeks");
-                break;
-              case "monthly":
-                if (startDate.month() != endDate.month()) {
-                  offset = 1;
-                }
-                startDate.month(start.month());
-                startDate.year(start.year());
-                startDate.subtract(1, "months");
-
-                endDate.month(start.month());
-                endDate.year(start.year());
-                endDate.subtract(1, "months");
-                endDate.add(offset, "months");
-
-                runUntil.add(1, "months");
-                break;
-              case "yearly":
-                if (startDate.year() != endDate.year()) {
-                  offset = 1;
-                }
-                startDate.year(start.year());
-                startDate.subtract(1, "years");
-                endDate.year(start.year());
-                endDate.subtract(1, "years");
-                endDate.add(offset, "years");
-
-                runUntil.add(1, "years");
-                break;
-              default:
-                console.log("Wrong repeat format, allowed are: daily, weekly, monthly, yearly. Given:", hiddenDates[i].repeat);
-                return;
-            }
-            while (startDate < runUntil) {
-              body.hiddenDates.push({ start: startDate.valueOf(), end: endDate.valueOf() });
-              switch (hiddenDates[i].repeat) {
-                case "daily":
-                  startDate.add(1, "days");
-                  endDate.add(1, "days");
-                  break;
-                case "weekly":
-                  startDate.add(1, "weeks");
-                  endDate.add(1, "weeks");
-                  break;
-                case "monthly":
-                  startDate.add(1, "months");
-                  endDate.add(1, "months");
-                  break;
-                case "yearly":
-                  startDate.add(1, "y");
-                  endDate.add(1, "y");
-                  break;
-                default:
-                  console.log("Wrong repeat format, allowed are: daily, weekly, monthly, yearly. Given:", hiddenDates[i].repeat);
-                  return;
-              }
-            }
-            body.hiddenDates.push({ start: startDate.valueOf(), end: endDate.valueOf() });
-          }
-        }
-      }
-      // remove duplicates, merge where possible
-      exports.removeDuplicates(body);
-      // ensure the new positions are not on hidden dates
-      var startHidden = exports.isHidden(body.range.start, body.hiddenDates);
-      var endHidden = exports.isHidden(body.range.end, body.hiddenDates);
-      var rangeStart = body.range.start;
-      var rangeEnd = body.range.end;
-      if (startHidden.hidden == true) {
-        rangeStart = body.range.startToFront == true ? startHidden.startDate - 1 : startHidden.endDate + 1;
-      }
-      if (endHidden.hidden == true) {
-        rangeEnd = body.range.endToFront == true ? endHidden.startDate - 1 : endHidden.endDate + 1;
-      }
-      if (startHidden.hidden == true || endHidden.hidden == true) {
-        body.range._applyRange(rangeStart, rangeEnd);
-      }
-    }
-  };
-
-
-  /**
-   * remove duplicates from the hidden dates list. Duplicates are evil. They mess everything up.
-   * Scales with N^2
-   * @param body
-   */
-  exports.removeDuplicates = function (body) {
-    var hiddenDates = body.hiddenDates;
-    var safeDates = [];
-    for (var i = 0; i < hiddenDates.length; i++) {
-      for (var j = 0; j < hiddenDates.length; j++) {
-        if (i != j && hiddenDates[j].remove != true && hiddenDates[i].remove != true) {
-          // j inside i
-          if (hiddenDates[j].start >= hiddenDates[i].start && hiddenDates[j].end <= hiddenDates[i].end) {
-            hiddenDates[j].remove = true;
-          }
-          // j start inside i
-          else if (hiddenDates[j].start >= hiddenDates[i].start && hiddenDates[j].start <= hiddenDates[i].end) {
-            hiddenDates[i].end = hiddenDates[j].end;
-            hiddenDates[j].remove = true;
-          }
-          // j end inside i
-          else if (hiddenDates[j].end >= hiddenDates[i].start && hiddenDates[j].end <= hiddenDates[i].end) {
-            hiddenDates[i].start = hiddenDates[j].start;
-            hiddenDates[j].remove = true;
-          }
-        }
-      }
-    }
-
-    for (var i = 0; i < hiddenDates.length; i++) {
-      if (hiddenDates[i].remove !== true) {
-        safeDates.push(hiddenDates[i]);
-      }
-    }
-
-    body.hiddenDates = safeDates;
-    body.hiddenDates.sort(function (a, b) {
-      return a.start - b.start;
-    }); // sort by start time
-  };
-
-  exports.printDates = function (dates) {
-    for (var i = 0; i < dates.length; i++) {
-      console.log(i, new Date(dates[i].start), new Date(dates[i].end), dates[i].start, dates[i].end, dates[i].remove);
-    }
-  };
-
-  /**
-   * Used in TimeStep to avoid the hidden times.
-   * @param timeStep
-   * @param previousTime
-   */
-  exports.stepOverHiddenDates = function (timeStep, previousTime) {
-    var stepInHidden = false;
-    var currentValue = timeStep.current.valueOf();
-    for (var i = 0; i < timeStep.hiddenDates.length; i++) {
-      var startDate = timeStep.hiddenDates[i].start;
-      var endDate = timeStep.hiddenDates[i].end;
-      if (currentValue >= startDate && currentValue < endDate) {
-        stepInHidden = true;
-        break;
-      }
-    }
-
-    if (stepInHidden == true && currentValue < timeStep._end.valueOf() && currentValue != previousTime) {
-      var prevValue = moment(previousTime);
-      var newValue = moment(endDate);
-      //check if the next step should be major
-      if (prevValue.year() != newValue.year()) {
-        timeStep.switchedYear = true;
-      } else if (prevValue.month() != newValue.month()) {
-        timeStep.switchedMonth = true;
-      } else if (prevValue.dayOfYear() != newValue.dayOfYear()) {
-        timeStep.switchedDay = true;
-      }
-
-      timeStep.current = newValue.toDate();
-    }
-  };
-
-
-  ///**
-  // * Used in TimeStep to avoid the hidden times.
-  // * @param timeStep
-  // * @param previousTime
-  // */
-  //exports.checkFirstStep = function(timeStep) {
-  //  var stepInHidden = false;
-  //  var currentValue = timeStep.current.valueOf();
-  //  for (var i = 0; i < timeStep.hiddenDates.length; i++) {
-  //    var startDate = timeStep.hiddenDates[i].start;
-  //    var endDate = timeStep.hiddenDates[i].end;
-  //    if (currentValue >= startDate && currentValue < endDate) {
-  //      stepInHidden = true;
-  //      break;
-  //    }
-  //  }
-  //
-  //  if (stepInHidden == true && currentValue <= timeStep._end.valueOf()) {
-  //    var newValue = moment(endDate);
-  //    timeStep.current = newValue.toDate();
-  //  }
-  //};
-
-  /**
-   * replaces the Core toScreen methods
-   * @param Core
-   * @param time
-   * @param width
-   * @returns {number}
-   */
-  exports.toScreen = function (Core, time, width) {
-    if (Core.body.hiddenDates.length == 0) {
-      var conversion = Core.range.conversion(width);
-      return (time.valueOf() - conversion.offset) * conversion.scale;
-    } else {
-      var hidden = exports.isHidden(time, Core.body.hiddenDates);
-      if (hidden.hidden == true) {
-        time = hidden.startDate;
-      }
-
-      var duration = exports.getHiddenDurationBetween(Core.body.hiddenDates, Core.range.start, Core.range.end);
-      time = exports.correctTimeForHidden(Core.body.hiddenDates, Core.range, time);
-
-      var conversion = Core.range.conversion(width, duration);
-      return (time.valueOf() - conversion.offset) * conversion.scale;
-    }
-  };
-
-
-  /**
-   * Replaces the core toTime methods
-   * @param body
-   * @param range
-   * @param x
-   * @param width
-   * @returns {Date}
-   */
-  exports.toTime = function (Core, x, width) {
-    if (Core.body.hiddenDates.length == 0) {
-      var conversion = Core.range.conversion(width);
-      return new Date(x / conversion.scale + conversion.offset);
-    } else {
-      var hiddenDuration = exports.getHiddenDurationBetween(Core.body.hiddenDates, Core.range.start, Core.range.end);
-      var totalDuration = Core.range.end - Core.range.start - hiddenDuration;
-      var partialDuration = totalDuration * x / width;
-      var accumulatedHiddenDuration = exports.getAccumulatedHiddenDuration(Core.body.hiddenDates, Core.range, partialDuration);
-
-      var newTime = new Date(accumulatedHiddenDuration + partialDuration + Core.range.start);
-      return newTime;
-    }
-  };
-
-
-  /**
-   * Support function
-   *
-   * @param hiddenDates
-   * @param range
-   * @returns {number}
-   */
-  exports.getHiddenDurationBetween = function (hiddenDates, start, end) {
-    var duration = 0;
-    for (var i = 0; i < hiddenDates.length; i++) {
-      var startDate = hiddenDates[i].start;
-      var endDate = hiddenDates[i].end;
-      // if time after the cutout, and the
-      if (startDate >= start && endDate < end) {
-        duration += endDate - startDate;
-      }
-    }
-    return duration;
-  };
-
-
-  /**
-   * Support function
-   * @param hiddenDates
-   * @param range
-   * @param time
-   * @returns {{duration: number, time: *, offset: number}}
-   */
-  exports.correctTimeForHidden = function (hiddenDates, range, time) {
-    time = moment(time).toDate().valueOf();
-    time -= exports.getHiddenDurationBefore(hiddenDates, range, time);
-    return time;
-  };
-
-  exports.getHiddenDurationBefore = function (hiddenDates, range, time) {
-    var timeOffset = 0;
-    time = moment(time).toDate().valueOf();
-
-    for (var i = 0; i < hiddenDates.length; i++) {
-      var startDate = hiddenDates[i].start;
-      var endDate = hiddenDates[i].end;
-      // if time after the cutout, and the
-      if (startDate >= range.start && endDate < range.end) {
-        if (time >= endDate) {
-          timeOffset += endDate - startDate;
-        }
-      }
-    }
-    return timeOffset;
-  };
-
-  /**
-   * sum the duration from start to finish, including the hidden duration,
-   * until the required amount has been reached, return the accumulated hidden duration
-   * @param hiddenDates
-   * @param range
-   * @param time
-   * @returns {{duration: number, time: *, offset: number}}
-   */
-  exports.getAccumulatedHiddenDuration = function (hiddenDates, range, requiredDuration) {
-    var hiddenDuration = 0;
-    var duration = 0;
-    var previousPoint = range.start;
-    //exports.printDates(hiddenDates)
-    for (var i = 0; i < hiddenDates.length; i++) {
-      var startDate = hiddenDates[i].start;
-      var endDate = hiddenDates[i].end;
-      // if time after the cutout, and the
-      if (startDate >= range.start && endDate < range.end) {
-        duration += startDate - previousPoint;
-        previousPoint = endDate;
-        if (duration >= requiredDuration) {
-          break;
-        } else {
-          hiddenDuration += endDate - startDate;
-        }
-      }
-    }
-
-    return hiddenDuration;
-  };
-
-
-
-  /**
-   * used to step over to either side of a hidden block. Correction is disabled on tablets, might be set to true
-   * @param hiddenDates
-   * @param time
-   * @param direction
-   * @param correctionEnabled
-   * @returns {*}
-   */
-  exports.snapAwayFromHidden = function (hiddenDates, time, direction, correctionEnabled) {
-    var isHidden = exports.isHidden(time, hiddenDates);
-    if (isHidden.hidden == true) {
-      if (direction < 0) {
-        if (correctionEnabled == true) {
-          return isHidden.startDate - (isHidden.endDate - time) - 1;
-        } else {
-          return isHidden.startDate - 1;
-        }
-      } else {
-        if (correctionEnabled == true) {
-          return isHidden.endDate + (time - isHidden.startDate) + 1;
-        } else {
-          return isHidden.endDate + 1;
-        }
-      }
-    } else {
-      return time;
-    }
-  };
-
-
-  /**
-   * Check if a time is hidden
-   *
-   * @param time
-   * @param hiddenDates
-   * @returns {{hidden: boolean, startDate: Window.start, endDate: *}}
-   */
-  exports.isHidden = function (time, hiddenDates) {
-    for (var i = 0; i < hiddenDates.length; i++) {
-      var startDate = hiddenDates[i].start;
-      var endDate = hiddenDates[i].end;
-
-      if (time >= startDate && time < endDate) {
-        // if the start is entering a hidden zone
-        return { hidden: true, startDate: startDate, endDate: endDate };
-        break;
-      }
-    }
-    return { hidden: false, startDate: startDate, endDate: endDate };
-  };
-
-/***/ },
-/* 25 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  // first check if moment.js is already loaded in the browser window, if so,
-  // use this instance. Else, load via commonjs.
-  module.exports = typeof window !== "undefined" && window.moment || __webpack_require__(26);
-
-/***/ },
-/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global, module) {//! moment.js
@@ -15870,10 +4449,10 @@ return /******/ (function(modules) { // webpackBootstrap
       }
   }).call(this);
 
-  /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(28)(module)))
+  /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(5)(module)))
 
 /***/ },
-/* 27 */
+/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
   function webpackContext(req) {
@@ -15882,11 +4461,11 @@ return /******/ (function(modules) { // webpackBootstrap
   webpackContext.keys = function() { return []; };
   webpackContext.resolve = webpackContext;
   module.exports = webpackContext;
-  webpackContext.id = 27;
+  webpackContext.id = 4;
 
 
 /***/ },
-/* 28 */
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
   module.exports = function(module) {
@@ -15902,429 +4481,10369 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 29 */
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  // DOM utility methods
+
+  /**
+   * this prepares the JSON container for allocating SVG elements
+   * @param JSONcontainer
+   * @private
+   */
+  exports.prepareElements = function (JSONcontainer) {
+    // cleanup the redundant svgElements;
+    for (var elementType in JSONcontainer) {
+      if (JSONcontainer.hasOwnProperty(elementType)) {
+        JSONcontainer[elementType].redundant = JSONcontainer[elementType].used;
+        JSONcontainer[elementType].used = [];
+      }
+    }
+  };
+
+  /**
+   * this cleans up all the unused SVG elements. By asking for the parentNode, we only need to supply the JSON container from
+   * which to remove the redundant elements.
+   *
+   * @param JSONcontainer
+   * @private
+   */
+  exports.cleanupElements = function (JSONcontainer) {
+    // cleanup the redundant svgElements;
+    for (var elementType in JSONcontainer) {
+      if (JSONcontainer.hasOwnProperty(elementType)) {
+        if (JSONcontainer[elementType].redundant) {
+          for (var i = 0; i < JSONcontainer[elementType].redundant.length; i++) {
+            JSONcontainer[elementType].redundant[i].parentNode.removeChild(JSONcontainer[elementType].redundant[i]);
+          }
+          JSONcontainer[elementType].redundant = [];
+        }
+      }
+    }
+  };
+
+  /**
+   * Allocate or generate an SVG element if needed. Store a reference to it in the JSON container and draw it in the svgContainer
+   * the JSON container and the SVG container have to be supplied so other svg containers (like the legend) can use this.
+   *
+   * @param elementType
+   * @param JSONcontainer
+   * @param svgContainer
+   * @returns {*}
+   * @private
+   */
+  exports.getSVGElement = function (elementType, JSONcontainer, svgContainer) {
+    var element;
+    // allocate SVG element, if it doesnt yet exist, create one.
+    if (JSONcontainer.hasOwnProperty(elementType)) {
+      // this element has been created before
+      // check if there is an redundant element
+      if (JSONcontainer[elementType].redundant.length > 0) {
+        element = JSONcontainer[elementType].redundant[0];
+        JSONcontainer[elementType].redundant.shift();
+      } else {
+        // create a new element and add it to the SVG
+        element = document.createElementNS("http://www.w3.org/2000/svg", elementType);
+        svgContainer.appendChild(element);
+      }
+    } else {
+      // create a new element and add it to the SVG, also create a new object in the svgElements to keep track of it.
+      element = document.createElementNS("http://www.w3.org/2000/svg", elementType);
+      JSONcontainer[elementType] = { used: [], redundant: [] };
+      svgContainer.appendChild(element);
+    }
+    JSONcontainer[elementType].used.push(element);
+    return element;
+  };
+
+
+  /**
+   * Allocate or generate an SVG element if needed. Store a reference to it in the JSON container and draw it in the svgContainer
+   * the JSON container and the SVG container have to be supplied so other svg containers (like the legend) can use this.
+   *
+   * @param elementType
+   * @param JSONcontainer
+   * @param DOMContainer
+   * @returns {*}
+   * @private
+   */
+  exports.getDOMElement = function (elementType, JSONcontainer, DOMContainer, insertBefore) {
+    var element;
+    // allocate DOM element, if it doesnt yet exist, create one.
+    if (JSONcontainer.hasOwnProperty(elementType)) {
+      // this element has been created before
+      // check if there is an redundant element
+      if (JSONcontainer[elementType].redundant.length > 0) {
+        element = JSONcontainer[elementType].redundant[0];
+        JSONcontainer[elementType].redundant.shift();
+      } else {
+        // create a new element and add it to the SVG
+        element = document.createElement(elementType);
+        if (insertBefore !== undefined) {
+          DOMContainer.insertBefore(element, insertBefore);
+        } else {
+          DOMContainer.appendChild(element);
+        }
+      }
+    } else {
+      // create a new element and add it to the SVG, also create a new object in the svgElements to keep track of it.
+      element = document.createElement(elementType);
+      JSONcontainer[elementType] = { used: [], redundant: [] };
+      if (insertBefore !== undefined) {
+        DOMContainer.insertBefore(element, insertBefore);
+      } else {
+        DOMContainer.appendChild(element);
+      }
+    }
+    JSONcontainer[elementType].used.push(element);
+    return element;
+  };
+
+
+
+
+  /**
+   * draw a point object. this is a seperate function because it can also be called by the legend.
+   * The reason the JSONcontainer and the target SVG svgContainer have to be supplied is so the legend can use these functions
+   * as well.
+   *
+   * @param x
+   * @param y
+   * @param group
+   * @param JSONcontainer
+   * @param svgContainer
+   * @param labelObj
+   * @returns {*}
+   */
+  exports.drawPoint = function (x, y, group, JSONcontainer, svgContainer, labelObj) {
+    var point;
+    if (group.options.drawPoints.style == "circle") {
+      point = exports.getSVGElement("circle", JSONcontainer, svgContainer);
+      point.setAttributeNS(null, "cx", x);
+      point.setAttributeNS(null, "cy", y);
+      point.setAttributeNS(null, "r", 0.5 * group.options.drawPoints.size);
+    } else {
+      point = exports.getSVGElement("rect", JSONcontainer, svgContainer);
+      point.setAttributeNS(null, "x", x - 0.5 * group.options.drawPoints.size);
+      point.setAttributeNS(null, "y", y - 0.5 * group.options.drawPoints.size);
+      point.setAttributeNS(null, "width", group.options.drawPoints.size);
+      point.setAttributeNS(null, "height", group.options.drawPoints.size);
+    }
+
+    if (group.options.drawPoints.styles !== undefined) {
+      point.setAttributeNS(null, "style", group.group.options.drawPoints.styles);
+    }
+    point.setAttributeNS(null, "class", group.className + " point");
+    //handle label
+    var label = exports.getSVGElement("text", JSONcontainer, svgContainer);
+    if (labelObj) {
+      if (labelObj.xOffset) {
+        x = x + labelObj.xOffset;
+      }
+
+      if (labelObj.yOffset) {
+        y = y + labelObj.yOffset;
+      }
+      if (labelObj.content) {
+        label.textContent = labelObj.content;
+      }
+
+      if (labelObj.className) {
+        label.setAttributeNS(null, "class", labelObj.className + " label");
+      }
+
+    }
+    label.setAttributeNS(null, "x", x);
+    label.setAttributeNS(null, "y", y);
+    return point;
+  };
+
+  /**
+   * draw a bar SVG element centered on the X coordinate
+   *
+   * @param x
+   * @param y
+   * @param className
+   */
+  exports.drawBar = function (x, y, width, height, className, JSONcontainer, svgContainer) {
+    if (height != 0) {
+      if (height < 0) {
+        height *= -1;
+        y -= height;
+      }
+      var rect = exports.getSVGElement("rect", JSONcontainer, svgContainer);
+      rect.setAttributeNS(null, "x", x - 0.5 * width);
+      rect.setAttributeNS(null, "y", y);
+      rect.setAttributeNS(null, "width", width);
+      rect.setAttributeNS(null, "height", height);
+      rect.setAttributeNS(null, "class", className);
+    }
+  };
+
+/***/ },
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
 
   var util = __webpack_require__(1);
-  var Component = __webpack_require__(22);
-  var moment = __webpack_require__(25);
-  var locales = __webpack_require__(30);
+  var Queue = __webpack_require__(8);
 
   /**
-   * A current time bar
-   * @param {{range: Range, dom: Object, domProps: Object}} body
-   * @param {Object} [options]        Available parameters:
-   *                                  {Boolean} [showCurrentTime]
-   * @constructor CurrentTime
-   * @extends Component
+   * DataSet
+   *
+   * Usage:
+   *     var dataSet = new DataSet({
+   *         fieldId: '_id',
+   *         type: {
+   *             // ...
+   *         }
+   *     });
+   *
+   *     dataSet.add(item);
+   *     dataSet.add(data);
+   *     dataSet.update(item);
+   *     dataSet.update(data);
+   *     dataSet.remove(id);
+   *     dataSet.remove(ids);
+   *     var data = dataSet.get();
+   *     var data = dataSet.get(id);
+   *     var data = dataSet.get(ids);
+   *     var data = dataSet.get(ids, options, data);
+   *     dataSet.clear();
+   *
+   * A data set can:
+   * - add/remove/update data
+   * - gives triggers upon changes in the data
+   * - can  import/export data in various data formats
+   *
+   * @param {Array | DataTable} [data]    Optional array with initial data
+   * @param {Object} [options]   Available options:
+   *                             {String} fieldId Field name of the id in the
+   *                                              items, 'id' by default.
+   *                             {Object.<String, String} type
+   *                                              A map with field names as key,
+   *                                              and the field type as value.
+   *                             {Object} queue   Queue changes to the DataSet,
+   *                                              flush them all at once.
+   *                                              Queue options:
+   *                                              - {number} delay  Delay in ms, null by default
+   *                                              - {number} max    Maximum number of entries in the queue, Infinity by default
+   * @constructor DataSet
    */
-  function CurrentTime(body, options) {
-    this.body = body;
+  // TODO: add a DataSet constructor DataSet(data, options)
+  function DataSet(data, options) {
+    // correctly read optional arguments
+    if (data && !Array.isArray(data) && !util.isDataTable(data)) {
+      options = data;
+      data = null;
+    }
 
-    // default options
-    this.defaultOptions = {
-      showCurrentTime: true,
+    this._options = options || {};
+    this._data = {}; // map with data indexed by id
+    this.length = 0; // number of items in the DataSet
+    this._fieldId = this._options.fieldId || "id"; // name of the field containing id
+    this._type = {}; // internal field types (NOTE: this can differ from this._options.type)
 
-      locales: locales,
-      locale: "en"
-    };
-    this.options = util.extend({}, this.defaultOptions);
-    this.offset = 0;
+    // all variants of a Date are internally stored as Date, so we can convert
+    // from everything to everything (also from ISODate to Number for example)
+    if (this._options.type) {
+      for (var field in this._options.type) {
+        if (this._options.type.hasOwnProperty(field)) {
+          var value = this._options.type[field];
+          if (value == "Date" || value == "ISODate" || value == "ASPDate") {
+            this._type[field] = "Date";
+          } else {
+            this._type[field] = value;
+          }
+        }
+      }
+    }
 
-    this._create();
+    // TODO: deprecated since version 1.1.1 (or 2.0.0?)
+    if (this._options.convert) {
+      throw new Error("Option \"convert\" is deprecated. Use \"type\" instead.");
+    }
+
+    this._subscribers = {}; // event subscribers
+
+    // add initial data when provided
+    if (data) {
+      this.add(data);
+    }
 
     this.setOptions(options);
   }
 
-  CurrentTime.prototype = new Component();
+  /**
+   * @param {Object} [options]   Available options:
+   *                             {Object} queue   Queue changes to the DataSet,
+   *                                              flush them all at once.
+   *                                              Queue options:
+   *                                              - {number} delay  Delay in ms, null by default
+   *                                              - {number} max    Maximum number of entries in the queue, Infinity by default
+   * @param options
+   */
+  DataSet.prototype.setOptions = function (options) {
+    if (options && options.queue !== undefined) {
+      if (options.queue === false) {
+        // delete queue if loaded
+        if (this._queue) {
+          this._queue.destroy();
+          delete this._queue;
+        }
+      } else {
+        // create queue and update its options
+        if (!this._queue) {
+          this._queue = Queue.extend(this, {
+            replace: ["add", "update", "remove"]
+          });
+        }
+
+        if (typeof options.queue === "object") {
+          this._queue.setOptions(options.queue);
+        }
+      }
+    }
+  };
 
   /**
-   * Create the HTML DOM for the current time bar
+   * Subscribe to an event, add an event listener
+   * @param {String} event        Event name. Available events: 'put', 'update',
+   *                              'remove'
+   * @param {function} callback   Callback method. Called with three parameters:
+   *                                  {String} event
+   *                                  {Object | null} params
+   *                                  {String | Number} senderId
+   */
+  DataSet.prototype.on = function (event, callback) {
+    var subscribers = this._subscribers[event];
+    if (!subscribers) {
+      subscribers = [];
+      this._subscribers[event] = subscribers;
+    }
+
+    subscribers.push({
+      callback: callback
+    });
+  };
+
+  // TODO: make this function deprecated (replaced with `on` since version 0.5)
+  DataSet.prototype.subscribe = DataSet.prototype.on;
+
+  /**
+   * Unsubscribe from an event, remove an event listener
+   * @param {String} event
+   * @param {function} callback
+   */
+  DataSet.prototype.off = function (event, callback) {
+    var subscribers = this._subscribers[event];
+    if (subscribers) {
+      this._subscribers[event] = subscribers.filter(function (listener) {
+        return listener.callback != callback;
+      });
+    }
+  };
+
+  // TODO: make this function deprecated (replaced with `on` since version 0.5)
+  DataSet.prototype.unsubscribe = DataSet.prototype.off;
+
+  /**
+   * Trigger an event
+   * @param {String} event
+   * @param {Object | null} params
+   * @param {String} [senderId]       Optional id of the sender.
    * @private
    */
-  CurrentTime.prototype._create = function () {
-    var bar = document.createElement("div");
-    bar.className = "currenttime";
-    bar.style.position = "absolute";
-    bar.style.top = "0px";
-    bar.style.height = "100%";
+  DataSet.prototype._trigger = function (event, params, senderId) {
+    if (event == "*") {
+      throw new Error("Cannot trigger event *");
+    }
 
-    this.bar = bar;
-  };
+    var subscribers = [];
+    if (event in this._subscribers) {
+      subscribers = subscribers.concat(this._subscribers[event]);
+    }
+    if ("*" in this._subscribers) {
+      subscribers = subscribers.concat(this._subscribers["*"]);
+    }
 
-  /**
-   * Destroy the CurrentTime bar
-   */
-  CurrentTime.prototype.destroy = function () {
-    this.options.showCurrentTime = false;
-    this.redraw(); // will remove the bar from the DOM and stop refreshing
-
-    this.body = null;
-  };
-
-  /**
-   * Set options for the component. Options will be merged in current options.
-   * @param {Object} options  Available parameters:
-   *                          {boolean} [showCurrentTime]
-   */
-  CurrentTime.prototype.setOptions = function (options) {
-    if (options) {
-      // copy all options that we know
-      util.selectiveExtend(["showCurrentTime", "locale", "locales"], this.options, options);
+    for (var i = 0; i < subscribers.length; i++) {
+      var subscriber = subscribers[i];
+      if (subscriber.callback) {
+        subscriber.callback(event, params, senderId || null);
+      }
     }
   };
 
   /**
-   * Repaint the component
-   * @return {boolean} Returns true if the component is resized
+   * Add data.
+   * Adding an item will fail when there already is an item with the same id.
+   * @param {Object | Array | DataTable} data
+   * @param {String} [senderId] Optional sender id
+   * @return {Array} addedIds      Array with the ids of the added items
    */
-  CurrentTime.prototype.redraw = function () {
-    if (this.options.showCurrentTime) {
-      var parent = this.body.dom.backgroundVertical;
-      if (this.bar.parentNode != parent) {
-        // attach to the dom
-        if (this.bar.parentNode) {
-          this.bar.parentNode.removeChild(this.bar);
+  DataSet.prototype.add = function (data, senderId) {
+    var addedIds = [],
+        id,
+        me = this;
+
+    if (Array.isArray(data)) {
+      // Array
+      for (var i = 0, len = data.length; i < len; i++) {
+        id = me._addItem(data[i]);
+        addedIds.push(id);
+      }
+    } else if (util.isDataTable(data)) {
+      // Google DataTable
+      var columns = this._getColumnNames(data);
+      for (var row = 0, rows = data.getNumberOfRows(); row < rows; row++) {
+        var item = {};
+        for (var col = 0, cols = columns.length; col < cols; col++) {
+          var field = columns[col];
+          item[field] = data.getValue(row, col);
         }
-        parent.appendChild(this.bar);
 
-        this.start();
+        id = me._addItem(item);
+        addedIds.push(id);
       }
-
-      var now = new Date(new Date().valueOf() + this.offset);
-      var x = this.body.util.toScreen(now);
-
-      var locale = this.options.locales[this.options.locale];
-      var title = locale.current + " " + locale.time + ": " + moment(now).format("dddd, MMMM Do YYYY, H:mm:ss");
-      title = title.charAt(0).toUpperCase() + title.substring(1);
-
-      this.bar.style.left = x + "px";
-      this.bar.title = title;
+    } else if (data instanceof Object) {
+      // Single item
+      id = me._addItem(data);
+      addedIds.push(id);
     } else {
-      // remove the line from the DOM
-      if (this.bar.parentNode) {
-        this.bar.parentNode.removeChild(this.bar);
-      }
-      this.stop();
+      throw new Error("Unknown dataType");
     }
 
-    return false;
+    if (addedIds.length) {
+      this._trigger("add", { items: addedIds }, senderId);
+    }
+
+    return addedIds;
   };
 
   /**
-   * Start auto refreshing the current time bar
+   * Update existing items. When an item does not exist, it will be created
+   * @param {Object | Array | DataTable} data
+   * @param {String} [senderId] Optional sender id
+   * @return {Array} updatedIds     The ids of the added or updated items
    */
-  CurrentTime.prototype.start = function () {
+  DataSet.prototype.update = function (data, senderId) {
+    var addedIds = [];
+    var updatedIds = [];
+    var updatedData = [];
+    var me = this;
+    var fieldId = me._fieldId;
+
+    var addOrUpdate = function (item) {
+      var id = item[fieldId];
+      if (me._data[id]) {
+        // update item
+        id = me._updateItem(item);
+        updatedIds.push(id);
+        updatedData.push(item);
+      } else {
+        // add new item
+        id = me._addItem(item);
+        addedIds.push(id);
+      }
+    };
+
+    if (Array.isArray(data)) {
+      // Array
+      for (var i = 0, len = data.length; i < len; i++) {
+        addOrUpdate(data[i]);
+      }
+    } else if (util.isDataTable(data)) {
+      // Google DataTable
+      var columns = this._getColumnNames(data);
+      for (var row = 0, rows = data.getNumberOfRows(); row < rows; row++) {
+        var item = {};
+        for (var col = 0, cols = columns.length; col < cols; col++) {
+          var field = columns[col];
+          item[field] = data.getValue(row, col);
+        }
+
+        addOrUpdate(item);
+      }
+    } else if (data instanceof Object) {
+      // Single item
+      addOrUpdate(data);
+    } else {
+      throw new Error("Unknown dataType");
+    }
+
+    if (addedIds.length) {
+      this._trigger("add", { items: addedIds }, senderId);
+    }
+    if (updatedIds.length) {
+      this._trigger("update", { items: updatedIds, data: updatedData }, senderId);
+    }
+
+    return addedIds.concat(updatedIds);
+  };
+
+  /**
+   * Get a data item or multiple items.
+   *
+   * Usage:
+   *
+   *     get()
+   *     get(options: Object)
+   *     get(options: Object, data: Array | DataTable)
+   *
+   *     get(id: Number | String)
+   *     get(id: Number | String, options: Object)
+   *     get(id: Number | String, options: Object, data: Array | DataTable)
+   *
+   *     get(ids: Number[] | String[])
+   *     get(ids: Number[] | String[], options: Object)
+   *     get(ids: Number[] | String[], options: Object, data: Array | DataTable)
+   *
+   * Where:
+   *
+   * {Number | String} id         The id of an item
+   * {Number[] | String{}} ids    An array with ids of items
+   * {Object} options             An Object with options. Available options:
+   *                              {String} [returnType] Type of data to be
+   *                                  returned. Can be 'DataTable' or 'Array' (default)
+   *                              {Object.<String, String>} [type]
+   *                              {String[]} [fields] field names to be returned
+   *                              {function} [filter] filter items
+   *                              {String | function} [order] Order the items by
+   *                                  a field name or custom sort function.
+   * {Array | DataTable} [data]   If provided, items will be appended to this
+   *                              array or table. Required in case of Google
+   *                              DataTable.
+   *
+   * @throws Error
+   */
+  DataSet.prototype.get = function (args) {
     var me = this;
 
-    function update() {
-      me.stop();
-
-      // determine interval to refresh
-      var scale = me.body.range.conversion(me.body.domProps.center.width).scale;
-      var interval = 1 / scale / 10;
-      if (interval < 30) interval = 30;
-      if (interval > 1000) interval = 1000;
-
-      me.redraw();
-
-      // start a renderTimer to adjust for the new time
-      me.currentTimeTimer = setTimeout(update, interval);
+    // parse the arguments
+    var id, ids, options, data;
+    var firstType = util.getType(arguments[0]);
+    if (firstType == "String" || firstType == "Number") {
+      // get(id [, options] [, data])
+      id = arguments[0];
+      options = arguments[1];
+      data = arguments[2];
+    } else if (firstType == "Array") {
+      // get(ids [, options] [, data])
+      ids = arguments[0];
+      options = arguments[1];
+      data = arguments[2];
+    } else {
+      // get([, options] [, data])
+      options = arguments[0];
+      data = arguments[1];
     }
 
-    update();
+    // determine the return type
+    var returnType;
+    if (options && options.returnType) {
+      var allowedValues = ["DataTable", "Array", "Object"];
+      returnType = allowedValues.indexOf(options.returnType) == -1 ? "Array" : options.returnType;
+
+      if (data && returnType != util.getType(data)) {
+        throw new Error("Type of parameter \"data\" (" + util.getType(data) + ") " + "does not correspond with specified options.type (" + options.type + ")");
+      }
+      if (returnType == "DataTable" && !util.isDataTable(data)) {
+        throw new Error("Parameter \"data\" must be a DataTable " + "when options.type is \"DataTable\"");
+      }
+    } else if (data) {
+      returnType = util.getType(data) == "DataTable" ? "DataTable" : "Array";
+    } else {
+      returnType = "Array";
+    }
+
+    // build options
+    var type = options && options.type || this._options.type;
+    var filter = options && options.filter;
+    var items = [],
+        item,
+        itemId,
+        i,
+        len;
+
+    // convert items
+    if (id != undefined) {
+      // return a single item
+      item = me._getItem(id, type);
+      if (filter && !filter(item)) {
+        item = null;
+      }
+    } else if (ids != undefined) {
+      // return a subset of items
+      for (i = 0, len = ids.length; i < len; i++) {
+        item = me._getItem(ids[i], type);
+        if (!filter || filter(item)) {
+          items.push(item);
+        }
+      }
+    } else {
+      // return all items
+      for (itemId in this._data) {
+        if (this._data.hasOwnProperty(itemId)) {
+          item = me._getItem(itemId, type);
+          if (!filter || filter(item)) {
+            items.push(item);
+          }
+        }
+      }
+    }
+
+    // order the results
+    if (options && options.order && id == undefined) {
+      this._sort(items, options.order);
+    }
+
+    // filter fields of the items
+    if (options && options.fields) {
+      var fields = options.fields;
+      if (id != undefined) {
+        item = this._filterFields(item, fields);
+      } else {
+        for (i = 0, len = items.length; i < len; i++) {
+          items[i] = this._filterFields(items[i], fields);
+        }
+      }
+    }
+
+    // return the results
+    if (returnType == "DataTable") {
+      var columns = this._getColumnNames(data);
+      if (id != undefined) {
+        // append a single item to the data table
+        me._appendRow(data, columns, item);
+      } else {
+        // copy the items to the provided data table
+        for (i = 0; i < items.length; i++) {
+          me._appendRow(data, columns, items[i]);
+        }
+      }
+      return data;
+    } else if (returnType == "Object") {
+      var result = {};
+      for (i = 0; i < items.length; i++) {
+        result[items[i].id] = items[i];
+      }
+      return result;
+    } else {
+      // return an array
+      if (id != undefined) {
+        // a single item
+        return item;
+      } else {
+        // multiple items
+        if (data) {
+          // copy the items to the provided array
+          for (i = 0, len = items.length; i < len; i++) {
+            data.push(items[i]);
+          }
+          return data;
+        } else {
+          // just return our array
+          return items;
+        }
+      }
+    }
   };
 
   /**
-   * Stop auto refreshing the current time bar
+   * Get ids of all items or from a filtered set of items.
+   * @param {Object} [options]    An Object with options. Available options:
+   *                              {function} [filter] filter items
+   *                              {String | function} [order] Order the items by
+   *                                  a field name or custom sort function.
+   * @return {Array} ids
    */
-  CurrentTime.prototype.stop = function () {
-    if (this.currentTimeTimer !== undefined) {
-      clearTimeout(this.currentTimeTimer);
-      delete this.currentTimeTimer;
+  DataSet.prototype.getIds = function (options) {
+    var data = this._data,
+        filter = options && options.filter,
+        order = options && options.order,
+        type = options && options.type || this._options.type,
+        i,
+        len,
+        id,
+        item,
+        items,
+        ids = [];
+
+    if (filter) {
+      // get filtered items
+      if (order) {
+        // create ordered list
+        items = [];
+        for (id in data) {
+          if (data.hasOwnProperty(id)) {
+            item = this._getItem(id, type);
+            if (filter(item)) {
+              items.push(item);
+            }
+          }
+        }
+
+        this._sort(items, order);
+
+        for (i = 0, len = items.length; i < len; i++) {
+          ids[i] = items[i][this._fieldId];
+        }
+      } else {
+        // create unordered list
+        for (id in data) {
+          if (data.hasOwnProperty(id)) {
+            item = this._getItem(id, type);
+            if (filter(item)) {
+              ids.push(item[this._fieldId]);
+            }
+          }
+        }
+      }
+    } else {
+      // get all items
+      if (order) {
+        // create an ordered list
+        items = [];
+        for (id in data) {
+          if (data.hasOwnProperty(id)) {
+            items.push(data[id]);
+          }
+        }
+
+        this._sort(items, order);
+
+        for (i = 0, len = items.length; i < len; i++) {
+          ids[i] = items[i][this._fieldId];
+        }
+      } else {
+        // create unordered list
+        for (id in data) {
+          if (data.hasOwnProperty(id)) {
+            item = data[id];
+            ids.push(item[this._fieldId]);
+          }
+        }
+      }
+    }
+
+    return ids;
+  };
+
+  /**
+   * Returns the DataSet itself. Is overwritten for example by the DataView,
+   * which returns the DataSet it is connected to instead.
+   */
+  DataSet.prototype.getDataSet = function () {
+    return this;
+  };
+
+  /**
+   * Execute a callback function for every item in the dataset.
+   * @param {function} callback
+   * @param {Object} [options]    Available options:
+   *                              {Object.<String, String>} [type]
+   *                              {String[]} [fields] filter fields
+   *                              {function} [filter] filter items
+   *                              {String | function} [order] Order the items by
+   *                                  a field name or custom sort function.
+   */
+  DataSet.prototype.forEach = function (callback, options) {
+    var filter = options && options.filter,
+        type = options && options.type || this._options.type,
+        data = this._data,
+        item,
+        id;
+
+    if (options && options.order) {
+      // execute forEach on ordered list
+      var items = this.get(options);
+
+      for (var i = 0, len = items.length; i < len; i++) {
+        item = items[i];
+        id = item[this._fieldId];
+        callback(item, id);
+      }
+    } else {
+      // unordered
+      for (id in data) {
+        if (data.hasOwnProperty(id)) {
+          item = this._getItem(id, type);
+          if (!filter || filter(item)) {
+            callback(item, id);
+          }
+        }
+      }
     }
   };
 
   /**
-   * Set a current time. This can be used for example to ensure that a client's
-   * time is synchronized with a shared server time.
-   * @param {Date | String | Number} time     A Date, unix timestamp, or
-   *                                          ISO date string.
+   * Map every item in the dataset.
+   * @param {function} callback
+   * @param {Object} [options]    Available options:
+   *                              {Object.<String, String>} [type]
+   *                              {String[]} [fields] filter fields
+   *                              {function} [filter] filter items
+   *                              {String | function} [order] Order the items by
+   *                                  a field name or custom sort function.
+   * @return {Object[]} mappedItems
    */
-  CurrentTime.prototype.setCurrentTime = function (time) {
-    var t = util.convert(time, "Date").valueOf();
-    var now = new Date().valueOf();
-    this.offset = t - now;
+  DataSet.prototype.map = function (callback, options) {
+    var filter = options && options.filter,
+        type = options && options.type || this._options.type,
+        mappedItems = [],
+        data = this._data,
+        item;
+
+    // convert and filter items
+    for (var id in data) {
+      if (data.hasOwnProperty(id)) {
+        item = this._getItem(id, type);
+        if (!filter || filter(item)) {
+          mappedItems.push(callback(item, id));
+        }
+      }
+    }
+
+    // order items
+    if (options && options.order) {
+      this._sort(mappedItems, options.order);
+    }
+
+    return mappedItems;
+  };
+
+  /**
+   * Filter the fields of an item
+   * @param {Object | null} item
+   * @param {String[]} fields     Field names
+   * @return {Object | null} filteredItem or null if no item is provided
+   * @private
+   */
+  DataSet.prototype._filterFields = function (item, fields) {
+    if (!item) {
+      // item is null
+      return item;
+    }
+
+    var filteredItem = {};
+
+    for (var field in item) {
+      if (item.hasOwnProperty(field) && fields.indexOf(field) != -1) {
+        filteredItem[field] = item[field];
+      }
+    }
+
+    return filteredItem;
+  };
+
+  /**
+   * Sort the provided array with items
+   * @param {Object[]} items
+   * @param {String | function} order      A field name or custom sort function.
+   * @private
+   */
+  DataSet.prototype._sort = function (items, order) {
+    if (util.isString(order)) {
+      // order by provided field name
+      var name = order; // field name
+      items.sort(function (a, b) {
+        var av = a[name];
+        var bv = b[name];
+        return av > bv ? 1 : av < bv ? -1 : 0;
+      });
+    } else if (typeof order === "function") {
+      // order by sort function
+      items.sort(order);
+    }
+    // TODO: extend order by an Object {field:String, direction:String}
+    //       where direction can be 'asc' or 'desc'
+    else {
+      throw new TypeError("Order must be a function or a string");
+    }
+  };
+
+  /**
+   * Remove an object by pointer or by id
+   * @param {String | Number | Object | Array} id Object or id, or an array with
+   *                                              objects or ids to be removed
+   * @param {String} [senderId] Optional sender id
+   * @return {Array} removedIds
+   */
+  DataSet.prototype.remove = function (id, senderId) {
+    var removedIds = [],
+        i,
+        len,
+        removedId;
+
+    if (Array.isArray(id)) {
+      for (i = 0, len = id.length; i < len; i++) {
+        removedId = this._remove(id[i]);
+        if (removedId != null) {
+          removedIds.push(removedId);
+        }
+      }
+    } else {
+      removedId = this._remove(id);
+      if (removedId != null) {
+        removedIds.push(removedId);
+      }
+    }
+
+    if (removedIds.length) {
+      this._trigger("remove", { items: removedIds }, senderId);
+    }
+
+    return removedIds;
+  };
+
+  /**
+   * Remove an item by its id
+   * @param {Number | String | Object} id   id or item
+   * @returns {Number | String | null} id
+   * @private
+   */
+  DataSet.prototype._remove = function (id) {
+    if (util.isNumber(id) || util.isString(id)) {
+      if (this._data[id]) {
+        delete this._data[id];
+        this.length--;
+        return id;
+      }
+    } else if (id instanceof Object) {
+      var itemId = id[this._fieldId];
+      if (itemId && this._data[itemId]) {
+        delete this._data[itemId];
+        this.length--;
+        return itemId;
+      }
+    }
+    return null;
+  };
+
+  /**
+   * Clear the data
+   * @param {String} [senderId] Optional sender id
+   * @return {Array} removedIds    The ids of all removed items
+   */
+  DataSet.prototype.clear = function (senderId) {
+    var ids = Object.keys(this._data);
+
+    this._data = {};
+    this.length = 0;
+
+    this._trigger("remove", { items: ids }, senderId);
+
+    return ids;
+  };
+
+  /**
+   * Find the item with maximum value of a specified field
+   * @param {String} field
+   * @return {Object | null} item  Item containing max value, or null if no items
+   */
+  DataSet.prototype.max = function (field) {
+    var data = this._data,
+        max = null,
+        maxField = null;
+
+    for (var id in data) {
+      if (data.hasOwnProperty(id)) {
+        var item = data[id];
+        var itemField = item[field];
+        if (itemField != null && (!max || itemField > maxField)) {
+          max = item;
+          maxField = itemField;
+        }
+      }
+    }
+
+    return max;
+  };
+
+  /**
+   * Find the item with minimum value of a specified field
+   * @param {String} field
+   * @return {Object | null} item  Item containing max value, or null if no items
+   */
+  DataSet.prototype.min = function (field) {
+    var data = this._data,
+        min = null,
+        minField = null;
+
+    for (var id in data) {
+      if (data.hasOwnProperty(id)) {
+        var item = data[id];
+        var itemField = item[field];
+        if (itemField != null && (!min || itemField < minField)) {
+          min = item;
+          minField = itemField;
+        }
+      }
+    }
+
+    return min;
+  };
+
+  /**
+   * Find all distinct values of a specified field
+   * @param {String} field
+   * @return {Array} values  Array containing all distinct values. If data items
+   *                         do not contain the specified field are ignored.
+   *                         The returned array is unordered.
+   */
+  DataSet.prototype.distinct = function (field) {
+    var data = this._data;
+    var values = [];
+    var fieldType = this._options.type && this._options.type[field] || null;
+    var count = 0;
+    var i;
+
+    for (var prop in data) {
+      if (data.hasOwnProperty(prop)) {
+        var item = data[prop];
+        var value = item[field];
+        var exists = false;
+        for (i = 0; i < count; i++) {
+          if (values[i] == value) {
+            exists = true;
+            break;
+          }
+        }
+        if (!exists && value !== undefined) {
+          values[count] = value;
+          count++;
+        }
+      }
+    }
+
+    if (fieldType) {
+      for (i = 0; i < values.length; i++) {
+        values[i] = util.convert(values[i], fieldType);
+      }
+    }
+
+    return values;
+  };
+
+  /**
+   * Add a single item. Will fail when an item with the same id already exists.
+   * @param {Object} item
+   * @return {String} id
+   * @private
+   */
+  DataSet.prototype._addItem = function (item) {
+    var id = item[this._fieldId];
+
+    if (id != undefined) {
+      // check whether this id is already taken
+      if (this._data[id]) {
+        // item already exists
+        throw new Error("Cannot add item: item with id " + id + " already exists");
+      }
+    } else {
+      // generate an id
+      id = util.randomUUID();
+      item[this._fieldId] = id;
+    }
+
+    var d = {};
+    for (var field in item) {
+      if (item.hasOwnProperty(field)) {
+        var fieldType = this._type[field]; // type may be undefined
+        d[field] = util.convert(item[field], fieldType);
+      }
+    }
+    this._data[id] = d;
+    this.length++;
+
+    return id;
+  };
+
+  /**
+   * Get an item. Fields can be converted to a specific type
+   * @param {String} id
+   * @param {Object.<String, String>} [types]  field types to convert
+   * @return {Object | null} item
+   * @private
+   */
+  DataSet.prototype._getItem = function (id, types) {
+    var field, value;
+
+    // get the item from the dataset
+    var raw = this._data[id];
+    if (!raw) {
+      return null;
+    }
+
+    // convert the items field types
+    var converted = {};
+    if (types) {
+      for (field in raw) {
+        if (raw.hasOwnProperty(field)) {
+          value = raw[field];
+          converted[field] = util.convert(value, types[field]);
+        }
+      }
+    } else {
+      // no field types specified, no converting needed
+      for (field in raw) {
+        if (raw.hasOwnProperty(field)) {
+          value = raw[field];
+          converted[field] = value;
+        }
+      }
+    }
+    return converted;
+  };
+
+  /**
+   * Update a single item: merge with existing item.
+   * Will fail when the item has no id, or when there does not exist an item
+   * with the same id.
+   * @param {Object} item
+   * @return {String} id
+   * @private
+   */
+  DataSet.prototype._updateItem = function (item) {
+    var id = item[this._fieldId];
+    if (id == undefined) {
+      throw new Error("Cannot update item: item has no id (item: " + JSON.stringify(item) + ")");
+    }
+    var d = this._data[id];
+    if (!d) {
+      // item doesn't exist
+      throw new Error("Cannot update item: no item with id " + id + " found");
+    }
+
+    // merge with current item
+    for (var field in item) {
+      if (item.hasOwnProperty(field)) {
+        var fieldType = this._type[field]; // type may be undefined
+        d[field] = util.convert(item[field], fieldType);
+      }
+    }
+
+    return id;
+  };
+
+  /**
+   * Get an array with the column names of a Google DataTable
+   * @param {DataTable} dataTable
+   * @return {String[]} columnNames
+   * @private
+   */
+  DataSet.prototype._getColumnNames = function (dataTable) {
+    var columns = [];
+    for (var col = 0, cols = dataTable.getNumberOfColumns(); col < cols; col++) {
+      columns[col] = dataTable.getColumnId(col) || dataTable.getColumnLabel(col);
+    }
+    return columns;
+  };
+
+  /**
+   * Append an item as a row to the dataTable
+   * @param dataTable
+   * @param columns
+   * @param item
+   * @private
+   */
+  DataSet.prototype._appendRow = function (dataTable, columns, item) {
+    var row = dataTable.addRow();
+
+    for (var col = 0, cols = columns.length; col < cols; col++) {
+      var field = columns[col];
+      dataTable.setValue(row, col, item[field]);
+    }
+  };
+
+  module.exports = DataSet;
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  /**
+   * A queue
+   * @param {Object} options
+   *            Available options:
+   *            - delay: number    When provided, the queue will be flushed
+   *                               automatically after an inactivity of this delay
+   *                               in milliseconds.
+   *                               Default value is null.
+   *            - max: number      When the queue exceeds the given maximum number
+   *                               of entries, the queue is flushed automatically.
+   *                               Default value of max is Infinity.
+   * @constructor
+   */
+  function Queue(options) {
+    // options
+    this.delay = null;
+    this.max = Infinity;
+
+    // properties
+    this._queue = [];
+    this._timeout = null;
+    this._extended = null;
+
+    this.setOptions(options);
+  }
+
+  /**
+   * Update the configuration of the queue
+   * @param {Object} options
+   *            Available options:
+   *            - delay: number    When provided, the queue will be flushed
+   *                               automatically after an inactivity of this delay
+   *                               in milliseconds.
+   *                               Default value is null.
+   *            - max: number      When the queue exceeds the given maximum number
+   *                               of entries, the queue is flushed automatically.
+   *                               Default value of max is Infinity.
+   * @param options
+   */
+  Queue.prototype.setOptions = function (options) {
+    if (options && typeof options.delay !== "undefined") {
+      this.delay = options.delay;
+    }
+    if (options && typeof options.max !== "undefined") {
+      this.max = options.max;
+    }
+
+    this._flushIfNeeded();
+  };
+
+  /**
+   * Extend an object with queuing functionality.
+   * The object will be extended with a function flush, and the methods provided
+   * in options.replace will be replaced with queued ones.
+   * @param {Object} object
+   * @param {Object} options
+   *            Available options:
+   *            - replace: Array.<string>
+   *                               A list with method names of the methods
+   *                               on the object to be replaced with queued ones.
+   *            - delay: number    When provided, the queue will be flushed
+   *                               automatically after an inactivity of this delay
+   *                               in milliseconds.
+   *                               Default value is null.
+   *            - max: number      When the queue exceeds the given maximum number
+   *                               of entries, the queue is flushed automatically.
+   *                               Default value of max is Infinity.
+   * @return {Queue} Returns the created queue
+   */
+  Queue.extend = function (object, options) {
+    var queue = new Queue(options);
+
+    if (object.flush !== undefined) {
+      throw new Error("Target object already has a property flush");
+    }
+    object.flush = function () {
+      queue.flush();
+    };
+
+    var methods = [{
+      name: "flush",
+      original: undefined
+    }];
+
+    if (options && options.replace) {
+      for (var i = 0; i < options.replace.length; i++) {
+        var name = options.replace[i];
+        methods.push({
+          name: name,
+          original: object[name]
+        });
+        queue.replace(object, name);
+      }
+    }
+
+    queue._extended = {
+      object: object,
+      methods: methods
+    };
+
+    return queue;
+  };
+
+  /**
+   * Destroy the queue. The queue will first flush all queued actions, and in
+   * case it has extended an object, will restore the original object.
+   */
+  Queue.prototype.destroy = function () {
+    this.flush();
+
+    if (this._extended) {
+      var object = this._extended.object;
+      var methods = this._extended.methods;
+      for (var i = 0; i < methods.length; i++) {
+        var method = methods[i];
+        if (method.original) {
+          object[method.name] = method.original;
+        } else {
+          delete object[method.name];
+        }
+      }
+      this._extended = null;
+    }
+  };
+
+  /**
+   * Replace a method on an object with a queued version
+   * @param {Object} object   Object having the method
+   * @param {string} method   The method name
+   */
+  Queue.prototype.replace = function (object, method) {
+    var me = this;
+    var original = object[method];
+    if (!original) {
+      throw new Error("Method " + method + " undefined");
+    }
+
+    object[method] = function () {
+      // create an Array with the arguments
+      var args = [];
+      for (var i = 0; i < arguments.length; i++) {
+        args[i] = arguments[i];
+      }
+
+      // add this call to the queue
+      me.queue({
+        args: args,
+        fn: original,
+        context: this
+      });
+    };
+  };
+
+  /**
+   * Queue a call
+   * @param {function | {fn: function, args: Array} | {fn: function, args: Array, context: Object}} entry
+   */
+  Queue.prototype.queue = function (entry) {
+    if (typeof entry === "function") {
+      this._queue.push({ fn: entry });
+    } else {
+      this._queue.push(entry);
+    }
+
+    this._flushIfNeeded();
+  };
+
+  /**
+   * Check whether the queue needs to be flushed
+   * @private
+   */
+  Queue.prototype._flushIfNeeded = function () {
+    // flush when the maximum is exceeded.
+    if (this._queue.length > this.max) {
+      this.flush();
+    }
+
+    // flush after a period of inactivity when a delay is configured
+    clearTimeout(this._timeout);
+    if (this.queue.length > 0 && typeof this.delay === "number") {
+      var me = this;
+      this._timeout = setTimeout(function () {
+        me.flush();
+      }, this.delay);
+    }
+  };
+
+  /**
+   * Flush all queued calls
+   */
+  Queue.prototype.flush = function () {
+    while (this._queue.length > 0) {
+      var entry = this._queue.shift();
+      entry.fn.apply(entry.context || entry.fn, entry.args || []);
+    }
+  };
+
+  module.exports = Queue;
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var util = __webpack_require__(1);
+  var DataSet = __webpack_require__(7);
+
+  /**
+   * DataView
+   *
+   * a dataview offers a filtered view on a dataset or an other dataview.
+   *
+   * @param {DataSet | DataView} data
+   * @param {Object} [options]   Available options: see method get
+   *
+   * @constructor DataView
+   */
+  function DataView(data, options) {
+    this._data = null;
+    this._ids = {}; // ids of the items currently in memory (just contains a boolean true)
+    this.length = 0; // number of items in the DataView
+    this._options = options || {};
+    this._fieldId = "id"; // name of the field containing id
+    this._subscribers = {}; // event subscribers
+
+    var me = this;
+    this.listener = function () {
+      me._onEvent.apply(me, arguments);
+    };
+
+    this.setData(data);
+  }
+
+  // TODO: implement a function .config() to dynamically update things like configured filter
+  // and trigger changes accordingly
+
+  /**
+   * Set a data source for the view
+   * @param {DataSet | DataView} data
+   */
+  DataView.prototype.setData = function (data) {
+    var ids, i, len;
+
+    if (this._data) {
+      // unsubscribe from current dataset
+      if (this._data.unsubscribe) {
+        this._data.unsubscribe("*", this.listener);
+      }
+
+      // trigger a remove of all items in memory
+      ids = [];
+      for (var id in this._ids) {
+        if (this._ids.hasOwnProperty(id)) {
+          ids.push(id);
+        }
+      }
+      this._ids = {};
+      this.length = 0;
+      this._trigger("remove", { items: ids });
+    }
+
+    this._data = data;
+
+    if (this._data) {
+      // update fieldId
+      this._fieldId = this._options.fieldId || this._data && this._data.options && this._data.options.fieldId || "id";
+
+      // trigger an add of all added items
+      ids = this._data.getIds({ filter: this._options && this._options.filter });
+      for (i = 0, len = ids.length; i < len; i++) {
+        id = ids[i];
+        this._ids[id] = true;
+      }
+      this.length = ids.length;
+      this._trigger("add", { items: ids });
+
+      // subscribe to new dataset
+      if (this._data.on) {
+        this._data.on("*", this.listener);
+      }
+    }
+  };
+
+  /**
+   * Refresh the DataView. Useful when the DataView has a filter function
+   * containing a variable parameter.
+   */
+  DataView.prototype.refresh = function () {
+    var id;
+    var ids = this._data.getIds({ filter: this._options && this._options.filter });
+    var newIds = {};
+    var added = [];
+    var removed = [];
+
+    // check for additions
+    for (var i = 0; i < ids.length; i++) {
+      id = ids[i];
+      newIds[id] = true;
+      if (!this._ids[id]) {
+        added.push(id);
+        this._ids[id] = true;
+        this.length++;
+      }
+    }
+
+    // check for removals
+    for (id in this._ids) {
+      if (this._ids.hasOwnProperty(id)) {
+        if (!newIds[id]) {
+          removed.push(id);
+          delete this._ids[id];
+          this.length--;
+        }
+      }
+    }
+
+    // trigger events
+    if (added.length) {
+      this._trigger("add", { items: added });
+    }
+    if (removed.length) {
+      this._trigger("remove", { items: removed });
+    }
+  };
+
+  /**
+   * Get data from the data view
+   *
+   * Usage:
+   *
+   *     get()
+   *     get(options: Object)
+   *     get(options: Object, data: Array | DataTable)
+   *
+   *     get(id: Number)
+   *     get(id: Number, options: Object)
+   *     get(id: Number, options: Object, data: Array | DataTable)
+   *
+   *     get(ids: Number[])
+   *     get(ids: Number[], options: Object)
+   *     get(ids: Number[], options: Object, data: Array | DataTable)
+   *
+   * Where:
+   *
+   * {Number | String} id         The id of an item
+   * {Number[] | String{}} ids    An array with ids of items
+   * {Object} options             An Object with options. Available options:
+   *                              {String} [type] Type of data to be returned. Can
+   *                                              be 'DataTable' or 'Array' (default)
+   *                              {Object.<String, String>} [convert]
+   *                              {String[]} [fields] field names to be returned
+   *                              {function} [filter] filter items
+   *                              {String | function} [order] Order the items by
+   *                                  a field name or custom sort function.
+   * {Array | DataTable} [data]   If provided, items will be appended to this
+   *                              array or table. Required in case of Google
+   *                              DataTable.
+   * @param args
+   */
+  DataView.prototype.get = function (args) {
+    var me = this;
+
+    // parse the arguments
+    var ids, options, data;
+    var firstType = util.getType(arguments[0]);
+    if (firstType == "String" || firstType == "Number" || firstType == "Array") {
+      // get(id(s) [, options] [, data])
+      ids = arguments[0]; // can be a single id or an array with ids
+      options = arguments[1];
+      data = arguments[2];
+    } else {
+      // get([, options] [, data])
+      options = arguments[0];
+      data = arguments[1];
+    }
+
+    // extend the options with the default options and provided options
+    var viewOptions = util.extend({}, this._options, options);
+
+    // create a combined filter method when needed
+    if (this._options.filter && options && options.filter) {
+      viewOptions.filter = function (item) {
+        return me._options.filter(item) && options.filter(item);
+      };
+    }
+
+    // build up the call to the linked data set
+    var getArguments = [];
+    if (ids != undefined) {
+      getArguments.push(ids);
+    }
+    getArguments.push(viewOptions);
+    getArguments.push(data);
+
+    return this._data && this._data.get.apply(this._data, getArguments);
+  };
+
+  /**
+   * Get ids of all items or from a filtered set of items.
+   * @param {Object} [options]    An Object with options. Available options:
+   *                              {function} [filter] filter items
+   *                              {String | function} [order] Order the items by
+   *                                  a field name or custom sort function.
+   * @return {Array} ids
+   */
+  DataView.prototype.getIds = function (options) {
+    var ids;
+
+    if (this._data) {
+      var defaultFilter = this._options.filter;
+      var filter;
+
+      if (options && options.filter) {
+        if (defaultFilter) {
+          filter = function (item) {
+            return defaultFilter(item) && options.filter(item);
+          };
+        } else {
+          filter = options.filter;
+        }
+      } else {
+        filter = defaultFilter;
+      }
+
+      ids = this._data.getIds({
+        filter: filter,
+        order: options && options.order
+      });
+    } else {
+      ids = [];
+    }
+
+    return ids;
+  };
+
+  /**
+   * Get the DataSet to which this DataView is connected. In case there is a chain
+   * of multiple DataViews, the root DataSet of this chain is returned.
+   * @return {DataSet} dataSet
+   */
+  DataView.prototype.getDataSet = function () {
+    var dataSet = this;
+    while (dataSet instanceof DataView) {
+      dataSet = dataSet._data;
+    }
+    return dataSet || null;
+  };
+
+  /**
+   * Event listener. Will propagate all events from the connected data set to
+   * the subscribers of the DataView, but will filter the items and only trigger
+   * when there are changes in the filtered data set.
+   * @param {String} event
+   * @param {Object | null} params
+   * @param {String} senderId
+   * @private
+   */
+  DataView.prototype._onEvent = function (event, params, senderId) {
+    var i,
+        len,
+        id,
+        item,
+        ids = params && params.items,
+        data = this._data,
+        added = [],
+        updated = [],
+        removed = [];
+
+    if (ids && data) {
+      switch (event) {
+        case "add":
+          // filter the ids of the added items
+          for (i = 0, len = ids.length; i < len; i++) {
+            id = ids[i];
+            item = this.get(id);
+            if (item) {
+              this._ids[id] = true;
+              added.push(id);
+            }
+          }
+
+          break;
+
+        case "update":
+          // determine the event from the views viewpoint: an updated
+          // item can be added, updated, or removed from this view.
+          for (i = 0, len = ids.length; i < len; i++) {
+            id = ids[i];
+            item = this.get(id);
+
+            if (item) {
+              if (this._ids[id]) {
+                updated.push(id);
+              } else {
+                this._ids[id] = true;
+                added.push(id);
+              }
+            } else {
+              if (this._ids[id]) {
+                delete this._ids[id];
+                removed.push(id);
+              } else {}
+            }
+          }
+
+          break;
+
+        case "remove":
+          // filter the ids of the removed items
+          for (i = 0, len = ids.length; i < len; i++) {
+            id = ids[i];
+            if (this._ids[id]) {
+              delete this._ids[id];
+              removed.push(id);
+            }
+          }
+
+          break;
+      }
+
+      this.length += added.length - removed.length;
+
+      if (added.length) {
+        this._trigger("add", { items: added }, senderId);
+      }
+      if (updated.length) {
+        this._trigger("update", { items: updated }, senderId);
+      }
+      if (removed.length) {
+        this._trigger("remove", { items: removed }, senderId);
+      }
+    }
+  };
+
+  // copy subscription functionality from DataSet
+  DataView.prototype.on = DataSet.prototype.on;
+  DataView.prototype.off = DataSet.prototype.off;
+  DataView.prototype._trigger = DataSet.prototype._trigger;
+
+  // TODO: make these functions deprecated (replaced with `on` and `off` since version 0.5)
+  DataView.prototype.subscribe = DataView.prototype.on;
+  DataView.prototype.unsubscribe = DataView.prototype.off;
+
+  module.exports = DataView;
+  // nothing interesting for me :-(
+
+/***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var Emitter = __webpack_require__(11);
+  var DataSet = __webpack_require__(7);
+  var DataView = __webpack_require__(9);
+  var util = __webpack_require__(1);
+  var Point3d = __webpack_require__(12);
+  var Point2d = __webpack_require__(13);
+  var Camera = __webpack_require__(14);
+  var Filter = __webpack_require__(15);
+  var Slider = __webpack_require__(16);
+  var StepNumber = __webpack_require__(17);
+
+  /**
+   * @constructor Graph3d
+   * Graph3d displays data in 3d.
+   *
+   * Graph3d is developed in javascript as a Google Visualization Chart.
+   *
+   * @param {Element} container   The DOM element in which the Graph3d will
+   *                              be created. Normally a div element.
+   * @param {DataSet | DataView | Array} [data]
+   * @param {Object} [options]
+   */
+  function Graph3d(container, data, options) {
+    if (!(this instanceof Graph3d)) {
+      throw new SyntaxError("Constructor must be called with the new operator");
+    }
+
+    // create variables and set default values
+    this.containerElement = container;
+    this.width = "400px";
+    this.height = "400px";
+    this.margin = 10; // px
+    this.defaultXCenter = "55%";
+    this.defaultYCenter = "50%";
+
+    this.xLabel = "x";
+    this.yLabel = "y";
+    this.zLabel = "z";
+
+    var passValueFn = function (v) {
+      return v;
+    };
+    this.xValueLabel = passValueFn;
+    this.yValueLabel = passValueFn;
+    this.zValueLabel = passValueFn;
+
+    this.filterLabel = "time";
+    this.legendLabel = "value";
+
+    this.style = Graph3d.STYLE.DOT;
+    this.showPerspective = true;
+    this.showGrid = true;
+    this.keepAspectRatio = true;
+    this.showShadow = false;
+    this.showGrayBottom = false; // TODO: this does not work correctly
+    this.showTooltip = false;
+    this.verticalRatio = 0.5; // 0.1 to 1.0, where 1.0 results in a 'cube'
+
+    this.animationInterval = 1000; // milliseconds
+    this.animationPreload = false;
+
+    this.camera = new Camera();
+    this.eye = new Point3d(0, 0, -1); // TODO: set eye.z about 3/4 of the width of the window?
+
+    this.dataTable = null; // The original data table
+    this.dataPoints = null; // The table with point objects
+
+    // the column indexes
+    this.colX = undefined;
+    this.colY = undefined;
+    this.colZ = undefined;
+    this.colValue = undefined;
+    this.colFilter = undefined;
+
+    this.xMin = 0;
+    this.xStep = undefined; // auto by default
+    this.xMax = 1;
+    this.yMin = 0;
+    this.yStep = undefined; // auto by default
+    this.yMax = 1;
+    this.zMin = 0;
+    this.zStep = undefined; // auto by default
+    this.zMax = 1;
+    this.valueMin = 0;
+    this.valueMax = 1;
+    this.xBarWidth = 1;
+    this.yBarWidth = 1;
+    // TODO: customize axis range
+
+    // constants
+    this.colorAxis = "#4D4D4D";
+    this.colorGrid = "#D3D3D3";
+    this.colorDot = "#7DC1FF";
+    this.colorDotBorder = "#3267D2";
+
+    // create a frame and canvas
+    this.create();
+
+    // apply options (also when undefined)
+    this.setOptions(options);
+
+    // apply data
+    if (data) {
+      this.setData(data);
+    }
+  }
+
+  // Extend Graph3d with an Emitter mixin
+  Emitter(Graph3d.prototype);
+
+  /**
+   * Calculate the scaling values, dependent on the range in x, y, and z direction
+   */
+  Graph3d.prototype._setScale = function () {
+    this.scale = new Point3d(1 / (this.xMax - this.xMin), 1 / (this.yMax - this.yMin), 1 / (this.zMax - this.zMin));
+
+    // keep aspect ration between x and y scale if desired
+    if (this.keepAspectRatio) {
+      if (this.scale.x < this.scale.y) {
+        //noinspection JSSuspiciousNameCombination
+        this.scale.y = this.scale.x;
+      } else {
+        //noinspection JSSuspiciousNameCombination
+        this.scale.x = this.scale.y;
+      }
+    }
+
+    // scale the vertical axis
+    this.scale.z *= this.verticalRatio;
+    // TODO: can this be automated? verticalRatio?
+
+    // determine scale for (optional) value
+    this.scale.value = 1 / (this.valueMax - this.valueMin);
+
+    // position the camera arm
+    var xCenter = (this.xMax + this.xMin) / 2 * this.scale.x;
+    var yCenter = (this.yMax + this.yMin) / 2 * this.scale.y;
+    var zCenter = (this.zMax + this.zMin) / 2 * this.scale.z;
+    this.camera.setArmLocation(xCenter, yCenter, zCenter);
+  };
+
+
+  /**
+   * Convert a 3D location to a 2D location on screen
+   * http://en.wikipedia.org/wiki/3D_projection
+   * @param {Point3d} point3d   A 3D point with parameters x, y, z
+   * @return {Point2d} point2d  A 2D point with parameters x, y
+   */
+  Graph3d.prototype._convert3Dto2D = function (point3d) {
+    var translation = this._convertPointToTranslation(point3d);
+    return this._convertTranslationToScreen(translation);
+  };
+
+  /**
+   * Convert a 3D location its translation seen from the camera
+   * http://en.wikipedia.org/wiki/3D_projection
+   * @param {Point3d} point3d    A 3D point with parameters x, y, z
+   * @return {Point3d} translation A 3D point with parameters x, y, z This is
+   *                   the translation of the point, seen from the
+   *                   camera
+   */
+  Graph3d.prototype._convertPointToTranslation = function (point3d) {
+    var ax = point3d.x * this.scale.x,
+        ay = point3d.y * this.scale.y,
+        az = point3d.z * this.scale.z,
+        cx = this.camera.getCameraLocation().x,
+        cy = this.camera.getCameraLocation().y,
+        cz = this.camera.getCameraLocation().z,
+
+
+    // calculate angles
+    sinTx = Math.sin(this.camera.getCameraRotation().x),
+        cosTx = Math.cos(this.camera.getCameraRotation().x),
+        sinTy = Math.sin(this.camera.getCameraRotation().y),
+        cosTy = Math.cos(this.camera.getCameraRotation().y),
+        sinTz = Math.sin(this.camera.getCameraRotation().z),
+        cosTz = Math.cos(this.camera.getCameraRotation().z),
+
+
+    // calculate translation
+    dx = cosTy * (sinTz * (ay - cy) + cosTz * (ax - cx)) - sinTy * (az - cz),
+        dy = sinTx * (cosTy * (az - cz) + sinTy * (sinTz * (ay - cy) + cosTz * (ax - cx))) + cosTx * (cosTz * (ay - cy) - sinTz * (ax - cx)),
+        dz = cosTx * (cosTy * (az - cz) + sinTy * (sinTz * (ay - cy) + cosTz * (ax - cx))) - sinTx * (cosTz * (ay - cy) - sinTz * (ax - cx));
+
+    return new Point3d(dx, dy, dz);
+  };
+
+  /**
+   * Convert a translation point to a point on the screen
+   * @param {Point3d} translation   A 3D point with parameters x, y, z This is
+   *                    the translation of the point, seen from the
+   *                    camera
+   * @return {Point2d} point2d    A 2D point with parameters x, y
+   */
+  Graph3d.prototype._convertTranslationToScreen = function (translation) {
+    var ex = this.eye.x,
+        ey = this.eye.y,
+        ez = this.eye.z,
+        dx = translation.x,
+        dy = translation.y,
+        dz = translation.z;
+
+    // calculate position on screen from translation
+    var bx;
+    var by;
+    if (this.showPerspective) {
+      bx = (dx - ex) * (ez / dz);
+      by = (dy - ey) * (ez / dz);
+    } else {
+      bx = dx * -(ez / this.camera.getArmLength());
+      by = dy * -(ez / this.camera.getArmLength());
+    }
+
+    // shift and scale the point to the center of the screen
+    // use the width of the graph to scale both horizontally and vertically.
+    return new Point2d(this.xcenter + bx * this.frame.canvas.clientWidth, this.ycenter - by * this.frame.canvas.clientWidth);
+  };
+
+  /**
+   * Set the background styling for the graph
+   * @param {string | {fill: string, stroke: string, strokeWidth: string}} backgroundColor
+   */
+  Graph3d.prototype._setBackgroundColor = function (backgroundColor) {
+    var fill = "white";
+    var stroke = "gray";
+    var strokeWidth = 1;
+
+    if (typeof backgroundColor === "string") {
+      fill = backgroundColor;
+      stroke = "none";
+      strokeWidth = 0;
+    } else if (typeof backgroundColor === "object") {
+      if (backgroundColor.fill !== undefined) fill = backgroundColor.fill;
+      if (backgroundColor.stroke !== undefined) stroke = backgroundColor.stroke;
+      if (backgroundColor.strokeWidth !== undefined) strokeWidth = backgroundColor.strokeWidth;
+    } else if (backgroundColor === undefined) {} else {
+      throw "Unsupported type of backgroundColor";
+    }
+
+    this.frame.style.backgroundColor = fill;
+    this.frame.style.borderColor = stroke;
+    this.frame.style.borderWidth = strokeWidth + "px";
+    this.frame.style.borderStyle = "solid";
+  };
+
+
+  /// enumerate the available styles
+  Graph3d.STYLE = {
+    BAR: 0,
+    BARCOLOR: 1,
+    BARSIZE: 2,
+    DOT: 3,
+    DOTLINE: 4,
+    DOTCOLOR: 5,
+    DOTSIZE: 6,
+    GRID: 7,
+    LINE: 8,
+    SURFACE: 9
+  };
+
+  /**
+   * Retrieve the style index from given styleName
+   * @param {string} styleName  Style name such as 'dot', 'grid', 'dot-line'
+   * @return {Number} styleNumber Enumeration value representing the style, or -1
+   *                when not found
+   */
+  Graph3d.prototype._getStyleNumber = function (styleName) {
+    switch (styleName) {
+      case "dot":
+        return Graph3d.STYLE.DOT;
+      case "dot-line":
+        return Graph3d.STYLE.DOTLINE;
+      case "dot-color":
+        return Graph3d.STYLE.DOTCOLOR;
+      case "dot-size":
+        return Graph3d.STYLE.DOTSIZE;
+      case "line":
+        return Graph3d.STYLE.LINE;
+      case "grid":
+        return Graph3d.STYLE.GRID;
+      case "surface":
+        return Graph3d.STYLE.SURFACE;
+      case "bar":
+        return Graph3d.STYLE.BAR;
+      case "bar-color":
+        return Graph3d.STYLE.BARCOLOR;
+      case "bar-size":
+        return Graph3d.STYLE.BARSIZE;
+    }
+
+    return -1;
+  };
+
+  /**
+   * Determine the indexes of the data columns, based on the given style and data
+   * @param {DataSet} data
+   * @param {Number}  style
+   */
+  Graph3d.prototype._determineColumnIndexes = function (data, style) {
+    if (this.style === Graph3d.STYLE.DOT || this.style === Graph3d.STYLE.DOTLINE || this.style === Graph3d.STYLE.LINE || this.style === Graph3d.STYLE.GRID || this.style === Graph3d.STYLE.SURFACE || this.style === Graph3d.STYLE.BAR) {
+      // 3 columns expected, and optionally a 4th with filter values
+      this.colX = 0;
+      this.colY = 1;
+      this.colZ = 2;
+      this.colValue = undefined;
+
+      if (data.getNumberOfColumns() > 3) {
+        this.colFilter = 3;
+      }
+    } else if (this.style === Graph3d.STYLE.DOTCOLOR || this.style === Graph3d.STYLE.DOTSIZE || this.style === Graph3d.STYLE.BARCOLOR || this.style === Graph3d.STYLE.BARSIZE) {
+      // 4 columns expected, and optionally a 5th with filter values
+      this.colX = 0;
+      this.colY = 1;
+      this.colZ = 2;
+      this.colValue = 3;
+
+      if (data.getNumberOfColumns() > 4) {
+        this.colFilter = 4;
+      }
+    } else {
+      throw "Unknown style \"" + this.style + "\"";
+    }
+  };
+
+  Graph3d.prototype.getNumberOfRows = function (data) {
+    return data.length;
+  };
+
+
+  Graph3d.prototype.getNumberOfColumns = function (data) {
+    var counter = 0;
+    for (var column in data[0]) {
+      if (data[0].hasOwnProperty(column)) {
+        counter++;
+      }
+    }
+    return counter;
+  };
+
+
+  Graph3d.prototype.getDistinctValues = function (data, column) {
+    var distinctValues = [];
+    for (var i = 0; i < data.length; i++) {
+      if (distinctValues.indexOf(data[i][column]) == -1) {
+        distinctValues.push(data[i][column]);
+      }
+    }
+    return distinctValues;
+  };
+
+
+  Graph3d.prototype.getColumnRange = function (data, column) {
+    var minMax = { min: data[0][column], max: data[0][column] };
+    for (var i = 0; i < data.length; i++) {
+      if (minMax.min > data[i][column]) {
+        minMax.min = data[i][column];
+      }
+      if (minMax.max < data[i][column]) {
+        minMax.max = data[i][column];
+      }
+    }
+    return minMax;
+  };
+
+  /**
+   * Initialize the data from the data table. Calculate minimum and maximum values
+   * and column index values
+   * @param {Array | DataSet | DataView} rawData   The data containing the items for the Graph.
+   * @param {Number}     style   Style Number
+   */
+  Graph3d.prototype._dataInitialize = function (rawData, style) {
+    var me = this;
+
+    // unsubscribe from the dataTable
+    if (this.dataSet) {
+      this.dataSet.off("*", this._onChange);
+    }
+
+    if (rawData === undefined) return;
+
+    if (Array.isArray(rawData)) {
+      rawData = new DataSet(rawData);
+    }
+
+    var data;
+    if (rawData instanceof DataSet || rawData instanceof DataView) {
+      data = rawData.get();
+    } else {
+      throw new Error("Array, DataSet, or DataView expected");
+    }
+
+    if (data.length == 0) return;
+
+    this.dataSet = rawData;
+    this.dataTable = data;
+
+    // subscribe to changes in the dataset
+    this._onChange = function () {
+      me.setData(me.dataSet);
+    };
+    this.dataSet.on("*", this._onChange);
+
+    // _determineColumnIndexes
+    // getNumberOfRows (points)
+    // getNumberOfColumns (x,y,z,v,t,t1,t2...)
+    // getDistinctValues (unique values?)
+    // getColumnRange
+
+    // determine the location of x,y,z,value,filter columns
+    this.colX = "x";
+    this.colY = "y";
+    this.colZ = "z";
+    this.colValue = "style";
+    this.colFilter = "filter";
+
+
+
+    // check if a filter column is provided
+    if (data[0].hasOwnProperty("filter")) {
+      if (this.dataFilter === undefined) {
+        this.dataFilter = new Filter(rawData, this.colFilter, this);
+        this.dataFilter.setOnLoadCallback(function () {
+          me.redraw();
+        });
+      }
+    }
+
+
+    var withBars = this.style == Graph3d.STYLE.BAR || this.style == Graph3d.STYLE.BARCOLOR || this.style == Graph3d.STYLE.BARSIZE;
+
+    // determine barWidth from data
+    if (withBars) {
+      if (this.defaultXBarWidth !== undefined) {
+        this.xBarWidth = this.defaultXBarWidth;
+      } else {
+        var dataX = this.getDistinctValues(data, this.colX);
+        this.xBarWidth = dataX[1] - dataX[0] || 1;
+      }
+
+      if (this.defaultYBarWidth !== undefined) {
+        this.yBarWidth = this.defaultYBarWidth;
+      } else {
+        var dataY = this.getDistinctValues(data, this.colY);
+        this.yBarWidth = dataY[1] - dataY[0] || 1;
+      }
+    }
+
+    // calculate minimums and maximums
+    var xRange = this.getColumnRange(data, this.colX);
+    if (withBars) {
+      xRange.min -= this.xBarWidth / 2;
+      xRange.max += this.xBarWidth / 2;
+    }
+    this.xMin = this.defaultXMin !== undefined ? this.defaultXMin : xRange.min;
+    this.xMax = this.defaultXMax !== undefined ? this.defaultXMax : xRange.max;
+    if (this.xMax <= this.xMin) this.xMax = this.xMin + 1;
+    this.xStep = this.defaultXStep !== undefined ? this.defaultXStep : (this.xMax - this.xMin) / 5;
+
+    var yRange = this.getColumnRange(data, this.colY);
+    if (withBars) {
+      yRange.min -= this.yBarWidth / 2;
+      yRange.max += this.yBarWidth / 2;
+    }
+    this.yMin = this.defaultYMin !== undefined ? this.defaultYMin : yRange.min;
+    this.yMax = this.defaultYMax !== undefined ? this.defaultYMax : yRange.max;
+    if (this.yMax <= this.yMin) this.yMax = this.yMin + 1;
+    this.yStep = this.defaultYStep !== undefined ? this.defaultYStep : (this.yMax - this.yMin) / 5;
+
+    var zRange = this.getColumnRange(data, this.colZ);
+    this.zMin = this.defaultZMin !== undefined ? this.defaultZMin : zRange.min;
+    this.zMax = this.defaultZMax !== undefined ? this.defaultZMax : zRange.max;
+    if (this.zMax <= this.zMin) this.zMax = this.zMin + 1;
+    this.zStep = this.defaultZStep !== undefined ? this.defaultZStep : (this.zMax - this.zMin) / 5;
+
+    if (this.colValue !== undefined) {
+      var valueRange = this.getColumnRange(data, this.colValue);
+      this.valueMin = this.defaultValueMin !== undefined ? this.defaultValueMin : valueRange.min;
+      this.valueMax = this.defaultValueMax !== undefined ? this.defaultValueMax : valueRange.max;
+      if (this.valueMax <= this.valueMin) this.valueMax = this.valueMin + 1;
+    }
+
+    // set the scale dependent on the ranges.
+    this._setScale();
+  };
+
+
+
+  /**
+   * Filter the data based on the current filter
+   * @param {Array} data
+   * @return {Array} dataPoints   Array with point objects which can be drawn on screen
+   */
+  Graph3d.prototype._getDataPoints = function (data) {
+    // TODO: store the created matrix dataPoints in the filters instead of reloading each time
+    var x, y, i, z, obj, point;
+
+    var dataPoints = [];
+
+    if (this.style === Graph3d.STYLE.GRID || this.style === Graph3d.STYLE.SURFACE) {
+      // copy all values from the google data table to a matrix
+      // the provided values are supposed to form a grid of (x,y) positions
+
+      // create two lists with all present x and y values
+      var dataX = [];
+      var dataY = [];
+      for (i = 0; i < this.getNumberOfRows(data); i++) {
+        x = data[i][this.colX] || 0;
+        y = data[i][this.colY] || 0;
+
+        if (dataX.indexOf(x) === -1) {
+          dataX.push(x);
+        }
+        if (dataY.indexOf(y) === -1) {
+          dataY.push(y);
+        }
+      }
+
+      var sortNumber = function (a, b) {
+        return a - b;
+      };
+      dataX.sort(sortNumber);
+      dataY.sort(sortNumber);
+
+      // create a grid, a 2d matrix, with all values.
+      var dataMatrix = []; // temporary data matrix
+      for (i = 0; i < data.length; i++) {
+        x = data[i][this.colX] || 0;
+        y = data[i][this.colY] || 0;
+        z = data[i][this.colZ] || 0;
+
+        var xIndex = dataX.indexOf(x); // TODO: implement Array().indexOf() for Internet Explorer
+        var yIndex = dataY.indexOf(y);
+
+        if (dataMatrix[xIndex] === undefined) {
+          dataMatrix[xIndex] = [];
+        }
+
+        var point3d = new Point3d();
+        point3d.x = x;
+        point3d.y = y;
+        point3d.z = z;
+
+        obj = {};
+        obj.point = point3d;
+        obj.trans = undefined;
+        obj.screen = undefined;
+        obj.bottom = new Point3d(x, y, this.zMin);
+
+        dataMatrix[xIndex][yIndex] = obj;
+
+        dataPoints.push(obj);
+      }
+
+      // fill in the pointers to the neighbors.
+      for (x = 0; x < dataMatrix.length; x++) {
+        for (y = 0; y < dataMatrix[x].length; y++) {
+          if (dataMatrix[x][y]) {
+            dataMatrix[x][y].pointRight = x < dataMatrix.length - 1 ? dataMatrix[x + 1][y] : undefined;
+            dataMatrix[x][y].pointTop = y < dataMatrix[x].length - 1 ? dataMatrix[x][y + 1] : undefined;
+            dataMatrix[x][y].pointCross = x < dataMatrix.length - 1 && y < dataMatrix[x].length - 1 ? dataMatrix[x + 1][y + 1] : undefined;
+          }
+        }
+      }
+    } else {
+      // 'dot', 'dot-line', etc.
+      // copy all values from the google data table to a list with Point3d objects
+      for (i = 0; i < data.length; i++) {
+        point = new Point3d();
+        point.x = data[i][this.colX] || 0;
+        point.y = data[i][this.colY] || 0;
+        point.z = data[i][this.colZ] || 0;
+
+        if (this.colValue !== undefined) {
+          point.value = data[i][this.colValue] || 0;
+        }
+
+        obj = {};
+        obj.point = point;
+        obj.bottom = new Point3d(point.x, point.y, this.zMin);
+        obj.trans = undefined;
+        obj.screen = undefined;
+
+        dataPoints.push(obj);
+      }
+    }
+
+    return dataPoints;
+  };
+
+  /**
+   * Create the main frame for the Graph3d.
+   * This function is executed once when a Graph3d object is created. The frame
+   * contains a canvas, and this canvas contains all objects like the axis and
+   * nodes.
+   */
+  Graph3d.prototype.create = function () {
+    // remove all elements from the container element.
+    while (this.containerElement.hasChildNodes()) {
+      this.containerElement.removeChild(this.containerElement.firstChild);
+    }
+
+    this.frame = document.createElement("div");
+    this.frame.style.position = "relative";
+    this.frame.style.overflow = "hidden";
+
+    // create the graph canvas (HTML canvas element)
+    this.frame.canvas = document.createElement("canvas");
+    this.frame.canvas.style.position = "relative";
+    this.frame.appendChild(this.frame.canvas);
+    //if (!this.frame.canvas.getContext) {
+    {
+      var noCanvas = document.createElement("DIV");
+      noCanvas.style.color = "red";
+      noCanvas.style.fontWeight = "bold";
+      noCanvas.style.padding = "10px";
+      noCanvas.innerHTML = "Error: your browser does not support HTML canvas";
+      this.frame.canvas.appendChild(noCanvas);
+    }
+
+    this.frame.filter = document.createElement("div");
+    this.frame.filter.style.position = "absolute";
+    this.frame.filter.style.bottom = "0px";
+    this.frame.filter.style.left = "0px";
+    this.frame.filter.style.width = "100%";
+    this.frame.appendChild(this.frame.filter);
+
+    // add event listeners to handle moving and zooming the contents
+    var me = this;
+    var onmousedown = function (event) {
+      me._onMouseDown(event);
+    };
+    var ontouchstart = function (event) {
+      me._onTouchStart(event);
+    };
+    var onmousewheel = function (event) {
+      me._onWheel(event);
+    };
+    var ontooltip = function (event) {
+      me._onTooltip(event);
+    };
+    // TODO: these events are never cleaned up... can give a 'memory leakage'
+
+    util.addEventListener(this.frame.canvas, "keydown", onkeydown);
+    util.addEventListener(this.frame.canvas, "mousedown", onmousedown);
+    util.addEventListener(this.frame.canvas, "touchstart", ontouchstart);
+    util.addEventListener(this.frame.canvas, "mousewheel", onmousewheel);
+    util.addEventListener(this.frame.canvas, "mousemove", ontooltip);
+
+    // add the new graph to the container element
+    this.containerElement.appendChild(this.frame);
+  };
+
+
+  /**
+   * Set a new size for the graph
+   * @param {string} width   Width in pixels or percentage (for example '800px'
+   *             or '50%')
+   * @param {string} height  Height in pixels or percentage  (for example '400px'
+   *             or '30%')
+   */
+  Graph3d.prototype.setSize = function (width, height) {
+    this.frame.style.width = width;
+    this.frame.style.height = height;
+
+    this._resizeCanvas();
+  };
+
+  /**
+   * Resize the canvas to the current size of the frame
+   */
+  Graph3d.prototype._resizeCanvas = function () {
+    this.frame.canvas.style.width = "100%";
+    this.frame.canvas.style.height = "100%";
+
+    this.frame.canvas.width = this.frame.canvas.clientWidth;
+    this.frame.canvas.height = this.frame.canvas.clientHeight;
+
+    // adjust with for margin
+    this.frame.filter.style.width = this.frame.canvas.clientWidth - 2 * 10 + "px";
+  };
+
+  /**
+   * Start animation
+   */
+  Graph3d.prototype.animationStart = function () {
+    if (!this.frame.filter || !this.frame.filter.slider) throw "No animation available";
+
+    this.frame.filter.slider.play();
+  };
+
+
+  /**
+   * Stop animation
+   */
+  Graph3d.prototype.animationStop = function () {
+    if (!this.frame.filter || !this.frame.filter.slider) return;
+
+    this.frame.filter.slider.stop();
+  };
+
+
+  /**
+   * Resize the center position based on the current values in this.defaultXCenter
+   * and this.defaultYCenter (which are strings with a percentage or a value
+   * in pixels). The center positions are the variables this.xCenter
+   * and this.yCenter
+   */
+  Graph3d.prototype._resizeCenter = function () {
+    // calculate the horizontal center position
+    if (this.defaultXCenter.charAt(this.defaultXCenter.length - 1) === "%") {
+      this.xcenter = parseFloat(this.defaultXCenter) / 100 * this.frame.canvas.clientWidth;
+    } else {
+      this.xcenter = parseFloat(this.defaultXCenter); // supposed to be in px
+    }
+
+    // calculate the vertical center position
+    if (this.defaultYCenter.charAt(this.defaultYCenter.length - 1) === "%") {
+      this.ycenter = parseFloat(this.defaultYCenter) / 100 * (this.frame.canvas.clientHeight - this.frame.filter.clientHeight);
+    } else {
+      this.ycenter = parseFloat(this.defaultYCenter); // supposed to be in px
+    }
+  };
+
+  /**
+   * Set the rotation and distance of the camera
+   * @param {Object} pos   An object with the camera position. The object
+   *             contains three parameters:
+   *             - horizontal {Number}
+   *             The horizontal rotation, between 0 and 2*PI.
+   *             Optional, can be left undefined.
+   *             - vertical {Number}
+   *             The vertical rotation, between 0 and 0.5*PI
+   *             if vertical=0.5*PI, the graph is shown from the
+   *             top. Optional, can be left undefined.
+   *             - distance {Number}
+   *             The (normalized) distance of the camera to the
+   *             center of the graph, a value between 0.71 and 5.0.
+   *             Optional, can be left undefined.
+   */
+  Graph3d.prototype.setCameraPosition = function (pos) {
+    if (pos === undefined) {
+      return;
+    }
+
+    if (pos.horizontal !== undefined && pos.vertical !== undefined) {
+      this.camera.setArmRotation(pos.horizontal, pos.vertical);
+    }
+
+    if (pos.distance !== undefined) {
+      this.camera.setArmLength(pos.distance);
+    }
+
     this.redraw();
   };
 
-  /**
-   * Get the current time.
-   * @return {Date} Returns the current time.
-   */
-  CurrentTime.prototype.getCurrentTime = function () {
-    return new Date(new Date().valueOf() + this.offset);
-  };
-
-  module.exports = CurrentTime;
-
-/***/ },
-/* 30 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  // English
-  exports.en = {
-    current: "current",
-    time: "time"
-  };
-  exports.en_EN = exports.en;
-  exports.en_US = exports.en;
-
-  // Dutch
-  exports.nl = {
-    custom: "aangepaste",
-    time: "tijd"
-  };
-  exports.nl_NL = exports.nl;
-  exports.nl_BE = exports.nl;
-
-/***/ },
-/* 31 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var Hammer = __webpack_require__(15);
-  var util = __webpack_require__(1);
-  var Component = __webpack_require__(22);
-  var moment = __webpack_require__(25);
-  var locales = __webpack_require__(30);
 
   /**
-   * A custom time bar
-   * @param {{range: Range, dom: Object}} body
-   * @param {Object} [options]        Available parameters:
-   *                                  {Boolean} [showCustomTime]
-   * @constructor CustomTime
-   * @extends Component
+   * Retrieve the current camera rotation
+   * @return {object}   An object with parameters horizontal, vertical, and
+   *          distance
    */
+  Graph3d.prototype.getCameraPosition = function () {
+    var pos = this.camera.getArmRotation();
+    pos.distance = this.camera.getArmLength();
+    return pos;
+  };
 
-  function CustomTime(body, options) {
-    this.body = body;
+  /**
+   * Load data into the 3D Graph
+   */
+  Graph3d.prototype._readData = function (data) {
+    // read the data
+    this._dataInitialize(data, this.style);
 
-    // default options
-    this.defaultOptions = {
-      showCustomTime: false,
-      locales: locales,
-      locale: "en",
-      id: 0
-    };
-    this.options = util.extend({}, this.defaultOptions);
 
-    if (options && options.time) {
-      this.customTime = options.time;
+    if (this.dataFilter) {
+      // apply filtering
+      this.dataPoints = this.dataFilter._getDataPoints();
     } else {
-      this.customTime = new Date();
+      // no filtering. load all data
+      this.dataPoints = this._getDataPoints(this.dataTable);
     }
 
-    this.eventParams = {}; // stores state parameters while dragging the bar
-
-    // create the DOM
-    this._create();
-
-    this.setOptions(options);
-  }
-
-  CustomTime.prototype = new Component();
+    // draw the filter
+    this._redrawFilter();
+  };
 
   /**
-   * Set options for the component. Options will be merged in current options.
-   * @param {Object} options  Available parameters:
-   *                          {boolean} [showCustomTime]
+   * Replace the dataset of the Graph3d
+   * @param {Array | DataSet | DataView} data
    */
-  CustomTime.prototype.setOptions = function (options) {
-    if (options) {
-      // copy all options that we know
-      util.selectiveExtend(["showCustomTime", "locale", "locales", "id"], this.options, options);
+  Graph3d.prototype.setData = function (data) {
+    this._readData(data);
+    this.redraw();
 
-      // Triggered by addCustomTimeBar, redraw to add new bar
-      if (this.options.id) {
-        this.redraw();
+    // start animation when option is true
+    if (this.animationAutoStart && this.dataFilter) {
+      this.animationStart();
+    }
+  };
+
+  /**
+   * Update the options. Options will be merged with current options
+   * @param {Object} options
+   */
+  Graph3d.prototype.setOptions = function (options) {
+    var cameraPosition = undefined;
+
+    this.animationStop();
+
+    if (options !== undefined) {
+      // retrieve parameter values
+      if (options.width !== undefined) this.width = options.width;
+      if (options.height !== undefined) this.height = options.height;
+
+      if (options.xCenter !== undefined) this.defaultXCenter = options.xCenter;
+      if (options.yCenter !== undefined) this.defaultYCenter = options.yCenter;
+
+      if (options.filterLabel !== undefined) this.filterLabel = options.filterLabel;
+      if (options.legendLabel !== undefined) this.legendLabel = options.legendLabel;
+      if (options.xLabel !== undefined) this.xLabel = options.xLabel;
+      if (options.yLabel !== undefined) this.yLabel = options.yLabel;
+      if (options.zLabel !== undefined) this.zLabel = options.zLabel;
+
+      if (options.xValueLabel !== undefined) this.xValueLabel = options.xValueLabel;
+      if (options.yValueLabel !== undefined) this.yValueLabel = options.yValueLabel;
+      if (options.zValueLabel !== undefined) this.zValueLabel = options.zValueLabel;
+
+      if (options.style !== undefined) {
+        var styleNumber = this._getStyleNumber(options.style);
+        if (styleNumber !== -1) {
+          this.style = styleNumber;
+        }
+      }
+      if (options.showGrid !== undefined) this.showGrid = options.showGrid;
+      if (options.showPerspective !== undefined) this.showPerspective = options.showPerspective;
+      if (options.showShadow !== undefined) this.showShadow = options.showShadow;
+      if (options.tooltip !== undefined) this.showTooltip = options.tooltip;
+      if (options.showAnimationControls !== undefined) this.showAnimationControls = options.showAnimationControls;
+      if (options.keepAspectRatio !== undefined) this.keepAspectRatio = options.keepAspectRatio;
+      if (options.verticalRatio !== undefined) this.verticalRatio = options.verticalRatio;
+
+      if (options.animationInterval !== undefined) this.animationInterval = options.animationInterval;
+      if (options.animationPreload !== undefined) this.animationPreload = options.animationPreload;
+      if (options.animationAutoStart !== undefined) this.animationAutoStart = options.animationAutoStart;
+
+      if (options.xBarWidth !== undefined) this.defaultXBarWidth = options.xBarWidth;
+      if (options.yBarWidth !== undefined) this.defaultYBarWidth = options.yBarWidth;
+
+      if (options.xMin !== undefined) this.defaultXMin = options.xMin;
+      if (options.xStep !== undefined) this.defaultXStep = options.xStep;
+      if (options.xMax !== undefined) this.defaultXMax = options.xMax;
+      if (options.yMin !== undefined) this.defaultYMin = options.yMin;
+      if (options.yStep !== undefined) this.defaultYStep = options.yStep;
+      if (options.yMax !== undefined) this.defaultYMax = options.yMax;
+      if (options.zMin !== undefined) this.defaultZMin = options.zMin;
+      if (options.zStep !== undefined) this.defaultZStep = options.zStep;
+      if (options.zMax !== undefined) this.defaultZMax = options.zMax;
+      if (options.valueMin !== undefined) this.defaultValueMin = options.valueMin;
+      if (options.valueMax !== undefined) this.defaultValueMax = options.valueMax;
+
+      if (options.cameraPosition !== undefined) cameraPosition = options.cameraPosition;
+
+      if (cameraPosition !== undefined) {
+        this.camera.setArmRotation(cameraPosition.horizontal, cameraPosition.vertical);
+        this.camera.setArmLength(cameraPosition.distance);
+      } else {
+        this.camera.setArmRotation(1, 0.5);
+        this.camera.setArmLength(1.7);
+      }
+    }
+
+    this._setBackgroundColor(options && options.backgroundColor);
+
+    this.setSize(this.width, this.height);
+
+    // re-load the data
+    if (this.dataTable) {
+      this.setData(this.dataTable);
+    }
+
+    // start animation when option is true
+    if (this.animationAutoStart && this.dataFilter) {
+      this.animationStart();
+    }
+  };
+
+  /**
+   * Redraw the Graph.
+   */
+  Graph3d.prototype.redraw = function () {
+    if (this.dataPoints === undefined) {
+      throw "Error: graph data not initialized";
+    }
+
+    this._resizeCanvas();
+    this._resizeCenter();
+    this._redrawSlider();
+    this._redrawClear();
+    this._redrawAxis();
+
+    if (this.style === Graph3d.STYLE.GRID || this.style === Graph3d.STYLE.SURFACE) {
+      this._redrawDataGrid();
+    } else if (this.style === Graph3d.STYLE.LINE) {
+      this._redrawDataLine();
+    } else if (this.style === Graph3d.STYLE.BAR || this.style === Graph3d.STYLE.BARCOLOR || this.style === Graph3d.STYLE.BARSIZE) {
+      this._redrawDataBar();
+    } else {
+      // style is DOT, DOTLINE, DOTCOLOR, DOTSIZE
+      this._redrawDataDot();
+    }
+
+    this._redrawInfo();
+    this._redrawLegend();
+  };
+
+  /**
+   * Clear the canvas before redrawing
+   */
+  Graph3d.prototype._redrawClear = function () {
+    var canvas = this.frame.canvas;
+    var ctx = canvas.getContext("2d");
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  };
+
+
+  /**
+   * Redraw the legend showing the colors
+   */
+  Graph3d.prototype._redrawLegend = function () {
+    var y;
+
+    if (this.style === Graph3d.STYLE.DOTCOLOR || this.style === Graph3d.STYLE.DOTSIZE) {
+      var dotSize = this.frame.clientWidth * 0.02;
+
+      var widthMin, widthMax;
+      if (this.style === Graph3d.STYLE.DOTSIZE) {
+        widthMin = dotSize / 2; // px
+        widthMax = dotSize / 2 + dotSize * 2; // Todo: put this in one function
+      } else {
+        widthMin = 20; // px
+        widthMax = 20; // px
+      }
+
+      var height = Math.max(this.frame.clientHeight * 0.25, 100);
+      var top = this.margin;
+      var right = this.frame.clientWidth - this.margin;
+      var left = right - widthMax;
+      var bottom = top + height;
+    }
+
+    var canvas = this.frame.canvas;
+    var ctx = canvas.getContext("2d");
+    ctx.lineWidth = 1;
+    ctx.font = "14px arial"; // TODO: put in options
+
+    if (this.style === Graph3d.STYLE.DOTCOLOR) {
+      // draw the color bar
+      var ymin = 0;
+      var ymax = height; // Todo: make height customizable
+      for (y = ymin; y < ymax; y++) {
+        var f = (y - ymin) / (ymax - ymin);
+
+        //var width = (dotSize / 2 + (1-f) * dotSize * 2); // Todo: put this in one function
+        var hue = f * 240;
+        var color = this._hsv2rgb(hue, 1, 1);
+
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(left, top + y);
+        ctx.lineTo(right, top + y);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = this.colorAxis;
+      ctx.strokeRect(left, top, widthMax, height);
+    }
+
+    if (this.style === Graph3d.STYLE.DOTSIZE) {
+      // draw border around color bar
+      ctx.strokeStyle = this.colorAxis;
+      ctx.fillStyle = this.colorDot;
+      ctx.beginPath();
+      ctx.moveTo(left, top);
+      ctx.lineTo(right, top);
+      ctx.lineTo(right - widthMax + widthMin, bottom);
+      ctx.lineTo(left, bottom);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    if (this.style === Graph3d.STYLE.DOTCOLOR || this.style === Graph3d.STYLE.DOTSIZE) {
+      // print values along the color bar
+      var gridLineLen = 5; // px
+      var step = new StepNumber(this.valueMin, this.valueMax, (this.valueMax - this.valueMin) / 5, true);
+      step.start();
+      if (step.getCurrent() < this.valueMin) {
+        step.next();
+      }
+      while (!step.end()) {
+        y = bottom - (step.getCurrent() - this.valueMin) / (this.valueMax - this.valueMin) * height;
+
+        ctx.beginPath();
+        ctx.moveTo(left - gridLineLen, y);
+        ctx.lineTo(left, y);
+        ctx.stroke();
+
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = this.colorAxis;
+        ctx.fillText(step.getCurrent(), left - 2 * gridLineLen, y);
+
+        step.next();
+      }
+
+      ctx.textAlign = "right";
+      ctx.textBaseline = "top";
+      var label = this.legendLabel;
+      ctx.fillText(label, right, bottom + this.margin);
+    }
+  };
+
+  /**
+   * Redraw the filter
+   */
+  Graph3d.prototype._redrawFilter = function () {
+    this.frame.filter.innerHTML = "";
+
+    if (this.dataFilter) {
+      var options = {
+        visible: this.showAnimationControls
+      };
+      var slider = new Slider(this.frame.filter, options);
+      this.frame.filter.slider = slider;
+
+      // TODO: css here is not nice here...
+      this.frame.filter.style.padding = "10px";
+      //this.frame.filter.style.backgroundColor = '#EFEFEF';
+
+      slider.setValues(this.dataFilter.values);
+      slider.setPlayInterval(this.animationInterval);
+
+      // create an event handler
+      var me = this;
+      var onchange = function () {
+        var index = slider.getIndex();
+
+        me.dataFilter.selectValue(index);
+        me.dataPoints = me.dataFilter._getDataPoints();
+
+        me.redraw();
+      };
+      slider.setOnChangeCallback(onchange);
+    } else {
+      this.frame.filter.slider = undefined;
+    }
+  };
+
+  /**
+   * Redraw the slider
+   */
+  Graph3d.prototype._redrawSlider = function () {
+    if (this.frame.filter.slider !== undefined) {
+      this.frame.filter.slider.redraw();
+    }
+  };
+
+
+  /**
+   * Redraw common information
+   */
+  Graph3d.prototype._redrawInfo = function () {
+    if (this.dataFilter) {
+      var canvas = this.frame.canvas;
+      var ctx = canvas.getContext("2d");
+
+      ctx.font = "14px arial"; // TODO: put in options
+      ctx.lineStyle = "gray";
+      ctx.fillStyle = "gray";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
+
+      var x = this.margin;
+      var y = this.margin;
+      ctx.fillText(this.dataFilter.getLabel() + ": " + this.dataFilter.getSelectedValue(), x, y);
+    }
+  };
+
+
+  /**
+   * Redraw the axis
+   */
+  Graph3d.prototype._redrawAxis = function () {
+    var canvas = this.frame.canvas,
+        ctx = canvas.getContext("2d"),
+        from,
+        to,
+        step,
+        prettyStep,
+        text,
+        xText,
+        yText,
+        zText,
+        offset,
+        xOffset,
+        yOffset,
+        xMin2d,
+        xMax2d;
+
+    // TODO: get the actual rendered style of the containerElement
+    //ctx.font = this.containerElement.style.font;
+    ctx.font = 24 / this.camera.getArmLength() + "px arial";
+
+    // calculate the length for the short grid lines
+    var gridLenX = 0.025 / this.scale.x;
+    var gridLenY = 0.025 / this.scale.y;
+    var textMargin = 5 / this.camera.getArmLength(); // px
+    var armAngle = this.camera.getArmRotation().horizontal;
+
+    // draw x-grid lines
+    ctx.lineWidth = 1;
+    prettyStep = this.defaultXStep === undefined;
+    step = new StepNumber(this.xMin, this.xMax, this.xStep, prettyStep);
+    step.start();
+    if (step.getCurrent() < this.xMin) {
+      step.next();
+    }
+    while (!step.end()) {
+      var x = step.getCurrent();
+
+      if (this.showGrid) {
+        from = this._convert3Dto2D(new Point3d(x, this.yMin, this.zMin));
+        to = this._convert3Dto2D(new Point3d(x, this.yMax, this.zMin));
+        ctx.strokeStyle = this.colorGrid;
+        ctx.beginPath();
+        ctx.moveTo(from.x, from.y);
+        ctx.lineTo(to.x, to.y);
+        ctx.stroke();
+      } else {
+        from = this._convert3Dto2D(new Point3d(x, this.yMin, this.zMin));
+        to = this._convert3Dto2D(new Point3d(x, this.yMin + gridLenX, this.zMin));
+        ctx.strokeStyle = this.colorAxis;
+        ctx.beginPath();
+        ctx.moveTo(from.x, from.y);
+        ctx.lineTo(to.x, to.y);
+        ctx.stroke();
+
+        from = this._convert3Dto2D(new Point3d(x, this.yMax, this.zMin));
+        to = this._convert3Dto2D(new Point3d(x, this.yMax - gridLenX, this.zMin));
+        ctx.strokeStyle = this.colorAxis;
+        ctx.beginPath();
+        ctx.moveTo(from.x, from.y);
+        ctx.lineTo(to.x, to.y);
+        ctx.stroke();
+      }
+
+      yText = Math.cos(armAngle) > 0 ? this.yMin : this.yMax;
+      text = this._convert3Dto2D(new Point3d(x, yText, this.zMin));
+      if (Math.cos(armAngle * 2) > 0) {
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        text.y += textMargin;
+      } else if (Math.sin(armAngle * 2) < 0) {
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+      } else {
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+      }
+      ctx.fillStyle = this.colorAxis;
+      ctx.fillText("  " + this.xValueLabel(step.getCurrent()) + "  ", text.x, text.y);
+
+      step.next();
+    }
+
+    // draw y-grid lines
+    ctx.lineWidth = 1;
+    prettyStep = this.defaultYStep === undefined;
+    step = new StepNumber(this.yMin, this.yMax, this.yStep, prettyStep);
+    step.start();
+    if (step.getCurrent() < this.yMin) {
+      step.next();
+    }
+    while (!step.end()) {
+      if (this.showGrid) {
+        from = this._convert3Dto2D(new Point3d(this.xMin, step.getCurrent(), this.zMin));
+        to = this._convert3Dto2D(new Point3d(this.xMax, step.getCurrent(), this.zMin));
+        ctx.strokeStyle = this.colorGrid;
+        ctx.beginPath();
+        ctx.moveTo(from.x, from.y);
+        ctx.lineTo(to.x, to.y);
+        ctx.stroke();
+      } else {
+        from = this._convert3Dto2D(new Point3d(this.xMin, step.getCurrent(), this.zMin));
+        to = this._convert3Dto2D(new Point3d(this.xMin + gridLenY, step.getCurrent(), this.zMin));
+        ctx.strokeStyle = this.colorAxis;
+        ctx.beginPath();
+        ctx.moveTo(from.x, from.y);
+        ctx.lineTo(to.x, to.y);
+        ctx.stroke();
+
+        from = this._convert3Dto2D(new Point3d(this.xMax, step.getCurrent(), this.zMin));
+        to = this._convert3Dto2D(new Point3d(this.xMax - gridLenY, step.getCurrent(), this.zMin));
+        ctx.strokeStyle = this.colorAxis;
+        ctx.beginPath();
+        ctx.moveTo(from.x, from.y);
+        ctx.lineTo(to.x, to.y);
+        ctx.stroke();
+      }
+
+      xText = Math.sin(armAngle) > 0 ? this.xMin : this.xMax;
+      text = this._convert3Dto2D(new Point3d(xText, step.getCurrent(), this.zMin));
+      if (Math.cos(armAngle * 2) < 0) {
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        text.y += textMargin;
+      } else if (Math.sin(armAngle * 2) > 0) {
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+      } else {
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+      }
+      ctx.fillStyle = this.colorAxis;
+      ctx.fillText("  " + this.yValueLabel(step.getCurrent()) + "  ", text.x, text.y);
+
+      step.next();
+    }
+
+    // draw z-grid lines and axis
+    ctx.lineWidth = 1;
+    prettyStep = this.defaultZStep === undefined;
+    step = new StepNumber(this.zMin, this.zMax, this.zStep, prettyStep);
+    step.start();
+    if (step.getCurrent() < this.zMin) {
+      step.next();
+    }
+    xText = Math.cos(armAngle) > 0 ? this.xMin : this.xMax;
+    yText = Math.sin(armAngle) < 0 ? this.yMin : this.yMax;
+    while (!step.end()) {
+      // TODO: make z-grid lines really 3d?
+      from = this._convert3Dto2D(new Point3d(xText, yText, step.getCurrent()));
+      ctx.strokeStyle = this.colorAxis;
+      ctx.beginPath();
+      ctx.moveTo(from.x, from.y);
+      ctx.lineTo(from.x - textMargin, from.y);
+      ctx.stroke();
+
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = this.colorAxis;
+      ctx.fillText(this.zValueLabel(step.getCurrent()) + " ", from.x - 5, from.y);
+
+      step.next();
+    }
+    ctx.lineWidth = 1;
+    from = this._convert3Dto2D(new Point3d(xText, yText, this.zMin));
+    to = this._convert3Dto2D(new Point3d(xText, yText, this.zMax));
+    ctx.strokeStyle = this.colorAxis;
+    ctx.beginPath();
+    ctx.moveTo(from.x, from.y);
+    ctx.lineTo(to.x, to.y);
+    ctx.stroke();
+
+    // draw x-axis
+    ctx.lineWidth = 1;
+    // line at yMin
+    xMin2d = this._convert3Dto2D(new Point3d(this.xMin, this.yMin, this.zMin));
+    xMax2d = this._convert3Dto2D(new Point3d(this.xMax, this.yMin, this.zMin));
+    ctx.strokeStyle = this.colorAxis;
+    ctx.beginPath();
+    ctx.moveTo(xMin2d.x, xMin2d.y);
+    ctx.lineTo(xMax2d.x, xMax2d.y);
+    ctx.stroke();
+    // line at ymax
+    xMin2d = this._convert3Dto2D(new Point3d(this.xMin, this.yMax, this.zMin));
+    xMax2d = this._convert3Dto2D(new Point3d(this.xMax, this.yMax, this.zMin));
+    ctx.strokeStyle = this.colorAxis;
+    ctx.beginPath();
+    ctx.moveTo(xMin2d.x, xMin2d.y);
+    ctx.lineTo(xMax2d.x, xMax2d.y);
+    ctx.stroke();
+
+    // draw y-axis
+    ctx.lineWidth = 1;
+    // line at xMin
+    from = this._convert3Dto2D(new Point3d(this.xMin, this.yMin, this.zMin));
+    to = this._convert3Dto2D(new Point3d(this.xMin, this.yMax, this.zMin));
+    ctx.strokeStyle = this.colorAxis;
+    ctx.beginPath();
+    ctx.moveTo(from.x, from.y);
+    ctx.lineTo(to.x, to.y);
+    ctx.stroke();
+    // line at xMax
+    from = this._convert3Dto2D(new Point3d(this.xMax, this.yMin, this.zMin));
+    to = this._convert3Dto2D(new Point3d(this.xMax, this.yMax, this.zMin));
+    ctx.strokeStyle = this.colorAxis;
+    ctx.beginPath();
+    ctx.moveTo(from.x, from.y);
+    ctx.lineTo(to.x, to.y);
+    ctx.stroke();
+
+    // draw x-label
+    var xLabel = this.xLabel;
+    if (xLabel.length > 0) {
+      yOffset = 0.1 / this.scale.y;
+      xText = (this.xMin + this.xMax) / 2;
+      yText = Math.cos(armAngle) > 0 ? this.yMin - yOffset : this.yMax + yOffset;
+      text = this._convert3Dto2D(new Point3d(xText, yText, this.zMin));
+      if (Math.cos(armAngle * 2) > 0) {
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+      } else if (Math.sin(armAngle * 2) < 0) {
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+      } else {
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+      }
+      ctx.fillStyle = this.colorAxis;
+      ctx.fillText(xLabel, text.x, text.y);
+    }
+
+    // draw y-label
+    var yLabel = this.yLabel;
+    if (yLabel.length > 0) {
+      xOffset = 0.1 / this.scale.x;
+      xText = Math.sin(armAngle) > 0 ? this.xMin - xOffset : this.xMax + xOffset;
+      yText = (this.yMin + this.yMax) / 2;
+      text = this._convert3Dto2D(new Point3d(xText, yText, this.zMin));
+      if (Math.cos(armAngle * 2) < 0) {
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+      } else if (Math.sin(armAngle * 2) > 0) {
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+      } else {
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+      }
+      ctx.fillStyle = this.colorAxis;
+      ctx.fillText(yLabel, text.x, text.y);
+    }
+
+    // draw z-label
+    var zLabel = this.zLabel;
+    if (zLabel.length > 0) {
+      offset = 30; // pixels.  // TODO: relate to the max width of the values on the z axis?
+      xText = Math.cos(armAngle) > 0 ? this.xMin : this.xMax;
+      yText = Math.sin(armAngle) < 0 ? this.yMin : this.yMax;
+      zText = (this.zMin + this.zMax) / 2;
+      text = this._convert3Dto2D(new Point3d(xText, yText, zText));
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = this.colorAxis;
+      ctx.fillText(zLabel, text.x - offset, text.y);
+    }
+  };
+
+  /**
+   * Calculate the color based on the given value.
+   * @param {Number} H   Hue, a value be between 0 and 360
+   * @param {Number} S   Saturation, a value between 0 and 1
+   * @param {Number} V   Value, a value between 0 and 1
+   */
+  Graph3d.prototype._hsv2rgb = function (H, S, V) {
+    var R, G, B, C, Hi, X;
+
+    C = V * S;
+    Hi = Math.floor(H / 60); // hi = 0,1,2,3,4,5
+    X = C * (1 - Math.abs(H / 60 % 2 - 1));
+
+    switch (Hi) {
+      case 0:
+        R = C;G = X;B = 0;break;
+      case 1:
+        R = X;G = C;B = 0;break;
+      case 2:
+        R = 0;G = C;B = X;break;
+      case 3:
+        R = 0;G = X;B = C;break;
+      case 4:
+        R = X;G = 0;B = C;break;
+      case 5:
+        R = C;G = 0;B = X;break;
+
+      default:
+        R = 0;G = 0;B = 0;break;
+    }
+
+    return "RGB(" + parseInt(R * 255) + "," + parseInt(G * 255) + "," + parseInt(B * 255) + ")";
+  };
+
+
+  /**
+   * Draw all datapoints as a grid
+   * This function can be used when the style is 'grid'
+   */
+  Graph3d.prototype._redrawDataGrid = function () {
+    var canvas = this.frame.canvas,
+        ctx = canvas.getContext("2d"),
+        point,
+        right,
+        top,
+        cross,
+        i,
+        topSideVisible,
+        fillStyle,
+        strokeStyle,
+        lineWidth,
+        h,
+        s,
+        v,
+        zAvg;
+
+
+    if (this.dataPoints === undefined || this.dataPoints.length <= 0) return; // TODO: throw exception?
+
+    // calculate the translations and screen position of all points
+    for (i = 0; i < this.dataPoints.length; i++) {
+      var trans = this._convertPointToTranslation(this.dataPoints[i].point);
+      var screen = this._convertTranslationToScreen(trans);
+
+      this.dataPoints[i].trans = trans;
+      this.dataPoints[i].screen = screen;
+
+      // calculate the translation of the point at the bottom (needed for sorting)
+      var transBottom = this._convertPointToTranslation(this.dataPoints[i].bottom);
+      this.dataPoints[i].dist = this.showPerspective ? transBottom.length() : -transBottom.z;
+    }
+
+    // sort the points on depth of their (x,y) position (not on z)
+    var sortDepth = function (a, b) {
+      return b.dist - a.dist;
+    };
+    this.dataPoints.sort(sortDepth);
+
+    if (this.style === Graph3d.STYLE.SURFACE) {
+      for (i = 0; i < this.dataPoints.length; i++) {
+        point = this.dataPoints[i];
+        right = this.dataPoints[i].pointRight;
+        top = this.dataPoints[i].pointTop;
+        cross = this.dataPoints[i].pointCross;
+
+        if (point !== undefined && right !== undefined && top !== undefined && cross !== undefined) {
+          if (this.showGrayBottom || this.showShadow) {
+            // calculate the cross product of the two vectors from center
+            // to left and right, in order to know whether we are looking at the
+            // bottom or at the top side. We can also use the cross product
+            // for calculating light intensity
+            var aDiff = Point3d.subtract(cross.trans, point.trans);
+            var bDiff = Point3d.subtract(top.trans, right.trans);
+            var crossproduct = Point3d.crossProduct(aDiff, bDiff);
+            var len = crossproduct.length();
+            // FIXME: there is a bug with determining the surface side (shadow or colored)
+
+            topSideVisible = crossproduct.z > 0;
+          } else {
+            topSideVisible = true;
+          }
+
+          if (topSideVisible) {
+            // calculate Hue from the current value. At zMin the hue is 240, at zMax the hue is 0
+            zAvg = (point.point.z + right.point.z + top.point.z + cross.point.z) / 4;
+            h = (1 - (zAvg - this.zMin) * this.scale.z / this.verticalRatio) * 240;
+            s = 1; // saturation
+
+            if (this.showShadow) {
+              v = Math.min(1 + crossproduct.x / len / 2, 1); // value. TODO: scale
+              fillStyle = this._hsv2rgb(h, s, v);
+              strokeStyle = fillStyle;
+            } else {
+              v = 1;
+              fillStyle = this._hsv2rgb(h, s, v);
+              strokeStyle = this.colorAxis;
+            }
+          } else {
+            fillStyle = "gray";
+            strokeStyle = this.colorAxis;
+          }
+          lineWidth = 0.5;
+
+          ctx.lineWidth = lineWidth;
+          ctx.fillStyle = fillStyle;
+          ctx.strokeStyle = strokeStyle;
+          ctx.beginPath();
+          ctx.moveTo(point.screen.x, point.screen.y);
+          ctx.lineTo(right.screen.x, right.screen.y);
+          ctx.lineTo(cross.screen.x, cross.screen.y);
+          ctx.lineTo(top.screen.x, top.screen.y);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        }
+      }
+    } else {
+      // grid style
+      for (i = 0; i < this.dataPoints.length; i++) {
+        point = this.dataPoints[i];
+        right = this.dataPoints[i].pointRight;
+        top = this.dataPoints[i].pointTop;
+
+        if (point !== undefined) {
+          if (this.showPerspective) {
+            lineWidth = 2 / -point.trans.z;
+          } else {
+            lineWidth = 2 * -(this.eye.z / this.camera.getArmLength());
+          }
+        }
+
+        if (point !== undefined && right !== undefined) {
+          // calculate Hue from the current value. At zMin the hue is 240, at zMax the hue is 0
+          zAvg = (point.point.z + right.point.z) / 2;
+          h = (1 - (zAvg - this.zMin) * this.scale.z / this.verticalRatio) * 240;
+
+          ctx.lineWidth = lineWidth;
+          ctx.strokeStyle = this._hsv2rgb(h, 1, 1);
+          ctx.beginPath();
+          ctx.moveTo(point.screen.x, point.screen.y);
+          ctx.lineTo(right.screen.x, right.screen.y);
+          ctx.stroke();
+        }
+
+        if (point !== undefined && top !== undefined) {
+          // calculate Hue from the current value. At zMin the hue is 240, at zMax the hue is 0
+          zAvg = (point.point.z + top.point.z) / 2;
+          h = (1 - (zAvg - this.zMin) * this.scale.z / this.verticalRatio) * 240;
+
+          ctx.lineWidth = lineWidth;
+          ctx.strokeStyle = this._hsv2rgb(h, 1, 1);
+          ctx.beginPath();
+          ctx.moveTo(point.screen.x, point.screen.y);
+          ctx.lineTo(top.screen.x, top.screen.y);
+          ctx.stroke();
+        }
+      }
+    }
+  };
+
+
+  /**
+   * Draw all datapoints as dots.
+   * This function can be used when the style is 'dot' or 'dot-line'
+   */
+  Graph3d.prototype._redrawDataDot = function () {
+    var canvas = this.frame.canvas;
+    var ctx = canvas.getContext("2d");
+    var i;
+
+    if (this.dataPoints === undefined || this.dataPoints.length <= 0) return; // TODO: throw exception?
+
+    // calculate the translations of all points
+    for (i = 0; i < this.dataPoints.length; i++) {
+      var trans = this._convertPointToTranslation(this.dataPoints[i].point);
+      var screen = this._convertTranslationToScreen(trans);
+      this.dataPoints[i].trans = trans;
+      this.dataPoints[i].screen = screen;
+
+      // calculate the distance from the point at the bottom to the camera
+      var transBottom = this._convertPointToTranslation(this.dataPoints[i].bottom);
+      this.dataPoints[i].dist = this.showPerspective ? transBottom.length() : -transBottom.z;
+    }
+
+    // order the translated points by depth
+    var sortDepth = function (a, b) {
+      return b.dist - a.dist;
+    };
+    this.dataPoints.sort(sortDepth);
+
+    // draw the datapoints as colored circles
+    var dotSize = this.frame.clientWidth * 0.02; // px
+    for (i = 0; i < this.dataPoints.length; i++) {
+      var point = this.dataPoints[i];
+
+      if (this.style === Graph3d.STYLE.DOTLINE) {
+        // draw a vertical line from the bottom to the graph value
+        //var from = this._convert3Dto2D(new Point3d(point.point.x, point.point.y, this.zMin));
+        var from = this._convert3Dto2D(point.bottom);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = this.colorGrid;
+        ctx.beginPath();
+        ctx.moveTo(from.x, from.y);
+        ctx.lineTo(point.screen.x, point.screen.y);
+        ctx.stroke();
+      }
+
+      // calculate radius for the circle
+      var size;
+      if (this.style === Graph3d.STYLE.DOTSIZE) {
+        size = dotSize / 2 + 2 * dotSize * (point.point.value - this.valueMin) / (this.valueMax - this.valueMin);
+      } else {
+        size = dotSize;
+      }
+
+      var radius;
+      if (this.showPerspective) {
+        radius = size / -point.trans.z;
+      } else {
+        radius = size * -(this.eye.z / this.camera.getArmLength());
+      }
+      if (radius < 0) {
+        radius = 0;
+      }
+
+      var hue, color, borderColor;
+      if (this.style === Graph3d.STYLE.DOTCOLOR) {
+        // calculate the color based on the value
+        hue = (1 - (point.point.value - this.valueMin) * this.scale.value) * 240;
+        color = this._hsv2rgb(hue, 1, 1);
+        borderColor = this._hsv2rgb(hue, 1, 0.8);
+      } else if (this.style === Graph3d.STYLE.DOTSIZE) {
+        color = this.colorDot;
+        borderColor = this.colorDotBorder;
+      } else {
+        // calculate Hue from the current value. At zMin the hue is 240, at zMax the hue is 0
+        hue = (1 - (point.point.z - this.zMin) * this.scale.z / this.verticalRatio) * 240;
+        color = this._hsv2rgb(hue, 1, 1);
+        borderColor = this._hsv2rgb(hue, 1, 0.8);
+      }
+
+      // draw the circle
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = borderColor;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(point.screen.x, point.screen.y, radius, 0, Math.PI * 2, true);
+      ctx.fill();
+      ctx.stroke();
+    }
+  };
+
+  /**
+   * Draw all datapoints as bars.
+   * This function can be used when the style is 'bar', 'bar-color', or 'bar-size'
+   */
+  Graph3d.prototype._redrawDataBar = function () {
+    var canvas = this.frame.canvas;
+    var ctx = canvas.getContext("2d");
+    var i, j, surface, corners;
+
+    if (this.dataPoints === undefined || this.dataPoints.length <= 0) return; // TODO: throw exception?
+
+    // calculate the translations of all points
+    for (i = 0; i < this.dataPoints.length; i++) {
+      var trans = this._convertPointToTranslation(this.dataPoints[i].point);
+      var screen = this._convertTranslationToScreen(trans);
+      this.dataPoints[i].trans = trans;
+      this.dataPoints[i].screen = screen;
+
+      // calculate the distance from the point at the bottom to the camera
+      var transBottom = this._convertPointToTranslation(this.dataPoints[i].bottom);
+      this.dataPoints[i].dist = this.showPerspective ? transBottom.length() : -transBottom.z;
+    }
+
+    // order the translated points by depth
+    var sortDepth = function (a, b) {
+      return b.dist - a.dist;
+    };
+    this.dataPoints.sort(sortDepth);
+
+    // draw the datapoints as bars
+    var xWidth = this.xBarWidth / 2;
+    var yWidth = this.yBarWidth / 2;
+    for (i = 0; i < this.dataPoints.length; i++) {
+      var point = this.dataPoints[i];
+
+      // determine color
+      var hue, color, borderColor;
+      if (this.style === Graph3d.STYLE.BARCOLOR) {
+        // calculate the color based on the value
+        hue = (1 - (point.point.value - this.valueMin) * this.scale.value) * 240;
+        color = this._hsv2rgb(hue, 1, 1);
+        borderColor = this._hsv2rgb(hue, 1, 0.8);
+      } else if (this.style === Graph3d.STYLE.BARSIZE) {
+        color = this.colorDot;
+        borderColor = this.colorDotBorder;
+      } else {
+        // calculate Hue from the current value. At zMin the hue is 240, at zMax the hue is 0
+        hue = (1 - (point.point.z - this.zMin) * this.scale.z / this.verticalRatio) * 240;
+        color = this._hsv2rgb(hue, 1, 1);
+        borderColor = this._hsv2rgb(hue, 1, 0.8);
+      }
+
+      // calculate size for the bar
+      if (this.style === Graph3d.STYLE.BARSIZE) {
+        xWidth = this.xBarWidth / 2 * ((point.point.value - this.valueMin) / (this.valueMax - this.valueMin) * 0.8 + 0.2);
+        yWidth = this.yBarWidth / 2 * ((point.point.value - this.valueMin) / (this.valueMax - this.valueMin) * 0.8 + 0.2);
+      }
+
+      // calculate all corner points
+      var me = this;
+      var point3d = point.point;
+      var top = [{ point: new Point3d(point3d.x - xWidth, point3d.y - yWidth, point3d.z) }, { point: new Point3d(point3d.x + xWidth, point3d.y - yWidth, point3d.z) }, { point: new Point3d(point3d.x + xWidth, point3d.y + yWidth, point3d.z) }, { point: new Point3d(point3d.x - xWidth, point3d.y + yWidth, point3d.z) }];
+      var bottom = [{ point: new Point3d(point3d.x - xWidth, point3d.y - yWidth, this.zMin) }, { point: new Point3d(point3d.x + xWidth, point3d.y - yWidth, this.zMin) }, { point: new Point3d(point3d.x + xWidth, point3d.y + yWidth, this.zMin) }, { point: new Point3d(point3d.x - xWidth, point3d.y + yWidth, this.zMin) }];
+
+      // calculate screen location of the points
+      top.forEach(function (obj) {
+        obj.screen = me._convert3Dto2D(obj.point);
+      });
+      bottom.forEach(function (obj) {
+        obj.screen = me._convert3Dto2D(obj.point);
+      });
+
+      // create five sides, calculate both corner points and center points
+      var surfaces = [{ corners: top, center: Point3d.avg(bottom[0].point, bottom[2].point) }, { corners: [top[0], top[1], bottom[1], bottom[0]], center: Point3d.avg(bottom[1].point, bottom[0].point) }, { corners: [top[1], top[2], bottom[2], bottom[1]], center: Point3d.avg(bottom[2].point, bottom[1].point) }, { corners: [top[2], top[3], bottom[3], bottom[2]], center: Point3d.avg(bottom[3].point, bottom[2].point) }, { corners: [top[3], top[0], bottom[0], bottom[3]], center: Point3d.avg(bottom[0].point, bottom[3].point) }];
+      point.surfaces = surfaces;
+
+      // calculate the distance of each of the surface centers to the camera
+      for (j = 0; j < surfaces.length; j++) {
+        surface = surfaces[j];
+        var transCenter = this._convertPointToTranslation(surface.center);
+        surface.dist = this.showPerspective ? transCenter.length() : -transCenter.z;
+        // TODO: this dept calculation doesn't work 100% of the cases due to perspective,
+        //     but the current solution is fast/simple and works in 99.9% of all cases
+        //     the issue is visible in example 14, with graph.setCameraPosition({horizontal: 2.97, vertical: 0.5, distance: 0.9})
+      }
+
+      // order the surfaces by their (translated) depth
+      surfaces.sort(function (a, b) {
+        var diff = b.dist - a.dist;
+        if (diff) return diff;
+
+        // if equal depth, sort the top surface last
+        if (a.corners === top) return 1;
+        if (b.corners === top) return -1;
+
+        // both are equal
+        return 0;
+      });
+
+      // draw the ordered surfaces
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = borderColor;
+      ctx.fillStyle = color;
+      // NOTE: we start at j=2 instead of j=0 as we don't need to draw the two surfaces at the backside
+      for (j = 2; j < surfaces.length; j++) {
+        surface = surfaces[j];
+        corners = surface.corners;
+        ctx.beginPath();
+        ctx.moveTo(corners[3].screen.x, corners[3].screen.y);
+        ctx.lineTo(corners[0].screen.x, corners[0].screen.y);
+        ctx.lineTo(corners[1].screen.x, corners[1].screen.y);
+        ctx.lineTo(corners[2].screen.x, corners[2].screen.y);
+        ctx.lineTo(corners[3].screen.x, corners[3].screen.y);
+        ctx.fill();
+        ctx.stroke();
+      }
+    }
+  };
+
+
+  /**
+   * Draw a line through all datapoints.
+   * This function can be used when the style is 'line'
+   */
+  Graph3d.prototype._redrawDataLine = function () {
+    var canvas = this.frame.canvas,
+        ctx = canvas.getContext("2d"),
+        point,
+        i;
+
+    if (this.dataPoints === undefined || this.dataPoints.length <= 0) return; // TODO: throw exception?
+
+    // calculate the translations of all points
+    for (i = 0; i < this.dataPoints.length; i++) {
+      var trans = this._convertPointToTranslation(this.dataPoints[i].point);
+      var screen = this._convertTranslationToScreen(trans);
+
+      this.dataPoints[i].trans = trans;
+      this.dataPoints[i].screen = screen;
+    }
+
+    // start the line
+    if (this.dataPoints.length > 0) {
+      point = this.dataPoints[0];
+
+      ctx.lineWidth = 1; // TODO: make customizable
+      ctx.strokeStyle = "blue"; // TODO: make customizable
+      ctx.beginPath();
+      ctx.moveTo(point.screen.x, point.screen.y);
+    }
+
+    // draw the datapoints as colored circles
+    for (i = 1; i < this.dataPoints.length; i++) {
+      point = this.dataPoints[i];
+      ctx.lineTo(point.screen.x, point.screen.y);
+    }
+
+    // finish the line
+    if (this.dataPoints.length > 0) {
+      ctx.stroke();
+    }
+  };
+
+  /**
+   * Start a moving operation inside the provided parent element
+   * @param {Event}     event     The event that occurred (required for
+   *                  retrieving the  mouse position)
+   */
+  Graph3d.prototype._onMouseDown = function (event) {
+    event = event || window.event;
+
+    // check if mouse is still down (may be up when focus is lost for example
+    // in an iframe)
+    if (this.leftButtonDown) {
+      this._onMouseUp(event);
+    }
+
+    // only react on left mouse button down
+    this.leftButtonDown = event.which ? event.which === 1 : event.button === 1;
+    if (!this.leftButtonDown && !this.touchDown) return;
+
+    // get mouse position (different code for IE and all other browsers)
+    this.startMouseX = getMouseX(event);
+    this.startMouseY = getMouseY(event);
+
+    this.startStart = new Date(this.start);
+    this.startEnd = new Date(this.end);
+    this.startArmRotation = this.camera.getArmRotation();
+
+    this.frame.style.cursor = "move";
+
+    // add event listeners to handle moving the contents
+    // we store the function onmousemove and onmouseup in the graph, so we can
+    // remove the eventlisteners lateron in the function mouseUp()
+    var me = this;
+    this.onmousemove = function (event) {
+      me._onMouseMove(event);
+    };
+    this.onmouseup = function (event) {
+      me._onMouseUp(event);
+    };
+    util.addEventListener(document, "mousemove", me.onmousemove);
+    util.addEventListener(document, "mouseup", me.onmouseup);
+    util.preventDefault(event);
+  };
+
+
+  /**
+   * Perform moving operating.
+   * This function activated from within the funcion Graph.mouseDown().
+   * @param {Event}   event  Well, eehh, the event
+   */
+  Graph3d.prototype._onMouseMove = function (event) {
+    event = event || window.event;
+
+    // calculate change in mouse position
+    var diffX = parseFloat(getMouseX(event)) - this.startMouseX;
+    var diffY = parseFloat(getMouseY(event)) - this.startMouseY;
+
+    var horizontalNew = this.startArmRotation.horizontal + diffX / 200;
+    var verticalNew = this.startArmRotation.vertical + diffY / 200;
+
+    var snapAngle = 4; // degrees
+    var snapValue = Math.sin(snapAngle / 360 * 2 * Math.PI);
+
+    // snap horizontally to nice angles at 0pi, 0.5pi, 1pi, 1.5pi, etc...
+    // the -0.001 is to take care that the vertical axis is always drawn at the left front corner
+    if (Math.abs(Math.sin(horizontalNew)) < snapValue) {
+      horizontalNew = Math.round(horizontalNew / Math.PI) * Math.PI - 0.001;
+    }
+    if (Math.abs(Math.cos(horizontalNew)) < snapValue) {
+      horizontalNew = (Math.round(horizontalNew / Math.PI - 0.5) + 0.5) * Math.PI - 0.001;
+    }
+
+    // snap vertically to nice angles
+    if (Math.abs(Math.sin(verticalNew)) < snapValue) {
+      verticalNew = Math.round(verticalNew / Math.PI) * Math.PI;
+    }
+    if (Math.abs(Math.cos(verticalNew)) < snapValue) {
+      verticalNew = (Math.round(verticalNew / Math.PI - 0.5) + 0.5) * Math.PI;
+    }
+
+    this.camera.setArmRotation(horizontalNew, verticalNew);
+    this.redraw();
+
+    // fire a cameraPositionChange event
+    var parameters = this.getCameraPosition();
+    this.emit("cameraPositionChange", parameters);
+
+    util.preventDefault(event);
+  };
+
+
+  /**
+   * Stop moving operating.
+   * This function activated from within the funcion Graph.mouseDown().
+   * @param {event}  event   The event
+   */
+  Graph3d.prototype._onMouseUp = function (event) {
+    this.frame.style.cursor = "auto";
+    this.leftButtonDown = false;
+
+    // remove event listeners here
+    util.removeEventListener(document, "mousemove", this.onmousemove);
+    util.removeEventListener(document, "mouseup", this.onmouseup);
+    util.preventDefault(event);
+  };
+
+  /**
+   * After having moved the mouse, a tooltip should pop up when the mouse is resting on a data point
+   * @param {Event}  event   A mouse move event
+   */
+  Graph3d.prototype._onTooltip = function (event) {
+    var delay = 300; // ms
+    var boundingRect = this.frame.getBoundingClientRect();
+    var mouseX = getMouseX(event) - boundingRect.left;
+    var mouseY = getMouseY(event) - boundingRect.top;
+
+    if (!this.showTooltip) {
+      return;
+    }
+
+    if (this.tooltipTimeout) {
+      clearTimeout(this.tooltipTimeout);
+    }
+
+    // (delayed) display of a tooltip only if no mouse button is down
+    if (this.leftButtonDown) {
+      this._hideTooltip();
+      return;
+    }
+
+    if (this.tooltip && this.tooltip.dataPoint) {
+      // tooltip is currently visible
+      var dataPoint = this._dataPointFromXY(mouseX, mouseY);
+      if (dataPoint !== this.tooltip.dataPoint) {
+        // datapoint changed
+        if (dataPoint) {
+          this._showTooltip(dataPoint);
+        } else {
+          this._hideTooltip();
+        }
+      }
+    } else {
+      // tooltip is currently not visible
+      var me = this;
+      this.tooltipTimeout = setTimeout(function () {
+        me.tooltipTimeout = null;
+
+        // show a tooltip if we have a data point
+        var dataPoint = me._dataPointFromXY(mouseX, mouseY);
+        if (dataPoint) {
+          me._showTooltip(dataPoint);
+        }
+      }, delay);
+    }
+  };
+
+  /**
+   * Event handler for touchstart event on mobile devices
+   */
+  Graph3d.prototype._onTouchStart = function (event) {
+    this.touchDown = true;
+
+    var me = this;
+    this.ontouchmove = function (event) {
+      me._onTouchMove(event);
+    };
+    this.ontouchend = function (event) {
+      me._onTouchEnd(event);
+    };
+    util.addEventListener(document, "touchmove", me.ontouchmove);
+    util.addEventListener(document, "touchend", me.ontouchend);
+
+    this._onMouseDown(event);
+  };
+
+  /**
+   * Event handler for touchmove event on mobile devices
+   */
+  Graph3d.prototype._onTouchMove = function (event) {
+    this._onMouseMove(event);
+  };
+
+  /**
+   * Event handler for touchend event on mobile devices
+   */
+  Graph3d.prototype._onTouchEnd = function (event) {
+    this.touchDown = false;
+
+    util.removeEventListener(document, "touchmove", this.ontouchmove);
+    util.removeEventListener(document, "touchend", this.ontouchend);
+
+    this._onMouseUp(event);
+  };
+
+
+  /**
+   * Event handler for mouse wheel event, used to zoom the graph
+   * Code from http://adomas.org/javascript-mouse-wheel/
+   * @param {event}  event   The event
+   */
+  Graph3d.prototype._onWheel = function (event) {
+    if (!event) /* For IE. */
+      event = window.event;
+
+    // retrieve delta
+    var delta = 0;
+    if (event.wheelDelta) {
+      /* IE/Opera. */
+      delta = event.wheelDelta / 120;
+    } else if (event.detail) {
+      /* Mozilla case. */
+      // In Mozilla, sign of delta is different than in IE.
+      // Also, delta is multiple of 3.
+      delta = -event.detail / 3;
+    }
+
+    // If delta is nonzero, handle it.
+    // Basically, delta is now positive if wheel was scrolled up,
+    // and negative, if wheel was scrolled down.
+    if (delta) {
+      var oldLength = this.camera.getArmLength();
+      var newLength = oldLength * (1 - delta / 10);
+
+      this.camera.setArmLength(newLength);
+      this.redraw();
+
+      this._hideTooltip();
+    }
+
+    // fire a cameraPositionChange event
+    var parameters = this.getCameraPosition();
+    this.emit("cameraPositionChange", parameters);
+
+    // Prevent default actions caused by mouse wheel.
+    // That might be ugly, but we handle scrolls somehow
+    // anyway, so don't bother here..
+    util.preventDefault(event);
+  };
+
+  /**
+   * Test whether a point lies inside given 2D triangle
+   * @param {Point2d} point
+   * @param {Point2d[]} triangle
+   * @return {boolean} Returns true if given point lies inside or on the edge of the triangle
+   * @private
+   */
+  Graph3d.prototype._insideTriangle = function (point, triangle) {
+    var a = triangle[0],
+        b = triangle[1],
+        c = triangle[2];
+
+    function sign(x) {
+      return x > 0 ? 1 : x < 0 ? -1 : 0;
+    }
+
+    var as = sign((b.x - a.x) * (point.y - a.y) - (b.y - a.y) * (point.x - a.x));
+    var bs = sign((c.x - b.x) * (point.y - b.y) - (c.y - b.y) * (point.x - b.x));
+    var cs = sign((a.x - c.x) * (point.y - c.y) - (a.y - c.y) * (point.x - c.x));
+
+    // each of the three signs must be either equal to each other or zero
+    return (as == 0 || bs == 0 || as == bs) && (bs == 0 || cs == 0 || bs == cs) && (as == 0 || cs == 0 || as == cs);
+  };
+
+  /**
+   * Find a data point close to given screen position (x, y)
+   * @param {Number} x
+   * @param {Number} y
+   * @return {Object | null} The closest data point or null if not close to any data point
+   * @private
+   */
+  Graph3d.prototype._dataPointFromXY = function (x, y) {
+    var i,
+        distMax = 100,
+        // px
+    dataPoint = null,
+        closestDataPoint = null,
+        closestDist = null,
+        center = new Point2d(x, y);
+
+    if (this.style === Graph3d.STYLE.BAR || this.style === Graph3d.STYLE.BARCOLOR || this.style === Graph3d.STYLE.BARSIZE) {
+      // the data points are ordered from far away to closest
+      for (i = this.dataPoints.length - 1; i >= 0; i--) {
+        dataPoint = this.dataPoints[i];
+        var surfaces = dataPoint.surfaces;
+        if (surfaces) {
+          for (var s = surfaces.length - 1; s >= 0; s--) {
+            // split each surface in two triangles, and see if the center point is inside one of these
+            var surface = surfaces[s];
+            var corners = surface.corners;
+            var triangle1 = [corners[0].screen, corners[1].screen, corners[2].screen];
+            var triangle2 = [corners[2].screen, corners[3].screen, corners[0].screen];
+            if (this._insideTriangle(center, triangle1) || this._insideTriangle(center, triangle2)) {
+              // return immediately at the first hit
+              return dataPoint;
+            }
+          }
+        }
+      }
+    } else {
+      // find the closest data point, using distance to the center of the point on 2d screen
+      for (i = 0; i < this.dataPoints.length; i++) {
+        dataPoint = this.dataPoints[i];
+        var point = dataPoint.screen;
+        if (point) {
+          var distX = Math.abs(x - point.x);
+          var distY = Math.abs(y - point.y);
+          var dist = Math.sqrt(distX * distX + distY * distY);
+
+          if ((closestDist === null || dist < closestDist) && dist < distMax) {
+            closestDist = dist;
+            closestDataPoint = dataPoint;
+          }
+        }
+      }
+    }
+
+
+    return closestDataPoint;
+  };
+
+  /**
+   * Display a tooltip for given data point
+   * @param {Object} dataPoint
+   * @private
+   */
+  Graph3d.prototype._showTooltip = function (dataPoint) {
+    var content, line, dot;
+
+    if (!this.tooltip) {
+      content = document.createElement("div");
+      content.style.position = "absolute";
+      content.style.padding = "10px";
+      content.style.border = "1px solid #4d4d4d";
+      content.style.color = "#1a1a1a";
+      content.style.background = "rgba(255,255,255,0.7)";
+      content.style.borderRadius = "2px";
+      content.style.boxShadow = "5px 5px 10px rgba(128,128,128,0.5)";
+
+      line = document.createElement("div");
+      line.style.position = "absolute";
+      line.style.height = "40px";
+      line.style.width = "0";
+      line.style.borderLeft = "1px solid #4d4d4d";
+
+      dot = document.createElement("div");
+      dot.style.position = "absolute";
+      dot.style.height = "0";
+      dot.style.width = "0";
+      dot.style.border = "5px solid #4d4d4d";
+      dot.style.borderRadius = "5px";
+
+      this.tooltip = {
+        dataPoint: null,
+        dom: {
+          content: content,
+          line: line,
+          dot: dot
+        }
+      };
+    } else {
+      content = this.tooltip.dom.content;
+      line = this.tooltip.dom.line;
+      dot = this.tooltip.dom.dot;
+    }
+
+    this._hideTooltip();
+
+    this.tooltip.dataPoint = dataPoint;
+    if (typeof this.showTooltip === "function") {
+      content.innerHTML = this.showTooltip(dataPoint.point);
+    } else {
+      content.innerHTML = "<table>" + "<tr><td>x:</td><td>" + dataPoint.point.x + "</td></tr>" + "<tr><td>y:</td><td>" + dataPoint.point.y + "</td></tr>" + "<tr><td>z:</td><td>" + dataPoint.point.z + "</td></tr>" + "</table>";
+    }
+
+    content.style.left = "0";
+    content.style.top = "0";
+    this.frame.appendChild(content);
+    this.frame.appendChild(line);
+    this.frame.appendChild(dot);
+
+    // calculate sizes
+    var contentWidth = content.offsetWidth;
+    var contentHeight = content.offsetHeight;
+    var lineHeight = line.offsetHeight;
+    var dotWidth = dot.offsetWidth;
+    var dotHeight = dot.offsetHeight;
+
+    var left = dataPoint.screen.x - contentWidth / 2;
+    left = Math.min(Math.max(left, 10), this.frame.clientWidth - 10 - contentWidth);
+
+    line.style.left = dataPoint.screen.x + "px";
+    line.style.top = dataPoint.screen.y - lineHeight + "px";
+    content.style.left = left + "px";
+    content.style.top = dataPoint.screen.y - lineHeight - contentHeight + "px";
+    dot.style.left = dataPoint.screen.x - dotWidth / 2 + "px";
+    dot.style.top = dataPoint.screen.y - dotHeight / 2 + "px";
+  };
+
+  /**
+   * Hide the tooltip when displayed
+   * @private
+   */
+  Graph3d.prototype._hideTooltip = function () {
+    if (this.tooltip) {
+      this.tooltip.dataPoint = null;
+
+      for (var prop in this.tooltip.dom) {
+        if (this.tooltip.dom.hasOwnProperty(prop)) {
+          var elem = this.tooltip.dom[prop];
+          if (elem && elem.parentNode) {
+            elem.parentNode.removeChild(elem);
+          }
+        }
+      }
+    }
+  };
+
+  /**--------------------------------------------------------------------------**/
+
+
+  /**
+   * Get the horizontal mouse position from a mouse event
+   * @param {Event} event
+   * @return {Number} mouse x
+   */
+  function getMouseX(event) {
+    if ("clientX" in event) {
+      return event.clientX;
+    }return event.targetTouches[0] && event.targetTouches[0].clientX || 0;
+  }
+
+  /**
+   * Get the vertical mouse position from a mouse event
+   * @param {Event} event
+   * @return {Number} mouse y
+   */
+  function getMouseY(event) {
+    if ("clientY" in event) {
+      return event.clientY;
+    }return event.targetTouches[0] && event.targetTouches[0].clientY || 0;
+  }
+
+  module.exports = Graph3d;
+  // use use defaults
+
+/***/ },
+/* 11 */
+/***/ function(module, exports, __webpack_require__) {
+
+  
+  /**
+   * Expose `Emitter`.
+   */
+
+  module.exports = Emitter;
+
+  /**
+   * Initialize a new `Emitter`.
+   *
+   * @api public
+   */
+
+  function Emitter(obj) {
+    if (obj) return mixin(obj);
+  };
+
+  /**
+   * Mixin the emitter properties.
+   *
+   * @param {Object} obj
+   * @return {Object}
+   * @api private
+   */
+
+  function mixin(obj) {
+    for (var key in Emitter.prototype) {
+      obj[key] = Emitter.prototype[key];
+    }
+    return obj;
+  }
+
+  /**
+   * Listen on the given `event` with `fn`.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.on =
+  Emitter.prototype.addEventListener = function(event, fn){
+    this._callbacks = this._callbacks || {};
+    (this._callbacks[event] = this._callbacks[event] || [])
+      .push(fn);
+    return this;
+  };
+
+  /**
+   * Adds an `event` listener that will be invoked a single
+   * time then automatically removed.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.once = function(event, fn){
+    var self = this;
+    this._callbacks = this._callbacks || {};
+
+    function on() {
+      self.off(event, on);
+      fn.apply(this, arguments);
+    }
+
+    on.fn = fn;
+    this.on(event, on);
+    return this;
+  };
+
+  /**
+   * Remove the given callback for `event` or all
+   * registered callbacks.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.off =
+  Emitter.prototype.removeListener =
+  Emitter.prototype.removeAllListeners =
+  Emitter.prototype.removeEventListener = function(event, fn){
+    this._callbacks = this._callbacks || {};
+
+    // all
+    if (0 == arguments.length) {
+      this._callbacks = {};
+      return this;
+    }
+
+    // specific event
+    var callbacks = this._callbacks[event];
+    if (!callbacks) return this;
+
+    // remove all handlers
+    if (1 == arguments.length) {
+      delete this._callbacks[event];
+      return this;
+    }
+
+    // remove specific handler
+    var cb;
+    for (var i = 0; i < callbacks.length; i++) {
+      cb = callbacks[i];
+      if (cb === fn || cb.fn === fn) {
+        callbacks.splice(i, 1);
+        break;
+      }
+    }
+    return this;
+  };
+
+  /**
+   * Emit `event` with the given args.
+   *
+   * @param {String} event
+   * @param {Mixed} ...
+   * @return {Emitter}
+   */
+
+  Emitter.prototype.emit = function(event){
+    this._callbacks = this._callbacks || {};
+    var args = [].slice.call(arguments, 1)
+      , callbacks = this._callbacks[event];
+
+    if (callbacks) {
+      callbacks = callbacks.slice(0);
+      for (var i = 0, len = callbacks.length; i < len; ++i) {
+        callbacks[i].apply(this, args);
+      }
+    }
+
+    return this;
+  };
+
+  /**
+   * Return array of callbacks for `event`.
+   *
+   * @param {String} event
+   * @return {Array}
+   * @api public
+   */
+
+  Emitter.prototype.listeners = function(event){
+    this._callbacks = this._callbacks || {};
+    return this._callbacks[event] || [];
+  };
+
+  /**
+   * Check if this emitter has `event` handlers.
+   *
+   * @param {String} event
+   * @return {Boolean}
+   * @api public
+   */
+
+  Emitter.prototype.hasListeners = function(event){
+    return !! this.listeners(event).length;
+  };
+
+
+/***/ },
+/* 12 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  /**
+   * @prototype Point3d
+   * @param {Number} [x]
+   * @param {Number} [y]
+   * @param {Number} [z]
+   */
+  function Point3d(x, y, z) {
+    this.x = x !== undefined ? x : 0;
+    this.y = y !== undefined ? y : 0;
+    this.z = z !== undefined ? z : 0;
+  };
+
+  /**
+   * Subtract the two provided points, returns a-b
+   * @param {Point3d} a
+   * @param {Point3d} b
+   * @return {Point3d} a-b
+   */
+  Point3d.subtract = function (a, b) {
+    var sub = new Point3d();
+    sub.x = a.x - b.x;
+    sub.y = a.y - b.y;
+    sub.z = a.z - b.z;
+    return sub;
+  };
+
+  /**
+   * Add the two provided points, returns a+b
+   * @param {Point3d} a
+   * @param {Point3d} b
+   * @return {Point3d} a+b
+   */
+  Point3d.add = function (a, b) {
+    var sum = new Point3d();
+    sum.x = a.x + b.x;
+    sum.y = a.y + b.y;
+    sum.z = a.z + b.z;
+    return sum;
+  };
+
+  /**
+   * Calculate the average of two 3d points
+   * @param {Point3d} a
+   * @param {Point3d} b
+   * @return {Point3d} The average, (a+b)/2
+   */
+  Point3d.avg = function (a, b) {
+    return new Point3d((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
+  };
+
+  /**
+   * Calculate the cross product of the two provided points, returns axb
+   * Documentation: http://en.wikipedia.org/wiki/Cross_product
+   * @param {Point3d} a
+   * @param {Point3d} b
+   * @return {Point3d} cross product axb
+   */
+  Point3d.crossProduct = function (a, b) {
+    var crossproduct = new Point3d();
+
+    crossproduct.x = a.y * b.z - a.z * b.y;
+    crossproduct.y = a.z * b.x - a.x * b.z;
+    crossproduct.z = a.x * b.y - a.y * b.x;
+
+    return crossproduct;
+  };
+
+
+  /**
+   * Rtrieve the length of the vector (or the distance from this point to the origin
+   * @return {Number}  length
+   */
+  Point3d.prototype.length = function () {
+    return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
+  };
+
+  module.exports = Point3d;
+
+/***/ },
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  /**
+   * @prototype Point2d
+   * @param {Number} [x]
+   * @param {Number} [y]
+   */
+  function Point2d(x, y) {
+    this.x = x !== undefined ? x : 0;
+    this.y = y !== undefined ? y : 0;
+  }
+
+  module.exports = Point2d;
+
+/***/ },
+/* 14 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var Point3d = __webpack_require__(12);
+
+  /**
+   * @class Camera
+   * The camera is mounted on a (virtual) camera arm. The camera arm can rotate
+   * The camera is always looking in the direction of the origin of the arm.
+   * This way, the camera always rotates around one fixed point, the location
+   * of the camera arm.
+   *
+   * Documentation:
+   *   http://en.wikipedia.org/wiki/3D_projection
+   */
+  function Camera() {
+    this.armLocation = new Point3d();
+    this.armRotation = {};
+    this.armRotation.horizontal = 0;
+    this.armRotation.vertical = 0;
+    this.armLength = 1.7;
+
+    this.cameraLocation = new Point3d();
+    this.cameraRotation = new Point3d(0.5 * Math.PI, 0, 0);
+
+    this.calculateCameraOrientation();
+  }
+
+  /**
+   * Set the location (origin) of the arm
+   * @param {Number} x  Normalized value of x
+   * @param {Number} y  Normalized value of y
+   * @param {Number} z  Normalized value of z
+   */
+  Camera.prototype.setArmLocation = function (x, y, z) {
+    this.armLocation.x = x;
+    this.armLocation.y = y;
+    this.armLocation.z = z;
+
+    this.calculateCameraOrientation();
+  };
+
+  /**
+   * Set the rotation of the camera arm
+   * @param {Number} horizontal   The horizontal rotation, between 0 and 2*PI.
+   *                Optional, can be left undefined.
+   * @param {Number} vertical   The vertical rotation, between 0 and 0.5*PI
+   *                if vertical=0.5*PI, the graph is shown from the
+   *                top. Optional, can be left undefined.
+   */
+  Camera.prototype.setArmRotation = function (horizontal, vertical) {
+    if (horizontal !== undefined) {
+      this.armRotation.horizontal = horizontal;
+    }
+
+    if (vertical !== undefined) {
+      this.armRotation.vertical = vertical;
+      if (this.armRotation.vertical < 0) this.armRotation.vertical = 0;
+      if (this.armRotation.vertical > 0.5 * Math.PI) this.armRotation.vertical = 0.5 * Math.PI;
+    }
+
+    if (horizontal !== undefined || vertical !== undefined) {
+      this.calculateCameraOrientation();
+    }
+  };
+
+  /**
+   * Retrieve the current arm rotation
+   * @return {object}   An object with parameters horizontal and vertical
+   */
+  Camera.prototype.getArmRotation = function () {
+    var rot = {};
+    rot.horizontal = this.armRotation.horizontal;
+    rot.vertical = this.armRotation.vertical;
+
+    return rot;
+  };
+
+  /**
+   * Set the (normalized) length of the camera arm.
+   * @param {Number} length A length between 0.71 and 5.0
+   */
+  Camera.prototype.setArmLength = function (length) {
+    if (length === undefined) return;
+
+    this.armLength = length;
+
+    // Radius must be larger than the corner of the graph,
+    // which has a distance of sqrt(0.5^2+0.5^2) = 0.71 from the center of the
+    // graph
+    if (this.armLength < 0.71) this.armLength = 0.71;
+    if (this.armLength > 5) this.armLength = 5;
+
+    this.calculateCameraOrientation();
+  };
+
+  /**
+   * Retrieve the arm length
+   * @return {Number} length
+   */
+  Camera.prototype.getArmLength = function () {
+    return this.armLength;
+  };
+
+  /**
+   * Retrieve the camera location
+   * @return {Point3d} cameraLocation
+   */
+  Camera.prototype.getCameraLocation = function () {
+    return this.cameraLocation;
+  };
+
+  /**
+   * Retrieve the camera rotation
+   * @return {Point3d} cameraRotation
+   */
+  Camera.prototype.getCameraRotation = function () {
+    return this.cameraRotation;
+  };
+
+  /**
+   * Calculate the location and rotation of the camera based on the
+   * position and orientation of the camera arm
+   */
+  Camera.prototype.calculateCameraOrientation = function () {
+    // calculate location of the camera
+    this.cameraLocation.x = this.armLocation.x - this.armLength * Math.sin(this.armRotation.horizontal) * Math.cos(this.armRotation.vertical);
+    this.cameraLocation.y = this.armLocation.y - this.armLength * Math.cos(this.armRotation.horizontal) * Math.cos(this.armRotation.vertical);
+    this.cameraLocation.z = this.armLocation.z + this.armLength * Math.sin(this.armRotation.vertical);
+
+    // calculate rotation of the camera
+    this.cameraRotation.x = Math.PI / 2 - this.armRotation.vertical;
+    this.cameraRotation.y = 0;
+    this.cameraRotation.z = -this.armRotation.horizontal;
+  };
+
+  module.exports = Camera;
+
+/***/ },
+/* 15 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var DataView = __webpack_require__(9);
+
+  /**
+   * @class Filter
+   *
+   * @param {DataSet} data The google data table
+   * @param {Number}  column             The index of the column to be filtered
+   * @param {Graph} graph           The graph
+   */
+  function Filter(data, column, graph) {
+    this.data = data;
+    this.column = column;
+    this.graph = graph; // the parent graph
+
+    this.index = undefined;
+    this.value = undefined;
+
+    // read all distinct values and select the first one
+    this.values = graph.getDistinctValues(data.get(), this.column);
+
+    // sort both numeric and string values correctly
+    this.values.sort(function (a, b) {
+      return a > b ? 1 : a < b ? -1 : 0;
+    });
+
+    if (this.values.length > 0) {
+      this.selectValue(0);
+    }
+
+    // create an array with the filtered datapoints. this will be loaded afterwards
+    this.dataPoints = [];
+
+    this.loaded = false;
+    this.onLoadCallback = undefined;
+
+    if (graph.animationPreload) {
+      this.loaded = false;
+      this.loadInBackground();
+    } else {
+      this.loaded = true;
+    }
+  };
+
+
+  /**
+   * Return the label
+   * @return {string} label
+   */
+  Filter.prototype.isLoaded = function () {
+    return this.loaded;
+  };
+
+
+  /**
+   * Return the loaded progress
+   * @return {Number} percentage between 0 and 100
+   */
+  Filter.prototype.getLoadedProgress = function () {
+    var len = this.values.length;
+
+    var i = 0;
+    while (this.dataPoints[i]) {
+      i++;
+    }
+
+    return Math.round(i / len * 100);
+  };
+
+
+  /**
+   * Return the label
+   * @return {string} label
+   */
+  Filter.prototype.getLabel = function () {
+    return this.graph.filterLabel;
+  };
+
+
+  /**
+   * Return the columnIndex of the filter
+   * @return {Number} columnIndex
+   */
+  Filter.prototype.getColumn = function () {
+    return this.column;
+  };
+
+  /**
+   * Return the currently selected value. Returns undefined if there is no selection
+   * @return {*} value
+   */
+  Filter.prototype.getSelectedValue = function () {
+    if (this.index === undefined) return undefined;
+
+    return this.values[this.index];
+  };
+
+  /**
+   * Retrieve all values of the filter
+   * @return {Array} values
+   */
+  Filter.prototype.getValues = function () {
+    return this.values;
+  };
+
+  /**
+   * Retrieve one value of the filter
+   * @param {Number}  index
+   * @return {*} value
+   */
+  Filter.prototype.getValue = function (index) {
+    if (index >= this.values.length) throw "Error: index out of range";
+
+    return this.values[index];
+  };
+
+
+  /**
+   * Retrieve the (filtered) dataPoints for the currently selected filter index
+   * @param {Number} [index] (optional)
+   * @return {Array} dataPoints
+   */
+  Filter.prototype._getDataPoints = function (index) {
+    if (index === undefined) index = this.index;
+
+    if (index === undefined) return [];
+
+    var dataPoints;
+    if (this.dataPoints[index]) {
+      dataPoints = this.dataPoints[index];
+    } else {
+      var f = {};
+      f.column = this.column;
+      f.value = this.values[index];
+
+      var dataView = new DataView(this.data, { filter: function (item) {
+          return item[f.column] == f.value;
+        } }).get();
+      dataPoints = this.graph._getDataPoints(dataView);
+
+      this.dataPoints[index] = dataPoints;
+    }
+
+    return dataPoints;
+  };
+
+
+
+  /**
+   * Set a callback function when the filter is fully loaded.
+   */
+  Filter.prototype.setOnLoadCallback = function (callback) {
+    this.onLoadCallback = callback;
+  };
+
+
+  /**
+   * Add a value to the list with available values for this filter
+   * No double entries will be created.
+   * @param {Number} index
+   */
+  Filter.prototype.selectValue = function (index) {
+    if (index >= this.values.length) throw "Error: index out of range";
+
+    this.index = index;
+    this.value = this.values[index];
+  };
+
+  /**
+   * Load all filtered rows in the background one by one
+   * Start this method without providing an index!
+   */
+  Filter.prototype.loadInBackground = function (index) {
+    if (index === undefined) index = 0;
+
+    var frame = this.graph.frame;
+
+    if (index < this.values.length) {
+      var dataPointsTemp = this._getDataPoints(index);
+      //this.graph.redrawInfo(); // TODO: not neat
+
+      // create a progress box
+      if (frame.progress === undefined) {
+        frame.progress = document.createElement("DIV");
+        frame.progress.style.position = "absolute";
+        frame.progress.style.color = "gray";
+        frame.appendChild(frame.progress);
+      }
+      var progress = this.getLoadedProgress();
+      frame.progress.innerHTML = "Loading animation... " + progress + "%";
+      // TODO: this is no nice solution...
+      frame.progress.style.bottom = 60 + "px"; // TODO: use height of slider
+      frame.progress.style.left = 10 + "px";
+
+      var me = this;
+      setTimeout(function () {
+        me.loadInBackground(index + 1);
+      }, 10);
+      this.loaded = false;
+    } else {
+      this.loaded = true;
+
+      // remove the progress box
+      if (frame.progress !== undefined) {
+        frame.removeChild(frame.progress);
+        frame.progress = undefined;
+      }
+
+      if (this.onLoadCallback) this.onLoadCallback();
+    }
+  };
+
+  module.exports = Filter;
+
+/***/ },
+/* 16 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var util = __webpack_require__(1);
+
+  /**
+   * @constructor Slider
+   *
+   * An html slider control with start/stop/prev/next buttons
+   * @param {Element} container  The element where the slider will be created
+   * @param {Object} options   Available options:
+   *                 {boolean} visible   If true (default) the
+   *                           slider is visible.
+   */
+  function Slider(container, options) {
+    if (container === undefined) {
+      throw "Error: No container element defined";
+    }
+    this.container = container;
+    this.visible = options && options.visible != undefined ? options.visible : true;
+
+    if (this.visible) {
+      this.frame = document.createElement("DIV");
+      //this.frame.style.backgroundColor = '#E5E5E5';
+      this.frame.style.width = "100%";
+      this.frame.style.position = "relative";
+      this.container.appendChild(this.frame);
+
+      this.frame.prev = document.createElement("INPUT");
+      this.frame.prev.type = "BUTTON";
+      this.frame.prev.value = "Prev";
+      this.frame.appendChild(this.frame.prev);
+
+      this.frame.play = document.createElement("INPUT");
+      this.frame.play.type = "BUTTON";
+      this.frame.play.value = "Play";
+      this.frame.appendChild(this.frame.play);
+
+      this.frame.next = document.createElement("INPUT");
+      this.frame.next.type = "BUTTON";
+      this.frame.next.value = "Next";
+      this.frame.appendChild(this.frame.next);
+
+      this.frame.bar = document.createElement("INPUT");
+      this.frame.bar.type = "BUTTON";
+      this.frame.bar.style.position = "absolute";
+      this.frame.bar.style.border = "1px solid red";
+      this.frame.bar.style.width = "100px";
+      this.frame.bar.style.height = "6px";
+      this.frame.bar.style.borderRadius = "2px";
+      this.frame.bar.style.MozBorderRadius = "2px";
+      this.frame.bar.style.border = "1px solid #7F7F7F";
+      this.frame.bar.style.backgroundColor = "#E5E5E5";
+      this.frame.appendChild(this.frame.bar);
+
+      this.frame.slide = document.createElement("INPUT");
+      this.frame.slide.type = "BUTTON";
+      this.frame.slide.style.margin = "0px";
+      this.frame.slide.value = " ";
+      this.frame.slide.style.position = "relative";
+      this.frame.slide.style.left = "-100px";
+      this.frame.appendChild(this.frame.slide);
+
+      // create events
+      var me = this;
+      this.frame.slide.onmousedown = function (event) {
+        me._onMouseDown(event);
+      };
+      this.frame.prev.onclick = function (event) {
+        me.prev(event);
+      };
+      this.frame.play.onclick = function (event) {
+        me.togglePlay(event);
+      };
+      this.frame.next.onclick = function (event) {
+        me.next(event);
+      };
+    }
+
+    this.onChangeCallback = undefined;
+
+    this.values = [];
+    this.index = undefined;
+
+    this.playTimeout = undefined;
+    this.playInterval = 1000; // milliseconds
+    this.playLoop = true;
+  }
+
+  /**
+   * Select the previous index
+   */
+  Slider.prototype.prev = function () {
+    var index = this.getIndex();
+    if (index > 0) {
+      index--;
+      this.setIndex(index);
+    }
+  };
+
+  /**
+   * Select the next index
+   */
+  Slider.prototype.next = function () {
+    var index = this.getIndex();
+    if (index < this.values.length - 1) {
+      index++;
+      this.setIndex(index);
+    }
+  };
+
+  /**
+   * Select the next index
+   */
+  Slider.prototype.playNext = function () {
+    var start = new Date();
+
+    var index = this.getIndex();
+    if (index < this.values.length - 1) {
+      index++;
+      this.setIndex(index);
+    } else if (this.playLoop) {
+      // jump to the start
+      index = 0;
+      this.setIndex(index);
+    }
+
+    var end = new Date();
+    var diff = end - start;
+
+    // calculate how much time it to to set the index and to execute the callback
+    // function.
+    var interval = Math.max(this.playInterval - diff, 0);
+    // document.title = diff // TODO: cleanup
+
+    var me = this;
+    this.playTimeout = setTimeout(function () {
+      me.playNext();
+    }, interval);
+  };
+
+  /**
+   * Toggle start or stop playing
+   */
+  Slider.prototype.togglePlay = function () {
+    if (this.playTimeout === undefined) {
+      this.play();
+    } else {
+      this.stop();
+    }
+  };
+
+  /**
+   * Start playing
+   */
+  Slider.prototype.play = function () {
+    // Test whether already playing
+    if (this.playTimeout) return;
+
+    this.playNext();
+
+    if (this.frame) {
+      this.frame.play.value = "Stop";
+    }
+  };
+
+  /**
+   * Stop playing
+   */
+  Slider.prototype.stop = function () {
+    clearInterval(this.playTimeout);
+    this.playTimeout = undefined;
+
+    if (this.frame) {
+      this.frame.play.value = "Play";
+    }
+  };
+
+  /**
+   * Set a callback function which will be triggered when the value of the
+   * slider bar has changed.
+   */
+  Slider.prototype.setOnChangeCallback = function (callback) {
+    this.onChangeCallback = callback;
+  };
+
+  /**
+   * Set the interval for playing the list
+   * @param {Number} interval   The interval in milliseconds
+   */
+  Slider.prototype.setPlayInterval = function (interval) {
+    this.playInterval = interval;
+  };
+
+  /**
+   * Retrieve the current play interval
+   * @return {Number} interval   The interval in milliseconds
+   */
+  Slider.prototype.getPlayInterval = function (interval) {
+    return this.playInterval;
+  };
+
+  /**
+   * Set looping on or off
+   * @pararm {boolean} doLoop  If true, the slider will jump to the start when
+   *               the end is passed, and will jump to the end
+   *               when the start is passed.
+   */
+  Slider.prototype.setPlayLoop = function (doLoop) {
+    this.playLoop = doLoop;
+  };
+
+
+  /**
+   * Execute the onchange callback function
+   */
+  Slider.prototype.onChange = function () {
+    if (this.onChangeCallback !== undefined) {
+      this.onChangeCallback();
+    }
+  };
+
+  /**
+   * redraw the slider on the correct place
+   */
+  Slider.prototype.redraw = function () {
+    if (this.frame) {
+      // resize the bar
+      this.frame.bar.style.top = this.frame.clientHeight / 2 - this.frame.bar.offsetHeight / 2 + "px";
+      this.frame.bar.style.width = this.frame.clientWidth - this.frame.prev.clientWidth - this.frame.play.clientWidth - this.frame.next.clientWidth - 30 + "px";
+
+      // position the slider button
+      var left = this.indexToLeft(this.index);
+      this.frame.slide.style.left = left + "px";
+    }
+  };
+
+
+  /**
+   * Set the list with values for the slider
+   * @param {Array} values   A javascript array with values (any type)
+   */
+  Slider.prototype.setValues = function (values) {
+    this.values = values;
+
+    if (this.values.length > 0) this.setIndex(0);else this.index = undefined;
+  };
+
+  /**
+   * Select a value by its index
+   * @param {Number} index
+   */
+  Slider.prototype.setIndex = function (index) {
+    if (index < this.values.length) {
+      this.index = index;
+
+      this.redraw();
+      this.onChange();
+    } else {
+      throw "Error: index out of range";
+    }
+  };
+
+  /**
+   * retrieve the index of the currently selected vaue
+   * @return {Number} index
+   */
+  Slider.prototype.getIndex = function () {
+    return this.index;
+  };
+
+
+  /**
+   * retrieve the currently selected value
+   * @return {*} value
+   */
+  Slider.prototype.get = function () {
+    return this.values[this.index];
+  };
+
+
+  Slider.prototype._onMouseDown = function (event) {
+    // only react on left mouse button down
+    var leftButtonDown = event.which ? event.which === 1 : event.button === 1;
+    if (!leftButtonDown) return;
+
+    this.startClientX = event.clientX;
+    this.startSlideX = parseFloat(this.frame.slide.style.left);
+
+    this.frame.style.cursor = "move";
+
+    // add event listeners to handle moving the contents
+    // we store the function onmousemove and onmouseup in the graph, so we can
+    // remove the eventlisteners lateron in the function mouseUp()
+    var me = this;
+    this.onmousemove = function (event) {
+      me._onMouseMove(event);
+    };
+    this.onmouseup = function (event) {
+      me._onMouseUp(event);
+    };
+    util.addEventListener(document, "mousemove", this.onmousemove);
+    util.addEventListener(document, "mouseup", this.onmouseup);
+    util.preventDefault(event);
+  };
+
+
+  Slider.prototype.leftToIndex = function (left) {
+    var width = parseFloat(this.frame.bar.style.width) - this.frame.slide.clientWidth - 10;
+    var x = left - 3;
+
+    var index = Math.round(x / width * (this.values.length - 1));
+    if (index < 0) index = 0;
+    if (index > this.values.length - 1) index = this.values.length - 1;
+
+    return index;
+  };
+
+  Slider.prototype.indexToLeft = function (index) {
+    var width = parseFloat(this.frame.bar.style.width) - this.frame.slide.clientWidth - 10;
+
+    var x = index / (this.values.length - 1) * width;
+    var left = x + 3;
+
+    return left;
+  };
+
+
+
+  Slider.prototype._onMouseMove = function (event) {
+    var diff = event.clientX - this.startClientX;
+    var x = this.startSlideX + diff;
+
+    var index = this.leftToIndex(x);
+
+    this.setIndex(index);
+
+    util.preventDefault();
+  };
+
+
+  Slider.prototype._onMouseUp = function (event) {
+    this.frame.style.cursor = "auto";
+
+    // remove event listeners
+    util.removeEventListener(document, "mousemove", this.onmousemove);
+    util.removeEventListener(document, "mouseup", this.onmouseup);
+
+    util.preventDefault();
+  };
+
+  module.exports = Slider;
+
+/***/ },
+/* 17 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  /**
+   * @prototype StepNumber
+   * The class StepNumber is an iterator for Numbers. You provide a start and end
+   * value, and a best step size. StepNumber itself rounds to fixed values and
+   * a finds the step that best fits the provided step.
+   *
+   * If prettyStep is true, the step size is chosen as close as possible to the
+   * provided step, but being a round value like 1, 2, 5, 10, 20, 50, ....
+   *
+   * Example usage:
+   *   var step = new StepNumber(0, 10, 2.5, true);
+   *   step.start();
+   *   while (!step.end()) {
+   *   alert(step.getCurrent());
+   *   step.next();
+   *   }
+   *
+   * Version: 1.0
+   *
+   * @param {Number} start     The start value
+   * @param {Number} end     The end value
+   * @param {Number} step    Optional. Step size. Must be a positive value.
+   * @param {boolean} prettyStep Optional. If true, the step size is rounded
+   *               To a pretty step size (like 1, 2, 5, 10, 20, 50, ...)
+   */
+  function StepNumber(start, end, step, prettyStep) {
+    // set default values
+    this._start = 0;
+    this._end = 0;
+    this._step = 1;
+    this.prettyStep = true;
+    this.precision = 5;
+
+    this._current = 0;
+    this.setRange(start, end, step, prettyStep);
+  };
+
+  /**
+   * Set a new range: start, end and step.
+   *
+   * @param {Number} start     The start value
+   * @param {Number} end     The end value
+   * @param {Number} step    Optional. Step size. Must be a positive value.
+   * @param {boolean} prettyStep Optional. If true, the step size is rounded
+   *               To a pretty step size (like 1, 2, 5, 10, 20, 50, ...)
+   */
+  StepNumber.prototype.setRange = function (start, end, step, prettyStep) {
+    this._start = start ? start : 0;
+    this._end = end ? end : 0;
+
+    this.setStep(step, prettyStep);
+  };
+
+  /**
+   * Set a new step size
+   * @param {Number} step    New step size. Must be a positive value
+   * @param {boolean} prettyStep Optional. If true, the provided step is rounded
+   *               to a pretty step size (like 1, 2, 5, 10, 20, 50, ...)
+   */
+  StepNumber.prototype.setStep = function (step, prettyStep) {
+    if (step === undefined || step <= 0) return;
+
+    if (prettyStep !== undefined) this.prettyStep = prettyStep;
+
+    if (this.prettyStep === true) this._step = StepNumber.calculatePrettyStep(step);else this._step = step;
+  };
+
+  /**
+   * Calculate a nice step size, closest to the desired step size.
+   * Returns a value in one of the ranges 1*10^n, 2*10^n, or 5*10^n, where n is an
+   * integer Number. For example 1, 2, 5, 10, 20, 50, etc...
+   * @param {Number}  step  Desired step size
+   * @return {Number}     Nice step size
+   */
+  StepNumber.calculatePrettyStep = function (step) {
+    var log10 = function (x) {
+      return Math.log(x) / Math.LN10;
+    };
+
+    // try three steps (multiple of 1, 2, or 5
+    var step1 = Math.pow(10, Math.round(log10(step))),
+        step2 = 2 * Math.pow(10, Math.round(log10(step / 2))),
+        step5 = 5 * Math.pow(10, Math.round(log10(step / 5)));
+
+    // choose the best step (closest to minimum step)
+    var prettyStep = step1;
+    if (Math.abs(step2 - step) <= Math.abs(prettyStep - step)) prettyStep = step2;
+    if (Math.abs(step5 - step) <= Math.abs(prettyStep - step)) prettyStep = step5;
+
+    // for safety
+    if (prettyStep <= 0) {
+      prettyStep = 1;
+    }
+
+    return prettyStep;
+  };
+
+  /**
+   * returns the current value of the step
+   * @return {Number} current value
+   */
+  StepNumber.prototype.getCurrent = function () {
+    return parseFloat(this._current.toPrecision(this.precision));
+  };
+
+  /**
+   * returns the current step size
+   * @return {Number} current step size
+   */
+  StepNumber.prototype.getStep = function () {
+    return this._step;
+  };
+
+  /**
+   * Set the current value to the largest value smaller than start, which
+   * is a multiple of the step size
+   */
+  StepNumber.prototype.start = function () {
+    this._current = this._start - this._start % this._step;
+  };
+
+  /**
+   * Do a step, add the step size to the current value
+   */
+  StepNumber.prototype.next = function () {
+    this._current += this._step;
+  };
+
+  /**
+   * Returns true whether the end is reached
+   * @return {boolean}  True if the current value has passed the end value.
+   */
+  StepNumber.prototype.end = function () {
+    return this._current > this._end;
+  };
+
+  module.exports = StepNumber;
+
+/***/ },
+/* 18 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var Emitter = __webpack_require__(11);
+  var Hammer = __webpack_require__(19);
+  var util = __webpack_require__(1);
+  var DataSet = __webpack_require__(7);
+  var DataView = __webpack_require__(9);
+  var Range = __webpack_require__(23);
+  var Core = __webpack_require__(27);
+  var TimeAxis = __webpack_require__(42);
+  var CurrentTime = __webpack_require__(43);
+  var CustomTime = __webpack_require__(40);
+  var ItemSet = __webpack_require__(28);
+
+  /**
+   * Create a timeline visualization
+   * @param {HTMLElement} container
+   * @param {vis.DataSet | vis.DataView | Array | google.visualization.DataTable} [items]
+   * @param {vis.DataSet | vis.DataView | Array | google.visualization.DataTable} [groups]
+   * @param {Object} [options]  See Timeline.setOptions for the available options.
+   * @constructor
+   * @extends Core
+   */
+  function Timeline(container, items, groups, options) {
+    if (!(this instanceof Timeline)) {
+      throw new SyntaxError("Constructor must be called with the new operator");
+    }
+
+    // if the third element is options, the forth is groups (optionally);
+    if (!(Array.isArray(groups) || groups instanceof DataSet || groups instanceof DataView) && groups instanceof Object) {
+      var forthArgument = options;
+      options = groups;
+      groups = forthArgument;
+    }
+
+    var me = this;
+    this.defaultOptions = {
+      start: null,
+      end: null,
+
+      autoResize: true,
+
+      orientation: "bottom",
+      width: null,
+      height: null,
+      maxHeight: null,
+      minHeight: null
+    };
+    this.options = util.deepExtend({}, this.defaultOptions);
+
+    // Create the DOM, props, and emitter
+    this._create(container);
+
+    // all components listed here will be repainted automatically
+    this.components = [];
+
+    this.body = {
+      dom: this.dom,
+      domProps: this.props,
+      emitter: {
+        on: this.on.bind(this),
+        off: this.off.bind(this),
+        emit: this.emit.bind(this)
+      },
+      hiddenDates: [],
+      util: {
+        getScale: function () {
+          return me.timeAxis.step.scale;
+        },
+        getStep: function () {
+          return me.timeAxis.step.step;
+        },
+
+        toScreen: me._toScreen.bind(me),
+        toGlobalScreen: me._toGlobalScreen.bind(me), // this refers to the root.width
+        toTime: me._toTime.bind(me),
+        toGlobalTime: me._toGlobalTime.bind(me)
+      }
+    };
+
+    // range
+    this.range = new Range(this.body);
+    this.components.push(this.range);
+    this.body.range = this.range;
+
+    // time axis
+    this.timeAxis = new TimeAxis(this.body);
+    this.components.push(this.timeAxis);
+
+    // current time bar
+    this.currentTime = new CurrentTime(this.body);
+    this.components.push(this.currentTime);
+
+    // custom time bar
+    // Note: time bar will be attached in this.setOptions when selected
+    this.customTime = new CustomTime(this.body);
+    this.components.push(this.customTime);
+
+    // item set
+    this.itemSet = new ItemSet(this.body);
+    this.components.push(this.itemSet);
+
+    this.itemsData = null; // DataSet
+    this.groupsData = null; // DataSet
+
+    // apply options
+    if (options) {
+      this.setOptions(options);
+    }
+
+    // IMPORTANT: THIS HAPPENS BEFORE SET ITEMS!
+    if (groups) {
+      this.setGroups(groups);
+    }
+
+    // create itemset
+    if (items) {
+      this.setItems(items);
+    } else {
+      this._redraw();
+    }
+  }
+
+  // Extend the functionality from Core
+  Timeline.prototype = new Core();
+
+  /**
+   * Force a redraw. The size of all items will be recalculated.
+   * Can be useful to manually redraw when option autoResize=false and the window
+   * has been resized, or when the items CSS has been changed.
+   */
+  Timeline.prototype.redraw = function () {
+    this.itemSet && this.itemSet.markDirty({ refreshItems: true });
+    this._redraw();
+  };
+
+  /**
+   * Set items
+   * @param {vis.DataSet | Array | google.visualization.DataTable | null} items
+   */
+  Timeline.prototype.setItems = function (items) {
+    var initialLoad = this.itemsData == null;
+
+    // convert to type DataSet when needed
+    var newDataSet;
+    if (!items) {
+      newDataSet = null;
+    } else if (items instanceof DataSet || items instanceof DataView) {
+      newDataSet = items;
+    } else {
+      // turn an array into a dataset
+      newDataSet = new DataSet(items, {
+        type: {
+          start: "Date",
+          end: "Date"
+        }
+      });
+    }
+
+    // set items
+    this.itemsData = newDataSet;
+    this.itemSet && this.itemSet.setItems(newDataSet);
+
+    if (initialLoad) {
+      if (this.options.start != undefined || this.options.end != undefined) {
+        if (this.options.start == undefined || this.options.end == undefined) {
+          var dataRange = this._getDataRange();
+        }
+
+        var start = this.options.start != undefined ? this.options.start : dataRange.start;
+        var end = this.options.end != undefined ? this.options.end : dataRange.end;
+
+        this.setWindow(start, end, { animate: false });
+      } else {
+        this.fit({ animate: false });
       }
     }
   };
 
   /**
-   * Create the DOM for the custom time
+   * Set groups
+   * @param {vis.DataSet | Array | google.visualization.DataTable} groups
+   */
+  Timeline.prototype.setGroups = function (groups) {
+    // convert to type DataSet when needed
+    var newDataSet;
+    if (!groups) {
+      newDataSet = null;
+    } else if (groups instanceof DataSet || groups instanceof DataView) {
+      newDataSet = groups;
+    } else {
+      // turn an array into a dataset
+      newDataSet = new DataSet(groups);
+    }
+
+    this.groupsData = newDataSet;
+    this.itemSet.setGroups(newDataSet);
+  };
+
+  /**
+   * Set selected items by their id. Replaces the current selection
+   * Unknown id's are silently ignored.
+   * @param {string[] | string} [ids]  An array with zero or more id's of the items to be
+   *                                selected. If ids is an empty array, all items will be
+   *                                unselected.
+   * @param {Object} [options]      Available options:
+   *                                `focus: boolean`
+   *                                    If true, focus will be set to the selected item(s)
+   *                                `animate: boolean | number`
+   *                                    If true (default), the range is animated
+   *                                    smoothly to the new window.
+   *                                    If a number, the number is taken as duration
+   *                                    for the animation. Default duration is 500 ms.
+   *                                    Only applicable when option focus is true.
+   */
+  Timeline.prototype.setSelection = function (ids, options) {
+    this.itemSet && this.itemSet.setSelection(ids);
+
+    if (options && options.focus) {
+      this.focus(ids, options);
+    }
+  };
+
+  /**
+   * Get the selected items by their id
+   * @return {Array} ids  The ids of the selected items
+   */
+  Timeline.prototype.getSelection = function () {
+    return this.itemSet && this.itemSet.getSelection() || [];
+  };
+
+  /**
+   * Adjust the visible window such that the selected item (or multiple items)
+   * are centered on screen.
+   * @param {String | String[]} id     An item id or array with item ids
+   * @param {Object} [options]      Available options:
+   *                                `animate: boolean | number`
+   *                                    If true (default), the range is animated
+   *                                    smoothly to the new window.
+   *                                    If a number, the number is taken as duration
+   *                                    for the animation. Default duration is 500 ms.
+   *                                    Only applicable when option focus is true
+   */
+  Timeline.prototype.focus = function (id, options) {
+    if (!this.itemsData || id == undefined) return;
+
+    var ids = Array.isArray(id) ? id : [id];
+
+    // get the specified item(s)
+    var itemsData = this.itemsData.getDataSet().get(ids, {
+      type: {
+        start: "Date",
+        end: "Date"
+      }
+    });
+
+    // calculate minimum start and maximum end of specified items
+    var start = null;
+    var end = null;
+    itemsData.forEach(function (itemData) {
+      var s = itemData.start.valueOf();
+      var e = "end" in itemData ? itemData.end.valueOf() : itemData.start.valueOf();
+
+      if (start === null || s < start) {
+        start = s;
+      }
+
+      if (end === null || e > end) {
+        end = e;
+      }
+    });
+
+    if (start !== null && end !== null) {
+      // calculate the new middle and interval for the window
+      var middle = (start + end) / 2;
+      var interval = Math.max(this.range.end - this.range.start, (end - start) * 1.1);
+
+      var animate = options && options.animate !== undefined ? options.animate : true;
+      this.range.setRange(middle - interval / 2, middle + interval / 2, animate);
+    }
+  };
+
+  /**
+   * Get the data range of the item set.
+   * @returns {{min: Date, max: Date}} range  A range with a start and end Date.
+   *                                          When no minimum is found, min==null
+   *                                          When no maximum is found, max==null
+   */
+  Timeline.prototype.getItemRange = function () {
+    // calculate min from start filed
+    var dataset = this.itemsData.getDataSet(),
+        min = null,
+        max = null;
+
+    if (dataset) {
+      // calculate the minimum value of the field 'start'
+      var minItem = dataset.min("start");
+      min = minItem ? util.convert(minItem.start, "Date").valueOf() : null;
+      // Note: we convert first to Date and then to number because else
+      // a conversion from ISODate to Number will fail
+
+      // calculate maximum value of fields 'start' and 'end'
+      var maxStartItem = dataset.max("start");
+      if (maxStartItem) {
+        max = util.convert(maxStartItem.start, "Date").valueOf();
+      }
+      var maxEndItem = dataset.max("end");
+      if (maxEndItem) {
+        if (max == null) {
+          max = util.convert(maxEndItem.end, "Date").valueOf();
+        } else {
+          max = Math.max(max, util.convert(maxEndItem.end, "Date").valueOf());
+        }
+      }
+    }
+
+    return {
+      min: min != null ? new Date(min) : null,
+      max: max != null ? new Date(max) : null
+    };
+  };
+
+
+  module.exports = Timeline;
+
+/***/ },
+/* 19 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  // Only load hammer.js when in a browser environment
+  // (loading hammer.js in a node.js environment gives errors)
+  if (typeof window !== "undefined") {
+    var propagating = __webpack_require__(20);
+    var Hammer = window.Hammer || __webpack_require__(21);
+    module.exports = propagating(Hammer);
+  } else {
+    module.exports = function () {
+      throw Error("hammer.js is only available in a browser, not in node.js.");
+    };
+  }
+
+/***/ },
+/* 20 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
+
+  (function (factory) {
+    if (true) {
+      // AMD. Register as an anonymous module.
+      !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+    } else if (typeof exports === 'object') {
+      // Node. Does not work with strict CommonJS, but
+      // only CommonJS-like environments that support module.exports,
+      // like Node.
+      module.exports = factory();
+    } else {
+      // Browser globals (root is window)
+      window.propagating = factory();
+    }
+  }(function () {
+    // will contain the target element where the gesture started
+    var _firstTarget = null; // singleton
+
+    /**
+     * Extend an Hammer.js instance with event propagation.
+     *
+     * Features:
+     * - Events emitted by hammer will propagate in order from child to parent
+     *   elements.
+     * - Events are extended with a function `event.stopPropagation()` to stop
+     *   propagation to parent elements.
+     *
+     * Usage:
+     *   var hammer = propagatingHammer(new Hammer(element));
+     *
+     * @param {Hammer.Manager} hammer   An hammer instance.
+     * @return {Hammer.Manager} Returns the same hammer instance with extended
+     *                          functionality
+     */
+    return function propagating(hammer) {
+      if (hammer.Manager) {
+        // This looks like the Hammer constructor.
+        // Overload the constructors with our own.
+        var Hammer = hammer;
+
+        var PropagatingHammer = function(element, options) {
+          return propagating(new Hammer(element, options));
+        };
+        Hammer.extend(PropagatingHammer, Hammer);
+        PropagatingHammer.Manager = function (element, options) {
+          return propagating(new Hammer.Manager(element, options));
+        };
+
+        return PropagatingHammer;
+      }
+
+      // attach to DOM element
+      var element = hammer.element;
+      element.hammer = hammer;
+
+      // move the original functions that we will wrap
+      hammer._on = hammer.on;
+      hammer._off = hammer.off;
+      hammer._emit = hammer.emit;
+      hammer._destroy = hammer.destroy;
+
+      /** @type {Object.<String, Array.<function>>} */
+      hammer._handlers = {};
+
+      // register an event to catch the start of a gesture and store the
+      // target in a singleton
+      hammer._on('hammer.input', function (event) {
+        if (event.isFirst) {
+          _firstTarget = event.target;
+        }
+      });
+
+      /**
+       * Register a handler for one or multiple events
+       * @param {String} events    A space separated string with events
+       * @param {function} handler A callback function, called as handler(event)
+       * @returns {Hammer.Manager} Returns the hammer instance
+       */
+      hammer.on = function (events, handler) {
+        // register the handler
+        split(events).forEach(function (event) {
+          var _handlers = hammer._handlers[event];
+          if (!_handlers) {
+            hammer._handlers[event] = _handlers = [];
+
+            // register the static, propagated handler
+            hammer._on(event, propagatedHandler);
+          }
+          _handlers.push(handler);
+        });
+
+        return hammer;
+      };
+
+      /**
+       * Unregister a handler for one or multiple events
+       * @param {String} events      A space separated string with events
+       * @param {function} [handler] Optional. The registered handler. If not
+       *                             provided, all handlers for given events
+       *                             are removed.
+       * @returns {Hammer.Manager}   Returns the hammer instance
+       */
+      hammer.off = function (events, handler) {
+        // unregister the handler
+        split(events).forEach(function (event) {
+          var _handlers = hammer._handlers[event];
+          if (_handlers) {
+            _handlers = handler ? _handlers.filter(function (h) {
+              return h !== handler;
+            }) : [];
+
+            if (_handlers.length > 0) {
+              hammer._handlers[event] = _handlers;
+            }
+            else {
+              // remove static, propagated handler
+              hammer._off(event, propagatedHandler);
+              delete hammer._handlers[event];
+            }
+          }
+        });
+
+        return hammer;
+      };
+
+      /**
+       * Emit to the event listeners
+       * @param {string} eventType
+       * @param {Event} event
+       */
+      hammer.emit = function(eventType, event) {
+        _firstTarget = event.target;
+        hammer._emit(eventType, event);
+      };
+
+      hammer.destroy = function () {
+        // Detach from DOM element
+        var element = hammer.element;
+        delete element.hammer;
+
+        // clear all handlers
+        hammer._handlers = {};
+
+        // call original hammer destroy
+        hammer._destroy();
+      };
+
+      // split a string with space separated words
+      function split(events) {
+        return events.match(/[^ ]+/g);
+      }
+
+      /**
+       * A static event handler, applying event propagation.
+       * @param {Object} event
+       */
+      function propagatedHandler(event) {
+        // let only a single hammer instance handle this event
+        if (event.type !== 'hammer.input') {
+          if (event.srcEvent._handled && event.srcEvent._handled[event.type]) {
+            return;
+          }
+          else {
+            // it is possible that the same srcEvent is used with multiple hammer events
+            event.srcEvent._handled = {};
+            event.srcEvent._handled[event.type] = true;
+          }
+        }
+
+        // attach a stopPropagation function to the event
+        var stopped = false;
+        event.stopPropagation = function () {
+          stopped = true;
+        };
+
+        // attach firstTarget property to the event
+        event.firstTarget = _firstTarget;
+
+        // propagate over all elements (until stopped)
+        var elem = _firstTarget;
+        while (elem && !stopped) {
+          var _handlers = elem.hammer && elem.hammer._handlers[event.type];
+          if (_handlers) {
+            for (var i = 0; i < _handlers.length && !stopped; i++) {
+              _handlers[i](event);
+            }
+          }
+
+          elem = elem.parentNode;
+        }
+      }
+
+      return hammer;
+    };
+  }));
+
+
+/***/ },
+/* 21 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v2.0.4 - 2014-09-28
+   * http://hammerjs.github.io/
+   *
+   * Copyright (c) 2014 Jorik Tangelder;
+   * Licensed under the MIT license */
+  (function(window, document, exportName, undefined) {
+    'use strict';
+
+  var VENDOR_PREFIXES = ['', 'webkit', 'moz', 'MS', 'ms', 'o'];
+  var TEST_ELEMENT = document.createElement('div');
+
+  var TYPE_FUNCTION = 'function';
+
+  var round = Math.round;
+  var abs = Math.abs;
+  var now = Date.now;
+
+  /**
+   * set a timeout with a given scope
+   * @param {Function} fn
+   * @param {Number} timeout
+   * @param {Object} context
+   * @returns {number}
+   */
+  function setTimeoutContext(fn, timeout, context) {
+      return setTimeout(bindFn(fn, context), timeout);
+  }
+
+  /**
+   * if the argument is an array, we want to execute the fn on each entry
+   * if it aint an array we don't want to do a thing.
+   * this is used by all the methods that accept a single and array argument.
+   * @param {*|Array} arg
+   * @param {String} fn
+   * @param {Object} [context]
+   * @returns {Boolean}
+   */
+  function invokeArrayArg(arg, fn, context) {
+      if (Array.isArray(arg)) {
+          each(arg, context[fn], context);
+          return true;
+      }
+      return false;
+  }
+
+  /**
+   * walk objects and arrays
+   * @param {Object} obj
+   * @param {Function} iterator
+   * @param {Object} context
+   */
+  function each(obj, iterator, context) {
+      var i;
+
+      if (!obj) {
+          return;
+      }
+
+      if (obj.forEach) {
+          obj.forEach(iterator, context);
+      } else if (obj.length !== undefined) {
+          i = 0;
+          while (i < obj.length) {
+              iterator.call(context, obj[i], i, obj);
+              i++;
+          }
+      } else {
+          for (i in obj) {
+              obj.hasOwnProperty(i) && iterator.call(context, obj[i], i, obj);
+          }
+      }
+  }
+
+  /**
+   * extend object.
+   * means that properties in dest will be overwritten by the ones in src.
+   * @param {Object} dest
+   * @param {Object} src
+   * @param {Boolean} [merge]
+   * @returns {Object} dest
+   */
+  function extend(dest, src, merge) {
+      var keys = Object.keys(src);
+      var i = 0;
+      while (i < keys.length) {
+          if (!merge || (merge && dest[keys[i]] === undefined)) {
+              dest[keys[i]] = src[keys[i]];
+          }
+          i++;
+      }
+      return dest;
+  }
+
+  /**
+   * merge the values from src in the dest.
+   * means that properties that exist in dest will not be overwritten by src
+   * @param {Object} dest
+   * @param {Object} src
+   * @returns {Object} dest
+   */
+  function merge(dest, src) {
+      return extend(dest, src, true);
+  }
+
+  /**
+   * simple class inheritance
+   * @param {Function} child
+   * @param {Function} base
+   * @param {Object} [properties]
+   */
+  function inherit(child, base, properties) {
+      var baseP = base.prototype,
+          childP;
+
+      childP = child.prototype = Object.create(baseP);
+      childP.constructor = child;
+      childP._super = baseP;
+
+      if (properties) {
+          extend(childP, properties);
+      }
+  }
+
+  /**
+   * simple function bind
+   * @param {Function} fn
+   * @param {Object} context
+   * @returns {Function}
+   */
+  function bindFn(fn, context) {
+      return function boundFn() {
+          return fn.apply(context, arguments);
+      };
+  }
+
+  /**
+   * let a boolean value also be a function that must return a boolean
+   * this first item in args will be used as the context
+   * @param {Boolean|Function} val
+   * @param {Array} [args]
+   * @returns {Boolean}
+   */
+  function boolOrFn(val, args) {
+      if (typeof val == TYPE_FUNCTION) {
+          return val.apply(args ? args[0] || undefined : undefined, args);
+      }
+      return val;
+  }
+
+  /**
+   * use the val2 when val1 is undefined
+   * @param {*} val1
+   * @param {*} val2
+   * @returns {*}
+   */
+  function ifUndefined(val1, val2) {
+      return (val1 === undefined) ? val2 : val1;
+  }
+
+  /**
+   * addEventListener with multiple events at once
+   * @param {EventTarget} target
+   * @param {String} types
+   * @param {Function} handler
+   */
+  function addEventListeners(target, types, handler) {
+      each(splitStr(types), function(type) {
+          target.addEventListener(type, handler, false);
+      });
+  }
+
+  /**
+   * removeEventListener with multiple events at once
+   * @param {EventTarget} target
+   * @param {String} types
+   * @param {Function} handler
+   */
+  function removeEventListeners(target, types, handler) {
+      each(splitStr(types), function(type) {
+          target.removeEventListener(type, handler, false);
+      });
+  }
+
+  /**
+   * find if a node is in the given parent
+   * @method hasParent
+   * @param {HTMLElement} node
+   * @param {HTMLElement} parent
+   * @return {Boolean} found
+   */
+  function hasParent(node, parent) {
+      while (node) {
+          if (node == parent) {
+              return true;
+          }
+          node = node.parentNode;
+      }
+      return false;
+  }
+
+  /**
+   * small indexOf wrapper
+   * @param {String} str
+   * @param {String} find
+   * @returns {Boolean} found
+   */
+  function inStr(str, find) {
+      return str.indexOf(find) > -1;
+  }
+
+  /**
+   * split string on whitespace
+   * @param {String} str
+   * @returns {Array} words
+   */
+  function splitStr(str) {
+      return str.trim().split(/\s+/g);
+  }
+
+  /**
+   * find if a array contains the object using indexOf or a simple polyFill
+   * @param {Array} src
+   * @param {String} find
+   * @param {String} [findByKey]
+   * @return {Boolean|Number} false when not found, or the index
+   */
+  function inArray(src, find, findByKey) {
+      if (src.indexOf && !findByKey) {
+          return src.indexOf(find);
+      } else {
+          var i = 0;
+          while (i < src.length) {
+              if ((findByKey && src[i][findByKey] == find) || (!findByKey && src[i] === find)) {
+                  return i;
+              }
+              i++;
+          }
+          return -1;
+      }
+  }
+
+  /**
+   * convert array-like objects to real arrays
+   * @param {Object} obj
+   * @returns {Array}
+   */
+  function toArray(obj) {
+      return Array.prototype.slice.call(obj, 0);
+  }
+
+  /**
+   * unique array with objects based on a key (like 'id') or just by the array's value
+   * @param {Array} src [{id:1},{id:2},{id:1}]
+   * @param {String} [key]
+   * @param {Boolean} [sort=False]
+   * @returns {Array} [{id:1},{id:2}]
+   */
+  function uniqueArray(src, key, sort) {
+      var results = [];
+      var values = [];
+      var i = 0;
+
+      while (i < src.length) {
+          var val = key ? src[i][key] : src[i];
+          if (inArray(values, val) < 0) {
+              results.push(src[i]);
+          }
+          values[i] = val;
+          i++;
+      }
+
+      if (sort) {
+          if (!key) {
+              results = results.sort();
+          } else {
+              results = results.sort(function sortUniqueArray(a, b) {
+                  return a[key] > b[key];
+              });
+          }
+      }
+
+      return results;
+  }
+
+  /**
+   * get the prefixed property
+   * @param {Object} obj
+   * @param {String} property
+   * @returns {String|Undefined} prefixed
+   */
+  function prefixed(obj, property) {
+      var prefix, prop;
+      var camelProp = property[0].toUpperCase() + property.slice(1);
+
+      var i = 0;
+      while (i < VENDOR_PREFIXES.length) {
+          prefix = VENDOR_PREFIXES[i];
+          prop = (prefix) ? prefix + camelProp : property;
+
+          if (prop in obj) {
+              return prop;
+          }
+          i++;
+      }
+      return undefined;
+  }
+
+  /**
+   * get a unique id
+   * @returns {number} uniqueId
+   */
+  var _uniqueId = 1;
+  function uniqueId() {
+      return _uniqueId++;
+  }
+
+  /**
+   * get the window object of an element
+   * @param {HTMLElement} element
+   * @returns {DocumentView|Window}
+   */
+  function getWindowForElement(element) {
+      var doc = element.ownerDocument;
+      return (doc.defaultView || doc.parentWindow);
+  }
+
+  var MOBILE_REGEX = /mobile|tablet|ip(ad|hone|od)|android/i;
+
+  var SUPPORT_TOUCH = ('ontouchstart' in window);
+  var SUPPORT_POINTER_EVENTS = prefixed(window, 'PointerEvent') !== undefined;
+  var SUPPORT_ONLY_TOUCH = SUPPORT_TOUCH && MOBILE_REGEX.test(navigator.userAgent);
+
+  var INPUT_TYPE_TOUCH = 'touch';
+  var INPUT_TYPE_PEN = 'pen';
+  var INPUT_TYPE_MOUSE = 'mouse';
+  var INPUT_TYPE_KINECT = 'kinect';
+
+  var COMPUTE_INTERVAL = 25;
+
+  var INPUT_START = 1;
+  var INPUT_MOVE = 2;
+  var INPUT_END = 4;
+  var INPUT_CANCEL = 8;
+
+  var DIRECTION_NONE = 1;
+  var DIRECTION_LEFT = 2;
+  var DIRECTION_RIGHT = 4;
+  var DIRECTION_UP = 8;
+  var DIRECTION_DOWN = 16;
+
+  var DIRECTION_HORIZONTAL = DIRECTION_LEFT | DIRECTION_RIGHT;
+  var DIRECTION_VERTICAL = DIRECTION_UP | DIRECTION_DOWN;
+  var DIRECTION_ALL = DIRECTION_HORIZONTAL | DIRECTION_VERTICAL;
+
+  var PROPS_XY = ['x', 'y'];
+  var PROPS_CLIENT_XY = ['clientX', 'clientY'];
+
+  /**
+   * create new input type manager
+   * @param {Manager} manager
+   * @param {Function} callback
+   * @returns {Input}
+   * @constructor
+   */
+  function Input(manager, callback) {
+      var self = this;
+      this.manager = manager;
+      this.callback = callback;
+      this.element = manager.element;
+      this.target = manager.options.inputTarget;
+
+      // smaller wrapper around the handler, for the scope and the enabled state of the manager,
+      // so when disabled the input events are completely bypassed.
+      this.domHandler = function(ev) {
+          if (boolOrFn(manager.options.enable, [manager])) {
+              self.handler(ev);
+          }
+      };
+
+      this.init();
+
+  }
+
+  Input.prototype = {
+      /**
+       * should handle the inputEvent data and trigger the callback
+       * @virtual
+       */
+      handler: function() { },
+
+      /**
+       * bind the events
+       */
+      init: function() {
+          this.evEl && addEventListeners(this.element, this.evEl, this.domHandler);
+          this.evTarget && addEventListeners(this.target, this.evTarget, this.domHandler);
+          this.evWin && addEventListeners(getWindowForElement(this.element), this.evWin, this.domHandler);
+      },
+
+      /**
+       * unbind the events
+       */
+      destroy: function() {
+          this.evEl && removeEventListeners(this.element, this.evEl, this.domHandler);
+          this.evTarget && removeEventListeners(this.target, this.evTarget, this.domHandler);
+          this.evWin && removeEventListeners(getWindowForElement(this.element), this.evWin, this.domHandler);
+      }
+  };
+
+  /**
+   * create new input type manager
+   * called by the Manager constructor
+   * @param {Hammer} manager
+   * @returns {Input}
+   */
+  function createInputInstance(manager) {
+      var Type;
+      var inputClass = manager.options.inputClass;
+
+      if (inputClass) {
+          Type = inputClass;
+      } else if (SUPPORT_POINTER_EVENTS) {
+          Type = PointerEventInput;
+      } else if (SUPPORT_ONLY_TOUCH) {
+          Type = TouchInput;
+      } else if (!SUPPORT_TOUCH) {
+          Type = MouseInput;
+      } else {
+          Type = TouchMouseInput;
+      }
+      return new (Type)(manager, inputHandler);
+  }
+
+  /**
+   * handle input events
+   * @param {Manager} manager
+   * @param {String} eventType
+   * @param {Object} input
+   */
+  function inputHandler(manager, eventType, input) {
+      var pointersLen = input.pointers.length;
+      var changedPointersLen = input.changedPointers.length;
+      var isFirst = (eventType & INPUT_START && (pointersLen - changedPointersLen === 0));
+      var isFinal = (eventType & (INPUT_END | INPUT_CANCEL) && (pointersLen - changedPointersLen === 0));
+
+      input.isFirst = !!isFirst;
+      input.isFinal = !!isFinal;
+
+      if (isFirst) {
+          manager.session = {};
+      }
+
+      // source event is the normalized value of the domEvents
+      // like 'touchstart, mouseup, pointerdown'
+      input.eventType = eventType;
+
+      // compute scale, rotation etc
+      computeInputData(manager, input);
+
+      // emit secret event
+      manager.emit('hammer.input', input);
+
+      manager.recognize(input);
+      manager.session.prevInput = input;
+  }
+
+  /**
+   * extend the data with some usable properties like scale, rotate, velocity etc
+   * @param {Object} manager
+   * @param {Object} input
+   */
+  function computeInputData(manager, input) {
+      var session = manager.session;
+      var pointers = input.pointers;
+      var pointersLength = pointers.length;
+
+      // store the first input to calculate the distance and direction
+      if (!session.firstInput) {
+          session.firstInput = simpleCloneInputData(input);
+      }
+
+      // to compute scale and rotation we need to store the multiple touches
+      if (pointersLength > 1 && !session.firstMultiple) {
+          session.firstMultiple = simpleCloneInputData(input);
+      } else if (pointersLength === 1) {
+          session.firstMultiple = false;
+      }
+
+      var firstInput = session.firstInput;
+      var firstMultiple = session.firstMultiple;
+      var offsetCenter = firstMultiple ? firstMultiple.center : firstInput.center;
+
+      var center = input.center = getCenter(pointers);
+      input.timeStamp = now();
+      input.deltaTime = input.timeStamp - firstInput.timeStamp;
+
+      input.angle = getAngle(offsetCenter, center);
+      input.distance = getDistance(offsetCenter, center);
+
+      computeDeltaXY(session, input);
+      input.offsetDirection = getDirection(input.deltaX, input.deltaY);
+
+      input.scale = firstMultiple ? getScale(firstMultiple.pointers, pointers) : 1;
+      input.rotation = firstMultiple ? getRotation(firstMultiple.pointers, pointers) : 0;
+
+      computeIntervalInputData(session, input);
+
+      // find the correct target
+      var target = manager.element;
+      if (hasParent(input.srcEvent.target, target)) {
+          target = input.srcEvent.target;
+      }
+      input.target = target;
+  }
+
+  function computeDeltaXY(session, input) {
+      var center = input.center;
+      var offset = session.offsetDelta || {};
+      var prevDelta = session.prevDelta || {};
+      var prevInput = session.prevInput || {};
+
+      if (input.eventType === INPUT_START || prevInput.eventType === INPUT_END) {
+          prevDelta = session.prevDelta = {
+              x: prevInput.deltaX || 0,
+              y: prevInput.deltaY || 0
+          };
+
+          offset = session.offsetDelta = {
+              x: center.x,
+              y: center.y
+          };
+      }
+
+      input.deltaX = prevDelta.x + (center.x - offset.x);
+      input.deltaY = prevDelta.y + (center.y - offset.y);
+  }
+
+  /**
+   * velocity is calculated every x ms
+   * @param {Object} session
+   * @param {Object} input
+   */
+  function computeIntervalInputData(session, input) {
+      var last = session.lastInterval || input,
+          deltaTime = input.timeStamp - last.timeStamp,
+          velocity, velocityX, velocityY, direction;
+
+      if (input.eventType != INPUT_CANCEL && (deltaTime > COMPUTE_INTERVAL || last.velocity === undefined)) {
+          var deltaX = last.deltaX - input.deltaX;
+          var deltaY = last.deltaY - input.deltaY;
+
+          var v = getVelocity(deltaTime, deltaX, deltaY);
+          velocityX = v.x;
+          velocityY = v.y;
+          velocity = (abs(v.x) > abs(v.y)) ? v.x : v.y;
+          direction = getDirection(deltaX, deltaY);
+
+          session.lastInterval = input;
+      } else {
+          // use latest velocity info if it doesn't overtake a minimum period
+          velocity = last.velocity;
+          velocityX = last.velocityX;
+          velocityY = last.velocityY;
+          direction = last.direction;
+      }
+
+      input.velocity = velocity;
+      input.velocityX = velocityX;
+      input.velocityY = velocityY;
+      input.direction = direction;
+  }
+
+  /**
+   * create a simple clone from the input used for storage of firstInput and firstMultiple
+   * @param {Object} input
+   * @returns {Object} clonedInputData
+   */
+  function simpleCloneInputData(input) {
+      // make a simple copy of the pointers because we will get a reference if we don't
+      // we only need clientXY for the calculations
+      var pointers = [];
+      var i = 0;
+      while (i < input.pointers.length) {
+          pointers[i] = {
+              clientX: round(input.pointers[i].clientX),
+              clientY: round(input.pointers[i].clientY)
+          };
+          i++;
+      }
+
+      return {
+          timeStamp: now(),
+          pointers: pointers,
+          center: getCenter(pointers),
+          deltaX: input.deltaX,
+          deltaY: input.deltaY
+      };
+  }
+
+  /**
+   * get the center of all the pointers
+   * @param {Array} pointers
+   * @return {Object} center contains `x` and `y` properties
+   */
+  function getCenter(pointers) {
+      var pointersLength = pointers.length;
+
+      // no need to loop when only one touch
+      if (pointersLength === 1) {
+          return {
+              x: round(pointers[0].clientX),
+              y: round(pointers[0].clientY)
+          };
+      }
+
+      var x = 0, y = 0, i = 0;
+      while (i < pointersLength) {
+          x += pointers[i].clientX;
+          y += pointers[i].clientY;
+          i++;
+      }
+
+      return {
+          x: round(x / pointersLength),
+          y: round(y / pointersLength)
+      };
+  }
+
+  /**
+   * calculate the velocity between two points. unit is in px per ms.
+   * @param {Number} deltaTime
+   * @param {Number} x
+   * @param {Number} y
+   * @return {Object} velocity `x` and `y`
+   */
+  function getVelocity(deltaTime, x, y) {
+      return {
+          x: x / deltaTime || 0,
+          y: y / deltaTime || 0
+      };
+  }
+
+  /**
+   * get the direction between two points
+   * @param {Number} x
+   * @param {Number} y
+   * @return {Number} direction
+   */
+  function getDirection(x, y) {
+      if (x === y) {
+          return DIRECTION_NONE;
+      }
+
+      if (abs(x) >= abs(y)) {
+          return x > 0 ? DIRECTION_LEFT : DIRECTION_RIGHT;
+      }
+      return y > 0 ? DIRECTION_UP : DIRECTION_DOWN;
+  }
+
+  /**
+   * calculate the absolute distance between two points
+   * @param {Object} p1 {x, y}
+   * @param {Object} p2 {x, y}
+   * @param {Array} [props] containing x and y keys
+   * @return {Number} distance
+   */
+  function getDistance(p1, p2, props) {
+      if (!props) {
+          props = PROPS_XY;
+      }
+      var x = p2[props[0]] - p1[props[0]],
+          y = p2[props[1]] - p1[props[1]];
+
+      return Math.sqrt((x * x) + (y * y));
+  }
+
+  /**
+   * calculate the angle between two coordinates
+   * @param {Object} p1
+   * @param {Object} p2
+   * @param {Array} [props] containing x and y keys
+   * @return {Number} angle
+   */
+  function getAngle(p1, p2, props) {
+      if (!props) {
+          props = PROPS_XY;
+      }
+      var x = p2[props[0]] - p1[props[0]],
+          y = p2[props[1]] - p1[props[1]];
+      return Math.atan2(y, x) * 180 / Math.PI;
+  }
+
+  /**
+   * calculate the rotation degrees between two pointersets
+   * @param {Array} start array of pointers
+   * @param {Array} end array of pointers
+   * @return {Number} rotation
+   */
+  function getRotation(start, end) {
+      return getAngle(end[1], end[0], PROPS_CLIENT_XY) - getAngle(start[1], start[0], PROPS_CLIENT_XY);
+  }
+
+  /**
+   * calculate the scale factor between two pointersets
+   * no scale is 1, and goes down to 0 when pinched together, and bigger when pinched out
+   * @param {Array} start array of pointers
+   * @param {Array} end array of pointers
+   * @return {Number} scale
+   */
+  function getScale(start, end) {
+      return getDistance(end[0], end[1], PROPS_CLIENT_XY) / getDistance(start[0], start[1], PROPS_CLIENT_XY);
+  }
+
+  var MOUSE_INPUT_MAP = {
+      mousedown: INPUT_START,
+      mousemove: INPUT_MOVE,
+      mouseup: INPUT_END
+  };
+
+  var MOUSE_ELEMENT_EVENTS = 'mousedown';
+  var MOUSE_WINDOW_EVENTS = 'mousemove mouseup';
+
+  /**
+   * Mouse events input
+   * @constructor
+   * @extends Input
+   */
+  function MouseInput() {
+      this.evEl = MOUSE_ELEMENT_EVENTS;
+      this.evWin = MOUSE_WINDOW_EVENTS;
+
+      this.allow = true; // used by Input.TouchMouse to disable mouse events
+      this.pressed = false; // mousedown state
+
+      Input.apply(this, arguments);
+  }
+
+  inherit(MouseInput, Input, {
+      /**
+       * handle mouse events
+       * @param {Object} ev
+       */
+      handler: function MEhandler(ev) {
+          var eventType = MOUSE_INPUT_MAP[ev.type];
+
+          // on start we want to have the left mouse button down
+          if (eventType & INPUT_START && ev.button === 0) {
+              this.pressed = true;
+          }
+
+          if (eventType & INPUT_MOVE && ev.which !== 1) {
+              eventType = INPUT_END;
+          }
+
+          // mouse must be down, and mouse events are allowed (see the TouchMouse input)
+          if (!this.pressed || !this.allow) {
+              return;
+          }
+
+          if (eventType & INPUT_END) {
+              this.pressed = false;
+          }
+
+          this.callback(this.manager, eventType, {
+              pointers: [ev],
+              changedPointers: [ev],
+              pointerType: INPUT_TYPE_MOUSE,
+              srcEvent: ev
+          });
+      }
+  });
+
+  var POINTER_INPUT_MAP = {
+      pointerdown: INPUT_START,
+      pointermove: INPUT_MOVE,
+      pointerup: INPUT_END,
+      pointercancel: INPUT_CANCEL,
+      pointerout: INPUT_CANCEL
+  };
+
+  // in IE10 the pointer types is defined as an enum
+  var IE10_POINTER_TYPE_ENUM = {
+      2: INPUT_TYPE_TOUCH,
+      3: INPUT_TYPE_PEN,
+      4: INPUT_TYPE_MOUSE,
+      5: INPUT_TYPE_KINECT // see https://twitter.com/jacobrossi/status/480596438489890816
+  };
+
+  var POINTER_ELEMENT_EVENTS = 'pointerdown';
+  var POINTER_WINDOW_EVENTS = 'pointermove pointerup pointercancel';
+
+  // IE10 has prefixed support, and case-sensitive
+  if (window.MSPointerEvent) {
+      POINTER_ELEMENT_EVENTS = 'MSPointerDown';
+      POINTER_WINDOW_EVENTS = 'MSPointerMove MSPointerUp MSPointerCancel';
+  }
+
+  /**
+   * Pointer events input
+   * @constructor
+   * @extends Input
+   */
+  function PointerEventInput() {
+      this.evEl = POINTER_ELEMENT_EVENTS;
+      this.evWin = POINTER_WINDOW_EVENTS;
+
+      Input.apply(this, arguments);
+
+      this.store = (this.manager.session.pointerEvents = []);
+  }
+
+  inherit(PointerEventInput, Input, {
+      /**
+       * handle mouse events
+       * @param {Object} ev
+       */
+      handler: function PEhandler(ev) {
+          var store = this.store;
+          var removePointer = false;
+
+          var eventTypeNormalized = ev.type.toLowerCase().replace('ms', '');
+          var eventType = POINTER_INPUT_MAP[eventTypeNormalized];
+          var pointerType = IE10_POINTER_TYPE_ENUM[ev.pointerType] || ev.pointerType;
+
+          var isTouch = (pointerType == INPUT_TYPE_TOUCH);
+
+          // get index of the event in the store
+          var storeIndex = inArray(store, ev.pointerId, 'pointerId');
+
+          // start and mouse must be down
+          if (eventType & INPUT_START && (ev.button === 0 || isTouch)) {
+              if (storeIndex < 0) {
+                  store.push(ev);
+                  storeIndex = store.length - 1;
+              }
+          } else if (eventType & (INPUT_END | INPUT_CANCEL)) {
+              removePointer = true;
+          }
+
+          // it not found, so the pointer hasn't been down (so it's probably a hover)
+          if (storeIndex < 0) {
+              return;
+          }
+
+          // update the event in the store
+          store[storeIndex] = ev;
+
+          this.callback(this.manager, eventType, {
+              pointers: store,
+              changedPointers: [ev],
+              pointerType: pointerType,
+              srcEvent: ev
+          });
+
+          if (removePointer) {
+              // remove from the store
+              store.splice(storeIndex, 1);
+          }
+      }
+  });
+
+  var SINGLE_TOUCH_INPUT_MAP = {
+      touchstart: INPUT_START,
+      touchmove: INPUT_MOVE,
+      touchend: INPUT_END,
+      touchcancel: INPUT_CANCEL
+  };
+
+  var SINGLE_TOUCH_TARGET_EVENTS = 'touchstart';
+  var SINGLE_TOUCH_WINDOW_EVENTS = 'touchstart touchmove touchend touchcancel';
+
+  /**
+   * Touch events input
+   * @constructor
+   * @extends Input
+   */
+  function SingleTouchInput() {
+      this.evTarget = SINGLE_TOUCH_TARGET_EVENTS;
+      this.evWin = SINGLE_TOUCH_WINDOW_EVENTS;
+      this.started = false;
+
+      Input.apply(this, arguments);
+  }
+
+  inherit(SingleTouchInput, Input, {
+      handler: function TEhandler(ev) {
+          var type = SINGLE_TOUCH_INPUT_MAP[ev.type];
+
+          // should we handle the touch events?
+          if (type === INPUT_START) {
+              this.started = true;
+          }
+
+          if (!this.started) {
+              return;
+          }
+
+          var touches = normalizeSingleTouches.call(this, ev, type);
+
+          // when done, reset the started state
+          if (type & (INPUT_END | INPUT_CANCEL) && touches[0].length - touches[1].length === 0) {
+              this.started = false;
+          }
+
+          this.callback(this.manager, type, {
+              pointers: touches[0],
+              changedPointers: touches[1],
+              pointerType: INPUT_TYPE_TOUCH,
+              srcEvent: ev
+          });
+      }
+  });
+
+  /**
+   * @this {TouchInput}
+   * @param {Object} ev
+   * @param {Number} type flag
+   * @returns {undefined|Array} [all, changed]
+   */
+  function normalizeSingleTouches(ev, type) {
+      var all = toArray(ev.touches);
+      var changed = toArray(ev.changedTouches);
+
+      if (type & (INPUT_END | INPUT_CANCEL)) {
+          all = uniqueArray(all.concat(changed), 'identifier', true);
+      }
+
+      return [all, changed];
+  }
+
+  var TOUCH_INPUT_MAP = {
+      touchstart: INPUT_START,
+      touchmove: INPUT_MOVE,
+      touchend: INPUT_END,
+      touchcancel: INPUT_CANCEL
+  };
+
+  var TOUCH_TARGET_EVENTS = 'touchstart touchmove touchend touchcancel';
+
+  /**
+   * Multi-user touch events input
+   * @constructor
+   * @extends Input
+   */
+  function TouchInput() {
+      this.evTarget = TOUCH_TARGET_EVENTS;
+      this.targetIds = {};
+
+      Input.apply(this, arguments);
+  }
+
+  inherit(TouchInput, Input, {
+      handler: function MTEhandler(ev) {
+          var type = TOUCH_INPUT_MAP[ev.type];
+          var touches = getTouches.call(this, ev, type);
+          if (!touches) {
+              return;
+          }
+
+          this.callback(this.manager, type, {
+              pointers: touches[0],
+              changedPointers: touches[1],
+              pointerType: INPUT_TYPE_TOUCH,
+              srcEvent: ev
+          });
+      }
+  });
+
+  /**
+   * @this {TouchInput}
+   * @param {Object} ev
+   * @param {Number} type flag
+   * @returns {undefined|Array} [all, changed]
+   */
+  function getTouches(ev, type) {
+      var allTouches = toArray(ev.touches);
+      var targetIds = this.targetIds;
+
+      // when there is only one touch, the process can be simplified
+      if (type & (INPUT_START | INPUT_MOVE) && allTouches.length === 1) {
+          targetIds[allTouches[0].identifier] = true;
+          return [allTouches, allTouches];
+      }
+
+      var i,
+          targetTouches,
+          changedTouches = toArray(ev.changedTouches),
+          changedTargetTouches = [],
+          target = this.target;
+
+      // get target touches from touches
+      targetTouches = allTouches.filter(function(touch) {
+          return hasParent(touch.target, target);
+      });
+
+      // collect touches
+      if (type === INPUT_START) {
+          i = 0;
+          while (i < targetTouches.length) {
+              targetIds[targetTouches[i].identifier] = true;
+              i++;
+          }
+      }
+
+      // filter changed touches to only contain touches that exist in the collected target ids
+      i = 0;
+      while (i < changedTouches.length) {
+          if (targetIds[changedTouches[i].identifier]) {
+              changedTargetTouches.push(changedTouches[i]);
+          }
+
+          // cleanup removed touches
+          if (type & (INPUT_END | INPUT_CANCEL)) {
+              delete targetIds[changedTouches[i].identifier];
+          }
+          i++;
+      }
+
+      if (!changedTargetTouches.length) {
+          return;
+      }
+
+      return [
+          // merge targetTouches with changedTargetTouches so it contains ALL touches, including 'end' and 'cancel'
+          uniqueArray(targetTouches.concat(changedTargetTouches), 'identifier', true),
+          changedTargetTouches
+      ];
+  }
+
+  /**
+   * Combined touch and mouse input
+   *
+   * Touch has a higher priority then mouse, and while touching no mouse events are allowed.
+   * This because touch devices also emit mouse events while doing a touch.
+   *
+   * @constructor
+   * @extends Input
+   */
+  function TouchMouseInput() {
+      Input.apply(this, arguments);
+
+      var handler = bindFn(this.handler, this);
+      this.touch = new TouchInput(this.manager, handler);
+      this.mouse = new MouseInput(this.manager, handler);
+  }
+
+  inherit(TouchMouseInput, Input, {
+      /**
+       * handle mouse and touch events
+       * @param {Hammer} manager
+       * @param {String} inputEvent
+       * @param {Object} inputData
+       */
+      handler: function TMEhandler(manager, inputEvent, inputData) {
+          var isTouch = (inputData.pointerType == INPUT_TYPE_TOUCH),
+              isMouse = (inputData.pointerType == INPUT_TYPE_MOUSE);
+
+          // when we're in a touch event, so  block all upcoming mouse events
+          // most mobile browser also emit mouseevents, right after touchstart
+          if (isTouch) {
+              this.mouse.allow = false;
+          } else if (isMouse && !this.mouse.allow) {
+              return;
+          }
+
+          // reset the allowMouse when we're done
+          if (inputEvent & (INPUT_END | INPUT_CANCEL)) {
+              this.mouse.allow = true;
+          }
+
+          this.callback(manager, inputEvent, inputData);
+      },
+
+      /**
+       * remove the event listeners
+       */
+      destroy: function destroy() {
+          this.touch.destroy();
+          this.mouse.destroy();
+      }
+  });
+
+  var PREFIXED_TOUCH_ACTION = prefixed(TEST_ELEMENT.style, 'touchAction');
+  var NATIVE_TOUCH_ACTION = PREFIXED_TOUCH_ACTION !== undefined;
+
+  // magical touchAction value
+  var TOUCH_ACTION_COMPUTE = 'compute';
+  var TOUCH_ACTION_AUTO = 'auto';
+  var TOUCH_ACTION_MANIPULATION = 'manipulation'; // not implemented
+  var TOUCH_ACTION_NONE = 'none';
+  var TOUCH_ACTION_PAN_X = 'pan-x';
+  var TOUCH_ACTION_PAN_Y = 'pan-y';
+
+  /**
+   * Touch Action
+   * sets the touchAction property or uses the js alternative
+   * @param {Manager} manager
+   * @param {String} value
+   * @constructor
+   */
+  function TouchAction(manager, value) {
+      this.manager = manager;
+      this.set(value);
+  }
+
+  TouchAction.prototype = {
+      /**
+       * set the touchAction value on the element or enable the polyfill
+       * @param {String} value
+       */
+      set: function(value) {
+          // find out the touch-action by the event handlers
+          if (value == TOUCH_ACTION_COMPUTE) {
+              value = this.compute();
+          }
+
+          if (NATIVE_TOUCH_ACTION) {
+              this.manager.element.style[PREFIXED_TOUCH_ACTION] = value;
+          }
+          this.actions = value.toLowerCase().trim();
+      },
+
+      /**
+       * just re-set the touchAction value
+       */
+      update: function() {
+          this.set(this.manager.options.touchAction);
+      },
+
+      /**
+       * compute the value for the touchAction property based on the recognizer's settings
+       * @returns {String} value
+       */
+      compute: function() {
+          var actions = [];
+          each(this.manager.recognizers, function(recognizer) {
+              if (boolOrFn(recognizer.options.enable, [recognizer])) {
+                  actions = actions.concat(recognizer.getTouchAction());
+              }
+          });
+          return cleanTouchActions(actions.join(' '));
+      },
+
+      /**
+       * this method is called on each input cycle and provides the preventing of the browser behavior
+       * @param {Object} input
+       */
+      preventDefaults: function(input) {
+          // not needed with native support for the touchAction property
+          if (NATIVE_TOUCH_ACTION) {
+              return;
+          }
+
+          var srcEvent = input.srcEvent;
+          var direction = input.offsetDirection;
+
+          // if the touch action did prevented once this session
+          if (this.manager.session.prevented) {
+              srcEvent.preventDefault();
+              return;
+          }
+
+          var actions = this.actions;
+          var hasNone = inStr(actions, TOUCH_ACTION_NONE);
+          var hasPanY = inStr(actions, TOUCH_ACTION_PAN_Y);
+          var hasPanX = inStr(actions, TOUCH_ACTION_PAN_X);
+
+          if (hasNone ||
+              (hasPanY && direction & DIRECTION_HORIZONTAL) ||
+              (hasPanX && direction & DIRECTION_VERTICAL)) {
+              return this.preventSrc(srcEvent);
+          }
+      },
+
+      /**
+       * call preventDefault to prevent the browser's default behavior (scrolling in most cases)
+       * @param {Object} srcEvent
+       */
+      preventSrc: function(srcEvent) {
+          this.manager.session.prevented = true;
+          srcEvent.preventDefault();
+      }
+  };
+
+  /**
+   * when the touchActions are collected they are not a valid value, so we need to clean things up. *
+   * @param {String} actions
+   * @returns {*}
+   */
+  function cleanTouchActions(actions) {
+      // none
+      if (inStr(actions, TOUCH_ACTION_NONE)) {
+          return TOUCH_ACTION_NONE;
+      }
+
+      var hasPanX = inStr(actions, TOUCH_ACTION_PAN_X);
+      var hasPanY = inStr(actions, TOUCH_ACTION_PAN_Y);
+
+      // pan-x and pan-y can be combined
+      if (hasPanX && hasPanY) {
+          return TOUCH_ACTION_PAN_X + ' ' + TOUCH_ACTION_PAN_Y;
+      }
+
+      // pan-x OR pan-y
+      if (hasPanX || hasPanY) {
+          return hasPanX ? TOUCH_ACTION_PAN_X : TOUCH_ACTION_PAN_Y;
+      }
+
+      // manipulation
+      if (inStr(actions, TOUCH_ACTION_MANIPULATION)) {
+          return TOUCH_ACTION_MANIPULATION;
+      }
+
+      return TOUCH_ACTION_AUTO;
+  }
+
+  /**
+   * Recognizer flow explained; *
+   * All recognizers have the initial state of POSSIBLE when a input session starts.
+   * The definition of a input session is from the first input until the last input, with all it's movement in it. *
+   * Example session for mouse-input: mousedown -> mousemove -> mouseup
+   *
+   * On each recognizing cycle (see Manager.recognize) the .recognize() method is executed
+   * which determines with state it should be.
+   *
+   * If the recognizer has the state FAILED, CANCELLED or RECOGNIZED (equals ENDED), it is reset to
+   * POSSIBLE to give it another change on the next cycle.
+   *
+   *               Possible
+   *                  |
+   *            +-----+---------------+
+   *            |                     |
+   *      +-----+-----+               |
+   *      |           |               |
+   *   Failed      Cancelled          |
+   *                          +-------+------+
+   *                          |              |
+   *                      Recognized       Began
+   *                                         |
+   *                                      Changed
+   *                                         |
+   *                                  Ended/Recognized
+   */
+  var STATE_POSSIBLE = 1;
+  var STATE_BEGAN = 2;
+  var STATE_CHANGED = 4;
+  var STATE_ENDED = 8;
+  var STATE_RECOGNIZED = STATE_ENDED;
+  var STATE_CANCELLED = 16;
+  var STATE_FAILED = 32;
+
+  /**
+   * Recognizer
+   * Every recognizer needs to extend from this class.
+   * @constructor
+   * @param {Object} options
+   */
+  function Recognizer(options) {
+      this.id = uniqueId();
+
+      this.manager = null;
+      this.options = merge(options || {}, this.defaults);
+
+      // default is enable true
+      this.options.enable = ifUndefined(this.options.enable, true);
+
+      this.state = STATE_POSSIBLE;
+
+      this.simultaneous = {};
+      this.requireFail = [];
+  }
+
+  Recognizer.prototype = {
+      /**
+       * @virtual
+       * @type {Object}
+       */
+      defaults: {},
+
+      /**
+       * set options
+       * @param {Object} options
+       * @return {Recognizer}
+       */
+      set: function(options) {
+          extend(this.options, options);
+
+          // also update the touchAction, in case something changed about the directions/enabled state
+          this.manager && this.manager.touchAction.update();
+          return this;
+      },
+
+      /**
+       * recognize simultaneous with an other recognizer.
+       * @param {Recognizer} otherRecognizer
+       * @returns {Recognizer} this
+       */
+      recognizeWith: function(otherRecognizer) {
+          if (invokeArrayArg(otherRecognizer, 'recognizeWith', this)) {
+              return this;
+          }
+
+          var simultaneous = this.simultaneous;
+          otherRecognizer = getRecognizerByNameIfManager(otherRecognizer, this);
+          if (!simultaneous[otherRecognizer.id]) {
+              simultaneous[otherRecognizer.id] = otherRecognizer;
+              otherRecognizer.recognizeWith(this);
+          }
+          return this;
+      },
+
+      /**
+       * drop the simultaneous link. it doesnt remove the link on the other recognizer.
+       * @param {Recognizer} otherRecognizer
+       * @returns {Recognizer} this
+       */
+      dropRecognizeWith: function(otherRecognizer) {
+          if (invokeArrayArg(otherRecognizer, 'dropRecognizeWith', this)) {
+              return this;
+          }
+
+          otherRecognizer = getRecognizerByNameIfManager(otherRecognizer, this);
+          delete this.simultaneous[otherRecognizer.id];
+          return this;
+      },
+
+      /**
+       * recognizer can only run when an other is failing
+       * @param {Recognizer} otherRecognizer
+       * @returns {Recognizer} this
+       */
+      requireFailure: function(otherRecognizer) {
+          if (invokeArrayArg(otherRecognizer, 'requireFailure', this)) {
+              return this;
+          }
+
+          var requireFail = this.requireFail;
+          otherRecognizer = getRecognizerByNameIfManager(otherRecognizer, this);
+          if (inArray(requireFail, otherRecognizer) === -1) {
+              requireFail.push(otherRecognizer);
+              otherRecognizer.requireFailure(this);
+          }
+          return this;
+      },
+
+      /**
+       * drop the requireFailure link. it does not remove the link on the other recognizer.
+       * @param {Recognizer} otherRecognizer
+       * @returns {Recognizer} this
+       */
+      dropRequireFailure: function(otherRecognizer) {
+          if (invokeArrayArg(otherRecognizer, 'dropRequireFailure', this)) {
+              return this;
+          }
+
+          otherRecognizer = getRecognizerByNameIfManager(otherRecognizer, this);
+          var index = inArray(this.requireFail, otherRecognizer);
+          if (index > -1) {
+              this.requireFail.splice(index, 1);
+          }
+          return this;
+      },
+
+      /**
+       * has require failures boolean
+       * @returns {boolean}
+       */
+      hasRequireFailures: function() {
+          return this.requireFail.length > 0;
+      },
+
+      /**
+       * if the recognizer can recognize simultaneous with an other recognizer
+       * @param {Recognizer} otherRecognizer
+       * @returns {Boolean}
+       */
+      canRecognizeWith: function(otherRecognizer) {
+          return !!this.simultaneous[otherRecognizer.id];
+      },
+
+      /**
+       * You should use `tryEmit` instead of `emit` directly to check
+       * that all the needed recognizers has failed before emitting.
+       * @param {Object} input
+       */
+      emit: function(input) {
+          var self = this;
+          var state = this.state;
+
+          function emit(withState) {
+              self.manager.emit(self.options.event + (withState ? stateStr(state) : ''), input);
+          }
+
+          // 'panstart' and 'panmove'
+          if (state < STATE_ENDED) {
+              emit(true);
+          }
+
+          emit(); // simple 'eventName' events
+
+          // panend and pancancel
+          if (state >= STATE_ENDED) {
+              emit(true);
+          }
+      },
+
+      /**
+       * Check that all the require failure recognizers has failed,
+       * if true, it emits a gesture event,
+       * otherwise, setup the state to FAILED.
+       * @param {Object} input
+       */
+      tryEmit: function(input) {
+          if (this.canEmit()) {
+              return this.emit(input);
+          }
+          // it's failing anyway
+          this.state = STATE_FAILED;
+      },
+
+      /**
+       * can we emit?
+       * @returns {boolean}
+       */
+      canEmit: function() {
+          var i = 0;
+          while (i < this.requireFail.length) {
+              if (!(this.requireFail[i].state & (STATE_FAILED | STATE_POSSIBLE))) {
+                  return false;
+              }
+              i++;
+          }
+          return true;
+      },
+
+      /**
+       * update the recognizer
+       * @param {Object} inputData
+       */
+      recognize: function(inputData) {
+          // make a new copy of the inputData
+          // so we can change the inputData without messing up the other recognizers
+          var inputDataClone = extend({}, inputData);
+
+          // is is enabled and allow recognizing?
+          if (!boolOrFn(this.options.enable, [this, inputDataClone])) {
+              this.reset();
+              this.state = STATE_FAILED;
+              return;
+          }
+
+          // reset when we've reached the end
+          if (this.state & (STATE_RECOGNIZED | STATE_CANCELLED | STATE_FAILED)) {
+              this.state = STATE_POSSIBLE;
+          }
+
+          this.state = this.process(inputDataClone);
+
+          // the recognizer has recognized a gesture
+          // so trigger an event
+          if (this.state & (STATE_BEGAN | STATE_CHANGED | STATE_ENDED | STATE_CANCELLED)) {
+              this.tryEmit(inputDataClone);
+          }
+      },
+
+      /**
+       * return the state of the recognizer
+       * the actual recognizing happens in this method
+       * @virtual
+       * @param {Object} inputData
+       * @returns {Const} STATE
+       */
+      process: function(inputData) { }, // jshint ignore:line
+
+      /**
+       * return the preferred touch-action
+       * @virtual
+       * @returns {Array}
+       */
+      getTouchAction: function() { },
+
+      /**
+       * called when the gesture isn't allowed to recognize
+       * like when another is being recognized or it is disabled
+       * @virtual
+       */
+      reset: function() { }
+  };
+
+  /**
+   * get a usable string, used as event postfix
+   * @param {Const} state
+   * @returns {String} state
+   */
+  function stateStr(state) {
+      if (state & STATE_CANCELLED) {
+          return 'cancel';
+      } else if (state & STATE_ENDED) {
+          return 'end';
+      } else if (state & STATE_CHANGED) {
+          return 'move';
+      } else if (state & STATE_BEGAN) {
+          return 'start';
+      }
+      return '';
+  }
+
+  /**
+   * direction cons to string
+   * @param {Const} direction
+   * @returns {String}
+   */
+  function directionStr(direction) {
+      if (direction == DIRECTION_DOWN) {
+          return 'down';
+      } else if (direction == DIRECTION_UP) {
+          return 'up';
+      } else if (direction == DIRECTION_LEFT) {
+          return 'left';
+      } else if (direction == DIRECTION_RIGHT) {
+          return 'right';
+      }
+      return '';
+  }
+
+  /**
+   * get a recognizer by name if it is bound to a manager
+   * @param {Recognizer|String} otherRecognizer
+   * @param {Recognizer} recognizer
+   * @returns {Recognizer}
+   */
+  function getRecognizerByNameIfManager(otherRecognizer, recognizer) {
+      var manager = recognizer.manager;
+      if (manager) {
+          return manager.get(otherRecognizer);
+      }
+      return otherRecognizer;
+  }
+
+  /**
+   * This recognizer is just used as a base for the simple attribute recognizers.
+   * @constructor
+   * @extends Recognizer
+   */
+  function AttrRecognizer() {
+      Recognizer.apply(this, arguments);
+  }
+
+  inherit(AttrRecognizer, Recognizer, {
+      /**
+       * @namespace
+       * @memberof AttrRecognizer
+       */
+      defaults: {
+          /**
+           * @type {Number}
+           * @default 1
+           */
+          pointers: 1
+      },
+
+      /**
+       * Used to check if it the recognizer receives valid input, like input.distance > 10.
+       * @memberof AttrRecognizer
+       * @param {Object} input
+       * @returns {Boolean} recognized
+       */
+      attrTest: function(input) {
+          var optionPointers = this.options.pointers;
+          return optionPointers === 0 || input.pointers.length === optionPointers;
+      },
+
+      /**
+       * Process the input and return the state for the recognizer
+       * @memberof AttrRecognizer
+       * @param {Object} input
+       * @returns {*} State
+       */
+      process: function(input) {
+          var state = this.state;
+          var eventType = input.eventType;
+
+          var isRecognized = state & (STATE_BEGAN | STATE_CHANGED);
+          var isValid = this.attrTest(input);
+
+          // on cancel input and we've recognized before, return STATE_CANCELLED
+          if (isRecognized && (eventType & INPUT_CANCEL || !isValid)) {
+              return state | STATE_CANCELLED;
+          } else if (isRecognized || isValid) {
+              if (eventType & INPUT_END) {
+                  return state | STATE_ENDED;
+              } else if (!(state & STATE_BEGAN)) {
+                  return STATE_BEGAN;
+              }
+              return state | STATE_CHANGED;
+          }
+          return STATE_FAILED;
+      }
+  });
+
+  /**
+   * Pan
+   * Recognized when the pointer is down and moved in the allowed direction.
+   * @constructor
+   * @extends AttrRecognizer
+   */
+  function PanRecognizer() {
+      AttrRecognizer.apply(this, arguments);
+
+      this.pX = null;
+      this.pY = null;
+  }
+
+  inherit(PanRecognizer, AttrRecognizer, {
+      /**
+       * @namespace
+       * @memberof PanRecognizer
+       */
+      defaults: {
+          event: 'pan',
+          threshold: 10,
+          pointers: 1,
+          direction: DIRECTION_ALL
+      },
+
+      getTouchAction: function() {
+          var direction = this.options.direction;
+          var actions = [];
+          if (direction & DIRECTION_HORIZONTAL) {
+              actions.push(TOUCH_ACTION_PAN_Y);
+          }
+          if (direction & DIRECTION_VERTICAL) {
+              actions.push(TOUCH_ACTION_PAN_X);
+          }
+          return actions;
+      },
+
+      directionTest: function(input) {
+          var options = this.options;
+          var hasMoved = true;
+          var distance = input.distance;
+          var direction = input.direction;
+          var x = input.deltaX;
+          var y = input.deltaY;
+
+          // lock to axis?
+          if (!(direction & options.direction)) {
+              if (options.direction & DIRECTION_HORIZONTAL) {
+                  direction = (x === 0) ? DIRECTION_NONE : (x < 0) ? DIRECTION_LEFT : DIRECTION_RIGHT;
+                  hasMoved = x != this.pX;
+                  distance = Math.abs(input.deltaX);
+              } else {
+                  direction = (y === 0) ? DIRECTION_NONE : (y < 0) ? DIRECTION_UP : DIRECTION_DOWN;
+                  hasMoved = y != this.pY;
+                  distance = Math.abs(input.deltaY);
+              }
+          }
+          input.direction = direction;
+          return hasMoved && distance > options.threshold && direction & options.direction;
+      },
+
+      attrTest: function(input) {
+          return AttrRecognizer.prototype.attrTest.call(this, input) &&
+              (this.state & STATE_BEGAN || (!(this.state & STATE_BEGAN) && this.directionTest(input)));
+      },
+
+      emit: function(input) {
+          this.pX = input.deltaX;
+          this.pY = input.deltaY;
+
+          var direction = directionStr(input.direction);
+          if (direction) {
+              this.manager.emit(this.options.event + direction, input);
+          }
+
+          this._super.emit.call(this, input);
+      }
+  });
+
+  /**
+   * Pinch
+   * Recognized when two or more pointers are moving toward (zoom-in) or away from each other (zoom-out).
+   * @constructor
+   * @extends AttrRecognizer
+   */
+  function PinchRecognizer() {
+      AttrRecognizer.apply(this, arguments);
+  }
+
+  inherit(PinchRecognizer, AttrRecognizer, {
+      /**
+       * @namespace
+       * @memberof PinchRecognizer
+       */
+      defaults: {
+          event: 'pinch',
+          threshold: 0,
+          pointers: 2
+      },
+
+      getTouchAction: function() {
+          return [TOUCH_ACTION_NONE];
+      },
+
+      attrTest: function(input) {
+          return this._super.attrTest.call(this, input) &&
+              (Math.abs(input.scale - 1) > this.options.threshold || this.state & STATE_BEGAN);
+      },
+
+      emit: function(input) {
+          this._super.emit.call(this, input);
+          if (input.scale !== 1) {
+              var inOut = input.scale < 1 ? 'in' : 'out';
+              this.manager.emit(this.options.event + inOut, input);
+          }
+      }
+  });
+
+  /**
+   * Press
+   * Recognized when the pointer is down for x ms without any movement.
+   * @constructor
+   * @extends Recognizer
+   */
+  function PressRecognizer() {
+      Recognizer.apply(this, arguments);
+
+      this._timer = null;
+      this._input = null;
+  }
+
+  inherit(PressRecognizer, Recognizer, {
+      /**
+       * @namespace
+       * @memberof PressRecognizer
+       */
+      defaults: {
+          event: 'press',
+          pointers: 1,
+          time: 500, // minimal time of the pointer to be pressed
+          threshold: 5 // a minimal movement is ok, but keep it low
+      },
+
+      getTouchAction: function() {
+          return [TOUCH_ACTION_AUTO];
+      },
+
+      process: function(input) {
+          var options = this.options;
+          var validPointers = input.pointers.length === options.pointers;
+          var validMovement = input.distance < options.threshold;
+          var validTime = input.deltaTime > options.time;
+
+          this._input = input;
+
+          // we only allow little movement
+          // and we've reached an end event, so a tap is possible
+          if (!validMovement || !validPointers || (input.eventType & (INPUT_END | INPUT_CANCEL) && !validTime)) {
+              this.reset();
+          } else if (input.eventType & INPUT_START) {
+              this.reset();
+              this._timer = setTimeoutContext(function() {
+                  this.state = STATE_RECOGNIZED;
+                  this.tryEmit();
+              }, options.time, this);
+          } else if (input.eventType & INPUT_END) {
+              return STATE_RECOGNIZED;
+          }
+          return STATE_FAILED;
+      },
+
+      reset: function() {
+          clearTimeout(this._timer);
+      },
+
+      emit: function(input) {
+          if (this.state !== STATE_RECOGNIZED) {
+              return;
+          }
+
+          if (input && (input.eventType & INPUT_END)) {
+              this.manager.emit(this.options.event + 'up', input);
+          } else {
+              this._input.timeStamp = now();
+              this.manager.emit(this.options.event, this._input);
+          }
+      }
+  });
+
+  /**
+   * Rotate
+   * Recognized when two or more pointer are moving in a circular motion.
+   * @constructor
+   * @extends AttrRecognizer
+   */
+  function RotateRecognizer() {
+      AttrRecognizer.apply(this, arguments);
+  }
+
+  inherit(RotateRecognizer, AttrRecognizer, {
+      /**
+       * @namespace
+       * @memberof RotateRecognizer
+       */
+      defaults: {
+          event: 'rotate',
+          threshold: 0,
+          pointers: 2
+      },
+
+      getTouchAction: function() {
+          return [TOUCH_ACTION_NONE];
+      },
+
+      attrTest: function(input) {
+          return this._super.attrTest.call(this, input) &&
+              (Math.abs(input.rotation) > this.options.threshold || this.state & STATE_BEGAN);
+      }
+  });
+
+  /**
+   * Swipe
+   * Recognized when the pointer is moving fast (velocity), with enough distance in the allowed direction.
+   * @constructor
+   * @extends AttrRecognizer
+   */
+  function SwipeRecognizer() {
+      AttrRecognizer.apply(this, arguments);
+  }
+
+  inherit(SwipeRecognizer, AttrRecognizer, {
+      /**
+       * @namespace
+       * @memberof SwipeRecognizer
+       */
+      defaults: {
+          event: 'swipe',
+          threshold: 10,
+          velocity: 0.65,
+          direction: DIRECTION_HORIZONTAL | DIRECTION_VERTICAL,
+          pointers: 1
+      },
+
+      getTouchAction: function() {
+          return PanRecognizer.prototype.getTouchAction.call(this);
+      },
+
+      attrTest: function(input) {
+          var direction = this.options.direction;
+          var velocity;
+
+          if (direction & (DIRECTION_HORIZONTAL | DIRECTION_VERTICAL)) {
+              velocity = input.velocity;
+          } else if (direction & DIRECTION_HORIZONTAL) {
+              velocity = input.velocityX;
+          } else if (direction & DIRECTION_VERTICAL) {
+              velocity = input.velocityY;
+          }
+
+          return this._super.attrTest.call(this, input) &&
+              direction & input.direction &&
+              input.distance > this.options.threshold &&
+              abs(velocity) > this.options.velocity && input.eventType & INPUT_END;
+      },
+
+      emit: function(input) {
+          var direction = directionStr(input.direction);
+          if (direction) {
+              this.manager.emit(this.options.event + direction, input);
+          }
+
+          this.manager.emit(this.options.event, input);
+      }
+  });
+
+  /**
+   * A tap is ecognized when the pointer is doing a small tap/click. Multiple taps are recognized if they occur
+   * between the given interval and position. The delay option can be used to recognize multi-taps without firing
+   * a single tap.
+   *
+   * The eventData from the emitted event contains the property `tapCount`, which contains the amount of
+   * multi-taps being recognized.
+   * @constructor
+   * @extends Recognizer
+   */
+  function TapRecognizer() {
+      Recognizer.apply(this, arguments);
+
+      // previous time and center,
+      // used for tap counting
+      this.pTime = false;
+      this.pCenter = false;
+
+      this._timer = null;
+      this._input = null;
+      this.count = 0;
+  }
+
+  inherit(TapRecognizer, Recognizer, {
+      /**
+       * @namespace
+       * @memberof PinchRecognizer
+       */
+      defaults: {
+          event: 'tap',
+          pointers: 1,
+          taps: 1,
+          interval: 300, // max time between the multi-tap taps
+          time: 250, // max time of the pointer to be down (like finger on the screen)
+          threshold: 2, // a minimal movement is ok, but keep it low
+          posThreshold: 10 // a multi-tap can be a bit off the initial position
+      },
+
+      getTouchAction: function() {
+          return [TOUCH_ACTION_MANIPULATION];
+      },
+
+      process: function(input) {
+          var options = this.options;
+
+          var validPointers = input.pointers.length === options.pointers;
+          var validMovement = input.distance < options.threshold;
+          var validTouchTime = input.deltaTime < options.time;
+
+          this.reset();
+
+          if ((input.eventType & INPUT_START) && (this.count === 0)) {
+              return this.failTimeout();
+          }
+
+          // we only allow little movement
+          // and we've reached an end event, so a tap is possible
+          if (validMovement && validTouchTime && validPointers) {
+              if (input.eventType != INPUT_END) {
+                  return this.failTimeout();
+              }
+
+              var validInterval = this.pTime ? (input.timeStamp - this.pTime < options.interval) : true;
+              var validMultiTap = !this.pCenter || getDistance(this.pCenter, input.center) < options.posThreshold;
+
+              this.pTime = input.timeStamp;
+              this.pCenter = input.center;
+
+              if (!validMultiTap || !validInterval) {
+                  this.count = 1;
+              } else {
+                  this.count += 1;
+              }
+
+              this._input = input;
+
+              // if tap count matches we have recognized it,
+              // else it has began recognizing...
+              var tapCount = this.count % options.taps;
+              if (tapCount === 0) {
+                  // no failing requirements, immediately trigger the tap event
+                  // or wait as long as the multitap interval to trigger
+                  if (!this.hasRequireFailures()) {
+                      return STATE_RECOGNIZED;
+                  } else {
+                      this._timer = setTimeoutContext(function() {
+                          this.state = STATE_RECOGNIZED;
+                          this.tryEmit();
+                      }, options.interval, this);
+                      return STATE_BEGAN;
+                  }
+              }
+          }
+          return STATE_FAILED;
+      },
+
+      failTimeout: function() {
+          this._timer = setTimeoutContext(function() {
+              this.state = STATE_FAILED;
+          }, this.options.interval, this);
+          return STATE_FAILED;
+      },
+
+      reset: function() {
+          clearTimeout(this._timer);
+      },
+
+      emit: function() {
+          if (this.state == STATE_RECOGNIZED ) {
+              this._input.tapCount = this.count;
+              this.manager.emit(this.options.event, this._input);
+          }
+      }
+  });
+
+  /**
+   * Simple way to create an manager with a default set of recognizers.
+   * @param {HTMLElement} element
+   * @param {Object} [options]
+   * @constructor
+   */
+  function Hammer(element, options) {
+      options = options || {};
+      options.recognizers = ifUndefined(options.recognizers, Hammer.defaults.preset);
+      return new Manager(element, options);
+  }
+
+  /**
+   * @const {string}
+   */
+  Hammer.VERSION = '2.0.4';
+
+  /**
+   * default settings
+   * @namespace
+   */
+  Hammer.defaults = {
+      /**
+       * set if DOM events are being triggered.
+       * But this is slower and unused by simple implementations, so disabled by default.
+       * @type {Boolean}
+       * @default false
+       */
+      domEvents: false,
+
+      /**
+       * The value for the touchAction property/fallback.
+       * When set to `compute` it will magically set the correct value based on the added recognizers.
+       * @type {String}
+       * @default compute
+       */
+      touchAction: TOUCH_ACTION_COMPUTE,
+
+      /**
+       * @type {Boolean}
+       * @default true
+       */
+      enable: true,
+
+      /**
+       * EXPERIMENTAL FEATURE -- can be removed/changed
+       * Change the parent input target element.
+       * If Null, then it is being set the to main element.
+       * @type {Null|EventTarget}
+       * @default null
+       */
+      inputTarget: null,
+
+      /**
+       * force an input class
+       * @type {Null|Function}
+       * @default null
+       */
+      inputClass: null,
+
+      /**
+       * Default recognizer setup when calling `Hammer()`
+       * When creating a new Manager these will be skipped.
+       * @type {Array}
+       */
+      preset: [
+          // RecognizerClass, options, [recognizeWith, ...], [requireFailure, ...]
+          [RotateRecognizer, { enable: false }],
+          [PinchRecognizer, { enable: false }, ['rotate']],
+          [SwipeRecognizer,{ direction: DIRECTION_HORIZONTAL }],
+          [PanRecognizer, { direction: DIRECTION_HORIZONTAL }, ['swipe']],
+          [TapRecognizer],
+          [TapRecognizer, { event: 'doubletap', taps: 2 }, ['tap']],
+          [PressRecognizer]
+      ],
+
+      /**
+       * Some CSS properties can be used to improve the working of Hammer.
+       * Add them to this method and they will be set when creating a new Manager.
+       * @namespace
+       */
+      cssProps: {
+          /**
+           * Disables text selection to improve the dragging gesture. Mainly for desktop browsers.
+           * @type {String}
+           * @default 'none'
+           */
+          userSelect: 'none',
+
+          /**
+           * Disable the Windows Phone grippers when pressing an element.
+           * @type {String}
+           * @default 'none'
+           */
+          touchSelect: 'none',
+
+          /**
+           * Disables the default callout shown when you touch and hold a touch target.
+           * On iOS, when you touch and hold a touch target such as a link, Safari displays
+           * a callout containing information about the link. This property allows you to disable that callout.
+           * @type {String}
+           * @default 'none'
+           */
+          touchCallout: 'none',
+
+          /**
+           * Specifies whether zooming is enabled. Used by IE10>
+           * @type {String}
+           * @default 'none'
+           */
+          contentZooming: 'none',
+
+          /**
+           * Specifies that an entire element should be draggable instead of its contents. Mainly for desktop browsers.
+           * @type {String}
+           * @default 'none'
+           */
+          userDrag: 'none',
+
+          /**
+           * Overrides the highlight color shown when the user taps a link or a JavaScript
+           * clickable element in iOS. This property obeys the alpha value, if specified.
+           * @type {String}
+           * @default 'rgba(0,0,0,0)'
+           */
+          tapHighlightColor: 'rgba(0,0,0,0)'
+      }
+  };
+
+  var STOP = 1;
+  var FORCED_STOP = 2;
+
+  /**
+   * Manager
+   * @param {HTMLElement} element
+   * @param {Object} [options]
+   * @constructor
+   */
+  function Manager(element, options) {
+      options = options || {};
+
+      this.options = merge(options, Hammer.defaults);
+      this.options.inputTarget = this.options.inputTarget || element;
+
+      this.handlers = {};
+      this.session = {};
+      this.recognizers = [];
+
+      this.element = element;
+      this.input = createInputInstance(this);
+      this.touchAction = new TouchAction(this, this.options.touchAction);
+
+      toggleCssProps(this, true);
+
+      each(options.recognizers, function(item) {
+          var recognizer = this.add(new (item[0])(item[1]));
+          item[2] && recognizer.recognizeWith(item[2]);
+          item[3] && recognizer.requireFailure(item[3]);
+      }, this);
+  }
+
+  Manager.prototype = {
+      /**
+       * set options
+       * @param {Object} options
+       * @returns {Manager}
+       */
+      set: function(options) {
+          extend(this.options, options);
+
+          // Options that need a little more setup
+          if (options.touchAction) {
+              this.touchAction.update();
+          }
+          if (options.inputTarget) {
+              // Clean up existing event listeners and reinitialize
+              this.input.destroy();
+              this.input.target = options.inputTarget;
+              this.input.init();
+          }
+          return this;
+      },
+
+      /**
+       * stop recognizing for this session.
+       * This session will be discarded, when a new [input]start event is fired.
+       * When forced, the recognizer cycle is stopped immediately.
+       * @param {Boolean} [force]
+       */
+      stop: function(force) {
+          this.session.stopped = force ? FORCED_STOP : STOP;
+      },
+
+      /**
+       * run the recognizers!
+       * called by the inputHandler function on every movement of the pointers (touches)
+       * it walks through all the recognizers and tries to detect the gesture that is being made
+       * @param {Object} inputData
+       */
+      recognize: function(inputData) {
+          var session = this.session;
+          if (session.stopped) {
+              return;
+          }
+
+          // run the touch-action polyfill
+          this.touchAction.preventDefaults(inputData);
+
+          var recognizer;
+          var recognizers = this.recognizers;
+
+          // this holds the recognizer that is being recognized.
+          // so the recognizer's state needs to be BEGAN, CHANGED, ENDED or RECOGNIZED
+          // if no recognizer is detecting a thing, it is set to `null`
+          var curRecognizer = session.curRecognizer;
+
+          // reset when the last recognizer is recognized
+          // or when we're in a new session
+          if (!curRecognizer || (curRecognizer && curRecognizer.state & STATE_RECOGNIZED)) {
+              curRecognizer = session.curRecognizer = null;
+          }
+
+          var i = 0;
+          while (i < recognizers.length) {
+              recognizer = recognizers[i];
+
+              // find out if we are allowed try to recognize the input for this one.
+              // 1.   allow if the session is NOT forced stopped (see the .stop() method)
+              // 2.   allow if we still haven't recognized a gesture in this session, or the this recognizer is the one
+              //      that is being recognized.
+              // 3.   allow if the recognizer is allowed to run simultaneous with the current recognized recognizer.
+              //      this can be setup with the `recognizeWith()` method on the recognizer.
+              if (session.stopped !== FORCED_STOP && ( // 1
+                      !curRecognizer || recognizer == curRecognizer || // 2
+                      recognizer.canRecognizeWith(curRecognizer))) { // 3
+                  recognizer.recognize(inputData);
+              } else {
+                  recognizer.reset();
+              }
+
+              // if the recognizer has been recognizing the input as a valid gesture, we want to store this one as the
+              // current active recognizer. but only if we don't already have an active recognizer
+              if (!curRecognizer && recognizer.state & (STATE_BEGAN | STATE_CHANGED | STATE_ENDED)) {
+                  curRecognizer = session.curRecognizer = recognizer;
+              }
+              i++;
+          }
+      },
+
+      /**
+       * get a recognizer by its event name.
+       * @param {Recognizer|String} recognizer
+       * @returns {Recognizer|Null}
+       */
+      get: function(recognizer) {
+          if (recognizer instanceof Recognizer) {
+              return recognizer;
+          }
+
+          var recognizers = this.recognizers;
+          for (var i = 0; i < recognizers.length; i++) {
+              if (recognizers[i].options.event == recognizer) {
+                  return recognizers[i];
+              }
+          }
+          return null;
+      },
+
+      /**
+       * add a recognizer to the manager
+       * existing recognizers with the same event name will be removed
+       * @param {Recognizer} recognizer
+       * @returns {Recognizer|Manager}
+       */
+      add: function(recognizer) {
+          if (invokeArrayArg(recognizer, 'add', this)) {
+              return this;
+          }
+
+          // remove existing
+          var existing = this.get(recognizer.options.event);
+          if (existing) {
+              this.remove(existing);
+          }
+
+          this.recognizers.push(recognizer);
+          recognizer.manager = this;
+
+          this.touchAction.update();
+          return recognizer;
+      },
+
+      /**
+       * remove a recognizer by name or instance
+       * @param {Recognizer|String} recognizer
+       * @returns {Manager}
+       */
+      remove: function(recognizer) {
+          if (invokeArrayArg(recognizer, 'remove', this)) {
+              return this;
+          }
+
+          var recognizers = this.recognizers;
+          recognizer = this.get(recognizer);
+          recognizers.splice(inArray(recognizers, recognizer), 1);
+
+          this.touchAction.update();
+          return this;
+      },
+
+      /**
+       * bind event
+       * @param {String} events
+       * @param {Function} handler
+       * @returns {EventEmitter} this
+       */
+      on: function(events, handler) {
+          var handlers = this.handlers;
+          each(splitStr(events), function(event) {
+              handlers[event] = handlers[event] || [];
+              handlers[event].push(handler);
+          });
+          return this;
+      },
+
+      /**
+       * unbind event, leave emit blank to remove all handlers
+       * @param {String} events
+       * @param {Function} [handler]
+       * @returns {EventEmitter} this
+       */
+      off: function(events, handler) {
+          var handlers = this.handlers;
+          each(splitStr(events), function(event) {
+              if (!handler) {
+                  delete handlers[event];
+              } else {
+                  handlers[event].splice(inArray(handlers[event], handler), 1);
+              }
+          });
+          return this;
+      },
+
+      /**
+       * emit event to the listeners
+       * @param {String} event
+       * @param {Object} data
+       */
+      emit: function(event, data) {
+          // we also want to trigger dom events
+          if (this.options.domEvents) {
+              triggerDomEvent(event, data);
+          }
+
+          // no handlers, so skip it all
+          var handlers = this.handlers[event] && this.handlers[event].slice();
+          if (!handlers || !handlers.length) {
+              return;
+          }
+
+          data.type = event;
+          data.preventDefault = function() {
+              data.srcEvent.preventDefault();
+          };
+
+          var i = 0;
+          while (i < handlers.length) {
+              handlers[i](data);
+              i++;
+          }
+      },
+
+      /**
+       * destroy the manager and unbinds all events
+       * it doesn't unbind dom events, that is the user own responsibility
+       */
+      destroy: function() {
+          this.element && toggleCssProps(this, false);
+
+          this.handlers = {};
+          this.session = {};
+          this.input.destroy();
+          this.element = null;
+      }
+  };
+
+  /**
+   * add/remove the css properties as defined in manager.options.cssProps
+   * @param {Manager} manager
+   * @param {Boolean} add
+   */
+  function toggleCssProps(manager, add) {
+      var element = manager.element;
+      each(manager.options.cssProps, function(value, name) {
+          element.style[prefixed(element.style, name)] = add ? value : '';
+      });
+  }
+
+  /**
+   * trigger dom event
+   * @param {String} event
+   * @param {Object} data
+   */
+  function triggerDomEvent(event, data) {
+      var gestureEvent = document.createEvent('Event');
+      gestureEvent.initEvent(event, true, true);
+      gestureEvent.gesture = data;
+      data.target.dispatchEvent(gestureEvent);
+  }
+
+  extend(Hammer, {
+      INPUT_START: INPUT_START,
+      INPUT_MOVE: INPUT_MOVE,
+      INPUT_END: INPUT_END,
+      INPUT_CANCEL: INPUT_CANCEL,
+
+      STATE_POSSIBLE: STATE_POSSIBLE,
+      STATE_BEGAN: STATE_BEGAN,
+      STATE_CHANGED: STATE_CHANGED,
+      STATE_ENDED: STATE_ENDED,
+      STATE_RECOGNIZED: STATE_RECOGNIZED,
+      STATE_CANCELLED: STATE_CANCELLED,
+      STATE_FAILED: STATE_FAILED,
+
+      DIRECTION_NONE: DIRECTION_NONE,
+      DIRECTION_LEFT: DIRECTION_LEFT,
+      DIRECTION_RIGHT: DIRECTION_RIGHT,
+      DIRECTION_UP: DIRECTION_UP,
+      DIRECTION_DOWN: DIRECTION_DOWN,
+      DIRECTION_HORIZONTAL: DIRECTION_HORIZONTAL,
+      DIRECTION_VERTICAL: DIRECTION_VERTICAL,
+      DIRECTION_ALL: DIRECTION_ALL,
+
+      Manager: Manager,
+      Input: Input,
+      TouchAction: TouchAction,
+
+      TouchInput: TouchInput,
+      MouseInput: MouseInput,
+      PointerEventInput: PointerEventInput,
+      TouchMouseInput: TouchMouseInput,
+      SingleTouchInput: SingleTouchInput,
+
+      Recognizer: Recognizer,
+      AttrRecognizer: AttrRecognizer,
+      Tap: TapRecognizer,
+      Pan: PanRecognizer,
+      Swipe: SwipeRecognizer,
+      Pinch: PinchRecognizer,
+      Rotate: RotateRecognizer,
+      Press: PressRecognizer,
+
+      on: addEventListeners,
+      off: removeEventListeners,
+      each: each,
+      merge: merge,
+      extend: extend,
+      inherit: inherit,
+      bindFn: bindFn,
+      prefixed: prefixed
+  });
+
+  if ("function" == TYPE_FUNCTION && __webpack_require__(22)) {
+      !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
+          return Hammer;
+      }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+  } else if (typeof module != 'undefined' && module.exports) {
+      module.exports = Hammer;
+  } else {
+      window[exportName] = Hammer;
+  }
+
+  })(window, document, 'Hammer');
+
+
+/***/ },
+/* 22 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
+
+  /* WEBPACK VAR INJECTION */}.call(exports, {}))
+
+/***/ },
+/* 23 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var util = __webpack_require__(1);
+  var hammerUtil = __webpack_require__(24);
+  var moment = __webpack_require__(2);
+  var Component = __webpack_require__(25);
+  var DateUtil = __webpack_require__(26);
+
+  /**
+   * @constructor Range
+   * A Range controls a numeric range with a start and end value.
+   * The Range adjusts the range based on mouse events or programmatic changes,
+   * and triggers events when the range is changing or has been changed.
+   * @param {{dom: Object, domProps: Object, emitter: Emitter}} body
+   * @param {Object} [options]    See description at Range.setOptions
+   */
+  function Range(body, options) {
+    var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
+    this.start = now.clone().add(-3, "days").valueOf(); // Number
+    this.end = now.clone().add(4, "days").valueOf(); // Number
+
+    this.body = body;
+    this.deltaDifference = 0;
+    this.scaleOffset = 0;
+    this.startToFront = false;
+    this.endToFront = true;
+
+    // default options
+    this.defaultOptions = {
+      start: null,
+      end: null,
+      direction: "horizontal", // 'horizontal' or 'vertical'
+      moveable: true,
+      zoomable: true,
+      min: null,
+      max: null,
+      zoomMin: 10, // milliseconds
+      zoomMax: 1000 * 60 * 60 * 24 * 365 * 10000 // milliseconds
+    };
+    this.options = util.extend({}, this.defaultOptions);
+
+    this.props = {
+      touch: {}
+    };
+    this.animateTimer = null;
+
+    // drag listeners for dragging
+    this.body.emitter.on("panstart", this._onDragStart.bind(this));
+    this.body.emitter.on("panmove", this._onDrag.bind(this));
+    this.body.emitter.on("panend", this._onDragEnd.bind(this));
+
+    // ignore dragging when holding
+    this.body.emitter.on("press", this._onHold.bind(this));
+
+    // mouse wheel for zooming
+    this.body.emitter.on("mousewheel", this._onMouseWheel.bind(this));
+
+    // pinch to zoom
+    this.body.emitter.on("touch", this._onTouch.bind(this));
+    this.body.emitter.on("pinch", this._onPinch.bind(this));
+
+    this.setOptions(options);
+  }
+
+  Range.prototype = new Component();
+
+  /**
+   * Set options for the range controller
+   * @param {Object} options      Available options:
+   *                              {Number | Date | String} start  Start date for the range
+   *                              {Number | Date | String} end    End date for the range
+   *                              {Number} min    Minimum value for start
+   *                              {Number} max    Maximum value for end
+   *                              {Number} zoomMin    Set a minimum value for
+   *                                                  (end - start).
+   *                              {Number} zoomMax    Set a maximum value for
+   *                                                  (end - start).
+   *                              {Boolean} moveable Enable moving of the range
+   *                                                 by dragging. True by default
+   *                              {Boolean} zoomable Enable zooming of the range
+   *                                                 by pinching/scrolling. True by default
+   */
+  Range.prototype.setOptions = function (options) {
+    if (options) {
+      // copy the options that we know
+      var fields = ["direction", "min", "max", "zoomMin", "zoomMax", "moveable", "zoomable", "activate", "hiddenDates"];
+      util.selectiveExtend(fields, this.options, options);
+
+      if ("start" in options || "end" in options) {
+        // apply a new range. both start and end are optional
+        this.setRange(options.start, options.end);
+      }
+    }
+  };
+
+  /**
+   * Test whether direction has a valid value
+   * @param {String} direction    'horizontal' or 'vertical'
+   */
+  function validateDirection(direction) {
+    if (direction != "horizontal" && direction != "vertical") {
+      throw new TypeError("Unknown direction \"" + direction + "\". " + "Choose \"horizontal\" or \"vertical\".");
+    }
+  }
+
+  /**
+   * Set a new start and end range
+   * @param {Date | Number | String} [start]
+   * @param {Date | Number | String} [end]
+   * @param {boolean | number} [animate=false]     If true, the range is animated
+   *                                               smoothly to the new window.
+   *                                               If animate is a number, the
+   *                                               number is taken as duration
+   *                                               Default duration is 500 ms.
+   * @param {Boolean} [byUser=false]
+   *
+   */
+  Range.prototype.setRange = function (start, end, animate, byUser) {
+    if (byUser !== true) {
+      byUser = false;
+    }
+    var _start = start != undefined ? util.convert(start, "Date").valueOf() : null;
+    var _end = end != undefined ? util.convert(end, "Date").valueOf() : null;
+    this._cancelAnimation();
+
+    if (animate) {
+      var me = this;
+      var initStart = this.start;
+      var initEnd = this.end;
+      var duration = typeof animate === "number" ? animate : 500;
+      var initTime = new Date().valueOf();
+      var anyChanged = false;
+
+      var next = function () {
+        if (!me.props.touch.dragging) {
+          var now = new Date().valueOf();
+          var time = now - initTime;
+          var done = time > duration;
+          var s = done || _start === null ? _start : util.easeInOutQuad(time, initStart, _start, duration);
+          var e = done || _end === null ? _end : util.easeInOutQuad(time, initEnd, _end, duration);
+
+          changed = me._applyRange(s, e);
+          DateUtil.updateHiddenDates(me.body, me.options.hiddenDates);
+          anyChanged = anyChanged || changed;
+          if (changed) {
+            me.body.emitter.emit("rangechange", { start: new Date(me.start), end: new Date(me.end), byUser: byUser });
+          }
+
+          if (done) {
+            if (anyChanged) {
+              me.body.emitter.emit("rangechanged", { start: new Date(me.start), end: new Date(me.end), byUser: byUser });
+            }
+          } else {
+            // animate with as high as possible frame rate, leave 20 ms in between
+            // each to prevent the browser from blocking
+            me.animateTimer = setTimeout(next, 20);
+          }
+        }
+      };
+
+      return next();
+    } else {
+      var changed = this._applyRange(_start, _end);
+      DateUtil.updateHiddenDates(this.body, this.options.hiddenDates);
+      if (changed) {
+        var params = { start: new Date(this.start), end: new Date(this.end), byUser: byUser };
+        this.body.emitter.emit("rangechange", params);
+        this.body.emitter.emit("rangechanged", params);
+      }
+    }
+  };
+
+  /**
+   * Stop an animation
    * @private
    */
-  CustomTime.prototype._create = function () {
-    var bar = document.createElement("div");
-    bar.className = "customtime";
-    bar.style.position = "absolute";
-    bar.style.top = "0px";
-    bar.style.height = "100%";
-    this.bar = bar;
+  Range.prototype._cancelAnimation = function () {
+    if (this.animateTimer) {
+      clearTimeout(this.animateTimer);
+      this.animateTimer = null;
+    }
+  };
 
-    var drag = document.createElement("div");
-    drag.style.position = "relative";
-    drag.style.top = "0px";
-    drag.style.left = "-10px";
-    drag.style.height = "100%";
-    drag.style.width = "20px";
-    bar.appendChild(drag);
+  /**
+   * Set a new start and end range. This method is the same as setRange, but
+   * does not trigger a range change and range changed event, and it returns
+   * true when the range is changed
+   * @param {Number} [start]
+   * @param {Number} [end]
+   * @return {Boolean} changed
+   * @private
+   */
+  Range.prototype._applyRange = function (start, end) {
+    var newStart = start != null ? util.convert(start, "Date").valueOf() : this.start,
+        newEnd = end != null ? util.convert(end, "Date").valueOf() : this.end,
+        max = this.options.max != null ? util.convert(this.options.max, "Date").valueOf() : null,
+        min = this.options.min != null ? util.convert(this.options.min, "Date").valueOf() : null,
+        diff;
 
-    // attach event listeners
-    this.hammer = new Hammer(drag);
-    this.hammer.on("panstart", this._onDragStart.bind(this));
-    this.hammer.on("panmove", this._onDrag.bind(this));
-    this.hammer.on("panend", this._onDragEnd.bind(this));
-    this.hammer.on("pan", function (event) {
-      event.preventDefault();
+    // check for valid number
+    if (isNaN(newStart) || newStart === null) {
+      throw new Error("Invalid start \"" + start + "\"");
+    }
+    if (isNaN(newEnd) || newEnd === null) {
+      throw new Error("Invalid end \"" + end + "\"");
+    }
+
+    // prevent start < end
+    if (newEnd < newStart) {
+      newEnd = newStart;
+    }
+
+    // prevent start < min
+    if (min !== null) {
+      if (newStart < min) {
+        diff = min - newStart;
+        newStart += diff;
+        newEnd += diff;
+
+        // prevent end > max
+        if (max != null) {
+          if (newEnd > max) {
+            newEnd = max;
+          }
+        }
+      }
+    }
+
+    // prevent end > max
+    if (max !== null) {
+      if (newEnd > max) {
+        diff = newEnd - max;
+        newStart -= diff;
+        newEnd -= diff;
+
+        // prevent start < min
+        if (min != null) {
+          if (newStart < min) {
+            newStart = min;
+          }
+        }
+      }
+    }
+
+    // prevent (end-start) < zoomMin
+    if (this.options.zoomMin !== null) {
+      var zoomMin = parseFloat(this.options.zoomMin);
+      if (zoomMin < 0) {
+        zoomMin = 0;
+      }
+      if (newEnd - newStart < zoomMin) {
+        if (this.end - this.start === zoomMin && newStart > this.start && newEnd < this.end) {
+          // ignore this action, we are already zoomed to the minimum
+          newStart = this.start;
+          newEnd = this.end;
+        } else {
+          // zoom to the minimum
+          diff = zoomMin - (newEnd - newStart);
+          newStart -= diff / 2;
+          newEnd += diff / 2;
+        }
+      }
+    }
+
+    // prevent (end-start) > zoomMax
+    if (this.options.zoomMax !== null) {
+      var zoomMax = parseFloat(this.options.zoomMax);
+      if (zoomMax < 0) {
+        zoomMax = 0;
+      }
+
+      if (newEnd - newStart > zoomMax) {
+        if (this.end - this.start === zoomMax && newStart < this.start && newEnd > this.end) {
+          // ignore this action, we are already zoomed to the maximum
+          newStart = this.start;
+          newEnd = this.end;
+        } else {
+          // zoom to the maximum
+          diff = newEnd - newStart - zoomMax;
+          newStart += diff / 2;
+          newEnd -= diff / 2;
+        }
+      }
+    }
+
+    var changed = this.start != newStart || this.end != newEnd;
+
+    // if the new range does NOT overlap with the old range, emit checkRangedItems to avoid not showing ranged items (ranged meaning has end time, not necessarily of type Range)
+    if (!(newStart >= this.start && newStart <= this.end || newEnd >= this.start && newEnd <= this.end) && !(this.start >= newStart && this.start <= newEnd || this.end >= newStart && this.end <= newEnd)) {
+      this.body.emitter.emit("checkRangedItems");
+    }
+
+    this.start = newStart;
+    this.end = newEnd;
+    return changed;
+  };
+
+  /**
+   * Retrieve the current range.
+   * @return {Object} An object with start and end properties
+   */
+  Range.prototype.getRange = function () {
+    return {
+      start: this.start,
+      end: this.end
+    };
+  };
+
+  /**
+   * Calculate the conversion offset and scale for current range, based on
+   * the provided width
+   * @param {Number} width
+   * @returns {{offset: number, scale: number}} conversion
+   */
+  Range.prototype.conversion = function (width, totalHidden) {
+    return Range.conversion(this.start, this.end, width, totalHidden);
+  };
+
+  /**
+   * Static method to calculate the conversion offset and scale for a range,
+   * based on the provided start, end, and width
+   * @param {Number} start
+   * @param {Number} end
+   * @param {Number} width
+   * @returns {{offset: number, scale: number}} conversion
+   */
+  Range.conversion = function (start, end, width, totalHidden) {
+    if (totalHidden === undefined) {
+      totalHidden = 0;
+    }
+    if (width != 0 && end - start != 0) {
+      return {
+        offset: start,
+        scale: width / (end - start - totalHidden)
+      };
+    } else {
+      return {
+        offset: 0,
+        scale: 1
+      };
+    }
+  };
+
+  /**
+   * Start dragging horizontally or vertically
+   * @param {Event} event
+   * @private
+   */
+  Range.prototype._onDragStart = function (event) {
+    this.deltaDifference = 0;
+    this.previousDelta = 0;
+    // only allow dragging when configured as movable
+    if (!this.options.moveable) return;
+
+    // refuse to drag when we where pinching to prevent the timeline make a jump
+    // when releasing the fingers in opposite order from the touch screen
+    if (!this.props.touch.allowDragging) return;
+
+    this.props.touch.start = this.start;
+    this.props.touch.end = this.end;
+    this.props.touch.dragging = true;
+
+    if (this.body.dom.root) {
+      this.body.dom.root.style.cursor = "move";
+    }
+
+    event.preventDefault();
+  };
+
+  /**
+   * Perform dragging operation
+   * @param {Event} event
+   * @private
+   */
+  Range.prototype._onDrag = function (event) {
+    // only allow dragging when configured as movable
+    if (!this.options.moveable) return;
+
+    // TODO: this may be redundant in hammerjs2
+    // refuse to drag when we where pinching to prevent the timeline make a jump
+    // when releasing the fingers in opposite order from the touch screen
+    if (!this.props.touch.allowDragging) return;
+
+    var direction = this.options.direction;
+    validateDirection(direction);
+    var delta = direction == "horizontal" ? event.deltaX : event.deltaY;
+    delta -= this.deltaDifference;
+    var interval = this.props.touch.end - this.props.touch.start;
+
+    // normalize dragging speed if cutout is in between.
+    var duration = DateUtil.getHiddenDurationBetween(this.body.hiddenDates, this.start, this.end);
+    interval -= duration;
+
+    var width = direction == "horizontal" ? this.body.domProps.center.width : this.body.domProps.center.height;
+    var diffRange = -delta / width * interval;
+    var newStart = this.props.touch.start + diffRange;
+    var newEnd = this.props.touch.end + diffRange;
+
+    // snapping times away from hidden zones
+    var safeStart = DateUtil.snapAwayFromHidden(this.body.hiddenDates, newStart, this.previousDelta - delta, true);
+    var safeEnd = DateUtil.snapAwayFromHidden(this.body.hiddenDates, newEnd, this.previousDelta - delta, true);
+    if (safeStart != newStart || safeEnd != newEnd) {
+      this.deltaDifference += delta;
+      this.props.touch.start = safeStart;
+      this.props.touch.end = safeEnd;
+      this._onDrag(event);
+      return;
+    }
+
+    this.previousDelta = delta;
+    this._applyRange(newStart, newEnd);
+
+    // fire a rangechange event
+    this.body.emitter.emit("rangechange", {
+      start: new Date(this.start),
+      end: new Date(this.end),
+      byUser: true
+    });
+
+    event.preventDefault();
+  };
+
+  /**
+   * Stop dragging operation
+   * @param {event} event
+   * @private
+   */
+  Range.prototype._onDragEnd = function (event) {
+    // only allow dragging when configured as movable
+    if (!this.options.moveable) return;
+
+    // TODO: this may be redundant in hammerjs2
+    // refuse to drag when we where pinching to prevent the timeline make a jump
+    // when releasing the fingers in opposite order from the touch screen
+    if (!this.props.touch.allowDragging) return;
+
+    this.props.touch.dragging = false;
+    if (this.body.dom.root) {
+      this.body.dom.root.style.cursor = "auto";
+    }
+
+    // fire a rangechanged event
+    this.body.emitter.emit("rangechanged", {
+      start: new Date(this.start),
+      end: new Date(this.end),
+      byUser: true
     });
   };
 
   /**
-   * Destroy the CustomTime bar
+   * Event handler for mouse wheel event, used to zoom
+   * Code from http://adomas.org/javascript-mouse-wheel/
+   * @param {Event} event
+   * @private
    */
-  CustomTime.prototype.destroy = function () {
-    this.options.showCustomTime = false;
-    this.redraw(); // will remove the bar from the DOM
+  Range.prototype._onMouseWheel = function (event) {
+    // only allow zooming when configured as zoomable and moveable
+    if (!(this.options.zoomable && this.options.moveable)) return;
 
-    this.hammer.enable(false);
-    this.hammer = null;
+    // retrieve delta
+    var delta = 0;
+    if (event.wheelDelta) {
+      /* IE/Opera. */
+      delta = event.wheelDelta / 120;
+    } else if (event.detail) {
+      /* Mozilla case. */
+      // In Mozilla, sign of delta is different than in IE.
+      // Also, delta is multiple of 3.
+      delta = -event.detail / 3;
+    }
 
-    this.body = null;
+    // If delta is nonzero, handle it.
+    // Basically, delta is now positive if wheel was scrolled up,
+    // and negative, if wheel was scrolled down.
+    if (delta) {
+      // perform the zoom action. Delta is normally 1 or -1
+
+      // adjust a negative delta such that zooming in with delta 0.1
+      // equals zooming out with a delta -0.1
+      var scale;
+      if (delta < 0) {
+        scale = 1 - delta / 5;
+      } else {
+        scale = 1 / (1 + delta / 5);
+      }
+
+      // calculate center, the date to zoom around
+      var pointer = getPointer({ x: event.pageX, y: event.pageY }, this.body.dom.center);
+      var pointerDate = this._pointerToDate(pointer);
+
+      this.zoom(scale, pointerDate, delta);
+    }
+
+    // Prevent default actions caused by mouse wheel
+    // (else the page and timeline both zoom and scroll)
+    event.preventDefault();
+  };
+
+  /**
+   * Start of a touch gesture
+   * @private
+   */
+  Range.prototype._onTouch = function (event) {
+    this.props.touch.start = this.start;
+    this.props.touch.end = this.end;
+    this.props.touch.allowDragging = true;
+    this.props.touch.center = null;
+    this.scaleOffset = 0;
+    this.deltaDifference = 0;
+  };
+
+  /**
+   * On start of a hold gesture
+   * @private
+   */
+  Range.prototype._onHold = function () {
+    this.props.touch.allowDragging = false;
+  };
+
+  /**
+   * Handle pinch event
+   * @param {Event} event
+   * @private
+   */
+  Range.prototype._onPinch = function (event) {
+    // only allow zooming when configured as zoomable and moveable
+    if (!(this.options.zoomable && this.options.moveable)) return;
+
+    this.props.touch.allowDragging = false;
+
+    if (!this.props.touch.center) {
+      this.props.touch.center = getPointer(event.center, this.body.dom.center);
+    }
+
+    var scale = 1 / (event.scale + this.scaleOffset);
+    var centerDate = this._pointerToDate(this.props.touch.center);
+
+    var hiddenDuration = DateUtil.getHiddenDurationBetween(this.body.hiddenDates, this.start, this.end);
+    var hiddenDurationBefore = DateUtil.getHiddenDurationBefore(this.body.hiddenDates, this, centerDate);
+    var hiddenDurationAfter = hiddenDuration - hiddenDurationBefore;
+
+    // calculate new start and end
+    var newStart = centerDate - hiddenDurationBefore + (this.props.touch.start - (centerDate - hiddenDurationBefore)) * scale;
+    var newEnd = centerDate + hiddenDurationAfter + (this.props.touch.end - (centerDate + hiddenDurationAfter)) * scale;
+
+    // snapping times away from hidden zones
+    this.startToFront = 1 - scale <= 0; // used to do the right auto correction with periodic hidden times
+    this.endToFront = scale - 1 <= 0; // used to do the right auto correction with periodic hidden times
+
+    var safeStart = DateUtil.snapAwayFromHidden(this.body.hiddenDates, newStart, 1 - scale, true);
+    var safeEnd = DateUtil.snapAwayFromHidden(this.body.hiddenDates, newEnd, scale - 1, true);
+    if (safeStart != newStart || safeEnd != newEnd) {
+      this.props.touch.start = safeStart;
+      this.props.touch.end = safeEnd;
+      this.scaleOffset = 1 - event.scale;
+      newStart = safeStart;
+      newEnd = safeEnd;
+    }
+
+    this.setRange(newStart, newEnd, false, true);
+
+    this.startToFront = false; // revert to default
+    this.endToFront = true; // revert to default
+
+    event.preventDefault();
+  };
+
+  /**
+   * Helper function to calculate the center date for zooming
+   * @param {{x: Number, y: Number}} pointer
+   * @return {number} date
+   * @private
+   */
+  Range.prototype._pointerToDate = function (pointer) {
+    var conversion;
+    var direction = this.options.direction;
+
+    validateDirection(direction);
+
+    if (direction == "horizontal") {
+      return this.body.util.toTime(pointer.x).valueOf();
+    } else {
+      var height = this.body.domProps.center.height;
+      conversion = this.conversion(height);
+      return pointer.y / conversion.scale + conversion.offset;
+    }
+  };
+
+  /**
+   * Get the pointer location relative to the location of the dom element
+   * @param {{x: Number, y: Number}} touch
+   * @param {Element} element   HTML DOM element
+   * @return {{x: Number, y: Number}} pointer
+   * @private
+   */
+  function getPointer(touch, element) {
+    return {
+      x: touch.x - util.getAbsoluteLeft(element),
+      y: touch.y - util.getAbsoluteTop(element)
+    };
+  }
+
+  /**
+   * Zoom the range the given scale in or out. Start and end date will
+   * be adjusted, and the timeline will be redrawn. You can optionally give a
+   * date around which to zoom.
+   * For example, try scale = 0.9 or 1.1
+   * @param {Number} scale      Scaling factor. Values above 1 will zoom out,
+   *                            values below 1 will zoom in.
+   * @param {Number} [center]   Value representing a date around which will
+   *                            be zoomed.
+   */
+  Range.prototype.zoom = function (scale, center, delta) {
+    // if centerDate is not provided, take it half between start Date and end Date
+    if (center == null) {
+      center = (this.start + this.end) / 2;
+    }
+
+    var hiddenDuration = DateUtil.getHiddenDurationBetween(this.body.hiddenDates, this.start, this.end);
+    var hiddenDurationBefore = DateUtil.getHiddenDurationBefore(this.body.hiddenDates, this, center);
+    var hiddenDurationAfter = hiddenDuration - hiddenDurationBefore;
+
+    // calculate new start and end
+    var newStart = center - hiddenDurationBefore + (this.start - (center - hiddenDurationBefore)) * scale;
+    var newEnd = center + hiddenDurationAfter + (this.end - (center + hiddenDurationAfter)) * scale;
+
+    // snapping times away from hidden zones
+    this.startToFront = delta > 0 ? false : true; // used to do the right autocorrection with periodic hidden times
+    this.endToFront = -delta > 0 ? false : true; // used to do the right autocorrection with periodic hidden times
+    var safeStart = DateUtil.snapAwayFromHidden(this.body.hiddenDates, newStart, delta, true);
+    var safeEnd = DateUtil.snapAwayFromHidden(this.body.hiddenDates, newEnd, -delta, true);
+    if (safeStart != newStart || safeEnd != newEnd) {
+      newStart = safeStart;
+      newEnd = safeEnd;
+    }
+
+    this.setRange(newStart, newEnd, false, true);
+
+    this.startToFront = false; // revert to default
+    this.endToFront = true; // revert to default
+  };
+
+
+
+  /**
+   * Move the range with a given delta to the left or right. Start and end
+   * value will be adjusted. For example, try delta = 0.1 or -0.1
+   * @param {Number}  delta     Moving amount. Positive value will move right,
+   *                            negative value will move left
+   */
+  Range.prototype.move = function (delta) {
+    // zoom start Date and end Date relative to the centerDate
+    var diff = this.end - this.start;
+
+    // apply new values
+    var newStart = this.start + diff * delta;
+    var newEnd = this.end + diff * delta;
+
+    // TODO: reckon with min and max range
+
+    this.start = newStart;
+    this.end = newEnd;
+  };
+
+  /**
+   * Move the range to a new center point
+   * @param {Number} moveTo      New center point of the range
+   */
+  Range.prototype.moveTo = function (moveTo) {
+    var center = (this.start + this.end) / 2;
+
+    var diff = center - moveTo;
+
+    // calculate new start and end
+    var newStart = this.start - diff;
+    var newEnd = this.end - diff;
+
+    this.setRange(newStart, newEnd);
+  };
+
+  module.exports = Range;
+
+/***/ },
+/* 24 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var Hammer = __webpack_require__(19);
+
+  /**
+   * Register a touch event, taking place before a gesture
+   * @param {Hammer} hammer       A hammer instance
+   * @param {function} callback   Callback, called as callback(event)
+   */
+  exports.onTouch = function (hammer, callback) {
+    callback.inputHandler = function (event) {
+      if (event.isFirst) {
+        callback(event);
+      }
+    };
+
+    hammer.on("hammer.input", callback.inputHandler);
+  };
+
+  /**
+   * Register a release event, taking place after a gesture
+   * @param {Hammer} hammer       A hammer instance
+   * @param {function} callback   Callback, called as callback(event)
+   */
+  exports.onRelease = function (hammer, callback) {
+    callback.inputHandler = function (event) {
+      if (event.isFinal) {
+        callback(event);
+      }
+    };
+
+    return hammer.on("hammer.input", callback.inputHandler);
+  };
+
+  /**
+   * Unregister a touch event, taking place before a gesture
+   * @param {Hammer} hammer       A hammer instance
+   * @param {function} callback   Callback, called as callback(event)
+   */
+  exports.offTouch = function (hammer, callback) {
+    hammer.off("hammer.input", callback.inputHandler);
+  };
+
+  /**
+   * Unregister a release event, taking place before a gesture
+   * @param {Hammer} hammer       A hammer instance
+   * @param {function} callback   Callback, called as callback(event)
+   */
+  exports.offRelease = exports.offTouch;
+
+/***/ },
+/* 25 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  /**
+   * Prototype for visual components
+   * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} [body]
+   * @param {Object} [options]
+   */
+  function Component(body, options) {
+    this.options = null;
+    this.props = null;
+  }
+
+  /**
+   * Set options for the component. The new options will be merged into the
+   * current options.
+   * @param {Object} options
+   */
+  Component.prototype.setOptions = function (options) {
+    if (options) {
+      util.extend(this.options, options);
+    }
   };
 
   /**
    * Repaint the component
    * @return {boolean} Returns true if the component is resized
    */
-  CustomTime.prototype.redraw = function () {
-    if (this.options.showCustomTime) {
-      var parent = this.body.dom.backgroundVertical;
-      if (this.bar.parentNode != parent) {
-        // attach to the dom
-        if (this.bar.parentNode) {
-          this.bar.parentNode.removeChild(this.bar);
-        }
-        parent.appendChild(this.bar);
-      }
-
-      var x = this.body.util.toScreen(this.customTime);
-
-      var locale = this.options.locales[this.options.locale];
-      var title = locale.time + ": " + moment(this.customTime).format("dddd, MMMM Do YYYY, H:mm:ss");
-      title = title.charAt(0).toUpperCase() + title.substring(1);
-
-      this.bar.style.left = x + "px";
-      this.bar.title = title;
-    } else {
-      // remove the line from the DOM
-      if (this.bar.parentNode) {
-        this.bar.parentNode.removeChild(this.bar);
-      }
-    }
-
+  Component.prototype.redraw = function () {
+    // should be implemented by the component
     return false;
   };
 
   /**
-   * Set custom time.
-   * @param {Date | number | string} time
+   * Destroy the component. Cleanup DOM and event listeners
    */
-  CustomTime.prototype.setCustomTime = function (time) {
-    this.customTime = util.convert(time, "Date");
-    this.redraw();
+  Component.prototype.destroy = function () {};
+
+  /**
+   * Test whether the component is resized since the last time _isResized() was
+   * called.
+   * @return {Boolean} Returns true if the component is resized
+   * @protected
+   */
+  Component.prototype._isResized = function () {
+    var resized = this.props._previousWidth !== this.props.width || this.props._previousHeight !== this.props.height;
+
+    this.props._previousWidth = this.props.width;
+    this.props._previousHeight = this.props.height;
+
+    return resized;
+  };
+
+  module.exports = Component;
+  // should be implemented by the component
+
+/***/ },
+/* 26 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  /**
+   * Created by Alex on 10/3/2014.
+   */
+  var moment = __webpack_require__(2);
+
+
+  /**
+   * used in Core to convert the options into a volatile variable
+   * 
+   * @param Core
+   */
+  exports.convertHiddenOptions = function (body, hiddenDates) {
+    body.hiddenDates = [];
+    if (hiddenDates) {
+      if (Array.isArray(hiddenDates) == true) {
+        for (var i = 0; i < hiddenDates.length; i++) {
+          if (hiddenDates[i].repeat === undefined) {
+            var dateItem = {};
+            dateItem.start = moment(hiddenDates[i].start).toDate().valueOf();
+            dateItem.end = moment(hiddenDates[i].end).toDate().valueOf();
+            body.hiddenDates.push(dateItem);
+          }
+        }
+        body.hiddenDates.sort(function (a, b) {
+          return a.start - b.start;
+        }); // sort by start time
+      }
+    }
+  };
+
+
+  /**
+   * create new entrees for the repeating hidden dates
+   * @param body
+   * @param hiddenDates
+   */
+  exports.updateHiddenDates = function (body, hiddenDates) {
+    if (hiddenDates && body.domProps.centerContainer.width !== undefined) {
+      exports.convertHiddenOptions(body, hiddenDates);
+
+      var start = moment(body.range.start);
+      var end = moment(body.range.end);
+
+      var totalRange = body.range.end - body.range.start;
+      var pixelTime = totalRange / body.domProps.centerContainer.width;
+
+      for (var i = 0; i < hiddenDates.length; i++) {
+        if (hiddenDates[i].repeat !== undefined) {
+          var startDate = moment(hiddenDates[i].start);
+          var endDate = moment(hiddenDates[i].end);
+
+          if (startDate._d == "Invalid Date") {
+            throw new Error("Supplied start date is not valid: " + hiddenDates[i].start);
+          }
+          if (endDate._d == "Invalid Date") {
+            throw new Error("Supplied end date is not valid: " + hiddenDates[i].end);
+          }
+
+          var duration = endDate - startDate;
+          if (duration >= 4 * pixelTime) {
+            var offset = 0;
+            var runUntil = end.clone();
+            switch (hiddenDates[i].repeat) {
+              case "daily":
+                // case of time
+                if (startDate.day() != endDate.day()) {
+                  offset = 1;
+                }
+                startDate.dayOfYear(start.dayOfYear());
+                startDate.year(start.year());
+                startDate.subtract(7, "days");
+
+                endDate.dayOfYear(start.dayOfYear());
+                endDate.year(start.year());
+                endDate.subtract(7 - offset, "days");
+
+                runUntil.add(1, "weeks");
+                break;
+              case "weekly":
+                var dayOffset = endDate.diff(startDate, "days");
+                var day = startDate.day();
+
+                // set the start date to the range.start
+                startDate.date(start.date());
+                startDate.month(start.month());
+                startDate.year(start.year());
+                endDate = startDate.clone();
+
+                // force
+                startDate.day(day);
+                endDate.day(day);
+                endDate.add(dayOffset, "days");
+
+                startDate.subtract(1, "weeks");
+                endDate.subtract(1, "weeks");
+
+                runUntil.add(1, "weeks");
+                break;
+              case "monthly":
+                if (startDate.month() != endDate.month()) {
+                  offset = 1;
+                }
+                startDate.month(start.month());
+                startDate.year(start.year());
+                startDate.subtract(1, "months");
+
+                endDate.month(start.month());
+                endDate.year(start.year());
+                endDate.subtract(1, "months");
+                endDate.add(offset, "months");
+
+                runUntil.add(1, "months");
+                break;
+              case "yearly":
+                if (startDate.year() != endDate.year()) {
+                  offset = 1;
+                }
+                startDate.year(start.year());
+                startDate.subtract(1, "years");
+                endDate.year(start.year());
+                endDate.subtract(1, "years");
+                endDate.add(offset, "years");
+
+                runUntil.add(1, "years");
+                break;
+              default:
+                console.log("Wrong repeat format, allowed are: daily, weekly, monthly, yearly. Given:", hiddenDates[i].repeat);
+                return;
+            }
+            while (startDate < runUntil) {
+              body.hiddenDates.push({ start: startDate.valueOf(), end: endDate.valueOf() });
+              switch (hiddenDates[i].repeat) {
+                case "daily":
+                  startDate.add(1, "days");
+                  endDate.add(1, "days");
+                  break;
+                case "weekly":
+                  startDate.add(1, "weeks");
+                  endDate.add(1, "weeks");
+                  break;
+                case "monthly":
+                  startDate.add(1, "months");
+                  endDate.add(1, "months");
+                  break;
+                case "yearly":
+                  startDate.add(1, "y");
+                  endDate.add(1, "y");
+                  break;
+                default:
+                  console.log("Wrong repeat format, allowed are: daily, weekly, monthly, yearly. Given:", hiddenDates[i].repeat);
+                  return;
+              }
+            }
+            body.hiddenDates.push({ start: startDate.valueOf(), end: endDate.valueOf() });
+          }
+        }
+      }
+      // remove duplicates, merge where possible
+      exports.removeDuplicates(body);
+      // ensure the new positions are not on hidden dates
+      var startHidden = exports.isHidden(body.range.start, body.hiddenDates);
+      var endHidden = exports.isHidden(body.range.end, body.hiddenDates);
+      var rangeStart = body.range.start;
+      var rangeEnd = body.range.end;
+      if (startHidden.hidden == true) {
+        rangeStart = body.range.startToFront == true ? startHidden.startDate - 1 : startHidden.endDate + 1;
+      }
+      if (endHidden.hidden == true) {
+        rangeEnd = body.range.endToFront == true ? endHidden.startDate - 1 : endHidden.endDate + 1;
+      }
+      if (startHidden.hidden == true || endHidden.hidden == true) {
+        body.range._applyRange(rangeStart, rangeEnd);
+      }
+    }
+  };
+
+
+  /**
+   * remove duplicates from the hidden dates list. Duplicates are evil. They mess everything up.
+   * Scales with N^2
+   * @param body
+   */
+  exports.removeDuplicates = function (body) {
+    var hiddenDates = body.hiddenDates;
+    var safeDates = [];
+    for (var i = 0; i < hiddenDates.length; i++) {
+      for (var j = 0; j < hiddenDates.length; j++) {
+        if (i != j && hiddenDates[j].remove != true && hiddenDates[i].remove != true) {
+          // j inside i
+          if (hiddenDates[j].start >= hiddenDates[i].start && hiddenDates[j].end <= hiddenDates[i].end) {
+            hiddenDates[j].remove = true;
+          }
+          // j start inside i
+          else if (hiddenDates[j].start >= hiddenDates[i].start && hiddenDates[j].start <= hiddenDates[i].end) {
+            hiddenDates[i].end = hiddenDates[j].end;
+            hiddenDates[j].remove = true;
+          }
+          // j end inside i
+          else if (hiddenDates[j].end >= hiddenDates[i].start && hiddenDates[j].end <= hiddenDates[i].end) {
+            hiddenDates[i].start = hiddenDates[j].start;
+            hiddenDates[j].remove = true;
+          }
+        }
+      }
+    }
+
+    for (var i = 0; i < hiddenDates.length; i++) {
+      if (hiddenDates[i].remove !== true) {
+        safeDates.push(hiddenDates[i]);
+      }
+    }
+
+    body.hiddenDates = safeDates;
+    body.hiddenDates.sort(function (a, b) {
+      return a.start - b.start;
+    }); // sort by start time
+  };
+
+  exports.printDates = function (dates) {
+    for (var i = 0; i < dates.length; i++) {
+      console.log(i, new Date(dates[i].start), new Date(dates[i].end), dates[i].start, dates[i].end, dates[i].remove);
+    }
+  };
+
+  /**
+   * Used in TimeStep to avoid the hidden times.
+   * @param timeStep
+   * @param previousTime
+   */
+  exports.stepOverHiddenDates = function (timeStep, previousTime) {
+    var stepInHidden = false;
+    var currentValue = timeStep.current.valueOf();
+    for (var i = 0; i < timeStep.hiddenDates.length; i++) {
+      var startDate = timeStep.hiddenDates[i].start;
+      var endDate = timeStep.hiddenDates[i].end;
+      if (currentValue >= startDate && currentValue < endDate) {
+        stepInHidden = true;
+        break;
+      }
+    }
+
+    if (stepInHidden == true && currentValue < timeStep._end.valueOf() && currentValue != previousTime) {
+      var prevValue = moment(previousTime);
+      var newValue = moment(endDate);
+      //check if the next step should be major
+      if (prevValue.year() != newValue.year()) {
+        timeStep.switchedYear = true;
+      } else if (prevValue.month() != newValue.month()) {
+        timeStep.switchedMonth = true;
+      } else if (prevValue.dayOfYear() != newValue.dayOfYear()) {
+        timeStep.switchedDay = true;
+      }
+
+      timeStep.current = newValue.toDate();
+    }
+  };
+
+
+  ///**
+  // * Used in TimeStep to avoid the hidden times.
+  // * @param timeStep
+  // * @param previousTime
+  // */
+  //exports.checkFirstStep = function(timeStep) {
+  //  var stepInHidden = false;
+  //  var currentValue = timeStep.current.valueOf();
+  //  for (var i = 0; i < timeStep.hiddenDates.length; i++) {
+  //    var startDate = timeStep.hiddenDates[i].start;
+  //    var endDate = timeStep.hiddenDates[i].end;
+  //    if (currentValue >= startDate && currentValue < endDate) {
+  //      stepInHidden = true;
+  //      break;
+  //    }
+  //  }
+  //
+  //  if (stepInHidden == true && currentValue <= timeStep._end.valueOf()) {
+  //    var newValue = moment(endDate);
+  //    timeStep.current = newValue.toDate();
+  //  }
+  //};
+
+  /**
+   * replaces the Core toScreen methods
+   * @param Core
+   * @param time
+   * @param width
+   * @returns {number}
+   */
+  exports.toScreen = function (Core, time, width) {
+    if (Core.body.hiddenDates.length == 0) {
+      var conversion = Core.range.conversion(width);
+      return (time.valueOf() - conversion.offset) * conversion.scale;
+    } else {
+      var hidden = exports.isHidden(time, Core.body.hiddenDates);
+      if (hidden.hidden == true) {
+        time = hidden.startDate;
+      }
+
+      var duration = exports.getHiddenDurationBetween(Core.body.hiddenDates, Core.range.start, Core.range.end);
+      time = exports.correctTimeForHidden(Core.body.hiddenDates, Core.range, time);
+
+      var conversion = Core.range.conversion(width, duration);
+      return (time.valueOf() - conversion.offset) * conversion.scale;
+    }
+  };
+
+
+  /**
+   * Replaces the core toTime methods
+   * @param body
+   * @param range
+   * @param x
+   * @param width
+   * @returns {Date}
+   */
+  exports.toTime = function (Core, x, width) {
+    if (Core.body.hiddenDates.length == 0) {
+      var conversion = Core.range.conversion(width);
+      return new Date(x / conversion.scale + conversion.offset);
+    } else {
+      var hiddenDuration = exports.getHiddenDurationBetween(Core.body.hiddenDates, Core.range.start, Core.range.end);
+      var totalDuration = Core.range.end - Core.range.start - hiddenDuration;
+      var partialDuration = totalDuration * x / width;
+      var accumulatedHiddenDuration = exports.getAccumulatedHiddenDuration(Core.body.hiddenDates, Core.range, partialDuration);
+
+      var newTime = new Date(accumulatedHiddenDuration + partialDuration + Core.range.start);
+      return newTime;
+    }
+  };
+
+
+  /**
+   * Support function
+   *
+   * @param hiddenDates
+   * @param range
+   * @returns {number}
+   */
+  exports.getHiddenDurationBetween = function (hiddenDates, start, end) {
+    var duration = 0;
+    for (var i = 0; i < hiddenDates.length; i++) {
+      var startDate = hiddenDates[i].start;
+      var endDate = hiddenDates[i].end;
+      // if time after the cutout, and the
+      if (startDate >= start && endDate < end) {
+        duration += endDate - startDate;
+      }
+    }
+    return duration;
+  };
+
+
+  /**
+   * Support function
+   * @param hiddenDates
+   * @param range
+   * @param time
+   * @returns {{duration: number, time: *, offset: number}}
+   */
+  exports.correctTimeForHidden = function (hiddenDates, range, time) {
+    time = moment(time).toDate().valueOf();
+    time -= exports.getHiddenDurationBefore(hiddenDates, range, time);
+    return time;
+  };
+
+  exports.getHiddenDurationBefore = function (hiddenDates, range, time) {
+    var timeOffset = 0;
+    time = moment(time).toDate().valueOf();
+
+    for (var i = 0; i < hiddenDates.length; i++) {
+      var startDate = hiddenDates[i].start;
+      var endDate = hiddenDates[i].end;
+      // if time after the cutout, and the
+      if (startDate >= range.start && endDate < range.end) {
+        if (time >= endDate) {
+          timeOffset += endDate - startDate;
+        }
+      }
+    }
+    return timeOffset;
+  };
+
+  /**
+   * sum the duration from start to finish, including the hidden duration,
+   * until the required amount has been reached, return the accumulated hidden duration
+   * @param hiddenDates
+   * @param range
+   * @param time
+   * @returns {{duration: number, time: *, offset: number}}
+   */
+  exports.getAccumulatedHiddenDuration = function (hiddenDates, range, requiredDuration) {
+    var hiddenDuration = 0;
+    var duration = 0;
+    var previousPoint = range.start;
+    //exports.printDates(hiddenDates)
+    for (var i = 0; i < hiddenDates.length; i++) {
+      var startDate = hiddenDates[i].start;
+      var endDate = hiddenDates[i].end;
+      // if time after the cutout, and the
+      if (startDate >= range.start && endDate < range.end) {
+        duration += startDate - previousPoint;
+        previousPoint = endDate;
+        if (duration >= requiredDuration) {
+          break;
+        } else {
+          hiddenDuration += endDate - startDate;
+        }
+      }
+    }
+
+    return hiddenDuration;
+  };
+
+
+
+  /**
+   * used to step over to either side of a hidden block. Correction is disabled on tablets, might be set to true
+   * @param hiddenDates
+   * @param time
+   * @param direction
+   * @param correctionEnabled
+   * @returns {*}
+   */
+  exports.snapAwayFromHidden = function (hiddenDates, time, direction, correctionEnabled) {
+    var isHidden = exports.isHidden(time, hiddenDates);
+    if (isHidden.hidden == true) {
+      if (direction < 0) {
+        if (correctionEnabled == true) {
+          return isHidden.startDate - (isHidden.endDate - time) - 1;
+        } else {
+          return isHidden.startDate - 1;
+        }
+      } else {
+        if (correctionEnabled == true) {
+          return isHidden.endDate + (time - isHidden.startDate) + 1;
+        } else {
+          return isHidden.endDate + 1;
+        }
+      }
+    } else {
+      return time;
+    }
+  };
+
+
+  /**
+   * Check if a time is hidden
+   *
+   * @param time
+   * @param hiddenDates
+   * @returns {{hidden: boolean, startDate: Window.start, endDate: *}}
+   */
+  exports.isHidden = function (time, hiddenDates) {
+    for (var i = 0; i < hiddenDates.length; i++) {
+      var startDate = hiddenDates[i].start;
+      var endDate = hiddenDates[i].end;
+
+      if (time >= startDate && time < endDate) {
+        // if the start is entering a hidden zone
+        return { hidden: true, startDate: startDate, endDate: endDate };
+        break;
+      }
+    }
+    return { hidden: false, startDate: startDate, endDate: endDate };
+  };
+
+/***/ },
+/* 27 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var Emitter = __webpack_require__(11);
+  var Hammer = __webpack_require__(19);
+  var hammerUtil = __webpack_require__(24);
+  var util = __webpack_require__(1);
+  var DataSet = __webpack_require__(7);
+  var DataView = __webpack_require__(9);
+  var Range = __webpack_require__(23);
+  var ItemSet = __webpack_require__(28);
+  var Activator = __webpack_require__(38);
+  var DateUtil = __webpack_require__(26);
+  var CustomTime = __webpack_require__(40);
+
+  /**
+   * Create a timeline visualization
+   * @param {HTMLElement} container
+   * @param {vis.DataSet | Array | google.visualization.DataTable} [items]
+   * @param {Object} [options]  See Core.setOptions for the available options.
+   * @constructor
+   */
+  function Core() {}
+
+  // turn Core into an event emitter
+  Emitter(Core.prototype);
+
+  /**
+   * Create the main DOM for the Core: a root panel containing left, right,
+   * top, bottom, content, and background panel.
+   * @param {Element} container  The container element where the Core will
+   *                             be attached.
+   * @private
+   */
+  Core.prototype._create = function (container) {
+    this.dom = {};
+
+    this.dom.root = document.createElement("div");
+    this.dom.background = document.createElement("div");
+    this.dom.backgroundVertical = document.createElement("div");
+    this.dom.backgroundHorizontal = document.createElement("div");
+    this.dom.centerContainer = document.createElement("div");
+    this.dom.leftContainer = document.createElement("div");
+    this.dom.rightContainer = document.createElement("div");
+    this.dom.center = document.createElement("div");
+    this.dom.left = document.createElement("div");
+    this.dom.right = document.createElement("div");
+    this.dom.top = document.createElement("div");
+    this.dom.bottom = document.createElement("div");
+    this.dom.shadowTop = document.createElement("div");
+    this.dom.shadowBottom = document.createElement("div");
+    this.dom.shadowTopLeft = document.createElement("div");
+    this.dom.shadowBottomLeft = document.createElement("div");
+    this.dom.shadowTopRight = document.createElement("div");
+    this.dom.shadowBottomRight = document.createElement("div");
+
+    this.dom.root.className = "vis timeline root";
+    this.dom.background.className = "vispanel background";
+    this.dom.backgroundVertical.className = "vispanel background vertical";
+    this.dom.backgroundHorizontal.className = "vispanel background horizontal";
+    this.dom.centerContainer.className = "vispanel center";
+    this.dom.leftContainer.className = "vispanel left";
+    this.dom.rightContainer.className = "vispanel right";
+    this.dom.top.className = "vispanel top";
+    this.dom.bottom.className = "vispanel bottom";
+    this.dom.left.className = "content";
+    this.dom.center.className = "content";
+    this.dom.right.className = "content";
+    this.dom.shadowTop.className = "shadow top";
+    this.dom.shadowBottom.className = "shadow bottom";
+    this.dom.shadowTopLeft.className = "shadow top";
+    this.dom.shadowBottomLeft.className = "shadow bottom";
+    this.dom.shadowTopRight.className = "shadow top";
+    this.dom.shadowBottomRight.className = "shadow bottom";
+
+    this.dom.root.appendChild(this.dom.background);
+    this.dom.root.appendChild(this.dom.backgroundVertical);
+    this.dom.root.appendChild(this.dom.backgroundHorizontal);
+    this.dom.root.appendChild(this.dom.centerContainer);
+    this.dom.root.appendChild(this.dom.leftContainer);
+    this.dom.root.appendChild(this.dom.rightContainer);
+    this.dom.root.appendChild(this.dom.top);
+    this.dom.root.appendChild(this.dom.bottom);
+
+    this.dom.centerContainer.appendChild(this.dom.center);
+    this.dom.leftContainer.appendChild(this.dom.left);
+    this.dom.rightContainer.appendChild(this.dom.right);
+
+    this.dom.centerContainer.appendChild(this.dom.shadowTop);
+    this.dom.centerContainer.appendChild(this.dom.shadowBottom);
+    this.dom.leftContainer.appendChild(this.dom.shadowTopLeft);
+    this.dom.leftContainer.appendChild(this.dom.shadowBottomLeft);
+    this.dom.rightContainer.appendChild(this.dom.shadowTopRight);
+    this.dom.rightContainer.appendChild(this.dom.shadowBottomRight);
+
+    this.on("rangechange", this.redraw.bind(this));
+
+    var me = this;
+    this.on("change", function (properties) {
+      if (properties && properties.queue == true) {
+        // redraw once on next tick
+        if (!me._redrawTimer) {
+          me._redrawTimer = setTimeout(function () {
+            me._redrawTimer = null;
+            me._redraw();
+          }, 0);
+        }
+      } else {
+        // redraw immediately
+        me._redraw();
+      }
+    });
+
+    // create event listeners for all interesting events, these events will be
+    // emitted via emitter
+    this.hammer = new Hammer(this.dom.root, { touchAction: "pan-y" });
+    this.hammer.get("pinch").set({ enable: true });
+    this.listeners = {};
+
+    var events = ["tap", "doubletap", "press", "pinch", "pan", "panstart", "panmove", "panend"
+    // TODO: cleanup
+    //'touch', 'pinch',
+    //'tap', 'doubletap', 'hold',
+    //'dragstart', 'drag', 'dragend',
+    //'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is needed for Firefox
+    ];
+    events.forEach(function (type) {
+      var listener = function (event) {
+        if (me.isActive()) {
+          me.emit(type, event);
+        }
+      };
+      me.hammer.on(type, listener);
+      me.listeners[type] = listener;
+    });
+
+    // emulate a touch event (emitted before the start of a pan, pinch, tap, or press)
+    hammerUtil.onTouch(this.hammer, (function (event) {
+      me.emit("touch", event);
+    }).bind(this));
+
+    function onMouseWheel(event) {
+      if (me.isActive()) {
+        me.emit("mousewheel", event);
+      }
+    }
+    this.dom.root.addEventListener("mousewheel", onMouseWheel);
+    this.dom.root.addEventListener("DOMMouseScroll", onMouseWheel);
+
+    // size properties of each of the panels
+    this.props = {
+      root: {},
+      background: {},
+      centerContainer: {},
+      leftContainer: {},
+      rightContainer: {},
+      center: {},
+      left: {},
+      right: {},
+      top: {},
+      bottom: {},
+      border: {},
+      scrollTop: 0,
+      scrollTopMin: 0
+    };
+
+    this.redrawCount = 0;
+
+    // attach the root panel to the provided container
+    if (!container) throw new Error("No container provided");
+    container.appendChild(this.dom.root);
+  };
+
+  /**
+   * Set options. Options will be passed to all components loaded in the Timeline.
+   * @param {Object} [options]
+   *                           {String} orientation
+   *                              Vertical orientation for the Timeline,
+   *                              can be 'bottom' (default) or 'top'.
+   *                           {String | Number} width
+   *                              Width for the timeline, a number in pixels or
+   *                              a css string like '1000px' or '75%'. '100%' by default.
+   *                           {String | Number} height
+   *                              Fixed height for the Timeline, a number in pixels or
+   *                              a css string like '400px' or '75%'. If undefined,
+   *                              The Timeline will automatically size such that
+   *                              its contents fit.
+   *                           {String | Number} minHeight
+   *                              Minimum height for the Timeline, a number in pixels or
+   *                              a css string like '400px' or '75%'.
+   *                           {String | Number} maxHeight
+   *                              Maximum height for the Timeline, a number in pixels or
+   *                              a css string like '400px' or '75%'.
+   *                           {Number | Date | String} start
+   *                              Start date for the visible window
+   *                           {Number | Date | String} end
+   *                              End date for the visible window
+   */
+  Core.prototype.setOptions = function (options) {
+    if (options) {
+      // copy the known options
+      var fields = ["width", "height", "minHeight", "maxHeight", "autoResize", "start", "end", "orientation", "clickToUse", "dataAttributes", "hiddenDates"];
+      util.selectiveExtend(fields, this.options, options);
+
+      if ("hiddenDates" in this.options) {
+        DateUtil.convertHiddenOptions(this.body, this.options.hiddenDates);
+      }
+
+      if ("clickToUse" in options) {
+        if (options.clickToUse) {
+          if (!this.activator) {
+            this.activator = new Activator(this.dom.root);
+          }
+        } else {
+          if (this.activator) {
+            this.activator.destroy();
+            delete this.activator;
+          }
+        }
+      }
+
+      // enable/disable autoResize
+      this._initAutoResize();
+    }
+
+    // propagate options to all components
+    this.components.forEach(function (component) {
+      return component.setOptions(options);
+    });
+
+    // TODO: remove deprecation error one day (deprecated since version 0.8.0)
+    if (options && options.order) {
+      throw new Error("Option order is deprecated. There is no replacement for this feature.");
+    }
+
+    // redraw everything
+    this._redraw();
+  };
+
+  /**
+   * Returns true when the Timeline is active.
+   * @returns {boolean}
+   */
+  Core.prototype.isActive = function () {
+    return !this.activator || this.activator.active;
+  };
+
+  /**
+   * Destroy the Core, clean up all DOM elements and event listeners.
+   */
+  Core.prototype.destroy = function () {
+    // unbind datasets
+    this.clear();
+
+    // remove all event listeners
+    this.off();
+
+    // stop checking for changed size
+    this._stopAutoResize();
+
+    // remove from DOM
+    if (this.dom.root.parentNode) {
+      this.dom.root.parentNode.removeChild(this.dom.root);
+    }
+    this.dom = null;
+
+    // remove Activator
+    if (this.activator) {
+      this.activator.destroy();
+      delete this.activator;
+    }
+
+    // cleanup hammer touch events
+    for (var event in this.listeners) {
+      if (this.listeners.hasOwnProperty(event)) {
+        delete this.listeners[event];
+      }
+    }
+    this.listeners = null;
+    this.hammer = null;
+
+    // give all components the opportunity to cleanup
+    this.components.forEach(function (component) {
+      return component.destroy();
+    });
+
+    this.body = null;
+  };
+
+
+  /**
+   * Set a custom time bar
+   * @param {Date} time
+   * @param {int} id
+   */
+  Core.prototype.setCustomTime = function (time, id) {
+    if (!this.customTime) {
+      throw new Error("Cannot get custom time: Custom time bar is not enabled");
+    }
+
+    var barId = id || 0;
+
+    this.components.forEach(function (element, index, components) {
+      if (element instanceof CustomTime && element.options.id === barId) {
+        element.setCustomTime(time);
+      }
+    });
   };
 
   /**
    * Retrieve the current custom time.
    * @return {Date} customTime
+   * @param {int} id
    */
-  CustomTime.prototype.getCustomTime = function () {
-    return new Date(this.customTime.valueOf());
-  };
+  Core.prototype.getCustomTime = function (id) {
+    if (!this.customTime) {
+      throw new Error("Cannot get custom time: Custom time bar is not enabled");
+    }
 
-  /**
-   * Start moving horizontally
-   * @param {Event} event
-   * @private
-   */
-  CustomTime.prototype._onDragStart = function (event) {
-    this.eventParams.dragging = true;
-    this.eventParams.customTime = this.customTime;
+    var barId = id || 0,
+        customTime = this.customTime.getCustomTime();
 
-    event.stopPropagation();
-    event.preventDefault();
-  };
-
-  /**
-   * Perform moving operating.
-   * @param {Event} event
-   * @private
-   */
-  CustomTime.prototype._onDrag = function (event) {
-    if (!this.eventParams.dragging) return;
-
-    var x = this.body.util.toScreen(this.eventParams.customTime) + event.deltaX;
-    var time = this.body.util.toTime(x);
-
-    this.setCustomTime(time);
-
-    // fire a timechange event
-    this.body.emitter.emit("timechange", {
-      id: this.options.id,
-      time: new Date(this.customTime.valueOf())
+    this.components.forEach(function (element, index, components) {
+      if (element instanceof CustomTime && element.options.id === barId) {
+        customTime = element.getCustomTime();
+      }
     });
 
-    event.stopPropagation();
-    event.preventDefault();
+    return customTime;
   };
 
   /**
-   * Stop moving operating.
-   * @param {Event} event
-   * @private
+   * Add custom vertical bar
+   * @param {Date | String | Number} time  A Date, unix timestamp, or
+   *                                      ISO date string. Time point where the new bar should be placed
+   * @param {Number | String} ID of the new bar
+   * @return {Number | String} ID of the new bar
    */
-  CustomTime.prototype._onDragEnd = function (event) {
-    if (!this.eventParams.dragging) return;
+  Core.prototype.addCustomTime = function (time, id) {
+    if (!this.currentTime) {
+      throw new Error("Option showCurrentTime must be true");
+    }
 
-    // fire a timechanged event
-    this.body.emitter.emit("timechanged", {
-      id: this.options.id,
-      time: new Date(this.customTime.valueOf())
+    if (time === undefined) {
+      throw new Error("Time parameter for the custom bar must be provided");
+    }
+
+    var ts = util.convert(time, "Date").valueOf(),
+        numIds,
+        customTime,
+        customBarId;
+
+    // All bar IDs are kept in 1 array, mixed types
+    // Bar with ID 0 is the default bar.
+    if (!this.customBarIds || this.customBarIds.constructor !== Array) {
+      this.customBarIds = [0];
+    }
+
+    // If the ID is not provided, generate one, otherwise just use it
+    if (id === undefined) {
+      numIds = this.customBarIds.filter(function (element) {
+        return util.isNumber(element);
+      });
+
+      customBarId = numIds.length > 0 ? Math.max.apply(null, numIds) + 1 : 1;
+    } else {
+      // Check for duplicates
+      this.customBarIds.forEach(function (element) {
+        if (element === id) {
+          throw new Error("Custom time ID already exists");
+        }
+      });
+
+      customBarId = id;
+    }
+
+    this.customBarIds.push(customBarId);
+
+    customTime = new CustomTime(this.body, {
+      showCustomTime: true,
+      time: ts,
+      id: customBarId
     });
 
-    event.stopPropagation();
-    event.preventDefault();
+    this.components.push(customTime);
+    this.redraw();
+
+    return customBarId;
   };
 
-  module.exports = CustomTime;
+  /**
+   * Remove previously added custom bar
+   * @param {int} id ID of the custom bar to be removed
+   * @return {boolean} True if the bar exists and is removed, false otherwise
+   */
+  Core.prototype.removeCustomTime = function (id) {
+    var me = this;
+
+    this.components.forEach(function (bar, index, components) {
+      if (bar instanceof CustomTime && bar.options.id === id) {
+        // Only the lines added by the user will be removed
+        if (bar.options.id !== 0) {
+          me.customBarIds.splice(me.customBarIds.indexOf(id), 1);
+          components.splice(index, 1);
+          bar.destroy();
+        }
+      }
+    });
+  };
+
+
+  /**
+   * Get the id's of the currently visible items.
+   * @returns {Array} The ids of the visible items
+   */
+  Core.prototype.getVisibleItems = function () {
+    return this.itemSet && this.itemSet.getVisibleItems() || [];
+  };
+
+
+
+  /**
+   * Clear the Core. By Default, items, groups and options are cleared.
+   * Example usage:
+   *
+   *     timeline.clear();                // clear items, groups, and options
+   *     timeline.clear({options: true}); // clear options only
+   *
+   * @param {Object} [what]      Optionally specify what to clear. By default:
+   *                             {items: true, groups: true, options: true}
+   */
+  Core.prototype.clear = function (what) {
+    // clear items
+    if (!what || what.items) {
+      this.setItems(null);
+    }
+
+    // clear groups
+    if (!what || what.groups) {
+      this.setGroups(null);
+    }
+
+    // clear options of timeline and of each of the components
+    if (!what || what.options) {
+      this.components.forEach(function (component) {
+        return component.setOptions(component.defaultOptions);
+      });
+
+      this.setOptions(this.defaultOptions); // this will also do a redraw
+    }
+  };
+
+  /**
+   * Set Core window such that it fits all items
+   * @param {Object} [options]  Available options:
+   *                            `animate: boolean | number`
+   *                                 If true (default), the range is animated
+   *                                 smoothly to the new window.
+   *                                 If a number, the number is taken as duration
+   *                                 for the animation. Default duration is 500 ms.
+   */
+  Core.prototype.fit = function (options) {
+    var range = this._getDataRange();
+
+    // skip range set if there is no start and end date
+    if (range.start === null && range.end === null) {
+      return;
+    }
+
+    var animate = options && options.animate !== undefined ? options.animate : true;
+    this.range.setRange(range.start, range.end, animate);
+  };
+
+  /**
+   * Calculate the data range of the items and applies a 5% window around it.
+   * @returns {{start: Date | null, end: Date | null}}
+   * @protected
+   */
+  Core.prototype._getDataRange = function () {
+    // apply the data range as range
+    var dataRange = this.getItemRange();
+
+    // add 5% space on both sides
+    var start = dataRange.min;
+    var end = dataRange.max;
+    if (start != null && end != null) {
+      var interval = end.valueOf() - start.valueOf();
+      if (interval <= 0) {
+        // prevent an empty interval
+        interval = 24 * 60 * 60 * 1000; // 1 day
+      }
+      start = new Date(start.valueOf() - interval * 0.05);
+      end = new Date(end.valueOf() + interval * 0.05);
+    }
+
+    return {
+      start: start,
+      end: end
+    };
+  };
+
+  /**
+   * Set the visible window. Both parameters are optional, you can change only
+   * start or only end. Syntax:
+   *
+   *     TimeLine.setWindow(start, end)
+   *     TimeLine.setWindow(start, end, options)
+   *     TimeLine.setWindow(range)
+   *
+   * Where start and end can be a Date, number, or string, and range is an
+   * object with properties start and end.
+   *
+   * @param {Date | Number | String | Object} [start] Start date of visible window
+   * @param {Date | Number | String} [end]            End date of visible window
+   * @param {Object} [options]  Available options:
+   *                            `animate: boolean | number`
+   *                                 If true (default), the range is animated
+   *                                 smoothly to the new window.
+   *                                 If a number, the number is taken as duration
+   *                                 for the animation. Default duration is 500 ms.
+   */
+  Core.prototype.setWindow = function (start, end, options) {
+    var animate;
+    if (arguments.length == 1) {
+      var range = arguments[0];
+      animate = range.animate !== undefined ? range.animate : true;
+      this.range.setRange(range.start, range.end, animate);
+    } else {
+      animate = options && options.animate !== undefined ? options.animate : true;
+      this.range.setRange(start, end, animate);
+    }
+  };
+
+  /**
+   * Move the window such that given time is centered on screen.
+   * @param {Date | Number | String} time
+   * @param {Object} [options]  Available options:
+   *                            `animate: boolean | number`
+   *                                 If true (default), the range is animated
+   *                                 smoothly to the new window.
+   *                                 If a number, the number is taken as duration
+   *                                 for the animation. Default duration is 500 ms.
+   */
+  Core.prototype.moveTo = function (time, options) {
+    var interval = this.range.end - this.range.start;
+    var t = util.convert(time, "Date").valueOf();
+
+    var start = t - interval / 2;
+    var end = t + interval / 2;
+    var animate = options && options.animate !== undefined ? options.animate : true;
+
+    this.range.setRange(start, end, animate);
+  };
+
+  /**
+   * Get the visible window
+   * @return {{start: Date, end: Date}}   Visible range
+   */
+  Core.prototype.getWindow = function () {
+    var range = this.range.getRange();
+    return {
+      start: new Date(range.start),
+      end: new Date(range.end)
+    };
+  };
+
+  /**
+   * Force a redraw. Can be overridden by implementations of Core
+   */
+  Core.prototype.redraw = function () {
+    this._redraw();
+  };
+
+  /**
+   * Redraw for internal use. Redraws all components. See also the public
+   * method redraw.
+   * @protected
+   */
+  Core.prototype._redraw = function () {
+    var resized = false;
+    var options = this.options;
+    var props = this.props;
+    var dom = this.dom;
+
+    if (!dom) return; // when destroyed
+
+    DateUtil.updateHiddenDates(this.body, this.options.hiddenDates);
+
+    // update class names
+    if (options.orientation == "top") {
+      util.addClassName(dom.root, "top");
+      util.removeClassName(dom.root, "bottom");
+    } else {
+      util.removeClassName(dom.root, "top");
+      util.addClassName(dom.root, "bottom");
+    }
+
+    // update root width and height options
+    dom.root.style.maxHeight = util.option.asSize(options.maxHeight, "");
+    dom.root.style.minHeight = util.option.asSize(options.minHeight, "");
+    dom.root.style.width = util.option.asSize(options.width, "");
+
+    // calculate border widths
+    props.border.left = (dom.centerContainer.offsetWidth - dom.centerContainer.clientWidth) / 2;
+    props.border.right = props.border.left;
+    props.border.top = (dom.centerContainer.offsetHeight - dom.centerContainer.clientHeight) / 2;
+    props.border.bottom = props.border.top;
+    var borderRootHeight = dom.root.offsetHeight - dom.root.clientHeight;
+    var borderRootWidth = dom.root.offsetWidth - dom.root.clientWidth;
+
+    // workaround for a bug in IE: the clientWidth of an element with
+    // a height:0px and overflow:hidden is not calculated and always has value 0
+    if (dom.centerContainer.clientHeight === 0) {
+      props.border.left = props.border.top;
+      props.border.right = props.border.left;
+    }
+    if (dom.root.clientHeight === 0) {
+      borderRootWidth = borderRootHeight;
+    }
+
+    // calculate the heights. If any of the side panels is empty, we set the height to
+    // minus the border width, such that the border will be invisible
+    props.center.height = dom.center.offsetHeight;
+    props.left.height = dom.left.offsetHeight;
+    props.right.height = dom.right.offsetHeight;
+    props.top.height = dom.top.clientHeight || -props.border.top;
+    props.bottom.height = dom.bottom.clientHeight || -props.border.bottom;
+
+    // TODO: compensate borders when any of the panels is empty.
+
+    // apply auto height
+    // TODO: only calculate autoHeight when needed (else we cause an extra reflow/repaint of the DOM)
+    var contentHeight = Math.max(props.left.height, props.center.height, props.right.height);
+    var autoHeight = props.top.height + contentHeight + props.bottom.height + borderRootHeight + props.border.top + props.border.bottom;
+    dom.root.style.height = util.option.asSize(options.height, autoHeight + "px");
+
+    // calculate heights of the content panels
+    props.root.height = dom.root.offsetHeight;
+    props.background.height = props.root.height - borderRootHeight;
+    var containerHeight = props.root.height - props.top.height - props.bottom.height - borderRootHeight;
+    props.centerContainer.height = containerHeight;
+    props.leftContainer.height = containerHeight;
+    props.rightContainer.height = props.leftContainer.height;
+
+    // calculate the widths of the panels
+    props.root.width = dom.root.offsetWidth;
+    props.background.width = props.root.width - borderRootWidth;
+    props.left.width = dom.leftContainer.clientWidth || -props.border.left;
+    props.leftContainer.width = props.left.width;
+    props.right.width = dom.rightContainer.clientWidth || -props.border.right;
+    props.rightContainer.width = props.right.width;
+    var centerWidth = props.root.width - props.left.width - props.right.width - borderRootWidth;
+    props.center.width = centerWidth;
+    props.centerContainer.width = centerWidth;
+    props.top.width = centerWidth;
+    props.bottom.width = centerWidth;
+
+    // resize the panels
+    dom.background.style.height = props.background.height + "px";
+    dom.backgroundVertical.style.height = props.background.height + "px";
+    dom.backgroundHorizontal.style.height = props.centerContainer.height + "px";
+    dom.centerContainer.style.height = props.centerContainer.height + "px";
+    dom.leftContainer.style.height = props.leftContainer.height + "px";
+    dom.rightContainer.style.height = props.rightContainer.height + "px";
+
+    dom.background.style.width = props.background.width + "px";
+    dom.backgroundVertical.style.width = props.centerContainer.width + "px";
+    dom.backgroundHorizontal.style.width = props.background.width + "px";
+    dom.centerContainer.style.width = props.center.width + "px";
+    dom.top.style.width = props.top.width + "px";
+    dom.bottom.style.width = props.bottom.width + "px";
+
+    // reposition the panels
+    dom.background.style.left = "0";
+    dom.background.style.top = "0";
+    dom.backgroundVertical.style.left = props.left.width + props.border.left + "px";
+    dom.backgroundVertical.style.top = "0";
+    dom.backgroundHorizontal.style.left = "0";
+    dom.backgroundHorizontal.style.top = props.top.height + "px";
+    dom.centerContainer.style.left = props.left.width + "px";
+    dom.centerContainer.style.top = props.top.height + "px";
+    dom.leftContainer.style.left = "0";
+    dom.leftContainer.style.top = props.top.height + "px";
+    dom.rightContainer.style.left = props.left.width + props.center.width + "px";
+    dom.rightContainer.style.top = props.top.height + "px";
+    dom.top.style.left = props.left.width + "px";
+    dom.top.style.top = "0";
+    dom.bottom.style.left = props.left.width + "px";
+    dom.bottom.style.top = props.top.height + props.centerContainer.height + "px";
+
+    // update the scrollTop, feasible range for the offset can be changed
+    // when the height of the Core or of the contents of the center changed
+    this._updateScrollTop();
+
+    // reposition the scrollable contents
+    var offset = this.props.scrollTop;
+    if (options.orientation == "bottom") {
+      offset += Math.max(this.props.centerContainer.height - this.props.center.height - this.props.border.top - this.props.border.bottom, 0);
+    }
+    dom.center.style.left = "0";
+    dom.center.style.top = offset + "px";
+    dom.left.style.left = "0";
+    dom.left.style.top = offset + "px";
+    dom.right.style.left = "0";
+    dom.right.style.top = offset + "px";
+
+    // show shadows when vertical scrolling is available
+    var visibilityTop = this.props.scrollTop == 0 ? "hidden" : "";
+    var visibilityBottom = this.props.scrollTop == this.props.scrollTopMin ? "hidden" : "";
+    dom.shadowTop.style.visibility = visibilityTop;
+    dom.shadowBottom.style.visibility = visibilityBottom;
+    dom.shadowTopLeft.style.visibility = visibilityTop;
+    dom.shadowBottomLeft.style.visibility = visibilityBottom;
+    dom.shadowTopRight.style.visibility = visibilityTop;
+    dom.shadowBottomRight.style.visibility = visibilityBottom;
+
+    // redraw all components
+    this.components.forEach(function (component) {
+      resized = component.redraw() || resized;
+    });
+    if (resized) {
+      // keep repainting until all sizes are settled
+      var MAX_REDRAWS = 3; // maximum number of consecutive redraws
+      if (this.redrawCount < MAX_REDRAWS) {
+        this.redrawCount++;
+        this._redraw();
+      } else {
+        console.log("WARNING: infinite loop in redraw?");
+      }
+      this.redrawCount = 0;
+    }
+
+    this.emit("finishedRedraw");
+  };
+
+  // TODO: deprecated since version 1.1.0, remove some day
+  Core.prototype.repaint = function () {
+    throw new Error("Function repaint is deprecated. Use redraw instead.");
+  };
+
+  /**
+   * Set a current time. This can be used for example to ensure that a client's
+   * time is synchronized with a shared server time.
+   * Only applicable when option `showCurrentTime` is true.
+   * @param {Date | String | Number} time     A Date, unix timestamp, or
+   *                                          ISO date string.
+   */
+  Core.prototype.setCurrentTime = function (time) {
+    if (!this.currentTime) {
+      throw new Error("Option showCurrentTime must be true");
+    }
+
+    this.currentTime.setCurrentTime(time);
+  };
+
+  /**
+   * Get the current time.
+   * Only applicable when option `showCurrentTime` is true.
+   * @return {Date} Returns the current time.
+   */
+  Core.prototype.getCurrentTime = function () {
+    if (!this.currentTime) {
+      throw new Error("Option showCurrentTime must be true");
+    }
+
+    return this.currentTime.getCurrentTime();
+  };
+
+  /**
+   * Convert a position on screen (pixels) to a datetime
+   * @param {int}     x    Position on the screen in pixels
+   * @return {Date}   time The datetime the corresponds with given position x
+   * @private
+   */
+  // TODO: move this function to Range
+  Core.prototype._toTime = function (x) {
+    return DateUtil.toTime(this, x, this.props.center.width);
+  };
+
+  /**
+   * Convert a position on the global screen (pixels) to a datetime
+   * @param {int}     x    Position on the screen in pixels
+   * @return {Date}   time The datetime the corresponds with given position x
+   * @private
+   */
+  // TODO: move this function to Range
+  Core.prototype._toGlobalTime = function (x) {
+    return DateUtil.toTime(this, x, this.props.root.width);
+    //var conversion = this.range.conversion(this.props.root.width);
+    //return new Date(x / conversion.scale + conversion.offset);
+  };
+
+  /**
+   * Convert a datetime (Date object) into a position on the screen
+   * @param {Date}   time A date
+   * @return {int}   x    The position on the screen in pixels which corresponds
+   *                      with the given date.
+   * @private
+   */
+  // TODO: move this function to Range
+  Core.prototype._toScreen = function (time) {
+    return DateUtil.toScreen(this, time, this.props.center.width);
+  };
+
+
+
+  /**
+   * Convert a datetime (Date object) into a position on the root
+   * This is used to get the pixel density estimate for the screen, not the center panel
+   * @param {Date}   time A date
+   * @return {int}   x    The position on root in pixels which corresponds
+   *                      with the given date.
+   * @private
+   */
+  // TODO: move this function to Range
+  Core.prototype._toGlobalScreen = function (time) {
+    return DateUtil.toScreen(this, time, this.props.root.width);
+    //var conversion = this.range.conversion(this.props.root.width);
+    //return (time.valueOf() - conversion.offset) * conversion.scale;
+  };
+
+
+  /**
+   * Initialize watching when option autoResize is true
+   * @private
+   */
+  Core.prototype._initAutoResize = function () {
+    if (this.options.autoResize == true) {
+      this._startAutoResize();
+    } else {
+      this._stopAutoResize();
+    }
+  };
+
+  /**
+   * Watch for changes in the size of the container. On resize, the Panel will
+   * automatically redraw itself.
+   * @private
+   */
+  Core.prototype._startAutoResize = function () {
+    var me = this;
+
+    this._stopAutoResize();
+
+    this._onResize = function () {
+      if (me.options.autoResize != true) {
+        // stop watching when the option autoResize is changed to false
+        me._stopAutoResize();
+        return;
+      }
+
+      if (me.dom.root) {
+        // check whether the frame is resized
+        // Note: we compare offsetWidth here, not clientWidth. For some reason,
+        // IE does not restore the clientWidth from 0 to the actual width after
+        // changing the timeline's container display style from none to visible
+        if (me.dom.root.offsetWidth != me.props.lastWidth || me.dom.root.offsetHeight != me.props.lastHeight) {
+          me.props.lastWidth = me.dom.root.offsetWidth;
+          me.props.lastHeight = me.dom.root.offsetHeight;
+
+          me.emit("change");
+        }
+      }
+    };
+
+    // add event listener to window resize
+    util.addEventListener(window, "resize", this._onResize);
+
+    this.watchTimer = setInterval(this._onResize, 1000);
+  };
+
+  /**
+   * Stop watching for a resize of the frame.
+   * @private
+   */
+  Core.prototype._stopAutoResize = function () {
+    if (this.watchTimer) {
+      clearInterval(this.watchTimer);
+      this.watchTimer = undefined;
+    }
+
+    // remove event listener on window.resize
+    util.removeEventListener(window, "resize", this._onResize);
+    this._onResize = null;
+  };
+
+  /**
+   * Apply a scrollTop
+   * @param {Number} scrollTop
+   * @returns {Number} scrollTop  Returns the applied scrollTop
+   * @private
+   */
+  Core.prototype._setScrollTop = function (scrollTop) {
+    this.props.scrollTop = scrollTop;
+    this._updateScrollTop();
+    return this.props.scrollTop;
+  };
+
+  /**
+   * Update the current scrollTop when the height of  the containers has been changed
+   * @returns {Number} scrollTop  Returns the applied scrollTop
+   * @private
+   */
+  Core.prototype._updateScrollTop = function () {
+    // recalculate the scrollTopMin
+    var scrollTopMin = Math.min(this.props.centerContainer.height - this.props.center.height, 0); // is negative or zero
+    if (scrollTopMin != this.props.scrollTopMin) {
+      // in case of bottom orientation, change the scrollTop such that the contents
+      // do not move relative to the time axis at the bottom
+      if (this.options.orientation == "bottom") {
+        this.props.scrollTop += scrollTopMin - this.props.scrollTopMin;
+      }
+      this.props.scrollTopMin = scrollTopMin;
+    }
+
+    // limit the scrollTop to the feasible scroll range
+    if (this.props.scrollTop > 0) this.props.scrollTop = 0;
+    if (this.props.scrollTop < scrollTopMin) this.props.scrollTop = scrollTopMin;
+
+    return this.props.scrollTop;
+  };
+
+  /**
+   * Get the current scrollTop
+   * @returns {number} scrollTop
+   * @private
+   */
+  Core.prototype._getScrollTop = function () {
+    return this.props.scrollTop;
+  };
+
+  module.exports = Core;
 
 /***/ },
-/* 32 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
 
-  var Hammer = __webpack_require__(15);
+  var Hammer = __webpack_require__(19);
   var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(3);
-  var DataView = __webpack_require__(5);
-  var TimeStep = __webpack_require__(23);
-  var Component = __webpack_require__(22);
-  var Group = __webpack_require__(40);
-  var BackgroundGroup = __webpack_require__(39);
-  var BoxItem = __webpack_require__(42);
-  var PointItem = __webpack_require__(43);
-  var RangeItem = __webpack_require__(41);
-  var BackgroundItem = __webpack_require__(38);
+  var DataSet = __webpack_require__(7);
+  var DataView = __webpack_require__(9);
+  var TimeStep = __webpack_require__(29);
+  var Component = __webpack_require__(25);
+  var Group = __webpack_require__(30);
+  var BackgroundGroup = __webpack_require__(34);
+  var BoxItem = __webpack_require__(35);
+  var PointItem = __webpack_require__(36);
+  var RangeItem = __webpack_require__(32);
+  var BackgroundItem = __webpack_require__(37);
 
 
   var UNGROUPED = "__ungrouped__"; // reserved group id for ungrouped items
@@ -17882,22 +16401,3846 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = ItemSet;
 
 /***/ },
+/* 29 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var moment = __webpack_require__(2);
+  var DateUtil = __webpack_require__(26);
+  var util = __webpack_require__(1);
+
+  /**
+   * @constructor  TimeStep
+   * The class TimeStep is an iterator for dates. You provide a start date and an
+   * end date. The class itself determines the best scale (step size) based on the
+   * provided start Date, end Date, and minimumStep.
+   *
+   * If minimumStep is provided, the step size is chosen as close as possible
+   * to the minimumStep but larger than minimumStep. If minimumStep is not
+   * provided, the scale is set to 1 DAY.
+   * The minimumStep should correspond with the onscreen size of about 6 characters
+   *
+   * Alternatively, you can set a scale by hand.
+   * After creation, you can initialize the class by executing first(). Then you
+   * can iterate from the start date to the end date via next(). You can check if
+   * the end date is reached with the function hasNext(). After each step, you can
+   * retrieve the current date via getCurrent().
+   * The TimeStep has scales ranging from milliseconds, seconds, minutes, hours,
+   * days, to years.
+   *
+   * Version: 1.2
+   *
+   * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
+   *                               or new Date(2010, 9, 21, 23, 45, 00)
+   * @param {Date} [end]           The end date
+   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
+   */
+  function TimeStep(start, end, minimumStep, hiddenDates) {
+    // variables
+    this.current = new Date();
+    this._start = new Date();
+    this._end = new Date();
+
+    this.autoScale = true;
+    this.scale = "day";
+    this.step = 1;
+
+    // initialize the range
+    this.setRange(start, end, minimumStep);
+
+    // hidden Dates options
+    this.switchedDay = false;
+    this.switchedMonth = false;
+    this.switchedYear = false;
+    this.hiddenDates = hiddenDates;
+    if (hiddenDates === undefined) {
+      this.hiddenDates = [];
+    }
+
+    this.format = TimeStep.FORMAT; // default formatting
+  }
+
+  // Time formatting
+  TimeStep.FORMAT = {
+    minorLabels: {
+      millisecond: "SSS",
+      second: "s",
+      minute: "HH:mm",
+      hour: "HH:mm",
+      weekday: "ddd D",
+      day: "D",
+      month: "MMM",
+      year: "YYYY"
+    },
+    majorLabels: {
+      millisecond: "HH:mm:ss",
+      second: "D MMMM HH:mm",
+      minute: "ddd D MMMM",
+      hour: "ddd D MMMM",
+      weekday: "MMMM YYYY",
+      day: "MMMM YYYY",
+      month: "YYYY",
+      year: ""
+    }
+  };
+
+  /**
+   * Set custom formatting for the minor an major labels of the TimeStep.
+   * Both `minorLabels` and `majorLabels` are an Object with properties:
+   * 'millisecond, 'second, 'minute', 'hour', 'weekday, 'day, 'month, 'year'.
+   * @param {{minorLabels: Object, majorLabels: Object}} format
+   */
+  TimeStep.prototype.setFormat = function (format) {
+    var defaultFormat = util.deepExtend({}, TimeStep.FORMAT);
+    this.format = util.deepExtend(defaultFormat, format);
+  };
+
+  /**
+   * Set a new range
+   * If minimumStep is provided, the step size is chosen as close as possible
+   * to the minimumStep but larger than minimumStep. If minimumStep is not
+   * provided, the scale is set to 1 DAY.
+   * The minimumStep should correspond with the onscreen size of about 6 characters
+   * @param {Date} [start]      The start date and time.
+   * @param {Date} [end]        The end date and time.
+   * @param {int} [minimumStep] Optional. Minimum step size in milliseconds
+   */
+  TimeStep.prototype.setRange = function (start, end, minimumStep) {
+    if (!(start instanceof Date) || !(end instanceof Date)) {
+      throw "No legal start or end date in method setRange";
+    }
+
+    this._start = start != undefined ? new Date(start.valueOf()) : new Date();
+    this._end = end != undefined ? new Date(end.valueOf()) : new Date();
+
+    if (this.autoScale) {
+      this.setMinimumStep(minimumStep);
+    }
+  };
+
+  /**
+   * Set the range iterator to the start date.
+   */
+  TimeStep.prototype.first = function () {
+    this.current = new Date(this._start.valueOf());
+    this.roundToMinor();
+  };
+
+  /**
+   * Round the current date to the first minor date value
+   * This must be executed once when the current date is set to start Date
+   */
+  TimeStep.prototype.roundToMinor = function () {
+    // round to floor
+    // IMPORTANT: we have no breaks in this switch! (this is no bug)
+    // noinspection FallThroughInSwitchStatementJS
+    switch (this.scale) {
+      case "year":
+        this.current.setFullYear(this.step * Math.floor(this.current.getFullYear() / this.step));
+        this.current.setMonth(0);
+      case "month":
+        this.current.setDate(1);
+      case "day":
+      // intentional fall through
+      case "weekday":
+        this.current.setHours(0);
+      case "hour":
+        this.current.setMinutes(0);
+      case "minute":
+        this.current.setSeconds(0);
+      case "second":
+        this.current.setMilliseconds(0);
+        //case 'millisecond': // nothing to do for milliseconds
+    }
+
+    if (this.step != 1) {
+      // round down to the first minor value that is a multiple of the current step size
+      switch (this.scale) {
+        case "millisecond":
+          this.current.setMilliseconds(this.current.getMilliseconds() - this.current.getMilliseconds() % this.step);break;
+        case "second":
+          this.current.setSeconds(this.current.getSeconds() - this.current.getSeconds() % this.step);break;
+        case "minute":
+          this.current.setMinutes(this.current.getMinutes() - this.current.getMinutes() % this.step);break;
+        case "hour":
+          this.current.setHours(this.current.getHours() - this.current.getHours() % this.step);break;
+        case "weekday":
+        // intentional fall through
+        case "day":
+          this.current.setDate(this.current.getDate() - 1 - (this.current.getDate() - 1) % this.step + 1);break;
+        case "month":
+          this.current.setMonth(this.current.getMonth() - this.current.getMonth() % this.step);break;
+        case "year":
+          this.current.setFullYear(this.current.getFullYear() - this.current.getFullYear() % this.step);break;
+        default:
+          break;
+      }
+    }
+  };
+
+  /**
+   * Check if the there is a next step
+   * @return {boolean}  true if the current date has not passed the end date
+   */
+  TimeStep.prototype.hasNext = function () {
+    return this.current.valueOf() <= this._end.valueOf();
+  };
+
+  /**
+   * Do the next step
+   */
+  TimeStep.prototype.next = function () {
+    var prev = this.current.valueOf();
+
+    // Two cases, needed to prevent issues with switching daylight savings
+    // (end of March and end of October)
+    if (this.current.getMonth() < 6) {
+      switch (this.scale) {
+        case "millisecond":
+
+
+          this.current = new Date(this.current.valueOf() + this.step);break;
+        case "second":
+          this.current = new Date(this.current.valueOf() + this.step * 1000);break;
+        case "minute":
+          this.current = new Date(this.current.valueOf() + this.step * 1000 * 60);break;
+        case "hour":
+          this.current = new Date(this.current.valueOf() + this.step * 1000 * 60 * 60);
+          // in case of skipping an hour for daylight savings, adjust the hour again (else you get: 0h 5h 9h ... instead of 0h 4h 8h ...)
+          var h = this.current.getHours();
+          this.current.setHours(h - h % this.step);
+          break;
+        case "weekday":
+        // intentional fall through
+        case "day":
+          this.current.setDate(this.current.getDate() + this.step);break;
+        case "month":
+          this.current.setMonth(this.current.getMonth() + this.step);break;
+        case "year":
+          this.current.setFullYear(this.current.getFullYear() + this.step);break;
+        default:
+          break;
+      }
+    } else {
+      switch (this.scale) {
+        case "millisecond":
+          this.current = new Date(this.current.valueOf() + this.step);break;
+        case "second":
+          this.current.setSeconds(this.current.getSeconds() + this.step);break;
+        case "minute":
+          this.current.setMinutes(this.current.getMinutes() + this.step);break;
+        case "hour":
+          this.current.setHours(this.current.getHours() + this.step);break;
+        case "weekday":
+        // intentional fall through
+        case "day":
+          this.current.setDate(this.current.getDate() + this.step);break;
+        case "month":
+          this.current.setMonth(this.current.getMonth() + this.step);break;
+        case "year":
+          this.current.setFullYear(this.current.getFullYear() + this.step);break;
+        default:
+          break;
+      }
+    }
+
+    if (this.step != 1) {
+      // round down to the correct major value
+      switch (this.scale) {
+        case "millisecond":
+          if (this.current.getMilliseconds() < this.step) this.current.setMilliseconds(0);break;
+        case "second":
+          if (this.current.getSeconds() < this.step) this.current.setSeconds(0);break;
+        case "minute":
+          if (this.current.getMinutes() < this.step) this.current.setMinutes(0);break;
+        case "hour":
+          if (this.current.getHours() < this.step) this.current.setHours(0);break;
+        case "weekday":
+        // intentional fall through
+        case "day":
+          if (this.current.getDate() < this.step + 1) this.current.setDate(1);break;
+        case "month":
+          if (this.current.getMonth() < this.step) this.current.setMonth(0);break;
+        case "year":
+          break; // nothing to do for year
+        default:
+          break;
+      }
+    }
+
+    // safety mechanism: if current time is still unchanged, move to the end
+    if (this.current.valueOf() == prev) {
+      this.current = new Date(this._end.valueOf());
+    }
+
+    DateUtil.stepOverHiddenDates(this, prev);
+  };
+
+
+  /**
+   * Get the current datetime
+   * @return {Date}  current The current date
+   */
+  TimeStep.prototype.getCurrent = function () {
+    return this.current;
+  };
+
+  /**
+   * Set a custom scale. Autoscaling will be disabled.
+   * For example setScale('minute', 5) will result
+   * in minor steps of 5 minutes, and major steps of an hour.
+   *
+   * @param {{scale: string, step: number}} params
+   *                               An object containing two properties:
+   *                               - A string 'scale'. Choose from 'millisecond', 'second',
+   *                                 'minute', 'hour', 'weekday, 'day, 'month, 'year'.
+   *                               - A number 'step'. A step size, by default 1.
+   *                                 Choose for example 1, 2, 5, or 10.
+   */
+  TimeStep.prototype.setScale = function (params) {
+    if (params && typeof params.scale == "string") {
+      this.scale = params.scale;
+      this.step = params.step > 0 ? params.step : 1;
+      this.autoScale = false;
+    }
+  };
+
+  /**
+   * Enable or disable autoscaling
+   * @param {boolean} enable  If true, autoascaling is set true
+   */
+  TimeStep.prototype.setAutoScale = function (enable) {
+    this.autoScale = enable;
+  };
+
+
+  /**
+   * Automatically determine the scale that bests fits the provided minimum step
+   * @param {Number} [minimumStep]  The minimum step size in milliseconds
+   */
+  TimeStep.prototype.setMinimumStep = function (minimumStep) {
+    if (minimumStep == undefined) {
+      return;
+    }
+
+    //var b = asc + ds;
+
+    var stepYear = 1000 * 60 * 60 * 24 * 30 * 12;
+    var stepMonth = 1000 * 60 * 60 * 24 * 30;
+    var stepDay = 1000 * 60 * 60 * 24;
+    var stepHour = 1000 * 60 * 60;
+    var stepMinute = 1000 * 60;
+    var stepSecond = 1000;
+    var stepMillisecond = 1;
+
+    // find the smallest step that is larger than the provided minimumStep
+    if (stepYear * 1000 > minimumStep) {
+      this.scale = "year";this.step = 1000;
+    }
+    if (stepYear * 500 > minimumStep) {
+      this.scale = "year";this.step = 500;
+    }
+    if (stepYear * 100 > minimumStep) {
+      this.scale = "year";this.step = 100;
+    }
+    if (stepYear * 50 > minimumStep) {
+      this.scale = "year";this.step = 50;
+    }
+    if (stepYear * 10 > minimumStep) {
+      this.scale = "year";this.step = 10;
+    }
+    if (stepYear * 5 > minimumStep) {
+      this.scale = "year";this.step = 5;
+    }
+    if (stepYear > minimumStep) {
+      this.scale = "year";this.step = 1;
+    }
+    if (stepMonth * 3 > minimumStep) {
+      this.scale = "month";this.step = 3;
+    }
+    if (stepMonth > minimumStep) {
+      this.scale = "month";this.step = 1;
+    }
+    if (stepDay * 5 > minimumStep) {
+      this.scale = "day";this.step = 5;
+    }
+    if (stepDay * 2 > minimumStep) {
+      this.scale = "day";this.step = 2;
+    }
+    if (stepDay > minimumStep) {
+      this.scale = "day";this.step = 1;
+    }
+    if (stepDay / 2 > minimumStep) {
+      this.scale = "weekday";this.step = 1;
+    }
+    if (stepHour * 4 > minimumStep) {
+      this.scale = "hour";this.step = 4;
+    }
+    if (stepHour > minimumStep) {
+      this.scale = "hour";this.step = 1;
+    }
+    if (stepMinute * 15 > minimumStep) {
+      this.scale = "minute";this.step = 15;
+    }
+    if (stepMinute * 10 > minimumStep) {
+      this.scale = "minute";this.step = 10;
+    }
+    if (stepMinute * 5 > minimumStep) {
+      this.scale = "minute";this.step = 5;
+    }
+    if (stepMinute > minimumStep) {
+      this.scale = "minute";this.step = 1;
+    }
+    if (stepSecond * 15 > minimumStep) {
+      this.scale = "second";this.step = 15;
+    }
+    if (stepSecond * 10 > minimumStep) {
+      this.scale = "second";this.step = 10;
+    }
+    if (stepSecond * 5 > minimumStep) {
+      this.scale = "second";this.step = 5;
+    }
+    if (stepSecond > minimumStep) {
+      this.scale = "second";this.step = 1;
+    }
+    if (stepMillisecond * 200 > minimumStep) {
+      this.scale = "millisecond";this.step = 200;
+    }
+    if (stepMillisecond * 100 > minimumStep) {
+      this.scale = "millisecond";this.step = 100;
+    }
+    if (stepMillisecond * 50 > minimumStep) {
+      this.scale = "millisecond";this.step = 50;
+    }
+    if (stepMillisecond * 10 > minimumStep) {
+      this.scale = "millisecond";this.step = 10;
+    }
+    if (stepMillisecond * 5 > minimumStep) {
+      this.scale = "millisecond";this.step = 5;
+    }
+    if (stepMillisecond > minimumStep) {
+      this.scale = "millisecond";this.step = 1;
+    }
+  };
+
+  /**
+   * Snap a date to a rounded value.
+   * The snap intervals are dependent on the current scale and step.
+   * Static function
+   * @param {Date} date    the date to be snapped.
+   * @param {string} scale Current scale, can be 'millisecond', 'second',
+   *                       'minute', 'hour', 'weekday, 'day, 'month, 'year'.
+   * @param {number} step  Current step (1, 2, 4, 5, ...
+   * @return {Date} snappedDate
+   */
+  TimeStep.snap = function (date, scale, step) {
+    var clone = new Date(date.valueOf());
+
+    if (scale == "year") {
+      var year = clone.getFullYear() + Math.round(clone.getMonth() / 12);
+      clone.setFullYear(Math.round(year / step) * step);
+      clone.setMonth(0);
+      clone.setDate(0);
+      clone.setHours(0);
+      clone.setMinutes(0);
+      clone.setSeconds(0);
+      clone.setMilliseconds(0);
+    } else if (scale == "month") {
+      if (clone.getDate() > 15) {
+        clone.setDate(1);
+        clone.setMonth(clone.getMonth() + 1);
+        // important: first set Date to 1, after that change the month.
+      } else {
+        clone.setDate(1);
+      }
+
+      clone.setHours(0);
+      clone.setMinutes(0);
+      clone.setSeconds(0);
+      clone.setMilliseconds(0);
+    } else if (scale == "day") {
+      //noinspection FallthroughInSwitchStatementJS
+      switch (step) {
+        case 5:
+        case 2:
+          clone.setHours(Math.round(clone.getHours() / 24) * 24);break;
+        default:
+          clone.setHours(Math.round(clone.getHours() / 12) * 12);break;
+      }
+      clone.setMinutes(0);
+      clone.setSeconds(0);
+      clone.setMilliseconds(0);
+    } else if (scale == "weekday") {
+      //noinspection FallthroughInSwitchStatementJS
+      switch (step) {
+        case 5:
+        case 2:
+          clone.setHours(Math.round(clone.getHours() / 12) * 12);break;
+        default:
+          clone.setHours(Math.round(clone.getHours() / 6) * 6);break;
+      }
+      clone.setMinutes(0);
+      clone.setSeconds(0);
+      clone.setMilliseconds(0);
+    } else if (scale == "hour") {
+      switch (step) {
+        case 4:
+          clone.setMinutes(Math.round(clone.getMinutes() / 60) * 60);break;
+        default:
+          clone.setMinutes(Math.round(clone.getMinutes() / 30) * 30);break;
+      }
+      clone.setSeconds(0);
+      clone.setMilliseconds(0);
+    } else if (scale == "minute") {
+      //noinspection FallthroughInSwitchStatementJS
+      switch (step) {
+        case 15:
+        case 10:
+          clone.setMinutes(Math.round(clone.getMinutes() / 5) * 5);
+          clone.setSeconds(0);
+          break;
+        case 5:
+          clone.setSeconds(Math.round(clone.getSeconds() / 60) * 60);break;
+        default:
+          clone.setSeconds(Math.round(clone.getSeconds() / 30) * 30);break;
+      }
+      clone.setMilliseconds(0);
+    } else if (scale == "second") {
+      //noinspection FallthroughInSwitchStatementJS
+      switch (step) {
+        case 15:
+        case 10:
+          clone.setSeconds(Math.round(clone.getSeconds() / 5) * 5);
+          clone.setMilliseconds(0);
+          break;
+        case 5:
+          clone.setMilliseconds(Math.round(clone.getMilliseconds() / 1000) * 1000);break;
+        default:
+          clone.setMilliseconds(Math.round(clone.getMilliseconds() / 500) * 500);break;
+      }
+    } else if (scale == "millisecond") {
+      var _step = step > 5 ? step / 2 : 1;
+      clone.setMilliseconds(Math.round(clone.getMilliseconds() / _step) * _step);
+    }
+
+    return clone;
+  };
+
+  /**
+   * Check if the current value is a major value (for example when the step
+   * is DAY, a major value is each first day of the MONTH)
+   * @return {boolean} true if current date is major, else false.
+   */
+  TimeStep.prototype.isMajor = function () {
+    if (this.switchedYear == true) {
+      this.switchedYear = false;
+      switch (this.scale) {
+        case "year":
+        case "month":
+        case "weekday":
+        case "day":
+        case "hour":
+        case "minute":
+        case "second":
+        case "millisecond":
+          return true;
+        default:
+          return false;
+      }
+    } else if (this.switchedMonth == true) {
+      this.switchedMonth = false;
+      switch (this.scale) {
+        case "weekday":
+        case "day":
+        case "hour":
+        case "minute":
+        case "second":
+        case "millisecond":
+          return true;
+        default:
+          return false;
+      }
+    } else if (this.switchedDay == true) {
+      this.switchedDay = false;
+      switch (this.scale) {
+        case "millisecond":
+        case "second":
+        case "minute":
+        case "hour":
+          return true;
+        default:
+          return false;
+      }
+    }
+
+    switch (this.scale) {
+      case "millisecond":
+        return this.current.getMilliseconds() == 0;
+      case "second":
+        return this.current.getSeconds() == 0;
+      case "minute":
+        return this.current.getHours() == 0 && this.current.getMinutes() == 0;
+      case "hour":
+        return this.current.getHours() == 0;
+      case "weekday":
+      // intentional fall through
+      case "day":
+        return this.current.getDate() == 1;
+      case "month":
+        return this.current.getMonth() == 0;
+      case "year":
+        return false;
+      default:
+        return false;
+    }
+  };
+
+
+  /**
+   * Returns formatted text for the minor axislabel, depending on the current
+   * date and the scale. For example when scale is MINUTE, the current time is
+   * formatted as "hh:mm".
+   * @param {Date} [date] custom date. if not provided, current date is taken
+   */
+  TimeStep.prototype.getLabelMinor = function (date) {
+    if (date == undefined) {
+      date = this.current;
+    }
+
+    var format = this.format.minorLabels[this.scale];
+    return format && format.length > 0 ? moment(date).format(format) : "";
+  };
+
+  /**
+   * Returns formatted text for the major axis label, depending on the current
+   * date and the scale. For example when scale is MINUTE, the major scale is
+   * hours, and the hour will be formatted as "hh".
+   * @param {Date} [date] custom date. if not provided, current date is taken
+   */
+  TimeStep.prototype.getLabelMajor = function (date) {
+    if (date == undefined) {
+      date = this.current;
+    }
+
+    var format = this.format.majorLabels[this.scale];
+    return format && format.length > 0 ? moment(date).format(format) : "";
+  };
+
+  TimeStep.prototype.getClassName = function () {
+    var m = moment(this.current);
+    var date = m.locale ? m.locale("en") : m.lang("en"); // old versions of moment have .lang() function
+    var step = this.step;
+
+    function even(value) {
+      return value / step % 2 == 0 ? " even" : " odd";
+    }
+
+    function today(date) {
+      if (date.isSame(new Date(), "day")) {
+        return " today";
+      }
+      if (date.isSame(moment().add(1, "day"), "day")) {
+        return " tomorrow";
+      }
+      if (date.isSame(moment().add(-1, "day"), "day")) {
+        return " yesterday";
+      }
+      return "";
+    }
+
+    function currentWeek(date) {
+      return date.isSame(new Date(), "week") ? " current-week" : "";
+    }
+
+    function currentMonth(date) {
+      return date.isSame(new Date(), "month") ? " current-month" : "";
+    }
+
+    function currentYear(date) {
+      return date.isSame(new Date(), "year") ? " current-year" : "";
+    }
+
+    switch (this.scale) {
+      case "millisecond":
+        return even(date.milliseconds()).trim();
+
+      case "second":
+        return even(date.seconds()).trim();
+
+      case "minute":
+        return even(date.minutes()).trim();
+
+      case "hour":
+        var hours = date.hours();
+        if (this.step == 4) {
+          hours = hours + "-h" + (hours + 4);
+        }
+        return "h" + hours + today(date) + even(date.hours());
+
+      case "weekday":
+        return date.format("dddd").toLowerCase() + today(date) + currentWeek(date) + even(date.date());
+
+      case "day":
+        var day = date.date();
+        var month = date.format("MMMM").toLowerCase();
+        return "day" + day + " " + month + currentMonth(date) + even(day - 1);
+
+      case "month":
+        return date.format("MMMM").toLowerCase() + currentMonth(date) + even(date.month());
+
+      case "year":
+        var year = date.year();
+        return "year" + year + currentYear(date) + even(year);
+
+      default:
+        return "";
+    }
+  };
+
+  module.exports = TimeStep;
+
+/***/ },
+/* 30 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var util = __webpack_require__(1);
+  var stack = __webpack_require__(31);
+  var RangeItem = __webpack_require__(32);
+
+  /**
+   * @constructor Group
+   * @param {Number | String} groupId
+   * @param {Object} data
+   * @param {ItemSet} itemSet
+   */
+  function Group(groupId, data, itemSet) {
+    this.groupId = groupId;
+    this.subgroups = {};
+    this.subgroupIndex = 0;
+    this.subgroupOrderer = data && data.subgroupOrder;
+    this.itemSet = itemSet;
+
+    this.dom = {};
+    this.props = {
+      label: {
+        width: 0,
+        height: 0
+      }
+    };
+    this.className = null;
+
+    this.items = {}; // items filtered by groupId of this group
+    this.visibleItems = []; // items currently visible in window
+    this.orderedItems = {
+      byStart: [],
+      byEnd: []
+    };
+    this.checkRangedItems = false; // needed to refresh the ranged items if the window is programatically changed with NO overlap.
+    var me = this;
+    this.itemSet.body.emitter.on("checkRangedItems", function () {
+      me.checkRangedItems = true;
+    });
+
+    this._create();
+
+    this.setData(data);
+  }
+
+  /**
+   * Create DOM elements for the group
+   * @private
+   */
+  Group.prototype._create = function () {
+    var label = document.createElement("div");
+    label.className = "vlabel";
+    this.dom.label = label;
+
+    var inner = document.createElement("div");
+    inner.className = "inner";
+    label.appendChild(inner);
+    this.dom.inner = inner;
+
+    var foreground = document.createElement("div");
+    foreground.className = "group";
+    foreground["timeline-group"] = this;
+    this.dom.foreground = foreground;
+
+    this.dom.background = document.createElement("div");
+    this.dom.background.className = "group";
+
+    this.dom.axis = document.createElement("div");
+    this.dom.axis.className = "group";
+
+    // create a hidden marker to detect when the Timelines container is attached
+    // to the DOM, or the style of a parent of the Timeline is changed from
+    // display:none is changed to visible.
+    this.dom.marker = document.createElement("div");
+    this.dom.marker.style.visibility = "hidden"; // TODO: ask jos why this is not none?
+    this.dom.marker.innerHTML = "?";
+    this.dom.background.appendChild(this.dom.marker);
+  };
+
+  /**
+   * Set the group data for this group
+   * @param {Object} data   Group data, can contain properties content and className
+   */
+  Group.prototype.setData = function (data) {
+    // update contents
+    var content = data && data.content;
+    if (content instanceof Element) {
+      this.dom.inner.appendChild(content);
+    } else if (content !== undefined && content !== null) {
+      this.dom.inner.innerHTML = content;
+    } else {
+      this.dom.inner.innerHTML = this.groupId || ""; // groupId can be null
+    }
+
+    // update title
+    this.dom.label.title = data && data.title || "";
+
+    if (!this.dom.inner.firstChild) {
+      util.addClassName(this.dom.inner, "hidden");
+    } else {
+      util.removeClassName(this.dom.inner, "hidden");
+    }
+
+    // update className
+    var className = data && data.className || null;
+    if (className != this.className) {
+      if (this.className) {
+        util.removeClassName(this.dom.label, this.className);
+        util.removeClassName(this.dom.foreground, this.className);
+        util.removeClassName(this.dom.background, this.className);
+        util.removeClassName(this.dom.axis, this.className);
+      }
+      util.addClassName(this.dom.label, className);
+      util.addClassName(this.dom.foreground, className);
+      util.addClassName(this.dom.background, className);
+      util.addClassName(this.dom.axis, className);
+      this.className = className;
+    }
+
+    // update style
+    if (this.style) {
+      util.removeCssText(this.dom.label, this.style);
+      this.style = null;
+    }
+    if (data && data.style) {
+      util.addCssText(this.dom.label, data.style);
+      this.style = data.style;
+    }
+  };
+
+  /**
+   * Get the width of the group label
+   * @return {number} width
+   */
+  Group.prototype.getLabelWidth = function () {
+    return this.props.label.width;
+  };
+
+
+  /**
+   * Repaint this group
+   * @param {{start: number, end: number}} range
+   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
+   * @param {boolean} [restack=false]  Force restacking of all items
+   * @return {boolean} Returns true if the group is resized
+   */
+  Group.prototype.redraw = function (range, margin, restack) {
+    var resized = false;
+
+    this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
+
+    // force recalculation of the height of the items when the marker height changed
+    // (due to the Timeline being attached to the DOM or changed from display:none to visible)
+    var markerHeight = this.dom.marker.clientHeight;
+    if (markerHeight != this.lastMarkerHeight) {
+      this.lastMarkerHeight = markerHeight;
+
+      util.forEach(this.items, function (item) {
+        item.dirty = true;
+        if (item.displayed) item.redraw();
+      });
+
+      restack = true;
+    }
+
+    // reposition visible items vertically
+    if (this.itemSet.options.stack) {
+      // TODO: ugly way to access options...
+      stack.stack(this.visibleItems, margin, restack);
+    } else {
+      // no stacking
+      stack.nostack(this.visibleItems, margin, this.subgroups);
+    }
+
+    // recalculate the height of the group
+    var height = this._calculateHeight(margin);
+
+    // calculate actual size and position
+    var foreground = this.dom.foreground;
+    this.top = foreground.offsetTop;
+    this.left = foreground.offsetLeft;
+    this.width = foreground.offsetWidth;
+    resized = util.updateProperty(this, "height", height) || resized;
+
+    // recalculate size of label
+    resized = util.updateProperty(this.props.label, "width", this.dom.inner.clientWidth) || resized;
+    resized = util.updateProperty(this.props.label, "height", this.dom.inner.clientHeight) || resized;
+
+    // apply new height
+    this.dom.background.style.height = height + "px";
+    this.dom.foreground.style.height = height + "px";
+    this.dom.label.style.height = height + "px";
+
+    // update vertical position of items after they are re-stacked and the height of the group is calculated
+    for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
+      var item = this.visibleItems[i];
+      item.repositionY(margin);
+    }
+
+    return resized;
+  };
+
+  /**
+   * recalculate the height of the group
+   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
+   * @returns {number} Returns the height
+   * @private
+   */
+  Group.prototype._calculateHeight = function (margin) {
+    // recalculate the height of the group
+    var height;
+    var visibleItems = this.visibleItems;
+    //var visibleSubgroups = [];
+    //this.visibleSubgroups = 0;
+    this.resetSubgroups();
+    var me = this;
+    if (visibleItems.length > 0) {
+      var min = visibleItems[0].top;
+      var max = visibleItems[0].top + visibleItems[0].height;
+      util.forEach(visibleItems, function (item) {
+        min = Math.min(min, item.top);
+        max = Math.max(max, item.top + item.height);
+        if (item.data.subgroup !== undefined) {
+          me.subgroups[item.data.subgroup].height = Math.max(me.subgroups[item.data.subgroup].height, item.height);
+          me.subgroups[item.data.subgroup].visible = true;
+        }
+      });
+      if (min > margin.axis) {
+        // there is an empty gap between the lowest item and the axis
+        var offset = min - margin.axis;
+        max -= offset;
+        util.forEach(visibleItems, function (item) {
+          item.top -= offset;
+        });
+      }
+      height = max + margin.item.vertical / 2;
+    } else {
+      height = margin.axis + margin.item.vertical;
+    }
+    height = Math.max(height, this.props.label.height);
+
+    return height;
+  };
+
+  /**
+   * Show this group: attach to the DOM
+   */
+  Group.prototype.show = function () {
+    if (!this.dom.label.parentNode) {
+      this.itemSet.dom.labelSet.appendChild(this.dom.label);
+    }
+
+    if (!this.dom.foreground.parentNode) {
+      this.itemSet.dom.foreground.appendChild(this.dom.foreground);
+    }
+
+    if (!this.dom.background.parentNode) {
+      this.itemSet.dom.background.appendChild(this.dom.background);
+    }
+
+    if (!this.dom.axis.parentNode) {
+      this.itemSet.dom.axis.appendChild(this.dom.axis);
+    }
+  };
+
+  /**
+   * Hide this group: remove from the DOM
+   */
+  Group.prototype.hide = function () {
+    var label = this.dom.label;
+    if (label.parentNode) {
+      label.parentNode.removeChild(label);
+    }
+
+    var foreground = this.dom.foreground;
+    if (foreground.parentNode) {
+      foreground.parentNode.removeChild(foreground);
+    }
+
+    var background = this.dom.background;
+    if (background.parentNode) {
+      background.parentNode.removeChild(background);
+    }
+
+    var axis = this.dom.axis;
+    if (axis.parentNode) {
+      axis.parentNode.removeChild(axis);
+    }
+  };
+
+  /**
+   * Add an item to the group
+   * @param {Item} item
+   */
+  Group.prototype.add = function (item) {
+    this.items[item.id] = item;
+    item.setParent(this);
+
+    // add to
+    if (item.data.subgroup !== undefined) {
+      if (this.subgroups[item.data.subgroup] === undefined) {
+        this.subgroups[item.data.subgroup] = { height: 0, visible: false, index: this.subgroupIndex, items: [] };
+        this.subgroupIndex++;
+      }
+      this.subgroups[item.data.subgroup].items.push(item);
+    }
+    this.orderSubgroups();
+
+    if (this.visibleItems.indexOf(item) == -1) {
+      var range = this.itemSet.body.range; // TODO: not nice accessing the range like this
+      this._checkIfVisible(item, this.visibleItems, range);
+    }
+  };
+
+  Group.prototype.orderSubgroups = function () {
+    if (this.subgroupOrderer !== undefined) {
+      var sortArray = [];
+      if (typeof this.subgroupOrderer == "string") {
+        for (var subgroup in this.subgroups) {
+          sortArray.push({ subgroup: subgroup, sortField: this.subgroups[subgroup].items[0].data[this.subgroupOrderer] });
+        }
+        sortArray.sort(function (a, b) {
+          return a.sortField - b.sortField;
+        });
+      } else if (typeof this.subgroupOrderer == "function") {
+        for (var subgroup in this.subgroups) {
+          sortArray.push(this.subgroups[subgroup].items[0].data);
+        }
+        sortArray.sort(this.subgroupOrderer);
+      }
+
+      if (sortArray.length > 0) {
+        for (var i = 0; i < sortArray.length; i++) {
+          this.subgroups[sortArray[i].subgroup].index = i;
+        }
+      }
+    }
+  };
+
+  Group.prototype.resetSubgroups = function () {
+    for (var subgroup in this.subgroups) {
+      if (this.subgroups.hasOwnProperty(subgroup)) {
+        this.subgroups[subgroup].visible = false;
+      }
+    }
+  };
+
+  /**
+   * Remove an item from the group
+   * @param {Item} item
+   */
+  Group.prototype.remove = function (item) {
+    delete this.items[item.id];
+    item.setParent(null);
+
+    // remove from visible items
+    var index = this.visibleItems.indexOf(item);
+    if (index != -1) this.visibleItems.splice(index, 1);
+
+    // TODO: also remove from ordered items?
+  };
+
+
+  /**
+   * Remove an item from the corresponding DataSet
+   * @param {Item} item
+   */
+  Group.prototype.removeFromDataSet = function (item) {
+    this.itemSet.removeItem(item.id);
+  };
+
+
+  /**
+   * Reorder the items
+   */
+  Group.prototype.order = function () {
+    var array = util.toArray(this.items);
+    var startArray = [];
+    var endArray = [];
+
+    for (var i = 0; i < array.length; i++) {
+      if (array[i].data.end !== undefined) {
+        endArray.push(array[i]);
+      }
+      startArray.push(array[i]);
+    }
+    this.orderedItems = {
+      byStart: startArray,
+      byEnd: endArray
+    };
+
+    stack.orderByStart(this.orderedItems.byStart);
+    stack.orderByEnd(this.orderedItems.byEnd);
+  };
+
+
+  /**
+   * Update the visible items
+   * @param {{byStart: Item[], byEnd: Item[]}} orderedItems   All items ordered by start date and by end date
+   * @param {Item[]} visibleItems                             The previously visible items.
+   * @param {{start: number, end: number}} range              Visible range
+   * @return {Item[]} visibleItems                            The new visible items.
+   * @private
+   */
+  Group.prototype._updateVisibleItems = function (orderedItems, oldVisibleItems, range) {
+    var visibleItems = [];
+    var visibleItemsLookup = {}; // we keep this to quickly look up if an item already exists in the list without using indexOf on visibleItems
+    var interval = (range.end - range.start) / 4;
+    var lowerBound = range.start - interval;
+    var upperBound = range.end + interval;
+    var item, i;
+
+    // this function is used to do the binary search.
+    var searchFunction = function (value) {
+      if (value < lowerBound) {
+        return -1;
+      } else if (value <= upperBound) {
+        return 0;
+      } else {
+        return 1;
+      }
+    };
+
+    // first check if the items that were in view previously are still in view.
+    // IMPORTANT: this handles the case for the items with startdate before the window and enddate after the window!
+    // also cleans up invisible items.
+    if (oldVisibleItems.length > 0) {
+      for (i = 0; i < oldVisibleItems.length; i++) {
+        this._checkIfVisibleWithReference(oldVisibleItems[i], visibleItems, visibleItemsLookup, range);
+      }
+    }
+
+    // we do a binary search for the items that have only start values.
+    var initialPosByStart = util.binarySearchCustom(orderedItems.byStart, searchFunction, "data", "start");
+
+    // trace the visible items from the inital start pos both ways until an invisible item is found, we only look at the start values.
+    this._traceVisible(initialPosByStart, orderedItems.byStart, visibleItems, visibleItemsLookup, function (item) {
+      return item.data.start < lowerBound || item.data.start > upperBound;
+    });
+
+    // if the window has changed programmatically without overlapping the old window, the ranged items with start < lowerBound and end > upperbound are not shown.
+    // We therefore have to brute force check all items in the byEnd list
+    if (this.checkRangedItems == true) {
+      this.checkRangedItems = false;
+      for (i = 0; i < orderedItems.byEnd.length; i++) {
+        this._checkIfVisibleWithReference(orderedItems.byEnd[i], visibleItems, visibleItemsLookup, range);
+      }
+    } else {
+      // we do a binary search for the items that have defined end times.
+      var initialPosByEnd = util.binarySearchCustom(orderedItems.byEnd, searchFunction, "data", "end");
+
+      // trace the visible items from the inital start pos both ways until an invisible item is found, we only look at the end values.
+      this._traceVisible(initialPosByEnd, orderedItems.byEnd, visibleItems, visibleItemsLookup, function (item) {
+        return item.data.end < lowerBound || item.data.end > upperBound;
+      });
+    }
+
+
+    // finally, we reposition all the visible items.
+    for (i = 0; i < visibleItems.length; i++) {
+      item = visibleItems[i];
+      if (!item.displayed) item.show();
+      // reposition item horizontally
+      item.repositionX();
+    }
+
+    // debug
+    //console.log("new line")
+    //if (this.groupId == null) {
+    //  for (i = 0; i < orderedItems.byStart.length; i++) {
+    //    item = orderedItems.byStart[i].data;
+    //    console.log('start',i,initialPosByStart, item.start.valueOf(), item.content, item.start >= lowerBound && item.start <= upperBound,i == initialPosByStart ? "<------------------- HEREEEE" : "")
+    //  }
+    //  for (i = 0; i < orderedItems.byEnd.length; i++) {
+    //    item = orderedItems.byEnd[i].data;
+    //    console.log('rangeEnd',i,initialPosByEnd, item.end.valueOf(), item.content, item.end >= range.start && item.end <= range.end,i == initialPosByEnd ? "<------------------- HEREEEE" : "")
+    //  }
+    //}
+
+    return visibleItems;
+  };
+
+  Group.prototype._traceVisible = function (initialPos, items, visibleItems, visibleItemsLookup, breakCondition) {
+    var item;
+    var i;
+
+    if (initialPos != -1) {
+      for (i = initialPos; i >= 0; i--) {
+        item = items[i];
+        if (breakCondition(item)) {
+          break;
+        } else {
+          if (visibleItemsLookup[item.id] === undefined) {
+            visibleItemsLookup[item.id] = true;
+            visibleItems.push(item);
+          }
+        }
+      }
+
+      for (i = initialPos + 1; i < items.length; i++) {
+        item = items[i];
+        if (breakCondition(item)) {
+          break;
+        } else {
+          if (visibleItemsLookup[item.id] === undefined) {
+            visibleItemsLookup[item.id] = true;
+            visibleItems.push(item);
+          }
+        }
+      }
+    }
+  };
+
+
+  /**
+   * this function is very similar to the _checkIfInvisible() but it does not
+   * return booleans, hides the item if it should not be seen and always adds to
+   * the visibleItems.
+   * this one is for brute forcing and hiding.
+   *
+   * @param {Item} item
+   * @param {Array} visibleItems
+   * @param {{start:number, end:number}} range
+   * @private
+   */
+  Group.prototype._checkIfVisible = function (item, visibleItems, range) {
+    if (item.isVisible(range)) {
+      if (!item.displayed) item.show();
+      // reposition item horizontally
+      item.repositionX();
+      visibleItems.push(item);
+    } else {
+      if (item.displayed) item.hide();
+    }
+  };
+
+
+  /**
+   * this function is very similar to the _checkIfInvisible() but it does not
+   * return booleans, hides the item if it should not be seen and always adds to
+   * the visibleItems.
+   * this one is for brute forcing and hiding.
+   *
+   * @param {Item} item
+   * @param {Array} visibleItems
+   * @param {{start:number, end:number}} range
+   * @private
+   */
+  Group.prototype._checkIfVisibleWithReference = function (item, visibleItems, visibleItemsLookup, range) {
+    if (item.isVisible(range)) {
+      if (visibleItemsLookup[item.id] === undefined) {
+        visibleItemsLookup[item.id] = true;
+        visibleItems.push(item);
+      }
+    } else {
+      if (item.displayed) item.hide();
+    }
+  };
+
+
+
+  module.exports = Group;
+
+/***/ },
+/* 31 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  // Utility functions for ordering and stacking of items
+  var EPSILON = 0.001; // used when checking collisions, to prevent round-off errors
+
+  /**
+   * Order items by their start data
+   * @param {Item[]} items
+   */
+  exports.orderByStart = function (items) {
+    items.sort(function (a, b) {
+      return a.data.start - b.data.start;
+    });
+  };
+
+  /**
+   * Order items by their end date. If they have no end date, their start date
+   * is used.
+   * @param {Item[]} items
+   */
+  exports.orderByEnd = function (items) {
+    items.sort(function (a, b) {
+      var aTime = "end" in a.data ? a.data.end : a.data.start,
+          bTime = "end" in b.data ? b.data.end : b.data.start;
+
+      return aTime - bTime;
+    });
+  };
+
+  /**
+   * Adjust vertical positions of the items such that they don't overlap each
+   * other.
+   * @param {Item[]} items
+   *            All visible items
+   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
+   *            Margins between items and between items and the axis.
+   * @param {boolean} [force=false]
+   *            If true, all items will be repositioned. If false (default), only
+   *            items having a top===null will be re-stacked
+   */
+  exports.stack = function (items, margin, force) {
+    var i, iMax;
+
+    if (force) {
+      // reset top position of all items
+      for (i = 0, iMax = items.length; i < iMax; i++) {
+        items[i].top = null;
+      }
+    }
+
+    // calculate new, non-overlapping positions
+    for (i = 0, iMax = items.length; i < iMax; i++) {
+      var item = items[i];
+      if (item.stack && item.top === null) {
+        // initialize top position
+        item.top = margin.axis;
+
+        do {
+          // TODO: optimize checking for overlap. when there is a gap without items,
+          //       you only need to check for items from the next item on, not from zero
+          var collidingItem = null;
+          for (var j = 0, jj = items.length; j < jj; j++) {
+            var other = items[j];
+            if (other.top !== null && other !== item && other.stack && exports.collision(item, other, margin.item)) {
+              collidingItem = other;
+              break;
+            }
+          }
+
+          if (collidingItem != null) {
+            // There is a collision. Reposition the items above the colliding element
+            item.top = collidingItem.top + collidingItem.height + margin.item.vertical;
+          }
+        } while (collidingItem);
+      }
+    }
+  };
+
+
+  /**
+   * Adjust vertical positions of the items without stacking them
+   * @param {Item[]} items
+   *            All visible items
+   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
+   *            Margins between items and between items and the axis.
+   */
+  exports.nostack = function (items, margin, subgroups) {
+    var i, iMax, newTop;
+
+    // reset top position of all items
+    for (i = 0, iMax = items.length; i < iMax; i++) {
+      if (items[i].data.subgroup !== undefined) {
+        newTop = margin.axis;
+        for (var subgroup in subgroups) {
+          if (subgroups.hasOwnProperty(subgroup)) {
+            if (subgroups[subgroup].visible == true && subgroups[subgroup].index < subgroups[items[i].data.subgroup].index) {
+              newTop += subgroups[subgroup].height + margin.item.vertical;
+            }
+          }
+        }
+        items[i].top = newTop;
+      } else {
+        items[i].top = margin.axis;
+      }
+    }
+  };
+
+  /**
+   * Test if the two provided items collide
+   * The items must have parameters left, width, top, and height.
+   * @param {Item} a          The first item
+   * @param {Item} b          The second item
+   * @param {{horizontal: number, vertical: number}} margin
+   *                          An object containing a horizontal and vertical
+   *                          minimum required margin.
+   * @return {boolean}        true if a and b collide, else false
+   */
+  exports.collision = function (a, b, margin) {
+    return a.left - margin.horizontal + EPSILON < b.left + b.width && a.left + a.width + margin.horizontal - EPSILON > b.left && a.top - margin.vertical + EPSILON < b.top + b.height && a.top + a.height + margin.vertical - EPSILON > b.top;
+  };
+
+/***/ },
+/* 32 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var Hammer = __webpack_require__(19);
+  var Item = __webpack_require__(33);
+
+  /**
+   * @constructor RangeItem
+   * @extends Item
+   * @param {Object} data             Object containing parameters start, end
+   *                                  content, className.
+   * @param {{toScreen: function, toTime: function}} conversion
+   *                                  Conversion functions from time to screen and vice versa
+   * @param {Object} [options]        Configuration options
+   *                                  // TODO: describe options
+   */
+  function RangeItem(data, conversion, options) {
+    this.props = {
+      content: {
+        width: 0
+      }
+    };
+    this.overflow = false; // if contents can overflow (css styling), this flag is set to true
+
+    // validate data
+    if (data) {
+      if (data.start == undefined) {
+        throw new Error("Property \"start\" missing in item " + data.id);
+      }
+      if (data.end == undefined) {
+        throw new Error("Property \"end\" missing in item " + data.id);
+      }
+    }
+
+    Item.call(this, data, conversion, options);
+  }
+
+  RangeItem.prototype = new Item(null, null, null);
+
+  RangeItem.prototype.baseClassName = "item range";
+
+  /**
+   * Check whether this item is visible inside given range
+   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+   * @returns {boolean} True if visible
+   */
+  RangeItem.prototype.isVisible = function (range) {
+    // determine visibility
+    return this.data.start < range.end && this.data.end > range.start;
+  };
+
+  /**
+   * Repaint the item
+   */
+  RangeItem.prototype.redraw = function () {
+    var dom = this.dom;
+    if (!dom) {
+      // create DOM
+      this.dom = {};
+      dom = this.dom;
+
+      // background box
+      dom.box = document.createElement("div");
+      // className is updated in redraw()
+
+      // contents box
+      dom.content = document.createElement("div");
+      dom.content.className = "content";
+      dom.box.appendChild(dom.content);
+
+      // attach this item as attribute
+      dom.box["timeline-item"] = this;
+
+      this.dirty = true;
+    }
+
+    // append DOM to parent DOM
+    if (!this.parent) {
+      throw new Error("Cannot redraw item: no parent attached");
+    }
+    if (!dom.box.parentNode) {
+      var foreground = this.parent.dom.foreground;
+      if (!foreground) {
+        throw new Error("Cannot redraw item: parent has no foreground container element");
+      }
+      foreground.appendChild(dom.box);
+    }
+    this.displayed = true;
+
+    // Update DOM when item is marked dirty. An item is marked dirty when:
+    // - the item is not yet rendered
+    // - the item's data is changed
+    // - the item is selected/deselected
+    if (this.dirty) {
+      this._updateContents(this.dom.content);
+      this._updateTitle(this.dom.box);
+      this._updateDataAttributes(this.dom.box);
+      this._updateStyle(this.dom.box);
+
+      // update class
+      var className = (this.data.className ? " " + this.data.className : "") + (this.selected ? " selected" : "");
+      dom.box.className = this.baseClassName + className;
+
+      // determine from css whether this box has overflow
+      this.overflow = window.getComputedStyle(dom.content).overflow !== "hidden";
+
+      // recalculate size
+      // turn off max-width to be able to calculate the real width
+      // this causes an extra browser repaint/reflow, but so be it
+      this.dom.content.style.maxWidth = "none";
+      this.props.content.width = this.dom.content.offsetWidth;
+      this.height = this.dom.box.offsetHeight;
+      this.dom.content.style.maxWidth = "";
+
+      this.dirty = false;
+    }
+
+    this._repaintDeleteButton(dom.box);
+    this._repaintDragLeft();
+    this._repaintDragRight();
+  };
+
+  /**
+   * Show the item in the DOM (when not already visible). The items DOM will
+   * be created when needed.
+   */
+  RangeItem.prototype.show = function () {
+    if (!this.displayed) {
+      this.redraw();
+    }
+  };
+
+  /**
+   * Hide the item from the DOM (when visible)
+   * @return {Boolean} changed
+   */
+  RangeItem.prototype.hide = function () {
+    if (this.displayed) {
+      var box = this.dom.box;
+
+      if (box.parentNode) {
+        box.parentNode.removeChild(box);
+      }
+
+      this.top = null;
+      this.left = null;
+
+      this.displayed = false;
+    }
+  };
+
+  /**
+   * Reposition the item horizontally
+   * @Override
+   */
+  RangeItem.prototype.repositionX = function () {
+    var parentWidth = this.parent.width;
+    var start = this.conversion.toScreen(this.data.start);
+    var end = this.conversion.toScreen(this.data.end);
+    var contentLeft;
+    var contentWidth;
+
+    // limit the width of the this, as browsers cannot draw very wide divs
+    if (start < -parentWidth) {
+      start = -parentWidth;
+    }
+    if (end > 2 * parentWidth) {
+      end = 2 * parentWidth;
+    }
+    var boxWidth = Math.max(end - start, 1);
+
+    if (this.overflow) {
+      this.left = start;
+      this.width = boxWidth + this.props.content.width;
+      contentWidth = this.props.content.width;
+
+      // Note: The calculation of width is an optimistic calculation, giving
+      //       a width which will not change when moving the Timeline
+      //       So no re-stacking needed, which is nicer for the eye;
+    } else {
+      this.left = start;
+      this.width = boxWidth;
+      contentWidth = Math.min(end - start - 2 * this.options.padding, this.props.content.width);
+    }
+
+    this.dom.box.style.left = this.left + "px";
+    this.dom.box.style.width = boxWidth + "px";
+
+    switch (this.options.align) {
+      case "left":
+        this.dom.content.style.left = "0";
+        break;
+
+      case "right":
+        this.dom.content.style.left = Math.max(boxWidth - contentWidth - 2 * this.options.padding, 0) + "px";
+        break;
+
+      case "center":
+        this.dom.content.style.left = Math.max((boxWidth - contentWidth - 2 * this.options.padding) / 2, 0) + "px";
+        break;
+
+      default:
+        // 'auto'
+        // when range exceeds left of the window, position the contents at the left of the visible area
+        if (this.overflow) {
+          if (end > 0) {
+            contentLeft = Math.max(-start, 0);
+          } else {
+            contentLeft = -contentWidth; // ensure it's not visible anymore
+          }
+        } else {
+          if (start < 0) {
+            contentLeft = Math.min(-start, end - start - contentWidth - 2 * this.options.padding);
+            // TODO: remove the need for options.padding. it's terrible.
+          } else {
+            contentLeft = 0;
+          }
+        }
+        this.dom.content.style.left = contentLeft + "px";
+    }
+  };
+
+  /**
+   * Reposition the item vertically
+   * @Override
+   */
+  RangeItem.prototype.repositionY = function () {
+    var orientation = this.options.orientation,
+        box = this.dom.box;
+
+    if (orientation == "top") {
+      box.style.top = this.top + "px";
+    } else {
+      box.style.top = this.parent.height - this.top - this.height + "px";
+    }
+  };
+
+  /**
+   * Repaint a drag area on the left side of the range when the range is selected
+   * @protected
+   */
+  RangeItem.prototype._repaintDragLeft = function () {
+    if (this.selected && this.options.editable.updateTime && !this.dom.dragLeft) {
+      // create and show drag area
+      var dragLeft = document.createElement("div");
+      dragLeft.className = "drag-left";
+      dragLeft.dragLeftItem = this;
+
+      //// TODO: this should be redundant?
+      //Hammer(dragLeft, {
+      //  preventDefault: true
+      //}).on('drag', function () {
+      //      //console.log('drag left')
+      //    });
+
+      this.dom.box.appendChild(dragLeft);
+      this.dom.dragLeft = dragLeft;
+    } else if (!this.selected && this.dom.dragLeft) {
+      // delete drag area
+      if (this.dom.dragLeft.parentNode) {
+        this.dom.dragLeft.parentNode.removeChild(this.dom.dragLeft);
+      }
+      this.dom.dragLeft = null;
+    }
+  };
+
+  /**
+   * Repaint a drag area on the right side of the range when the range is selected
+   * @protected
+   */
+  RangeItem.prototype._repaintDragRight = function () {
+    if (this.selected && this.options.editable.updateTime && !this.dom.dragRight) {
+      // create and show drag area
+      var dragRight = document.createElement("div");
+      dragRight.className = "drag-right";
+      dragRight.dragRightItem = this;
+
+      //// TODO: this should be redundant?
+      //Hammer(dragRight, {
+      //  preventDefault: true
+      //}).on('drag', function () {
+      //  //console.log('drag right')
+      //});
+
+      this.dom.box.appendChild(dragRight);
+      this.dom.dragRight = dragRight;
+    } else if (!this.selected && this.dom.dragRight) {
+      // delete drag area
+      if (this.dom.dragRight.parentNode) {
+        this.dom.dragRight.parentNode.removeChild(this.dom.dragRight);
+      }
+      this.dom.dragRight = null;
+    }
+  };
+
+  module.exports = RangeItem;
+
+/***/ },
 /* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
 
-  var Emitter = __webpack_require__(7);
-  var Hammer = __webpack_require__(15);
+  var Hammer = __webpack_require__(19);
   var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(3);
-  var DataView = __webpack_require__(5);
-  var Range = __webpack_require__(19);
-  var Core = __webpack_require__(20);
-  var TimeAxis = __webpack_require__(21);
-  var CurrentTime = __webpack_require__(29);
-  var CustomTime = __webpack_require__(31);
-  var LineGraph = __webpack_require__(34);
+
+  /**
+   * @constructor Item
+   * @param {Object} data             Object containing (optional) parameters type,
+   *                                  start, end, content, group, className.
+   * @param {{toScreen: function, toTime: function}} conversion
+   *                                  Conversion functions from time to screen and vice versa
+   * @param {Object} options          Configuration options
+   *                                  // TODO: describe available options
+   */
+  function Item(data, conversion, options) {
+    this.id = null;
+    this.parent = null;
+    this.data = data;
+    this.dom = null;
+    this.conversion = conversion || {};
+    this.options = options || {};
+
+    this.selected = false;
+    this.displayed = false;
+    this.dirty = true;
+
+    this.top = null;
+    this.left = null;
+    this.width = null;
+    this.height = null;
+  }
+
+  Item.prototype.stack = true;
+
+  /**
+   * Select current item
+   */
+  Item.prototype.select = function () {
+    this.selected = true;
+    this.dirty = true;
+    if (this.displayed) this.redraw();
+  };
+
+  /**
+   * Unselect current item
+   */
+  Item.prototype.unselect = function () {
+    this.selected = false;
+    this.dirty = true;
+    if (this.displayed) this.redraw();
+  };
+
+  /**
+   * Set data for the item. Existing data will be updated. The id should not
+   * be changed. When the item is displayed, it will be redrawn immediately.
+   * @param {Object} data
+   */
+  Item.prototype.setData = function (data) {
+    this.data = data;
+    this.dirty = true;
+    if (this.displayed) this.redraw();
+  };
+
+  /**
+   * Set a parent for the item
+   * @param {ItemSet | Group} parent
+   */
+  Item.prototype.setParent = function (parent) {
+    if (this.displayed) {
+      this.hide();
+      this.parent = parent;
+      if (this.parent) {
+        this.show();
+      }
+    } else {
+      this.parent = parent;
+    }
+  };
+
+  /**
+   * Check whether this item is visible inside given range
+   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+   * @returns {boolean} True if visible
+   */
+  Item.prototype.isVisible = function (range) {
+    // Should be implemented by Item implementations
+    return false;
+  };
+
+  /**
+   * Show the Item in the DOM (when not already visible)
+   * @return {Boolean} changed
+   */
+  Item.prototype.show = function () {
+    return false;
+  };
+
+  /**
+   * Hide the Item from the DOM (when visible)
+   * @return {Boolean} changed
+   */
+  Item.prototype.hide = function () {
+    return false;
+  };
+
+  /**
+   * Repaint the item
+   */
+  Item.prototype.redraw = function () {};
+
+  /**
+   * Reposition the Item horizontally
+   */
+  Item.prototype.repositionX = function () {};
+
+  /**
+   * Reposition the Item vertically
+   */
+  Item.prototype.repositionY = function () {};
+
+  /**
+   * Repaint a delete button on the top right of the item when the item is selected
+   * @param {HTMLElement} anchor
+   * @protected
+   */
+  Item.prototype._repaintDeleteButton = function (anchor) {
+    if (this.selected && this.options.editable.remove && !this.dom.deleteButton) {
+      // create and show button
+      var me = this;
+
+      var deleteButton = document.createElement("div");
+      deleteButton.className = "delete";
+      deleteButton.title = "Delete this item";
+
+      // TODO: be able to destroy the delete button
+      new Hammer(deleteButton).on("tap", function (event) {
+        me.parent.removeFromDataSet(me);
+        event.stopPropagation();
+        event.preventDefault();
+      });
+
+      anchor.appendChild(deleteButton);
+      this.dom.deleteButton = deleteButton;
+    } else if (!this.selected && this.dom.deleteButton) {
+      // remove button
+      if (this.dom.deleteButton.parentNode) {
+        this.dom.deleteButton.parentNode.removeChild(this.dom.deleteButton);
+      }
+      this.dom.deleteButton = null;
+    }
+  };
+
+  /**
+   * Set HTML contents for the item
+   * @param {Element} element   HTML element to fill with the contents
+   * @private
+   */
+  Item.prototype._updateContents = function (element) {
+    var content;
+    if (this.options.template) {
+      var itemData = this.parent.itemSet.itemsData.get(this.id); // get a clone of the data from the dataset
+      content = this.options.template(itemData);
+    } else {
+      content = this.data.content;
+    }
+
+    if (content !== this.content) {
+      // only replace the content when changed
+      if (content instanceof Element) {
+        element.innerHTML = "";
+        element.appendChild(content);
+      } else if (content != undefined) {
+        element.innerHTML = content;
+      } else {
+        if (!(this.data.type == "background" && this.data.content === undefined)) {
+          throw new Error("Property \"content\" missing in item " + this.id);
+        }
+      }
+
+      this.content = content;
+    }
+  };
+
+  /**
+   * Set HTML contents for the item
+   * @param {Element} element   HTML element to fill with the contents
+   * @private
+   */
+  Item.prototype._updateTitle = function (element) {
+    if (this.data.title != null) {
+      element.title = this.data.title || "";
+    } else {
+      element.removeAttribute("title");
+    }
+  };
+
+  /**
+   * Process dataAttributes timeline option and set as data- attributes on dom.content
+   * @param {Element} element   HTML element to which the attributes will be attached
+   * @private
+   */
+  Item.prototype._updateDataAttributes = function (element) {
+    if (this.options.dataAttributes && this.options.dataAttributes.length > 0) {
+      var attributes = [];
+
+      if (Array.isArray(this.options.dataAttributes)) {
+        attributes = this.options.dataAttributes;
+      } else if (this.options.dataAttributes == "all") {
+        attributes = Object.keys(this.data);
+      } else {
+        return;
+      }
+
+      for (var i = 0; i < attributes.length; i++) {
+        var name = attributes[i];
+        var value = this.data[name];
+
+        if (value != null) {
+          element.setAttribute("data-" + name, value);
+        } else {
+          element.removeAttribute("data-" + name);
+        }
+      }
+    }
+  };
+
+  /**
+   * Update custom styles of the element
+   * @param element
+   * @private
+   */
+  Item.prototype._updateStyle = function (element) {
+    // remove old styles
+    if (this.style) {
+      util.removeCssText(element, this.style);
+      this.style = null;
+    }
+
+    // append new styles
+    if (this.data.style) {
+      util.addCssText(element, this.data.style);
+      this.style = this.data.style;
+    }
+  };
+
+  module.exports = Item;
+  // should be implemented by the item
+  // should be implemented by the item
+  // should be implemented by the item
+
+/***/ },
+/* 34 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var util = __webpack_require__(1);
+  var Group = __webpack_require__(30);
+
+  /**
+   * @constructor BackgroundGroup
+   * @param {Number | String} groupId
+   * @param {Object} data
+   * @param {ItemSet} itemSet
+   */
+  function BackgroundGroup(groupId, data, itemSet) {
+    Group.call(this, groupId, data, itemSet);
+
+    this.width = 0;
+    this.height = 0;
+    this.top = 0;
+    this.left = 0;
+  }
+
+  BackgroundGroup.prototype = Object.create(Group.prototype);
+
+  /**
+   * Repaint this group
+   * @param {{start: number, end: number}} range
+   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
+   * @param {boolean} [restack=false]  Force restacking of all items
+   * @return {boolean} Returns true if the group is resized
+   */
+  BackgroundGroup.prototype.redraw = function (range, margin, restack) {
+    var resized = false;
+
+    this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
+
+    // calculate actual size
+    this.width = this.dom.background.offsetWidth;
+
+    // apply new height (just always zero for BackgroundGroup
+    this.dom.background.style.height = "0";
+
+    // update vertical position of items after they are re-stacked and the height of the group is calculated
+    for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
+      var item = this.visibleItems[i];
+      item.repositionY(margin);
+    }
+
+    return resized;
+  };
+
+  /**
+   * Show this group: attach to the DOM
+   */
+  BackgroundGroup.prototype.show = function () {
+    if (!this.dom.background.parentNode) {
+      this.itemSet.dom.background.appendChild(this.dom.background);
+    }
+  };
+
+  module.exports = BackgroundGroup;
+
+/***/ },
+/* 35 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var Item = __webpack_require__(33);
+  var util = __webpack_require__(1);
+
+  /**
+   * @constructor BoxItem
+   * @extends Item
+   * @param {Object} data             Object containing parameters start
+   *                                  content, className.
+   * @param {{toScreen: function, toTime: function}} conversion
+   *                                  Conversion functions from time to screen and vice versa
+   * @param {Object} [options]        Configuration options
+   *                                  // TODO: describe available options
+   */
+  function BoxItem(data, conversion, options) {
+    this.props = {
+      dot: {
+        width: 0,
+        height: 0
+      },
+      line: {
+        width: 0,
+        height: 0
+      }
+    };
+
+    // validate data
+    if (data) {
+      if (data.start == undefined) {
+        throw new Error("Property \"start\" missing in item " + data);
+      }
+    }
+
+    Item.call(this, data, conversion, options);
+  }
+
+  BoxItem.prototype = new Item(null, null, null);
+
+  /**
+   * Check whether this item is visible inside given range
+   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+   * @returns {boolean} True if visible
+   */
+  BoxItem.prototype.isVisible = function (range) {
+    // determine visibility
+    // TODO: account for the real width of the item. Right now we just add 1/4 to the window
+    var interval = (range.end - range.start) / 4;
+    return this.data.start > range.start - interval && this.data.start < range.end + interval;
+  };
+
+  /**
+   * Repaint the item
+   */
+  BoxItem.prototype.redraw = function () {
+    var dom = this.dom;
+    if (!dom) {
+      // create DOM
+      this.dom = {};
+      dom = this.dom;
+
+      // create main box
+      dom.box = document.createElement("DIV");
+
+      // contents box (inside the background box). used for making margins
+      dom.content = document.createElement("DIV");
+      dom.content.className = "content";
+      dom.box.appendChild(dom.content);
+
+      // line to axis
+      dom.line = document.createElement("DIV");
+      dom.line.className = "line";
+
+      // dot on axis
+      dom.dot = document.createElement("DIV");
+      dom.dot.className = "dot";
+
+      // attach this item as attribute
+      dom.box["timeline-item"] = this;
+
+      this.dirty = true;
+    }
+
+    // append DOM to parent DOM
+    if (!this.parent) {
+      throw new Error("Cannot redraw item: no parent attached");
+    }
+    if (!dom.box.parentNode) {
+      var foreground = this.parent.dom.foreground;
+      if (!foreground) throw new Error("Cannot redraw item: parent has no foreground container element");
+      foreground.appendChild(dom.box);
+    }
+    if (!dom.line.parentNode) {
+      var background = this.parent.dom.background;
+      if (!background) throw new Error("Cannot redraw item: parent has no background container element");
+      background.appendChild(dom.line);
+    }
+    if (!dom.dot.parentNode) {
+      var axis = this.parent.dom.axis;
+      if (!background) throw new Error("Cannot redraw item: parent has no axis container element");
+      axis.appendChild(dom.dot);
+    }
+    this.displayed = true;
+
+    // Update DOM when item is marked dirty. An item is marked dirty when:
+    // - the item is not yet rendered
+    // - the item's data is changed
+    // - the item is selected/deselected
+    if (this.dirty) {
+      this._updateContents(this.dom.content);
+      this._updateTitle(this.dom.box);
+      this._updateDataAttributes(this.dom.box);
+      this._updateStyle(this.dom.box);
+
+      // update class
+      var className = (this.data.className ? " " + this.data.className : "") + (this.selected ? " selected" : "");
+      dom.box.className = "item box" + className;
+      dom.line.className = "item line" + className;
+      dom.dot.className = "item dot" + className;
+
+      // recalculate size
+      this.props.dot.height = dom.dot.offsetHeight;
+      this.props.dot.width = dom.dot.offsetWidth;
+      this.props.line.width = dom.line.offsetWidth;
+      this.width = dom.box.offsetWidth;
+      this.height = dom.box.offsetHeight;
+
+      this.dirty = false;
+    }
+
+    this._repaintDeleteButton(dom.box);
+  };
+
+  /**
+   * Show the item in the DOM (when not already displayed). The items DOM will
+   * be created when needed.
+   */
+  BoxItem.prototype.show = function () {
+    if (!this.displayed) {
+      this.redraw();
+    }
+  };
+
+  /**
+   * Hide the item from the DOM (when visible)
+   */
+  BoxItem.prototype.hide = function () {
+    if (this.displayed) {
+      var dom = this.dom;
+
+      if (dom.box.parentNode) dom.box.parentNode.removeChild(dom.box);
+      if (dom.line.parentNode) dom.line.parentNode.removeChild(dom.line);
+      if (dom.dot.parentNode) dom.dot.parentNode.removeChild(dom.dot);
+
+      this.top = null;
+      this.left = null;
+
+      this.displayed = false;
+    }
+  };
+
+  /**
+   * Reposition the item horizontally
+   * @Override
+   */
+  BoxItem.prototype.repositionX = function () {
+    var start = this.conversion.toScreen(this.data.start);
+    var align = this.options.align;
+    var left;
+    var box = this.dom.box;
+    var line = this.dom.line;
+    var dot = this.dom.dot;
+
+    // calculate left position of the box
+    if (align == "right") {
+      this.left = start - this.width;
+    } else if (align == "left") {
+      this.left = start;
+    } else {
+      // default or 'center'
+      this.left = start - this.width / 2;
+    }
+
+    // reposition box
+    box.style.left = this.left + "px";
+
+    // reposition line
+    line.style.left = start - this.props.line.width / 2 + "px";
+
+    // reposition dot
+    dot.style.left = start - this.props.dot.width / 2 + "px";
+  };
+
+  /**
+   * Reposition the item vertically
+   * @Override
+   */
+  BoxItem.prototype.repositionY = function () {
+    var orientation = this.options.orientation;
+    var box = this.dom.box;
+    var line = this.dom.line;
+    var dot = this.dom.dot;
+
+    if (orientation == "top") {
+      box.style.top = (this.top || 0) + "px";
+
+      line.style.top = "0";
+      line.style.height = this.parent.top + this.top + 1 + "px";
+      line.style.bottom = "";
+    } else {
+      // orientation 'bottom'
+      var itemSetHeight = this.parent.itemSet.props.height; // TODO: this is nasty
+      var lineHeight = itemSetHeight - this.parent.top - this.parent.height + this.top;
+
+      box.style.top = (this.parent.height - this.top - this.height || 0) + "px";
+      line.style.top = itemSetHeight - lineHeight + "px";
+      line.style.bottom = "0";
+    }
+
+    dot.style.top = -this.props.dot.height / 2 + "px";
+  };
+
+  module.exports = BoxItem;
+
+/***/ },
+/* 36 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var Item = __webpack_require__(33);
+
+  /**
+   * @constructor PointItem
+   * @extends Item
+   * @param {Object} data             Object containing parameters start
+   *                                  content, className.
+   * @param {{toScreen: function, toTime: function}} conversion
+   *                                  Conversion functions from time to screen and vice versa
+   * @param {Object} [options]        Configuration options
+   *                                  // TODO: describe available options
+   */
+  function PointItem(data, conversion, options) {
+    this.props = {
+      dot: {
+        top: 0,
+        width: 0,
+        height: 0
+      },
+      content: {
+        height: 0,
+        marginLeft: 0
+      }
+    };
+
+    // validate data
+    if (data) {
+      if (data.start == undefined) {
+        throw new Error("Property \"start\" missing in item " + data);
+      }
+    }
+
+    Item.call(this, data, conversion, options);
+  }
+
+  PointItem.prototype = new Item(null, null, null);
+
+  /**
+   * Check whether this item is visible inside given range
+   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+   * @returns {boolean} True if visible
+   */
+  PointItem.prototype.isVisible = function (range) {
+    // determine visibility
+    // TODO: account for the real width of the item. Right now we just add 1/4 to the window
+    var interval = (range.end - range.start) / 4;
+    return this.data.start > range.start - interval && this.data.start < range.end + interval;
+  };
+
+  /**
+   * Repaint the item
+   */
+  PointItem.prototype.redraw = function () {
+    var dom = this.dom;
+    if (!dom) {
+      // create DOM
+      this.dom = {};
+      dom = this.dom;
+
+      // background box
+      dom.point = document.createElement("div");
+      // className is updated in redraw()
+
+      // contents box, right from the dot
+      dom.content = document.createElement("div");
+      dom.content.className = "content";
+      dom.point.appendChild(dom.content);
+
+      // dot at start
+      dom.dot = document.createElement("div");
+      dom.point.appendChild(dom.dot);
+
+      // attach this item as attribute
+      dom.point["timeline-item"] = this;
+
+      this.dirty = true;
+    }
+
+    // append DOM to parent DOM
+    if (!this.parent) {
+      throw new Error("Cannot redraw item: no parent attached");
+    }
+    if (!dom.point.parentNode) {
+      var foreground = this.parent.dom.foreground;
+      if (!foreground) {
+        throw new Error("Cannot redraw item: parent has no foreground container element");
+      }
+      foreground.appendChild(dom.point);
+    }
+    this.displayed = true;
+
+    // Update DOM when item is marked dirty. An item is marked dirty when:
+    // - the item is not yet rendered
+    // - the item's data is changed
+    // - the item is selected/deselected
+    if (this.dirty) {
+      this._updateContents(this.dom.content);
+      this._updateTitle(this.dom.point);
+      this._updateDataAttributes(this.dom.point);
+      this._updateStyle(this.dom.point);
+
+      // update class
+      var className = (this.data.className ? " " + this.data.className : "") + (this.selected ? " selected" : "");
+      dom.point.className = "item point" + className;
+      dom.dot.className = "item dot" + className;
+
+      // recalculate size
+      this.width = dom.point.offsetWidth;
+      this.height = dom.point.offsetHeight;
+      this.props.dot.width = dom.dot.offsetWidth;
+      this.props.dot.height = dom.dot.offsetHeight;
+      this.props.content.height = dom.content.offsetHeight;
+
+      // resize contents
+      dom.content.style.marginLeft = 2 * this.props.dot.width + "px";
+      //dom.content.style.marginRight = ... + 'px'; // TODO: margin right
+
+      dom.dot.style.top = (this.height - this.props.dot.height) / 2 + "px";
+      dom.dot.style.left = this.props.dot.width / 2 + "px";
+
+      this.dirty = false;
+    }
+
+    this._repaintDeleteButton(dom.point);
+  };
+
+  /**
+   * Show the item in the DOM (when not already visible). The items DOM will
+   * be created when needed.
+   */
+  PointItem.prototype.show = function () {
+    if (!this.displayed) {
+      this.redraw();
+    }
+  };
+
+  /**
+   * Hide the item from the DOM (when visible)
+   */
+  PointItem.prototype.hide = function () {
+    if (this.displayed) {
+      if (this.dom.point.parentNode) {
+        this.dom.point.parentNode.removeChild(this.dom.point);
+      }
+
+      this.top = null;
+      this.left = null;
+
+      this.displayed = false;
+    }
+  };
+
+  /**
+   * Reposition the item horizontally
+   * @Override
+   */
+  PointItem.prototype.repositionX = function () {
+    var start = this.conversion.toScreen(this.data.start);
+
+    this.left = start - this.props.dot.width;
+
+    // reposition point
+    this.dom.point.style.left = this.left + "px";
+  };
+
+  /**
+   * Reposition the item vertically
+   * @Override
+   */
+  PointItem.prototype.repositionY = function () {
+    var orientation = this.options.orientation,
+        point = this.dom.point;
+
+    if (orientation == "top") {
+      point.style.top = this.top + "px";
+    } else {
+      point.style.top = this.parent.height - this.top - this.height + "px";
+    }
+  };
+
+  module.exports = PointItem;
+
+/***/ },
+/* 37 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var Hammer = __webpack_require__(19);
+  var Item = __webpack_require__(33);
+  var BackgroundGroup = __webpack_require__(34);
+  var RangeItem = __webpack_require__(32);
+
+  /**
+   * @constructor BackgroundItem
+   * @extends Item
+   * @param {Object} data             Object containing parameters start, end
+   *                                  content, className.
+   * @param {{toScreen: function, toTime: function}} conversion
+   *                                  Conversion functions from time to screen and vice versa
+   * @param {Object} [options]        Configuration options
+   *                                  // TODO: describe options
+   */
+  // TODO: implement support for the BackgroundItem just having a start, then being displayed as a sort of an annotation
+  function BackgroundItem(data, conversion, options) {
+    this.props = {
+      content: {
+        width: 0
+      }
+    };
+    this.overflow = false; // if contents can overflow (css styling), this flag is set to true
+
+    // validate data
+    if (data) {
+      if (data.start == undefined) {
+        throw new Error("Property \"start\" missing in item " + data.id);
+      }
+      if (data.end == undefined) {
+        throw new Error("Property \"end\" missing in item " + data.id);
+      }
+    }
+
+    Item.call(this, data, conversion, options);
+
+    this.emptyContent = false;
+  }
+
+  BackgroundItem.prototype = new Item(null, null, null);
+
+  BackgroundItem.prototype.baseClassName = "item background";
+  BackgroundItem.prototype.stack = false;
+
+  /**
+   * Check whether this item is visible inside given range
+   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+   * @returns {boolean} True if visible
+   */
+  BackgroundItem.prototype.isVisible = function (range) {
+    // determine visibility
+    return this.data.start < range.end && this.data.end > range.start;
+  };
+
+  /**
+   * Repaint the item
+   */
+  BackgroundItem.prototype.redraw = function () {
+    var dom = this.dom;
+    if (!dom) {
+      // create DOM
+      this.dom = {};
+      dom = this.dom;
+
+      // background box
+      dom.box = document.createElement("div");
+      // className is updated in redraw()
+
+      // contents box
+      dom.content = document.createElement("div");
+      dom.content.className = "content";
+      dom.box.appendChild(dom.content);
+
+      // Note: we do NOT attach this item as attribute to the DOM,
+      //       such that background items cannot be selected
+      //dom.box['timeline-item'] = this;
+
+      this.dirty = true;
+    }
+
+    // append DOM to parent DOM
+    if (!this.parent) {
+      throw new Error("Cannot redraw item: no parent attached");
+    }
+    if (!dom.box.parentNode) {
+      var background = this.parent.dom.background;
+      if (!background) {
+        throw new Error("Cannot redraw item: parent has no background container element");
+      }
+      background.appendChild(dom.box);
+    }
+    this.displayed = true;
+
+    // Update DOM when item is marked dirty. An item is marked dirty when:
+    // - the item is not yet rendered
+    // - the item's data is changed
+    // - the item is selected/deselected
+    if (this.dirty) {
+      this._updateContents(this.dom.content);
+      this._updateTitle(this.dom.content);
+      this._updateDataAttributes(this.dom.content);
+      this._updateStyle(this.dom.box);
+
+      // update class
+      var className = (this.data.className ? " " + this.data.className : "") + (this.selected ? " selected" : "");
+      dom.box.className = this.baseClassName + className;
+
+      // determine from css whether this box has overflow
+      this.overflow = window.getComputedStyle(dom.content).overflow !== "hidden";
+
+      // recalculate size
+      this.props.content.width = this.dom.content.offsetWidth;
+      this.height = 0; // set height zero, so this item will be ignored when stacking items
+
+      this.dirty = false;
+    }
+  };
+
+  /**
+   * Show the item in the DOM (when not already visible). The items DOM will
+   * be created when needed.
+   */
+  BackgroundItem.prototype.show = RangeItem.prototype.show;
+
+  /**
+   * Hide the item from the DOM (when visible)
+   * @return {Boolean} changed
+   */
+  BackgroundItem.prototype.hide = RangeItem.prototype.hide;
+
+  /**
+   * Reposition the item horizontally
+   * @Override
+   */
+  BackgroundItem.prototype.repositionX = RangeItem.prototype.repositionX;
+
+  /**
+   * Reposition the item vertically
+   * @Override
+   */
+  BackgroundItem.prototype.repositionY = function (margin) {
+    var onTop = this.options.orientation === "top";
+    this.dom.content.style.top = onTop ? "" : "0";
+    this.dom.content.style.bottom = onTop ? "0" : "";
+    var height;
+
+    // special positioning for subgroups
+    if (this.data.subgroup !== undefined) {
+      var itemSubgroup = this.data.subgroup;
+      var subgroups = this.parent.subgroups;
+      var subgroupIndex = subgroups[itemSubgroup].index;
+      // if the orientation is top, we need to take the difference in height into account.
+      if (onTop == true) {
+        // the first subgroup will have to account for the distance from the top to the first item.
+        height = this.parent.subgroups[itemSubgroup].height + margin.item.vertical;
+        height += subgroupIndex == 0 ? margin.axis - 0.5 * margin.item.vertical : 0;
+        var newTop = this.parent.top;
+        for (var subgroup in subgroups) {
+          if (subgroups.hasOwnProperty(subgroup)) {
+            if (subgroups[subgroup].visible == true && subgroups[subgroup].index < subgroupIndex) {
+              newTop += subgroups[subgroup].height + margin.item.vertical;
+            }
+          }
+        }
+
+        // the others will have to be offset downwards with this same distance.
+        newTop += subgroupIndex != 0 ? margin.axis - 0.5 * margin.item.vertical : 0;
+        this.dom.box.style.top = newTop + "px";
+        this.dom.box.style.bottom = "";
+      }
+      // and when the orientation is bottom:
+      else {
+        var newTop = this.parent.top;
+        for (var subgroup in subgroups) {
+          if (subgroups.hasOwnProperty(subgroup)) {
+            if (subgroups[subgroup].visible == true && subgroups[subgroup].index > subgroupIndex) {
+              newTop += subgroups[subgroup].height + margin.item.vertical;
+            }
+          }
+        }
+        height = this.parent.subgroups[itemSubgroup].height + margin.item.vertical;
+        this.dom.box.style.top = newTop + "px";
+        this.dom.box.style.bottom = "";
+      }
+    }
+    // and in the case of no subgroups:
+    else {
+      // we want backgrounds with groups to only show in groups.
+      if (this.parent instanceof BackgroundGroup) {
+        // if the item is not in a group:
+        height = Math.max(this.parent.height, this.parent.itemSet.body.domProps.center.height, this.parent.itemSet.body.domProps.centerContainer.height);
+        this.dom.box.style.top = onTop ? "0" : "";
+        this.dom.box.style.bottom = onTop ? "" : "0";
+      } else {
+        height = this.parent.height;
+        // same alignment for items when orientation is top or bottom
+        this.dom.box.style.top = this.parent.top + "px";
+        this.dom.box.style.bottom = "";
+      }
+    }
+    this.dom.box.style.height = height + "px";
+  };
+
+  module.exports = BackgroundItem;
+
+/***/ },
+/* 38 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var keycharm = __webpack_require__(39);
+  var Emitter = __webpack_require__(11);
+  var Hammer = __webpack_require__(19);
+  var util = __webpack_require__(1);
+
+  /**
+   * Turn an element into an clickToUse element.
+   * When not active, the element has a transparent overlay. When the overlay is
+   * clicked, the mode is changed to active.
+   * When active, the element is displayed with a blue border around it, and
+   * the interactive contents of the element can be used. When clicked outside
+   * the element, the elements mode is changed to inactive.
+   * @param {Element} container
+   * @constructor
+   */
+  function Activator(container) {
+    this.active = false;
+
+    this.dom = {
+      container: container
+    };
+
+    this.dom.overlay = document.createElement("div");
+    this.dom.overlay.className = "overlay";
+
+    this.dom.container.appendChild(this.dom.overlay);
+
+    this.hammer = Hammer(this.dom.overlay, { prevent_default: false });
+    this.hammer.on("tap", this._onTapOverlay.bind(this));
+
+    // block all touch events (except tap)
+    var me = this;
+    var events = ["touch", "pinch", "doubletap", "hold", "dragstart", "drag", "dragend", "mousewheel", "DOMMouseScroll" // DOMMouseScroll is needed for Firefox
+    ];
+    events.forEach(function (event) {
+      me.hammer.on(event, function (event) {
+        event.stopPropagation();
+      });
+    });
+
+    // attach a tap event to the window, in order to deactivate when clicking outside the timeline
+    this.windowHammer = Hammer(window, { prevent_default: false });
+    this.windowHammer.on("tap", function (event) {
+      // deactivate when clicked outside the container
+      if (!_hasParent(event.target, container)) {
+        me.deactivate();
+      }
+    });
+
+    if (this.keycharm !== undefined) {
+      this.keycharm.destroy();
+    }
+    this.keycharm = keycharm();
+
+    // keycharm listener only bounded when active)
+    this.escListener = this.deactivate.bind(this);
+  }
+
+  // turn into an event emitter
+  Emitter(Activator.prototype);
+
+  // The currently active activator
+  Activator.current = null;
+
+  /**
+   * Destroy the activator. Cleans up all created DOM and event listeners
+   */
+  Activator.prototype.destroy = function () {
+    this.deactivate();
+
+    // remove dom
+    this.dom.overlay.parentNode.removeChild(this.dom.overlay);
+
+    // cleanup hammer instances
+    this.hammer = null;
+    this.windowHammer = null;
+    // FIXME: cleaning up hammer instances doesn't work (Timeline not removed from memory)
+  };
+
+  /**
+   * Activate the element
+   * Overlay is hidden, element is decorated with a blue shadow border
+   */
+  Activator.prototype.activate = function () {
+    // we allow only one active activator at a time
+    if (Activator.current) {
+      Activator.current.deactivate();
+    }
+    Activator.current = this;
+
+    this.active = true;
+    this.dom.overlay.style.display = "none";
+    util.addClassName(this.dom.container, "vis-active");
+
+    this.emit("change");
+    this.emit("activate");
+
+    // ugly hack: bind ESC after emitting the events, as the Network rebinds all
+    // keyboard events on a 'change' event
+    this.keycharm.bind("esc", this.escListener);
+  };
+
+  /**
+   * Deactivate the element
+   * Overlay is displayed on top of the element
+   */
+  Activator.prototype.deactivate = function () {
+    this.active = false;
+    this.dom.overlay.style.display = "";
+    util.removeClassName(this.dom.container, "vis-active");
+    this.keycharm.unbind("esc", this.escListener);
+
+    this.emit("change");
+    this.emit("deactivate");
+  };
+
+  /**
+   * Handle a tap event: activate the container
+   * @param event
+   * @private
+   */
+  Activator.prototype._onTapOverlay = function (event) {
+    // activate the container
+    this.activate();
+    event.stopPropagation();
+  };
+
+  /**
+   * Test whether the element has the requested parent element somewhere in
+   * its chain of parent nodes.
+   * @param {HTMLElement} element
+   * @param {HTMLElement} parent
+   * @returns {boolean} Returns true when the parent is found somewhere in the
+   *                    chain of parent nodes.
+   * @private
+   */
+  function _hasParent(element, parent) {
+    while (element) {
+      if (element === parent) {
+        return true;
+      }
+      element = element.parentNode;
+    }
+    return false;
+  }
+
+  module.exports = Activator;
+
+/***/ },
+/* 39 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
+  /**
+   * Created by Alex on 11/6/2014.
+   */
+
+  // https://github.com/umdjs/umd/blob/master/returnExports.js#L40-L60
+  // if the module has no dependencies, the above pattern can be simplified to
+  (function (root, factory) {
+    if (true) {
+      // AMD. Register as an anonymous module.
+      !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+    } else if (typeof exports === 'object') {
+      // Node. Does not work with strict CommonJS, but
+      // only CommonJS-like environments that support module.exports,
+      // like Node.
+      module.exports = factory();
+    } else {
+      // Browser globals (root is window)
+      root.keycharm = factory();
+    }
+  }(this, function () {
+
+    function keycharm(options) {
+      var preventDefault = options && options.preventDefault || false;
+
+      var container = options && options.container || window;
+      var _exportFunctions = {};
+      var _bound = {keydown:{}, keyup:{}};
+      var _keys = {};
+      var i;
+
+      // a - z
+      for (i = 97; i <= 122; i++) {_keys[String.fromCharCode(i)] = {code:65 + (i - 97), shift: false};}
+      // A - Z
+      for (i = 65; i <= 90; i++) {_keys[String.fromCharCode(i)] = {code:i, shift: true};}
+      // 0 - 9
+      for (i = 0;  i <= 9;   i++) {_keys['' + i] = {code:48 + i, shift: false};}
+      // F1 - F12
+      for (i = 1;  i <= 12;   i++) {_keys['F' + i] = {code:111 + i, shift: false};}
+      // num0 - num9
+      for (i = 0;  i <= 9;   i++) {_keys['num' + i] = {code:96 + i, shift: false};}
+
+      // numpad misc
+      _keys['num*'] = {code:106, shift: false};
+      _keys['num+'] = {code:107, shift: false};
+      _keys['num-'] = {code:109, shift: false};
+      _keys['num/'] = {code:111, shift: false};
+      _keys['num.'] = {code:110, shift: false};
+      // arrows
+      _keys['left']  = {code:37, shift: false};
+      _keys['up']    = {code:38, shift: false};
+      _keys['right'] = {code:39, shift: false};
+      _keys['down']  = {code:40, shift: false};
+      // extra keys
+      _keys['space'] = {code:32, shift: false};
+      _keys['enter'] = {code:13, shift: false};
+      _keys['shift'] = {code:16, shift: undefined};
+      _keys['esc']   = {code:27, shift: false};
+      _keys['backspace'] = {code:8, shift: false};
+      _keys['tab']       = {code:9, shift: false};
+      _keys['ctrl']      = {code:17, shift: false};
+      _keys['alt']       = {code:18, shift: false};
+      _keys['delete']    = {code:46, shift: false};
+      _keys['pageup']    = {code:33, shift: false};
+      _keys['pagedown']  = {code:34, shift: false};
+      // symbols
+      _keys['=']     = {code:187, shift: false};
+      _keys['-']     = {code:189, shift: false};
+      _keys[']']     = {code:221, shift: false};
+      _keys['[']     = {code:219, shift: false};
+
+
+
+      var down = function(event) {handleEvent(event,'keydown');};
+      var up = function(event) {handleEvent(event,'keyup');};
+
+      // handle the actualy bound key with the event
+      var handleEvent = function(event,type) {
+        if (_bound[type][event.keyCode] !== undefined) {
+          var bound = _bound[type][event.keyCode];
+          for (var i = 0; i < bound.length; i++) {
+            if (bound[i].shift === undefined) {
+              bound[i].fn(event);
+            }
+            else if (bound[i].shift == true && event.shiftKey == true) {
+              bound[i].fn(event);
+            }
+            else if (bound[i].shift == false && event.shiftKey == false) {
+              bound[i].fn(event);
+            }
+          }
+
+          if (preventDefault == true) {
+            event.preventDefault();
+          }
+        }
+      };
+
+      // bind a key to a callback
+      _exportFunctions.bind = function(key, callback, type) {
+        if (type === undefined) {
+          type = 'keydown';
+        }
+        if (_keys[key] === undefined) {
+          throw new Error("unsupported key: " + key);
+        }
+        if (_bound[type][_keys[key].code] === undefined) {
+          _bound[type][_keys[key].code] = [];
+        }
+        _bound[type][_keys[key].code].push({fn:callback, shift:_keys[key].shift});
+      };
+
+
+      // bind all keys to a call back (demo purposes)
+      _exportFunctions.bindAll = function(callback, type) {
+        if (type === undefined) {
+          type = 'keydown';
+        }
+        for (var key in _keys) {
+          if (_keys.hasOwnProperty(key)) {
+            _exportFunctions.bind(key,callback,type);
+          }
+        }
+      };
+
+      // get the key label from an event
+      _exportFunctions.getKey = function(event) {
+        for (var key in _keys) {
+          if (_keys.hasOwnProperty(key)) {
+            if (event.shiftKey == true && _keys[key].shift == true && event.keyCode == _keys[key].code) {
+              return key;
+            }
+            else if (event.shiftKey == false && _keys[key].shift == false && event.keyCode == _keys[key].code) {
+              return key;
+            }
+            else if (event.keyCode == _keys[key].code && key == 'shift') {
+              return key;
+            }
+          }
+        }
+        return "unknown key, currently not supported";
+      };
+
+      // unbind either a specific callback from a key or all of them (by leaving callback undefined)
+      _exportFunctions.unbind = function(key, callback, type) {
+        if (type === undefined) {
+          type = 'keydown';
+        }
+        if (_keys[key] === undefined) {
+          throw new Error("unsupported key: " + key);
+        }
+        if (callback !== undefined) {
+          var newBindings = [];
+          var bound = _bound[type][_keys[key].code];
+          if (bound !== undefined) {
+            for (var i = 0; i < bound.length; i++) {
+              if (!(bound[i].fn == callback && bound[i].shift == _keys[key].shift)) {
+                newBindings.push(_bound[type][_keys[key].code][i]);
+              }
+            }
+          }
+          _bound[type][_keys[key].code] = newBindings;
+        }
+        else {
+          _bound[type][_keys[key].code] = [];
+        }
+      };
+
+      // reset all bound variables.
+      _exportFunctions.reset = function() {
+        _bound = {keydown:{}, keyup:{}};
+      };
+
+      // unbind all listeners and reset all variables.
+      _exportFunctions.destroy = function() {
+        _bound = {keydown:{}, keyup:{}};
+        container.removeEventListener('keydown', down, true);
+        container.removeEventListener('keyup', up, true);
+      };
+
+      // create listeners.
+      container.addEventListener('keydown',down,true);
+      container.addEventListener('keyup',up,true);
+
+      // return the public functions.
+      return _exportFunctions;
+    }
+
+    return keycharm;
+  }));
+
+
+
+
+/***/ },
+/* 40 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var Hammer = __webpack_require__(19);
+  var util = __webpack_require__(1);
+  var Component = __webpack_require__(25);
+  var moment = __webpack_require__(2);
+  var locales = __webpack_require__(41);
+
+  /**
+   * A custom time bar
+   * @param {{range: Range, dom: Object}} body
+   * @param {Object} [options]        Available parameters:
+   *                                  {Boolean} [showCustomTime]
+   * @constructor CustomTime
+   * @extends Component
+   */
+
+  function CustomTime(body, options) {
+    this.body = body;
+
+    // default options
+    this.defaultOptions = {
+      showCustomTime: false,
+      locales: locales,
+      locale: "en",
+      id: 0
+    };
+    this.options = util.extend({}, this.defaultOptions);
+
+    if (options && options.time) {
+      this.customTime = options.time;
+    } else {
+      this.customTime = new Date();
+    }
+
+    this.eventParams = {}; // stores state parameters while dragging the bar
+
+    // create the DOM
+    this._create();
+
+    this.setOptions(options);
+  }
+
+  CustomTime.prototype = new Component();
+
+  /**
+   * Set options for the component. Options will be merged in current options.
+   * @param {Object} options  Available parameters:
+   *                          {boolean} [showCustomTime]
+   */
+  CustomTime.prototype.setOptions = function (options) {
+    if (options) {
+      // copy all options that we know
+      util.selectiveExtend(["showCustomTime", "locale", "locales", "id"], this.options, options);
+
+      // Triggered by addCustomTimeBar, redraw to add new bar
+      if (this.options.id) {
+        this.redraw();
+      }
+    }
+  };
+
+  /**
+   * Create the DOM for the custom time
+   * @private
+   */
+  CustomTime.prototype._create = function () {
+    var bar = document.createElement("div");
+    bar.className = "customtime";
+    bar.style.position = "absolute";
+    bar.style.top = "0px";
+    bar.style.height = "100%";
+    this.bar = bar;
+
+    var drag = document.createElement("div");
+    drag.style.position = "relative";
+    drag.style.top = "0px";
+    drag.style.left = "-10px";
+    drag.style.height = "100%";
+    drag.style.width = "20px";
+    bar.appendChild(drag);
+
+    // attach event listeners
+    this.hammer = new Hammer(drag);
+    this.hammer.on("panstart", this._onDragStart.bind(this));
+    this.hammer.on("panmove", this._onDrag.bind(this));
+    this.hammer.on("panend", this._onDragEnd.bind(this));
+    this.hammer.on("pan", function (event) {
+      event.preventDefault();
+    });
+  };
+
+  /**
+   * Destroy the CustomTime bar
+   */
+  CustomTime.prototype.destroy = function () {
+    this.options.showCustomTime = false;
+    this.redraw(); // will remove the bar from the DOM
+
+    this.hammer.enable(false);
+    this.hammer = null;
+
+    this.body = null;
+  };
+
+  /**
+   * Repaint the component
+   * @return {boolean} Returns true if the component is resized
+   */
+  CustomTime.prototype.redraw = function () {
+    if (this.options.showCustomTime) {
+      var parent = this.body.dom.backgroundVertical;
+      if (this.bar.parentNode != parent) {
+        // attach to the dom
+        if (this.bar.parentNode) {
+          this.bar.parentNode.removeChild(this.bar);
+        }
+        parent.appendChild(this.bar);
+      }
+
+      var x = this.body.util.toScreen(this.customTime);
+
+      var locale = this.options.locales[this.options.locale];
+      var title = locale.time + ": " + moment(this.customTime).format("dddd, MMMM Do YYYY, H:mm:ss");
+      title = title.charAt(0).toUpperCase() + title.substring(1);
+
+      this.bar.style.left = x + "px";
+      this.bar.title = title;
+    } else {
+      // remove the line from the DOM
+      if (this.bar.parentNode) {
+        this.bar.parentNode.removeChild(this.bar);
+      }
+    }
+
+    return false;
+  };
+
+  /**
+   * Set custom time.
+   * @param {Date | number | string} time
+   */
+  CustomTime.prototype.setCustomTime = function (time) {
+    this.customTime = util.convert(time, "Date");
+    this.redraw();
+  };
+
+  /**
+   * Retrieve the current custom time.
+   * @return {Date} customTime
+   */
+  CustomTime.prototype.getCustomTime = function () {
+    return new Date(this.customTime.valueOf());
+  };
+
+  /**
+   * Start moving horizontally
+   * @param {Event} event
+   * @private
+   */
+  CustomTime.prototype._onDragStart = function (event) {
+    this.eventParams.dragging = true;
+    this.eventParams.customTime = this.customTime;
+
+    event.stopPropagation();
+    event.preventDefault();
+  };
+
+  /**
+   * Perform moving operating.
+   * @param {Event} event
+   * @private
+   */
+  CustomTime.prototype._onDrag = function (event) {
+    if (!this.eventParams.dragging) return;
+
+    var x = this.body.util.toScreen(this.eventParams.customTime) + event.deltaX;
+    var time = this.body.util.toTime(x);
+
+    this.setCustomTime(time);
+
+    // fire a timechange event
+    this.body.emitter.emit("timechange", {
+      id: this.options.id,
+      time: new Date(this.customTime.valueOf())
+    });
+
+    event.stopPropagation();
+    event.preventDefault();
+  };
+
+  /**
+   * Stop moving operating.
+   * @param {Event} event
+   * @private
+   */
+  CustomTime.prototype._onDragEnd = function (event) {
+    if (!this.eventParams.dragging) return;
+
+    // fire a timechanged event
+    this.body.emitter.emit("timechanged", {
+      id: this.options.id,
+      time: new Date(this.customTime.valueOf())
+    });
+
+    event.stopPropagation();
+    event.preventDefault();
+  };
+
+  module.exports = CustomTime;
+
+/***/ },
+/* 41 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  // English
+  exports.en = {
+    current: "current",
+    time: "time"
+  };
+  exports.en_EN = exports.en;
+  exports.en_US = exports.en;
+
+  // Dutch
+  exports.nl = {
+    custom: "aangepaste",
+    time: "tijd"
+  };
+  exports.nl_NL = exports.nl;
+  exports.nl_BE = exports.nl;
+
+/***/ },
+/* 42 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var util = __webpack_require__(1);
+  var Component = __webpack_require__(25);
+  var TimeStep = __webpack_require__(29);
+  var DateUtil = __webpack_require__(26);
+  var moment = __webpack_require__(2);
+
+  /**
+   * A horizontal time axis
+   * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} body
+   * @param {Object} [options]        See TimeAxis.setOptions for the available
+   *                                  options.
+   * @constructor TimeAxis
+   * @extends Component
+   */
+  function TimeAxis(body, options) {
+    this.dom = {
+      foreground: null,
+      lines: [],
+      majorTexts: [],
+      minorTexts: [],
+      redundant: {
+        lines: [],
+        majorTexts: [],
+        minorTexts: []
+      }
+    };
+    this.props = {
+      range: {
+        start: 0,
+        end: 0,
+        minimumStep: 0
+      },
+      lineTop: 0
+    };
+
+    this.defaultOptions = {
+      orientation: "bottom", // supported: 'top', 'bottom'
+      // TODO: implement timeaxis orientations 'left' and 'right'
+      showMinorLabels: true,
+      showMajorLabels: true,
+      format: null,
+      timeAxis: null
+    };
+    this.options = util.extend({}, this.defaultOptions);
+
+    this.body = body;
+
+    // create the HTML DOM
+    this._create();
+
+    this.setOptions(options);
+  }
+
+  TimeAxis.prototype = new Component();
+
+  /**
+   * Set options for the TimeAxis.
+   * Parameters will be merged in current options.
+   * @param {Object} options  Available options:
+   *                          {string} [orientation]
+   *                          {boolean} [showMinorLabels]
+   *                          {boolean} [showMajorLabels]
+   */
+  TimeAxis.prototype.setOptions = function (options) {
+    if (options) {
+      // copy all options that we know
+      util.selectiveExtend(["orientation", "showMinorLabels", "showMajorLabels", "hiddenDates", "format", "timeAxis"], this.options, options);
+
+      // apply locale to moment.js
+      // TODO: not so nice, this is applied globally to moment.js
+      if ("locale" in options) {
+        if (typeof moment.locale === "function") {
+          // moment.js 2.8.1+
+          moment.locale(options.locale);
+        } else {
+          moment.lang(options.locale);
+        }
+      }
+    }
+  };
+
+  /**
+   * Create the HTML DOM for the TimeAxis
+   */
+  TimeAxis.prototype._create = function () {
+    this.dom.foreground = document.createElement("div");
+    this.dom.background = document.createElement("div");
+
+    this.dom.foreground.className = "timeaxis foreground";
+    this.dom.background.className = "timeaxis background";
+  };
+
+  /**
+   * Destroy the TimeAxis
+   */
+  TimeAxis.prototype.destroy = function () {
+    // remove from DOM
+    if (this.dom.foreground.parentNode) {
+      this.dom.foreground.parentNode.removeChild(this.dom.foreground);
+    }
+    if (this.dom.background.parentNode) {
+      this.dom.background.parentNode.removeChild(this.dom.background);
+    }
+
+    this.body = null;
+  };
+
+  /**
+   * Repaint the component
+   * @return {boolean} Returns true if the component is resized
+   */
+  TimeAxis.prototype.redraw = function () {
+    var options = this.options;
+    var props = this.props;
+    var foreground = this.dom.foreground;
+    var background = this.dom.background;
+
+    // determine the correct parent DOM element (depending on option orientation)
+    var parent = options.orientation == "top" ? this.body.dom.top : this.body.dom.bottom;
+    var parentChanged = foreground.parentNode !== parent;
+
+    // calculate character width and height
+    this._calculateCharSize();
+
+    // TODO: recalculate sizes only needed when parent is resized or options is changed
+    var orientation = this.options.orientation,
+        showMinorLabels = this.options.showMinorLabels,
+        showMajorLabels = this.options.showMajorLabels;
+
+    // determine the width and height of the elemens for the axis
+    props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
+    props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
+    props.height = props.minorLabelHeight + props.majorLabelHeight;
+    props.width = foreground.offsetWidth;
+
+    props.minorLineHeight = this.body.domProps.root.height - props.majorLabelHeight - (options.orientation == "top" ? this.body.domProps.bottom.height : this.body.domProps.top.height);
+    props.minorLineWidth = 1; // TODO: really calculate width
+    props.majorLineHeight = props.minorLineHeight + props.majorLabelHeight;
+    props.majorLineWidth = 1; // TODO: really calculate width
+
+    //  take foreground and background offline while updating (is almost twice as fast)
+    var foregroundNextSibling = foreground.nextSibling;
+    var backgroundNextSibling = background.nextSibling;
+    foreground.parentNode && foreground.parentNode.removeChild(foreground);
+    background.parentNode && background.parentNode.removeChild(background);
+
+    foreground.style.height = this.props.height + "px";
+
+    this._repaintLabels();
+
+    // put DOM online again (at the same place)
+    if (foregroundNextSibling) {
+      parent.insertBefore(foreground, foregroundNextSibling);
+    } else {
+      parent.appendChild(foreground);
+    }
+    if (backgroundNextSibling) {
+      this.body.dom.backgroundVertical.insertBefore(background, backgroundNextSibling);
+    } else {
+      this.body.dom.backgroundVertical.appendChild(background);
+    }
+
+    return this._isResized() || parentChanged;
+  };
+
+  /**
+   * Repaint major and minor text labels and vertical grid lines
+   * @private
+   */
+  TimeAxis.prototype._repaintLabels = function () {
+    var orientation = this.options.orientation;
+
+    // calculate range and step (step such that we have space for 7 characters per label)
+    var start = util.convert(this.body.range.start, "Number");
+    var end = util.convert(this.body.range.end, "Number");
+    var timeLabelsize = this.body.util.toTime((this.props.minorCharWidth || 10) * 7).valueOf();
+    var minimumStep = timeLabelsize - DateUtil.getHiddenDurationBefore(this.body.hiddenDates, this.body.range, timeLabelsize);
+    minimumStep -= this.body.util.toTime(0).valueOf();
+
+    var step = new TimeStep(new Date(start), new Date(end), minimumStep, this.body.hiddenDates);
+    if (this.options.format) {
+      step.setFormat(this.options.format);
+    }
+    if (this.options.timeAxis) {
+      step.setScale(this.options.timeAxis);
+    }
+    this.step = step;
+
+    // Move all DOM elements to a "redundant" list, where they
+    // can be picked for re-use, and clear the lists with lines and texts.
+    // At the end of the function _repaintLabels, left over elements will be cleaned up
+    var dom = this.dom;
+    dom.redundant.lines = dom.lines;
+    dom.redundant.majorTexts = dom.majorTexts;
+    dom.redundant.minorTexts = dom.minorTexts;
+    dom.lines = [];
+    dom.majorTexts = [];
+    dom.minorTexts = [];
+
+    var cur;
+    var x = 0;
+    var isMajor;
+    var xPrev = 0;
+    var width = 0;
+    var prevLine;
+    var xFirstMajorLabel = undefined;
+    var max = 0;
+    var className;
+
+    step.first();
+    while (step.hasNext() && max < 1000) {
+      max++;
+
+      cur = step.getCurrent();
+      isMajor = step.isMajor();
+      className = step.getClassName();
+
+      xPrev = x;
+      x = this.body.util.toScreen(cur);
+      width = x - xPrev;
+      if (prevLine) {
+        prevLine.style.width = width + "px";
+      }
+
+      if (this.options.showMinorLabels) {
+        this._repaintMinorText(x, step.getLabelMinor(), orientation, className);
+      }
+
+      if (isMajor && this.options.showMajorLabels) {
+        if (x > 0) {
+          if (xFirstMajorLabel == undefined) {
+            xFirstMajorLabel = x;
+          }
+          this._repaintMajorText(x, step.getLabelMajor(), orientation, className);
+        }
+        prevLine = this._repaintMajorLine(x, orientation, className);
+      } else {
+        prevLine = this._repaintMinorLine(x, orientation, className);
+      }
+
+      step.next();
+    }
+
+    // create a major label on the left when needed
+    if (this.options.showMajorLabels) {
+      var leftTime = this.body.util.toTime(0),
+          leftText = step.getLabelMajor(leftTime),
+          widthText = leftText.length * (this.props.majorCharWidth || 10) + 10; // upper bound estimation
+
+      if (xFirstMajorLabel == undefined || widthText < xFirstMajorLabel) {
+        this._repaintMajorText(0, leftText, orientation, className);
+      }
+    }
+
+    // Cleanup leftover DOM elements from the redundant list
+    util.forEach(this.dom.redundant, function (arr) {
+      while (arr.length) {
+        var elem = arr.pop();
+        if (elem && elem.parentNode) {
+          elem.parentNode.removeChild(elem);
+        }
+      }
+    });
+  };
+
+  /**
+   * Create a minor label for the axis at position x
+   * @param {Number} x
+   * @param {String} text
+   * @param {String} orientation   "top" or "bottom" (default)
+   * @param {String} className
+   * @private
+   */
+  TimeAxis.prototype._repaintMinorText = function (x, text, orientation, className) {
+    // reuse redundant label
+    var label = this.dom.redundant.minorTexts.shift();
+
+    if (!label) {
+      // create new label
+      var content = document.createTextNode("");
+      label = document.createElement("div");
+      label.appendChild(content);
+      this.dom.foreground.appendChild(label);
+    }
+    this.dom.minorTexts.push(label);
+
+    label.childNodes[0].nodeValue = text;
+
+    label.style.top = orientation == "top" ? this.props.majorLabelHeight + "px" : "0";
+    label.style.left = x + "px";
+    label.className = "text minor " + className;
+    //label.title = title;  // TODO: this is a heavy operation
+  };
+
+  /**
+   * Create a Major label for the axis at position x
+   * @param {Number} x
+   * @param {String} text
+   * @param {String} orientation   "top" or "bottom" (default)
+   * @param {String} className
+   * @private
+   */
+  TimeAxis.prototype._repaintMajorText = function (x, text, orientation, className) {
+    // reuse redundant label
+    var label = this.dom.redundant.majorTexts.shift();
+
+    if (!label) {
+      // create label
+      var content = document.createTextNode(text);
+      label = document.createElement("div");
+      label.appendChild(content);
+      this.dom.foreground.appendChild(label);
+    }
+    this.dom.majorTexts.push(label);
+
+    label.childNodes[0].nodeValue = text;
+    label.className = "text major " + className;
+    //label.title = title; // TODO: this is a heavy operation
+
+    label.style.top = orientation == "top" ? "0" : this.props.minorLabelHeight + "px";
+    label.style.left = x + "px";
+  };
+
+  /**
+   * Create a minor line for the axis at position x
+   * @param {Number} x
+   * @param {String} orientation   "top" or "bottom" (default)
+   * @param {String} className
+   * @return {Element} Returns the created line
+   * @private
+   */
+  TimeAxis.prototype._repaintMinorLine = function (x, orientation, className) {
+    // reuse redundant line
+    var line = this.dom.redundant.lines.shift();
+    if (!line) {
+      // create vertical line
+      line = document.createElement("div");
+      this.dom.background.appendChild(line);
+    }
+    this.dom.lines.push(line);
+
+    var props = this.props;
+    if (orientation == "top") {
+      line.style.top = props.majorLabelHeight + "px";
+    } else {
+      line.style.top = this.body.domProps.top.height + "px";
+    }
+    line.style.height = props.minorLineHeight + "px";
+    line.style.left = x - props.minorLineWidth / 2 + "px";
+
+    line.className = "grid vertical minor " + className;
+
+    return line;
+  };
+
+  /**
+   * Create a Major line for the axis at position x
+   * @param {Number} x
+   * @param {String} orientation   "top" or "bottom" (default)
+   * @param {String} className
+   * @return {Element} Returns the created line
+   * @private
+   */
+  TimeAxis.prototype._repaintMajorLine = function (x, orientation, className) {
+    // reuse redundant line
+    var line = this.dom.redundant.lines.shift();
+    if (!line) {
+      // create vertical line
+      line = document.createElement("div");
+      this.dom.background.appendChild(line);
+    }
+    this.dom.lines.push(line);
+
+    var props = this.props;
+    if (orientation == "top") {
+      line.style.top = "0";
+    } else {
+      line.style.top = this.body.domProps.top.height + "px";
+    }
+    line.style.left = x - props.majorLineWidth / 2 + "px";
+    line.style.height = props.majorLineHeight + "px";
+
+    line.className = "grid vertical major " + className;
+
+    return line;
+  };
+
+  /**
+   * Determine the size of text on the axis (both major and minor axis).
+   * The size is calculated only once and then cached in this.props.
+   * @private
+   */
+  TimeAxis.prototype._calculateCharSize = function () {
+    // Note: We calculate char size with every redraw. Size may change, for
+    // example when any of the timelines parents had display:none for example.
+
+    // determine the char width and height on the minor axis
+    if (!this.dom.measureCharMinor) {
+      this.dom.measureCharMinor = document.createElement("DIV");
+      this.dom.measureCharMinor.className = "text minor measure";
+      this.dom.measureCharMinor.style.position = "absolute";
+
+      this.dom.measureCharMinor.appendChild(document.createTextNode("0"));
+      this.dom.foreground.appendChild(this.dom.measureCharMinor);
+    }
+    this.props.minorCharHeight = this.dom.measureCharMinor.clientHeight;
+    this.props.minorCharWidth = this.dom.measureCharMinor.clientWidth;
+
+    // determine the char width and height on the major axis
+    if (!this.dom.measureCharMajor) {
+      this.dom.measureCharMajor = document.createElement("DIV");
+      this.dom.measureCharMajor.className = "text major measure";
+      this.dom.measureCharMajor.style.position = "absolute";
+
+      this.dom.measureCharMajor.appendChild(document.createTextNode("0"));
+      this.dom.foreground.appendChild(this.dom.measureCharMajor);
+    }
+    this.props.majorCharHeight = this.dom.measureCharMajor.clientHeight;
+    this.props.majorCharWidth = this.dom.measureCharMajor.clientWidth;
+  };
+
+  module.exports = TimeAxis;
+
+/***/ },
+/* 43 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var util = __webpack_require__(1);
+  var Component = __webpack_require__(25);
+  var moment = __webpack_require__(2);
+  var locales = __webpack_require__(41);
+
+  /**
+   * A current time bar
+   * @param {{range: Range, dom: Object, domProps: Object}} body
+   * @param {Object} [options]        Available parameters:
+   *                                  {Boolean} [showCurrentTime]
+   * @constructor CurrentTime
+   * @extends Component
+   */
+  function CurrentTime(body, options) {
+    this.body = body;
+
+    // default options
+    this.defaultOptions = {
+      showCurrentTime: true,
+
+      locales: locales,
+      locale: "en"
+    };
+    this.options = util.extend({}, this.defaultOptions);
+    this.offset = 0;
+
+    this._create();
+
+    this.setOptions(options);
+  }
+
+  CurrentTime.prototype = new Component();
+
+  /**
+   * Create the HTML DOM for the current time bar
+   * @private
+   */
+  CurrentTime.prototype._create = function () {
+    var bar = document.createElement("div");
+    bar.className = "currenttime";
+    bar.style.position = "absolute";
+    bar.style.top = "0px";
+    bar.style.height = "100%";
+
+    this.bar = bar;
+  };
+
+  /**
+   * Destroy the CurrentTime bar
+   */
+  CurrentTime.prototype.destroy = function () {
+    this.options.showCurrentTime = false;
+    this.redraw(); // will remove the bar from the DOM and stop refreshing
+
+    this.body = null;
+  };
+
+  /**
+   * Set options for the component. Options will be merged in current options.
+   * @param {Object} options  Available parameters:
+   *                          {boolean} [showCurrentTime]
+   */
+  CurrentTime.prototype.setOptions = function (options) {
+    if (options) {
+      // copy all options that we know
+      util.selectiveExtend(["showCurrentTime", "locale", "locales"], this.options, options);
+    }
+  };
+
+  /**
+   * Repaint the component
+   * @return {boolean} Returns true if the component is resized
+   */
+  CurrentTime.prototype.redraw = function () {
+    if (this.options.showCurrentTime) {
+      var parent = this.body.dom.backgroundVertical;
+      if (this.bar.parentNode != parent) {
+        // attach to the dom
+        if (this.bar.parentNode) {
+          this.bar.parentNode.removeChild(this.bar);
+        }
+        parent.appendChild(this.bar);
+
+        this.start();
+      }
+
+      var now = new Date(new Date().valueOf() + this.offset);
+      var x = this.body.util.toScreen(now);
+
+      var locale = this.options.locales[this.options.locale];
+      var title = locale.current + " " + locale.time + ": " + moment(now).format("dddd, MMMM Do YYYY, H:mm:ss");
+      title = title.charAt(0).toUpperCase() + title.substring(1);
+
+      this.bar.style.left = x + "px";
+      this.bar.title = title;
+    } else {
+      // remove the line from the DOM
+      if (this.bar.parentNode) {
+        this.bar.parentNode.removeChild(this.bar);
+      }
+      this.stop();
+    }
+
+    return false;
+  };
+
+  /**
+   * Start auto refreshing the current time bar
+   */
+  CurrentTime.prototype.start = function () {
+    var me = this;
+
+    function update() {
+      me.stop();
+
+      // determine interval to refresh
+      var scale = me.body.range.conversion(me.body.domProps.center.width).scale;
+      var interval = 1 / scale / 10;
+      if (interval < 30) interval = 30;
+      if (interval > 1000) interval = 1000;
+
+      me.redraw();
+
+      // start a renderTimer to adjust for the new time
+      me.currentTimeTimer = setTimeout(update, interval);
+    }
+
+    update();
+  };
+
+  /**
+   * Stop auto refreshing the current time bar
+   */
+  CurrentTime.prototype.stop = function () {
+    if (this.currentTimeTimer !== undefined) {
+      clearTimeout(this.currentTimeTimer);
+      delete this.currentTimeTimer;
+    }
+  };
+
+  /**
+   * Set a current time. This can be used for example to ensure that a client's
+   * time is synchronized with a shared server time.
+   * @param {Date | String | Number} time     A Date, unix timestamp, or
+   *                                          ISO date string.
+   */
+  CurrentTime.prototype.setCurrentTime = function (time) {
+    var t = util.convert(time, "Date").valueOf();
+    var now = new Date().valueOf();
+    this.offset = t - now;
+    this.redraw();
+  };
+
+  /**
+   * Get the current time.
+   * @return {Date} Returns the current time.
+   */
+  CurrentTime.prototype.getCurrentTime = function () {
+    return new Date(new Date().valueOf() + this.offset);
+  };
+
+  module.exports = CurrentTime;
+
+/***/ },
+/* 44 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var Emitter = __webpack_require__(11);
+  var Hammer = __webpack_require__(19);
+  var util = __webpack_require__(1);
+  var DataSet = __webpack_require__(7);
+  var DataView = __webpack_require__(9);
+  var Range = __webpack_require__(23);
+  var Core = __webpack_require__(27);
+  var TimeAxis = __webpack_require__(42);
+  var CurrentTime = __webpack_require__(43);
+  var CustomTime = __webpack_require__(40);
+  var LineGraph = __webpack_require__(45);
 
   /**
    * Create a timeline visualization
@@ -18128,20 +20471,20 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Graph2d;
 
 /***/ },
-/* 34 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
 
   var util = __webpack_require__(1);
-  var DOMutil = __webpack_require__(2);
-  var DataSet = __webpack_require__(3);
-  var DataView = __webpack_require__(5);
-  var Component = __webpack_require__(22);
-  var DataAxis = __webpack_require__(44);
-  var GraphGroup = __webpack_require__(45);
-  var Legend = __webpack_require__(49);
-  var BarGraphFunctions = __webpack_require__(47);
+  var DOMutil = __webpack_require__(6);
+  var DataSet = __webpack_require__(7);
+  var DataView = __webpack_require__(9);
+  var Component = __webpack_require__(25);
+  var DataAxis = __webpack_require__(46);
+  var GraphGroup = __webpack_require__(48);
+  var Legend = __webpack_require__(52);
+  var BarGraphFunctions = __webpack_require__(51);
 
   var UNGROUPED = "__ungrouped__"; // reserved group id for ungrouped items
 
@@ -19129,2216 +21472,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = LineGraph;
 
 /***/ },
-/* 35 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  /**
-   * @constructor  DataStep
-   * The class DataStep is an iterator for data for the lineGraph. You provide a start data point and an
-   * end data point. The class itself determines the best scale (step size) based on the
-   * provided start Date, end Date, and minimumStep.
-   *
-   * If minimumStep is provided, the step size is chosen as close as possible
-   * to the minimumStep but larger than minimumStep. If minimumStep is not
-   * provided, the scale is set to 1 DAY.
-   * The minimumStep should correspond with the onscreen size of about 6 characters
-   *
-   * Alternatively, you can set a scale by hand.
-   * After creation, you can initialize the class by executing first(). Then you
-   * can iterate from the start date to the end date via next(). You can check if
-   * the end date is reached with the function hasNext(). After each step, you can
-   * retrieve the current date via getCurrent().
-   * The DataStep has scales ranging from milliseconds, seconds, minutes, hours,
-   * days, to years.
-   *
-   * Version: 1.2
-   *
-   * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
-   *                               or new Date(2010, 9, 21, 23, 45, 00)
-   * @param {Date} [end]           The end date
-   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
-   */
-  function DataStep(start, end, minimumStep, containerHeight, customRange, alignZeros) {
-    // variables
-    this.current = 0;
-
-    this.autoScale = true;
-    this.stepIndex = 0;
-    this.step = 1;
-    this.scale = 1;
-
-    this.marginStart;
-    this.marginEnd;
-    this.deadSpace = 0;
-
-    this.majorSteps = [1, 2, 5, 10];
-    this.minorSteps = [0.25, 0.5, 1, 2];
-
-    this.alignZeros = alignZeros;
-
-    this.setRange(start, end, minimumStep, containerHeight, customRange);
-  }
-
-
-
-  /**
-   * Set a new range
-   * If minimumStep is provided, the step size is chosen as close as possible
-   * to the minimumStep but larger than minimumStep. If minimumStep is not
-   * provided, the scale is set to 1 DAY.
-   * The minimumStep should correspond with the onscreen size of about 6 characters
-   * @param {Number} [start]      The start date and time.
-   * @param {Number} [end]        The end date and time.
-   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
-   */
-  DataStep.prototype.setRange = function (start, end, minimumStep, containerHeight, customRange) {
-    this._start = customRange.min === undefined ? start : customRange.min;
-    this._end = customRange.max === undefined ? end : customRange.max;
-
-    if (this._start == this._end) {
-      this._start -= 0.75;
-      this._end += 1;
-    }
-
-    if (this.autoScale == true) {
-      this.setMinimumStep(minimumStep, containerHeight);
-    }
-
-    this.setFirst(customRange);
-  };
-
-  /**
-   * Automatically determine the scale that bests fits the provided minimum step
-   * @param {Number} [minimumStep]  The minimum step size in milliseconds
-   */
-  DataStep.prototype.setMinimumStep = function (minimumStep, containerHeight) {
-    // round to floor
-    var size = this._end - this._start;
-    var safeSize = size * 1.2;
-    var minimumStepValue = minimumStep * (safeSize / containerHeight);
-    var orderOfMagnitude = Math.round(Math.log(safeSize) / Math.LN10);
-
-    var minorStepIdx = -1;
-    var magnitudefactor = Math.pow(10, orderOfMagnitude);
-
-    var start = 0;
-    if (orderOfMagnitude < 0) {
-      start = orderOfMagnitude;
-    }
-
-    var solutionFound = false;
-    for (var i = start; Math.abs(i) <= Math.abs(orderOfMagnitude); i++) {
-      magnitudefactor = Math.pow(10, i);
-      for (var j = 0; j < this.minorSteps.length; j++) {
-        var stepSize = magnitudefactor * this.minorSteps[j];
-        if (stepSize >= minimumStepValue) {
-          solutionFound = true;
-          minorStepIdx = j;
-          break;
-        }
-      }
-      if (solutionFound == true) {
-        break;
-      }
-    }
-    this.stepIndex = minorStepIdx;
-    this.scale = magnitudefactor;
-    this.step = magnitudefactor * this.minorSteps[minorStepIdx];
-  };
-
-
-
-  /**
-   * Round the current date to the first minor date value
-   * This must be executed once when the current date is set to start Date
-   */
-  DataStep.prototype.setFirst = function (customRange) {
-    if (customRange === undefined) {
-      customRange = {};
-    }
-
-    var niceStart = customRange.min === undefined ? this._start - this.scale * 2 * this.minorSteps[this.stepIndex] : customRange.min;
-    var niceEnd = customRange.max === undefined ? this._end + this.scale * this.minorSteps[this.stepIndex] : customRange.max;
-
-    this.marginEnd = customRange.max === undefined ? this.roundToMinor(niceEnd) : customRange.max;
-    this.marginStart = customRange.min === undefined ? this.roundToMinor(niceStart) : customRange.min;
-
-    // if we need to align the zero's we need to make sure that there is a zero to use.
-    if (this.alignZeros == true && (this.marginEnd - this.marginStart) % this.step != 0) {
-      this.marginEnd += this.marginEnd % this.step;
-    }
-
-    this.deadSpace = this.roundToMinor(niceEnd) - niceEnd + this.roundToMinor(niceStart) - niceStart;
-    this.marginRange = this.marginEnd - this.marginStart;
-
-
-    this.current = this.marginEnd;
-  };
-
-  DataStep.prototype.roundToMinor = function (value) {
-    var rounded = value - value % (this.scale * this.minorSteps[this.stepIndex]);
-    if (value % (this.scale * this.minorSteps[this.stepIndex]) > 0.5 * (this.scale * this.minorSteps[this.stepIndex])) {
-      return rounded + this.scale * this.minorSteps[this.stepIndex];
-    } else {
-      return rounded;
-    }
-  };
-
-
-  /**
-   * Check if the there is a next step
-   * @return {boolean}  true if the current date has not passed the end date
-   */
-  DataStep.prototype.hasNext = function () {
-    return this.current >= this.marginStart;
-  };
-
-  /**
-   * Do the next step
-   */
-  DataStep.prototype.next = function () {
-    var prev = this.current;
-    this.current -= this.step;
-
-    // safety mechanism: if current time is still unchanged, move to the end
-    if (this.current == prev) {
-      this.current = this._end;
-    }
-  };
-
-  /**
-   * Do the next step
-   */
-  DataStep.prototype.previous = function () {
-    this.current += this.step;
-    this.marginEnd += this.step;
-    this.marginRange = this.marginEnd - this.marginStart;
-  };
-
-
-
-  /**
-   * Get the current datetime
-   * @return {String}  current The current date
-   */
-  DataStep.prototype.getCurrent = function (decimals) {
-    // prevent round-off errors when close to zero
-    var current = Math.abs(this.current) < this.step / 2 ? 0 : this.current;
-    var toPrecision = "" + Number(current).toPrecision(5);
-
-    // If decimals is specified, then limit or extend the string as required
-    if (decimals !== undefined && !isNaN(Number(decimals))) {
-      // If string includes exponent, then we need to add it to the end
-      var exp = "";
-      var index = toPrecision.indexOf("e");
-      if (index != -1) {
-        // Get the exponent
-        exp = toPrecision.slice(index);
-        // Remove the exponent in case we need to zero-extend
-        toPrecision = toPrecision.slice(0, index);
-      }
-      index = Math.max(toPrecision.indexOf(","), toPrecision.indexOf("."));
-      if (index === -1) {
-        // No decimal found - if we want decimals, then we need to add it
-        if (decimals !== 0) {
-          toPrecision += ".";
-        }
-        // Calculate how long the string should be
-        index = toPrecision.length + decimals;
-      } else if (decimals !== 0) {
-        // Calculate how long the string should be - accounting for the decimal place
-        index += decimals + 1;
-      }
-      if (index > toPrecision.length) {
-        // We need to add zeros!
-        for (var cnt = index - toPrecision.length; cnt > 0; cnt--) {
-          toPrecision += "0";
-        }
-      } else {
-        // we need to remove characters
-        toPrecision = toPrecision.slice(0, index);
-      }
-      // Add the exponent if there is one
-      toPrecision += exp;
-    } else {
-      if (toPrecision.indexOf(",") != -1 || toPrecision.indexOf(".") != -1) {
-        // If no decimal is specified, and there are decimal places, remove trailing zeros
-        for (var i = toPrecision.length - 1; i > 0; i--) {
-          if (toPrecision[i] == "0") {
-            toPrecision = toPrecision.slice(0, i);
-          } else if (toPrecision[i] == "." || toPrecision[i] == ",") {
-            toPrecision = toPrecision.slice(0, i);
-            break;
-          } else {
-            break;
-          }
-        }
-      }
-    }
-
-    return toPrecision;
-  };
-
-  /**
-   * Check if the current value is a major value (for example when the step
-   * is DAY, a major value is each first day of the MONTH)
-   * @return {boolean} true if current date is major, else false.
-   */
-  DataStep.prototype.isMajor = function () {
-    return this.current % (this.scale * this.majorSteps[this.stepIndex]) == 0;
-  };
-
-  module.exports = DataStep;
-
-/***/ },
-/* 36 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  // Utility functions for ordering and stacking of items
-  var EPSILON = 0.001; // used when checking collisions, to prevent round-off errors
-
-  /**
-   * Order items by their start data
-   * @param {Item[]} items
-   */
-  exports.orderByStart = function (items) {
-    items.sort(function (a, b) {
-      return a.data.start - b.data.start;
-    });
-  };
-
-  /**
-   * Order items by their end date. If they have no end date, their start date
-   * is used.
-   * @param {Item[]} items
-   */
-  exports.orderByEnd = function (items) {
-    items.sort(function (a, b) {
-      var aTime = "end" in a.data ? a.data.end : a.data.start,
-          bTime = "end" in b.data ? b.data.end : b.data.start;
-
-      return aTime - bTime;
-    });
-  };
-
-  /**
-   * Adjust vertical positions of the items such that they don't overlap each
-   * other.
-   * @param {Item[]} items
-   *            All visible items
-   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
-   *            Margins between items and between items and the axis.
-   * @param {boolean} [force=false]
-   *            If true, all items will be repositioned. If false (default), only
-   *            items having a top===null will be re-stacked
-   */
-  exports.stack = function (items, margin, force) {
-    var i, iMax;
-
-    if (force) {
-      // reset top position of all items
-      for (i = 0, iMax = items.length; i < iMax; i++) {
-        items[i].top = null;
-      }
-    }
-
-    // calculate new, non-overlapping positions
-    for (i = 0, iMax = items.length; i < iMax; i++) {
-      var item = items[i];
-      if (item.stack && item.top === null) {
-        // initialize top position
-        item.top = margin.axis;
-
-        do {
-          // TODO: optimize checking for overlap. when there is a gap without items,
-          //       you only need to check for items from the next item on, not from zero
-          var collidingItem = null;
-          for (var j = 0, jj = items.length; j < jj; j++) {
-            var other = items[j];
-            if (other.top !== null && other !== item && other.stack && exports.collision(item, other, margin.item)) {
-              collidingItem = other;
-              break;
-            }
-          }
-
-          if (collidingItem != null) {
-            // There is a collision. Reposition the items above the colliding element
-            item.top = collidingItem.top + collidingItem.height + margin.item.vertical;
-          }
-        } while (collidingItem);
-      }
-    }
-  };
-
-
-  /**
-   * Adjust vertical positions of the items without stacking them
-   * @param {Item[]} items
-   *            All visible items
-   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
-   *            Margins between items and between items and the axis.
-   */
-  exports.nostack = function (items, margin, subgroups) {
-    var i, iMax, newTop;
-
-    // reset top position of all items
-    for (i = 0, iMax = items.length; i < iMax; i++) {
-      if (items[i].data.subgroup !== undefined) {
-        newTop = margin.axis;
-        for (var subgroup in subgroups) {
-          if (subgroups.hasOwnProperty(subgroup)) {
-            if (subgroups[subgroup].visible == true && subgroups[subgroup].index < subgroups[items[i].data.subgroup].index) {
-              newTop += subgroups[subgroup].height + margin.item.vertical;
-            }
-          }
-        }
-        items[i].top = newTop;
-      } else {
-        items[i].top = margin.axis;
-      }
-    }
-  };
-
-  /**
-   * Test if the two provided items collide
-   * The items must have parameters left, width, top, and height.
-   * @param {Item} a          The first item
-   * @param {Item} b          The second item
-   * @param {{horizontal: number, vertical: number}} margin
-   *                          An object containing a horizontal and vertical
-   *                          minimum required margin.
-   * @return {boolean}        true if a and b collide, else false
-   */
-  exports.collision = function (a, b, margin) {
-    return a.left - margin.horizontal + EPSILON < b.left + b.width && a.left + a.width + margin.horizontal - EPSILON > b.left && a.top - margin.vertical + EPSILON < b.top + b.height && a.top + a.height + margin.vertical - EPSILON > b.top;
-  };
-
-/***/ },
-/* 37 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var Hammer = __webpack_require__(15);
-  var util = __webpack_require__(1);
-
-  /**
-   * @constructor Item
-   * @param {Object} data             Object containing (optional) parameters type,
-   *                                  start, end, content, group, className.
-   * @param {{toScreen: function, toTime: function}} conversion
-   *                                  Conversion functions from time to screen and vice versa
-   * @param {Object} options          Configuration options
-   *                                  // TODO: describe available options
-   */
-  function Item(data, conversion, options) {
-    this.id = null;
-    this.parent = null;
-    this.data = data;
-    this.dom = null;
-    this.conversion = conversion || {};
-    this.options = options || {};
-
-    this.selected = false;
-    this.displayed = false;
-    this.dirty = true;
-
-    this.top = null;
-    this.left = null;
-    this.width = null;
-    this.height = null;
-  }
-
-  Item.prototype.stack = true;
-
-  /**
-   * Select current item
-   */
-  Item.prototype.select = function () {
-    this.selected = true;
-    this.dirty = true;
-    if (this.displayed) this.redraw();
-  };
-
-  /**
-   * Unselect current item
-   */
-  Item.prototype.unselect = function () {
-    this.selected = false;
-    this.dirty = true;
-    if (this.displayed) this.redraw();
-  };
-
-  /**
-   * Set data for the item. Existing data will be updated. The id should not
-   * be changed. When the item is displayed, it will be redrawn immediately.
-   * @param {Object} data
-   */
-  Item.prototype.setData = function (data) {
-    this.data = data;
-    this.dirty = true;
-    if (this.displayed) this.redraw();
-  };
-
-  /**
-   * Set a parent for the item
-   * @param {ItemSet | Group} parent
-   */
-  Item.prototype.setParent = function (parent) {
-    if (this.displayed) {
-      this.hide();
-      this.parent = parent;
-      if (this.parent) {
-        this.show();
-      }
-    } else {
-      this.parent = parent;
-    }
-  };
-
-  /**
-   * Check whether this item is visible inside given range
-   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
-   * @returns {boolean} True if visible
-   */
-  Item.prototype.isVisible = function (range) {
-    // Should be implemented by Item implementations
-    return false;
-  };
-
-  /**
-   * Show the Item in the DOM (when not already visible)
-   * @return {Boolean} changed
-   */
-  Item.prototype.show = function () {
-    return false;
-  };
-
-  /**
-   * Hide the Item from the DOM (when visible)
-   * @return {Boolean} changed
-   */
-  Item.prototype.hide = function () {
-    return false;
-  };
-
-  /**
-   * Repaint the item
-   */
-  Item.prototype.redraw = function () {};
-
-  /**
-   * Reposition the Item horizontally
-   */
-  Item.prototype.repositionX = function () {};
-
-  /**
-   * Reposition the Item vertically
-   */
-  Item.prototype.repositionY = function () {};
-
-  /**
-   * Repaint a delete button on the top right of the item when the item is selected
-   * @param {HTMLElement} anchor
-   * @protected
-   */
-  Item.prototype._repaintDeleteButton = function (anchor) {
-    if (this.selected && this.options.editable.remove && !this.dom.deleteButton) {
-      // create and show button
-      var me = this;
-
-      var deleteButton = document.createElement("div");
-      deleteButton.className = "delete";
-      deleteButton.title = "Delete this item";
-
-      // TODO: be able to destroy the delete button
-      new Hammer(deleteButton).on("tap", function (event) {
-        me.parent.removeFromDataSet(me);
-        event.stopPropagation();
-        event.preventDefault();
-      });
-
-      anchor.appendChild(deleteButton);
-      this.dom.deleteButton = deleteButton;
-    } else if (!this.selected && this.dom.deleteButton) {
-      // remove button
-      if (this.dom.deleteButton.parentNode) {
-        this.dom.deleteButton.parentNode.removeChild(this.dom.deleteButton);
-      }
-      this.dom.deleteButton = null;
-    }
-  };
-
-  /**
-   * Set HTML contents for the item
-   * @param {Element} element   HTML element to fill with the contents
-   * @private
-   */
-  Item.prototype._updateContents = function (element) {
-    var content;
-    if (this.options.template) {
-      var itemData = this.parent.itemSet.itemsData.get(this.id); // get a clone of the data from the dataset
-      content = this.options.template(itemData);
-    } else {
-      content = this.data.content;
-    }
-
-    if (content !== this.content) {
-      // only replace the content when changed
-      if (content instanceof Element) {
-        element.innerHTML = "";
-        element.appendChild(content);
-      } else if (content != undefined) {
-        element.innerHTML = content;
-      } else {
-        if (!(this.data.type == "background" && this.data.content === undefined)) {
-          throw new Error("Property \"content\" missing in item " + this.id);
-        }
-      }
-
-      this.content = content;
-    }
-  };
-
-  /**
-   * Set HTML contents for the item
-   * @param {Element} element   HTML element to fill with the contents
-   * @private
-   */
-  Item.prototype._updateTitle = function (element) {
-    if (this.data.title != null) {
-      element.title = this.data.title || "";
-    } else {
-      element.removeAttribute("title");
-    }
-  };
-
-  /**
-   * Process dataAttributes timeline option and set as data- attributes on dom.content
-   * @param {Element} element   HTML element to which the attributes will be attached
-   * @private
-   */
-  Item.prototype._updateDataAttributes = function (element) {
-    if (this.options.dataAttributes && this.options.dataAttributes.length > 0) {
-      var attributes = [];
-
-      if (Array.isArray(this.options.dataAttributes)) {
-        attributes = this.options.dataAttributes;
-      } else if (this.options.dataAttributes == "all") {
-        attributes = Object.keys(this.data);
-      } else {
-        return;
-      }
-
-      for (var i = 0; i < attributes.length; i++) {
-        var name = attributes[i];
-        var value = this.data[name];
-
-        if (value != null) {
-          element.setAttribute("data-" + name, value);
-        } else {
-          element.removeAttribute("data-" + name);
-        }
-      }
-    }
-  };
-
-  /**
-   * Update custom styles of the element
-   * @param element
-   * @private
-   */
-  Item.prototype._updateStyle = function (element) {
-    // remove old styles
-    if (this.style) {
-      util.removeCssText(element, this.style);
-      this.style = null;
-    }
-
-    // append new styles
-    if (this.data.style) {
-      util.addCssText(element, this.data.style);
-      this.style = this.data.style;
-    }
-  };
-
-  module.exports = Item;
-  // should be implemented by the item
-  // should be implemented by the item
-  // should be implemented by the item
-
-/***/ },
-/* 38 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var Hammer = __webpack_require__(15);
-  var Item = __webpack_require__(37);
-  var BackgroundGroup = __webpack_require__(39);
-  var RangeItem = __webpack_require__(41);
-
-  /**
-   * @constructor BackgroundItem
-   * @extends Item
-   * @param {Object} data             Object containing parameters start, end
-   *                                  content, className.
-   * @param {{toScreen: function, toTime: function}} conversion
-   *                                  Conversion functions from time to screen and vice versa
-   * @param {Object} [options]        Configuration options
-   *                                  // TODO: describe options
-   */
-  // TODO: implement support for the BackgroundItem just having a start, then being displayed as a sort of an annotation
-  function BackgroundItem(data, conversion, options) {
-    this.props = {
-      content: {
-        width: 0
-      }
-    };
-    this.overflow = false; // if contents can overflow (css styling), this flag is set to true
-
-    // validate data
-    if (data) {
-      if (data.start == undefined) {
-        throw new Error("Property \"start\" missing in item " + data.id);
-      }
-      if (data.end == undefined) {
-        throw new Error("Property \"end\" missing in item " + data.id);
-      }
-    }
-
-    Item.call(this, data, conversion, options);
-
-    this.emptyContent = false;
-  }
-
-  BackgroundItem.prototype = new Item(null, null, null);
-
-  BackgroundItem.prototype.baseClassName = "item background";
-  BackgroundItem.prototype.stack = false;
-
-  /**
-   * Check whether this item is visible inside given range
-   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
-   * @returns {boolean} True if visible
-   */
-  BackgroundItem.prototype.isVisible = function (range) {
-    // determine visibility
-    return this.data.start < range.end && this.data.end > range.start;
-  };
-
-  /**
-   * Repaint the item
-   */
-  BackgroundItem.prototype.redraw = function () {
-    var dom = this.dom;
-    if (!dom) {
-      // create DOM
-      this.dom = {};
-      dom = this.dom;
-
-      // background box
-      dom.box = document.createElement("div");
-      // className is updated in redraw()
-
-      // contents box
-      dom.content = document.createElement("div");
-      dom.content.className = "content";
-      dom.box.appendChild(dom.content);
-
-      // Note: we do NOT attach this item as attribute to the DOM,
-      //       such that background items cannot be selected
-      //dom.box['timeline-item'] = this;
-
-      this.dirty = true;
-    }
-
-    // append DOM to parent DOM
-    if (!this.parent) {
-      throw new Error("Cannot redraw item: no parent attached");
-    }
-    if (!dom.box.parentNode) {
-      var background = this.parent.dom.background;
-      if (!background) {
-        throw new Error("Cannot redraw item: parent has no background container element");
-      }
-      background.appendChild(dom.box);
-    }
-    this.displayed = true;
-
-    // Update DOM when item is marked dirty. An item is marked dirty when:
-    // - the item is not yet rendered
-    // - the item's data is changed
-    // - the item is selected/deselected
-    if (this.dirty) {
-      this._updateContents(this.dom.content);
-      this._updateTitle(this.dom.content);
-      this._updateDataAttributes(this.dom.content);
-      this._updateStyle(this.dom.box);
-
-      // update class
-      var className = (this.data.className ? " " + this.data.className : "") + (this.selected ? " selected" : "");
-      dom.box.className = this.baseClassName + className;
-
-      // determine from css whether this box has overflow
-      this.overflow = window.getComputedStyle(dom.content).overflow !== "hidden";
-
-      // recalculate size
-      this.props.content.width = this.dom.content.offsetWidth;
-      this.height = 0; // set height zero, so this item will be ignored when stacking items
-
-      this.dirty = false;
-    }
-  };
-
-  /**
-   * Show the item in the DOM (when not already visible). The items DOM will
-   * be created when needed.
-   */
-  BackgroundItem.prototype.show = RangeItem.prototype.show;
-
-  /**
-   * Hide the item from the DOM (when visible)
-   * @return {Boolean} changed
-   */
-  BackgroundItem.prototype.hide = RangeItem.prototype.hide;
-
-  /**
-   * Reposition the item horizontally
-   * @Override
-   */
-  BackgroundItem.prototype.repositionX = RangeItem.prototype.repositionX;
-
-  /**
-   * Reposition the item vertically
-   * @Override
-   */
-  BackgroundItem.prototype.repositionY = function (margin) {
-    var onTop = this.options.orientation === "top";
-    this.dom.content.style.top = onTop ? "" : "0";
-    this.dom.content.style.bottom = onTop ? "0" : "";
-    var height;
-
-    // special positioning for subgroups
-    if (this.data.subgroup !== undefined) {
-      var itemSubgroup = this.data.subgroup;
-      var subgroups = this.parent.subgroups;
-      var subgroupIndex = subgroups[itemSubgroup].index;
-      // if the orientation is top, we need to take the difference in height into account.
-      if (onTop == true) {
-        // the first subgroup will have to account for the distance from the top to the first item.
-        height = this.parent.subgroups[itemSubgroup].height + margin.item.vertical;
-        height += subgroupIndex == 0 ? margin.axis - 0.5 * margin.item.vertical : 0;
-        var newTop = this.parent.top;
-        for (var subgroup in subgroups) {
-          if (subgroups.hasOwnProperty(subgroup)) {
-            if (subgroups[subgroup].visible == true && subgroups[subgroup].index < subgroupIndex) {
-              newTop += subgroups[subgroup].height + margin.item.vertical;
-            }
-          }
-        }
-
-        // the others will have to be offset downwards with this same distance.
-        newTop += subgroupIndex != 0 ? margin.axis - 0.5 * margin.item.vertical : 0;
-        this.dom.box.style.top = newTop + "px";
-        this.dom.box.style.bottom = "";
-      }
-      // and when the orientation is bottom:
-      else {
-        var newTop = this.parent.top;
-        for (var subgroup in subgroups) {
-          if (subgroups.hasOwnProperty(subgroup)) {
-            if (subgroups[subgroup].visible == true && subgroups[subgroup].index > subgroupIndex) {
-              newTop += subgroups[subgroup].height + margin.item.vertical;
-            }
-          }
-        }
-        height = this.parent.subgroups[itemSubgroup].height + margin.item.vertical;
-        this.dom.box.style.top = newTop + "px";
-        this.dom.box.style.bottom = "";
-      }
-    }
-    // and in the case of no subgroups:
-    else {
-      // we want backgrounds with groups to only show in groups.
-      if (this.parent instanceof BackgroundGroup) {
-        // if the item is not in a group:
-        height = Math.max(this.parent.height, this.parent.itemSet.body.domProps.center.height, this.parent.itemSet.body.domProps.centerContainer.height);
-        this.dom.box.style.top = onTop ? "0" : "";
-        this.dom.box.style.bottom = onTop ? "" : "0";
-      } else {
-        height = this.parent.height;
-        // same alignment for items when orientation is top or bottom
-        this.dom.box.style.top = this.parent.top + "px";
-        this.dom.box.style.bottom = "";
-      }
-    }
-    this.dom.box.style.height = height + "px";
-  };
-
-  module.exports = BackgroundItem;
-
-/***/ },
-/* 39 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
 
   var util = __webpack_require__(1);
-  var Group = __webpack_require__(40);
-
-  /**
-   * @constructor BackgroundGroup
-   * @param {Number | String} groupId
-   * @param {Object} data
-   * @param {ItemSet} itemSet
-   */
-  function BackgroundGroup(groupId, data, itemSet) {
-    Group.call(this, groupId, data, itemSet);
-
-    this.width = 0;
-    this.height = 0;
-    this.top = 0;
-    this.left = 0;
-  }
-
-  BackgroundGroup.prototype = Object.create(Group.prototype);
-
-  /**
-   * Repaint this group
-   * @param {{start: number, end: number}} range
-   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
-   * @param {boolean} [restack=false]  Force restacking of all items
-   * @return {boolean} Returns true if the group is resized
-   */
-  BackgroundGroup.prototype.redraw = function (range, margin, restack) {
-    var resized = false;
-
-    this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
-
-    // calculate actual size
-    this.width = this.dom.background.offsetWidth;
-
-    // apply new height (just always zero for BackgroundGroup
-    this.dom.background.style.height = "0";
-
-    // update vertical position of items after they are re-stacked and the height of the group is calculated
-    for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
-      var item = this.visibleItems[i];
-      item.repositionY(margin);
-    }
-
-    return resized;
-  };
-
-  /**
-   * Show this group: attach to the DOM
-   */
-  BackgroundGroup.prototype.show = function () {
-    if (!this.dom.background.parentNode) {
-      this.itemSet.dom.background.appendChild(this.dom.background);
-    }
-  };
-
-  module.exports = BackgroundGroup;
-
-/***/ },
-/* 40 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var util = __webpack_require__(1);
-  var stack = __webpack_require__(36);
-  var RangeItem = __webpack_require__(41);
-
-  /**
-   * @constructor Group
-   * @param {Number | String} groupId
-   * @param {Object} data
-   * @param {ItemSet} itemSet
-   */
-  function Group(groupId, data, itemSet) {
-    this.groupId = groupId;
-    this.subgroups = {};
-    this.subgroupIndex = 0;
-    this.subgroupOrderer = data && data.subgroupOrder;
-    this.itemSet = itemSet;
-
-    this.dom = {};
-    this.props = {
-      label: {
-        width: 0,
-        height: 0
-      }
-    };
-    this.className = null;
-
-    this.items = {}; // items filtered by groupId of this group
-    this.visibleItems = []; // items currently visible in window
-    this.orderedItems = {
-      byStart: [],
-      byEnd: []
-    };
-    this.checkRangedItems = false; // needed to refresh the ranged items if the window is programatically changed with NO overlap.
-    var me = this;
-    this.itemSet.body.emitter.on("checkRangedItems", function () {
-      me.checkRangedItems = true;
-    });
-
-    this._create();
-
-    this.setData(data);
-  }
-
-  /**
-   * Create DOM elements for the group
-   * @private
-   */
-  Group.prototype._create = function () {
-    var label = document.createElement("div");
-    label.className = "vlabel";
-    this.dom.label = label;
-
-    var inner = document.createElement("div");
-    inner.className = "inner";
-    label.appendChild(inner);
-    this.dom.inner = inner;
-
-    var foreground = document.createElement("div");
-    foreground.className = "group";
-    foreground["timeline-group"] = this;
-    this.dom.foreground = foreground;
-
-    this.dom.background = document.createElement("div");
-    this.dom.background.className = "group";
-
-    this.dom.axis = document.createElement("div");
-    this.dom.axis.className = "group";
-
-    // create a hidden marker to detect when the Timelines container is attached
-    // to the DOM, or the style of a parent of the Timeline is changed from
-    // display:none is changed to visible.
-    this.dom.marker = document.createElement("div");
-    this.dom.marker.style.visibility = "hidden"; // TODO: ask jos why this is not none?
-    this.dom.marker.innerHTML = "?";
-    this.dom.background.appendChild(this.dom.marker);
-  };
-
-  /**
-   * Set the group data for this group
-   * @param {Object} data   Group data, can contain properties content and className
-   */
-  Group.prototype.setData = function (data) {
-    // update contents
-    var content = data && data.content;
-    if (content instanceof Element) {
-      this.dom.inner.appendChild(content);
-    } else if (content !== undefined && content !== null) {
-      this.dom.inner.innerHTML = content;
-    } else {
-      this.dom.inner.innerHTML = this.groupId || ""; // groupId can be null
-    }
-
-    // update title
-    this.dom.label.title = data && data.title || "";
-
-    if (!this.dom.inner.firstChild) {
-      util.addClassName(this.dom.inner, "hidden");
-    } else {
-      util.removeClassName(this.dom.inner, "hidden");
-    }
-
-    // update className
-    var className = data && data.className || null;
-    if (className != this.className) {
-      if (this.className) {
-        util.removeClassName(this.dom.label, this.className);
-        util.removeClassName(this.dom.foreground, this.className);
-        util.removeClassName(this.dom.background, this.className);
-        util.removeClassName(this.dom.axis, this.className);
-      }
-      util.addClassName(this.dom.label, className);
-      util.addClassName(this.dom.foreground, className);
-      util.addClassName(this.dom.background, className);
-      util.addClassName(this.dom.axis, className);
-      this.className = className;
-    }
-
-    // update style
-    if (this.style) {
-      util.removeCssText(this.dom.label, this.style);
-      this.style = null;
-    }
-    if (data && data.style) {
-      util.addCssText(this.dom.label, data.style);
-      this.style = data.style;
-    }
-  };
-
-  /**
-   * Get the width of the group label
-   * @return {number} width
-   */
-  Group.prototype.getLabelWidth = function () {
-    return this.props.label.width;
-  };
-
-
-  /**
-   * Repaint this group
-   * @param {{start: number, end: number}} range
-   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
-   * @param {boolean} [restack=false]  Force restacking of all items
-   * @return {boolean} Returns true if the group is resized
-   */
-  Group.prototype.redraw = function (range, margin, restack) {
-    var resized = false;
-
-    this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
-
-    // force recalculation of the height of the items when the marker height changed
-    // (due to the Timeline being attached to the DOM or changed from display:none to visible)
-    var markerHeight = this.dom.marker.clientHeight;
-    if (markerHeight != this.lastMarkerHeight) {
-      this.lastMarkerHeight = markerHeight;
-
-      util.forEach(this.items, function (item) {
-        item.dirty = true;
-        if (item.displayed) item.redraw();
-      });
-
-      restack = true;
-    }
-
-    // reposition visible items vertically
-    if (this.itemSet.options.stack) {
-      // TODO: ugly way to access options...
-      stack.stack(this.visibleItems, margin, restack);
-    } else {
-      // no stacking
-      stack.nostack(this.visibleItems, margin, this.subgroups);
-    }
-
-    // recalculate the height of the group
-    var height = this._calculateHeight(margin);
-
-    // calculate actual size and position
-    var foreground = this.dom.foreground;
-    this.top = foreground.offsetTop;
-    this.left = foreground.offsetLeft;
-    this.width = foreground.offsetWidth;
-    resized = util.updateProperty(this, "height", height) || resized;
-
-    // recalculate size of label
-    resized = util.updateProperty(this.props.label, "width", this.dom.inner.clientWidth) || resized;
-    resized = util.updateProperty(this.props.label, "height", this.dom.inner.clientHeight) || resized;
-
-    // apply new height
-    this.dom.background.style.height = height + "px";
-    this.dom.foreground.style.height = height + "px";
-    this.dom.label.style.height = height + "px";
-
-    // update vertical position of items after they are re-stacked and the height of the group is calculated
-    for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
-      var item = this.visibleItems[i];
-      item.repositionY(margin);
-    }
-
-    return resized;
-  };
-
-  /**
-   * recalculate the height of the group
-   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
-   * @returns {number} Returns the height
-   * @private
-   */
-  Group.prototype._calculateHeight = function (margin) {
-    // recalculate the height of the group
-    var height;
-    var visibleItems = this.visibleItems;
-    //var visibleSubgroups = [];
-    //this.visibleSubgroups = 0;
-    this.resetSubgroups();
-    var me = this;
-    if (visibleItems.length > 0) {
-      var min = visibleItems[0].top;
-      var max = visibleItems[0].top + visibleItems[0].height;
-      util.forEach(visibleItems, function (item) {
-        min = Math.min(min, item.top);
-        max = Math.max(max, item.top + item.height);
-        if (item.data.subgroup !== undefined) {
-          me.subgroups[item.data.subgroup].height = Math.max(me.subgroups[item.data.subgroup].height, item.height);
-          me.subgroups[item.data.subgroup].visible = true;
-        }
-      });
-      if (min > margin.axis) {
-        // there is an empty gap between the lowest item and the axis
-        var offset = min - margin.axis;
-        max -= offset;
-        util.forEach(visibleItems, function (item) {
-          item.top -= offset;
-        });
-      }
-      height = max + margin.item.vertical / 2;
-    } else {
-      height = margin.axis + margin.item.vertical;
-    }
-    height = Math.max(height, this.props.label.height);
-
-    return height;
-  };
-
-  /**
-   * Show this group: attach to the DOM
-   */
-  Group.prototype.show = function () {
-    if (!this.dom.label.parentNode) {
-      this.itemSet.dom.labelSet.appendChild(this.dom.label);
-    }
-
-    if (!this.dom.foreground.parentNode) {
-      this.itemSet.dom.foreground.appendChild(this.dom.foreground);
-    }
-
-    if (!this.dom.background.parentNode) {
-      this.itemSet.dom.background.appendChild(this.dom.background);
-    }
-
-    if (!this.dom.axis.parentNode) {
-      this.itemSet.dom.axis.appendChild(this.dom.axis);
-    }
-  };
-
-  /**
-   * Hide this group: remove from the DOM
-   */
-  Group.prototype.hide = function () {
-    var label = this.dom.label;
-    if (label.parentNode) {
-      label.parentNode.removeChild(label);
-    }
-
-    var foreground = this.dom.foreground;
-    if (foreground.parentNode) {
-      foreground.parentNode.removeChild(foreground);
-    }
-
-    var background = this.dom.background;
-    if (background.parentNode) {
-      background.parentNode.removeChild(background);
-    }
-
-    var axis = this.dom.axis;
-    if (axis.parentNode) {
-      axis.parentNode.removeChild(axis);
-    }
-  };
-
-  /**
-   * Add an item to the group
-   * @param {Item} item
-   */
-  Group.prototype.add = function (item) {
-    this.items[item.id] = item;
-    item.setParent(this);
-
-    // add to
-    if (item.data.subgroup !== undefined) {
-      if (this.subgroups[item.data.subgroup] === undefined) {
-        this.subgroups[item.data.subgroup] = { height: 0, visible: false, index: this.subgroupIndex, items: [] };
-        this.subgroupIndex++;
-      }
-      this.subgroups[item.data.subgroup].items.push(item);
-    }
-    this.orderSubgroups();
-
-    if (this.visibleItems.indexOf(item) == -1) {
-      var range = this.itemSet.body.range; // TODO: not nice accessing the range like this
-      this._checkIfVisible(item, this.visibleItems, range);
-    }
-  };
-
-  Group.prototype.orderSubgroups = function () {
-    if (this.subgroupOrderer !== undefined) {
-      var sortArray = [];
-      if (typeof this.subgroupOrderer == "string") {
-        for (var subgroup in this.subgroups) {
-          sortArray.push({ subgroup: subgroup, sortField: this.subgroups[subgroup].items[0].data[this.subgroupOrderer] });
-        }
-        sortArray.sort(function (a, b) {
-          return a.sortField - b.sortField;
-        });
-      } else if (typeof this.subgroupOrderer == "function") {
-        for (var subgroup in this.subgroups) {
-          sortArray.push(this.subgroups[subgroup].items[0].data);
-        }
-        sortArray.sort(this.subgroupOrderer);
-      }
-
-      if (sortArray.length > 0) {
-        for (var i = 0; i < sortArray.length; i++) {
-          this.subgroups[sortArray[i].subgroup].index = i;
-        }
-      }
-    }
-  };
-
-  Group.prototype.resetSubgroups = function () {
-    for (var subgroup in this.subgroups) {
-      if (this.subgroups.hasOwnProperty(subgroup)) {
-        this.subgroups[subgroup].visible = false;
-      }
-    }
-  };
-
-  /**
-   * Remove an item from the group
-   * @param {Item} item
-   */
-  Group.prototype.remove = function (item) {
-    delete this.items[item.id];
-    item.setParent(null);
-
-    // remove from visible items
-    var index = this.visibleItems.indexOf(item);
-    if (index != -1) this.visibleItems.splice(index, 1);
-
-    // TODO: also remove from ordered items?
-  };
-
-
-  /**
-   * Remove an item from the corresponding DataSet
-   * @param {Item} item
-   */
-  Group.prototype.removeFromDataSet = function (item) {
-    this.itemSet.removeItem(item.id);
-  };
-
-
-  /**
-   * Reorder the items
-   */
-  Group.prototype.order = function () {
-    var array = util.toArray(this.items);
-    var startArray = [];
-    var endArray = [];
-
-    for (var i = 0; i < array.length; i++) {
-      if (array[i].data.end !== undefined) {
-        endArray.push(array[i]);
-      }
-      startArray.push(array[i]);
-    }
-    this.orderedItems = {
-      byStart: startArray,
-      byEnd: endArray
-    };
-
-    stack.orderByStart(this.orderedItems.byStart);
-    stack.orderByEnd(this.orderedItems.byEnd);
-  };
-
-
-  /**
-   * Update the visible items
-   * @param {{byStart: Item[], byEnd: Item[]}} orderedItems   All items ordered by start date and by end date
-   * @param {Item[]} visibleItems                             The previously visible items.
-   * @param {{start: number, end: number}} range              Visible range
-   * @return {Item[]} visibleItems                            The new visible items.
-   * @private
-   */
-  Group.prototype._updateVisibleItems = function (orderedItems, oldVisibleItems, range) {
-    var visibleItems = [];
-    var visibleItemsLookup = {}; // we keep this to quickly look up if an item already exists in the list without using indexOf on visibleItems
-    var interval = (range.end - range.start) / 4;
-    var lowerBound = range.start - interval;
-    var upperBound = range.end + interval;
-    var item, i;
-
-    // this function is used to do the binary search.
-    var searchFunction = function (value) {
-      if (value < lowerBound) {
-        return -1;
-      } else if (value <= upperBound) {
-        return 0;
-      } else {
-        return 1;
-      }
-    };
-
-    // first check if the items that were in view previously are still in view.
-    // IMPORTANT: this handles the case for the items with startdate before the window and enddate after the window!
-    // also cleans up invisible items.
-    if (oldVisibleItems.length > 0) {
-      for (i = 0; i < oldVisibleItems.length; i++) {
-        this._checkIfVisibleWithReference(oldVisibleItems[i], visibleItems, visibleItemsLookup, range);
-      }
-    }
-
-    // we do a binary search for the items that have only start values.
-    var initialPosByStart = util.binarySearchCustom(orderedItems.byStart, searchFunction, "data", "start");
-
-    // trace the visible items from the inital start pos both ways until an invisible item is found, we only look at the start values.
-    this._traceVisible(initialPosByStart, orderedItems.byStart, visibleItems, visibleItemsLookup, function (item) {
-      return item.data.start < lowerBound || item.data.start > upperBound;
-    });
-
-    // if the window has changed programmatically without overlapping the old window, the ranged items with start < lowerBound and end > upperbound are not shown.
-    // We therefore have to brute force check all items in the byEnd list
-    if (this.checkRangedItems == true) {
-      this.checkRangedItems = false;
-      for (i = 0; i < orderedItems.byEnd.length; i++) {
-        this._checkIfVisibleWithReference(orderedItems.byEnd[i], visibleItems, visibleItemsLookup, range);
-      }
-    } else {
-      // we do a binary search for the items that have defined end times.
-      var initialPosByEnd = util.binarySearchCustom(orderedItems.byEnd, searchFunction, "data", "end");
-
-      // trace the visible items from the inital start pos both ways until an invisible item is found, we only look at the end values.
-      this._traceVisible(initialPosByEnd, orderedItems.byEnd, visibleItems, visibleItemsLookup, function (item) {
-        return item.data.end < lowerBound || item.data.end > upperBound;
-      });
-    }
-
-
-    // finally, we reposition all the visible items.
-    for (i = 0; i < visibleItems.length; i++) {
-      item = visibleItems[i];
-      if (!item.displayed) item.show();
-      // reposition item horizontally
-      item.repositionX();
-    }
-
-    // debug
-    //console.log("new line")
-    //if (this.groupId == null) {
-    //  for (i = 0; i < orderedItems.byStart.length; i++) {
-    //    item = orderedItems.byStart[i].data;
-    //    console.log('start',i,initialPosByStart, item.start.valueOf(), item.content, item.start >= lowerBound && item.start <= upperBound,i == initialPosByStart ? "<------------------- HEREEEE" : "")
-    //  }
-    //  for (i = 0; i < orderedItems.byEnd.length; i++) {
-    //    item = orderedItems.byEnd[i].data;
-    //    console.log('rangeEnd',i,initialPosByEnd, item.end.valueOf(), item.content, item.end >= range.start && item.end <= range.end,i == initialPosByEnd ? "<------------------- HEREEEE" : "")
-    //  }
-    //}
-
-    return visibleItems;
-  };
-
-  Group.prototype._traceVisible = function (initialPos, items, visibleItems, visibleItemsLookup, breakCondition) {
-    var item;
-    var i;
-
-    if (initialPos != -1) {
-      for (i = initialPos; i >= 0; i--) {
-        item = items[i];
-        if (breakCondition(item)) {
-          break;
-        } else {
-          if (visibleItemsLookup[item.id] === undefined) {
-            visibleItemsLookup[item.id] = true;
-            visibleItems.push(item);
-          }
-        }
-      }
-
-      for (i = initialPos + 1; i < items.length; i++) {
-        item = items[i];
-        if (breakCondition(item)) {
-          break;
-        } else {
-          if (visibleItemsLookup[item.id] === undefined) {
-            visibleItemsLookup[item.id] = true;
-            visibleItems.push(item);
-          }
-        }
-      }
-    }
-  };
-
-
-  /**
-   * this function is very similar to the _checkIfInvisible() but it does not
-   * return booleans, hides the item if it should not be seen and always adds to
-   * the visibleItems.
-   * this one is for brute forcing and hiding.
-   *
-   * @param {Item} item
-   * @param {Array} visibleItems
-   * @param {{start:number, end:number}} range
-   * @private
-   */
-  Group.prototype._checkIfVisible = function (item, visibleItems, range) {
-    if (item.isVisible(range)) {
-      if (!item.displayed) item.show();
-      // reposition item horizontally
-      item.repositionX();
-      visibleItems.push(item);
-    } else {
-      if (item.displayed) item.hide();
-    }
-  };
-
-
-  /**
-   * this function is very similar to the _checkIfInvisible() but it does not
-   * return booleans, hides the item if it should not be seen and always adds to
-   * the visibleItems.
-   * this one is for brute forcing and hiding.
-   *
-   * @param {Item} item
-   * @param {Array} visibleItems
-   * @param {{start:number, end:number}} range
-   * @private
-   */
-  Group.prototype._checkIfVisibleWithReference = function (item, visibleItems, visibleItemsLookup, range) {
-    if (item.isVisible(range)) {
-      if (visibleItemsLookup[item.id] === undefined) {
-        visibleItemsLookup[item.id] = true;
-        visibleItems.push(item);
-      }
-    } else {
-      if (item.displayed) item.hide();
-    }
-  };
-
-
-
-  module.exports = Group;
-
-/***/ },
-/* 41 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var Hammer = __webpack_require__(15);
-  var Item = __webpack_require__(37);
-
-  /**
-   * @constructor RangeItem
-   * @extends Item
-   * @param {Object} data             Object containing parameters start, end
-   *                                  content, className.
-   * @param {{toScreen: function, toTime: function}} conversion
-   *                                  Conversion functions from time to screen and vice versa
-   * @param {Object} [options]        Configuration options
-   *                                  // TODO: describe options
-   */
-  function RangeItem(data, conversion, options) {
-    this.props = {
-      content: {
-        width: 0
-      }
-    };
-    this.overflow = false; // if contents can overflow (css styling), this flag is set to true
-
-    // validate data
-    if (data) {
-      if (data.start == undefined) {
-        throw new Error("Property \"start\" missing in item " + data.id);
-      }
-      if (data.end == undefined) {
-        throw new Error("Property \"end\" missing in item " + data.id);
-      }
-    }
-
-    Item.call(this, data, conversion, options);
-  }
-
-  RangeItem.prototype = new Item(null, null, null);
-
-  RangeItem.prototype.baseClassName = "item range";
-
-  /**
-   * Check whether this item is visible inside given range
-   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
-   * @returns {boolean} True if visible
-   */
-  RangeItem.prototype.isVisible = function (range) {
-    // determine visibility
-    return this.data.start < range.end && this.data.end > range.start;
-  };
-
-  /**
-   * Repaint the item
-   */
-  RangeItem.prototype.redraw = function () {
-    var dom = this.dom;
-    if (!dom) {
-      // create DOM
-      this.dom = {};
-      dom = this.dom;
-
-      // background box
-      dom.box = document.createElement("div");
-      // className is updated in redraw()
-
-      // contents box
-      dom.content = document.createElement("div");
-      dom.content.className = "content";
-      dom.box.appendChild(dom.content);
-
-      // attach this item as attribute
-      dom.box["timeline-item"] = this;
-
-      this.dirty = true;
-    }
-
-    // append DOM to parent DOM
-    if (!this.parent) {
-      throw new Error("Cannot redraw item: no parent attached");
-    }
-    if (!dom.box.parentNode) {
-      var foreground = this.parent.dom.foreground;
-      if (!foreground) {
-        throw new Error("Cannot redraw item: parent has no foreground container element");
-      }
-      foreground.appendChild(dom.box);
-    }
-    this.displayed = true;
-
-    // Update DOM when item is marked dirty. An item is marked dirty when:
-    // - the item is not yet rendered
-    // - the item's data is changed
-    // - the item is selected/deselected
-    if (this.dirty) {
-      this._updateContents(this.dom.content);
-      this._updateTitle(this.dom.box);
-      this._updateDataAttributes(this.dom.box);
-      this._updateStyle(this.dom.box);
-
-      // update class
-      var className = (this.data.className ? " " + this.data.className : "") + (this.selected ? " selected" : "");
-      dom.box.className = this.baseClassName + className;
-
-      // determine from css whether this box has overflow
-      this.overflow = window.getComputedStyle(dom.content).overflow !== "hidden";
-
-      // recalculate size
-      // turn off max-width to be able to calculate the real width
-      // this causes an extra browser repaint/reflow, but so be it
-      this.dom.content.style.maxWidth = "none";
-      this.props.content.width = this.dom.content.offsetWidth;
-      this.height = this.dom.box.offsetHeight;
-      this.dom.content.style.maxWidth = "";
-
-      this.dirty = false;
-    }
-
-    this._repaintDeleteButton(dom.box);
-    this._repaintDragLeft();
-    this._repaintDragRight();
-  };
-
-  /**
-   * Show the item in the DOM (when not already visible). The items DOM will
-   * be created when needed.
-   */
-  RangeItem.prototype.show = function () {
-    if (!this.displayed) {
-      this.redraw();
-    }
-  };
-
-  /**
-   * Hide the item from the DOM (when visible)
-   * @return {Boolean} changed
-   */
-  RangeItem.prototype.hide = function () {
-    if (this.displayed) {
-      var box = this.dom.box;
-
-      if (box.parentNode) {
-        box.parentNode.removeChild(box);
-      }
-
-      this.top = null;
-      this.left = null;
-
-      this.displayed = false;
-    }
-  };
-
-  /**
-   * Reposition the item horizontally
-   * @Override
-   */
-  RangeItem.prototype.repositionX = function () {
-    var parentWidth = this.parent.width;
-    var start = this.conversion.toScreen(this.data.start);
-    var end = this.conversion.toScreen(this.data.end);
-    var contentLeft;
-    var contentWidth;
-
-    // limit the width of the this, as browsers cannot draw very wide divs
-    if (start < -parentWidth) {
-      start = -parentWidth;
-    }
-    if (end > 2 * parentWidth) {
-      end = 2 * parentWidth;
-    }
-    var boxWidth = Math.max(end - start, 1);
-
-    if (this.overflow) {
-      this.left = start;
-      this.width = boxWidth + this.props.content.width;
-      contentWidth = this.props.content.width;
-
-      // Note: The calculation of width is an optimistic calculation, giving
-      //       a width which will not change when moving the Timeline
-      //       So no re-stacking needed, which is nicer for the eye;
-    } else {
-      this.left = start;
-      this.width = boxWidth;
-      contentWidth = Math.min(end - start - 2 * this.options.padding, this.props.content.width);
-    }
-
-    this.dom.box.style.left = this.left + "px";
-    this.dom.box.style.width = boxWidth + "px";
-
-    switch (this.options.align) {
-      case "left":
-        this.dom.content.style.left = "0";
-        break;
-
-      case "right":
-        this.dom.content.style.left = Math.max(boxWidth - contentWidth - 2 * this.options.padding, 0) + "px";
-        break;
-
-      case "center":
-        this.dom.content.style.left = Math.max((boxWidth - contentWidth - 2 * this.options.padding) / 2, 0) + "px";
-        break;
-
-      default:
-        // 'auto'
-        // when range exceeds left of the window, position the contents at the left of the visible area
-        if (this.overflow) {
-          if (end > 0) {
-            contentLeft = Math.max(-start, 0);
-          } else {
-            contentLeft = -contentWidth; // ensure it's not visible anymore
-          }
-        } else {
-          if (start < 0) {
-            contentLeft = Math.min(-start, end - start - contentWidth - 2 * this.options.padding);
-            // TODO: remove the need for options.padding. it's terrible.
-          } else {
-            contentLeft = 0;
-          }
-        }
-        this.dom.content.style.left = contentLeft + "px";
-    }
-  };
-
-  /**
-   * Reposition the item vertically
-   * @Override
-   */
-  RangeItem.prototype.repositionY = function () {
-    var orientation = this.options.orientation,
-        box = this.dom.box;
-
-    if (orientation == "top") {
-      box.style.top = this.top + "px";
-    } else {
-      box.style.top = this.parent.height - this.top - this.height + "px";
-    }
-  };
-
-  /**
-   * Repaint a drag area on the left side of the range when the range is selected
-   * @protected
-   */
-  RangeItem.prototype._repaintDragLeft = function () {
-    if (this.selected && this.options.editable.updateTime && !this.dom.dragLeft) {
-      // create and show drag area
-      var dragLeft = document.createElement("div");
-      dragLeft.className = "drag-left";
-      dragLeft.dragLeftItem = this;
-
-      //// TODO: this should be redundant?
-      //Hammer(dragLeft, {
-      //  preventDefault: true
-      //}).on('drag', function () {
-      //      //console.log('drag left')
-      //    });
-
-      this.dom.box.appendChild(dragLeft);
-      this.dom.dragLeft = dragLeft;
-    } else if (!this.selected && this.dom.dragLeft) {
-      // delete drag area
-      if (this.dom.dragLeft.parentNode) {
-        this.dom.dragLeft.parentNode.removeChild(this.dom.dragLeft);
-      }
-      this.dom.dragLeft = null;
-    }
-  };
-
-  /**
-   * Repaint a drag area on the right side of the range when the range is selected
-   * @protected
-   */
-  RangeItem.prototype._repaintDragRight = function () {
-    if (this.selected && this.options.editable.updateTime && !this.dom.dragRight) {
-      // create and show drag area
-      var dragRight = document.createElement("div");
-      dragRight.className = "drag-right";
-      dragRight.dragRightItem = this;
-
-      //// TODO: this should be redundant?
-      //Hammer(dragRight, {
-      //  preventDefault: true
-      //}).on('drag', function () {
-      //  //console.log('drag right')
-      //});
-
-      this.dom.box.appendChild(dragRight);
-      this.dom.dragRight = dragRight;
-    } else if (!this.selected && this.dom.dragRight) {
-      // delete drag area
-      if (this.dom.dragRight.parentNode) {
-        this.dom.dragRight.parentNode.removeChild(this.dom.dragRight);
-      }
-      this.dom.dragRight = null;
-    }
-  };
-
-  module.exports = RangeItem;
-
-/***/ },
-/* 42 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var Item = __webpack_require__(37);
-  var util = __webpack_require__(1);
-
-  /**
-   * @constructor BoxItem
-   * @extends Item
-   * @param {Object} data             Object containing parameters start
-   *                                  content, className.
-   * @param {{toScreen: function, toTime: function}} conversion
-   *                                  Conversion functions from time to screen and vice versa
-   * @param {Object} [options]        Configuration options
-   *                                  // TODO: describe available options
-   */
-  function BoxItem(data, conversion, options) {
-    this.props = {
-      dot: {
-        width: 0,
-        height: 0
-      },
-      line: {
-        width: 0,
-        height: 0
-      }
-    };
-
-    // validate data
-    if (data) {
-      if (data.start == undefined) {
-        throw new Error("Property \"start\" missing in item " + data);
-      }
-    }
-
-    Item.call(this, data, conversion, options);
-  }
-
-  BoxItem.prototype = new Item(null, null, null);
-
-  /**
-   * Check whether this item is visible inside given range
-   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
-   * @returns {boolean} True if visible
-   */
-  BoxItem.prototype.isVisible = function (range) {
-    // determine visibility
-    // TODO: account for the real width of the item. Right now we just add 1/4 to the window
-    var interval = (range.end - range.start) / 4;
-    return this.data.start > range.start - interval && this.data.start < range.end + interval;
-  };
-
-  /**
-   * Repaint the item
-   */
-  BoxItem.prototype.redraw = function () {
-    var dom = this.dom;
-    if (!dom) {
-      // create DOM
-      this.dom = {};
-      dom = this.dom;
-
-      // create main box
-      dom.box = document.createElement("DIV");
-
-      // contents box (inside the background box). used for making margins
-      dom.content = document.createElement("DIV");
-      dom.content.className = "content";
-      dom.box.appendChild(dom.content);
-
-      // line to axis
-      dom.line = document.createElement("DIV");
-      dom.line.className = "line";
-
-      // dot on axis
-      dom.dot = document.createElement("DIV");
-      dom.dot.className = "dot";
-
-      // attach this item as attribute
-      dom.box["timeline-item"] = this;
-
-      this.dirty = true;
-    }
-
-    // append DOM to parent DOM
-    if (!this.parent) {
-      throw new Error("Cannot redraw item: no parent attached");
-    }
-    if (!dom.box.parentNode) {
-      var foreground = this.parent.dom.foreground;
-      if (!foreground) throw new Error("Cannot redraw item: parent has no foreground container element");
-      foreground.appendChild(dom.box);
-    }
-    if (!dom.line.parentNode) {
-      var background = this.parent.dom.background;
-      if (!background) throw new Error("Cannot redraw item: parent has no background container element");
-      background.appendChild(dom.line);
-    }
-    if (!dom.dot.parentNode) {
-      var axis = this.parent.dom.axis;
-      if (!background) throw new Error("Cannot redraw item: parent has no axis container element");
-      axis.appendChild(dom.dot);
-    }
-    this.displayed = true;
-
-    // Update DOM when item is marked dirty. An item is marked dirty when:
-    // - the item is not yet rendered
-    // - the item's data is changed
-    // - the item is selected/deselected
-    if (this.dirty) {
-      this._updateContents(this.dom.content);
-      this._updateTitle(this.dom.box);
-      this._updateDataAttributes(this.dom.box);
-      this._updateStyle(this.dom.box);
-
-      // update class
-      var className = (this.data.className ? " " + this.data.className : "") + (this.selected ? " selected" : "");
-      dom.box.className = "item box" + className;
-      dom.line.className = "item line" + className;
-      dom.dot.className = "item dot" + className;
-
-      // recalculate size
-      this.props.dot.height = dom.dot.offsetHeight;
-      this.props.dot.width = dom.dot.offsetWidth;
-      this.props.line.width = dom.line.offsetWidth;
-      this.width = dom.box.offsetWidth;
-      this.height = dom.box.offsetHeight;
-
-      this.dirty = false;
-    }
-
-    this._repaintDeleteButton(dom.box);
-  };
-
-  /**
-   * Show the item in the DOM (when not already displayed). The items DOM will
-   * be created when needed.
-   */
-  BoxItem.prototype.show = function () {
-    if (!this.displayed) {
-      this.redraw();
-    }
-  };
-
-  /**
-   * Hide the item from the DOM (when visible)
-   */
-  BoxItem.prototype.hide = function () {
-    if (this.displayed) {
-      var dom = this.dom;
-
-      if (dom.box.parentNode) dom.box.parentNode.removeChild(dom.box);
-      if (dom.line.parentNode) dom.line.parentNode.removeChild(dom.line);
-      if (dom.dot.parentNode) dom.dot.parentNode.removeChild(dom.dot);
-
-      this.top = null;
-      this.left = null;
-
-      this.displayed = false;
-    }
-  };
-
-  /**
-   * Reposition the item horizontally
-   * @Override
-   */
-  BoxItem.prototype.repositionX = function () {
-    var start = this.conversion.toScreen(this.data.start);
-    var align = this.options.align;
-    var left;
-    var box = this.dom.box;
-    var line = this.dom.line;
-    var dot = this.dom.dot;
-
-    // calculate left position of the box
-    if (align == "right") {
-      this.left = start - this.width;
-    } else if (align == "left") {
-      this.left = start;
-    } else {
-      // default or 'center'
-      this.left = start - this.width / 2;
-    }
-
-    // reposition box
-    box.style.left = this.left + "px";
-
-    // reposition line
-    line.style.left = start - this.props.line.width / 2 + "px";
-
-    // reposition dot
-    dot.style.left = start - this.props.dot.width / 2 + "px";
-  };
-
-  /**
-   * Reposition the item vertically
-   * @Override
-   */
-  BoxItem.prototype.repositionY = function () {
-    var orientation = this.options.orientation;
-    var box = this.dom.box;
-    var line = this.dom.line;
-    var dot = this.dom.dot;
-
-    if (orientation == "top") {
-      box.style.top = (this.top || 0) + "px";
-
-      line.style.top = "0";
-      line.style.height = this.parent.top + this.top + 1 + "px";
-      line.style.bottom = "";
-    } else {
-      // orientation 'bottom'
-      var itemSetHeight = this.parent.itemSet.props.height; // TODO: this is nasty
-      var lineHeight = itemSetHeight - this.parent.top - this.parent.height + this.top;
-
-      box.style.top = (this.parent.height - this.top - this.height || 0) + "px";
-      line.style.top = itemSetHeight - lineHeight + "px";
-      line.style.bottom = "0";
-    }
-
-    dot.style.top = -this.props.dot.height / 2 + "px";
-  };
-
-  module.exports = BoxItem;
-
-/***/ },
-/* 43 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var Item = __webpack_require__(37);
-
-  /**
-   * @constructor PointItem
-   * @extends Item
-   * @param {Object} data             Object containing parameters start
-   *                                  content, className.
-   * @param {{toScreen: function, toTime: function}} conversion
-   *                                  Conversion functions from time to screen and vice versa
-   * @param {Object} [options]        Configuration options
-   *                                  // TODO: describe available options
-   */
-  function PointItem(data, conversion, options) {
-    this.props = {
-      dot: {
-        top: 0,
-        width: 0,
-        height: 0
-      },
-      content: {
-        height: 0,
-        marginLeft: 0
-      }
-    };
-
-    // validate data
-    if (data) {
-      if (data.start == undefined) {
-        throw new Error("Property \"start\" missing in item " + data);
-      }
-    }
-
-    Item.call(this, data, conversion, options);
-  }
-
-  PointItem.prototype = new Item(null, null, null);
-
-  /**
-   * Check whether this item is visible inside given range
-   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
-   * @returns {boolean} True if visible
-   */
-  PointItem.prototype.isVisible = function (range) {
-    // determine visibility
-    // TODO: account for the real width of the item. Right now we just add 1/4 to the window
-    var interval = (range.end - range.start) / 4;
-    return this.data.start > range.start - interval && this.data.start < range.end + interval;
-  };
-
-  /**
-   * Repaint the item
-   */
-  PointItem.prototype.redraw = function () {
-    var dom = this.dom;
-    if (!dom) {
-      // create DOM
-      this.dom = {};
-      dom = this.dom;
-
-      // background box
-      dom.point = document.createElement("div");
-      // className is updated in redraw()
-
-      // contents box, right from the dot
-      dom.content = document.createElement("div");
-      dom.content.className = "content";
-      dom.point.appendChild(dom.content);
-
-      // dot at start
-      dom.dot = document.createElement("div");
-      dom.point.appendChild(dom.dot);
-
-      // attach this item as attribute
-      dom.point["timeline-item"] = this;
-
-      this.dirty = true;
-    }
-
-    // append DOM to parent DOM
-    if (!this.parent) {
-      throw new Error("Cannot redraw item: no parent attached");
-    }
-    if (!dom.point.parentNode) {
-      var foreground = this.parent.dom.foreground;
-      if (!foreground) {
-        throw new Error("Cannot redraw item: parent has no foreground container element");
-      }
-      foreground.appendChild(dom.point);
-    }
-    this.displayed = true;
-
-    // Update DOM when item is marked dirty. An item is marked dirty when:
-    // - the item is not yet rendered
-    // - the item's data is changed
-    // - the item is selected/deselected
-    if (this.dirty) {
-      this._updateContents(this.dom.content);
-      this._updateTitle(this.dom.point);
-      this._updateDataAttributes(this.dom.point);
-      this._updateStyle(this.dom.point);
-
-      // update class
-      var className = (this.data.className ? " " + this.data.className : "") + (this.selected ? " selected" : "");
-      dom.point.className = "item point" + className;
-      dom.dot.className = "item dot" + className;
-
-      // recalculate size
-      this.width = dom.point.offsetWidth;
-      this.height = dom.point.offsetHeight;
-      this.props.dot.width = dom.dot.offsetWidth;
-      this.props.dot.height = dom.dot.offsetHeight;
-      this.props.content.height = dom.content.offsetHeight;
-
-      // resize contents
-      dom.content.style.marginLeft = 2 * this.props.dot.width + "px";
-      //dom.content.style.marginRight = ... + 'px'; // TODO: margin right
-
-      dom.dot.style.top = (this.height - this.props.dot.height) / 2 + "px";
-      dom.dot.style.left = this.props.dot.width / 2 + "px";
-
-      this.dirty = false;
-    }
-
-    this._repaintDeleteButton(dom.point);
-  };
-
-  /**
-   * Show the item in the DOM (when not already visible). The items DOM will
-   * be created when needed.
-   */
-  PointItem.prototype.show = function () {
-    if (!this.displayed) {
-      this.redraw();
-    }
-  };
-
-  /**
-   * Hide the item from the DOM (when visible)
-   */
-  PointItem.prototype.hide = function () {
-    if (this.displayed) {
-      if (this.dom.point.parentNode) {
-        this.dom.point.parentNode.removeChild(this.dom.point);
-      }
-
-      this.top = null;
-      this.left = null;
-
-      this.displayed = false;
-    }
-  };
-
-  /**
-   * Reposition the item horizontally
-   * @Override
-   */
-  PointItem.prototype.repositionX = function () {
-    var start = this.conversion.toScreen(this.data.start);
-
-    this.left = start - this.props.dot.width;
-
-    // reposition point
-    this.dom.point.style.left = this.left + "px";
-  };
-
-  /**
-   * Reposition the item vertically
-   * @Override
-   */
-  PointItem.prototype.repositionY = function () {
-    var orientation = this.options.orientation,
-        point = this.dom.point;
-
-    if (orientation == "top") {
-      point.style.top = this.top + "px";
-    } else {
-      point.style.top = this.parent.height - this.top - this.height + "px";
-    }
-  };
-
-  module.exports = PointItem;
-
-/***/ },
-/* 44 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var util = __webpack_require__(1);
-  var DOMutil = __webpack_require__(2);
-  var Component = __webpack_require__(22);
-  var DataStep = __webpack_require__(35);
+  var DOMutil = __webpack_require__(6);
+  var Component = __webpack_require__(25);
+  var DataStep = __webpack_require__(47);
 
   /**
    * A horizontal time axis
@@ -21935,16 +22077,280 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataAxis;
 
 /***/ },
-/* 45 */
+/* 47 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  /**
+   * @constructor  DataStep
+   * The class DataStep is an iterator for data for the lineGraph. You provide a start data point and an
+   * end data point. The class itself determines the best scale (step size) based on the
+   * provided start Date, end Date, and minimumStep.
+   *
+   * If minimumStep is provided, the step size is chosen as close as possible
+   * to the minimumStep but larger than minimumStep. If minimumStep is not
+   * provided, the scale is set to 1 DAY.
+   * The minimumStep should correspond with the onscreen size of about 6 characters
+   *
+   * Alternatively, you can set a scale by hand.
+   * After creation, you can initialize the class by executing first(). Then you
+   * can iterate from the start date to the end date via next(). You can check if
+   * the end date is reached with the function hasNext(). After each step, you can
+   * retrieve the current date via getCurrent().
+   * The DataStep has scales ranging from milliseconds, seconds, minutes, hours,
+   * days, to years.
+   *
+   * Version: 1.2
+   *
+   * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
+   *                               or new Date(2010, 9, 21, 23, 45, 00)
+   * @param {Date} [end]           The end date
+   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
+   */
+  function DataStep(start, end, minimumStep, containerHeight, customRange, alignZeros) {
+    // variables
+    this.current = 0;
+
+    this.autoScale = true;
+    this.stepIndex = 0;
+    this.step = 1;
+    this.scale = 1;
+
+    this.marginStart;
+    this.marginEnd;
+    this.deadSpace = 0;
+
+    this.majorSteps = [1, 2, 5, 10];
+    this.minorSteps = [0.25, 0.5, 1, 2];
+
+    this.alignZeros = alignZeros;
+
+    this.setRange(start, end, minimumStep, containerHeight, customRange);
+  }
+
+
+
+  /**
+   * Set a new range
+   * If minimumStep is provided, the step size is chosen as close as possible
+   * to the minimumStep but larger than minimumStep. If minimumStep is not
+   * provided, the scale is set to 1 DAY.
+   * The minimumStep should correspond with the onscreen size of about 6 characters
+   * @param {Number} [start]      The start date and time.
+   * @param {Number} [end]        The end date and time.
+   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
+   */
+  DataStep.prototype.setRange = function (start, end, minimumStep, containerHeight, customRange) {
+    this._start = customRange.min === undefined ? start : customRange.min;
+    this._end = customRange.max === undefined ? end : customRange.max;
+
+    if (this._start == this._end) {
+      this._start -= 0.75;
+      this._end += 1;
+    }
+
+    if (this.autoScale == true) {
+      this.setMinimumStep(minimumStep, containerHeight);
+    }
+
+    this.setFirst(customRange);
+  };
+
+  /**
+   * Automatically determine the scale that bests fits the provided minimum step
+   * @param {Number} [minimumStep]  The minimum step size in milliseconds
+   */
+  DataStep.prototype.setMinimumStep = function (minimumStep, containerHeight) {
+    // round to floor
+    var size = this._end - this._start;
+    var safeSize = size * 1.2;
+    var minimumStepValue = minimumStep * (safeSize / containerHeight);
+    var orderOfMagnitude = Math.round(Math.log(safeSize) / Math.LN10);
+
+    var minorStepIdx = -1;
+    var magnitudefactor = Math.pow(10, orderOfMagnitude);
+
+    var start = 0;
+    if (orderOfMagnitude < 0) {
+      start = orderOfMagnitude;
+    }
+
+    var solutionFound = false;
+    for (var i = start; Math.abs(i) <= Math.abs(orderOfMagnitude); i++) {
+      magnitudefactor = Math.pow(10, i);
+      for (var j = 0; j < this.minorSteps.length; j++) {
+        var stepSize = magnitudefactor * this.minorSteps[j];
+        if (stepSize >= minimumStepValue) {
+          solutionFound = true;
+          minorStepIdx = j;
+          break;
+        }
+      }
+      if (solutionFound == true) {
+        break;
+      }
+    }
+    this.stepIndex = minorStepIdx;
+    this.scale = magnitudefactor;
+    this.step = magnitudefactor * this.minorSteps[minorStepIdx];
+  };
+
+
+
+  /**
+   * Round the current date to the first minor date value
+   * This must be executed once when the current date is set to start Date
+   */
+  DataStep.prototype.setFirst = function (customRange) {
+    if (customRange === undefined) {
+      customRange = {};
+    }
+
+    var niceStart = customRange.min === undefined ? this._start - this.scale * 2 * this.minorSteps[this.stepIndex] : customRange.min;
+    var niceEnd = customRange.max === undefined ? this._end + this.scale * this.minorSteps[this.stepIndex] : customRange.max;
+
+    this.marginEnd = customRange.max === undefined ? this.roundToMinor(niceEnd) : customRange.max;
+    this.marginStart = customRange.min === undefined ? this.roundToMinor(niceStart) : customRange.min;
+
+    // if we need to align the zero's we need to make sure that there is a zero to use.
+    if (this.alignZeros == true && (this.marginEnd - this.marginStart) % this.step != 0) {
+      this.marginEnd += this.marginEnd % this.step;
+    }
+
+    this.deadSpace = this.roundToMinor(niceEnd) - niceEnd + this.roundToMinor(niceStart) - niceStart;
+    this.marginRange = this.marginEnd - this.marginStart;
+
+
+    this.current = this.marginEnd;
+  };
+
+  DataStep.prototype.roundToMinor = function (value) {
+    var rounded = value - value % (this.scale * this.minorSteps[this.stepIndex]);
+    if (value % (this.scale * this.minorSteps[this.stepIndex]) > 0.5 * (this.scale * this.minorSteps[this.stepIndex])) {
+      return rounded + this.scale * this.minorSteps[this.stepIndex];
+    } else {
+      return rounded;
+    }
+  };
+
+
+  /**
+   * Check if the there is a next step
+   * @return {boolean}  true if the current date has not passed the end date
+   */
+  DataStep.prototype.hasNext = function () {
+    return this.current >= this.marginStart;
+  };
+
+  /**
+   * Do the next step
+   */
+  DataStep.prototype.next = function () {
+    var prev = this.current;
+    this.current -= this.step;
+
+    // safety mechanism: if current time is still unchanged, move to the end
+    if (this.current == prev) {
+      this.current = this._end;
+    }
+  };
+
+  /**
+   * Do the next step
+   */
+  DataStep.prototype.previous = function () {
+    this.current += this.step;
+    this.marginEnd += this.step;
+    this.marginRange = this.marginEnd - this.marginStart;
+  };
+
+
+
+  /**
+   * Get the current datetime
+   * @return {String}  current The current date
+   */
+  DataStep.prototype.getCurrent = function (decimals) {
+    // prevent round-off errors when close to zero
+    var current = Math.abs(this.current) < this.step / 2 ? 0 : this.current;
+    var toPrecision = "" + Number(current).toPrecision(5);
+
+    // If decimals is specified, then limit or extend the string as required
+    if (decimals !== undefined && !isNaN(Number(decimals))) {
+      // If string includes exponent, then we need to add it to the end
+      var exp = "";
+      var index = toPrecision.indexOf("e");
+      if (index != -1) {
+        // Get the exponent
+        exp = toPrecision.slice(index);
+        // Remove the exponent in case we need to zero-extend
+        toPrecision = toPrecision.slice(0, index);
+      }
+      index = Math.max(toPrecision.indexOf(","), toPrecision.indexOf("."));
+      if (index === -1) {
+        // No decimal found - if we want decimals, then we need to add it
+        if (decimals !== 0) {
+          toPrecision += ".";
+        }
+        // Calculate how long the string should be
+        index = toPrecision.length + decimals;
+      } else if (decimals !== 0) {
+        // Calculate how long the string should be - accounting for the decimal place
+        index += decimals + 1;
+      }
+      if (index > toPrecision.length) {
+        // We need to add zeros!
+        for (var cnt = index - toPrecision.length; cnt > 0; cnt--) {
+          toPrecision += "0";
+        }
+      } else {
+        // we need to remove characters
+        toPrecision = toPrecision.slice(0, index);
+      }
+      // Add the exponent if there is one
+      toPrecision += exp;
+    } else {
+      if (toPrecision.indexOf(",") != -1 || toPrecision.indexOf(".") != -1) {
+        // If no decimal is specified, and there are decimal places, remove trailing zeros
+        for (var i = toPrecision.length - 1; i > 0; i--) {
+          if (toPrecision[i] == "0") {
+            toPrecision = toPrecision.slice(0, i);
+          } else if (toPrecision[i] == "." || toPrecision[i] == ",") {
+            toPrecision = toPrecision.slice(0, i);
+            break;
+          } else {
+            break;
+          }
+        }
+      }
+    }
+
+    return toPrecision;
+  };
+
+  /**
+   * Check if the current value is a major value (for example when the step
+   * is DAY, a major value is each first day of the MONTH)
+   * @return {boolean} true if current date is major, else false.
+   */
+  DataStep.prototype.isMajor = function () {
+    return this.current % (this.scale * this.majorSteps[this.stepIndex]) == 0;
+  };
+
+  module.exports = DataStep;
+
+/***/ },
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
 
   var util = __webpack_require__(1);
-  var DOMutil = __webpack_require__(2);
-  var Line = __webpack_require__(46);
-  var Bar = __webpack_require__(47);
-  var Points = __webpack_require__(48);
+  var DOMutil = __webpack_require__(6);
+  var Line = __webpack_require__(49);
+  var Bar = __webpack_require__(51);
+  var Points = __webpack_require__(50);
 
   /**
    * /**
@@ -22132,7 +22538,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = GraphGroup;
 
 /***/ },
-/* 46 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -22140,8 +22546,8 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Created by Alex on 11/11/2014.
    */
-  var DOMutil = __webpack_require__(2);
-  var Points = __webpack_require__(48);
+  var DOMutil = __webpack_require__(6);
+  var Points = __webpack_require__(50);
 
   function Line(groupId, options) {
     this.groupId = groupId;
@@ -22347,7 +22753,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Line;
 
 /***/ },
-/* 47 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -22355,8 +22761,60 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Created by Alex on 11/11/2014.
    */
-  var DOMutil = __webpack_require__(2);
-  var Points = __webpack_require__(48);
+  var DOMutil = __webpack_require__(6);
+
+  function Points(groupId, options) {
+    this.groupId = groupId;
+    this.options = options;
+  }
+
+
+  Points.prototype.getYRange = function (groupData) {
+    var yMin = groupData[0].y;
+    var yMax = groupData[0].y;
+    for (var j = 0; j < groupData.length; j++) {
+      yMin = yMin > groupData[j].y ? groupData[j].y : yMin;
+      yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
+    }
+    return { min: yMin, max: yMax, yAxisOrientation: this.options.yAxisOrientation };
+  };
+
+  Points.prototype.draw = function (dataset, group, framework, offset) {
+    Points.draw(dataset, group, framework, offset);
+  };
+
+  /**
+   * draw the data points
+   *
+   * @param {Array} dataset
+   * @param {Object} JSONcontainer
+   * @param {Object} svg            | SVG DOM element
+   * @param {GraphGroup} group
+   * @param {Number} [offset]
+   */
+  Points.draw = function (dataset, group, framework, offset) {
+    if (offset === undefined) {
+      offset = 0;
+    }
+    for (var i = 0; i < dataset.length; i++) {
+      DOMutil.drawPoint(dataset[i].x + offset, dataset[i].y, group, framework.svgElements, framework.svg, dataset[i].label);
+    }
+  };
+
+
+  module.exports = Points;
+
+/***/ },
+/* 51 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  /**
+   * Created by Alex on 11/11/2014.
+   */
+  var DOMutil = __webpack_require__(6);
+  var Points = __webpack_require__(50);
 
   function Bargraph(groupId, options) {
     this.groupId = groupId;
@@ -22591,66 +23049,14 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Bargraph;
 
 /***/ },
-/* 48 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  /**
-   * Created by Alex on 11/11/2014.
-   */
-  var DOMutil = __webpack_require__(2);
-
-  function Points(groupId, options) {
-    this.groupId = groupId;
-    this.options = options;
-  }
-
-
-  Points.prototype.getYRange = function (groupData) {
-    var yMin = groupData[0].y;
-    var yMax = groupData[0].y;
-    for (var j = 0; j < groupData.length; j++) {
-      yMin = yMin > groupData[j].y ? groupData[j].y : yMin;
-      yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
-    }
-    return { min: yMin, max: yMax, yAxisOrientation: this.options.yAxisOrientation };
-  };
-
-  Points.prototype.draw = function (dataset, group, framework, offset) {
-    Points.draw(dataset, group, framework, offset);
-  };
-
-  /**
-   * draw the data points
-   *
-   * @param {Array} dataset
-   * @param {Object} JSONcontainer
-   * @param {Object} svg            | SVG DOM element
-   * @param {GraphGroup} group
-   * @param {Number} [offset]
-   */
-  Points.draw = function (dataset, group, framework, offset) {
-    if (offset === undefined) {
-      offset = 0;
-    }
-    for (var i = 0; i < dataset.length; i++) {
-      DOMutil.drawPoint(dataset[i].x + offset, dataset[i].y, group, framework.svgElements, framework.svg, dataset[i].label);
-    }
-  };
-
-
-  module.exports = Points;
-
-/***/ },
-/* 49 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
 
   var util = __webpack_require__(1);
-  var DOMutil = __webpack_require__(2);
-  var Component = __webpack_require__(22);
+  var DOMutil = __webpack_require__(6);
+  var Component = __webpack_require__(25);
 
   /**
    * Legend for Graph2d
@@ -22849,40 +23255,40 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Legend;
 
 /***/ },
-/* 50 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
 
   var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
 
-  var Emitter = __webpack_require__(7);
-  var Hammer = __webpack_require__(15);
+  var Emitter = __webpack_require__(11);
+  var Hammer = __webpack_require__(19);
   var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(3);
-  var DataView = __webpack_require__(5);
-  var dotparser = __webpack_require__(51);
-  var gephiParser = __webpack_require__(52);
-  var Groups = __webpack_require__(53);
-  var Images = __webpack_require__(54);
-  var Popup = __webpack_require__(55);
-  var Activator = __webpack_require__(56);
-  var locales = __webpack_require__(58);
+  var DataSet = __webpack_require__(7);
+  var DataView = __webpack_require__(9);
+  var dotparser = __webpack_require__(54);
+  var gephiParser = __webpack_require__(55);
+  var Groups = __webpack_require__(56);
+  var Images = __webpack_require__(57);
+  var Popup = __webpack_require__(58);
+  var Activator = __webpack_require__(38);
+  var locales = __webpack_require__(59);
 
   // Load custom shapes into CanvasRenderingContext2D
-  __webpack_require__(59);
+  __webpack_require__(60);
 
-  var NodesHandler = _interopRequire(__webpack_require__(60));
+  var NodesHandler = _interopRequire(__webpack_require__(61));
 
-  var EdgesHandler = _interopRequire(__webpack_require__(62));
+  var EdgesHandler = _interopRequire(__webpack_require__(63));
 
-  var PhysicsEngine = _interopRequire(__webpack_require__(64));
+  var PhysicsEngine = _interopRequire(__webpack_require__(65));
 
-  var ClusterEngine = _interopRequire(__webpack_require__(71));
+  var ClusterEngine = _interopRequire(__webpack_require__(72));
 
-  var CanvasRenderer = _interopRequire(__webpack_require__(72));
+  var CanvasRenderer = _interopRequire(__webpack_require__(73));
 
-  var Canvas = _interopRequire(__webpack_require__(73));
+  var Canvas = _interopRequire(__webpack_require__(74));
 
   var View = _interopRequire(__webpack_require__(75));
 
@@ -22931,9 +23337,8 @@ return /******/ (function(modules) { // webpackBootstrap
     this.body = {
       nodes: {},
       nodeIndices: [],
-      supportNodes: {},
-      supportNodeIndices: [],
       edges: {},
+      edgeIndices: [],
       data: {
         nodes: null, // A DataSet or DataView
         edges: null // A DataSet or DataView
@@ -22981,7 +23386,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.view = new View(this.body, this.canvas); // camera handler, does animations and zooms
     this.renderer = new CanvasRenderer(this.body, this.canvas); // renderer, starts renderloop, has events that modules can hook into
     this.physics = new PhysicsEngine(this.body); // physics engine, does all the simulations
-    this.layoutEngine = new LayoutEngine(this.body); // TODO: layout engine for initial positioning and hierarchical positioning
+    this.layoutEngine = new LayoutEngine(this.body);
     this.clustering = new ClusterEngine(this.body); // clustering api
 
     this.nodesHandler = new NodesHandler(this.body, images, groups, this.layoutEngine); // Handle adding, deleting and updating of nodes as well as global options
@@ -22993,8 +23398,8 @@ return /******/ (function(modules) { // webpackBootstrap
     this.body.emitter.on("_dataChanged", function (params) {
       var t0 = new Date().valueOf();
       // update shortcut lists
-      _this._updateNodeIndexList();
-      _this.physics._updateCalculationNodes();
+      _this._updateVisibleIndices();
+      _this.physics._updatePhysicsIndices();
       // update values
       _this._updateValueRange(_this.body.nodes);
       _this._updateValueRange(_this.body.edges);
@@ -23038,9 +23443,27 @@ return /******/ (function(modules) { // webpackBootstrap
    * Update the this.body.nodeIndices with the most recent node index list
    * @private
    */
-  Network.prototype._updateNodeIndexList = function () {
-    this.body.supportNodeIndices = Object.keys(this.body.supportNodes);
-    this.body.nodeIndices = Object.keys(this.body.nodes);
+  Network.prototype._updateVisibleIndices = function () {
+    var nodes = this.body.nodes;
+    var edges = this.body.edges;
+    this.body.nodeIndices = [];
+    this.body.edgeIndices = [];
+
+    for (var nodeId in nodes) {
+      if (nodes.hasOwnProperty(nodeId)) {
+        if (nodes[nodeId].options.hidden === false) {
+          this.body.nodeIndices.push(nodeId);
+        }
+      }
+    }
+
+    for (var edgeId in edges) {
+      if (edges.hasOwnProperty(edgeId)) {
+        if (edges[edgeId].options.hidden === false) {
+          this.body.edgeIndices.push(edgeId);
+        }
+      }
+    }
   };
 
 
@@ -23655,7 +24078,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Network;
 
 /***/ },
-/* 51 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -24477,7 +24900,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.DOTToGraph = DOTToGraph;
 
 /***/ },
-/* 52 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -24542,7 +24965,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.parseGephi = parseGephi;
 
 /***/ },
-/* 53 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -24653,7 +25076,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // 20:bright red
 
 /***/ },
-/* 54 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -24731,7 +25154,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Images;
 
 /***/ },
-/* 55 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -24870,359 +25293,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Popup;
 
 /***/ },
-/* 56 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var keycharm = __webpack_require__(57);
-  var Emitter = __webpack_require__(7);
-  var Hammer = __webpack_require__(15);
-  var util = __webpack_require__(1);
-
-  /**
-   * Turn an element into an clickToUse element.
-   * When not active, the element has a transparent overlay. When the overlay is
-   * clicked, the mode is changed to active.
-   * When active, the element is displayed with a blue border around it, and
-   * the interactive contents of the element can be used. When clicked outside
-   * the element, the elements mode is changed to inactive.
-   * @param {Element} container
-   * @constructor
-   */
-  function Activator(container) {
-    this.active = false;
-
-    this.dom = {
-      container: container
-    };
-
-    this.dom.overlay = document.createElement("div");
-    this.dom.overlay.className = "overlay";
-
-    this.dom.container.appendChild(this.dom.overlay);
-
-    this.hammer = Hammer(this.dom.overlay, { prevent_default: false });
-    this.hammer.on("tap", this._onTapOverlay.bind(this));
-
-    // block all touch events (except tap)
-    var me = this;
-    var events = ["touch", "pinch", "doubletap", "hold", "dragstart", "drag", "dragend", "mousewheel", "DOMMouseScroll" // DOMMouseScroll is needed for Firefox
-    ];
-    events.forEach(function (event) {
-      me.hammer.on(event, function (event) {
-        event.stopPropagation();
-      });
-    });
-
-    // attach a tap event to the window, in order to deactivate when clicking outside the timeline
-    this.windowHammer = Hammer(window, { prevent_default: false });
-    this.windowHammer.on("tap", function (event) {
-      // deactivate when clicked outside the container
-      if (!_hasParent(event.target, container)) {
-        me.deactivate();
-      }
-    });
-
-    if (this.keycharm !== undefined) {
-      this.keycharm.destroy();
-    }
-    this.keycharm = keycharm();
-
-    // keycharm listener only bounded when active)
-    this.escListener = this.deactivate.bind(this);
-  }
-
-  // turn into an event emitter
-  Emitter(Activator.prototype);
-
-  // The currently active activator
-  Activator.current = null;
-
-  /**
-   * Destroy the activator. Cleans up all created DOM and event listeners
-   */
-  Activator.prototype.destroy = function () {
-    this.deactivate();
-
-    // remove dom
-    this.dom.overlay.parentNode.removeChild(this.dom.overlay);
-
-    // cleanup hammer instances
-    this.hammer = null;
-    this.windowHammer = null;
-    // FIXME: cleaning up hammer instances doesn't work (Timeline not removed from memory)
-  };
-
-  /**
-   * Activate the element
-   * Overlay is hidden, element is decorated with a blue shadow border
-   */
-  Activator.prototype.activate = function () {
-    // we allow only one active activator at a time
-    if (Activator.current) {
-      Activator.current.deactivate();
-    }
-    Activator.current = this;
-
-    this.active = true;
-    this.dom.overlay.style.display = "none";
-    util.addClassName(this.dom.container, "vis-active");
-
-    this.emit("change");
-    this.emit("activate");
-
-    // ugly hack: bind ESC after emitting the events, as the Network rebinds all
-    // keyboard events on a 'change' event
-    this.keycharm.bind("esc", this.escListener);
-  };
-
-  /**
-   * Deactivate the element
-   * Overlay is displayed on top of the element
-   */
-  Activator.prototype.deactivate = function () {
-    this.active = false;
-    this.dom.overlay.style.display = "";
-    util.removeClassName(this.dom.container, "vis-active");
-    this.keycharm.unbind("esc", this.escListener);
-
-    this.emit("change");
-    this.emit("deactivate");
-  };
-
-  /**
-   * Handle a tap event: activate the container
-   * @param event
-   * @private
-   */
-  Activator.prototype._onTapOverlay = function (event) {
-    // activate the container
-    this.activate();
-    event.stopPropagation();
-  };
-
-  /**
-   * Test whether the element has the requested parent element somewhere in
-   * its chain of parent nodes.
-   * @param {HTMLElement} element
-   * @param {HTMLElement} parent
-   * @returns {boolean} Returns true when the parent is found somewhere in the
-   *                    chain of parent nodes.
-   * @private
-   */
-  function _hasParent(element, parent) {
-    while (element) {
-      if (element === parent) {
-        return true;
-      }
-      element = element.parentNode;
-    }
-    return false;
-  }
-
-  module.exports = Activator;
-
-/***/ },
-/* 57 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
-  /**
-   * Created by Alex on 11/6/2014.
-   */
-
-  // https://github.com/umdjs/umd/blob/master/returnExports.js#L40-L60
-  // if the module has no dependencies, the above pattern can be simplified to
-  (function (root, factory) {
-    if (true) {
-      // AMD. Register as an anonymous module.
-      !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-    } else if (typeof exports === 'object') {
-      // Node. Does not work with strict CommonJS, but
-      // only CommonJS-like environments that support module.exports,
-      // like Node.
-      module.exports = factory();
-    } else {
-      // Browser globals (root is window)
-      root.keycharm = factory();
-    }
-  }(this, function () {
-
-    function keycharm(options) {
-      var preventDefault = options && options.preventDefault || false;
-
-      var container = options && options.container || window;
-      var _exportFunctions = {};
-      var _bound = {keydown:{}, keyup:{}};
-      var _keys = {};
-      var i;
-
-      // a - z
-      for (i = 97; i <= 122; i++) {_keys[String.fromCharCode(i)] = {code:65 + (i - 97), shift: false};}
-      // A - Z
-      for (i = 65; i <= 90; i++) {_keys[String.fromCharCode(i)] = {code:i, shift: true};}
-      // 0 - 9
-      for (i = 0;  i <= 9;   i++) {_keys['' + i] = {code:48 + i, shift: false};}
-      // F1 - F12
-      for (i = 1;  i <= 12;   i++) {_keys['F' + i] = {code:111 + i, shift: false};}
-      // num0 - num9
-      for (i = 0;  i <= 9;   i++) {_keys['num' + i] = {code:96 + i, shift: false};}
-
-      // numpad misc
-      _keys['num*'] = {code:106, shift: false};
-      _keys['num+'] = {code:107, shift: false};
-      _keys['num-'] = {code:109, shift: false};
-      _keys['num/'] = {code:111, shift: false};
-      _keys['num.'] = {code:110, shift: false};
-      // arrows
-      _keys['left']  = {code:37, shift: false};
-      _keys['up']    = {code:38, shift: false};
-      _keys['right'] = {code:39, shift: false};
-      _keys['down']  = {code:40, shift: false};
-      // extra keys
-      _keys['space'] = {code:32, shift: false};
-      _keys['enter'] = {code:13, shift: false};
-      _keys['shift'] = {code:16, shift: undefined};
-      _keys['esc']   = {code:27, shift: false};
-      _keys['backspace'] = {code:8, shift: false};
-      _keys['tab']       = {code:9, shift: false};
-      _keys['ctrl']      = {code:17, shift: false};
-      _keys['alt']       = {code:18, shift: false};
-      _keys['delete']    = {code:46, shift: false};
-      _keys['pageup']    = {code:33, shift: false};
-      _keys['pagedown']  = {code:34, shift: false};
-      // symbols
-      _keys['=']     = {code:187, shift: false};
-      _keys['-']     = {code:189, shift: false};
-      _keys[']']     = {code:221, shift: false};
-      _keys['[']     = {code:219, shift: false};
-
-
-
-      var down = function(event) {handleEvent(event,'keydown');};
-      var up = function(event) {handleEvent(event,'keyup');};
-
-      // handle the actualy bound key with the event
-      var handleEvent = function(event,type) {
-        if (_bound[type][event.keyCode] !== undefined) {
-          var bound = _bound[type][event.keyCode];
-          for (var i = 0; i < bound.length; i++) {
-            if (bound[i].shift === undefined) {
-              bound[i].fn(event);
-            }
-            else if (bound[i].shift == true && event.shiftKey == true) {
-              bound[i].fn(event);
-            }
-            else if (bound[i].shift == false && event.shiftKey == false) {
-              bound[i].fn(event);
-            }
-          }
-
-          if (preventDefault == true) {
-            event.preventDefault();
-          }
-        }
-      };
-
-      // bind a key to a callback
-      _exportFunctions.bind = function(key, callback, type) {
-        if (type === undefined) {
-          type = 'keydown';
-        }
-        if (_keys[key] === undefined) {
-          throw new Error("unsupported key: " + key);
-        }
-        if (_bound[type][_keys[key].code] === undefined) {
-          _bound[type][_keys[key].code] = [];
-        }
-        _bound[type][_keys[key].code].push({fn:callback, shift:_keys[key].shift});
-      };
-
-
-      // bind all keys to a call back (demo purposes)
-      _exportFunctions.bindAll = function(callback, type) {
-        if (type === undefined) {
-          type = 'keydown';
-        }
-        for (var key in _keys) {
-          if (_keys.hasOwnProperty(key)) {
-            _exportFunctions.bind(key,callback,type);
-          }
-        }
-      };
-
-      // get the key label from an event
-      _exportFunctions.getKey = function(event) {
-        for (var key in _keys) {
-          if (_keys.hasOwnProperty(key)) {
-            if (event.shiftKey == true && _keys[key].shift == true && event.keyCode == _keys[key].code) {
-              return key;
-            }
-            else if (event.shiftKey == false && _keys[key].shift == false && event.keyCode == _keys[key].code) {
-              return key;
-            }
-            else if (event.keyCode == _keys[key].code && key == 'shift') {
-              return key;
-            }
-          }
-        }
-        return "unknown key, currently not supported";
-      };
-
-      // unbind either a specific callback from a key or all of them (by leaving callback undefined)
-      _exportFunctions.unbind = function(key, callback, type) {
-        if (type === undefined) {
-          type = 'keydown';
-        }
-        if (_keys[key] === undefined) {
-          throw new Error("unsupported key: " + key);
-        }
-        if (callback !== undefined) {
-          var newBindings = [];
-          var bound = _bound[type][_keys[key].code];
-          if (bound !== undefined) {
-            for (var i = 0; i < bound.length; i++) {
-              if (!(bound[i].fn == callback && bound[i].shift == _keys[key].shift)) {
-                newBindings.push(_bound[type][_keys[key].code][i]);
-              }
-            }
-          }
-          _bound[type][_keys[key].code] = newBindings;
-        }
-        else {
-          _bound[type][_keys[key].code] = [];
-        }
-      };
-
-      // reset all bound variables.
-      _exportFunctions.reset = function() {
-        _bound = {keydown:{}, keyup:{}};
-      };
-
-      // unbind all listeners and reset all variables.
-      _exportFunctions.destroy = function() {
-        _bound = {keydown:{}, keyup:{}};
-        container.removeEventListener('keydown', down, true);
-        container.removeEventListener('keyup', up, true);
-      };
-
-      // create listeners.
-      container.addEventListener('keydown',down,true);
-      container.addEventListener('keyup',up,true);
-
-      // return the public functions.
-      return _exportFunctions;
-    }
-
-    return keycharm;
-  }));
-
-
-
-
-/***/ },
-/* 58 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -25264,7 +25335,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.nl_BE = exports.nl;
 
 /***/ },
-/* 59 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -25510,7 +25581,7 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 60 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -25524,9 +25595,9 @@ return /******/ (function(modules) { // webpackBootstrap
    */
 
   var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(3);
-  var DataView = __webpack_require__(5);
-  var Node = __webpack_require__(61);
+  var DataSet = __webpack_require__(7);
+  var DataView = __webpack_require__(9);
+  var Node = __webpack_require__(62);
 
 
   var NodesHandler = (function () {
@@ -25600,7 +25671,9 @@ return /******/ (function(modules) { // webpackBootstrap
         },
         group: undefined,
         borderWidth: 1,
-        borderWidthSelected: undefined
+        borderWidthSelected: undefined,
+        physics: true,
+        hidden: false
       };
 
       util.extend(this.options, this.defaultOptions);
@@ -25755,7 +25828,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = NodesHandler;
 
 /***/ },
-/* 61 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -25867,7 +25940,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }
     this.properties = properties;
 
-    var fields = ["borderWidth", "borderWidthSelected", "shape", "image", "brokenImage", "radius", "fontColor", "fontSize", "fontFace", "fontFill", "fontStrokeWidth", "fontStrokeColor", "group", "mass", "fontDrawThreshold", "scaleFontWithValue", "fontSizeMaxVisible", "customScalingFunction", "iconFontFace", "icon", "iconColor", "iconSize", "value"];
+    var fields = ["borderWidth", "borderWidthSelected", "shape", "image", "brokenImage", "radius", "fontColor", "fontSize", "fontFace", "fontFill", "fontStrokeWidth", "fontStrokeColor", "group", "mass", "fontDrawThreshold", "scaleFontWithValue", "fontSizeMaxVisible", "customScalingFunction", "iconFontFace", "icon", "iconColor", "iconSize", "value", "hidden", "physics"];
     util.selectiveDeepExtend(fields, this.options, properties);
 
     // basic options
@@ -26746,7 +26819,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Node;
 
 /***/ },
-/* 62 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -26761,9 +26834,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
   var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(3);
-  var DataView = __webpack_require__(5);
-  var Edge = __webpack_require__(63);
+  var DataSet = __webpack_require__(7);
+  var DataView = __webpack_require__(9);
+  var Edge = __webpack_require__(64);
 
   var EdgesHandler = (function () {
     function EdgesHandler(body, images, groups) {
@@ -26832,7 +26905,9 @@ return /******/ (function(modules) { // webpackBootstrap
           dynamic: true,
           type: "continuous",
           roundness: 0.5
-        }
+        },
+        hidden: false,
+        physics: true
       };
 
       util.extend(this.options, this.defaultOptions);
@@ -27006,7 +27081,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = EdgesHandler;
 
 /***/ },
-/* 63 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -27099,7 +27174,7 @@ return /******/ (function(modules) { // webpackBootstrap
           }
           this.colorDirty = true;
 
-          var fields = ["style", "fontSize", "fontFace", "fontColor", "fontFill", "fontStrokeWidth", "fontStrokeColor", "width", "widthSelectionMultiplier", "hoverWidth", "arrowScaleFactor", "dash", "inheritColor", "labelAlignment", "opacity", "customScalingFunction", "useGradients", "value", "smooth"];
+          var fields = ["style", "fontSize", "fontFace", "fontColor", "fontFill", "fontStrokeWidth", "fontStrokeColor", "width", "widthSelectionMultiplier", "hoverWidth", "arrowScaleFactor", "dash", "inheritColor", "labelAlignment", "opacity", "customScalingFunction", "useGradients", "value", "smooth", "hidden", "physics"];
           util.selectiveDeepExtend(fields, this.options, options);
 
           if (options.from !== undefined) {
@@ -27155,7 +27230,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
           this.widthSelected = this.options.width * this.options.widthSelectionMultiplier;
 
-          this.setupsmooth(this.initializing === false);
+          this.setupSmoothEdges(this.initializing === false);
 
           // set draw method based on style
           switch (this.options.style) {
@@ -27179,7 +27254,7 @@ return /******/ (function(modules) { // webpackBootstrap
         writable: true,
         configurable: true
       },
-      setupsmooth: {
+      setupSmoothEdges: {
 
 
         /**
@@ -27188,7 +27263,7 @@ return /******/ (function(modules) { // webpackBootstrap
          *
          * @private
          */
-        value: function setupsmooth() {
+        value: function setupSmoothEdges() {
           var emitChange = arguments[0] === undefined ? true : arguments[0];
           var changedData = false;
           if (this.options.smooth.enabled == true && this.options.smooth.dynamic == true) {
@@ -27199,16 +27274,18 @@ return /******/ (function(modules) { // webpackBootstrap
                 id: nodeId,
                 mass: 1,
                 shape: "circle",
-                image: ""
+                image: "",
+                physics: true,
+                hidden: true
               });
-              this.body.supportNodes[nodeId] = node;
+              this.body.nodes[nodeId] = node;
               this.via = node;
               this.via.parentEdgeId = this.id;
               this.positionBezierNode();
             }
           } else {
             if (this.via !== undefined) {
-              delete this.body.supportNodes[this.via.id];
+              delete this.body.nodes[this.via.id];
               this.via = undefined;
               changedData = true;
             }
@@ -28417,7 +28494,9 @@ return /******/ (function(modules) { // webpackBootstrap
                 color: { background: "#ff0000", border: "#3c3c3c", highlight: { background: "#07f968" } },
                 radius: 7,
                 borderWidth: 2,
-                borderWidthSelected: 2
+                borderWidthSelected: 2,
+                hidden: false,
+                physics: false
               };
               var nodeToOptions = util.deepExtend({}, nodeFromOptions);
               nodeToOptions.id = nodeIdTo;
@@ -28582,7 +28661,7 @@ return /******/ (function(modules) { // webpackBootstrap
          */
         value: function getControlNodeToPosition(ctx) {
           // draw arrow head
-          var controlnodeFromPos, controlnodeToPos;
+          var controlnodeToPos;
           if (this.options.smooth.enabled == true) {
             controlnodeToPos = this._findBorderPosition(false, ctx);
           } else {
@@ -28611,7 +28690,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Edge;
 
 /***/ },
-/* 64 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -28624,12 +28703,12 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 2/23/2015.
    */
 
-  var BarnesHutSolver = __webpack_require__(65).BarnesHutSolver;
-  var Repulsion = __webpack_require__(66).Repulsion;
-  var HierarchicalRepulsion = __webpack_require__(67).HierarchicalRepulsion;
-  var SpringSolver = __webpack_require__(68).SpringSolver;
-  var HierarchicalSpringSolver = __webpack_require__(69).HierarchicalSpringSolver;
-  var CentralGravitySolver = __webpack_require__(70).CentralGravitySolver;
+  var BarnesHutSolver = __webpack_require__(66).BarnesHutSolver;
+  var Repulsion = __webpack_require__(67).Repulsion;
+  var HierarchicalRepulsion = __webpack_require__(68).HierarchicalRepulsion;
+  var SpringSolver = __webpack_require__(69).SpringSolver;
+  var HierarchicalSpringSolver = __webpack_require__(70).HierarchicalSpringSolver;
+  var CentralGravitySolver = __webpack_require__(71).CentralGravitySolver;
 
 
   var util = __webpack_require__(1);
@@ -28641,7 +28720,7 @@ return /******/ (function(modules) { // webpackBootstrap
       _classCallCheck(this, PhysicsEngine);
 
       this.body = body;
-      this.physicsBody = { calculationNodes: {}, calculationNodeIndices: [], forces: {}, velocities: {} };
+      this.physicsBody = { physicsNodeIndices: [], physicsEdgeIndices: [], forces: {}, velocities: {} };
 
       this.simulationInterval = 1000 / 60;
       this.requiresTimeout = true;
@@ -28853,7 +28932,7 @@ return /******/ (function(modules) { // webpackBootstrap
         writable: true,
         configurable: true
       },
-      _updateCalculationNodes: {
+      _updatePhysicsIndices: {
 
         /**
          * Smooth curves are created by adding invisible nodes in the center of the edges. These nodes are also
@@ -28863,30 +28942,34 @@ return /******/ (function(modules) { // webpackBootstrap
          *
          * @private
          */
-        value: function _updateCalculationNodes() {
-          this.physicsBody.calculationNodes = {};
+        value: function _updatePhysicsIndices() {
           this.physicsBody.forces = {};
-          this.physicsBody.calculationNodeIndices = [];
+          this.physicsBody.physicsNodeIndices = [];
+          this.physicsBody.physicsEdgeIndices = [];
+          var nodes = this.body.nodes;
+          var edges = this.body.edges;
 
-          for (var i = 0; i < this.body.nodeIndices.length; i++) {
-            var nodeId = this.body.nodeIndices[i];
-            this.physicsBody.calculationNodes[nodeId] = this.body.nodes[nodeId];
-          }
-
-          // if support nodes are used, we have them here
-          var supportNodes = this.body.supportNodes;
-          for (var i = 0; i < this.body.supportNodeIndices.length; i++) {
-            var supportNodeId = this.body.supportNodeIndices[i];
-            if (this.body.edges[supportNodes[supportNodeId].parentEdgeId] !== undefined) {
-              this.physicsBody.calculationNodes[supportNodeId] = supportNodes[supportNodeId];
-            } else {
-              console.error("Support node detected that does not have an edge!");
+          // get node indices for physics
+          for (var nodeId in nodes) {
+            if (nodes.hasOwnProperty(nodeId)) {
+              if (nodes[nodeId].options.physics === true) {
+                this.physicsBody.physicsNodeIndices.push(nodeId);
+              }
             }
           }
 
-          this.physicsBody.calculationNodeIndices = Object.keys(this.physicsBody.calculationNodes);
-          for (var i = 0; i < this.physicsBody.calculationNodeIndices.length; i++) {
-            var nodeId = this.physicsBody.calculationNodeIndices[i];
+          // get edge indices for physics
+          for (var edgeId in edges) {
+            if (edges.hasOwnProperty(edgeId)) {
+              if (edges[edgeId].options.physics === true) {
+                this.physicsBody.physicsEdgeIndices.push(edgeId);
+              }
+            }
+          }
+
+          // get the velocity and the forces vector
+          for (var i = 0; i < this.physicsBody.physicsNodeIndices.length; i++) {
+            var nodeId = this.physicsBody.physicsNodeIndices[i];
             this.physicsBody.forces[nodeId] = { x: 0, y: 0 };
 
             // forces can be reset because they are recalculated. Velocities have to persist.
@@ -28897,7 +28980,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
           // clean deleted nodes from the velocity vector
           for (var nodeId in this.physicsBody.velocities) {
-            if (this.physicsBody.calculationNodes[nodeId] === undefined) {
+            if (nodes[nodeId] === undefined) {
               delete this.physicsBody.velocities[nodeId];
             }
           }
@@ -28908,7 +28991,7 @@ return /******/ (function(modules) { // webpackBootstrap
       revert: {
         value: function revert() {
           var nodeIds = Object.keys(this.previousStates);
-          var nodes = this.physicsBody.calculationNodes;
+          var nodes = this.body.nodes;
           var velocities = this.physicsBody.velocities;
 
           for (var i = 0; i < nodeIds.length; i++) {
@@ -28929,7 +29012,7 @@ return /******/ (function(modules) { // webpackBootstrap
       moveNodes: {
         value: function moveNodes() {
           var nodesPresent = false;
-          var nodeIndices = this.physicsBody.calculationNodeIndices;
+          var nodeIndices = this.physicsBody.physicsNodeIndices;
           var maxVelocity = this.options.maxVelocity === 0 ? 1000000000 : this.options.maxVelocity;
           var stabilized = true;
           var vminCorrected = this.options.minVelocity / Math.max(this.body.view.scale, 0.05);
@@ -28957,7 +29040,7 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       _performStep: {
         value: function _performStep(nodeId, maxVelocity) {
-          var node = this.physicsBody.calculationNodes[nodeId];
+          var node = this.body.nodes[nodeId];
           var timestep = this.options.timestep;
           var forces = this.physicsBody.forces;
           var velocities = this.physicsBody.velocities;
@@ -29115,7 +29198,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = PhysicsEngine;
 
 /***/ },
-/* 65 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -29158,8 +29241,8 @@ return /******/ (function(modules) { // webpackBootstrap
         value: function solve() {
           if (this.options.gravitationalConstant != 0) {
             var node;
-            var nodes = this.physicsBody.calculationNodes;
-            var nodeIndices = this.physicsBody.calculationNodeIndices;
+            var nodes = this.body.nodes;
+            var nodeIndices = this.physicsBody.physicsNodeIndices;
             var nodeCount = nodeIndices.length;
 
             // create the tree
@@ -29627,7 +29710,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 66 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -29667,8 +29750,8 @@ return /******/ (function(modules) { // webpackBootstrap
         value: function solve() {
           var dx, dy, distance, fx, fy, repulsingForce, node1, node2;
 
-          var nodes = this.physicsBody.calculationNodes;
-          var nodeIndices = this.physicsBody.calculationNodeIndices;
+          var nodes = this.body.nodes;
+          var nodeIndices = this.physicsBody.physicsNodeIndices;
           var forces = this.physicsBody.forces;
 
           // repulsing forces between nodes
@@ -29728,7 +29811,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 67 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -29769,8 +29852,8 @@ return /******/ (function(modules) { // webpackBootstrap
         value: function solve() {
           var dx, dy, distance, fx, fy, repulsingForce, node1, node2, i, j;
 
-          var nodes = this.physicsBody.calculationNodes;
-          var nodeIndices = this.physicsBody.calculationNodeIndices;
+          var nodes = this.body.nodes;
+          var nodeIndices = this.physicsBody.physicsNodeIndices;
           var forces = this.physicsBody.forces;
 
           // repulsing forces between nodes
@@ -29826,7 +29909,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 68 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -29864,27 +29947,26 @@ return /******/ (function(modules) { // webpackBootstrap
          * @private
          */
         value: function solve() {
-          var edgeLength, edge, edgeId;
+          var edgeLength, edge;
+          var edgeIndices = this.physicsBody.physicsEdgeIndices;
           var edges = this.body.edges;
 
           // forces caused by the edges, modelled as springs
-          for (edgeId in edges) {
-            if (edges.hasOwnProperty(edgeId)) {
-              edge = edges[edgeId];
-              if (edge.connected === true) {
-                // only calculate forces if nodes are in the same sector
-                if (this.body.nodes[edge.toId] !== undefined && this.body.nodes[edge.fromId] !== undefined) {
-                  edgeLength = edge.options.length === undefined ? this.options.springLength : edge.options.length;
-                  if (edge.via != null) {
-                    var node1 = edge.to;
-                    var node2 = edge.via;
-                    var node3 = edge.from;
+          for (var i = 0; i < edgeIndices.length; i++) {
+            edge = edges[edgeIndices[i]];
+            if (edge.connected === true) {
+              // only calculate forces if nodes are in the same sector
+              if (this.body.nodes[edge.toId] !== undefined && this.body.nodes[edge.fromId] !== undefined) {
+                edgeLength = edge.options.length === undefined ? this.options.springLength : edge.options.length;
+                if (edge.via != null) {
+                  var node1 = edge.to;
+                  var node2 = edge.via;
+                  var node3 = edge.from;
 
-                    this._calculateSpringForce(node1, node2, 0.5 * edgeLength);
-                    this._calculateSpringForce(node2, node3, 0.5 * edgeLength);
-                  } else {
-                    this._calculateSpringForce(edge.from, edge.to, edgeLength);
-                  }
+                  this._calculateSpringForce(node1, node2, 0.5 * edgeLength);
+                  this._calculateSpringForce(node2, node3, 0.5 * edgeLength);
+                } else {
+                  this._calculateSpringForce(edge.from, edge.to, edgeLength);
                 }
               }
             }
@@ -29937,7 +30019,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 69 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -29975,11 +30057,13 @@ return /******/ (function(modules) { // webpackBootstrap
          * @private
          */
         value: function solve() {
-          var edgeLength, edge, edgeId;
+          var edgeLength, edge;
           var dx, dy, fx, fy, springForce, distance;
           var edges = this.body.edges;
+          var factor = 0.5;
 
-          var nodeIndices = this.physicsBody.calculationNodeIndices;
+          var edgeIndices = this.physicsBody.physicsEdgeIndices;
+          var nodeIndices = this.physicsBody.physicsNodeIndices;
           var forces = this.physicsBody.forces;
 
           // initialize the spring force counters
@@ -29991,35 +30075,32 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
           // forces caused by the edges, modelled as springs
-          for (edgeId in edges) {
-            if (edges.hasOwnProperty(edgeId)) {
-              edge = edges[edgeId];
-              if (edge.connected === true) {
-                edgeLength = edge.options.length === undefined ? this.options.springLength : edge.options.length;
+          for (var i = 0; i < edgeIndices.length; i++) {
+            edge = edges[edgeIndices[i]];
+            if (edge.connected === true) {
+              edgeLength = edge.options.length === undefined ? this.options.springLength : edge.options.length;
 
-                dx = edge.from.x - edge.to.x;
-                dy = edge.from.y - edge.to.y;
-                distance = Math.sqrt(dx * dx + dy * dy);
-                distance = distance == 0 ? 0.01 : distance;
+              dx = edge.from.x - edge.to.x;
+              dy = edge.from.y - edge.to.y;
+              distance = Math.sqrt(dx * dx + dy * dy);
+              distance = distance == 0 ? 0.01 : distance;
 
-                // the 1/distance is so the fx and fy can be calculated without sine or cosine.
-                springForce = this.options.springConstant * (edgeLength - distance) / distance;
+              // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+              springForce = this.options.springConstant * (edgeLength - distance) / distance;
 
-                fx = dx * springForce;
-                fy = dy * springForce;
+              fx = dx * springForce;
+              fy = dy * springForce;
 
-                if (edge.to.level != edge.from.level) {
-                  forces[edge.toId].springFx -= fx;
-                  forces[edge.toId].springFy -= fy;
-                  forces[edge.fromId].springFx += fx;
-                  forces[edge.fromId].springFy += fy;
-                } else {
-                  var factor = 0.5;
-                  forces[edge.toId].x -= factor * fx;
-                  forces[edge.toId].y -= factor * fy;
-                  forces[edge.fromId].x += factor * fx;
-                  forces[edge.fromId].y += factor * fy;
-                }
+              if (edge.to.level != edge.from.level) {
+                forces[edge.toId].springFx -= fx;
+                forces[edge.toId].springFy -= fy;
+                forces[edge.fromId].springFx += fx;
+                forces[edge.fromId].springFy += fy;
+              } else {
+                forces[edge.toId].x -= factor * fx;
+                forces[edge.toId].y -= factor * fy;
+                forces[edge.fromId].x += factor * fx;
+                forces[edge.fromId].y += factor * fy;
               }
             }
           }
@@ -30067,7 +30148,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 70 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -30100,9 +30181,10 @@ return /******/ (function(modules) { // webpackBootstrap
       solve: {
         value: function solve() {
           var dx, dy, distance, node, i;
-          var nodes = this.physicsBody.calculationNodes;
-          var nodeIndices = this.physicsBody.calculationNodeIndices;
+          var nodes = this.body.nodes;
+          var nodeIndices = this.physicsBody.physicsNodeIndices;
           var forces = this.physicsBody.forces;
+
 
           var gravity = this.options.centralGravity;
           var gravityForce = 0;
@@ -30133,7 +30215,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 71 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -30839,7 +30921,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = ClusterEngine;
 
 /***/ },
-/* 72 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31022,14 +31104,13 @@ return /******/ (function(modules) { // webpackBootstrap
           }
 
           if (this.dragging === false || this.dragging === true && this.options.hideNodesOnDrag === false) {
-            this._drawNodes(ctx, this.body.nodes, hidden);
+            this._drawNodes(ctx, hidden);
           }
 
           if (this.controlNodesActive === true) {
             this._drawControlNodes(ctx);
           }
 
-          //this._drawNodes(ctx,this.body.supportNodes,true);
           //this.physics.nodesSolver._debug(ctx,"#F00F0F");
 
           // restore original scaling and translation
@@ -31054,30 +31135,34 @@ return /******/ (function(modules) { // webpackBootstrap
          * @param {Boolean} [alwaysShow]
          * @private
          */
-        value: function _drawNodes(ctx, nodes) {
-          var alwaysShow = arguments[2] === undefined ? false : arguments[2];
-          // first draw the unselected nodes
+        value: function _drawNodes(ctx) {
+          var alwaysShow = arguments[1] === undefined ? false : arguments[1];
+          var nodes = this.body.nodes;
+          var nodeIndices = this.body.nodeIndices;
+          var node;
           var selected = [];
 
-          for (var id in nodes) {
-            if (nodes.hasOwnProperty(id)) {
-              nodes[id].setScaleAndPos(this.body.view.scale, this.canvasTopLeft, this.canvasBottomRight);
-              if (nodes[id].isSelected()) {
-                selected.push(id);
-              } else {
-                if (alwaysShow === true) {
-                  nodes[id].draw(ctx);
-                } else if (nodes[id].inArea() === true) {
-                  nodes[id].draw(ctx);
-                }
+          // draw unselected nodes;
+          for (var i = 0; i < nodeIndices.length; i++) {
+            node = nodes[nodeIndices[i]];
+            node.setScaleAndPos(this.body.view.scale, this.canvasTopLeft, this.canvasBottomRight);
+            // set selected nodes aside
+            if (node.isSelected()) {
+              selected.push(nodeIndices[i]);
+            } else {
+              if (alwaysShow === true) {
+                node.draw(ctx);
+              } else if (node.inArea() === true) {
+                node.draw(ctx);
               }
             }
           }
 
           // draw the selected nodes on top
-          for (var s = 0, sMax = selected.length; s < sMax; s++) {
-            if (nodes[selected[s]].inArea() || alwaysShow) {
-              nodes[selected[s]].draw(ctx);
+          for (var i = 0; i < selected.length; i++) {
+            node = nodes[selected[i]];
+            if (node.inArea() || alwaysShow) {
+              node.draw(ctx);
             }
           }
         },
@@ -31095,13 +31180,14 @@ return /******/ (function(modules) { // webpackBootstrap
          */
         value: function _drawEdges(ctx) {
           var edges = this.body.edges;
-          for (var id in edges) {
-            if (edges.hasOwnProperty(id)) {
-              var edge = edges[id];
-              edge.setScale(this.body.view.scale);
-              if (edge.connected === true) {
-                edges[id].draw(ctx);
-              }
+          var edgeIndices = this.body.edgeIndices;
+          var edge;
+
+          for (var i = 0; i < edgeIndices.length; i++) {
+            edge = edges[edgeIndices[i]];
+            edge.setScale(this.body.view.scale);
+            if (edge.connected === true) {
+              edge.draw(ctx);
             }
           }
         },
@@ -31118,10 +31204,12 @@ return /******/ (function(modules) { // webpackBootstrap
          */
         value: function _drawControlNodes(ctx) {
           var edges = this.body.edges;
-          for (var id in edges) {
-            if (edges.hasOwnProperty(id)) {
-              edges[id]._drawControlNodes(ctx);
-            }
+          var edgeIndices = this.body.edgeIndices;
+          var edge;
+
+          for (var i = 0; i < edgeIndices.length; i++) {
+            edge = edges[edgeIndices[i]];
+            edge._drawControlNodes(ctx);
           }
         },
         writable: true,
@@ -31162,7 +31250,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CanvasRenderer;
 
 /***/ },
-/* 73 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31171,8 +31259,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var Hammer = __webpack_require__(15);
-  var hammerUtil = __webpack_require__(74);
+  var Hammer = __webpack_require__(19);
+  var hammerUtil = __webpack_require__(24);
 
   var util = __webpack_require__(1);
 
@@ -31447,60 +31535,6 @@ return /******/ (function(modules) { // webpackBootstrap
   })();
 
   module.exports = Canvas;
-
-/***/ },
-/* 74 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var Hammer = __webpack_require__(15);
-
-  /**
-   * Register a touch event, taking place before a gesture
-   * @param {Hammer} hammer       A hammer instance
-   * @param {function} callback   Callback, called as callback(event)
-   */
-  exports.onTouch = function (hammer, callback) {
-    callback.inputHandler = function (event) {
-      if (event.isFirst) {
-        callback(event);
-      }
-    };
-
-    hammer.on("hammer.input", callback.inputHandler);
-  };
-
-  /**
-   * Register a release event, taking place after a gesture
-   * @param {Hammer} hammer       A hammer instance
-   * @param {function} callback   Callback, called as callback(event)
-   */
-  exports.onRelease = function (hammer, callback) {
-    callback.inputHandler = function (event) {
-      if (event.isFinal) {
-        callback(event);
-      }
-    };
-
-    return hammer.on("hammer.input", callback.inputHandler);
-  };
-
-  /**
-   * Unregister a touch event, taking place before a gesture
-   * @param {Hammer} hammer       A hammer instance
-   * @param {function} callback   Callback, called as callback(event)
-   */
-  exports.offTouch = function (hammer, callback) {
-    hammer.off("hammer.input", callback.inputHandler);
-  };
-
-  /**
-   * Unregister a release event, taking place before a gesture
-   * @param {Hammer} hammer       A hammer instance
-   * @param {function} callback   Callback, called as callback(event)
-   */
-  exports.offRelease = exports.offTouch;
 
 /***/ },
 /* 75 */
@@ -32484,9 +32518,9 @@ return /******/ (function(modules) { // webpackBootstrap
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
   var util = __webpack_require__(1);
-  var Hammer = __webpack_require__(15);
-  var hammerUtil = __webpack_require__(74);
-  var keycharm = __webpack_require__(57);
+  var Hammer = __webpack_require__(19);
+  var hammerUtil = __webpack_require__(24);
+  var keycharm = __webpack_require__(39);
 
   var NavigationHandler = (function () {
     function NavigationHandler(body, canvas) {
@@ -32783,7 +32817,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 2/27/2015.
    */
 
-  var Node = __webpack_require__(61);
+  var Node = __webpack_require__(62);
   var util = __webpack_require__(1);
 
   var SelectionHandler = (function () {
