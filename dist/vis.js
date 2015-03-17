@@ -381,7 +381,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Deep extend an object a with the properties of object b
    * @param {Object} a
    * @param {Object} b
-   * @param {Boolean} protoExtend --> optional parameter. If true, the prototype values will also be extended.
+   * @param [Boolean] protoExtend --> optional parameter. If true, the prototype values will also be extended.
    *                                  (ie. the options objects that inherit from others will also get the inherited options)
    * @returns {Object}
    */
@@ -26933,6 +26933,7 @@ return /******/ (function(modules) { // webpackBootstrap
             }
           }
         },
+        selfReferenceSize: 25,
         smooth: {
           enabled: true,
           dynamic: true,
@@ -27194,7 +27195,7 @@ return /******/ (function(modules) { // webpackBootstrap
         /**
          * Set or overwrite options for the edge
          * @param {Object} options  an object with options
-         * @param {Object} constants   and object with default, global options
+         * @param doNotEmit
          */
         value: function setOptions(options) {
           var doNotEmit = arguments[1] === undefined ? false : arguments[1];
@@ -27203,7 +27204,7 @@ return /******/ (function(modules) { // webpackBootstrap
           }
           this.colorDirty = true;
 
-          var fields = ["font", "hidden", "hoverWidth", "label", "length", "line", "opacity", "physics", "scaling", "value", "width", "widthMin", "widthMax", "widthSelectionMultiplier"];
+          var fields = ["font", "hidden", "hoverWidth", "label", "length", "line", "opacity", "physics", "scaling", "selfReferenceSize", "value", "width", "widthMin", "widthMax", "widthSelectionMultiplier"];
           util.selectiveDeepExtend(fields, this.options, options);
 
           util.mergeOptions(this.options, options, "smooth");
@@ -27414,6 +27415,7 @@ return /******/ (function(modules) { // webpackBootstrap
          * based on its value.
          * @param {Number} min
          * @param {Number} max
+         * @param total
          */
         value: function setValueRange(min, max, total) {
           if (!this.widthFixed && this.value !== undefined) {
@@ -27481,7 +27483,7 @@ return /******/ (function(modules) { // webpackBootstrap
               this._label(ctx, this.label, point.x, point.y);
             } else {
               var x, y;
-              var radius = 25;
+              var radius = this.options.selfReferenceSize;
               if (node1.width > node1.height) {
                 x = node1.x + node1.width * 0.5;
                 y = node1.y - radius;
@@ -27601,7 +27603,7 @@ return /******/ (function(modules) { // webpackBootstrap
             via = this._line(ctx);
           } else {
             var x, y;
-            var radius = 25;
+            var radius = this.options.selfReferenceSize;
             var node = this.from;
             if (!node.width) {
               node.resize(ctx);
@@ -27958,7 +27960,6 @@ return /******/ (function(modules) { // webpackBootstrap
         /**
          * Draws the label rectangle
          * @param {CanvasRenderingContext2D} ctx
-         * @param {String} labelAlignment
          * @private
          */
         value: function _drawLabelRect(ctx) {
@@ -28150,9 +28151,15 @@ return /******/ (function(modules) { // webpackBootstrap
         /**
          * This function uses binary search to look for the point where the bezier curve crosses the border of the node.
          *
-         * @param from
-         * @returns {*}
-         * @private
+         * @param nearNode
+         * @param ctx
+         * @param viaNode
+         * @param nearNode
+         * @param ctx
+         * @param viaNode
+         * @param nearNode
+         * @param ctx
+         * @param viaNode
          */
         value: function _findBorderPositionBezier(nearNode, ctx) {
           var viaNode = arguments[2] === undefined ? this._getViaCoordinates() : arguments[2];
@@ -28205,10 +28212,16 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       _findBorderPositionCircle: {
 
+
         /**
-         * This function uses binary search to look for the point where the bezier curve crosses the border of the node.
-         *
-         * @param from
+         * This function uses binary search to look for the point where the circle crosses the border of the node.
+         * @param x
+         * @param y
+         * @param radius
+         * @param node
+         * @param low
+         * @param high
+         * @param direction
          * @param ctx
          * @returns {*}
          * @private
@@ -28257,10 +28270,8 @@ return /******/ (function(modules) { // webpackBootstrap
         /**
          *
          * @param ctx
-         * @param node1
-         * @param node2
-         * @param guideOffset
-         * @private
+         * @param position
+         * @param viaNode
          */
         value: function _drawArrowHead(ctx, position, viaNode) {
           // set style
@@ -28326,7 +28337,7 @@ return /******/ (function(modules) { // webpackBootstrap
             // draw circle
             var angle, point;
             var x, y;
-            var radius = 25;
+            var radius = this.options.selfReferenceSize;
             if (!node1.width) {
               node1.resize(ctx);
             }
@@ -28393,8 +28404,10 @@ return /******/ (function(modules) { // webpackBootstrap
               }
               var minDistance = 1000000000;
               var distance;
-              var i, t, x, y, lastX, lastY;
-              for (i = 0; i < 10; i++) {
+              var i, t, x, y;
+              var lastX = x1;
+              var lastY = y1;
+              for (i = 1; i < 10; i++) {
                 t = 0.1 * i;
                 x = Math.pow(1 - t, 2) * x1 + 2 * t * (1 - t) * xVia + Math.pow(t, 2) * x2;
                 y = Math.pow(1 - t, 2) * y1 + 2 * t * (1 - t) * yVia + Math.pow(t, 2) * y2;
@@ -28411,7 +28424,7 @@ return /******/ (function(modules) { // webpackBootstrap
             }
           } else {
             var x, y, dx, dy;
-            var radius = 25;
+            var radius = this.options.selfReferenceSize;
             var node = this.from;
             if (node.width > node.height) {
               x = node.x + 0.5 * node.width;
@@ -28436,10 +28449,10 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       _getDistanceToLine: {
         value: function _getDistanceToLine(x1, y1, x2, y2, x3, y3) {
-          var px = x2 - x1,
-              py = y2 - y1,
-              something = px * px + py * py,
-              u = ((x3 - x1) * px + (y3 - y1) * py) / something;
+          var px = x2 - x1;
+          var py = y2 - y1;
+          var something = px * px + py * py;
+          var u = ((x3 - x1) * px + (y3 - y1) * py) / something;
 
           if (u > 1) {
             u = 1;
@@ -28447,10 +28460,10 @@ return /******/ (function(modules) { // webpackBootstrap
             u = 0;
           }
 
-          var x = x1 + u * px,
-              y = y1 + u * py,
-              dx = x - x3,
-              dy = y - y3;
+          var x = x1 + u * px;
+          var y = y1 + u * py;
+          var dx = x - x3;
+          var dy = y - y3;
 
           //# Note: If the actual distance does not matter,
           //# if you only want to compare what this function
