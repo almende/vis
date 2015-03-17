@@ -22,19 +22,22 @@
 <script type="text/javascript">
   // create an array with nodes
   var nodes = [
-    {id: 1, label: 'Node 1'},
-    {id: 2, label: 'Node 2'},
-    {id: 3, label: 'Node 3'},
+//    {id: 1, label: 'Node 1'},
+//    {id: 2, label: 'Node 2'},
+//    {id: 3, label: 'Node 3'},
     {id: 4, label: 'Node 4'},
-    {id: 5, label: 'Node 5'}
+    {id: 5, label: 'Node 5', shape:'database'}
   ];
 
   // create an array with edges
   var edges = [
-    {from: 1, to: 2},
-    {from: 1, to: 3},
-    {from: 2, to: 4},
-    {from: 2, to: 5}
+//    {from: 1, to: 2, label:'bla', font:{size: 15, face: 'arial', color: 'red'}},
+//    {from: 1, to: 3, arrows:{from:true, to:true, middle: true}, label:'bla'},
+//    {from: 1, to: 1, arrows:{from:true, to:true, middle: true}, smooth:false, label:'bla'},
+    {from: 4, to: 4, arrows:{from:true, to:true, middle: true}, smooth:false, label:'bla'},
+    {from: 5, to: 5, arrows:{from:true, to:true, middle: true}, smooth:false, label:'bla'},
+//    {from: 2, to: 4},
+//    {from: 2, to: 5}
   ];
 
   // create a network

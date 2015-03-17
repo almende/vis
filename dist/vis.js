@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.0.0-SNAPSHOT
- * @date    2015-03-16
+ * @date    2015-03-17
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -25628,22 +25628,33 @@ return /******/ (function(modules) { // webpackBootstrap
 
       this.options = {};
       this.defaultOptions = {
-        customScalingFunction: function (min, max, total, value) {
-          if (max == min) {
-            return 0.5;
-          } else {
-            var scale = 1 / (max - min);
-            return Math.max(0, (value - min) * scale);
+        mass: 1,
+        //radiusMin: 10,
+        //radiusMax: 30,
+        radius: 10,
+        scaling: {
+          min: 10,
+          max: 40,
+          label: {
+            enabled: true,
+            min: 14,
+            max: 30,
+            maxVisible: 30,
+            drawThreshold: 3
+          },
+          customScalingFunction: function (min, max, total, value) {
+            if (max == min) {
+              return 0.5;
+            } else {
+              var scale = 1 / (max - min);
+              return Math.max(0, (value - min) * scale);
+            }
           }
         },
-        mass: 1,
-        radiusMin: 10,
-        radiusMax: 30,
-        radius: 10,
         shape: "ellipse",
-        image: undefined,
-        widthMin: 16, // px
-        widthMax: 64, // px
+        image: undefined, // --> URL
+        //widthMin: 16, // px
+        //widthMax: 64, // px
         label: undefined,
         labelStyle: {
           fontColor: "black",
@@ -25651,13 +25662,7 @@ return /******/ (function(modules) { // webpackBootstrap
           fontFace: "verdana",
           fontFill: undefined,
           fontStrokeWidth: 0, // px
-          fontStrokeColor: "#ffffff",
-          scaleFontWithValue: false,
-          fontSizeMin: 14,
-          fontSizeMax: 30,
-          fontSizeMaxVisible: 30,
-          fontDrawThreshold: 3
-        },
+          fontStrokeColor: "#ffffff" },
         value: 1,
         color: {
           border: "#2B7CE9",
@@ -25694,7 +25699,6 @@ return /******/ (function(modules) { // webpackBootstrap
         configurable: true
       },
       setData: {
-
 
         /**
          * Set a data set with nodes for the network
@@ -25834,6 +25838,11 @@ return /******/ (function(modules) { // webpackBootstrap
   })();
 
   module.exports = NodesHandler;
+  //scaleFontWithValue: false,
+  //fontSizeMin: 14,
+  //fontSizeMax: 30,
+  //fontSizeMaxVisible: 30,
+  //fontDrawThreshold: 3
 
 /***/ },
 /* 62 */
@@ -26868,50 +26877,61 @@ return /******/ (function(modules) { // webpackBootstrap
 
       this.options = {};
       this.defaultOptions = {
-        customScalingFunction: function (min, max, total, value) {
-          if (max == min) {
-            return 0.5;
-          } else {
-            var scale = 1 / (max - min);
-            return Math.max(0, (value - min) * scale);
-          }
+        arrows: {
+          to: { enabled: false, scaleFactor: 1 }, // boolean / {arrowScaleFactor:1} / {enabled: false, arrowScaleFactor:1}
+          middle: { enabled: false, scaleFactor: 1 },
+          from: { enabled: false, scaleFactor: 1 }
         },
-        style: {
-          widthMin: 1, //
-          widthMax: 15, //
-          width: 1,
-          widthSelectionMultiplier: 2,
-          hoverWidth: 1.5,
-          type: "line",
-          color: {
-            color: "#848484",
-            highlight: "#848484",
-            hover: "#848484",
-            inherit: {
-              enabled: true,
-              source: "from", // from / true
-              useGradients: false // release in 4.0
-            }
+        color: {
+          color: "#848484",
+          highlight: "#848484",
+          hover: "#848484",
+          inherit: {
+            enabled: true,
+            source: "from", // from / true
+            useGradients: false // release in 4.0
           },
           opacity: 1
         },
-        value: 1,
-        label: undefined,
-        labelStyle: {
-          fontColor: "#343434",
-          fontSize: 14, // px
-          fontFace: "arial",
-          fontFill: "white",
-          fontStrokeWidth: 0, // px
-          fontStrokeColor: "white",
-          labelAlignment: "horizontal"
-        },
-        length: undefined,
-        arrowScaleFactor: 1,
-        dash: {
+        dashes: {
+          enabled: false,
+          preset: "dotted",
           length: 10,
           gap: 5,
           altLength: undefined
+        },
+        font: {
+          color: "#343434",
+          size: 14, // px
+          face: "arial",
+          background: "none",
+          stroke: 1, // px
+          strokeColor: "white",
+          align: "horizontal"
+        },
+        hidden: false,
+        hoverWidth: 1.5,
+        label: undefined,
+        length: undefined,
+        physics: true,
+        scaling: {
+          min: 1,
+          max: 15,
+          label: {
+            enabled: true,
+            min: 14,
+            max: 30,
+            maxVisible: 30,
+            drawThreshold: 3
+          },
+          customScalingFunction: function (min, max, total, value) {
+            if (max == min) {
+              return 0.5;
+            } else {
+              var scale = 1 / (max - min);
+              return Math.max(0, (value - min) * scale);
+            }
+          }
         },
         smooth: {
           enabled: true,
@@ -26919,8 +26939,10 @@ return /******/ (function(modules) { // webpackBootstrap
           type: "continuous",
           roundness: 0.5
         },
-        hidden: false,
-        physics: true
+        title: undefined,
+        width: 1,
+        widthSelectionMultiplier: 2,
+        value: 1
       };
 
       util.extend(this.options, this.defaultOptions);
@@ -27128,8 +27150,6 @@ return /******/ (function(modules) { // webpackBootstrap
         throw "No body provided";
       }
 
-      this.initializing = true;
-
       this.options = util.bridgeObject(globalOptions);
       this.body = body;
 
@@ -27138,7 +27158,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.fromId = undefined;
       this.toId = undefined;
       this.title = undefined;
-      this.widthSelected = this.options.style.width * this.options.style.widthSelectionMultiplier;
+      this.widthSelected = this.options.width * this.options.widthSelectionMultiplier;
       this.value = undefined;
       this.selected = false;
       this.hover = false;
@@ -27160,13 +27180,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
       this.connected = false;
 
-      this.setOptions(options);
+      this.setOptions(options, true);
 
       this.controlNodesEnabled = false;
       this.controlNodes = { from: undefined, to: undefined, positions: {} };
       this.connectedNode = undefined;
-
-      this.initializing = false;
     }
 
     _prototypeProperties(Edge, null, {
@@ -27179,17 +27197,27 @@ return /******/ (function(modules) { // webpackBootstrap
          * @param {Object} constants   and object with default, global options
          */
         value: function setOptions(options) {
+          var doNotEmit = arguments[1] === undefined ? false : arguments[1];
           if (!options) {
             return;
           }
           this.colorDirty = true;
 
-          var fields = ["style", "label", "labelStyle", "arrowScaleFactor", "dash", "opacity", "customScalingFunction", "value", "hidden", "physics"];
+          var fields = ["font", "hidden", "hoverWidth", "label", "length", "line", "opacity", "physics", "scaling", "value", "width", "widthMin", "widthMax", "widthSelectionMultiplier"];
           util.selectiveDeepExtend(fields, this.options, options);
 
-          util.mergeOptions(this.options, options, "inheritColor");
           util.mergeOptions(this.options, options, "smooth");
+          util.mergeOptions(this.options, options, "dashes");
 
+          if (options.arrows !== undefined) {
+            util.mergeOptions(this.options.arrows, options.arrows, "to");
+            util.mergeOptions(this.options.arrows, options.arrows, "middle");
+            util.mergeOptions(this.options.arrows, options.arrows, "from");
+          }
+
+          if (options.id !== undefined) {
+            this.id = options.id;
+          }
           if (options.from !== undefined) {
             this.fromId = options.from;
           }
@@ -27197,9 +27225,6 @@ return /******/ (function(modules) { // webpackBootstrap
             this.toId = options.to;
           }
 
-          if (options.id !== undefined) {
-            this.id = options.id;
-          }
           if (options.label !== undefined) {
             this.label = options.label;
             this.labelDirty = true;
@@ -27211,55 +27236,37 @@ return /******/ (function(modules) { // webpackBootstrap
           if (options.value !== undefined) {
             this.value = options.value;
           }
-          if (options.length !== undefined) {
-            this.physics.springLength = options.length;
-          }
 
-          if (options.style !== undefined) {
-            if (options.style.color !== undefined) {
-              this.options.style.color.inherit.enabled = false;
-              if (util.isString(options.style.color)) {
-                this.options.style.color.color = options.style.color;
-                this.options.style.color.highlight = options.style.color;
-              } else {
-                if (options.style.color.color !== undefined) {
-                  this.options.style.color.color = options.style.color.color;
-                }
-                if (options.style.color.highlight !== undefined) {
-                  this.options.style.color.highlight = options.style.color.highlight;
-                }
-                if (options.style.color.hover !== undefined) {
-                  this.options.style.color.hover = options.style.color.hover;
-                }
+          if (options.color !== undefined) {
+            if (util.isString(options.color)) {
+              this.options.color.color = options.color;
+              this.options.color.highlight = options.color;
+            } else {
+              if (options.color.color !== undefined) {
+                this.options.color.color = options.color.color;
               }
+              if (options.color.highlight !== undefined) {
+                this.options.color.highlight = options.color.highlight;
+              }
+              if (options.color.hover !== undefined) {
+                this.options.color.hover = options.color.hover;
+              }
+            }
+
+            // inherit colors
+            if (options.color.inherit === undefined) {
+              this.options.color.inherit.enabled = false;
+            } else {
+              util.mergeOptions(this.options.color, options.color, "inherit");
             }
           }
 
           // A node is connected when it has a from and to node that both exist in the network.body.nodes.
           this.connect();
 
-          this.widthSelected = this.options.style.width * this.options.style.widthSelectionMultiplier;
+          this.widthSelected = this.options.width * this.options.widthSelectionMultiplier;
 
-          this.setupSmoothEdges(this.initializing === false);
-
-          // set draw method based on style
-          switch (this.options.style.type) {
-            case "line":
-              this.draw = this._drawLine;
-              break;
-            case "arrow":
-              this.draw = this._drawArrow;
-              break;
-            case "arrow-center":
-              this.draw = this._drawArrowCenter;
-              break;
-            case "dash-line":
-              this.draw = this._drawDashLine;
-              break;
-            default:
-              this.draw = this._drawLine;
-              break;
-          }
+          this.setupSmoothEdges(doNotEmit);
         },
         writable: true,
         configurable: true
@@ -27274,7 +27281,7 @@ return /******/ (function(modules) { // webpackBootstrap
          * @private
          */
         value: function setupSmoothEdges() {
-          var emitChange = arguments[0] === undefined ? true : arguments[0];
+          var doNotEmit = arguments[0] === undefined ? false : arguments[0];
           var changedData = false;
           if (this.options.smooth.enabled == true && this.options.smooth.dynamic == true) {
             if (this.via === undefined) {
@@ -27302,7 +27309,7 @@ return /******/ (function(modules) { // webpackBootstrap
           }
 
           // node has been added or deleted
-          if (changedData === true && emitChange === true) {
+          if (changedData === true && doNotEmit === false) {
             this.body.emitter.emit("_dataChanged");
           }
         },
@@ -27411,9 +27418,9 @@ return /******/ (function(modules) { // webpackBootstrap
         value: function setValueRange(min, max, total) {
           if (!this.widthFixed && this.value !== undefined) {
             var scale = this.options.customScalingFunction(min, max, total, this.value);
-            var widthDiff = this.options.style.widthMax - this.options.style.widthMin;
-            this.options.style.width = this.options.style.widthMin + scale * widthDiff;
-            this.widthSelected = this.options.style.width * this.options.style.widthSelectionMultiplier;
+            var widthDiff = this.options.widthMax - this.options.widthMin;
+            this.options.width = this.options.widthMin + scale * widthDiff;
+            this.widthSelected = this.options.width * this.options.widthSelectionMultiplier;
           }
         },
         writable: true,
@@ -27429,7 +27436,68 @@ return /******/ (function(modules) { // webpackBootstrap
          * @param {CanvasRenderingContext2D}   ctx
          */
         value: function draw(ctx) {
-          throw "Method draw not initialized in edge";
+          var via = this.drawLine(ctx);
+          this.drawArrows(ctx);
+          this.drawLabel(ctx, via);
+        },
+        writable: true,
+        configurable: true
+      },
+      drawLine: {
+        value: function drawLine(ctx) {
+          if (this.options.dashes.enabled === false) {
+            return this._drawLine(ctx);
+          } else {
+            return this._drawDashLine(ctx);
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      drawArrows: {
+        value: function drawArrows(ctx) {
+          if (this.options.arrows.from.enabled === true) {
+            this._drawArrowHead(ctx, "from");
+          }
+          //if (this.options.arrows.middle.enabled === true)  {this._drawArrowCenter(ctx, via);}
+          if (this.options.arrows.to.enabled === true) {
+            this._drawArrowHead(ctx, "to");
+          }
+
+        },
+        writable: true,
+        configurable: true
+      },
+      drawLabel: {
+        value: function drawLabel(ctx, via) {
+          if (this.label !== undefined) {
+            // set style
+            var node1 = this.from;
+            var node2 = this.to;
+            if (node1.id != node2.id) {
+              var point;
+              if (this.options.smooth.enabled == true && via != undefined) {
+                var midpointX = 0.5 * (0.5 * (this.from.x + via.x) + 0.5 * (this.to.x + via.x));
+                var midpointY = 0.5 * (0.5 * (this.from.y + via.y) + 0.5 * (this.to.y + via.y));
+                point = { x: midpointX, y: midpointY };
+              } else {
+                point = this._pointOnLine(0.5);
+              }
+              this._label(ctx, this.label, point.x, point.y);
+            } else {
+              var x, y;
+              var radius = 25;
+              if (node1.width > node1.height) {
+                x = node1.x + node1.width * 0.5;
+                y = node1.y - radius;
+              } else {
+                x = node1.x + radius;
+                y = node1.y - node1.height * 0.5;
+              }
+              point = this._pointOnCircle(x, y, radius, 0.125);
+              this._label(ctx, this.label, point.x, point.y);
+            }
+          }
         },
         writable: true,
         configurable: true
@@ -27464,7 +27532,7 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       _getColor: {
         value: function _getColor(ctx) {
-          var colorObj = this.options.style.color;
+          var colorObj = this.options.color;
 
           if (colorObj.inherit.enabled === true) {
             if (colorObj.inherit.useGradients == true) {
@@ -27474,8 +27542,8 @@ return /******/ (function(modules) { // webpackBootstrap
               toColor = this.to.options.color.highlight.border;
 
               if (this.from.selected == false && this.to.selected == false) {
-                fromColor = util.overrideOpacity(this.from.options.color.border, this.options.style.opacity);
-                toColor = util.overrideOpacity(this.to.options.color.border, this.options.style.opacity);
+                fromColor = util.overrideOpacity(this.from.options.color.border, this.options.color.opacity);
+                toColor = util.overrideOpacity(this.to.options.color.border, this.options.color.opacity);
               } else if (this.from.selected == true && this.to.selected == false) {
                 toColor = this.to.options.color.border;
               } else if (this.from.selected == false && this.to.selected == true) {
@@ -27492,12 +27560,12 @@ return /******/ (function(modules) { // webpackBootstrap
               if (colorObj.inherit.source == "to") {
                 colorObj.highlight = this.to.options.color.highlight.border;
                 colorObj.hover = this.to.options.color.hover.border;
-                colorObj.color = util.overrideOpacity(this.to.options.color.border, this.options.style.opacity);
+                colorObj.color = util.overrideOpacity(this.to.options.color.border, this.options.color.opacity);
               } else {
-                // (this.options.style.color.inherit.source == "from") {
+                // (this.options.color.inherit.source == "from") {
                 colorObj.highlight = this.from.options.color.highlight.border;
                 colorObj.hover = this.from.options.color.hover.border;
-                colorObj.color = util.overrideOpacity(this.from.options.color.border, this.options.style.opacity);
+                colorObj.color = util.overrideOpacity(this.from.options.color.border, this.options.color.opacity);
               }
             }
           }
@@ -27531,41 +27599,29 @@ return /******/ (function(modules) { // webpackBootstrap
           // set style
           ctx.strokeStyle = this._getColor(ctx);
           ctx.lineWidth = this._getLineWidth();
+          var via;
 
           if (this.from != this.to) {
             // draw line
-            var via = this._line(ctx);
-
-            // draw label
-            var point;
-            if (this.label) {
-              if (this.options.smooth.enabled == true && via != undefined) {
-                var midpointX = 0.5 * (0.5 * (this.from.x + via.x) + 0.5 * (this.to.x + via.x));
-                var midpointY = 0.5 * (0.5 * (this.from.y + via.y) + 0.5 * (this.to.y + via.y));
-                point = { x: midpointX, y: midpointY };
-              } else {
-                point = this._pointOnLine(0.5);
-              }
-              this._label(ctx, this.label, point.x, point.y);
-            }
+            via = this._line(ctx);
           } else {
             var x, y;
-            var radius = this.physics.springLength / 4;
+            var radius = 25;
             var node = this.from;
             if (!node.width) {
               node.resize(ctx);
             }
             if (node.width > node.height) {
-              x = node.x + node.width / 2;
+              x = node.x + node.width * 0.5;
               y = node.y - radius;
             } else {
               x = node.x + radius;
-              y = node.y - node.height / 2;
+              y = node.y - node.height * 0.5;
             }
             this._circle(ctx, x, y, radius);
-            point = this._pointOnCircle(x, y, radius, 0.5);
-            this._label(ctx, this.label, point.x, point.y);
           }
+
+          return via;
         },
         writable: true,
         configurable: true
@@ -27581,12 +27637,12 @@ return /******/ (function(modules) { // webpackBootstrap
          */
         value: function _getLineWidth() {
           if (this.selected == true) {
-            return Math.max(Math.min(this.widthSelected, this.options.style.widthMax), 0.3 * this.networkScaleInv);
+            return Math.max(Math.min(this.widthSelected, this.options.widthMax), 0.3 * this.networkScaleInv);
           } else {
             if (this.hover == true) {
-              return Math.max(Math.min(this.options.style.hoverWidth, this.options.style.widthMax), 0.3 * this.networkScaleInv);
+              return Math.max(Math.min(this.options.hoverWidth, this.options.widthMax), 0.3 * this.networkScaleInv);
             } else {
-              return Math.max(this.options.style.width, 0.3 * this.networkScaleInv);
+              return Math.max(this.options.width, 0.3 * this.networkScaleInv);
             }
           }
         },
@@ -27835,23 +27891,23 @@ return /******/ (function(modules) { // webpackBootstrap
          */
         value: function _label(ctx, text, x, y) {
           if (text) {
-            ctx.font = (this.from.selected || this.to.selected ? "bold " : "") + this.options.labelStyle.fontSize + "px " + this.options.labelStyle.fontFace;
+            ctx.font = (this.from.selected || this.to.selected ? "bold " : "") + this.options.font.size + "px " + this.options.font.face;
             var yLine;
 
             if (this.labelDirty == true) {
               var lines = String(text).split("\n");
               var lineCount = lines.length;
-              var fontSize = Number(this.options.labelStyle.fontSize);
-              yLine = y + (1 - lineCount) / 2 * fontSize;
+              var fontSize = Number(this.options.font.size);
+              yLine = y + (1 - lineCount) * 0.5 * fontSize;
 
               var width = ctx.measureText(lines[0]).width;
               for (var i = 1; i < lineCount; i++) {
                 var lineWidth = ctx.measureText(lines[i]).width;
                 width = lineWidth > width ? lineWidth : width;
               }
-              var height = this.options.labelStyle.fontSize * lineCount;
-              var left = x - width / 2;
-              var top = y - height / 2;
+              var height = this.options.font.size * lineCount;
+              var left = x - width * 0.5;
+              var top = y - height * 0.5;
 
               // cache
               this.labelDimensions = { top: top, left: left, width: width, height: height, yLine: yLine };
@@ -27861,7 +27917,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
             ctx.save();
 
-            if (this.options.labelStyle.labelAlignment != "horizontal") {
+            if (this.options.font.align != "horizontal") {
               ctx.translate(x, yLine);
               this._rotateForLabelAlignment(ctx);
               x = 0;
@@ -27911,16 +27967,16 @@ return /******/ (function(modules) { // webpackBootstrap
          * @private
          */
         value: function _drawLabelRect(ctx) {
-          if (this.options.labelStyle.fontFill !== undefined && this.options.labelStyle.fontFill !== undefined && this.options.labelStyle.fontFill !== "none") {
-            ctx.fillStyle = this.options.labelStyle.fontFill;
+          if (this.options.font.background !== undefined && this.options.font.background !== "none") {
+            ctx.fillStyle = this.options.font.background;
 
             var lineMargin = 2;
 
-            if (this.options.labelStyle.labelAlignment == "line-center") {
+            if (this.options.font.align == "middle") {
               ctx.fillRect(-this.labelDimensions.width * 0.5, -this.labelDimensions.height * 0.5, this.labelDimensions.width, this.labelDimensions.height);
-            } else if (this.options.labelStyle.labelAlignment == "line-above") {
+            } else if (this.options.font.align == "top") {
               ctx.fillRect(-this.labelDimensions.width * 0.5, -(this.labelDimensions.height + lineMargin), this.labelDimensions.width, this.labelDimensions.height);
-            } else if (this.options.labelStyle.labelAlignment == "line-below") {
+            } else if (this.options.font.align == "bottom") {
               ctx.fillRect(-this.labelDimensions.width * 0.5, lineMargin, this.labelDimensions.width, this.labelDimensions.height);
             } else {
               ctx.fillRect(this.labelDimensions.left, this.labelDimensions.top, this.labelDimensions.width, this.labelDimensions.height);
@@ -27945,16 +28001,16 @@ return /******/ (function(modules) { // webpackBootstrap
          */
         value: function _drawLabelText(ctx, x, yLine, lines, lineCount, fontSize) {
           // draw text
-          ctx.fillStyle = this.options.labelStyle.fontColor || "black";
+          ctx.fillStyle = this.options.font.color || "black";
           ctx.textAlign = "center";
 
           // check for label alignment
-          if (this.options.labelStyle.labelAlignment != "horizontal") {
+          if (this.options.font.align != "horizontal") {
             var lineMargin = 2;
-            if (this.options.labelStyle.labelAlignment == "line-above") {
+            if (this.options.font.align == "top") {
               ctx.textBaseline = "alphabetic";
               yLine -= 2 * lineMargin; // distance from edge, required because we use alphabetic. Alphabetic has less difference between browsers
-            } else if (this.options.labelStyle.labelAlignment == "line-below") {
+            } else if (this.options.font.align == "bottom") {
               ctx.textBaseline = "hanging";
               yLine += 2 * lineMargin; // distance from edge, required because we use hanging. Hanging has less difference between browsers
             } else {
@@ -27965,13 +28021,13 @@ return /******/ (function(modules) { // webpackBootstrap
           }
 
           // check for strokeWidth
-          if (this.options.labelStyle.fontStrokeWidth > 0) {
-            ctx.lineWidth = this.options.labelStyle.fontStrokeWidth;
-            ctx.strokeStyle = this.options.labelStyle.fontStrokeColor;
+          if (this.options.font.stroke > 0) {
+            ctx.lineWidth = this.options.font.stroke;
+            ctx.strokeStyle = this.options.font.strokeColor;
             ctx.lineJoin = "round";
           }
           for (var i = 0; i < lineCount; i++) {
-            if (this.options.labelStyle.fontStrokeWidth > 0) {
+            if (this.options.font.stroke > 0) {
               ctx.strokeText(lines[i], x, yLine);
             }
             ctx.fillText(lines[i], x, yLine);
@@ -27985,7 +28041,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
         /**
-         * Redraw a edge as a dashed line
+         * Redraw a edge as a dashes line
          * Draw this edge in the given canvas
          * @author David Jordan
          * @date 2012-08-08
@@ -28004,8 +28060,8 @@ return /******/ (function(modules) { // webpackBootstrap
             ctx.save();
             // configure the dash pattern
             var pattern = [0];
-            if (this.options.dash.length !== undefined && this.options.dash.gap !== undefined) {
-              pattern = [this.options.dash.length, this.options.dash.gap];
+            if (this.options.dashes.length !== undefined && this.options.dashes.gap !== undefined) {
+              pattern = [this.options.dashes.length, this.options.dashes.gap];
             } else {
               pattern = [5, 5];
             }
@@ -28023,15 +28079,15 @@ return /******/ (function(modules) { // webpackBootstrap
             ctx.restore();
           } else {
             // unsupporting smooth lines
-            // draw dashed line
+            // draw dashes line
             ctx.beginPath();
             ctx.lineCap = "round";
-            if (this.options.dash.altLength !== undefined) //If an alt dash value has been set add to the array this value
+            if (this.options.dashes.altLength !== undefined) //If an alt dash value has been set add to the array this value
               {
-                ctx.dashedLine(this.from.x, this.from.y, this.to.x, this.to.y, [this.options.dash.length, this.options.dash.gap, this.options.dash.altLength, this.options.dash.gap]);
-              } else if (this.options.dash.length !== undefined && this.options.dash.gap !== undefined) //If a dash and gap value has been set add to the array this value
+                ctx.dashesLine(this.from.x, this.from.y, this.to.x, this.to.y, [this.options.dashes.length, this.options.dashes.gap, this.options.dashes.altLength, this.options.dashes.gap]);
+              } else if (this.options.dashes.length !== undefined && this.options.dashes.gap !== undefined) //If a dash and gap value has been set add to the array this value
               {
-                ctx.dashedLine(this.from.x, this.from.y, this.to.x, this.to.y, [this.options.dash.length, this.options.dash.gap]);
+                ctx.dashesLine(this.from.x, this.from.y, this.to.x, this.to.y, [this.options.dashes.length, this.options.dashes.gap]);
               } else //If all else fails draw a line
               {
                 ctx.moveTo(this.from.x, this.from.y);
@@ -28040,18 +28096,7 @@ return /******/ (function(modules) { // webpackBootstrap
             ctx.stroke();
           }
 
-          // draw label
-          if (this.label) {
-            var point;
-            if (this.options.smooth.enabled == true && via != undefined) {
-              var midpointX = 0.5 * (0.5 * (this.from.x + via.x) + 0.5 * (this.to.x + via.x));
-              var midpointY = 0.5 * (0.5 * (this.from.y + via.y) + 0.5 * (this.to.y + via.y));
-              point = { x: midpointX, y: midpointY };
-            } else {
-              point = this._pointOnLine(0.5);
-            }
-            this._label(ctx, this.label, point.x, point.y);
-          }
+          return via;
         },
         writable: true,
         configurable: true
@@ -28087,7 +28132,7 @@ return /******/ (function(modules) { // webpackBootstrap
          * @private
          */
         value: function _pointOnCircle(x, y, radius, percentage) {
-          var angle = (percentage - 3 / 8) * 2 * Math.PI;
+          var angle = percentage * 2 * Math.PI;
           return {
             x: x + radius * Math.cos(angle),
             y: y - radius * Math.sin(angle)
@@ -28118,7 +28163,7 @@ return /******/ (function(modules) { // webpackBootstrap
             var via = this._line(ctx);
 
             var angle = Math.atan2(this.to.y - this.from.y, this.to.x - this.from.x);
-            var length = (10 + 5 * this.options.style.width) * this.options.arrowScaleFactor;
+            var length = (10 + 5 * this.options.width) * this.options.arrowScaleFactor;
             // draw an arrow halfway the line
             if (this.options.smooth.enabled == true && via != undefined) {
               var midpointX = 0.5 * (0.5 * (this.from.x + via.x) + 0.5 * (this.to.x + via.x));
@@ -28139,7 +28184,7 @@ return /******/ (function(modules) { // webpackBootstrap
           } else {
             // draw circle
             var x, y;
-            var radius = 0.25 * Math.max(100, this.physics.springLength);
+            var radius = 25;
             var node = this.from;
             if (!node.width) {
               node.resize(ctx);
@@ -28155,7 +28200,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
             // draw all arrows
             var angle = 0.2 * Math.PI;
-            var length = (10 + 5 * this.options.style.width) * this.options.arrowScaleFactor;
+            var length = (10 + 5 * this.options.width) * this.options.arrowScaleFactor;
             point = this._pointOnCircle(x, y, radius, 0.5);
             ctx.arrow(point.x, point.y, angle, length);
             ctx.fill();
@@ -28183,26 +28228,27 @@ return /******/ (function(modules) { // webpackBootstrap
         writable: true,
         configurable: true
       },
-      _findBorderPosition: {
+      _findBorderPositionBezier: {
 
         /**
          * This function uses binary search to look for the point where the bezier curve crosses the border of the node.
          *
          * @param from
-         * @param ctx
          * @returns {*}
          * @private
          */
-        value: function _findBorderPosition(from, ctx) {
+        value: function _findBorderPositionBezier(nearNode, ctx) {
           var maxIterations = 10;
           var iteration = 0;
           var low = 0;
           var high = 1;
-          var pos, angle, distanceToBorder, distanceToNodes, difference;
+          var pos, angle, distanceToBorder, distanceToPoint, difference;
           var threshold = 0.2;
           var node = this.to;
-          if (from == true) {
+          var from = false;
+          if (nearNode.id === this.from.id) {
             node = this.from;
+            from = true;
           }
 
           while (low <= high && iteration < maxIterations) {
@@ -28211,8 +28257,8 @@ return /******/ (function(modules) { // webpackBootstrap
             pos = this._pointOnBezier(middle);
             angle = Math.atan2(node.y - pos.y, node.x - pos.x);
             distanceToBorder = node.distanceToBorder(ctx, angle);
-            distanceToNodes = Math.sqrt(Math.pow(pos.x - node.x, 2) + Math.pow(pos.y - node.y, 2));
-            difference = distanceToBorder - distanceToNodes;
+            distanceToPoint = Math.sqrt(Math.pow(pos.x - node.x, 2) + Math.pow(pos.y - node.y, 2));
+            difference = distanceToBorder - distanceToPoint;
             if (Math.abs(difference) < threshold) {
               break; // found
             } else if (difference < 0) {
@@ -28239,106 +28285,151 @@ return /******/ (function(modules) { // webpackBootstrap
         writable: true,
         configurable: true
       },
-      _drawArrow: {
-
+      _findBorderPositionCircle: {
 
         /**
-         * Redraw a edge as a line with an arrow
-         * Draw this edge in the given canvas
-         * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-         * @param {CanvasRenderingContext2D}   ctx
+         * This function uses binary search to look for the point where the bezier curve crosses the border of the node.
+         *
+         * @param from
+         * @param ctx
+         * @returns {*}
          * @private
          */
-        value: function _drawArrow(ctx) {
+        value: function _findBorderPositionCircle(x, y, radius, node, low, high, direction, ctx) {
+          var maxIterations = 10;
+          var iteration = 0;
+          var pos, angle, distanceToBorder, distanceToPoint, difference;
+          var threshold = 0.05;
+
+          while (low <= high && iteration < maxIterations) {
+            var middle = (low + high) * 0.5;
+
+            pos = this._pointOnCircle(x, y, radius, middle);
+            angle = Math.atan2(node.y - pos.y, node.x - pos.x);
+            distanceToBorder = node.distanceToBorder(ctx, angle);
+            distanceToPoint = Math.sqrt(Math.pow(pos.x - node.x, 2) + Math.pow(pos.y - node.y, 2));
+            difference = distanceToBorder - distanceToPoint;
+            if (Math.abs(difference) < threshold) {
+              break; // found
+            } else if (difference > 0) {
+              // distance to nodes is larger than distance to border --> t needs to be bigger if we're looking at the to node.
+              if (direction > 0) {
+                low = middle;
+              } else {
+                high = middle;
+              }
+            } else {
+              if (direction > 0) {
+                high = middle;
+              } else {
+                low = middle;
+              }
+            }
+            iteration++;
+          }
+          pos.t = middle;
+
+          return pos;
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawArrowHead: {
+
+        /**
+         *
+         * @param ctx
+         * @param node1
+         * @param node2
+         * @param guideOffset
+         * @private
+         */
+        value: function _drawArrowHead(ctx, position) {
           // set style
           ctx.strokeStyle = this._getColor(ctx);
           ctx.fillStyle = ctx.strokeStyle;
           ctx.lineWidth = this._getLineWidth();
 
           // set vars
-          var angle, length, arrowPos;
+          var angle;
+          var length;
+          var arrowPos;
+          var node1;
+          var node2;
+          var guideOffset;
+          var scaleFactor;
+
+          if (position == "from") {
+            node1 = this.from;
+            node2 = this.to;
+            guideOffset = 0.1;
+            scaleFactor = this.options.arrows.from.scaleFactor;
+          } else if (position == "to") {
+            node1 = this.to;
+            node2 = this.from;
+            guideOffset = -0.1;
+            scaleFactor = this.options.arrows.to.scaleFactor;
+          }
 
           // if not connected to itself
-          if (this.from != this.to) {
-            // draw line
-            this._line(ctx);
-
+          if (node1 != node2) {
             // draw arrow head
             if (this.options.smooth.enabled == true) {
-              var via = this._getViaCoordinates();
-              arrowPos = this._findBorderPosition(false, ctx);
-              var guidePos = this._pointOnBezier(Math.max(0, arrowPos.t - 0.1));
+              arrowPos = this._findBorderPositionBezier(node1, ctx);
+              var guidePos = this._pointOnBezier(Math.max(0, arrowPos.t + guideOffset));
               angle = Math.atan2(arrowPos.y - guidePos.y, arrowPos.x - guidePos.x);
             } else {
-              angle = Math.atan2(this.to.y - this.from.y, this.to.x - this.from.x);
-              var dx = this.to.x - this.from.x;
-              var dy = this.to.y - this.from.y;
+              angle = Math.atan2(node1.y - node2.y, node1.x - node2.x);
+              var dx = node1.x - node2.x;
+              var dy = node1.y - node2.y;
               var edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
               var toBorderDist = this.to.distanceToBorder(ctx, angle);
               var toBorderPoint = (edgeSegmentLength - toBorderDist) / edgeSegmentLength;
 
               arrowPos = {};
-              arrowPos.x = (1 - toBorderPoint) * this.from.x + toBorderPoint * this.to.x;
-              arrowPos.y = (1 - toBorderPoint) * this.from.y + toBorderPoint * this.to.y;
+              arrowPos.x = (1 - toBorderPoint) * node2.x + toBorderPoint * node1.x;
+              arrowPos.y = (1 - toBorderPoint) * node2.y + toBorderPoint * node1.y;
             }
 
             // draw arrow at the end of the line
-            length = (10 + 5 * this.options.style.width) * this.options.arrowScaleFactor;
+            length = (10 + 5 * this.options.width) * scaleFactor;
             ctx.arrow(arrowPos.x, arrowPos.y, angle, length);
             ctx.fill();
             ctx.stroke();
-
-            // draw label
-            if (this.label) {
-              var point;
-              if (this.options.smooth.enabled == true && via != undefined) {
-                point = this._pointOnBezier(0.5);
-              } else {
-                point = this._pointOnLine(0.5);
-              }
-              this._label(ctx, this.label, point.x, point.y);
-            }
           } else {
             // draw circle
-            var node = this.from;
-            var x, y, arrow;
-            var radius = 0.25 * Math.max(100, this.physics.springLength);
-            if (!node.width) {
-              node.resize(ctx);
+            var angle, point;
+            var x, y;
+            var radius = 25;
+            if (!node1.width) {
+              node1.resize(ctx);
             }
-            if (node.width > node.height) {
-              x = node.x + node.width * 0.5;
-              y = node.y - radius;
-              arrow = {
-                x: x,
-                y: node.y,
-                angle: 0.9 * Math.PI
-              };
+
+            // get circle coordinates
+            if (node1.width > node1.height) {
+              x = node1.x + node1.width * 0.5;
+              y = node1.y - radius;
             } else {
-              x = node.x + radius;
-              y = node.y - node.height * 0.5;
-              arrow = {
-                x: node.x,
-                y: y,
-                angle: 0.6 * Math.PI
-              };
+              x = node1.x + radius;
+              y = node1.y - node1.height * 0.5;
             }
-            ctx.beginPath();
-            // TODO: similarly, for a line without arrows, draw to the border of the nodes instead of the center
-            ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
-            ctx.stroke();
+
+
+            if (position == "from") {
+              point = this._findBorderPositionCircle(x, y, radius, node1, 0.25, 0.6, -1, ctx);
+              angle = point.t * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
+            } else {
+              point = this._findBorderPositionCircle(x, y, radius, node1, 0.6, 0.8, 1, ctx);
+              angle = point.t * -2 * Math.PI + 1.5 * Math.PI - 1.1 * Math.PI;
+            }
+
+
 
             // draw all arrows
-            var length = (10 + 5 * this.options.style.width) * this.options.arrowScaleFactor;
-            ctx.arrow(arrow.x, arrow.y, arrow.angle, length);
+            var length = (10 + 5 * this.options.width) * scaleFactor;
+            ctx.arrow(point.x, point.y, angle, length);
             ctx.fill();
             ctx.stroke();
-
-            // draw label
-            if (this.label) {
-              point = this._pointOnCircle(x, y, radius, 0.5);
-              this._label(ctx, this.label, point.x, point.y);
-            }
           }
         },
         writable: true,
@@ -28393,7 +28484,7 @@ return /******/ (function(modules) { // webpackBootstrap
             }
           } else {
             var x, y, dx, dy;
-            var radius = 0.25 * this.physics.springLength;
+            var radius = 25;
             var node = this.from;
             if (node.width > node.height) {
               x = node.x + 0.5 * node.width;
@@ -28642,7 +28733,7 @@ return /******/ (function(modules) { // webpackBootstrap
           // draw arrow head
           var controlnodeFromPos;
           if (this.options.smooth.enabled == true) {
-            controlnodeFromPos = this._findBorderPosition(true, ctx);
+            controlnodeFromPos = this._findBorderPositionBezier(true, ctx);
           } else {
             var angle = Math.atan2(this.to.y - this.from.y, this.to.x - this.from.x);
             var dx = this.to.x - this.from.x;
@@ -28674,7 +28765,7 @@ return /******/ (function(modules) { // webpackBootstrap
           // draw arrow head
           var controlnodeToPos;
           if (this.options.smooth.enabled == true) {
-            controlnodeToPos = this._findBorderPosition(false, ctx);
+            controlnodeToPos = this._findBorderPositionBezier(false, ctx);
           } else {
             var angle = Math.atan2(this.to.y - this.from.y, this.to.x - this.from.x);
             var dx = this.to.x - this.from.x;
