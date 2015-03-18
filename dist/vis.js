@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.0.0-SNAPSHOT
- * @date    2015-03-17
+ * @date    2015-03-18
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -23282,21 +23282,21 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var EdgesHandler = _interopRequire(__webpack_require__(63));
 
-  var PhysicsEngine = _interopRequire(__webpack_require__(65));
+  var PhysicsEngine = _interopRequire(__webpack_require__(66));
 
-  var ClusterEngine = _interopRequire(__webpack_require__(72));
+  var ClusterEngine = _interopRequire(__webpack_require__(73));
 
-  var CanvasRenderer = _interopRequire(__webpack_require__(73));
+  var CanvasRenderer = _interopRequire(__webpack_require__(74));
 
-  var Canvas = _interopRequire(__webpack_require__(74));
+  var Canvas = _interopRequire(__webpack_require__(75));
 
-  var View = _interopRequire(__webpack_require__(75));
+  var View = _interopRequire(__webpack_require__(76));
 
-  var InteractionHandler = _interopRequire(__webpack_require__(76));
+  var InteractionHandler = _interopRequire(__webpack_require__(77));
 
-  var SelectionHandler = _interopRequire(__webpack_require__(78));
+  var SelectionHandler = _interopRequire(__webpack_require__(79));
 
-  var LayoutEngine = _interopRequire(__webpack_require__(79));
+  var LayoutEngine = _interopRequire(__webpack_require__(80));
 
   /**
    * @constructor Network
@@ -25586,6 +25586,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   "use strict";
 
+  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
+
   var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
@@ -25597,8 +25599,8 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(9);
-  var Node = __webpack_require__(62);
 
+  var Node = _interopRequire(__webpack_require__(62));
 
   var NodesHandler = (function () {
     function NodesHandler(body, images, groups, layoutEngine) {
@@ -25629,9 +25631,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.options = {};
       this.defaultOptions = {
         mass: 1,
-        //radiusMin: 10,
-        //radiusMax: 30,
-        radius: 10,
+        size: 10,
         scaling: {
           min: 10,
           max: 40,
@@ -25653,16 +25653,16 @@ return /******/ (function(modules) { // webpackBootstrap
         },
         shape: "ellipse",
         image: undefined, // --> URL
-        //widthMin: 16, // px
-        //widthMax: 64, // px
         label: undefined,
-        labelStyle: {
-          fontColor: "black",
-          fontSize: 14, // px
-          fontFace: "verdana",
-          fontFill: undefined,
-          fontStrokeWidth: 0, // px
-          fontStrokeColor: "#ffffff" },
+        font: {
+          color: "#343434",
+          size: 14, // px
+          face: "arial",
+          background: "none",
+          stroke: 0, // px
+          strokeColor: "white",
+          align: "horizontal"
+        },
         value: 1,
         color: {
           border: "#2B7CE9",
@@ -25758,8 +25758,8 @@ return /******/ (function(modules) { // webpackBootstrap
           var newNodes = [];
           for (var i = 0; i < ids.length; i++) {
             id = ids[i];
-            var data = this.body.data.nodes.get(id);
-            var node = new Node(data, this.images, this.groups, this.options);
+            var properties = this.body.data.nodes.get(id);
+            var node = this.create(properties);;
             newNodes.push(node);
             this.body.nodes[id] = node; // note: this may replace an existing node
           }
@@ -25791,7 +25791,7 @@ return /******/ (function(modules) { // webpackBootstrap
             } else {
               dataChanged = true;
               // create node
-              node = new Node(properties, this.images, this.groups, this.constants);
+              node = this.create(properties);
               nodes[id] = node;
             }
           }
@@ -25827,7 +25827,7 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       create: {
         value: function create(properties) {
-          return new Node(properties, this.images, this.groups, this.options);
+          return new Node(properties, this.body, this.images, this.groups, this.options);
         },
         writable: true,
         configurable: true
@@ -25838,11 +25838,6 @@ return /******/ (function(modules) { // webpackBootstrap
   })();
 
   module.exports = NodesHandler;
-  //scaleFontWithValue: false,
-  //fontSizeMin: 14,
-  //fontSizeMax: 30,
-  //fontSizeMaxVisible: 30,
-  //fontDrawThreshold: 3
 
 /***/ },
 /* 62 */
@@ -25850,7 +25845,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
   "use strict";
 
+  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
   var util = __webpack_require__(1);
+
+
+  var Label = _interopRequire(__webpack_require__(65));
 
   /**
    * @class Node
@@ -25877,957 +25881,948 @@ return /******/ (function(modules) { // webpackBootstrap
    *                                            example for the color
    *
    */
-  function Node(options, imagelist, grouplist, globalOptions) {
-    this.options = util.bridgeObject(globalOptions);
+  var Node = (function () {
+    function Node(options, body, imagelist, grouplist, globalOptions) {
+      _classCallCheck(this, Node);
 
-    this.selected = false;
-    this.hover = false;
+      this.options = util.bridgeObject(globalOptions);
 
-    this.edges = []; // all edges connected to this node
+      this.selected = false;
+      this.hover = false;
 
-    // set defaults for the options
-    this.id = undefined;
-    this.allowedToMoveX = false;
-    this.allowedToMoveY = false;
-    this.xFixed = false;
-    this.yFixed = false;
-    this.horizontalAlignLeft = true; // these are for the navigation controls
-    this.verticalAlignTop = true; // these are for the navigation controls
-    this.baseRadiusValue = this.options.radius;
-    this.radiusFixed = false;
+      this.edges = []; // all edges connected to this node
 
-    this.labelDimensions = { top: 0, left: 0, width: 0, height: 0, yLine: 0 }; // could be cached
-    this.boundingBox = { top: 0, left: 0, right: 0, bottom: 0 };
+      // set defaults for the options
+      this.id = undefined;
+      this.allowedToMoveX = false;
+      this.allowedToMoveY = false;
+      this.xFixed = false;
+      this.yFixed = false;
 
-    this.imagelist = imagelist;
-    this.grouplist = grouplist;
+      this.boundingBox = { top: 0, left: 0, right: 0, bottom: 0 };
 
-    // physics options
-    this.x = null;
-    this.y = null;
-    this.predefinedPosition = false; // used to check if initial zoomExtent should just take the range or approximate
+      this.imagelist = imagelist;
+      this.grouplist = grouplist;
 
-    this.fixedData = { x: null, y: null };
+      // physics options
+      this.x = null;
+      this.y = null;
+      this.predefinedPosition = false; // used to check if initial zoomExtent should just take the range or approximate
 
-    // TODO: global options should not be needed here.
-    this.setOptions(options, globalOptions);
+      this.fixedData = { x: null, y: null };
+      this.labelModule = new Label(body, this.options);
 
-    // variables to tell the node about the network.
-    this.networkScaleInv = 1;
-    this.networkScale = 1;
-    this.canvasTopLeft = { x: -300, y: -300 };
-    this.canvasBottomRight = { x: 300, y: 300 };
-    this.parentEdgeId = null;
-  }
-
-
-  /**
-   * Attach a edge to the node
-   * @param {Edge} edge
-   */
-  Node.prototype.attachEdge = function (edge) {
-    if (this.edges.indexOf(edge) == -1) {
-      this.edges.push(edge);
-    }
-  };
-
-  /**
-   * Detach a edge from the node
-   * @param {Edge} edge
-   */
-  Node.prototype.detachEdge = function (edge) {
-    var index = this.edges.indexOf(edge);
-    if (index != -1) {
-      this.edges.splice(index, 1);
-    }
-  };
-
-
-  /**
-   * Set or overwrite options for the node
-   * @param {Object} options an object with options
-   * @param {Object} constants  and object with default, global options
-   */
-  Node.prototype.setOptions = function (options, constants) {
-    if (!options) {
-      return;
+      this.setOptions(options);
     }
 
-    var fields = ["borderWidth", "borderWidthSelected", "shape", "image", "brokenImage", "radius", "label", "customScalingFunction", "icon", "value", "hidden", "physics"];
-    util.selectiveDeepExtend(fields, this.options, options);
+    _prototypeProperties(Node, null, {
+      attachEdge: {
 
-    // basic options
-    if (options.id !== undefined) {
-      this.id = options.id;
-    }
-    if (options.label !== undefined) {
-      this.label = options.label;this.originalLabel = options.label;
-    }
-    if (options.title !== undefined) {
-      this.title = options.title;
-    }
-    if (options.x !== undefined) {
-      this.x = options.x;this.predefinedPosition = true;
-    }
-    if (options.y !== undefined) {
-      this.y = options.y;this.predefinedPosition = true;
-    }
-    if (options.value !== undefined) {
-      this.value = options.value;
-    }
-    if (options.level !== undefined) {
-      this.level = options.level;this.preassignedLevel = true;
-    }
 
-    // navigation controls options
-    if (options.horizontalAlignLeft !== undefined) {
-      this.horizontalAlignLeft = options.horizontalAlignLeft;
-    }
-    if (options.verticalAlignTop !== undefined) {
-      this.verticalAlignTop = options.verticalAlignTop;
-    }
-    if (options.triggerFunction !== undefined) {
-      this.triggerFunction = options.triggerFunction;
-    }
+        /**
+         * Attach a edge to the node
+         * @param {Edge} edge
+         */
+        value: function attachEdge(edge) {
+          if (this.edges.indexOf(edge) == -1) {
+            this.edges.push(edge);
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      detachEdge: {
 
-    if (this.id === undefined) {
-      throw "Node must have an id";
-    }
 
-    // copy group options
-    if (typeof options.group === "number" || typeof options.group === "string" && options.group != "") {
-      var groupObj = this.grouplist.get(options.group);
-      util.deepExtend(this.options, groupObj);
-      // the color object needs to be completely defined. Since groups can partially overwrite the colors, we parse it again, just in case.
-      this.options.color = util.parseColor(this.options.color);
-    }
-    // individual shape options
-    if (options.radius !== undefined) {
-      this.baseRadiusValue = this.options.radius;
-    }
-    if (options.color !== undefined) {
-      this.options.color = util.parseColor(options.color);
-    }
+        /**
+         * Detach a edge from the node
+         * @param {Edge} edge
+         */
+        value: function detachEdge(edge) {
+          var index = this.edges.indexOf(edge);
+          if (index != -1) {
+            this.edges.splice(index, 1);
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      setOptions: {
 
-    if (this.options.image !== undefined && this.options.image != "") {
-      if (this.imagelist) {
-        this.imageObj = this.imagelist.load(this.options.image, this.options.brokenImage);
-      } else {
-        throw "No imagelist provided";
+
+
+        /**
+         * Set or overwrite options for the node
+         * @param {Object} options an object with options
+         * @param {Object} constants  and object with default, global options
+         */
+        value: function setOptions(options) {
+          if (!options) {
+            return;
+          }
+
+          var fields = ["borderWidth", "borderWidthSelected", "shape", "image", "brokenImage", "size", "label", "customScalingFunction", "icon", "value", "hidden", "physics"];
+          util.selectiveDeepExtend(fields, this.options, options);
+
+          // basic options
+          if (options.id !== undefined) {
+            this.id = options.id;
+          }
+          if (options.title !== undefined) {
+            this.title = options.title;
+          }
+          if (options.x !== undefined) {
+            this.x = options.x;
+            this.predefinedPosition = true;
+          }
+          if (options.y !== undefined) {
+            this.y = options.y;
+            this.predefinedPosition = true;
+          }
+          if (options.value !== undefined) {
+            this.value = options.value;
+          }
+          if (options.level !== undefined) {
+            this.level = options.level;
+            this.preassignedLevel = true;
+          }
+
+          if (options.triggerFunction !== undefined) {
+            this.triggerFunction = options.triggerFunction;
+          }
+
+          if (this.id === undefined) {
+            throw "Node must have an id";
+          }
+
+          // copy group options
+          if (typeof options.group === "number" || typeof options.group === "string" && options.group != "") {
+            var groupObj = this.grouplist.get(options.group);
+            util.deepExtend(this.options, groupObj);
+            // the color object needs to be completely defined. Since groups can partially overwrite the colors, we parse it again, just in case.
+            this.options.color = util.parseColor(this.options.color);
+          }
+          // individual shape options
+          if (options.color !== undefined) {
+            this.options.color = util.parseColor(options.color);
+          }
+
+          if (this.options.image !== undefined && this.options.image != "") {
+            if (this.imagelist) {
+              this.imageObj = this.imagelist.load(this.options.image, this.options.brokenImage);
+            } else {
+              throw "No imagelist provided";
+            }
+          }
+
+          if (options.allowedToMoveX !== undefined) {
+            this.xFixed = !options.allowedToMoveX;
+            this.allowedToMoveX = options.allowedToMoveX;
+          } else if (options.x !== undefined && this.allowedToMoveX == false) {
+            this.xFixed = true;
+          }
+
+
+          if (options.allowedToMoveY !== undefined) {
+            this.yFixed = !options.allowedToMoveY;
+            this.allowedToMoveY = options.allowedToMoveY;
+          } else if (options.y !== undefined && this.allowedToMoveY == false) {
+            this.yFixed = true;
+          }
+
+          // choose draw method depending on the shape
+          switch (this.options.shape) {
+            case "database":
+              this.draw = this._drawDatabase;
+              this.resize = this._resizeDatabase;
+              break;
+            case "box":
+              this.draw = this._drawBox;
+              this.resize = this._resizeBox;
+              break;
+            case "circle":
+              this.draw = this._drawCircle;
+              this.resize = this._resizeCircle;
+              break;
+            case "ellipse":
+              this.draw = this._drawEllipse;
+              this.resize = this._resizeEllipse;
+              break;
+            // TODO: add diamond shape
+            case "image":
+              this.draw = this._drawImage;
+              this.resize = this._resizeImage;
+              break;
+            case "circularImage":
+              this.draw = this._drawCircularImage;
+              this.resize = this._resizeCircularImage;
+              break;
+            case "text":
+              this.draw = this._drawText;
+              this.resize = this._resizeText;
+              break;
+            case "dot":
+              this.draw = this._drawDot;
+              this.resize = this._resizeShape;
+              break;
+            case "square":
+              this.draw = this._drawSquare;
+              this.resize = this._resizeShape;
+              break;
+            case "triangle":
+              this.draw = this._drawTriangle;
+              this.resize = this._resizeShape;
+              break;
+            case "triangleDown":
+              this.draw = this._drawTriangleDown;
+              this.resize = this._resizeShape;
+              break;
+            case "star":
+              this.draw = this._drawStar;
+              this.resize = this._resizeShape;
+              break;
+            case "icon":
+              this.draw = this._drawIcon;
+              this.resize = this._resizeIcon;
+              break;
+            default:
+              this.draw = this._drawEllipse;
+              this.resize = this._resizeEllipse;
+              break;
+          }
+
+          this.labelModule.setOptions(this.options);
+
+          // reset the size of the node, this can be changed
+          this._reset();
+        },
+        writable: true,
+        configurable: true
+      },
+      select: {
+
+
+        /**
+         * select this node
+         */
+        value: function select() {
+          this.selected = true;
+          this._reset();
+        },
+        writable: true,
+        configurable: true
+      },
+      unselect: {
+
+
+        /**
+         * unselect this node
+         */
+        value: function unselect() {
+          this.selected = false;
+          this._reset();
+        },
+        writable: true,
+        configurable: true
+      },
+      _reset: {
+
+
+
+        /**
+         * Reset the calculated size of the node, forces it to recalculate its size
+         * @private
+         */
+        value: function _reset() {
+          this.width = undefined;
+          this.height = undefined;
+        },
+        writable: true,
+        configurable: true
+      },
+      getTitle: {
+
+
+        /**
+         * get the title of this node.
+         * @return {string} title    The title of the node, or undefined when no title
+         *                           has been set.
+         */
+        value: function getTitle() {
+          return typeof this.title === "function" ? this.title() : this.title;
+        },
+        writable: true,
+        configurable: true
+      },
+      distanceToBorder: {
+
+
+        /**
+         * Calculate the distance to the border of the Node
+         * @param {CanvasRenderingContext2D}   ctx
+         * @param {Number} angle        Angle in radians
+         * @returns {number} distance   Distance to the border in pixels
+         */
+        value: function distanceToBorder(ctx, angle) {
+          var borderWidth = 1;
+
+          if (!this.width) {
+            this.resize(ctx);
+          }
+
+          switch (this.options.shape) {
+            case "circle":
+            case "dot":
+              return this.options.size + borderWidth;
+
+            case "ellipse":
+              var a = this.width / 2;
+              var b = this.height / 2;
+              var w = Math.sin(angle) * a;
+              var h = Math.cos(angle) * b;
+              return a * b / Math.sqrt(w * w + h * h);
+
+            // TODO: implement distanceToBorder for database
+            // TODO: implement distanceToBorder for triangle
+            // TODO: implement distanceToBorder for triangleDown
+
+            case "box":
+            case "image":
+            case "text":
+            default:
+              if (this.width) {
+                return Math.min(Math.abs(this.width / 2 / Math.cos(angle)), Math.abs(this.height / 2 / Math.sin(angle))) + borderWidth;
+                // TODO: reckon with border size too in case of box
+              } else {
+                return 0;
+              }
+
+          }
+          // TODO: implement calculation of distance to border for all shapes
+        },
+        writable: true,
+        configurable: true
+      },
+      isFixed: {
+
+
+        /**
+         * Check if this node has a fixed x and y position
+         * @return {boolean}      true if fixed, false if not
+         */
+        value: function isFixed() {
+          return this.xFixed && this.yFixed;
+        },
+        writable: true,
+        configurable: true
+      },
+      isSelected: {
+
+
+        /**
+         * check if this node is selecte
+         * @return {boolean} selected   True if node is selected, else false
+         */
+        value: function isSelected() {
+          return this.selected;
+        },
+        writable: true,
+        configurable: true
+      },
+      getValue: {
+
+
+        /**
+         * Retrieve the value of the node. Can be undefined
+         * @return {Number} value
+         */
+        value: function getValue() {
+          return this.value;
+        },
+        writable: true,
+        configurable: true
+      },
+      setValueRange: {
+
+
+        /**
+         * Adjust the value range of the node. The node will adjust it's size
+         * based on its value.
+         * @param {Number} min
+         * @param {Number} max
+         */
+        value: function setValueRange(min, max, total) {
+          if (this.value !== undefined) {
+            var scale = this.options.scaling.customScalingFunction(min, max, total, this.value);
+            var sizeDiff = this.options.scaling.max - this.options.scaling.min;
+            if (this.options.scaling.label.enabled == true) {
+              var fontDiff = this.options.scaling.label.max - this.options.scaling.label.min;
+              this.options.font.size = this.options.scaling.label.min + scale * fontDiff;
+            }
+            this.options.size = this.options.scaling.min + scale * sizeDiff;
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      draw: {
+
+
+        /**
+         * Draw this node in the given canvas
+         * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+         * @param {CanvasRenderingContext2D}   ctx
+         */
+        value: function draw(ctx) {
+          throw "Draw method not initialized for node";
+        },
+        writable: true,
+        configurable: true
+      },
+      resize: {
+
+
+        /**
+         * Recalculate the size of this node in the given canvas
+         * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+         * @param {CanvasRenderingContext2D}   ctx
+         */
+        value: function resize(ctx) {
+          throw "Resize method not initialized for node";
+        },
+        writable: true,
+        configurable: true
+      },
+      isOverlappingWith: {
+
+
+        /**
+         * Check if this object is overlapping with the provided object
+         * @param {Object} obj   an object with parameters left, top, right, bottom
+         * @return {boolean}     True if location is located on node
+         */
+        value: function isOverlappingWith(obj) {
+          return this.left < obj.right && this.left + this.width > obj.left && this.top < obj.bottom && this.top + this.height > obj.top;
+        },
+        writable: true,
+        configurable: true
+      },
+      _resizeImage: {
+        value: function _resizeImage(ctx) {
+          // TODO: pre calculate the image size
+
+          if (!this.width || !this.height) {
+            // undefined or 0
+            var width, height;
+            if (this.value) {
+              var scale = this.imageObj.height / this.imageObj.width;
+              if (scale !== undefined) {
+                width = this.options.size || this.imageObj.width;
+                height = this.options.size * scale || this.imageObj.height;
+              } else {
+                width = 0;
+                height = 0;
+              }
+            } else {
+              width = this.imageObj.width;
+              height = this.imageObj.height;
+            }
+            this.width = width;
+            this.height = height;
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawImageAtPosition: {
+        value: function _drawImageAtPosition(ctx) {
+          if (this.imageObj.width != 0) {
+            // draw the image
+            ctx.globalAlpha = 1;
+            ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawImageLabel: {
+        value: function _drawImageLabel(ctx) {
+          var yLabel;
+          var offset = 0;
+
+          if (this.height) {
+            offset = this.height / 2;
+            var labelDimensions = this.labelModule.labelDimensions;
+
+            if (labelDimensions.lineCount >= 1) {
+              offset += labelDimensions.height / 2;
+              offset += 3;
+            }
+          }
+
+          yLabel = this.y + offset;
+
+          this.labelModule.draw(ctx, this.x, yLabel);
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawImage: {
+        value: function _drawImage(ctx) {
+          this._resizeImage(ctx);
+          this.left = this.x - this.width / 2;
+          this.top = this.y - this.height / 2;
+
+          this._drawImageAtPosition(ctx);
+
+          this.boundingBox.top = this.top;
+          this.boundingBox.left = this.left;
+          this.boundingBox.right = this.left + this.width;
+          this.boundingBox.bottom = this.top + this.height;
+
+          this._drawImageLabel(ctx);
+          this.boundingBox.left = Math.min(this.boundingBox.left, this.labelModule.size.left);
+          this.boundingBox.right = Math.max(this.boundingBox.right, this.labelModule.size.left + this.labelModule.size.width);
+          this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelModule.size.height);
+        },
+        writable: true,
+        configurable: true
+      },
+      _resizeCircularImage: {
+        value: function _resizeCircularImage(ctx) {
+          if (!this.imageObj.src || !this.imageObj.width || !this.imageObj.height) {
+            if (!this.width) {
+              var diameter = this.options.size * 2;
+              this.width = diameter;
+              this.height = diameter;
+              this._swapToImageResizeWhenImageLoaded = true;
+            }
+          } else {
+            if (this._swapToImageResizeWhenImageLoaded) {
+              this.width = 0;
+              this.height = 0;
+              delete this._swapToImageResizeWhenImageLoaded;
+            }
+            this._resizeImage(ctx);
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawCircularImage: {
+        value: function _drawCircularImage(ctx) {
+          this._resizeCircularImage(ctx);
+
+          this.left = this.x - this.width / 2;
+          this.top = this.y - this.height / 2;
+
+          var centerX = this.left + this.width / 2;
+          var centerY = this.top + this.height / 2;
+          var size = Math.abs(this.height / 2);
+
+          this._drawRawCircle(ctx, size);
+
+          ctx.save();
+          ctx.circle(this.x, this.y, size);
+          ctx.stroke();
+          ctx.clip();
+
+          this._drawImageAtPosition(ctx);
+
+          ctx.restore();
+
+          this.boundingBox.top = this.y - this.options.size;
+          this.boundingBox.left = this.x - this.options.size;
+          this.boundingBox.right = this.x + this.options.size;
+          this.boundingBox.bottom = this.y + this.options.size;
+
+          this._drawImageLabel(ctx);
+
+          this.boundingBox.left = Math.min(this.boundingBox.left, this.labelModule.size.left);
+          this.boundingBox.right = Math.max(this.boundingBox.right, this.labelModule.size.left + this.labelModule.size.width);
+          this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelModule.size.height);
+        },
+        writable: true,
+        configurable: true
+      },
+      _resizeBox: {
+        value: function _resizeBox(ctx) {
+          if (!this.width) {
+            var margin = 5;
+            var textSize = this.labelModule.getTextSize(ctx, this.selected);
+            this.width = textSize.width + 2 * margin;
+            this.height = textSize.height + 2 * margin;
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawBox: {
+        value: function _drawBox(ctx) {
+          this._resizeBox(ctx);
+
+          this.left = this.x - this.width / 2;
+          this.top = this.y - this.height / 2;
+
+          var borderWidth = this.options.borderWidth;
+          var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+
+          ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
+          ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
+          ctx.lineWidth *= this.networkScaleInv;
+          ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
+
+          ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
+
+          ctx.roundRect(this.left, this.top, this.width, this.height, this.options.size);
+          ctx.fill();
+          ctx.stroke();
+
+          this.boundingBox.top = this.top;
+          this.boundingBox.left = this.left;
+          this.boundingBox.right = this.left + this.width;
+          this.boundingBox.bottom = this.top + this.height;
+
+          this.labelModule.draw(ctx, this.x, this.y);
+        },
+        writable: true,
+        configurable: true
+      },
+      _resizeDatabase: {
+        value: function _resizeDatabase(ctx) {
+          if (!this.width) {
+            var margin = 5;
+            var textSize = this.labelModule.getTextSize(ctx, this.selected);
+            var size = textSize.width + 2 * margin;
+            this.width = size;
+            this.height = size;
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawDatabase: {
+        value: function _drawDatabase(ctx) {
+          this._resizeDatabase(ctx);
+          this.left = this.x - this.width / 2;
+          this.top = this.y - this.height / 2;
+
+          var borderWidth = this.options.borderWidth;
+          var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+
+          ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
+          ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
+          ctx.lineWidth *= this.networkScaleInv;
+          ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
+
+          ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
+          ctx.database(this.x - this.width / 2, this.y - this.height * 0.5, this.width, this.height);
+          ctx.fill();
+          ctx.stroke();
+
+          this.boundingBox.top = this.top;
+          this.boundingBox.left = this.left;
+          this.boundingBox.right = this.left + this.width;
+          this.boundingBox.bottom = this.top + this.height;
+
+          this.labelModule.draw(ctx, this.x, this.y);
+        },
+        writable: true,
+        configurable: true
+      },
+      _resizeCircle: {
+        value: function _resizeCircle(ctx) {
+          if (!this.width) {
+            var margin = 5;
+            var textSize = this.labelModule.getTextSize(ctx, this.selected);
+            var diameter = Math.max(textSize.width, textSize.height) + 2 * margin;
+            this.options.size = diameter / 2;
+
+            this.width = diameter;
+            this.height = diameter;
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawRawCircle: {
+        value: function _drawRawCircle(ctx, size) {
+          var borderWidth = this.options.borderWidth;
+          var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+
+          ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
+
+          ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
+          ctx.lineWidth *= this.networkScaleInv;
+          ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
+
+          ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
+          ctx.circle(this.x, this.y, size);
+          ctx.fill();
+          ctx.stroke();
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawCircle: {
+        value: function _drawCircle(ctx) {
+          this._resizeCircle(ctx);
+          this.left = this.x - this.width / 2;
+          this.top = this.y - this.height / 2;
+
+          this._drawRawCircle(ctx, this.options.size);
+
+          this.boundingBox.top = this.y - this.options.size;
+          this.boundingBox.left = this.x - this.options.size;
+          this.boundingBox.right = this.x + this.options.size;
+          this.boundingBox.bottom = this.y + this.options.size;
+
+          this.labelModule.draw(ctx, this.x, this.y);
+        },
+        writable: true,
+        configurable: true
+      },
+      _resizeEllipse: {
+        value: function _resizeEllipse(ctx) {
+          if (this.width === undefined) {
+            var textSize = this.labelModule.getTextSize(ctx, this.selected);
+
+            this.width = textSize.width * 1.5;
+            this.height = textSize.height * 2;
+            if (this.width < this.height) {
+              this.width = this.height;
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawEllipse: {
+        value: function _drawEllipse(ctx) {
+          this._resizeEllipse(ctx);
+          this.left = this.x - this.width / 2;
+          this.top = this.y - this.height / 2;
+
+          var borderWidth = this.options.borderWidth;
+          var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+
+          ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
+
+          ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
+          ctx.lineWidth *= this.networkScaleInv;
+          ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
+
+          ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
+
+          ctx.ellipse(this.left, this.top, this.width, this.height);
+          ctx.fill();
+          ctx.stroke();
+
+          this.boundingBox.top = this.top;
+          this.boundingBox.left = this.left;
+          this.boundingBox.right = this.left + this.width;
+          this.boundingBox.bottom = this.top + this.height;
+
+          this.labelModule.draw(ctx, this.x, this.y, this.selected);
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawDot: {
+        value: function _drawDot(ctx) {
+          this._drawShape(ctx, "circle");
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawTriangle: {
+        value: function _drawTriangle(ctx) {
+          this._drawShape(ctx, "triangle");
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawTriangleDown: {
+        value: function _drawTriangleDown(ctx) {
+          this._drawShape(ctx, "triangleDown");
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawSquare: {
+        value: function _drawSquare(ctx) {
+          this._drawShape(ctx, "square");
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawStar: {
+        value: function _drawStar(ctx) {
+          this._drawShape(ctx, "star");
+        },
+        writable: true,
+        configurable: true
+      },
+      _resizeShape: {
+        value: function _resizeShape(ctx) {
+          if (!this.width) {
+            var size = 2 * this.options.size;
+            this.width = size;
+            this.height = size;
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawShape: {
+        value: function _drawShape(ctx, shape) {
+          this._resizeShape(ctx);
+
+          this.left = this.x - this.width / 2;
+          this.top = this.y - this.height / 2;
+
+          var borderWidth = this.options.borderWidth;
+          var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+          var sizeMultiplier = 2;
+
+          // choose draw method depending on the shape
+          switch (shape) {
+            case "dot":
+              sizeMultiplier = 2;
+              break;
+            case "square":
+              sizeMultiplier = 2;
+              break;
+            case "triangle":
+              sizeMultiplier = 3;
+              break;
+            case "triangleDown":
+              sizeMultiplier = 3;
+              break;
+            case "star":
+              sizeMultiplier = 4;
+              break;
+          }
+
+          ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
+          ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
+          ctx.lineWidth *= this.networkScaleInv;
+          ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
+
+          ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
+          ctx[shape](this.x, this.y, this.options.size);
+          ctx.fill();
+          ctx.stroke();
+
+          this.boundingBox.top = this.y - this.options.size;
+          this.boundingBox.left = this.x - this.options.size;
+          this.boundingBox.right = this.x + this.options.size;
+          this.boundingBox.bottom = this.y + this.options.size;
+
+          if (this.options.label !== undefined) {
+            this.labelModule.draw(ctx, this.x, this.y + (this.height + this.labelModule.size.height) * 0.5, this.selected, "hanging");
+            this.boundingBox.left = Math.min(this.boundingBox.left, this.labelModule.size.left);
+            this.boundingBox.right = Math.max(this.boundingBox.right, this.labelModule.size.left + this.labelModule.size.width);
+            this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelModule.size.height);
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _resizeText: {
+        value: function _resizeText(ctx) {
+          if (!this.width) {
+            var margin = 5;
+            var textSize = this.labelModule.getTextSize(ctx, this.selected);
+            this.width = textSize.width + 2 * margin;
+            this.height = textSize.height + 2 * margin;
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawText: {
+        value: function _drawText(ctx) {
+          this._resizeText(ctx);
+          this.left = this.x - this.width / 2;
+          this.top = this.y - this.height / 2;
+
+          this.labelModule.draw(ctx, this.x, this.y);
+
+          this.boundingBox.top = this.top;
+          this.boundingBox.left = this.left;
+          this.boundingBox.right = this.left + this.width;
+          this.boundingBox.bottom = this.top + this.height;
+        },
+        writable: true,
+        configurable: true
+      },
+      _resizeIcon: {
+        value: function _resizeIcon(ctx) {
+          if (!this.width) {
+            var margin = 5;
+            var iconSize = {
+              width: Number(this.options.icon.iconSize),
+              height: Number(this.options.icon.iconSize)
+            };
+            this.width = iconSize.width + 2 * margin;
+            this.height = iconSize.height + 2 * margin;
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawIcon: {
+        value: function _drawIcon(ctx) {
+          this._resizeIcon(ctx);
+
+          this.options.icon.iconSize = this.options.icon.iconSize || 50;
+
+          this.left = this.x - this.width / 2;
+          this.top = this.y - this.height / 2;
+          this._icon(ctx);
+
+
+          this.boundingBox.top = this.y - this.options.icon.iconSize / 2;
+          this.boundingBox.left = this.x - this.options.icon.iconSize / 2;
+          this.boundingBox.right = this.x + this.options.icon.iconSize / 2;
+          this.boundingBox.bottom = this.y + this.options.icon.iconSize / 2;
+
+          if (this.options.label !== unde) {
+            var iconTextSpacing = 5;
+            this.labelModule.draw(ctx, this.x, this.y + this.height / 2 + iconTextSpacing);
+
+            this.boundingBox.left = Math.min(this.boundingBox.left, this.labelModule.size.left);
+            this.boundingBox.right = Math.max(this.boundingBox.right, this.labelModule.size.left + this.labelModule.size.width);
+            this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelModule.size.height);
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _icon: {
+        value: function _icon(ctx) {
+          var relativeIconSize = Number(this.options.icon.iconSize) * this.networkScale;
+
+          if (this.options.icon.code && relativeIconSize > this.options.scaling.label.drawThreshold - 1) {
+            var iconSize = Number(this.options.icon.iconSize);
+
+            ctx.font = (this.selected ? "bold " : "") + iconSize + "px " + this.options.icon.iconFontFace;
+
+            // draw icon
+            ctx.fillStyle = this.options.icon.iconColor || "black";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(this.options.icon.code, this.x, this.y);
+          }
+        },
+        writable: true,
+        configurable: true
       }
-    }
+    });
 
-    if (options.allowedToMoveX !== undefined) {
-      this.xFixed = !options.allowedToMoveX;
-      this.allowedToMoveX = options.allowedToMoveX;
-    } else if (options.x !== undefined && this.allowedToMoveX == false) {
-      this.xFixed = true;
-    }
-
-
-    if (options.allowedToMoveY !== undefined) {
-      this.yFixed = !options.allowedToMoveY;
-      this.allowedToMoveY = options.allowedToMoveY;
-    } else if (options.y !== undefined && this.allowedToMoveY == false) {
-      this.yFixed = true;
-    }
-
-    this.radiusFixed = this.radiusFixed || options.radius !== undefined;
-
-    if (this.options.shape === "image" || this.options.shape === "circularImage") {
-      this.options.radiusMin = constants.nodes.widthMin;
-      this.options.radiusMax = constants.nodes.widthMax;
-    }
-
-    // choose draw method depending on the shape
-    switch (this.options.shape) {
-      case "database":
-        this.draw = this._drawDatabase;this.resize = this._resizeDatabase;break;
-      case "box":
-        this.draw = this._drawBox;this.resize = this._resizeBox;break;
-      case "circle":
-        this.draw = this._drawCircle;this.resize = this._resizeCircle;break;
-      case "ellipse":
-        this.draw = this._drawEllipse;this.resize = this._resizeEllipse;break;
-      // TODO: add diamond shape
-      case "image":
-        this.draw = this._drawImage;this.resize = this._resizeImage;break;
-      case "circularImage":
-        this.draw = this._drawCircularImage;this.resize = this._resizeCircularImage;break;
-      case "text":
-        this.draw = this._drawText;this.resize = this._resizeText;break;
-      case "dot":
-        this.draw = this._drawDot;this.resize = this._resizeShape;break;
-      case "square":
-        this.draw = this._drawSquare;this.resize = this._resizeShape;break;
-      case "triangle":
-        this.draw = this._drawTriangle;this.resize = this._resizeShape;break;
-      case "triangleDown":
-        this.draw = this._drawTriangleDown;this.resize = this._resizeShape;break;
-      case "star":
-        this.draw = this._drawStar;this.resize = this._resizeShape;break;
-      case "icon":
-        this.draw = this._drawIcon;this.resize = this._resizeIcon;break;
-      default:
-        this.draw = this._drawEllipse;this.resize = this._resizeEllipse;break;
-    }
-    // reset the size of the node, this can be changed
-    this._reset();
-  };
-
-  /**
-   * select this node
-   */
-  Node.prototype.select = function () {
-    this.selected = true;
-    this._reset();
-  };
-
-  /**
-   * unselect this node
-   */
-  Node.prototype.unselect = function () {
-    this.selected = false;
-    this._reset();
-  };
-
-
-  /**
-   * Reset the calculated size of the node, forces it to recalculate its size
-   * @private
-   */
-  Node.prototype._reset = function () {
-    this.width = undefined;
-    this.height = undefined;
-  };
-
-  /**
-   * get the title of this node.
-   * @return {string} title    The title of the node, or undefined when no title
-   *                           has been set.
-   */
-  Node.prototype.getTitle = function () {
-    return typeof this.title === "function" ? this.title() : this.title;
-  };
-
-  /**
-   * Calculate the distance to the border of the Node
-   * @param {CanvasRenderingContext2D}   ctx
-   * @param {Number} angle        Angle in radians
-   * @returns {number} distance   Distance to the border in pixels
-   */
-  Node.prototype.distanceToBorder = function (ctx, angle) {
-    var borderWidth = 1;
-
-    if (!this.width) {
-      this.resize(ctx);
-    }
-
-    switch (this.options.shape) {
-      case "circle":
-      case "dot":
-        return this.options.radius + borderWidth;
-
-      case "ellipse":
-        var a = this.width / 2;
-        var b = this.height / 2;
-        var w = Math.sin(angle) * a;
-        var h = Math.cos(angle) * b;
-        return a * b / Math.sqrt(w * w + h * h);
-
-      // TODO: implement distanceToBorder for database
-      // TODO: implement distanceToBorder for triangle
-      // TODO: implement distanceToBorder for triangleDown
-
-      case "box":
-      case "image":
-      case "text":
-      default:
-        if (this.width) {
-          return Math.min(Math.abs(this.width / 2 / Math.cos(angle)), Math.abs(this.height / 2 / Math.sin(angle))) + borderWidth;
-          // TODO: reckon with border radius too in case of box
-        } else {
-          return 0;
-        }
-
-    }
-    // TODO: implement calculation of distance to border for all shapes
-  };
-
-
-  /**
-   * Check if this node has a fixed x and y position
-   * @return {boolean}      true if fixed, false if not
-   */
-  Node.prototype.isFixed = function () {
-    return this.xFixed && this.yFixed;
-  };
-
-  /**
-   * check if this node is selecte
-   * @return {boolean} selected   True if node is selected, else false
-   */
-  Node.prototype.isSelected = function () {
-    return this.selected;
-  };
-
-  /**
-   * Retrieve the value of the node. Can be undefined
-   * @return {Number} value
-   */
-  Node.prototype.getValue = function () {
-    return this.value;
-  };
-
-  /**
-   * Calculate the distance from the nodes location to the given location (x,y)
-   * @param {Number} x
-   * @param {Number} y
-   * @return {Number} value
-   */
-  Node.prototype.getDistance = function (x, y) {
-    var dx = this.x - x,
-        dy = this.y - y;
-    return Math.sqrt(dx * dx + dy * dy);
-  };
-
-
-  /**
-   * Adjust the value range of the node. The node will adjust it's radius
-   * based on its value.
-   * @param {Number} min
-   * @param {Number} max
-   */
-  Node.prototype.setValueRange = function (min, max, total) {
-    if (!this.radiusFixed && this.value !== undefined) {
-      var scale = this.options.customScalingFunction(min, max, total, this.value);
-      var radiusDiff = this.options.radiusMax - this.options.radiusMin;
-      if (this.options.labelStyle.scaleFontWithValue == true) {
-        var fontDiff = this.options.labelStyle.fontSizeMax - this.options.labelStyle.fontSizeMin;
-        this.options.labelStyle.fontSize = this.options.labelStyle.fontSizeMin + scale * fontDiff;
-      }
-      this.options.radius = this.options.radiusMin + scale * radiusDiff;
-    }
-
-    this.baseRadiusValue = this.options.radius;
-  };
-
-  /**
-   * Draw this node in the given canvas
-   * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-   * @param {CanvasRenderingContext2D}   ctx
-   */
-  Node.prototype.draw = function (ctx) {
-    throw "Draw method not initialized for node";
-  };
-
-  /**
-   * Recalculate the size of this node in the given canvas
-   * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-   * @param {CanvasRenderingContext2D}   ctx
-   */
-  Node.prototype.resize = function (ctx) {
-    throw "Resize method not initialized for node";
-  };
-
-  /**
-   * Check if this object is overlapping with the provided object
-   * @param {Object} obj   an object with parameters left, top, right, bottom
-   * @return {boolean}     True if location is located on node
-   */
-  Node.prototype.isOverlappingWith = function (obj) {
-    return this.left < obj.right && this.left + this.width > obj.left && this.top < obj.bottom && this.top + this.height > obj.top;
-  };
-
-  Node.prototype._resizeImage = function (ctx) {
-    // TODO: pre calculate the image size
-
-    if (!this.width || !this.height) {
-      // undefined or 0
-      var width, height;
-      if (this.value) {
-        this.options.radius = this.baseRadiusValue;
-        var scale = this.imageObj.height / this.imageObj.width;
-        if (scale !== undefined) {
-          width = this.options.radius || this.imageObj.width;
-          height = this.options.radius * scale || this.imageObj.height;
-        } else {
-          width = 0;
-          height = 0;
-        }
-      } else {
-        width = this.imageObj.width;
-        height = this.imageObj.height;
-      }
-      this.width = width;
-      this.height = height;
-    }
-  };
-
-  Node.prototype._drawImageAtPosition = function (ctx) {
-    if (this.imageObj.width != 0) {
-      // draw the image
-      ctx.globalAlpha = 1;
-      ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
-    }
-  };
-
-  Node.prototype._drawImageLabel = function (ctx) {
-    var yLabel;
-    var offset = 0;
-
-    if (this.height) {
-      offset = this.height / 2;
-      var labelDimensions = this.getTextSize(ctx);
-
-      if (labelDimensions.lineCount >= 1) {
-        offset += labelDimensions.height / 2;
-        offset += 3;
-      }
-    }
-
-    yLabel = this.y + offset;
-
-    this._label(ctx, this.label, this.x, yLabel, undefined);
-  };
-
-  Node.prototype._drawImage = function (ctx) {
-    this._resizeImage(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    this._drawImageAtPosition(ctx);
-
-    this.boundingBox.top = this.top;
-    this.boundingBox.left = this.left;
-    this.boundingBox.right = this.left + this.width;
-    this.boundingBox.bottom = this.top + this.height;
-
-    this._drawImageLabel(ctx);
-    this.boundingBox.left = Math.min(this.boundingBox.left, this.labelDimensions.left);
-    this.boundingBox.right = Math.max(this.boundingBox.right, this.labelDimensions.left + this.labelDimensions.width);
-    this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelDimensions.height);
-  };
-
-  Node.prototype._resizeCircularImage = function (ctx) {
-    if (!this.imageObj.src || !this.imageObj.width || !this.imageObj.height) {
-      if (!this.width) {
-        var diameter = this.options.radius * 2;
-        this.width = diameter;
-        this.height = diameter;
-        this._swapToImageResizeWhenImageLoaded = true;
-      }
-    } else {
-      if (this._swapToImageResizeWhenImageLoaded) {
-        this.width = 0;
-        this.height = 0;
-        delete this._swapToImageResizeWhenImageLoaded;
-      }
-      this._resizeImage(ctx);
-    }
-  };
-
-  Node.prototype._drawCircularImage = function (ctx) {
-    this._resizeCircularImage(ctx);
-
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    var centerX = this.left + this.width / 2;
-    var centerY = this.top + this.height / 2;
-    var radius = Math.abs(this.height / 2);
-
-    this._drawRawCircle(ctx, centerX, centerY, radius);
-
-    ctx.save();
-    ctx.circle(this.x, this.y, radius);
-    ctx.stroke();
-    ctx.clip();
-
-    this._drawImageAtPosition(ctx);
-
-    ctx.restore();
-
-    this.boundingBox.top = this.y - this.options.radius;
-    this.boundingBox.left = this.x - this.options.radius;
-    this.boundingBox.right = this.x + this.options.radius;
-    this.boundingBox.bottom = this.y + this.options.radius;
-
-    this._drawImageLabel(ctx);
-
-    this.boundingBox.left = Math.min(this.boundingBox.left, this.labelDimensions.left);
-    this.boundingBox.right = Math.max(this.boundingBox.right, this.labelDimensions.left + this.labelDimensions.width);
-    this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelDimensions.height);
-  };
-
-  Node.prototype._resizeBox = function (ctx) {
-    if (!this.width) {
-      var margin = 5;
-      var textSize = this.getTextSize(ctx);
-      this.width = textSize.width + 2 * margin;
-      this.height = textSize.height + 2 * margin;
-    }
-  };
-
-  Node.prototype._drawBox = function (ctx) {
-    this._resizeBox(ctx);
-
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    var borderWidth = this.options.borderWidth;
-    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-
-    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
-    ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
-    ctx.lineWidth *= this.networkScaleInv;
-    ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
-
-    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
-
-    ctx.roundRect(this.left, this.top, this.width, this.height, this.options.radius);
-    ctx.fill();
-    ctx.stroke();
-
-    this.boundingBox.top = this.top;
-    this.boundingBox.left = this.left;
-    this.boundingBox.right = this.left + this.width;
-    this.boundingBox.bottom = this.top + this.height;
-
-    this._label(ctx, this.label, this.x, this.y);
-  };
-
-
-  Node.prototype._resizeDatabase = function (ctx) {
-    if (!this.width) {
-      var margin = 5;
-      var textSize = this.getTextSize(ctx);
-      var size = textSize.width + 2 * margin;
-      this.width = size;
-      this.height = size;
-    }
-  };
-
-  Node.prototype._drawDatabase = function (ctx) {
-    this._resizeDatabase(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    var borderWidth = this.options.borderWidth;
-    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-
-    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
-    ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
-    ctx.lineWidth *= this.networkScaleInv;
-    ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
-
-    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
-    ctx.database(this.x - this.width / 2, this.y - this.height * 0.5, this.width, this.height);
-    ctx.fill();
-    ctx.stroke();
-
-    this.boundingBox.top = this.top;
-    this.boundingBox.left = this.left;
-    this.boundingBox.right = this.left + this.width;
-    this.boundingBox.bottom = this.top + this.height;
-
-    this._label(ctx, this.label, this.x, this.y);
-  };
-
-
-  Node.prototype._resizeCircle = function (ctx) {
-    if (!this.width) {
-      var margin = 5;
-      var textSize = this.getTextSize(ctx);
-      var diameter = Math.max(textSize.width, textSize.height) + 2 * margin;
-      this.options.radius = diameter / 2;
-
-      this.width = diameter;
-      this.height = diameter;
-    }
-  };
-
-  Node.prototype._drawRawCircle = function (ctx, x, y, radius) {
-    var borderWidth = this.options.borderWidth;
-    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-
-    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
-
-    ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
-    ctx.lineWidth *= this.networkScaleInv;
-    ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
-
-    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
-    ctx.circle(this.x, this.y, radius);
-    ctx.fill();
-    ctx.stroke();
-  };
-
-  Node.prototype._drawCircle = function (ctx) {
-    this._resizeCircle(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    this._drawRawCircle(ctx, this.x, this.y, this.options.radius);
-
-    this.boundingBox.top = this.y - this.options.radius;
-    this.boundingBox.left = this.x - this.options.radius;
-    this.boundingBox.right = this.x + this.options.radius;
-    this.boundingBox.bottom = this.y + this.options.radius;
-
-    this._label(ctx, this.label, this.x, this.y);
-  };
-
-  Node.prototype._resizeEllipse = function (ctx) {
-    if (this.width === undefined) {
-      var textSize = this.getTextSize(ctx);
-
-      this.width = textSize.width * 1.5;
-      this.height = textSize.height * 2;
-      if (this.width < this.height) {
-        this.width = this.height;
-      }
-      var defaultSize = this.width;
-    }
-  };
-
-  Node.prototype._drawEllipse = function (ctx) {
-    this._resizeEllipse(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    var borderWidth = this.options.borderWidth;
-    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-
-    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
-
-    ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
-    ctx.lineWidth *= this.networkScaleInv;
-    ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
-
-    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
-
-    ctx.ellipse(this.left, this.top, this.width, this.height);
-    ctx.fill();
-    ctx.stroke();
-
-    this.boundingBox.top = this.top;
-    this.boundingBox.left = this.left;
-    this.boundingBox.right = this.left + this.width;
-    this.boundingBox.bottom = this.top + this.height;
-
-    this._label(ctx, this.label, this.x, this.y);
-  };
-
-  Node.prototype._drawDot = function (ctx) {
-    this._drawShape(ctx, "circle");
-  };
-
-  Node.prototype._drawTriangle = function (ctx) {
-    this._drawShape(ctx, "triangle");
-  };
-
-  Node.prototype._drawTriangleDown = function (ctx) {
-    this._drawShape(ctx, "triangleDown");
-  };
-
-  Node.prototype._drawSquare = function (ctx) {
-    this._drawShape(ctx, "square");
-  };
-
-  Node.prototype._drawStar = function (ctx) {
-    this._drawShape(ctx, "star");
-  };
-
-  Node.prototype._resizeShape = function (ctx) {
-    if (!this.width) {
-      this.options.radius = this.baseRadiusValue;
-      var size = 2 * this.options.radius;
-      this.width = size;
-      this.height = size;
-    }
-  };
-
-  Node.prototype._drawShape = function (ctx, shape) {
-    this._resizeShape(ctx);
-
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    var borderWidth = this.options.borderWidth;
-    var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-    var radiusMultiplier = 2;
-
-    // choose draw method depending on the shape
-    switch (shape) {
-      case "dot":
-        radiusMultiplier = 2;break;
-      case "square":
-        radiusMultiplier = 2;break;
-      case "triangle":
-        radiusMultiplier = 3;break;
-      case "triangleDown":
-        radiusMultiplier = 3;break;
-      case "star":
-        radiusMultiplier = 4;break;
-    }
-
-    ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
-    ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
-    ctx.lineWidth *= this.networkScaleInv;
-    ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
-
-    ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
-    ctx[shape](this.x, this.y, this.options.radius);
-    ctx.fill();
-    ctx.stroke();
-
-    this.boundingBox.top = this.y - this.options.radius;
-    this.boundingBox.left = this.x - this.options.radius;
-    this.boundingBox.right = this.x + this.options.radius;
-    this.boundingBox.bottom = this.y + this.options.radius;
-
-    if (this.label) {
-      this._label(ctx, this.label, this.x, this.y + this.height / 2, undefined, "hanging", true);
-      this.boundingBox.left = Math.min(this.boundingBox.left, this.labelDimensions.left);
-      this.boundingBox.right = Math.max(this.boundingBox.right, this.labelDimensions.left + this.labelDimensions.width);
-      this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelDimensions.height);
-    }
-  };
-
-  Node.prototype._resizeText = function (ctx) {
-    if (!this.width) {
-      var margin = 5;
-      var textSize = this.getTextSize(ctx);
-      this.width = textSize.width + 2 * margin;
-      this.height = textSize.height + 2 * margin;
-    }
-  };
-
-  Node.prototype._drawText = function (ctx) {
-    this._resizeText(ctx);
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-
-    this._label(ctx, this.label, this.x, this.y);
-
-    this.boundingBox.top = this.top;
-    this.boundingBox.left = this.left;
-    this.boundingBox.right = this.left + this.width;
-    this.boundingBox.bottom = this.top + this.height;
-  };
-
-  Node.prototype._resizeIcon = function (ctx) {
-    if (!this.width) {
-      var margin = 5;
-      var iconSize = {
-        width: Number(this.options.icon.iconSize),
-        height: Number(this.options.icon.iconSize)
-      };
-      this.width = iconSize.width + 2 * margin;
-      this.height = iconSize.height + 2 * margin;
-    }
-  };
-
-  Node.prototype._drawIcon = function (ctx) {
-    this._resizeIcon(ctx);
-
-    this.options.icon.iconSize = this.options.icon.iconSize || 50;
-
-    this.left = this.x - this.width / 2;
-    this.top = this.y - this.height / 2;
-    this._icon(ctx);
-
-
-    this.boundingBox.top = this.y - this.options.icon.iconSize / 2;
-    this.boundingBox.left = this.x - this.options.icon.iconSize / 2;
-    this.boundingBox.right = this.x + this.options.icon.iconSize / 2;
-    this.boundingBox.bottom = this.y + this.options.icon.iconSize / 2;
-
-    if (this.label) {
-      var iconTextSpacing = 5;
-      this._label(ctx, this.label, this.x, this.y + this.height / 2 + iconTextSpacing, "top", true);
-
-      this.boundingBox.left = Math.min(this.boundingBox.left, this.labelDimensions.left);
-      this.boundingBox.right = Math.max(this.boundingBox.right, this.labelDimensions.left + this.labelDimensions.width);
-      this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelDimensions.height);
-    }
-  };
-
-  Node.prototype._icon = function (ctx) {
-    var relativeIconSize = Number(this.options.icon.iconSize) * this.networkScale;
-
-    if (this.options.icon.code && relativeIconSize > this.options.labelStyle.fontDrawThreshold - 1) {
-      var iconSize = Number(this.options.icon.iconSize);
-
-      ctx.font = (this.selected ? "bold " : "") + iconSize + "px " + this.options.icon.iconFontFace;
-
-      // draw icon
-      ctx.fillStyle = this.options.icon.iconColor || "black";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(this.options.icon.code, this.x, this.y);
-    }
-  };
-
-  Node.prototype._label = function (ctx, text, x, y, align, baseline, labelUnderNode) {
-    var relativeFontSize = Number(this.options.labelStyle.fontSize) * this.networkScale;
-    if (text && relativeFontSize >= this.options.labelStyle.fontDrawThreshold - 1) {
-      var fontSize = Number(this.options.labelStyle.fontSize);
-
-      // this ensures that there will not be HUGE letters on screen by setting an upper limit on the visible text size (regardless of zoomLevel)
-      if (relativeFontSize >= this.options.labelStyle.fontSizeMaxVisible) {
-        fontSize = Number(this.options.labelStyle.fontSizeMaxVisible) * this.networkScaleInv;
-      }
-
-      // fade in when relative scale is between threshold and threshold - 1
-      var fontColor = this.options.labelStyle.fontColor || "#000000";
-      var strokecolor = this.options.labelStyle.fontStrokeColor;
-      if (relativeFontSize <= this.options.labelStyle.fontDrawThreshold) {
-        var opacity = Math.max(0, Math.min(1, 1 - (this.options.labelStyle.fontDrawThreshold - relativeFontSize)));
-        fontColor = util.overrideOpacity(fontColor, opacity);
-        strokecolor = util.overrideOpacity(strokecolor, opacity);
-      }
-
-      ctx.font = (this.selected ? "bold " : "") + fontSize + "px " + this.options.labelStyle.fontFace;
-
-      var lines = text.split("\n");
-      var lineCount = lines.length;
-      var yLine = y + (1 - lineCount) / 2 * fontSize;
-      if (labelUnderNode == true) {
-        yLine = y + (1 - lineCount) / (2 * fontSize);
-      }
-
-      // font fill from edges now for nodes!
-      var width = ctx.measureText(lines[0]).width;
-      for (var i = 1; i < lineCount; i++) {
-        var lineWidth = ctx.measureText(lines[i]).width;
-        width = lineWidth > width ? lineWidth : width;
-      }
-      var height = fontSize * lineCount;
-      var left = x - width / 2;
-      var top = y - height / 2;
-      if (baseline == "hanging") {
-        top += 0.5 * fontSize;
-        top += 4; // distance from node, required because we use hanging. Hanging has less difference between browsers
-        yLine += 4; // distance from node
-      }
-      this.labelDimensions = { top: top, left: left, width: width, height: height, yLine: yLine };
-
-      // create the fontfill background
-      if (this.options.labelStyle.fontFill !== undefined && this.options.labelStyle.fontFill !== null && this.options.labelStyle.fontFill !== "none") {
-        ctx.fillStyle = this.options.labelStyle.fontFill;
-        ctx.fillRect(left, top, width, height);
-      }
-
-      // draw text
-      ctx.fillStyle = fontColor;
-      ctx.textAlign = align || "center";
-      ctx.textBaseline = baseline || "middle";
-      if (this.options.labelStyle.fontStrokeWidth > 0) {
-        ctx.lineWidth = this.options.labelStyle.fontStrokeWidth;
-        ctx.strokeStyle = strokecolor;
-        ctx.lineJoin = "round";
-      }
-      for (var i = 0; i < lineCount; i++) {
-        if (this.options.labelStyle.fontStrokeWidth) {
-          ctx.strokeText(lines[i], x, yLine);
-        }
-        ctx.fillText(lines[i], x, yLine);
-        yLine += fontSize;
-      }
-    }
-  };
-
-
-  Node.prototype.getTextSize = function (ctx) {
-    if (this.label !== undefined) {
-      var fontSize = Number(this.options.labelStyle.fontSize);
-      if (fontSize * this.networkScale > this.options.labelStyle.fontSizeMaxVisible) {
-        fontSize = Number(this.options.labelStyle.fontSizeMaxVisible) * this.networkScaleInv;
-      }
-      ctx.font = (this.selected ? "bold " : "") + fontSize + "px " + this.options.labelStyle.fontFace;
-
-      var lines = this.label.split("\n"),
-          height = (fontSize + 4) * lines.length,
-          width = 0;
-
-      for (var i = 0, iMax = lines.length; i < iMax; i++) {
-        width = Math.max(width, ctx.measureText(lines[i]).width);
-      }
-
-      return { width: width, height: height, lineCount: lines.length };
-    } else {
-      return { width: 0, height: 0, lineCount: 0 };
-    }
-  };
-
-
-  /**
-   * this is used to determine if a node is visible at all. this is used to determine when it needs to be drawn.
-   * there is a safety margin of 0.3 * width;
-   *
-   * @returns {boolean}
-   */
-  Node.prototype.inArea = function () {
-    if (this.width !== undefined) {
-      return this.x + this.width * this.networkScaleInv >= this.canvasTopLeft.x && this.x - this.width * this.networkScaleInv < this.canvasBottomRight.x && this.y + this.height * this.networkScaleInv >= this.canvasTopLeft.y && this.y - this.height * this.networkScaleInv < this.canvasBottomRight.y;
-    } else {
-      return true;
-    }
-  };
-
-
-  /**
-   * This allows the zoom level of the network to influence the rendering
-   * We store the inverted scale and the coordinates of the top left, and bottom right points of the canvas
-   *
-   * @param scale
-   * @param canvasTopLeft
-   * @param canvasBottomRight
-   */
-  Node.prototype.setScaleAndPos = function (scale, canvasTopLeft, canvasBottomRight) {
-    this.networkScaleInv = 1 / scale;
-    this.networkScale = scale;
-    this.canvasTopLeft = canvasTopLeft;
-    this.canvasBottomRight = canvasBottomRight;
-  };
-
-
-  /**
-   * This allows the zoom level of the network to influence the rendering
-   *
-   * @param scale
-   */
-  Node.prototype.setScale = function (scale) {
-    this.networkScaleInv = 1 / scale;
-    this.networkScale = scale;
-  };
-
-
-
-  /**
-   * set the velocity at 0. Is called when this node is contained in another during clustering
-   */
-  Node.prototype.clearVelocity = function () {
-    this.vx = 0;
-    this.vy = 0;
-  };
-
-
-  /**
-   * Basic preservation of (kinectic) energy
-   *
-   * @param massBeforeClustering
-   */
-  Node.prototype.updateVelocity = function (massBeforeClustering) {
-    var energyBefore = this.vx * this.vx * massBeforeClustering;
-    //this.vx = (this.vx < 0) ? -Math.sqrt(energyBefore/this.options.mass) : Math.sqrt(energyBefore/this.options.mass);
-    this.vx = Math.sqrt(energyBefore / this.options.mass);
-    energyBefore = this.vy * this.vy * massBeforeClustering;
-    //this.vy = (this.vy < 0) ? -Math.sqrt(energyBefore/this.options.mass) : Math.sqrt(energyBefore/this.options.mass);
-    this.vy = Math.sqrt(energyBefore / this.options.mass);
-  };
+    return Node;
+  })();
 
   module.exports = Node;
 
@@ -27122,11 +27117,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
   "use strict";
 
+  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
+
   var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
   var util = __webpack_require__(1);
+
+
+  var Label = _interopRequire(__webpack_require__(65));
 
   /**
    * @class Edge
@@ -27163,7 +27163,6 @@ return /******/ (function(modules) { // webpackBootstrap
       this.value = undefined;
       this.selected = false;
       this.hover = false;
-      this.labelDimensions = { top: 0, left: 0, width: 0, height: 0, yLine: 0 }; // could be cached
       this.labelDirty = true;
       this.colorDirty = true;
 
@@ -27180,6 +27179,8 @@ return /******/ (function(modules) { // webpackBootstrap
       this.toArray = [];
 
       this.connected = false;
+
+      this.labelModule = new Label(this.body, this.options);
 
       this.setOptions(options, true);
 
@@ -27225,12 +27226,6 @@ return /******/ (function(modules) { // webpackBootstrap
           if (options.to !== undefined) {
             this.toId = options.to;
           }
-
-          if (options.label !== undefined) {
-            this.label = options.label;
-            this.labelDirty = true;
-          }
-
           if (options.title !== undefined) {
             this.title = options.title;
           }
@@ -27268,6 +27263,8 @@ return /******/ (function(modules) { // webpackBootstrap
           this.widthSelected = this.options.width * this.options.widthSelectionMultiplier;
 
           this.setupSmoothEdges(doNotEmit);
+
+          this.labelModule.setOptions(this.options);
         },
         writable: true,
         configurable: true
@@ -27418,11 +27415,14 @@ return /******/ (function(modules) { // webpackBootstrap
          * @param total
          */
         value: function setValueRange(min, max, total) {
-          if (!this.widthFixed && this.value !== undefined) {
-            var scale = this.options.customScalingFunction(min, max, total, this.value);
-            var widthDiff = this.options.widthMax - this.options.widthMin;
-            this.options.width = this.options.widthMin + scale * widthDiff;
-            this.widthSelected = this.options.width * this.options.widthSelectionMultiplier;
+          if (this.value !== undefined) {
+            var scale = this.options.scaling.customScalingFunction(min, max, total, this.value);
+            var widthDiff = this.options.scaling.max - this.options.scaling.min;
+            if (this.options.scaling.label.enabled == true) {
+              var fontDiff = this.options.scaling.label.max - this.options.scaling.label.min;
+              this.options.font.size = this.options.scaling.label.min + scale * fontDiff;
+            }
+            this.options.width = this.options.scaling.min + scale * widthDiff;
           }
         },
         writable: true,
@@ -27474,13 +27474,25 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       drawLabel: {
         value: function drawLabel(ctx, viaNode) {
-          if (this.label !== undefined) {
+          if (this.options.label !== undefined) {
             // set style
             var node1 = this.from;
             var node2 = this.to;
+            var selected = this.from.selected || this.to.selected || this.selected;
             if (node1.id != node2.id) {
               var point = this._pointOnEdge(0.5, viaNode);
-              this._label(ctx, this.label, point.x, point.y);
+              ctx.save();
+
+              // if the label has to be rotated:
+              if (this.options.font.align != "horizontal") {
+                this.labelModule.calculateLabelSize(ctx, selected, point.x, point.y);
+                ctx.translate(point.x, this.labelModule.size.yLine);
+                this._rotateForLabelAlignment(ctx);
+              }
+
+              // draw the label
+              this.labelModule.draw(ctx, point.x, point.y, selected);
+              ctx.restore();
             } else {
               var x, y;
               var radius = this.options.selfReferenceSize;
@@ -27492,7 +27504,8 @@ return /******/ (function(modules) { // webpackBootstrap
                 y = node1.y - node1.height * 0.5;
               }
               point = this._pointOnCircle(x, y, radius, 0.125);
-              this._label(ctx, this.label, point.x, point.y);
+
+              this.labelModule.draw(ctx, point.x, point.y, selected);
             }
           }
         },
@@ -27549,7 +27562,7 @@ return /******/ (function(modules) { // webpackBootstrap
               grd.addColorStop(0, fromColor);
               grd.addColorStop(1, toColor);
 
-              // -------------------- this returns the function -------------------- //
+              // -------------------- this returns -------------------- //
               return grd;
             }
 
@@ -27875,7 +27888,7 @@ return /******/ (function(modules) { // webpackBootstrap
         writable: true,
         configurable: true
       },
-      _label: {
+      _rotateForLabelAlignment: {
 
 
         /**
@@ -27886,52 +27899,7 @@ return /******/ (function(modules) { // webpackBootstrap
          * @param {Number} y
          * @private
          */
-        value: function _label(ctx, text, x, y) {
-          if (text) {
-            ctx.font = (this.from.selected || this.to.selected ? "bold " : "") + this.options.font.size + "px " + this.options.font.face;
-            var yLine;
 
-            if (this.labelDirty == true) {
-              var lines = String(text).split("\n");
-              var lineCount = lines.length;
-              var fontSize = Number(this.options.font.size);
-              yLine = y + (1 - lineCount) * 0.5 * fontSize;
-
-              var width = ctx.measureText(lines[0]).width;
-              for (var i = 1; i < lineCount; i++) {
-                var lineWidth = ctx.measureText(lines[i]).width;
-                width = lineWidth > width ? lineWidth : width;
-              }
-              var height = this.options.font.size * lineCount;
-              var left = x - width * 0.5;
-              var top = y - height * 0.5;
-
-              // cache
-              this.labelDimensions = { top: top, left: left, width: width, height: height, yLine: yLine };
-            }
-
-            var yLine = this.labelDimensions.yLine;
-
-            ctx.save();
-
-            if (this.options.font.align != "horizontal") {
-              ctx.translate(x, yLine);
-              this._rotateForLabelAlignment(ctx);
-              x = 0;
-              yLine = 0;
-            }
-
-
-            this._drawLabelRect(ctx);
-            this._drawLabelText(ctx, x, yLine, lines, lineCount, fontSize);
-
-            ctx.restore();
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _rotateForLabelAlignment: {
 
 
         /**
@@ -27950,85 +27918,6 @@ return /******/ (function(modules) { // webpackBootstrap
           }
 
           ctx.rotate(angleInDegrees);
-        },
-        writable: true,
-        configurable: true
-      },
-      _drawLabelRect: {
-
-
-        /**
-         * Draws the label rectangle
-         * @param {CanvasRenderingContext2D} ctx
-         * @private
-         */
-        value: function _drawLabelRect(ctx) {
-          if (this.options.font.background !== undefined && this.options.font.background !== "none") {
-            ctx.fillStyle = this.options.font.background;
-
-            var lineMargin = 2;
-
-            if (this.options.font.align == "middle") {
-              ctx.fillRect(-this.labelDimensions.width * 0.5, -this.labelDimensions.height * 0.5, this.labelDimensions.width, this.labelDimensions.height);
-            } else if (this.options.font.align == "top") {
-              ctx.fillRect(-this.labelDimensions.width * 0.5, -(this.labelDimensions.height + lineMargin), this.labelDimensions.width, this.labelDimensions.height);
-            } else if (this.options.font.align == "bottom") {
-              ctx.fillRect(-this.labelDimensions.width * 0.5, lineMargin, this.labelDimensions.width, this.labelDimensions.height);
-            } else {
-              ctx.fillRect(this.labelDimensions.left, this.labelDimensions.top, this.labelDimensions.width, this.labelDimensions.height);
-            }
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _drawLabelText: {
-
-
-        /**
-         * Draws the label text
-         * @param {CanvasRenderingContext2D} ctx
-         * @param {Number} x
-         * @param {Number} yLine
-         * @param {Array} lines
-         * @param {Number} lineCount
-         * @param {Number} fontSize
-         * @private
-         */
-        value: function _drawLabelText(ctx, x, yLine, lines, lineCount, fontSize) {
-          // draw text
-          ctx.fillStyle = this.options.font.color || "black";
-          ctx.textAlign = "center";
-
-          // check for label alignment
-          if (this.options.font.align != "horizontal") {
-            var lineMargin = 2;
-            if (this.options.font.align == "top") {
-              ctx.textBaseline = "alphabetic";
-              yLine -= 2 * lineMargin; // distance from edge, required because we use alphabetic. Alphabetic has less difference between browsers
-            } else if (this.options.font.align == "bottom") {
-              ctx.textBaseline = "hanging";
-              yLine += 2 * lineMargin; // distance from edge, required because we use hanging. Hanging has less difference between browsers
-            } else {
-              ctx.textBaseline = "middle";
-            }
-          } else {
-            ctx.textBaseline = "middle";
-          }
-
-          // check for strokeWidth
-          if (this.options.font.stroke > 0) {
-            ctx.lineWidth = this.options.font.stroke;
-            ctx.strokeStyle = this.options.font.strokeColor;
-            ctx.lineJoin = "round";
-          }
-          for (var i = 0; i < lineCount; i++) {
-            if (this.options.font.stroke > 0) {
-              ctx.strokeText(lines[i], x, yLine);
-            }
-            ctx.fillText(lines[i], x, yLine);
-            yLine += fontSize;
-          }
         },
         writable: true,
         configurable: true
@@ -28438,7 +28327,7 @@ return /******/ (function(modules) { // webpackBootstrap
             returnValue = Math.abs(Math.sqrt(dx * dx + dy * dy) - radius);
           }
 
-          if (this.labelDimensions.left < x3 && this.labelDimensions.left + this.labelDimensions.width > x3 && this.labelDimensions.top < y3 && this.labelDimensions.top + this.labelDimensions.height > y3) {
+          if (this.labelModule.size.left < x3 && this.labelModule.size.left + this.labelModule.size.width > x3 && this.labelModule.size.top < y3 && this.labelModule.size.top + this.labelModule.size.height > y3) {
             return 0;
           } else {
             return returnValue;
@@ -28518,6 +28407,55 @@ return /******/ (function(modules) { // webpackBootstrap
         configurable: true
       },
       _drawControlNodes: {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        //*************************************************************************************************//
+        //*************************************************************************************************//
+        //*************************************************************************************************//
+        //*************************************************************************************************//
+        //*********************** MOVE THESE FUNCTIONS TO THE MANIPULATION SYSTEM ************************//
+        //*************************************************************************************************//
+        //*************************************************************************************************//
+        //*************************************************************************************************//
+        //*************************************************************************************************//
+
+
+
+
+
 
 
         /**
@@ -28741,16 +28679,244 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
+  var util = __webpack_require__(1);
+
+  /**
+   * Created by Alex on 3/17/2015.
+   */
+
+  var Label = (function () {
+    function Label(body, options) {
+      _classCallCheck(this, Label);
+
+      this.body = body;
+      this.setOptions(options);
+
+      this.size = { top: 0, left: 0, width: 0, height: 0, yLine: 0 }; // could be cached
+    }
+
+    _prototypeProperties(Label, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          this.options = options;
+          if (options.label !== undefined) {
+            this.labelDirty = true;
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      draw: {
+        value: function draw(ctx, x, y, selected) {
+          var baseline = arguments[4] === undefined ? "middle" : arguments[4];
+          if (this.options.label !== undefined) {
+            // check if we have to render the label
+            var relativeFontSize = Number(this.options.font.size) * this.body.view.scale;
+            if (this.options.label && relativeFontSize >= this.options.scaling.label.drawThreshold - 1) {
+              // this ensures that there will not be HUGE letters on screen by setting an upper limit on the visible text size (regardless of zoomLevel)
+              var fontSize = Number(this.options.font.size);
+              if (relativeFontSize >= this.options.scaling.label.maxVisible) {
+                fontSize = Number(this.options.scaling.label.maxVisible) / this.body.view.scale;
+              }
+
+              // notify the canvas of the fontsize and thickness
+              ctx.font = (selected ? "bold " : "") + fontSize + "px " + this.options.font.face;
+
+              // update the size cache if required
+              if (this.labelDirty == true) {
+                this.calculateLabelSize(ctx, selected, x, y, baseline);
+              }
+
+              // create some of the local variables
+              var yLine = this.size.yLine;
+              var lines = String(this.options.label).split("\n");
+              var lineCount = lines.length;
+
+              // create the fontfill background
+              this._drawLabelRect(ctx);
+              // draw text
+              this._drawLabelText(ctx, x, yLine, lines, lineCount, fontSize, baseline, relativeFontSize);
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      getTextSize: {
+        value: function getTextSize(ctx, selected) {
+          if (this.options.label !== undefined) {
+            this._calculateLabelSize(ctx, selected);
+          } else {
+            this.size = { top: 0, left: 0, width: 0, height: 0, yLine: 0 };
+          }
+          return this.size;
+        },
+        writable: true,
+        configurable: true
+      },
+      _calculateLabelSize: {
+        value: function _calculateLabelSize(ctx, selected, x, y, baseline) {
+          ctx.font = (selected ? "bold " : "") + this.options.font.size + "px " + this.options.font.face;
+          var lines = String(this.options.label).split("\n");
+          var lineCount = lines.length;
+          var yLine = y + (1 - lineCount) * 0.5 * this.options.font.size;
+
+          var width = ctx.measureText(lines[0]).width;
+          for (var i = 1; i < lineCount; i++) {
+            var lineWidth = ctx.measureText(lines[i]).width;
+            width = lineWidth > width ? lineWidth : width;
+          }
+          var height = this.options.font.size * lineCount;
+          var left = x - width * 0.5;
+          var top = y - height * 0.5;
+          if (baseline == "hanging") {
+            top += 0.5 * this.options.font.size;
+            top += 4; // distance from node, required because we use hanging. Hanging has less difference between browsers
+            yLine += 4; // distance from node
+          }
+
+          // cache
+          this.size = { top: top, left: left, width: width, height: height, yLine: yLine };
+        },
+        writable: true,
+        configurable: true
+      },
+      calculateLabelSize: {
+        value: function calculateLabelSize(ctx, selected) {
+          var x = arguments[2] === undefined ? 0 : arguments[2];
+          var y = arguments[3] === undefined ? 0 : arguments[3];
+          var baseline = arguments[4] === undefined ? "middle" : arguments[4];
+          if (this.labelDirty == true) {
+            this._calculateLabelSize(ctx, selected, x, y, baseline);
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawLabelRect: {
+        /**
+         * Draws the label rectangle
+         * @param {CanvasRenderingContext2D} ctx
+         * @private
+         */
+        value: function _drawLabelRect(ctx) {
+          if (this.options.font.background !== undefined && this.options.font.background !== "none") {
+            ctx.fillStyle = this.options.font.background;
+
+            var lineMargin = 2;
+
+            switch (this.options.font.align) {
+              case "middle":
+                ctx.fillRect(-this.size.width * 0.5, -this.size.height * 0.5, this.size.width, this.size.height);
+                break;
+              case "top":
+                ctx.fillRect(-this.size.width * 0.5, -(this.size.height + lineMargin), this.size.width, this.size.height);
+                break;
+              case "bottom":
+                ctx.fillRect(-this.size.width * 0.5, lineMargin, this.size.width, this.size.height);
+                break;
+              default:
+                ctx.fillRect(this.size.left, this.size.top, this.size.width, this.size.height);
+                break;
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawLabelText: {
+
+
+        /**
+         * Draws the label text
+         * @param {CanvasRenderingContext2D} ctx
+         * @param {Number} x
+         * @param {Number} yLine
+         * @param {Array} lines
+         * @param {Number} lineCount
+         * @param {Number} fontSize
+         * @private
+         */
+        value: function _drawLabelText(ctx, x, yLine, lines, lineCount, fontSize) {
+          var baseline = arguments[6] === undefined ? "middle" : arguments[6];
+          var relativeFontSize = arguments[7] === undefined ? this.options.font.size : arguments[7];
+          // fade in when relative scale is between threshold and threshold - 1
+          var fontColor = this.options.font.color || "#000000";
+          var strokeColor = this.options.font.strokeColor;
+          if (relativeFontSize <= this.options.scaling.label.drawThreshold) {
+            var opacity = Math.max(0, Math.min(1, 1 - (this.options.scaling.label.drawThreshold - relativeFontSize)));
+            fontColor = util.overrideOpacity(fontColor, opacity);
+            strokeColor = util.overrideOpacity(strokeColor, opacity);
+          }
+
+          // draw text
+          ctx.fillStyle = fontColor;
+          ctx.textAlign = "center";
+
+          // check for label alignment (for edges)
+          // TODO: make alignment for nodes
+          if (this.options.font.align !== "horizontal") {
+            x = 0;
+            yLine = 0;
+
+            var lineMargin = 2;
+            if (this.options.font.align === "top") {
+              ctx.textBaseline = "alphabetic";
+              yLine -= 2 * lineMargin; // distance from edge, required because we use alphabetic. Alphabetic has less difference between browsers
+            } else if (this.options.font.align === "bottom") {
+              ctx.textBaseline = "hanging";
+              yLine += 2 * lineMargin; // distance from edge, required because we use hanging. Hanging has less difference between browsers
+            } else {
+              ctx.textBaseline = "middle";
+            }
+          } else {
+            ctx.textBaseline = baseline;
+          }
+
+          // check for strokeWidth
+          if (this.options.font.stroke > 0) {
+            ctx.lineWidth = this.options.font.stroke;
+            ctx.strokeStyle = strokeColor;
+            ctx.lineJoin = "round";
+          }
+          for (var i = 0; i < lineCount; i++) {
+            if (this.options.font.stroke > 0) {
+              ctx.strokeText(lines[i], x, yLine);
+            }
+            ctx.fillText(lines[i], x, yLine);
+            yLine += fontSize;
+          }
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return Label;
+  })();
+
+  module.exports = Label;
+
+/***/ },
+/* 66 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
   /**
    * Created by Alex on 2/23/2015.
    */
 
-  var BarnesHutSolver = __webpack_require__(66).BarnesHutSolver;
-  var Repulsion = __webpack_require__(67).Repulsion;
-  var HierarchicalRepulsion = __webpack_require__(68).HierarchicalRepulsion;
-  var SpringSolver = __webpack_require__(69).SpringSolver;
-  var HierarchicalSpringSolver = __webpack_require__(70).HierarchicalSpringSolver;
-  var CentralGravitySolver = __webpack_require__(71).CentralGravitySolver;
+  var BarnesHutSolver = __webpack_require__(67).BarnesHutSolver;
+  var Repulsion = __webpack_require__(68).Repulsion;
+  var HierarchicalRepulsion = __webpack_require__(69).HierarchicalRepulsion;
+  var SpringSolver = __webpack_require__(70).SpringSolver;
+  var HierarchicalSpringSolver = __webpack_require__(71).HierarchicalSpringSolver;
+  var CentralGravitySolver = __webpack_require__(72).CentralGravitySolver;
 
 
   var util = __webpack_require__(1);
@@ -29240,7 +29406,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = PhysicsEngine;
 
 /***/ },
-/* 66 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -29752,7 +29918,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 67 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -29853,7 +30019,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 68 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -29951,7 +30117,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 69 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -30061,7 +30227,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 70 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -30190,7 +30356,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 71 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -30257,7 +30423,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 72 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -30963,7 +31129,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = ClusterEngine;
 
 /***/ },
-/* 73 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31187,25 +31353,24 @@ return /******/ (function(modules) { // webpackBootstrap
           // draw unselected nodes;
           for (var i = 0; i < nodeIndices.length; i++) {
             node = nodes[nodeIndices[i]];
-            node.setScaleAndPos(this.body.view.scale, this.canvasTopLeft, this.canvasBottomRight);
             // set selected nodes aside
             if (node.isSelected()) {
               selected.push(nodeIndices[i]);
             } else {
               if (alwaysShow === true) {
                 node.draw(ctx);
-              } else if (node.inArea() === true) {
-                node.draw(ctx);
               }
+              // todo: replace check
+              //else if (node.inArea() === true) {
+              node.draw(ctx);
+              //}
             }
           }
 
           // draw the selected nodes on top
           for (var i = 0; i < selected.length; i++) {
             node = nodes[selected[i]];
-            if (node.inArea() || alwaysShow) {
-              node.draw(ctx);
-            }
+            node.draw(ctx);
           }
         },
         writable: true,
@@ -31292,7 +31457,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CanvasRenderer;
 
 /***/ },
-/* 74 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31579,7 +31744,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Canvas;
 
 /***/ },
-/* 75 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31989,7 +32154,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = View;
 
 /***/ },
-/* 76 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -32006,7 +32171,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
 
-  var NavigationHandler = __webpack_require__(77).NavigationHandler;
+  var NavigationHandler = __webpack_require__(78).NavigationHandler;
   var InteractionHandler = (function () {
     function InteractionHandler(body, canvas, selectionHandler) {
       _classCallCheck(this, InteractionHandler);
@@ -32550,7 +32715,7 @@ return /******/ (function(modules) { // webpackBootstrap
   //  }
 
 /***/ },
-/* 77 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -32846,7 +33011,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 78 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33605,7 +33770,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = SelectionHandler;
 
 /***/ },
-/* 79 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
