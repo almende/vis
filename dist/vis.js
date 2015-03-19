@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.0.0-SNAPSHOT
- * @date    2015-03-18
+ * @date    2015-03-19
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -140,12 +140,12 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.Network = __webpack_require__(53);
   exports.network = {
     //Edge: require('./lib/network/Edge'),
-    Groups: __webpack_require__(56),
-    Images: __webpack_require__(57),
+    Groups: __webpack_require__(57),
+    Images: __webpack_require__(58),
     //Node: require('./lib/network/Node'),
-    Popup: __webpack_require__(58),
-    dotparser: __webpack_require__(54),
-    gephiParser: __webpack_require__(55)
+    Popup: __webpack_require__(59),
+    dotparser: __webpack_require__(55),
+    gephiParser: __webpack_require__(56)
   };
 
   // Deprecated since v3.0.0
@@ -23262,41 +23262,43 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
 
+  // Load custom shapes into CanvasRenderingContext2D
+  __webpack_require__(54);
+
   var Emitter = __webpack_require__(11);
   var Hammer = __webpack_require__(19);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(9);
-  var dotparser = __webpack_require__(54);
-  var gephiParser = __webpack_require__(55);
-  var Groups = __webpack_require__(56);
-  var Images = __webpack_require__(57);
-  var Popup = __webpack_require__(58);
+  var dotparser = __webpack_require__(55);
+  var gephiParser = __webpack_require__(56);
+  var Groups = __webpack_require__(57);
+  var Images = __webpack_require__(58);
+  var Popup = __webpack_require__(59);
   var Activator = __webpack_require__(38);
-  var locales = __webpack_require__(59);
+  var locales = __webpack_require__(60);
 
-  // Load custom shapes into CanvasRenderingContext2D
-  __webpack_require__(60);
+
 
   var NodesHandler = _interopRequire(__webpack_require__(61));
 
-  var EdgesHandler = _interopRequire(__webpack_require__(63));
+  var EdgesHandler = _interopRequire(__webpack_require__(78));
 
-  var PhysicsEngine = _interopRequire(__webpack_require__(66));
+  var PhysicsEngine = _interopRequire(__webpack_require__(80));
 
-  var ClusterEngine = _interopRequire(__webpack_require__(73));
+  var ClusterEngine = _interopRequire(__webpack_require__(87));
 
-  var CanvasRenderer = _interopRequire(__webpack_require__(74));
+  var CanvasRenderer = _interopRequire(__webpack_require__(88));
 
-  var Canvas = _interopRequire(__webpack_require__(75));
+  var Canvas = _interopRequire(__webpack_require__(89));
 
-  var View = _interopRequire(__webpack_require__(76));
+  var View = _interopRequire(__webpack_require__(90));
 
-  var InteractionHandler = _interopRequire(__webpack_require__(77));
+  var InteractionHandler = _interopRequire(__webpack_require__(91));
 
-  var SelectionHandler = _interopRequire(__webpack_require__(79));
+  var SelectionHandler = _interopRequire(__webpack_require__(93));
 
-  var LayoutEngine = _interopRequire(__webpack_require__(80));
+  var LayoutEngine = _interopRequire(__webpack_require__(94));
 
   /**
    * @constructor Network
@@ -23564,69 +23566,61 @@ return /******/ (function(modules) { // webpackBootstrap
       //}
 
 
-      // TODO: work out these options and document them
-      if (options.edges) {
-        if (options.edges.color !== undefined) {
-          if (util.isString(options.edges.color)) {
-            this.constants.edges.color = {};
-            this.constants.edges.color.color = options.edges.color;
-            this.constants.edges.color.highlight = options.edges.color;
-            this.constants.edges.color.hover = options.edges.color;
-          } else {
-            if (options.edges.color.color !== undefined) {
-              this.constants.edges.color.color = options.edges.color.color;
-            }
-            if (options.edges.color.highlight !== undefined) {
-              this.constants.edges.color.highlight = options.edges.color.highlight;
-            }
-            if (options.edges.color.hover !== undefined) {
-              this.constants.edges.color.hover = options.edges.color.hover;
-            }
-          }
-          this.constants.edges.inheritColor = false;
-        }
-
-        if (!options.edges.fontColor) {
-          if (options.edges.color !== undefined) {
-            if (util.isString(options.edges.color)) {
-              this.constants.edges.fontColor = options.edges.color;
-            } else if (options.edges.color.color !== undefined) {
-              this.constants.edges.fontColor = options.edges.color.color;
-            }
-          }
-        }
-      }
-
-      if (options.nodes) {
-        if (options.nodes.color) {
-          var newColorObj = util.parseColor(options.nodes.color);
-          this.constants.nodes.color.background = newColorObj.background;
-          this.constants.nodes.color.border = newColorObj.border;
-          this.constants.nodes.color.highlight.background = newColorObj.highlight.background;
-          this.constants.nodes.color.highlight.border = newColorObj.highlight.border;
-          this.constants.nodes.color.hover.background = newColorObj.hover.background;
-          this.constants.nodes.color.hover.border = newColorObj.hover.border;
-        }
-      }
-      if (options.groups) {
-        for (var groupname in options.groups) {
-          if (options.groups.hasOwnProperty(groupname)) {
-            var group = options.groups[groupname];
-            this.groups.add(groupname, group);
-          }
-        }
-      }
-
-      if (options.tooltip) {
-        for (prop in options.tooltip) {
-          if (options.tooltip.hasOwnProperty(prop)) {
-            this.constants.tooltip[prop] = options.tooltip[prop];
-          }
-        }
-        if (options.tooltip.color) {
-          this.constants.tooltip.color = util.parseColor(options.tooltip.color);
-        }
-      }
+      //// TODO: work out these options and document them
+      //if (options.edges) {
+      //  if (options.edges.color !== undefined) {
+      //    if (util.isString(options.edges.color)) {
+      //      this.constants.edges.color = {};
+      //      this.constants.edges.color.color = options.edges.color;
+      //      this.constants.edges.color.highlight = options.edges.color;
+      //      this.constants.edges.color.hover = options.edges.color;
+      //    }
+      //    else {
+      //      if (options.edges.color.color !== undefined)     {this.constants.edges.color.color = options.edges.color.color;}
+      //      if (options.edges.color.highlight !== undefined) {this.constants.edges.color.highlight = options.edges.color.highlight;}
+      //      if (options.edges.color.hover !== undefined)     {this.constants.edges.color.hover = options.edges.color.hover;}
+      //    }
+      //    this.constants.edges.inheritColor = false;
+      //  }
+      //
+      //  if (!options.edges.fontColor) {
+      //    if (options.edges.color !== undefined) {
+      //      if (util.isString(options.edges.color))           {this.constants.edges.fontColor = options.edges.color;}
+      //      else if (options.edges.color.color !== undefined) {this.constants.edges.fontColor = options.edges.color.color;}
+      //    }
+      //  }
+      //}
+      //
+      //if (options.nodes) {
+      //  if (options.nodes.color) {
+      //    var newColorObj = util.parseColor(options.nodes.color);
+      //    this.constants.nodes.color.background = newColorObj.background;
+      //    this.constants.nodes.color.border = newColorObj.border;
+      //    this.constants.nodes.color.highlight.background = newColorObj.highlight.background;
+      //    this.constants.nodes.color.highlight.border = newColorObj.highlight.border;
+      //    this.constants.nodes.color.hover.background = newColorObj.hover.background;
+      //    this.constants.nodes.color.hover.border = newColorObj.hover.border;
+      //  }
+      //}
+      //if (options.groups) {
+      //  for (var groupname in options.groups) {
+      //    if (options.groups.hasOwnProperty(groupname)) {
+      //      var group = options.groups[groupname];
+      //      this.groups.add(groupname, group);
+      //    }
+      //  }
+      //}
+      //
+      //if (options.tooltip) {
+      //  for (prop in options.tooltip) {
+      //    if (options.tooltip.hasOwnProperty(prop)) {
+      //      this.constants.tooltip[prop] = options.tooltip[prop];
+      //    }
+      //  }
+      //  if (options.tooltip.color) {
+      //    this.constants.tooltip.color = util.parseColor(options.tooltip.color);
+      //  }
+      //}
 
       if ("clickToUse" in options) {
         if (options.clickToUse === true) {
@@ -24079,6 +24073,252 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 54 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  /**
+   * Canvas shapes used by Network
+   */
+  if (typeof CanvasRenderingContext2D !== "undefined") {
+    /**
+     * Draw a circle shape
+     */
+    CanvasRenderingContext2D.prototype.circle = function (x, y, r) {
+      this.beginPath();
+      this.arc(x, y, r, 0, 2 * Math.PI, false);
+    };
+
+    /**
+     * Draw a square shape
+     * @param {Number} x horizontal center
+     * @param {Number} y vertical center
+     * @param {Number} r   size, width and height of the square
+     */
+    CanvasRenderingContext2D.prototype.square = function (x, y, r) {
+      this.beginPath();
+      this.rect(x - r, y - r, r * 2, r * 2);
+    };
+
+    /**
+     * Draw a triangle shape
+     * @param {Number} x horizontal center
+     * @param {Number} y vertical center
+     * @param {Number} r   radius, half the length of the sides of the triangle
+     */
+    CanvasRenderingContext2D.prototype.triangle = function (x, y, r) {
+      // http://en.wikipedia.org/wiki/Equilateral_triangle
+      this.beginPath();
+
+      var s = r * 2;
+      var s2 = s / 2;
+      var ir = Math.sqrt(3) / 6 * s; // radius of inner circle
+      var h = Math.sqrt(s * s - s2 * s2); // height
+
+      this.moveTo(x, y - (h - ir));
+      this.lineTo(x + s2, y + ir);
+      this.lineTo(x - s2, y + ir);
+      this.lineTo(x, y - (h - ir));
+      this.closePath();
+    };
+
+    /**
+     * Draw a triangle shape in downward orientation
+     * @param {Number} x horizontal center
+     * @param {Number} y vertical center
+     * @param {Number} r radius
+     */
+    CanvasRenderingContext2D.prototype.triangleDown = function (x, y, r) {
+      // http://en.wikipedia.org/wiki/Equilateral_triangle
+      this.beginPath();
+
+      var s = r * 2;
+      var s2 = s / 2;
+      var ir = Math.sqrt(3) / 6 * s; // radius of inner circle
+      var h = Math.sqrt(s * s - s2 * s2); // height
+
+      this.moveTo(x, y + (h - ir));
+      this.lineTo(x + s2, y - ir);
+      this.lineTo(x - s2, y - ir);
+      this.lineTo(x, y + (h - ir));
+      this.closePath();
+    };
+
+    /**
+     * Draw a star shape, a star with 5 points
+     * @param {Number} x horizontal center
+     * @param {Number} y vertical center
+     * @param {Number} r   radius, half the length of the sides of the triangle
+     */
+    CanvasRenderingContext2D.prototype.star = function (x, y, r) {
+      // http://www.html5canvastutorials.com/labs/html5-canvas-star-spinner/
+      this.beginPath();
+
+      for (var n = 0; n < 10; n++) {
+        var radius = n % 2 === 0 ? r * 1.3 : r * 0.5;
+        this.lineTo(x + radius * Math.sin(n * 2 * Math.PI / 10), y - radius * Math.cos(n * 2 * Math.PI / 10));
+      }
+
+      this.closePath();
+    };
+
+    /**
+     * http://stackoverflow.com/questions/1255512/how-to-draw-a-rounded-rectangle-on-html-canvas
+     */
+    CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+      var r2d = Math.PI / 180;
+      if (w - 2 * r < 0) {
+        r = w / 2;
+      } //ensure that the radius isn't too large for x
+      if (h - 2 * r < 0) {
+        r = h / 2;
+      } //ensure that the radius isn't too large for y
+      this.beginPath();
+      this.moveTo(x + r, y);
+      this.lineTo(x + w - r, y);
+      this.arc(x + w - r, y + r, r, r2d * 270, r2d * 360, false);
+      this.lineTo(x + w, y + h - r);
+      this.arc(x + w - r, y + h - r, r, 0, r2d * 90, false);
+      this.lineTo(x + r, y + h);
+      this.arc(x + r, y + h - r, r, r2d * 90, r2d * 180, false);
+      this.lineTo(x, y + r);
+      this.arc(x + r, y + r, r, r2d * 180, r2d * 270, false);
+    };
+
+    /**
+     * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
+     */
+    CanvasRenderingContext2D.prototype.ellipse = function (x, y, w, h) {
+      var kappa = 0.5522848,
+          ox = w / 2 * kappa,
+          // control point offset horizontal
+      oy = h / 2 * kappa,
+          // control point offset vertical
+      xe = x + w,
+          // x-end
+      ye = y + h,
+          // y-end
+      xm = x + w / 2,
+          // x-middle
+      ym = y + h / 2; // y-middle
+
+      this.beginPath();
+      this.moveTo(x, ym);
+      this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
+      this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
+      this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
+      this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
+    };
+
+
+
+    /**
+     * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
+     */
+    CanvasRenderingContext2D.prototype.database = function (x, y, w, h) {
+      var f = 1 / 3;
+      var wEllipse = w;
+      var hEllipse = h * f;
+
+      var kappa = 0.5522848,
+          ox = wEllipse / 2 * kappa,
+          // control point offset horizontal
+      oy = hEllipse / 2 * kappa,
+          // control point offset vertical
+      xe = x + wEllipse,
+          // x-end
+      ye = y + hEllipse,
+          // y-end
+      xm = x + wEllipse / 2,
+          // x-middle
+      ym = y + hEllipse / 2,
+          // y-middle
+      ymb = y + (h - hEllipse / 2),
+          // y-midlle, bottom ellipse
+      yeb = y + h; // y-end, bottom ellipse
+
+      this.beginPath();
+      this.moveTo(xe, ym);
+
+      this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
+      this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
+
+      this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
+      this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
+
+      this.lineTo(xe, ymb);
+
+      this.bezierCurveTo(xe, ymb + oy, xm + ox, yeb, xm, yeb);
+      this.bezierCurveTo(xm - ox, yeb, x, ymb + oy, x, ymb);
+
+      this.lineTo(x, ym);
+    };
+
+
+    /**
+     * Draw an arrow point (no line)
+     */
+    CanvasRenderingContext2D.prototype.arrow = function (x, y, angle, length) {
+      // tail
+      var xt = x - length * Math.cos(angle);
+      var yt = y - length * Math.sin(angle);
+
+      // inner tail
+      // TODO: allow to customize different shapes
+      var xi = x - length * 0.9 * Math.cos(angle);
+      var yi = y - length * 0.9 * Math.sin(angle);
+
+      // left
+      var xl = xt + length / 3 * Math.cos(angle + 0.5 * Math.PI);
+      var yl = yt + length / 3 * Math.sin(angle + 0.5 * Math.PI);
+
+      // right
+      var xr = xt + length / 3 * Math.cos(angle - 0.5 * Math.PI);
+      var yr = yt + length / 3 * Math.sin(angle - 0.5 * Math.PI);
+
+      this.beginPath();
+      this.moveTo(x, y);
+      this.lineTo(xl, yl);
+      this.lineTo(xi, yi);
+      this.lineTo(xr, yr);
+      this.closePath();
+    };
+
+    /**
+     * Sets up the dashedLine functionality for drawing
+     * Original code came from http://stackoverflow.com/questions/4576724/dotted-stroke-in-canvas
+     * @author David Jordan
+     * @date 2012-08-08
+     */
+    CanvasRenderingContext2D.prototype.dashedLine = function (x, y, x2, y2, dashArray) {
+      if (!dashArray) dashArray = [10, 5];
+      if (dashLength == 0) dashLength = 0.001; // Hack for Safari
+      var dashCount = dashArray.length;
+      this.moveTo(x, y);
+      var dx = x2 - x,
+          dy = y2 - y;
+      var slope = dy / dx;
+      var distRemaining = Math.sqrt(dx * dx + dy * dy);
+      var dashIndex = 0,
+          draw = true;
+      while (distRemaining >= 0.1) {
+        var dashLength = dashArray[dashIndex++ % dashCount];
+        if (dashLength > distRemaining) dashLength = distRemaining;
+        var xStep = Math.sqrt(dashLength * dashLength / (1 + slope * slope));
+        if (dx < 0) xStep = -xStep;
+        x += xStep;
+        y += slope * xStep;
+        this[draw ? "lineTo" : "moveTo"](x, y);
+        distRemaining -= dashLength;
+        draw = !draw;
+      }
+    };
+
+    // TODO: add diamond shape
+  }
+
+/***/ },
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -24900,7 +25140,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.DOTToGraph = DOTToGraph;
 
 /***/ },
-/* 55 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -24965,7 +25205,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.parseGephi = parseGephi;
 
 /***/ },
-/* 56 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -25076,7 +25316,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // 20:bright red
 
 /***/ },
-/* 57 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -25154,7 +25394,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Images;
 
 /***/ },
-/* 58 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -25293,7 +25533,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Popup;
 
 /***/ },
-/* 59 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -25333,252 +25573,6 @@ return /******/ (function(modules) { // webpackBootstrap
   };
   exports.nl_NL = exports.nl;
   exports.nl_BE = exports.nl;
-
-/***/ },
-/* 60 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  /**
-   * Canvas shapes used by Network
-   */
-  if (typeof CanvasRenderingContext2D !== "undefined") {
-    /**
-     * Draw a circle shape
-     */
-    CanvasRenderingContext2D.prototype.circle = function (x, y, r) {
-      this.beginPath();
-      this.arc(x, y, r, 0, 2 * Math.PI, false);
-    };
-
-    /**
-     * Draw a square shape
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r   size, width and height of the square
-     */
-    CanvasRenderingContext2D.prototype.square = function (x, y, r) {
-      this.beginPath();
-      this.rect(x - r, y - r, r * 2, r * 2);
-    };
-
-    /**
-     * Draw a triangle shape
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r   radius, half the length of the sides of the triangle
-     */
-    CanvasRenderingContext2D.prototype.triangle = function (x, y, r) {
-      // http://en.wikipedia.org/wiki/Equilateral_triangle
-      this.beginPath();
-
-      var s = r * 2;
-      var s2 = s / 2;
-      var ir = Math.sqrt(3) / 6 * s; // radius of inner circle
-      var h = Math.sqrt(s * s - s2 * s2); // height
-
-      this.moveTo(x, y - (h - ir));
-      this.lineTo(x + s2, y + ir);
-      this.lineTo(x - s2, y + ir);
-      this.lineTo(x, y - (h - ir));
-      this.closePath();
-    };
-
-    /**
-     * Draw a triangle shape in downward orientation
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r radius
-     */
-    CanvasRenderingContext2D.prototype.triangleDown = function (x, y, r) {
-      // http://en.wikipedia.org/wiki/Equilateral_triangle
-      this.beginPath();
-
-      var s = r * 2;
-      var s2 = s / 2;
-      var ir = Math.sqrt(3) / 6 * s; // radius of inner circle
-      var h = Math.sqrt(s * s - s2 * s2); // height
-
-      this.moveTo(x, y + (h - ir));
-      this.lineTo(x + s2, y - ir);
-      this.lineTo(x - s2, y - ir);
-      this.lineTo(x, y + (h - ir));
-      this.closePath();
-    };
-
-    /**
-     * Draw a star shape, a star with 5 points
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r   radius, half the length of the sides of the triangle
-     */
-    CanvasRenderingContext2D.prototype.star = function (x, y, r) {
-      // http://www.html5canvastutorials.com/labs/html5-canvas-star-spinner/
-      this.beginPath();
-
-      for (var n = 0; n < 10; n++) {
-        var radius = n % 2 === 0 ? r * 1.3 : r * 0.5;
-        this.lineTo(x + radius * Math.sin(n * 2 * Math.PI / 10), y - radius * Math.cos(n * 2 * Math.PI / 10));
-      }
-
-      this.closePath();
-    };
-
-    /**
-     * http://stackoverflow.com/questions/1255512/how-to-draw-a-rounded-rectangle-on-html-canvas
-     */
-    CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
-      var r2d = Math.PI / 180;
-      if (w - 2 * r < 0) {
-        r = w / 2;
-      } //ensure that the radius isn't too large for x
-      if (h - 2 * r < 0) {
-        r = h / 2;
-      } //ensure that the radius isn't too large for y
-      this.beginPath();
-      this.moveTo(x + r, y);
-      this.lineTo(x + w - r, y);
-      this.arc(x + w - r, y + r, r, r2d * 270, r2d * 360, false);
-      this.lineTo(x + w, y + h - r);
-      this.arc(x + w - r, y + h - r, r, 0, r2d * 90, false);
-      this.lineTo(x + r, y + h);
-      this.arc(x + r, y + h - r, r, r2d * 90, r2d * 180, false);
-      this.lineTo(x, y + r);
-      this.arc(x + r, y + r, r, r2d * 180, r2d * 270, false);
-    };
-
-    /**
-     * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
-     */
-    CanvasRenderingContext2D.prototype.ellipse = function (x, y, w, h) {
-      var kappa = 0.5522848,
-          ox = w / 2 * kappa,
-          // control point offset horizontal
-      oy = h / 2 * kappa,
-          // control point offset vertical
-      xe = x + w,
-          // x-end
-      ye = y + h,
-          // y-end
-      xm = x + w / 2,
-          // x-middle
-      ym = y + h / 2; // y-middle
-
-      this.beginPath();
-      this.moveTo(x, ym);
-      this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
-      this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
-      this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
-      this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
-    };
-
-
-
-    /**
-     * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
-     */
-    CanvasRenderingContext2D.prototype.database = function (x, y, w, h) {
-      var f = 1 / 3;
-      var wEllipse = w;
-      var hEllipse = h * f;
-
-      var kappa = 0.5522848,
-          ox = wEllipse / 2 * kappa,
-          // control point offset horizontal
-      oy = hEllipse / 2 * kappa,
-          // control point offset vertical
-      xe = x + wEllipse,
-          // x-end
-      ye = y + hEllipse,
-          // y-end
-      xm = x + wEllipse / 2,
-          // x-middle
-      ym = y + hEllipse / 2,
-          // y-middle
-      ymb = y + (h - hEllipse / 2),
-          // y-midlle, bottom ellipse
-      yeb = y + h; // y-end, bottom ellipse
-
-      this.beginPath();
-      this.moveTo(xe, ym);
-
-      this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
-      this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
-
-      this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
-      this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
-
-      this.lineTo(xe, ymb);
-
-      this.bezierCurveTo(xe, ymb + oy, xm + ox, yeb, xm, yeb);
-      this.bezierCurveTo(xm - ox, yeb, x, ymb + oy, x, ymb);
-
-      this.lineTo(x, ym);
-    };
-
-
-    /**
-     * Draw an arrow point (no line)
-     */
-    CanvasRenderingContext2D.prototype.arrow = function (x, y, angle, length) {
-      // tail
-      var xt = x - length * Math.cos(angle);
-      var yt = y - length * Math.sin(angle);
-
-      // inner tail
-      // TODO: allow to customize different shapes
-      var xi = x - length * 0.9 * Math.cos(angle);
-      var yi = y - length * 0.9 * Math.sin(angle);
-
-      // left
-      var xl = xt + length / 3 * Math.cos(angle + 0.5 * Math.PI);
-      var yl = yt + length / 3 * Math.sin(angle + 0.5 * Math.PI);
-
-      // right
-      var xr = xt + length / 3 * Math.cos(angle - 0.5 * Math.PI);
-      var yr = yt + length / 3 * Math.sin(angle - 0.5 * Math.PI);
-
-      this.beginPath();
-      this.moveTo(x, y);
-      this.lineTo(xl, yl);
-      this.lineTo(xi, yi);
-      this.lineTo(xr, yr);
-      this.closePath();
-    };
-
-    /**
-     * Sets up the dashedLine functionality for drawing
-     * Original code came from http://stackoverflow.com/questions/4576724/dotted-stroke-in-canvas
-     * @author David Jordan
-     * @date 2012-08-08
-     */
-    CanvasRenderingContext2D.prototype.dashedLine = function (x, y, x2, y2, dashArray) {
-      if (!dashArray) dashArray = [10, 5];
-      if (dashLength == 0) dashLength = 0.001; // Hack for Safari
-      var dashCount = dashArray.length;
-      this.moveTo(x, y);
-      var dx = x2 - x,
-          dy = y2 - y;
-      var slope = dy / dx;
-      var distRemaining = Math.sqrt(dx * dx + dy * dy);
-      var dashIndex = 0,
-          draw = true;
-      while (distRemaining >= 0.1) {
-        var dashLength = dashArray[dashIndex++ % dashCount];
-        if (dashLength > distRemaining) dashLength = distRemaining;
-        var xStep = Math.sqrt(dashLength * dashLength / (1 + slope * slope));
-        if (dx < 0) xStep = -xStep;
-        x += xStep;
-        y += slope * xStep;
-        this[draw ? "lineTo" : "moveTo"](x, y);
-        distRemaining -= dashLength;
-        draw = !draw;
-      }
-    };
-
-    // TODO: add diamond shape
-  }
 
 /***/ },
 /* 61 */
@@ -25853,8 +25847,33 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
 
+  var Label = _interopRequire(__webpack_require__(63));
 
-  var Label = _interopRequire(__webpack_require__(65));
+  var Box = _interopRequire(__webpack_require__(64));
+
+  var Circle = _interopRequire(__webpack_require__(65));
+
+  var CircularImage = _interopRequire(__webpack_require__(67));
+
+  var Database = _interopRequire(__webpack_require__(68));
+
+  var Dot = _interopRequire(__webpack_require__(69));
+
+  var Ellipse = _interopRequire(__webpack_require__(70));
+
+  var Icon = _interopRequire(__webpack_require__(71));
+
+  var Image = _interopRequire(__webpack_require__(72));
+
+  var Square = _interopRequire(__webpack_require__(73));
+
+  var Star = _interopRequire(__webpack_require__(74));
+
+  var Text = _interopRequire(__webpack_require__(75));
+
+  var Triangle = _interopRequire(__webpack_require__(76));
+
+  var TriangleDown = _interopRequire(__webpack_require__(77));
 
   /**
    * @class Node
@@ -25887,6 +25906,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
       this.options = util.bridgeObject(globalOptions);
 
+      this.body = body;
       this.selected = false;
       this.hover = false;
 
@@ -25910,7 +25930,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.predefinedPosition = false; // used to check if initial zoomExtent should just take the range or approximate
 
       this.fixedData = { x: null, y: null };
-      this.labelModule = new Label(body, this.options);
+      this.labelModule = new Label(this.body, this.options);
 
       this.setOptions(options);
     }
@@ -25961,7 +25981,7 @@ return /******/ (function(modules) { // webpackBootstrap
             return;
           }
 
-          var fields = ["borderWidth", "borderWidthSelected", "shape", "image", "brokenImage", "size", "label", "customScalingFunction", "icon", "value", "hidden", "physics"];
+          var fields = ["id", "borderWidth", "borderWidthSelected", "shape", "image", "brokenImage", "size", "label", "customScalingFunction", "icon", "value", "hidden", "physics"];
           util.selectiveDeepExtend(fields, this.options, options);
 
           // basic options
@@ -26033,61 +26053,47 @@ return /******/ (function(modules) { // webpackBootstrap
           // choose draw method depending on the shape
           switch (this.options.shape) {
             case "database":
-              this.draw = this._drawDatabase;
-              this.resize = this._resizeDatabase;
+              this.shape = new Database(this.options, this.body, this.labelModule);
               break;
             case "box":
-              this.draw = this._drawBox;
-              this.resize = this._resizeBox;
+              this.shape = new Box(this.options, this.body, this.labelModule);
               break;
             case "circle":
-              this.draw = this._drawCircle;
-              this.resize = this._resizeCircle;
+              this.shape = new Circle(this.options, this.body, this.labelModule);
               break;
             case "ellipse":
-              this.draw = this._drawEllipse;
-              this.resize = this._resizeEllipse;
+              this.shape = new Ellipse(this.options, this.body, this.labelModule);
               break;
             // TODO: add diamond shape
             case "image":
-              this.draw = this._drawImage;
-              this.resize = this._resizeImage;
+              this.shape = new Image(this.options, this.body, this.labelModule, this.imageObj);
               break;
             case "circularImage":
-              this.draw = this._drawCircularImage;
-              this.resize = this._resizeCircularImage;
+              this.shape = new CircularImage(this.options, this.body, this.labelModule, this.imageObj);
               break;
             case "text":
-              this.draw = this._drawText;
-              this.resize = this._resizeText;
+              this.shape = new Text(this.options, this.body, this.labelModule);
               break;
             case "dot":
-              this.draw = this._drawDot;
-              this.resize = this._resizeShape;
+              this.shape = new Dot(this.options, this.body, this.labelModule);
               break;
             case "square":
-              this.draw = this._drawSquare;
-              this.resize = this._resizeShape;
+              this.shape = new Square(this.options, this.body, this.labelModule);
               break;
             case "triangle":
-              this.draw = this._drawTriangle;
-              this.resize = this._resizeShape;
+              this.shape = new Triangle(this.options, this.body, this.labelModule);
               break;
             case "triangleDown":
-              this.draw = this._drawTriangleDown;
-              this.resize = this._resizeShape;
+              this.shape = new TriangleDown(this.options, this.body, this.labelModule);
               break;
             case "star":
-              this.draw = this._drawStar;
-              this.resize = this._resizeShape;
+              this.shape = new Star(this.options, this.body, this.labelModule);
               break;
             case "icon":
-              this.draw = this._drawIcon;
-              this.resize = this._resizeIcon;
+              this.shape = new Icon(this.options, this.body, this.labelModule);
               break;
             default:
-              this.draw = this._drawEllipse;
-              this.resize = this._resizeEllipse;
+              this.shape = new Ellipse(this.options, this.body, this.labelModule);
               break;
           }
 
@@ -26164,41 +26170,7 @@ return /******/ (function(modules) { // webpackBootstrap
          * @returns {number} distance   Distance to the border in pixels
          */
         value: function distanceToBorder(ctx, angle) {
-          var borderWidth = 1;
-
-          if (!this.width) {
-            this.resize(ctx);
-          }
-
-          switch (this.options.shape) {
-            case "circle":
-            case "dot":
-              return this.options.size + borderWidth;
-
-            case "ellipse":
-              var a = this.width / 2;
-              var b = this.height / 2;
-              var w = Math.sin(angle) * a;
-              var h = Math.cos(angle) * b;
-              return a * b / Math.sqrt(w * w + h * h);
-
-            // TODO: implement distanceToBorder for database
-            // TODO: implement distanceToBorder for triangle
-            // TODO: implement distanceToBorder for triangleDown
-
-            case "box":
-            case "image":
-            case "text":
-            default:
-              if (this.width) {
-                return Math.min(Math.abs(this.width / 2 / Math.cos(angle)), Math.abs(this.height / 2 / Math.sin(angle))) + borderWidth;
-                // TODO: reckon with border size too in case of box
-              } else {
-                return 0;
-              }
-
-          }
-          // TODO: implement calculation of distance to border for all shapes
+          this.shape.distanceToBorder(ctx, angle);
         },
         writable: true,
         configurable: true
@@ -26274,7 +26246,7 @@ return /******/ (function(modules) { // webpackBootstrap
          * @param {CanvasRenderingContext2D}   ctx
          */
         value: function draw(ctx) {
-          throw "Draw method not initialized for node";
+          this.shape.draw(ctx, this.x, this.y, this.selected, this.hover);
         },
         writable: true,
         configurable: true
@@ -26288,7 +26260,7 @@ return /******/ (function(modules) { // webpackBootstrap
          * @param {CanvasRenderingContext2D}   ctx
          */
         value: function resize(ctx) {
-          throw "Resize method not initialized for node";
+          this.shape.resize(ctx);
         },
         writable: true,
         configurable: true
@@ -26302,15 +26274,1197 @@ return /******/ (function(modules) { // webpackBootstrap
          * @return {boolean}     True if location is located on node
          */
         value: function isOverlappingWith(obj) {
-          return this.left < obj.right && this.left + this.width > obj.left && this.top < obj.bottom && this.top + this.height > obj.top;
+          return this.shape.left < obj.right && this.shape.left + this.shape.width > obj.left && this.shape.top < obj.bottom && this.shape.top + this.shape.height > obj.top;
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return Node;
+  })();
+
+  module.exports = Node;
+
+/***/ },
+/* 63 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _slicedToArray = function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; for (var _iterator = arr[Symbol.iterator](), _step; !(_step = _iterator.next()).done;) { _arr.push(_step.value); if (i && _arr.length === i) break; } return _arr; } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } };
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  var util = __webpack_require__(1);
+
+  /**
+   * Created by Alex on 3/17/2015.
+   */
+
+  var Label = (function () {
+    function Label(body, options) {
+      _classCallCheck(this, Label);
+
+      this.body = body;
+      this.setOptions(options);
+
+      this.size = { top: 0, left: 0, width: 0, height: 0, yLine: 0 }; // could be cached
+    }
+
+    _prototypeProperties(Label, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          this.options = options;
+          if (options.label !== undefined) {
+            this.labelDirty = true;
+          }
         },
         writable: true,
         configurable: true
       },
-      _resizeImage: {
-        value: function _resizeImage(ctx) {
-          // TODO: pre calculate the image size
+      draw: {
 
+
+        /**
+         * Main function. This is called from anything that wants to draw a label.
+         * @param ctx
+         * @param x
+         * @param y
+         * @param selected
+         * @param baseline
+         */
+        value: function draw(ctx, x, y, selected) {
+          var baseline = arguments[4] === undefined ? "middle" : arguments[4];
+          // if no label, return
+          if (this.options.label === undefined) {
+            return;
+          } // check if we have to render the label
+          var viewFontSize = Number(this.options.font.size) * this.body.view.scale;
+          if (this.options.label && viewFontSize < this.options.scaling.label.drawThreshold - 1) {
+            return;
+          } // update the size cache if required
+          this.calculateLabelSize(ctx, selected, x, y, baseline);
+
+          // create the fontfill background
+          this._drawBackground(ctx);
+          // draw text
+          this._drawText(ctx, selected, x, y, baseline);
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawBackground: {
+
+        /**
+         * Draws the label background
+         * @param {CanvasRenderingContext2D} ctx
+         * @private
+         */
+        value: function _drawBackground(ctx) {
+          if (this.options.font.background !== undefined && this.options.font.background !== "none") {
+            ctx.fillStyle = this.options.font.background;
+
+            var lineMargin = 2;
+
+            switch (this.options.font.align) {
+              case "middle":
+                ctx.fillRect(-this.size.width * 0.5, -this.size.height * 0.5, this.size.width, this.size.height);
+                break;
+              case "top":
+                ctx.fillRect(-this.size.width * 0.5, -(this.size.height + lineMargin), this.size.width, this.size.height);
+                break;
+              case "bottom":
+                ctx.fillRect(-this.size.width * 0.5, lineMargin, this.size.width, this.size.height);
+                break;
+              default:
+                ctx.fillRect(this.size.left, this.size.top, this.size.width, this.size.height);
+                break;
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawText: {
+
+
+        /**
+         *
+         * @param ctx
+         * @param x
+         * @param baseline
+         * @private
+         */
+        value: function _drawText(ctx, selected, x, y) {
+          var baseline = arguments[4] === undefined ? "middle" : arguments[4];
+          var fontSize = Number(this.options.font.size);
+          var viewFontSize = fontSize * this.body.view.scale;
+          // this ensures that there will not be HUGE letters on screen by setting an upper limit on the visible text size (regardless of zoomLevel)
+          if (viewFontSize >= this.options.scaling.label.maxVisible) {
+            fontSize = Number(this.options.scaling.label.maxVisible) / this.body.view.scale;
+          }
+
+          var yLine = this.size.yLine;
+          var _getColor = this._getColor(viewFontSize);
+
+          var _getColor2 = _slicedToArray(_getColor, 2);
+
+          var fontColor = _getColor2[0];
+          var strokeColor = _getColor2[1];
+          var _ref = this._setAlignment(ctx, x, yLine, baseline);
+
+          var _ref2 = _slicedToArray(_ref, 2);
+
+          x = _ref2[0];
+          yLine = _ref2[1];
+
+
+          // configure context for drawing the text
+          ctx.font = (selected ? "bold " : "") + fontSize + "px " + this.options.font.face;
+          ctx.fillStyle = fontColor;
+          ctx.textAlign = "center";
+
+          // set the strokeWidth
+          if (this.options.font.stroke > 0) {
+            ctx.lineWidth = this.options.font.stroke;
+            ctx.strokeStyle = strokeColor;
+            ctx.lineJoin = "round";
+          }
+
+          // draw the text
+          for (var i = 0; i < this.lineCount; i++) {
+            if (this.options.font.stroke > 0) {
+              ctx.strokeText(this.lines[i], x, yLine);
+            }
+            ctx.fillText(this.lines[i], x, yLine);
+            yLine += fontSize;
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _setAlignment: {
+        value: function _setAlignment(ctx, x, yLine, baseline) {
+          // check for label alignment (for edges)
+          // TODO: make alignment for nodes
+          if (this.options.font.align !== "horizontal") {
+            x = 0;
+            yLine = 0;
+
+            var lineMargin = 2;
+            if (this.options.font.align === "top") {
+              ctx.textBaseline = "alphabetic";
+              yLine -= 2 * lineMargin; // distance from edge, required because we use alphabetic. Alphabetic has less difference between browsers
+            } else if (this.options.font.align === "bottom") {
+              ctx.textBaseline = "hanging";
+              yLine += 2 * lineMargin; // distance from edge, required because we use hanging. Hanging has less difference between browsers
+            } else {
+              ctx.textBaseline = "middle";
+            }
+          } else {
+            ctx.textBaseline = baseline;
+          }
+
+          return [x, yLine];
+        },
+        writable: true,
+        configurable: true
+      },
+      _getColor: {
+
+        /**
+         * fade in when relative scale is between threshold and threshold - 1.
+         * If the relative scale would be smaller than threshold -1 the draw function would have returned before coming here.
+         *
+         * @param viewFontSize
+         * @returns {*[]}
+         * @private
+         */
+        value: function _getColor(viewFontSize) {
+          var fontColor = this.options.font.color || "#000000";
+          var strokeColor = this.options.font.strokeColor || "#ffffff";
+          if (viewFontSize <= this.options.scaling.label.drawThreshold) {
+            var opacity = Math.max(0, Math.min(1, 1 - (this.options.scaling.label.drawThreshold - viewFontSize)));
+            fontColor = util.overrideOpacity(fontColor, opacity);
+            strokeColor = util.overrideOpacity(strokeColor, opacity);
+          }
+          return [fontColor, strokeColor];
+        },
+        writable: true,
+        configurable: true
+      },
+      getTextSize: {
+
+
+        /**
+         *
+         * @param ctx
+         * @param selected
+         * @returns {{width: number, height: number}}
+         */
+        value: function getTextSize(ctx) {
+          var selected = arguments[1] === undefined ? false : arguments[1];
+          var size = {
+            width: this._processLabel(ctx, selected),
+            height: this.options.font.size * this.lineCount
+          };
+          return size;
+        },
+        writable: true,
+        configurable: true
+      },
+      calculateLabelSize: {
+
+
+        /**
+         *
+         * @param ctx
+         * @param selected
+         * @param x
+         * @param y
+         * @param baseline
+         */
+        value: function calculateLabelSize(ctx, selected) {
+          var x = arguments[2] === undefined ? 0 : arguments[2];
+          var y = arguments[3] === undefined ? 0 : arguments[3];
+          var baseline = arguments[4] === undefined ? "middle" : arguments[4];
+          if (this.labelDirty === true) {
+            this.size.width = this._processLabel(ctx, selected);
+          }
+          this.size.height = this.options.font.size * this.lineCount;
+          this.size.left = x - this.size.width * 0.5;
+          this.size.top = y - this.size.height * 0.5;
+          this.size.yLine = y + (1 - this.lineCount) * 0.5 * this.options.font.size;
+          if (baseline == "hanging") {
+            this.size.top += 0.5 * this.options.font.size;
+            this.size.top += 4; // distance from node, required because we use hanging. Hanging has less difference between browsers
+            this.size.yLine += 4; // distance from node
+          }
+
+          this.labelDirty = false;
+        },
+        writable: true,
+        configurable: true
+      },
+      _processLabel: {
+
+
+        /**
+         * This calculates the width as well as explodes the label string and calculates the amount of lines.
+         * @param ctx
+         * @param selected
+         * @returns {number}
+         * @private
+         */
+        value: function _processLabel(ctx, selected) {
+          var width = 0;
+          var lines = [""];
+          var lineCount = 0;
+          if (this.options.label !== undefined) {
+            lines = String(this.options.label).split("\n");
+            lineCount = lines.length;
+            ctx.font = (selected ? "bold " : "") + this.options.font.size + "px " + this.options.font.face;
+            width = ctx.measureText(lines[0]).width;
+            for (var i = 1; i < lineCount; i++) {
+              var lineWidth = ctx.measureText(lines[i]).width;
+              width = lineWidth > width ? lineWidth : width;
+            }
+          }
+          this.lines = lines;
+          this.lineCount = lineCount;
+
+          return width;
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return Label;
+  })();
+
+  module.exports = Label;
+
+/***/ },
+/* 64 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Created by Alex on 3/18/2015.
+   */
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  var Box = (function () {
+    function Box(options, body, labelModule) {
+      _classCallCheck(this, Box);
+
+      this.body = body;
+      this.labelModule = labelModule;
+      this.setOptions(options);
+      this.top = undefined;
+      this.left = undefined;
+      this.height = undefined;
+      this.height = undefined;
+      this.boundingBox = { top: 0, left: 0, right: 0, bottom: 0 };
+    }
+
+    _prototypeProperties(Box, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          this.options = options;
+        },
+        writable: true,
+        configurable: true
+      },
+      resize: {
+        value: function resize(ctx) {
+          if (this.width === undefined) {
+            var margin = 5;
+            var textSize = this.labelModule.getTextSize(ctx, this.selected);
+            this.width = textSize.width + 2 * margin;
+            this.height = textSize.height + 2 * margin;
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      draw: {
+        value: function draw(ctx, x, y, selected, hover) {
+          this.resize(ctx);
+          this.left = x - this.width / 2;
+          this.top = y - this.height / 2;
+
+          var borderWidth = this.options.borderWidth;
+          var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+          console.log(this);
+          ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
+          ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
+          ctx.lineWidth /= this.body.view.scale;
+          ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
+
+          ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
+
+          ctx.roundRect(this.left, this.top, this.width, this.height, this.options.size);
+          ctx.fill();
+          ctx.stroke();
+
+          this.boundingBox.top = this.top;
+          this.boundingBox.left = this.left;
+          this.boundingBox.right = this.left + this.width;
+          this.boundingBox.bottom = this.top + this.height;
+
+          this.labelModule.draw(ctx, x, y, selected);
+        },
+        writable: true,
+        configurable: true
+      },
+      distanceToBorder: {
+        value: function distanceToBorder(ctx, angle) {
+          this.resize(ctx);
+          var a = this.width / 2;
+          var b = this.height / 2;
+          var w = Math.sin(angle) * a;
+          var h = Math.cos(angle) * b;
+          return a * b / Math.sqrt(w * w + h * h);
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return Box;
+  })();
+
+  module.exports = Box;
+
+/***/ },
+/* 65 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Created by Alex on 3/18/2015.
+   */
+  "use strict";
+
+  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  var NodeUtil = _interopRequire(__webpack_require__(66));
+
+  var Circle = (function (NodeUtil) {
+    function Circle(options, labelModule) {
+      _classCallCheck(this, Circle);
+
+      this.labelModule = labelModule;
+      this.setOptions(options);
+      this.top = undefined;
+      this.left = undefined;
+      this.height = undefined;
+      this.height = undefined;
+      this.boundingBox = { top: 0, left: 0, right: 0, bottom: 0 };
+    }
+
+    _inherits(Circle, NodeUtil);
+
+    _prototypeProperties(Circle, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          this.options = options;
+        },
+        writable: true,
+        configurable: true
+      },
+      resize: {
+        value: function resize(ctx) {
+          if (this.width === undefined) {
+            var margin = 5;
+            var textSize = this.labelModule.getTextSize(ctx, this.selected);
+            var diameter = Math.max(textSize.width, textSize.height) + 2 * margin;
+            this.options.size = diameter / 2;
+
+            this.width = diameter;
+            this.height = diameter;
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      draw: {
+        value: function draw(ctx, x, y, selected, hover) {
+          this.resize(ctx);
+          this.left = x - this.width / 2;
+          this.top = y - this.height / 2;
+
+          this._drawRawCircle(ctx, x, y, selected, hover, this.options.size);
+
+          this.boundingBox.top = y - this.options.size;
+          this.boundingBox.left = x - this.options.size;
+          this.boundingBox.right = x + this.options.size;
+          this.boundingBox.bottom = y + this.options.size;
+
+          this.labelModule.draw(ctx, x, y, selected);
+        },
+        writable: true,
+        configurable: true
+      },
+      distanceToBorder: {
+        value: function distanceToBorder(ctx, angle) {
+          this.resize(ctx);
+          var a = this.width / 2;
+          var b = this.height / 2;
+          var w = Math.sin(angle) * a;
+          var h = Math.cos(angle) * b;
+          return a * b / Math.sqrt(w * w + h * h);
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return Circle;
+  })(NodeUtil);
+
+  module.exports = Circle;
+
+/***/ },
+/* 66 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  /**
+   * Created by Alex on 3/19/2015.
+   */
+
+  var NodeUtil = (function () {
+    function NodeUtil(options, body, labelModule) {
+      _classCallCheck(this, NodeUtil);
+
+      this.body = body;
+      this.labelModule = labelModule;
+      this.setOptions(options);
+      this.top = undefined;
+      this.left = undefined;
+      this.height = undefined;
+      this.height = undefined;
+      this.boundingBox = { top: 0, left: 0, right: 0, bottom: 0 };
+    }
+
+    _prototypeProperties(NodeUtil, null, {
+      _drawRawCircle: {
+        value: function _drawRawCircle(ctx, x, y, selected, hover, size) {
+          var borderWidth = this.options.borderWidth;
+          var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+
+          ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
+
+          ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
+          ctx.lineWidth *= this.networkScaleInv;
+          ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
+
+          ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
+          ctx.circle(x, y, size);
+          ctx.fill();
+          ctx.stroke();
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawImageAtPosition: {
+        value: function _drawImageAtPosition(ctx) {
+          if (this.imageObj.width != 0) {
+            // draw the image
+            ctx.globalAlpha = 1;
+            ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _distanceToBorder: {
+        value: function _distanceToBorder(angle) {
+          var borderWidth = 1;
+          return Math.min(Math.abs(this.width / 2 / Math.cos(angle)), Math.abs(this.height / 2 / Math.sin(angle))) + borderWidth;
+        },
+        writable: true,
+        configurable: true
+      },
+      _resizeShape: {
+        value: function _resizeShape() {
+          if (this.width === undefined) {
+            var size = 2 * this.options.size;
+            this.width = size;
+            this.height = size;
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawShape: {
+        value: function _drawShape(ctx, shape, sizeMultiplier, x, y, selected, hover) {
+          this._resizeShape();
+
+          this.left = x - this.width / 2;
+          this.top = y - this.height / 2;
+
+          var borderWidth = this.options.borderWidth;
+          var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+
+          // choose draw method depending on the shape
+          switch (shape) {
+            case "dot":
+              sizeMultiplier = 2;
+              break;
+            case "square":
+              sizeMultiplier = 2;
+              break;
+            case "triangle":
+              sizeMultiplier = 3;
+              break;
+            case "triangleDown":
+              sizeMultiplier = 3;
+              break;
+            case "star":
+              sizeMultiplier = 4;
+              break;
+          }
+
+          ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
+          ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
+          ctx.lineWidth /= this.body.view.scale;
+          ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
+          ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
+          ctx[shape](x, y, this.options.size);
+          ctx.fill();
+          ctx.stroke();
+
+          this.boundingBox.top = y - this.options.size;
+          this.boundingBox.left = x - this.options.size;
+          this.boundingBox.right = x + this.options.size;
+          this.boundingBox.bottom = y + this.options.size;
+
+          if (this.options.label !== undefined) {
+            this.labelModule.draw(ctx, x, y + 0.5 * this.height, selected, "hanging");
+            this.boundingBox.left = Math.min(this.boundingBox.left, this.labelModule.size.left);
+            this.boundingBox.right = Math.max(this.boundingBox.right, this.labelModule.size.left + this.labelModule.size.width);
+            this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelModule.size.height);
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _drawImageLabel: {
+        value: function _drawImageLabel(ctx, x, y, selected) {
+          var yLabel;
+          var offset = 0;
+
+          if (this.height !== undefined) {
+            offset = this.height * 0.5;
+            var labelDimensions = this.labelModule.getTextSize(ctx);
+
+            if (labelDimensions.lineCount >= 1) {
+              offset += labelDimensions.height / 2;
+              offset += 3;
+            }
+          }
+
+          yLabel = y + offset;
+
+          this.labelModule.draw(ctx, x, yLabel, selected, "hanging");
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return NodeUtil;
+  })();
+
+  module.exports = NodeUtil;
+
+/***/ },
+/* 67 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Created by Alex on 3/18/2015.
+   */
+  "use strict";
+
+
+  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc && desc.writable) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+  var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  var NodeUtil = _interopRequire(__webpack_require__(66));
+
+  var CircularImage = (function (NodeUtil) {
+    function CircularImage(options, body, labelModule, imageObj) {
+      _classCallCheck(this, CircularImage);
+
+      _get(Object.getPrototypeOf(CircularImage.prototype), "constructor", this).call(this, options, body, labelModule);
+      this.imageObj = imageObj;
+    }
+
+    _inherits(CircularImage, NodeUtil);
+
+    _prototypeProperties(CircularImage, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          this.options = options;
+        },
+        writable: true,
+        configurable: true
+      },
+      resize: {
+        value: function resize(ctx) {
+          if (this.imageObj.src !== undefined || this.imageObj.width !== undefined || this.imageObj.height !== undefined) {
+            if (!this.width) {
+              var diameter = this.options.size * 2;
+              this.width = diameter;
+              this.height = diameter;
+              this._swapToImageResizeWhenImageLoaded = true;
+            }
+          } else {
+            if (this._swapToImageResizeWhenImageLoaded) {
+              this.width = 0;
+              this.height = 0;
+              delete this._swapToImageResizeWhenImageLoaded;
+            }
+            this._resizeImage(ctx);
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      draw: {
+        value: function draw(ctx, x, y, selected, hover) {
+          this.resize(ctx);
+
+          this.left = x - this.width / 2;
+          this.top = y - this.height / 2;
+
+          var centerX = this.left + this.width / 2;
+          var centerY = this.top + this.height / 2;
+          var size = Math.abs(this.height / 2);
+
+          this._drawRawCircle(ctx, x, y, selected, hover, size);
+
+          ctx.save();
+          ctx.circle(x, y, size);
+          ctx.stroke();
+          ctx.clip();
+
+          this._drawImageAtPosition(ctx);
+
+          ctx.restore();
+
+          this.boundingBox.top = y - this.options.size;
+          this.boundingBox.left = x - this.options.size;
+          this.boundingBox.right = x + this.options.size;
+          this.boundingBox.bottom = y + this.options.size;
+
+          this._drawImageLabel(ctx);
+
+          this.boundingBox.left = Math.min(this.boundingBox.left, this.labelModule.size.left);
+          this.boundingBox.right = Math.max(this.boundingBox.right, this.labelModule.size.left + this.labelModule.size.width);
+          this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelModule.size.height);
+        },
+        writable: true,
+        configurable: true
+      },
+      distanceToBorder: {
+        value: function distanceToBorder(ctx, angle) {
+          this.resize(ctx);
+          return this._distanceToBorder(angle);
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return CircularImage;
+  })(NodeUtil);
+
+  module.exports = CircularImage;
+
+/***/ },
+/* 68 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Created by Alex on 3/18/2015.
+   */
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  var Database = (function () {
+    function Database(options, body, labelModule) {
+      _classCallCheck(this, Database);
+
+      this.body = body;
+      this.labelModule = labelModule;
+      this.setOptions(options);
+      this.top = undefined;
+      this.left = undefined;
+      this.height = undefined;
+      this.height = undefined;
+      this.boundingBox = { top: 0, left: 0, right: 0, bottom: 0 };
+    }
+
+    _prototypeProperties(Database, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          this.options = options;
+        },
+        writable: true,
+        configurable: true
+      },
+      resize: {
+        value: function resize(ctx, selected) {
+          if (this.width === undefined) {
+            var margin = 5;
+            var textSize = this.labelModule.getTextSize(ctx, selected);
+            var size = textSize.width + 2 * margin;
+            this.width = size;
+            this.height = size;
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      draw: {
+        value: function draw(ctx, x, y, selected, hover) {
+          this.resize(ctx, selected);
+          this.left = x - this.width / 2;
+          this.top = y - this.height / 2;
+
+          var borderWidth = this.options.borderWidth;
+          var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+
+          ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
+          ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
+          ctx.lineWidth *= this.networkScaleInv;
+          ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
+
+          ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
+          ctx.database(x - this.width / 2, y - this.height * 0.5, this.width, this.height);
+          ctx.fill();
+          ctx.stroke();
+
+          this.boundingBox.top = this.top;
+          this.boundingBox.left = this.left;
+          this.boundingBox.right = this.left + this.width;
+          this.boundingBox.bottom = this.top + this.height;
+
+          this.labelModule.draw(ctx, x, y, selected);
+        },
+        writable: true,
+        configurable: true
+      },
+      distanceToBorder: {
+        value: function distanceToBorder(ctx, angle) {
+          this.resize(ctx);
+          var a = this.width / 2;
+          var b = this.height / 2;
+          var w = Math.sin(angle) * a;
+          var h = Math.cos(angle) * b;
+          return a * b / Math.sqrt(w * w + h * h);
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return Database;
+  })();
+
+  module.exports = Database;
+
+/***/ },
+/* 69 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Created by Alex on 3/18/2015.
+   */
+  "use strict";
+
+  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc && desc.writable) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+  var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  var NodeUtil = _interopRequire(__webpack_require__(66));
+
+  var Dot = (function (NodeUtil) {
+    function Dot(options, body, labelModule) {
+      _classCallCheck(this, Dot);
+
+      _get(Object.getPrototypeOf(Dot.prototype), "constructor", this).call(this, options, body, labelModule);
+    }
+
+    _inherits(Dot, NodeUtil);
+
+    _prototypeProperties(Dot, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          this.options = options;
+        },
+        writable: true,
+        configurable: true
+      },
+      resize: {
+        value: function resize(ctx) {
+          this._resizeShape();
+        },
+        writable: true,
+        configurable: true
+      },
+      draw: {
+        value: function draw(ctx, x, y, selected, hover) {
+          this._drawShape(ctx, "circle", 2, x, y, selected, hover);
+        },
+        writable: true,
+        configurable: true
+      },
+      distanceToBorder: {
+        value: function distanceToBorder(ctx, angle) {
+          return this.options.size + this.options.borderWidth;
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return Dot;
+  })(NodeUtil);
+
+  module.exports = Dot;
+
+/***/ },
+/* 70 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Created by Alex on 3/18/2015.
+   */
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  var Ellipse = (function () {
+    function Ellipse(options, body, labelModule) {
+      _classCallCheck(this, Ellipse);
+
+      this.body = body;
+      this.labelModule = labelModule;
+      this.setOptions(options);
+      this.top = undefined;
+      this.left = undefined;
+      this.height = undefined;
+      this.height = undefined;
+      this.boundingBox = { top: 0, left: 0, right: 0, bottom: 0 };
+    }
+
+    _prototypeProperties(Ellipse, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          this.options = options;
+        },
+        writable: true,
+        configurable: true
+      },
+      resize: {
+        value: function resize(ctx, selected) {
+          if (this.width === undefined) {
+            var textSize = this.labelModule.getTextSize(ctx, selected);
+
+            this.width = textSize.width * 1.5;
+            this.height = textSize.height * 2;
+            if (this.width < this.height) {
+              this.width = this.height;
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      draw: {
+        value: function draw(ctx, x, y, selected, hover) {
+          this.resize(ctx, selected);
+          this.left = x - this.width / 2;
+          this.top = y - this.height / 2;
+
+          var borderWidth = this.options.borderWidth;
+          var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+
+          ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
+
+          ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
+          ctx.lineWidth /= this.body.view.scale;
+          ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
+
+          ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
+          ctx.ellipse(this.left, this.top, this.width, this.height);
+          ctx.fill();
+          ctx.stroke();
+
+          this.boundingBox.left = this.left;
+          this.boundingBox.top = this.top;
+          this.boundingBox.bottom = this.top + this.height;
+          this.boundingBox.right = this.left + this.width;
+
+
+          this.labelModule.draw(ctx, x, y, selected);
+        },
+        writable: true,
+        configurable: true
+      },
+      distanceToBorder: {
+        value: function distanceToBorder(ctx, angle) {
+          this.resize(ctx);
+          var a = this.width / 2;
+          var b = this.height / 2;
+          var w = Math.sin(angle) * a;
+          var h = Math.cos(angle) * b;
+          return a * b / Math.sqrt(w * w + h * h);
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return Ellipse;
+  })();
+
+  module.exports = Ellipse;
+
+/***/ },
+/* 71 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Created by Alex on 3/18/2015.
+   */
+  "use strict";
+
+  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc && desc.writable) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+  var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  var NodeUtil = _interopRequire(__webpack_require__(66));
+
+  var Icon = (function (NodeUtil) {
+    function Icon(options, body, labelModule) {
+      _classCallCheck(this, Icon);
+
+      _get(Object.getPrototypeOf(Icon.prototype), "constructor", this).call(this, options, body, labelModule);
+    }
+
+    _inherits(Icon, NodeUtil);
+
+    _prototypeProperties(Icon, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          this.options = options;
+        },
+        writable: true,
+        configurable: true
+      },
+      resize: {
+        value: function resize(ctx) {
+          if (this.width === undefined) {
+            var margin = 5;
+            var iconSize = {
+              width: Number(this.options.icon.iconSize),
+              height: Number(this.options.icon.iconSize)
+            };
+            this.width = iconSize.width + 2 * margin;
+            this.height = iconSize.height + 2 * margin;
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      draw: {
+        value: function draw(ctx, x, y, selected, hover) {
+          this.resize(ctx);
+          this.options.icon.iconSize = this.options.icon.iconSize || 50;
+
+          this.left = x - this.width * 0.5;
+          this.top = y - this.height * 0.5;
+          this._icon(ctx, x, y, selected);
+
+
+          this.boundingBox.top = y - this.options.icon.iconSize * 0.5;
+          this.boundingBox.left = x - this.options.icon.iconSize * 0.5;
+          this.boundingBox.right = x + this.options.icon.iconSize * 0.5;
+          this.boundingBox.bottom = y + this.options.icon.iconSize * 0.5;
+
+          if (this.options.label !== undefined) {
+            var iconTextSpacing = 5;
+            this.labelModule.draw(ctx, x, y + this.height * 0.5 + iconTextSpacing, selected);
+            this.boundingBox.left = Math.min(this.boundingBox.left, this.labelModule.size.left);
+            this.boundingBox.right = Math.max(this.boundingBox.right, this.labelModule.size.left + this.labelModule.size.width);
+            this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelModule.size.height);
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _icon: {
+        value: function _icon(ctx, x, y, selected) {
+          var iconSize = Number(this.options.icon.iconSize);
+          var relativeIconSize = iconSize * this.body.view.scale;
+
+          if (this.options.icon.code && relativeIconSize > this.options.scaling.label.drawThreshold - 1) {
+            ctx.font = (selected ? "bold " : "") + iconSize + "px " + this.options.icon.iconFontFace;
+
+            // draw icon
+            ctx.fillStyle = this.options.icon.iconColor || "black";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(this.options.icon.code, x, y);
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      distanceToBorder: {
+        value: function distanceToBorder(ctx, angle) {
+          this.resize(ctx);
+          this._distanceToBorder(angle);
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return Icon;
+  })(NodeUtil);
+
+  module.exports = Icon;
+
+/***/ },
+/* 72 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Created by Alex on 3/18/2015.
+   */
+  "use strict";
+
+  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc && desc.writable) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+  var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  var NodeUtil = _interopRequire(__webpack_require__(66));
+
+  var Image = (function (NodeUtil) {
+    function Image(options, body, labelModule, imageObj) {
+      _classCallCheck(this, Image);
+
+      _get(Object.getPrototypeOf(Image.prototype), "constructor", this).call(this, options, body, labelModule);
+      this.imageObj = imageObj;
+    }
+
+    _inherits(Image, NodeUtil);
+
+    _prototypeProperties(Image, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          this.options = options;
+        },
+        writable: true,
+        configurable: true
+      },
+      resize: {
+        value: function resize() {
           if (!this.width || !this.height) {
             // undefined or 0
             var width, height;
@@ -26334,44 +27488,11 @@ return /******/ (function(modules) { // webpackBootstrap
         writable: true,
         configurable: true
       },
-      _drawImageAtPosition: {
-        value: function _drawImageAtPosition(ctx) {
-          if (this.imageObj.width != 0) {
-            // draw the image
-            ctx.globalAlpha = 1;
-            ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _drawImageLabel: {
-        value: function _drawImageLabel(ctx) {
-          var yLabel;
-          var offset = 0;
-
-          if (this.height) {
-            offset = this.height / 2;
-            var labelDimensions = this.labelModule.labelDimensions;
-
-            if (labelDimensions.lineCount >= 1) {
-              offset += labelDimensions.height / 2;
-              offset += 3;
-            }
-          }
-
-          yLabel = this.y + offset;
-
-          this.labelModule.draw(ctx, this.x, yLabel);
-        },
-        writable: true,
-        configurable: true
-      },
-      _drawImage: {
-        value: function _drawImage(ctx) {
-          this._resizeImage(ctx);
-          this.left = this.x - this.width / 2;
-          this.top = this.y - this.height / 2;
+      draw: {
+        value: function draw(ctx, x, y, selected, hover) {
+          this.resize(ctx);
+          this.left = x - this.width / 2;
+          this.top = y - this.height / 2;
 
           this._drawImageAtPosition(ctx);
 
@@ -26380,7 +27501,7 @@ return /******/ (function(modules) { // webpackBootstrap
           this.boundingBox.right = this.left + this.width;
           this.boundingBox.bottom = this.top + this.height;
 
-          this._drawImageLabel(ctx);
+          this._drawImageLabel(ctx, x, y, selected || hover);
           this.boundingBox.left = Math.min(this.boundingBox.left, this.labelModule.size.left);
           this.boundingBox.right = Math.max(this.boundingBox.right, this.labelModule.size.left + this.labelModule.size.width);
           this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelModule.size.height);
@@ -26388,446 +27509,376 @@ return /******/ (function(modules) { // webpackBootstrap
         writable: true,
         configurable: true
       },
-      _resizeCircularImage: {
-        value: function _resizeCircularImage(ctx) {
-          if (!this.imageObj.src || !this.imageObj.width || !this.imageObj.height) {
-            if (!this.width) {
-              var diameter = this.options.size * 2;
-              this.width = diameter;
-              this.height = diameter;
-              this._swapToImageResizeWhenImageLoaded = true;
-            }
-          } else {
-            if (this._swapToImageResizeWhenImageLoaded) {
-              this.width = 0;
-              this.height = 0;
-              delete this._swapToImageResizeWhenImageLoaded;
-            }
-            this._resizeImage(ctx);
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _drawCircularImage: {
-        value: function _drawCircularImage(ctx) {
-          this._resizeCircularImage(ctx);
-
-          this.left = this.x - this.width / 2;
-          this.top = this.y - this.height / 2;
-
-          var centerX = this.left + this.width / 2;
-          var centerY = this.top + this.height / 2;
-          var size = Math.abs(this.height / 2);
-
-          this._drawRawCircle(ctx, size);
-
-          ctx.save();
-          ctx.circle(this.x, this.y, size);
-          ctx.stroke();
-          ctx.clip();
-
-          this._drawImageAtPosition(ctx);
-
-          ctx.restore();
-
-          this.boundingBox.top = this.y - this.options.size;
-          this.boundingBox.left = this.x - this.options.size;
-          this.boundingBox.right = this.x + this.options.size;
-          this.boundingBox.bottom = this.y + this.options.size;
-
-          this._drawImageLabel(ctx);
-
-          this.boundingBox.left = Math.min(this.boundingBox.left, this.labelModule.size.left);
-          this.boundingBox.right = Math.max(this.boundingBox.right, this.labelModule.size.left + this.labelModule.size.width);
-          this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelModule.size.height);
-        },
-        writable: true,
-        configurable: true
-      },
-      _resizeBox: {
-        value: function _resizeBox(ctx) {
-          if (!this.width) {
-            var margin = 5;
-            var textSize = this.labelModule.getTextSize(ctx, this.selected);
-            this.width = textSize.width + 2 * margin;
-            this.height = textSize.height + 2 * margin;
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _drawBox: {
-        value: function _drawBox(ctx) {
-          this._resizeBox(ctx);
-
-          this.left = this.x - this.width / 2;
-          this.top = this.y - this.height / 2;
-
-          var borderWidth = this.options.borderWidth;
-          var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-
-          ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
-          ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
-          ctx.lineWidth *= this.networkScaleInv;
-          ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
-
-          ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
-
-          ctx.roundRect(this.left, this.top, this.width, this.height, this.options.size);
-          ctx.fill();
-          ctx.stroke();
-
-          this.boundingBox.top = this.top;
-          this.boundingBox.left = this.left;
-          this.boundingBox.right = this.left + this.width;
-          this.boundingBox.bottom = this.top + this.height;
-
-          this.labelModule.draw(ctx, this.x, this.y);
-        },
-        writable: true,
-        configurable: true
-      },
-      _resizeDatabase: {
-        value: function _resizeDatabase(ctx) {
-          if (!this.width) {
-            var margin = 5;
-            var textSize = this.labelModule.getTextSize(ctx, this.selected);
-            var size = textSize.width + 2 * margin;
-            this.width = size;
-            this.height = size;
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _drawDatabase: {
-        value: function _drawDatabase(ctx) {
-          this._resizeDatabase(ctx);
-          this.left = this.x - this.width / 2;
-          this.top = this.y - this.height / 2;
-
-          var borderWidth = this.options.borderWidth;
-          var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-
-          ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
-          ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
-          ctx.lineWidth *= this.networkScaleInv;
-          ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
-
-          ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
-          ctx.database(this.x - this.width / 2, this.y - this.height * 0.5, this.width, this.height);
-          ctx.fill();
-          ctx.stroke();
-
-          this.boundingBox.top = this.top;
-          this.boundingBox.left = this.left;
-          this.boundingBox.right = this.left + this.width;
-          this.boundingBox.bottom = this.top + this.height;
-
-          this.labelModule.draw(ctx, this.x, this.y);
-        },
-        writable: true,
-        configurable: true
-      },
-      _resizeCircle: {
-        value: function _resizeCircle(ctx) {
-          if (!this.width) {
-            var margin = 5;
-            var textSize = this.labelModule.getTextSize(ctx, this.selected);
-            var diameter = Math.max(textSize.width, textSize.height) + 2 * margin;
-            this.options.size = diameter / 2;
-
-            this.width = diameter;
-            this.height = diameter;
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _drawRawCircle: {
-        value: function _drawRawCircle(ctx, size) {
-          var borderWidth = this.options.borderWidth;
-          var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-
-          ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
-
-          ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
-          ctx.lineWidth *= this.networkScaleInv;
-          ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
-
-          ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
-          ctx.circle(this.x, this.y, size);
-          ctx.fill();
-          ctx.stroke();
-        },
-        writable: true,
-        configurable: true
-      },
-      _drawCircle: {
-        value: function _drawCircle(ctx) {
-          this._resizeCircle(ctx);
-          this.left = this.x - this.width / 2;
-          this.top = this.y - this.height / 2;
-
-          this._drawRawCircle(ctx, this.options.size);
-
-          this.boundingBox.top = this.y - this.options.size;
-          this.boundingBox.left = this.x - this.options.size;
-          this.boundingBox.right = this.x + this.options.size;
-          this.boundingBox.bottom = this.y + this.options.size;
-
-          this.labelModule.draw(ctx, this.x, this.y);
-        },
-        writable: true,
-        configurable: true
-      },
-      _resizeEllipse: {
-        value: function _resizeEllipse(ctx) {
-          if (this.width === undefined) {
-            var textSize = this.labelModule.getTextSize(ctx, this.selected);
-
-            this.width = textSize.width * 1.5;
-            this.height = textSize.height * 2;
-            if (this.width < this.height) {
-              this.width = this.height;
-            }
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _drawEllipse: {
-        value: function _drawEllipse(ctx) {
-          this._resizeEllipse(ctx);
-          this.left = this.x - this.width / 2;
-          this.top = this.y - this.height / 2;
-
-          var borderWidth = this.options.borderWidth;
-          var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-
-          ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
-
-          ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
-          ctx.lineWidth *= this.networkScaleInv;
-          ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
-
-          ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
-
-          ctx.ellipse(this.left, this.top, this.width, this.height);
-          ctx.fill();
-          ctx.stroke();
-
-          this.boundingBox.top = this.top;
-          this.boundingBox.left = this.left;
-          this.boundingBox.right = this.left + this.width;
-          this.boundingBox.bottom = this.top + this.height;
-
-          this.labelModule.draw(ctx, this.x, this.y, this.selected);
-        },
-        writable: true,
-        configurable: true
-      },
-      _drawDot: {
-        value: function _drawDot(ctx) {
-          this._drawShape(ctx, "circle");
-        },
-        writable: true,
-        configurable: true
-      },
-      _drawTriangle: {
-        value: function _drawTriangle(ctx) {
-          this._drawShape(ctx, "triangle");
-        },
-        writable: true,
-        configurable: true
-      },
-      _drawTriangleDown: {
-        value: function _drawTriangleDown(ctx) {
-          this._drawShape(ctx, "triangleDown");
-        },
-        writable: true,
-        configurable: true
-      },
-      _drawSquare: {
-        value: function _drawSquare(ctx) {
-          this._drawShape(ctx, "square");
-        },
-        writable: true,
-        configurable: true
-      },
-      _drawStar: {
-        value: function _drawStar(ctx) {
-          this._drawShape(ctx, "star");
-        },
-        writable: true,
-        configurable: true
-      },
-      _resizeShape: {
-        value: function _resizeShape(ctx) {
-          if (!this.width) {
-            var size = 2 * this.options.size;
-            this.width = size;
-            this.height = size;
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _drawShape: {
-        value: function _drawShape(ctx, shape) {
-          this._resizeShape(ctx);
-
-          this.left = this.x - this.width / 2;
-          this.top = this.y - this.height / 2;
-
-          var borderWidth = this.options.borderWidth;
-          var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-          var sizeMultiplier = 2;
-
-          // choose draw method depending on the shape
-          switch (shape) {
-            case "dot":
-              sizeMultiplier = 2;
-              break;
-            case "square":
-              sizeMultiplier = 2;
-              break;
-            case "triangle":
-              sizeMultiplier = 3;
-              break;
-            case "triangleDown":
-              sizeMultiplier = 3;
-              break;
-            case "star":
-              sizeMultiplier = 4;
-              break;
-          }
-
-          ctx.strokeStyle = this.selected ? this.options.color.highlight.border : this.hover ? this.options.color.hover.border : this.options.color.border;
-          ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
-          ctx.lineWidth *= this.networkScaleInv;
-          ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
-
-          ctx.fillStyle = this.selected ? this.options.color.highlight.background : this.hover ? this.options.color.hover.background : this.options.color.background;
-          ctx[shape](this.x, this.y, this.options.size);
-          ctx.fill();
-          ctx.stroke();
-
-          this.boundingBox.top = this.y - this.options.size;
-          this.boundingBox.left = this.x - this.options.size;
-          this.boundingBox.right = this.x + this.options.size;
-          this.boundingBox.bottom = this.y + this.options.size;
-
-          if (this.options.label !== undefined) {
-            this.labelModule.draw(ctx, this.x, this.y + (this.height + this.labelModule.size.height) * 0.5, this.selected, "hanging");
-            this.boundingBox.left = Math.min(this.boundingBox.left, this.labelModule.size.left);
-            this.boundingBox.right = Math.max(this.boundingBox.right, this.labelModule.size.left + this.labelModule.size.width);
-            this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelModule.size.height);
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _resizeText: {
-        value: function _resizeText(ctx) {
-          if (!this.width) {
-            var margin = 5;
-            var textSize = this.labelModule.getTextSize(ctx, this.selected);
-            this.width = textSize.width + 2 * margin;
-            this.height = textSize.height + 2 * margin;
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _drawText: {
-        value: function _drawText(ctx) {
-          this._resizeText(ctx);
-          this.left = this.x - this.width / 2;
-          this.top = this.y - this.height / 2;
-
-          this.labelModule.draw(ctx, this.x, this.y);
-
-          this.boundingBox.top = this.top;
-          this.boundingBox.left = this.left;
-          this.boundingBox.right = this.left + this.width;
-          this.boundingBox.bottom = this.top + this.height;
-        },
-        writable: true,
-        configurable: true
-      },
-      _resizeIcon: {
-        value: function _resizeIcon(ctx) {
-          if (!this.width) {
-            var margin = 5;
-            var iconSize = {
-              width: Number(this.options.icon.iconSize),
-              height: Number(this.options.icon.iconSize)
-            };
-            this.width = iconSize.width + 2 * margin;
-            this.height = iconSize.height + 2 * margin;
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _drawIcon: {
-        value: function _drawIcon(ctx) {
-          this._resizeIcon(ctx);
-
-          this.options.icon.iconSize = this.options.icon.iconSize || 50;
-
-          this.left = this.x - this.width / 2;
-          this.top = this.y - this.height / 2;
-          this._icon(ctx);
-
-
-          this.boundingBox.top = this.y - this.options.icon.iconSize / 2;
-          this.boundingBox.left = this.x - this.options.icon.iconSize / 2;
-          this.boundingBox.right = this.x + this.options.icon.iconSize / 2;
-          this.boundingBox.bottom = this.y + this.options.icon.iconSize / 2;
-
-          if (this.options.label !== unde) {
-            var iconTextSpacing = 5;
-            this.labelModule.draw(ctx, this.x, this.y + this.height / 2 + iconTextSpacing);
-
-            this.boundingBox.left = Math.min(this.boundingBox.left, this.labelModule.size.left);
-            this.boundingBox.right = Math.max(this.boundingBox.right, this.labelModule.size.left + this.labelModule.size.width);
-            this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelModule.size.height);
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _icon: {
-        value: function _icon(ctx) {
-          var relativeIconSize = Number(this.options.icon.iconSize) * this.networkScale;
-
-          if (this.options.icon.code && relativeIconSize > this.options.scaling.label.drawThreshold - 1) {
-            var iconSize = Number(this.options.icon.iconSize);
-
-            ctx.font = (this.selected ? "bold " : "") + iconSize + "px " + this.options.icon.iconFontFace;
-
-            // draw icon
-            ctx.fillStyle = this.options.icon.iconColor || "black";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText(this.options.icon.code, this.x, this.y);
-          }
+      distanceToBorder: {
+        value: function distanceToBorder(ctx, angle) {
+          console.log(this.width);
+          this.resize(ctx);
+          var a = this.width / 2;
+          var b = this.height / 2;
+          var w = Math.sin(angle) * a;
+          var h = Math.cos(angle) * b;
+          return a * b / Math.sqrt(w * w + h * h);
         },
         writable: true,
         configurable: true
       }
     });
 
-    return Node;
-  })();
+    return Image;
+  })(NodeUtil);
 
-  module.exports = Node;
+  module.exports = Image;
 
 /***/ },
-/* 63 */
+/* 73 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Created by Alex on 3/18/2015.
+   */
+  "use strict";
+
+  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc && desc.writable) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+  var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  var NodeUtil = _interopRequire(__webpack_require__(66));
+
+  var Square = (function (NodeUtil) {
+    function Square(options, body, labelModule) {
+      _classCallCheck(this, Square);
+
+      _get(Object.getPrototypeOf(Square.prototype), "constructor", this).call(this, options, body, labelModule);
+    }
+
+    _inherits(Square, NodeUtil);
+
+    _prototypeProperties(Square, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          this.options = options;
+        },
+        writable: true,
+        configurable: true
+      },
+      resize: {
+        value: function resize(ctx) {
+          this._resizeShape();
+        },
+        writable: true,
+        configurable: true
+      },
+      draw: {
+        value: function draw(ctx, x, y, selected, hover) {
+          this._drawShape(ctx, "square", 2, x, y, selected, hover);
+        },
+        writable: true,
+        configurable: true
+      },
+      distanceToBorder: {
+        value: function distanceToBorder(ctx, angle) {
+          this.resize(ctx);
+          return this._distanceToBorder(angle);
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return Square;
+  })(NodeUtil);
+
+  module.exports = Square;
+
+/***/ },
+/* 74 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Created by Alex on 3/18/2015.
+   */
+  "use strict";
+
+  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc && desc.writable) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+  var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  var NodeUtil = _interopRequire(__webpack_require__(66));
+
+  var Star = (function (NodeUtil) {
+    function Star(options, body, labelModule) {
+      _classCallCheck(this, Star);
+
+      _get(Object.getPrototypeOf(Star.prototype), "constructor", this).call(this, options, body, labelModule);
+    }
+
+    _inherits(Star, NodeUtil);
+
+    _prototypeProperties(Star, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          this.options = options;
+        },
+        writable: true,
+        configurable: true
+      },
+      resize: {
+        value: function resize(ctx) {
+          this._resizeShape();
+        },
+        writable: true,
+        configurable: true
+      },
+      draw: {
+        value: function draw(ctx, x, y, selected, hover) {
+          this._drawShape(ctx, "star", 4, x, y, selected, hover);
+        },
+        writable: true,
+        configurable: true
+      },
+      distanceToBorder: {
+        value: function distanceToBorder(ctx, angle) {
+          return this._distanceToBorder(angle);
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return Star;
+  })(NodeUtil);
+
+  module.exports = Star;
+
+/***/ },
+/* 75 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Created by Alex on 3/18/2015.
+   */
+  "use strict";
+
+  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc && desc.writable) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+  var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  var NodeUtil = _interopRequire(__webpack_require__(66));
+
+  var Text = (function (NodeUtil) {
+    function Text(options, body, labelModule) {
+      _classCallCheck(this, Text);
+
+      _get(Object.getPrototypeOf(Text.prototype), "constructor", this).call(this, options, body, labelModule);
+    }
+
+    _inherits(Text, NodeUtil);
+
+    _prototypeProperties(Text, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          this.options = options;
+        },
+        writable: true,
+        configurable: true
+      },
+      resize: {
+        value: function resize(ctx, selected) {
+          if (this.width === undefined) {
+            var margin = 5;
+            var textSize = this.labelModule.getTextSize(ctx, selected);
+            this.width = textSize.width + 2 * margin;
+            this.height = textSize.height + 2 * margin;
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      draw: {
+        value: function draw(ctx, x, y, selected, hover) {
+          this.resize(ctx, selected || hover);
+          this.left = x - this.width / 2;
+          this.top = y - this.height / 2;
+
+          this.labelModule.draw(ctx, x, y, selected || hover);
+
+          this.boundingBox.top = this.top;
+          this.boundingBox.left = this.left;
+          this.boundingBox.right = this.left + this.width;
+          this.boundingBox.bottom = this.top + this.height;
+        },
+        writable: true,
+        configurable: true
+      },
+      distanceToBorder: {
+        value: function distanceToBorder(ctx, angle) {
+          console.log("hererer");
+          console.log(this._distanceToBorder(angle));
+          this.resize(ctx);
+          return this._distanceToBorder(angle);
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return Text;
+  })(NodeUtil);
+
+  module.exports = Text;
+
+/***/ },
+/* 76 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Created by Alex on 3/18/2015.
+   */
+  "use strict";
+
+  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc && desc.writable) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+  var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  var NodeUtil = _interopRequire(__webpack_require__(66));
+
+  var Triangle = (function (NodeUtil) {
+    function Triangle(options, body, labelModule) {
+      _classCallCheck(this, Triangle);
+
+      _get(Object.getPrototypeOf(Triangle.prototype), "constructor", this).call(this, options, body, labelModule);
+    }
+
+    _inherits(Triangle, NodeUtil);
+
+    _prototypeProperties(Triangle, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          this.options = options;
+        },
+        writable: true,
+        configurable: true
+      },
+      resize: {
+        value: function resize(ctx) {
+          this._resizeShape();
+        },
+        writable: true,
+        configurable: true
+      },
+      draw: {
+        value: function draw(ctx, x, y, selected, hover) {
+          this._drawShape(ctx, "triangle", 3, x, y, selected, hover);
+        },
+        writable: true,
+        configurable: true
+      },
+      distanceToBorder: {
+        value: function distanceToBorder(ctx, angle) {
+          return this._distanceToBorder(angle);
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return Triangle;
+  })(NodeUtil);
+
+  module.exports = Triangle;
+
+/***/ },
+/* 77 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Created by Alex on 3/18/2015.
+   */
+  "use strict";
+
+  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc && desc.writable) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+  var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  var NodeUtil = _interopRequire(__webpack_require__(66));
+
+  var TriangleDown = (function (NodeUtil) {
+    function TriangleDown(options, body, labelModule) {
+      _classCallCheck(this, TriangleDown);
+
+      _get(Object.getPrototypeOf(TriangleDown.prototype), "constructor", this).call(this, options, body, labelModule);
+    }
+
+    _inherits(TriangleDown, NodeUtil);
+
+    _prototypeProperties(TriangleDown, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          this.options = options;
+        },
+        writable: true,
+        configurable: true
+      },
+      resize: {
+        value: function resize(ctx) {
+          this._resizeShape();
+        },
+        writable: true,
+        configurable: true
+      },
+      draw: {
+        value: function draw(ctx, x, y, selected, hover) {
+          this._drawShape(ctx, "triangleDown", 3, x, y, selected, hover);
+        },
+        writable: true,
+        configurable: true
+      },
+      distanceToBorder: {
+        value: function distanceToBorder(ctx, angle) {
+          return this._distanceToBorder(angle);
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return TriangleDown;
+  })(NodeUtil);
+
+  module.exports = TriangleDown;
+
+/***/ },
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -26844,7 +27895,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(9);
-  var Edge = __webpack_require__(64);
+  var Edge = __webpack_require__(79);
 
   var EdgesHandler = (function () {
     function EdgesHandler(body, images, groups) {
@@ -27112,7 +28163,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = EdgesHandler;
 
 /***/ },
-/* 64 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -27126,7 +28177,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
 
 
-  var Label = _interopRequire(__webpack_require__(65));
+  var Label = _interopRequire(__webpack_require__(63));
 
   /**
    * @class Edge
@@ -27205,7 +28256,7 @@ return /******/ (function(modules) { // webpackBootstrap
           }
           this.colorDirty = true;
 
-          var fields = ["font", "hidden", "hoverWidth", "label", "length", "line", "opacity", "physics", "scaling", "selfReferenceSize", "value", "width", "widthMin", "widthMax", "widthSelectionMultiplier"];
+          var fields = ["id", "font", "hidden", "hoverWidth", "label", "length", "line", "opacity", "physics", "scaling", "selfReferenceSize", "value", "width", "widthMin", "widthMax", "widthSelectionMultiplier"];
           util.selectiveDeepExtend(fields, this.options, options);
 
           util.mergeOptions(this.options, options, "smooth");
@@ -27484,7 +28535,7 @@ return /******/ (function(modules) { // webpackBootstrap
               ctx.save();
 
               // if the label has to be rotated:
-              if (this.options.font.align != "horizontal") {
+              if (this.options.font.align !== "horizontal") {
                 this.labelModule.calculateLabelSize(ctx, selected, point.x, point.y);
                 ctx.translate(point.x, this.labelModule.size.yLine);
                 this._rotateForLabelAlignment(ctx);
@@ -28670,235 +29721,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Edge;
 
 /***/ },
-/* 65 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-  var util = __webpack_require__(1);
-
-  /**
-   * Created by Alex on 3/17/2015.
-   */
-
-  var Label = (function () {
-    function Label(body, options) {
-      _classCallCheck(this, Label);
-
-      this.body = body;
-      this.setOptions(options);
-
-      this.size = { top: 0, left: 0, width: 0, height: 0, yLine: 0 }; // could be cached
-    }
-
-    _prototypeProperties(Label, null, {
-      setOptions: {
-        value: function setOptions(options) {
-          this.options = options;
-          if (options.label !== undefined) {
-            this.labelDirty = true;
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      draw: {
-        value: function draw(ctx, x, y, selected) {
-          var baseline = arguments[4] === undefined ? "middle" : arguments[4];
-          if (this.options.label !== undefined) {
-            // check if we have to render the label
-            var relativeFontSize = Number(this.options.font.size) * this.body.view.scale;
-            if (this.options.label && relativeFontSize >= this.options.scaling.label.drawThreshold - 1) {
-              // this ensures that there will not be HUGE letters on screen by setting an upper limit on the visible text size (regardless of zoomLevel)
-              var fontSize = Number(this.options.font.size);
-              if (relativeFontSize >= this.options.scaling.label.maxVisible) {
-                fontSize = Number(this.options.scaling.label.maxVisible) / this.body.view.scale;
-              }
-
-              // notify the canvas of the fontsize and thickness
-              ctx.font = (selected ? "bold " : "") + fontSize + "px " + this.options.font.face;
-
-              // update the size cache if required
-              if (this.labelDirty == true) {
-                this.calculateLabelSize(ctx, selected, x, y, baseline);
-              }
-
-              // create some of the local variables
-              var yLine = this.size.yLine;
-              var lines = String(this.options.label).split("\n");
-              var lineCount = lines.length;
-
-              // create the fontfill background
-              this._drawLabelRect(ctx);
-              // draw text
-              this._drawLabelText(ctx, x, yLine, lines, lineCount, fontSize, baseline, relativeFontSize);
-            }
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      getTextSize: {
-        value: function getTextSize(ctx, selected) {
-          if (this.options.label !== undefined) {
-            this._calculateLabelSize(ctx, selected);
-          } else {
-            this.size = { top: 0, left: 0, width: 0, height: 0, yLine: 0 };
-          }
-          return this.size;
-        },
-        writable: true,
-        configurable: true
-      },
-      _calculateLabelSize: {
-        value: function _calculateLabelSize(ctx, selected, x, y, baseline) {
-          ctx.font = (selected ? "bold " : "") + this.options.font.size + "px " + this.options.font.face;
-          var lines = String(this.options.label).split("\n");
-          var lineCount = lines.length;
-          var yLine = y + (1 - lineCount) * 0.5 * this.options.font.size;
-
-          var width = ctx.measureText(lines[0]).width;
-          for (var i = 1; i < lineCount; i++) {
-            var lineWidth = ctx.measureText(lines[i]).width;
-            width = lineWidth > width ? lineWidth : width;
-          }
-          var height = this.options.font.size * lineCount;
-          var left = x - width * 0.5;
-          var top = y - height * 0.5;
-          if (baseline == "hanging") {
-            top += 0.5 * this.options.font.size;
-            top += 4; // distance from node, required because we use hanging. Hanging has less difference between browsers
-            yLine += 4; // distance from node
-          }
-
-          // cache
-          this.size = { top: top, left: left, width: width, height: height, yLine: yLine };
-        },
-        writable: true,
-        configurable: true
-      },
-      calculateLabelSize: {
-        value: function calculateLabelSize(ctx, selected) {
-          var x = arguments[2] === undefined ? 0 : arguments[2];
-          var y = arguments[3] === undefined ? 0 : arguments[3];
-          var baseline = arguments[4] === undefined ? "middle" : arguments[4];
-          if (this.labelDirty == true) {
-            this._calculateLabelSize(ctx, selected, x, y, baseline);
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _drawLabelRect: {
-        /**
-         * Draws the label rectangle
-         * @param {CanvasRenderingContext2D} ctx
-         * @private
-         */
-        value: function _drawLabelRect(ctx) {
-          if (this.options.font.background !== undefined && this.options.font.background !== "none") {
-            ctx.fillStyle = this.options.font.background;
-
-            var lineMargin = 2;
-
-            switch (this.options.font.align) {
-              case "middle":
-                ctx.fillRect(-this.size.width * 0.5, -this.size.height * 0.5, this.size.width, this.size.height);
-                break;
-              case "top":
-                ctx.fillRect(-this.size.width * 0.5, -(this.size.height + lineMargin), this.size.width, this.size.height);
-                break;
-              case "bottom":
-                ctx.fillRect(-this.size.width * 0.5, lineMargin, this.size.width, this.size.height);
-                break;
-              default:
-                ctx.fillRect(this.size.left, this.size.top, this.size.width, this.size.height);
-                break;
-            }
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _drawLabelText: {
-
-
-        /**
-         * Draws the label text
-         * @param {CanvasRenderingContext2D} ctx
-         * @param {Number} x
-         * @param {Number} yLine
-         * @param {Array} lines
-         * @param {Number} lineCount
-         * @param {Number} fontSize
-         * @private
-         */
-        value: function _drawLabelText(ctx, x, yLine, lines, lineCount, fontSize) {
-          var baseline = arguments[6] === undefined ? "middle" : arguments[6];
-          var relativeFontSize = arguments[7] === undefined ? this.options.font.size : arguments[7];
-          // fade in when relative scale is between threshold and threshold - 1
-          var fontColor = this.options.font.color || "#000000";
-          var strokeColor = this.options.font.strokeColor;
-          if (relativeFontSize <= this.options.scaling.label.drawThreshold) {
-            var opacity = Math.max(0, Math.min(1, 1 - (this.options.scaling.label.drawThreshold - relativeFontSize)));
-            fontColor = util.overrideOpacity(fontColor, opacity);
-            strokeColor = util.overrideOpacity(strokeColor, opacity);
-          }
-
-          // draw text
-          ctx.fillStyle = fontColor;
-          ctx.textAlign = "center";
-
-          // check for label alignment (for edges)
-          // TODO: make alignment for nodes
-          if (this.options.font.align !== "horizontal") {
-            x = 0;
-            yLine = 0;
-
-            var lineMargin = 2;
-            if (this.options.font.align === "top") {
-              ctx.textBaseline = "alphabetic";
-              yLine -= 2 * lineMargin; // distance from edge, required because we use alphabetic. Alphabetic has less difference between browsers
-            } else if (this.options.font.align === "bottom") {
-              ctx.textBaseline = "hanging";
-              yLine += 2 * lineMargin; // distance from edge, required because we use hanging. Hanging has less difference between browsers
-            } else {
-              ctx.textBaseline = "middle";
-            }
-          } else {
-            ctx.textBaseline = baseline;
-          }
-
-          // check for strokeWidth
-          if (this.options.font.stroke > 0) {
-            ctx.lineWidth = this.options.font.stroke;
-            ctx.strokeStyle = strokeColor;
-            ctx.lineJoin = "round";
-          }
-          for (var i = 0; i < lineCount; i++) {
-            if (this.options.font.stroke > 0) {
-              ctx.strokeText(lines[i], x, yLine);
-            }
-            ctx.fillText(lines[i], x, yLine);
-            yLine += fontSize;
-          }
-        },
-        writable: true,
-        configurable: true
-      }
-    });
-
-    return Label;
-  })();
-
-  module.exports = Label;
-
-/***/ },
-/* 66 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -28911,12 +29734,12 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 2/23/2015.
    */
 
-  var BarnesHutSolver = __webpack_require__(67).BarnesHutSolver;
-  var Repulsion = __webpack_require__(68).Repulsion;
-  var HierarchicalRepulsion = __webpack_require__(69).HierarchicalRepulsion;
-  var SpringSolver = __webpack_require__(70).SpringSolver;
-  var HierarchicalSpringSolver = __webpack_require__(71).HierarchicalSpringSolver;
-  var CentralGravitySolver = __webpack_require__(72).CentralGravitySolver;
+  var BarnesHutSolver = __webpack_require__(81).BarnesHutSolver;
+  var Repulsion = __webpack_require__(82).Repulsion;
+  var HierarchicalRepulsion = __webpack_require__(83).HierarchicalRepulsion;
+  var SpringSolver = __webpack_require__(84).SpringSolver;
+  var HierarchicalSpringSolver = __webpack_require__(85).HierarchicalSpringSolver;
+  var CentralGravitySolver = __webpack_require__(86).CentralGravitySolver;
 
 
   var util = __webpack_require__(1);
@@ -29406,7 +30229,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = PhysicsEngine;
 
 /***/ },
-/* 67 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -29918,7 +30741,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 68 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -30019,7 +30842,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 69 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -30117,7 +30940,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 70 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -30227,7 +31050,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 71 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -30356,7 +31179,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 72 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -30423,7 +31246,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 73 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31129,7 +31952,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = ClusterEngine;
 
 /***/ },
-/* 74 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31457,7 +32280,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CanvasRenderer;
 
 /***/ },
-/* 75 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31744,7 +32567,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Canvas;
 
 /***/ },
-/* 76 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -32154,7 +32977,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = View;
 
 /***/ },
-/* 77 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -32171,7 +32994,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
 
-  var NavigationHandler = __webpack_require__(78).NavigationHandler;
+  var NavigationHandler = __webpack_require__(92).NavigationHandler;
   var InteractionHandler = (function () {
     function InteractionHandler(body, canvas, selectionHandler) {
       _classCallCheck(this, InteractionHandler);
@@ -32715,7 +33538,7 @@ return /******/ (function(modules) { // webpackBootstrap
   //  }
 
 /***/ },
-/* 78 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33011,7 +33834,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 79 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33157,11 +33980,10 @@ return /******/ (function(modules) { // webpackBootstrap
         value: function _getAllNodesOverlappingWith(object) {
           var overlappingNodes = [];
           var nodes = this.body.nodes;
-          for (var nodeId in nodes) {
-            if (nodes.hasOwnProperty(nodeId)) {
-              if (nodes[nodeId].isOverlappingWith(object)) {
-                overlappingNodes.push(nodeId);
-              }
+          for (var i = 0; i < this.body.nodeIndices.length; i++) {
+            var nodeId = this.body.nodeIndices[i];
+            if (nodes[nodeId].isOverlappingWith(object)) {
+              overlappingNodes.push(nodeId);
             }
           }
           return overlappingNodes;
@@ -33228,11 +34050,10 @@ return /******/ (function(modules) { // webpackBootstrap
          */
         value: function _getEdgesOverlappingWith(object, overlappingEdges) {
           var edges = this.body.edges;
-          for (var edgeId in edges) {
-            if (edges.hasOwnProperty(edgeId)) {
-              if (edges[edgeId].isOverlappingWith(object)) {
-                overlappingEdges.push(edgeId);
-              }
+          for (var i = 0; i < this.body.edgeIndices.length; i++) {
+            var edgeId = this.body.edgeIndices[i];
+            if (edges[edgeId].isOverlappingWith(object)) {
+              overlappingEdges.push(edgeId);
             }
           }
         },
@@ -33770,7 +34591,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = SelectionHandler;
 
 /***/ },
-/* 80 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
