@@ -25676,10 +25676,10 @@ return /******/ (function(modules) { // webpackBootstrap
         physics: true,
         hidden: false,
         icon: {
-          iconFontFace: undefined, //'FontAwesome',
+          fontFace: undefined, //'FontAwesome',
           code: undefined, //'\uf007',
-          iconSize: undefined, //50,
-          iconColor: undefined //'#aa00ff'
+          size: undefined, //50,
+          color: undefined //'#aa00ff'
         }
       };
 
@@ -27355,8 +27355,8 @@ return /******/ (function(modules) { // webpackBootstrap
           if (this.width === undefined) {
             var margin = 5;
             var iconSize = {
-              width: Number(this.options.icon.iconSize),
-              height: Number(this.options.icon.iconSize)
+              width: Number(this.options.icon.size),
+              height: Number(this.options.icon.size)
             };
             this.width = iconSize.width + 2 * margin;
             this.height = iconSize.height + 2 * margin;
@@ -27368,17 +27368,17 @@ return /******/ (function(modules) { // webpackBootstrap
       draw: {
         value: function draw(ctx, x, y, selected, hover) {
           this.resize(ctx);
-          this.options.icon.iconSize = this.options.icon.iconSize || 50;
+          this.options.icon.size = this.options.icon.size || 50;
 
           this.left = x - this.width * 0.5;
           this.top = y - this.height * 0.5;
           this._icon(ctx, x, y, selected);
 
 
-          this.boundingBox.top = y - this.options.icon.iconSize * 0.5;
-          this.boundingBox.left = x - this.options.icon.iconSize * 0.5;
-          this.boundingBox.right = x + this.options.icon.iconSize * 0.5;
-          this.boundingBox.bottom = y + this.options.icon.iconSize * 0.5;
+          this.boundingBox.top = y - this.options.icon.size * 0.5;
+          this.boundingBox.left = x - this.options.icon.size * 0.5;
+          this.boundingBox.right = x + this.options.icon.size * 0.5;
+          this.boundingBox.bottom = y + this.options.icon.size * 0.5;
 
           if (this.options.label !== undefined) {
             var iconTextSpacing = 5;
@@ -27393,14 +27393,14 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       _icon: {
         value: function _icon(ctx, x, y, selected) {
-          var iconSize = Number(this.options.icon.iconSize);
+          var iconSize = Number(this.options.icon.size);
           var relativeIconSize = iconSize * this.body.view.scale;
 
           if (this.options.icon.code && relativeIconSize > this.options.scaling.label.drawThreshold - 1) {
-            ctx.font = (selected ? "bold " : "") + iconSize + "px " + this.options.icon.iconFontFace;
+            ctx.font = (selected ? "bold " : "") + iconSize + "px " + this.options.icon.fontFace;
 
             // draw icon
-            ctx.fillStyle = this.options.icon.iconColor || "black";
+            ctx.fillStyle = this.options.icon.color || "black";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.fillText(this.options.icon.code, x, y);
