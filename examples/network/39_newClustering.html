@@ -63,7 +63,7 @@
       processClusterProperties: function (properties, childNodes, childEdges) {
           return properties;
       },
-      clusterNodeProperties: {id:'bla', borderWidth:8},
+      clusterNodeProperties: {id:'bla', borderWidth:2},
   }
 
   var clusterOptionsByData = {
@@ -73,11 +73,11 @@
       processClusterProperties: function (properties, childNodes, childEdges) {
           return properties;
       },
-      clusterNodeProperties: {id:'bla', borderWidth:8}
+      clusterNodeProperties: {id:'bla', borderWidth:2}
   }
 
 //  network.clusterByNodeData(clusterOptionsByData)
-  network.clustering.clusterOutliers({clusterNodeProperties: {borderWidth:8}})
+  network.clustering.clusterOutliers({clusterNodeProperties: {shape:'database',borderWidth:3}})
 //  network.clusterByConnection(2, clusterOptions);
 
 //  network.clusterByConnection(9, {
@@ -87,7 +87,8 @@
 //      },
 //      clusterNodeProperties: {id:'bla2', label:"bla2", borderWidth:8}
 //  });
-    network.on("select", function(params) {
+    network.body.emitter.on("select", function(params) {
+        console.log("here1234")
         if (params.nodes.length == 1) {
             if (network.clustering.isCluster(params.nodes[0]) == true) {
                 network.clustering.openCluster(params.nodes[0])
