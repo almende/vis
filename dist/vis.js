@@ -26178,7 +26178,7 @@ return /******/ (function(modules) { // webpackBootstrap
          * @returns {number} distance   Distance to the border in pixels
          */
         value: function distanceToBorder(ctx, angle) {
-          this.shape.distanceToBorder(ctx, angle);
+          return this.shape.distanceToBorder(ctx, angle);
         },
         writable: true,
         configurable: true
@@ -28161,9 +28161,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var BezierEdgeDynamic = _interopRequire(__webpack_require__(82));
 
-  var BezierEdgeStatic = _interopRequire(__webpack_require__(84));
+  var BezierEdgeStatic = _interopRequire(__webpack_require__(85));
 
-  var StraightEdge = _interopRequire(__webpack_require__(85));
+  var StraightEdge = _interopRequire(__webpack_require__(86));
 
   /**
    * @class Edge
@@ -28318,8 +28318,6 @@ return /******/ (function(modules) { // webpackBootstrap
         configurable: true
       },
       togglePhysics: {
-
-
 
 
         /**
@@ -29178,7 +29176,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 3/20/2015.
    */
 
-  var BaseEdge = _interopRequire(__webpack_require__(86));
+  var BaseEdge = _interopRequire(__webpack_require__(84));
 
   var BezierBaseEdge = (function (BaseEdge) {
     function BezierBaseEdge(options, body, labelModule) {
@@ -29230,7 +29228,6 @@ return /******/ (function(modules) { // webpackBootstrap
             distanceToBorder = node.distanceToBorder(ctx, angle);
             distanceToPoint = Math.sqrt(Math.pow(pos.x - node.x, 2) + Math.pow(pos.y - node.y, 2));
             difference = distanceToBorder - distanceToPoint;
-            console.log(pos, difference, middle);
             if (Math.abs(difference) < threshold) {
               break; // found
             } else if (difference < 0) {
@@ -29313,380 +29310,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 84 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
-
-  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
-
-  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc && desc.writable) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-  var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-  /**
-   * Created by Alex on 3/20/2015.
-   */
-
-  var BezierBaseEdge = _interopRequire(__webpack_require__(83));
-
-  var BezierEdgeStatic = (function (BezierBaseEdge) {
-    function BezierEdgeStatic(options, body, labelModule) {
-      _classCallCheck(this, BezierEdgeStatic);
-
-      _get(Object.getPrototypeOf(BezierEdgeStatic.prototype), "constructor", this).call(this, options, body, labelModule);
-    }
-
-    _inherits(BezierEdgeStatic, BezierBaseEdge);
-
-    _prototypeProperties(BezierEdgeStatic, null, {
-      cleanup: {
-        value: function cleanup() {},
-        writable: true,
-        configurable: true
-      },
-      _line: {
-        /**
-         * Draw a line between two nodes
-         * @param {CanvasRenderingContext2D} ctx
-         * @private
-         */
-        value: function _line(ctx) {
-          // draw a straight line
-          ctx.beginPath();
-          ctx.moveTo(this.from.x, this.from.y);
-          var via = this._getViaCoordinates();
-
-          // fallback to normal straight edges
-          if (via.x === undefined) {
-            ctx.lineTo(this.to.x, this.to.y);
-            ctx.stroke();
-            return undefined;
-          } else {
-            ctx.quadraticCurveTo(via.x, via.y, this.to.x, this.to.y);
-            ctx.stroke();
-            return via;
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _getViaCoordinates: {
-        value: function _getViaCoordinates() {
-          var xVia = undefined;
-          var yVia = undefined;
-          var factor = this.options.smooth.roundness;
-          var type = this.options.smooth.type;
-          var dx = Math.abs(this.from.x - this.to.x);
-          var dy = Math.abs(this.from.y - this.to.y);
-          if (type == "discrete" || type == "diagonalCross") {
-            if (Math.abs(this.from.x - this.to.x) < Math.abs(this.from.y - this.to.y)) {
-              if (this.from.y > this.to.y) {
-                if (this.from.x < this.to.x) {
-                  xVia = this.from.x + factor * dy;
-                  yVia = this.from.y - factor * dy;
-                } else if (this.from.x > this.to.x) {
-                  xVia = this.from.x - factor * dy;
-                  yVia = this.from.y - factor * dy;
-                }
-              } else if (this.from.y < this.to.y) {
-                if (this.from.x < this.to.x) {
-                  xVia = this.from.x + factor * dy;
-                  yVia = this.from.y + factor * dy;
-                } else if (this.from.x > this.to.x) {
-                  xVia = this.from.x - factor * dy;
-                  yVia = this.from.y + factor * dy;
-                }
-              }
-              if (type == "discrete") {
-                xVia = dx < factor * dy ? this.from.x : xVia;
-              }
-            } else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) {
-              if (this.from.y > this.to.y) {
-                if (this.from.x < this.to.x) {
-                  xVia = this.from.x + factor * dx;
-                  yVia = this.from.y - factor * dx;
-                } else if (this.from.x > this.to.x) {
-                  xVia = this.from.x - factor * dx;
-                  yVia = this.from.y - factor * dx;
-                }
-              } else if (this.from.y < this.to.y) {
-                if (this.from.x < this.to.x) {
-                  xVia = this.from.x + factor * dx;
-                  yVia = this.from.y + factor * dx;
-                } else if (this.from.x > this.to.x) {
-                  xVia = this.from.x - factor * dx;
-                  yVia = this.from.y + factor * dx;
-                }
-              }
-              if (type == "discrete") {
-                yVia = dy < factor * dx ? this.from.y : yVia;
-              }
-            }
-          } else if (type == "straightCross") {
-            if (Math.abs(this.from.x - this.to.x) < Math.abs(this.from.y - this.to.y)) {
-              // up - down
-              xVia = this.from.x;
-              if (this.from.y < this.to.y) {
-                yVia = this.to.y - (1 - factor) * dy;
-              } else {
-                yVia = this.to.y + (1 - factor) * dy;
-              }
-            } else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) {
-              // left - right
-              if (this.from.x < this.to.x) {
-                xVia = this.to.x - (1 - factor) * dx;
-              } else {
-                xVia = this.to.x + (1 - factor) * dx;
-              }
-              yVia = this.from.y;
-            }
-          } else if (type == "horizontal") {
-            if (this.from.x < this.to.x) {
-              xVia = this.to.x - (1 - factor) * dx;
-            } else {
-              xVia = this.to.x + (1 - factor) * dx;
-            }
-            yVia = this.from.y;
-          } else if (type == "vertical") {
-            xVia = this.from.x;
-            if (this.from.y < this.to.y) {
-              yVia = this.to.y - (1 - factor) * dy;
-            } else {
-              yVia = this.to.y + (1 - factor) * dy;
-            }
-          } else if (type == "curvedCW") {
-            dx = this.to.x - this.from.x;
-            dy = this.from.y - this.to.y;
-            var radius = Math.sqrt(dx * dx + dy * dy);
-            var pi = Math.PI;
-
-            var originalAngle = Math.atan2(dy, dx);
-            var myAngle = (originalAngle + (factor * 0.5 + 0.5) * pi) % (2 * pi);
-
-            xVia = this.from.x + (factor * 0.5 + 0.5) * radius * Math.sin(myAngle);
-            yVia = this.from.y + (factor * 0.5 + 0.5) * radius * Math.cos(myAngle);
-          } else if (type == "curvedCCW") {
-            dx = this.to.x - this.from.x;
-            dy = this.from.y - this.to.y;
-            var radius = Math.sqrt(dx * dx + dy * dy);
-            var pi = Math.PI;
-
-            var originalAngle = Math.atan2(dy, dx);
-            var myAngle = (originalAngle + (-factor * 0.5 + 0.5) * pi) % (2 * pi);
-
-            xVia = this.from.x + (factor * 0.5 + 0.5) * radius * Math.sin(myAngle);
-            yVia = this.from.y + (factor * 0.5 + 0.5) * radius * Math.cos(myAngle);
-          } else {
-            // continuous
-            if (Math.abs(this.from.x - this.to.x) < Math.abs(this.from.y - this.to.y)) {
-              if (this.from.y > this.to.y) {
-                if (this.from.x < this.to.x) {
-                  xVia = this.from.x + factor * dy;
-                  yVia = this.from.y - factor * dy;
-                  xVia = this.to.x < xVia ? this.to.x : xVia;
-                } else if (this.from.x > this.to.x) {
-                  xVia = this.from.x - factor * dy;
-                  yVia = this.from.y - factor * dy;
-                  xVia = this.to.x > xVia ? this.to.x : xVia;
-                }
-              } else if (this.from.y < this.to.y) {
-                if (this.from.x < this.to.x) {
-                  xVia = this.from.x + factor * dy;
-                  yVia = this.from.y + factor * dy;
-                  xVia = this.to.x < xVia ? this.to.x : xVia;
-                } else if (this.from.x > this.to.x) {
-                  xVia = this.from.x - factor * dy;
-                  yVia = this.from.y + factor * dy;
-                  xVia = this.to.x > xVia ? this.to.x : xVia;
-                }
-              }
-            } else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) {
-              if (this.from.y > this.to.y) {
-                if (this.from.x < this.to.x) {
-                  xVia = this.from.x + factor * dx;
-                  yVia = this.from.y - factor * dx;
-                  yVia = this.to.y > yVia ? this.to.y : yVia;
-                } else if (this.from.x > this.to.x) {
-                  xVia = this.from.x - factor * dx;
-                  yVia = this.from.y - factor * dx;
-                  yVia = this.to.y > yVia ? this.to.y : yVia;
-                }
-              } else if (this.from.y < this.to.y) {
-                if (this.from.x < this.to.x) {
-                  xVia = this.from.x + factor * dx;
-                  yVia = this.from.y + factor * dx;
-                  yVia = this.to.y < yVia ? this.to.y : yVia;
-                } else if (this.from.x > this.to.x) {
-                  xVia = this.from.x - factor * dx;
-                  yVia = this.from.y + factor * dx;
-                  yVia = this.to.y < yVia ? this.to.y : yVia;
-                }
-              }
-            }
-          }
-          return { x: xVia, y: yVia };
-        },
-        writable: true,
-        configurable: true
-      },
-      _findBorderPosition: {
-        value: function _findBorderPosition(nearNode, ctx, options) {
-          return this._findBorderPositionBezier(nearNode, ctx, options.via);
-        },
-        writable: true,
-        configurable: true
-      },
-      _getDistanceToEdge: {
-        value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
-          var via = arguments[6] === undefined ? this._getViaCoordinates() : arguments[6];
-          // x3,y3 is the point
-          return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, via);
-        },
-        writable: true,
-        configurable: true
-      },
-      getPoint: {
-
-        /**
-         * Combined function of pointOnLine and pointOnBezier. This gives the coordinates of a point on the line at a certain percentage of the way
-         * @param percentage
-         * @param via
-         * @returns {{x: number, y: number}}
-         * @private
-         */
-        value: function getPoint(percentage) {
-          var via = arguments[1] === undefined ? this._getViaCoordinates() : arguments[1];
-          var t = percentage;
-          var x = Math.pow(1 - t, 2) * this.from.x + 2 * t * (1 - t) * via.x + Math.pow(t, 2) * this.to.x;
-          var y = Math.pow(1 - t, 2) * this.from.y + 2 * t * (1 - t) * via.y + Math.pow(t, 2) * this.to.y;
-
-          return { x: x, y: y };
-        },
-        writable: true,
-        configurable: true
-      }
-    });
-
-    return BezierEdgeStatic;
-  })(BezierBaseEdge);
-
-  module.exports = BezierEdgeStatic;
-
-/***/ },
-/* 85 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
-
-  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
-
-  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc && desc.writable) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-  var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-  /**
-   * Created by Alex on 3/20/2015.
-   */
-
-  var BaseEdge = _interopRequire(__webpack_require__(86));
-
-  var StraightEdge = (function (BaseEdge) {
-    function StraightEdge(options, body, labelModule) {
-      _classCallCheck(this, StraightEdge);
-
-      _get(Object.getPrototypeOf(StraightEdge.prototype), "constructor", this).call(this, options, body, labelModule);
-    }
-
-    _inherits(StraightEdge, BaseEdge);
-
-    _prototypeProperties(StraightEdge, null, {
-      cleanup: {
-        value: function cleanup() {},
-        writable: true,
-        configurable: true
-      },
-      _line: {
-        /**
-         * Draw a line between two nodes
-         * @param {CanvasRenderingContext2D} ctx
-         * @private
-         */
-        value: function _line(ctx) {
-          // draw a straight line
-          ctx.beginPath();
-          ctx.moveTo(this.from.x, this.from.y);
-          ctx.lineTo(this.to.x, this.to.y);
-          ctx.stroke();
-          return undefined;
-        },
-        writable: true,
-        configurable: true
-      },
-      getPoint: {
-
-
-        /**
-         * Combined function of pointOnLine and pointOnBezier. This gives the coordinates of a point on the line at a certain percentage of the way
-         * @param percentage
-         * @param via
-         * @returns {{x: number, y: number}}
-         * @private
-         */
-        value: function getPoint(percentage) {
-          return {
-            x: (1 - percentage) * this.from.x + percentage * this.to.x,
-            y: (1 - percentage) * this.from.y + percentage * this.to.y
-          };
-        },
-        writable: true,
-        configurable: true
-      },
-      _findBorderPosition: {
-        value: function _findBorderPosition(nearNode, ctx) {
-          var node1 = this.to;
-          var node2 = this.from;
-
-          var angle = Math.atan2(node1.y - node2.y, node1.x - node2.x);
-          var dx = node1.x - node2.x;
-          var dy = node1.y - node2.y;
-          var edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
-          var toBorderDist = nearNode.distanceToBorder(ctx, angle);
-          var toBorderPoint = (edgeSegmentLength - toBorderDist) / edgeSegmentLength;
-
-          var borderPos = {};
-          borderPos.x = (1 - toBorderPoint) * node2.x + toBorderPoint * node1.x;
-          borderPos.y = (1 - toBorderPoint) * node2.y + toBorderPoint * node1.y;
-
-          return borderPos;
-        },
-        writable: true,
-        configurable: true
-      },
-      _getDistanceToEdge: {
-        value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
-          // x3,y3 is the point
-          return this._getDistanceToLine(x1, y1, x2, y2, x3, y3);
-        },
-        writable: true,
-        configurable: true
-      }
-    });
-
-    return StraightEdge;
-  })(BaseEdge);
-
-  module.exports = StraightEdge;
-
-/***/ },
-/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -30066,6 +29689,386 @@ return /******/ (function(modules) { // webpackBootstrap
   })();
 
   module.exports = BaseEdge;
+
+/***/ },
+/* 85 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc && desc.writable) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+  var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  /**
+   * Created by Alex on 3/20/2015.
+   */
+
+  var BezierBaseEdge = _interopRequire(__webpack_require__(83));
+
+  var BezierEdgeStatic = (function (BezierBaseEdge) {
+    function BezierEdgeStatic(options, body, labelModule) {
+      _classCallCheck(this, BezierEdgeStatic);
+
+      _get(Object.getPrototypeOf(BezierEdgeStatic.prototype), "constructor", this).call(this, options, body, labelModule);
+    }
+
+    _inherits(BezierEdgeStatic, BezierBaseEdge);
+
+    _prototypeProperties(BezierEdgeStatic, null, {
+      cleanup: {
+        value: function cleanup() {},
+        writable: true,
+        configurable: true
+      },
+      _line: {
+        /**
+         * Draw a line between two nodes
+         * @param {CanvasRenderingContext2D} ctx
+         * @private
+         */
+        value: function _line(ctx) {
+          // draw a straight line
+          ctx.beginPath();
+          ctx.moveTo(this.from.x, this.from.y);
+          var via = this._getViaCoordinates();
+
+          // fallback to normal straight edges
+          if (via.x === undefined) {
+            ctx.lineTo(this.to.x, this.to.y);
+            ctx.stroke();
+            return undefined;
+          } else {
+            ctx.quadraticCurveTo(via.x, via.y, this.to.x, this.to.y);
+            ctx.stroke();
+            return via;
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _getViaCoordinates: {
+        value: function _getViaCoordinates() {
+          var xVia = undefined;
+          var yVia = undefined;
+          var factor = this.options.smooth.roundness;
+          var type = this.options.smooth.type;
+          var dx = Math.abs(this.from.x - this.to.x);
+          var dy = Math.abs(this.from.y - this.to.y);
+          if (type == "discrete" || type == "diagonalCross") {
+            if (Math.abs(this.from.x - this.to.x) < Math.abs(this.from.y - this.to.y)) {
+              if (this.from.y > this.to.y) {
+                if (this.from.x < this.to.x) {
+                  xVia = this.from.x + factor * dy;
+                  yVia = this.from.y - factor * dy;
+                } else if (this.from.x > this.to.x) {
+                  xVia = this.from.x - factor * dy;
+                  yVia = this.from.y - factor * dy;
+                }
+              } else if (this.from.y < this.to.y) {
+                if (this.from.x < this.to.x) {
+                  xVia = this.from.x + factor * dy;
+                  yVia = this.from.y + factor * dy;
+                } else if (this.from.x > this.to.x) {
+                  xVia = this.from.x - factor * dy;
+                  yVia = this.from.y + factor * dy;
+                }
+              }
+              if (type == "discrete") {
+                xVia = dx < factor * dy ? this.from.x : xVia;
+              }
+            } else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) {
+              if (this.from.y > this.to.y) {
+                if (this.from.x < this.to.x) {
+                  xVia = this.from.x + factor * dx;
+                  yVia = this.from.y - factor * dx;
+                } else if (this.from.x > this.to.x) {
+                  xVia = this.from.x - factor * dx;
+                  yVia = this.from.y - factor * dx;
+                }
+              } else if (this.from.y < this.to.y) {
+                if (this.from.x < this.to.x) {
+                  xVia = this.from.x + factor * dx;
+                  yVia = this.from.y + factor * dx;
+                } else if (this.from.x > this.to.x) {
+                  xVia = this.from.x - factor * dx;
+                  yVia = this.from.y + factor * dx;
+                }
+              }
+              if (type == "discrete") {
+                yVia = dy < factor * dx ? this.from.y : yVia;
+              }
+            }
+          } else if (type == "straightCross") {
+            if (Math.abs(this.from.x - this.to.x) < Math.abs(this.from.y - this.to.y)) {
+              // up - down
+              xVia = this.from.x;
+              if (this.from.y < this.to.y) {
+                yVia = this.to.y - (1 - factor) * dy;
+              } else {
+                yVia = this.to.y + (1 - factor) * dy;
+              }
+            } else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) {
+              // left - right
+              if (this.from.x < this.to.x) {
+                xVia = this.to.x - (1 - factor) * dx;
+              } else {
+                xVia = this.to.x + (1 - factor) * dx;
+              }
+              yVia = this.from.y;
+            }
+          } else if (type == "horizontal") {
+            if (this.from.x < this.to.x) {
+              xVia = this.to.x - (1 - factor) * dx;
+            } else {
+              xVia = this.to.x + (1 - factor) * dx;
+            }
+            yVia = this.from.y;
+          } else if (type == "vertical") {
+            xVia = this.from.x;
+            if (this.from.y < this.to.y) {
+              yVia = this.to.y - (1 - factor) * dy;
+            } else {
+              yVia = this.to.y + (1 - factor) * dy;
+            }
+          } else if (type == "curvedCW") {
+            dx = this.to.x - this.from.x;
+            dy = this.from.y - this.to.y;
+            var radius = Math.sqrt(dx * dx + dy * dy);
+            var pi = Math.PI;
+
+            var originalAngle = Math.atan2(dy, dx);
+            var myAngle = (originalAngle + (factor * 0.5 + 0.5) * pi) % (2 * pi);
+
+            xVia = this.from.x + (factor * 0.5 + 0.5) * radius * Math.sin(myAngle);
+            yVia = this.from.y + (factor * 0.5 + 0.5) * radius * Math.cos(myAngle);
+          } else if (type == "curvedCCW") {
+            dx = this.to.x - this.from.x;
+            dy = this.from.y - this.to.y;
+            var radius = Math.sqrt(dx * dx + dy * dy);
+            var pi = Math.PI;
+
+            var originalAngle = Math.atan2(dy, dx);
+            var myAngle = (originalAngle + (-factor * 0.5 + 0.5) * pi) % (2 * pi);
+
+            xVia = this.from.x + (factor * 0.5 + 0.5) * radius * Math.sin(myAngle);
+            yVia = this.from.y + (factor * 0.5 + 0.5) * radius * Math.cos(myAngle);
+          } else {
+            // continuous
+            if (Math.abs(this.from.x - this.to.x) < Math.abs(this.from.y - this.to.y)) {
+              if (this.from.y > this.to.y) {
+                if (this.from.x < this.to.x) {
+                  xVia = this.from.x + factor * dy;
+                  yVia = this.from.y - factor * dy;
+                  xVia = this.to.x < xVia ? this.to.x : xVia;
+                } else if (this.from.x > this.to.x) {
+                  xVia = this.from.x - factor * dy;
+                  yVia = this.from.y - factor * dy;
+                  xVia = this.to.x > xVia ? this.to.x : xVia;
+                }
+              } else if (this.from.y < this.to.y) {
+                if (this.from.x < this.to.x) {
+                  xVia = this.from.x + factor * dy;
+                  yVia = this.from.y + factor * dy;
+                  xVia = this.to.x < xVia ? this.to.x : xVia;
+                } else if (this.from.x > this.to.x) {
+                  xVia = this.from.x - factor * dy;
+                  yVia = this.from.y + factor * dy;
+                  xVia = this.to.x > xVia ? this.to.x : xVia;
+                }
+              }
+            } else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) {
+              if (this.from.y > this.to.y) {
+                if (this.from.x < this.to.x) {
+                  xVia = this.from.x + factor * dx;
+                  yVia = this.from.y - factor * dx;
+                  yVia = this.to.y > yVia ? this.to.y : yVia;
+                } else if (this.from.x > this.to.x) {
+                  xVia = this.from.x - factor * dx;
+                  yVia = this.from.y - factor * dx;
+                  yVia = this.to.y > yVia ? this.to.y : yVia;
+                }
+              } else if (this.from.y < this.to.y) {
+                if (this.from.x < this.to.x) {
+                  xVia = this.from.x + factor * dx;
+                  yVia = this.from.y + factor * dx;
+                  yVia = this.to.y < yVia ? this.to.y : yVia;
+                } else if (this.from.x > this.to.x) {
+                  xVia = this.from.x - factor * dx;
+                  yVia = this.from.y + factor * dx;
+                  yVia = this.to.y < yVia ? this.to.y : yVia;
+                }
+              }
+            }
+          }
+          return { x: xVia, y: yVia };
+        },
+        writable: true,
+        configurable: true
+      },
+      _findBorderPosition: {
+        value: function _findBorderPosition(nearNode, ctx, options) {
+          return this._findBorderPositionBezier(nearNode, ctx, options.via);
+        },
+        writable: true,
+        configurable: true
+      },
+      _getDistanceToEdge: {
+        value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
+          var via = arguments[6] === undefined ? this._getViaCoordinates() : arguments[6];
+          // x3,y3 is the point
+          return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, via);
+        },
+        writable: true,
+        configurable: true
+      },
+      getPoint: {
+
+        /**
+         * Combined function of pointOnLine and pointOnBezier. This gives the coordinates of a point on the line at a certain percentage of the way
+         * @param percentage
+         * @param via
+         * @returns {{x: number, y: number}}
+         * @private
+         */
+        value: function getPoint(percentage) {
+          var via = arguments[1] === undefined ? this._getViaCoordinates() : arguments[1];
+          var t = percentage;
+          var x = Math.pow(1 - t, 2) * this.from.x + 2 * t * (1 - t) * via.x + Math.pow(t, 2) * this.to.x;
+          var y = Math.pow(1 - t, 2) * this.from.y + 2 * t * (1 - t) * via.y + Math.pow(t, 2) * this.to.y;
+
+          return { x: x, y: y };
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return BezierEdgeStatic;
+  })(BezierBaseEdge);
+
+  module.exports = BezierEdgeStatic;
+
+/***/ },
+/* 86 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc && desc.writable) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+  var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  /**
+   * Created by Alex on 3/20/2015.
+   */
+
+  var BaseEdge = _interopRequire(__webpack_require__(84));
+
+  var StraightEdge = (function (BaseEdge) {
+    function StraightEdge(options, body, labelModule) {
+      _classCallCheck(this, StraightEdge);
+
+      _get(Object.getPrototypeOf(StraightEdge.prototype), "constructor", this).call(this, options, body, labelModule);
+    }
+
+    _inherits(StraightEdge, BaseEdge);
+
+    _prototypeProperties(StraightEdge, null, {
+      cleanup: {
+        value: function cleanup() {},
+        writable: true,
+        configurable: true
+      },
+      _line: {
+        /**
+         * Draw a line between two nodes
+         * @param {CanvasRenderingContext2D} ctx
+         * @private
+         */
+        value: function _line(ctx) {
+          // draw a straight line
+          ctx.beginPath();
+          ctx.moveTo(this.from.x, this.from.y);
+          ctx.lineTo(this.to.x, this.to.y);
+          ctx.stroke();
+          return undefined;
+        },
+        writable: true,
+        configurable: true
+      },
+      getPoint: {
+
+
+        /**
+         * Combined function of pointOnLine and pointOnBezier. This gives the coordinates of a point on the line at a certain percentage of the way
+         * @param percentage
+         * @param via
+         * @returns {{x: number, y: number}}
+         * @private
+         */
+        value: function getPoint(percentage) {
+          return {
+            x: (1 - percentage) * this.from.x + percentage * this.to.x,
+            y: (1 - percentage) * this.from.y + percentage * this.to.y
+          };
+        },
+        writable: true,
+        configurable: true
+      },
+      _findBorderPosition: {
+        value: function _findBorderPosition(nearNode, ctx) {
+          var node1 = this.to;
+          var node2 = this.from;
+          if (nearNode.id === this.from.id) {
+            node1 = this.from;
+            node2 = this.to;
+          }
+
+
+
+          var angle = Math.atan2(node1.y - node2.y, node1.x - node2.x);
+          var dx = node1.x - node2.x;
+          var dy = node1.y - node2.y;
+          var edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
+          var toBorderDist = nearNode.distanceToBorder(ctx, angle);
+          var toBorderPoint = (edgeSegmentLength - toBorderDist) / edgeSegmentLength;
+
+          var borderPos = {};
+          borderPos.x = (1 - toBorderPoint) * node2.x + toBorderPoint * node1.x;
+          borderPos.y = (1 - toBorderPoint) * node2.y + toBorderPoint * node1.y;
+
+          return borderPos;
+        },
+        writable: true,
+        configurable: true
+      },
+      _getDistanceToEdge: {
+        value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
+          // x3,y3 is the point
+          return this._getDistanceToLine(x1, y1, x2, y2, x3, y3);
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return StraightEdge;
+  })(BaseEdge);
+
+  module.exports = StraightEdge;
 
 /***/ },
 /* 87 */
