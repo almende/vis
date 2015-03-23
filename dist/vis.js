@@ -35258,6 +35258,30 @@ return /******/ (function(modules) { // webpackBootstrap
         writable: true,
         configurable: true
       },
+      _getHubSize: {
+
+
+        /**
+         * Get the hubsize from all remaining unlevelled nodes.
+         *
+         * @returns {number}
+         * @private
+         */
+        value: function _getHubSize() {
+          var hubSize = 0;
+          for (var nodeId in this.body.nodes) {
+            if (this.body.nodes.hasOwnProperty(nodeId)) {
+              var node = this.body.nodes[nodeId];
+              if (this.hierarchicalLevels[nodeId] === undefined) {
+                hubSize = node.edges.length < hubSize ? hubSize : node.edges.length;
+              }
+            }
+          }
+          return hubSize;
+        },
+        writable: true,
+        configurable: true
+      },
       _determineLevelsByHubsize: {
 
 
@@ -35290,23 +35314,8 @@ return /******/ (function(modules) { // webpackBootstrap
         writable: true,
         configurable: true
       },
-      _getHubSize: {
-        value: function _getHubSize() {
-          var hubSize = 0;
-          for (var nodeId in this.body.nodes) {
-            if (this.body.nodes.hasOwnProperty(nodeId)) {
-              var node = this.body.nodes[nodeId];
-              if (this.hierarchicalLevels[nodeId] === undefined) {
-                hubSize = node.edges.length < hubSize ? hubSize : node.edges.length;
-              }
-            }
-          }
-          return hubSize;
-        },
-        writable: true,
-        configurable: true
-      },
       _setLevel: {
+
 
         /**
          * this function is called recursively to enumerate the barnches of the largest hubs and give each node a level.
@@ -35374,6 +35383,7 @@ return /******/ (function(modules) { // webpackBootstrap
         configurable: true
       },
       _setLevelDirected: {
+
 
         /**
          * this function is called recursively to enumerate the branched of the first node and give each node a level based on edge direction
