@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.0.0-SNAPSHOT
- * @date    2015-03-20
+ * @date    2015-03-23
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -28468,13 +28468,13 @@ return /******/ (function(modules) { // webpackBootstrap
       drawArrows: {
         value: function drawArrows(ctx, viaNode) {
           if (this.options.arrows.from.enabled === true) {
-            this._drawArrowHead(ctx, "from", viaNode);
+            this.edgeType.drawArrowHead(ctx, "from", viaNode);
           }
           if (this.options.arrows.middle.enabled === true) {
-            this._drawArrowHead(ctx, "middle", viaNode);
+            this.edgeType.drawArrowHead(ctx, "middle", viaNode);
           }
           if (this.options.arrows.to.enabled === true) {
-            this._drawArrowHead(ctx, "to", viaNode);
+            this.edgeType.drawArrowHead(ctx, "to", viaNode);
           }
         },
         writable: true,
@@ -28589,123 +28589,6 @@ return /******/ (function(modules) { // webpackBootstrap
             x: x + radius * Math.cos(angle),
             y: y - radius * Math.sin(angle)
           };
-        },
-        writable: true,
-        configurable: true
-      },
-      _drawArrowHead: {
-
-
-
-        /**
-         *
-         * @param ctx
-         * @param position
-         * @param viaNode
-         */
-        value: function _drawArrowHead(ctx, position, viaNode) {
-          // set style
-          ctx.strokeStyle = this.edgeType.getColor(ctx);
-          ctx.fillStyle = ctx.strokeStyle;
-          ctx.lineWidth = this.edgeType.getLineWidth();
-
-          // set lets
-          var angle = undefined;
-          var length = undefined;
-          var arrowPos = undefined;
-          var node1 = undefined;
-          var node2 = undefined;
-          var guideOffset = undefined;
-          var scaleFactor = undefined;
-
-          if (position == "from") {
-            node1 = this.from;
-            node2 = this.to;
-            guideOffset = 0.1;
-            scaleFactor = this.options.arrows.from.scaleFactor;
-          } else if (position == "to") {
-            node1 = this.to;
-            node2 = this.from;
-            guideOffset = -0.1;
-            scaleFactor = this.options.arrows.to.scaleFactor;
-          } else {
-            node1 = this.to;
-            node2 = this.from;
-            scaleFactor = this.options.arrows.middle.scaleFactor;
-          }
-
-          // if not connected to itself
-          if (node1 != node2) {
-            if (position !== "middle") {
-              // draw arrow head
-              if (this.options.smooth.enabled == true) {
-                arrowPos = this.edgeType.findBorderPosition(node1, ctx, { via: viaNode });
-                var guidePos = this.edgeType.getPoint(Math.max(0, Math.min(1, arrowPos.t + guideOffset)), viaNode);
-                angle = Math.atan2(arrowPos.y - guidePos.y, arrowPos.x - guidePos.x);
-              } else {
-                angle = Math.atan2(node1.y - node2.y, node1.x - node2.x);
-                arrowPos = this.edgeType.findBorderPosition(node1, ctx);
-              }
-            } else {
-              angle = Math.atan2(node1.y - node2.y, node1.x - node2.x);
-              arrowPos = this.edgeType.getPoint(0.6, viaNode); // this is 0.6 to account for the size of the arrow.
-            }
-            // draw arrow at the end of the line
-            length = (10 + 5 * this.options.width) * scaleFactor;
-            ctx.arrow(arrowPos.x, arrowPos.y, angle, length);
-            ctx.fill();
-            ctx.stroke();
-          } else {
-            // draw circle
-            var _angle = undefined,
-                point = undefined;
-            var x = undefined,
-                y = undefined;
-            var radius = this.options.selfReferenceSize;
-            if (!node1.width) {
-              node1.resize(ctx);
-            }
-
-            // get circle coordinates
-            if (node1.width > node1.height) {
-              x = node1.x + node1.width * 0.5;
-              y = node1.y - radius;
-            } else {
-              x = node1.x + radius;
-              y = node1.y - node1.height * 0.5;
-            }
-
-
-            if (position == "from") {
-              point = this.edgeType.findBorderPosition(x, y, radius, node1, 0.25, 0.6, -1, ctx);
-              _angle = point.t * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
-            } else if (position == "to") {
-              point = this.edgeType.findBorderPosition(x, y, radius, node1, 0.6, 0.8, 1, ctx);
-              _angle = point.t * -2 * Math.PI + 1.5 * Math.PI - 1.1 * Math.PI;
-            } else {
-              point = this.edgeType.findBorderPosition(x, y, radius, 0.175);
-              _angle = 3.9269908169872414; // == 0.175 * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
-            }
-
-            // draw the arrowhead
-            var _length = (10 + 5 * this.options.width) * scaleFactor;
-            ctx.arrow(point.x, point.y, _angle, _length);
-            ctx.fill();
-            ctx.stroke();
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      setScale: {
-
-        /**
-         * This allows the zoom level of the network to influence the rendering
-         *
-         * @param scale
-         */
-        value: function setScale(scale) {
-          this.networkScaleInv = 1 / scale;
         },
         writable: true,
         configurable: true
@@ -29437,7 +29320,6 @@ return /******/ (function(modules) { // webpackBootstrap
       findBorderPosition: {
         value: function findBorderPosition(nearNode, ctx, options) {
           if (this.from != this.to) {
-            console.log(1);
             return this._findBorderPosition(nearNode, ctx, options);
           } else {
             return this._findBorderPositionCircle(nearNode, ctx, options);
@@ -29679,6 +29561,108 @@ return /******/ (function(modules) { // webpackBootstrap
           //# (i.e. remove the sqrt) to gain a little performance
 
           return Math.sqrt(dx * dx + dy * dy);
+        },
+        writable: true,
+        configurable: true
+      },
+      drawArrowHead: {
+
+        /**
+         *
+         * @param ctx
+         * @param position
+         * @param viaNode
+         */
+        value: function drawArrowHead(ctx, position, viaNode) {
+          // set style
+          ctx.strokeStyle = this.getColor(ctx);
+          ctx.fillStyle = ctx.strokeStyle;
+          ctx.lineWidth = this.getLineWidth();
+
+          // set lets
+          var angle = undefined;
+          var length = undefined;
+          var arrowPos = undefined;
+          var node1 = undefined;
+          var node2 = undefined;
+          var guideOffset = undefined;
+          var scaleFactor = undefined;
+
+          if (position == "from") {
+            node1 = this.from;
+            node2 = this.to;
+            guideOffset = 0.1;
+            scaleFactor = this.options.arrows.from.scaleFactor;
+          } else if (position == "to") {
+            node1 = this.to;
+            node2 = this.from;
+            guideOffset = -0.1;
+            scaleFactor = this.options.arrows.to.scaleFactor;
+          } else {
+            node1 = this.to;
+            node2 = this.from;
+            scaleFactor = this.options.arrows.middle.scaleFactor;
+          }
+
+          // if not connected to itself
+          if (node1 != node2) {
+            if (position !== "middle") {
+              // draw arrow head
+              if (this.options.smooth.enabled == true) {
+                arrowPos = this.findBorderPosition(node1, ctx, { via: viaNode });
+                var guidePos = this.getPoint(Math.max(0, Math.min(1, arrowPos.t + guideOffset)), viaNode);
+                angle = Math.atan2(arrowPos.y - guidePos.y, arrowPos.x - guidePos.x);
+              } else {
+                angle = Math.atan2(node1.y - node2.y, node1.x - node2.x);
+                arrowPos = this.findBorderPosition(node1, ctx);
+              }
+            } else {
+              angle = Math.atan2(node1.y - node2.y, node1.x - node2.x);
+              arrowPos = this.getPoint(0.6, viaNode); // this is 0.6 to account for the size of the arrow.
+            }
+            // draw arrow at the end of the line
+            length = (10 + 5 * this.options.width) * scaleFactor;
+            ctx.arrow(arrowPos.x, arrowPos.y, angle, length);
+            ctx.fill();
+            ctx.stroke();
+          } else {
+            // draw circle
+            var _angle = undefined,
+                point = undefined;
+            var x = undefined,
+                y = undefined;
+            var radius = this.options.selfReferenceSize;
+            if (!node1.width) {
+              node1.resize(ctx);
+            }
+
+            // get circle coordinates
+            if (node1.width > node1.height) {
+              x = node1.x + node1.width * 0.5;
+              y = node1.y - radius;
+            } else {
+              x = node1.x + radius;
+              y = node1.y - node1.height * 0.5;
+            }
+
+
+            if (position == "from") {
+              point = this.findBorderPosition(x, y, radius, node1, 0.25, 0.6, -1, ctx);
+              _angle = point.t * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
+            } else if (position == "to") {
+              point = this.findBorderPosition(x, y, radius, node1, 0.6, 0.8, 1, ctx);
+              _angle = point.t * -2 * Math.PI + 1.5 * Math.PI - 1.1 * Math.PI;
+            } else {
+              point = this.findBorderPosition(x, y, radius, 0.175);
+              _angle = 3.9269908169872414; // == 0.175 * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
+            }
+
+            // draw the arrowhead
+            var _length = (10 + 5 * this.options.width) * scaleFactor;
+            ctx.arrow(point.x, point.y, _angle, _length);
+            ctx.fill();
+            ctx.stroke();
+          }
         },
         writable: true,
         configurable: true
@@ -31335,8 +31319,8 @@ return /******/ (function(modules) { // webpackBootstrap
             if (edge.connected === true) {
               // only calculate forces if nodes are in the same sector
               if (this.body.nodes[edge.toId] !== undefined && this.body.nodes[edge.fromId] !== undefined) {
-                edgeLength = edge.options.length === undefined ? this.options.springLength : edge.options.length;
                 if (edge.edgeType.via !== undefined) {
+                  edgeLength = edge.options.length === undefined ? this.options.springLength : edge.options.length;
                   var node1 = edge.to;
                   var node2 = edge.edgeType.via;
                   var node3 = edge.from;
@@ -31345,6 +31329,9 @@ return /******/ (function(modules) { // webpackBootstrap
                   this._calculateSpringForce(node1, node2, 0.5 * edgeLength);
                   this._calculateSpringForce(node2, node3, 0.5 * edgeLength);
                 } else {
+                  // the * 1.5 is here so the edge looks as large as a smooth edge. It does not initially because the smooth edges use
+                  // the support nodes which exert a repulsive force on the to and from nodes, making the edge appear larger.
+                  edgeLength = edge.options.length === undefined ? this.options.springLength * 1.5 : edge.options.length;
                   this._calculateSpringForce(edge.from, edge.to, edgeLength);
                 }
               }
@@ -32579,7 +32566,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
           for (var i = 0; i < edgeIndices.length; i++) {
             edge = edges[edgeIndices[i]];
-            edge.setScale(this.body.view.scale);
             if (edge.connected === true) {
               edge.draw(ctx);
             }
