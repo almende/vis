@@ -27978,9 +27978,24 @@ return /******/ (function(modules) { // webpackBootstrap
             util.mergeOptions(this.options, options, "dashes");
 
             if (options.arrows !== undefined) {
-              util.mergeOptions(this.options.arrows, options.arrows, "to");
-              util.mergeOptions(this.options.arrows, options.arrows, "middle");
-              util.mergeOptions(this.options.arrows, options.arrows, "from");
+              if (typeof options.arrows === "string") {
+                var arrows = options.arrows.toLowerCase();
+                if (arrows.indexOf("to") != -1) {
+                  this.options.arrows.to.enabled = true;
+                }
+                if (arrows.indexOf("middle") != -1) {
+                  this.options.arrows.middle.enabled = true;
+                }
+                if (arrows.indexOf("from") != -1) {
+                  this.options.arrows.from.enabled = true;
+                }
+              } else if (typeof options.arrows === "object") {
+                util.mergeOptions(this.options.arrows, options.arrows, "to");
+                util.mergeOptions(this.options.arrows, options.arrows, "middle");
+                util.mergeOptions(this.options.arrows, options.arrows, "from");
+              } else {
+                throw new Error("The arrow options can only be an object or a string. Refer to the documentation. You used:" + JSON.stringify(options.arrows));
+              }
             }
           }
         },
@@ -28251,9 +28266,24 @@ return /******/ (function(modules) { // webpackBootstrap
           util.mergeOptions(this.options, options, "dashes");
 
           if (options.arrows !== undefined) {
-            util.mergeOptions(this.options.arrows, options.arrows, "to");
-            util.mergeOptions(this.options.arrows, options.arrows, "middle");
-            util.mergeOptions(this.options.arrows, options.arrows, "from");
+            if (typeof options.arrows === "string") {
+              var arrows = options.arrows.toLowerCase();
+              if (arrows.indexOf("to") != -1) {
+                this.options.arrows.to.enabled = true;
+              }
+              if (arrows.indexOf("middle") != -1) {
+                this.options.arrows.middle.enabled = true;
+              }
+              if (arrows.indexOf("from") != -1) {
+                this.options.arrows.from.enabled = true;
+              }
+            } else if (typeof options.arrows === "object") {
+              util.mergeOptions(this.options.arrows, options.arrows, "to");
+              util.mergeOptions(this.options.arrows, options.arrows, "middle");
+              util.mergeOptions(this.options.arrows, options.arrows, "from");
+            } else {
+              throw new Error("The arrow options can only be an object or a string. Refer to the documentation. You used:" + JSON.stringify(options.arrows));
+            }
           }
 
           if (options.id !== undefined) {
@@ -29039,7 +29069,6 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       _findBorderPosition: {
         value: function _findBorderPosition(nearNode, ctx) {
-          console.log(this);
           return this._findBorderPositionBezier(nearNode, ctx, this.via);
         },
         writable: true,
@@ -29109,8 +29138,6 @@ return /******/ (function(modules) { // webpackBootstrap
          */
         value: function _findBorderPositionBezier(nearNode, ctx) {
           var viaNode = arguments[2] === undefined ? this._getViaCoordinates() : arguments[2];
-          console.log(nearNode, ctx, viaNode);
-
           var maxIterations = 10;
           var iteration = 0;
           var low = 0;
@@ -32370,6 +32397,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.renderRequests = 0;
       this.pixelRatio = undefined;
 
+      // redefined in this._redraw
       this.canvasTopLeft = { x: 0, y: 0 };
       this.canvasBottomRight = { x: 0, y: 0 };
 
@@ -32382,7 +32410,7 @@ return /******/ (function(modules) { // webpackBootstrap
         return _this.dragging = false;
       });
       this.body.emitter.on("_redraw", function () {
-        console.log(_this.renderingActive);if (_this.renderingActive === false) {
+        if (_this.renderingActive === false) {
           _this._redraw();
         }
       });

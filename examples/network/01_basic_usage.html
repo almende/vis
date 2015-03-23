@@ -43,7 +43,7 @@
     nodes: nodes,
     edges: edges
   };
-  var options = {}//{physics:{stabilization:false}};
+  var options = {edges:{arrows:'to from'}}//{physics:{stabilization:false}};
   var network = new vis.Network(container, data, options);
     network.on("selected",function () {alert("1")})
 </script>
