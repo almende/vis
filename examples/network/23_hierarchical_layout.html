@@ -84,12 +84,12 @@
         nodes: nodes,
         edges: edges
       };
-    var directionInput = document.getElementById("direction");
+    var directionInput = document.getElementById("direction").value;
     var options = {
-        stabilize: false,
-        smoothCurves: false,
-        hierarchicalLayout: {
-            direction: directionInput.value
+        layout: {
+            hierarchical:{
+                direction: directionInput
+            }
         }
     };
       network = new vis.Network(container, data, options);

@@ -123,8 +123,13 @@
       };
 
     var options = {
-        hierarchicalLayout: {
-            direction: directionInput.value
+        edges: {
+            smooth: true
+        },
+        layout: {
+            hierarchical:{
+                direction: directionInput.value
+            }
         }
     };
       network = new vis.Network(container, data, options);
