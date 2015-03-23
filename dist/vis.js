@@ -35148,7 +35148,6 @@ return /******/ (function(modules) { // webpackBootstrap
                 } else {
                   undefinedLevel = true;
                 }
-                hubsize = hubsize < node.edges.length ? node.edges.length : hubsize;
               }
             }
 
@@ -35163,12 +35162,12 @@ return /******/ (function(modules) { // webpackBootstrap
               // define levels if undefined by the users. Based on hubsize
               if (undefinedLevel == true) {
                 if (this.options.hierarchical.sortMethod == "hubsize") {
-                  this._determineLevels(hubsize);
+                  this._determineLevelsByHubsize();
                 } else if (this.options.hierarchical.sortMethod == "directed" || "direction") {
                   this._determineLevelsDirected();
                 }
               }
-
+              console.log(this.hierarchicalLevels);
               // check the distribution of the nodes per level.
               var distribution = this._getDistribution();
 
@@ -35259,7 +35258,7 @@ return /******/ (function(modules) { // webpackBootstrap
         writable: true,
         configurable: true
       },
-      _determineLevels: {
+      _determineLevelsByHubsize: {
 
 
         /**
@@ -35268,29 +35267,41 @@ return /******/ (function(modules) { // webpackBootstrap
          * @param hubsize
          * @private
          */
-        value: function _determineLevels(hubsize) {
+        value: function _determineLevelsByHubsize() {
           var nodeId = undefined,
               node = undefined;
+          var hubSize = 1;
 
-          // determine hubs
-          for (nodeId in this.body.nodes) {
-            if (this.body.nodes.hasOwnProperty(nodeId)) {
-              node = this.body.nodes[nodeId];
-              if (node.edges.length == hubsize) {
-                this.hierarchicalLevels[nodeId] = 0;
+          while (hubSize > 0) {
+            // determine hubs
+            hubSize = this._getHubSize();
+            if (hubSize == 0) break;
+
+            for (nodeId in this.body.nodes) {
+              if (this.body.nodes.hasOwnProperty(nodeId)) {
+                node = this.body.nodes[nodeId];
+                if (node.edges.length == hubSize) {
+                  this._setLevel(0, node);
+                }
               }
             }
           }
-
-          // branch from hubs
-          for (nodeId in this.body.nodes) {
+        },
+        writable: true,
+        configurable: true
+      },
+      _getHubSize: {
+        value: function _getHubSize() {
+          var hubSize = 0;
+          for (var nodeId in this.body.nodes) {
             if (this.body.nodes.hasOwnProperty(nodeId)) {
-              node = this.body.nodes[nodeId];
-              if (this.hierarchicalLevels[nodeId] == 0) {
-                this._setLevel(1, node.edges, node.id);
+              var node = this.body.nodes[nodeId];
+              if (this.hierarchicalLevels[nodeId] === undefined) {
+                hubSize = node.edges.length < hubSize ? hubSize : node.edges.length;
               }
             }
           }
+          return hubSize;
         },
         writable: true,
         configurable: true
@@ -35305,20 +35316,18 @@ return /******/ (function(modules) { // webpackBootstrap
          * @param parentId
          * @private
          */
-        value: function _setLevel(level, edges, parentId) {
-          for (var i = 0; i < edges.length; i++) {
-            var childNode = undefined;
-            if (edges[i].toId == parentId) {
-              childNode = edges[i].from;
+        value: function _setLevel(level, node) {
+          if (this.hierarchicalLevels[node.id] !== undefined) {
+            return;
+          }var childNode = undefined;
+          this.hierarchicalLevels[node.id] = level;
+          for (var i = 0; i < node.edges.length; i++) {
+            if (node.edges[i].toId == node.id) {
+              childNode = node.edges[i].from;
             } else {
-              childNode = edges[i].to;
+              childNode = node.edges[i].to;
             }
-            if (this.hierarchicalLevels[childNode.id] === undefined || this.hierarchicalLevels[childNode.id] > level) {
-              this.hierarchicalLevels[childNode.id] = level;
-              if (childNode.edges.length > 1) {
-                this._setLevel(level + 1, childNode.edges, childNode.id);
-              }
-            }
+            this._setLevel(level + 1, childNode);
           }
         },
         writable: true,
@@ -35336,12 +35345,16 @@ return /******/ (function(modules) { // webpackBootstrap
          */
         value: function _determineLevelsDirected() {
           var nodeId = undefined,
-              firstNode = undefined;
+              node = undefined;
           var minLevel = 10000;
 
           // set first node to source
-          firstNode = this.body.nodes[this.body.nodeIndices[0]];
-          this._setLevelDirected(minLevel, firstNode);
+          for (nodeId in this.body.nodes) {
+            if (this.body.nodes.hasOwnProperty(nodeId)) {
+              node = this.body.nodes[nodeId];
+              this._setLevelDirected(minLevel, node);
+            }
+          }
 
           // get the minimum level
           for (nodeId in this.body.nodes) {

@@ -34,7 +34,7 @@
             var nodes = [];
             var edges = [];
             // randomly create some nodes and edges
-            for (var i = 0; i < 15; i++) {
+            for (var i = 0; i < 19; i++) {
                 nodes.push({id: i, label: String(i)});
             }
             edges.push({from: 0, to: 1});
@@ -51,6 +51,9 @@
             edges.push({from: 2, to: 9});
             edges.push({from: 3, to: 14});
             edges.push({from: 1, to: 12});
+            edges.push({from: 16, to: 15});
+            edges.push({from: 15, to: 17});
+            edges.push({from: 18, to: 17});
 
             // create a network
             var container = document.getElementById('mynetwork');
