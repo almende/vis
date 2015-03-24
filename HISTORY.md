@@ -14,6 +14,7 @@ http://visjs.org
 - Fixed #654: removed unnecessary minimum height for groups, takes the
   height of the group label as minimum height now.
 - Fixed #708: detecting wrong group when page is scrolled.
+- Fixed #733: background items being selected on shift+click.
 
 
 ## 2015-03-05, version 3.11.0
