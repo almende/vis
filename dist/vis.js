@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.0.0-SNAPSHOT
- * @date    2015-03-23
+ * @date    2015-03-24
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -23316,23 +23316,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var NodesHandler = _interopRequire(__webpack_require__(61));
 
-  var EdgesHandler = _interopRequire(__webpack_require__(80));
+  var EdgesHandler = _interopRequire(__webpack_require__(81));
 
-  var PhysicsEngine = _interopRequire(__webpack_require__(87));
+  var PhysicsEngine = _interopRequire(__webpack_require__(88));
 
-  var ClusterEngine = _interopRequire(__webpack_require__(94));
+  var ClusterEngine = _interopRequire(__webpack_require__(95));
 
-  var CanvasRenderer = _interopRequire(__webpack_require__(96));
+  var CanvasRenderer = _interopRequire(__webpack_require__(97));
 
-  var Canvas = _interopRequire(__webpack_require__(97));
+  var Canvas = _interopRequire(__webpack_require__(98));
 
-  var View = _interopRequire(__webpack_require__(98));
+  var View = _interopRequire(__webpack_require__(99));
 
-  var InteractionHandler = _interopRequire(__webpack_require__(99));
+  var InteractionHandler = _interopRequire(__webpack_require__(100));
 
-  var SelectionHandler = _interopRequire(__webpack_require__(101));
+  var SelectionHandler = _interopRequire(__webpack_require__(102));
 
-  var LayoutEngine = _interopRequire(__webpack_require__(102));
+  var LayoutEngine = _interopRequire(__webpack_require__(103));
 
   /**
    * @constructor Network
@@ -24052,16 +24052,22 @@ return /******/ (function(modules) { // webpackBootstrap
       // http://en.wikipedia.org/wiki/Equilateral_triangle
       this.beginPath();
 
+      // the change in radius and the offset is here to center the shape
+      r *= 1.15;
+      y += 0.275 * r;
+
       var s = r * 2;
       var s2 = s / 2;
       var ir = Math.sqrt(3) / 6 * s; // radius of inner circle
       var h = Math.sqrt(s * s - s2 * s2); // height
+
 
       this.moveTo(x, y - (h - ir));
       this.lineTo(x + s2, y + ir);
       this.lineTo(x - s2, y + ir);
       this.lineTo(x, y - (h - ir));
       this.closePath();
+
     };
 
     /**
@@ -24073,6 +24079,10 @@ return /******/ (function(modules) { // webpackBootstrap
     CanvasRenderingContext2D.prototype.triangleDown = function (x, y, r) {
       // http://en.wikipedia.org/wiki/Equilateral_triangle
       this.beginPath();
+
+      // the change in radius and the offset is here to center the shape
+      r *= 1.15;
+      y -= 0.275 * r;
 
       var s = r * 2;
       var s2 = s / 2;
@@ -24096,10 +24106,33 @@ return /******/ (function(modules) { // webpackBootstrap
       // http://www.html5canvastutorials.com/labs/html5-canvas-star-spinner/
       this.beginPath();
 
+      // the change in radius and the offset is here to center the shape
+      r *= 0.82;
+      y += 0.1 * r;
+
       for (var n = 0; n < 10; n++) {
         var radius = n % 2 === 0 ? r * 1.3 : r * 0.5;
         this.lineTo(x + radius * Math.sin(n * 2 * Math.PI / 10), y - radius * Math.cos(n * 2 * Math.PI / 10));
       }
+
+      this.closePath();
+    };
+
+    /**
+     * Draw a Diamond shape
+     * @param {Number} x horizontal center
+     * @param {Number} y vertical center
+     * @param {Number} r   radius, half the length of the sides of the triangle
+     */
+    CanvasRenderingContext2D.prototype.diamond = function (x, y, r) {
+      // http://www.html5canvastutorials.com/labs/html5-canvas-star-spinner/
+      this.beginPath();
+
+      this.lineTo(x, y + r);
+      this.lineTo(x + r, y);
+      this.lineTo(x, y - r);
+      this.lineTo(x - r, y);
+
 
       this.closePath();
     };
@@ -24151,7 +24184,6 @@ return /******/ (function(modules) { // webpackBootstrap
       this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
       this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
     };
-
 
 
     /**
@@ -25603,7 +25635,7 @@ return /******/ (function(modules) { // webpackBootstrap
         physics: true,
         scaling: {
           min: 10,
-          max: 40,
+          max: 30,
           label: {
             enabled: true,
             min: 14,
@@ -25816,23 +25848,25 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var Database = _interopRequire(__webpack_require__(69));
 
-  var Dot = _interopRequire(__webpack_require__(70));
+  var Diamond = _interopRequire(__webpack_require__(70));
 
-  var Ellipse = _interopRequire(__webpack_require__(72));
+  var Dot = _interopRequire(__webpack_require__(72));
 
-  var Icon = _interopRequire(__webpack_require__(73));
+  var Ellipse = _interopRequire(__webpack_require__(73));
 
-  var Image = _interopRequire(__webpack_require__(74));
+  var Icon = _interopRequire(__webpack_require__(74));
 
-  var Square = _interopRequire(__webpack_require__(75));
+  var Image = _interopRequire(__webpack_require__(75));
 
-  var Star = _interopRequire(__webpack_require__(76));
+  var Square = _interopRequire(__webpack_require__(76));
 
-  var Text = _interopRequire(__webpack_require__(77));
+  var Star = _interopRequire(__webpack_require__(77));
 
-  var Triangle = _interopRequire(__webpack_require__(78));
+  var Text = _interopRequire(__webpack_require__(78));
 
-  var TriangleDown = _interopRequire(__webpack_require__(79));
+  var Triangle = _interopRequire(__webpack_require__(79));
+
+  var TriangleDown = _interopRequire(__webpack_require__(80));
 
   /**
    * @class Node
@@ -26003,45 +26037,48 @@ return /******/ (function(modules) { // webpackBootstrap
 
           // choose draw method depending on the shape
           switch (this.options.shape) {
-            case "database":
-              this.shape = new Database(this.options, this.body, this.labelModule);
-              break;
+
             case "box":
               this.shape = new Box(this.options, this.body, this.labelModule);
               break;
             case "circle":
               this.shape = new Circle(this.options, this.body, this.labelModule);
               break;
-            case "ellipse":
-              this.shape = new Ellipse(this.options, this.body, this.labelModule);
-              break;
-            // TODO: add diamond shape
-            case "image":
-              this.shape = new Image(this.options, this.body, this.labelModule, this.imageObj);
-              break;
             case "circularImage":
               this.shape = new CircularImage(this.options, this.body, this.labelModule, this.imageObj);
               break;
-            case "text":
-              this.shape = new Text(this.options, this.body, this.labelModule);
+            case "database":
+              this.shape = new Database(this.options, this.body, this.labelModule);
+              break;
+            case "diamond":
+              this.shape = new Diamond(this.options, this.body, this.labelModule);
               break;
             case "dot":
               this.shape = new Dot(this.options, this.body, this.labelModule);
               break;
+            case "ellipse":
+              this.shape = new Ellipse(this.options, this.body, this.labelModule);
+              break;
+            case "icon":
+              this.shape = new Icon(this.options, this.body, this.labelModule);
+              break;
+            case "image":
+              this.shape = new Image(this.options, this.body, this.labelModule, this.imageObj);
+              break;
             case "square":
               this.shape = new Square(this.options, this.body, this.labelModule);
+              break;
+            case "star":
+              this.shape = new Star(this.options, this.body, this.labelModule);
+              break;
+            case "text":
+              this.shape = new Text(this.options, this.body, this.labelModule);
               break;
             case "triangle":
               this.shape = new Triangle(this.options, this.body, this.labelModule);
               break;
             case "triangleDown":
               this.shape = new TriangleDown(this.options, this.body, this.labelModule);
-              break;
-            case "star":
-              this.shape = new Star(this.options, this.body, this.labelModule);
-              break;
-            case "icon":
-              this.shape = new Icon(this.options, this.body, this.labelModule);
               break;
             default:
               this.shape = new Ellipse(this.options, this.body, this.labelModule);
@@ -26581,16 +26618,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var BaseNode = _interopRequire(__webpack_require__(65));
+  var NodeBase = _interopRequire(__webpack_require__(65));
 
-  var Box = (function (BaseNode) {
+  var Box = (function (NodeBase) {
     function Box(options, body, labelModule) {
       _classCallCheck(this, Box);
 
       _get(Object.getPrototypeOf(Box.prototype), "constructor", this).call(this, options, body, labelModule);
     }
 
-    _inherits(Box, BaseNode);
+    _inherits(Box, NodeBase);
 
     _prototypeProperties(Box, null, {
       resize: {
@@ -26613,7 +26650,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
           var borderWidth = this.options.borderWidth;
           var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-          console.log(this);
+
           ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
           ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
           ctx.lineWidth /= this.body.view.scale;
@@ -26650,7 +26687,7 @@ return /******/ (function(modules) { // webpackBootstrap
     });
 
     return Box;
-  })(BaseNode);
+  })(NodeBase);
 
   module.exports = Box;
 
@@ -26668,9 +26705,9 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 3/19/2015.
    */
 
-  var BaseNode = (function () {
-    function BaseNode(options, body, labelModule) {
-      _classCallCheck(this, BaseNode);
+  var NodeBase = (function () {
+    function NodeBase(options, body, labelModule) {
+      _classCallCheck(this, NodeBase);
 
       this.body = body;
       this.labelModule = labelModule;
@@ -26681,7 +26718,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.boundingBox = { top: 0, left: 0, right: 0, bottom: 0 };
     }
 
-    _prototypeProperties(BaseNode, null, {
+    _prototypeProperties(NodeBase, null, {
       setOptions: {
         value: function setOptions(options) {
           this.options = options;
@@ -26699,10 +26736,10 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     });
 
-    return BaseNode;
+    return NodeBase;
   })();
 
-  module.exports = BaseNode;
+  module.exports = NodeBase;
 
 /***/ },
 /* 66 */
@@ -26723,16 +26760,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var DrawUtil = _interopRequire(__webpack_require__(67));
+  var CircleImageBase = _interopRequire(__webpack_require__(67));
 
-  var Circle = (function (DrawUtil) {
+  var Circle = (function (CircleImageBase) {
     function Circle(options, body, labelModule) {
       _classCallCheck(this, Circle);
 
       _get(Object.getPrototypeOf(Circle.prototype), "constructor", this).call(this, options, body, labelModule);
     }
 
-    _inherits(Circle, DrawUtil);
+    _inherits(Circle, CircleImageBase);
 
     _prototypeProperties(Circle, null, {
       resize: {
@@ -26783,7 +26820,7 @@ return /******/ (function(modules) { // webpackBootstrap
     });
 
     return Circle;
-  })(DrawUtil);
+  })(CircleImageBase);
 
   module.exports = Circle;
 
@@ -26806,18 +26843,18 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Created by Alex on 3/19/2015.
    */
-  var BaseNode = _interopRequire(__webpack_require__(65));
+  var NodeBase = _interopRequire(__webpack_require__(65));
 
-  var drawUtil = (function (BaseNode) {
-    function drawUtil(options, body, labelModule) {
-      _classCallCheck(this, drawUtil);
+  var CircleImageBase = (function (NodeBase) {
+    function CircleImageBase(options, body, labelModule) {
+      _classCallCheck(this, CircleImageBase);
 
-      _get(Object.getPrototypeOf(drawUtil.prototype), "constructor", this).call(this, options, body, labelModule);
+      _get(Object.getPrototypeOf(CircleImageBase.prototype), "constructor", this).call(this, options, body, labelModule);
     }
 
-    _inherits(drawUtil, BaseNode);
+    _inherits(CircleImageBase, NodeBase);
 
-    _prototypeProperties(drawUtil, null, {
+    _prototypeProperties(CircleImageBase, null, {
       _drawRawCircle: {
         value: function _drawRawCircle(ctx, x, y, selected, hover, size) {
           var borderWidth = this.options.borderWidth;
@@ -26871,10 +26908,10 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     });
 
-    return drawUtil;
-  })(BaseNode);
+    return CircleImageBase;
+  })(NodeBase);
 
-  module.exports = drawUtil;
+  module.exports = CircleImageBase;
 
 /***/ },
 /* 68 */
@@ -26896,9 +26933,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var drawUtil = _interopRequire(__webpack_require__(67));
+  var CircleImageBase = _interopRequire(__webpack_require__(67));
 
-  var CircularImage = (function (drawUtil) {
+  var CircularImage = (function (CircleImageBase) {
     function CircularImage(options, body, labelModule, imageObj) {
       _classCallCheck(this, CircularImage);
 
@@ -26906,7 +26943,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.imageObj = imageObj;
     }
 
-    _inherits(CircularImage, drawUtil);
+    _inherits(CircularImage, CircleImageBase);
 
     _prototypeProperties(CircularImage, null, {
       resize: {
@@ -26974,7 +27011,7 @@ return /******/ (function(modules) { // webpackBootstrap
     });
 
     return CircularImage;
-  })(drawUtil);
+  })(CircleImageBase);
 
   module.exports = CircularImage;
 
@@ -26997,16 +27034,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var BaseNode = _interopRequire(__webpack_require__(65));
+  var NodeBase = _interopRequire(__webpack_require__(65));
 
-  var Database = (function (BaseNode) {
+  var Database = (function (NodeBase) {
     function Database(options, body, labelModule) {
       _classCallCheck(this, Database);
 
       _get(Object.getPrototypeOf(Database.prototype), "constructor", this).call(this, options, body, labelModule);
     }
 
-    _inherits(Database, BaseNode);
+    _inherits(Database, NodeBase);
 
     _prototypeProperties(Database, null, {
       resize: {
@@ -27066,7 +27103,7 @@ return /******/ (function(modules) { // webpackBootstrap
     });
 
     return Database;
-  })(BaseNode);
+  })(NodeBase);
 
   module.exports = Database;
 
@@ -27089,18 +27126,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var ShapeUtil = _interopRequire(__webpack_require__(71));
+  var ShapeBase = _interopRequire(__webpack_require__(71));
 
-  var Dot = (function (ShapeUtil) {
-    function Dot(options, body, labelModule) {
-      _classCallCheck(this, Dot);
+  var Diamond = (function (ShapeBase) {
+    function Diamond(options, body, labelModule) {
+      _classCallCheck(this, Diamond);
 
-      _get(Object.getPrototypeOf(Dot.prototype), "constructor", this).call(this, options, body, labelModule);
+      _get(Object.getPrototypeOf(Diamond.prototype), "constructor", this).call(this, options, body, labelModule);
     }
 
-    _inherits(Dot, ShapeUtil);
+    _inherits(Diamond, ShapeBase);
 
-    _prototypeProperties(Dot, null, {
+    _prototypeProperties(Diamond, null, {
       resize: {
         value: function resize(ctx) {
           this._resizeShape();
@@ -27110,24 +27147,24 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       draw: {
         value: function draw(ctx, x, y, selected, hover) {
-          this._drawShape(ctx, "circle", 2, x, y, selected, hover);
+          this._drawShape(ctx, "diamond", 4, x, y, selected, hover);
         },
         writable: true,
         configurable: true
       },
       distanceToBorder: {
         value: function distanceToBorder(ctx, angle) {
-          return this.options.size + this.options.borderWidth;
+          return this._distanceToBorder(angle);
         },
         writable: true,
         configurable: true
       }
     });
 
-    return Dot;
-  })(ShapeUtil);
+    return Diamond;
+  })(ShapeBase);
 
-  module.exports = Dot;
+  module.exports = Diamond;
 
 /***/ },
 /* 71 */
@@ -27148,18 +27185,18 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Created by Alex on 3/19/2015.
    */
-  var BaseNode = _interopRequire(__webpack_require__(65));
+  var NodeBase = _interopRequire(__webpack_require__(65));
 
-  var ShapeUtil = (function (BaseNode) {
-    function ShapeUtil(options, body, labelModule) {
-      _classCallCheck(this, ShapeUtil);
+  var ShapeBase = (function (NodeBase) {
+    function ShapeBase(options, body, labelModule) {
+      _classCallCheck(this, ShapeBase);
 
-      _get(Object.getPrototypeOf(ShapeUtil.prototype), "constructor", this).call(this, options, body, labelModule);
+      _get(Object.getPrototypeOf(ShapeBase.prototype), "constructor", this).call(this, options, body, labelModule);
     }
 
-    _inherits(ShapeUtil, BaseNode);
+    _inherits(ShapeBase, NodeBase);
 
-    _prototypeProperties(ShapeUtil, null, {
+    _prototypeProperties(ShapeBase, null, {
       _resizeShape: {
         value: function _resizeShape() {
           if (this.width === undefined) {
@@ -27186,7 +27223,7 @@ return /******/ (function(modules) { // webpackBootstrap
           ctx.lineWidth /= this.body.view.scale;
           ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
           ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
-          ctx[shape](x, y, this.options.size);
+          ctx[shape](x, y, this.options.size + sizeMultiplier * ctx.lineWidth);
           ctx.fill();
           ctx.stroke();
 
@@ -27196,7 +27233,8 @@ return /******/ (function(modules) { // webpackBootstrap
           this.boundingBox.bottom = y + this.options.size;
 
           if (this.options.label !== undefined) {
-            this.labelModule.draw(ctx, x, y + 0.5 * this.height, selected, "hanging");
+            var yLabel = y + 0.5 * this.height + 3 + sizeMultiplier * ctx.lineWidth; // the + 3 is to offset it a bit below the node.
+            this.labelModule.draw(ctx, x, yLabel, selected, "hanging");
             this.boundingBox.left = Math.min(this.boundingBox.left, this.labelModule.size.left);
             this.boundingBox.right = Math.max(this.boundingBox.right, this.labelModule.size.left + this.labelModule.size.width);
             this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelModule.size.height);
@@ -27207,10 +27245,10 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     });
 
-    return ShapeUtil;
-  })(BaseNode);
+    return ShapeBase;
+  })(NodeBase);
 
-  module.exports = ShapeUtil;
+  module.exports = ShapeBase;
 
 /***/ },
 /* 72 */
@@ -27231,16 +27269,75 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var BaseNode = _interopRequire(__webpack_require__(65));
+  var ShapeBase = _interopRequire(__webpack_require__(71));
 
-  var Ellipse = (function (BaseNode) {
+  var Dot = (function (ShapeBase) {
+    function Dot(options, body, labelModule) {
+      _classCallCheck(this, Dot);
+
+      _get(Object.getPrototypeOf(Dot.prototype), "constructor", this).call(this, options, body, labelModule);
+    }
+
+    _inherits(Dot, ShapeBase);
+
+    _prototypeProperties(Dot, null, {
+      resize: {
+        value: function resize(ctx) {
+          this._resizeShape();
+        },
+        writable: true,
+        configurable: true
+      },
+      draw: {
+        value: function draw(ctx, x, y, selected, hover) {
+          this._drawShape(ctx, "circle", 2, x, y, selected, hover);
+        },
+        writable: true,
+        configurable: true
+      },
+      distanceToBorder: {
+        value: function distanceToBorder(ctx, angle) {
+          return this.options.size + this.options.borderWidth;
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return Dot;
+  })(ShapeBase);
+
+  module.exports = Dot;
+
+/***/ },
+/* 73 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Created by Alex on 3/18/2015.
+   */
+  "use strict";
+
+  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc && desc.writable) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+  var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  var NodeBase = _interopRequire(__webpack_require__(65));
+
+  var Ellipse = (function (NodeBase) {
     function Ellipse(options, body, labelModule) {
       _classCallCheck(this, Ellipse);
 
       _get(Object.getPrototypeOf(Ellipse.prototype), "constructor", this).call(this, options, body, labelModule);
     }
 
-    _inherits(Ellipse, BaseNode);
+    _inherits(Ellipse, NodeBase);
 
     _prototypeProperties(Ellipse, null, {
       resize: {
@@ -27304,12 +27401,12 @@ return /******/ (function(modules) { // webpackBootstrap
     });
 
     return Ellipse;
-  })(BaseNode);
+  })(NodeBase);
 
   module.exports = Ellipse;
 
 /***/ },
-/* 73 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27327,16 +27424,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var BaseNode = _interopRequire(__webpack_require__(65));
+  var NodeBase = _interopRequire(__webpack_require__(65));
 
-  var Icon = (function (BaseNode) {
+  var Icon = (function (NodeBase) {
     function Icon(options, body, labelModule) {
       _classCallCheck(this, Icon);
 
       _get(Object.getPrototypeOf(Icon.prototype), "constructor", this).call(this, options, body, labelModule);
     }
 
-    _inherits(Icon, BaseNode);
+    _inherits(Icon, NodeBase);
 
     _prototypeProperties(Icon, null, {
       resize: {
@@ -27409,12 +27506,12 @@ return /******/ (function(modules) { // webpackBootstrap
     });
 
     return Icon;
-  })(BaseNode);
+  })(NodeBase);
 
   module.exports = Icon;
 
 /***/ },
-/* 74 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27432,9 +27529,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var drawUtil = _interopRequire(__webpack_require__(67));
+  var CircleImageBase = _interopRequire(__webpack_require__(67));
 
-  var Image = (function (drawUtil) {
+  var Image = (function (CircleImageBase) {
     function Image(options, body, labelModule, imageObj) {
       _classCallCheck(this, Image);
 
@@ -27442,7 +27539,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.imageObj = imageObj;
     }
 
-    _inherits(Image, drawUtil);
+    _inherits(Image, CircleImageBase);
 
     _prototypeProperties(Image, null, {
       resize: {
@@ -27493,7 +27590,6 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       distanceToBorder: {
         value: function distanceToBorder(ctx, angle) {
-          console.log(this.width);
           this.resize(ctx);
           var a = this.width / 2;
           var b = this.height / 2;
@@ -27507,12 +27603,12 @@ return /******/ (function(modules) { // webpackBootstrap
     });
 
     return Image;
-  })(drawUtil);
+  })(CircleImageBase);
 
   module.exports = Image;
 
 /***/ },
-/* 75 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27530,16 +27626,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var ShapeUtil = _interopRequire(__webpack_require__(71));
+  var ShapeBase = _interopRequire(__webpack_require__(71));
 
-  var Square = (function (ShapeUtil) {
+  var Square = (function (ShapeBase) {
     function Square(options, body, labelModule) {
       _classCallCheck(this, Square);
 
       _get(Object.getPrototypeOf(Square.prototype), "constructor", this).call(this, options, body, labelModule);
     }
 
-    _inherits(Square, ShapeUtil);
+    _inherits(Square, ShapeBase);
 
     _prototypeProperties(Square, null, {
       resize: {
@@ -27567,12 +27663,12 @@ return /******/ (function(modules) { // webpackBootstrap
     });
 
     return Square;
-  })(ShapeUtil);
+  })(ShapeBase);
 
   module.exports = Square;
 
 /***/ },
-/* 76 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27590,16 +27686,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var ShapeUtil = _interopRequire(__webpack_require__(71));
+  var ShapeBase = _interopRequire(__webpack_require__(71));
 
-  var Star = (function (ShapeUtil) {
+  var Star = (function (ShapeBase) {
     function Star(options, body, labelModule) {
       _classCallCheck(this, Star);
 
       _get(Object.getPrototypeOf(Star.prototype), "constructor", this).call(this, options, body, labelModule);
     }
 
-    _inherits(Star, ShapeUtil);
+    _inherits(Star, ShapeBase);
 
     _prototypeProperties(Star, null, {
       resize: {
@@ -27626,12 +27722,12 @@ return /******/ (function(modules) { // webpackBootstrap
     });
 
     return Star;
-  })(ShapeUtil);
+  })(ShapeBase);
 
   module.exports = Star;
 
 /***/ },
-/* 77 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27649,16 +27745,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var BaseNode = _interopRequire(__webpack_require__(65));
+  var NodeBase = _interopRequire(__webpack_require__(65));
 
-  var Text = (function (BaseNode) {
+  var Text = (function (NodeBase) {
     function Text(options, body, labelModule) {
       _classCallCheck(this, Text);
 
       _get(Object.getPrototypeOf(Text.prototype), "constructor", this).call(this, options, body, labelModule);
     }
 
-    _inherits(Text, BaseNode);
+    _inherits(Text, NodeBase);
 
     _prototypeProperties(Text, null, {
       resize: {
@@ -27700,12 +27796,12 @@ return /******/ (function(modules) { // webpackBootstrap
     });
 
     return Text;
-  })(BaseNode);
+  })(NodeBase);
 
   module.exports = Text;
 
 /***/ },
-/* 78 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27723,16 +27819,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var ShapeUtil = _interopRequire(__webpack_require__(71));
+  var ShapeBase = _interopRequire(__webpack_require__(71));
 
-  var Triangle = (function (ShapeUtil) {
+  var Triangle = (function (ShapeBase) {
     function Triangle(options, body, labelModule) {
       _classCallCheck(this, Triangle);
 
       _get(Object.getPrototypeOf(Triangle.prototype), "constructor", this).call(this, options, body, labelModule);
     }
 
-    _inherits(Triangle, ShapeUtil);
+    _inherits(Triangle, ShapeBase);
 
     _prototypeProperties(Triangle, null, {
       resize: {
@@ -27759,12 +27855,12 @@ return /******/ (function(modules) { // webpackBootstrap
     });
 
     return Triangle;
-  })(ShapeUtil);
+  })(ShapeBase);
 
   module.exports = Triangle;
 
 /***/ },
-/* 79 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27782,16 +27878,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var ShapeUtil = _interopRequire(__webpack_require__(71));
+  var ShapeBase = _interopRequire(__webpack_require__(71));
 
-  var TriangleDown = (function (ShapeUtil) {
+  var TriangleDown = (function (ShapeBase) {
     function TriangleDown(options, body, labelModule) {
       _classCallCheck(this, TriangleDown);
 
       _get(Object.getPrototypeOf(TriangleDown.prototype), "constructor", this).call(this, options, body, labelModule);
     }
 
-    _inherits(TriangleDown, ShapeUtil);
+    _inherits(TriangleDown, ShapeBase);
 
     _prototypeProperties(TriangleDown, null, {
       resize: {
@@ -27818,15 +27914,17 @@ return /******/ (function(modules) { // webpackBootstrap
     });
 
     return TriangleDown;
-  })(ShapeUtil);
+  })(ShapeBase);
 
   module.exports = TriangleDown;
 
 /***/ },
-/* 80 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
+
+  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
 
   var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
@@ -27840,7 +27938,8 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(9);
-  var Edge = __webpack_require__(81);
+
+  var Edge = _interopRequire(__webpack_require__(82));
 
   var EdgesHandler = (function () {
     function EdgesHandler(body, images, groups) {
@@ -28170,7 +28269,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = EdgesHandler;
 
 /***/ },
-/* 81 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -28186,11 +28285,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var Label = _interopRequire(__webpack_require__(63));
 
-  var BezierEdgeDynamic = _interopRequire(__webpack_require__(82));
+  var BezierEdgeDynamic = _interopRequire(__webpack_require__(83));
 
-  var BezierEdgeStatic = _interopRequire(__webpack_require__(85));
+  var BezierEdgeStatic = _interopRequire(__webpack_require__(86));
 
-  var StraightEdge = _interopRequire(__webpack_require__(86));
+  var StraightEdge = _interopRequire(__webpack_require__(87));
 
   /**
    * @class Edge
@@ -28303,27 +28402,37 @@ return /******/ (function(modules) { // webpackBootstrap
           }
 
           if (options.color !== undefined) {
-            if (util.isString(options.color)) {
-              this.options.color.color = options.color;
-              this.options.color.highlight = options.color;
-            } else {
-              if (options.color.color !== undefined) {
-                this.options.color.color = options.color.color;
+            if (options.color !== undefined) {
+              if (util.isString(options.color)) {
+                util.assignAllKeys(this.options.color, options.color);
+              } else {
+                util.extend(this.options.color, options.color);
               }
-              if (options.color.highlight !== undefined) {
-                this.options.color.highlight = options.color.highlight;
-              }
-              if (options.color.hover !== undefined) {
-                this.options.color.hover = options.color.hover;
-              }
-            }
-
-            // inherit colors
-            if (options.color.inherit === undefined) {
               this.options.color.inherit.enabled = false;
-            } else {
-              util.mergeOptions(this.options.color, options.color, "inherit");
             }
+            //if (util.isString(options.color)) {
+            //  this.options.color.color = options.color;
+            //  this.options.color.highlight = options.color;
+            //}
+            //else {
+            //  if (options.color.color !== undefined) {
+            //    this.options.color.color = options.color.color;
+            //  }
+            //  if (options.color.highlight !== undefined) {
+            //    this.options.color.highlight = options.color.highlight;
+            //  }
+            //  if (options.color.hover !== undefined) {
+            //    this.options.color.hover = options.color.hover;
+            //  }
+            //}
+            //
+            //// inherit colors
+            //if (options.color.inherit === undefined) {
+            //  this.options.color.inherit.enabled = false;
+            //}
+            //else {
+            //  util.mergeOptions(this.options.color, options.color, 'inherit');
+            //}
           }
 
           // A node is connected when it has a from and to node that both exist in the network.body.nodes.
@@ -28932,7 +29041,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Edge;
 
 /***/ },
-/* 82 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -28951,9 +29060,9 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 3/20/2015.
    */
 
-  var BezierBaseEdge = _interopRequire(__webpack_require__(83));
+  var BezierEdgeBase = _interopRequire(__webpack_require__(84));
 
-  var BezierEdgeDynamic = (function (BezierBaseEdge) {
+  var BezierEdgeDynamic = (function (BezierEdgeBase) {
     function BezierEdgeDynamic(options, body, labelModule) {
       _classCallCheck(this, BezierEdgeDynamic);
 
@@ -28961,7 +29070,7 @@ return /******/ (function(modules) { // webpackBootstrap
       _get(Object.getPrototypeOf(BezierEdgeDynamic.prototype), "constructor", this).call(this, options, body, labelModule); // --> this calls the setOptions below
     }
 
-    _inherits(BezierEdgeDynamic, BezierBaseEdge);
+    _inherits(BezierEdgeDynamic, BezierEdgeBase);
 
     _prototypeProperties(BezierEdgeDynamic, null, {
       setOptions: {
@@ -29085,12 +29194,12 @@ return /******/ (function(modules) { // webpackBootstrap
     });
 
     return BezierEdgeDynamic;
-  })(BezierBaseEdge);
+  })(BezierEdgeBase);
 
   module.exports = BezierEdgeDynamic;
 
 /***/ },
-/* 83 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -29109,18 +29218,18 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 3/20/2015.
    */
 
-  var BaseEdge = _interopRequire(__webpack_require__(84));
+  var EdgeBase = _interopRequire(__webpack_require__(85));
 
-  var BezierBaseEdge = (function (BaseEdge) {
-    function BezierBaseEdge(options, body, labelModule) {
-      _classCallCheck(this, BezierBaseEdge);
+  var BezierEdgeBase = (function (EdgeBase) {
+    function BezierEdgeBase(options, body, labelModule) {
+      _classCallCheck(this, BezierEdgeBase);
 
-      _get(Object.getPrototypeOf(BezierBaseEdge.prototype), "constructor", this).call(this, options, body, labelModule);
+      _get(Object.getPrototypeOf(BezierEdgeBase.prototype), "constructor", this).call(this, options, body, labelModule);
     }
 
-    _inherits(BezierBaseEdge, BaseEdge);
+    _inherits(BezierEdgeBase, EdgeBase);
 
-    _prototypeProperties(BezierBaseEdge, null, {
+    _prototypeProperties(BezierEdgeBase, null, {
       _findBorderPositionBezier: {
 
         /**
@@ -29234,13 +29343,13 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     });
 
-    return BezierBaseEdge;
-  })(BaseEdge);
+    return BezierEdgeBase;
+  })(EdgeBase);
 
-  module.exports = BezierBaseEdge;
+  module.exports = BezierEdgeBase;
 
 /***/ },
-/* 84 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -29254,9 +29363,9 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   var util = __webpack_require__(1);
 
-  var BaseEdge = (function () {
-    function BaseEdge(options, body, labelModule) {
-      _classCallCheck(this, BaseEdge);
+  var EdgeBase = (function () {
+    function EdgeBase(options, body, labelModule) {
+      _classCallCheck(this, EdgeBase);
 
       this.body = body;
       this.labelModule = labelModule;
@@ -29264,7 +29373,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.colorDirty = true;
     }
 
-    _prototypeProperties(BaseEdge, null, {
+    _prototypeProperties(EdgeBase, null, {
       setOptions: {
         value: function setOptions(options) {
           this.options = options;
@@ -29717,13 +29826,13 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     });
 
-    return BaseEdge;
+    return EdgeBase;
   })();
 
-  module.exports = BaseEdge;
+  module.exports = EdgeBase;
 
 /***/ },
-/* 85 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -29742,16 +29851,16 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 3/20/2015.
    */
 
-  var BezierBaseEdge = _interopRequire(__webpack_require__(83));
+  var BezierEdgeBase = _interopRequire(__webpack_require__(84));
 
-  var BezierEdgeStatic = (function (BezierBaseEdge) {
+  var BezierEdgeStatic = (function (BezierEdgeBase) {
     function BezierEdgeStatic(options, body, labelModule) {
       _classCallCheck(this, BezierEdgeStatic);
 
       _get(Object.getPrototypeOf(BezierEdgeStatic.prototype), "constructor", this).call(this, options, body, labelModule);
     }
 
-    _inherits(BezierEdgeStatic, BezierBaseEdge);
+    _inherits(BezierEdgeStatic, BezierEdgeBase);
 
     _prototypeProperties(BezierEdgeStatic, null, {
       cleanup: {
@@ -29985,12 +30094,12 @@ return /******/ (function(modules) { // webpackBootstrap
     });
 
     return BezierEdgeStatic;
-  })(BezierBaseEdge);
+  })(BezierEdgeBase);
 
   module.exports = BezierEdgeStatic;
 
 /***/ },
-/* 86 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -30009,16 +30118,16 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 3/20/2015.
    */
 
-  var BaseEdge = _interopRequire(__webpack_require__(84));
+  var EdgeBase = _interopRequire(__webpack_require__(85));
 
-  var StraightEdge = (function (BaseEdge) {
+  var StraightEdge = (function (EdgeBase) {
     function StraightEdge(options, body, labelModule) {
       _classCallCheck(this, StraightEdge);
 
       _get(Object.getPrototypeOf(StraightEdge.prototype), "constructor", this).call(this, options, body, labelModule);
     }
 
-    _inherits(StraightEdge, BaseEdge);
+    _inherits(StraightEdge, EdgeBase);
 
     _prototypeProperties(StraightEdge, null, {
       cleanup: {
@@ -30100,12 +30209,12 @@ return /******/ (function(modules) { // webpackBootstrap
     });
 
     return StraightEdge;
-  })(BaseEdge);
+  })(EdgeBase);
 
   module.exports = StraightEdge;
 
 /***/ },
-/* 87 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -30120,17 +30229,17 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 2/23/2015.
    */
 
-  var BarnesHutSolver = _interopRequire(__webpack_require__(88));
+  var BarnesHutSolver = _interopRequire(__webpack_require__(89));
 
-  var Repulsion = _interopRequire(__webpack_require__(89));
+  var Repulsion = _interopRequire(__webpack_require__(90));
 
-  var HierarchicalRepulsion = _interopRequire(__webpack_require__(90));
+  var HierarchicalRepulsion = _interopRequire(__webpack_require__(91));
 
-  var SpringSolver = _interopRequire(__webpack_require__(91));
+  var SpringSolver = _interopRequire(__webpack_require__(92));
 
-  var HierarchicalSpringSolver = _interopRequire(__webpack_require__(92));
+  var HierarchicalSpringSolver = _interopRequire(__webpack_require__(93));
 
-  var CentralGravitySolver = _interopRequire(__webpack_require__(93));
+  var CentralGravitySolver = _interopRequire(__webpack_require__(94));
 
   var util = __webpack_require__(1);
 
@@ -30631,7 +30740,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = PhysicsEngine;
 
 /***/ },
-/* 88 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31140,7 +31249,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BarnesHutSolver;
 
 /***/ },
-/* 89 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31238,7 +31347,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = RepulsionSolver;
 
 /***/ },
-/* 90 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31333,7 +31442,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = HierarchicalRepulsionSolver;
 
 /***/ },
-/* 91 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31444,7 +31553,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = SpringSolver;
 
 /***/ },
-/* 92 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31570,7 +31679,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = HierarchicalSpringSolver;
 
 /***/ },
-/* 93 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31634,7 +31743,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CentralGravitySolver;
 
 /***/ },
-/* 94 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31650,7 +31759,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
 
   var util = __webpack_require__(1);
-  var Cluster = _interopRequire(__webpack_require__(95));
+  var Cluster = _interopRequire(__webpack_require__(96));
 
   var ClusterEngine = (function () {
     function ClusterEngine(body) {
@@ -32325,7 +32434,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = ClusterEngine;
 
 /***/ },
-/* 95 */
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -32362,7 +32471,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Cluster;
 
 /***/ },
-/* 96 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -32690,7 +32799,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CanvasRenderer;
 
 /***/ },
-/* 97 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -32977,7 +33086,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Canvas;
 
 /***/ },
-/* 98 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33386,7 +33495,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = View;
 
 /***/ },
-/* 99 */
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33403,7 +33512,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
 
-  var NavigationHandler = __webpack_require__(100).NavigationHandler;
+  var NavigationHandler = __webpack_require__(101).NavigationHandler;
   var InteractionHandler = (function () {
     function InteractionHandler(body, canvas, selectionHandler) {
       _classCallCheck(this, InteractionHandler);
@@ -33947,7 +34056,7 @@ return /******/ (function(modules) { // webpackBootstrap
   //  }
 
 /***/ },
-/* 100 */
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34243,7 +34352,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
 
 /***/ },
-/* 101 */
+/* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -35000,7 +35109,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = SelectionHandler;
 
 /***/ },
-/* 102 */
+/* 103 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
