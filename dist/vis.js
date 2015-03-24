@@ -139,8 +139,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // Network
   exports.Network = __webpack_require__(53);
   exports.network = {
-    Groups: __webpack_require__(57),
-    Images: __webpack_require__(58),
+    Images: __webpack_require__(57),
     dotparser: __webpack_require__(55),
     gephiParser: __webpack_require__(56)
   };
@@ -23303,32 +23302,33 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataView = __webpack_require__(9);
   var dotparser = __webpack_require__(55);
   var gephiParser = __webpack_require__(56);
-  var Groups = __webpack_require__(57);
-  var Images = __webpack_require__(58);
+  var Images = __webpack_require__(57);
   var Activator = __webpack_require__(38);
-  var locales = __webpack_require__(59);
+  var locales = __webpack_require__(58);
 
 
+
+  var Groups = _interopRequire(__webpack_require__(59));
 
   var NodesHandler = _interopRequire(__webpack_require__(60));
 
   var EdgesHandler = _interopRequire(__webpack_require__(80));
 
-  var PhysicsEngine = _interopRequire(__webpack_require__(87));
+  var PhysicsEngine = _interopRequire(__webpack_require__(82));
 
-  var ClusterEngine = _interopRequire(__webpack_require__(94));
+  var ClusterEngine = _interopRequire(__webpack_require__(89));
 
-  var CanvasRenderer = _interopRequire(__webpack_require__(96));
+  var CanvasRenderer = _interopRequire(__webpack_require__(91));
 
-  var Canvas = _interopRequire(__webpack_require__(97));
+  var Canvas = _interopRequire(__webpack_require__(92));
 
-  var View = _interopRequire(__webpack_require__(98));
+  var View = _interopRequire(__webpack_require__(93));
 
-  var InteractionHandler = _interopRequire(__webpack_require__(99));
+  var InteractionHandler = _interopRequire(__webpack_require__(94));
 
-  var SelectionHandler = _interopRequire(__webpack_require__(100));
+  var SelectionHandler = _interopRequire(__webpack_require__(97));
 
-  var LayoutEngine = _interopRequire(__webpack_require__(101));
+  var LayoutEngine = _interopRequire(__webpack_require__(98));
 
   /**
    * @constructor Network
@@ -23354,9 +23354,7 @@ return /******/ (function(modules) { // webpackBootstrap
         initiallyVisible: false
       },
       locale: "en",
-      locales: locales,
-      useDefaultGroups: true
-    };
+      locales: locales };
 
     // containers for nodes and edges
     this.body = {
@@ -23402,11 +23400,11 @@ return /******/ (function(modules) { // webpackBootstrap
     this.bindEventListeners();
 
     // setting up all modules
-    var groups = new Groups(); // object with groups
     var images = new Images(function () {
       return _this.body.emitter.emit("_requestRedraw");
     }); // object with images
 
+    this.groups = new Groups(); // object with groups
     this.canvas = new Canvas(this.body); // DOM handler
     this.selectionHandler = new SelectionHandler(this.body, this.canvas); // Selection handler
     this.interactionHandler = new InteractionHandler(this.body, this.canvas, this.selectionHandler); // Interaction handler handles all the hammer bindings (that are bound by canvas), key
@@ -23416,8 +23414,8 @@ return /******/ (function(modules) { // webpackBootstrap
     this.layoutEngine = new LayoutEngine(this.body);
     this.clustering = new ClusterEngine(this.body); // clustering api
 
-    this.nodesHandler = new NodesHandler(this.body, images, groups, this.layoutEngine); // Handle adding, deleting and updating of nodes as well as global options
-    this.edgesHandler = new EdgesHandler(this.body, images, groups); // Handle adding, deleting and updating of edges as well as global options
+    this.nodesHandler = new NodesHandler(this.body, images, this.groups, this.layoutEngine); // Handle adding, deleting and updating of nodes as well as global options
+    this.edgesHandler = new EdgesHandler(this.body, images, this.groups); // Handle adding, deleting and updating of edges as well as global options
 
     // create the DOM elements
     this.canvas.create();
@@ -23472,8 +23470,6 @@ return /******/ (function(modules) { // webpackBootstrap
       // call the dataUpdated event because the only difference between the two is the updating of the indices
       _this.body.emitter.emit("_dataUpdated");
 
-      // start simulation (can be called safely, even if already running)
-      _this.body.emitter.emit("startSimulation");
       console.log("_dataChanged took:", new Date().valueOf() - t0);
     });
 
@@ -23483,11 +23479,9 @@ return /******/ (function(modules) { // webpackBootstrap
       // update values
       _this._updateValueRange(_this.body.nodes);
       _this._updateValueRange(_this.body.edges);
-      // update edges
-      _this._reconnectEdges();
-      _this._markAllEdgesAsDirty();
       // start simulation (can be called safely, even if already running)
       _this.body.emitter.emit("startSimulation");
+
       console.log("_dataUpdated took:", new Date().valueOf() - t0);
     });
   };
@@ -23550,14 +23544,6 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   Network.prototype.setOptions = function (options) {
     if (options !== undefined) {
-      //var fields = ['nodes','edges','smoothCurves','hierarchicalLayout','navigation',
-      //  'keyboard','dataManipulation','onAdd','onEdit','onEditEdge','onConnect','onDelete','clickToUse'
-      //];
-      // extend all but the values in fields
-      //util.selectiveNotDeepExtend(fields,this.constants, options);
-      //util.selectiveNotDeepExtend(['color'],this.constants.nodes, options.nodes);
-      //util.selectiveNotDeepExtend(['color','length'],this.constants.edges, options.edges);
-
       //this.groups.useDefaultGroups = this.constants.useDefaultGroups;
 
       // the hierarchical system can adapt the edges and the physics to it's own options because not all combinations work with the hierarichical system.
@@ -23573,31 +23559,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.selectionHandler.setOptions(options.selection);
       this.clustering.setOptions(options.clustering);
 
-      //util.mergeOptions(this.constants, options,'smoothCurves');
-      //util.mergeOptions(this.constants, options,'hierarchicalLayout');
-      //util.mergeOptions(this.constants, options,'clustering');
-      //util.mergeOptions(this.constants, options,'navigation');
-      //util.mergeOptions(this.constants, options,'keyboard');
-      //util.mergeOptions(this.constants, options,'dataManipulation');
-
-
-      //if (options.dataManipulation) {
-      //  this.editMode = this.constants.dataManipulation.initiallyVisible;
-      //}
-
-
-      //// TODO: work out these options and document them
       //
-      //
-      //
-      //if (options.groups) {
-      //  for (var groupname in options.groups) {
-      //    if (options.groups.hasOwnProperty(groupname)) {
-      //      var group = options.groups[groupname];
-      //      this.groups.add(groupname, group);
-      //    }
-      //  }
-      //}
       //
       //if (options.tooltip) {
       //  for (prop in options.tooltip) {
@@ -25024,117 +24986,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
   "use strict";
 
-  var util = __webpack_require__(1);
-
-  /**
-   * @class Groups
-   * This class can store groups and options specific for groups.
-   */
-  function Groups() {
-    this.clear();
-    this.defaultIndex = 0;
-    this.groupsArray = [];
-    this.groupIndex = 0;
-    this.useDefaultGroups = true;
-  }
-
-
-  /**
-   * default constants for group colors
-   */
-  Groups.DEFAULT = [{ border: "#2B7CE9", background: "#97C2FC", highlight: { border: "#2B7CE9", background: "#D2E5FF" }, hover: { border: "#2B7CE9", background: "#D2E5FF" } }, // 0: blue
-  { border: "#FFA500", background: "#FFFF00", highlight: { border: "#FFA500", background: "#FFFFA3" }, hover: { border: "#FFA500", background: "#FFFFA3" } }, // 1: yellow
-  { border: "#FA0A10", background: "#FB7E81", highlight: { border: "#FA0A10", background: "#FFAFB1" }, hover: { border: "#FA0A10", background: "#FFAFB1" } }, // 2: red
-  { border: "#41A906", background: "#7BE141", highlight: { border: "#41A906", background: "#A1EC76" }, hover: { border: "#41A906", background: "#A1EC76" } }, // 3: green
-  { border: "#E129F0", background: "#EB7DF4", highlight: { border: "#E129F0", background: "#F0B3F5" }, hover: { border: "#E129F0", background: "#F0B3F5" } }, // 4: magenta
-  { border: "#7C29F0", background: "#AD85E4", highlight: { border: "#7C29F0", background: "#D3BDF0" }, hover: { border: "#7C29F0", background: "#D3BDF0" } }, // 5: purple
-  { border: "#C37F00", background: "#FFA807", highlight: { border: "#C37F00", background: "#FFCA66" }, hover: { border: "#C37F00", background: "#FFCA66" } }, // 6: orange
-  { border: "#4220FB", background: "#6E6EFD", highlight: { border: "#4220FB", background: "#9B9BFD" }, hover: { border: "#4220FB", background: "#9B9BFD" } }, // 7: darkblue
-  { border: "#FD5A77", background: "#FFC0CB", highlight: { border: "#FD5A77", background: "#FFD1D9" }, hover: { border: "#FD5A77", background: "#FFD1D9" } }, // 8: pink
-  { border: "#4AD63A", background: "#C2FABC", highlight: { border: "#4AD63A", background: "#E6FFE3" }, hover: { border: "#4AD63A", background: "#E6FFE3" } }, // 9: mint
-
-  { border: "#990000", background: "#EE0000", highlight: { border: "#BB0000", background: "#FF3333" }, hover: { border: "#BB0000", background: "#FF3333" } }, // 10:bright red
-
-  { border: "#FF6000", background: "#FF6000", highlight: { border: "#FF6000", background: "#FF6000" }, hover: { border: "#FF6000", background: "#FF6000" } }, // 12: real orange
-  { border: "#97C2FC", background: "#2B7CE9", highlight: { border: "#D2E5FF", background: "#2B7CE9" }, hover: { border: "#D2E5FF", background: "#2B7CE9" } }, // 13: blue
-  { border: "#399605", background: "#255C03", highlight: { border: "#399605", background: "#255C03" }, hover: { border: "#399605", background: "#255C03" } }, // 14: green
-  { border: "#B70054", background: "#FF007E", highlight: { border: "#B70054", background: "#FF007E" }, hover: { border: "#B70054", background: "#FF007E" } }, // 15: magenta
-  { border: "#AD85E4", background: "#7C29F0", highlight: { border: "#D3BDF0", background: "#7C29F0" }, hover: { border: "#D3BDF0", background: "#7C29F0" } }, // 16: purple
-  { border: "#4557FA", background: "#000EA1", highlight: { border: "#6E6EFD", background: "#000EA1" }, hover: { border: "#6E6EFD", background: "#000EA1" } }, // 17: darkblue
-  { border: "#FFC0CB", background: "#FD5A77", highlight: { border: "#FFD1D9", background: "#FD5A77" }, hover: { border: "#FFD1D9", background: "#FD5A77" } }, // 18: pink
-  { border: "#C2FABC", background: "#74D66A", highlight: { border: "#E6FFE3", background: "#74D66A" }, hover: { border: "#E6FFE3", background: "#74D66A" } }, // 19: mint
-
-  { border: "#EE0000", background: "#990000", highlight: { border: "#FF3333", background: "#BB0000" }, hover: { border: "#FF3333", background: "#BB0000" } }];
-
-
-  /**
-   * Clear all groups
-   */
-  Groups.prototype.clear = function () {
-    this.groups = {};
-    this.groups.length = function () {
-      var i = 0;
-      for (var p in this) {
-        if (this.hasOwnProperty(p)) {
-          i++;
-        }
-      }
-      return i;
-    };
-  };
-
-
-  /**
-   * get group options of a groupname. If groupname is not found, a new group
-   * is added.
-   * @param {*} groupname        Can be a number, string, Date, etc.
-   * @return {Object} group      The created group, containing all group options
-   */
-  Groups.prototype.get = function (groupname) {
-    var group = this.groups[groupname];
-    if (group == undefined) {
-      if (this.useDefaultGroups === false && this.groupsArray.length > 0) {
-        // create new group
-        var index = this.groupIndex % this.groupsArray.length;
-        this.groupIndex++;
-        group = {};
-        group.color = this.groups[this.groupsArray[index]];
-        this.groups[groupname] = group;
-      } else {
-        // create new group
-        var index = this.defaultIndex % Groups.DEFAULT.length;
-        this.defaultIndex++;
-        group = {};
-        group.color = Groups.DEFAULT[index];
-        this.groups[groupname] = group;
-      }
-    }
-
-    return group;
-  };
-
-  /**
-   * Add a custom group style
-   * @param {String} groupName
-   * @param {Object} style       An object containing borderColor,
-   *                             backgroundColor, etc.
-   * @return {Object} group      The created group object
-   */
-  Groups.prototype.add = function (groupName, style) {
-    this.groups[groupName] = style;
-    this.groupsArray.push(groupName);
-    return style;
-  };
-
-  module.exports = Groups;
-  // 20:bright red
-
-/***/ },
-/* 58 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
   /**
    * @class Images
    * This class loads images and keeps them stored.
@@ -25203,7 +25054,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Images;
 
 /***/ },
-/* 59 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -25243,6 +25094,152 @@ return /******/ (function(modules) { // webpackBootstrap
   };
   exports.nl_NL = exports.nl;
   exports.nl_BE = exports.nl;
+
+/***/ },
+/* 59 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  var util = __webpack_require__(1);
+
+  /**
+   * @class Groups
+   * This class can store groups and options specific for groups.
+   */
+  var Groups = (function () {
+    function Groups() {
+      _classCallCheck(this, Groups);
+
+      this.clear();
+      this.defaultIndex = 0;
+      this.groupsArray = [];
+      this.groupIndex = 0;
+
+      this.defaultGroups = [{ border: "#2B7CE9", background: "#97C2FC", highlight: { border: "#2B7CE9", background: "#D2E5FF" }, hover: { border: "#2B7CE9", background: "#D2E5FF" } }, // 0: blue
+      { border: "#FFA500", background: "#FFFF00", highlight: { border: "#FFA500", background: "#FFFFA3" }, hover: { border: "#FFA500", background: "#FFFFA3" } }, // 1: yellow
+      { border: "#FA0A10", background: "#FB7E81", highlight: { border: "#FA0A10", background: "#FFAFB1" }, hover: { border: "#FA0A10", background: "#FFAFB1" } }, // 2: red
+      { border: "#41A906", background: "#7BE141", highlight: { border: "#41A906", background: "#A1EC76" }, hover: { border: "#41A906", background: "#A1EC76" } }, // 3: green
+      { border: "#E129F0", background: "#EB7DF4", highlight: { border: "#E129F0", background: "#F0B3F5" }, hover: { border: "#E129F0", background: "#F0B3F5" } }, // 4: magenta
+      { border: "#7C29F0", background: "#AD85E4", highlight: { border: "#7C29F0", background: "#D3BDF0" }, hover: { border: "#7C29F0", background: "#D3BDF0" } }, // 5: purple
+      { border: "#C37F00", background: "#FFA807", highlight: { border: "#C37F00", background: "#FFCA66" }, hover: { border: "#C37F00", background: "#FFCA66" } }, // 6: orange
+      { border: "#4220FB", background: "#6E6EFD", highlight: { border: "#4220FB", background: "#9B9BFD" }, hover: { border: "#4220FB", background: "#9B9BFD" } }, // 7: darkblue
+      { border: "#FD5A77", background: "#FFC0CB", highlight: { border: "#FD5A77", background: "#FFD1D9" }, hover: { border: "#FD5A77", background: "#FFD1D9" } }, // 8: pink
+      { border: "#4AD63A", background: "#C2FABC", highlight: { border: "#4AD63A", background: "#E6FFE3" }, hover: { border: "#4AD63A", background: "#E6FFE3" } }, // 9: mint
+
+      { border: "#990000", background: "#EE0000", highlight: { border: "#BB0000", background: "#FF3333" }, hover: { border: "#BB0000", background: "#FF3333" } }, // 10:bright red
+
+      { border: "#FF6000", background: "#FF6000", highlight: { border: "#FF6000", background: "#FF6000" }, hover: { border: "#FF6000", background: "#FF6000" } }, // 12: real orange
+      { border: "#97C2FC", background: "#2B7CE9", highlight: { border: "#D2E5FF", background: "#2B7CE9" }, hover: { border: "#D2E5FF", background: "#2B7CE9" } }, // 13: blue
+      { border: "#399605", background: "#255C03", highlight: { border: "#399605", background: "#255C03" }, hover: { border: "#399605", background: "#255C03" } }, // 14: green
+      { border: "#B70054", background: "#FF007E", highlight: { border: "#B70054", background: "#FF007E" }, hover: { border: "#B70054", background: "#FF007E" } }, // 15: magenta
+      { border: "#AD85E4", background: "#7C29F0", highlight: { border: "#D3BDF0", background: "#7C29F0" }, hover: { border: "#D3BDF0", background: "#7C29F0" } }, // 16: purple
+      { border: "#4557FA", background: "#000EA1", highlight: { border: "#6E6EFD", background: "#000EA1" }, hover: { border: "#6E6EFD", background: "#000EA1" } }, // 17: darkblue
+      { border: "#FFC0CB", background: "#FD5A77", highlight: { border: "#FFD1D9", background: "#FD5A77" }, hover: { border: "#FFD1D9", background: "#FD5A77" } }, // 18: pink
+      { border: "#C2FABC", background: "#74D66A", highlight: { border: "#E6FFE3", background: "#74D66A" }, hover: { border: "#E6FFE3", background: "#74D66A" } }, // 19: mint
+
+      { border: "#EE0000", background: "#990000", highlight: { border: "#FF3333", background: "#BB0000" }, hover: { border: "#FF3333", background: "#BB0000" } }];
+
+      this.options = {};
+      this.defaultOptions = {
+        useDefaultGroups: true
+      };
+      util.extend(this.options, this.defaultOptions);
+    }
+
+    _prototypeProperties(Groups, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          var optionFields = ["useDefaultGroups"];
+
+          if (options !== undefined) {
+            for (var groupname in options) {
+              if (options.hasOwnProperty(groupname)) {
+                if (optionFields.indexOf(groupName) == -1) {
+                  var group = options[groupname];
+                  this.add(groupname, group);
+                }
+              }
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      clear: {
+
+
+        /**
+         * Clear all groups
+         */
+        value: function clear() {
+          this.groups = {};
+          this.groupsArray = [];
+        },
+        writable: true,
+        configurable: true
+      },
+      get: {
+
+        /**
+         * get group options of a groupname. If groupname is not found, a new group
+         * is added.
+         * @param {*} groupname        Can be a number, string, Date, etc.
+         * @return {Object} group      The created group, containing all group options
+         */
+        value: function get(groupname) {
+          var group = this.groups[groupname];
+          if (group == undefined) {
+            if (this.options.useDefaultGroups === false && this.groupsArray.length > 0) {
+              // create new group
+              var index = this.groupIndex % this.groupsArray.length;
+              this.groupIndex++;
+              group = {};
+              group.color = this.groups[this.groupsArray[index]];
+              this.groups[groupname] = group;
+            } else {
+              // create new group
+              var index = this.defaultIndex % this.defaultGroups.length;
+              this.defaultIndex++;
+              group = {};
+              group.color = this.defaultGroups[index];
+              this.groups[groupname] = group;
+            }
+          }
+
+          return group;
+        },
+        writable: true,
+        configurable: true
+      },
+      add: {
+
+        /**
+         * Add a custom group style
+         * @param {String} groupName
+         * @param {Object} style       An object containing borderColor,
+         *                             backgroundColor, etc.
+         * @return {Object} group      The created group object
+         */
+        value: function add(groupName, style) {
+          this.groups[groupName] = style;
+          this.groupsArray.push(groupName);
+          return style;
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return Groups;
+  })();
+
+  module.exports = Groups;
+  // 20:bright red
 
 /***/ },
 /* 60 */
@@ -27759,12 +27756,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // this is called when options of EXISTING nodes or edges have changed.
       this.body.emitter.on("_dataUpdated", function () {
-        var t0 = new Date().valueOf();
-        // update values
         _this.reconnectEdges();
         _this.markAllEdgesAsDirty();
-        // start simulation (can be called safely, even if already running)
-        console.log("_dataUpdated took:", new Date().valueOf() - t0);
       });
     }
 
@@ -28041,11 +28034,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var Label = _interopRequire(__webpack_require__(62));
 
-  var BezierEdgeDynamic = _interopRequire(__webpack_require__(82));
+  var BezierEdgeDynamic = _interopRequire(__webpack_require__(99));
 
-  var BezierEdgeStatic = _interopRequire(__webpack_require__(85));
+  var BezierEdgeStatic = _interopRequire(__webpack_require__(102));
 
-  var StraightEdge = _interopRequire(__webpack_require__(86));
+  var StraightEdge = _interopRequire(__webpack_require__(103));
 
   /**
    * @class Edge
@@ -28375,13 +28368,13 @@ return /******/ (function(modules) { // webpackBootstrap
       drawArrows: {
         value: function drawArrows(ctx, viaNode) {
           if (this.options.arrows.from.enabled === true) {
-            this.edgeType.drawArrowHead(ctx, "from", viaNode);
+            this.edgeType.drawArrowHead(ctx, "from", viaNode, this.selected, this.hover);
           }
           if (this.options.arrows.middle.enabled === true) {
-            this.edgeType.drawArrowHead(ctx, "middle", viaNode);
+            this.edgeType.drawArrowHead(ctx, "middle", viaNode, this.selected, this.hover);
           }
           if (this.options.arrows.to.enabled === true) {
-            this.edgeType.drawArrowHead(ctx, "to", viaNode);
+            this.edgeType.drawArrowHead(ctx, "to", viaNode, this.selected, this.hover);
           }
         },
         writable: true,
@@ -28789,1195 +28782,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
-  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc && desc.writable) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-  var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-  /**
-   * Created by Alex on 3/20/2015.
-   */
-
-  var BezierEdgeBase = _interopRequire(__webpack_require__(83));
-
-  var BezierEdgeDynamic = (function (BezierEdgeBase) {
-    function BezierEdgeDynamic(options, body, labelModule) {
-      _classCallCheck(this, BezierEdgeDynamic);
-
-      this.via = undefined;
-      _get(Object.getPrototypeOf(BezierEdgeDynamic.prototype), "constructor", this).call(this, options, body, labelModule); // --> this calls the setOptions below
-    }
-
-    _inherits(BezierEdgeDynamic, BezierEdgeBase);
-
-    _prototypeProperties(BezierEdgeDynamic, null, {
-      setOptions: {
-        value: function setOptions(options) {
-          this.options = options;
-          this.from = this.body.nodes[this.options.from];
-          this.to = this.body.nodes[this.options.to];
-          this.id = this.options.id;
-          this.setupSupportNode();
-        },
-        writable: true,
-        configurable: true
-      },
-      cleanup: {
-        value: function cleanup() {
-          if (this.via !== undefined) {
-            delete this.body.nodes[this.via.id];
-            this.via = undefined;
-            return true;
-          }
-          return false;
-        },
-        writable: true,
-        configurable: true
-      },
-      setupSupportNode: {
-
-        /**
-         * Bezier curves require an anchor point to calculate the smooth flow. These points are nodes. These nodes are invisible but
-         * are used for the force calculation.
-         *
-         * The changed data is not called, if needed, it is returned by the main edge constructor.
-         * @private
-         */
-        value: function setupSupportNode() {
-          if (this.via === undefined) {
-            var nodeId = "edgeId:" + this.id;
-            var node = this.body.functions.createNode({
-              id: nodeId,
-              mass: 1,
-              shape: "circle",
-              image: "",
-              physics: true,
-              hidden: true
-            });
-            this.body.nodes[nodeId] = node;
-            this.via = node;
-            this.via.parentEdgeId = this.id;
-            this.positionBezierNode();
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      positionBezierNode: {
-        value: function positionBezierNode() {
-          if (this.via !== undefined && this.from !== undefined && this.to !== undefined) {
-            this.via.x = 0.5 * (this.from.x + this.to.x);
-            this.via.y = 0.5 * (this.from.y + this.to.y);
-          } else if (this.via !== undefined) {
-            this.via.x = 0;
-            this.via.y = 0;
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _line: {
-
-        /**
-         * Draw a line between two nodes
-         * @param {CanvasRenderingContext2D} ctx
-         * @private
-         */
-        value: function _line(ctx) {
-          // draw a straight line
-          ctx.beginPath();
-          ctx.moveTo(this.from.x, this.from.y);
-          ctx.quadraticCurveTo(this.via.x, this.via.y, this.to.x, this.to.y);
-          ctx.stroke();
-          return this.via;
-        },
-        writable: true,
-        configurable: true
-      },
-      getPoint: {
-
-
-        /**
-         * Combined function of pointOnLine and pointOnBezier. This gives the coordinates of a point on the line at a certain percentage of the way
-         * @param percentage
-         * @param via
-         * @returns {{x: number, y: number}}
-         * @private
-         */
-        value: function getPoint(percentage) {
-          var t = percentage;
-          var x = Math.pow(1 - t, 2) * this.from.x + 2 * t * (1 - t) * this.via.x + Math.pow(t, 2) * this.to.x;
-          var y = Math.pow(1 - t, 2) * this.from.y + 2 * t * (1 - t) * this.via.y + Math.pow(t, 2) * this.to.y;
-
-          return { x: x, y: y };
-        },
-        writable: true,
-        configurable: true
-      },
-      _findBorderPosition: {
-        value: function _findBorderPosition(nearNode, ctx) {
-          return this._findBorderPositionBezier(nearNode, ctx, this.via);
-        },
-        writable: true,
-        configurable: true
-      },
-      _getDistanceToEdge: {
-        value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
-          // x3,y3 is the point
-          return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, this.via);
-        },
-        writable: true,
-        configurable: true
-      }
-    });
-
-    return BezierEdgeDynamic;
-  })(BezierEdgeBase);
-
-  module.exports = BezierEdgeDynamic;
-
-/***/ },
-/* 83 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
-
-  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
-
-  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc && desc.writable) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-  var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-  /**
-   * Created by Alex on 3/20/2015.
-   */
-
-  var EdgeBase = _interopRequire(__webpack_require__(84));
-
-  var BezierEdgeBase = (function (EdgeBase) {
-    function BezierEdgeBase(options, body, labelModule) {
-      _classCallCheck(this, BezierEdgeBase);
-
-      _get(Object.getPrototypeOf(BezierEdgeBase.prototype), "constructor", this).call(this, options, body, labelModule);
-    }
-
-    _inherits(BezierEdgeBase, EdgeBase);
-
-    _prototypeProperties(BezierEdgeBase, null, {
-      _findBorderPositionBezier: {
-
-        /**
-         * This function uses binary search to look for the point where the bezier curve crosses the border of the node.
-         *
-         * @param nearNode
-         * @param ctx
-         * @param viaNode
-         * @param nearNode
-         * @param ctx
-         * @param viaNode
-         * @param nearNode
-         * @param ctx
-         * @param viaNode
-         */
-        value: function _findBorderPositionBezier(nearNode, ctx) {
-          var viaNode = arguments[2] === undefined ? this._getViaCoordinates() : arguments[2];
-          var maxIterations = 10;
-          var iteration = 0;
-          var low = 0;
-          var high = 1;
-          var pos, angle, distanceToBorder, distanceToPoint, difference;
-          var threshold = 0.2;
-          var node = this.to;
-          var from = false;
-          if (nearNode.id === this.from.id) {
-            node = this.from;
-            from = true;
-          }
-
-          while (low <= high && iteration < maxIterations) {
-            var middle = (low + high) * 0.5;
-
-            pos = this.getPoint(middle, viaNode);
-            angle = Math.atan2(node.y - pos.y, node.x - pos.x);
-            distanceToBorder = node.distanceToBorder(ctx, angle);
-            distanceToPoint = Math.sqrt(Math.pow(pos.x - node.x, 2) + Math.pow(pos.y - node.y, 2));
-            difference = distanceToBorder - distanceToPoint;
-            if (Math.abs(difference) < threshold) {
-              break; // found
-            } else if (difference < 0) {
-              // distance to nodes is larger than distance to border --> t needs to be bigger if we're looking at the to node.
-              if (from == false) {
-                low = middle;
-              } else {
-                high = middle;
-              }
-            } else {
-              if (from == false) {
-                high = middle;
-              } else {
-                low = middle;
-              }
-            }
-
-            iteration++;
-          }
-          pos.t = middle;
-
-          return pos;
-        },
-        writable: true,
-        configurable: true
-      },
-      _getDistanceToBezierEdge: {
-
-
-
-        /**
-         * Calculate the distance between a point (x3,y3) and a line segment from
-         * (x1,y1) to (x2,y2).
-         * http://stackoverflow.com/questions/849211/shortest-distancae-between-a-point-and-a-line-segment
-         * @param {number} x1
-         * @param {number} y1
-         * @param {number} x2
-         * @param {number} y2
-         * @param {number} x3
-         * @param {number} y3
-         * @private
-         */
-        value: function _getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, via) {
-          // x3,y3 is the point
-          var xVia = undefined,
-              yVia = undefined;
-          xVia = via.x;
-          yVia = via.y;
-          var minDistance = 1000000000;
-          var distance = undefined;
-          var i = undefined,
-              t = undefined,
-              x = undefined,
-              y = undefined;
-          var lastX = x1;
-          var lastY = y1;
-          for (i = 1; i < 10; i++) {
-            t = 0.1 * i;
-            x = Math.pow(1 - t, 2) * x1 + 2 * t * (1 - t) * xVia + Math.pow(t, 2) * x2;
-            y = Math.pow(1 - t, 2) * y1 + 2 * t * (1 - t) * yVia + Math.pow(t, 2) * y2;
-            if (i > 0) {
-              distance = this._getDistanceToLine(lastX, lastY, x, y, x3, y3);
-              minDistance = distance < minDistance ? distance : minDistance;
-            }
-            lastX = x;
-            lastY = y;
-          }
-
-          return minDistance;
-        },
-        writable: true,
-        configurable: true
-      }
-    });
-
-    return BezierEdgeBase;
-  })(EdgeBase);
-
-  module.exports = BezierEdgeBase;
-
-/***/ },
-/* 84 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-  /**
-   * Created by Alex on 3/20/2015.
-   */
-  var util = __webpack_require__(1);
-
-  var EdgeBase = (function () {
-    function EdgeBase(options, body, labelModule) {
-      _classCallCheck(this, EdgeBase);
-
-      this.body = body;
-      this.labelModule = labelModule;
-      this.setOptions(options);
-      this.colorDirty = true;
-    }
-
-    _prototypeProperties(EdgeBase, null, {
-      setOptions: {
-        value: function setOptions(options) {
-          this.options = options;
-          this.from = this.body.nodes[this.options.from];
-          this.to = this.body.nodes[this.options.to];
-          this.id = this.options.id;
-        },
-        writable: true,
-        configurable: true
-      },
-      drawLine: {
-
-        /**
-         * Redraw a edge as a line
-         * Draw this edge in the given canvas
-         * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-         * @param {CanvasRenderingContext2D}   ctx
-         * @private
-         */
-        value: function drawLine(ctx, selected, hover) {
-          // set style
-          ctx.strokeStyle = this.getColor(ctx);
-          ctx.lineWidth = this.getLineWidth();
-          var via = undefined;
-          if (this.from != this.to) {
-            // draw line
-            if (this.options.dashes.enabled == true) {
-              via = this._drawDashedLine(ctx);
-            } else {
-              via = this._line(ctx);
-            }
-          } else {
-            var x = undefined,
-                y = undefined;
-            var radius = this.options.selfReferenceSize;
-            var node = this.from;
-            node.resize(ctx);
-            if (node.shape.width > node.shape.height) {
-              x = node.x + node.shape.width * 0.5;
-              y = node.y - radius;
-            } else {
-              x = node.x + radius;
-              y = node.y - node.shape.height * 0.5;
-            }
-            this._circle(ctx, x, y, radius);
-          }
-
-          return via;
-        },
-        writable: true,
-        configurable: true
-      },
-      _drawDashedLine: {
-        value: function _drawDashedLine(ctx) {
-          var via = undefined;
-          // only firefox and chrome support this method, else we use the legacy one.
-          if (ctx.setLineDash !== undefined) {
-            ctx.save();
-            // configure the dash pattern
-            var pattern = [0];
-            if (this.options.dashes.length !== undefined && this.options.dashes.gap !== undefined) {
-              pattern = [this.options.dashes.length, this.options.dashes.gap];
-            } else {
-              pattern = [5, 5];
-            }
-
-            // set dash settings for chrome or firefox
-            ctx.setLineDash(pattern);
-            ctx.lineDashOffset = 0;
-
-            // draw the line
-            via = this._line(ctx);
-
-            // restore the dash settings.
-            ctx.setLineDash([0]);
-            ctx.lineDashOffset = 0;
-            ctx.restore();
-          } else {
-            // unsupporting smooth lines
-            // draw dashes line
-            ctx.beginPath();
-            ctx.lineCap = "round";
-            if (this.options.dashes.altLength !== undefined) //If an alt dash value has been set add to the array this value
-              {
-                ctx.dashesLine(this.from.x, this.from.y, this.to.x, this.to.y, [this.options.dashes.length, this.options.dashes.gap, this.options.dashes.altLength, this.options.dashes.gap]);
-              } else if (this.options.dashes.length !== undefined && this.options.dashes.gap !== undefined) //If a dash and gap value has been set add to the array this value
-              {
-                ctx.dashesLine(this.from.x, this.from.y, this.to.x, this.to.y, [this.options.dashes.length, this.options.dashes.gap]);
-              } else //If all else fails draw a line
-              {
-                ctx.moveTo(this.from.x, this.from.y);
-                ctx.lineTo(this.to.x, this.to.y);
-              }
-            ctx.stroke();
-          }
-          return via;
-        },
-        writable: true,
-        configurable: true
-      },
-      findBorderPosition: {
-        value: function findBorderPosition(nearNode, ctx, options) {
-          if (this.from != this.to) {
-            return this._findBorderPosition(nearNode, ctx, options);
-          } else {
-            return this._findBorderPositionCircle(nearNode, ctx, options);
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _findBorderPositionCircle: {
-
-
-
-
-        /**
-         * This function uses binary search to look for the point where the circle crosses the border of the node.
-         * @param x
-         * @param y
-         * @param radius
-         * @param node
-         * @param low
-         * @param high
-         * @param direction
-         * @param ctx
-         * @returns {*}
-         * @private
-         */
-        value: function _findBorderPositionCircle(node, ctx, options) {
-          var x = options.x;
-          var y = options.y;
-          var low = options.low;
-          var high = options.high;
-          var direction = options.direction;
-
-          var maxIterations = 10;
-          var iteration = 0;
-          var radius = this.options.selfReferenceSize;
-          var pos = undefined,
-              angle = undefined,
-              distanceToBorder = undefined,
-              distanceToPoint = undefined,
-              difference = undefined;
-          var threshold = 0.05;
-
-          while (low <= high && iteration < maxIterations) {
-            var _middle = (low + high) * 0.5;
-
-            pos = this._pointOnCircle(x, y, radius, _middle);
-            angle = Math.atan2(node.y - pos.y, node.x - pos.x);
-            distanceToBorder = node.distanceToBorder(ctx, angle);
-            distanceToPoint = Math.sqrt(Math.pow(pos.x - node.x, 2) + Math.pow(pos.y - node.y, 2));
-            difference = distanceToBorder - distanceToPoint;
-            if (Math.abs(difference) < threshold) {
-              break; // found
-            } else if (difference > 0) {
-              // distance to nodes is larger than distance to border --> t needs to be bigger if we're looking at the to node.
-              if (direction > 0) {
-                low = _middle;
-              } else {
-                high = _middle;
-              }
-            } else {
-              if (direction > 0) {
-                high = _middle;
-              } else {
-                low = _middle;
-              }
-            }
-            iteration++;
-          }
-          pos.t = middle;
-
-          return pos;
-        },
-        writable: true,
-        configurable: true
-      },
-      getLineWidth: {
-
-        /**
-         * Get the line width of the edge. Depends on width and whether one of the
-         * connected nodes is selected.
-         * @return {Number} width
-         * @private
-         */
-        value: function getLineWidth(selected, hover) {
-          if (selected == true) {
-            return Math.max(Math.min(this.options.widthSelectionMultiplier * this.options.width, this.options.scaling.max), 0.3 / this.body.view.scale);
-          } else {
-            if (hover == true) {
-              return Math.max(Math.min(this.options.hoverWidth, this.options.scaling.max), 0.3 / this.body.view.scale);
-            } else {
-              return Math.max(this.options.width, 0.3 / this.body.view.scale);
-            }
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      getColor: {
-        value: function getColor(ctx) {
-          var colorObj = this.options.color;
-
-          if (colorObj.inherit.enabled === true) {
-            if (colorObj.inherit.useGradients == true) {
-              var grd = ctx.createLinearGradient(this.from.x, this.from.y, this.to.x, this.to.y);
-              var fromColor, toColor;
-              fromColor = this.from.options.color.highlight.border;
-              toColor = this.to.options.color.highlight.border;
-
-              if (this.from.selected == false && this.to.selected == false) {
-                fromColor = util.overrideOpacity(this.from.options.color.border, this.options.color.opacity);
-                toColor = util.overrideOpacity(this.to.options.color.border, this.options.color.opacity);
-              } else if (this.from.selected == true && this.to.selected == false) {
-                toColor = this.to.options.color.border;
-              } else if (this.from.selected == false && this.to.selected == true) {
-                fromColor = this.from.options.color.border;
-              }
-              grd.addColorStop(0, fromColor);
-              grd.addColorStop(1, toColor);
-
-              // -------------------- this returns -------------------- //
-              return grd;
-            }
-
-            if (this.colorDirty === true) {
-              if (colorObj.inherit.source == "to") {
-                colorObj.highlight = this.to.options.color.highlight.border;
-                colorObj.hover = this.to.options.color.hover.border;
-                colorObj.color = util.overrideOpacity(this.to.options.color.border, this.options.color.opacity);
-              } else {
-                // (this.options.color.inherit.source == "from") {
-                colorObj.highlight = this.from.options.color.highlight.border;
-                colorObj.hover = this.from.options.color.hover.border;
-                colorObj.color = util.overrideOpacity(this.from.options.color.border, this.options.color.opacity);
-              }
-            }
-          }
-
-          // if color inherit is on and gradients are used, the function has already returned by now.
-          this.colorDirty = false;
-
-          if (this.selected == true) {
-            return colorObj.highlight;
-          } else if (this.hover == true) {
-            return colorObj.hover;
-          } else {
-            return colorObj.color;
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _circle: {
-
-        /**
-         * Draw a line from a node to itself, a circle
-         * @param {CanvasRenderingContext2D} ctx
-         * @param {Number} x
-         * @param {Number} y
-         * @param {Number} radius
-         * @private
-         */
-        value: function _circle(ctx, x, y, radius) {
-          // draw a circle
-          ctx.beginPath();
-          ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
-          ctx.stroke();
-        },
-        writable: true,
-        configurable: true
-      },
-      getDistanceToEdge: {
-
-
-        /**
-         * Calculate the distance between a point (x3,y3) and a line segment from
-         * (x1,y1) to (x2,y2).
-         * http://stackoverflow.com/questions/849211/shortest-distancae-between-a-point-and-a-line-segment
-         * @param {number} x1
-         * @param {number} y1
-         * @param {number} x2
-         * @param {number} y2
-         * @param {number} x3
-         * @param {number} y3
-         * @private
-         */
-        value: function getDistanceToEdge(x1, y1, x2, y2, x3, y3, via) {
-          // x3,y3 is the point
-          var returnValue = 0;
-          if (this.from != this.to) {
-            returnValue = this._getDistanceToEdge(x1, y1, x2, y2, x3, y3, via);
-          } else {
-            var x, y, dx, dy;
-            var radius = this.options.selfReferenceSize;
-            var node = this.from;
-            if (node.width > node.height) {
-              x = node.x + 0.5 * node.width;
-              y = node.y - radius;
-            } else {
-              x = node.x + radius;
-              y = node.y - 0.5 * node.height;
-            }
-            dx = x - x3;
-            dy = y - y3;
-            returnValue = Math.abs(Math.sqrt(dx * dx + dy * dy) - radius);
-          }
-
-          if (this.labelModule.size.left < x3 && this.labelModule.size.left + this.labelModule.size.width > x3 && this.labelModule.size.top < y3 && this.labelModule.size.top + this.labelModule.size.height > y3) {
-            return 0;
-          } else {
-            return returnValue;
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _getDistanceToLine: {
-        value: function _getDistanceToLine(x1, y1, x2, y2, x3, y3) {
-          var px = x2 - x1;
-          var py = y2 - y1;
-          var something = px * px + py * py;
-          var u = ((x3 - x1) * px + (y3 - y1) * py) / something;
-
-          if (u > 1) {
-            u = 1;
-          } else if (u < 0) {
-            u = 0;
-          }
-
-          var x = x1 + u * px;
-          var y = y1 + u * py;
-          var dx = x - x3;
-          var dy = y - y3;
-
-          //# Note: If the actual distance does not matter,
-          //# if you only want to compare what this function
-          //# returns to other results of this function, you
-          //# can just return the squared distance instead
-          //# (i.e. remove the sqrt) to gain a little performance
-
-          return Math.sqrt(dx * dx + dy * dy);
-        },
-        writable: true,
-        configurable: true
-      },
-      drawArrowHead: {
-
-        /**
-         *
-         * @param ctx
-         * @param position
-         * @param viaNode
-         */
-        value: function drawArrowHead(ctx, position, viaNode) {
-          // set style
-          ctx.strokeStyle = this.getColor(ctx);
-          ctx.fillStyle = ctx.strokeStyle;
-          ctx.lineWidth = this.getLineWidth();
-
-          // set lets
-          var angle = undefined;
-          var length = undefined;
-          var arrowPos = undefined;
-          var node1 = undefined;
-          var node2 = undefined;
-          var guideOffset = undefined;
-          var scaleFactor = undefined;
-
-          if (position == "from") {
-            node1 = this.from;
-            node2 = this.to;
-            guideOffset = 0.1;
-            scaleFactor = this.options.arrows.from.scaleFactor;
-          } else if (position == "to") {
-            node1 = this.to;
-            node2 = this.from;
-            guideOffset = -0.1;
-            scaleFactor = this.options.arrows.to.scaleFactor;
-          } else {
-            node1 = this.to;
-            node2 = this.from;
-            scaleFactor = this.options.arrows.middle.scaleFactor;
-          }
-
-          // if not connected to itself
-          if (node1 != node2) {
-            if (position !== "middle") {
-              // draw arrow head
-              if (this.options.smooth.enabled == true) {
-                arrowPos = this.findBorderPosition(node1, ctx, { via: viaNode });
-                var guidePos = this.getPoint(Math.max(0, Math.min(1, arrowPos.t + guideOffset)), viaNode);
-                angle = Math.atan2(arrowPos.y - guidePos.y, arrowPos.x - guidePos.x);
-              } else {
-                angle = Math.atan2(node1.y - node2.y, node1.x - node2.x);
-                arrowPos = this.findBorderPosition(node1, ctx);
-              }
-            } else {
-              angle = Math.atan2(node1.y - node2.y, node1.x - node2.x);
-              arrowPos = this.getPoint(0.6, viaNode); // this is 0.6 to account for the size of the arrow.
-            }
-            // draw arrow at the end of the line
-            length = (10 + 5 * this.options.width) * scaleFactor;
-            ctx.arrow(arrowPos.x, arrowPos.y, angle, length);
-            ctx.fill();
-            ctx.stroke();
-          } else {
-            // draw circle
-            var _angle = undefined,
-                point = undefined;
-            var x = undefined,
-                y = undefined;
-            var radius = this.options.selfReferenceSize;
-            if (!node1.width) {
-              node1.resize(ctx);
-            }
-
-            // get circle coordinates
-            if (node1.width > node1.height) {
-              x = node1.x + node1.width * 0.5;
-              y = node1.y - radius;
-            } else {
-              x = node1.x + radius;
-              y = node1.y - node1.height * 0.5;
-            }
-
-
-            if (position == "from") {
-              point = this.findBorderPosition(x, y, radius, node1, 0.25, 0.6, -1, ctx);
-              _angle = point.t * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
-            } else if (position == "to") {
-              point = this.findBorderPosition(x, y, radius, node1, 0.6, 0.8, 1, ctx);
-              _angle = point.t * -2 * Math.PI + 1.5 * Math.PI - 1.1 * Math.PI;
-            } else {
-              point = this.findBorderPosition(x, y, radius, 0.175);
-              _angle = 3.9269908169872414; // == 0.175 * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
-            }
-
-            // draw the arrowhead
-            var _length = (10 + 5 * this.options.width) * scaleFactor;
-            ctx.arrow(point.x, point.y, _angle, _length);
-            ctx.fill();
-            ctx.stroke();
-          }
-        },
-        writable: true,
-        configurable: true
-      }
-    });
-
-    return EdgeBase;
-  })();
-
-  module.exports = EdgeBase;
-
-/***/ },
-/* 85 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
-
-  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
-
-  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc && desc.writable) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-  var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-  /**
-   * Created by Alex on 3/20/2015.
-   */
-
-  var BezierEdgeBase = _interopRequire(__webpack_require__(83));
-
-  var BezierEdgeStatic = (function (BezierEdgeBase) {
-    function BezierEdgeStatic(options, body, labelModule) {
-      _classCallCheck(this, BezierEdgeStatic);
-
-      _get(Object.getPrototypeOf(BezierEdgeStatic.prototype), "constructor", this).call(this, options, body, labelModule);
-    }
-
-    _inherits(BezierEdgeStatic, BezierEdgeBase);
-
-    _prototypeProperties(BezierEdgeStatic, null, {
-      cleanup: {
-        value: function cleanup() {
-          return false;
-        },
-        writable: true,
-        configurable: true
-      },
-      _line: {
-        /**
-         * Draw a line between two nodes
-         * @param {CanvasRenderingContext2D} ctx
-         * @private
-         */
-        value: function _line(ctx) {
-          // draw a straight line
-          ctx.beginPath();
-          ctx.moveTo(this.from.x, this.from.y);
-          var via = this._getViaCoordinates();
-
-          // fallback to normal straight edges
-          if (via.x === undefined) {
-            ctx.lineTo(this.to.x, this.to.y);
-            ctx.stroke();
-            return undefined;
-          } else {
-            ctx.quadraticCurveTo(via.x, via.y, this.to.x, this.to.y);
-            ctx.stroke();
-            return via;
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _getViaCoordinates: {
-        value: function _getViaCoordinates() {
-          var xVia = undefined;
-          var yVia = undefined;
-          var factor = this.options.smooth.roundness;
-          var type = this.options.smooth.type;
-          var dx = Math.abs(this.from.x - this.to.x);
-          var dy = Math.abs(this.from.y - this.to.y);
-          if (type == "discrete" || type == "diagonalCross") {
-            if (Math.abs(this.from.x - this.to.x) < Math.abs(this.from.y - this.to.y)) {
-              if (this.from.y > this.to.y) {
-                if (this.from.x < this.to.x) {
-                  xVia = this.from.x + factor * dy;
-                  yVia = this.from.y - factor * dy;
-                } else if (this.from.x > this.to.x) {
-                  xVia = this.from.x - factor * dy;
-                  yVia = this.from.y - factor * dy;
-                }
-              } else if (this.from.y < this.to.y) {
-                if (this.from.x < this.to.x) {
-                  xVia = this.from.x + factor * dy;
-                  yVia = this.from.y + factor * dy;
-                } else if (this.from.x > this.to.x) {
-                  xVia = this.from.x - factor * dy;
-                  yVia = this.from.y + factor * dy;
-                }
-              }
-              if (type == "discrete") {
-                xVia = dx < factor * dy ? this.from.x : xVia;
-              }
-            } else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) {
-              if (this.from.y > this.to.y) {
-                if (this.from.x < this.to.x) {
-                  xVia = this.from.x + factor * dx;
-                  yVia = this.from.y - factor * dx;
-                } else if (this.from.x > this.to.x) {
-                  xVia = this.from.x - factor * dx;
-                  yVia = this.from.y - factor * dx;
-                }
-              } else if (this.from.y < this.to.y) {
-                if (this.from.x < this.to.x) {
-                  xVia = this.from.x + factor * dx;
-                  yVia = this.from.y + factor * dx;
-                } else if (this.from.x > this.to.x) {
-                  xVia = this.from.x - factor * dx;
-                  yVia = this.from.y + factor * dx;
-                }
-              }
-              if (type == "discrete") {
-                yVia = dy < factor * dx ? this.from.y : yVia;
-              }
-            }
-          } else if (type == "straightCross") {
-            if (Math.abs(this.from.x - this.to.x) < Math.abs(this.from.y - this.to.y)) {
-              // up - down
-              xVia = this.from.x;
-              if (this.from.y < this.to.y) {
-                yVia = this.to.y - (1 - factor) * dy;
-              } else {
-                yVia = this.to.y + (1 - factor) * dy;
-              }
-            } else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) {
-              // left - right
-              if (this.from.x < this.to.x) {
-                xVia = this.to.x - (1 - factor) * dx;
-              } else {
-                xVia = this.to.x + (1 - factor) * dx;
-              }
-              yVia = this.from.y;
-            }
-          } else if (type == "horizontal") {
-            if (this.from.x < this.to.x) {
-              xVia = this.to.x - (1 - factor) * dx;
-            } else {
-              xVia = this.to.x + (1 - factor) * dx;
-            }
-            yVia = this.from.y;
-          } else if (type == "vertical") {
-            xVia = this.from.x;
-            if (this.from.y < this.to.y) {
-              yVia = this.to.y - (1 - factor) * dy;
-            } else {
-              yVia = this.to.y + (1 - factor) * dy;
-            }
-          } else if (type == "curvedCW") {
-            dx = this.to.x - this.from.x;
-            dy = this.from.y - this.to.y;
-            var radius = Math.sqrt(dx * dx + dy * dy);
-            var pi = Math.PI;
-
-            var originalAngle = Math.atan2(dy, dx);
-            var myAngle = (originalAngle + (factor * 0.5 + 0.5) * pi) % (2 * pi);
-
-            xVia = this.from.x + (factor * 0.5 + 0.5) * radius * Math.sin(myAngle);
-            yVia = this.from.y + (factor * 0.5 + 0.5) * radius * Math.cos(myAngle);
-          } else if (type == "curvedCCW") {
-            dx = this.to.x - this.from.x;
-            dy = this.from.y - this.to.y;
-            var radius = Math.sqrt(dx * dx + dy * dy);
-            var pi = Math.PI;
-
-            var originalAngle = Math.atan2(dy, dx);
-            var myAngle = (originalAngle + (-factor * 0.5 + 0.5) * pi) % (2 * pi);
-
-            xVia = this.from.x + (factor * 0.5 + 0.5) * radius * Math.sin(myAngle);
-            yVia = this.from.y + (factor * 0.5 + 0.5) * radius * Math.cos(myAngle);
-          } else {
-            // continuous
-            if (Math.abs(this.from.x - this.to.x) < Math.abs(this.from.y - this.to.y)) {
-              if (this.from.y > this.to.y) {
-                if (this.from.x < this.to.x) {
-                  xVia = this.from.x + factor * dy;
-                  yVia = this.from.y - factor * dy;
-                  xVia = this.to.x < xVia ? this.to.x : xVia;
-                } else if (this.from.x > this.to.x) {
-                  xVia = this.from.x - factor * dy;
-                  yVia = this.from.y - factor * dy;
-                  xVia = this.to.x > xVia ? this.to.x : xVia;
-                }
-              } else if (this.from.y < this.to.y) {
-                if (this.from.x < this.to.x) {
-                  xVia = this.from.x + factor * dy;
-                  yVia = this.from.y + factor * dy;
-                  xVia = this.to.x < xVia ? this.to.x : xVia;
-                } else if (this.from.x > this.to.x) {
-                  xVia = this.from.x - factor * dy;
-                  yVia = this.from.y + factor * dy;
-                  xVia = this.to.x > xVia ? this.to.x : xVia;
-                }
-              }
-            } else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) {
-              if (this.from.y > this.to.y) {
-                if (this.from.x < this.to.x) {
-                  xVia = this.from.x + factor * dx;
-                  yVia = this.from.y - factor * dx;
-                  yVia = this.to.y > yVia ? this.to.y : yVia;
-                } else if (this.from.x > this.to.x) {
-                  xVia = this.from.x - factor * dx;
-                  yVia = this.from.y - factor * dx;
-                  yVia = this.to.y > yVia ? this.to.y : yVia;
-                }
-              } else if (this.from.y < this.to.y) {
-                if (this.from.x < this.to.x) {
-                  xVia = this.from.x + factor * dx;
-                  yVia = this.from.y + factor * dx;
-                  yVia = this.to.y < yVia ? this.to.y : yVia;
-                } else if (this.from.x > this.to.x) {
-                  xVia = this.from.x - factor * dx;
-                  yVia = this.from.y + factor * dx;
-                  yVia = this.to.y < yVia ? this.to.y : yVia;
-                }
-              }
-            }
-          }
-          return { x: xVia, y: yVia };
-        },
-        writable: true,
-        configurable: true
-      },
-      _findBorderPosition: {
-        value: function _findBorderPosition(nearNode, ctx, options) {
-          return this._findBorderPositionBezier(nearNode, ctx, options.via);
-        },
-        writable: true,
-        configurable: true
-      },
-      _getDistanceToEdge: {
-        value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
-          var via = arguments[6] === undefined ? this._getViaCoordinates() : arguments[6];
-          // x3,y3 is the point
-          return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, via);
-        },
-        writable: true,
-        configurable: true
-      },
-      getPoint: {
-
-        /**
-         * Combined function of pointOnLine and pointOnBezier. This gives the coordinates of a point on the line at a certain percentage of the way
-         * @param percentage
-         * @param via
-         * @returns {{x: number, y: number}}
-         * @private
-         */
-        value: function getPoint(percentage) {
-          var via = arguments[1] === undefined ? this._getViaCoordinates() : arguments[1];
-          var t = percentage;
-          var x = Math.pow(1 - t, 2) * this.from.x + 2 * t * (1 - t) * via.x + Math.pow(t, 2) * this.to.x;
-          var y = Math.pow(1 - t, 2) * this.from.y + 2 * t * (1 - t) * via.y + Math.pow(t, 2) * this.to.y;
-
-          return { x: x, y: y };
-        },
-        writable: true,
-        configurable: true
-      }
-    });
-
-    return BezierEdgeStatic;
-  })(BezierEdgeBase);
-
-  module.exports = BezierEdgeStatic;
-
-/***/ },
-/* 86 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
-
-  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
-
-  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc && desc.writable) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-  var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-  /**
-   * Created by Alex on 3/20/2015.
-   */
-
-  var EdgeBase = _interopRequire(__webpack_require__(84));
-
-  var StraightEdge = (function (EdgeBase) {
-    function StraightEdge(options, body, labelModule) {
-      _classCallCheck(this, StraightEdge);
-
-      _get(Object.getPrototypeOf(StraightEdge.prototype), "constructor", this).call(this, options, body, labelModule);
-    }
-
-    _inherits(StraightEdge, EdgeBase);
-
-    _prototypeProperties(StraightEdge, null, {
-      cleanup: {
-        value: function cleanup() {
-          return false;
-        },
-        writable: true,
-        configurable: true
-      },
-      _line: {
-        /**
-         * Draw a line between two nodes
-         * @param {CanvasRenderingContext2D} ctx
-         * @private
-         */
-        value: function _line(ctx) {
-          // draw a straight line
-          ctx.beginPath();
-          ctx.moveTo(this.from.x, this.from.y);
-          ctx.lineTo(this.to.x, this.to.y);
-          ctx.stroke();
-          return undefined;
-        },
-        writable: true,
-        configurable: true
-      },
-      getPoint: {
-
-        /**
-         * Combined function of pointOnLine and pointOnBezier. This gives the coordinates of a point on the line at a certain percentage of the way
-         * @param percentage
-         * @param via
-         * @returns {{x: number, y: number}}
-         * @private
-         */
-        value: function getPoint(percentage) {
-          return {
-            x: (1 - percentage) * this.from.x + percentage * this.to.x,
-            y: (1 - percentage) * this.from.y + percentage * this.to.y
-          };
-        },
-        writable: true,
-        configurable: true
-      },
-      _findBorderPosition: {
-        value: function _findBorderPosition(nearNode, ctx) {
-          var node1 = this.to;
-          var node2 = this.from;
-          if (nearNode.id === this.from.id) {
-            node1 = this.from;
-            node2 = this.to;
-          }
-
-          var angle = Math.atan2(node1.y - node2.y, node1.x - node2.x);
-          var dx = node1.x - node2.x;
-          var dy = node1.y - node2.y;
-          var edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
-          var toBorderDist = nearNode.distanceToBorder(ctx, angle);
-          var toBorderPoint = (edgeSegmentLength - toBorderDist) / edgeSegmentLength;
-
-          var borderPos = {};
-          borderPos.x = (1 - toBorderPoint) * node2.x + toBorderPoint * node1.x;
-          borderPos.y = (1 - toBorderPoint) * node2.y + toBorderPoint * node1.y;
-
-          return borderPos;
-        },
-        writable: true,
-        configurable: true
-      },
-      _getDistanceToEdge: {
-        value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
-          // x3,y3 is the point
-          return this._getDistanceToLine(x1, y1, x2, y2, x3, y3);
-        },
-        writable: true,
-        configurable: true
-      }
-    });
-
-    return StraightEdge;
-  })(EdgeBase);
-
-  module.exports = StraightEdge;
-
-/***/ },
-/* 87 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
-
-  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
-
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
   /**
    * Created by Alex on 2/23/2015.
    */
 
-  var BarnesHutSolver = _interopRequire(__webpack_require__(88));
+  var BarnesHutSolver = _interopRequire(__webpack_require__(83));
 
-  var Repulsion = _interopRequire(__webpack_require__(89));
+  var Repulsion = _interopRequire(__webpack_require__(84));
 
-  var HierarchicalRepulsion = _interopRequire(__webpack_require__(90));
+  var HierarchicalRepulsion = _interopRequire(__webpack_require__(85));
 
-  var SpringSolver = _interopRequire(__webpack_require__(91));
+  var SpringSolver = _interopRequire(__webpack_require__(86));
 
-  var HierarchicalSpringSolver = _interopRequire(__webpack_require__(92));
+  var HierarchicalSpringSolver = _interopRequire(__webpack_require__(87));
 
-  var CentralGravitySolver = _interopRequire(__webpack_require__(93));
+  var CentralGravitySolver = _interopRequire(__webpack_require__(88));
 
   var util = __webpack_require__(1);
 
@@ -30479,7 +29300,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = PhysicsEngine;
 
 /***/ },
-/* 88 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -30988,7 +29809,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BarnesHutSolver;
 
 /***/ },
-/* 89 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31086,7 +29907,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = RepulsionSolver;
 
 /***/ },
-/* 90 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31181,7 +30002,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = HierarchicalRepulsionSolver;
 
 /***/ },
-/* 91 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31292,7 +30113,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = SpringSolver;
 
 /***/ },
-/* 92 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31418,7 +30239,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = HierarchicalSpringSolver;
 
 /***/ },
-/* 93 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31482,7 +30303,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CentralGravitySolver;
 
 /***/ },
-/* 94 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31498,7 +30319,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
 
   var util = __webpack_require__(1);
-  var Cluster = _interopRequire(__webpack_require__(95));
+  var Cluster = _interopRequire(__webpack_require__(90));
 
   var ClusterEngine = (function () {
     function ClusterEngine(body) {
@@ -32173,7 +30994,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = ClusterEngine;
 
 /***/ },
-/* 95 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -32210,7 +31031,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Cluster;
 
 /***/ },
-/* 96 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -32538,7 +31359,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CanvasRenderer;
 
 /***/ },
-/* 97 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -32825,7 +31646,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Canvas;
 
 /***/ },
-/* 98 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33234,7 +32055,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = View;
 
 /***/ },
-/* 99 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33252,9 +32073,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
 
-  var NavigationHandler = _interopRequire(__webpack_require__(102));
+  var NavigationHandler = _interopRequire(__webpack_require__(95));
 
-  var Popup = _interopRequire(__webpack_require__(103));
+  var Popup = _interopRequire(__webpack_require__(96));
 
   var InteractionHandler = (function () {
     function InteractionHandler(body, canvas, selectionHandler) {
@@ -33705,7 +32526,7 @@ return /******/ (function(modules) { // webpackBootstrap
             scale *= 1 + zoom;
 
             // calculate the pointer location
-            var pointer = { x: event.pageX, y: event.pageY };
+            var pointer = this.getPointer({ x: event.pageX, y: event.pageY });
 
             // apply the new scale
             this.zoom(scale, pointer);
@@ -33951,7 +32772,468 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = InteractionHandler;
 
 /***/ },
-/* 100 */
+/* 95 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  var util = __webpack_require__(1);
+  var Hammer = __webpack_require__(19);
+  var hammerUtil = __webpack_require__(24);
+  var keycharm = __webpack_require__(39);
+
+  var NavigationHandler = (function () {
+    function NavigationHandler(body, canvas) {
+      var _this = this;
+      _classCallCheck(this, NavigationHandler);
+
+      this.body = body;
+      this.canvas = canvas;
+
+      this.iconsCreated = false;
+      this.navigationHammers = [];
+      this.boundFunctions = {};
+      this.touchTime = 0;
+      this.activated = false;
+
+
+      this.body.emitter.on("release", this._stopMovement.bind(this));
+      this.body.emitter.on("activate", function () {
+        _this.activated = true;_this.configureKeyboardBindings();
+      });
+      this.body.emitter.on("deactivate", function () {
+        _this.activated = false;_this.configureKeyboardBindings();
+      });
+      this.body.emitter.on("destroy", function () {
+        if (_this.keycharm !== undefined) {
+          _this.keycharm.destroy();
+        }
+      });
+
+      this.options = {};
+    }
+
+    _prototypeProperties(NavigationHandler, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          if (options !== undefined) {
+            this.options = options;
+            this.create();
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      create: {
+        value: function create() {
+          if (this.options.showNavigationIcons === true) {
+            if (this.iconsCreated === false) {
+              this.loadNavigationElements();
+            }
+          } else if (this.iconsCreated === true) {
+            this.cleanNavigation();
+          }
+
+          this.configureKeyboardBindings();
+        },
+        writable: true,
+        configurable: true
+      },
+      cleanNavigation: {
+        value: function cleanNavigation() {
+          // clean hammer bindings
+          if (this.navigationHammers.length != 0) {
+            for (var i = 0; i < this.navigationHammers.length; i++) {
+              this.navigationHammers[i].destroy();
+            }
+            this.navigationHammers = [];
+          }
+
+          this._navigationReleaseOverload = function () {};
+
+          // clean up previous navigation items
+          if (this.navigationDOM && this.navigationDOM.wrapper && this.navigationDOM.wrapper.parentNode) {
+            this.navigationDOM.wrapper.parentNode.removeChild(this.navigationDOM.wrapper);
+          }
+
+          this.iconsCreated = false;
+        },
+        writable: true,
+        configurable: true
+      },
+      loadNavigationElements: {
+
+        /**
+         * Creation of the navigation controls nodes. They are drawn over the rest of the nodes and are not affected by scale and translation
+         * they have a triggerFunction which is called on click. If the position of the navigation controls is dependent
+         * on this.frame.canvas.clientWidth or this.frame.canvas.clientHeight, we flag horizontalAlignLeft and verticalAlignTop false.
+         * This means that the location will be corrected by the _relocateNavigation function on a size change of the canvas.
+         *
+         * @private
+         */
+        value: function loadNavigationElements() {
+          this.cleanNavigation();
+
+          this.navigationDOM = {};
+          var navigationDivs = ["up", "down", "left", "right", "zoomIn", "zoomOut", "zoomExtends"];
+          var navigationDivActions = ["_moveUp", "_moveDown", "_moveLeft", "_moveRight", "_zoomIn", "_zoomOut", "_zoomExtent"];
+
+          this.navigationDOM.wrapper = document.createElement("div");
+          this.canvas.frame.appendChild(this.navigationDOM.wrapper);
+
+          for (var i = 0; i < navigationDivs.length; i++) {
+            this.navigationDOM[navigationDivs[i]] = document.createElement("div");
+            this.navigationDOM[navigationDivs[i]].className = "network-navigation " + navigationDivs[i];
+            this.navigationDOM.wrapper.appendChild(this.navigationDOM[navigationDivs[i]]);
+
+            var hammer = new Hammer(this.navigationDOM[navigationDivs[i]]);
+            if (navigationDivActions[i] == "_zoomExtent") {
+              hammerUtil.onTouch(hammer, this._zoomExtent.bind(this));
+            } else {
+              hammerUtil.onTouch(hammer, this.bindToRedraw.bind(this, navigationDivActions[i]));
+            }
+
+            this.navigationHammers.push(hammer);
+          }
+
+          this.iconsCreated = true;
+        },
+        writable: true,
+        configurable: true
+      },
+      bindToRedraw: {
+        value: function bindToRedraw(action) {
+          if (this.boundFunctions[action] === undefined) {
+            this.boundFunctions[action] = this[action].bind(this);
+            this.body.emitter.on("initRedraw", this.boundFunctions[action]);
+            this.body.emitter.emit("_startRendering");
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      unbindFromRedraw: {
+        value: function unbindFromRedraw(action) {
+          if (this.boundFunctions[action] !== undefined) {
+            this.body.emitter.off("initRedraw", this.boundFunctions[action]);
+            this.body.emitter.emit("_stopRendering");
+            delete this.boundFunctions[action];
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _zoomExtent: {
+
+        /**
+         * this stops all movement induced by the navigation buttons
+         *
+         * @private
+         */
+        value: function _zoomExtent() {
+          if (new Date().valueOf() - this.touchTime > 700) {
+            // TODO: fix ugly hack to avoid hammer's double fireing of event (because we use release?)
+            this.body.emitter.emit("zoomExtent", { duration: 700 });
+            this.touchTime = new Date().valueOf();
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _stopMovement: {
+
+        /**
+         * this stops all movement induced by the navigation buttons
+         *
+         * @private
+         */
+        value: function _stopMovement() {
+          for (var boundAction in this.boundFunctions) {
+            if (this.boundFunctions.hasOwnProperty(boundAction)) {
+              this.body.emitter.off("initRedraw", this.boundFunctions[boundAction]);
+              this.body.emitter.emit("_stopRendering");
+            }
+          }
+          this.boundFunctions = {};
+        },
+        writable: true,
+        configurable: true
+      },
+      _moveUp: {
+        value: function _moveUp() {
+          this.body.view.translation.y += this.options.keyboard.speed.y;
+        },
+        writable: true,
+        configurable: true
+      },
+      _moveDown: {
+        value: function _moveDown() {
+          this.body.view.translation.y -= this.options.keyboard.speed.y;
+        },
+        writable: true,
+        configurable: true
+      },
+      _moveLeft: {
+        value: function _moveLeft() {
+          this.body.view.translation.x += this.options.keyboard.speed.x;
+        },
+        writable: true,
+        configurable: true
+      },
+      _moveRight: {
+        value: function _moveRight() {
+          this.body.view.translation.x -= this.options.keyboard.speed.x;
+        },
+        writable: true,
+        configurable: true
+      },
+      _zoomIn: {
+        value: function _zoomIn() {
+          this.body.view.scale += this.options.keyboard.speed.zoom;
+        },
+        writable: true,
+        configurable: true
+      },
+      _zoomOut: {
+        value: function _zoomOut() {
+          this.body.view.scale -= this.options.keyboard.speed.zoom;
+        },
+        writable: true,
+        configurable: true
+      },
+      configureKeyboardBindings: {
+
+
+        /**
+         * bind all keys using keycharm.
+         */
+        value: function configureKeyboardBindings() {
+          if (this.keycharm !== undefined) {
+            this.keycharm.destroy();
+          }
+
+          if (this.options.keyboard.enabled === true) {
+            if (this.options.keyboard.bindToWindow === true) {
+              this.keycharm = keycharm({ container: window, preventDefault: false });
+            } else {
+              this.keycharm = keycharm({ container: this.canvas.frame, preventDefault: false });
+            }
+
+            this.keycharm.reset();
+
+            if (this.activated === true) {
+              this.keycharm.bind("up", this.bindToRedraw.bind(this, "_moveUp"), "keydown");
+              this.keycharm.bind("down", this.bindToRedraw.bind(this, "_moveDown"), "keydown");
+              this.keycharm.bind("left", this.bindToRedraw.bind(this, "_moveLeft"), "keydown");
+              this.keycharm.bind("right", this.bindToRedraw.bind(this, "_moveRight"), "keydown");
+              this.keycharm.bind("=", this.bindToRedraw.bind(this, "_zoomIn"), "keydown");
+              this.keycharm.bind("num+", this.bindToRedraw.bind(this, "_zoomIn"), "keydown");
+              this.keycharm.bind("num-", this.bindToRedraw.bind(this, "_zoomOut"), "keydown");
+              this.keycharm.bind("-", this.bindToRedraw.bind(this, "_zoomOut"), "keydown");
+              this.keycharm.bind("[", this.bindToRedraw.bind(this, "_zoomOut"), "keydown");
+              this.keycharm.bind("]", this.bindToRedraw.bind(this, "_zoomIn"), "keydown");
+              this.keycharm.bind("pageup", this.bindToRedraw.bind(this, "_zoomIn"), "keydown");
+              this.keycharm.bind("pagedown", this.bindToRedraw.bind(this, "_zoomOut"), "keydown");
+
+              this.keycharm.bind("up", this.unbindFromRedraw.bind(this, "_moveUp"), "keyup");
+              this.keycharm.bind("down", this.unbindFromRedraw.bind(this, "_moveDown"), "keyup");
+              this.keycharm.bind("left", this.unbindFromRedraw.bind(this, "_moveLeft"), "keyup");
+              this.keycharm.bind("right", this.unbindFromRedraw.bind(this, "_moveRight"), "keyup");
+              this.keycharm.bind("=", this.unbindFromRedraw.bind(this, "_zoomIn"), "keyup");
+              this.keycharm.bind("num+", this.unbindFromRedraw.bind(this, "_zoomIn"), "keyup");
+              this.keycharm.bind("num-", this.unbindFromRedraw.bind(this, "_zoomOut"), "keyup");
+              this.keycharm.bind("-", this.unbindFromRedraw.bind(this, "_zoomOut"), "keyup");
+              this.keycharm.bind("[", this.unbindFromRedraw.bind(this, "_zoomOut"), "keyup");
+              this.keycharm.bind("]", this.unbindFromRedraw.bind(this, "_zoomIn"), "keyup");
+              this.keycharm.bind("pageup", this.unbindFromRedraw.bind(this, "_zoomIn"), "keyup");
+              this.keycharm.bind("pagedown", this.unbindFromRedraw.bind(this, "_zoomOut"), "keyup");
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return NavigationHandler;
+  })();
+
+  module.exports = NavigationHandler;
+
+/***/ },
+/* 96 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  /**
+   * Popup is a class to create a popup window with some text
+   * @param {Element}  container     The container object.
+   * @param {Number} [x]
+   * @param {Number} [y]
+   * @param {String} [text]
+   * @param {Object} [style]     An object containing borderColor,
+   *                             backgroundColor, etc.
+   */
+  var Popup = (function () {
+    function Popup(container, x, y, text, style) {
+      _classCallCheck(this, Popup);
+
+      if (container) {
+        this.container = container;
+      } else {
+        this.container = document.body;
+      }
+
+      // x, y and text are optional, see if a style object was passed in their place
+      if (style === undefined) {
+        if (typeof x === "object") {
+          style = x;
+          x = undefined;
+        } else if (typeof text === "object") {
+          style = text;
+          text = undefined;
+        } else {
+          // for backwards compatibility, in case clients other than Network are creating Popup directly
+          style = {
+            fontColor: "black",
+            fontSize: 14, // px
+            fontFace: "verdana",
+            color: {
+              border: "#666",
+              background: "#FFFFC6"
+            }
+          };
+        }
+      }
+
+      this.x = 0;
+      this.y = 0;
+      this.padding = 5;
+      this.hidden = false;
+
+      if (x !== undefined && y !== undefined) {
+        this.setPosition(x, y);
+      }
+      if (text !== undefined) {
+        this.setText(text);
+      }
+
+      // create the frame
+      this.frame = document.createElement("div");
+      this.frame.className = "network-tooltip";
+      this.frame.style.color = style.fontColor;
+      this.frame.style.backgroundColor = style.color.background;
+      this.frame.style.borderColor = style.color.border;
+      this.frame.style.fontSize = style.fontSize + "px";
+      this.frame.style.fontFamily = style.fontFace;
+      this.container.appendChild(this.frame);
+    }
+
+    _prototypeProperties(Popup, null, {
+      setPosition: {
+
+        /**
+         * @param {number} x   Horizontal position of the popup window
+         * @param {number} y   Vertical position of the popup window
+         */
+        value: function setPosition(x, y) {
+          this.x = parseInt(x);
+          this.y = parseInt(y);
+        },
+        writable: true,
+        configurable: true
+      },
+      setText: {
+
+        /**
+         * Set the content for the popup window. This can be HTML code or text.
+         * @param {string | Element} content
+         */
+        value: function setText(content) {
+          if (content instanceof Element) {
+            this.frame.innerHTML = "";
+            this.frame.appendChild(content);
+          } else {
+            this.frame.innerHTML = content; // string containing text or HTML
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      show: {
+
+        /**
+         * Show the popup window
+         * @param {boolean} show    Optional. Show or hide the window
+         */
+        value: function show(show) {
+          if (show === undefined) {
+            show = true;
+          }
+
+          if (show === true) {
+            var height = this.frame.clientHeight;
+            var width = this.frame.clientWidth;
+            var maxHeight = this.frame.parentNode.clientHeight;
+            var maxWidth = this.frame.parentNode.clientWidth;
+
+            var top = this.y - height;
+            if (top + height + this.padding > maxHeight) {
+              top = maxHeight - height - this.padding;
+            }
+            if (top < this.padding) {
+              top = this.padding;
+            }
+
+            var left = this.x;
+            if (left + width + this.padding > maxWidth) {
+              left = maxWidth - width - this.padding;
+            }
+            if (left < this.padding) {
+              left = this.padding;
+            }
+
+            this.frame.style.left = left + "px";
+            this.frame.style.top = top + "px";
+            this.frame.style.visibility = "visible";
+            this.hidden = false;
+          } else {
+            this.hide();
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      hide: {
+
+        /**
+         * Hide the popup window
+         */
+        value: function hide() {
+          this.hidden = true;
+          this.frame.style.visibility = "hidden";
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return Popup;
+  })();
+
+  module.exports = Popup;
+
+/***/ },
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34708,7 +33990,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = SelectionHandler;
 
 /***/ },
-/* 101 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -35181,300 +34463,315 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = LayoutEngine;
 
 /***/ },
-/* 102 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
 
+  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
+
   var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc && desc.writable) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+  var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var util = __webpack_require__(1);
-  var Hammer = __webpack_require__(19);
-  var hammerUtil = __webpack_require__(24);
-  var keycharm = __webpack_require__(39);
+  /**
+   * Created by Alex on 3/20/2015.
+   */
 
-  var NavigationHandler = (function () {
-    function NavigationHandler(body, canvas) {
-      var _this = this;
-      _classCallCheck(this, NavigationHandler);
+  var BezierEdgeBase = _interopRequire(__webpack_require__(100));
 
-      this.body = body;
-      this.canvas = canvas;
+  var BezierEdgeDynamic = (function (BezierEdgeBase) {
+    function BezierEdgeDynamic(options, body, labelModule) {
+      _classCallCheck(this, BezierEdgeDynamic);
 
-      this.iconsCreated = false;
-      this.navigationHammers = [];
-      this.boundFunctions = {};
-      this.touchTime = 0;
-      this.activated = false;
-
-
-      this.body.emitter.on("release", this._stopMovement.bind(this));
-      this.body.emitter.on("activate", function () {
-        _this.activated = true;_this.configureKeyboardBindings();
-      });
-      this.body.emitter.on("deactivate", function () {
-        _this.activated = false;_this.configureKeyboardBindings();
-      });
-      this.body.emitter.on("destroy", function () {
-        if (_this.keycharm !== undefined) {
-          _this.keycharm.destroy();
-        }
-      });
-
-      this.options = {};
+      this.via = undefined;
+      _get(Object.getPrototypeOf(BezierEdgeDynamic.prototype), "constructor", this).call(this, options, body, labelModule); // --> this calls the setOptions below
     }
 
-    _prototypeProperties(NavigationHandler, null, {
+    _inherits(BezierEdgeDynamic, BezierEdgeBase);
+
+    _prototypeProperties(BezierEdgeDynamic, null, {
       setOptions: {
         value: function setOptions(options) {
-          if (options !== undefined) {
-            this.options = options;
-            this.create();
-          }
+          this.options = options;
+          this.from = this.body.nodes[this.options.from];
+          this.to = this.body.nodes[this.options.to];
+          this.id = this.options.id;
+          this.setupSupportNode();
         },
         writable: true,
         configurable: true
       },
-      create: {
-        value: function create() {
-          if (this.options.showNavigationIcons === true) {
-            if (this.iconsCreated === false) {
-              this.loadNavigationElements();
-            }
-          } else if (this.iconsCreated === true) {
-            this.cleanNavigation();
+      cleanup: {
+        value: function cleanup() {
+          if (this.via !== undefined) {
+            delete this.body.nodes[this.via.id];
+            this.via = undefined;
+            return true;
           }
-
-          this.configureKeyboardBindings();
+          return false;
         },
         writable: true,
         configurable: true
       },
-      cleanNavigation: {
-        value: function cleanNavigation() {
-          // clean hammer bindings
-          if (this.navigationHammers.length != 0) {
-            for (var i = 0; i < this.navigationHammers.length; i++) {
-              this.navigationHammers[i].destroy();
-            }
-            this.navigationHammers = [];
-          }
-
-          this._navigationReleaseOverload = function () {};
-
-          // clean up previous navigation items
-          if (this.navigationDOM && this.navigationDOM.wrapper && this.navigationDOM.wrapper.parentNode) {
-            this.navigationDOM.wrapper.parentNode.removeChild(this.navigationDOM.wrapper);
-          }
-
-          this.iconsCreated = false;
-        },
-        writable: true,
-        configurable: true
-      },
-      loadNavigationElements: {
+      setupSupportNode: {
 
         /**
-         * Creation of the navigation controls nodes. They are drawn over the rest of the nodes and are not affected by scale and translation
-         * they have a triggerFunction which is called on click. If the position of the navigation controls is dependent
-         * on this.frame.canvas.clientWidth or this.frame.canvas.clientHeight, we flag horizontalAlignLeft and verticalAlignTop false.
-         * This means that the location will be corrected by the _relocateNavigation function on a size change of the canvas.
+         * Bezier curves require an anchor point to calculate the smooth flow. These points are nodes. These nodes are invisible but
+         * are used for the force calculation.
          *
+         * The changed data is not called, if needed, it is returned by the main edge constructor.
          * @private
          */
-        value: function loadNavigationElements() {
-          this.cleanNavigation();
-
-          this.navigationDOM = {};
-          var navigationDivs = ["up", "down", "left", "right", "zoomIn", "zoomOut", "zoomExtends"];
-          var navigationDivActions = ["_moveUp", "_moveDown", "_moveLeft", "_moveRight", "_zoomIn", "_zoomOut", "_zoomExtent"];
-
-          this.navigationDOM.wrapper = document.createElement("div");
-          this.canvas.frame.appendChild(this.navigationDOM.wrapper);
-
-          for (var i = 0; i < navigationDivs.length; i++) {
-            this.navigationDOM[navigationDivs[i]] = document.createElement("div");
-            this.navigationDOM[navigationDivs[i]].className = "network-navigation " + navigationDivs[i];
-            this.navigationDOM.wrapper.appendChild(this.navigationDOM[navigationDivs[i]]);
-
-            var hammer = new Hammer(this.navigationDOM[navigationDivs[i]]);
-            if (navigationDivActions[i] == "_zoomExtent") {
-              hammerUtil.onTouch(hammer, this._zoomExtent.bind(this));
-            } else {
-              hammerUtil.onTouch(hammer, this.bindToRedraw.bind(this, navigationDivActions[i]));
-            }
-
-            this.navigationHammers.push(hammer);
-          }
-
-          this.iconsCreated = true;
-        },
-        writable: true,
-        configurable: true
-      },
-      bindToRedraw: {
-        value: function bindToRedraw(action) {
-          if (this.boundFunctions[action] === undefined) {
-            this.boundFunctions[action] = this[action].bind(this);
-            this.body.emitter.on("initRedraw", this.boundFunctions[action]);
-            this.body.emitter.emit("_startRendering");
+        value: function setupSupportNode() {
+          if (this.via === undefined) {
+            var nodeId = "edgeId:" + this.id;
+            var node = this.body.functions.createNode({
+              id: nodeId,
+              mass: 1,
+              shape: "circle",
+              image: "",
+              physics: true,
+              hidden: true
+            });
+            this.body.nodes[nodeId] = node;
+            this.via = node;
+            this.via.parentEdgeId = this.id;
+            this.positionBezierNode();
           }
         },
         writable: true,
         configurable: true
       },
-      unbindFromRedraw: {
-        value: function unbindFromRedraw(action) {
-          if (this.boundFunctions[action] !== undefined) {
-            this.body.emitter.off("initRedraw", this.boundFunctions[action]);
-            this.body.emitter.emit("_stopRendering");
-            delete this.boundFunctions[action];
+      positionBezierNode: {
+        value: function positionBezierNode() {
+          if (this.via !== undefined && this.from !== undefined && this.to !== undefined) {
+            this.via.x = 0.5 * (this.from.x + this.to.x);
+            this.via.y = 0.5 * (this.from.y + this.to.y);
+          } else if (this.via !== undefined) {
+            this.via.x = 0;
+            this.via.y = 0;
           }
         },
         writable: true,
         configurable: true
       },
-      _zoomExtent: {
+      _line: {
 
         /**
-         * this stops all movement induced by the navigation buttons
-         *
+         * Draw a line between two nodes
+         * @param {CanvasRenderingContext2D} ctx
          * @private
          */
-        value: function _zoomExtent() {
-          if (new Date().valueOf() - this.touchTime > 700) {
-            // TODO: fix ugly hack to avoid hammer's double fireing of event (because we use release?)
-            this.body.emitter.emit("zoomExtent", { duration: 700 });
-            this.touchTime = new Date().valueOf();
-          }
+        value: function _line(ctx) {
+          // draw a straight line
+          ctx.beginPath();
+          ctx.moveTo(this.from.x, this.from.y);
+          ctx.quadraticCurveTo(this.via.x, this.via.y, this.to.x, this.to.y);
+          ctx.stroke();
+          return this.via;
         },
         writable: true,
         configurable: true
       },
-      _stopMovement: {
+      getPoint: {
+
 
         /**
-         * this stops all movement induced by the navigation buttons
-         *
+         * Combined function of pointOnLine and pointOnBezier. This gives the coordinates of a point on the line at a certain percentage of the way
+         * @param percentage
+         * @param via
+         * @returns {{x: number, y: number}}
          * @private
          */
-        value: function _stopMovement() {
-          for (var boundAction in this.boundFunctions) {
-            if (this.boundFunctions.hasOwnProperty(boundAction)) {
-              this.body.emitter.off("initRedraw", this.boundFunctions[boundAction]);
-              this.body.emitter.emit("_stopRendering");
-            }
-          }
-          this.boundFunctions = {};
-        },
-        writable: true,
-        configurable: true
-      },
-      _moveUp: {
-        value: function _moveUp() {
-          this.body.view.translation.y += this.options.keyboard.speed.y;
-        },
-        writable: true,
-        configurable: true
-      },
-      _moveDown: {
-        value: function _moveDown() {
-          this.body.view.translation.y -= this.options.keyboard.speed.y;
-        },
-        writable: true,
-        configurable: true
-      },
-      _moveLeft: {
-        value: function _moveLeft() {
-          this.body.view.translation.x += this.options.keyboard.speed.x;
-        },
-        writable: true,
-        configurable: true
-      },
-      _moveRight: {
-        value: function _moveRight() {
-          this.body.view.translation.x -= this.options.keyboard.speed.x;
-        },
-        writable: true,
-        configurable: true
-      },
-      _zoomIn: {
-        value: function _zoomIn() {
-          this.body.view.scale += this.options.keyboard.speed.zoom;
-        },
-        writable: true,
-        configurable: true
-      },
-      _zoomOut: {
-        value: function _zoomOut() {
-          this.body.view.scale -= this.options.keyboard.speed.zoom;
-        },
-        writable: true,
-        configurable: true
-      },
-      configureKeyboardBindings: {
+        value: function getPoint(percentage) {
+          var t = percentage;
+          var x = Math.pow(1 - t, 2) * this.from.x + 2 * t * (1 - t) * this.via.x + Math.pow(t, 2) * this.to.x;
+          var y = Math.pow(1 - t, 2) * this.from.y + 2 * t * (1 - t) * this.via.y + Math.pow(t, 2) * this.to.y;
 
-
-        /**
-         * bind all keys using keycharm.
-         */
-        value: function configureKeyboardBindings() {
-          if (this.keycharm !== undefined) {
-            this.keycharm.destroy();
-          }
-
-          if (this.options.keyboard.enabled === true) {
-            if (this.options.keyboard.bindToWindow === true) {
-              this.keycharm = keycharm({ container: window, preventDefault: false });
-            } else {
-              this.keycharm = keycharm({ container: this.canvas.frame, preventDefault: false });
-            }
-
-            this.keycharm.reset();
-
-            if (this.activated === true) {
-              this.keycharm.bind("up", this.bindToRedraw.bind(this, "_moveUp"), "keydown");
-              this.keycharm.bind("down", this.bindToRedraw.bind(this, "_moveDown"), "keydown");
-              this.keycharm.bind("left", this.bindToRedraw.bind(this, "_moveLeft"), "keydown");
-              this.keycharm.bind("right", this.bindToRedraw.bind(this, "_moveRight"), "keydown");
-              this.keycharm.bind("=", this.bindToRedraw.bind(this, "_zoomIn"), "keydown");
-              this.keycharm.bind("num+", this.bindToRedraw.bind(this, "_zoomIn"), "keydown");
-              this.keycharm.bind("num-", this.bindToRedraw.bind(this, "_zoomOut"), "keydown");
-              this.keycharm.bind("-", this.bindToRedraw.bind(this, "_zoomOut"), "keydown");
-              this.keycharm.bind("[", this.bindToRedraw.bind(this, "_zoomOut"), "keydown");
-              this.keycharm.bind("]", this.bindToRedraw.bind(this, "_zoomIn"), "keydown");
-              this.keycharm.bind("pageup", this.bindToRedraw.bind(this, "_zoomIn"), "keydown");
-              this.keycharm.bind("pagedown", this.bindToRedraw.bind(this, "_zoomOut"), "keydown");
-
-              this.keycharm.bind("up", this.unbindFromRedraw.bind(this, "_moveUp"), "keyup");
-              this.keycharm.bind("down", this.unbindFromRedraw.bind(this, "_moveDown"), "keyup");
-              this.keycharm.bind("left", this.unbindFromRedraw.bind(this, "_moveLeft"), "keyup");
-              this.keycharm.bind("right", this.unbindFromRedraw.bind(this, "_moveRight"), "keyup");
-              this.keycharm.bind("=", this.unbindFromRedraw.bind(this, "_zoomIn"), "keyup");
-              this.keycharm.bind("num+", this.unbindFromRedraw.bind(this, "_zoomIn"), "keyup");
-              this.keycharm.bind("num-", this.unbindFromRedraw.bind(this, "_zoomOut"), "keyup");
-              this.keycharm.bind("-", this.unbindFromRedraw.bind(this, "_zoomOut"), "keyup");
-              this.keycharm.bind("[", this.unbindFromRedraw.bind(this, "_zoomOut"), "keyup");
-              this.keycharm.bind("]", this.unbindFromRedraw.bind(this, "_zoomIn"), "keyup");
-              this.keycharm.bind("pageup", this.unbindFromRedraw.bind(this, "_zoomIn"), "keyup");
-              this.keycharm.bind("pagedown", this.unbindFromRedraw.bind(this, "_zoomOut"), "keyup");
-            }
-          }
+          return { x: x, y: y };
+        },
+        writable: true,
+        configurable: true
+      },
+      _findBorderPosition: {
+        value: function _findBorderPosition(nearNode, ctx) {
+          return this._findBorderPositionBezier(nearNode, ctx, this.via);
+        },
+        writable: true,
+        configurable: true
+      },
+      _getDistanceToEdge: {
+        value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
+          // x3,y3 is the point
+          return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, this.via);
         },
         writable: true,
         configurable: true
       }
     });
 
-    return NavigationHandler;
-  })();
+    return BezierEdgeDynamic;
+  })(BezierEdgeBase);
 
-  module.exports = NavigationHandler;
+  module.exports = BezierEdgeDynamic;
 
 /***/ },
-/* 103 */
+/* 100 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc && desc.writable) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+  var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  /**
+   * Created by Alex on 3/20/2015.
+   */
+
+  var EdgeBase = _interopRequire(__webpack_require__(101));
+
+  var BezierEdgeBase = (function (EdgeBase) {
+    function BezierEdgeBase(options, body, labelModule) {
+      _classCallCheck(this, BezierEdgeBase);
+
+      _get(Object.getPrototypeOf(BezierEdgeBase.prototype), "constructor", this).call(this, options, body, labelModule);
+    }
+
+    _inherits(BezierEdgeBase, EdgeBase);
+
+    _prototypeProperties(BezierEdgeBase, null, {
+      _findBorderPositionBezier: {
+
+        /**
+         * This function uses binary search to look for the point where the bezier curve crosses the border of the node.
+         *
+         * @param nearNode
+         * @param ctx
+         * @param viaNode
+         * @param nearNode
+         * @param ctx
+         * @param viaNode
+         * @param nearNode
+         * @param ctx
+         * @param viaNode
+         */
+        value: function _findBorderPositionBezier(nearNode, ctx) {
+          var viaNode = arguments[2] === undefined ? this._getViaCoordinates() : arguments[2];
+          var maxIterations = 10;
+          var iteration = 0;
+          var low = 0;
+          var high = 1;
+          var pos, angle, distanceToBorder, distanceToPoint, difference;
+          var threshold = 0.2;
+          var node = this.to;
+          var from = false;
+          if (nearNode.id === this.from.id) {
+            node = this.from;
+            from = true;
+          }
+
+          while (low <= high && iteration < maxIterations) {
+            var middle = (low + high) * 0.5;
+
+            pos = this.getPoint(middle, viaNode);
+            angle = Math.atan2(node.y - pos.y, node.x - pos.x);
+            distanceToBorder = node.distanceToBorder(ctx, angle);
+            distanceToPoint = Math.sqrt(Math.pow(pos.x - node.x, 2) + Math.pow(pos.y - node.y, 2));
+            difference = distanceToBorder - distanceToPoint;
+            if (Math.abs(difference) < threshold) {
+              break; // found
+            } else if (difference < 0) {
+              // distance to nodes is larger than distance to border --> t needs to be bigger if we're looking at the to node.
+              if (from == false) {
+                low = middle;
+              } else {
+                high = middle;
+              }
+            } else {
+              if (from == false) {
+                high = middle;
+              } else {
+                low = middle;
+              }
+            }
+
+            iteration++;
+          }
+          pos.t = middle;
+
+          return pos;
+        },
+        writable: true,
+        configurable: true
+      },
+      _getDistanceToBezierEdge: {
+
+
+
+        /**
+         * Calculate the distance between a point (x3,y3) and a line segment from
+         * (x1,y1) to (x2,y2).
+         * http://stackoverflow.com/questions/849211/shortest-distancae-between-a-point-and-a-line-segment
+         * @param {number} x1
+         * @param {number} y1
+         * @param {number} x2
+         * @param {number} y2
+         * @param {number} x3
+         * @param {number} y3
+         * @private
+         */
+        value: function _getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, via) {
+          // x3,y3 is the point
+          var xVia = undefined,
+              yVia = undefined;
+          xVia = via.x;
+          yVia = via.y;
+          var minDistance = 1000000000;
+          var distance = undefined;
+          var i = undefined,
+              t = undefined,
+              x = undefined,
+              y = undefined;
+          var lastX = x1;
+          var lastY = y1;
+          for (i = 1; i < 10; i++) {
+            t = 0.1 * i;
+            x = Math.pow(1 - t, 2) * x1 + 2 * t * (1 - t) * xVia + Math.pow(t, 2) * x2;
+            y = Math.pow(1 - t, 2) * y1 + 2 * t * (1 - t) * yVia + Math.pow(t, 2) * y2;
+            if (i > 0) {
+              distance = this._getDistanceToLine(lastX, lastY, x, y, x3, y3);
+              minDistance = distance < minDistance ? distance : minDistance;
+            }
+            lastX = x;
+            lastY = y;
+          }
+
+          return minDistance;
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return BezierEdgeBase;
+  })(EdgeBase);
+
+  module.exports = BezierEdgeBase;
+
+/***/ },
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -35484,162 +34781,856 @@ return /******/ (function(modules) { // webpackBootstrap
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
   /**
-   * Popup is a class to create a popup window with some text
-   * @param {Element}  container     The container object.
-   * @param {Number} [x]
-   * @param {Number} [y]
-   * @param {String} [text]
-   * @param {Object} [style]     An object containing borderColor,
-   *                             backgroundColor, etc.
+   * Created by Alex on 3/20/2015.
    */
-  var Popup = (function () {
-    function Popup(container, x, y, text, style) {
-      _classCallCheck(this, Popup);
+  var util = __webpack_require__(1);
 
-      if (container) {
-        this.container = container;
-      } else {
-        this.container = document.body;
-      }
+  var EdgeBase = (function () {
+    function EdgeBase(options, body, labelModule) {
+      _classCallCheck(this, EdgeBase);
 
-      // x, y and text are optional, see if a style object was passed in their place
-      if (style === undefined) {
-        if (typeof x === "object") {
-          style = x;
-          x = undefined;
-        } else if (typeof text === "object") {
-          style = text;
-          text = undefined;
-        } else {
-          // for backwards compatibility, in case clients other than Network are creating Popup directly
-          style = {
-            fontColor: "black",
-            fontSize: 14, // px
-            fontFace: "verdana",
-            color: {
-              border: "#666",
-              background: "#FFFFC6"
-            }
-          };
-        }
-      }
-
-      this.x = 0;
-      this.y = 0;
-      this.padding = 5;
-      this.hidden = false;
-
-      if (x !== undefined && y !== undefined) {
-        this.setPosition(x, y);
-      }
-      if (text !== undefined) {
-        this.setText(text);
-      }
-
-      // create the frame
-      this.frame = document.createElement("div");
-      this.frame.className = "network-tooltip";
-      this.frame.style.color = style.fontColor;
-      this.frame.style.backgroundColor = style.color.background;
-      this.frame.style.borderColor = style.color.border;
-      this.frame.style.fontSize = style.fontSize + "px";
-      this.frame.style.fontFamily = style.fontFace;
-      this.container.appendChild(this.frame);
+      this.body = body;
+      this.labelModule = labelModule;
+      this.setOptions(options);
+      this.colorDirty = true;
     }
 
-    _prototypeProperties(Popup, null, {
-      setPosition: {
-
-        /**
-         * @param {number} x   Horizontal position of the popup window
-         * @param {number} y   Vertical position of the popup window
-         */
-        value: function setPosition(x, y) {
-          this.x = parseInt(x);
-          this.y = parseInt(y);
+    _prototypeProperties(EdgeBase, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          this.options = options;
+          this.from = this.body.nodes[this.options.from];
+          this.to = this.body.nodes[this.options.to];
+          this.id = this.options.id;
         },
         writable: true,
         configurable: true
       },
-      setText: {
+      drawLine: {
 
         /**
-         * Set the content for the popup window. This can be HTML code or text.
-         * @param {string | Element} content
+         * Redraw a edge as a line
+         * Draw this edge in the given canvas
+         * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+         * @param {CanvasRenderingContext2D}   ctx
+         * @private
          */
-        value: function setText(content) {
-          if (content instanceof Element) {
-            this.frame.innerHTML = "";
-            this.frame.appendChild(content);
+        value: function drawLine(ctx, selected, hover) {
+          // set style
+          ctx.strokeStyle = this.getColor(ctx);
+          ctx.lineWidth = this.getLineWidth(selected, hover);
+          var via = undefined;
+          if (this.from != this.to) {
+            // draw line
+            if (this.options.dashes.enabled == true) {
+              via = this._drawDashedLine(ctx);
+            } else {
+              via = this._line(ctx);
+            }
           } else {
-            this.frame.innerHTML = content; // string containing text or HTML
+            var x = undefined,
+                y = undefined;
+            var radius = this.options.selfReferenceSize;
+            var node = this.from;
+            node.resize(ctx);
+            if (node.shape.width > node.shape.height) {
+              x = node.x + node.shape.width * 0.5;
+              y = node.y - radius;
+            } else {
+              x = node.x + radius;
+              y = node.y - node.shape.height * 0.5;
+            }
+            this._circle(ctx, x, y, radius);
           }
+
+          return via;
         },
         writable: true,
         configurable: true
       },
-      show: {
-
-        /**
-         * Show the popup window
-         * @param {boolean} show    Optional. Show or hide the window
-         */
-        value: function show(show) {
-          if (show === undefined) {
-            show = true;
-          }
-
-          if (show === true) {
-            var height = this.frame.clientHeight;
-            var width = this.frame.clientWidth;
-            var maxHeight = this.frame.parentNode.clientHeight;
-            var maxWidth = this.frame.parentNode.clientWidth;
-
-            var top = this.y - height;
-            if (top + height + this.padding > maxHeight) {
-              top = maxHeight - height - this.padding;
-            }
-            if (top < this.padding) {
-              top = this.padding;
+      _drawDashedLine: {
+        value: function _drawDashedLine(ctx) {
+          var via = undefined;
+          // only firefox and chrome support this method, else we use the legacy one.
+          if (ctx.setLineDash !== undefined) {
+            ctx.save();
+            // configure the dash pattern
+            var pattern = [0];
+            if (this.options.dashes.length !== undefined && this.options.dashes.gap !== undefined) {
+              pattern = [this.options.dashes.length, this.options.dashes.gap];
+            } else {
+              pattern = [5, 5];
             }
 
-            var left = this.x;
-            if (left + width + this.padding > maxWidth) {
-              left = maxWidth - width - this.padding;
-            }
-            if (left < this.padding) {
-              left = this.padding;
-            }
+            // set dash settings for chrome or firefox
+            ctx.setLineDash(pattern);
+            ctx.lineDashOffset = 0;
 
-            this.frame.style.left = left + "px";
-            this.frame.style.top = top + "px";
-            this.frame.style.visibility = "visible";
-            this.hidden = false;
+            // draw the line
+            via = this._line(ctx);
+
+            // restore the dash settings.
+            ctx.setLineDash([0]);
+            ctx.lineDashOffset = 0;
+            ctx.restore();
           } else {
-            this.hide();
+            // unsupporting smooth lines
+            // draw dashes line
+            ctx.beginPath();
+            ctx.lineCap = "round";
+            if (this.options.dashes.altLength !== undefined) //If an alt dash value has been set add to the array this value
+              {
+                ctx.dashesLine(this.from.x, this.from.y, this.to.x, this.to.y, [this.options.dashes.length, this.options.dashes.gap, this.options.dashes.altLength, this.options.dashes.gap]);
+              } else if (this.options.dashes.length !== undefined && this.options.dashes.gap !== undefined) //If a dash and gap value has been set add to the array this value
+              {
+                ctx.dashesLine(this.from.x, this.from.y, this.to.x, this.to.y, [this.options.dashes.length, this.options.dashes.gap]);
+              } else //If all else fails draw a line
+              {
+                ctx.moveTo(this.from.x, this.from.y);
+                ctx.lineTo(this.to.x, this.to.y);
+              }
+            ctx.stroke();
+          }
+          return via;
+        },
+        writable: true,
+        configurable: true
+      },
+      findBorderPosition: {
+        value: function findBorderPosition(nearNode, ctx, options) {
+          if (this.from != this.to) {
+            return this._findBorderPosition(nearNode, ctx, options);
+          } else {
+            return this._findBorderPositionCircle(nearNode, ctx, options);
           }
         },
         writable: true,
         configurable: true
       },
-      hide: {
+      _findBorderPositionCircle: {
+
 
         /**
-         * Hide the popup window
+         * This function uses binary search to look for the point where the circle crosses the border of the node.
+         * @param x
+         * @param y
+         * @param radius
+         * @param node
+         * @param low
+         * @param high
+         * @param direction
+         * @param ctx
+         * @returns {*}
+         * @private
          */
-        value: function hide() {
-          this.hidden = true;
-          this.frame.style.visibility = "hidden";
+        value: function _findBorderPositionCircle(node, ctx, options) {
+          var x = options.x;
+          var y = options.y;
+          var low = options.low;
+          var high = options.high;
+          var direction = options.direction;
+
+          var maxIterations = 10;
+          var iteration = 0;
+          var radius = this.options.selfReferenceSize;
+          var pos = undefined,
+              angle = undefined,
+              distanceToBorder = undefined,
+              distanceToPoint = undefined,
+              difference = undefined;
+          var threshold = 0.05;
+
+          while (low <= high && iteration < maxIterations) {
+            var _middle = (low + high) * 0.5;
+
+            pos = this._pointOnCircle(x, y, radius, _middle);
+            angle = Math.atan2(node.y - pos.y, node.x - pos.x);
+            distanceToBorder = node.distanceToBorder(ctx, angle);
+            distanceToPoint = Math.sqrt(Math.pow(pos.x - node.x, 2) + Math.pow(pos.y - node.y, 2));
+            difference = distanceToBorder - distanceToPoint;
+            if (Math.abs(difference) < threshold) {
+              break; // found
+            } else if (difference > 0) {
+              // distance to nodes is larger than distance to border --> t needs to be bigger if we're looking at the to node.
+              if (direction > 0) {
+                low = _middle;
+              } else {
+                high = _middle;
+              }
+            } else {
+              if (direction > 0) {
+                high = _middle;
+              } else {
+                low = _middle;
+              }
+            }
+            iteration++;
+          }
+          pos.t = middle;
+
+          return pos;
+        },
+        writable: true,
+        configurable: true
+      },
+      getLineWidth: {
+
+        /**
+         * Get the line width of the edge. Depends on width and whether one of the
+         * connected nodes is selected.
+         * @return {Number} width
+         * @private
+         */
+        value: function getLineWidth(selected, hover) {
+          if (selected == true) {
+            return Math.max(Math.min(this.options.widthSelectionMultiplier * this.options.width, this.options.scaling.max), 0.3 / this.body.view.scale);
+          } else {
+            if (hover == true) {
+              return Math.max(Math.min(this.options.hoverWidth, this.options.scaling.max), 0.3 / this.body.view.scale);
+            } else {
+              return Math.max(this.options.width, 0.3 / this.body.view.scale);
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      getColor: {
+        value: function getColor(ctx) {
+          var colorObj = this.options.color;
+
+          if (colorObj.inherit.enabled === true) {
+            if (colorObj.inherit.useGradients == true) {
+              var grd = ctx.createLinearGradient(this.from.x, this.from.y, this.to.x, this.to.y);
+              var fromColor, toColor;
+              fromColor = this.from.options.color.highlight.border;
+              toColor = this.to.options.color.highlight.border;
+
+              if (this.from.selected == false && this.to.selected == false) {
+                fromColor = util.overrideOpacity(this.from.options.color.border, this.options.color.opacity);
+                toColor = util.overrideOpacity(this.to.options.color.border, this.options.color.opacity);
+              } else if (this.from.selected == true && this.to.selected == false) {
+                toColor = this.to.options.color.border;
+              } else if (this.from.selected == false && this.to.selected == true) {
+                fromColor = this.from.options.color.border;
+              }
+              grd.addColorStop(0, fromColor);
+              grd.addColorStop(1, toColor);
+
+              // -------------------- this returns -------------------- //
+              return grd;
+            }
+
+            if (this.colorDirty === true) {
+              if (colorObj.inherit.source == "to") {
+                colorObj.highlight = this.to.options.color.highlight.border;
+                colorObj.hover = this.to.options.color.hover.border;
+                colorObj.color = util.overrideOpacity(this.to.options.color.border, this.options.color.opacity);
+              } else {
+                // (this.options.color.inherit.source == "from") {
+                colorObj.highlight = this.from.options.color.highlight.border;
+                colorObj.hover = this.from.options.color.hover.border;
+                colorObj.color = util.overrideOpacity(this.from.options.color.border, this.options.color.opacity);
+              }
+            }
+          }
+
+          // if color inherit is on and gradients are used, the function has already returned by now.
+          this.colorDirty = false;
+
+          if (this.selected == true) {
+            return colorObj.highlight;
+          } else if (this.hover == true) {
+            return colorObj.hover;
+          } else {
+            return colorObj.color;
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _circle: {
+
+        /**
+         * Draw a line from a node to itself, a circle
+         * @param {CanvasRenderingContext2D} ctx
+         * @param {Number} x
+         * @param {Number} y
+         * @param {Number} radius
+         * @private
+         */
+        value: function _circle(ctx, x, y, radius) {
+          // draw a circle
+          ctx.beginPath();
+          ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
+          ctx.stroke();
+        },
+        writable: true,
+        configurable: true
+      },
+      getDistanceToEdge: {
+
+
+        /**
+         * Calculate the distance between a point (x3,y3) and a line segment from
+         * (x1,y1) to (x2,y2).
+         * http://stackoverflow.com/questions/849211/shortest-distancae-between-a-point-and-a-line-segment
+         * @param {number} x1
+         * @param {number} y1
+         * @param {number} x2
+         * @param {number} y2
+         * @param {number} x3
+         * @param {number} y3
+         * @private
+         */
+        value: function getDistanceToEdge(x1, y1, x2, y2, x3, y3, via) {
+          // x3,y3 is the point
+          var returnValue = 0;
+          if (this.from != this.to) {
+            returnValue = this._getDistanceToEdge(x1, y1, x2, y2, x3, y3, via);
+          } else {
+            var x, y, dx, dy;
+            var radius = this.options.selfReferenceSize;
+            var node = this.from;
+            if (node.width > node.height) {
+              x = node.x + 0.5 * node.width;
+              y = node.y - radius;
+            } else {
+              x = node.x + radius;
+              y = node.y - 0.5 * node.height;
+            }
+            dx = x - x3;
+            dy = y - y3;
+            returnValue = Math.abs(Math.sqrt(dx * dx + dy * dy) - radius);
+          }
+
+          if (this.labelModule.size.left < x3 && this.labelModule.size.left + this.labelModule.size.width > x3 && this.labelModule.size.top < y3 && this.labelModule.size.top + this.labelModule.size.height > y3) {
+            return 0;
+          } else {
+            return returnValue;
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _getDistanceToLine: {
+        value: function _getDistanceToLine(x1, y1, x2, y2, x3, y3) {
+          var px = x2 - x1;
+          var py = y2 - y1;
+          var something = px * px + py * py;
+          var u = ((x3 - x1) * px + (y3 - y1) * py) / something;
+
+          if (u > 1) {
+            u = 1;
+          } else if (u < 0) {
+            u = 0;
+          }
+
+          var x = x1 + u * px;
+          var y = y1 + u * py;
+          var dx = x - x3;
+          var dy = y - y3;
+
+          //# Note: If the actual distance does not matter,
+          //# if you only want to compare what this function
+          //# returns to other results of this function, you
+          //# can just return the squared distance instead
+          //# (i.e. remove the sqrt) to gain a little performance
+
+          return Math.sqrt(dx * dx + dy * dy);
+        },
+        writable: true,
+        configurable: true
+      },
+      drawArrowHead: {
+
+        /**
+         *
+         * @param ctx
+         * @param position
+         * @param viaNode
+         */
+        value: function drawArrowHead(ctx, position, viaNode, selected, hover) {
+          // set style
+          ctx.strokeStyle = this.getColor(ctx);
+          ctx.fillStyle = ctx.strokeStyle;
+          ctx.lineWidth = this.getLineWidth(selected, hover);
+
+          // set lets
+          var angle = undefined;
+          var length = undefined;
+          var arrowPos = undefined;
+          var node1 = undefined;
+          var node2 = undefined;
+          var guideOffset = undefined;
+          var scaleFactor = undefined;
+
+          if (position == "from") {
+            node1 = this.from;
+            node2 = this.to;
+            guideOffset = 0.1;
+            scaleFactor = this.options.arrows.from.scaleFactor;
+          } else if (position == "to") {
+            node1 = this.to;
+            node2 = this.from;
+            guideOffset = -0.1;
+            scaleFactor = this.options.arrows.to.scaleFactor;
+          } else {
+            node1 = this.to;
+            node2 = this.from;
+            scaleFactor = this.options.arrows.middle.scaleFactor;
+          }
+
+          // if not connected to itself
+          if (node1 != node2) {
+            if (position !== "middle") {
+              // draw arrow head
+              if (this.options.smooth.enabled == true) {
+                arrowPos = this.findBorderPosition(node1, ctx, { via: viaNode });
+                var guidePos = this.getPoint(Math.max(0, Math.min(1, arrowPos.t + guideOffset)), viaNode);
+                angle = Math.atan2(arrowPos.y - guidePos.y, arrowPos.x - guidePos.x);
+              } else {
+                angle = Math.atan2(node1.y - node2.y, node1.x - node2.x);
+                arrowPos = this.findBorderPosition(node1, ctx);
+              }
+            } else {
+              angle = Math.atan2(node1.y - node2.y, node1.x - node2.x);
+              arrowPos = this.getPoint(0.6, viaNode); // this is 0.6 to account for the size of the arrow.
+            }
+            // draw arrow at the end of the line
+            length = (10 + 5 * this.options.width) * scaleFactor;
+            ctx.arrow(arrowPos.x, arrowPos.y, angle, length);
+            ctx.fill();
+            ctx.stroke();
+          } else {
+            // draw circle
+            var _angle = undefined,
+                point = undefined;
+            var x = undefined,
+                y = undefined;
+            var radius = this.options.selfReferenceSize;
+            if (!node1.width) {
+              node1.resize(ctx);
+            }
+
+            // get circle coordinates
+            if (node1.width > node1.height) {
+              x = node1.x + node1.width * 0.5;
+              y = node1.y - radius;
+            } else {
+              x = node1.x + radius;
+              y = node1.y - node1.height * 0.5;
+            }
+
+
+            if (position == "from") {
+              point = this.findBorderPosition(x, y, radius, node1, 0.25, 0.6, -1, ctx);
+              _angle = point.t * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
+            } else if (position == "to") {
+              point = this.findBorderPosition(x, y, radius, node1, 0.6, 0.8, 1, ctx);
+              _angle = point.t * -2 * Math.PI + 1.5 * Math.PI - 1.1 * Math.PI;
+            } else {
+              point = this.findBorderPosition(x, y, radius, 0.175);
+              _angle = 3.9269908169872414; // == 0.175 * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
+            }
+
+            // draw the arrowhead
+            var _length = (10 + 5 * this.options.width) * scaleFactor;
+            ctx.arrow(point.x, point.y, _angle, _length);
+            ctx.fill();
+            ctx.stroke();
+          }
         },
         writable: true,
         configurable: true
       }
     });
 
-    return Popup;
+    return EdgeBase;
   })();
 
-  module.exports = Popup;
+  module.exports = EdgeBase;
+
+/***/ },
+/* 102 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc && desc.writable) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+  var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  /**
+   * Created by Alex on 3/20/2015.
+   */
+
+  var BezierEdgeBase = _interopRequire(__webpack_require__(100));
+
+  var BezierEdgeStatic = (function (BezierEdgeBase) {
+    function BezierEdgeStatic(options, body, labelModule) {
+      _classCallCheck(this, BezierEdgeStatic);
+
+      _get(Object.getPrototypeOf(BezierEdgeStatic.prototype), "constructor", this).call(this, options, body, labelModule);
+    }
+
+    _inherits(BezierEdgeStatic, BezierEdgeBase);
+
+    _prototypeProperties(BezierEdgeStatic, null, {
+      cleanup: {
+        value: function cleanup() {
+          return false;
+        },
+        writable: true,
+        configurable: true
+      },
+      _line: {
+        /**
+         * Draw a line between two nodes
+         * @param {CanvasRenderingContext2D} ctx
+         * @private
+         */
+        value: function _line(ctx) {
+          // draw a straight line
+          ctx.beginPath();
+          ctx.moveTo(this.from.x, this.from.y);
+          var via = this._getViaCoordinates();
+
+          // fallback to normal straight edges
+          if (via.x === undefined) {
+            ctx.lineTo(this.to.x, this.to.y);
+            ctx.stroke();
+            return undefined;
+          } else {
+            ctx.quadraticCurveTo(via.x, via.y, this.to.x, this.to.y);
+            ctx.stroke();
+            return via;
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _getViaCoordinates: {
+        value: function _getViaCoordinates() {
+          var xVia = undefined;
+          var yVia = undefined;
+          var factor = this.options.smooth.roundness;
+          var type = this.options.smooth.type;
+          var dx = Math.abs(this.from.x - this.to.x);
+          var dy = Math.abs(this.from.y - this.to.y);
+          if (type == "discrete" || type == "diagonalCross") {
+            if (Math.abs(this.from.x - this.to.x) < Math.abs(this.from.y - this.to.y)) {
+              if (this.from.y > this.to.y) {
+                if (this.from.x < this.to.x) {
+                  xVia = this.from.x + factor * dy;
+                  yVia = this.from.y - factor * dy;
+                } else if (this.from.x > this.to.x) {
+                  xVia = this.from.x - factor * dy;
+                  yVia = this.from.y - factor * dy;
+                }
+              } else if (this.from.y < this.to.y) {
+                if (this.from.x < this.to.x) {
+                  xVia = this.from.x + factor * dy;
+                  yVia = this.from.y + factor * dy;
+                } else if (this.from.x > this.to.x) {
+                  xVia = this.from.x - factor * dy;
+                  yVia = this.from.y + factor * dy;
+                }
+              }
+              if (type == "discrete") {
+                xVia = dx < factor * dy ? this.from.x : xVia;
+              }
+            } else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) {
+              if (this.from.y > this.to.y) {
+                if (this.from.x < this.to.x) {
+                  xVia = this.from.x + factor * dx;
+                  yVia = this.from.y - factor * dx;
+                } else if (this.from.x > this.to.x) {
+                  xVia = this.from.x - factor * dx;
+                  yVia = this.from.y - factor * dx;
+                }
+              } else if (this.from.y < this.to.y) {
+                if (this.from.x < this.to.x) {
+                  xVia = this.from.x + factor * dx;
+                  yVia = this.from.y + factor * dx;
+                } else if (this.from.x > this.to.x) {
+                  xVia = this.from.x - factor * dx;
+                  yVia = this.from.y + factor * dx;
+                }
+              }
+              if (type == "discrete") {
+                yVia = dy < factor * dx ? this.from.y : yVia;
+              }
+            }
+          } else if (type == "straightCross") {
+            if (Math.abs(this.from.x - this.to.x) < Math.abs(this.from.y - this.to.y)) {
+              // up - down
+              xVia = this.from.x;
+              if (this.from.y < this.to.y) {
+                yVia = this.to.y - (1 - factor) * dy;
+              } else {
+                yVia = this.to.y + (1 - factor) * dy;
+              }
+            } else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) {
+              // left - right
+              if (this.from.x < this.to.x) {
+                xVia = this.to.x - (1 - factor) * dx;
+              } else {
+                xVia = this.to.x + (1 - factor) * dx;
+              }
+              yVia = this.from.y;
+            }
+          } else if (type == "horizontal") {
+            if (this.from.x < this.to.x) {
+              xVia = this.to.x - (1 - factor) * dx;
+            } else {
+              xVia = this.to.x + (1 - factor) * dx;
+            }
+            yVia = this.from.y;
+          } else if (type == "vertical") {
+            xVia = this.from.x;
+            if (this.from.y < this.to.y) {
+              yVia = this.to.y - (1 - factor) * dy;
+            } else {
+              yVia = this.to.y + (1 - factor) * dy;
+            }
+          } else if (type == "curvedCW") {
+            dx = this.to.x - this.from.x;
+            dy = this.from.y - this.to.y;
+            var radius = Math.sqrt(dx * dx + dy * dy);
+            var pi = Math.PI;
+
+            var originalAngle = Math.atan2(dy, dx);
+            var myAngle = (originalAngle + (factor * 0.5 + 0.5) * pi) % (2 * pi);
+
+            xVia = this.from.x + (factor * 0.5 + 0.5) * radius * Math.sin(myAngle);
+            yVia = this.from.y + (factor * 0.5 + 0.5) * radius * Math.cos(myAngle);
+          } else if (type == "curvedCCW") {
+            dx = this.to.x - this.from.x;
+            dy = this.from.y - this.to.y;
+            var radius = Math.sqrt(dx * dx + dy * dy);
+            var pi = Math.PI;
+
+            var originalAngle = Math.atan2(dy, dx);
+            var myAngle = (originalAngle + (-factor * 0.5 + 0.5) * pi) % (2 * pi);
+
+            xVia = this.from.x + (factor * 0.5 + 0.5) * radius * Math.sin(myAngle);
+            yVia = this.from.y + (factor * 0.5 + 0.5) * radius * Math.cos(myAngle);
+          } else {
+            // continuous
+            if (Math.abs(this.from.x - this.to.x) < Math.abs(this.from.y - this.to.y)) {
+              if (this.from.y > this.to.y) {
+                if (this.from.x < this.to.x) {
+                  xVia = this.from.x + factor * dy;
+                  yVia = this.from.y - factor * dy;
+                  xVia = this.to.x < xVia ? this.to.x : xVia;
+                } else if (this.from.x > this.to.x) {
+                  xVia = this.from.x - factor * dy;
+                  yVia = this.from.y - factor * dy;
+                  xVia = this.to.x > xVia ? this.to.x : xVia;
+                }
+              } else if (this.from.y < this.to.y) {
+                if (this.from.x < this.to.x) {
+                  xVia = this.from.x + factor * dy;
+                  yVia = this.from.y + factor * dy;
+                  xVia = this.to.x < xVia ? this.to.x : xVia;
+                } else if (this.from.x > this.to.x) {
+                  xVia = this.from.x - factor * dy;
+                  yVia = this.from.y + factor * dy;
+                  xVia = this.to.x > xVia ? this.to.x : xVia;
+                }
+              }
+            } else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) {
+              if (this.from.y > this.to.y) {
+                if (this.from.x < this.to.x) {
+                  xVia = this.from.x + factor * dx;
+                  yVia = this.from.y - factor * dx;
+                  yVia = this.to.y > yVia ? this.to.y : yVia;
+                } else if (this.from.x > this.to.x) {
+                  xVia = this.from.x - factor * dx;
+                  yVia = this.from.y - factor * dx;
+                  yVia = this.to.y > yVia ? this.to.y : yVia;
+                }
+              } else if (this.from.y < this.to.y) {
+                if (this.from.x < this.to.x) {
+                  xVia = this.from.x + factor * dx;
+                  yVia = this.from.y + factor * dx;
+                  yVia = this.to.y < yVia ? this.to.y : yVia;
+                } else if (this.from.x > this.to.x) {
+                  xVia = this.from.x - factor * dx;
+                  yVia = this.from.y + factor * dx;
+                  yVia = this.to.y < yVia ? this.to.y : yVia;
+                }
+              }
+            }
+          }
+          return { x: xVia, y: yVia };
+        },
+        writable: true,
+        configurable: true
+      },
+      _findBorderPosition: {
+        value: function _findBorderPosition(nearNode, ctx, options) {
+          return this._findBorderPositionBezier(nearNode, ctx, options.via);
+        },
+        writable: true,
+        configurable: true
+      },
+      _getDistanceToEdge: {
+        value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
+          var via = arguments[6] === undefined ? this._getViaCoordinates() : arguments[6];
+          // x3,y3 is the point
+          return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, via);
+        },
+        writable: true,
+        configurable: true
+      },
+      getPoint: {
+
+        /**
+         * Combined function of pointOnLine and pointOnBezier. This gives the coordinates of a point on the line at a certain percentage of the way
+         * @param percentage
+         * @param via
+         * @returns {{x: number, y: number}}
+         * @private
+         */
+        value: function getPoint(percentage) {
+          var via = arguments[1] === undefined ? this._getViaCoordinates() : arguments[1];
+          var t = percentage;
+          var x = Math.pow(1 - t, 2) * this.from.x + 2 * t * (1 - t) * via.x + Math.pow(t, 2) * this.to.x;
+          var y = Math.pow(1 - t, 2) * this.from.y + 2 * t * (1 - t) * via.y + Math.pow(t, 2) * this.to.y;
+
+          return { x: x, y: y };
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return BezierEdgeStatic;
+  })(BezierEdgeBase);
+
+  module.exports = BezierEdgeStatic;
+
+/***/ },
+/* 103 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc && desc.writable) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+  var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  /**
+   * Created by Alex on 3/20/2015.
+   */
+
+  var EdgeBase = _interopRequire(__webpack_require__(101));
+
+  var StraightEdge = (function (EdgeBase) {
+    function StraightEdge(options, body, labelModule) {
+      _classCallCheck(this, StraightEdge);
+
+      _get(Object.getPrototypeOf(StraightEdge.prototype), "constructor", this).call(this, options, body, labelModule);
+    }
+
+    _inherits(StraightEdge, EdgeBase);
+
+    _prototypeProperties(StraightEdge, null, {
+      cleanup: {
+        value: function cleanup() {
+          return false;
+        },
+        writable: true,
+        configurable: true
+      },
+      _line: {
+        /**
+         * Draw a line between two nodes
+         * @param {CanvasRenderingContext2D} ctx
+         * @private
+         */
+        value: function _line(ctx) {
+          // draw a straight line
+          ctx.beginPath();
+          ctx.moveTo(this.from.x, this.from.y);
+          ctx.lineTo(this.to.x, this.to.y);
+          ctx.stroke();
+          return undefined;
+        },
+        writable: true,
+        configurable: true
+      },
+      getPoint: {
+
+        /**
+         * Combined function of pointOnLine and pointOnBezier. This gives the coordinates of a point on the line at a certain percentage of the way
+         * @param percentage
+         * @param via
+         * @returns {{x: number, y: number}}
+         * @private
+         */
+        value: function getPoint(percentage) {
+          return {
+            x: (1 - percentage) * this.from.x + percentage * this.to.x,
+            y: (1 - percentage) * this.from.y + percentage * this.to.y
+          };
+        },
+        writable: true,
+        configurable: true
+      },
+      _findBorderPosition: {
+        value: function _findBorderPosition(nearNode, ctx) {
+          var node1 = this.to;
+          var node2 = this.from;
+          if (nearNode.id === this.from.id) {
+            node1 = this.from;
+            node2 = this.to;
+          }
+
+          var angle = Math.atan2(node1.y - node2.y, node1.x - node2.x);
+          var dx = node1.x - node2.x;
+          var dy = node1.y - node2.y;
+          var edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
+          var toBorderDist = nearNode.distanceToBorder(ctx, angle);
+          var toBorderPoint = (edgeSegmentLength - toBorderDist) / edgeSegmentLength;
+
+          var borderPos = {};
+          borderPos.x = (1 - toBorderPoint) * node2.x + toBorderPoint * node1.x;
+          borderPos.y = (1 - toBorderPoint) * node2.y + toBorderPoint * node1.y;
+
+          return borderPos;
+        },
+        writable: true,
+        configurable: true
+      },
+      _getDistanceToEdge: {
+        value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
+          // x3,y3 is the point
+          return this._getDistanceToLine(x1, y1, x2, y2, x3, y3);
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return StraightEdge;
+  })(EdgeBase);
+
+  module.exports = StraightEdge;
 
 /***/ }
 /******/ ])
