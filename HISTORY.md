@@ -13,6 +13,7 @@ http://visjs.org
 - Orientation can now be configured separately for axis and items.
 - Fixed #654: removed unnecessary minimum height for groups, takes the
   height of the group label as minimum height now.
+- Fixed #708: detecting wrong group when page is scrolled.
 
 
 ## 2015-03-05, version 3.11.0
