@@ -54,11 +54,8 @@ exports.timeline = {
 // Network
 exports.Network = require('./lib/network/Network');
 exports.network = {
-  //Edge: require('./lib/network/Edge'),
   Groups: require('./lib/network/Groups'),
   Images: require('./lib/network/Images'),
-  //Node: require('./lib/network/Node'),
-  Popup: require('./lib/network/Popup'),
   dotparser: require('./lib/network/dotparser'),
   gephiParser: require('./lib/network/gephiParser')
 };

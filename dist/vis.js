@@ -139,11 +139,8 @@ return /******/ (function(modules) { // webpackBootstrap
   // Network
   exports.Network = __webpack_require__(53);
   exports.network = {
-    //Edge: require('./lib/network/Edge'),
     Groups: __webpack_require__(57),
     Images: __webpack_require__(58),
-    //Node: require('./lib/network/Node'),
-    Popup: __webpack_require__(59),
     dotparser: __webpack_require__(55),
     gephiParser: __webpack_require__(56)
   };
@@ -23308,31 +23305,30 @@ return /******/ (function(modules) { // webpackBootstrap
   var gephiParser = __webpack_require__(56);
   var Groups = __webpack_require__(57);
   var Images = __webpack_require__(58);
-  var Popup = __webpack_require__(59);
   var Activator = __webpack_require__(38);
-  var locales = __webpack_require__(60);
+  var locales = __webpack_require__(59);
 
 
 
-  var NodesHandler = _interopRequire(__webpack_require__(61));
+  var NodesHandler = _interopRequire(__webpack_require__(60));
 
-  var EdgesHandler = _interopRequire(__webpack_require__(81));
+  var EdgesHandler = _interopRequire(__webpack_require__(80));
 
-  var PhysicsEngine = _interopRequire(__webpack_require__(88));
+  var PhysicsEngine = _interopRequire(__webpack_require__(87));
 
-  var ClusterEngine = _interopRequire(__webpack_require__(95));
+  var ClusterEngine = _interopRequire(__webpack_require__(94));
 
-  var CanvasRenderer = _interopRequire(__webpack_require__(97));
+  var CanvasRenderer = _interopRequire(__webpack_require__(96));
 
-  var Canvas = _interopRequire(__webpack_require__(98));
+  var Canvas = _interopRequire(__webpack_require__(97));
 
-  var View = _interopRequire(__webpack_require__(99));
+  var View = _interopRequire(__webpack_require__(98));
 
-  var InteractionHandler = _interopRequire(__webpack_require__(100));
+  var InteractionHandler = _interopRequire(__webpack_require__(99));
 
-  var SelectionHandler = _interopRequire(__webpack_require__(102));
+  var SelectionHandler = _interopRequire(__webpack_require__(100));
 
-  var LayoutEngine = _interopRequire(__webpack_require__(103));
+  var LayoutEngine = _interopRequire(__webpack_require__(101));
 
   /**
    * @constructor Network
@@ -23402,44 +23398,15 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     };
 
-    // this event will trigger a rebuilding of the cache everything. Used when nodes or edges have been added or removed.
-    this.body.emitter.on("_dataChanged", function (params) {
-      var t0 = new Date().valueOf();
-      // update shortcut lists
-      _this._updateVisibleIndices();
-      _this.physics.updatePhysicsIndices();
-      // update values
-      _this._updateValueRange(_this.body.nodes);
-      _this._updateValueRange(_this.body.edges);
-      // update edges
-      _this._reconnectEdges();
-      _this._markAllEdgesAsDirty();
-      // start simulation (can be called safely, even if already running)
-      _this.body.emitter.emit("startSimulation");
-      console.log("_dataChanged took:", new Date().valueOf() - t0);
-    });
+    // bind the event listeners
+    this.bindEventListeners();
 
-    // this is called when options of EXISTING nodes or edges have changed.
-    this.body.emitter.on("_dataUpdated", function () {
-      var t0 = new Date().valueOf();
-      // update values
-      _this._updateValueRange(_this.body.nodes);
-      _this._updateValueRange(_this.body.edges);
-      // update edges
-      _this._reconnectEdges();
-      _this._markAllEdgesAsDirty();
-      // start simulation (can be called safely, even if already running)
-      _this.body.emitter.emit("startSimulation");
-      console.log("_dataUpdated took:", new Date().valueOf() - t0);
-    });
-
-    // todo think of good comment for this set
+    // setting up all modules
     var groups = new Groups(); // object with groups
     var images = new Images(function () {
       return _this.body.emitter.emit("_requestRedraw");
     }); // object with images
 
-    // data handling modules
     this.canvas = new Canvas(this.body); // DOM handler
     this.selectionHandler = new SelectionHandler(this.body, this.canvas); // Selection handler
     this.interactionHandler = new InteractionHandler(this.body, this.canvas, this.selectionHandler); // Interaction handler handles all the hammer bindings (that are bound by canvas), key
@@ -23493,6 +23460,37 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   };
 
+  Network.prototype.bindEventListeners = function () {
+    var _this = this;
+    // this event will trigger a rebuilding of the cache everything. Used when nodes or edges have been added or removed.
+    this.body.emitter.on("_dataChanged", function (params) {
+      var t0 = new Date().valueOf();
+      // update shortcut lists
+      _this._updateVisibleIndices();
+      _this.physics.updatePhysicsIndices();
+
+      // call the dataUpdated event because the only difference between the two is the updating of the indices
+      _this.body.emitter.emit("_dataUpdated");
+
+      // start simulation (can be called safely, even if already running)
+      _this.body.emitter.emit("startSimulation");
+      console.log("_dataChanged took:", new Date().valueOf() - t0);
+    });
+
+    // this is called when options of EXISTING nodes or edges have changed.
+    this.body.emitter.on("_dataUpdated", function () {
+      var t0 = new Date().valueOf();
+      // update values
+      _this._updateValueRange(_this.body.nodes);
+      _this._updateValueRange(_this.body.edges);
+      // update edges
+      _this._reconnectEdges();
+      _this._markAllEdgesAsDirty();
+      // start simulation (can be called safely, even if already running)
+      _this.body.emitter.emit("startSimulation");
+      console.log("_dataUpdated took:", new Date().valueOf() - t0);
+    });
+  };
 
   /**
    * Set nodes and edges, and optionally options as well.
@@ -23651,164 +23649,6 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 
-  /**
-   * Check if there is an element on the given position in the network
-   * (a node or edge). If so, and if this element has a title,
-   * show a popup window with its title.
-   *
-   * @param {{x:Number, y:Number}} pointer
-   * @private
-   */
-  Network.prototype._checkShowPopup = function (pointer) {
-    var obj = {
-      left: this._XconvertDOMtoCanvas(pointer.x),
-      top: this._YconvertDOMtoCanvas(pointer.y),
-      right: this._XconvertDOMtoCanvas(pointer.x),
-      bottom: this._YconvertDOMtoCanvas(pointer.y)
-    };
-
-    var id;
-    var previousPopupObjId = this.popupObj === undefined ? "" : this.popupObj.id;
-    var nodeUnderCursor = false;
-    var popupType = "node";
-
-    if (this.popupObj == undefined) {
-      // search the nodes for overlap, select the top one in case of multiple nodes
-      var nodes = this.body.nodes;
-      var overlappingNodes = [];
-      for (id in nodes) {
-        if (nodes.hasOwnProperty(id)) {
-          var node = nodes[id];
-          if (node.isOverlappingWith(obj)) {
-            if (node.getTitle() !== undefined) {
-              overlappingNodes.push(id);
-            }
-          }
-        }
-      }
-
-      if (overlappingNodes.length > 0) {
-        // if there are overlapping nodes, select the last one, this is the
-        // one which is drawn on top of the others
-        this.popupObj = this.body.nodes[overlappingNodes[overlappingNodes.length - 1]];
-        // if you hover over a node, the title of the edge is not supposed to be shown.
-        nodeUnderCursor = true;
-      }
-    }
-
-    if (this.popupObj === undefined && nodeUnderCursor == false) {
-      // search the edges for overlap
-      var edges = this.body.edges;
-      var overlappingEdges = [];
-      for (id in edges) {
-        if (edges.hasOwnProperty(id)) {
-          var edge = edges[id];
-          if (edge.connected === true && edge.getTitle() !== undefined && edge.isOverlappingWith(obj)) {
-            overlappingEdges.push(id);
-          }
-        }
-      }
-
-      if (overlappingEdges.length > 0) {
-        this.popupObj = this.body.edges[overlappingEdges[overlappingEdges.length - 1]];
-        popupType = "edge";
-      }
-    }
-
-    if (this.popupObj) {
-      // show popup message window
-      if (this.popupObj.id != previousPopupObjId) {
-        if (this.popup === undefined) {
-          this.popup = new Popup(this.frame, this.constants.tooltip);
-        }
-
-        this.popup.popupTargetType = popupType;
-        this.popup.popupTargetId = this.popupObj.id;
-
-        // adjust a small offset such that the mouse cursor is located in the
-        // bottom left location of the popup, and you can easily move over the
-        // popup area
-        this.popup.setPosition(pointer.x + 3, pointer.y - 5);
-        this.popup.setText(this.popupObj.getTitle());
-        this.popup.show();
-      }
-    } else {
-      if (this.popup) {
-        this.popup.hide();
-      }
-    }
-  };
-
-
-  /**
-   * Check if the popup must be hidden, which is the case when the mouse is no
-   * longer hovering on the object
-   * @param {{x:Number, y:Number}} pointer
-   * @private
-   */
-  Network.prototype._checkHidePopup = function (pointer) {
-    var pointerObj = {
-      left: this._XconvertDOMtoCanvas(pointer.x),
-      top: this._YconvertDOMtoCanvas(pointer.y),
-      right: this._XconvertDOMtoCanvas(pointer.x),
-      bottom: this._YconvertDOMtoCanvas(pointer.y)
-    };
-
-    var stillOnObj = false;
-    if (this.popup.popupTargetType == "node") {
-      stillOnObj = this.body.nodes[this.popup.popupTargetId].isOverlappingWith(pointerObj);
-      if (stillOnObj === true) {
-        var overNode = this.getNodeAt(pointer);
-        stillOnObj = overNode.id == this.popup.popupTargetId;
-      }
-    } else {
-      if (this.getNodeAt(pointer) === null) {
-        stillOnObj = this.body.edges[this.popup.popupTargetId].isOverlappingWith(pointerObj);
-      }
-    }
-
-
-    if (stillOnObj === false) {
-      this.popupObj = undefined;
-      this.popup.hide();
-    }
-  };
-
-
-
-
-  Network.prototype._markAllEdgesAsDirty = function () {
-    for (var edgeId in this.body.edges) {
-      this.body.edges[edgeId].colorDirty = true;
-    }
-  };
-
-
-
-  /**
-   * Reconnect all edges
-   * @private
-   */
-  Network.prototype._reconnectEdges = function () {
-    var id;
-    var nodes = this.body.nodes;
-    var edges = this.body.edges;
-
-    for (id in nodes) {
-      if (nodes.hasOwnProperty(id)) {
-        nodes[id].edges = [];
-      }
-    }
-
-    for (id in edges) {
-      if (edges.hasOwnProperty(id)) {
-        var edge = edges[id];
-        edge.from = null;
-        edge.to = null;
-        edge.connect();
-      }
-    }
-  };
 
   /**
    * Update the values of all object in the given array according to the current
@@ -25368,145 +25208,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
   "use strict";
 
-  /**
-   * Popup is a class to create a popup window with some text
-   * @param {Element}  container     The container object.
-   * @param {Number} [x]
-   * @param {Number} [y]
-   * @param {String} [text]
-   * @param {Object} [style]     An object containing borderColor,
-   *                             backgroundColor, etc.
-   */
-  function Popup(container, x, y, text, style) {
-    if (container) {
-      this.container = container;
-    } else {
-      this.container = document.body;
-    }
-
-    // x, y and text are optional, see if a style object was passed in their place
-    if (style === undefined) {
-      if (typeof x === "object") {
-        style = x;
-        x = undefined;
-      } else if (typeof text === "object") {
-        style = text;
-        text = undefined;
-      } else {
-        // for backwards compatibility, in case clients other than Network are creating Popup directly
-        style = {
-          fontColor: "black",
-          fontSize: 14, // px
-          fontFace: "verdana",
-          color: {
-            border: "#666",
-            background: "#FFFFC6"
-          }
-        };
-      }
-    }
-
-    this.x = 0;
-    this.y = 0;
-    this.padding = 5;
-    this.hidden = false;
-
-    if (x !== undefined && y !== undefined) {
-      this.setPosition(x, y);
-    }
-    if (text !== undefined) {
-      this.setText(text);
-    }
-
-    // create the frame
-    this.frame = document.createElement("div");
-    this.frame.className = "network-tooltip";
-    this.frame.style.color = style.fontColor;
-    this.frame.style.backgroundColor = style.color.background;
-    this.frame.style.borderColor = style.color.border;
-    this.frame.style.fontSize = style.fontSize + "px";
-    this.frame.style.fontFamily = style.fontFace;
-    this.container.appendChild(this.frame);
-  }
-
-  /**
-   * @param {number} x   Horizontal position of the popup window
-   * @param {number} y   Vertical position of the popup window
-   */
-  Popup.prototype.setPosition = function (x, y) {
-    this.x = parseInt(x);
-    this.y = parseInt(y);
-  };
-
-  /**
-   * Set the content for the popup window. This can be HTML code or text.
-   * @param {string | Element} content
-   */
-  Popup.prototype.setText = function (content) {
-    if (content instanceof Element) {
-      this.frame.innerHTML = "";
-      this.frame.appendChild(content);
-    } else {
-      this.frame.innerHTML = content; // string containing text or HTML
-    }
-  };
-
-  /**
-   * Show the popup window
-   * @param {boolean} show    Optional. Show or hide the window
-   */
-  Popup.prototype.show = function (show) {
-    if (show === undefined) {
-      show = true;
-    }
-
-    if (show) {
-      var height = this.frame.clientHeight;
-      var width = this.frame.clientWidth;
-      var maxHeight = this.frame.parentNode.clientHeight;
-      var maxWidth = this.frame.parentNode.clientWidth;
-
-      var top = this.y - height;
-      if (top + height + this.padding > maxHeight) {
-        top = maxHeight - height - this.padding;
-      }
-      if (top < this.padding) {
-        top = this.padding;
-      }
-
-      var left = this.x;
-      if (left + width + this.padding > maxWidth) {
-        left = maxWidth - width - this.padding;
-      }
-      if (left < this.padding) {
-        left = this.padding;
-      }
-
-      this.frame.style.left = left + "px";
-      this.frame.style.top = top + "px";
-      this.frame.style.visibility = "visible";
-      this.hidden = false;
-    } else {
-      this.hide();
-    }
-  };
-
-  /**
-   * Hide the popup window
-   */
-  Popup.prototype.hide = function () {
-    this.hidden = true;
-    this.frame.style.visibility = "hidden";
-  };
-
-  module.exports = Popup;
-
-/***/ },
-/* 60 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
   // English
   exports.en = {
     edit: "Edit",
@@ -25544,7 +25245,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.nl_BE = exports.nl;
 
 /***/ },
-/* 61 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -25563,7 +25264,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(9);
 
-  var Node = _interopRequire(__webpack_require__(62));
+  var Node = _interopRequire(__webpack_require__(61));
 
   var NodesHandler = (function () {
     function NodesHandler(body, images, groups, layoutEngine) {
@@ -25825,7 +25526,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = NodesHandler;
 
 /***/ },
-/* 62 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -25838,35 +25539,35 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
 
-  var Label = _interopRequire(__webpack_require__(63));
+  var Label = _interopRequire(__webpack_require__(62));
 
-  var Box = _interopRequire(__webpack_require__(64));
+  var Box = _interopRequire(__webpack_require__(63));
 
-  var Circle = _interopRequire(__webpack_require__(66));
+  var Circle = _interopRequire(__webpack_require__(65));
 
-  var CircularImage = _interopRequire(__webpack_require__(68));
+  var CircularImage = _interopRequire(__webpack_require__(67));
 
-  var Database = _interopRequire(__webpack_require__(69));
+  var Database = _interopRequire(__webpack_require__(68));
 
-  var Diamond = _interopRequire(__webpack_require__(70));
+  var Diamond = _interopRequire(__webpack_require__(69));
 
-  var Dot = _interopRequire(__webpack_require__(72));
+  var Dot = _interopRequire(__webpack_require__(71));
 
-  var Ellipse = _interopRequire(__webpack_require__(73));
+  var Ellipse = _interopRequire(__webpack_require__(72));
 
-  var Icon = _interopRequire(__webpack_require__(74));
+  var Icon = _interopRequire(__webpack_require__(73));
 
-  var Image = _interopRequire(__webpack_require__(75));
+  var Image = _interopRequire(__webpack_require__(74));
 
-  var Square = _interopRequire(__webpack_require__(76));
+  var Square = _interopRequire(__webpack_require__(75));
 
-  var Star = _interopRequire(__webpack_require__(77));
+  var Star = _interopRequire(__webpack_require__(76));
 
-  var Text = _interopRequire(__webpack_require__(78));
+  var Text = _interopRequire(__webpack_require__(77));
 
-  var Triangle = _interopRequire(__webpack_require__(79));
+  var Triangle = _interopRequire(__webpack_require__(78));
 
-  var TriangleDown = _interopRequire(__webpack_require__(80));
+  var TriangleDown = _interopRequire(__webpack_require__(79));
 
   /**
    * @class Node
@@ -25975,30 +25676,26 @@ return /******/ (function(modules) { // webpackBootstrap
             return;
           }
 
-          var fields = ["borderWidth", "borderWidthSelected", "brokenImage", "customScalingFunction", "font", "hidden", "icon", "id", "image", "label", "level", "physics", "shape", "size", "value", "x", "y"];
+          var fields = ["borderWidth", "borderWidthSelected", "brokenImage", "customScalingFunction", "font", "hidden", "icon", "id", "image", "label", "level", "physics", "shape", "size", "title", "value", "x", "y"];
           util.selectiveDeepExtend(fields, this.options, options);
+
           // basic options
           if (options.id !== undefined) {
             this.id = options.id;
           }
-          if (options.x !== undefined) {
-            this.x = options.x;
-            this.predefinedPosition = true;
-          }
-          if (options.y !== undefined) {
-            this.y = options.y;
-            this.predefinedPosition = true;
-          }
-          if (options.value !== undefined) {
-            this.value = options.value;
-          }
-          if (options.level !== undefined) {
-            this.level = options.level;
-            this.preassignedLevel = true;
-          }
 
           if (this.id === undefined) {
             throw "Node must have an id";
+          }
+
+          if (options.x !== undefined) {
+            this.x = options.x;this.predefinedPosition = true;
+          }
+          if (options.y !== undefined) {
+            this.y = options.y;this.predefinedPosition = true;
+          }
+          if (options.value !== undefined) {
+            this.value = options.value;
           }
 
           // copy group options
@@ -26143,7 +25840,7 @@ return /******/ (function(modules) { // webpackBootstrap
          *                           has been set.
          */
         value: function getTitle() {
-          return typeof this.title === "function" ? this.title() : this.title;
+          return typeof this.options.title === "function" ? this.options.title() : this.options.title;
         },
         writable: true,
         configurable: true
@@ -26275,7 +25972,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Node;
 
 /***/ },
-/* 63 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -26600,7 +26297,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Label;
 
 /***/ },
-/* 64 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -26618,7 +26315,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var NodeBase = _interopRequire(__webpack_require__(65));
+  var NodeBase = _interopRequire(__webpack_require__(64));
 
   var Box = (function (NodeBase) {
     function Box(options, body, labelModule) {
@@ -26692,7 +26389,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Box;
 
 /***/ },
-/* 65 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -26742,7 +26439,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = NodeBase;
 
 /***/ },
-/* 66 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -26760,7 +26457,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var CircleImageBase = _interopRequire(__webpack_require__(67));
+  var CircleImageBase = _interopRequire(__webpack_require__(66));
 
   var Circle = (function (CircleImageBase) {
     function Circle(options, body, labelModule) {
@@ -26825,7 +26522,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Circle;
 
 /***/ },
-/* 67 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -26843,7 +26540,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Created by Alex on 3/19/2015.
    */
-  var NodeBase = _interopRequire(__webpack_require__(65));
+  var NodeBase = _interopRequire(__webpack_require__(64));
 
   var CircleImageBase = (function (NodeBase) {
     function CircleImageBase(options, body, labelModule) {
@@ -26914,7 +26611,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CircleImageBase;
 
 /***/ },
-/* 68 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -26933,7 +26630,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var CircleImageBase = _interopRequire(__webpack_require__(67));
+  var CircleImageBase = _interopRequire(__webpack_require__(66));
 
   var CircularImage = (function (CircleImageBase) {
     function CircularImage(options, body, labelModule, imageObj) {
@@ -27016,7 +26713,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CircularImage;
 
 /***/ },
-/* 69 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27034,7 +26731,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var NodeBase = _interopRequire(__webpack_require__(65));
+  var NodeBase = _interopRequire(__webpack_require__(64));
 
   var Database = (function (NodeBase) {
     function Database(options, body, labelModule) {
@@ -27108,7 +26805,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Database;
 
 /***/ },
-/* 70 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27126,7 +26823,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var ShapeBase = _interopRequire(__webpack_require__(71));
+  var ShapeBase = _interopRequire(__webpack_require__(70));
 
   var Diamond = (function (ShapeBase) {
     function Diamond(options, body, labelModule) {
@@ -27167,7 +26864,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Diamond;
 
 /***/ },
-/* 71 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -27185,7 +26882,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Created by Alex on 3/19/2015.
    */
-  var NodeBase = _interopRequire(__webpack_require__(65));
+  var NodeBase = _interopRequire(__webpack_require__(64));
 
   var ShapeBase = (function (NodeBase) {
     function ShapeBase(options, body, labelModule) {
@@ -27251,7 +26948,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = ShapeBase;
 
 /***/ },
-/* 72 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27269,7 +26966,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var ShapeBase = _interopRequire(__webpack_require__(71));
+  var ShapeBase = _interopRequire(__webpack_require__(70));
 
   var Dot = (function (ShapeBase) {
     function Dot(options, body, labelModule) {
@@ -27310,7 +27007,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Dot;
 
 /***/ },
-/* 73 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27328,7 +27025,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var NodeBase = _interopRequire(__webpack_require__(65));
+  var NodeBase = _interopRequire(__webpack_require__(64));
 
   var Ellipse = (function (NodeBase) {
     function Ellipse(options, body, labelModule) {
@@ -27406,7 +27103,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Ellipse;
 
 /***/ },
-/* 74 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27424,7 +27121,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var NodeBase = _interopRequire(__webpack_require__(65));
+  var NodeBase = _interopRequire(__webpack_require__(64));
 
   var Icon = (function (NodeBase) {
     function Icon(options, body, labelModule) {
@@ -27511,7 +27208,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Icon;
 
 /***/ },
-/* 75 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27529,7 +27226,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var CircleImageBase = _interopRequire(__webpack_require__(67));
+  var CircleImageBase = _interopRequire(__webpack_require__(66));
 
   var Image = (function (CircleImageBase) {
     function Image(options, body, labelModule, imageObj) {
@@ -27608,7 +27305,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Image;
 
 /***/ },
-/* 76 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27626,7 +27323,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var ShapeBase = _interopRequire(__webpack_require__(71));
+  var ShapeBase = _interopRequire(__webpack_require__(70));
 
   var Square = (function (ShapeBase) {
     function Square(options, body, labelModule) {
@@ -27668,7 +27365,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Square;
 
 /***/ },
-/* 77 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27686,7 +27383,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var ShapeBase = _interopRequire(__webpack_require__(71));
+  var ShapeBase = _interopRequire(__webpack_require__(70));
 
   var Star = (function (ShapeBase) {
     function Star(options, body, labelModule) {
@@ -27727,7 +27424,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Star;
 
 /***/ },
-/* 78 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27745,7 +27442,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var NodeBase = _interopRequire(__webpack_require__(65));
+  var NodeBase = _interopRequire(__webpack_require__(64));
 
   var Text = (function (NodeBase) {
     function Text(options, body, labelModule) {
@@ -27801,7 +27498,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Text;
 
 /***/ },
-/* 79 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27819,7 +27516,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var ShapeBase = _interopRequire(__webpack_require__(71));
+  var ShapeBase = _interopRequire(__webpack_require__(70));
 
   var Triangle = (function (ShapeBase) {
     function Triangle(options, body, labelModule) {
@@ -27860,7 +27557,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Triangle;
 
 /***/ },
-/* 80 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27878,7 +27575,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var ShapeBase = _interopRequire(__webpack_require__(71));
+  var ShapeBase = _interopRequire(__webpack_require__(70));
 
   var TriangleDown = (function (ShapeBase) {
     function TriangleDown(options, body, labelModule) {
@@ -27919,7 +27616,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = TriangleDown;
 
 /***/ },
-/* 81 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -27939,7 +27636,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(9);
 
-  var Edge = _interopRequire(__webpack_require__(82));
+  var Edge = _interopRequire(__webpack_require__(81));
 
   var EdgesHandler = (function () {
     function EdgesHandler(body, images, groups) {
@@ -28059,23 +27756,26 @@ return /******/ (function(modules) { // webpackBootstrap
           _this.body.emitter.emit("_dataChanged");
         }
       });
+
+      // this is called when options of EXISTING nodes or edges have changed.
+      this.body.emitter.on("_dataUpdated", function () {
+        var t0 = new Date().valueOf();
+        // update values
+        _this.reconnectEdges();
+        _this.markAllEdgesAsDirty();
+        // start simulation (can be called safely, even if already running)
+        console.log("_dataUpdated took:", new Date().valueOf() - t0);
+      });
     }
 
     _prototypeProperties(EdgesHandler, null, {
       setOptions: {
         value: function setOptions(options) {
           if (options !== undefined) {
-            if (options.color !== undefined) {
-              if (util.isString(options.color)) {
-                util.assignAllKeys(this.options.color, options.color);
-              } else {
-                util.extend(this.options.color, options.color);
-              }
-              this.options.color.inherit.enabled = false;
-            }
             util.mergeOptions(this.options, options, "smooth");
             util.mergeOptions(this.options, options, "dashes");
 
+            // hanlde multiple input cases for arrows
             if (options.arrows !== undefined) {
               if (typeof options.arrows === "string") {
                 var arrows = options.arrows.toLowerCase();
@@ -28096,6 +27796,22 @@ return /******/ (function(modules) { // webpackBootstrap
                 throw new Error("The arrow options can only be an object or a string. Refer to the documentation. You used:" + JSON.stringify(options.arrows));
               }
             }
+
+            // hanlde multiple input cases for color
+            if (options.color !== undefined) {
+              if (util.isString(options.color)) {
+                util.assignAllKeys(this.options.color, options.color);
+                this.options.color.inherit.enabled = false;
+              } else {
+                util.extend(this.options.color, options.color);
+                if (options.color.inherit === undefined) {
+                  this.options.color.inherit.enabled = false;
+                }
+              }
+              util.mergeOptions(this.options.color, options.color, "inherit");
+            }
+
+            // font cases are handled by the Label class
           }
         },
         writable: true,
@@ -28260,6 +27976,46 @@ return /******/ (function(modules) { // webpackBootstrap
         },
         writable: true,
         configurable: true
+      },
+      markAllEdgesAsDirty: {
+        value: function markAllEdgesAsDirty() {
+          for (var edgeId in this.body.edges) {
+            this.body.edges[edgeId].colorDirty = true;
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      reconnectEdges: {
+
+
+
+        /**
+         * Reconnect all edges
+         * @private
+         */
+        value: function reconnectEdges() {
+          var id;
+          var nodes = this.body.nodes;
+          var edges = this.body.edges;
+
+          for (id in nodes) {
+            if (nodes.hasOwnProperty(id)) {
+              nodes[id].edges = [];
+            }
+          }
+
+          for (id in edges) {
+            if (edges.hasOwnProperty(id)) {
+              var edge = edges[id];
+              edge.from = null;
+              edge.to = null;
+              edge.connect();
+            }
+          }
+        },
+        writable: true,
+        configurable: true
       }
     });
 
@@ -28269,7 +28025,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = EdgesHandler;
 
 /***/ },
-/* 82 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -28283,13 +28039,13 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
 
 
-  var Label = _interopRequire(__webpack_require__(63));
+  var Label = _interopRequire(__webpack_require__(62));
 
-  var BezierEdgeDynamic = _interopRequire(__webpack_require__(83));
+  var BezierEdgeDynamic = _interopRequire(__webpack_require__(82));
 
-  var BezierEdgeStatic = _interopRequire(__webpack_require__(86));
+  var BezierEdgeStatic = _interopRequire(__webpack_require__(85));
 
-  var StraightEdge = _interopRequire(__webpack_require__(87));
+  var StraightEdge = _interopRequire(__webpack_require__(86));
 
   /**
    * @class Edge
@@ -28320,7 +28076,6 @@ return /******/ (function(modules) { // webpackBootstrap
       this.id = undefined;
       this.fromId = undefined;
       this.toId = undefined;
-      this.title = undefined;
       this.value = undefined;
       this.selected = false;
       this.hover = false;
@@ -28358,12 +28113,29 @@ return /******/ (function(modules) { // webpackBootstrap
           }
           this.colorDirty = true;
 
-          var fields = ["id", "font", "from", "hidden", "hoverWidth", "label", "length", "line", "opacity", "physics", "scaling", "selfReferenceSize", "to", "value", "width", "widthMin", "widthMax", "widthSelectionMultiplier"];
+          var fields = ["id", "font", "from", "hidden", "hoverWidth", "label", "length", "line", "opacity", "physics", "scaling", "selfReferenceSize", "to", "title", "value", "width", "widthMin", "widthMax", "widthSelectionMultiplier"];
           util.selectiveDeepExtend(fields, this.options, options);
 
           util.mergeOptions(this.options, options, "smooth");
           util.mergeOptions(this.options, options, "dashes");
 
+          if (options.id !== undefined) {
+            this.id = options.id;
+          }
+          if (options.from !== undefined) {
+            this.fromId = options.from;
+          }
+          if (options.to !== undefined) {
+            this.toId = options.to;
+          }
+          if (options.title !== undefined) {
+            this.title = options.title;
+          }
+          if (options.value !== undefined) {
+            this.value = options.value;
+          }
+
+          // hanlde multiple input cases for arrows
           if (options.arrows !== undefined) {
             if (typeof options.arrows === "string") {
               var arrows = options.arrows.toLowerCase();
@@ -28385,64 +28157,28 @@ return /******/ (function(modules) { // webpackBootstrap
             }
           }
 
-          if (options.id !== undefined) {
-            this.id = options.id;
-          }
-          if (options.from !== undefined) {
-            this.fromId = options.from;
-          }
-          if (options.to !== undefined) {
-            this.toId = options.to;
-          }
-          if (options.title !== undefined) {
-            this.title = options.title;
-          }
-          if (options.value !== undefined) {
-            this.value = options.value;
+          // hanlde multiple input cases for color
+          if (options.color !== undefined) {
+            if (util.isString(options.color)) {
+              util.assignAllKeys(this.options.color, options.color);
+              this.options.color.inherit.enabled = false;
+            } else {
+              util.extend(this.options.color, options.color);
+              if (options.color.inherit === undefined) {
+                this.options.color.inherit.enabled = false;
+              }
+            }
+            util.mergeOptions(this.options.color, options.color, "inherit");
           }
 
-          if (options.color !== undefined) {
-            if (options.color !== undefined) {
-              if (util.isString(options.color)) {
-                util.assignAllKeys(this.options.color, options.color);
-              } else {
-                util.extend(this.options.color, options.color);
-              }
-              this.options.color.inherit.enabled = false;
-            }
-            //if (util.isString(options.color)) {
-            //  this.options.color.color = options.color;
-            //  this.options.color.highlight = options.color;
-            //}
-            //else {
-            //  if (options.color.color !== undefined) {
-            //    this.options.color.color = options.color.color;
-            //  }
-            //  if (options.color.highlight !== undefined) {
-            //    this.options.color.highlight = options.color.highlight;
-            //  }
-            //  if (options.color.hover !== undefined) {
-            //    this.options.color.hover = options.color.hover;
-            //  }
-            //}
-            //
-            //// inherit colors
-            //if (options.color.inherit === undefined) {
-            //  this.options.color.inherit.enabled = false;
-            //}
-            //else {
-            //  util.mergeOptions(this.options.color, options.color, 'inherit');
-            //}
-          }
 
           // A node is connected when it has a from and to node that both exist in the network.body.nodes.
           this.connect();
 
           this.labelModule.setOptions(this.options);
 
-          this.updateEdgeType();
-
-          return this.edgeType.setOptions(this.options);
+          var dataChanged = this.updateEdgeType();
+          return dataChanged;
         },
         writable: true,
         configurable: true
@@ -28478,6 +28214,9 @@ return /******/ (function(modules) { // webpackBootstrap
             } else {
               this.edgeType = new StraightEdge(this.options, this.body, this.labelModule);
             }
+          } else {
+            // if nothing changes, we just set the options.
+            this.edgeType.setOptions(this.options);
           }
 
           return dataChanged;
@@ -29041,7 +28780,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Edge;
 
 /***/ },
-/* 83 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -29060,7 +28799,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 3/20/2015.
    */
 
-  var BezierEdgeBase = _interopRequire(__webpack_require__(84));
+  var BezierEdgeBase = _interopRequire(__webpack_require__(83));
 
   var BezierEdgeDynamic = (function (BezierEdgeBase) {
     function BezierEdgeDynamic(options, body, labelModule) {
@@ -29199,7 +28938,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BezierEdgeDynamic;
 
 /***/ },
-/* 84 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -29218,7 +28957,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 3/20/2015.
    */
 
-  var EdgeBase = _interopRequire(__webpack_require__(85));
+  var EdgeBase = _interopRequire(__webpack_require__(84));
 
   var BezierEdgeBase = (function (EdgeBase) {
     function BezierEdgeBase(options, body, labelModule) {
@@ -29349,7 +29088,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BezierEdgeBase;
 
 /***/ },
-/* 85 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -29832,7 +29571,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = EdgeBase;
 
 /***/ },
-/* 86 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -29851,7 +29590,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 3/20/2015.
    */
 
-  var BezierEdgeBase = _interopRequire(__webpack_require__(84));
+  var BezierEdgeBase = _interopRequire(__webpack_require__(83));
 
   var BezierEdgeStatic = (function (BezierEdgeBase) {
     function BezierEdgeStatic(options, body, labelModule) {
@@ -30099,7 +29838,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BezierEdgeStatic;
 
 /***/ },
-/* 87 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -30118,7 +29857,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 3/20/2015.
    */
 
-  var EdgeBase = _interopRequire(__webpack_require__(85));
+  var EdgeBase = _interopRequire(__webpack_require__(84));
 
   var StraightEdge = (function (EdgeBase) {
     function StraightEdge(options, body, labelModule) {
@@ -30155,7 +29894,6 @@ return /******/ (function(modules) { // webpackBootstrap
         configurable: true
       },
       getPoint: {
-
 
         /**
          * Combined function of pointOnLine and pointOnBezier. This gives the coordinates of a point on the line at a certain percentage of the way
@@ -30214,7 +29952,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = StraightEdge;
 
 /***/ },
-/* 88 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -30229,17 +29967,17 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 2/23/2015.
    */
 
-  var BarnesHutSolver = _interopRequire(__webpack_require__(89));
+  var BarnesHutSolver = _interopRequire(__webpack_require__(88));
 
-  var Repulsion = _interopRequire(__webpack_require__(90));
+  var Repulsion = _interopRequire(__webpack_require__(89));
 
-  var HierarchicalRepulsion = _interopRequire(__webpack_require__(91));
+  var HierarchicalRepulsion = _interopRequire(__webpack_require__(90));
 
-  var SpringSolver = _interopRequire(__webpack_require__(92));
+  var SpringSolver = _interopRequire(__webpack_require__(91));
 
-  var HierarchicalSpringSolver = _interopRequire(__webpack_require__(93));
+  var HierarchicalSpringSolver = _interopRequire(__webpack_require__(92));
 
-  var CentralGravitySolver = _interopRequire(__webpack_require__(94));
+  var CentralGravitySolver = _interopRequire(__webpack_require__(93));
 
   var util = __webpack_require__(1);
 
@@ -30324,6 +30062,7 @@ return /******/ (function(modules) { // webpackBootstrap
         value: function setOptions(options) {
           if (options === false) {
             this.physicsEnabled = false;
+            this.stopSimulation();
           } else {
             if (options !== undefined) {
               util.selectiveNotDeepExtend(["stabilization"], this.options, options);
@@ -30740,7 +30479,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = PhysicsEngine;
 
 /***/ },
-/* 89 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31249,7 +30988,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BarnesHutSolver;
 
 /***/ },
-/* 90 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31347,7 +31086,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = RepulsionSolver;
 
 /***/ },
-/* 91 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31442,7 +31181,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = HierarchicalRepulsionSolver;
 
 /***/ },
-/* 92 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31553,7 +31292,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = SpringSolver;
 
 /***/ },
-/* 93 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31679,7 +31418,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = HierarchicalSpringSolver;
 
 /***/ },
-/* 94 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31743,7 +31482,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CentralGravitySolver;
 
 /***/ },
-/* 95 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31759,7 +31498,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
 
   var util = __webpack_require__(1);
-  var Cluster = _interopRequire(__webpack_require__(96));
+  var Cluster = _interopRequire(__webpack_require__(95));
 
   var ClusterEngine = (function () {
     function ClusterEngine(body) {
@@ -32434,7 +32173,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = ClusterEngine;
 
 /***/ },
-/* 96 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -32447,7 +32186,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var Node = _interopRequire(__webpack_require__(62));
+  var Node = _interopRequire(__webpack_require__(61));
 
   /**
    *
@@ -32471,7 +32210,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Cluster;
 
 /***/ },
-/* 97 */
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -32799,7 +32538,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CanvasRenderer;
 
 /***/ },
-/* 98 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33086,7 +32825,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Canvas;
 
 /***/ },
-/* 99 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33495,10 +33234,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = View;
 
 /***/ },
-/* 100 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
+
+  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
 
   var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
@@ -33509,10 +33250,12 @@ return /******/ (function(modules) { // webpackBootstrap
    *
    */
 
-
   var util = __webpack_require__(1);
 
-  var NavigationHandler = __webpack_require__(101).NavigationHandler;
+  var NavigationHandler = _interopRequire(__webpack_require__(102));
+
+  var Popup = _interopRequire(__webpack_require__(103));
+
   var InteractionHandler = (function () {
     function InteractionHandler(body, canvas, selectionHandler) {
       _classCallCheck(this, InteractionHandler);
@@ -33540,6 +33283,9 @@ return /******/ (function(modules) { // webpackBootstrap
       this.pinch = {};
       this.pointerPosition = { x: 0, y: 0 };
       this.hoverObj = { nodes: {}, edges: {} };
+      this.popup = undefined;
+      this.popupObj = undefined;
+      this.popupTimer = undefined;
 
 
       this.options = {};
@@ -33566,6 +33312,8 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       };
       util.extend(this.options, this.defaultOptions);
+
+      this.body.emitter.on("_dataChanged", function () {});
     }
 
     _prototypeProperties(InteractionHandler, null, {
@@ -33776,26 +33524,28 @@ return /******/ (function(modules) { // webpackBootstrap
           var pointer = this.getPointer(event.center);
           var selection = this.drag.selection;
           if (selection && selection.length && this.options.dragNodes === true) {
-            // calculate delta's and new location
-            var deltaX = pointer.x - this.drag.pointer.x;
-            var deltaY = pointer.y - this.drag.pointer.y;
+            (function () {
+              // calculate delta's and new location
+              var deltaX = pointer.x - _this.drag.pointer.x;
+              var deltaY = pointer.y - _this.drag.pointer.y;
 
-            // update position of all selected nodes
-            selection.forEach(function (selection) {
-              var node = selection.node;
-              // only move the node if it was not fixed initially
-              if (selection.xFixed === false) {
-                node.x = _this.canvas._XconvertDOMtoCanvas(_this.canvas._XconvertCanvasToDOM(selection.x) + deltaX);
-              }
-              // only move the node if it was not fixed initially
-              if (selection.yFixed === false) {
-                node.y = _this.canvas._YconvertDOMtoCanvas(_this.canvas._YconvertCanvasToDOM(selection.y) + deltaY);
-              }
-            });
+              // update position of all selected nodes
+              selection.forEach(function (selection) {
+                var node = selection.node;
+                // only move the node if it was not fixed initially
+                if (selection.xFixed === false) {
+                  node.x = _this.canvas._XconvertDOMtoCanvas(_this.canvas._XconvertCanvasToDOM(selection.x) + deltaX);
+                }
+                // only move the node if it was not fixed initially
+                if (selection.yFixed === false) {
+                  node.y = _this.canvas._YconvertDOMtoCanvas(_this.canvas._YconvertCanvasToDOM(selection.y) + deltaY);
+                }
+              });
 
 
-            // start the simulation of the physics
-            this.body.emitter.emit("startSimulation");
+              // start the simulation of the physics
+              _this.body.emitter.emit("startSimulation");
+            })();
           } else {
             // move the network
             if (this.options.dragView === true) {
@@ -33975,7 +33725,221 @@ return /******/ (function(modules) { // webpackBootstrap
          * @param  {Event} event
          * @private
          */
-        value: function onMouseMove(event) {},
+        value: function onMouseMove(event) {
+          var _this = this;
+          var pointer = { x: event.pageX, y: event.pageY };
+          var popupVisible = false;
+
+          // check if the previously selected node is still selected
+          if (this.popup !== undefined) {
+            if (this.popup.hidden === false) {
+              this._checkHidePopup(pointer);
+            }
+
+            // if the popup was not hidden above
+            if (this.popup.hidden === false) {
+              popupVisible = true;
+              this.popup.setPosition(pointer.x + 3, pointer.y - 5);
+              this.popup.show();
+            }
+          }
+
+          // if we bind the keyboard to the div, we have to highlight it to use it. This highlights it on mouse over.
+          if (this.options.keyboard.bindToWindow == false && this.options.keyboard.enabled === true) {
+            this.canvas.frame.focus();
+          }
+
+          // start a timeout that will check if the mouse is positioned above an element
+          if (popupVisible === false) {
+            if (this.popupTimer !== undefined) {
+              clearInterval(this.popupTimer); // stop any running calculationTimer
+              this.popupTimer = undefined;
+            }
+            if (!this.drag.dragging) {
+              this.popupTimer = setTimeout(function () {
+                return _this._checkShowPopup(pointer);
+              }, this.options.tooltip.delay);
+            }
+          }
+
+          /**
+          * Adding hover highlights
+          */
+          if (this.options.hoverEnabled === true) {
+            // removing all hover highlights
+            for (var edgeId in this.hoverObj.edges) {
+              if (this.hoverObj.edges.hasOwnProperty(edgeId)) {
+                this.hoverObj.edges[edgeId].hover = false;
+                delete this.hoverObj.edges[edgeId];
+              }
+            }
+
+            // adding hover highlights
+            var obj = this.selectionHandler.getNodeAt(pointer);
+            if (obj == null) {
+              obj = this.selectionHandler.getEdgeAt(pointer);
+            }
+            if (obj != null) {
+              this.selectionHandler.hoverObject(obj);
+            }
+
+            // removing all node hover highlights except for the selected one.
+            for (var nodeId in this.hoverObj.nodes) {
+              if (this.hoverObj.nodes.hasOwnProperty(nodeId)) {
+                if (obj instanceof Node && obj.id != nodeId || obj instanceof Edge || obj == null) {
+                  this.selectionHandler.blurObject(this.hoverObj.nodes[nodeId]);
+                  delete this.hoverObj.nodes[nodeId];
+                }
+              }
+            }
+            this.body.emitter.emit("_requestRedraw");
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _checkShowPopup: {
+
+
+
+        /**
+         * Check if there is an element on the given position in the network
+         * (a node or edge). If so, and if this element has a title,
+         * show a popup window with its title.
+         *
+         * @param {{x:Number, y:Number}} pointer
+         * @private
+         */
+        value: function _checkShowPopup(pointer) {
+          var x = this.canvas._XconvertDOMtoCanvas(pointer.x);
+          var y = this.canvas._YconvertDOMtoCanvas(pointer.y);
+          var pointerObj = {
+            left: x,
+            top: y,
+            right: x,
+            bottom: y
+          };
+
+          var previousPopupObjId = this.popupObj === undefined ? "" : this.popupObj.id;
+          var nodeUnderCursor = false;
+          var popupType = "node";
+
+          // check if a node is under the cursor.
+          if (this.popupObj === undefined) {
+            // search the nodes for overlap, select the top one in case of multiple nodes
+            var nodeIndices = this.body.nodeIndices;
+            var nodes = this.body.nodes;
+            var node = undefined;
+            var overlappingNodes = [];
+            for (var i = 0; i < nodeIndices.length; i++) {
+              node = nodes[nodeIndices[i]];
+              if (node.isOverlappingWith(pointerObj) === true) {
+                if (node.getTitle() !== undefined) {
+                  overlappingNodes.push(nodeIndices[i]);
+                }
+              }
+            }
+
+            if (overlappingNodes.length > 0) {
+              // if there are overlapping nodes, select the last one, this is the one which is drawn on top of the others
+              this.popupObj = nodes[overlappingNodes[overlappingNodes.length - 1]];
+              // if you hover over a node, the title of the edge is not supposed to be shown.
+              nodeUnderCursor = true;
+            }
+          }
+
+          if (this.popupObj === undefined && nodeUnderCursor == false) {
+            // search the edges for overlap
+            var edgeIndices = this.body.edgeIndices;
+            var edges = this.body.edges;
+            var edge = undefined;
+            var overlappingEdges = [];
+            for (var i = 0; i < edgeIndices.length; i++) {
+              edge = edges[edgeIndices[i]];
+              if (edge.isOverlappingWith(pointerObj) === true) {
+                if (edge.connected === true && edge.getTitle() !== undefined) {
+                  overlappingEdges.push(edgeIndices[i]);
+                }
+              }
+            }
+
+            if (overlappingEdges.length > 0) {
+              this.popupObj = edges[overlappingEdges[overlappingEdges.length - 1]];
+              popupType = "edge";
+            }
+          }
+
+          if (this.popupObj !== undefined) {
+            // show popup message window
+            if (this.popupObj.id != previousPopupObjId) {
+              if (this.popup === undefined) {
+                this.popup = new Popup(this.frame, this.options.tooltip);
+              }
+
+              this.popup.popupTargetType = popupType;
+              this.popup.popupTargetId = this.popupObj.id;
+
+              // adjust a small offset such that the mouse cursor is located in the
+              // bottom left location of the popup, and you can easily move over the
+              // popup area
+              this.popup.setPosition(pointer.x + 3, pointer.y - 5);
+              this.popup.setText(this.popupObj.getTitle());
+              this.popup.show();
+            }
+          } else {
+            if (this.popup) {
+              this.popup.hide();
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _checkHidePopup: {
+
+
+        /**
+         * Check if the popup must be hidden, which is the case when the mouse is no
+         * longer hovering on the object
+         * @param {{x:Number, y:Number}} pointer
+         * @private
+         */
+        value: function _checkHidePopup(pointer) {
+          var x = this.canvas._XconvertDOMtoCanvas(pointer.x);
+          var y = this.canvas._YconvertDOMtoCanvas(pointer.y);
+          var pointerObj = {
+            left: x,
+            top: y,
+            right: x,
+            bottom: y
+          };
+
+          var stillOnObj = false;
+          if (this.popup.popupTargetType == "node") {
+            if (this.body.nodes[this.popup.popupTargetId] !== undefined) {
+              stillOnObj = this.body.nodes[this.popup.popupTargetId].isOverlappingWith(pointerObj);
+
+              // if the mouse is still one the node, we have to check if it is not also on one that is drawn on top of it.
+              // we initially only check stillOnObj because this is much faster.
+              if (stillOnObj === true) {
+                var overNode = this.selectionHandler.getNodeAt(pointer);
+                stillOnObj = overNode.id == this.popup.popupTargetId;
+              }
+            }
+          } else {
+            if (this.selectionHandler.getNodeAt(pointer) === null) {
+              if (this.body.edges[this.popup.popupTargetId] !== undefined) {
+                stillOnObj = this.body.edges[this.popup.popupTargetId].isOverlappingWith(pointerObj);
+              }
+            }
+          }
+
+
+          if (stillOnObj === false) {
+            this.popupObj = undefined;
+            this.popup.hide();
+          }
+        },
         writable: true,
         configurable: true
       }
@@ -33985,374 +33949,9 @@ return /******/ (function(modules) { // webpackBootstrap
   })();
 
   module.exports = InteractionHandler;
-  //  var pointer = {x:event.pageX, y:event.pageY};
-  //  var popupVisible = false;
-  //
-  //  // check if the previously selected node is still selected
-  //  if (this.popup !== undefined) {
-  //    if (this.popup.hidden === false) {
-  //      this._checkHidePopup(pointer);
-  //    }
-  //
-  //    // if the popup was not hidden above
-  //    if (this.popup.hidden === false) {
-  //      popupVisible = true;
-  //      this.popup.setPosition(pointer.x + 3, pointer.y - 5)
-  //      this.popup.show();
-  //    }
-  //  }
-  //
-  //  // if we bind the keyboard to the div, we have to highlight it to use it. This highlights it on mouse over
-  //  if (this.options.keyboard.bindToWindow == false && this.options.keyboard.enabled === true) {
-  //    this.canvas.frame.focus();
-  //  }
-  //
-  //  // start a timeout that will check if the mouse is positioned above an element
-  //  if (popupVisible === false) {
-  //    var me = this;
-  //    var checkShow = function() {
-  //      me._checkShowPopup(pointer);
-  //    };
-  //
-  //    if (this.popupTimer) {
-  //      clearInterval(this.popupTimer); // stop any running calculationTimer
-  //    }
-  //    if (!this.drag.dragging) {
-  //      this.popupTimer = setTimeout(checkShow, this.options.tooltip.delay);
-  //    }
-  //  }
-  //
-  //  /**
-  //  * Adding hover highlights
-  //  */
-  //  if (this.options.hoverEnabled === true) {
-  //    // removing all hover highlights
-  //    for (var edgeId in this.hoverObj.edges) {
-  //      if (this.hoverObj.edges.hasOwnProperty(edgeId)) {
-  //        this.hoverObj.edges[edgeId].hover = false;
-  //        delete this.hoverObj.edges[edgeId];
-  //      }
-  //    }
-  //
-  //    // adding hover highlights
-  //    var obj = this.selectionHandler.getNodeAt(pointer);
-  //    if (obj == null) {
-  //      obj = this.selectionHandler.getEdgeAt(pointer);
-  //    }
-  //    if (obj != null) {
-  //      this._hoverObject(obj);
-  //    }
-  //
-  //    // removing all node hover highlights except for the selected one.
-  //    for (var nodeId in this.hoverObj.nodes) {
-  //      if (this.hoverObj.nodes.hasOwnProperty(nodeId)) {
-  //        if (obj instanceof Node && obj.id != nodeId || obj instanceof Edge || obj == null) {
-  //          this._blurObject(this.hoverObj.nodes[nodeId]);
-  //          delete this.hoverObj.nodes[nodeId];
-  //        }
-  //      }
-  //    }
-  //    this.body.emitter.emit("_requestRedraw");
-  //  }
 
 /***/ },
-/* 101 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-  var util = __webpack_require__(1);
-  var Hammer = __webpack_require__(19);
-  var hammerUtil = __webpack_require__(24);
-  var keycharm = __webpack_require__(39);
-
-  var NavigationHandler = (function () {
-    function NavigationHandler(body, canvas) {
-      var _this = this;
-      _classCallCheck(this, NavigationHandler);
-
-      this.body = body;
-      this.canvas = canvas;
-
-      this.iconsCreated = false;
-      this.navigationHammers = [];
-      this.boundFunctions = {};
-      this.touchTime = 0;
-      this.activated = false;
-
-
-      this.body.emitter.on("release", this._stopMovement.bind(this));
-      this.body.emitter.on("activate", function () {
-        _this.activated = true;_this.configureKeyboardBindings();
-      });
-      this.body.emitter.on("deactivate", function () {
-        _this.activated = false;_this.configureKeyboardBindings();
-      });
-      this.body.emitter.on("destroy", function () {
-        if (_this.keycharm !== undefined) {
-          _this.keycharm.destroy();
-        }
-      });
-
-      this.options = {};
-    }
-
-    _prototypeProperties(NavigationHandler, null, {
-      setOptions: {
-        value: function setOptions(options) {
-          if (options !== undefined) {
-            this.options = options;
-            this.create();
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      create: {
-        value: function create() {
-          if (this.options.showNavigationIcons === true) {
-            if (this.iconsCreated === false) {
-              this.loadNavigationElements();
-            }
-          } else if (this.iconsCreated === true) {
-            this.cleanNavigation();
-          }
-
-          this.configureKeyboardBindings();
-        },
-        writable: true,
-        configurable: true
-      },
-      cleanNavigation: {
-        value: function cleanNavigation() {
-          // clean hammer bindings
-          if (this.navigationHammers.length != 0) {
-            for (var i = 0; i < this.navigationHammers.length; i++) {
-              this.navigationHammers[i].destroy();
-            }
-            this.navigationHammers = [];
-          }
-
-          this._navigationReleaseOverload = function () {};
-
-          // clean up previous navigation items
-          if (this.navigationDOM && this.navigationDOM.wrapper && this.navigationDOM.wrapper.parentNode) {
-            this.navigationDOM.wrapper.parentNode.removeChild(this.navigationDOM.wrapper);
-          }
-
-          this.iconsCreated = false;
-        },
-        writable: true,
-        configurable: true
-      },
-      loadNavigationElements: {
-
-        /**
-         * Creation of the navigation controls nodes. They are drawn over the rest of the nodes and are not affected by scale and translation
-         * they have a triggerFunction which is called on click. If the position of the navigation controls is dependent
-         * on this.frame.canvas.clientWidth or this.frame.canvas.clientHeight, we flag horizontalAlignLeft and verticalAlignTop false.
-         * This means that the location will be corrected by the _relocateNavigation function on a size change of the canvas.
-         *
-         * @private
-         */
-        value: function loadNavigationElements() {
-          this.cleanNavigation();
-
-          this.navigationDOM = {};
-          var navigationDivs = ["up", "down", "left", "right", "zoomIn", "zoomOut", "zoomExtends"];
-          var navigationDivActions = ["_moveUp", "_moveDown", "_moveLeft", "_moveRight", "_zoomIn", "_zoomOut", "_zoomExtent"];
-
-          this.navigationDOM.wrapper = document.createElement("div");
-          this.canvas.frame.appendChild(this.navigationDOM.wrapper);
-
-          for (var i = 0; i < navigationDivs.length; i++) {
-            this.navigationDOM[navigationDivs[i]] = document.createElement("div");
-            this.navigationDOM[navigationDivs[i]].className = "network-navigation " + navigationDivs[i];
-            this.navigationDOM.wrapper.appendChild(this.navigationDOM[navigationDivs[i]]);
-
-            var hammer = new Hammer(this.navigationDOM[navigationDivs[i]]);
-            if (navigationDivActions[i] == "_zoomExtent") {
-              hammerUtil.onTouch(hammer, this._zoomExtent.bind(this));
-            } else {
-              hammerUtil.onTouch(hammer, this.bindToRedraw.bind(this, navigationDivActions[i]));
-            }
-
-            this.navigationHammers.push(hammer);
-          }
-
-          this.iconsCreated = true;
-        },
-        writable: true,
-        configurable: true
-      },
-      bindToRedraw: {
-        value: function bindToRedraw(action) {
-          if (this.boundFunctions[action] === undefined) {
-            this.boundFunctions[action] = this[action].bind(this);
-            this.body.emitter.on("initRedraw", this.boundFunctions[action]);
-            this.body.emitter.emit("_startRendering");
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      unbindFromRedraw: {
-        value: function unbindFromRedraw(action) {
-          if (this.boundFunctions[action] !== undefined) {
-            this.body.emitter.off("initRedraw", this.boundFunctions[action]);
-            this.body.emitter.emit("_stopRendering");
-            delete this.boundFunctions[action];
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _zoomExtent: {
-
-        /**
-         * this stops all movement induced by the navigation buttons
-         *
-         * @private
-         */
-        value: function _zoomExtent() {
-          if (new Date().valueOf() - this.touchTime > 700) {
-            // TODO: fix ugly hack to avoid hammer's double fireing of event (because we use release?)
-            this.body.emitter.emit("zoomExtent", { duration: 700 });
-            this.touchTime = new Date().valueOf();
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _stopMovement: {
-
-        /**
-         * this stops all movement induced by the navigation buttons
-         *
-         * @private
-         */
-        value: function _stopMovement() {
-          for (var boundAction in this.boundFunctions) {
-            if (this.boundFunctions.hasOwnProperty(boundAction)) {
-              this.body.emitter.off("initRedraw", this.boundFunctions[boundAction]);
-              this.body.emitter.emit("_stopRendering");
-            }
-          }
-          this.boundFunctions = {};
-        },
-        writable: true,
-        configurable: true
-      },
-      _moveUp: {
-        value: function _moveUp() {
-          this.body.view.translation.y += this.options.keyboard.speed.y;
-        },
-        writable: true,
-        configurable: true
-      },
-      _moveDown: {
-        value: function _moveDown() {
-          this.body.view.translation.y -= this.options.keyboard.speed.y;
-        },
-        writable: true,
-        configurable: true
-      },
-      _moveLeft: {
-        value: function _moveLeft() {
-          this.body.view.translation.x += this.options.keyboard.speed.x;
-        },
-        writable: true,
-        configurable: true
-      },
-      _moveRight: {
-        value: function _moveRight() {
-          this.body.view.translation.x -= this.options.keyboard.speed.x;
-        },
-        writable: true,
-        configurable: true
-      },
-      _zoomIn: {
-        value: function _zoomIn() {
-          this.body.view.scale += this.options.keyboard.speed.zoom;
-        },
-        writable: true,
-        configurable: true
-      },
-      _zoomOut: {
-        value: function _zoomOut() {
-          this.body.view.scale -= this.options.keyboard.speed.zoom;
-        },
-        writable: true,
-        configurable: true
-      },
-      configureKeyboardBindings: {
-
-
-        /**
-         * bind all keys using keycharm.
-         */
-        value: function configureKeyboardBindings() {
-          if (this.keycharm !== undefined) {
-            this.keycharm.destroy();
-          }
-
-          if (this.options.keyboard.enabled === true) {
-            if (this.options.keyboard.bindToWindow === true) {
-              this.keycharm = keycharm({ container: window, preventDefault: false });
-            } else {
-              this.keycharm = keycharm({ container: this.canvas.frame, preventDefault: false });
-            }
-
-            this.keycharm.reset();
-
-            if (this.activated === true) {
-              this.keycharm.bind("up", this.bindToRedraw.bind(this, "_moveUp"), "keydown");
-              this.keycharm.bind("down", this.bindToRedraw.bind(this, "_moveDown"), "keydown");
-              this.keycharm.bind("left", this.bindToRedraw.bind(this, "_moveLeft"), "keydown");
-              this.keycharm.bind("right", this.bindToRedraw.bind(this, "_moveRight"), "keydown");
-              this.keycharm.bind("=", this.bindToRedraw.bind(this, "_zoomIn"), "keydown");
-              this.keycharm.bind("num+", this.bindToRedraw.bind(this, "_zoomIn"), "keydown");
-              this.keycharm.bind("num-", this.bindToRedraw.bind(this, "_zoomOut"), "keydown");
-              this.keycharm.bind("-", this.bindToRedraw.bind(this, "_zoomOut"), "keydown");
-              this.keycharm.bind("[", this.bindToRedraw.bind(this, "_zoomOut"), "keydown");
-              this.keycharm.bind("]", this.bindToRedraw.bind(this, "_zoomIn"), "keydown");
-              this.keycharm.bind("pageup", this.bindToRedraw.bind(this, "_zoomIn"), "keydown");
-              this.keycharm.bind("pagedown", this.bindToRedraw.bind(this, "_zoomOut"), "keydown");
-
-              this.keycharm.bind("up", this.unbindFromRedraw.bind(this, "_moveUp"), "keyup");
-              this.keycharm.bind("down", this.unbindFromRedraw.bind(this, "_moveDown"), "keyup");
-              this.keycharm.bind("left", this.unbindFromRedraw.bind(this, "_moveLeft"), "keyup");
-              this.keycharm.bind("right", this.unbindFromRedraw.bind(this, "_moveRight"), "keyup");
-              this.keycharm.bind("=", this.unbindFromRedraw.bind(this, "_zoomIn"), "keyup");
-              this.keycharm.bind("num+", this.unbindFromRedraw.bind(this, "_zoomIn"), "keyup");
-              this.keycharm.bind("num-", this.unbindFromRedraw.bind(this, "_zoomOut"), "keyup");
-              this.keycharm.bind("-", this.unbindFromRedraw.bind(this, "_zoomOut"), "keyup");
-              this.keycharm.bind("[", this.unbindFromRedraw.bind(this, "_zoomOut"), "keyup");
-              this.keycharm.bind("]", this.unbindFromRedraw.bind(this, "_zoomIn"), "keyup");
-              this.keycharm.bind("pageup", this.unbindFromRedraw.bind(this, "_zoomIn"), "keyup");
-              this.keycharm.bind("pagedown", this.unbindFromRedraw.bind(this, "_zoomOut"), "keyup");
-            }
-          }
-        },
-        writable: true,
-        configurable: true
-      }
-    });
-
-    return NavigationHandler;
-  })();
-
-  exports.NavigationHandler = NavigationHandler;
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-/***/ },
-/* 102 */
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34365,7 +33964,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 2/27/2015.
    */
 
-  var Node = __webpack_require__(62);
+  var Node = __webpack_require__(61);
   var util = __webpack_require__(1);
 
   var SelectionHandler = (function () {
@@ -34906,7 +34505,7 @@ return /******/ (function(modules) { // webpackBootstrap
         writable: true,
         configurable: true
       },
-      _blurObject: {
+      blurObject: {
 
 
 
@@ -34920,7 +34519,7 @@ return /******/ (function(modules) { // webpackBootstrap
          * @param {Node || Edge} object
          * @private
          */
-        value: function _blurObject(object) {
+        value: function blurObject(object) {
           if (object.hover == true) {
             object.hover = false;
             this.body.emitter.emit("blurNode", { node: object.id });
@@ -34929,7 +34528,7 @@ return /******/ (function(modules) { // webpackBootstrap
         writable: true,
         configurable: true
       },
-      _hoverObject: {
+      hoverObject: {
 
         /**
          * This is called when someone clicks on a node. either select or deselect it.
@@ -34938,7 +34537,7 @@ return /******/ (function(modules) { // webpackBootstrap
          * @param {Node || Edge} object
          * @private
          */
-        value: function _hoverObject(object) {
+        value: function hoverObject(object) {
           if (object.hover == false) {
             object.hover = true;
             this._addToHover(object);
@@ -35109,7 +34708,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = SelectionHandler;
 
 /***/ },
-/* 103 */
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -35580,6 +35179,467 @@ return /******/ (function(modules) { // webpackBootstrap
   })();
 
   module.exports = LayoutEngine;
+
+/***/ },
+/* 102 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  var util = __webpack_require__(1);
+  var Hammer = __webpack_require__(19);
+  var hammerUtil = __webpack_require__(24);
+  var keycharm = __webpack_require__(39);
+
+  var NavigationHandler = (function () {
+    function NavigationHandler(body, canvas) {
+      var _this = this;
+      _classCallCheck(this, NavigationHandler);
+
+      this.body = body;
+      this.canvas = canvas;
+
+      this.iconsCreated = false;
+      this.navigationHammers = [];
+      this.boundFunctions = {};
+      this.touchTime = 0;
+      this.activated = false;
+
+
+      this.body.emitter.on("release", this._stopMovement.bind(this));
+      this.body.emitter.on("activate", function () {
+        _this.activated = true;_this.configureKeyboardBindings();
+      });
+      this.body.emitter.on("deactivate", function () {
+        _this.activated = false;_this.configureKeyboardBindings();
+      });
+      this.body.emitter.on("destroy", function () {
+        if (_this.keycharm !== undefined) {
+          _this.keycharm.destroy();
+        }
+      });
+
+      this.options = {};
+    }
+
+    _prototypeProperties(NavigationHandler, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          if (options !== undefined) {
+            this.options = options;
+            this.create();
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      create: {
+        value: function create() {
+          if (this.options.showNavigationIcons === true) {
+            if (this.iconsCreated === false) {
+              this.loadNavigationElements();
+            }
+          } else if (this.iconsCreated === true) {
+            this.cleanNavigation();
+          }
+
+          this.configureKeyboardBindings();
+        },
+        writable: true,
+        configurable: true
+      },
+      cleanNavigation: {
+        value: function cleanNavigation() {
+          // clean hammer bindings
+          if (this.navigationHammers.length != 0) {
+            for (var i = 0; i < this.navigationHammers.length; i++) {
+              this.navigationHammers[i].destroy();
+            }
+            this.navigationHammers = [];
+          }
+
+          this._navigationReleaseOverload = function () {};
+
+          // clean up previous navigation items
+          if (this.navigationDOM && this.navigationDOM.wrapper && this.navigationDOM.wrapper.parentNode) {
+            this.navigationDOM.wrapper.parentNode.removeChild(this.navigationDOM.wrapper);
+          }
+
+          this.iconsCreated = false;
+        },
+        writable: true,
+        configurable: true
+      },
+      loadNavigationElements: {
+
+        /**
+         * Creation of the navigation controls nodes. They are drawn over the rest of the nodes and are not affected by scale and translation
+         * they have a triggerFunction which is called on click. If the position of the navigation controls is dependent
+         * on this.frame.canvas.clientWidth or this.frame.canvas.clientHeight, we flag horizontalAlignLeft and verticalAlignTop false.
+         * This means that the location will be corrected by the _relocateNavigation function on a size change of the canvas.
+         *
+         * @private
+         */
+        value: function loadNavigationElements() {
+          this.cleanNavigation();
+
+          this.navigationDOM = {};
+          var navigationDivs = ["up", "down", "left", "right", "zoomIn", "zoomOut", "zoomExtends"];
+          var navigationDivActions = ["_moveUp", "_moveDown", "_moveLeft", "_moveRight", "_zoomIn", "_zoomOut", "_zoomExtent"];
+
+          this.navigationDOM.wrapper = document.createElement("div");
+          this.canvas.frame.appendChild(this.navigationDOM.wrapper);
+
+          for (var i = 0; i < navigationDivs.length; i++) {
+            this.navigationDOM[navigationDivs[i]] = document.createElement("div");
+            this.navigationDOM[navigationDivs[i]].className = "network-navigation " + navigationDivs[i];
+            this.navigationDOM.wrapper.appendChild(this.navigationDOM[navigationDivs[i]]);
+
+            var hammer = new Hammer(this.navigationDOM[navigationDivs[i]]);
+            if (navigationDivActions[i] == "_zoomExtent") {
+              hammerUtil.onTouch(hammer, this._zoomExtent.bind(this));
+            } else {
+              hammerUtil.onTouch(hammer, this.bindToRedraw.bind(this, navigationDivActions[i]));
+            }
+
+            this.navigationHammers.push(hammer);
+          }
+
+          this.iconsCreated = true;
+        },
+        writable: true,
+        configurable: true
+      },
+      bindToRedraw: {
+        value: function bindToRedraw(action) {
+          if (this.boundFunctions[action] === undefined) {
+            this.boundFunctions[action] = this[action].bind(this);
+            this.body.emitter.on("initRedraw", this.boundFunctions[action]);
+            this.body.emitter.emit("_startRendering");
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      unbindFromRedraw: {
+        value: function unbindFromRedraw(action) {
+          if (this.boundFunctions[action] !== undefined) {
+            this.body.emitter.off("initRedraw", this.boundFunctions[action]);
+            this.body.emitter.emit("_stopRendering");
+            delete this.boundFunctions[action];
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _zoomExtent: {
+
+        /**
+         * this stops all movement induced by the navigation buttons
+         *
+         * @private
+         */
+        value: function _zoomExtent() {
+          if (new Date().valueOf() - this.touchTime > 700) {
+            // TODO: fix ugly hack to avoid hammer's double fireing of event (because we use release?)
+            this.body.emitter.emit("zoomExtent", { duration: 700 });
+            this.touchTime = new Date().valueOf();
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _stopMovement: {
+
+        /**
+         * this stops all movement induced by the navigation buttons
+         *
+         * @private
+         */
+        value: function _stopMovement() {
+          for (var boundAction in this.boundFunctions) {
+            if (this.boundFunctions.hasOwnProperty(boundAction)) {
+              this.body.emitter.off("initRedraw", this.boundFunctions[boundAction]);
+              this.body.emitter.emit("_stopRendering");
+            }
+          }
+          this.boundFunctions = {};
+        },
+        writable: true,
+        configurable: true
+      },
+      _moveUp: {
+        value: function _moveUp() {
+          this.body.view.translation.y += this.options.keyboard.speed.y;
+        },
+        writable: true,
+        configurable: true
+      },
+      _moveDown: {
+        value: function _moveDown() {
+          this.body.view.translation.y -= this.options.keyboard.speed.y;
+        },
+        writable: true,
+        configurable: true
+      },
+      _moveLeft: {
+        value: function _moveLeft() {
+          this.body.view.translation.x += this.options.keyboard.speed.x;
+        },
+        writable: true,
+        configurable: true
+      },
+      _moveRight: {
+        value: function _moveRight() {
+          this.body.view.translation.x -= this.options.keyboard.speed.x;
+        },
+        writable: true,
+        configurable: true
+      },
+      _zoomIn: {
+        value: function _zoomIn() {
+          this.body.view.scale += this.options.keyboard.speed.zoom;
+        },
+        writable: true,
+        configurable: true
+      },
+      _zoomOut: {
+        value: function _zoomOut() {
+          this.body.view.scale -= this.options.keyboard.speed.zoom;
+        },
+        writable: true,
+        configurable: true
+      },
+      configureKeyboardBindings: {
+
+
+        /**
+         * bind all keys using keycharm.
+         */
+        value: function configureKeyboardBindings() {
+          if (this.keycharm !== undefined) {
+            this.keycharm.destroy();
+          }
+
+          if (this.options.keyboard.enabled === true) {
+            if (this.options.keyboard.bindToWindow === true) {
+              this.keycharm = keycharm({ container: window, preventDefault: false });
+            } else {
+              this.keycharm = keycharm({ container: this.canvas.frame, preventDefault: false });
+            }
+
+            this.keycharm.reset();
+
+            if (this.activated === true) {
+              this.keycharm.bind("up", this.bindToRedraw.bind(this, "_moveUp"), "keydown");
+              this.keycharm.bind("down", this.bindToRedraw.bind(this, "_moveDown"), "keydown");
+              this.keycharm.bind("left", this.bindToRedraw.bind(this, "_moveLeft"), "keydown");
+              this.keycharm.bind("right", this.bindToRedraw.bind(this, "_moveRight"), "keydown");
+              this.keycharm.bind("=", this.bindToRedraw.bind(this, "_zoomIn"), "keydown");
+              this.keycharm.bind("num+", this.bindToRedraw.bind(this, "_zoomIn"), "keydown");
+              this.keycharm.bind("num-", this.bindToRedraw.bind(this, "_zoomOut"), "keydown");
+              this.keycharm.bind("-", this.bindToRedraw.bind(this, "_zoomOut"), "keydown");
+              this.keycharm.bind("[", this.bindToRedraw.bind(this, "_zoomOut"), "keydown");
+              this.keycharm.bind("]", this.bindToRedraw.bind(this, "_zoomIn"), "keydown");
+              this.keycharm.bind("pageup", this.bindToRedraw.bind(this, "_zoomIn"), "keydown");
+              this.keycharm.bind("pagedown", this.bindToRedraw.bind(this, "_zoomOut"), "keydown");
+
+              this.keycharm.bind("up", this.unbindFromRedraw.bind(this, "_moveUp"), "keyup");
+              this.keycharm.bind("down", this.unbindFromRedraw.bind(this, "_moveDown"), "keyup");
+              this.keycharm.bind("left", this.unbindFromRedraw.bind(this, "_moveLeft"), "keyup");
+              this.keycharm.bind("right", this.unbindFromRedraw.bind(this, "_moveRight"), "keyup");
+              this.keycharm.bind("=", this.unbindFromRedraw.bind(this, "_zoomIn"), "keyup");
+              this.keycharm.bind("num+", this.unbindFromRedraw.bind(this, "_zoomIn"), "keyup");
+              this.keycharm.bind("num-", this.unbindFromRedraw.bind(this, "_zoomOut"), "keyup");
+              this.keycharm.bind("-", this.unbindFromRedraw.bind(this, "_zoomOut"), "keyup");
+              this.keycharm.bind("[", this.unbindFromRedraw.bind(this, "_zoomOut"), "keyup");
+              this.keycharm.bind("]", this.unbindFromRedraw.bind(this, "_zoomIn"), "keyup");
+              this.keycharm.bind("pageup", this.unbindFromRedraw.bind(this, "_zoomIn"), "keyup");
+              this.keycharm.bind("pagedown", this.unbindFromRedraw.bind(this, "_zoomOut"), "keyup");
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return NavigationHandler;
+  })();
+
+  module.exports = NavigationHandler;
+
+/***/ },
+/* 103 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  /**
+   * Popup is a class to create a popup window with some text
+   * @param {Element}  container     The container object.
+   * @param {Number} [x]
+   * @param {Number} [y]
+   * @param {String} [text]
+   * @param {Object} [style]     An object containing borderColor,
+   *                             backgroundColor, etc.
+   */
+  var Popup = (function () {
+    function Popup(container, x, y, text, style) {
+      _classCallCheck(this, Popup);
+
+      if (container) {
+        this.container = container;
+      } else {
+        this.container = document.body;
+      }
+
+      // x, y and text are optional, see if a style object was passed in their place
+      if (style === undefined) {
+        if (typeof x === "object") {
+          style = x;
+          x = undefined;
+        } else if (typeof text === "object") {
+          style = text;
+          text = undefined;
+        } else {
+          // for backwards compatibility, in case clients other than Network are creating Popup directly
+          style = {
+            fontColor: "black",
+            fontSize: 14, // px
+            fontFace: "verdana",
+            color: {
+              border: "#666",
+              background: "#FFFFC6"
+            }
+          };
+        }
+      }
+
+      this.x = 0;
+      this.y = 0;
+      this.padding = 5;
+      this.hidden = false;
+
+      if (x !== undefined && y !== undefined) {
+        this.setPosition(x, y);
+      }
+      if (text !== undefined) {
+        this.setText(text);
+      }
+
+      // create the frame
+      this.frame = document.createElement("div");
+      this.frame.className = "network-tooltip";
+      this.frame.style.color = style.fontColor;
+      this.frame.style.backgroundColor = style.color.background;
+      this.frame.style.borderColor = style.color.border;
+      this.frame.style.fontSize = style.fontSize + "px";
+      this.frame.style.fontFamily = style.fontFace;
+      this.container.appendChild(this.frame);
+    }
+
+    _prototypeProperties(Popup, null, {
+      setPosition: {
+
+        /**
+         * @param {number} x   Horizontal position of the popup window
+         * @param {number} y   Vertical position of the popup window
+         */
+        value: function setPosition(x, y) {
+          this.x = parseInt(x);
+          this.y = parseInt(y);
+        },
+        writable: true,
+        configurable: true
+      },
+      setText: {
+
+        /**
+         * Set the content for the popup window. This can be HTML code or text.
+         * @param {string | Element} content
+         */
+        value: function setText(content) {
+          if (content instanceof Element) {
+            this.frame.innerHTML = "";
+            this.frame.appendChild(content);
+          } else {
+            this.frame.innerHTML = content; // string containing text or HTML
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      show: {
+
+        /**
+         * Show the popup window
+         * @param {boolean} show    Optional. Show or hide the window
+         */
+        value: function show(show) {
+          if (show === undefined) {
+            show = true;
+          }
+
+          if (show === true) {
+            var height = this.frame.clientHeight;
+            var width = this.frame.clientWidth;
+            var maxHeight = this.frame.parentNode.clientHeight;
+            var maxWidth = this.frame.parentNode.clientWidth;
+
+            var top = this.y - height;
+            if (top + height + this.padding > maxHeight) {
+              top = maxHeight - height - this.padding;
+            }
+            if (top < this.padding) {
+              top = this.padding;
+            }
+
+            var left = this.x;
+            if (left + width + this.padding > maxWidth) {
+              left = maxWidth - width - this.padding;
+            }
+            if (left < this.padding) {
+              left = this.padding;
+            }
+
+            this.frame.style.left = left + "px";
+            this.frame.style.top = top + "px";
+            this.frame.style.visibility = "visible";
+            this.hidden = false;
+          } else {
+            this.hide();
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      hide: {
+
+        /**
+         * Hide the popup window
+         */
+        value: function hide() {
+          this.hidden = true;
+          this.frame.style.visibility = "hidden";
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return Popup;
+  })();
+
+  module.exports = Popup;
 
 /***/ }
 /******/ ])
