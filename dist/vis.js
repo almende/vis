@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.0.0-SNAPSHOT
- * @date    2015-03-24
+ * @date    2015-03-25
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -139,7 +139,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // Network
   exports.Network = __webpack_require__(53);
   exports.network = {
-    Images: __webpack_require__(54),
+    Images: __webpack_require__(57),
     dotparser: __webpack_require__(55),
     gephiParser: __webpack_require__(56)
   };
@@ -23293,7 +23293,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
 
   // Load custom shapes into CanvasRenderingContext2D
-  __webpack_require__(57);
+  __webpack_require__(54);
 
   var Emitter = __webpack_require__(11);
   var Hammer = __webpack_require__(19);
@@ -23302,33 +23302,32 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataView = __webpack_require__(9);
   var dotparser = __webpack_require__(55);
   var gephiParser = __webpack_require__(56);
-  var Images = __webpack_require__(54);
+  var Images = __webpack_require__(57);
   var Activator = __webpack_require__(38);
-  var locales = __webpack_require__(58);
 
+  var Groups = _interopRequire(__webpack_require__(58));
 
+  var NodesHandler = _interopRequire(__webpack_require__(59));
 
-  var Groups = _interopRequire(__webpack_require__(59));
+  var EdgesHandler = _interopRequire(__webpack_require__(79));
 
-  var NodesHandler = _interopRequire(__webpack_require__(60));
+  var PhysicsEngine = _interopRequire(__webpack_require__(86));
 
-  var EdgesHandler = _interopRequire(__webpack_require__(80));
+  var ClusterEngine = _interopRequire(__webpack_require__(93));
 
-  var PhysicsEngine = _interopRequire(__webpack_require__(87));
+  var CanvasRenderer = _interopRequire(__webpack_require__(95));
 
-  var ClusterEngine = _interopRequire(__webpack_require__(94));
+  var Canvas = _interopRequire(__webpack_require__(96));
 
-  var CanvasRenderer = _interopRequire(__webpack_require__(96));
+  var View = _interopRequire(__webpack_require__(97));
 
-  var Canvas = _interopRequire(__webpack_require__(97));
+  var InteractionHandler = _interopRequire(__webpack_require__(98));
 
-  var View = _interopRequire(__webpack_require__(98));
+  var SelectionHandler = _interopRequire(__webpack_require__(101));
 
-  var InteractionHandler = _interopRequire(__webpack_require__(99));
+  var LayoutEngine = _interopRequire(__webpack_require__(102));
 
-  var SelectionHandler = _interopRequire(__webpack_require__(102));
-
-  var LayoutEngine = _interopRequire(__webpack_require__(103));
+  var ManipulationSystem = _interopRequire(__webpack_require__(103));
 
   /**
    * @constructor Network
@@ -23350,12 +23349,7 @@ return /******/ (function(modules) { // webpackBootstrap
     // set constant values
     this.options = {};
     this.defaultOptions = {
-      //dataManipulation: {
-      //  enabled: false,
-      //  initiallyVisible: false
-      //},
-      locale: "en",
-      locales: locales
+      clickToUse: false
     };
     util.extend(this.options, this.defaultOptions);
 
@@ -23371,7 +23365,8 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       functions: {
         createNode: function () {},
-        createEdge: function () {}
+        createEdge: function () {},
+        getPointer: function () {}
       },
       emitter: {
         on: this.on.bind(this),
@@ -23414,8 +23409,9 @@ return /******/ (function(modules) { // webpackBootstrap
     this.view = new View(this.body, this.canvas); // camera handler, does animations and zooms
     this.renderer = new CanvasRenderer(this.body, this.canvas); // renderer, starts renderloop, has events that modules can hook into
     this.physics = new PhysicsEngine(this.body); // physics engine, does all the simulations
-    this.layoutEngine = new LayoutEngine(this.body);
+    this.layoutEngine = new LayoutEngine(this.body); // layout engine for inital layout and hierarchical layout
     this.clustering = new ClusterEngine(this.body); // clustering api
+    this.manipulation = new ManipulationSystem(this.body, this.canvas, this.selectionHandler); // data manipulation system
 
     this.nodesHandler = new NodesHandler(this.body, images, this.groups, this.layoutEngine); // Handle adding, deleting and updating of nodes as well as global options
     this.edgesHandler = new EdgesHandler(this.body, images, this.groups); // Handle adding, deleting and updating of edges as well as global options
@@ -23432,6 +23428,51 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // Extend Network with an Emitter mixin
   Emitter(Network.prototype);
+
+
+
+  /**
+   * Set options
+   * @param {Object} options
+   */
+  Network.prototype.setOptions = function (options) {
+    if (options !== undefined) {
+      // the hierarchical system can adapt the edges and the physics to it's own options because not all combinations work with the hierarichical system.
+      options = this.layoutEngine.setOptions(options.layout, options);
+
+      this.groups.setOptions(options.groups);
+      this.nodesHandler.setOptions(options.nodes);
+      this.edgesHandler.setOptions(options.edges);
+      this.physics.setOptions(options.physics);
+      this.canvas.setOptions(options.canvas);
+      this.renderer.setOptions(options.rendering);
+      this.view.setOptions(options.view);
+      this.interactionHandler.setOptions(options.interaction);
+      this.selectionHandler.setOptions(options.selection);
+      this.clustering.setOptions(options.clustering);
+      this.manipulation.setOptions(options.manipulation);
+
+
+      if (options.clickToUse !== undefined) {
+        if (options.clickToUse === true) {
+          if (this.activator === undefined) {
+            this.activator = new Activator(this.frame);
+            this.activator.on("change", this._createKeyBinds.bind(this));
+          }
+        } else {
+          if (this.activator !== undefined) {
+            this.activator.destroy();
+            delete this.activator;
+          }
+          this.body.emitter.emit("activate");
+        }
+      } else {
+        this.body.emitter.emit("activate");
+      }
+
+      this.canvas.setSize();
+    }
+  };
 
 
   /**
@@ -23539,48 +23580,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // find a stable position or start animating to a stable position
     this.body.emitter.emit("initPhysics");
-  };
-
-  /**
-   * Set options
-   * @param {Object} options
-   */
-  Network.prototype.setOptions = function (options) {
-    if (options !== undefined) {
-      // the hierarchical system can adapt the edges and the physics to it's own options because not all combinations work with the hierarichical system.
-      options = this.layoutEngine.setOptions(options.layout, options);
-
-      this.groups.setOptions(options.groups);
-      this.nodesHandler.setOptions(options.nodes);
-      this.edgesHandler.setOptions(options.edges);
-      this.physics.setOptions(options.physics);
-      this.canvas.setOptions(options.canvas);
-      this.renderer.setOptions(options.rendering);
-      this.view.setOptions(options.view);
-      this.interactionHandler.setOptions(options.interaction);
-      this.selectionHandler.setOptions(options.selection);
-      this.clustering.setOptions(options.clustering);
-
-
-      if (options.clickToUse !== undefined) {
-        if (options.clickToUse === true) {
-          if (this.activator === undefined) {
-            this.activator = new Activator(this.frame);
-            this.activator.on("change", this._createKeyBinds.bind(this));
-          }
-        } else {
-          if (this.activator !== undefined) {
-            this.activator.destroy();
-            delete this.activator;
-          }
-          this.body.emitter.emit("activate");
-        }
-      } else {
-        this.body.emitter.emit("activate");
-      }
-
-      this.canvas.setSize();
-    }
   };
 
 
@@ -23812,71 +23811,276 @@ return /******/ (function(modules) { // webpackBootstrap
   "use strict";
 
   /**
-   * @class Images
-   * This class loads images and keeps them stored.
+   * Canvas shapes used by Network
    */
-  function Images(callback) {
-    this.images = {};
-    this.imageBroken = {};
-    this.callback = callback;
+  if (typeof CanvasRenderingContext2D !== "undefined") {
+    /**
+     * Draw a circle shape
+     */
+    CanvasRenderingContext2D.prototype.circle = function (x, y, r) {
+      this.beginPath();
+      this.arc(x, y, r, 0, 2 * Math.PI, false);
+    };
+
+    /**
+     * Draw a square shape
+     * @param {Number} x horizontal center
+     * @param {Number} y vertical center
+     * @param {Number} r   size, width and height of the square
+     */
+    CanvasRenderingContext2D.prototype.square = function (x, y, r) {
+      this.beginPath();
+      this.rect(x - r, y - r, r * 2, r * 2);
+    };
+
+    /**
+     * Draw a triangle shape
+     * @param {Number} x horizontal center
+     * @param {Number} y vertical center
+     * @param {Number} r   radius, half the length of the sides of the triangle
+     */
+    CanvasRenderingContext2D.prototype.triangle = function (x, y, r) {
+      // http://en.wikipedia.org/wiki/Equilateral_triangle
+      this.beginPath();
+
+      // the change in radius and the offset is here to center the shape
+      r *= 1.15;
+      y += 0.275 * r;
+
+      var s = r * 2;
+      var s2 = s / 2;
+      var ir = Math.sqrt(3) / 6 * s; // radius of inner circle
+      var h = Math.sqrt(s * s - s2 * s2); // height
+
+
+      this.moveTo(x, y - (h - ir));
+      this.lineTo(x + s2, y + ir);
+      this.lineTo(x - s2, y + ir);
+      this.lineTo(x, y - (h - ir));
+      this.closePath();
+
+    };
+
+    /**
+     * Draw a triangle shape in downward orientation
+     * @param {Number} x horizontal center
+     * @param {Number} y vertical center
+     * @param {Number} r radius
+     */
+    CanvasRenderingContext2D.prototype.triangleDown = function (x, y, r) {
+      // http://en.wikipedia.org/wiki/Equilateral_triangle
+      this.beginPath();
+
+      // the change in radius and the offset is here to center the shape
+      r *= 1.15;
+      y -= 0.275 * r;
+
+      var s = r * 2;
+      var s2 = s / 2;
+      var ir = Math.sqrt(3) / 6 * s; // radius of inner circle
+      var h = Math.sqrt(s * s - s2 * s2); // height
+
+      this.moveTo(x, y + (h - ir));
+      this.lineTo(x + s2, y - ir);
+      this.lineTo(x - s2, y - ir);
+      this.lineTo(x, y + (h - ir));
+      this.closePath();
+    };
+
+    /**
+     * Draw a star shape, a star with 5 points
+     * @param {Number} x horizontal center
+     * @param {Number} y vertical center
+     * @param {Number} r   radius, half the length of the sides of the triangle
+     */
+    CanvasRenderingContext2D.prototype.star = function (x, y, r) {
+      // http://www.html5canvastutorials.com/labs/html5-canvas-star-spinner/
+      this.beginPath();
+
+      // the change in radius and the offset is here to center the shape
+      r *= 0.82;
+      y += 0.1 * r;
+
+      for (var n = 0; n < 10; n++) {
+        var radius = n % 2 === 0 ? r * 1.3 : r * 0.5;
+        this.lineTo(x + radius * Math.sin(n * 2 * Math.PI / 10), y - radius * Math.cos(n * 2 * Math.PI / 10));
+      }
+
+      this.closePath();
+    };
+
+    /**
+     * Draw a Diamond shape
+     * @param {Number} x horizontal center
+     * @param {Number} y vertical center
+     * @param {Number} r   radius, half the length of the sides of the triangle
+     */
+    CanvasRenderingContext2D.prototype.diamond = function (x, y, r) {
+      // http://www.html5canvastutorials.com/labs/html5-canvas-star-spinner/
+      this.beginPath();
+
+      this.lineTo(x, y + r);
+      this.lineTo(x + r, y);
+      this.lineTo(x, y - r);
+      this.lineTo(x - r, y);
+
+
+      this.closePath();
+    };
+
+    /**
+     * http://stackoverflow.com/questions/1255512/how-to-draw-a-rounded-rectangle-on-html-canvas
+     */
+    CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+      var r2d = Math.PI / 180;
+      if (w - 2 * r < 0) {
+        r = w / 2;
+      } //ensure that the radius isn't too large for x
+      if (h - 2 * r < 0) {
+        r = h / 2;
+      } //ensure that the radius isn't too large for y
+      this.beginPath();
+      this.moveTo(x + r, y);
+      this.lineTo(x + w - r, y);
+      this.arc(x + w - r, y + r, r, r2d * 270, r2d * 360, false);
+      this.lineTo(x + w, y + h - r);
+      this.arc(x + w - r, y + h - r, r, 0, r2d * 90, false);
+      this.lineTo(x + r, y + h);
+      this.arc(x + r, y + h - r, r, r2d * 90, r2d * 180, false);
+      this.lineTo(x, y + r);
+      this.arc(x + r, y + r, r, r2d * 180, r2d * 270, false);
+    };
+
+    /**
+     * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
+     */
+    CanvasRenderingContext2D.prototype.ellipse = function (x, y, w, h) {
+      var kappa = 0.5522848,
+          ox = w / 2 * kappa,
+          // control point offset horizontal
+      oy = h / 2 * kappa,
+          // control point offset vertical
+      xe = x + w,
+          // x-end
+      ye = y + h,
+          // y-end
+      xm = x + w / 2,
+          // x-middle
+      ym = y + h / 2; // y-middle
+
+      this.beginPath();
+      this.moveTo(x, ym);
+      this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
+      this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
+      this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
+      this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
+    };
+
+
+    /**
+     * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
+     */
+    CanvasRenderingContext2D.prototype.database = function (x, y, w, h) {
+      var f = 1 / 3;
+      var wEllipse = w;
+      var hEllipse = h * f;
+
+      var kappa = 0.5522848,
+          ox = wEllipse / 2 * kappa,
+          // control point offset horizontal
+      oy = hEllipse / 2 * kappa,
+          // control point offset vertical
+      xe = x + wEllipse,
+          // x-end
+      ye = y + hEllipse,
+          // y-end
+      xm = x + wEllipse / 2,
+          // x-middle
+      ym = y + hEllipse / 2,
+          // y-middle
+      ymb = y + (h - hEllipse / 2),
+          // y-midlle, bottom ellipse
+      yeb = y + h; // y-end, bottom ellipse
+
+      this.beginPath();
+      this.moveTo(xe, ym);
+
+      this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
+      this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
+
+      this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
+      this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
+
+      this.lineTo(xe, ymb);
+
+      this.bezierCurveTo(xe, ymb + oy, xm + ox, yeb, xm, yeb);
+      this.bezierCurveTo(xm - ox, yeb, x, ymb + oy, x, ymb);
+
+      this.lineTo(x, ym);
+    };
+
+
+    /**
+     * Draw an arrow point (no line)
+     */
+    CanvasRenderingContext2D.prototype.arrow = function (x, y, angle, length) {
+      // tail
+      var xt = x - length * Math.cos(angle);
+      var yt = y - length * Math.sin(angle);
+
+      // inner tail
+      // TODO: allow to customize different shapes
+      var xi = x - length * 0.9 * Math.cos(angle);
+      var yi = y - length * 0.9 * Math.sin(angle);
+
+      // left
+      var xl = xt + length / 3 * Math.cos(angle + 0.5 * Math.PI);
+      var yl = yt + length / 3 * Math.sin(angle + 0.5 * Math.PI);
+
+      // right
+      var xr = xt + length / 3 * Math.cos(angle - 0.5 * Math.PI);
+      var yr = yt + length / 3 * Math.sin(angle - 0.5 * Math.PI);
+
+      this.beginPath();
+      this.moveTo(x, y);
+      this.lineTo(xl, yl);
+      this.lineTo(xi, yi);
+      this.lineTo(xr, yr);
+      this.closePath();
+    };
+
+    /**
+     * Sets up the dashedLine functionality for drawing
+     * Original code came from http://stackoverflow.com/questions/4576724/dotted-stroke-in-canvas
+     * @author David Jordan
+     * @date 2012-08-08
+     */
+    CanvasRenderingContext2D.prototype.dashedLine = function (x, y, x2, y2, dashArray) {
+      if (!dashArray) dashArray = [10, 5];
+      if (dashLength == 0) dashLength = 0.001; // Hack for Safari
+      var dashCount = dashArray.length;
+      this.moveTo(x, y);
+      var dx = x2 - x,
+          dy = y2 - y;
+      var slope = dy / dx;
+      var distRemaining = Math.sqrt(dx * dx + dy * dy);
+      var dashIndex = 0,
+          draw = true;
+      while (distRemaining >= 0.1) {
+        var dashLength = dashArray[dashIndex++ % dashCount];
+        if (dashLength > distRemaining) dashLength = distRemaining;
+        var xStep = Math.sqrt(dashLength * dashLength / (1 + slope * slope));
+        if (dx < 0) xStep = -xStep;
+        x += xStep;
+        y += slope * xStep;
+        this[draw ? "lineTo" : "moveTo"](x, y);
+        distRemaining -= dashLength;
+        draw = !draw;
+      }
+    };
+
+    // TODO: add diamond shape
   }
-
-  /**
-   *
-   * @param {string} url          Url of the image
-   * @param {string} url          Url of an image to use if the url image is not found
-   * @return {Image} img          The image object
-   */
-  Images.prototype.load = function (url, brokenUrl) {
-    var img = this.images[url]; // make a pointer
-    if (img === undefined) {
-      // create the image
-      var me = this;
-      img = new Image();
-      img.onload = function () {
-        // IE11 fix -- thanks dponch!
-        if (this.width == 0) {
-          document.body.appendChild(this);
-          this.width = this.offsetWidth;
-          this.height = this.offsetHeight;
-          document.body.removeChild(this);
-        }
-
-        if (me.callback) {
-          me.images[url] = img;
-          me.callback(this);
-        }
-      };
-
-      img.onerror = function () {
-        if (brokenUrl === undefined) {
-          console.error("Could not load image:", url);
-          delete this.src;
-          if (me.callback) {
-            me.callback(this);
-          }
-        } else {
-          if (me.imageBroken[url] === true) {
-            console.error("Could not load brokenImage:", brokenUrl);
-            delete this.src;
-            if (me.callback) {
-              me.callback(this);
-            }
-          } else {
-            console.error("Could not load image:", url);
-            this.src = brokenUrl;
-            me.imageBroken[url] = true;
-          }
-        }
-      };
-
-      img.src = url;
-    }
-
-    return img;
-  };
-
-  module.exports = Images;
 
 /***/ },
 /* 55 */
@@ -24772,321 +24976,74 @@ return /******/ (function(modules) { // webpackBootstrap
   "use strict";
 
   /**
-   * Canvas shapes used by Network
+   * @class Images
+   * This class loads images and keeps them stored.
    */
-  if (typeof CanvasRenderingContext2D !== "undefined") {
-    /**
-     * Draw a circle shape
-     */
-    CanvasRenderingContext2D.prototype.circle = function (x, y, r) {
-      this.beginPath();
-      this.arc(x, y, r, 0, 2 * Math.PI, false);
-    };
-
-    /**
-     * Draw a square shape
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r   size, width and height of the square
-     */
-    CanvasRenderingContext2D.prototype.square = function (x, y, r) {
-      this.beginPath();
-      this.rect(x - r, y - r, r * 2, r * 2);
-    };
-
-    /**
-     * Draw a triangle shape
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r   radius, half the length of the sides of the triangle
-     */
-    CanvasRenderingContext2D.prototype.triangle = function (x, y, r) {
-      // http://en.wikipedia.org/wiki/Equilateral_triangle
-      this.beginPath();
-
-      // the change in radius and the offset is here to center the shape
-      r *= 1.15;
-      y += 0.275 * r;
-
-      var s = r * 2;
-      var s2 = s / 2;
-      var ir = Math.sqrt(3) / 6 * s; // radius of inner circle
-      var h = Math.sqrt(s * s - s2 * s2); // height
-
-
-      this.moveTo(x, y - (h - ir));
-      this.lineTo(x + s2, y + ir);
-      this.lineTo(x - s2, y + ir);
-      this.lineTo(x, y - (h - ir));
-      this.closePath();
-
-    };
-
-    /**
-     * Draw a triangle shape in downward orientation
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r radius
-     */
-    CanvasRenderingContext2D.prototype.triangleDown = function (x, y, r) {
-      // http://en.wikipedia.org/wiki/Equilateral_triangle
-      this.beginPath();
-
-      // the change in radius and the offset is here to center the shape
-      r *= 1.15;
-      y -= 0.275 * r;
-
-      var s = r * 2;
-      var s2 = s / 2;
-      var ir = Math.sqrt(3) / 6 * s; // radius of inner circle
-      var h = Math.sqrt(s * s - s2 * s2); // height
-
-      this.moveTo(x, y + (h - ir));
-      this.lineTo(x + s2, y - ir);
-      this.lineTo(x - s2, y - ir);
-      this.lineTo(x, y + (h - ir));
-      this.closePath();
-    };
-
-    /**
-     * Draw a star shape, a star with 5 points
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r   radius, half the length of the sides of the triangle
-     */
-    CanvasRenderingContext2D.prototype.star = function (x, y, r) {
-      // http://www.html5canvastutorials.com/labs/html5-canvas-star-spinner/
-      this.beginPath();
-
-      // the change in radius and the offset is here to center the shape
-      r *= 0.82;
-      y += 0.1 * r;
-
-      for (var n = 0; n < 10; n++) {
-        var radius = n % 2 === 0 ? r * 1.3 : r * 0.5;
-        this.lineTo(x + radius * Math.sin(n * 2 * Math.PI / 10), y - radius * Math.cos(n * 2 * Math.PI / 10));
-      }
-
-      this.closePath();
-    };
-
-    /**
-     * Draw a Diamond shape
-     * @param {Number} x horizontal center
-     * @param {Number} y vertical center
-     * @param {Number} r   radius, half the length of the sides of the triangle
-     */
-    CanvasRenderingContext2D.prototype.diamond = function (x, y, r) {
-      // http://www.html5canvastutorials.com/labs/html5-canvas-star-spinner/
-      this.beginPath();
-
-      this.lineTo(x, y + r);
-      this.lineTo(x + r, y);
-      this.lineTo(x, y - r);
-      this.lineTo(x - r, y);
-
-
-      this.closePath();
-    };
-
-    /**
-     * http://stackoverflow.com/questions/1255512/how-to-draw-a-rounded-rectangle-on-html-canvas
-     */
-    CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
-      var r2d = Math.PI / 180;
-      if (w - 2 * r < 0) {
-        r = w / 2;
-      } //ensure that the radius isn't too large for x
-      if (h - 2 * r < 0) {
-        r = h / 2;
-      } //ensure that the radius isn't too large for y
-      this.beginPath();
-      this.moveTo(x + r, y);
-      this.lineTo(x + w - r, y);
-      this.arc(x + w - r, y + r, r, r2d * 270, r2d * 360, false);
-      this.lineTo(x + w, y + h - r);
-      this.arc(x + w - r, y + h - r, r, 0, r2d * 90, false);
-      this.lineTo(x + r, y + h);
-      this.arc(x + r, y + h - r, r, r2d * 90, r2d * 180, false);
-      this.lineTo(x, y + r);
-      this.arc(x + r, y + r, r, r2d * 180, r2d * 270, false);
-    };
-
-    /**
-     * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
-     */
-    CanvasRenderingContext2D.prototype.ellipse = function (x, y, w, h) {
-      var kappa = 0.5522848,
-          ox = w / 2 * kappa,
-          // control point offset horizontal
-      oy = h / 2 * kappa,
-          // control point offset vertical
-      xe = x + w,
-          // x-end
-      ye = y + h,
-          // y-end
-      xm = x + w / 2,
-          // x-middle
-      ym = y + h / 2; // y-middle
-
-      this.beginPath();
-      this.moveTo(x, ym);
-      this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
-      this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
-      this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
-      this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
-    };
-
-
-    /**
-     * http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
-     */
-    CanvasRenderingContext2D.prototype.database = function (x, y, w, h) {
-      var f = 1 / 3;
-      var wEllipse = w;
-      var hEllipse = h * f;
-
-      var kappa = 0.5522848,
-          ox = wEllipse / 2 * kappa,
-          // control point offset horizontal
-      oy = hEllipse / 2 * kappa,
-          // control point offset vertical
-      xe = x + wEllipse,
-          // x-end
-      ye = y + hEllipse,
-          // y-end
-      xm = x + wEllipse / 2,
-          // x-middle
-      ym = y + hEllipse / 2,
-          // y-middle
-      ymb = y + (h - hEllipse / 2),
-          // y-midlle, bottom ellipse
-      yeb = y + h; // y-end, bottom ellipse
-
-      this.beginPath();
-      this.moveTo(xe, ym);
-
-      this.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
-      this.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
-
-      this.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
-      this.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
-
-      this.lineTo(xe, ymb);
-
-      this.bezierCurveTo(xe, ymb + oy, xm + ox, yeb, xm, yeb);
-      this.bezierCurveTo(xm - ox, yeb, x, ymb + oy, x, ymb);
-
-      this.lineTo(x, ym);
-    };
-
-
-    /**
-     * Draw an arrow point (no line)
-     */
-    CanvasRenderingContext2D.prototype.arrow = function (x, y, angle, length) {
-      // tail
-      var xt = x - length * Math.cos(angle);
-      var yt = y - length * Math.sin(angle);
-
-      // inner tail
-      // TODO: allow to customize different shapes
-      var xi = x - length * 0.9 * Math.cos(angle);
-      var yi = y - length * 0.9 * Math.sin(angle);
-
-      // left
-      var xl = xt + length / 3 * Math.cos(angle + 0.5 * Math.PI);
-      var yl = yt + length / 3 * Math.sin(angle + 0.5 * Math.PI);
-
-      // right
-      var xr = xt + length / 3 * Math.cos(angle - 0.5 * Math.PI);
-      var yr = yt + length / 3 * Math.sin(angle - 0.5 * Math.PI);
-
-      this.beginPath();
-      this.moveTo(x, y);
-      this.lineTo(xl, yl);
-      this.lineTo(xi, yi);
-      this.lineTo(xr, yr);
-      this.closePath();
-    };
-
-    /**
-     * Sets up the dashedLine functionality for drawing
-     * Original code came from http://stackoverflow.com/questions/4576724/dotted-stroke-in-canvas
-     * @author David Jordan
-     * @date 2012-08-08
-     */
-    CanvasRenderingContext2D.prototype.dashedLine = function (x, y, x2, y2, dashArray) {
-      if (!dashArray) dashArray = [10, 5];
-      if (dashLength == 0) dashLength = 0.001; // Hack for Safari
-      var dashCount = dashArray.length;
-      this.moveTo(x, y);
-      var dx = x2 - x,
-          dy = y2 - y;
-      var slope = dy / dx;
-      var distRemaining = Math.sqrt(dx * dx + dy * dy);
-      var dashIndex = 0,
-          draw = true;
-      while (distRemaining >= 0.1) {
-        var dashLength = dashArray[dashIndex++ % dashCount];
-        if (dashLength > distRemaining) dashLength = distRemaining;
-        var xStep = Math.sqrt(dashLength * dashLength / (1 + slope * slope));
-        if (dx < 0) xStep = -xStep;
-        x += xStep;
-        y += slope * xStep;
-        this[draw ? "lineTo" : "moveTo"](x, y);
-        distRemaining -= dashLength;
-        draw = !draw;
-      }
-    };
-
-    // TODO: add diamond shape
+  function Images(callback) {
+    this.images = {};
+    this.imageBroken = {};
+    this.callback = callback;
   }
+
+  /**
+   *
+   * @param {string} url          Url of the image
+   * @param {string} url          Url of an image to use if the url image is not found
+   * @return {Image} img          The image object
+   */
+  Images.prototype.load = function (url, brokenUrl) {
+    var img = this.images[url]; // make a pointer
+    if (img === undefined) {
+      // create the image
+      var me = this;
+      img = new Image();
+      img.onload = function () {
+        // IE11 fix -- thanks dponch!
+        if (this.width == 0) {
+          document.body.appendChild(this);
+          this.width = this.offsetWidth;
+          this.height = this.offsetHeight;
+          document.body.removeChild(this);
+        }
+
+        if (me.callback) {
+          me.images[url] = img;
+          me.callback(this);
+        }
+      };
+
+      img.onerror = function () {
+        if (brokenUrl === undefined) {
+          console.error("Could not load image:", url);
+          delete this.src;
+          if (me.callback) {
+            me.callback(this);
+          }
+        } else {
+          if (me.imageBroken[url] === true) {
+            console.error("Could not load brokenImage:", brokenUrl);
+            delete this.src;
+            if (me.callback) {
+              me.callback(this);
+            }
+          } else {
+            console.error("Could not load image:", url);
+            this.src = brokenUrl;
+            me.imageBroken[url] = true;
+          }
+        }
+      };
+
+      img.src = url;
+    }
+
+    return img;
+  };
+
+  module.exports = Images;
 
 /***/ },
 /* 58 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  // English
-  exports.en = {
-    edit: "Edit",
-    del: "Delete selected",
-    back: "Back",
-    addNode: "Add Node",
-    addEdge: "Add Edge",
-    editNode: "Edit Node",
-    editEdge: "Edit Edge",
-    addDescription: "Click in an empty space to place a new node.",
-    edgeDescription: "Click on a node and drag the edge to another node to connect them.",
-    editEdgeDescription: "Click on the control points and drag them to a node to connect to it.",
-    createEdgeError: "Cannot link edges to a cluster.",
-    deleteClusterError: "Clusters cannot be deleted."
-  };
-  exports.en_EN = exports.en;
-  exports.en_US = exports.en;
-
-  // Dutch
-  exports.nl = {
-    edit: "Wijzigen",
-    del: "Selectie verwijderen",
-    back: "Terug",
-    addNode: "Node toevoegen",
-    addEdge: "Link toevoegen",
-    editNode: "Node wijzigen",
-    editEdge: "Link wijzigen",
-    addDescription: "Klik op een leeg gebied om een nieuwe node te maken.",
-    edgeDescription: "Klik op een node en sleep de link naar een andere node om ze te verbinden.",
-    editEdgeDescription: "Klik op de verbindingspunten en sleep ze naar een node om daarmee te verbinden.",
-    createEdgeError: "Kan geen link maken naar een cluster.",
-    deleteClusterError: "Clusters kunnen niet worden verwijderd."
-  };
-  exports.nl_NL = exports.nl;
-  exports.nl_BE = exports.nl;
-
-/***/ },
-/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -25232,7 +25189,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // 20:bright red
 
 /***/ },
-/* 60 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -25251,7 +25208,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(9);
 
-  var Node = _interopRequire(__webpack_require__(61));
+  var Node = _interopRequire(__webpack_require__(60));
 
   var NodesHandler = (function () {
     function NodesHandler(body, images, groups, layoutEngine) {
@@ -25512,7 +25469,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = NodesHandler;
 
 /***/ },
-/* 61 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -25525,35 +25482,35 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
 
-  var Label = _interopRequire(__webpack_require__(62));
+  var Label = _interopRequire(__webpack_require__(61));
 
-  var Box = _interopRequire(__webpack_require__(63));
+  var Box = _interopRequire(__webpack_require__(62));
 
-  var Circle = _interopRequire(__webpack_require__(65));
+  var Circle = _interopRequire(__webpack_require__(64));
 
-  var CircularImage = _interopRequire(__webpack_require__(67));
+  var CircularImage = _interopRequire(__webpack_require__(66));
 
-  var Database = _interopRequire(__webpack_require__(68));
+  var Database = _interopRequire(__webpack_require__(67));
 
-  var Diamond = _interopRequire(__webpack_require__(69));
+  var Diamond = _interopRequire(__webpack_require__(68));
 
-  var Dot = _interopRequire(__webpack_require__(71));
+  var Dot = _interopRequire(__webpack_require__(70));
 
-  var Ellipse = _interopRequire(__webpack_require__(72));
+  var Ellipse = _interopRequire(__webpack_require__(71));
 
-  var Icon = _interopRequire(__webpack_require__(73));
+  var Icon = _interopRequire(__webpack_require__(72));
 
-  var Image = _interopRequire(__webpack_require__(74));
+  var Image = _interopRequire(__webpack_require__(73));
 
-  var Square = _interopRequire(__webpack_require__(75));
+  var Square = _interopRequire(__webpack_require__(74));
 
-  var Star = _interopRequire(__webpack_require__(76));
+  var Star = _interopRequire(__webpack_require__(75));
 
-  var Text = _interopRequire(__webpack_require__(77));
+  var Text = _interopRequire(__webpack_require__(76));
 
-  var Triangle = _interopRequire(__webpack_require__(78));
+  var Triangle = _interopRequire(__webpack_require__(77));
 
-  var TriangleDown = _interopRequire(__webpack_require__(79));
+  var TriangleDown = _interopRequire(__webpack_require__(78));
 
   /**
    * @class Node
@@ -25958,7 +25915,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Node;
 
 /***/ },
-/* 62 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -26283,7 +26240,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Label;
 
 /***/ },
-/* 63 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -26301,7 +26258,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var NodeBase = _interopRequire(__webpack_require__(64));
+  var NodeBase = _interopRequire(__webpack_require__(63));
 
   var Box = (function (NodeBase) {
     function Box(options, body, labelModule) {
@@ -26375,7 +26332,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Box;
 
 /***/ },
-/* 64 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -26425,7 +26382,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = NodeBase;
 
 /***/ },
-/* 65 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -26443,7 +26400,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var CircleImageBase = _interopRequire(__webpack_require__(66));
+  var CircleImageBase = _interopRequire(__webpack_require__(65));
 
   var Circle = (function (CircleImageBase) {
     function Circle(options, body, labelModule) {
@@ -26508,7 +26465,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Circle;
 
 /***/ },
-/* 66 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -26526,7 +26483,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Created by Alex on 3/19/2015.
    */
-  var NodeBase = _interopRequire(__webpack_require__(64));
+  var NodeBase = _interopRequire(__webpack_require__(63));
 
   var CircleImageBase = (function (NodeBase) {
     function CircleImageBase(options, body, labelModule) {
@@ -26597,7 +26554,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CircleImageBase;
 
 /***/ },
-/* 67 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -26616,7 +26573,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var CircleImageBase = _interopRequire(__webpack_require__(66));
+  var CircleImageBase = _interopRequire(__webpack_require__(65));
 
   var CircularImage = (function (CircleImageBase) {
     function CircularImage(options, body, labelModule, imageObj) {
@@ -26699,7 +26656,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CircularImage;
 
 /***/ },
-/* 68 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -26717,7 +26674,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var NodeBase = _interopRequire(__webpack_require__(64));
+  var NodeBase = _interopRequire(__webpack_require__(63));
 
   var Database = (function (NodeBase) {
     function Database(options, body, labelModule) {
@@ -26791,7 +26748,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Database;
 
 /***/ },
-/* 69 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -26809,7 +26766,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var ShapeBase = _interopRequire(__webpack_require__(70));
+  var ShapeBase = _interopRequire(__webpack_require__(69));
 
   var Diamond = (function (ShapeBase) {
     function Diamond(options, body, labelModule) {
@@ -26850,7 +26807,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Diamond;
 
 /***/ },
-/* 70 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -26868,7 +26825,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Created by Alex on 3/19/2015.
    */
-  var NodeBase = _interopRequire(__webpack_require__(64));
+  var NodeBase = _interopRequire(__webpack_require__(63));
 
   var ShapeBase = (function (NodeBase) {
     function ShapeBase(options, body, labelModule) {
@@ -26906,7 +26863,7 @@ return /******/ (function(modules) { // webpackBootstrap
           ctx.lineWidth /= this.body.view.scale;
           ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
           ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
-          ctx[shape](x, y, this.options.size + sizeMultiplier * ctx.lineWidth);
+          ctx[shape](x, y, this.options.size);
           ctx.fill();
           ctx.stroke();
 
@@ -26916,7 +26873,7 @@ return /******/ (function(modules) { // webpackBootstrap
           this.boundingBox.bottom = y + this.options.size;
 
           if (this.options.label !== undefined) {
-            var yLabel = y + 0.5 * this.height + 3 + sizeMultiplier * ctx.lineWidth; // the + 3 is to offset it a bit below the node.
+            var yLabel = y + 0.5 * this.height + 3; // the + 3 is to offset it a bit below the node.
             this.labelModule.draw(ctx, x, yLabel, selected, "hanging");
             this.boundingBox.left = Math.min(this.boundingBox.left, this.labelModule.size.left);
             this.boundingBox.right = Math.max(this.boundingBox.right, this.labelModule.size.left + this.labelModule.size.width);
@@ -26934,7 +26891,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = ShapeBase;
 
 /***/ },
-/* 71 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -26952,7 +26909,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var ShapeBase = _interopRequire(__webpack_require__(70));
+  var ShapeBase = _interopRequire(__webpack_require__(69));
 
   var Dot = (function (ShapeBase) {
     function Dot(options, body, labelModule) {
@@ -26993,7 +26950,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Dot;
 
 /***/ },
-/* 72 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27011,7 +26968,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var NodeBase = _interopRequire(__webpack_require__(64));
+  var NodeBase = _interopRequire(__webpack_require__(63));
 
   var Ellipse = (function (NodeBase) {
     function Ellipse(options, body, labelModule) {
@@ -27089,7 +27046,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Ellipse;
 
 /***/ },
-/* 73 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27107,7 +27064,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var NodeBase = _interopRequire(__webpack_require__(64));
+  var NodeBase = _interopRequire(__webpack_require__(63));
 
   var Icon = (function (NodeBase) {
     function Icon(options, body, labelModule) {
@@ -27194,7 +27151,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Icon;
 
 /***/ },
-/* 74 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27212,7 +27169,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var CircleImageBase = _interopRequire(__webpack_require__(66));
+  var CircleImageBase = _interopRequire(__webpack_require__(65));
 
   var Image = (function (CircleImageBase) {
     function Image(options, body, labelModule, imageObj) {
@@ -27291,7 +27248,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Image;
 
 /***/ },
-/* 75 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27309,7 +27266,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var ShapeBase = _interopRequire(__webpack_require__(70));
+  var ShapeBase = _interopRequire(__webpack_require__(69));
 
   var Square = (function (ShapeBase) {
     function Square(options, body, labelModule) {
@@ -27351,7 +27308,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Square;
 
 /***/ },
-/* 76 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27369,7 +27326,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var ShapeBase = _interopRequire(__webpack_require__(70));
+  var ShapeBase = _interopRequire(__webpack_require__(69));
 
   var Star = (function (ShapeBase) {
     function Star(options, body, labelModule) {
@@ -27410,7 +27367,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Star;
 
 /***/ },
-/* 77 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27428,7 +27385,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var NodeBase = _interopRequire(__webpack_require__(64));
+  var NodeBase = _interopRequire(__webpack_require__(63));
 
   var Text = (function (NodeBase) {
     function Text(options, body, labelModule) {
@@ -27484,7 +27441,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Text;
 
 /***/ },
-/* 78 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27502,7 +27459,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var ShapeBase = _interopRequire(__webpack_require__(70));
+  var ShapeBase = _interopRequire(__webpack_require__(69));
 
   var Triangle = (function (ShapeBase) {
     function Triangle(options, body, labelModule) {
@@ -27543,7 +27500,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Triangle;
 
 /***/ },
-/* 79 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27561,7 +27518,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var ShapeBase = _interopRequire(__webpack_require__(70));
+  var ShapeBase = _interopRequire(__webpack_require__(69));
 
   var TriangleDown = (function (ShapeBase) {
     function TriangleDown(options, body, labelModule) {
@@ -27602,7 +27559,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = TriangleDown;
 
 /***/ },
-/* 80 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -27622,7 +27579,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(7);
   var DataView = __webpack_require__(9);
 
-  var Edge = _interopRequire(__webpack_require__(81));
+  var Edge = _interopRequire(__webpack_require__(80));
 
   var EdgesHandler = (function () {
     function EdgesHandler(body, images, groups) {
@@ -28007,7 +27964,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = EdgesHandler;
 
 /***/ },
-/* 81 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -28021,13 +27978,13 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
 
 
-  var Label = _interopRequire(__webpack_require__(62));
+  var Label = _interopRequire(__webpack_require__(61));
 
-  var BezierEdgeDynamic = _interopRequire(__webpack_require__(82));
+  var BezierEdgeDynamic = _interopRequire(__webpack_require__(81));
 
-  var BezierEdgeStatic = _interopRequire(__webpack_require__(85));
+  var BezierEdgeStatic = _interopRequire(__webpack_require__(84));
 
-  var StraightEdge = _interopRequire(__webpack_require__(86));
+  var StraightEdge = _interopRequire(__webpack_require__(85));
 
   /**
    * @class Edge
@@ -28152,7 +28109,6 @@ return /******/ (function(modules) { // webpackBootstrap
             }
             util.mergeOptions(this.options.color, options.color, "inherit");
           }
-
 
           // A node is connected when it has a from and to node that both exist in the network.body.nodes.
           this.connect();
@@ -28495,264 +28451,6 @@ return /******/ (function(modules) { // webpackBootstrap
         },
         writable: true,
         configurable: true
-      },
-      _drawControlNodes: {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        //*************************************************************************************************//
-        //*************************************************************************************************//
-        //*************************************************************************************************//
-        //*************************************************************************************************//
-        //*********************** MOVE THESE FUNCTIONS TO THE MANIPULATION SYSTEM ************************//
-        //*************************************************************************************************//
-        //*************************************************************************************************//
-        //*************************************************************************************************//
-        //*************************************************************************************************//
-
-
-
-
-
-
-
-        /**
-         * This function draws the control nodes for the manipulator.
-         * In order to enable this, only set the this.controlNodesEnabled to true.
-         * @param ctx
-         */
-        value: function _drawControlNodes(ctx) {
-          if (this.controlNodesEnabled == true) {
-            if (this.controlNodes.from === undefined && this.controlNodes.to === undefined) {
-              var nodeIdFrom = "edgeIdFrom:".concat(this.id);
-              var nodeIdTo = "edgeIdTo:".concat(this.id);
-              var nodeFromOptions = {
-                id: nodeIdFrom,
-                shape: "dot",
-                color: { background: "#ff0000", border: "#3c3c3c", highlight: { background: "#07f968" } },
-                radius: 7,
-                borderWidth: 2,
-                borderWidthSelected: 2,
-                hidden: false,
-                physics: false
-              };
-              var nodeToOptions = util.deepExtend({}, nodeFromOptions);
-              nodeToOptions.id = nodeIdTo;
-
-
-              this.controlNodes.from = this.body.functions.createNode(nodeFromOptions);
-              this.controlNodes.to = this.body.functions.createNode(nodeToOptions);
-            }
-
-            this.controlNodes.positions = {};
-            if (this.controlNodes.from.selected == false) {
-              this.controlNodes.positions.from = this.getControlNodeFromPosition(ctx);
-              this.controlNodes.from.x = this.controlNodes.positions.from.x;
-              this.controlNodes.from.y = this.controlNodes.positions.from.y;
-            }
-            if (this.controlNodes.to.selected == false) {
-              this.controlNodes.positions.to = this.getControlNodeToPosition(ctx);
-              this.controlNodes.to.x = this.controlNodes.positions.to.x;
-              this.controlNodes.to.y = this.controlNodes.positions.to.y;
-            }
-
-            this.controlNodes.from.draw(ctx);
-            this.controlNodes.to.draw(ctx);
-          } else {
-            this.controlNodes = { from: undefined, to: undefined, positions: {} };
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _enableControlNodes: {
-
-        /**
-         * Enable control nodes.
-         * @private
-         */
-        value: function _enableControlNodes() {
-          this.fromBackup = this.from;
-          this.toBackup = this.to;
-          this.controlNodesEnabled = true;
-        },
-        writable: true,
-        configurable: true
-      },
-      _disableControlNodes: {
-
-
-        /**
-         * disable control nodes and remove from dynamicEdges from old node
-         * @private
-         */
-        value: function _disableControlNodes() {
-          this.fromId = this.from.id;
-          this.toId = this.to.id;
-          if (this.fromId != this.fromBackup.id) {
-            // from was changed, remove edge from old 'from' node dynamic edges
-            this.fromBackup.detachEdge(this);
-          } else if (this.toId != this.toBackup.id) {
-            // to was changed, remove edge from old 'to' node dynamic edges
-            this.toBackup.detachEdge(this);
-          }
-
-          this.fromBackup = undefined;
-          this.toBackup = undefined;
-          this.controlNodesEnabled = false;
-        },
-        writable: true,
-        configurable: true
-      },
-      _getSelectedControlNode: {
-
-
-        /**
-         * This checks if one of the control nodes is selected and if so, returns the control node object. Else it returns undefined.
-         * @param x
-         * @param y
-         * @returns {undefined}
-         * @private
-         */
-        value: function _getSelectedControlNode(x, y) {
-          var positions = this.controlNodes.positions;
-          var fromDistance = Math.sqrt(Math.pow(x - positions.from.x, 2) + Math.pow(y - positions.from.y, 2));
-          var toDistance = Math.sqrt(Math.pow(x - positions.to.x, 2) + Math.pow(y - positions.to.y, 2));
-
-          if (fromDistance < 15) {
-            this.connectedNode = this.from;
-            this.from = this.controlNodes.from;
-            return this.controlNodes.from;
-          } else if (toDistance < 15) {
-            this.connectedNode = this.to;
-            this.to = this.controlNodes.to;
-            return this.controlNodes.to;
-          } else {
-            return undefined;
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      _restoreControlNodes: {
-
-
-
-        /**
-         * this resets the control nodes to their original position.
-         * @private
-         */
-        value: function _restoreControlNodes() {
-          if (this.controlNodes.from.selected == true) {
-            this.from = this.connectedNode;
-            this.connectedNode = undefined;
-            this.controlNodes.from.unselect();
-          } else if (this.controlNodes.to.selected == true) {
-            this.to = this.connectedNode;
-            this.connectedNode = undefined;
-            this.controlNodes.to.unselect();
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      getControlNodeFromPosition: {
-
-
-        /**
-         * this calculates the position of the control nodes on the edges of the parent nodes.
-         *
-         * @param ctx
-         * @returns {x: *, y: *}
-         */
-        value: function getControlNodeFromPosition(ctx) {
-          // draw arrow head
-          var controlnodeFromPos;
-          if (this.options.smooth.enabled == true) {
-            controlnodeFromPos = this._findBorderPositionBezier(true, ctx);
-          } else {
-            var angle = Math.atan2(this.to.y - this.from.y, this.to.x - this.from.x);
-            var dx = this.to.x - this.from.x;
-            var dy = this.to.y - this.from.y;
-            var edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
-
-            var fromBorderDist = this.from.distanceToBorder(ctx, angle + Math.PI);
-            var fromBorderPoint = (edgeSegmentLength - fromBorderDist) / edgeSegmentLength;
-            controlnodeFromPos = {};
-            controlnodeFromPos.x = fromBorderPoint * this.from.x + (1 - fromBorderPoint) * this.to.x;
-            controlnodeFromPos.y = fromBorderPoint * this.from.y + (1 - fromBorderPoint) * this.to.y;
-          }
-
-          return controlnodeFromPos;
-        },
-        writable: true,
-        configurable: true
-      },
-      getControlNodeToPosition: {
-
-
-        /**
-         * this calculates the position of the control nodes on the edges of the parent nodes.
-         *
-         * @param ctx
-         * @returns {{from: {x: number, y: number}, to: {x: *, y: *}}}
-         */
-        value: function getControlNodeToPosition(ctx) {
-          // draw arrow head
-          var controlnodeToPos;
-          if (this.options.smooth.enabled == true) {
-            controlnodeToPos = this._findBorderPositionBezier(false, ctx);
-          } else {
-            var angle = Math.atan2(this.to.y - this.from.y, this.to.x - this.from.x);
-            var dx = this.to.x - this.from.x;
-            var dy = this.to.y - this.from.y;
-            var edgeSegmentLength = Math.sqrt(dx * dx + dy * dy);
-            var toBorderDist = this.to.distanceToBorder(ctx, angle);
-            var toBorderPoint = (edgeSegmentLength - toBorderDist) / edgeSegmentLength;
-
-            controlnodeToPos = {};
-            controlnodeToPos.x = (1 - toBorderPoint) * this.from.x + toBorderPoint * this.to.x;
-            controlnodeToPos.y = (1 - toBorderPoint) * this.from.y + toBorderPoint * this.to.y;
-          }
-
-          return controlnodeToPos;
-        },
-        writable: true,
-        configurable: true
       }
     });
 
@@ -28762,7 +28460,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Edge;
 
 /***/ },
-/* 82 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -28781,7 +28479,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 3/20/2015.
    */
 
-  var BezierEdgeBase = _interopRequire(__webpack_require__(83));
+  var BezierEdgeBase = _interopRequire(__webpack_require__(82));
 
   var BezierEdgeDynamic = (function (BezierEdgeBase) {
     function BezierEdgeDynamic(options, body, labelModule) {
@@ -28920,7 +28618,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BezierEdgeDynamic;
 
 /***/ },
-/* 83 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -28939,7 +28637,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 3/20/2015.
    */
 
-  var EdgeBase = _interopRequire(__webpack_require__(84));
+  var EdgeBase = _interopRequire(__webpack_require__(83));
 
   var BezierEdgeBase = (function (EdgeBase) {
     function BezierEdgeBase(options, body, labelModule) {
@@ -29070,10 +28768,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BezierEdgeBase;
 
 /***/ },
-/* 84 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
+
+  var _slicedToArray = function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; for (var _iterator = arr[Symbol.iterator](), _step; !(_step = _iterator.next()).done;) { _arr.push(_step.value); if (i && _arr.length === i) break; } return _arr; } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } };
 
   var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
@@ -29127,18 +28827,13 @@ return /******/ (function(modules) { // webpackBootstrap
               via = this._line(ctx);
             }
           } else {
-            var x = undefined,
-                y = undefined;
-            var radius = this.options.selfReferenceSize;
-            var node = this.from;
-            node.resize(ctx);
-            if (node.shape.width > node.shape.height) {
-              x = node.x + node.shape.width * 0.5;
-              y = node.y - radius;
-            } else {
-              x = node.x + radius;
-              y = node.y - node.shape.height * 0.5;
-            }
+            var _getCircleData = this._getCircleData();
+
+            var _getCircleData2 = _slicedToArray(_getCircleData, 3);
+
+            var x = _getCircleData2[0];
+            var y = _getCircleData2[1];
+            var radius = _getCircleData2[2];
             this._circle(ctx, x, y, radius);
           }
 
@@ -29206,19 +28901,79 @@ return /******/ (function(modules) { // webpackBootstrap
         writable: true,
         configurable: true
       },
-      _findBorderPositionCircle: {
+      findBorderPositions: {
+        value: function findBorderPositions(ctx) {
+          var from = {};
+          var to = {};
+          if (this.from != this.to) {
+            from = this._findBorderPosition(this.from, ctx);
+            to = this._findBorderPosition(this.to, ctx);
+          } else {
+            var _getCircleData = this._getCircleData();
 
+            var _getCircleData2 = _slicedToArray(_getCircleData, 3);
+
+            var x = _getCircleData2[0];
+            var y = _getCircleData2[1];
+            var radius = _getCircleData2[2];
+
+
+            from = this._findBorderPositionCircle(this.from, ctx, { x: x, y: y, low: 0.25, high: 0.6, direction: -1 });
+            to = this._findBorderPositionCircle(this.from, ctx, { x: x, y: y, low: 0.6, high: 0.8, direction: 1 });
+          }
+          return { from: from, to: to };
+        },
+        writable: true,
+        configurable: true
+      },
+      _getCircleData: {
+        value: function _getCircleData() {
+          var x = undefined,
+              y = undefined;
+          var node = this.from;
+          var radius = this.options.selfReferenceSize;
+
+          // get circle coordinates
+          if (node.shape.width > node.shape.height) {
+            x = node.x + node.shape.width * 0.5;
+            y = node.y - radius;
+          } else {
+            x = node.x + radius;
+            y = node.y - node.shape.height * 0.5;
+          }
+          return [x, y, radius];
+        },
+        writable: true,
+        configurable: true
+      },
+      _pointOnCircle: {
+
+        /**
+         * Get a point on a circle
+         * @param {Number} x
+         * @param {Number} y
+         * @param {Number} radius
+         * @param {Number} percentage. Value between 0 (line start) and 1 (line end)
+         * @return {Object} point
+         * @private
+         */
+        value: function _pointOnCircle(x, y, radius, percentage) {
+          var angle = percentage * 2 * Math.PI;
+          return {
+            x: x + radius * Math.cos(angle),
+            y: y - radius * Math.sin(angle)
+          };
+        },
+        writable: true,
+        configurable: true
+      },
+      _findBorderPositionCircle: {
 
         /**
          * This function uses binary search to look for the point where the circle crosses the border of the node.
-         * @param x
-         * @param y
-         * @param radius
          * @param node
-         * @param low
-         * @param high
-         * @param direction
          * @param ctx
+         * @param options
          * @returns {*}
          * @private
          */
@@ -29238,11 +28993,12 @@ return /******/ (function(modules) { // webpackBootstrap
               distanceToPoint = undefined,
               difference = undefined;
           var threshold = 0.05;
+          var middle = (low + high) * 0.5;
 
           while (low <= high && iteration < maxIterations) {
-            var _middle = (low + high) * 0.5;
+            middle = (low + high) * 0.5;
 
-            pos = this._pointOnCircle(x, y, radius, _middle);
+            pos = this._pointOnCircle(x, y, radius, middle);
             angle = Math.atan2(node.y - pos.y, node.x - pos.x);
             distanceToBorder = node.distanceToBorder(ctx, angle);
             distanceToPoint = Math.sqrt(Math.pow(pos.x - node.x, 2) + Math.pow(pos.y - node.y, 2));
@@ -29252,15 +29008,15 @@ return /******/ (function(modules) { // webpackBootstrap
             } else if (difference > 0) {
               // distance to nodes is larger than distance to border --> t needs to be bigger if we're looking at the to node.
               if (direction > 0) {
-                low = _middle;
+                low = middle;
               } else {
-                high = _middle;
+                high = middle;
               }
             } else {
               if (direction > 0) {
-                high = _middle;
+                high = middle;
               } else {
-                low = _middle;
+                low = middle;
               }
             }
             iteration++;
@@ -29388,18 +29144,15 @@ return /******/ (function(modules) { // webpackBootstrap
           if (this.from != this.to) {
             returnValue = this._getDistanceToEdge(x1, y1, x2, y2, x3, y3, via);
           } else {
-            var x, y, dx, dy;
-            var radius = this.options.selfReferenceSize;
-            var node = this.from;
-            if (node.width > node.height) {
-              x = node.x + 0.5 * node.width;
-              y = node.y - radius;
-            } else {
-              x = node.x + radius;
-              y = node.y - 0.5 * node.height;
-            }
-            dx = x - x3;
-            dy = y - y3;
+            var _getCircleData = this._getCircleData();
+
+            var _getCircleData2 = _slicedToArray(_getCircleData, 3);
+
+            var x = _getCircleData2[0];
+            var y = _getCircleData2[1];
+            var radius = _getCircleData2[2];
+            var dx = x - x3;
+            var dy = y - y3;
             returnValue = Math.abs(Math.sqrt(dx * dx + dy * dy) - radius);
           }
 
@@ -29505,31 +29258,23 @@ return /******/ (function(modules) { // webpackBootstrap
             // draw circle
             var _angle = undefined,
                 point = undefined;
-            var x = undefined,
-                y = undefined;
-            var radius = this.options.selfReferenceSize;
-            if (!node1.width) {
-              node1.resize(ctx);
-            }
+            var _getCircleData = this._getCircleData();
 
-            // get circle coordinates
-            if (node1.width > node1.height) {
-              x = node1.x + node1.width * 0.5;
-              y = node1.y - radius;
-            } else {
-              x = node1.x + radius;
-              y = node1.y - node1.height * 0.5;
-            }
+            var _getCircleData2 = _slicedToArray(_getCircleData, 3);
+
+            var x = _getCircleData2[0];
+            var y = _getCircleData2[1];
+            var radius = _getCircleData2[2];
 
 
             if (position == "from") {
-              point = this.findBorderPosition(x, y, radius, node1, 0.25, 0.6, -1, ctx);
+              point = this.findBorderPosition(this.from, ctx, { x: x, y: y, low: 0.25, high: 0.6, direction: -1 });
               _angle = point.t * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
             } else if (position == "to") {
-              point = this.findBorderPosition(x, y, radius, node1, 0.6, 0.8, 1, ctx);
+              point = this.findBorderPosition(this.from, ctx, { x: x, y: y, low: 0.6, high: 1, direction: 1 });
               _angle = point.t * -2 * Math.PI + 1.5 * Math.PI - 1.1 * Math.PI;
             } else {
-              point = this.findBorderPosition(x, y, radius, 0.175);
+              point = this._pointOnCircle(x, y, radius, 0.175);
               _angle = 3.9269908169872414; // == 0.175 * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
             }
 
@@ -29551,7 +29296,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = EdgeBase;
 
 /***/ },
-/* 85 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -29570,7 +29315,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 3/20/2015.
    */
 
-  var BezierEdgeBase = _interopRequire(__webpack_require__(83));
+  var BezierEdgeBase = _interopRequire(__webpack_require__(82));
 
   var BezierEdgeStatic = (function (BezierEdgeBase) {
     function BezierEdgeStatic(options, body, labelModule) {
@@ -29775,7 +29520,8 @@ return /******/ (function(modules) { // webpackBootstrap
         configurable: true
       },
       _findBorderPosition: {
-        value: function _findBorderPosition(nearNode, ctx, options) {
+        value: function _findBorderPosition(nearNode, ctx) {
+          var options = arguments[2] === undefined ? {} : arguments[2];
           return this._findBorderPositionBezier(nearNode, ctx, options.via);
         },
         writable: true,
@@ -29818,7 +29564,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BezierEdgeStatic;
 
 /***/ },
-/* 86 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -29837,7 +29583,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 3/20/2015.
    */
 
-  var EdgeBase = _interopRequire(__webpack_require__(84));
+  var EdgeBase = _interopRequire(__webpack_require__(83));
 
   var StraightEdge = (function (EdgeBase) {
     function StraightEdge(options, body, labelModule) {
@@ -29932,7 +29678,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = StraightEdge;
 
 /***/ },
-/* 87 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -29947,17 +29693,17 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 2/23/2015.
    */
 
-  var BarnesHutSolver = _interopRequire(__webpack_require__(88));
+  var BarnesHutSolver = _interopRequire(__webpack_require__(87));
 
-  var Repulsion = _interopRequire(__webpack_require__(89));
+  var Repulsion = _interopRequire(__webpack_require__(88));
 
-  var HierarchicalRepulsion = _interopRequire(__webpack_require__(90));
+  var HierarchicalRepulsion = _interopRequire(__webpack_require__(89));
 
-  var SpringSolver = _interopRequire(__webpack_require__(91));
+  var SpringSolver = _interopRequire(__webpack_require__(90));
 
-  var HierarchicalSpringSolver = _interopRequire(__webpack_require__(92));
+  var HierarchicalSpringSolver = _interopRequire(__webpack_require__(91));
 
-  var CentralGravitySolver = _interopRequire(__webpack_require__(93));
+  var CentralGravitySolver = _interopRequire(__webpack_require__(92));
 
   var util = __webpack_require__(1);
 
@@ -30026,6 +29772,16 @@ return /******/ (function(modules) { // webpackBootstrap
       this.body.emitter.on("resetPhysics", function () {
         _this.stopSimulation();_this.ready = false;
       });
+      this.body.emitter.on("disablePhysics", function () {
+        _this.physicsEnabled = false;_this.stopSimulation();
+      });
+      this.body.emitter.on("restorePhysics", function () {
+        _this.setOptions(_this.options);
+        if (_this.ready === true) {
+          _this.stabilized = false;
+          _this.runSimulation();
+        }
+      });
       this.body.emitter.on("startSimulation", function () {
         if (_this.ready === true) {
           _this.stabilized = false;
@@ -30033,7 +29789,7 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       });
       this.body.emitter.on("stopSimulation", function () {
-        console.log(4);_this.stopSimulation();
+        _this.stopSimulation();
       });
     }
 
@@ -30044,6 +29800,7 @@ return /******/ (function(modules) { // webpackBootstrap
             this.physicsEnabled = false;
             this.stopSimulation();
           } else {
+            this.physicsEnabled = true;
             if (options !== undefined) {
               util.selectiveNotDeepExtend(["stabilization"], this.options, options);
               util.mergeOptions(this.options, options, "stabilization");
@@ -30459,7 +30216,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = PhysicsEngine;
 
 /***/ },
-/* 88 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -30968,7 +30725,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BarnesHutSolver;
 
 /***/ },
-/* 89 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31066,7 +30823,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = RepulsionSolver;
 
 /***/ },
-/* 90 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31161,7 +30918,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = HierarchicalRepulsionSolver;
 
 /***/ },
-/* 91 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31256,10 +31013,16 @@ return /******/ (function(modules) { // webpackBootstrap
           fx = dx * springForce;
           fy = dy * springForce;
 
-          this.physicsBody.forces[node1.id].x += fx;
-          this.physicsBody.forces[node1.id].y += fy;
-          this.physicsBody.forces[node2.id].x -= fx;
-          this.physicsBody.forces[node2.id].y -= fy;
+          // handle the case where one node is not part of the physcis
+          if (this.physicsBody.forces[node1.id] !== undefined) {
+            this.physicsBody.forces[node1.id].x += fx;
+            this.physicsBody.forces[node1.id].y += fy;
+          }
+
+          if (this.physicsBody.forces[node2.id] !== undefined) {
+            this.physicsBody.forces[node2.id].x -= fx;
+            this.physicsBody.forces[node2.id].y -= fy;
+          }
         },
         writable: true,
         configurable: true
@@ -31272,7 +31035,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = SpringSolver;
 
 /***/ },
-/* 92 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31398,7 +31161,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = HierarchicalSpringSolver;
 
 /***/ },
-/* 93 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31462,7 +31225,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CentralGravitySolver;
 
 /***/ },
-/* 94 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31478,7 +31241,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
 
   var util = __webpack_require__(1);
-  var Cluster = _interopRequire(__webpack_require__(95));
+  var Cluster = _interopRequire(__webpack_require__(94));
 
   var ClusterEngine = (function () {
     function ClusterEngine(body) {
@@ -32153,7 +31916,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = ClusterEngine;
 
 /***/ },
-/* 95 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -32166,7 +31929,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var Node = _interopRequire(__webpack_require__(61));
+  var Node = _interopRequire(__webpack_require__(60));
 
   /**
    *
@@ -32190,7 +31953,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Cluster;
 
 /***/ },
-/* 96 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -32383,6 +32146,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
           //this.physics.nodesSolver._debug(ctx,"#F00F0F");
 
+          this.body.emitter.emit("afterDrawing", ctx);
+
           // restore original scaling and translation
           ctx.restore();
 
@@ -32390,7 +32155,6 @@ return /******/ (function(modules) { // webpackBootstrap
             ctx.clearRect(0, 0, w, h);
           }
 
-          this.body.emitter.emit("afterDrawing", ctx);
         },
         writable: true,
         configurable: true
@@ -32518,7 +32282,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CanvasRenderer;
 
 /***/ },
-/* 97 */
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -32625,6 +32389,7 @@ return /******/ (function(modules) { // webpackBootstrap
          * @private
          */
         value: function _bindHammer() {
+          var _this = this;
           if (this.hammer !== undefined) {
             this.hammer.destroy();
           }
@@ -32635,23 +32400,47 @@ return /******/ (function(modules) { // webpackBootstrap
           this.hammer = new Hammer(this.frame.canvas);
           this.hammer.get("pinch").set({ enable: true });
 
-          this.hammer.on("tap", this.body.eventListeners.onTap);
-          this.hammer.on("doubletap", this.body.eventListeners.onDoubleTap);
-          this.hammer.on("press", this.body.eventListeners.onHold);
-          hammerUtil.onTouch(this.hammer, this.body.eventListeners.onTouch);
-          this.hammer.on("panstart", this.body.eventListeners.onDragStart);
-          this.hammer.on("panmove", this.body.eventListeners.onDrag);
-          this.hammer.on("panend", this.body.eventListeners.onDragEnd);
-          this.hammer.on("pinch", this.body.eventListeners.onPinch);
+          hammerUtil.onTouch(this.hammer, function (event) {
+            _this.body.eventListeners.onTouch(event);
+          });
+          this.hammer.on("tap", function (event) {
+            _this.body.eventListeners.onTap(event);
+          });
+          this.hammer.on("doubletap", function (event) {
+            _this.body.eventListeners.onDoubleTap(event);
+          });
+          this.hammer.on("press", function (event) {
+            _this.body.eventListeners.onHold(event);
+          });
+          this.hammer.on("panstart", function (event) {
+            _this.body.eventListeners.onDragStart(event);
+          });
+          this.hammer.on("panmove", function (event) {
+            _this.body.eventListeners.onDrag(event);
+          });
+          this.hammer.on("panend", function (event) {
+            _this.body.eventListeners.onDragEnd(event);
+          });
+          this.hammer.on("pinch", function (event) {
+            _this.body.eventListeners.onPinch(event);
+          });
 
           // TODO: neatly cleanup these handlers when re-creating the Canvas, IF these are done with hammer, event.stopPropagation will not work?
-          this.frame.canvas.addEventListener("mousewheel", this.body.eventListeners.onMouseWheel);
-          this.frame.canvas.addEventListener("DOMMouseScroll", this.body.eventListeners.onMouseWheel);
+          this.frame.canvas.addEventListener("mousewheel", function (event) {
+            _this.body.eventListeners.onMouseWheel(event);
+          });
+          this.frame.canvas.addEventListener("DOMMouseScroll", function (event) {
+            _this.body.eventListeners.onMouseWheel(event);
+          });
 
-          this.frame.canvas.addEventListener("mousemove", this.body.eventListeners.onMouseMove);
+          this.frame.canvas.addEventListener("mousemove", function (event) {
+            _this.body.eventListeners.onMouseMove(event);
+          });
 
           this.hammerFrame = new Hammer(this.frame);
-          hammerUtil.onRelease(this.hammerFrame, this.body.eventListeners.onRelease);
+          hammerUtil.onRelease(this.hammerFrame, function (event) {
+            _this.body.eventListeners.onRelease(event);
+          });
         },
         writable: true,
         configurable: true
@@ -32805,7 +32594,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Canvas;
 
 /***/ },
-/* 98 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33214,7 +33003,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = View;
 
 /***/ },
-/* 99 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33232,9 +33021,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
 
-  var NavigationHandler = _interopRequire(__webpack_require__(100));
+  var NavigationHandler = _interopRequire(__webpack_require__(99));
 
-  var Popup = _interopRequire(__webpack_require__(101));
+  var Popup = _interopRequire(__webpack_require__(100));
 
   var InteractionHandler = (function () {
     function InteractionHandler(body, canvas, selectionHandler) {
@@ -33261,11 +33050,12 @@ return /******/ (function(modules) { // webpackBootstrap
       this.touchTime = 0;
       this.drag = {};
       this.pinch = {};
-      this.pointerPosition = { x: 0, y: 0 };
       this.hoverObj = { nodes: {}, edges: {} };
       this.popup = undefined;
       this.popupObj = undefined;
       this.popupTimer = undefined;
+
+      this.body.functions.getPointer = this.getPointer.bind(this);
 
 
       this.options = {};
@@ -33292,8 +33082,6 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       };
       util.extend(this.options, this.defaultOptions);
-
-      this.body.emitter.on("_dataChanged", function () {});
     }
 
     _prototypeProperties(InteractionHandler, null, {
@@ -33351,7 +33139,6 @@ return /******/ (function(modules) { // webpackBootstrap
             this.drag.pointer = this.getPointer(event.center);
             this.drag.pinched = false;
             this.pinch.scale = this.body.view.scale;
-
             // to avoid double fireing of this event because we have two hammer instances. (on canvas and on frame)
             this.touchTime = new Date().valueOf();
           }
@@ -33453,11 +33240,11 @@ return /******/ (function(modules) { // webpackBootstrap
           this.drag.dragging = true;
           this.drag.selection = [];
           this.drag.translation = util.extend({}, this.body.view.translation); // copy the object
-          this.drag.nodeId = null;
+          this.drag.nodeId = undefined;
 
           this.body.emitter.emit("dragStart", { nodeIds: this.selectionHandler.getSelection().nodes });
 
-          if (node != null && this.options.dragNodes === true) {
+          if (node !== undefined && this.options.dragNodes === true) {
             this.drag.nodeId = node.id;
             // select the clicked node if not yet selected
             if (node.isSelected() === false) {
@@ -33528,7 +33315,6 @@ return /******/ (function(modules) { // webpackBootstrap
                   node.y = _this.canvas._YconvertDOMtoCanvas(_this.canvas._YconvertCanvasToDOM(selection.y) + deltaY);
                 }
               });
-
 
               // start the simulation of the physics
               _this.body.emitter.emit("startSimulation");
@@ -33622,7 +33408,7 @@ return /******/ (function(modules) { // webpackBootstrap
               scale = 10;
             }
 
-            var preScaleDragPointer = null;
+            var preScaleDragPointer = undefined;
             if (this.drag !== undefined) {
               if (this.drag.dragging === true) {
                 preScaleDragPointer = this.canvas.DOMtoCanvas(this.drag.pointer);
@@ -33638,7 +33424,7 @@ return /******/ (function(modules) { // webpackBootstrap
             this.body.view.scale = scale;
             this.body.view.translation = { x: tx, y: ty };
 
-            if (preScaleDragPointer != null) {
+            if (preScaleDragPointer != undefined) {
               var postScaleDragPointer = this.canvas.canvasToDOM(preScaleDragPointer);
               this.drag.pointer.x = postScaleDragPointer.x;
               this.drag.pointer.y = postScaleDragPointer.y;
@@ -33763,17 +33549,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
             // adding hover highlights
             var obj = this.selectionHandler.getNodeAt(pointer);
-            if (obj == null) {
+            if (obj == undefined) {
               obj = this.selectionHandler.getEdgeAt(pointer);
             }
-            if (obj != null) {
+            if (obj != undefined) {
               this.selectionHandler.hoverObject(obj);
             }
 
             // removing all node hover highlights except for the selected one.
             for (var nodeId in this.hoverObj.nodes) {
               if (this.hoverObj.nodes.hasOwnProperty(nodeId)) {
-                if (obj instanceof Node && obj.id != nodeId || obj instanceof Edge || obj == null) {
+                if (obj instanceof Node && obj.id != nodeId || obj instanceof Edge || obj == undefined) {
                   this.selectionHandler.blurObject(this.hoverObj.nodes[nodeId]);
                   delete this.hoverObj.nodes[nodeId];
                 }
@@ -33914,7 +33700,7 @@ return /******/ (function(modules) { // webpackBootstrap
               }
             }
           } else {
-            if (this.selectionHandler.getNodeAt(pointer) === null) {
+            if (this.selectionHandler.getNodeAt(pointer) === undefined) {
               if (this.body.edges[this.popup.popupTargetId] !== undefined) {
                 stillOnObj = this.body.edges[this.popup.popupTargetId].isOverlappingWith(pointerObj);
               }
@@ -33938,7 +33724,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = InteractionHandler;
 
 /***/ },
-/* 100 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34231,7 +34017,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = NavigationHandler;
 
 /***/ },
-/* 101 */
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34399,7 +34185,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Popup;
 
 /***/ },
-/* 102 */
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34412,7 +34198,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 2/27/2015.
    */
 
-  var Node = __webpack_require__(61);
+  var Node = __webpack_require__(60);
   var util = __webpack_require__(1);
 
   var SelectionHandler = (function () {
@@ -34423,6 +34209,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.body = body;
       this.canvas = canvas;
       this.selectionObj = { nodes: [], edges: [] };
+      this.forceSelectEdges = false;
 
       this.options = {};
       this.defaultOptions = {
@@ -34509,7 +34296,7 @@ return /******/ (function(modules) { // webpackBootstrap
         value: function selectObject(obj) {
           if (obj !== undefined) {
             if (obj instanceof Node) {
-              if (this.options.selectConnectedEdges === true) {
+              if (this.options.selectConnectedEdges === true || this.forceSelectEdges === true) {
                 this._selectConnectedEdges(obj);
               }
             }
@@ -34569,10 +34356,10 @@ return /******/ (function(modules) { // webpackBootstrap
         value: function _pointerToPositionObject(pointer) {
           var canvasPos = this.canvas.DOMtoCanvas(pointer);
           return {
-            left: canvasPos.x,
-            top: canvasPos.y,
-            right: canvasPos.x,
-            bottom: canvasPos.y
+            left: canvasPos.x - 1,
+            top: canvasPos.y + 1,
+            right: canvasPos.x + 1,
+            bottom: canvasPos.y - 1
           };
         },
         writable: true,
@@ -35156,7 +34943,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = SelectionHandler;
 
 /***/ },
-/* 103 */
+/* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -35178,8 +34965,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
       this.body = body;
 
+      this.initialRandomSeed = Math.round(Math.random() * 1000000);
+      this.randomSeed = this.initialRandomSeed;
       this.options = {};
       this.defaultOptions = {
+        randomSeed: undefined,
         hierarchical: {
           enabled: false,
           levelSeparation: 150,
@@ -35201,6 +34991,10 @@ return /******/ (function(modules) { // webpackBootstrap
         value: function setOptions(options, allOptions) {
           if (options !== undefined) {
             util.mergeOptions(this.options, options, "hierarchical");
+            if (options.randomSeed !== undefined) {
+              this.randomSeed = options.randomSeed;
+            }
+
             if (this.options.hierarchical.enabled === true) {
               // make sure the level seperation is the right way up
               if (this.options.hierarchical.direction == "RL" || this.options.hierarchical.direction == "DU") {
@@ -35255,6 +35049,14 @@ return /******/ (function(modules) { // webpackBootstrap
         writable: true,
         configurable: true
       },
+      seededRandom: {
+        value: function seededRandom() {
+          var x = Math.sin(this.randomSeed++) * 10000;
+          return x - Math.floor(x);
+        },
+        writable: true,
+        configurable: true
+      },
       positionInitially: {
         value: function positionInitially(nodesArray) {
           if (this.options.hierarchical.enabled !== true) {
@@ -35262,7 +35064,8 @@ return /******/ (function(modules) { // webpackBootstrap
               var node = nodesArray[i];
               if (!node.isFixed() && (node.x === undefined || node.y === undefined)) {
                 var radius = 10 * 0.1 * nodesArray.length + 10;
-                var angle = 2 * Math.PI * Math.random();
+                var angle = 2 * Math.PI * this.seededRandom();
+
                 if (node.options.fixed.x == false) {
                   node.x = radius * Math.cos(angle);
                 }
@@ -35272,6 +35075,13 @@ return /******/ (function(modules) { // webpackBootstrap
               }
             }
           }
+        },
+        writable: true,
+        configurable: true
+      },
+      getSeed: {
+        value: function getSeed() {
+          return this.initialRandomSeed;
         },
         writable: true,
         configurable: true
@@ -35287,7 +35097,6 @@ return /******/ (function(modules) { // webpackBootstrap
         value: function setupHierarchicalLayout() {
           if (this.options.hierarchical.enabled == true && this.body.nodeIndices.length > 0) {
             // get the size of the largest hubs and check if the user has defined a level for a node.
-            var hubsize = 0;
             var node = undefined,
                 nodeId = undefined;
             var definedLevel = false;
@@ -35323,7 +35132,6 @@ return /******/ (function(modules) { // webpackBootstrap
                   this._determineLevelsDirected();
                 }
               }
-              console.log(this.hierarchicalLevels);
               // check the distribution of the nodes per level.
               var distribution = this._getDistribution();
 
@@ -35627,6 +35435,1180 @@ return /******/ (function(modules) { // webpackBootstrap
   })();
 
   module.exports = LayoutEngine;
+
+/***/ },
+/* 103 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  var util = __webpack_require__(1);
+  var Hammer = __webpack_require__(19);
+  var hammerUtil = __webpack_require__(24);
+  var locales = __webpack_require__(104);
+
+  /**
+   * clears the toolbar div element of children
+   *
+   * @private
+   */
+  var ManipulationSystem = (function () {
+    function ManipulationSystem(body, canvas, selectionHandler) {
+      _classCallCheck(this, ManipulationSystem);
+
+      this.body = body;
+      this.canvas = canvas;
+      this.selectionHandler = selectionHandler;
+
+      this.editMode = false;
+      this.manipulationDiv = undefined;
+      this.editModeDiv = undefined;
+      this.closeDiv = undefined;
+      this.boundFunction = undefined;
+      this.manipulationHammers = [];
+      this.cachedFunctions = {};
+      this.touchTime = 0;
+      this.temporaryIds = { nodes: [], edges: [] };
+      this.guiEnabled = false;
+      this.selectedControlNode = undefined;
+
+      this.options = {};
+      this.defaultOptions = {
+        enabled: false,
+        initiallyVisible: false,
+        locale: "en",
+        locales: locales,
+        functionality: {
+          addNode: true,
+          addEdge: true,
+          editNode: true,
+          editEdge: true,
+          deleteNode: true,
+          deleteEdge: true
+        },
+        handlerFunctions: {
+          addNode: undefined,
+          addEdge: undefined,
+          editNode: undefined,
+          editEdge: undefined,
+          deleteNode: undefined,
+          deleteEdge: undefined
+        }
+      };
+      util.extend(this.options, this.defaultOptions);
+    }
+
+    _prototypeProperties(ManipulationSystem, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          if (options !== undefined) {
+            if (typeof options == "boolean") {
+              this.options.enabled = options;
+            } else {
+              this.options.enabled = true;
+              for (var prop in options) {
+                if (options.hasOwnProperty(prop)) {
+                  this.options[prop] = options[prop];
+                }
+              }
+            }
+            if (this.options.initiallyVisible === true) {
+              this.editMode = true;
+            }
+            this.init();
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      init: {
+        value: function init() {
+          if (this.options.enabled === true) {
+            // Enable the GUI
+            this.guiEnabled = true;
+
+            // remove override
+            this.selectionHandler.forceSelectEdges = true;
+
+            this.createWrappers();
+            if (this.editMode === false) {
+              this.createEditButton();
+            } else {
+              this.createManipulatorBar();
+            }
+          } else {
+            this.removeManipulationDOM();
+
+            // disable the gui
+            this.guiEnabled = false;
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      createWrappers: {
+        value: function createWrappers() {
+          // load the manipulator HTML elements. All styling done in css.
+          if (this.manipulationDiv === undefined) {
+            this.manipulationDiv = document.createElement("div");
+            this.manipulationDiv.className = "network-manipulationDiv";
+            if (this.editMode === true) {
+              this.manipulationDiv.style.display = "block";
+            } else {
+              this.manipulationDiv.style.display = "none";
+            }
+            this.canvas.frame.appendChild(this.manipulationDiv);
+          }
+
+          if (this.editModeDiv === undefined) {
+            this.editModeDiv = document.createElement("div");
+            this.editModeDiv.className = "network-manipulation-editMode";
+            if (this.editMode === true) {
+              this.editModeDiv.style.display = "none";
+            } else {
+              this.editModeDiv.style.display = "block";
+            }
+            this.canvas.frame.appendChild(this.editModeDiv);
+          }
+
+          if (this.closeDiv === undefined) {
+            this.closeDiv = document.createElement("div");
+            this.closeDiv.className = "network-manipulation-closeDiv";
+            this.closeDiv.style.display = this.manipulationDiv.style.display;
+            this.canvas.frame.appendChild(this.closeDiv);
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      createEditButton: {
+
+
+        /**
+         * Create the edit button
+         */
+        value: function createEditButton() {
+          // restore everything to it's original state (if applicable)
+          this._clean();
+
+          // reset the manipulationDOM
+          this.manipulationDOM = {};
+
+          // empty the editModeDiv
+          util.recursiveDOMDelete(this.editModeDiv);
+
+          // create the contents for the editMode button
+          var locale = this.options.locales[this.options.locale];
+          var button = this.createButton("editMode", "network-manipulationUI edit editmode", locale.edit);
+          this.editModeDiv.appendChild(button);
+
+          // bind a hammer listener to the button, calling the function toggleEditMode.
+          this.bindHammerToDiv(button, "toggleEditMode");
+        },
+        writable: true,
+        configurable: true
+      },
+      removeManipulationDOM: {
+        value: function removeManipulationDOM() {
+          // removes all the bindings and overloads
+          this._clean();
+
+          // empty the manipulation divs
+          util.recursiveDOMDelete(this.manipulationDiv);
+          util.recursiveDOMDelete(this.editModeDiv);
+          util.recursiveDOMDelete(this.closeDiv);
+
+          // remove the manipulation divs
+          this.canvas.frame.removeChild(this.manipulationDiv);
+          this.canvas.frame.removeChild(this.editModeDiv);
+          this.canvas.frame.removeChild(this.closeDiv);
+
+          // set the references to undefined
+          this.manipulationDiv = undefined;
+          this.editModeDiv = undefined;
+          this.closeDiv = undefined;
+
+          // remove override
+          this.selectionHandler.forceSelectEdges = false;
+        },
+        writable: true,
+        configurable: true
+      },
+      _cleanManipulatorHammers: {
+
+        //clearManipulatorBar() {
+        //  util._recursiveDOMDelete(this.manipulationDiv);
+        //  this.manipulationDOM = {};
+        //  this._cleanManipulatorHammers();
+        //  this._manipulationReleaseOverload();
+        //}
+
+
+        value: function _cleanManipulatorHammers() {
+          // _clean hammer bindings
+          if (this.manipulationHammers.length != 0) {
+            for (var i = 0; i < this.manipulationHammers.length; i++) {
+              this.manipulationHammers[i].destroy();
+            }
+            this.manipulationHammers = [];
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _restoreOverloadedFunctions: {
+
+        /**
+         * Manipulation UI temporarily overloads certain functions to extend or replace them. To be able to restore
+         * these functions to their original functionality, we saved them in this.cachedFunctions.
+         * This function restores these functions to their original function.
+         *
+         * @private
+         */
+        value: function _restoreOverloadedFunctions() {
+          for (var functionName in this.cachedFunctions) {
+            if (this.cachedFunctions.hasOwnProperty(functionName)) {
+              this.body.eventListeners[functionName] = this.cachedFunctions[functionName];
+              delete this.cachedFunctions[functionName];
+            }
+          }
+          this.cachedFunctions = {};
+        },
+        writable: true,
+        configurable: true
+      },
+      toggleEditMode: {
+
+        /**
+         * Enable or disable edit-mode.
+         *
+         * @private
+         */
+        value: function toggleEditMode() {
+          this.editMode = !this.editMode;
+          var toolbar = this.manipulationDiv;
+          var closeDiv = this.closeDiv;
+          var editModeDiv = this.editModeDiv;
+          if (this.editMode === true) {
+            toolbar.style.display = "block";
+            closeDiv.style.display = "block";
+            editModeDiv.style.display = "none";
+            this.bindHammerToDiv(closeDiv, "toggleEditMode");
+            this.createManipulatorBar();
+          } else {
+            toolbar.style.display = "none";
+            closeDiv.style.display = "none";
+            editModeDiv.style.display = "block";
+            this.createEditButton();
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _clean: {
+        value: function _clean() {
+          // _clean the divs
+          if (this.guiEnabled === true) {
+            util.recursiveDOMDelete(this.editModeDiv);
+            util.recursiveDOMDelete(this.manipulationDiv);
+
+            // removes all the bindings and overloads
+            this._cleanManipulatorHammers();
+          }
+
+          // remove temporary nodes and edges
+          this._cleanupTemporaryNodesAndEdges();
+
+          // restore overloaded UI functions
+          this._restoreOverloadedFunctions();
+
+          // remove the boundFunction
+          if (this.boundFunction !== undefined) {
+            this.body.emitter.off(this.boundFunction.event, this.boundFunction.fn);
+          }
+          this.boundFunction = undefined;
+        },
+        writable: true,
+        configurable: true
+      },
+      createSeperator: {
+        value: function createSeperator() {
+          var index = arguments[0] === undefined ? 1 : arguments[0];
+          this.manipulationDOM["seperatorLineDiv" + index] = document.createElement("div");
+          this.manipulationDOM["seperatorLineDiv" + index].className = "network-seperatorLine";
+          this.manipulationDiv.appendChild(this.manipulationDOM["seperatorLineDiv" + index]);
+        },
+        writable: true,
+        configurable: true
+      },
+      createAddNodeButton: {
+        value: function createAddNodeButton(locale) {
+          var button = this.createButton("addNode", "network-manipulationUI add", locale.addNode);
+          this.manipulationDiv.appendChild(button);
+          this.bindHammerToDiv(button, "addNodeMode");
+        },
+        writable: true,
+        configurable: true
+      },
+      createAddEdgeButton: {
+        value: function createAddEdgeButton(locale) {
+          var button = this.createButton("addEdge", "network-manipulationUI connect", locale.addEdge);
+          this.manipulationDiv.appendChild(button);
+          this.bindHammerToDiv(button, "addEdgeMode");
+        },
+        writable: true,
+        configurable: true
+      },
+      createEditNodeButton: {
+        value: function createEditNodeButton(locale) {
+          var button = this.createButton("editNode", "network-manipulationUI edit", locale.editNode);
+          this.manipulationDiv.appendChild(button);
+          this.bindHammerToDiv(button, "_editNode");
+        },
+        writable: true,
+        configurable: true
+      },
+      createEditEdgeButton: {
+        value: function createEditEdgeButton(locale) {
+          var button = this.createButton("editEdge", "network-manipulationUI edit", locale.editEdge);
+          this.manipulationDiv.appendChild(button);
+          this.bindHammerToDiv(button, "editEdgeMode");
+        },
+        writable: true,
+        configurable: true
+      },
+      createDeleteButton: {
+        value: function createDeleteButton(locale) {
+          var button = this.createButton("delete", "network-manipulationUI delete", locale.del);
+          this.manipulationDiv.appendChild(button);
+          this.bindHammerToDiv(button, "deleteSelected");
+        },
+        writable: true,
+        configurable: true
+      },
+      createBackButton: {
+        value: function createBackButton(locale) {
+          var button = this.createButton("back", "network-manipulationUI back", locale.back);
+          this.manipulationDiv.appendChild(button);
+          this.bindHammerToDiv(button, "createManipulatorBar");
+        },
+        writable: true,
+        configurable: true
+      },
+      createDescription: {
+        value: function createDescription(label) {
+          this.manipulationDiv.appendChild(this.createButton("description", "network-manipulationUI none", label));
+        },
+        writable: true,
+        configurable: true
+      },
+      createButton: {
+        value: function createButton(id, className, label) {
+          var labelClassName = arguments[3] === undefined ? "network-manipulationLabel" : arguments[3];
+          this.manipulationDOM[id + "Div"] = document.createElement("div");
+          this.manipulationDOM[id + "Div"].className = className;
+          this.manipulationDOM[id + "Label"] = document.createElement("div");
+          this.manipulationDOM[id + "Label"].className = labelClassName;
+          this.manipulationDOM[id + "Label"].innerHTML = label;
+          this.manipulationDOM[id + "Div"].appendChild(this.manipulationDOM[id + "Label"]);
+          return this.manipulationDOM[id + "Div"];
+        },
+        writable: true,
+        configurable: true
+      },
+      temporaryBind: {
+        value: function temporaryBind(fn, event) {
+          this.boundFunction = { fn: fn.bind(this), event: event };
+          this.body.emitter.on(event, this.boundFunction.fn);
+        },
+        writable: true,
+        configurable: true
+      },
+      createManipulatorBar: {
+
+        /**
+         * main function, creates the main toolbar. Removes functions bound to the select event. Binds all the buttons of the toolbar.
+         *
+         * @private
+         */
+        value: function createManipulatorBar() {
+          this._clean();
+
+          // resume calculation
+          this.body.emitter.emit("restorePhysics");
+
+          // reset global letiables
+          this.manipulationDOM = {};
+
+          var selectedNodeCount = this.selectionHandler._getSelectedNodeCount();
+          var selectedEdgeCount = this.selectionHandler._getSelectedEdgeCount();
+          var selectedTotalCount = selectedNodeCount + selectedEdgeCount;
+          var locale = this.options.locales[this.options.locale];
+          var needSeperator = false;
+
+          if (this.options.functionality.addNode === true) {
+            this.createAddNodeButton(locale);
+            needSeperator = true;
+          }
+          if (this.options.functionality.addEdge === true) {
+            if (needSeperator === true) {
+              this.createSeperator(1);
+            } else {
+              needSeperator = true;
+            }
+            this.createAddEdgeButton(locale);
+          }
+
+          if (selectedNodeCount === 1 && typeof this.options.handlerFunctions.editNode === "function" && this.options.functionality.editNode === true) {
+            if (needSeperator === true) {
+              this.createSeperator(2);
+            } else {
+              needSeperator = true;
+            }
+            this.createEditNodeButton(locale);
+          } else if (selectedEdgeCount === 1 && selectedNodeCount === 0 && this.options.functionality.editEdge === true) {
+            if (needSeperator === true) {
+              this.createSeperator(3);
+            } else {
+              needSeperator = true;
+            }
+            this.createEditEdgeButton(locale);
+          }
+
+          // remove buttons
+          if (selectedTotalCount !== 0) {
+            if (selectedNodeCount === 1 && this.options.functionality.deleteNode === true) {
+              if (needSeperator === true) {
+                this.createSeperator(4);
+              }
+              this.createDeleteButton(locale);
+            } else if (selectedNodeCount === 0 && this.options.functionality.deleteEdge === true) {
+              if (needSeperator === true) {
+                this.createSeperator(4);
+              }
+              this.createDeleteButton(locale);
+            }
+          }
+
+          // bind the close button
+          this.bindHammerToDiv(this.closeDiv, "toggleEditMode");
+
+          // refresh this bar based on what has been selected
+          this.temporaryBind(this.createManipulatorBar, "select");
+        },
+        writable: true,
+        configurable: true
+      },
+      bindHammerToDiv: {
+
+        /**
+         * Bind an hammer instance to a DOM element. TODO: remove the double check.
+         * @param domElement
+         * @param funct
+         */
+        value: function bindHammerToDiv(domElement, funct) {
+          var hammer = new Hammer(domElement, {});
+          hammerUtil.onTouch(hammer, this[funct].bind(this));
+          this.manipulationHammers.push(hammer);
+        },
+        writable: true,
+        configurable: true
+      },
+      addNodeMode: {
+
+
+        /**
+         * Create the toolbar for adding Nodes
+         *
+         * @private
+         */
+        value: function addNodeMode() {
+          // clear the toolbar
+          this._clean();
+
+          if (this.guiEnabled === true) {
+            var locale = this.options.locales[this.options.locale];
+            this.manipulationDOM = {};
+            this.createBackButton(locale);
+            this.createSeperator();
+            this.createDescription(locale.addDescription);
+
+            // bind the close button
+            this.bindHammerToDiv(this.closeDiv, "toggleEditMode");
+          }
+
+          this.temporaryBind(this._addNode, "click");
+        },
+        writable: true,
+        configurable: true
+      },
+      addEdgeMode: {
+
+
+        /**
+         * create the toolbar to connect nodes
+         *
+         * @private
+         */
+        value: function addEdgeMode() {
+          // _clean the system
+          this._clean();
+
+          if (this.guiEnabled === true) {
+            var locale = this.options.locales[this.options.locale];
+            this.manipulationDOM = {};
+            this.createBackButton(locale);
+            this.createSeperator();
+            this.createDescription(locale.edgeDescription);
+
+            // bind the close button
+            this.bindHammerToDiv(this.closeDiv, "toggleEditMode");
+          }
+
+          // temporarily overload functions
+          this.cachedFunctions.onTouch = this.body.eventListeners.onTouch;
+          this.cachedFunctions.onDragEnd = this.body.eventListeners.onDragEnd;
+          this.cachedFunctions.onHold = this.body.eventListeners.onHold;
+
+          this.body.eventListeners.onTouch = this._handleConnect.bind(this);
+          this.body.eventListeners.onDragEnd = this._finishConnect.bind(this);
+          this.body.eventListeners.onHold = function () {};
+        },
+        writable: true,
+        configurable: true
+      },
+      editEdgeMode: {
+
+        /**
+         * create the toolbar to edit edges
+         *
+         * @private
+         */
+        value: function editEdgeMode() {
+          // clear the system
+          this._clean();
+
+          if (this.guiEnabled === true) {
+            var locale = this.options.locales[this.options.locale];
+            this.manipulationDOM = {};
+            this.createBackButton(locale);
+            this.createSeperator();
+            this.createDescription(locale.editEdgeDescription);
+
+            // bind the close button
+            this.bindHammerToDiv(this.closeDiv, "toggleEditMode");
+          }
+
+          this.edgeBeingEditedId = this.selectionHandler.getSelectedEdges()[0];
+          var edge = this.body.edges[this.edgeBeingEditedId];
+
+          // create control nodes
+          var controlNodeFrom = this.body.functions.createNode(this.getTargetNodeProperties(edge.from.x, edge.from.y));
+          var controlNodeTo = this.body.functions.createNode(this.getTargetNodeProperties(edge.to.x, edge.to.y));
+
+          this.temporaryIds.nodes.push(controlNodeFrom.id);
+          this.temporaryIds.nodes.push(controlNodeTo.id);
+
+          this.body.nodes[controlNodeFrom.id] = controlNodeFrom;
+          this.body.nodeIndices.push(controlNodeFrom.id);
+          this.body.nodes[controlNodeTo.id] = controlNodeTo;
+          this.body.nodeIndices.push(controlNodeTo.id);
+
+          // temporarily overload functions
+          this.cachedFunctions.onTouch = this.body.eventListeners.onTouch;
+          this.cachedFunctions.onTap = this.body.eventListeners.onTap;
+          this.cachedFunctions.onHold = this.body.eventListeners.onHold;
+          this.cachedFunctions.onDragStart = this.body.eventListeners.onDragStart;
+          this.cachedFunctions.onDrag = this.body.eventListeners.onDrag;
+          this.cachedFunctions.onDragEnd = this.body.eventListeners.onDragEnd;
+          this.cachedFunctions.onMouseOver = this.body.eventListeners.onMouseOver;
+
+          this.body.eventListeners.onTouch = this._controlNodeTouch.bind(this);
+          this.body.eventListeners.onTap = function () {};
+          this.body.eventListeners.onHold = function () {};
+          this.body.eventListeners.onDragStart = this._controlNodeDragStart.bind(this);
+          this.body.eventListeners.onDrag = this._controlNodeDrag.bind(this);
+          this.body.eventListeners.onDragEnd = this._controlNodeDragEnd.bind(this);
+          this.body.eventListeners.onMouseOver = function () {};
+
+          // create function to position control nodes correctly on movement
+          var positionControlNodes = function (ctx) {
+            var positions = edge.edgeType.findBorderPositions(ctx);
+            if (controlNodeFrom.selected === false) {
+              controlNodeFrom.x = positions.from.x;
+              controlNodeFrom.y = positions.from.y;
+            }
+            if (controlNodeTo.selected === false) {
+              controlNodeTo.x = positions.to.x;
+              controlNodeTo.y = positions.to.y;
+            }
+          };
+          this.temporaryBind(positionControlNodes, "beforeDrawing");
+
+          this.body.emitter.emit("_redraw");
+        },
+        writable: true,
+        configurable: true
+      },
+      _controlNodeTouch: {
+        value: function _controlNodeTouch(event) {
+          this.lastTouch = this.body.functions.getPointer(event.center);
+          this.lastTouch.translation = util.extend({}, this.body.view.translation); // copy the object
+        },
+        writable: true,
+        configurable: true
+      },
+      _controlNodeDragStart: {
+        value: function _controlNodeDragStart(event) {
+          var pointer = this.lastTouch;
+          var pointerObj = this.selectionHandler._pointerToPositionObject(pointer);
+          var from = this.body.nodes[this.temporaryIds.nodes[0]];
+          var to = this.body.nodes[this.temporaryIds.nodes[1]];
+          var edge = this.body.edges[this.edgeBeingEditedId];
+          this.selectedControlNode = undefined;
+
+          var fromSelect = from.isOverlappingWith(pointerObj);
+          var toSelect = to.isOverlappingWith(pointerObj);
+
+          if (fromSelect === true) {
+            this.selectedControlNode = from;
+            edge.edgeType.from = from;
+          } else if (toSelect === true) {
+            this.selectedControlNode = to;
+            edge.edgeType.to = to;
+          }
+
+          this.body.emitter.emit("_redraw");
+        },
+        writable: true,
+        configurable: true
+      },
+      _controlNodeDrag: {
+        value: function _controlNodeDrag(event) {
+          this.body.emitter.emit("disablePhysics");
+          var pointer = this.body.functions.getPointer(event.center);
+          var pos = this.canvas.DOMtoCanvas(pointer);
+
+          if (this.selectedControlNode !== undefined) {
+            this.selectedControlNode.x = pos.x;
+            this.selectedControlNode.y = pos.y;
+          } else {
+            // if the drag was not started properly because the click started outside the network div, start it now.
+            var diffX = pointer.x - this.lastTouch.x;
+            var diffY = pointer.y - this.lastTouch.y;
+            this.body.view.translation = { x: this.lastTouch.translation.x + diffX, y: this.lastTouch.translation.y + diffY };
+          }
+          this.body.emitter.emit("_redraw");
+        },
+        writable: true,
+        configurable: true
+      },
+      _controlNodeDragEnd: {
+        value: function _controlNodeDragEnd(event) {
+          var pointer = this.body.functions.getPointer(event.center);
+          var pointerObj = this.selectionHandler._pointerToPositionObject(pointer);
+          var edge = this.body.edges[this.edgeBeingEditedId];
+
+          var overlappingNodeIds = this.selectionHandler._getAllNodesOverlappingWith(pointerObj);
+          var node = undefined;
+          for (var i = overlappingNodeIds.length - 1; i >= 0; i--) {
+            if (overlappingNodeIds[i] !== this.selectedControlNode.id) {
+              node = this.body.nodes[overlappingNodeIds[i]];
+              break;
+            }
+          }
+
+          // perform the connection
+          if (node !== undefined && this.selectedControlNode !== undefined) {
+            if (node.isCluster === true) {
+              alert(this.options.locales[this.options.locale].createEdgeError);
+            } else {
+              var from = this.body.nodes[this.temporaryIds.nodes[0]];
+              if (this.selectedControlNode.id == from.id) {
+                this._editEdge(node.id, edge.to.id);
+              } else {
+                this._editEdge(edge.from.id, node.id);
+              }
+            }
+          } else {
+            edge.updateEdgeType();
+            this.body.emitter.emit("restorePhysics");
+          }
+          this.body.emitter.emit("_redraw");
+        },
+        writable: true,
+        configurable: true
+      },
+      _selectControlNode: {
+        /**
+         * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
+         * to walk the user through the process.
+         *
+         * @private
+         */
+        value: function _selectControlNode(event) {},
+        writable: true,
+        configurable: true
+      },
+      _releaseControlNode: {
+
+
+        /**
+         *
+         * @param pointer
+         * @private
+         */
+        value: function _releaseControlNode(pointer) {
+          if (new Date().valueOf() - this.touchTime > 100) {
+            console.log("release");
+            // perform the connection
+            var node = this.selectionHandler.getNodeAt(pointer);
+            if (node !== undefined) {
+              if (node.isCluster === true) {
+                alert(this.options.locales[this.options.locale].createEdgeError);
+              } else {
+                var edge = this.body.edges[this.edgeBeingEditedId];
+
+                var targetNodeId = undefined;
+                if (edge.to.selected === true) {
+                  targetNodeId = edge.toId;
+                } else if (edge.from.selected === true) {
+                  targetNodeId = edge.fromId;
+                }
+
+                //this.body.eventListeners.onDrag = this.cachedFunctions["onDrag"];
+                //this.body.eventListeners.onRelease = this.cachedFunctions["onRelease"];
+                //delete this.cachedFunctions["onRelease"];
+                //delete this.cachedFunctions["onDrag"];
+                ////
+                //
+                //
+                //
+                //
+                //
+                //
+                //if (this.body.nodes[connectFromId] !== undefined && this.body.nodes[node.id] !== undefined) {
+                //  this._createEdge(connectFromId, node.id);
+                //}
+              }
+            }
+            this.body.emitter.emit("_redraw");
+            //this.body.emitter.emit("_redraw");
+            //let newNode = this.getNodeAt(pointer);
+            //if (newNode !== undefined) {
+            //  if (this.edgeBeingEditedId.controlNodes.from.selected == true) {
+            //    this.edgeBeingEditedId._restoreControlNodes();
+            //    this._editEdge(newNode.id, this.edgeBeingEditedId.to.id);
+            //    this.edgeBeingEditedId.controlNodes.from.unselect();
+            //  }
+            //  if (this.edgeBeingEditedId.controlNodes.to.selected == true) {
+            //    this.edgeBeingEditedId._restoreControlNodes();
+            //    this._editEdge(this.edgeBeingEditedId.from.id, newNode.id);
+            //    this.edgeBeingEditedId.controlNodes.to.unselect();
+            //  }
+            //}
+            //else {
+            //  this.edgeBeingEditedId._restoreControlNodes();
+            //}
+            this.touchTime = new Date().valueOf();
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _handleConnect: {
+
+        /**
+         * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
+         * to walk the user through the process.
+         *
+         * @private
+         */
+        value: function _handleConnect(event) {
+          var _this = this;
+          // check to avoid double fireing of this function.
+          if (new Date().valueOf() - this.touchTime > 100) {
+            var pointer = this.body.functions.getPointer(event.center);
+            var node = this.selectionHandler.getNodeAt(pointer);
+
+            if (node !== undefined) {
+              if (node.isCluster === true) {
+                alert(this.options.locales[this.options.locale].createEdgeError);
+              } else {
+                (function () {
+                  // create a node the temporary line can look at
+                  var targetNode = _this.body.functions.createNode(_this.getTargetNodeProperties(node.x, node.y));
+                  var targetNodeId = targetNode.id;
+                  _this.body.nodes[targetNode.id] = targetNode;
+                  _this.body.nodeIndices.push(targetNode.id);
+
+                  // create a temporary edge
+                  var connectionEdge = _this.body.functions.createEdge({
+                    id: "connectionEdge" + util.randomUUID(),
+                    from: node.id,
+                    to: targetNode.id,
+                    physics: false,
+                    smooth: {
+                      enabled: true,
+                      dynamic: false,
+                      type: "continuous",
+                      roundness: 0.5
+                    }
+                  });
+                  _this.body.edges[connectionEdge.id] = connectionEdge;
+                  _this.body.edgeIndices.push(connectionEdge.id);
+
+                  _this.temporaryIds.nodes.push(targetNode.id);
+                  _this.temporaryIds.edges.push(connectionEdge.id);
+
+                  _this.cachedFunctions.onDrag = _this.body.eventListeners.onDrag;
+                  _this.body.eventListeners.onDrag = function (event) {
+                    var pointer = _this.body.functions.getPointer(event.center);
+                    var targetNode = _this.body.nodes[targetNodeId];
+                    targetNode.x = _this.canvas._XconvertDOMtoCanvas(pointer.x);
+                    targetNode.y = _this.canvas._YconvertDOMtoCanvas(pointer.y);
+                    _this.body.emitter.emit("_redraw");
+                  };
+                })();
+              }
+            }
+            this.touchTime = new Date().valueOf();
+
+            // do the original touch events
+            this.cachedFunctions.onTouch(event);
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _finishConnect: {
+        value: function _finishConnect(event) {
+          var pointer = this.body.functions.getPointer(event.center);
+          var pointerObj = this.selectionHandler._pointerToPositionObject(pointer);
+
+          // remember the edge id
+          var connectFromId = undefined;
+          if (this.temporaryIds.edges[0] !== undefined) {
+            connectFromId = this.body.edges[this.temporaryIds.edges[0]].fromId;
+          }
+
+          //restore the drag function
+          if (this.cachedFunctions.onDrag !== undefined) {
+            this.body.eventListeners.onDrag = this.cachedFunctions.onDrag;
+            delete this.cachedFunctions.onDrag;
+          }
+
+          // get the overlapping node but NOT the temporary node;
+          var overlappingNodeIds = this.selectionHandler._getAllNodesOverlappingWith(pointerObj);
+          var node = undefined;
+          for (var i = overlappingNodeIds.length - 1; i >= 0; i--) {
+            if (this.temporaryIds.nodes.indexOf(overlappingNodeIds[i]) !== -1) {
+              node = this.body.nodes[overlappingNodeIds[i]];
+              break;
+            }
+          }
+
+          // clean temporary nodes and edges.
+          this._cleanupTemporaryNodesAndEdges();
+
+          // perform the connection
+          if (node !== undefined) {
+            if (node.isCluster === true) {
+              alert(this.options.locales[this.options.locale].createEdgeError);
+            } else {
+              if (this.body.nodes[connectFromId] !== undefined && this.body.nodes[node.id] !== undefined) {
+                this._createEdge(connectFromId, node.id);
+              }
+            }
+          }
+          this.body.emitter.emit("_redraw");
+        },
+        writable: true,
+        configurable: true
+      },
+      _cleanupTemporaryNodesAndEdges: {
+        value: function _cleanupTemporaryNodesAndEdges() {
+          // _clean temporary edges
+          for (var i = 0; i < this.temporaryIds.edges.length; i++) {
+            this.body.edges[this.temporaryIds.edges[i]].disconnect();
+            delete this.body.edges[this.temporaryIds.edges[i]];
+            var indexTempEdge = this.body.edgeIndices.indexOf(this.temporaryIds.edges[i]);
+            if (indexTempEdge !== -1) {
+              this.body.edgeIndices.splice(indexTempEdge, 1);
+            }
+          }
+
+          // _clean temporary nodes
+          for (var i = 0; i < this.temporaryIds.nodes.length; i++) {
+            delete this.body.nodes[this.temporaryIds.nodes[i]];
+            var indexTempNode = this.body.nodeIndices.indexOf(this.temporaryIds.nodes[i]);
+            if (indexTempNode !== -1) {
+              this.body.nodeIndices.splice(indexTempNode, 1);
+            }
+          }
+
+          this.temporaryIds = { nodes: [], edges: [] };
+        },
+        writable: true,
+        configurable: true
+      },
+      _addNode: {
+
+        /**
+         * Adds a node on the specified location
+         */
+        value: function _addNode(clickData) {
+          var _this = this;
+          var defaultData = {
+            id: util.randomUUID(),
+            x: clickData.pointer.canvas.x,
+            y: clickData.pointer.canvas.y,
+            label: "new"
+          };
+
+          if (typeof this.options.handlerFunctions.addNode === "function") {
+            if (this.options.handlerFunctions.addNode.length == 2) {
+              this.options.handlerFunctions.addNode(defaultData, function (finalizedData) {
+                _this.body.data.nodes.add(finalizedData);
+                _this.createManipulatorBar();
+              });
+            } else {
+              throw new Error("The function for add does not support two arguments (data,callback)");
+              this.createManipulatorBar();
+            }
+          } else {
+            this.body.data.nodes.add(defaultData);
+            this.createManipulatorBar();
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _createEdge: {
+
+
+        /**
+         * connect two nodes with a new edge.
+         *
+         * @private
+         */
+        value: function _createEdge(sourceNodeId, targetNodeId) {
+          var _this = this;
+          var defaultData = { from: sourceNodeId, to: targetNodeId };
+          if (this.options.handlerFunctions.addEdge) {
+            if (this.options.handlerFunctions.addEdge.length == 2) {
+              this.options.handlerFunctions.addEdge(defaultData, function (finalizedData) {
+                _this.body.data.edges.add(finalizedData);
+                _this.selectionHandler.unselectAll();
+                _this.createManipulatorBar();
+              });
+            } else {
+              throw new Error("The function for connect does not support two arguments (data,callback)");
+            }
+          } else {
+            this.body.data.edges.add(defaultData);
+            this.selectionHandler.unselectAll();
+            this.createManipulatorBar();
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _editEdge: {
+
+        /**
+         * connect two nodes with a new edge.
+         *
+         * @private
+         */
+        value: function _editEdge(sourceNodeId, targetNodeId) {
+          var _this = this;
+          var defaultData = { id: this.edgeBeingEditedId, from: sourceNodeId, to: targetNodeId };
+          console.log(defaultData);
+          if (this.options.handlerFunctions.editEdge) {
+            if (this.options.handlerFunctions.editEdge.length == 2) {
+              this.options.handlerFunctions.editEdge(defaultData, function (finalizedData) {
+                _this.body.data.edges.update(finalizedData);
+                _this.selectionHandler.unselectAll();
+                _this.createManipulatorBar();
+              });
+            } else {
+              throw new Error("The function for edit does not support two arguments (data, callback)");
+            }
+          } else {
+            this.body.data.edges.update(defaultData);
+            this.selectionHandler.unselectAll();
+            this.createManipulatorBar();
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _editNode: {
+
+        /**
+         * Create the toolbar to edit the selected node. The label and the color can be changed. Other colors are derived from the chosen color.
+         *
+         * @private
+         */
+        value: function _editNode() {
+          var _this = this;
+          if (this.options.handlerFunctions.edit && this.editMode == true) {
+            var node = this._getSelectedNode();
+            var data = {
+              id: node.id,
+              label: node.label,
+              group: node.options.group,
+              shape: node.options.shape,
+              color: {
+                background: node.options.color.background,
+                border: node.options.color.border,
+                highlight: {
+                  background: node.options.color.highlight.background,
+                  border: node.options.color.highlight.border
+                }
+              }
+            };
+            if (this.options.handlerFunctions.edit.length == 2) {
+              (function () {
+                var me = _this;
+                _this.options.handlerFunctions.edit(data, function (finalizedData) {
+                  me.body.data.nodes.update(finalizedData);
+                  me.createManipulatorBar();
+                  me.moving = true;
+                  me.start();
+                });
+              })();
+            } else {
+              throw new Error("The function for edit does not support two arguments (data, callback)");
+            }
+          } else {
+            throw new Error("No edit function has been bound to this button");
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      deleteSelected: {
+
+
+        /**
+         * delete everything in the selection
+         *
+         * @private
+         */
+        value: function deleteSelected() {
+          var _this = this;
+          var selectedNodes = this.selectionHandler.getSelectedNodes();
+          var selectedEdges = this.selectionHandler.getSelectedEdges();
+          var deleteFunction = undefined;
+          if (selectedNodes.length > 0) {
+            for (var i = 0; i < selectedNodes.length; i++) {
+              if (this.body.nodes[selectedNodes[i]].isCluster === true) {
+                alert("You cannot delete a cluster.");
+                return;
+              }
+            }
+
+            if (typeof this.options.handlerFunctions.deleteNode === "function") {
+              deleteFunction = this.options.handlerFunctions.deleteNode;
+            }
+          } else if (selectedEdges.length > 0) {
+            if (typeof this.options.handlerFunctions.deleteEdge === "function") {
+              deleteFunction = this.options.handlerFunctions.deleteEdge;
+            }
+          }
+
+          if (typeof deleteFunction === "function") {
+            var data = { nodes: selectedNodes, edges: selectedEdges };
+            if (deleteFunction.length == 2) {
+              deleteFunction(data, function (finalizedData) {
+                _this.body.data.edges.remove(finalizedData.edges);
+                _this.body.data.nodes.remove(finalizedData.nodes);
+                _this.body.emitter.emit("startSimulation");
+              });
+            } else {
+              throw new Error("The function for delete does not support two arguments (data, callback)");
+            }
+          } else {
+            this.body.data.edges.remove(selectedEdges);
+            this.body.data.nodes.remove(selectedNodes);
+            this.body.emitter.emit("startSimulation");
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      getTargetNodeProperties: {
+        value: function getTargetNodeProperties(x, y) {
+          return {
+            id: "targetNode" + util.randomUUID(),
+            hidden: false,
+            physics: false,
+            shape: "dot",
+            size: 6,
+            x: x,
+            y: y,
+            color: { background: "#ff0000", border: "#3c3c3c", highlight: { background: "#07f968" } },
+            borderWidth: 2,
+            borderWidthSelected: 2
+          };
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return ManipulationSystem;
+  })();
+
+  module.exports = ManipulationSystem;
+
+/***/ },
+/* 104 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  // English
+  exports.en = {
+    edit: "Edit",
+    del: "Delete selected",
+    back: "Back",
+    addNode: "Add Node",
+    addEdge: "Add Edge",
+    editNode: "Edit Node",
+    editEdge: "Edit Edge",
+    addDescription: "Click in an empty space to place a new node.",
+    edgeDescription: "Click on a node and drag the edge to another node to connect them.",
+    editEdgeDescription: "Click on the control points and drag them to a node to connect to it.",
+    createEdgeError: "Cannot link edges to a cluster.",
+    deleteClusterError: "Clusters cannot be deleted."
+  };
+  exports.en_EN = exports.en;
+  exports.en_US = exports.en;
+
+  // Dutch
+  exports.nl = {
+    edit: "Wijzigen",
+    del: "Selectie verwijderen",
+    back: "Terug",
+    addNode: "Node toevoegen",
+    addEdge: "Link toevoegen",
+    editNode: "Node wijzigen",
+    editEdge: "Link wijzigen",
+    addDescription: "Klik op een leeg gebied om een nieuwe node te maken.",
+    edgeDescription: "Klik op een node en sleep de link naar een andere node om ze te verbinden.",
+    editEdgeDescription: "Klik op de verbindingspunten en sleep ze naar een node om daarmee te verbinden.",
+    createEdgeError: "Kan geen link maken naar een cluster.",
+    deleteClusterError: "Clusters kunnen niet worden verwijderd."
+  };
+  exports.nl_NL = exports.nl;
+  exports.nl_BE = exports.nl;
 
 /***/ }
 /******/ ])
