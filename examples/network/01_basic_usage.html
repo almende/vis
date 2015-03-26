@@ -44,7 +44,17 @@
     nodes: nodes,
     edges: edges
   };
-  var options = {edges:{arrows:'to'},manipulation:{initiallyVisible: true}}//{physics:{stabilization:false}};
+  var options = {edges:{arrows:'to'},
+      manipulation:{
+          initiallyVisible: true,
+          handlerFunctions: {
+              editNode: function(data, callback) {
+                  console.log(data)
+                  data.label = data.label + "i"
+                  callback(data)
+              }
+          }
+      }}//{physics:{stabilization:false}};
   var network = new vis.Network(container, data, options);
 </script>
 
