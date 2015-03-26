@@ -45,8 +45,9 @@
     edges: edges
   };
   var options = {
-      configure:true
-  }//{physics:{stabilization:false}};
+      configure: true,
+      physics:{solver:'BarnesHut'}
+  }
   var network = new vis.Network(container, data, options);
 </script>
 

@@ -1,0 +1,147 @@
+
+div.vis-network-configuration {
+    position:relative;
+    display:inline-flex;
+    font-size:12px;
+}
+
+
+div.vis-network-configuration.header{
+    font-size:16px;
+    font-weight: bold;
+}
+
+div.vis-network-configuration.label{
+    width:120px;
+
+}
+
+
+input.vis-network-configuration.rangeinput{
+    width:30px;
+}
+
+
+input.vis-network-configuration.range{
+    /*removes default webkit styles*/
+    -webkit-appearance: none;
+
+    /*fix for FF unable to apply focus style bug */
+    border: 1px solid white;
+
+    /*required for proper track sizing in FF*/
+    width: 300px;
+}
+input.vis-network-configuration.range::-webkit-slider-runnable-track {
+    width: 300px;
+    height: 5px;
+    background: #dedede; /* Old browsers */
+    background: -moz-linear-gradient(top,  #dedede 0%, #c8c8c8 99%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#dedede), color-stop(99%,#c8c8c8)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top,  #dedede 0%,#c8c8c8 99%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top, #dedede 0%, #c8c8c8 99%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  #dedede 0%,#c8c8c8 99%); /* IE10+ */
+    background: linear-gradient(to bottom,  #dedede 0%,#c8c8c8 99%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#dedede', endColorstr='#c8c8c8',GradientType=0 ); /* IE6-9 */
+
+    border: 1px solid #999999;
+    box-shadow: #aaaaaa 0px 0px 3px 0px;
+    border-radius: 3px;
+}
+input.vis-network-configuration.range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    border: 1px solid #14334b;
+    height: 17px;
+    width: 17px;
+    border-radius: 50%;
+    background: #3876c2; /* Old browsers */
+    background: -moz-linear-gradient(top,  #3876c2 0%, #385380 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#3876c2), color-stop(100%,#385380)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top,  #3876c2 0%,#385380 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  #3876c2 0%,#385380 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  #3876c2 0%,#385380 100%); /* IE10+ */
+    background: linear-gradient(to bottom,  #3876c2 0%,#385380 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#3876c2', endColorstr='#385380',GradientType=0 ); /* IE6-9 */
+    box-shadow: #111927 0px 0px 3px 0px;
+    margin-top: -7px;
+}
+input.vis-network-configuration.range:focus {
+    outline: none;
+}
+input.vis-network-configuration.range:focus::-webkit-slider-runnable-track {
+    background: #9d9d9d; /* Old browsers */
+    background: -moz-linear-gradient(top, #9d9d9d 0%, #c8c8c8 99%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#9d9d9d), color-stop(99%,#c8c8c8)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top,  #9d9d9d 0%,#c8c8c8 99%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  #9d9d9d 0%,#c8c8c8 99%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  #9d9d9d 0%,#c8c8c8 99%); /* IE10+ */
+    background: linear-gradient(to bottom,  #9d9d9d 0%,#c8c8c8 99%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#9d9d9d', endColorstr='#c8c8c8',GradientType=0 ); /* IE6-9 */
+}
+
+input.vis-network-configuration.range::-moz-range-track {
+    width: 300px;
+    height: 10px;
+    background: #dedede; /* Old browsers */
+    background: -moz-linear-gradient(top,  #dedede 0%, #c8c8c8 99%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#dedede), color-stop(99%,#c8c8c8)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top,  #dedede 0%,#c8c8c8 99%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top, #dedede 0%, #c8c8c8 99%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  #dedede 0%,#c8c8c8 99%); /* IE10+ */
+    background: linear-gradient(to bottom,  #dedede 0%,#c8c8c8 99%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#dedede', endColorstr='#c8c8c8',GradientType=0 ); /* IE6-9 */
+
+    border: 1px solid #999999;
+    box-shadow: #aaaaaa 0px 0px 3px 0px;
+    border-radius: 3px;
+}
+input.vis-network-configuration.range::-moz-range-thumb {
+    border: none;
+    height: 16px;
+    width: 16px;
+
+    border-radius: 50%;
+    background:  #385380;
+}
+
+/*hide the outline behind the border*/
+input.vis-network-configuration.range:-moz-focusring{
+    outline: 1px solid white;
+    outline-offset: -1px;
+}
+
+input.vis-network-configuration.range::-ms-track {
+    width: 300px;
+    height: 5x;
+
+    /*remove bg colour from the track, we'll use ms-fill-lower and ms-fill-upper instead */
+    background: transparent;
+
+    /*leave room for the larger thumb to overflow with a transparent border */
+    border-color: transparent;
+    border-width: 6px 0;
+
+    /*remove default tick marks*/
+    color: transparent;
+}
+input.vis-network-configuration.range::-ms-fill-lower {
+    background: #777;
+    border-radius: 10px;
+}
+input.vis-network-configuration.range::-ms-fill-upper {
+    background: #ddd;
+    border-radius: 10px;
+}
+input.vis-network-configuration.range::-ms-thumb {
+    border: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background:  #385380;
+}
+input.vis-network-configuration.range:focus::-ms-fill-lower {
+    background: #888;
+}
+input.vis-network-configuration.range:focus::-ms-fill-upper {
+    background: #ccc;
+}

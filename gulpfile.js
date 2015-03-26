@@ -101,7 +101,8 @@ gulp.task('bundle-css', ['clean'], function () {
 
     './lib/network/css/network-manipulation.css',
     './lib/network/css/network-navigation.css',
-    './lib/network/css/network-tooltip.css'
+    './lib/network/css/network-tooltip.css',
+    './lib/network/css/network-configuration.css'
   ];
 
   return gulp.src(files)

@@ -29728,7 +29728,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.requiresTimeout = true;
       this.previousStates = {};
       this.freezeCache = {};
-      this.renderTimer == undefined;
+      this.renderTimer = undefined;
 
       this.stabilized = false;
       this.stabilizationIterations = 0;
@@ -29803,18 +29803,16 @@ return /******/ (function(modules) { // webpackBootstrap
     _prototypeProperties(PhysicsEngine, null, {
       setOptions: {
         value: function setOptions(options) {
-          if (options !== undefined) {
-            if (options === false) {
-              this.physicsEnabled = false;
-              this.stopSimulation();
-            } else {
-              this.physicsEnabled = true;
-              if (options !== undefined) {
-                util.selectiveNotDeepExtend(["stabilization"], this.options, options);
-                util.mergeOptions(this.options, options, "stabilization");
-              }
-              this.init();
+          if (options === false) {
+            this.physicsEnabled = false;
+            this.stopSimulation();
+          } else {
+            this.physicsEnabled = true;
+            if (options !== undefined) {
+              util.selectiveNotDeepExtend(["stabilization"], this.options, options);
+              util.mergeOptions(this.options, options, "stabilization");
             }
+            this.init();
           }
         },
         writable: true,
@@ -36697,15 +36695,15 @@ return /******/ (function(modules) { // webpackBootstrap
       this.network = network;
 
       this.possibleOptions = {
-        nodesHandler: {
-          borderWidth: 1,
-          borderWidthSelected: 2,
+        nodes: {
+          borderWidth: [1, 0, 10, 1],
+          borderWidthSelected: [2, 0, 10, 1],
           color: {
             border: "color",
             background: "color",
             highlight: {
               border: "color",
-              background: "#D2E5FF"
+              background: "color"
             },
             hover: {
               border: "color",
@@ -36748,7 +36746,7 @@ return /******/ (function(modules) { // webpackBootstrap
           shape: ["ellipse", "box", "circle", "circularImage", "database", "diamond", "dot", "icon", "image", "square", "star", "text", "triangle", "triangleDown"],
           size: [25, 0, 200, 1]
         },
-        edgesHandler: {
+        edges: {
           arrows: {
             to: { enabled: false, scaleFactor: [1, 0, 3, 0.05] }, // boolean / {arrowScaleFactor:1} / {enabled: false, arrowScaleFactor:1}
             middle: { enabled: false, scaleFactor: [1, 0, 3, 0.05] },
@@ -36865,7 +36863,7 @@ return /******/ (function(modules) { // webpackBootstrap
             damping: [0.09, 0, 1, 0.01]
           },
           hierarchicalRepulsion: {
-            centralGravity: 0.2,
+            centralGravity: [0.2, 0, 10, 0.05],
             springLength: [100, 0, 500, 5],
             springConstant: [0.01, 0, 5, 0.005],
             nodeDistance: [120, 0, 500, 5],
@@ -36896,6 +36894,11 @@ return /******/ (function(modules) { // webpackBootstrap
         value: function setOptions(options) {
           if (options !== undefined) {
             util.deepExtend(this.actualOptions, options);
+            if (options.configurationContainer !== undefined) {
+              this.container = options.configurationContainer;
+            } else {
+              this.container = this.network.body.container;
+            }
 
             if (options.configure !== undefined && options.configure !== false) {
               var config = undefined;
@@ -36928,34 +36931,35 @@ return /******/ (function(modules) { // webpackBootstrap
          */
         value: function _create(config) {
           this._clean();
-
+          var counter = 0;
           for (var option in this.possibleOptions) {
             if (this.possibleOptions.hasOwnProperty(option)) {
               if (config === true || config.indexOf(option) !== -1) {
                 var optionObj = this.possibleOptions[option];
+
+                if (counter > 0) {
+                  this._makeBreak();
+                }
                 // a header for the category
                 this._makeHeader(option);
 
                 // get the suboptions
-                for (var subOption in optionObj) {
-                  if (optionObj.hasOwnProperty(subOption)) {
-                    this._makeLabel(subOption);
-                    var subOptionObj = optionObj[subOption];
-                    if (subOptionObj instanceof Array) {
-                      this._handleArray(option, subOption, subOptionObj);
-                    } else if (subOptionObj instanceof Object) {
-                      this._handleObject(option, subOption, subOptionObj);
-                    } else if (typeof subOptionObj === "string") {
-                      this._handleString(option, subOption, subOptionObj);
-                    } else if (typeof subOptionObj === "boolean") {
-                      this._handleBoolean(option, subOption, subOptionObj);
-                    } else {
-                      console.error("dont know how to handle", subOptionObj);
-                    }
-                  }
-                }
+                var _path = [option];
+                this._handleObject(optionObj, _path);
               }
+              counter++;
             }
+          }
+
+          this._push();
+        },
+        writable: true,
+        configurable: true
+      },
+      _push: {
+        value: function _push() {
+          for (var i = 0; i < this.domElements.length; i++) {
+            this.container.appendChild(this.domElements[i]);
           }
         },
         writable: true,
@@ -36966,52 +36970,220 @@ return /******/ (function(modules) { // webpackBootstrap
         writable: true,
         configurable: true
       },
+      _getValue: {
+        value: function _getValue(path) {
+          var base = this.actualOptions;
+          for (var i = 0; i < path.length; i++) {
+            if (base[path[i]] !== undefined) {
+              base = base[path[i]];
+            } else {
+              base = undefined;
+              break;
+            }
+          }
+          return base;
+        },
+        writable: true,
+        configurable: true
+      },
+      _addToPath: {
+        value: function _addToPath(path, newValue) {
+          var newPath = [];
+          for (var i = 0; i < path.length; i++) {
+            newPath.push(path[i]);
+          }
+          newPath.push(newValue);
+          return newPath;
+        },
+        writable: true,
+        configurable: true
+      },
       _makeHeader: {
         value: function _makeHeader(name) {
-          console.log("header", name);
-          //let div = document.createElement('div');
-          //div.className = 'vis-network-configuration header';
-          //div.innerHTML = name;
-          //this.domElements.push(div);
+          var div = document.createElement("div");
+          div.className = "vis-network-configuration header";
+          div.innerHTML = name;
+          this.domElements.push(div);
+          this._makeBreak();
         },
         writable: true,
         configurable: true
       },
       _makeLabel: {
-        value: function _makeLabel(name) {
-          console.log("label", name);
-          //let div = document.createElement('div');
-          //div.className = 'vis-network-configuration label';
-          //div.innerHTML = name;
-          //this.domElements.push(div);
+        value: function _makeLabel(name, path) {
+          var div = document.createElement("div");
+          div.className = "vis-network-configuration label";
+          div.innerHTML = name;
+          div.style.left = (path.length - 1) * 10 + "px";
+          this.domElements.push(div);
+        },
+        writable: true,
+        configurable: true
+      },
+      _makeDropdown: {
+        value: function _makeDropdown(arr, value) {
+          var select = document.createElement("select");
+          select.className = "vis-network-configuration select";
+          var selectedValue = 0;
+          if (value !== undefined) {
+            if (arr.indexOf(value) !== -1) {
+              selectedValue = arr.indexOf(value);
+            }
+          }
+
+          for (var i = 0; i < arr.length; i++) {
+            var option = document.createElement("option");
+            option.value = arr[i];
+            if (i == selectedValue) {
+              option.selected = "selected";
+            }
+            option.innerHTML = arr[i];
+            select.appendChild(option);
+          }
+
+          select.onchange = function () {
+            me._update(this.value, path);
+          };
+
+          this.domElements.push(select);
+          this._makeBreak();
+        },
+        writable: true,
+        configurable: true
+      },
+      _makeRange: {
+        value: function _makeRange(arr, value, path) {
+          var defaultValue = arr[0];
+          var min = arr[1];
+          var max = arr[2];
+          var step = arr[3];
+          var range = document.createElement("input");
+          range.type = "range";
+          range.className = "vis-network-configuration range";
+          range.value = defaultValue;
+          range.min = min;
+          range.max = max;
+          range.step = step;
+          if (value !== undefined) {
+            range.value = value;
+            if (value * 0.1 < min) {
+              range.min = value / 10;
+            }
+            if (value * 10 > max && max !== 1) {
+              range.max = value * 10;
+            }
+          }
+          var input = document.createElement("input");
+          input.className = "vis-network-configuration rangeinput";
+          input.value = range.value;
+
+          var me = this;
+          range.onchange = function () {
+            input.value = this.value;me._update(this.value, path);
+          };
+          range.oninput = function () {
+            input.value = this.value;
+          };
+          this.domElements.push(range);
+          this.domElements.push(input);
+          this._makeBreak();
+        },
+        writable: true,
+        configurable: true
+      },
+      _makeCheckbox: {
+        value: function _makeCheckbox(defaultValue, value, path) {
+          var checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.checked = defaultValue;
+          if (value !== undefined) {
+            checkbox.checked = value;
+          }
+
+          var me = this;
+          checkbox.onchange = function () {
+            me._update(this.value, path);
+          };
+
+          this.domElements.push(checkbox);
+        },
+        writable: true,
+        configurable: true
+      },
+      _makeBreak: {
+        value: function _makeBreak() {
+          this.domElements.push(document.createElement("br"));
         },
         writable: true,
         configurable: true
       },
       _handleObject: {
-        value: function _handleObject(category, subcategory, obj) {
-          console.log("obj", obj);
+        value: function _handleObject(obj) {
+          var path = arguments[1] === undefined ? [] : arguments[1];
+          for (var subObj in obj) {
+            if (obj.hasOwnProperty(subObj)) {
+              var item = obj[subObj];
+              var value = this._getValue(path);
+
+              var newPath = this._addToPath(path, subObj);
+              if (item instanceof Array) {
+                this._handleArray(subObj, item, value, newPath);
+              } else if (typeof item === "string") {
+                this._handleString(subObj, item, value, newPath);
+              } else if (typeof item === "boolean") {
+                this._handleBoolean(subObj, item, value, newPath);
+              } else if (item instanceof Object) {
+                this._makeLabel(subObj, newPath);
+                this._makeBreak();
+                this._handleObject(item, newPath);
+              } else {
+                console.error("dont know how to handle", item, subObj, newPath);
+              }
+            }
+          }
         },
         writable: true,
         configurable: true
       },
       _handleArray: {
-        value: function _handleArray(category, subcategory, arr) {
-          console.log("arr", arr);
+        value: function _handleArray(optionName, arr, value, path) {
+          this._makeLabel(optionName, path);
+
+          if (typeof arr[0] === "string") {
+            this._makeDropdown(arr, value, path);
+          } else if (typeof arr[0] === "number") {
+            this._makeRange(arr, value, path);
+          }
         },
         writable: true,
         configurable: true
       },
       _handleString: {
-        value: function _handleString(category, subcategory, string) {
-          console.log("string", string);
+        value: function _handleString(optionName, string, value, path) {
+          if (string !== "color") {
+            this._makeLabel(optionName, path);
+          } else {
+            this._makeLabel(optionName, path);
+            //console.log("string", string, value, path);
+          }
+          this._makeLabel(string, []);
+          this._makeBreak();
         },
         writable: true,
         configurable: true
       },
       _handleBoolean: {
-        value: function _handleBoolean(category, subcategory, boolean) {
-          console.log("boolean", boolean);
+        value: function _handleBoolean(optionName, boolean, value, path) {
+          this._makeLabel(optionName, path);
+          this._makeCheckbox(boolean, value, path);
+          this._makeBreak();
+        },
+        writable: true,
+        configurable: true
+      },
+      _update: {
+        value: function _update(value, path) {
+          console.log("updated", value, path);
         },
         writable: true,
         configurable: true
