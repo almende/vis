@@ -53,6 +53,9 @@
                   data.label = data.label + "i"
                   callback(data)
               }
+          },
+          controlNodeStyle: {
+              shape:'square'
           }
       }}//{physics:{stabilization:false}};
   var network = new vis.Network(container, data, options);
