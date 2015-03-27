@@ -46,7 +46,8 @@
   };
   var options = {
       configure: true,
-      physics:{solver:'BarnesHut'}
+      physics:{solver:'BarnesHut'},
+//      nodes:{physics:false}
   }
   var network = new vis.Network(container, data, options);
 //    network.setOptions({nodes:{color:'red'}})
