@@ -804,39 +804,95 @@ div.network-tooltip {
 
   box-shadow: 3px 3px 10px rgba(128, 128, 128, 0.5);
 }
-
 div.vis-network-configuration {
     position:relative;
-    display:inline-flex;
+    display:block;
+    float:left;
     font-size:12px;
 }
 
+div.vis-network-configuration.entree{
+    display:block;
+    width:495px;
+    height:25px;
+    vertical-align: middle;
+    line-height:25px;
+}
+
+
+div.vis-network-configuration.entree.s2{
+    left:10px;
+    background-color: #f7f8fa;
+    padding-left:5px;
+    border-radius:3px;
+}
+div.vis-network-configuration.entree.s3{
+    left:20px;
+    background-color: #e4e9f0;
+    padding-left:5px;
+    border-radius:3px;
+}
+div.vis-network-configuration.entree.s4{
+    left:30px;
+    background-color: #cfd8e6;
+    padding-left:5px;
+    border-radius:3px;
+}
 
 div.vis-network-configuration.header{
-    font-size:16px;
+    font-size:18px;
     font-weight: bold;
 }
 
 div.vis-network-configuration.label{
     width:120px;
+    height:25px;
+    line-height: 25px;
+}
 
+div.vis-network-configuration.label.s3{
+    width:110px;
+}
+div.vis-network-configuration.label.s4{
+    width:100px;
+}
+
+div.vis-network-configuration.colorBlock{
+    width:30px;
+    height:19px;
+    border:1px solid #444444;
+    border-radius:2px;
+    padding:0px;
+    margin:0px;
+    cursor:pointer;
+}
+
+input.vis-network-configuration.checkbox {
+    left:-5px;
 }
 
 
 input.vis-network-configuration.rangeinput{
-    width:30px;
+    position:relative;
+    top:-5px;
+    width:60px;
+    height:13px;
+    padding:1px;
+    margin:0;
+    pointer-events:none;
 }
-
 
 input.vis-network-configuration.range{
     /*removes default webkit styles*/
     -webkit-appearance: none;
 
     /*fix for FF unable to apply focus style bug */
-    border: 1px solid white;
+    border: 0px solid white;
+    background-color:rgba(0,0,0,0);
 
     /*required for proper track sizing in FF*/
     width: 300px;
+    height:20px;
 }
 input.vis-network-configuration.range::-webkit-slider-runnable-track {
     width: 300px;
@@ -868,7 +924,7 @@ input.vis-network-configuration.range::-webkit-slider-thumb {
     background: -ms-linear-gradient(top,  #3876c2 0%,#385380 100%); /* IE10+ */
     background: linear-gradient(to bottom,  #3876c2 0%,#385380 100%); /* W3C */
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#3876c2', endColorstr='#385380',GradientType=0 ); /* IE6-9 */
-    box-shadow: #111927 0px 0px 3px 0px;
+    box-shadow: #111927 0px 0px 1px 0px;
     margin-top: -7px;
 }
 input.vis-network-configuration.range:focus {
@@ -950,4 +1006,69 @@ input.vis-network-configuration.range:focus::-ms-fill-lower {
 }
 input.vis-network-configuration.range:focus::-ms-fill-upper {
     background: #ccc;
+}
+
+div.vis-network-colorPicker-frame {
+    position:relative;
+    margin-top:40px;
+    width:310px;
+    height:310px;
+    padding: 10px;
+    border-radius:20px;
+    background-color:#ffffff;
+}
+
+div.vis-network-colorPicker-color {
+    position:absolute;
+    width: 289px;
+    height: 289px;
+    cursor: pointer;
+}
+
+div.vis-network-colorPicker-brightness {
+    position:absolute;
+    top:300px;
+    /*background-color:#00ff00;*/
+}
+
+div.vis-network-colorPicker-saturation {
+    position:absolute;
+    top:145px;
+    left:160px;
+    /*background-color:#ff0000;*/
+    -ms-transform: rotate(270deg); /* IE 9 */
+    -webkit-transform: rotate(270deg); /* Chrome, Safari, Opera */
+    transform: rotate(270deg);
+}
+
+div.vis-network-colorPicker-selector{
+    position:absolute;
+    top:137px;
+    left:137px;
+    width:15px;
+    height:15px;
+    border-radius:15px;
+    background: #4c4c4c; /* Old browsers */
+    background: -moz-linear-gradient(top,  #4c4c4c 0%, #595959 12%, #666666 25%, #474747 39%, #2c2c2c 50%, #000000 51%, #111111 60%, #2b2b2b 76%, #1c1c1c 91%, #131313 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#4c4c4c), color-stop(12%,#595959), color-stop(25%,#666666), color-stop(39%,#474747), color-stop(50%,#2c2c2c), color-stop(51%,#000000), color-stop(60%,#111111), color-stop(76%,#2b2b2b), color-stop(91%,#1c1c1c), color-stop(100%,#131313)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top,  #4c4c4c 0%,#595959 12%,#666666 25%,#474747 39%,#2c2c2c 50%,#000000 51%,#111111 60%,#2b2b2b 76%,#1c1c1c 91%,#131313 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  #4c4c4c 0%,#595959 12%,#666666 25%,#474747 39%,#2c2c2c 50%,#000000 51%,#111111 60%,#2b2b2b 76%,#1c1c1c 91%,#131313 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  #4c4c4c 0%,#595959 12%,#666666 25%,#474747 39%,#2c2c2c 50%,#000000 51%,#111111 60%,#2b2b2b 76%,#1c1c1c 91%,#131313 100%); /* IE10+ */
+    background: linear-gradient(to bottom,  #4c4c4c 0%,#595959 12%,#666666 25%,#474747 39%,#2c2c2c 50%,#000000 51%,#111111 60%,#2b2b2b 76%,#1c1c1c 91%,#131313 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#4c4c4c', endColorstr='#131313',GradientType=0 ); /* IE6-9 */
+}
+
+input.vis-network-configuration.range.colorPicker{
+    width: 290px;
+    height:20px;
+}
+
+input.vis-network-brightnessRange {
+    width: 289px !important;
+}
+
+
+input.vis-network-saturationRange {
+    width: 289px !important;
+
 }

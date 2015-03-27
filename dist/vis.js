@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.0.0-SNAPSHOT
- * @date    2015-03-26
+ * @date    2015-03-27
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -23478,6 +23478,9 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       this.canvas.setSize();
+
+      // start the physics simulation. Can be safely called multiple times.
+      this.body.emitter.emit("startSimulation");
     }
   };
 
@@ -25269,16 +25272,16 @@ return /******/ (function(modules) { // webpackBootstrap
           face: "arial",
           background: "none",
           stroke: 0, // px
-          strokeColor: "white",
+          strokeColor: "#ffffff",
           align: "horizontal"
         },
         group: undefined,
         hidden: false,
         icon: {
-          face: undefined, //'FontAwesome',
+          face: "FontAwesome", //'FontAwesome',
           code: undefined, //'\uf007',
-          size: undefined, //50,
-          color: undefined //'#aa00ff'
+          size: 50, //50,
+          color: "#2B7CE9" //'#aa00ff'
         },
         image: undefined, // --> URL
         label: undefined,
@@ -27643,7 +27646,7 @@ return /******/ (function(modules) { // webpackBootstrap
           face: "arial",
           background: "none",
           stroke: 1, // px
-          strokeColor: "white",
+          strokeColor: "#ffffff",
           align: "horizontal"
         },
         hidden: false,
@@ -33065,7 +33068,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
       this.body.functions.getPointer = this.getPointer.bind(this);
 
-
       this.options = {};
       this.defaultOptions = {
         dragNodes: true,
@@ -33075,11 +33077,11 @@ return /******/ (function(modules) { // webpackBootstrap
         showNavigationIcons: false,
         tooltip: {
           delay: 300,
-          fontColor: "black",
+          fontColor: "#000000",
           fontSize: 14, // px
           fontFace: "verdana",
           color: {
-            border: "#666",
+            border: "#666666",
             background: "#FFFFC6"
           }
         },
@@ -36676,6 +36678,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   "use strict";
 
+  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
+
   var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
@@ -36687,6 +36691,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
 
+  var ColorPicker = _interopRequire(__webpack_require__(106));
 
   var ConfigurationSystem = (function () {
     function ConfigurationSystem(network) {
@@ -36699,15 +36704,15 @@ return /******/ (function(modules) { // webpackBootstrap
           borderWidth: [1, 0, 10, 1],
           borderWidthSelected: [2, 0, 10, 1],
           color: {
-            border: "color",
-            background: "color",
+            border: ["color", "#2B7CE9"],
+            background: ["color", "#97C2FC"],
             highlight: {
-              border: "color",
-              background: "color"
+              border: ["color", "#2B7CE9"],
+              background: ["color", "#D2E5FF"]
             },
             hover: {
-              border: "color",
-              background: "color"
+              border: ["color", "#2B7CE9"],
+              background: ["color", "#D2E5FF"]
             }
           },
           fixed: {
@@ -36715,12 +36720,12 @@ return /******/ (function(modules) { // webpackBootstrap
             y: false
           },
           font: {
-            color: "color",
+            color: ["color", "#343434"],
             size: [14, 0, 100, 1], // px
             face: ["arial", "verdana", "tahoma"],
-            background: "color",
+            background: ["color", "none"],
             stroke: [0, 0, 50, 1], // px
-            strokeColor: "color"
+            strokeColor: ["color", "#ffffff"]
           },
           group: "string",
           hidden: false,
@@ -36728,7 +36733,7 @@ return /******/ (function(modules) { // webpackBootstrap
             face: "string", //'FontAwesome',
             code: "string", //'\uf007',
             size: [50, 0, 200, 1], //50,
-            color: "color" //'#aa00ff'
+            color: ["color", "#2B7CE9"] //'#aa00ff'
           },
           image: "string", // --> URL
           physics: true,
@@ -36743,7 +36748,7 @@ return /******/ (function(modules) { // webpackBootstrap
               drawThreshold: [3, 0, 20, 1]
             }
           },
-          shape: ["ellipse", "box", "circle", "circularImage", "database", "diamond", "dot", "icon", "image", "square", "star", "text", "triangle", "triangleDown"],
+          shape: ["ellipse", "box", "circle", "database", "diamond", "dot", "icon", "square", "star", "text", "triangle", "triangleDown"],
           size: [25, 0, 200, 1]
         },
         edges: {
@@ -36753,9 +36758,9 @@ return /******/ (function(modules) { // webpackBootstrap
             from: { enabled: false, scaleFactor: [1, 0, 3, 0.05] }
           },
           color: {
-            color: "color",
-            highlight: "color",
-            hover: "color",
+            color: ["color", "#848484"],
+            highlight: ["color", "#848484"],
+            hover: ["color", "#848484"],
             inherit: {
               enabled: true,
               source: ["from", "to"], // from / to
@@ -36770,12 +36775,12 @@ return /******/ (function(modules) { // webpackBootstrap
             altLength: [5, 0, 50, 1]
           },
           font: {
-            color: "color",
+            color: ["color", "#343434"],
             size: [14, 0, 100, 1], // px
             face: ["arial", "verdana", "tahoma"],
-            background: "color",
+            background: ["color", "none"],
             stroke: [0, 0, 50, 1], // px
-            strokeColor: "color",
+            strokeColor: ["color", "#ffffff"],
             align: ["horizontal", "top", "middle", "bottom"]
           },
           hidden: false,
@@ -36819,12 +36824,12 @@ return /******/ (function(modules) { // webpackBootstrap
           showNavigationIcons: false,
           tooltip: {
             delay: [300, 0, 1000, 25],
-            fontColor: "color",
+            fontColor: ["color", "#000000"],
             fontSize: [14, 0, 40, 1], // px
             fontFace: ["arial", "verdana", "tahoma"],
             color: {
-              border: "color",
-              background: "color"
+              border: ["color", "#666666"],
+              background: ["color", "#FFFFC6"]
             }
           },
           keyboard: {
@@ -36849,7 +36854,7 @@ return /******/ (function(modules) { // webpackBootstrap
         physics: {
           barnesHut: {
             theta: [0.5, 0.1, 1, 0.05],
-            gravitationalConstant: [-2000, -300000, 0, 50],
+            gravitationalConstant: [-2000, -30000, 0, 50],
             centralGravity: [0.3, 0, 10, 0.05],
             springLength: [95, 0, 500, 5],
             springConstant: [0.04, 0, 5, 0.005],
@@ -36871,7 +36876,7 @@ return /******/ (function(modules) { // webpackBootstrap
           },
           maxVelocity: [50, 0, 150, 1],
           minVelocity: [0.1, 0.01, 0.5, 0.01],
-          solver: ["BarnesHut", "Repulsion", "HierarchicalRepulsion"],
+          solver: ["barnesHut", "repulsion", "hierarchicalRepulsion"],
           timestep: [0.5, 0, 1, 0.05]
         },
         selection: {
@@ -36887,36 +36892,37 @@ return /******/ (function(modules) { // webpackBootstrap
       this.actualOptions = {};
 
       this.domElements = [];
+      this.colorPicker = new ColorPicker();
     }
 
     _prototypeProperties(ConfigurationSystem, null, {
       setOptions: {
         value: function setOptions(options) {
           if (options !== undefined) {
+            this._clean();
             util.deepExtend(this.actualOptions, options);
-            if (options.configurationContainer !== undefined) {
-              this.container = options.configurationContainer;
+            if (this.actualOptions.configurationContainer !== undefined) {
+              this.container = this.actualOptions.configurationContainer;
             } else {
               this.container = this.network.body.container;
             }
 
-            if (options.configure !== undefined && options.configure !== false) {
+            if (this.actualOptions.configure !== undefined && this.actualOptions.configure !== false) {
               var config = undefined;
-              if (options.configure instanceof Array) {
-                config = options.configure.join();
-              } else if (typeof options.configure === "string") {
-                config = options.configure;
-              } else if (typeof options.configure === "boolean") {
-                config = options.configure;
+              if (this.actualOptions.configure instanceof Array) {
+                config = this.actualOptions.configure.join();
+              } else if (typeof this.actualOptions.configure === "string") {
+                config = this.actualOptions.configure;
+              } else if (typeof this.actualOptions.configure === "boolean") {
+                config = this.actualOptions.configure;
               } else {
                 this._clean();
-                throw new Error("the option for configure has to be either a string, boolean or an array. Supplied:" + options.configure);
+                throw new Error("the option for configure has to be either a string, boolean or an array. Supplied:" + this.options.configure);
                 return;
               }
               this._create(config);
-            } else {
-              this._clean();
             }
+
           }
         },
         writable: true,
@@ -36937,21 +36943,23 @@ return /******/ (function(modules) { // webpackBootstrap
               if (config === true || config.indexOf(option) !== -1) {
                 var optionObj = this.possibleOptions[option];
 
+                // linebreak between categories
                 if (counter > 0) {
-                  this._makeBreak();
+                  this._makeEntree([]);
                 }
                 // a header for the category
                 this._makeHeader(option);
 
                 // get the suboptions
-                var _path = [option];
-                this._handleObject(optionObj, _path);
+                var path = [option];
+                this._handleObject(optionObj, path);
               }
               counter++;
             }
           }
-
           this._push();
+
+          this.colorPicker.generate();
         },
         writable: true,
         configurable: true
@@ -36966,7 +36974,12 @@ return /******/ (function(modules) { // webpackBootstrap
         configurable: true
       },
       _clean: {
-        value: function _clean() {},
+        value: function _clean() {
+          for (var i = 0; i < this.domElements.length; i++) {
+            this.container.removeChild(this.domElements[i]);
+          }
+          this.domElements = [];
+        },
         writable: true,
         configurable: true
       },
@@ -36998,30 +37011,49 @@ return /******/ (function(modules) { // webpackBootstrap
         writable: true,
         configurable: true
       },
+      _makeEntree: {
+        value: function _makeEntree(path) {
+          for (var _len = arguments.length, domElements = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+            domElements[_key - 1] = arguments[_key];
+          }
+
+          var entree = document.createElement("div");
+          entree.className = "vis-network-configuration entree s" + path.length;
+          domElements.forEach(function (element) {
+            entree.appendChild(element);
+          });
+          this.domElements.push(entree);
+        },
+        writable: true,
+        configurable: true
+      },
       _makeHeader: {
         value: function _makeHeader(name) {
           var div = document.createElement("div");
           div.className = "vis-network-configuration header";
           div.innerHTML = name;
-          this.domElements.push(div);
-          this._makeBreak();
+          this._makeEntree([], div);
         },
         writable: true,
         configurable: true
       },
       _makeLabel: {
         value: function _makeLabel(name, path) {
+          var objectLabel = arguments[2] === undefined ? false : arguments[2];
           var div = document.createElement("div");
-          div.className = "vis-network-configuration label";
-          div.innerHTML = name;
-          div.style.left = (path.length - 1) * 10 + "px";
-          this.domElements.push(div);
+          div.className = "vis-network-configuration label s" + path.length;
+          if (objectLabel === true) {
+            div.innerHTML = "<i><b>" + name + ":</b></i>";
+          } else {
+            div.innerHTML = name + ":";
+          }
+          return div;
         },
         writable: true,
         configurable: true
       },
       _makeDropdown: {
-        value: function _makeDropdown(arr, value) {
+        value: function _makeDropdown(arr, value, path) {
           var select = document.createElement("select");
           select.className = "vis-network-configuration select";
           var selectedValue = 0;
@@ -37041,12 +37073,13 @@ return /******/ (function(modules) { // webpackBootstrap
             select.appendChild(option);
           }
 
+          var me = this;
           select.onchange = function () {
             me._update(this.value, path);
           };
 
-          this.domElements.push(select);
-          this._makeBreak();
+          var label = this._makeLabel(path[path.length - 1], path);
+          this._makeEntree(path, label, select);
         },
         writable: true,
         configurable: true
@@ -37060,18 +37093,20 @@ return /******/ (function(modules) { // webpackBootstrap
           var range = document.createElement("input");
           range.type = "range";
           range.className = "vis-network-configuration range";
-          range.value = defaultValue;
           range.min = min;
           range.max = max;
           range.step = step;
+
           if (value !== undefined) {
-            range.value = value;
             if (value * 0.1 < min) {
               range.min = value / 10;
             }
             if (value * 10 > max && max !== 1) {
               range.max = value * 10;
             }
+            range.value = value;
+          } else {
+            range.value = defaultValue;
           }
           var input = document.createElement("input");
           input.className = "vis-network-configuration rangeinput";
@@ -37084,9 +37119,9 @@ return /******/ (function(modules) { // webpackBootstrap
           range.oninput = function () {
             input.value = this.value;
           };
-          this.domElements.push(range);
-          this.domElements.push(input);
-          this._makeBreak();
+
+          var label = this._makeLabel(path[path.length - 1], path);
+          this._makeEntree(path, label, range, input);
         },
         writable: true,
         configurable: true
@@ -37095,6 +37130,7 @@ return /******/ (function(modules) { // webpackBootstrap
         value: function _makeCheckbox(defaultValue, value, path) {
           var checkbox = document.createElement("input");
           checkbox.type = "checkbox";
+          checkbox.className = "vis-network-configuration checkbox";
           checkbox.checked = defaultValue;
           if (value !== undefined) {
             checkbox.checked = value;
@@ -37105,14 +37141,39 @@ return /******/ (function(modules) { // webpackBootstrap
             me._update(this.value, path);
           };
 
-          this.domElements.push(checkbox);
+          var label = this._makeLabel(path[path.length - 1], path);
+          this._makeEntree(path, label, checkbox);
         },
         writable: true,
         configurable: true
       },
-      _makeBreak: {
-        value: function _makeBreak() {
-          this.domElements.push(document.createElement("br"));
+      _makeColorField: {
+        value: function _makeColorField(arr, value, path) {
+          var _this = this;
+          var defaultColor = arr[1];
+          var div = document.createElement("div");
+
+          if (defaultColor !== "none") {
+            div.className = "vis-network-configuration colorBlock";
+            div.style.backgroundColor = defaultColor;
+          } else {
+            div.className = "vis-network-configuration colorBlock none";
+          }
+
+          value = value === undefined ? defaultColor : value;
+          div.onclick = function () {
+            _this._showColorPicker(value, div);
+          };
+
+          var label = this._makeLabel(path[path.length - 1], path);
+          this._makeEntree(path, label, div);
+        },
+        writable: true,
+        configurable: true
+      },
+      _showColorPicker: {
+        value: function _showColorPicker(value, div) {
+          this.colorPicker.show(div);
         },
         writable: true,
         configurable: true
@@ -37123,18 +37184,18 @@ return /******/ (function(modules) { // webpackBootstrap
           for (var subObj in obj) {
             if (obj.hasOwnProperty(subObj)) {
               var item = obj[subObj];
-              var value = this._getValue(path);
-
               var newPath = this._addToPath(path, subObj);
+              var value = this._getValue(newPath);
+
               if (item instanceof Array) {
                 this._handleArray(subObj, item, value, newPath);
               } else if (typeof item === "string") {
                 this._handleString(subObj, item, value, newPath);
               } else if (typeof item === "boolean") {
-                this._handleBoolean(subObj, item, value, newPath);
+                this._makeCheckbox(item, value, newPath);
               } else if (item instanceof Object) {
-                this._makeLabel(subObj, newPath);
-                this._makeBreak();
+                var label = this._makeLabel(subObj, newPath, true);
+                this._makeEntree(newPath, label);
                 this._handleObject(item, newPath);
               } else {
                 console.error("dont know how to handle", item, subObj, newPath);
@@ -37147,9 +37208,9 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       _handleArray: {
         value: function _handleArray(optionName, arr, value, path) {
-          this._makeLabel(optionName, path);
-
-          if (typeof arr[0] === "string") {
+          if (typeof arr[0] === "string" && arr[0] === "color") {
+            this._makeColorField(arr, value, path);
+          } else if (typeof arr[0] === "string") {
             this._makeDropdown(arr, value, path);
           } else if (typeof arr[0] === "number") {
             this._makeRange(arr, value, path);
@@ -37160,30 +37221,24 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       _handleString: {
         value: function _handleString(optionName, string, value, path) {
-          if (string !== "color") {
-            this._makeLabel(optionName, path);
-          } else {
-            this._makeLabel(optionName, path);
-            //console.log("string", string, value, path);
-          }
-          this._makeLabel(string, []);
-          this._makeBreak();
-        },
-        writable: true,
-        configurable: true
-      },
-      _handleBoolean: {
-        value: function _handleBoolean(optionName, boolean, value, path) {
-          this._makeLabel(optionName, path);
-          this._makeCheckbox(boolean, value, path);
-          this._makeBreak();
+          if (string === "string") {} else {}
         },
         writable: true,
         configurable: true
       },
       _update: {
         value: function _update(value, path) {
-          console.log("updated", value, path);
+          var options = {};
+          var pointer = options;
+          for (var i = 0; i < path.length; i++) {
+            pointer[path[i]] = {};
+            if (i !== path.length - 1) {
+              pointer = pointer[path[i]];
+            } else {
+              pointer[path[i]] = value;
+            }
+          }
+          this.network.setOptions(options);
         },
         writable: true,
         configurable: true
@@ -37194,6 +37249,244 @@ return /******/ (function(modules) { // webpackBootstrap
   })();
 
   module.exports = ConfigurationSystem;
+  //this._makeLabel(optionName, path);
+  //console.log('string', string, value, path);
+
+/***/ },
+/* 106 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  /**
+   * Created by Alex on 3/27/2015.
+   */
+
+  var Hammer = __webpack_require__(19);
+  var hammerUtil = __webpack_require__(24);
+  var util = __webpack_require__(1);
+
+  var ColorPicker = (function () {
+    function ColorPicker() {
+      _classCallCheck(this, ColorPicker);
+
+      this.touchTime = 0;
+      this.pixelRatio = 1;
+      this.generated = false;
+      this.color = undefined;
+
+      this.create();
+    }
+
+    _prototypeProperties(ColorPicker, null, {
+      create: {
+        value: function create() {
+          var visPrefix = "vis-network-";
+
+          this.frame = document.createElement("div");
+          this.frame.className = visPrefix + "colorPicker-frame";
+
+          this.colorPickerDiv = document.createElement("div");
+          this.colorPickerSelector = document.createElement("div");
+          this.colorPickerSelector.className = visPrefix + "colorPicker-selector";
+          this.colorPickerDiv.appendChild(this.colorPickerSelector);
+
+          this.colorPickerCanvas = document.createElement("canvas");
+          this.colorPickerDiv.appendChild(this.colorPickerCanvas);
+
+          if (!this.colorPickerCanvas.getContext) {
+            var noCanvas = document.createElement("DIV");
+            noCanvas.style.color = "red";
+            noCanvas.style.fontWeight = "bold";
+            noCanvas.style.padding = "10px";
+            noCanvas.innerHTML = "Error: your browser does not support HTML canvas";
+            this.colorPickerCanvas.appendChild(noCanvas);
+          } else {
+            var ctx = this.colorPickerCanvas.getContext("2d");
+            this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
+
+            this.colorPickerCanvas.getContext("2d").setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+          }
+
+          this.colorPickerDiv.className = visPrefix + "colorPicker-color";
+
+          this.brightnessDiv = document.createElement("div");
+          this.brightnessDiv.className = visPrefix + "colorPicker-brightness";
+
+          this.saturationDiv = document.createElement("div");
+          this.saturationDiv.className = visPrefix + "colorPicker-saturation";
+
+          this.brightnessRange = document.createElement("input");
+          this.brightnessRange.type = "range";
+          this.brightnessRange.min = "0";
+          this.brightnessRange.max = "100";
+          this.brightnessRange.value = "100";
+          this.brightnessRange.className = "vis-network-configuration range colorPicker";
+
+          this.saturationRange = document.createElement("input");
+          this.saturationRange.type = "range";
+          this.saturationRange.min = "0";
+          this.saturationRange.max = "100";
+          this.saturationRange.value = "100";
+          this.saturationRange.className = "vis-network-configuration range colorPicker";
+
+          this.brightnessDiv.appendChild(this.brightnessRange);
+          this.saturationDiv.appendChild(this.saturationRange);
+
+          this.frame.appendChild(this.colorPickerDiv);
+          this.frame.appendChild(this.saturationDiv);
+          this.frame.appendChild(this.brightnessDiv);
+        },
+        writable: true,
+        configurable: true
+      },
+      show: {
+        value: function show(container) {
+          this.container = container;
+          this.container.appendChild(this.frame);
+          this.bindHammer();
+
+          this.setSize();
+        },
+        writable: true,
+        configurable: true
+      },
+      setColor: {
+        value: function setColor(color) {},
+        writable: true,
+        configurable: true
+      },
+      setSize: {
+        value: function setSize() {
+          this.colorPickerCanvas.style.width = "100%";
+          this.colorPickerCanvas.style.height = "100%";
+
+          this.colorPickerCanvas.width = this.colorPickerDiv.clientWidth * this.pixelRatio;
+          this.colorPickerCanvas.height = this.colorPickerDiv.clientHeight * this.pixelRatio;
+        },
+        writable: true,
+        configurable: true
+      },
+      generate: {
+        value: function generate() {
+          if (this.generated === false) {
+            var ctx = this.colorPickerCanvas.getContext("2d");
+            if (this.pixelRation === undefined) {
+              this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
+            }
+            ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+
+            // clear the canvas
+            var w = this.colorPickerCanvas.clientWidth;
+            var h = this.colorPickerCanvas.clientHeight;
+            ctx.clearRect(0, 0, w, h);
+
+            var x = undefined,
+                y = undefined,
+                hue = undefined,
+                sat = undefined;
+            var center = { x: w * 0.5, y: h * 0.5 };
+            var r = 0.49 * w;
+            var angleConvert = 2 * Math.PI / 360;
+            var hfac = 1 / 360;
+            var sfac = 1 / r;
+            var rgb = undefined;
+            for (hue = 0; hue < 360; hue++) {
+              for (sat = 0; sat < r; sat++) {
+                x = center.x + sat * Math.sin(angleConvert * hue);
+                y = center.y + sat * Math.cos(angleConvert * hue);
+                rgb = util.HSVToRGB(hue * hfac, sat * sfac, 1);
+                ctx.fillStyle = "rgb(" + rgb.r + "," + rgb.g + "," + rgb.b + ")";
+                ctx.fillRect(x - 0.5, y - 0.5, 2, 2);
+              }
+            }
+          }
+          this.generated = true;
+        },
+        writable: true,
+        configurable: true
+      },
+      bindHammer: {
+        value: function bindHammer() {
+          var _this = this;
+          this.drag = {};
+          this.pinch = {};
+          this.hammer = new Hammer(this.colorPickerCanvas);
+          this.hammer.get("pinch").set({ enable: true });
+
+          hammerUtil.onTouch(this.hammer, function (event) {
+            _this.moveSelector(event);
+          });
+          this.hammer.on("tap", function (event) {
+            _this.moveSelector(event);
+          });
+          //this.hammer.on('doubletap', (event) => {this.moveSelector(event)});
+          //this.hammer.on('press',     (event) => {this.moveSelector(event)});
+          this.hammer.on("panstart", function (event) {
+            _this.moveSelector(event);
+          });
+          this.hammer.on("panmove", function (event) {
+            _this.moveSelector(event);
+          });
+          this.hammer.on("panend", function (event) {
+            _this.moveSelector(event);
+          });
+          //this.hammer.on('pinch',     (event) => {this.moveSelector(event)});
+        },
+        writable: true,
+        configurable: true
+      },
+      moveSelector: {
+        value: function moveSelector(event) {
+          var rect = this.colorPickerDiv.getBoundingClientRect();
+          var left = event.center.x - rect.left;
+          var top = event.center.y - rect.top;
+
+          var centerY = 0.5 * this.colorPickerDiv.clientHeight;
+          var centerX = 0.5 * this.colorPickerDiv.clientWidth;
+
+          var x = left - centerX;
+          var y = top - centerY;
+
+          var angle = Math.atan(y / x);
+          if (x < 0) {
+            angle += Math.PI;
+          }
+          var radius = 0.98 * Math.min(Math.sqrt(x * x + y * y), centerX);
+
+          var newTop = Math.sin(angle) * radius + centerY;
+          var newLeft = Math.cos(angle) * radius + centerX;
+
+          this.colorPickerSelector.style.top = newTop - 0.5 * this.colorPickerSelector.clientHeight + "px";
+          this.colorPickerSelector.style.left = newLeft - 0.5 * this.colorPickerSelector.clientWidth + "px";
+
+        },
+        writable: true,
+        configurable: true
+      },
+      redraw: {
+        value: function redraw(roomController) {
+          if (this.frame === undefined) {
+            this._create();
+          }
+          var pos = roomController.canvasToDOM({ x: 0, y: 0 });
+          this.frame.style.top = "50px";
+          this.frame.style.left = pos.x - 350 + "px";
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return ColorPicker;
+  })();
+
+  module.exports = ColorPicker;
+  //todo make
 
 /***/ }
 /******/ ])

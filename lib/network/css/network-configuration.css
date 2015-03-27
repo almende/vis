@@ -1,36 +1,92 @@
-
 div.vis-network-configuration {
     position:relative;
-    display:inline-flex;
+    display:block;
+    float:left;
     font-size:12px;
 }
 
+div.vis-network-configuration.entree{
+    display:block;
+    width:495px;
+    height:25px;
+    vertical-align: middle;
+    line-height:25px;
+}
+
+
+div.vis-network-configuration.entree.s2{
+    left:10px;
+    background-color: #f7f8fa;
+    padding-left:5px;
+    border-radius:3px;
+}
+div.vis-network-configuration.entree.s3{
+    left:20px;
+    background-color: #e4e9f0;
+    padding-left:5px;
+    border-radius:3px;
+}
+div.vis-network-configuration.entree.s4{
+    left:30px;
+    background-color: #cfd8e6;
+    padding-left:5px;
+    border-radius:3px;
+}
 
 div.vis-network-configuration.header{
-    font-size:16px;
+    font-size:18px;
     font-weight: bold;
 }
 
 div.vis-network-configuration.label{
     width:120px;
+    height:25px;
+    line-height: 25px;
+}
 
+div.vis-network-configuration.label.s3{
+    width:110px;
+}
+div.vis-network-configuration.label.s4{
+    width:100px;
+}
+
+div.vis-network-configuration.colorBlock{
+    width:30px;
+    height:19px;
+    border:1px solid #444444;
+    border-radius:2px;
+    padding:0px;
+    margin:0px;
+    cursor:pointer;
+}
+
+input.vis-network-configuration.checkbox {
+    left:-5px;
 }
 
 
 input.vis-network-configuration.rangeinput{
-    width:30px;
+    position:relative;
+    top:-5px;
+    width:60px;
+    height:13px;
+    padding:1px;
+    margin:0;
+    pointer-events:none;
 }
-
 
 input.vis-network-configuration.range{
     /*removes default webkit styles*/
     -webkit-appearance: none;
 
     /*fix for FF unable to apply focus style bug */
-    border: 1px solid white;
+    border: 0px solid white;
+    background-color:rgba(0,0,0,0);
 
     /*required for proper track sizing in FF*/
     width: 300px;
+    height:20px;
 }
 input.vis-network-configuration.range::-webkit-slider-runnable-track {
     width: 300px;
@@ -62,7 +118,7 @@ input.vis-network-configuration.range::-webkit-slider-thumb {
     background: -ms-linear-gradient(top,  #3876c2 0%,#385380 100%); /* IE10+ */
     background: linear-gradient(to bottom,  #3876c2 0%,#385380 100%); /* W3C */
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#3876c2', endColorstr='#385380',GradientType=0 ); /* IE6-9 */
-    box-shadow: #111927 0px 0px 3px 0px;
+    box-shadow: #111927 0px 0px 1px 0px;
     margin-top: -7px;
 }
 input.vis-network-configuration.range:focus {
