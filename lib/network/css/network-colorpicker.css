@@ -1,12 +1,15 @@
 
 div.vis-network-colorPicker-frame {
-    position:relative;
-    margin-top:40px;
-    width:310px;
-    height:310px;
+    position:absolute;
+    margin-top:-140px;
+    margin-left:30px;
+    width:293px;
+    height:425px;
     padding: 10px;
-    border-radius:20px;
+    border-radius:15px;
     background-color:#ffffff;
+    display:none;
+    box-shadow: rgba(0,0,0,0.5) 0px 0px 10px 0px;
 }
 
 div.vis-network-colorPicker-color {
@@ -16,20 +19,16 @@ div.vis-network-colorPicker-color {
     cursor: pointer;
 }
 
+
+
 div.vis-network-colorPicker-brightness {
-    position:absolute;
-    top:300px;
-    /*background-color:#00ff00;*/
+    position: absolute;
+    top:313px;
 }
 
-div.vis-network-colorPicker-saturation {
+div.vis-network-colorPicker-opacity {
     position:absolute;
-    top:145px;
-    left:160px;
-    /*background-color:#ff0000;*/
-    -ms-transform: rotate(270deg); /* IE 9 */
-    -webkit-transform: rotate(270deg); /* Chrome, Safari, Opera */
-    transform: rotate(270deg);
+    top:350px;
 }
 
 div.vis-network-colorPicker-selector{
@@ -39,6 +38,7 @@ div.vis-network-colorPicker-selector{
     width:15px;
     height:15px;
     border-radius:15px;
+    border:1px solid #ffffff;
     background: #4c4c4c; /* Old browsers */
     background: -moz-linear-gradient(top,  #4c4c4c 0%, #595959 12%, #666666 25%, #474747 39%, #2c2c2c 50%, #000000 51%, #111111 60%, #2b2b2b 76%, #1c1c1c 91%, #131313 100%); /* FF3.6+ */
     background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#4c4c4c), color-stop(12%,#595959), color-stop(25%,#666666), color-stop(39%,#474747), color-stop(50%,#2c2c2c), color-stop(51%,#000000), color-stop(60%,#111111), color-stop(76%,#2b2b2b), color-stop(91%,#1c1c1c), color-stop(100%,#131313)); /* Chrome,Safari4+ */
@@ -48,6 +48,91 @@ div.vis-network-colorPicker-selector{
     background: linear-gradient(to bottom,  #4c4c4c 0%,#595959 12%,#666666 25%,#474747 39%,#2c2c2c 50%,#000000 51%,#111111 60%,#2b2b2b 76%,#1c1c1c 91%,#131313 100%); /* W3C */
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#4c4c4c', endColorstr='#131313',GradientType=0 ); /* IE6-9 */
 }
+
+
+
+div.vis-network-colorPicker-newColor {
+    position:absolute;
+    width:140px;
+    height:20px;
+    border:1px solid rgba(0,0,0,0.1);
+    border-radius:5px;
+    top:380px;
+    left:159px;
+    text-align:right;
+    padding-right:2px;
+    font-size:10px;
+    color:rgba(0,0,0,0.4);
+    vertical-align:middle;
+    line-height:20px;
+
+}
+
+div.vis-network-colorPicker-initialColor {
+    position:absolute;
+    width:140px;
+    height:20px;
+    border:1px solid rgba(0,0,0,0.1);
+    border-radius:5px;
+    top:380px;
+    left:10px;
+    text-align:left;
+    padding-left:2px;
+    font-size:10px;
+    color:rgba(0,0,0,0.4);
+    vertical-align:middle;
+    line-height:20px;
+}
+
+div.vis-network-colorPicker-label {
+    position:absolute;
+    width:300px;
+    left:10px;
+}
+
+div.vis-network-colorPicker-label.brightness {
+    top:300px;
+}
+
+div.vis-network-colorPicker-label.opacity {
+    top:338px;
+}
+
+div.vis-network-colorPicker-button {
+    position:absolute;
+    width:68px;
+    height:25px;
+    border-radius:10px;
+    vertical-align: middle;
+    text-align:center;
+    line-height: 25px;
+    top:410px;
+    border:2px solid #d9d9d9;
+    background-color: #f7f7f7;
+    cursor:pointer;
+}
+
+div.vis-network-colorPicker-button.cancel {
+    border:2px solid #ff4e33;
+    background-color: #ff7761;
+    left:5px;
+}
+div.vis-network-colorPicker-button.load {
+    border:2px solid #a153e6;
+    background-color: #cb8dff;
+    left:82px;
+}
+div.vis-network-colorPicker-button.apply {
+    border:2px solid #4588e6;
+    background-color: #82b6ff;
+    left:159px;
+}
+div.vis-network-colorPicker-button.save {
+    border:2px solid #45e655;
+    background-color: #6dff7c;
+    left:236px;
+}
+
 
 input.vis-network-configuration.range.colorPicker{
     width: 290px;
@@ -61,5 +146,4 @@ input.vis-network-brightnessRange {
 
 input.vis-network-saturationRange {
     width: 289px !important;
-
 }

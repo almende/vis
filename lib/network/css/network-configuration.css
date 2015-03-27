@@ -52,6 +52,7 @@ div.vis-network-configuration.label.s4{
 }
 
 div.vis-network-configuration.colorBlock{
+    top:1px;
     width:30px;
     height:19px;
     border:1px solid #444444;

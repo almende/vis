@@ -1008,8 +1008,8 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     } else {
       c = {};
-      c.background = color.background || "white";
-      c.border = color.border || c.background;
+      c.background = color.background || undefined;
+      c.border = color.border || undefined;
 
       if (exports.isString(color.highlight)) {
         c.highlight = {
@@ -1018,8 +1018,8 @@ return /******/ (function(modules) { // webpackBootstrap
         };
       } else {
         c.highlight = {};
-        c.highlight.background = color.highlight && color.highlight.background || c.background;
-        c.highlight.border = color.highlight && color.highlight.border || c.border;
+        c.highlight.background = color.highlight && color.highlight.background || undefined;
+        c.highlight.border = color.highlight && color.highlight.border || undefined;
       }
 
       if (exports.isString(color.hover)) {
@@ -1029,8 +1029,8 @@ return /******/ (function(modules) { // webpackBootstrap
         };
       } else {
         c.hover = {};
-        c.hover.background = color.hover && color.hover.background || c.background;
-        c.hover.border = color.hover && color.hover.border || c.border;
+        c.hover.background = color.hover && color.hover.background || undefined;
+        c.hover.border = color.hover && color.hover.border || undefined;
       }
     }
 
@@ -1174,6 +1174,11 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.isValidRGB = function (rgb) {
     rgb = rgb.replace(" ", "");
     var isOk = /rgb\((\d{1,3}),(\d{1,3}),(\d{1,3})\)/i.test(rgb);
+    return isOk;
+  };
+  exports.isValidRGBA = function (rgba) {
+    rgba = rgba.replace(" ", "");
+    var isOk = /rgba\((\d{1,3}),(\d{1,3}),(\d{1,3}),(.{1,3})\)/i.test(rgba);
     return isOk;
   };
 
@@ -25322,7 +25327,25 @@ return /******/ (function(modules) { // webpackBootstrap
           if (options) {
             util.selectiveNotDeepExtend(["color"], this.options, options);
             if (options.color) {
-              this.options.color = util.parseColor(options.color);
+              var parsedColor = util.parseColor(options.color);
+              if (parsedColor.border !== undefined) {
+                this.options.color.border = parsedColor.border;
+              }
+              if (parsedColor.background !== undefined) {
+                this.options.color.background = parsedColor.background;
+              }
+              if (parsedColor.highlight.border !== undefined) {
+                this.options.color.highlight.border = parsedColor.highlight.border;
+              }
+              if (parsedColor.highlight.background !== undefined) {
+                this.options.color.highlight.background = parsedColor.highlight.background;
+              }
+              if (parsedColor.hover.border !== undefined) {
+                this.options.color.hover.border = parsedColor.hover.border;
+              }
+              if (parsedColor.hover.background !== undefined) {
+                this.options.color.hover.background = parsedColor.hover.background;
+              }
             }
           }
         },
@@ -32086,7 +32109,7 @@ return /******/ (function(modules) { // webpackBootstrap
          * chart will be resized too.
          */
         value: function redraw() {
-          this.setSize(this.constants.width, this.constants.height);
+          this._setSize(this.constants.width, this.constants.height);
           this._redraw();
         },
         writable: true,
@@ -36889,40 +36912,70 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       };
 
-      this.actualOptions = {};
+      this.actualOptions = {
+        nodes: {},
+        edges: {},
+        layout: {},
+        interaction: {},
+        manipulation: {},
+        physics: {},
+        selection: {},
+        renderer: {},
+        configure: false,
+        configureContainer: undefined
+      };
 
       this.domElements = [];
-      this.colorPicker = new ColorPicker();
+      this.colorPicker = new ColorPicker(this.network.canvas.pixelRatio);
     }
 
     _prototypeProperties(ConfigurationSystem, null, {
       setOptions: {
+
+
+        /**
+         * refresh all options.
+         * Because all modules parse their options by themselves, we just use their options. We copy them here.
+         *
+         * @param options
+         */
         value: function setOptions(options) {
           if (options !== undefined) {
-            this._clean();
-            util.deepExtend(this.actualOptions, options);
+            util.extend(this.actualOptions, options);
+          }
+
+          this._clean();
+
+          if (this.actualOptions.configure !== undefined && this.actualOptions.configure !== false) {
+            util.deepExtend(this.actualOptions.nodes, this.network.nodesHandler.options, true);
+            util.deepExtend(this.actualOptions.edges, this.network.edgesHandler.options, true);
+            util.deepExtend(this.actualOptions.layout, this.network.layoutEngine.options, true);
+            util.deepExtend(this.actualOptions.interaction, this.network.interactionHandler.options, true);
+            util.deepExtend(this.actualOptions.manipulation, this.network.manipulation.options, true);
+            util.deepExtend(this.actualOptions.physics, this.network.nodesHandler.physics, true);
+            util.deepExtend(this.actualOptions.selection, this.network.selectionHandler.selection, true);
+            util.deepExtend(this.actualOptions.renderer, this.network.renderer.selection, true);
+
             if (this.actualOptions.configurationContainer !== undefined) {
               this.container = this.actualOptions.configurationContainer;
             } else {
               this.container = this.network.body.container;
             }
 
-            if (this.actualOptions.configure !== undefined && this.actualOptions.configure !== false) {
-              var config = undefined;
-              if (this.actualOptions.configure instanceof Array) {
-                config = this.actualOptions.configure.join();
-              } else if (typeof this.actualOptions.configure === "string") {
-                config = this.actualOptions.configure;
-              } else if (typeof this.actualOptions.configure === "boolean") {
-                config = this.actualOptions.configure;
-              } else {
-                this._clean();
-                throw new Error("the option for configure has to be either a string, boolean or an array. Supplied:" + this.options.configure);
-                return;
-              }
-              this._create(config);
-            }
 
+            var config = undefined;
+            if (this.actualOptions.configure instanceof Array) {
+              config = this.actualOptions.configure.join();
+            } else if (typeof this.actualOptions.configure === "string") {
+              config = this.actualOptions.configure;
+            } else if (typeof this.actualOptions.configure === "boolean") {
+              config = this.actualOptions.configure;
+            } else {
+              this._clean();
+              throw new Error("the option for configure has to be either a string, boolean or an array. Supplied:" + this.options.configure);
+              return;
+            }
+            this._create(config);
           }
         },
         writable: true,
@@ -36931,7 +36984,7 @@ return /******/ (function(modules) { // webpackBootstrap
       _create: {
 
         /**
-         *
+         * Create all DOM elements
          * @param {Boolean | String} config
          * @private
          */
@@ -36959,12 +37012,18 @@ return /******/ (function(modules) { // webpackBootstrap
           }
           this._push();
 
-          this.colorPicker.generate();
+          this.colorPicker.insertTo(this.container);
         },
         writable: true,
         configurable: true
       },
       _push: {
+
+
+        /**
+         * draw all DOM elements on the screen
+         * @private
+         */
         value: function _push() {
           for (var i = 0; i < this.domElements.length; i++) {
             this.container.appendChild(this.domElements[i]);
@@ -36974,6 +37033,11 @@ return /******/ (function(modules) { // webpackBootstrap
         configurable: true
       },
       _clean: {
+
+        /**
+         * delete all DOM elements
+         * @private
+         */
         value: function _clean() {
           for (var i = 0; i < this.domElements.length; i++) {
             this.container.removeChild(this.domElements[i]);
@@ -36984,6 +37048,13 @@ return /******/ (function(modules) { // webpackBootstrap
         configurable: true
       },
       _getValue: {
+
+        /**
+         * get the value from the actualOptions if it exists
+         * @param {array} path    | where to look for the actual option
+         * @returns {*}
+         * @private
+         */
         value: function _getValue(path) {
           var base = this.actualOptions;
           for (var i = 0; i < path.length; i++) {
@@ -37000,6 +37071,15 @@ return /******/ (function(modules) { // webpackBootstrap
         configurable: true
       },
       _addToPath: {
+
+
+        /**
+         * Copy the path and add a step. It needs to copy because the path will keep stacking otherwise.
+         * @param path
+         * @param newValue
+         * @returns {Array}
+         * @private
+         */
         value: function _addToPath(path, newValue) {
           var newPath = [];
           for (var i = 0; i < path.length; i++) {
@@ -37012,6 +37092,13 @@ return /******/ (function(modules) { // webpackBootstrap
         configurable: true
       },
       _makeEntree: {
+
+        /**
+         * all option elements are wrapped in an entree
+         * @param path
+         * @param domElements
+         * @private
+         */
         value: function _makeEntree(path) {
           for (var _len = arguments.length, domElements = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
             domElements[_key - 1] = arguments[_key];
@@ -37028,6 +37115,12 @@ return /******/ (function(modules) { // webpackBootstrap
         configurable: true
       },
       _makeHeader: {
+
+        /**
+         * header for major subjects
+         * @param name
+         * @private
+         */
         value: function _makeHeader(name) {
           var div = document.createElement("div");
           div.className = "vis-network-configuration header";
@@ -37038,6 +37131,15 @@ return /******/ (function(modules) { // webpackBootstrap
         configurable: true
       },
       _makeLabel: {
+
+        /**
+         * make a label, if it is an object label, it gets different styling.
+         * @param name
+         * @param path
+         * @param objectLabel
+         * @returns {HTMLElement}
+         * @private
+         */
         value: function _makeLabel(name, path) {
           var objectLabel = arguments[2] === undefined ? false : arguments[2];
           var div = document.createElement("div");
@@ -37053,6 +37155,15 @@ return /******/ (function(modules) { // webpackBootstrap
         configurable: true
       },
       _makeDropdown: {
+
+
+        /**
+         * make a dropdown list for multiple possible string optoins
+         * @param arr
+         * @param value
+         * @param path
+         * @private
+         */
         value: function _makeDropdown(arr, value, path) {
           var select = document.createElement("select");
           select.className = "vis-network-configuration select";
@@ -37085,6 +37196,15 @@ return /******/ (function(modules) { // webpackBootstrap
         configurable: true
       },
       _makeRange: {
+
+
+        /**
+         * make a range object for numeric options
+         * @param arr
+         * @param value
+         * @param path
+         * @private
+         */
         value: function _makeRange(arr, value, path) {
           var defaultValue = arr[0];
           var min = arr[1];
@@ -37127,6 +37247,15 @@ return /******/ (function(modules) { // webpackBootstrap
         configurable: true
       },
       _makeCheckbox: {
+
+
+        /**
+         * make a checkbox for boolean options.
+         * @param defaultValue
+         * @param value
+         * @param path
+         * @private
+         */
         value: function _makeCheckbox(defaultValue, value, path) {
           var checkbox = document.createElement("input");
           checkbox.type = "checkbox";
@@ -37148,21 +37277,31 @@ return /******/ (function(modules) { // webpackBootstrap
         configurable: true
       },
       _makeColorField: {
+
+
+        /**
+         * make a color field with a color picker for color fields
+         * @param arr
+         * @param value
+         * @param path
+         * @private
+         */
         value: function _makeColorField(arr, value, path) {
           var _this = this;
           var defaultColor = arr[1];
           var div = document.createElement("div");
+          value = value === undefined ? defaultColor : value;
 
-          if (defaultColor !== "none") {
+          if (value !== "none") {
             div.className = "vis-network-configuration colorBlock";
-            div.style.backgroundColor = defaultColor;
+            div.style.backgroundColor = value;
           } else {
             div.className = "vis-network-configuration colorBlock none";
           }
 
           value = value === undefined ? defaultColor : value;
-          div.onclick = function () {
-            _this._showColorPicker(value, div);
+          div.onclick = function (event) {
+            _this._showColorPicker(event, value, div, path);
           };
 
           var label = this._makeLabel(path[path.length - 1], path);
@@ -37172,13 +37311,38 @@ return /******/ (function(modules) { // webpackBootstrap
         configurable: true
       },
       _showColorPicker: {
-        value: function _showColorPicker(value, div) {
-          this.colorPicker.show(div);
+
+
+        /**
+         * used by the color buttons to call the color picker.
+         * @param event
+         * @param value
+         * @param div
+         * @param path
+         * @private
+         */
+        value: function _showColorPicker(event, value, div, path) {
+          var _this = this;
+          this.colorPicker.show(event.pageX, event.pageY);
+          this.colorPicker.setColor(value);
+          this.colorPicker.setCallback(function (color) {
+            var colorString = "rgba(" + color.r + "," + color.g + "," + color.b + "," + color.a + ")";
+            div.style.backgroundColor = colorString;
+            _this._update(colorString, path);
+          });
         },
         writable: true,
         configurable: true
       },
       _handleObject: {
+
+
+        /**
+         * parse an object and draw the correct entrees
+         * @param obj
+         * @param path
+         * @private
+         */
         value: function _handleObject(obj) {
           var path = arguments[1] === undefined ? [] : arguments[1];
           for (var subObj in obj) {
@@ -37207,6 +37371,16 @@ return /******/ (function(modules) { // webpackBootstrap
         configurable: true
       },
       _handleArray: {
+
+
+        /**
+         * handle the array type of option
+         * @param optionName
+         * @param arr
+         * @param value
+         * @param path
+         * @private
+         */
         value: function _handleArray(optionName, arr, value, path) {
           if (typeof arr[0] === "string" && arr[0] === "color") {
             this._makeColorField(arr, value, path);
@@ -37220,6 +37394,17 @@ return /******/ (function(modules) { // webpackBootstrap
         configurable: true
       },
       _handleString: {
+
+
+        /**
+         * handle the string type of option.
+         * TODO: Not sure what to do with this
+         * @param optionName
+         * @param string
+         * @param value
+         * @param path
+         * @private
+         */
         value: function _handleString(optionName, string, value, path) {
           if (string === "string") {} else {}
         },
@@ -37227,6 +37412,14 @@ return /******/ (function(modules) { // webpackBootstrap
         configurable: true
       },
       _update: {
+
+
+        /**
+         * called to update the network with the new settings.
+         * @param value
+         * @param path
+         * @private
+         */
         value: function _update(value, path) {
           var options = {};
           var pointer = options;
@@ -37238,6 +37431,7 @@ return /******/ (function(modules) { // webpackBootstrap
               pointer[path[i]] = value;
             }
           }
+          console.log("options", options);
           this.network.setOptions(options);
         },
         writable: true,
@@ -37272,19 +37466,338 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var ColorPicker = (function () {
     function ColorPicker() {
+      var pixelRatio = arguments[0] === undefined ? 1 : arguments[0];
       _classCallCheck(this, ColorPicker);
 
-      this.touchTime = 0;
-      this.pixelRatio = 1;
+      this.pixelRatio = pixelRatio;
       this.generated = false;
-      this.color = undefined;
+      this.centerCoordinates = { x: 289 / 2, y: 289 / 2 };
+      this.r = 289 * 0.49;
+      this.color = { r: 255, g: 255, b: 255, a: 1 };
+      this.hueCircle = undefined;
+      this.initialColor = { r: 255, g: 255, b: 255, a: 1 };
+      this.previousColor = undefined;
+      this.applied = false;
 
-      this.create();
+      // bound by
+      this.updateCallback = function () {};
+
+      // create all DOM elements
+      this._create();
     }
 
     _prototypeProperties(ColorPicker, null, {
-      create: {
-        value: function create() {
+      insertTo: {
+
+
+        /**
+         * this inserts the colorPicker into a div from the DOM
+         * @param container
+         */
+        value: function insertTo(container) {
+          if (this.hammer !== undefined) {
+            this.hammer.destroy();
+            this.hammer = undefined;
+          }
+          this.container = container;
+          this.container.appendChild(this.frame);
+          this._bindHammer();
+
+          this._setSize();
+        },
+        writable: true,
+        configurable: true
+      },
+      setCallback: {
+
+        /**
+         * the callback is executed on apply and save. Bind it to the application
+         * @param callback
+         */
+        value: function setCallback(callback) {
+          if (typeof callback === "function") {
+            this.updateCallback = callback;
+          } else {
+            throw new Error("Function attempted to set as colorPicker callback is not a function.");
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      setColor: {
+
+
+        /**
+         * Set the color of the colorPicker
+         * Supported formats:
+         * '#ffffff'               --> hex string
+         * 'rbg(255,255,255)'      --> rgb string
+         * 'rgba(255,255,255,1.0)' --> rgba string
+         * {r:255,g:255,b:255}     --> rgb object
+         * {r:255,g:255,b:255,a:1.0} --> rgba object
+         * @param color
+         * @param setInitial
+         */
+        value: function setColor(color) {
+          var setInitial = arguments[1] === undefined ? true : arguments[1];
+          if (color === "none") {
+            return;
+          }
+
+          var rgba = undefined;
+
+          // check format
+          if (util.isString(color) === true) {
+            if (util.isValidRGB(color) === true) {
+              var rgbaArray = color.substr(4).substr(0, color.length - 5).split(",");
+              rgba = { r: rgbaArray[0], g: rgbaArray[1], b: rgbaArray[2], a: 1 };
+            } else if (util.isValidRGBA(color) === true) {
+              var rgbaArray = color.substr(5).substr(0, color.length - 6).split(",");
+              rgba = { r: rgbaArray[0], g: rgbaArray[1], b: rgbaArray[2], a: rgbaArray[3] };
+            } else if (util.isValidHex(color) === true) {
+              var rgbObj = util.hexToRGB(color);
+              rgba = { r: rgbObj.r, g: rgbObj.g, b: rgbObj.b, a: 1 };
+            }
+          } else {
+            if (color instanceof Object) {
+              if (color.r !== undefined && color.g !== undefined && color.b !== undefined) {
+                var alpha = color.a !== undefined ? color.a : "1.0";
+                rgba = { r: color.r, g: color.g, b: color.b, a: alpha };
+              }
+            }
+          }
+
+          // set color
+          if (rgba === undefined) {
+            throw new Error("Unknown color passed to the colorPicker. Supported are strings: rgb, hex, rgba. Object: rgb ({r:r,g:g,b:b,[a:a]}). Supplied: " + JSON.stringify(color));
+          } else {
+            this._setColor(rgba, setInitial);
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      show: {
+
+
+        /**
+         * this shows the color picker at a location. The hue circle is constructed once and stored.
+         * @param x
+         * @param y
+         */
+        value: function show(x, y) {
+          this.applied = false;
+          this.frame.style.display = "block";
+          this.frame.style.top = y + "px";
+          this.frame.style.left = x + "px";
+          this._generateHueCircle();
+        },
+        writable: true,
+        configurable: true
+      },
+      _hide: {
+
+
+        // ------------------------------------------ PRIVATE ----------------------------- //
+
+        /**
+         * Hide the picker. Is called by the cancel button.
+         * Optional boolean to store the previous color for easy access later on.
+         * @param storePrevious
+         * @private
+         */
+        value: function _hide() {
+          var storePrevious = arguments[0] === undefined ? true : arguments[0];
+          // store the previous color for next time;
+          if (storePrevious === true) {
+            this.previousColor = util.extend({}, this.color);
+          }
+
+          if (this.applied === true) {
+            this.updateCallback(this.initialColor);
+          }
+
+          this.frame.style.display = "none";
+        },
+        writable: true,
+        configurable: true
+      },
+      _save: {
+
+
+        /**
+         * bound to the save button. Saves and hides.
+         * @private
+         */
+        value: function _save() {
+          this.updateCallback(this.color);
+          this.applied = false;
+          this.hide();
+        },
+        writable: true,
+        configurable: true
+      },
+      _apply: {
+
+
+        /**
+         * Bound to apply button. Saves but does not close. Is undone by the cancel button.
+         * @private
+         */
+        value: function _apply() {
+          this.applied = true;
+          this.updateCallback(this.color);
+          this._updatePicker(this.color);
+        },
+        writable: true,
+        configurable: true
+      },
+      _loadLast: {
+
+
+        /**
+         * load the color from the previous session.
+         * @private
+         */
+        value: function _loadLast() {
+          if (this.previousColor !== undefined) {
+            this.setColor(this.previousColor, false);
+          } else {
+            alert("There is no last color to load...");
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      _setColor: {
+
+
+        /**
+         * set the color, place the picker
+         * @param rgba
+         * @param setInitial
+         * @private
+         */
+        value: function _setColor(rgba) {
+          var setInitial = arguments[1] === undefined ? true : arguments[1];
+          // store the initial color
+          if (setInitial === true) {
+            console.log("here");
+            this.initialColor = util.extend({}, rgba);
+          }
+
+          this.color = rgba;
+          var hsv = util.RGBToHSV(rgba.r, rgba.g, rgba.b);
+
+          var angleConvert = 2 * Math.PI;
+          var radius = this.r * hsv.s;
+          var x = this.centerCoordinates.x + radius * Math.sin(angleConvert * hsv.h);
+          var y = this.centerCoordinates.y + radius * Math.cos(angleConvert * hsv.h);
+
+          this.colorPickerSelector.style.left = x - 0.5 * this.colorPickerSelector.clientWidth + "px";
+          this.colorPickerSelector.style.top = y - 0.5 * this.colorPickerSelector.clientHeight + "px";
+
+          this._updatePicker(rgba);
+        },
+        writable: true,
+        configurable: true
+      },
+      _setOpacity: {
+
+
+        /**
+         * bound to opacity control
+         * @param value
+         * @private
+         */
+        value: function _setOpacity(value) {
+          this.color.a = value / 100;
+          this._updatePicker(this.color);
+        },
+        writable: true,
+        configurable: true
+      },
+      _setBrightness: {
+
+
+        /**
+         * bound to brightness control
+         * @param value
+         * @private
+         */
+        value: function _setBrightness(value) {
+          var hsv = util.RGBToHSV(this.color.r, this.color.g, this.color.b);
+          hsv.v = value / 100;
+          var rgba = util.HSVToRGB(hsv.h, hsv.s, hsv.v);
+          rgba.a = this.color.a;
+          this.color = rgba;
+          this._updatePicker();
+        },
+        writable: true,
+        configurable: true
+      },
+      _updatePicker: {
+
+
+        /**
+         * update the colorpicker. A black circle overlays the hue circle to mimic the brightness decreasing.
+         * @param rgba
+         * @private
+         */
+        value: function _updatePicker() {
+          var rgba = arguments[0] === undefined ? this.color : arguments[0];
+          var hsv = util.RGBToHSV(rgba.r, rgba.g, rgba.b);
+          var ctx = this.colorPickerCanvas.getContext("2d");
+          if (this.pixelRation === undefined) {
+            this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
+          }
+          ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+
+          // clear the canvas
+          var w = this.colorPickerCanvas.clientWidth;
+          var h = this.colorPickerCanvas.clientHeight;
+          ctx.clearRect(0, 0, w, h);
+
+          ctx.putImageData(this.hueCircle, 0, 0);
+          ctx.fillStyle = "rgba(0,0,0," + (1 - hsv.v) + ")";
+          ctx.circle(this.centerCoordinates.x, this.centerCoordinates.y, this.r);
+          ctx.fill();
+
+          this.brightnessRange.value = 100 * hsv.v;
+          this.opacityRange.value = 100 * rgba.a;
+
+          this.initialColorDiv.style.backgroundColor = "rgba(" + this.initialColor.r + "," + this.initialColor.g + "," + this.initialColor.b + "," + this.initialColor.a + ")";
+          this.newColorDiv.style.backgroundColor = "rgba(" + this.color.r + "," + this.color.g + "," + this.color.b + "," + this.color.a + ")";
+        },
+        writable: true,
+        configurable: true
+      },
+      _setSize: {
+
+
+        /**
+         * used by create to set the size of the canvas.
+         * @private
+         */
+        value: function _setSize() {
+          this.colorPickerCanvas.style.width = "100%";
+          this.colorPickerCanvas.style.height = "100%";
+
+          this.colorPickerCanvas.width = 289 * this.pixelRatio;
+          this.colorPickerCanvas.height = 289 * this.pixelRatio;
+        },
+        writable: true,
+        configurable: true
+      },
+      _create: {
+
+
+        /**
+         * create all dom elements
+         * TODO: cleanup, lots of similar dom elements
+         * @private
+         */
+        value: function _create() {
           var visPrefix = "vis-network-";
 
           this.frame = document.createElement("div");
@@ -37314,65 +37827,136 @@ return /******/ (function(modules) { // webpackBootstrap
 
           this.colorPickerDiv.className = visPrefix + "colorPicker-color";
 
+          this.opacityDiv = document.createElement("div");
+          this.opacityDiv.className = visPrefix + "colorPicker-opacity";
+
           this.brightnessDiv = document.createElement("div");
           this.brightnessDiv.className = visPrefix + "colorPicker-brightness";
 
-          this.saturationDiv = document.createElement("div");
-          this.saturationDiv.className = visPrefix + "colorPicker-saturation";
+          this.opacityRange = document.createElement("input");
+          this.opacityRange.type = "range";
+          this.opacityRange.min = "0";
+          this.opacityRange.max = "100";
+          this.opacityRange.value = "100";
+          this.opacityRange.className = visPrefix + "configuration range colorPicker";
 
           this.brightnessRange = document.createElement("input");
           this.brightnessRange.type = "range";
           this.brightnessRange.min = "0";
           this.brightnessRange.max = "100";
           this.brightnessRange.value = "100";
-          this.brightnessRange.className = "vis-network-configuration range colorPicker";
+          this.brightnessRange.className = visPrefix + "configuration range colorPicker";
 
-          this.saturationRange = document.createElement("input");
-          this.saturationRange.type = "range";
-          this.saturationRange.min = "0";
-          this.saturationRange.max = "100";
-          this.saturationRange.value = "100";
-          this.saturationRange.className = "vis-network-configuration range colorPicker";
-
+          this.opacityDiv.appendChild(this.opacityRange);
           this.brightnessDiv.appendChild(this.brightnessRange);
-          this.saturationDiv.appendChild(this.saturationRange);
+
+          var me = this;
+          this.opacityRange.onchange = function () {
+            me._setOpacity(this.value);
+          };
+          this.opacityRange.oninput = function () {
+            me._setOpacity(this.value);
+          };
+          this.brightnessRange.onchange = function () {
+            me._setBrightness(this.value);
+          };
+          this.brightnessRange.oninput = function () {
+            me._setBrightness(this.value);
+          };
+
+          this.brightnessLabel = document.createElement("div");
+          this.brightnessLabel.className = visPrefix + "colorPicker-label brightness";
+          this.brightnessLabel.innerHTML = "brightness:";
+
+          this.opacityLabel = document.createElement("div");
+          this.opacityLabel.className = visPrefix + "colorPicker-label opacity";
+          this.opacityLabel.innerHTML = "opacity:";
+
+          this.newColorDiv = document.createElement("div");
+          this.newColorDiv.className = visPrefix + "colorPicker-newColor";
+          this.newColorDiv.innerHTML = "new";
+
+          this.initialColorDiv = document.createElement("div");
+          this.initialColorDiv.className = visPrefix + "colorPicker-initialColor";
+          this.initialColorDiv.innerHTML = "initial";
+
+          this.cancelButton = document.createElement("div");
+          this.cancelButton.className = visPrefix + "colorPicker-button cancel";
+          this.cancelButton.innerHTML = "cancel";
+          this.cancelButton.onclick = this._hide.bind(this, false);
+
+          this.applyButton = document.createElement("div");
+          this.applyButton.className = visPrefix + "colorPicker-button apply";
+          this.applyButton.innerHTML = "apply";
+          this.applyButton.onclick = this._apply.bind(this);
+
+          this.saveButton = document.createElement("div");
+          this.saveButton.className = visPrefix + "colorPicker-button save";
+          this.saveButton.innerHTML = "save";
+          this.saveButton.onclick = this._save.bind(this);
+
+          this.loadButton = document.createElement("div");
+          this.loadButton.className = visPrefix + "colorPicker-button load";
+          this.loadButton.innerHTML = "load last";
+          this.loadButton.onclick = this._loadLast.bind(this);
 
           this.frame.appendChild(this.colorPickerDiv);
-          this.frame.appendChild(this.saturationDiv);
+          this.frame.appendChild(this.brightnessLabel);
           this.frame.appendChild(this.brightnessDiv);
-        },
-        writable: true,
-        configurable: true
-      },
-      show: {
-        value: function show(container) {
-          this.container = container;
-          this.container.appendChild(this.frame);
-          this.bindHammer();
+          this.frame.appendChild(this.opacityLabel);
+          this.frame.appendChild(this.opacityDiv);
+          this.frame.appendChild(this.newColorDiv);
+          this.frame.appendChild(this.initialColorDiv);
 
-          this.setSize();
+          this.frame.appendChild(this.cancelButton);
+          this.frame.appendChild(this.applyButton);
+          this.frame.appendChild(this.saveButton);
+          this.frame.appendChild(this.loadButton);
         },
         writable: true,
         configurable: true
       },
-      setColor: {
-        value: function setColor(color) {},
-        writable: true,
-        configurable: true
-      },
-      setSize: {
-        value: function setSize() {
-          this.colorPickerCanvas.style.width = "100%";
-          this.colorPickerCanvas.style.height = "100%";
+      _bindHammer: {
 
-          this.colorPickerCanvas.width = this.colorPickerDiv.clientWidth * this.pixelRatio;
-          this.colorPickerCanvas.height = this.colorPickerDiv.clientHeight * this.pixelRatio;
+
+        /**
+         * bind hammer to the color picker
+         * @private
+         */
+        value: function _bindHammer() {
+          var _this = this;
+          this.drag = {};
+          this.pinch = {};
+          this.hammer = new Hammer(this.colorPickerCanvas);
+          this.hammer.get("pinch").set({ enable: true });
+
+          hammerUtil.onTouch(this.hammer, function (event) {
+            _this._moveSelector(event);
+          });
+          this.hammer.on("tap", function (event) {
+            _this._moveSelector(event);
+          });
+          this.hammer.on("panstart", function (event) {
+            _this._moveSelector(event);
+          });
+          this.hammer.on("panmove", function (event) {
+            _this._moveSelector(event);
+          });
+          this.hammer.on("panend", function (event) {
+            _this._moveSelector(event);
+          });
         },
         writable: true,
         configurable: true
       },
-      generate: {
-        value: function generate() {
+      _generateHueCircle: {
+
+
+        /**
+         * generate the hue circle. This is relatively heavy (200ms) and is done only once on the first time it is shown.
+         * @private
+         */
+        value: function _generateHueCircle() {
           if (this.generated === false) {
             var ctx = this.colorPickerCanvas.getContext("2d");
             if (this.pixelRation === undefined) {
@@ -37385,63 +37969,48 @@ return /******/ (function(modules) { // webpackBootstrap
             var h = this.colorPickerCanvas.clientHeight;
             ctx.clearRect(0, 0, w, h);
 
+
+            // draw hue circle
             var x = undefined,
                 y = undefined,
                 hue = undefined,
                 sat = undefined;
-            var center = { x: w * 0.5, y: h * 0.5 };
-            var r = 0.49 * w;
+            this.centerCoordinates = { x: w * 0.5, y: h * 0.5 };
+            this.r = 0.49 * w;
             var angleConvert = 2 * Math.PI / 360;
             var hfac = 1 / 360;
-            var sfac = 1 / r;
+            var sfac = 1 / this.r;
             var rgb = undefined;
             for (hue = 0; hue < 360; hue++) {
-              for (sat = 0; sat < r; sat++) {
-                x = center.x + sat * Math.sin(angleConvert * hue);
-                y = center.y + sat * Math.cos(angleConvert * hue);
+              for (sat = 0; sat < this.r; sat++) {
+                x = this.centerCoordinates.x + sat * Math.sin(angleConvert * hue);
+                y = this.centerCoordinates.y + sat * Math.cos(angleConvert * hue);
                 rgb = util.HSVToRGB(hue * hfac, sat * sfac, 1);
                 ctx.fillStyle = "rgb(" + rgb.r + "," + rgb.g + "," + rgb.b + ")";
                 ctx.fillRect(x - 0.5, y - 0.5, 2, 2);
               }
             }
+            ctx.strokeStyle = "rgba(0,0,0,1)";
+            ctx.circle(this.centerCoordinates.x, this.centerCoordinates.y, this.r);
+            ctx.stroke();
+
+            this.hueCircle = ctx.getImageData(0, 0, w, h);
           }
           this.generated = true;
         },
         writable: true,
         configurable: true
       },
-      bindHammer: {
-        value: function bindHammer() {
-          var _this = this;
-          this.drag = {};
-          this.pinch = {};
-          this.hammer = new Hammer(this.colorPickerCanvas);
-          this.hammer.get("pinch").set({ enable: true });
+      _moveSelector: {
 
-          hammerUtil.onTouch(this.hammer, function (event) {
-            _this.moveSelector(event);
-          });
-          this.hammer.on("tap", function (event) {
-            _this.moveSelector(event);
-          });
-          //this.hammer.on('doubletap', (event) => {this.moveSelector(event)});
-          //this.hammer.on('press',     (event) => {this.moveSelector(event)});
-          this.hammer.on("panstart", function (event) {
-            _this.moveSelector(event);
-          });
-          this.hammer.on("panmove", function (event) {
-            _this.moveSelector(event);
-          });
-          this.hammer.on("panend", function (event) {
-            _this.moveSelector(event);
-          });
-          //this.hammer.on('pinch',     (event) => {this.moveSelector(event)});
-        },
-        writable: true,
-        configurable: true
-      },
-      moveSelector: {
-        value: function moveSelector(event) {
+
+        /**
+         * move the selector. This is called by hammer functions.
+         *
+         * @param event
+         * @private
+         */
+        value: function _moveSelector(event) {
           var rect = this.colorPickerDiv.getBoundingClientRect();
           var left = event.center.x - rect.left;
           var top = event.center.y - rect.top;
@@ -37452,30 +38021,29 @@ return /******/ (function(modules) { // webpackBootstrap
           var x = left - centerX;
           var y = top - centerY;
 
-          var angle = Math.atan(y / x);
-          if (x < 0) {
-            angle += Math.PI;
-          }
+          var angle = Math.atan2(x, y);
           var radius = 0.98 * Math.min(Math.sqrt(x * x + y * y), centerX);
 
-          var newTop = Math.sin(angle) * radius + centerY;
-          var newLeft = Math.cos(angle) * radius + centerX;
+          var newTop = Math.cos(angle) * radius + centerY;
+          var newLeft = Math.sin(angle) * radius + centerX;
 
           this.colorPickerSelector.style.top = newTop - 0.5 * this.colorPickerSelector.clientHeight + "px";
           this.colorPickerSelector.style.left = newLeft - 0.5 * this.colorPickerSelector.clientWidth + "px";
 
-        },
-        writable: true,
-        configurable: true
-      },
-      redraw: {
-        value: function redraw(roomController) {
-          if (this.frame === undefined) {
-            this._create();
-          }
-          var pos = roomController.canvasToDOM({ x: 0, y: 0 });
-          this.frame.style.top = "50px";
-          this.frame.style.left = pos.x - 350 + "px";
+          // set color
+          var h = angle / (2 * Math.PI);
+          h = h < 0 ? h + 1 : h;
+          var s = radius / this.r;
+          var hsv = util.RGBToHSV(this.color.r, this.color.g, this.color.b);
+          hsv.h = h;
+          hsv.s = s;
+          var rgba = util.HSVToRGB(hsv.h, hsv.s, hsv.v);
+          rgba.a = this.color.a;
+          this.color = rgba;
+
+          // update previews
+          this.initialColorDiv.style.backgroundColor = "rgba(" + this.initialColor.r + "," + this.initialColor.g + "," + this.initialColor.b + "," + this.initialColor.a + ")";
+          this.newColorDiv.style.backgroundColor = "rgba(" + this.color.r + "," + this.color.g + "," + this.color.b + "," + this.color.a + ")";
         },
         writable: true,
         configurable: true
@@ -37486,7 +38054,6 @@ return /******/ (function(modules) { // webpackBootstrap
   })();
 
   module.exports = ColorPicker;
-  //todo make
 
 /***/ }
 /******/ ])
