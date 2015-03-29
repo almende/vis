@@ -36815,15 +36815,15 @@ return /******/ (function(modules) { // webpackBootstrap
             stroke: [0, 0, 50, 1], // px
             strokeColor: ["color", "#ffffff"]
           },
-          group: "string",
+          //group: 'string',
           hidden: false,
-          icon: {
-            face: "string", //'FontAwesome',
-            code: "string", //'\uf007',
-            size: [50, 0, 200, 1], //50,
-            color: ["color", "#2B7CE9"] //'#aa00ff'
-          },
-          image: "string", // --> URL
+          //icon: {
+          //  face: 'string',  //'FontAwesome',
+          //  code: 'string',  //'\uf007',
+          //  size: [50, 0, 200, 1],  //50,
+          //  color: ['color','#2B7CE9']   //'#aa00ff'
+          //},
+          //image: 'string', // --> URL
           physics: true,
           scaling: {
             min: [10, 0, 200, 1],
@@ -36836,7 +36836,7 @@ return /******/ (function(modules) { // webpackBootstrap
               drawThreshold: [3, 0, 20, 1]
             }
           },
-          shape: ["ellipse", "box", "circle", "database", "diamond", "dot", "icon", "square", "star", "text", "triangle", "triangleDown"],
+          shape: ["ellipse", "box", "circle", "database", "diamond", "dot", "square", "star", "text", "triangle", "triangleDown"],
           size: [25, 0, 200, 1]
         },
         edges: {
