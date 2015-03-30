@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.0.0-SNAPSHOT
- * @date    2015-03-27
+ * @date    2015-03-30
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -23486,7 +23486,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // start the physics simulation. Can be safely called multiple times.
       this.body.emitter.emit("startSimulation");
-      this.body.emitter.emit("_requestRedraw");
     }
   };
 
@@ -30295,6 +30294,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
           this.body.emitter.emit("stabilizationIterationsDone");
           this.body.emitter.emit("_requestRedraw");
+
           this.ready = true;
         },
         writable: true,
@@ -32087,10 +32087,6 @@ return /******/ (function(modules) { // webpackBootstrap
       this.renderRequests = 0;
       this.pixelRatio = undefined;
 
-      // redefined in this._redraw
-      this.canvasTopLeft = { x: 0, y: 0 };
-      this.canvasBottomRight = { x: 0, y: 0 };
-
       this.dragging = false;
 
       this.body.emitter.on("dragStart", function () {
@@ -32174,7 +32170,6 @@ return /******/ (function(modules) { // webpackBootstrap
          * chart will be resized too.
          */
         value: function redraw() {
-          this._setSize(this.constants.width, this.constants.height);
           this._redraw();
         },
         writable: true,
@@ -32208,6 +32203,12 @@ return /******/ (function(modules) { // webpackBootstrap
           this.redrawRequested = false;
           var ctx = this.canvas.frame.canvas.getContext("2d");
 
+          if (this.canvas.frame.canvas.width === 0 || this.canvas.frame.canvas.height === 0) {
+            this.canvas.setSize();
+          }
+
+          console.log("her");
+
           if (this.pixelRation === undefined) {
             this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
           }
@@ -32219,15 +32220,14 @@ return /******/ (function(modules) { // webpackBootstrap
           var h = this.canvas.frame.canvas.clientHeight;
           ctx.clearRect(0, 0, w, h);
 
+
+
           this.body.emitter.emit("beforeDrawing", ctx);
 
           // set scaling and translation
           ctx.save();
           ctx.translate(this.body.view.translation.x, this.body.view.translation.y);
           ctx.scale(this.body.view.scale, this.body.view.scale);
-
-          this.canvasTopLeft = this.canvas.DOMtoCanvas({ x: 0, y: 0 });
-          this.canvasBottomRight = this.canvas.DOMtoCanvas({ x: this.canvas.frame.canvas.clientWidth, y: this.canvas.frame.canvas.clientHeight });
 
           if (hidden === false) {
             if (this.dragging === false || this.dragging === true && this.options.hideEdgesOnDrag === false) {
@@ -32417,11 +32417,20 @@ return /******/ (function(modules) { // webpackBootstrap
       util.extend(this.options, this.defaultOptions);
 
       this.body.emitter.once("resize", function (obj) {
-        _this.body.view.translation.x = obj.width * 0.5;_this.body.view.translation.y = obj.height * 0.5;
+        if (obj.width !== 0) {
+          _this.body.view.translation.x = obj.width * 0.5;
+        }
+        if (obj.height !== 0) {
+          _this.body.view.translation.y = obj.height * 0.5;
+        }
       });
       this.body.emitter.on("destroy", function () {
         return _this.hammer.destroy();
       });
+
+      window.onresize = function () {
+        _this.setSize();_this.body.emitter.emit("_redraw");
+      };
 
       this.pixelRatio = 1;
     }
@@ -32560,6 +32569,7 @@ return /******/ (function(modules) { // webpackBootstrap
           var emitEvent = false;
           var oldWidth = this.frame.canvas.width;
           var oldHeight = this.frame.canvas.height;
+
           if (width != this.options.width || height != this.options.height || this.frame.style.width != width || this.frame.style.height != height) {
             this.frame.style.width = width;
             this.frame.style.height = height;
@@ -32866,10 +32876,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
             var xZoomLevel = this.canvas.frame.canvas.clientWidth / xDistance;
             var yZoomLevel = this.canvas.frame.canvas.clientHeight / yDistance;
+
             zoomLevel = xZoomLevel <= yZoomLevel ? xZoomLevel : yZoomLevel;
           }
 
           if (zoomLevel > 1) {
+            zoomLevel = 1;
+          } else if (zoomLevel === 0) {
             zoomLevel = 1;
           }
 
@@ -37388,7 +37401,11 @@ return /******/ (function(modules) { // webpackBootstrap
          */
         value: function _showColorPicker(event, value, div, path) {
           var _this = this;
-          this.colorPicker.show(event.pageX, event.pageY);
+          var rect = div.getBoundingClientRect();
+          var bodyRect = document.body.getBoundingClientRect();
+          var pickerX = rect.left + rect.width + 5;
+          var pickerY = rect.top - bodyRect.top + rect.height * 0.5;
+          this.colorPicker.show(pickerX, pickerY);
           this.colorPicker.setColor(value);
           this.colorPicker.setCallback(function (color) {
             var colorString = "rgba(" + color.r + "," + color.g + "," + color.b + "," + color.a + ")";
@@ -37496,7 +37513,7 @@ return /******/ (function(modules) { // webpackBootstrap
               pointer[path[i]] = value;
             }
           }
-          console.log(JSON.stringify(options));
+          //console.log(JSON.stringify(options))
           this.network.setOptions(options);
         },
         writable: true,
@@ -37697,7 +37714,7 @@ return /******/ (function(modules) { // webpackBootstrap
         value: function _save() {
           this.updateCallback(this.color);
           this.applied = false;
-          this.hide();
+          this._hide();
         },
         writable: true,
         configurable: true
@@ -37747,7 +37764,6 @@ return /******/ (function(modules) { // webpackBootstrap
           var setInitial = arguments[1] === undefined ? true : arguments[1];
           // store the initial color
           if (setInitial === true) {
-            console.log("here");
             this.initialColor = util.extend({}, rgba);
           }
 
@@ -37898,6 +37914,9 @@ return /******/ (function(modules) { // webpackBootstrap
           this.brightnessDiv = document.createElement("div");
           this.brightnessDiv.className = visPrefix + "colorPicker-brightness";
 
+          this.arrowDiv = document.createElement("div");
+          this.arrowDiv.className = visPrefix + "colorPicker-arrowDiv";
+
           this.opacityRange = document.createElement("input");
           this.opacityRange.type = "range";
           this.opacityRange.min = "0";
@@ -37966,6 +37985,7 @@ return /******/ (function(modules) { // webpackBootstrap
           this.loadButton.onclick = this._loadLast.bind(this);
 
           this.frame.appendChild(this.colorPickerDiv);
+          this.frame.appendChild(this.arrowDiv);
           this.frame.appendChild(this.brightnessLabel);
           this.frame.appendChild(this.brightnessDiv);
           this.frame.appendChild(this.opacityLabel);

@@ -12,6 +12,31 @@ div.vis-network-colorPicker-frame {
     box-shadow: rgba(0,0,0,0.5) 0px 0px 10px 0px;
 }
 
+
+
+div.vis-network-colorPicker-arrowDiv {
+    position: absolute;
+    top:147px;
+    left:5px;
+}
+div.vis-network-colorPicker-arrowDiv:after, .vis-network-colorPicker-arrowDiv:before {
+    right: 100%;
+    top: 50%;
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+}
+
+div.vis-network-colorPicker-arrowDiv:after {
+    border-color: rgba(255, 255, 255, 0);
+    border-right-color: #ffffff;
+    border-width: 30px;
+    margin-top: -30px;
+}
+
 div.vis-network-colorPicker-color {
     position:absolute;
     width: 289px;
@@ -113,23 +138,23 @@ div.vis-network-colorPicker-button {
 }
 
 div.vis-network-colorPicker-button.cancel {
-    border:2px solid #ff4e33;
-    background-color: #ff7761;
+    /*border:2px solid #ff4e33;*/
+    /*background-color: #ff7761;*/
     left:5px;
 }
 div.vis-network-colorPicker-button.load {
-    border:2px solid #a153e6;
-    background-color: #cb8dff;
+    /*border:2px solid #a153e6;*/
+    /*background-color: #cb8dff;*/
     left:82px;
 }
 div.vis-network-colorPicker-button.apply {
-    border:2px solid #4588e6;
-    background-color: #82b6ff;
+    /*border:2px solid #4588e6;*/
+    /*background-color: #82b6ff;*/
     left:159px;
 }
 div.vis-network-colorPicker-button.save {
-    border:2px solid #45e655;
-    background-color: #6dff7c;
+    /*border:2px solid #45e655;*/
+    /*background-color: #6dff7c;*/
     left:236px;
 }
 

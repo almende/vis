@@ -18,7 +18,6 @@
 <body>
 
 <div id="mynetwork"></div>
-
 <script type="text/javascript">
   // create an array with nodes
   var nodes = [
@@ -46,7 +45,7 @@
   };
   var options = {
       configure: true,
-      physics:{solver:'BarnesHut'},
+      physics:{solver:'BarnesHut', stabilization:true}
 //      nodes:{physics:false}
   }
   var network = new vis.Network(container, data, options);
