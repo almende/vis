@@ -5,6 +5,39 @@ div.vis-network-configuration {
     font-size:12px;
 }
 
+div.vis-network-configuration.optionContainer{
+    display:block;
+    width:495px;
+    background-color: #ffffff;
+    border:2px solid #f7f8fa;
+    border-radius:4px;
+    margin-top:20px;
+    left:10px;
+    padding-left:5px;
+}
+
+div.vis-network-configuration.button{
+    display:block;
+    width:495px;
+    height:25px;
+    vertical-align: middle;
+    line-height:25px;
+    background-color: #f7f8fa;
+    border:2px solid #ceced0;
+    border-radius:4px;
+    margin-top:20px;
+    left:10px;
+    padding-left:5px;
+    cursor: pointer;
+    margin-bottom:30px;
+}
+
+div.vis-network-configuration.button.hover{
+    background-color: #4588e6;
+    border:2px solid #214373;
+    color:#ffffff;
+}
+
 div.vis-network-configuration.entree{
     display:block;
     width:495px;
@@ -169,7 +202,7 @@ input.vis-network-configuration.range:-moz-focusring{
 
 input.vis-network-configuration.range::-ms-track {
     width: 300px;
-    height: 5x;
+    height: 5px;
 
     /*remove bg colour from the track, we'll use ms-fill-lower and ms-fill-upper instead */
     background: transparent;

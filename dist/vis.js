@@ -25342,7 +25342,7 @@ return /******/ (function(modules) { // webpackBootstrap
               }
             }
 
-            // update the shape
+            // update the shape in all nodes
             if (options.shape !== undefined) {
               for (var nodeId in this.body.nodes) {
                 if (this.body.nodes.hasOwnProperty(nodeId)) {
@@ -25351,11 +25351,20 @@ return /******/ (function(modules) { // webpackBootstrap
               }
             }
 
-            // update fonts
-            if (options.font) {
+            // update the shape size in all nodes
+            if (options.font !== undefined) {
               for (var nodeId in this.body.nodes) {
                 if (this.body.nodes.hasOwnProperty(nodeId)) {
                   this.body.nodes[nodeId].updateLabelModule();
+                  this.body.nodes[nodeId]._reset();
+                }
+              }
+            }
+
+            // update the shape size in all nodes
+            if (options.size !== undefined) {
+              for (var nodeId in this.body.nodes) {
+                if (this.body.nodes.hasOwnProperty(nodeId)) {
                   this.body.nodes[nodeId]._reset();
                 }
               }
@@ -25792,6 +25801,7 @@ return /******/ (function(modules) { // webpackBootstrap
               this.shape = new Ellipse(this.options, this.body, this.labelModule);
               break;
           }
+          this._reset();
         },
         writable: true,
         configurable: true
@@ -27774,8 +27784,22 @@ return /******/ (function(modules) { // webpackBootstrap
       setOptions: {
         value: function setOptions(options) {
           if (options !== undefined) {
+            var fields = ["font", "from", "hidden", "hoverWidth", "label", "length", "line", "opacity", "physics", "selfReferenceSize", "to", "title", "value", "width", "widthMin", "widthMax", "widthSelectionMultiplier"];
+            util.selectiveExtend(fields, this.options, options);
             util.mergeOptions(this.options, options, "smooth");
             util.mergeOptions(this.options, options, "dashes");
+
+            // set the scaling options
+            if (options.scaling !== undefined) {
+              if (options.scaling.min !== undefined) {
+                this.options.scaling.min = options.scaling.min;
+              }
+              if (options.scaling.max !== undefined) {
+                this.options.scaling.max = options.scaling.max;
+              }
+              util.mergeOptions(this.options.scaling, options.scaling, "label");
+            }
+
 
             // hanlde multiple input cases for arrows
             if (options.arrows !== undefined) {
@@ -27799,35 +27823,62 @@ return /******/ (function(modules) { // webpackBootstrap
               }
             }
 
+
             // hanlde multiple input cases for color
             if (options.color !== undefined) {
               if (util.isString(options.color)) {
                 util.assignAllKeys(this.options.color, options.color);
                 this.options.color.inherit.enabled = false;
               } else {
-                util.extend(this.options.color, options.color);
-                if (options.color.inherit === undefined) {
-                  this.options.color.inherit.enabled = false;
+                if (typeof options.color === "object") {
+                  var colorsDefined = false;
+                  if (options.color.color !== undefined) {
+                    this.options.color.color = options.color.color;colorsDefined = true;
+                  }
+                  if (options.color.highlight !== undefined) {
+                    this.options.color.highlight = options.color.highlight;colorsDefined = true;
+                  }
+                  if (options.color.hover !== undefined) {
+                    this.options.color.hover = options.color.hover;colorsDefined = true;
+                  }
+                  if (options.color.opacity !== undefined) {
+                    this.options.color.opacity = options.color.opacity;
+                  }
+
+                  if (options.color.inherit === undefined && colorsDefined === true) {
+                    this.options.color.inherit.enabled = false;
+                  }
                 }
               }
               util.mergeOptions(this.options.color, options.color, "inherit");
+              this.markAllEdgesAsDirty();
             }
 
-            // update smooth settings
+            // update smooth settings in all edges
             var dataChanged = false;
             if (options.smooth !== undefined) {
-              for (var nodeId in this.body.edges) {
-                if (this.body.edges.hasOwnProperty(nodeId)) {
-                  dataChanged = this.body.edges[nodeId].updateEdgeType() || dataChanged;
+              for (var edgeId in this.body.edges) {
+                if (this.body.edges.hasOwnProperty(edgeId)) {
+                  dataChanged = this.body.edges[edgeId].updateEdgeType() || dataChanged;
                 }
               }
             }
 
-            // update fonts
+            // update fonts in all edges
             if (options.font) {
-              for (var nodeId in this.body.edges) {
-                if (this.body.edges.hasOwnProperty(nodeId)) {
-                  this.body.edges[nodeId].updateLabelModule();
+              if (typeof options.font === "string") {
+                var optionsArray = options.font.split(" ");
+                this.options.font.size = optionsArray[0].replace("px", "");
+                this.options.font.face = optionsArray[1];
+                this.options.font.color = optionsArray[2];
+              } else if (typeof options.font == "object") {
+                this.options.font = util.bridgeObject(options.font);
+              }
+              this.options.font.size = Number(this.options.font.size);
+
+              for (var edgeId in this.body.edges) {
+                if (this.body.edges.hasOwnProperty(edgeId)) {
+                  this.body.edges[edgeId].updateLabelModule();
                 }
               }
             }
@@ -28004,7 +28055,7 @@ return /******/ (function(modules) { // webpackBootstrap
       markAllEdgesAsDirty: {
         value: function markAllEdgesAsDirty() {
           for (var edgeId in this.body.edges) {
-            this.body.edges[edgeId].colorDirty = true;
+            this.body.edges[edgeId].edgeType.colorDirty = true;
           }
         },
         writable: true,
@@ -28133,7 +28184,7 @@ return /******/ (function(modules) { // webpackBootstrap
           }
           this.colorDirty = true;
 
-          var fields = ["id", "font", "from", "hidden", "hoverWidth", "label", "length", "line", "opacity", "physics", "scaling", "selfReferenceSize", "to", "title", "value", "width", "widthMin", "widthMax", "widthSelectionMultiplier"];
+          var fields = ["id", "font", "from", "hidden", "hoverWidth", "label", "length", "line", "opacity", "physics", "selfReferenceSize", "to", "title", "value", "width", "widthMin", "widthMax", "widthSelectionMultiplier"];
           util.selectiveDeepExtend(fields, this.options, options);
 
           util.mergeOptions(this.options, options, "smooth");
@@ -28153,6 +28204,18 @@ return /******/ (function(modules) { // webpackBootstrap
           }
           if (options.value !== undefined) {
             this.value = options.value;
+          }
+
+
+          // set the scaling options
+          if (options.scaling !== undefined) {
+            if (options.scaling.min !== undefined) {
+              this.options.scaling.min = options.scaling.min;
+            }
+            if (options.scaling.max !== undefined) {
+              this.options.scaling.max = options.scaling.max;
+            }
+            util.mergeOptions(this.options.scaling, options.scaling, "label");
           }
 
           // hanlde multiple input cases for arrows
@@ -28183,8 +28246,21 @@ return /******/ (function(modules) { // webpackBootstrap
               util.assignAllKeys(this.options.color, options.color);
               this.options.color.inherit.enabled = false;
             } else {
-              this.options.color = util.bridgeObject(options.color);
-              if (options.color.inherit === undefined) {
+              var colorsDefined = false;
+              if (options.color.color !== undefined) {
+                this.options.color.color = options.color.color;colorsDefined = true;
+              }
+              if (options.color.highlight !== undefined) {
+                this.options.color.highlight = options.color.highlight;colorsDefined = true;
+              }
+              if (options.color.hover !== undefined) {
+                this.options.color.hover = options.color.hover;colorsDefined = true;
+              }
+              if (options.color.opacity !== undefined) {
+                this.options.color.opacity = options.color.opacity;
+              }
+
+              if (options.color.inherit === undefined && colorsDefined === true) {
                 this.options.color.inherit.enabled = false;
               }
             }
@@ -28881,6 +28957,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.labelModule = labelModule;
       this.setOptions(options);
       this.colorDirty = true;
+      this.color = {};
     }
 
     _prototypeProperties(EdgeBase, null, {
@@ -29147,12 +29224,13 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       getColor: {
         value: function getColor(ctx) {
-          var colorObj = this.options.color;
+          var colorOptions = this.options.color;
 
-          if (colorObj.inherit.enabled === true) {
-            if (colorObj.inherit.useGradients == true) {
+          if (colorOptions.inherit.enabled === true) {
+            if (colorOptions.inherit.useGradients == true) {
               var grd = ctx.createLinearGradient(this.from.x, this.from.y, this.to.x, this.to.y);
-              var fromColor, toColor;
+              var fromColor = undefined,
+                  toColor = undefined;
               fromColor = this.from.options.color.highlight.border;
               toColor = this.to.options.color.highlight.border;
 
@@ -29172,28 +29250,33 @@ return /******/ (function(modules) { // webpackBootstrap
             }
 
             if (this.colorDirty === true) {
-              if (colorObj.inherit.source == "to") {
-                colorObj.highlight = this.to.options.color.highlight.border;
-                colorObj.hover = this.to.options.color.hover.border;
-                colorObj.color = util.overrideOpacity(this.to.options.color.border, this.options.color.opacity);
+              if (colorOptions.inherit.source == "to") {
+                this.color.highlight = this.to.options.color.highlight.border;
+                this.color.hover = this.to.options.color.hover.border;
+                this.color.color = util.overrideOpacity(this.to.options.color.border, colorOptions.opacity);
               } else {
                 // (this.options.color.inherit.source == "from") {
-                colorObj.highlight = this.from.options.color.highlight.border;
-                colorObj.hover = this.from.options.color.hover.border;
-                colorObj.color = util.overrideOpacity(this.from.options.color.border, this.options.color.opacity);
+                this.color.highlight = this.from.options.color.highlight.border;
+                this.color.hover = this.from.options.color.hover.border;
+                this.color.color = util.overrideOpacity(this.from.options.color.border, colorOptions.opacity);
               }
             }
+          } else if (this.colorDirty === true) {
+            this.color.highlight = colorOptions.highlight;
+            this.color.hover = colorOptions.hover;
+            this.color.color = util.overrideOpacity(colorOptions.color, colorOptions.opacity);
           }
 
           // if color inherit is on and gradients are used, the function has already returned by now.
           this.colorDirty = false;
 
+
           if (this.selected == true) {
-            return colorObj.highlight;
+            return this.color.highlight;
           } else if (this.hover == true) {
-            return colorObj.hover;
+            return this.color.hover;
           } else {
-            return colorObj.color;
+            return this.color.color;
           }
         },
         writable: true,
@@ -29849,7 +29932,7 @@ return /******/ (function(modules) { // webpackBootstrap
         },
         maxVelocity: 50,
         minVelocity: 0.1, // px/s
-        solver: "BarnesHut",
+        solver: "barnesHut",
         stabilization: {
           enabled: true,
           iterations: 1000, // maximum number of iteration to stabilize
@@ -32203,11 +32286,10 @@ return /******/ (function(modules) { // webpackBootstrap
           this.redrawRequested = false;
           var ctx = this.canvas.frame.canvas.getContext("2d");
 
+          // when the container div was hidden, this fixes it back up!
           if (this.canvas.frame.canvas.width === 0 || this.canvas.frame.canvas.height === 0) {
             this.canvas.setSize();
           }
-
-          console.log("her");
 
           if (this.pixelRation === undefined) {
             this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
@@ -32411,8 +32493,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
       this.options = {};
       this.defaultOptions = {
-        width: "100%",
-        height: "100%"
+        width: "600px",
+        height: "400px"
       };
       util.extend(this.options, this.defaultOptions);
 
@@ -36799,6 +36881,7 @@ return /******/ (function(modules) { // webpackBootstrap
       _classCallCheck(this, ConfigurationSystem);
 
       this.network = network;
+      this.changedOptions = [];
 
       this.possibleOptions = {
         nodes: {
@@ -36880,7 +36963,7 @@ return /******/ (function(modules) { // webpackBootstrap
             size: [14, 0, 100, 1], // px
             face: ["arial", "verdana", "tahoma"],
             background: ["color", "none"],
-            stroke: [0, 0, 50, 1], // px
+            stroke: [1, 0, 50, 1], // px
             strokeColor: ["color", "#ffffff"],
             align: ["horizontal", "top", "middle", "bottom"]
           },
@@ -36888,8 +36971,8 @@ return /******/ (function(modules) { // webpackBootstrap
           hoverWidth: [1.5, 0, 10, 0.1],
           physics: true,
           scaling: {
-            min: [10, 0, 200, 1],
-            max: [30, 0, 200, 1],
+            min: [1, 0, 100, 1],
+            max: [15, 0, 100, 1],
             label: {
               enabled: true,
               min: [14, 0, 200, 1],
@@ -37030,7 +37113,7 @@ return /******/ (function(modules) { // webpackBootstrap
             util.deepExtend(this.actualOptions.layout, this.network.layoutEngine.options, true);
             util.deepExtend(this.actualOptions.interaction, this.network.interactionHandler.options, true);
             util.deepExtend(this.actualOptions.manipulation, this.network.manipulation.options, true);
-            util.deepExtend(this.actualOptions.physics, this.network.nodesHandler.physics, true);
+            util.deepExtend(this.actualOptions.physics, this.network.physics.options, true);
             util.deepExtend(this.actualOptions.selection, this.network.selectionHandler.selection, true);
             util.deepExtend(this.actualOptions.renderer, this.network.renderer.selection, true);
 
@@ -37039,7 +37122,6 @@ return /******/ (function(modules) { // webpackBootstrap
             } else {
               this.container = this.network.body.container;
             }
-
 
             var config = undefined;
             if (this.actualOptions.configure instanceof Array) {
@@ -37067,7 +37149,10 @@ return /******/ (function(modules) { // webpackBootstrap
          * @private
          */
         value: function _create(config) {
+          var _this = this;
           this._clean();
+          this.changedOptions = [];
+
           var counter = 0;
           for (var option in this.possibleOptions) {
             if (this.possibleOptions.hasOwnProperty(option)) {
@@ -37088,8 +37173,26 @@ return /******/ (function(modules) { // webpackBootstrap
               counter++;
             }
           }
-          this._push();
+          var generateButton = document.createElement("div");
+          generateButton.className = "vis-network-configuration button";
+          generateButton.innerHTML = "generate options";
+          generateButton.onclick = function () {
+            _this._printOptions();
+          };
+          generateButton.onmouseover = function () {
+            generateButton.className = "vis-network-configuration button hover";
+          };
+          generateButton.onmouseout = function () {
+            generateButton.className = "vis-network-configuration button";
+          };
 
+          this.optionsContainer = document.createElement("div");
+          this.optionsContainer.className = "vis-network-configuration optionContainer";
+
+          this.domElements.push(this.optionsContainer);
+          this.domElements.push(generateButton);
+
+          this._push();
           this.colorPicker.insertTo(this.container);
         },
         writable: true,
@@ -37306,6 +37409,7 @@ return /******/ (function(modules) { // webpackBootstrap
           } else {
             range.value = defaultValue;
           }
+
           var input = document.createElement("input");
           input.className = "vis-network-configuration rangeinput";
           input.value = range.value;
@@ -37341,6 +37445,15 @@ return /******/ (function(modules) { // webpackBootstrap
           checkbox.checked = defaultValue;
           if (value !== undefined) {
             checkbox.checked = value;
+            if (value !== defaultValue) {
+              if (typeof defaultValue === "object") {
+                if (value !== defaultValue.enabled) {
+                  this.changedOptions.push({ path: path, value: value });
+                }
+              } else {
+                this.changedOptions.push({ path: path, value: value });
+              }
+            }
           }
 
           var me = this;
@@ -37378,8 +37491,8 @@ return /******/ (function(modules) { // webpackBootstrap
           }
 
           value = value === undefined ? defaultColor : value;
-          div.onclick = function (event) {
-            _this._showColorPicker(event, value, div, path);
+          div.onclick = function () {
+            _this._showColorPicker(value, div, path);
           };
 
           var label = this._makeLabel(path[path.length - 1], path);
@@ -37399,7 +37512,7 @@ return /******/ (function(modules) { // webpackBootstrap
          * @param path
          * @private
          */
-        value: function _showColorPicker(event, value, div, path) {
+        value: function _showColorPicker(value, div, path) {
           var _this = this;
           var rect = div.getBoundingClientRect();
           var bodyRect = document.body.getBoundingClientRect();
@@ -37434,15 +37547,38 @@ return /******/ (function(modules) { // webpackBootstrap
               var value = this._getValue(newPath);
 
               if (item instanceof Array) {
-                this._handleArray(subObj, item, value, newPath);
+                this._handleArray(item, value, newPath);
               } else if (typeof item === "string") {
-                this._handleString(subObj, item, value, newPath);
+                this._handleString(item, value, newPath);
               } else if (typeof item === "boolean") {
                 this._makeCheckbox(item, value, newPath);
               } else if (item instanceof Object) {
-                var label = this._makeLabel(subObj, newPath, true);
-                this._makeEntree(newPath, label);
-                this._handleObject(item, newPath);
+                // collapse the physics options that are not enabled
+                var draw = true;
+                if (path.indexOf("physics") !== -1) {
+                  if (this.actualOptions.physics.solver !== subObj) {
+                    draw = false;
+                  }
+                }
+
+                if (draw === true) {
+                  // initially collapse options with an disabled enabled option.
+                  if (item.enabled !== undefined) {
+                    var enabledPath = this._addToPath(newPath, "enabled");
+                    var enabledValue = this._getValue(enabledPath);
+                    if (enabledValue === true) {
+                      var label = this._makeLabel(subObj, newPath, true);
+                      this._makeEntree(newPath, label);
+                      this._handleObject(item, newPath);
+                    } else {
+                      this._makeCheckbox(item, enabledValue, newPath);
+                    }
+                  } else {
+                    var label = this._makeLabel(subObj, newPath, true);
+                    this._makeEntree(newPath, label);
+                    this._handleObject(item, newPath);
+                  }
+                }
               } else {
                 console.error("dont know how to handle", item, subObj, newPath);
               }
@@ -37463,14 +37599,24 @@ return /******/ (function(modules) { // webpackBootstrap
          * @param path
          * @private
          */
-        value: function _handleArray(optionName, arr, value, path) {
+        value: function _handleArray(arr, value, path) {
           if (typeof arr[0] === "string" && arr[0] === "color") {
             this._makeColorField(arr, value, path);
+            if (arr[1] !== value) {
+              this.changedOptions.push({ path: path, value: value });
+            }
           } else if (typeof arr[0] === "string") {
             this._makeDropdown(arr, value, path);
+            if (arr[0] !== value) {
+              this.changedOptions.push({ path: path, value: value });
+            }
           } else if (typeof arr[0] === "number") {
             this._makeRange(arr, value, path);
+            if (arr[0] !== value) {
+              this.changedOptions.push({ path: path, value: value });
+            }
           }
+
         },
         writable: true,
         configurable: true
@@ -37487,7 +37633,7 @@ return /******/ (function(modules) { // webpackBootstrap
          * @param path
          * @private
          */
-        value: function _handleString(optionName, string, value, path) {
+        value: function _handleString(string, value, path) {
           if (string === "string") {} else {}
         },
         writable: true,
@@ -37503,18 +37649,38 @@ return /******/ (function(modules) { // webpackBootstrap
          * @private
          */
         value: function _update(value, path) {
-          var options = {};
-          var pointer = options;
+          var options = this._constructOptions(value, path);
+          this.network.setOptions(options);
+        },
+        writable: true,
+        configurable: true
+      },
+      _constructOptions: {
+        value: function _constructOptions(value, path) {
+          var optionsObj = arguments[2] === undefined ? {} : arguments[2];
+          var pointer = optionsObj;
           for (var i = 0; i < path.length; i++) {
-            pointer[path[i]] = {};
+            if (pointer[path[i]] === undefined) {
+              pointer[path[i]] = {};
+            }
             if (i !== path.length - 1) {
               pointer = pointer[path[i]];
             } else {
               pointer[path[i]] = value;
             }
           }
-          //console.log(JSON.stringify(options))
-          this.network.setOptions(options);
+          return optionsObj;
+        },
+        writable: true,
+        configurable: true
+      },
+      _printOptions: {
+        value: function _printOptions() {
+          var options = {};
+          for (var i = 0; i < this.changedOptions.length; i++) {
+            this._constructOptions(this.changedOptions[i].value, this.changedOptions[i].path, options);
+          }
+          this.optionsContainer.innerHTML = "<pre>var options = " + JSON.stringify(options, null, 2) + "</pre>";
         },
         writable: true,
         configurable: true
