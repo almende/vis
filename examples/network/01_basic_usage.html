@@ -18,6 +18,8 @@
 <body>
 
 <div id="mynetwork"></div>
+
+<!--<input type="button" onclick="document.getElementById('mynetwork').style.display='block';" value="showdiv">-->
 <script type="text/javascript">
   // create an array with nodes
   var nodes = [
@@ -39,17 +41,19 @@
 
   // create a network
   var container = document.getElementById('mynetwork');
+
   var data = {
     nodes: nodes,
     edges: edges
   };
   var options = {
-      configure: 'edges',
-      physics:{stabilization:true}
-//      nodes:{physics:false}
+      configure: 'nodes',
+//      physics:{stabilization:true}
+      nodes:{color:'red'}
   }
   var network = new vis.Network(container, data, options);
 //    network.setOptions({nodes:{color:'red'}})
+
 </script>
 
 </body>
