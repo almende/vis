@@ -13,6 +13,19 @@
       box-sizing: border-box;
       width: 100%;
     }
+
+    .vis.timeline .item.red,
+    .vis.timeline .item.red.selected {
+      background-color: red;
+      color: white;
+    }
+
+    .vis.timeline .item.green,
+    .vis.timeline .item.green.selected {
+      background-color: green;
+      color: white;
+    }
+
   </style>
 
   <script src="../dist/vis.js"></script>
@@ -45,7 +58,7 @@
 
   var now = moment().minutes(0).seconds(0).milliseconds(0);
   var groupCount = 3;
-  var itemCount = 20;
+  var itemCount = 7;
 
   // create a data set with groups
   var names = ['John (0)', 'Alston (1)', 'Lee (2)', 'Grant (3)'];
@@ -58,6 +71,7 @@
   var items = new vis.DataSet();
   for (var i = 0; i < itemCount; i++) {
     var start = now.clone().add(Math.random() * 200, 'hours');
+    var end = Math.random() > 0.5 ? start.clone().add(24, 'hours') : undefined;
     var group = Math.floor(Math.random() * groupCount);
     items.add({
       id: i,
@@ -65,8 +79,9 @@
       content: 'item ' + i +
           ' <span style="color:#97B0F8;">(' + names[group] + ')</span>',
       start: start,
+      end: end,
       title: 'Title for item ' + i,
-      type: 'box',
+      //type: 'box',
       className: 'myItem'
     });
   }
@@ -109,10 +124,14 @@
     },
 
     onMoving: function (item, callback) {
-      var min = moment().minutes(0).seconds(0).milliseconds(0).add(2, 'day').toDate();
+      var min = moment().minutes(0).seconds(0).milliseconds(0).add(-2, 'day').toDate();
       if (item.start < min) {
         item.start = min;
       }
+      //item.className = item.id > 3 ? 'red' : 'green';
+      //item.group = Math.random() > 0.5 ? 2 : 1;
+      //item.hasMoved = true;
+      //item.content = Math.round(Math.random() * 4);
 
       callback(item); // send back item as confirmation (can be changed)
     },
