@@ -4,7 +4,7 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 3.12.0
+ * @version 3.12.1-SNAPSHOT
  * @date    2015-04-07
  *
  * @license
@@ -10715,6 +10715,13 @@ return /******/ (function(modules) { // webpackBootstrap
       var x = this.body.util.toScreen(now);
 
       var locale = this.options.locales[this.options.locale];
+      if (!locale) {
+        if (!this.warned) {
+          console.log('WARNING: locale "' + this.options.locale + '" not found in vis.js');
+          this.warned = true;
+        }
+        locale = this.options.locales['en']; // fall back on english when not available
+      }
       var title = locale.current + ' ' + locale.time + ': ' + moment(now).format('dddd, MMMM Do YYYY, H:mm:ss');
       title = title.charAt(0).toUpperCase() + title.substring(1);
 
@@ -10914,6 +10921,13 @@ return /******/ (function(modules) { // webpackBootstrap
       var x = this.body.util.toScreen(this.customTime);
 
       var locale = this.options.locales[this.options.locale];
+      if (!locale) {
+        if (!this.warned) {
+          console.log('WARNING: locale "' + this.options.locale + '" not found in vis.js');
+          this.warned = true;
+        }
+        locale = this.options.locales['en']; // fall back on english when not available
+      }
       var title = locale.time + ': ' + moment(this.customTime).format('dddd, MMMM Do YYYY, H:mm:ss');
       title = title.charAt(0).toUpperCase() + title.substring(1);
 
@@ -30556,9 +30570,9 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var RepulsionMixin = __webpack_require__(68);
-  var HierarchialRepulsionMixin = __webpack_require__(69);
-  var BarnesHutMixin = __webpack_require__(70);
+  var RepulsionMixin = __webpack_require__(67);
+  var HierarchialRepulsionMixin = __webpack_require__(68);
+  var BarnesHutMixin = __webpack_require__(69);
 
   /**
    * Toggling barnes Hut calculation on and off.
@@ -35000,19 +35014,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
-  function webpackContext(req) {
-  	throw new Error("Cannot find module '" + req + "'.");
-  }
-  webpackContext.keys = function() { return []; };
-  webpackContext.resolve = webpackContext;
-  module.exports = webpackContext;
-  webpackContext.id = 67;
-
-
-/***/ },
-/* 68 */
-/***/ function(module, exports, __webpack_require__) {
-
   /**
    * Calculate the forces the nodes apply on each other based on a repulsion field.
    * This field is linearly approximated.
@@ -35080,7 +35081,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 69 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -35239,7 +35240,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 70 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -35641,6 +35642,19 @@ return /******/ (function(modules) { // webpackBootstrap
      }
      */
   };
+
+
+/***/ },
+/* 70 */
+/***/ function(module, exports, __webpack_require__) {
+
+  function webpackContext(req) {
+  	throw new Error("Cannot find module '" + req + "'.");
+  }
+  webpackContext.keys = function() { return []; };
+  webpackContext.resolve = webpackContext;
+  module.exports = webpackContext;
+  webpackContext.id = 70;
 
 
 /***/ },

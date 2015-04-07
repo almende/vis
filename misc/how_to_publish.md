@@ -56,7 +56,7 @@ This generates the vis.js library in the folder `./dist`.
 
     Verify if it installs the just released version, and verify if it works.
 
-  - Verify within an hour whether vis.js is updated on http://cdnjs.com/
+  - Verify within a day or so whether vis.js is updated on http://cdnjs.com/
 
 
 ## Update website

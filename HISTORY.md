@@ -2,6 +2,14 @@
 http://visjs.org
 
 
+## not yet released, version 3.12.1-SNAPSHOT
+
+### Timeline
+
+- Fixed #761: Timeline and Graph2d throwing an error when locale is not found.
+  Gives a warning message instead.
+
+
 ## 2015-04-07, version 3.12.0
 
 ### Network
