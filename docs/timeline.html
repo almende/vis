@@ -555,6 +555,13 @@ var options = {
 </tr>
 
 <tr>
+    <td>margin</td>
+    <td>Number | Object</td>
+    <td>Object</td>
+    <td>When a number, applies the margin to <code>margin.axis</code>, <code>margin.item.horizontal</code>, and <code>margin.item.vertical</code>.</td>
+</tr>
+
+<tr>
     <td>margin.axis</td>
     <td>Number</td>
     <td>20</td>
@@ -680,9 +687,23 @@ var options = {
 
 <tr>
     <td>orientation</td>
+    <td>String | Object</td>
+    <td>'bottom'</td>
+    <td>Orientation of the timelines axis and items. When orientation is a string, the value is applied to both items and axis. Can be 'top', 'bottom' (default), or 'both'.</td>
+</tr>
+
+<tr>
+    <td>orientation.axis</td>
     <td>String</td>
     <td>'bottom'</td>
-    <td>Orientation of the timeline: 'top', 'bottom' (default), or 'both'. If orientation is 'bottom', the time axis is drawn at the bottom. When 'top', the axis is drawn on top. When 'both', two axes are drawn, both on top and at the bottom.</td>
+    <td>Orientation of the timeline axis: 'top', 'bottom' (default), or 'both'. If orientation is 'bottom', the time axis is drawn at the bottom. When 'top', the axis is drawn on top. When 'both', two axes are drawn, both on top and at the bottom.</td>
+</tr>
+
+<tr>
+    <td>orientation.item</td>
+    <td>String</td>
+    <td>'bottom'</td>
+    <td>Orientation of the timeline items: 'top' or 'bottom' (default). Determines whether items are aligned to the top or bottom of the Timeline.</td>
 </tr>
 
 <tr>
