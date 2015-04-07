@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.11.1-SNAPSHOT
- * @date    2015-03-31
+ * @date    2015-04-07
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -13637,7 +13637,7 @@ return /******/ (function(modules) { // webpackBootstrap
       if (dragLeftItem) {
         props = {
           item: dragLeftItem,
-          initialX: event.gesture.center.clientX,
+          initialX: event.gesture.center.pageX,
           dragLeft:  true,
           data: util.extend({}, item.data) // clone the items data
         };
@@ -13647,7 +13647,7 @@ return /******/ (function(modules) { // webpackBootstrap
       else if (dragRightItem) {
         props = {
           item: dragRightItem,
-          initialX: event.gesture.center.clientX,
+          initialX: event.gesture.center.pageX,
           dragRight: true,
           data: util.extend({}, item.data) // clone the items data
         };
@@ -13659,7 +13659,7 @@ return /******/ (function(modules) { // webpackBootstrap
           var item = me.items[id];
           var props = {
             item: item,
-            initialX: event.gesture.center.clientX,
+            initialX: event.gesture.center.pageX,
             data: util.extend({}, item.data) // clone the items data
           };
 
@@ -13713,7 +13713,7 @@ return /******/ (function(modules) { // webpackBootstrap
     var props = {
       item: newItem,
       dragRight: true,
-      initialX: event.gesture.center.clientX,
+      initialX: event.gesture.center.pageX,
       data: util.extend({}, itemData)
     };
     this.touchParams.itemProps = [props];
@@ -13740,7 +13740,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // move
       this.touchParams.itemProps.forEach(function (props) {
-        var current = me.body.util.toTime(event.gesture.center.clientX - xOffset);
+        var current = me.body.util.toTime(event.gesture.center.pageX - xOffset);
         var initial = me.body.util.toTime(props.initialX - xOffset);
         var offset = current - initial;
 
@@ -14097,23 +14097,23 @@ return /******/ (function(modules) { // webpackBootstrap
    * @return {Group | null} group
    */
   ItemSet.prototype.groupFromTarget = function(event) {
-    var clientY = event.gesture ? event.gesture.center.clientY : event.clientY;
+    var pageY = event.gesture ? event.gesture.center.pageY : event.pageY;
     for (var i = 0; i < this.groupIds.length; i++) {
       var groupId = this.groupIds[i];
       var group = this.groups[groupId];
       var foreground = group.dom.foreground;
       var top = util.getAbsoluteTop(foreground);
-      if (clientY > top && clientY < top + foreground.offsetHeight) {
+      if (pageY > top && pageY < top + foreground.offsetHeight) {
         return group;
       }
 
       if (this.options.orientation === 'top') {
-        if (i === this.groupIds.length - 1 && clientY > top) {
+        if (i === this.groupIds.length - 1 && pageY > top) {
           return group;
         }
       }
       else {
-        if (i === 0 && clientY < top + foreground.offset) {
+        if (i === 0 && pageY < top + foreground.offset) {
           return group;
         }
       }
@@ -30518,9 +30518,9 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var RepulsionMixin = __webpack_require__(68);
-  var HierarchialRepulsionMixin = __webpack_require__(69);
-  var BarnesHutMixin = __webpack_require__(70);
+  var RepulsionMixin = __webpack_require__(67);
+  var HierarchialRepulsionMixin = __webpack_require__(68);
+  var BarnesHutMixin = __webpack_require__(69);
 
   /**
    * Toggling barnes Hut calculation on and off.
@@ -34962,19 +34962,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
-  function webpackContext(req) {
-  	throw new Error("Cannot find module '" + req + "'.");
-  }
-  webpackContext.keys = function() { return []; };
-  webpackContext.resolve = webpackContext;
-  module.exports = webpackContext;
-  webpackContext.id = 67;
-
-
-/***/ },
-/* 68 */
-/***/ function(module, exports, __webpack_require__) {
-
   /**
    * Calculate the forces the nodes apply on each other based on a repulsion field.
    * This field is linearly approximated.
@@ -35042,7 +35029,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 69 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -35201,7 +35188,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 70 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -35603,6 +35590,19 @@ return /******/ (function(modules) { // webpackBootstrap
      }
      */
   };
+
+
+/***/ },
+/* 70 */
+/***/ function(module, exports, __webpack_require__) {
+
+  function webpackContext(req) {
+  	throw new Error("Cannot find module '" + req + "'.");
+  }
+  webpackContext.keys = function() { return []; };
+  webpackContext.resolve = webpackContext;
+  module.exports = webpackContext;
+  webpackContext.id = 70;
 
 
 /***/ },
