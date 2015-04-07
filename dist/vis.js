@@ -10717,7 +10717,7 @@ return /******/ (function(modules) { // webpackBootstrap
       var locale = this.options.locales[this.options.locale];
       if (!locale) {
         if (!this.warned) {
-          console.log('WARNING: locale "' + this.options.locale + '" not found in vis.js');
+          console.log('WARNING: options.locales[\'' + this.options.locale + '\'] not found. See http://visjs.org/docs/timeline.html#Localization');
           this.warned = true;
         }
         locale = this.options.locales['en']; // fall back on english when not available
@@ -10923,7 +10923,7 @@ return /******/ (function(modules) { // webpackBootstrap
       var locale = this.options.locales[this.options.locale];
       if (!locale) {
         if (!this.warned) {
-          console.log('WARNING: locale "' + this.options.locale + '" not found in vis.js');
+          console.log('WARNING: options.locales[\'' + this.options.locale + '\'] not found. See http://visjs.org/docs/timeline.html#Localization');
           this.warned = true;
         }
         locale = this.options.locales['en']; // fall back on english when not available
@@ -30570,9 +30570,9 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   var util = __webpack_require__(1);
-  var RepulsionMixin = __webpack_require__(67);
-  var HierarchialRepulsionMixin = __webpack_require__(68);
-  var BarnesHutMixin = __webpack_require__(69);
+  var RepulsionMixin = __webpack_require__(68);
+  var HierarchialRepulsionMixin = __webpack_require__(69);
+  var BarnesHutMixin = __webpack_require__(70);
 
   /**
    * Toggling barnes Hut calculation on and off.
@@ -35014,6 +35014,19 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
+  function webpackContext(req) {
+  	throw new Error("Cannot find module '" + req + "'.");
+  }
+  webpackContext.keys = function() { return []; };
+  webpackContext.resolve = webpackContext;
+  module.exports = webpackContext;
+  webpackContext.id = 67;
+
+
+/***/ },
+/* 68 */
+/***/ function(module, exports, __webpack_require__) {
+
   /**
    * Calculate the forces the nodes apply on each other based on a repulsion field.
    * This field is linearly approximated.
@@ -35081,7 +35094,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 68 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -35240,7 +35253,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 69 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -35642,19 +35655,6 @@ return /******/ (function(modules) { // webpackBootstrap
      }
      */
   };
-
-
-/***/ },
-/* 70 */
-/***/ function(module, exports, __webpack_require__) {
-
-  function webpackContext(req) {
-  	throw new Error("Cannot find module '" + req + "'.");
-  }
-  webpackContext.keys = function() { return []; };
-  webpackContext.resolve = webpackContext;
-  module.exports = webpackContext;
-  webpackContext.id = 70;
 
 
 /***/ },
