@@ -9,6 +9,10 @@ http://visjs.org
 - Fixed #761: Timeline and Graph2d throwing an error when locale is not found.
   Gives a warning message instead.
 
+### Network
+
+- Fixed titles not working when any of the nodes has id `0`.
+
 
 ## 2015-04-07, version 3.12.0
 
