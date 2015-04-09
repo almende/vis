@@ -853,6 +853,13 @@ Graph2d.clear({options: true}); // clear options only
   </tr>
 
   <tr>
+    <td>fit()</td>
+    <td>none</td>
+    <td>Adjust the visible window such that it fits all items.
+    </td>
+  </tr>
+
+  <tr>
     <td>getCurrentTime()</td>
     <td>Date</td>
     <td>Get the current time. Only applicable when option <code>showCurrentTime</code> is true.
@@ -904,9 +911,13 @@ Graph2d.clear({options: true}); // clear options only
   </tr>
 
   <tr>
-    <td>fit()</td>
+    <td>hiddenDates</td>
+    <td>Object</td>
     <td>none</td>
-    <td>Adjust the visible window such that it fits all items.
+    <td>This option allows you to hide specific timespans from the time axis. The dates can be supplied as an object:
+      <code>{start: '2014-03-21 00:00:00', end: '2014-03-28 00:00:00', [repeat:'daily']}</code> or as an Array of these objects. The repeat argument is optional.
+      The possible values are (case-sensitive): <code>daily, weekly, monthly, yearly</code>. To hide a weekend, pick any Saturday as start and the following Monday as end
+      and set repeat to weekly.
     </td>
   </tr>
 
