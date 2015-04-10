@@ -35743,7 +35743,8 @@ return /******/ (function(modules) { // webpackBootstrap
           var selected = arguments[1] === undefined ? false : arguments[1];
           var size = {
             width: this._processLabel(ctx, selected),
-            height: this.fontOptions.size * this.lineCount
+            height: this.fontOptions.size * this.lineCount,
+            lineCount: this.lineCount
           };
           return size;
         },
@@ -36025,14 +36026,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
       _get(Object.getPrototypeOf(CircularImage.prototype), "constructor", this).call(this, options, body, labelModule);
       this.imageObj = imageObj;
+      this._swapToImageResizeWhenImageLoaded = true;
     }
 
     _inherits(CircularImage, CircleImageBase);
 
     _prototypeProperties(CircularImage, null, {
       resize: {
-        value: function resize(ctx) {
-          if (this.imageObj.src !== undefined || this.imageObj.width !== undefined || this.imageObj.height !== undefined) {
+        value: function resize() {
+          if (this.imageObj.src === undefined || this.imageObj.width === undefined || this.imageObj.height === undefined) {
             if (!this.width) {
               var diameter = this.options.size * 2;
               this.width = diameter;
@@ -36041,11 +36043,11 @@ return /******/ (function(modules) { // webpackBootstrap
             }
           } else {
             if (this._swapToImageResizeWhenImageLoaded) {
-              this.width = 0;
-              this.height = 0;
-              delete this._swapToImageResizeWhenImageLoaded;
+              this.width = undefined;
+              this.height = undefined;
+              this._swapToImageResizeWhenImageLoaded = false;
             }
-            this._resizeImage(ctx);
+            this._resizeImage();
           }
         },
         writable: true,
@@ -36053,12 +36055,12 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       draw: {
         value: function draw(ctx, x, y, selected, hover) {
-          this.resize(ctx);
+          this.resize();
 
           this.left = x - this.width / 2;
           this.top = y - this.height / 2;
 
-          var size = Math.abs(this.height / 2);
+          var size = Math.min(0.5 * this.height, 0.5 * this.width);
           this._drawRawCircle(ctx, x, y, selected, hover, size);
 
           ctx.save();
@@ -36544,27 +36546,14 @@ return /******/ (function(modules) { // webpackBootstrap
     _prototypeProperties(Image, null, {
       resize: {
         value: function resize() {
-          if (!this.width || !this.height) {
-            // undefined or 0
-            var width, height;
-            var scale = this.imageObj.height / this.imageObj.width;
-            if (scale !== undefined) {
-              width = this.options.size * 2 || this.imageObj.width;
-              height = this.options.size * 2 * scale || this.imageObj.height;
-            } else {
-              width = 0;
-              height = 0;
-            }
-            this.width = width;
-            this.height = height;
-          }
+          this._resizeImage();
         },
         writable: true,
         configurable: true
       },
       draw: {
         value: function draw(ctx, x, y, selected, hover) {
-          this.resize(ctx);
+          this.resize();
           this.left = x - this.width / 2;
           this.top = y - this.height / 2;
 
@@ -37534,6 +37523,32 @@ return /******/ (function(modules) { // webpackBootstrap
     _inherits(CircleImageBase, NodeBase);
 
     _prototypeProperties(CircleImageBase, null, {
+      _resizeImage: {
+        value: function _resizeImage() {
+          if (!this.width || !this.height) {
+            // undefined or 0
+            var width, height, ratio;
+            if (this.imageObj.width && this.imageObj.height) {
+              // not undefined or 0
+              width = 0;
+              height = 0;
+            }
+            if (this.imageObj.width > this.imageObj.height) {
+              ratio = this.imageObj.width / this.imageObj.height;
+              width = this.options.size * 2 * ratio || this.imageObj.width;
+              height = this.options.size * 2 || this.imageObj.height;
+            } else {
+              ratio = this.imageObj.height / this.imageObj.width;
+              width = this.options.size * 2 || this.imageObj.width;
+              height = this.options.size * 2 * ratio || this.imageObj.height;
+            }
+            this.width = width;
+            this.height = height;
+          }
+        },
+        writable: true,
+        configurable: true
+      },
       _drawRawCircle: {
         value: function _drawRawCircle(ctx, x, y, selected, hover, size) {
           var borderWidth = this.options.borderWidth;
@@ -37572,10 +37587,8 @@ return /******/ (function(modules) { // webpackBootstrap
           if (this.height !== undefined) {
             offset = this.height * 0.5;
             var labelDimensions = this.labelModule.getTextSize(ctx);
-
             if (labelDimensions.lineCount >= 1) {
               offset += labelDimensions.height / 2;
-              offset += 3;
             }
           }
 
