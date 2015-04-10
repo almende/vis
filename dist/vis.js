@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.0.0-SNAPSHOT
- * @date    2015-04-08
+ * @date    2015-04-10
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -3167,7 +3167,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   "use strict";
 
-  var Emitter = __webpack_require__(63);
+  var Emitter = __webpack_require__(42);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var util = __webpack_require__(1);
@@ -6375,13 +6375,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
   "use strict";
 
-  var Emitter = __webpack_require__(63);
+  var Emitter = __webpack_require__(42);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
-  var Core = __webpack_require__(42);
+  var Core = __webpack_require__(43);
   var TimeAxis = __webpack_require__(35);
   var CurrentTime = __webpack_require__(26);
   var CustomTime = __webpack_require__(27);
@@ -6704,13 +6704,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
   "use strict";
 
-  var Emitter = __webpack_require__(63);
+  var Emitter = __webpack_require__(42);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
-  var Core = __webpack_require__(42);
+  var Core = __webpack_require__(43);
   var TimeAxis = __webpack_require__(35);
   var CurrentTime = __webpack_require__(26);
   var CustomTime = __webpack_require__(27);
@@ -7687,7 +7687,7 @@ return /******/ (function(modules) { // webpackBootstrap
   "use strict";
 
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(43);
+  var hammerUtil = __webpack_require__(44);
   var moment = __webpack_require__(40);
   var Component = __webpack_require__(25);
   var DateUtil = __webpack_require__(15);
@@ -10440,7 +10440,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(25);
   var moment = __webpack_require__(40);
-  var locales = __webpack_require__(44);
+  var locales = __webpack_require__(45);
 
   /**
    * A current time bar
@@ -10610,7 +10610,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(25);
   var moment = __webpack_require__(40);
-  var locales = __webpack_require__(44);
+  var locales = __webpack_require__(45);
 
   /**
    * A custom time bar
@@ -11428,9 +11428,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(2);
-  var Line = __webpack_require__(45);
-  var Bar = __webpack_require__(46);
-  var Points = __webpack_require__(47);
+  var Line = __webpack_require__(46);
+  var Bar = __webpack_require__(47);
+  var Points = __webpack_require__(48);
 
   /**
    * /**
@@ -14042,7 +14042,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataAxis = __webpack_require__(28);
   var GraphGroup = __webpack_require__(29);
   var Legend = __webpack_require__(33);
-  var BarGraphFunctions = __webpack_require__(46);
+  var BarGraphFunctions = __webpack_require__(47);
 
   var UNGROUPED = "__ungrouped__"; // reserved group id for ungrouped items
 
@@ -15467,9 +15467,9 @@ return /******/ (function(modules) { // webpackBootstrap
   var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
 
   // Load custom shapes into CanvasRenderingContext2D
-  __webpack_require__(48);
+  __webpack_require__(49);
 
-  var Emitter = __webpack_require__(63);
+  var Emitter = __webpack_require__(42);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
@@ -15479,31 +15479,31 @@ return /******/ (function(modules) { // webpackBootstrap
   var Images = __webpack_require__(37);
   var Activator = __webpack_require__(50);
 
-  var Groups = _interopRequire(__webpack_require__(49));
+  var Groups = _interopRequire(__webpack_require__(51));
 
-  var NodesHandler = _interopRequire(__webpack_require__(51));
+  var NodesHandler = _interopRequire(__webpack_require__(52));
 
-  var EdgesHandler = _interopRequire(__webpack_require__(52));
+  var EdgesHandler = _interopRequire(__webpack_require__(53));
 
-  var PhysicsEngine = _interopRequire(__webpack_require__(53));
+  var PhysicsEngine = _interopRequire(__webpack_require__(54));
 
-  var ClusterEngine = _interopRequire(__webpack_require__(54));
+  var ClusterEngine = _interopRequire(__webpack_require__(55));
 
-  var CanvasRenderer = _interopRequire(__webpack_require__(55));
+  var CanvasRenderer = _interopRequire(__webpack_require__(56));
 
-  var Canvas = _interopRequire(__webpack_require__(56));
+  var Canvas = _interopRequire(__webpack_require__(57));
 
-  var View = _interopRequire(__webpack_require__(57));
+  var View = _interopRequire(__webpack_require__(58));
 
-  var InteractionHandler = _interopRequire(__webpack_require__(58));
+  var InteractionHandler = _interopRequire(__webpack_require__(59));
 
-  var SelectionHandler = _interopRequire(__webpack_require__(59));
+  var SelectionHandler = _interopRequire(__webpack_require__(60));
 
-  var LayoutEngine = _interopRequire(__webpack_require__(60));
+  var LayoutEngine = _interopRequire(__webpack_require__(61));
 
-  var ManipulationSystem = _interopRequire(__webpack_require__(61));
+  var ManipulationSystem = _interopRequire(__webpack_require__(62));
 
-  var ConfigurationSystem = _interopRequire(__webpack_require__(62));
+  var ConfigurationSystem = _interopRequire(__webpack_require__(63));
 
   /**
    * @constructor Network
@@ -16974,11 +16974,181 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
+  
+  /**
+   * Expose `Emitter`.
+   */
+
+  module.exports = Emitter;
+
+  /**
+   * Initialize a new `Emitter`.
+   *
+   * @api public
+   */
+
+  function Emitter(obj) {
+    if (obj) return mixin(obj);
+  };
+
+  /**
+   * Mixin the emitter properties.
+   *
+   * @param {Object} obj
+   * @return {Object}
+   * @api private
+   */
+
+  function mixin(obj) {
+    for (var key in Emitter.prototype) {
+      obj[key] = Emitter.prototype[key];
+    }
+    return obj;
+  }
+
+  /**
+   * Listen on the given `event` with `fn`.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.on =
+  Emitter.prototype.addEventListener = function(event, fn){
+    this._callbacks = this._callbacks || {};
+    (this._callbacks[event] = this._callbacks[event] || [])
+      .push(fn);
+    return this;
+  };
+
+  /**
+   * Adds an `event` listener that will be invoked a single
+   * time then automatically removed.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.once = function(event, fn){
+    var self = this;
+    this._callbacks = this._callbacks || {};
+
+    function on() {
+      self.off(event, on);
+      fn.apply(this, arguments);
+    }
+
+    on.fn = fn;
+    this.on(event, on);
+    return this;
+  };
+
+  /**
+   * Remove the given callback for `event` or all
+   * registered callbacks.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.off =
+  Emitter.prototype.removeListener =
+  Emitter.prototype.removeAllListeners =
+  Emitter.prototype.removeEventListener = function(event, fn){
+    this._callbacks = this._callbacks || {};
+
+    // all
+    if (0 == arguments.length) {
+      this._callbacks = {};
+      return this;
+    }
+
+    // specific event
+    var callbacks = this._callbacks[event];
+    if (!callbacks) return this;
+
+    // remove all handlers
+    if (1 == arguments.length) {
+      delete this._callbacks[event];
+      return this;
+    }
+
+    // remove specific handler
+    var cb;
+    for (var i = 0; i < callbacks.length; i++) {
+      cb = callbacks[i];
+      if (cb === fn || cb.fn === fn) {
+        callbacks.splice(i, 1);
+        break;
+      }
+    }
+    return this;
+  };
+
+  /**
+   * Emit `event` with the given args.
+   *
+   * @param {String} event
+   * @param {Mixed} ...
+   * @return {Emitter}
+   */
+
+  Emitter.prototype.emit = function(event){
+    this._callbacks = this._callbacks || {};
+    var args = [].slice.call(arguments, 1)
+      , callbacks = this._callbacks[event];
+
+    if (callbacks) {
+      callbacks = callbacks.slice(0);
+      for (var i = 0, len = callbacks.length; i < len; ++i) {
+        callbacks[i].apply(this, args);
+      }
+    }
+
+    return this;
+  };
+
+  /**
+   * Return array of callbacks for `event`.
+   *
+   * @param {String} event
+   * @return {Array}
+   * @api public
+   */
+
+  Emitter.prototype.listeners = function(event){
+    this._callbacks = this._callbacks || {};
+    return this._callbacks[event] || [];
+  };
+
+  /**
+   * Check if this emitter has `event` handlers.
+   *
+   * @param {String} event
+   * @return {Boolean}
+   * @api public
+   */
+
+  Emitter.prototype.hasListeners = function(event){
+    return !! this.listeners(event).length;
+  };
+
+
+/***/ },
+/* 43 */
+/***/ function(module, exports, __webpack_require__) {
+
   "use strict";
 
-  var Emitter = __webpack_require__(63);
+  var Emitter = __webpack_require__(42);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(43);
+  var hammerUtil = __webpack_require__(44);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
@@ -17907,7 +18077,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Core;
 
 /***/ },
-/* 43 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -17961,7 +18131,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.offRelease = exports.offTouch;
 
 /***/ },
-/* 44 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -17983,7 +18153,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.nl_BE = exports.nl;
 
 /***/ },
-/* 45 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -17992,7 +18162,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 11/11/2014.
    */
   var DOMutil = __webpack_require__(2);
-  var Points = __webpack_require__(47);
+  var Points = __webpack_require__(48);
 
   function Line(groupId, options) {
     this.groupId = groupId;
@@ -18198,7 +18368,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Line;
 
 /***/ },
-/* 46 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -18207,7 +18377,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 11/11/2014.
    */
   var DOMutil = __webpack_require__(2);
-  var Points = __webpack_require__(47);
+  var Points = __webpack_require__(48);
 
   function Bargraph(groupId, options) {
     this.groupId = groupId;
@@ -18442,7 +18612,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Bargraph;
 
 /***/ },
-/* 47 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -18494,7 +18664,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Points;
 
 /***/ },
-/* 48 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -18772,159 +18942,13 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 49 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-  var util = __webpack_require__(1);
-
-  /**
-   * @class Groups
-   * This class can store groups and options specific for groups.
-   */
-  var Groups = (function () {
-    function Groups() {
-      _classCallCheck(this, Groups);
-
-      this.clear();
-      this.defaultIndex = 0;
-      this.groupsArray = [];
-      this.groupIndex = 0;
-
-      this.defaultGroups = [{ border: "#2B7CE9", background: "#97C2FC", highlight: { border: "#2B7CE9", background: "#D2E5FF" }, hover: { border: "#2B7CE9", background: "#D2E5FF" } }, // 0: blue
-      { border: "#FFA500", background: "#FFFF00", highlight: { border: "#FFA500", background: "#FFFFA3" }, hover: { border: "#FFA500", background: "#FFFFA3" } }, // 1: yellow
-      { border: "#FA0A10", background: "#FB7E81", highlight: { border: "#FA0A10", background: "#FFAFB1" }, hover: { border: "#FA0A10", background: "#FFAFB1" } }, // 2: red
-      { border: "#41A906", background: "#7BE141", highlight: { border: "#41A906", background: "#A1EC76" }, hover: { border: "#41A906", background: "#A1EC76" } }, // 3: green
-      { border: "#E129F0", background: "#EB7DF4", highlight: { border: "#E129F0", background: "#F0B3F5" }, hover: { border: "#E129F0", background: "#F0B3F5" } }, // 4: magenta
-      { border: "#7C29F0", background: "#AD85E4", highlight: { border: "#7C29F0", background: "#D3BDF0" }, hover: { border: "#7C29F0", background: "#D3BDF0" } }, // 5: purple
-      { border: "#C37F00", background: "#FFA807", highlight: { border: "#C37F00", background: "#FFCA66" }, hover: { border: "#C37F00", background: "#FFCA66" } }, // 6: orange
-      { border: "#4220FB", background: "#6E6EFD", highlight: { border: "#4220FB", background: "#9B9BFD" }, hover: { border: "#4220FB", background: "#9B9BFD" } }, // 7: darkblue
-      { border: "#FD5A77", background: "#FFC0CB", highlight: { border: "#FD5A77", background: "#FFD1D9" }, hover: { border: "#FD5A77", background: "#FFD1D9" } }, // 8: pink
-      { border: "#4AD63A", background: "#C2FABC", highlight: { border: "#4AD63A", background: "#E6FFE3" }, hover: { border: "#4AD63A", background: "#E6FFE3" } }, // 9: mint
-
-      { border: "#990000", background: "#EE0000", highlight: { border: "#BB0000", background: "#FF3333" }, hover: { border: "#BB0000", background: "#FF3333" } }, // 10:bright red
-
-      { border: "#FF6000", background: "#FF6000", highlight: { border: "#FF6000", background: "#FF6000" }, hover: { border: "#FF6000", background: "#FF6000" } }, // 12: real orange
-      { border: "#97C2FC", background: "#2B7CE9", highlight: { border: "#D2E5FF", background: "#2B7CE9" }, hover: { border: "#D2E5FF", background: "#2B7CE9" } }, // 13: blue
-      { border: "#399605", background: "#255C03", highlight: { border: "#399605", background: "#255C03" }, hover: { border: "#399605", background: "#255C03" } }, // 14: green
-      { border: "#B70054", background: "#FF007E", highlight: { border: "#B70054", background: "#FF007E" }, hover: { border: "#B70054", background: "#FF007E" } }, // 15: magenta
-      { border: "#AD85E4", background: "#7C29F0", highlight: { border: "#D3BDF0", background: "#7C29F0" }, hover: { border: "#D3BDF0", background: "#7C29F0" } }, // 16: purple
-      { border: "#4557FA", background: "#000EA1", highlight: { border: "#6E6EFD", background: "#000EA1" }, hover: { border: "#6E6EFD", background: "#000EA1" } }, // 17: darkblue
-      { border: "#FFC0CB", background: "#FD5A77", highlight: { border: "#FFD1D9", background: "#FD5A77" }, hover: { border: "#FFD1D9", background: "#FD5A77" } }, // 18: pink
-      { border: "#C2FABC", background: "#74D66A", highlight: { border: "#E6FFE3", background: "#74D66A" }, hover: { border: "#E6FFE3", background: "#74D66A" } }, // 19: mint
-
-      { border: "#EE0000", background: "#990000", highlight: { border: "#FF3333", background: "#BB0000" }, hover: { border: "#FF3333", background: "#BB0000" } }];
-
-      this.options = {};
-      this.defaultOptions = {
-        useDefaultGroups: true
-      };
-      util.extend(this.options, this.defaultOptions);
-    }
-
-    _prototypeProperties(Groups, null, {
-      setOptions: {
-        value: function setOptions(options) {
-          var optionFields = ["useDefaultGroups"];
-
-          if (options !== undefined) {
-            for (var groupName in options) {
-              if (options.hasOwnProperty(groupName)) {
-                if (optionFields.indexOf(groupName) === -1) {
-                  var group = options[groupName];
-                  this.add(groupName, group);
-                }
-              }
-            }
-          }
-        },
-        writable: true,
-        configurable: true
-      },
-      clear: {
-
-
-        /**
-         * Clear all groups
-         */
-        value: function clear() {
-          this.groups = {};
-          this.groupsArray = [];
-        },
-        writable: true,
-        configurable: true
-      },
-      get: {
-
-        /**
-         * get group options of a groupname. If groupname is not found, a new group
-         * is added.
-         * @param {*} groupname        Can be a number, string, Date, etc.
-         * @return {Object} group      The created group, containing all group options
-         */
-        value: function get(groupname) {
-          var group = this.groups[groupname];
-          if (group === undefined) {
-            if (this.options.useDefaultGroups === false && this.groupsArray.length > 0) {
-              // create new group
-              var index = this.groupIndex % this.groupsArray.length;
-              this.groupIndex++;
-              group = {};
-              group.color = this.groups[this.groupsArray[index]];
-              this.groups[groupname] = group;
-            } else {
-              // create new group
-              var index = this.defaultIndex % this.defaultGroups.length;
-              this.defaultIndex++;
-              group = {};
-              group.color = this.defaultGroups[index];
-              this.groups[groupname] = group;
-            }
-          }
-
-          return group;
-        },
-        writable: true,
-        configurable: true
-      },
-      add: {
-
-        /**
-         * Add a custom group style
-         * @param {String} groupName
-         * @param {Object} style       An object containing borderColor,
-         *                             backgroundColor, etc.
-         * @return {Object} group      The created group object
-         */
-        value: function add(groupName, style) {
-          this.groups[groupName] = style;
-          this.groupsArray.push(groupName);
-          return style;
-        },
-        writable: true,
-        configurable: true
-      }
-    });
-
-    return Groups;
-  })();
-
-  module.exports = Groups;
-  // 20:bright red
-
-/***/ },
 /* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
 
-  var keycharm = __webpack_require__(80);
-  var Emitter = __webpack_require__(63);
+  var keycharm = __webpack_require__(67);
+  var Emitter = __webpack_require__(42);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
 
@@ -19077,6 +19101,152 @@ return /******/ (function(modules) { // webpackBootstrap
 
   "use strict";
 
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  var util = __webpack_require__(1);
+
+  /**
+   * @class Groups
+   * This class can store groups and options specific for groups.
+   */
+  var Groups = (function () {
+    function Groups() {
+      _classCallCheck(this, Groups);
+
+      this.clear();
+      this.defaultIndex = 0;
+      this.groupsArray = [];
+      this.groupIndex = 0;
+
+      this.defaultGroups = [{ border: "#2B7CE9", background: "#97C2FC", highlight: { border: "#2B7CE9", background: "#D2E5FF" }, hover: { border: "#2B7CE9", background: "#D2E5FF" } }, // 0: blue
+      { border: "#FFA500", background: "#FFFF00", highlight: { border: "#FFA500", background: "#FFFFA3" }, hover: { border: "#FFA500", background: "#FFFFA3" } }, // 1: yellow
+      { border: "#FA0A10", background: "#FB7E81", highlight: { border: "#FA0A10", background: "#FFAFB1" }, hover: { border: "#FA0A10", background: "#FFAFB1" } }, // 2: red
+      { border: "#41A906", background: "#7BE141", highlight: { border: "#41A906", background: "#A1EC76" }, hover: { border: "#41A906", background: "#A1EC76" } }, // 3: green
+      { border: "#E129F0", background: "#EB7DF4", highlight: { border: "#E129F0", background: "#F0B3F5" }, hover: { border: "#E129F0", background: "#F0B3F5" } }, // 4: magenta
+      { border: "#7C29F0", background: "#AD85E4", highlight: { border: "#7C29F0", background: "#D3BDF0" }, hover: { border: "#7C29F0", background: "#D3BDF0" } }, // 5: purple
+      { border: "#C37F00", background: "#FFA807", highlight: { border: "#C37F00", background: "#FFCA66" }, hover: { border: "#C37F00", background: "#FFCA66" } }, // 6: orange
+      { border: "#4220FB", background: "#6E6EFD", highlight: { border: "#4220FB", background: "#9B9BFD" }, hover: { border: "#4220FB", background: "#9B9BFD" } }, // 7: darkblue
+      { border: "#FD5A77", background: "#FFC0CB", highlight: { border: "#FD5A77", background: "#FFD1D9" }, hover: { border: "#FD5A77", background: "#FFD1D9" } }, // 8: pink
+      { border: "#4AD63A", background: "#C2FABC", highlight: { border: "#4AD63A", background: "#E6FFE3" }, hover: { border: "#4AD63A", background: "#E6FFE3" } }, // 9: mint
+
+      { border: "#990000", background: "#EE0000", highlight: { border: "#BB0000", background: "#FF3333" }, hover: { border: "#BB0000", background: "#FF3333" } }, // 10:bright red
+
+      { border: "#FF6000", background: "#FF6000", highlight: { border: "#FF6000", background: "#FF6000" }, hover: { border: "#FF6000", background: "#FF6000" } }, // 12: real orange
+      { border: "#97C2FC", background: "#2B7CE9", highlight: { border: "#D2E5FF", background: "#2B7CE9" }, hover: { border: "#D2E5FF", background: "#2B7CE9" } }, // 13: blue
+      { border: "#399605", background: "#255C03", highlight: { border: "#399605", background: "#255C03" }, hover: { border: "#399605", background: "#255C03" } }, // 14: green
+      { border: "#B70054", background: "#FF007E", highlight: { border: "#B70054", background: "#FF007E" }, hover: { border: "#B70054", background: "#FF007E" } }, // 15: magenta
+      { border: "#AD85E4", background: "#7C29F0", highlight: { border: "#D3BDF0", background: "#7C29F0" }, hover: { border: "#D3BDF0", background: "#7C29F0" } }, // 16: purple
+      { border: "#4557FA", background: "#000EA1", highlight: { border: "#6E6EFD", background: "#000EA1" }, hover: { border: "#6E6EFD", background: "#000EA1" } }, // 17: darkblue
+      { border: "#FFC0CB", background: "#FD5A77", highlight: { border: "#FFD1D9", background: "#FD5A77" }, hover: { border: "#FFD1D9", background: "#FD5A77" } }, // 18: pink
+      { border: "#C2FABC", background: "#74D66A", highlight: { border: "#E6FFE3", background: "#74D66A" }, hover: { border: "#E6FFE3", background: "#74D66A" } }, // 19: mint
+
+      { border: "#EE0000", background: "#990000", highlight: { border: "#FF3333", background: "#BB0000" }, hover: { border: "#FF3333", background: "#BB0000" } }];
+
+      this.options = {};
+      this.defaultOptions = {
+        useDefaultGroups: true
+      };
+      util.extend(this.options, this.defaultOptions);
+    }
+
+    _prototypeProperties(Groups, null, {
+      setOptions: {
+        value: function setOptions(options) {
+          var optionFields = ["useDefaultGroups"];
+
+          if (options !== undefined) {
+            for (var groupName in options) {
+              if (options.hasOwnProperty(groupName)) {
+                if (optionFields.indexOf(groupName) === -1) {
+                  var group = options[groupName];
+                  this.add(groupName, group);
+                }
+              }
+            }
+          }
+        },
+        writable: true,
+        configurable: true
+      },
+      clear: {
+
+
+        /**
+         * Clear all groups
+         */
+        value: function clear() {
+          this.groups = {};
+          this.groupsArray = [];
+        },
+        writable: true,
+        configurable: true
+      },
+      get: {
+
+        /**
+         * get group options of a groupname. If groupname is not found, a new group
+         * is added.
+         * @param {*} groupname        Can be a number, string, Date, etc.
+         * @return {Object} group      The created group, containing all group options
+         */
+        value: function get(groupname) {
+          var group = this.groups[groupname];
+          if (group === undefined) {
+            if (this.options.useDefaultGroups === false && this.groupsArray.length > 0) {
+              // create new group
+              var index = this.groupIndex % this.groupsArray.length;
+              this.groupIndex++;
+              group = {};
+              group.color = this.groups[this.groupsArray[index]];
+              this.groups[groupname] = group;
+            } else {
+              // create new group
+              var index = this.defaultIndex % this.defaultGroups.length;
+              this.defaultIndex++;
+              group = {};
+              group.color = this.defaultGroups[index];
+              this.groups[groupname] = group;
+            }
+          }
+
+          return group;
+        },
+        writable: true,
+        configurable: true
+      },
+      add: {
+
+        /**
+         * Add a custom group style
+         * @param {String} groupName
+         * @param {Object} style       An object containing borderColor,
+         *                             backgroundColor, etc.
+         * @return {Object} group      The created group object
+         */
+        value: function add(groupName, style) {
+          this.groups[groupName] = style;
+          this.groupsArray.push(groupName);
+          return style;
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return Groups;
+  })();
+
+  module.exports = Groups;
+  // 20:bright red
+
+/***/ },
+/* 52 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
   var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
 
   var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
@@ -19091,7 +19261,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
 
-  var Node = _interopRequire(__webpack_require__(67));
+  var Node = _interopRequire(__webpack_require__(68));
 
   var NodesHandler = (function () {
     function NodesHandler(body, images, groups, layoutEngine) {
@@ -19403,7 +19573,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = NodesHandler;
 
 /***/ },
-/* 52 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -19423,7 +19593,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
 
-  var Edge = _interopRequire(__webpack_require__(68));
+  var Edge = _interopRequire(__webpack_require__(69));
 
   var EdgesHandler = (function () {
     function EdgesHandler(body, images, groups) {
@@ -19871,7 +20041,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = EdgesHandler;
 
 /***/ },
-/* 53 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -19886,17 +20056,17 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 2/23/2015.
    */
 
-  var BarnesHutSolver = _interopRequire(__webpack_require__(69));
+  var BarnesHutSolver = _interopRequire(__webpack_require__(70));
 
-  var Repulsion = _interopRequire(__webpack_require__(70));
+  var Repulsion = _interopRequire(__webpack_require__(71));
 
-  var HierarchicalRepulsion = _interopRequire(__webpack_require__(71));
+  var HierarchicalRepulsion = _interopRequire(__webpack_require__(72));
 
-  var SpringSolver = _interopRequire(__webpack_require__(72));
+  var SpringSolver = _interopRequire(__webpack_require__(73));
 
-  var HierarchicalSpringSolver = _interopRequire(__webpack_require__(73));
+  var HierarchicalSpringSolver = _interopRequire(__webpack_require__(74));
 
-  var CentralGravitySolver = _interopRequire(__webpack_require__(74));
+  var CentralGravitySolver = _interopRequire(__webpack_require__(75));
 
   var util = __webpack_require__(1);
 
@@ -20033,6 +20203,7 @@ return /******/ (function(modules) { // webpackBootstrap
           if (this.physicsEnabled === true) {
             this.stabilized = false;
             if (this.options.stabilization.enabled === true) {
+              this.body.emitter.emit("_blockRedrawRequests");
               this.stabilize();
             } else {
               this.ready = true;
@@ -20091,7 +20262,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
           if (this.stabilized === true) {
             if (this.stabilizationIterations > 1) {
-              // trigger the "stabilized" event.
+              // trigger the 'stabilized' event.
               // The event is triggered on the next tick, to prevent the case that
               // it is fired while initializing the Network, in which case you would not
               // be able to catch it
@@ -20116,7 +20287,7 @@ return /******/ (function(modules) { // webpackBootstrap
       physicsTick: {
 
         /**
-         * A single simulation step (or "tick") in the physics simulation
+         * A single simulation step (or 'tick') in the physics simulation
          *
          * @private
          */
@@ -20382,6 +20553,7 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       _finalizeStabilization: {
         value: function _finalizeStabilization() {
+          this.body.emitter.emit("_allowRedrawRequests");
           if (this.options.stabilization.zoomExtent === true) {
             this.body.emitter.emit("zoomExtent", { duration: 0 });
           }
@@ -20406,7 +20578,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = PhysicsEngine;
 
 /***/ },
-/* 54 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -20422,7 +20594,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
 
   var util = __webpack_require__(1);
-  var Cluster = _interopRequire(__webpack_require__(75));
+  var Cluster = _interopRequire(__webpack_require__(76));
 
   var ClusterEngine = (function () {
     function ClusterEngine(body) {
@@ -21103,7 +21275,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = ClusterEngine;
 
 /***/ },
-/* 55 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -21137,6 +21309,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.renderingActive = false;
       this.renderRequests = 0;
       this.pixelRatio = undefined;
+      this.allowRedrawRequests = true;
 
       this.dragging = false;
 
@@ -21151,12 +21324,21 @@ return /******/ (function(modules) { // webpackBootstrap
           _this._redraw();
         }
       });
+      this.body.emitter.on("_blockRedrawRequests", function () {
+        _this.allowRedrawRequests = false;
+      });
+      this.body.emitter.on("_allowRedrawRequests", function () {
+        _this.allowRedrawRequests = true;
+      });
       this.body.emitter.on("_requestRedraw", this._requestRedraw.bind(this));
       this.body.emitter.on("_startRendering", function () {
-        _this.renderRequests += 1;_this.renderingActive = true;_this.startRendering();
+        _this.renderRequests += 1;
+        _this.renderingActive = true;
+        _this.startRendering();
       });
       this.body.emitter.on("_stopRendering", function () {
-        _this.renderRequests -= 1;_this.renderingActive = _this.renderRequests > 0;
+        _this.renderRequests -= 1;
+        _this.renderingActive = _this.renderRequests > 0;
       });
 
       this.options = {};
@@ -21234,7 +21416,7 @@ return /******/ (function(modules) { // webpackBootstrap
          * @private
          */
         value: function _requestRedraw() {
-          if (this.redrawRequested !== true && this.renderingActive === false) {
+          if (this.redrawRequested !== true && this.renderingActive === false && this.allowRedrawRequests === true) {
             this.redrawRequested = true;
             if (this.requiresTimeout === true) {
               window.setTimeout(this._redraw.bind(this, false), 0);
@@ -21269,7 +21451,6 @@ return /******/ (function(modules) { // webpackBootstrap
           var w = this.canvas.frame.canvas.clientWidth;
           var h = this.canvas.frame.canvas.clientHeight;
           ctx.clearRect(0, 0, w, h);
-
 
 
           this.body.emitter.emit("beforeDrawing", ctx);
@@ -21431,7 +21612,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CanvasRenderer;
 
 /***/ },
-/* 56 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -21441,7 +21622,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(43);
+  var hammerUtil = __webpack_require__(44);
 
   var util = __webpack_require__(1);
 
@@ -21753,7 +21934,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Canvas;
 
 /***/ },
-/* 57 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -22165,7 +22346,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = View;
 
 /***/ },
-/* 58 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -22183,9 +22364,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
 
-  var NavigationHandler = _interopRequire(__webpack_require__(76));
+  var NavigationHandler = _interopRequire(__webpack_require__(77));
 
-  var Popup = _interopRequire(__webpack_require__(77));
+  var Popup = _interopRequire(__webpack_require__(78));
 
   var InteractionHandler = (function () {
     function InteractionHandler(body, canvas, selectionHandler) {
@@ -22885,7 +23066,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = InteractionHandler;
 
 /***/ },
-/* 59 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -22898,7 +23079,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Created by Alex on 2/27/2015.
    */
 
-  var Node = __webpack_require__(67);
+  var Node = __webpack_require__(68);
   var util = __webpack_require__(1);
 
   var SelectionHandler = (function () {
@@ -23642,7 +23823,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = SelectionHandler;
 
 /***/ },
-/* 60 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -24136,7 +24317,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = LayoutEngine;
 
 /***/ },
-/* 61 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -24147,8 +24328,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(43);
-  var locales = __webpack_require__(78);
+  var hammerUtil = __webpack_require__(44);
+  var locales = __webpack_require__(79);
 
   /**
    * clears the toolbar div element of children
@@ -25319,7 +25500,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = ManipulationSystem;
 
 /***/ },
-/* 62 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -25337,7 +25518,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
 
-  var ColorPicker = _interopRequire(__webpack_require__(79));
+  var ColorPicker = _interopRequire(__webpack_require__(80));
 
   var ConfigurationSystem = (function () {
     function ConfigurationSystem(network) {
@@ -26156,176 +26337,6 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = ConfigurationSystem;
   //this._makeLabel(optionName, path);
   //console.log('string', string, value, path);
-
-/***/ },
-/* 63 */
-/***/ function(module, exports, __webpack_require__) {
-
-  
-  /**
-   * Expose `Emitter`.
-   */
-
-  module.exports = Emitter;
-
-  /**
-   * Initialize a new `Emitter`.
-   *
-   * @api public
-   */
-
-  function Emitter(obj) {
-    if (obj) return mixin(obj);
-  };
-
-  /**
-   * Mixin the emitter properties.
-   *
-   * @param {Object} obj
-   * @return {Object}
-   * @api private
-   */
-
-  function mixin(obj) {
-    for (var key in Emitter.prototype) {
-      obj[key] = Emitter.prototype[key];
-    }
-    return obj;
-  }
-
-  /**
-   * Listen on the given `event` with `fn`.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.on =
-  Emitter.prototype.addEventListener = function(event, fn){
-    this._callbacks = this._callbacks || {};
-    (this._callbacks[event] = this._callbacks[event] || [])
-      .push(fn);
-    return this;
-  };
-
-  /**
-   * Adds an `event` listener that will be invoked a single
-   * time then automatically removed.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.once = function(event, fn){
-    var self = this;
-    this._callbacks = this._callbacks || {};
-
-    function on() {
-      self.off(event, on);
-      fn.apply(this, arguments);
-    }
-
-    on.fn = fn;
-    this.on(event, on);
-    return this;
-  };
-
-  /**
-   * Remove the given callback for `event` or all
-   * registered callbacks.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.off =
-  Emitter.prototype.removeListener =
-  Emitter.prototype.removeAllListeners =
-  Emitter.prototype.removeEventListener = function(event, fn){
-    this._callbacks = this._callbacks || {};
-
-    // all
-    if (0 == arguments.length) {
-      this._callbacks = {};
-      return this;
-    }
-
-    // specific event
-    var callbacks = this._callbacks[event];
-    if (!callbacks) return this;
-
-    // remove all handlers
-    if (1 == arguments.length) {
-      delete this._callbacks[event];
-      return this;
-    }
-
-    // remove specific handler
-    var cb;
-    for (var i = 0; i < callbacks.length; i++) {
-      cb = callbacks[i];
-      if (cb === fn || cb.fn === fn) {
-        callbacks.splice(i, 1);
-        break;
-      }
-    }
-    return this;
-  };
-
-  /**
-   * Emit `event` with the given args.
-   *
-   * @param {String} event
-   * @param {Mixed} ...
-   * @return {Emitter}
-   */
-
-  Emitter.prototype.emit = function(event){
-    this._callbacks = this._callbacks || {};
-    var args = [].slice.call(arguments, 1)
-      , callbacks = this._callbacks[event];
-
-    if (callbacks) {
-      callbacks = callbacks.slice(0);
-      for (var i = 0, len = callbacks.length; i < len; ++i) {
-        callbacks[i].apply(this, args);
-      }
-    }
-
-    return this;
-  };
-
-  /**
-   * Return array of callbacks for `event`.
-   *
-   * @param {String} event
-   * @return {Array}
-   * @api public
-   */
-
-  Emitter.prototype.listeners = function(event){
-    this._callbacks = this._callbacks || {};
-    return this._callbacks[event] || [];
-  };
-
-  /**
-   * Check if this emitter has `event` handlers.
-   *
-   * @param {String} event
-   * @return {Boolean}
-   * @api public
-   */
-
-  Emitter.prototype.hasListeners = function(event){
-    return !! this.listeners(event).length;
-  };
-
 
 /***/ },
 /* 64 */
@@ -29413,7 +29424,7 @@ return /******/ (function(modules) { // webpackBootstrap
       return _moment;
 
   }));
-  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(100)(module)))
+  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(82)(module)))
 
 /***/ },
 /* 65 */
@@ -32073,7 +32084,7 @@ return /******/ (function(modules) { // webpackBootstrap
       prefixed: prefixed
   });
 
-  if ("function" == TYPE_FUNCTION && __webpack_require__(101)) {
+  if ("function" == TYPE_FUNCTION && __webpack_require__(83)) {
       !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
           return Hammer;
       }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -32090,6 +32101,204 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
+  var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
+  /**
+   * Created by Alex on 11/6/2014.
+   */
+
+  // https://github.com/umdjs/umd/blob/master/returnExports.js#L40-L60
+  // if the module has no dependencies, the above pattern can be simplified to
+  (function (root, factory) {
+    if (true) {
+      // AMD. Register as an anonymous module.
+      !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+    } else if (typeof exports === 'object') {
+      // Node. Does not work with strict CommonJS, but
+      // only CommonJS-like environments that support module.exports,
+      // like Node.
+      module.exports = factory();
+    } else {
+      // Browser globals (root is window)
+      root.keycharm = factory();
+    }
+  }(this, function () {
+
+    function keycharm(options) {
+      var preventDefault = options && options.preventDefault || false;
+
+      var container = options && options.container || window;
+      var _exportFunctions = {};
+      var _bound = {keydown:{}, keyup:{}};
+      var _keys = {};
+      var i;
+
+      // a - z
+      for (i = 97; i <= 122; i++) {_keys[String.fromCharCode(i)] = {code:65 + (i - 97), shift: false};}
+      // A - Z
+      for (i = 65; i <= 90; i++) {_keys[String.fromCharCode(i)] = {code:i, shift: true};}
+      // 0 - 9
+      for (i = 0;  i <= 9;   i++) {_keys['' + i] = {code:48 + i, shift: false};}
+      // F1 - F12
+      for (i = 1;  i <= 12;   i++) {_keys['F' + i] = {code:111 + i, shift: false};}
+      // num0 - num9
+      for (i = 0;  i <= 9;   i++) {_keys['num' + i] = {code:96 + i, shift: false};}
+
+      // numpad misc
+      _keys['num*'] = {code:106, shift: false};
+      _keys['num+'] = {code:107, shift: false};
+      _keys['num-'] = {code:109, shift: false};
+      _keys['num/'] = {code:111, shift: false};
+      _keys['num.'] = {code:110, shift: false};
+      // arrows
+      _keys['left']  = {code:37, shift: false};
+      _keys['up']    = {code:38, shift: false};
+      _keys['right'] = {code:39, shift: false};
+      _keys['down']  = {code:40, shift: false};
+      // extra keys
+      _keys['space'] = {code:32, shift: false};
+      _keys['enter'] = {code:13, shift: false};
+      _keys['shift'] = {code:16, shift: undefined};
+      _keys['esc']   = {code:27, shift: false};
+      _keys['backspace'] = {code:8, shift: false};
+      _keys['tab']       = {code:9, shift: false};
+      _keys['ctrl']      = {code:17, shift: false};
+      _keys['alt']       = {code:18, shift: false};
+      _keys['delete']    = {code:46, shift: false};
+      _keys['pageup']    = {code:33, shift: false};
+      _keys['pagedown']  = {code:34, shift: false};
+      // symbols
+      _keys['=']     = {code:187, shift: false};
+      _keys['-']     = {code:189, shift: false};
+      _keys[']']     = {code:221, shift: false};
+      _keys['[']     = {code:219, shift: false};
+
+
+
+      var down = function(event) {handleEvent(event,'keydown');};
+      var up = function(event) {handleEvent(event,'keyup');};
+
+      // handle the actualy bound key with the event
+      var handleEvent = function(event,type) {
+        if (_bound[type][event.keyCode] !== undefined) {
+          var bound = _bound[type][event.keyCode];
+          for (var i = 0; i < bound.length; i++) {
+            if (bound[i].shift === undefined) {
+              bound[i].fn(event);
+            }
+            else if (bound[i].shift == true && event.shiftKey == true) {
+              bound[i].fn(event);
+            }
+            else if (bound[i].shift == false && event.shiftKey == false) {
+              bound[i].fn(event);
+            }
+          }
+
+          if (preventDefault == true) {
+            event.preventDefault();
+          }
+        }
+      };
+
+      // bind a key to a callback
+      _exportFunctions.bind = function(key, callback, type) {
+        if (type === undefined) {
+          type = 'keydown';
+        }
+        if (_keys[key] === undefined) {
+          throw new Error("unsupported key: " + key);
+        }
+        if (_bound[type][_keys[key].code] === undefined) {
+          _bound[type][_keys[key].code] = [];
+        }
+        _bound[type][_keys[key].code].push({fn:callback, shift:_keys[key].shift});
+      };
+
+
+      // bind all keys to a call back (demo purposes)
+      _exportFunctions.bindAll = function(callback, type) {
+        if (type === undefined) {
+          type = 'keydown';
+        }
+        for (var key in _keys) {
+          if (_keys.hasOwnProperty(key)) {
+            _exportFunctions.bind(key,callback,type);
+          }
+        }
+      };
+
+      // get the key label from an event
+      _exportFunctions.getKey = function(event) {
+        for (var key in _keys) {
+          if (_keys.hasOwnProperty(key)) {
+            if (event.shiftKey == true && _keys[key].shift == true && event.keyCode == _keys[key].code) {
+              return key;
+            }
+            else if (event.shiftKey == false && _keys[key].shift == false && event.keyCode == _keys[key].code) {
+              return key;
+            }
+            else if (event.keyCode == _keys[key].code && key == 'shift') {
+              return key;
+            }
+          }
+        }
+        return "unknown key, currently not supported";
+      };
+
+      // unbind either a specific callback from a key or all of them (by leaving callback undefined)
+      _exportFunctions.unbind = function(key, callback, type) {
+        if (type === undefined) {
+          type = 'keydown';
+        }
+        if (_keys[key] === undefined) {
+          throw new Error("unsupported key: " + key);
+        }
+        if (callback !== undefined) {
+          var newBindings = [];
+          var bound = _bound[type][_keys[key].code];
+          if (bound !== undefined) {
+            for (var i = 0; i < bound.length; i++) {
+              if (!(bound[i].fn == callback && bound[i].shift == _keys[key].shift)) {
+                newBindings.push(_bound[type][_keys[key].code][i]);
+              }
+            }
+          }
+          _bound[type][_keys[key].code] = newBindings;
+        }
+        else {
+          _bound[type][_keys[key].code] = [];
+        }
+      };
+
+      // reset all bound variables.
+      _exportFunctions.reset = function() {
+        _bound = {keydown:{}, keyup:{}};
+      };
+
+      // unbind all listeners and reset all variables.
+      _exportFunctions.destroy = function() {
+        _bound = {keydown:{}, keyup:{}};
+        container.removeEventListener('keydown', down, true);
+        container.removeEventListener('keyup', up, true);
+      };
+
+      // create listeners.
+      container.addEventListener('keydown',down,true);
+      container.addEventListener('keyup',up,true);
+
+      // return the public functions.
+      return _exportFunctions;
+    }
+
+    return keycharm;
+  }));
+
+
+
+
+/***/ },
+/* 68 */
+/***/ function(module, exports, __webpack_require__) {
+
   "use strict";
 
   var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
@@ -32100,35 +32309,35 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
 
-  var Label = _interopRequire(__webpack_require__(82));
+  var Label = _interopRequire(__webpack_require__(84));
 
-  var Box = _interopRequire(__webpack_require__(83));
+  var Box = _interopRequire(__webpack_require__(85));
 
-  var Circle = _interopRequire(__webpack_require__(84));
+  var Circle = _interopRequire(__webpack_require__(86));
 
-  var CircularImage = _interopRequire(__webpack_require__(85));
+  var CircularImage = _interopRequire(__webpack_require__(87));
 
-  var Database = _interopRequire(__webpack_require__(86));
+  var Database = _interopRequire(__webpack_require__(88));
 
-  var Diamond = _interopRequire(__webpack_require__(87));
+  var Diamond = _interopRequire(__webpack_require__(89));
 
-  var Dot = _interopRequire(__webpack_require__(88));
+  var Dot = _interopRequire(__webpack_require__(90));
 
-  var Ellipse = _interopRequire(__webpack_require__(89));
+  var Ellipse = _interopRequire(__webpack_require__(91));
 
-  var Icon = _interopRequire(__webpack_require__(90));
+  var Icon = _interopRequire(__webpack_require__(92));
 
-  var Image = _interopRequire(__webpack_require__(91));
+  var Image = _interopRequire(__webpack_require__(93));
 
-  var Square = _interopRequire(__webpack_require__(92));
+  var Square = _interopRequire(__webpack_require__(94));
 
-  var Star = _interopRequire(__webpack_require__(94));
+  var Star = _interopRequire(__webpack_require__(95));
 
-  var Text = _interopRequire(__webpack_require__(93));
+  var Text = _interopRequire(__webpack_require__(96));
 
-  var Triangle = _interopRequire(__webpack_require__(95));
+  var Triangle = _interopRequire(__webpack_require__(97));
 
-  var TriangleDown = _interopRequire(__webpack_require__(96));
+  var TriangleDown = _interopRequire(__webpack_require__(98));
 
   /**
    * @class Node
@@ -32546,7 +32755,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Node;
 
 /***/ },
-/* 68 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -32560,13 +32769,13 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
 
 
-  var Label = _interopRequire(__webpack_require__(82));
+  var Label = _interopRequire(__webpack_require__(84));
 
-  var BezierEdgeDynamic = _interopRequire(__webpack_require__(97));
+  var BezierEdgeDynamic = _interopRequire(__webpack_require__(99));
 
-  var BezierEdgeStatic = _interopRequire(__webpack_require__(98));
+  var BezierEdgeStatic = _interopRequire(__webpack_require__(100));
 
-  var StraightEdge = _interopRequire(__webpack_require__(99));
+  var StraightEdge = _interopRequire(__webpack_require__(101));
 
   /**
    * @class Edge
@@ -33071,7 +33280,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Edge;
 
 /***/ },
-/* 69 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33581,7 +33790,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BarnesHutSolver;
 
 /***/ },
-/* 70 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33679,7 +33888,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = RepulsionSolver;
 
 /***/ },
-/* 71 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33774,7 +33983,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = HierarchicalRepulsionSolver;
 
 /***/ },
-/* 72 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33891,7 +34100,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = SpringSolver;
 
 /***/ },
-/* 73 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34017,7 +34226,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = HierarchicalSpringSolver;
 
 /***/ },
-/* 74 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34081,7 +34290,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CentralGravitySolver;
 
 /***/ },
-/* 75 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34094,7 +34303,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-  var Node = _interopRequire(__webpack_require__(67));
+  var Node = _interopRequire(__webpack_require__(68));
 
   /**
    *
@@ -34118,7 +34327,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Cluster;
 
 /***/ },
-/* 76 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34129,8 +34338,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(43);
-  var keycharm = __webpack_require__(80);
+  var hammerUtil = __webpack_require__(44);
+  var keycharm = __webpack_require__(67);
 
   var NavigationHandler = (function () {
     function NavigationHandler(body, canvas) {
@@ -34411,7 +34620,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = NavigationHandler;
 
 /***/ },
-/* 77 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34579,7 +34788,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Popup;
 
 /***/ },
-/* 78 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34623,7 +34832,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.nl_BE = exports.nl;
 
 /***/ },
-/* 79 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34637,7 +34846,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
 
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(43);
+  var hammerUtil = __webpack_require__(44);
   var util = __webpack_require__(1);
 
   var ColorPicker = (function () {
@@ -35252,204 +35461,6 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = ColorPicker;
 
 /***/ },
-/* 80 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
-  /**
-   * Created by Alex on 11/6/2014.
-   */
-
-  // https://github.com/umdjs/umd/blob/master/returnExports.js#L40-L60
-  // if the module has no dependencies, the above pattern can be simplified to
-  (function (root, factory) {
-    if (true) {
-      // AMD. Register as an anonymous module.
-      !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-    } else if (typeof exports === 'object') {
-      // Node. Does not work with strict CommonJS, but
-      // only CommonJS-like environments that support module.exports,
-      // like Node.
-      module.exports = factory();
-    } else {
-      // Browser globals (root is window)
-      root.keycharm = factory();
-    }
-  }(this, function () {
-
-    function keycharm(options) {
-      var preventDefault = options && options.preventDefault || false;
-
-      var container = options && options.container || window;
-      var _exportFunctions = {};
-      var _bound = {keydown:{}, keyup:{}};
-      var _keys = {};
-      var i;
-
-      // a - z
-      for (i = 97; i <= 122; i++) {_keys[String.fromCharCode(i)] = {code:65 + (i - 97), shift: false};}
-      // A - Z
-      for (i = 65; i <= 90; i++) {_keys[String.fromCharCode(i)] = {code:i, shift: true};}
-      // 0 - 9
-      for (i = 0;  i <= 9;   i++) {_keys['' + i] = {code:48 + i, shift: false};}
-      // F1 - F12
-      for (i = 1;  i <= 12;   i++) {_keys['F' + i] = {code:111 + i, shift: false};}
-      // num0 - num9
-      for (i = 0;  i <= 9;   i++) {_keys['num' + i] = {code:96 + i, shift: false};}
-
-      // numpad misc
-      _keys['num*'] = {code:106, shift: false};
-      _keys['num+'] = {code:107, shift: false};
-      _keys['num-'] = {code:109, shift: false};
-      _keys['num/'] = {code:111, shift: false};
-      _keys['num.'] = {code:110, shift: false};
-      // arrows
-      _keys['left']  = {code:37, shift: false};
-      _keys['up']    = {code:38, shift: false};
-      _keys['right'] = {code:39, shift: false};
-      _keys['down']  = {code:40, shift: false};
-      // extra keys
-      _keys['space'] = {code:32, shift: false};
-      _keys['enter'] = {code:13, shift: false};
-      _keys['shift'] = {code:16, shift: undefined};
-      _keys['esc']   = {code:27, shift: false};
-      _keys['backspace'] = {code:8, shift: false};
-      _keys['tab']       = {code:9, shift: false};
-      _keys['ctrl']      = {code:17, shift: false};
-      _keys['alt']       = {code:18, shift: false};
-      _keys['delete']    = {code:46, shift: false};
-      _keys['pageup']    = {code:33, shift: false};
-      _keys['pagedown']  = {code:34, shift: false};
-      // symbols
-      _keys['=']     = {code:187, shift: false};
-      _keys['-']     = {code:189, shift: false};
-      _keys[']']     = {code:221, shift: false};
-      _keys['[']     = {code:219, shift: false};
-
-
-
-      var down = function(event) {handleEvent(event,'keydown');};
-      var up = function(event) {handleEvent(event,'keyup');};
-
-      // handle the actualy bound key with the event
-      var handleEvent = function(event,type) {
-        if (_bound[type][event.keyCode] !== undefined) {
-          var bound = _bound[type][event.keyCode];
-          for (var i = 0; i < bound.length; i++) {
-            if (bound[i].shift === undefined) {
-              bound[i].fn(event);
-            }
-            else if (bound[i].shift == true && event.shiftKey == true) {
-              bound[i].fn(event);
-            }
-            else if (bound[i].shift == false && event.shiftKey == false) {
-              bound[i].fn(event);
-            }
-          }
-
-          if (preventDefault == true) {
-            event.preventDefault();
-          }
-        }
-      };
-
-      // bind a key to a callback
-      _exportFunctions.bind = function(key, callback, type) {
-        if (type === undefined) {
-          type = 'keydown';
-        }
-        if (_keys[key] === undefined) {
-          throw new Error("unsupported key: " + key);
-        }
-        if (_bound[type][_keys[key].code] === undefined) {
-          _bound[type][_keys[key].code] = [];
-        }
-        _bound[type][_keys[key].code].push({fn:callback, shift:_keys[key].shift});
-      };
-
-
-      // bind all keys to a call back (demo purposes)
-      _exportFunctions.bindAll = function(callback, type) {
-        if (type === undefined) {
-          type = 'keydown';
-        }
-        for (var key in _keys) {
-          if (_keys.hasOwnProperty(key)) {
-            _exportFunctions.bind(key,callback,type);
-          }
-        }
-      };
-
-      // get the key label from an event
-      _exportFunctions.getKey = function(event) {
-        for (var key in _keys) {
-          if (_keys.hasOwnProperty(key)) {
-            if (event.shiftKey == true && _keys[key].shift == true && event.keyCode == _keys[key].code) {
-              return key;
-            }
-            else if (event.shiftKey == false && _keys[key].shift == false && event.keyCode == _keys[key].code) {
-              return key;
-            }
-            else if (event.keyCode == _keys[key].code && key == 'shift') {
-              return key;
-            }
-          }
-        }
-        return "unknown key, currently not supported";
-      };
-
-      // unbind either a specific callback from a key or all of them (by leaving callback undefined)
-      _exportFunctions.unbind = function(key, callback, type) {
-        if (type === undefined) {
-          type = 'keydown';
-        }
-        if (_keys[key] === undefined) {
-          throw new Error("unsupported key: " + key);
-        }
-        if (callback !== undefined) {
-          var newBindings = [];
-          var bound = _bound[type][_keys[key].code];
-          if (bound !== undefined) {
-            for (var i = 0; i < bound.length; i++) {
-              if (!(bound[i].fn == callback && bound[i].shift == _keys[key].shift)) {
-                newBindings.push(_bound[type][_keys[key].code][i]);
-              }
-            }
-          }
-          _bound[type][_keys[key].code] = newBindings;
-        }
-        else {
-          _bound[type][_keys[key].code] = [];
-        }
-      };
-
-      // reset all bound variables.
-      _exportFunctions.reset = function() {
-        _bound = {keydown:{}, keyup:{}};
-      };
-
-      // unbind all listeners and reset all variables.
-      _exportFunctions.destroy = function() {
-        _bound = {keydown:{}, keyup:{}};
-        container.removeEventListener('keydown', down, true);
-        container.removeEventListener('keyup', up, true);
-      };
-
-      // create listeners.
-      container.addEventListener('keydown',down,true);
-      container.addEventListener('keyup',up,true);
-
-      // return the public functions.
-      return _exportFunctions;
-    }
-
-    return keycharm;
-  }));
-
-
-
-
-/***/ },
 /* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -35464,6 +35475,30 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 82 */
+/***/ function(module, exports, __webpack_require__) {
+
+  module.exports = function(module) {
+  	if(!module.webpackPolyfill) {
+  		module.deprecate = function() {};
+  		module.paths = [];
+  		// module.parent = undefined by default
+  		module.children = [];
+  		module.webpackPolyfill = 1;
+  	}
+  	return module;
+  }
+
+
+/***/ },
+/* 83 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
+
+  /* WEBPACK VAR INJECTION */}.call(exports, {}))
+
+/***/ },
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -35788,7 +35823,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Label;
 
 /***/ },
-/* 83 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -35880,7 +35915,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Box;
 
 /***/ },
-/* 84 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -35963,7 +35998,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Circle;
 
 /***/ },
-/* 85 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -36065,7 +36100,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CircularImage;
 
 /***/ },
-/* 86 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -36157,7 +36192,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Database;
 
 /***/ },
-/* 87 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -36216,7 +36251,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Diamond;
 
 /***/ },
-/* 88 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -36275,7 +36310,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Dot;
 
 /***/ },
-/* 89 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -36371,7 +36406,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Ellipse;
 
 /***/ },
-/* 90 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -36476,7 +36511,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Icon;
 
 /***/ },
-/* 91 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -36512,18 +36547,13 @@ return /******/ (function(modules) { // webpackBootstrap
           if (!this.width || !this.height) {
             // undefined or 0
             var width, height;
-            if (this.value) {
-              var scale = this.imageObj.height / this.imageObj.width;
-              if (scale !== undefined) {
-                width = this.options.size || this.imageObj.width;
-                height = this.options.size * scale || this.imageObj.height;
-              } else {
-                width = 0;
-                height = 0;
-              }
+            var scale = this.imageObj.height / this.imageObj.width;
+            if (scale !== undefined) {
+              width = this.options.size * 2 || this.imageObj.width;
+              height = this.options.size * 2 * scale || this.imageObj.height;
             } else {
-              width = this.imageObj.width;
-              height = this.imageObj.height;
+              width = 0;
+              height = 0;
             }
             this.width = width;
             this.height = height;
@@ -36573,7 +36603,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Image;
 
 /***/ },
-/* 92 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -36633,7 +36663,66 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Square;
 
 /***/ },
-/* 93 */
+/* 95 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Created by Alex on 3/18/2015.
+   */
+  "use strict";
+
+  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc && desc.writable) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+  var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  var ShapeBase = _interopRequire(__webpack_require__(104));
+
+  var Star = (function (ShapeBase) {
+    function Star(options, body, labelModule) {
+      _classCallCheck(this, Star);
+
+      _get(Object.getPrototypeOf(Star.prototype), "constructor", this).call(this, options, body, labelModule);
+    }
+
+    _inherits(Star, ShapeBase);
+
+    _prototypeProperties(Star, null, {
+      resize: {
+        value: function resize(ctx) {
+          this._resizeShape();
+        },
+        writable: true,
+        configurable: true
+      },
+      draw: {
+        value: function draw(ctx, x, y, selected, hover) {
+          this._drawShape(ctx, "star", 4, x, y, selected, hover);
+        },
+        writable: true,
+        configurable: true
+      },
+      distanceToBorder: {
+        value: function distanceToBorder(ctx, angle) {
+          return this._distanceToBorder(angle);
+        },
+        writable: true,
+        configurable: true
+      }
+    });
+
+    return Star;
+  })(ShapeBase);
+
+  module.exports = Star;
+
+/***/ },
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -36707,66 +36796,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Text;
 
 /***/ },
-/* 94 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * Created by Alex on 3/18/2015.
-   */
-  "use strict";
-
-  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
-
-  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
-
-  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc && desc.writable) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-  var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-  var ShapeBase = _interopRequire(__webpack_require__(104));
-
-  var Star = (function (ShapeBase) {
-    function Star(options, body, labelModule) {
-      _classCallCheck(this, Star);
-
-      _get(Object.getPrototypeOf(Star.prototype), "constructor", this).call(this, options, body, labelModule);
-    }
-
-    _inherits(Star, ShapeBase);
-
-    _prototypeProperties(Star, null, {
-      resize: {
-        value: function resize(ctx) {
-          this._resizeShape();
-        },
-        writable: true,
-        configurable: true
-      },
-      draw: {
-        value: function draw(ctx, x, y, selected, hover) {
-          this._drawShape(ctx, "star", 4, x, y, selected, hover);
-        },
-        writable: true,
-        configurable: true
-      },
-      distanceToBorder: {
-        value: function distanceToBorder(ctx, angle) {
-          return this._distanceToBorder(angle);
-        },
-        writable: true,
-        configurable: true
-      }
-    });
-
-    return Star;
-  })(ShapeBase);
-
-  module.exports = Star;
-
-/***/ },
-/* 95 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -36825,7 +36855,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Triangle;
 
 /***/ },
-/* 96 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -36884,7 +36914,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = TriangleDown;
 
 /***/ },
-/* 97 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -37042,7 +37072,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BezierEdgeDynamic;
 
 /***/ },
-/* 98 */
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -37310,7 +37340,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BezierEdgeStatic;
 
 /***/ },
-/* 99 */
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -37422,30 +37452,6 @@ return /******/ (function(modules) { // webpackBootstrap
   })(EdgeBase);
 
   module.exports = StraightEdge;
-
-/***/ },
-/* 100 */
-/***/ function(module, exports, __webpack_require__) {
-
-  module.exports = function(module) {
-  	if(!module.webpackPolyfill) {
-  		module.deprecate = function() {};
-  		module.paths = [];
-  		// module.parent = undefined by default
-  		module.children = [];
-  		module.webpackPolyfill = 1;
-  	}
-  	return module;
-  }
-
-
-/***/ },
-/* 101 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
-
-  /* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
 /* 102 */
