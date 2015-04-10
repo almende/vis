@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 3.12.1-SNAPSHOT
- * @date    2015-04-07
+ * @date    2015-04-10
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -10256,6 +10256,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var Hammer = __webpack_require__(45);
   var Item = __webpack_require__(20);
+  var Emitter = __webpack_require__(56);
 
   /**
    * @constructor RangeItem
@@ -10285,10 +10286,26 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     }
 
+    var me = this;
+        
+    //mouseover callback method
+    this.mouseoverCallback = function(event){
+       me.emit('mouseover',  data);
+    }
+      
+    //mouseover callback method
+    this.mouseoutCallback = function(event){
+       me.emit('mouseout',  data);
+    }
+
+
     Item.call(this, data, conversion, options);
   }
 
   RangeItem.prototype = new Item (null, null, null);
+
+  // Extend RangeItem with an Emitter mixin
+  Emitter(RangeItem.prototype);
 
   RangeItem.prototype.baseClassName = 'item range';
 
@@ -10320,6 +10337,8 @@ return /******/ (function(modules) { // webpackBootstrap
       dom.content = document.createElement('div');
       dom.content.className = 'content';
       dom.box.appendChild(dom.content);
+      dom.box.addEventListener("mouseover", this.mouseoverCallback);
+      dom.box.addEventListener("mouseout", this.mouseoutCallback);
 
       // attach this item as attribute
       dom.box['timeline-item'] = this;
@@ -13368,6 +13387,12 @@ return /******/ (function(modules) { // webpackBootstrap
           item = new constructor(itemData, me.conversion, me.options);
           item.id = id; // TODO: not so nice setting id afterwards
           me._addItem(item);
+          item.on("mouseover", function(item) { 
+                me.body.emitter.emit('mouseover', item)  ;
+          });
+          item.on("mouseout", function(item) { 
+                me.body.emitter.emit('mouseout', item)  ;
+          });
         }
         else if (type == 'rangeoverflow') {
           // TODO: deprecated since version 2.1.0 (or 3.0.0?). cleanup some day
@@ -13563,12 +13588,13 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   ItemSet.prototype._updateItem = function(item, itemData) {
     var oldGroupId = item.data.group;
+    var oldSubGroupId = item.data.subgroup;
 
     // update the items data (will redraw the item when displayed)
     item.setData(itemData);
 
     // update group
-    if (oldGroupId != item.data.group) {
+    if (oldGroupId != item.data.group || oldSubGroupId != item.data.subgroup) {
       var oldGroup = this.groups[oldGroupId];
       if (oldGroup) oldGroup.remove(item);
 
@@ -17279,7 +17305,7 @@ return /******/ (function(modules) { // webpackBootstrap
     };
 
     var id;
-    var previousPopupObjId = this.popupObj === undefined ? "" : this.popupObj.id;
+    var previousPopupObjId = this.popupObj === undefined ? undefined : this.popupObj.id;
     var nodeUnderCursor = false;
     var popupType = "node";
 
@@ -25315,7 +25341,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(module) {//! moment.js
-  //! version : 2.10.0
+  //! version : 2.10.2
   //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
   //! license : MIT
   //! momentjs.com
@@ -25328,7 +25354,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
       var hookCallback;
 
-      function hooks__hooks () {
+      function utils_hooks__hooks () {
           return hookCallback.apply(null, arguments);
       }
 
@@ -25392,7 +25418,7 @@ return /******/ (function(modules) { // webpackBootstrap
           return a;
       }
 
-      function utc__createUTC (input, format, locale, strict) {
+      function create_utc__createUTC (input, format, locale, strict) {
           return createLocalOrUTC(input, format, locale, strict, true).utc();
       }
 
@@ -25417,7 +25443,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       function valid__createInvalid (flags) {
-          var m = utc__createUTC(NaN);
+          var m = create_utc__createUTC(NaN);
           if (flags != null) {
               extend(m._pf, flags);
           }
@@ -25428,7 +25454,7 @@ return /******/ (function(modules) { // webpackBootstrap
           return m;
       }
 
-      var momentProperties = hooks__hooks.momentProperties = [];
+      var momentProperties = utils_hooks__hooks.momentProperties = [];
 
       function copyConfig(to, from) {
           var i, prop, val;
@@ -25487,7 +25513,7 @@ return /******/ (function(modules) { // webpackBootstrap
           // objects.
           if (updateInProgress === false) {
               updateInProgress = true;
-              hooks__hooks.updateOffset(this);
+              utils_hooks__hooks.updateOffset(this);
               updateInProgress = false;
           }
       }
@@ -25572,7 +25598,7 @@ return /******/ (function(modules) { // webpackBootstrap
                   !(function webpackMissingModule() { var e = new Error("Cannot find module \"./locale\""); e.code = 'MODULE_NOT_FOUND'; throw e; }());
                   // because defineLocale currently also sets the global locale, we
                   // want to undo that for lazy loaded locales
-                  locales__getSetGlobalLocale(oldLocale);
+                  locale_locales__getSetGlobalLocale(oldLocale);
               } catch (e) { }
           }
           return locales[name];
@@ -25581,11 +25607,11 @@ return /******/ (function(modules) { // webpackBootstrap
       // This function will load locale and then set the global locale.  If
       // no arguments are passed in, it will simply return the current global
       // locale key.
-      function locales__getSetGlobalLocale (key, values) {
+      function locale_locales__getSetGlobalLocale (key, values) {
           var data;
           if (key) {
               if (typeof values === 'undefined') {
-                  data = locales__getLocale(key);
+                  data = locale_locales__getLocale(key);
               }
               else {
                   data = defineLocale(key, values);
@@ -25609,7 +25635,7 @@ return /******/ (function(modules) { // webpackBootstrap
               locales[name].set(values);
 
               // backwards compat for now: also set the locale
-              locales__getSetGlobalLocale(name);
+              locale_locales__getSetGlobalLocale(name);
 
               return locales[name];
           } else {
@@ -25620,7 +25646,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       // returns locale data
-      function locales__getLocale (key) {
+      function locale_locales__getLocale (key) {
           var locale;
 
           if (key && key._locale && key._locale._abbr) {
@@ -25675,7 +25701,7 @@ return /******/ (function(modules) { // webpackBootstrap
           return function (value) {
               if (value != null) {
                   get_set__set(this, unit, value);
-                  hooks__hooks.updateOffset(this, keepTime);
+                  utils_hooks__hooks.updateOffset(this, keepTime);
                   return this;
               } else {
                   return get_set__get(this, unit);
@@ -25958,7 +25984,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
           for (i = 0; i < 12; i++) {
               // make the regex if we don't have it already
-              mom = utc__createUTC([2000, i]);
+              mom = create_utc__createUTC([2000, i]);
               if (strict && !this._longMonthsParse[i]) {
                   this._longMonthsParse[i] = new RegExp('^' + this.months(mom, '').replace('.', '') + '$', 'i');
                   this._shortMonthsParse[i] = new RegExp('^' + this.monthsShort(mom, '').replace('.', '') + '$', 'i');
@@ -26000,7 +26026,7 @@ return /******/ (function(modules) { // webpackBootstrap
       function getSetMonth (value) {
           if (value != null) {
               setMonth(this, value);
-              hooks__hooks.updateOffset(this, true);
+              utils_hooks__hooks.updateOffset(this, true);
               return this;
           } else {
               return get_set__get(this, 'Month');
@@ -26036,7 +26062,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       function warn(msg) {
-          if (hooks__hooks.suppressDeprecationWarnings === false && typeof console !== 'undefined' && console.warn) {
+          if (utils_hooks__hooks.suppressDeprecationWarnings === false && typeof console !== 'undefined' && console.warn) {
               console.warn('Deprecation warning: ' + msg);
           }
       }
@@ -26061,7 +26087,7 @@ return /******/ (function(modules) { // webpackBootstrap
           }
       }
 
-      hooks__hooks.suppressDeprecationWarnings = false;
+      utils_hooks__hooks.suppressDeprecationWarnings = false;
 
       var from_string__isoRegex = /^\s*(?:[+-]\d{6}|\d{4})-(?:(\d\d-\d\d)|(W\d\d$)|(W\d\d-\d)|(\d\d\d))((T| )(\d\d(:\d\d(:\d\d(\.\d+)?)?)?)?([\+\-]\d\d(?::?\d\d)?|\s*Z)?)?$/;
 
@@ -26125,11 +26151,11 @@ return /******/ (function(modules) { // webpackBootstrap
           configFromISO(config);
           if (config._isValid === false) {
               delete config._isValid;
-              hooks__hooks.createFromInputFallback(config);
+              utils_hooks__hooks.createFromInputFallback(config);
           }
       }
 
-      hooks__hooks.createFromInputFallback = deprecate(
+      utils_hooks__hooks.createFromInputFallback = deprecate(
           'moment construction falls back to js Date. This is ' +
           'discouraged and will be removed in upcoming major ' +
           'release. Please refer to ' +
@@ -26181,7 +26207,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
       addParseToken(['YYYY', 'YYYYY', 'YYYYYY'], YEAR);
       addParseToken('YY', function (input, array) {
-          array[YEAR] = hooks__hooks.parseTwoDigitYear(input);
+          array[YEAR] = utils_hooks__hooks.parseTwoDigitYear(input);
       });
 
       // HELPERS
@@ -26196,7 +26222,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // HOOKS
 
-      hooks__hooks.parseTwoDigitYear = function (input) {
+      utils_hooks__hooks.parseTwoDigitYear = function (input) {
           return toInt(input) + (toInt(input) > 68 ? 1900 : 2000);
       };
 
@@ -26455,12 +26481,12 @@ return /******/ (function(modules) { // webpackBootstrap
           config._dayOfYear = temp.dayOfYear;
       }
 
-      hooks__hooks.ISO_8601 = function () {};
+      utils_hooks__hooks.ISO_8601 = function () {};
 
       // date from string and format string
       function configFromStringAndFormat(config) {
           // TODO: Move this to another part of the creation flow to prevent circular deps
-          if (config._f === hooks__hooks.ISO_8601) {
+          if (config._f === utils_hooks__hooks.ISO_8601) {
               configFromISO(config);
               return;
           }
@@ -26606,7 +26632,7 @@ return /******/ (function(modules) { // webpackBootstrap
               format = config._f,
               res;
 
-          config._locale = config._locale || locales__getLocale(config._l);
+          config._locale = config._locale || locale_locales__getLocale(config._l);
 
           if (input === null || (format === undefined && input === '')) {
               return valid__createInvalid({nullInput: true});
@@ -26655,7 +26681,7 @@ return /******/ (function(modules) { // webpackBootstrap
               // from milliseconds
               config._d = new Date(input);
           } else {
-              hooks__hooks.createFromInputFallback(config);
+              utils_hooks__hooks.createFromInputFallback(config);
           }
       }
 
@@ -26764,7 +26790,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
           this._data = {};
 
-          this._locale = locales__getLocale();
+          this._locale = locale_locales__getLocale();
 
           this._bubble();
       }
@@ -26821,7 +26847,7 @@ return /******/ (function(modules) { // webpackBootstrap
               diff = (isMoment(input) || isDate(input) ? +input : +local__createLocal(input)) - (+res);
               // Use low-level api, because this fn is low-level api.
               res._d.setTime(+res._d + diff);
-              hooks__hooks.updateOffset(res, false);
+              utils_hooks__hooks.updateOffset(res, false);
               return res;
           } else {
               return local__createLocal(input).local();
@@ -26839,7 +26865,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // This function will be called whenever a moment is mutated.
       // It is intended to keep the offset in sync with the timezone.
-      hooks__hooks.updateOffset = function () {};
+      utils_hooks__hooks.updateOffset = function () {};
 
       // MOMENTS
 
@@ -26876,7 +26902,7 @@ return /******/ (function(modules) { // webpackBootstrap
                       add_subtract__addSubtract(this, create__createDuration(input - offset, 'm'), 1, false);
                   } else if (!this._changeInProgress) {
                       this._changeInProgress = true;
-                      hooks__hooks.updateOffset(this, true);
+                      utils_hooks__hooks.updateOffset(this, true);
                       this._changeInProgress = null;
                   }
               }
@@ -26945,7 +26971,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
       function isDaylightSavingTimeShifted () {
           if (this._a) {
-              var other = this._isUTC ? utc__createUTC(this._a) : local__createLocal(this._a);
+              var other = this._isUTC ? create_utc__createUTC(this._a) : local__createLocal(this._a);
               return this.isValid() && compareArrays(this._a, other.toArray()) > 0;
           }
 
@@ -27031,6 +27057,8 @@ return /******/ (function(modules) { // webpackBootstrap
           return ret;
       }
 
+      create__createDuration.fn = Duration.prototype;
+
       function parseIso (inp, sign) {
           // We'd normally use ~~inp for this, but unfortunately it also
           // converts floats to ints.
@@ -27100,14 +27128,14 @@ return /******/ (function(modules) { // webpackBootstrap
               setMonth(mom, get_set__get(mom, 'Month') + months * isAdding);
           }
           if (updateOffset) {
-              hooks__hooks.updateOffset(mom, days || months);
+              utils_hooks__hooks.updateOffset(mom, days || months);
           }
       }
 
       var add_subtract__add      = createAdder(1, 'add');
       var add_subtract__subtract = createAdder(-1, 'subtract');
 
-      function calendar__calendar (time) {
+      function moment_calendar__calendar (time) {
           // We want to compare the start of today, vs this.
           // Getting start-of-today depends on whether we're local/utc/offset or not.
           var now = time || local__createLocal(),
@@ -27220,7 +27248,7 @@ return /******/ (function(modules) { // webpackBootstrap
           return -(wholeMonthDiff + adjust);
       }
 
-      hooks__hooks.defaultFormat = 'YYYY-MM-DDTHH:mm:ssZ';
+      utils_hooks__hooks.defaultFormat = 'YYYY-MM-DDTHH:mm:ssZ';
 
       function toString () {
           return this.clone().locale('en').format('ddd MMM DD YYYY HH:mm:ss [GMT]ZZ');
@@ -27241,7 +27269,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       function format (inputString) {
-          var output = formatMoment(this, inputString || hooks__hooks.defaultFormat);
+          var output = formatMoment(this, inputString || utils_hooks__hooks.defaultFormat);
           return this.localeData().postformat(output);
       }
 
@@ -27259,7 +27287,7 @@ return /******/ (function(modules) { // webpackBootstrap
           if (key === undefined) {
               return this._locale._abbr;
           } else {
-              newLocaleData = locales__getLocale(key);
+              newLocaleData = locale_locales__getLocale(key);
               if (newLocaleData != null) {
                   this._locale = newLocaleData;
               }
@@ -27307,7 +27335,6 @@ return /******/ (function(modules) { // webpackBootstrap
               /* falls through */
           case 'second':
               this.milliseconds(0);
-              /* falls through */
           }
 
           // weeks are a special case
@@ -27401,7 +27428,7 @@ return /******/ (function(modules) { // webpackBootstrap
       });
 
       addWeekParseToken(['gg', 'GG'], function (input, week, config, token) {
-          week[token] = hooks__hooks.parseTwoDigitYear(input);
+          week[token] = utils_hooks__hooks.parseTwoDigitYear(input);
       });
 
       // HELPERS
@@ -27746,7 +27773,7 @@ return /******/ (function(modules) { // webpackBootstrap
       var momentPrototype__proto = Moment.prototype;
 
       momentPrototype__proto.add          = add_subtract__add;
-      momentPrototype__proto.calendar     = calendar__calendar;
+      momentPrototype__proto.calendar     = moment_calendar__calendar;
       momentPrototype__proto.clone        = clone;
       momentPrototype__proto.diff         = diff;
       momentPrototype__proto.endOf        = endOf;
@@ -27929,7 +27956,7 @@ return /******/ (function(modules) { // webpackBootstrap
           return typeof format === 'function' ? format(output) : format.replace(/%s/i, output);
       }
 
-      function set__set (config) {
+      function locale_set__set (config) {
           var prop, i;
           for (i in config) {
               prop = config[i];
@@ -27960,7 +27987,7 @@ return /******/ (function(modules) { // webpackBootstrap
       prototype__proto._relativeTime   = defaultRelativeTime;
       prototype__proto.relativeTime    = relative__relativeTime;
       prototype__proto.pastFuture      = pastFuture;
-      prototype__proto.set             = set__set;
+      prototype__proto.set             = locale_set__set;
 
       // Month
       prototype__proto.months       =        localeMonths;
@@ -27990,8 +28017,8 @@ return /******/ (function(modules) { // webpackBootstrap
       prototype__proto.meridiem = localeMeridiem;
 
       function lists__get (format, index, field, setter) {
-          var locale = locales__getLocale();
-          var utc = utc__createUTC().set(setter, index);
+          var locale = locale_locales__getLocale();
+          var utc = create_utc__createUTC().set(setter, index);
           return locale[field](utc, format);
       }
 
@@ -28035,7 +28062,7 @@ return /******/ (function(modules) { // webpackBootstrap
           return list(format, index, 'weekdaysMin', 7, 'day');
       }
 
-      locales__getSetGlobalLocale('en', {
+      locale_locales__getSetGlobalLocale('en', {
           ordinalParse: /\d{1,2}(th|st|nd|rd)/,
           ordinal : function (number) {
               var b = number % 10,
@@ -28048,12 +28075,12 @@ return /******/ (function(modules) { // webpackBootstrap
       });
 
       // Side effect imports
-      hooks__hooks.lang = deprecate('moment.lang is deprecated. Use moment.locale instead.', locales__getSetGlobalLocale);
-      hooks__hooks.langData = deprecate('moment.langData is deprecated. Use moment.localeData instead.', locales__getLocale);
+      utils_hooks__hooks.lang = deprecate('moment.lang is deprecated. Use moment.locale instead.', locale_locales__getSetGlobalLocale);
+      utils_hooks__hooks.langData = deprecate('moment.langData is deprecated. Use moment.localeData instead.', locale_locales__getLocale);
 
       var mathAbs = Math.abs;
 
-      function abs__abs () {
+      function duration_abs__abs () {
           var data           = this._data;
 
           this._milliseconds = mathAbs(this._milliseconds);
@@ -28171,7 +28198,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       // TODO: Use this.as('ms')?
-      function as__valueOf () {
+      function duration_as__valueOf () {
           return (
               this._milliseconds +
               this._days * 864e5 +
@@ -28195,7 +28222,7 @@ return /******/ (function(modules) { // webpackBootstrap
       var asMonths       = makeAs('M');
       var asYears        = makeAs('y');
 
-      function get__get (units) {
+      function duration_get__get (units) {
           units = normalizeUnits(units);
           return this[units + 's']();
       }
@@ -28206,7 +28233,7 @@ return /******/ (function(modules) { // webpackBootstrap
           };
       }
 
-      var get__milliseconds = makeGetter('milliseconds');
+      var duration_get__milliseconds = makeGetter('milliseconds');
       var seconds      = makeGetter('seconds');
       var minutes      = makeGetter('minutes');
       var hours        = makeGetter('hours');
@@ -28232,7 +28259,7 @@ return /******/ (function(modules) { // webpackBootstrap
           return locale.relativeTime(number || 1, !!withoutSuffix, string, isFuture);
       }
 
-      function humanize__relativeTime (posNegDuration, withoutSuffix, locale) {
+      function duration_humanize__relativeTime (posNegDuration, withoutSuffix, locale) {
           var duration = create__createDuration(posNegDuration).abs();
           var seconds  = round(duration.as('s'));
           var minutes  = round(duration.as('m'));
@@ -28259,7 +28286,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       // This function allows you to set a threshold for relative time strings
-      function humanize__getSetRelativeTimeThreshold (threshold, limit) {
+      function duration_humanize__getSetRelativeTimeThreshold (threshold, limit) {
           if (thresholds[threshold] === undefined) {
               return false;
           }
@@ -28272,7 +28299,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
       function humanize (withSuffix) {
           var locale = this.localeData();
-          var output = humanize__relativeTime(this, !withSuffix, locale);
+          var output = duration_humanize__relativeTime(this, !withSuffix, locale);
 
           if (withSuffix) {
               output = locale.pastFuture(+this, output);
@@ -28312,7 +28339,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
       var duration_prototype__proto = Duration.prototype;
 
-      duration_prototype__proto.abs            = abs__abs;
+      duration_prototype__proto.abs            = duration_abs__abs;
       duration_prototype__proto.add            = duration_add_subtract__add;
       duration_prototype__proto.subtract       = duration_add_subtract__subtract;
       duration_prototype__proto.as             = as;
@@ -28324,10 +28351,10 @@ return /******/ (function(modules) { // webpackBootstrap
       duration_prototype__proto.asWeeks        = asWeeks;
       duration_prototype__proto.asMonths       = asMonths;
       duration_prototype__proto.asYears        = asYears;
-      duration_prototype__proto.valueOf        = as__valueOf;
+      duration_prototype__proto.valueOf        = duration_as__valueOf;
       duration_prototype__proto._bubble        = bubble;
-      duration_prototype__proto.get            = get__get;
-      duration_prototype__proto.milliseconds   = get__milliseconds;
+      duration_prototype__proto.get            = duration_get__get;
+      duration_prototype__proto.milliseconds   = duration_get__milliseconds;
       duration_prototype__proto.seconds        = seconds;
       duration_prototype__proto.minutes        = minutes;
       duration_prototype__proto.hours          = hours;
@@ -28365,33 +28392,33 @@ return /******/ (function(modules) { // webpackBootstrap
       // Side effect imports
 
 
-      hooks__hooks.version = '2.10.0';
+      utils_hooks__hooks.version = '2.10.2';
 
       setHookCallback(local__createLocal);
 
-      hooks__hooks.fn                    = momentPrototype;
-      hooks__hooks.min                   = min;
-      hooks__hooks.max                   = max;
-      hooks__hooks.utc                   = utc__createUTC;
-      hooks__hooks.unix                  = moment__createUnix;
-      hooks__hooks.months                = lists__listMonths;
-      hooks__hooks.isDate                = isDate;
-      hooks__hooks.locale                = locales__getSetGlobalLocale;
-      hooks__hooks.invalid               = valid__createInvalid;
-      hooks__hooks.duration              = create__createDuration;
-      hooks__hooks.isMoment              = isMoment;
-      hooks__hooks.weekdays              = lists__listWeekdays;
-      hooks__hooks.parseZone             = moment__createInZone;
-      hooks__hooks.localeData            = locales__getLocale;
-      hooks__hooks.isDuration            = isDuration;
-      hooks__hooks.monthsShort           = lists__listMonthsShort;
-      hooks__hooks.weekdaysMin           = lists__listWeekdaysMin;
-      hooks__hooks.defineLocale          = defineLocale;
-      hooks__hooks.weekdaysShort         = lists__listWeekdaysShort;
-      hooks__hooks.normalizeUnits        = normalizeUnits;
-      hooks__hooks.relativeTimeThreshold = humanize__getSetRelativeTimeThreshold;
+      utils_hooks__hooks.fn                    = momentPrototype;
+      utils_hooks__hooks.min                   = min;
+      utils_hooks__hooks.max                   = max;
+      utils_hooks__hooks.utc                   = create_utc__createUTC;
+      utils_hooks__hooks.unix                  = moment__createUnix;
+      utils_hooks__hooks.months                = lists__listMonths;
+      utils_hooks__hooks.isDate                = isDate;
+      utils_hooks__hooks.locale                = locale_locales__getSetGlobalLocale;
+      utils_hooks__hooks.invalid               = valid__createInvalid;
+      utils_hooks__hooks.duration              = create__createDuration;
+      utils_hooks__hooks.isMoment              = isMoment;
+      utils_hooks__hooks.weekdays              = lists__listWeekdays;
+      utils_hooks__hooks.parseZone             = moment__createInZone;
+      utils_hooks__hooks.localeData            = locale_locales__getLocale;
+      utils_hooks__hooks.isDuration            = isDuration;
+      utils_hooks__hooks.monthsShort           = lists__listMonthsShort;
+      utils_hooks__hooks.weekdaysMin           = lists__listWeekdaysMin;
+      utils_hooks__hooks.defineLocale          = defineLocale;
+      utils_hooks__hooks.weekdaysShort         = lists__listWeekdaysShort;
+      utils_hooks__hooks.normalizeUnits        = normalizeUnits;
+      utils_hooks__hooks.relativeTimeThreshold = duration_humanize__getSetRelativeTimeThreshold;
 
-      var _moment = hooks__hooks;
+      var _moment = utils_hooks__hooks;
 
       return _moment;
 
