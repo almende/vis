@@ -179,7 +179,7 @@ exports.Timeline = require('./lib/timeline/Timeline');
 
 Install browserify globally via `[sudo] npm install -g browserify`, then create a custom bundle like:
 
-    browserify custom.js -t 6to5ify -o vis-custom.js -s vis
+    browserify custom.js -t babelify -o vis-custom.js -s vis
 
 This will generate a custom bundle *vis-custom.js*, which exposes the namespace `vis` containing only `DataSet` and `Timeline`. The generated bundle can be minified with uglifyjs (installed globally with `[sudo] npm install -g uglify-js`):
 
@@ -204,7 +204,7 @@ The custom bundle can now be loaded like:
 
 The default bundle `vis.js` is standalone and includes external dependencies such as hammer.js and moment.js. When these libraries are already loaded by the application, vis.js does not need to include these dependencies itself too. To build a custom bundle of vis.js excluding moment.js and hammer.js, run browserify in the root of the project:
 
-    browserify index.js -t 6to5ify -o vis-custom.js -s vis -x moment -x hammerjs
+    browserify index.js -t babelify -o vis-custom.js -s vis -x moment -x hammerjs
     
 This will generate a custom bundle *vis-custom.js*, which exposes the namespace `vis`, and has moment and hammerjs excluded. The generated bundle can be minified with uglifyjs:
 

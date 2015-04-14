@@ -45,14 +45,16 @@ var webpackConfig = {
   },
   module: {
     loaders: [
-      { test: /\.js$/, exclude: /node_modules/, loader: '6to5-loader'}
+      { test: /\.js$/, exclude: /node_modules/, loader: 'babel-loader'}
     ],
 
     // exclude requires of moment.js language files
     wrappedContextRegExp: /$^/
   },
   plugins: [ bannerPlugin ],
-  cache: true
+  cache: true,
+  debug: true,
+  bail: true
 };
 
 var uglifyConfig = {
@@ -75,7 +77,7 @@ gulp.task('bundle-js', ['clean'], function (cb) {
   bannerPlugin.banner = createBanner();
 
   compiler.run(function (err, stats) {
-    if (err) gutil.log(err);
+    if (err) gutil.log(err.toString());
     cb();
   });
 });
