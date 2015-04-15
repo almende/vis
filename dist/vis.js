@@ -24796,7 +24796,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
               // linebreak between categories
               if (counter > 0) {
-                this._makeEntree([]);
+                this._makeItem([]);
               }
               // a header for the category
               this._makeHeader(option);
@@ -24895,25 +24895,25 @@ return /******/ (function(modules) { // webpackBootstrap
         return newPath;
       }
     }, {
-      key: '_makeEntree',
+      key: '_makeItem',
 
       /**
-       * all option elements are wrapped in an entree
+       * all option elements are wrapped in an item
        * @param path
        * @param domElements
        * @private
        */
-      value: function _makeEntree(path) {
+      value: function _makeItem(path) {
         for (var _len = arguments.length, domElements = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
           domElements[_key - 1] = arguments[_key];
         }
 
-        var entree = document.createElement('div');
-        entree.className = 'vis-network-configuration entree s' + path.length;
+        var item = document.createElement('div');
+        item.className = 'vis-network-configuration item s' + path.length;
         domElements.forEach(function (element) {
-          entree.appendChild(element);
+          item.appendChild(element);
         });
-        this.domElements.push(entree);
+        this.domElements.push(item);
       }
     }, {
       key: '_makeHeader',
@@ -24927,7 +24927,7 @@ return /******/ (function(modules) { // webpackBootstrap
         var div = document.createElement('div');
         div.className = 'vis-network-configuration header';
         div.innerHTML = name;
-        this._makeEntree([], div);
+        this._makeItem([], div);
       }
     }, {
       key: '_makeLabel',
@@ -24988,7 +24988,7 @@ return /******/ (function(modules) { // webpackBootstrap
         };
 
         var label = this._makeLabel(path[path.length - 1], path);
-        this._makeEntree(path, label, select);
+        this._makeItem(path, label, select);
       }
     }, {
       key: '_makeRange',
@@ -25037,7 +25037,7 @@ return /******/ (function(modules) { // webpackBootstrap
         };
 
         var label = this._makeLabel(path[path.length - 1], path);
-        this._makeEntree(path, label, range, input);
+        this._makeItem(path, label, range, input);
       }
     }, {
       key: '_makeCheckbox',
@@ -25073,7 +25073,7 @@ return /******/ (function(modules) { // webpackBootstrap
         };
 
         var label = this._makeLabel(path[path.length - 1], path);
-        this._makeEntree(path, label, checkbox);
+        this._makeItem(path, label, checkbox);
       }
     }, {
       key: '_makeColorField',
@@ -25105,7 +25105,7 @@ return /******/ (function(modules) { // webpackBootstrap
         };
 
         var label = this._makeLabel(path[path.length - 1], path);
-        this._makeEntree(path, label, div);
+        this._makeItem(path, label, div);
       }
     }, {
       key: '_showColorPicker',
@@ -25137,7 +25137,7 @@ return /******/ (function(modules) { // webpackBootstrap
       key: '_handleObject',
 
       /**
-       * parse an object and draw the correct entrees
+       * parse an object and draw the correct items
        * @param obj
        * @param path
        * @private
@@ -25173,14 +25173,14 @@ return /******/ (function(modules) { // webpackBootstrap
                   var enabledValue = this._getValue(enabledPath);
                   if (enabledValue === true) {
                     var label = this._makeLabel(subObj, newPath, true);
-                    this._makeEntree(newPath, label);
+                    this._makeItem(newPath, label);
                     this._handleObject(item, newPath);
                   } else {
                     this._makeCheckbox(item, enabledValue, newPath);
                   }
                 } else {
                   var label = this._makeLabel(subObj, newPath, true);
-                  this._makeEntree(newPath, label);
+                  this._makeItem(newPath, label);
                   this._handleObject(item, newPath);
                 }
               }
@@ -33971,12 +33971,12 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_zoomIn',
       value: function _zoomIn() {
-        this.body.view.scale += this.options.keyboard.speed.zoom;
+        this.body.view.scale *= 1 + this.options.keyboard.speed.zoom;
       }
     }, {
       key: '_zoomOut',
       value: function _zoomOut() {
-        this.body.view.scale -= this.options.keyboard.speed.zoom;
+        this.body.view.scale /= 1 + this.options.keyboard.speed.zoom;
       }
     }, {
       key: 'configureKeyboardBindings',
