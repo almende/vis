@@ -3171,7 +3171,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(42);
+  var Emitter = __webpack_require__(63);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var util = __webpack_require__(1);
@@ -6336,13 +6336,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(42);
+  var Emitter = __webpack_require__(63);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
-  var Core = __webpack_require__(43);
+  var Core = __webpack_require__(42);
   var TimeAxis = __webpack_require__(35);
   var CurrentTime = __webpack_require__(26);
   var CustomTime = __webpack_require__(27);
@@ -6664,13 +6664,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(42);
+  var Emitter = __webpack_require__(63);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
-  var Core = __webpack_require__(43);
+  var Core = __webpack_require__(42);
   var TimeAxis = __webpack_require__(35);
   var CurrentTime = __webpack_require__(26);
   var CustomTime = __webpack_require__(27);
@@ -7624,7 +7624,7 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(44);
+  var hammerUtil = __webpack_require__(43);
   var moment = __webpack_require__(40);
   var Component = __webpack_require__(25);
   var DateUtil = __webpack_require__(15);
@@ -10357,7 +10357,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(25);
   var moment = __webpack_require__(40);
-  var locales = __webpack_require__(103);
+  var locales = __webpack_require__(44);
 
   /**
    * A current time bar
@@ -10527,7 +10527,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(25);
   var moment = __webpack_require__(40);
-  var locales = __webpack_require__(103);
+  var locales = __webpack_require__(44);
 
   /**
    * A custom time bar
@@ -11335,9 +11335,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(2);
-  var Line = __webpack_require__(104);
-  var Bar = __webpack_require__(105);
-  var Points = __webpack_require__(106);
+  var Line = __webpack_require__(45);
+  var Bar = __webpack_require__(46);
+  var Points = __webpack_require__(47);
 
   /**
    * /**
@@ -13929,7 +13929,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataAxis = __webpack_require__(28);
   var GraphGroup = __webpack_require__(29);
   var Legend = __webpack_require__(33);
-  var BarGraphFunctions = __webpack_require__(105);
+  var BarGraphFunctions = __webpack_require__(46);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -15334,62 +15334,62 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
 
-  var _Groups = __webpack_require__(45);
+  var _Groups = __webpack_require__(48);
 
   var _Groups2 = _interopRequireWildcard(_Groups);
 
-  var _NodesHandler = __webpack_require__(46);
+  var _NodesHandler = __webpack_require__(49);
 
   var _NodesHandler2 = _interopRequireWildcard(_NodesHandler);
 
-  var _EdgesHandler = __webpack_require__(47);
+  var _EdgesHandler = __webpack_require__(50);
 
   var _EdgesHandler2 = _interopRequireWildcard(_EdgesHandler);
 
-  var _PhysicsEngine = __webpack_require__(48);
+  var _PhysicsEngine = __webpack_require__(51);
 
   var _PhysicsEngine2 = _interopRequireWildcard(_PhysicsEngine);
 
-  var _ClusterEngine = __webpack_require__(49);
+  var _ClusterEngine = __webpack_require__(52);
 
   var _ClusterEngine2 = _interopRequireWildcard(_ClusterEngine);
 
-  var _CanvasRenderer = __webpack_require__(50);
+  var _CanvasRenderer = __webpack_require__(53);
 
   var _CanvasRenderer2 = _interopRequireWildcard(_CanvasRenderer);
 
-  var _Canvas = __webpack_require__(51);
+  var _Canvas = __webpack_require__(55);
 
   var _Canvas2 = _interopRequireWildcard(_Canvas);
 
-  var _View = __webpack_require__(52);
+  var _View = __webpack_require__(54);
 
   var _View2 = _interopRequireWildcard(_View);
 
-  var _InteractionHandler = __webpack_require__(53);
+  var _InteractionHandler = __webpack_require__(57);
 
   var _InteractionHandler2 = _interopRequireWildcard(_InteractionHandler);
 
-  var _SelectionHandler = __webpack_require__(54);
+  var _SelectionHandler = __webpack_require__(56);
 
   var _SelectionHandler2 = _interopRequireWildcard(_SelectionHandler);
 
-  var _LayoutEngine = __webpack_require__(55);
+  var _LayoutEngine = __webpack_require__(58);
 
   var _LayoutEngine2 = _interopRequireWildcard(_LayoutEngine);
 
-  var _ManipulationSystem = __webpack_require__(56);
+  var _ManipulationSystem = __webpack_require__(59);
 
   var _ManipulationSystem2 = _interopRequireWildcard(_ManipulationSystem);
 
-  var _ConfigurationSystem = __webpack_require__(57);
+  var _ConfigurationSystem = __webpack_require__(60);
 
   var _ConfigurationSystem2 = _interopRequireWildcard(_ConfigurationSystem);
 
   // Load custom shapes into CanvasRenderingContext2D
-  __webpack_require__(58);
+  __webpack_require__(61);
 
-  var Emitter = __webpack_require__(42);
+  var Emitter = __webpack_require__(63);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
@@ -15397,7 +15397,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var dotparser = __webpack_require__(38);
   var gephiParser = __webpack_require__(39);
   var Images = __webpack_require__(37);
-  var Activator = __webpack_require__(59);
+  var Activator = __webpack_require__(62);
 
   /**
    * @constructor Network
@@ -16831,7 +16831,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // use this instance. Else, load via commonjs.
   'use strict';
 
-  module.exports = typeof window !== 'undefined' && window.moment || __webpack_require__(60);
+  module.exports = typeof window !== 'undefined' && window.moment || __webpack_require__(65);
 
 /***/ },
 /* 41 */
@@ -16842,8 +16842,8 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   if (typeof window !== 'undefined') {
-    var propagating = __webpack_require__(61);
-    var Hammer = window.Hammer || __webpack_require__(62);
+    var propagating = __webpack_require__(64);
+    var Hammer = window.Hammer || __webpack_require__(66);
     module.exports = propagating(Hammer, {
       preventDefault: true
     });
@@ -16857,187 +16857,17 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
-  
-  /**
-   * Expose `Emitter`.
-   */
-
-  module.exports = Emitter;
-
-  /**
-   * Initialize a new `Emitter`.
-   *
-   * @api public
-   */
-
-  function Emitter(obj) {
-    if (obj) return mixin(obj);
-  };
-
-  /**
-   * Mixin the emitter properties.
-   *
-   * @param {Object} obj
-   * @return {Object}
-   * @api private
-   */
-
-  function mixin(obj) {
-    for (var key in Emitter.prototype) {
-      obj[key] = Emitter.prototype[key];
-    }
-    return obj;
-  }
-
-  /**
-   * Listen on the given `event` with `fn`.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.on =
-  Emitter.prototype.addEventListener = function(event, fn){
-    this._callbacks = this._callbacks || {};
-    (this._callbacks[event] = this._callbacks[event] || [])
-      .push(fn);
-    return this;
-  };
-
-  /**
-   * Adds an `event` listener that will be invoked a single
-   * time then automatically removed.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.once = function(event, fn){
-    var self = this;
-    this._callbacks = this._callbacks || {};
-
-    function on() {
-      self.off(event, on);
-      fn.apply(this, arguments);
-    }
-
-    on.fn = fn;
-    this.on(event, on);
-    return this;
-  };
-
-  /**
-   * Remove the given callback for `event` or all
-   * registered callbacks.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.off =
-  Emitter.prototype.removeListener =
-  Emitter.prototype.removeAllListeners =
-  Emitter.prototype.removeEventListener = function(event, fn){
-    this._callbacks = this._callbacks || {};
-
-    // all
-    if (0 == arguments.length) {
-      this._callbacks = {};
-      return this;
-    }
-
-    // specific event
-    var callbacks = this._callbacks[event];
-    if (!callbacks) return this;
-
-    // remove all handlers
-    if (1 == arguments.length) {
-      delete this._callbacks[event];
-      return this;
-    }
-
-    // remove specific handler
-    var cb;
-    for (var i = 0; i < callbacks.length; i++) {
-      cb = callbacks[i];
-      if (cb === fn || cb.fn === fn) {
-        callbacks.splice(i, 1);
-        break;
-      }
-    }
-    return this;
-  };
-
-  /**
-   * Emit `event` with the given args.
-   *
-   * @param {String} event
-   * @param {Mixed} ...
-   * @return {Emitter}
-   */
-
-  Emitter.prototype.emit = function(event){
-    this._callbacks = this._callbacks || {};
-    var args = [].slice.call(arguments, 1)
-      , callbacks = this._callbacks[event];
-
-    if (callbacks) {
-      callbacks = callbacks.slice(0);
-      for (var i = 0, len = callbacks.length; i < len; ++i) {
-        callbacks[i].apply(this, args);
-      }
-    }
-
-    return this;
-  };
-
-  /**
-   * Return array of callbacks for `event`.
-   *
-   * @param {String} event
-   * @return {Array}
-   * @api public
-   */
-
-  Emitter.prototype.listeners = function(event){
-    this._callbacks = this._callbacks || {};
-    return this._callbacks[event] || [];
-  };
-
-  /**
-   * Check if this emitter has `event` handlers.
-   *
-   * @param {String} event
-   * @return {Boolean}
-   * @api public
-   */
-
-  Emitter.prototype.hasListeners = function(event){
-    return !! this.listeners(event).length;
-  };
-
-
-/***/ },
-/* 43 */
-/***/ function(module, exports, __webpack_require__) {
-
   'use strict';
 
-  var Emitter = __webpack_require__(42);
+  var Emitter = __webpack_require__(63);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(44);
+  var hammerUtil = __webpack_require__(43);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
   var ItemSet = __webpack_require__(32);
-  var Activator = __webpack_require__(59);
+  var Activator = __webpack_require__(62);
   var DateUtil = __webpack_require__(15);
   var CustomTime = __webpack_require__(27);
 
@@ -17956,7 +17786,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Core;
 
 /***/ },
-/* 44 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -18010,7 +17840,523 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.offRelease = exports.offTouch;
 
 /***/ },
+/* 44 */
+/***/ function(module, exports, __webpack_require__) {
+
+  // English
+  'use strict';
+
+  exports.en = {
+    current: 'current',
+    time: 'time'
+  };
+  exports.en_EN = exports.en;
+  exports.en_US = exports.en;
+
+  // Dutch
+  exports.nl = {
+    custom: 'aangepaste',
+    time: 'tijd'
+  };
+  exports.nl_NL = exports.nl;
+  exports.nl_BE = exports.nl;
+
+/***/ },
 /* 45 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  var DOMutil = __webpack_require__(2);
+  var Points = __webpack_require__(47);
+
+  function Line(groupId, options) {
+    this.groupId = groupId;
+    this.options = options;
+  }
+
+  Line.prototype.getYRange = function (groupData) {
+    var yMin = groupData[0].y;
+    var yMax = groupData[0].y;
+    for (var j = 0; j < groupData.length; j++) {
+      yMin = yMin > groupData[j].y ? groupData[j].y : yMin;
+      yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
+    }
+    return { min: yMin, max: yMax, yAxisOrientation: this.options.yAxisOrientation };
+  };
+
+  /**
+   * draw a line graph
+   *
+   * @param dataset
+   * @param group
+   */
+  Line.prototype.draw = function (dataset, group, framework) {
+    if (dataset != null) {
+      if (dataset.length > 0) {
+        var path, d;
+        var svgHeight = Number(framework.svg.style.height.replace('px', ''));
+        path = DOMutil.getSVGElement('path', framework.svgElements, framework.svg);
+        path.setAttributeNS(null, 'class', group.className);
+        if (group.style !== undefined) {
+          path.setAttributeNS(null, 'style', 'vis-' + group.style);
+        }
+
+        // construct path from dataset
+        if (group.options.catmullRom.enabled == true) {
+          d = Line._catmullRom(dataset, group);
+        } else {
+          d = Line._linear(dataset);
+        }
+
+        // append with points for fill and finalize the path
+        if (group.options.shaded.enabled == true) {
+          var fillPath = DOMutil.getSVGElement('path', framework.svgElements, framework.svg);
+          var dFill;
+          if (group.options.shaded.orientation == 'top') {
+            dFill = 'M' + dataset[0].x + ',' + 0 + ' ' + d + 'L' + dataset[dataset.length - 1].x + ',' + 0;
+          } else {
+            dFill = 'M' + dataset[0].x + ',' + svgHeight + ' ' + d + 'L' + dataset[dataset.length - 1].x + ',' + svgHeight;
+          }
+          fillPath.setAttributeNS(null, 'class', group.className + ' vis-fill');
+          if (group.options.shaded.style !== undefined) {
+            fillPath.setAttributeNS(null, 'style', group.options.shaded.style);
+          }
+          fillPath.setAttributeNS(null, 'd', dFill);
+        }
+        // copy properties to path for drawing.
+        path.setAttributeNS(null, 'd', 'M' + d);
+
+        // draw points
+        if (group.options.drawPoints.enabled == true) {
+          Points.draw(dataset, group, framework);
+        }
+      }
+    }
+  };
+
+  /**
+   * This uses an uniform parametrization of the CatmullRom algorithm:
+   * 'On the Parameterization of Catmull-Rom Curves' by Cem Yuksel et al.
+   * @param data
+   * @returns {string}
+   * @private
+   */
+  Line._catmullRomUniform = function (data) {
+    // catmull rom
+    var p0, p1, p2, p3, bp1, bp2;
+    var d = Math.round(data[0].x) + ',' + Math.round(data[0].y) + ' ';
+    var normalization = 1 / 6;
+    var length = data.length;
+    for (var i = 0; i < length - 1; i++) {
+
+      p0 = i == 0 ? data[0] : data[i - 1];
+      p1 = data[i];
+      p2 = data[i + 1];
+      p3 = i + 2 < length ? data[i + 2] : p2;
+
+      // Catmull-Rom to Cubic Bezier conversion matrix
+      //    0       1       0       0
+      //  -1/6      1      1/6      0
+      //    0      1/6      1     -1/6
+      //    0       0       1       0
+
+      //    bp0 = { x: p1.x,                               y: p1.y };
+      bp1 = { x: (-p0.x + 6 * p1.x + p2.x) * normalization, y: (-p0.y + 6 * p1.y + p2.y) * normalization };
+      bp2 = { x: (p1.x + 6 * p2.x - p3.x) * normalization, y: (p1.y + 6 * p2.y - p3.y) * normalization };
+      //    bp0 = { x: p2.x,                               y: p2.y };
+
+      d += 'C' + bp1.x + ',' + bp1.y + ' ' + bp2.x + ',' + bp2.y + ' ' + p2.x + ',' + p2.y + ' ';
+    }
+
+    return d;
+  };
+
+  /**
+   * This uses either the chordal or centripetal parameterization of the catmull-rom algorithm.
+   * By default, the centripetal parameterization is used because this gives the nicest results.
+   * These parameterizations are relatively heavy because the distance between 4 points have to be calculated.
+   *
+   * One optimization can be used to reuse distances since this is a sliding window approach.
+   * @param data
+   * @param group
+   * @returns {string}
+   * @private
+   */
+  Line._catmullRom = function (data, group) {
+    var alpha = group.options.catmullRom.alpha;
+    if (alpha == 0 || alpha === undefined) {
+      return this._catmullRomUniform(data);
+    } else {
+      var p0, p1, p2, p3, bp1, bp2, d1, d2, d3, A, B, N, M;
+      var d3powA, d2powA, d3pow2A, d2pow2A, d1pow2A, d1powA;
+      var d = Math.round(data[0].x) + ',' + Math.round(data[0].y) + ' ';
+      var length = data.length;
+      for (var i = 0; i < length - 1; i++) {
+
+        p0 = i == 0 ? data[0] : data[i - 1];
+        p1 = data[i];
+        p2 = data[i + 1];
+        p3 = i + 2 < length ? data[i + 2] : p2;
+
+        d1 = Math.sqrt(Math.pow(p0.x - p1.x, 2) + Math.pow(p0.y - p1.y, 2));
+        d2 = Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+        d3 = Math.sqrt(Math.pow(p2.x - p3.x, 2) + Math.pow(p2.y - p3.y, 2));
+
+        // Catmull-Rom to Cubic Bezier conversion matrix
+
+        // A = 2d1^2a + 3d1^a * d2^a + d3^2a
+        // B = 2d3^2a + 3d3^a * d2^a + d2^2a
+
+        // [   0             1            0          0          ]
+        // [   -d2^2a /N     A/N          d1^2a /N   0          ]
+        // [   0             d3^2a /M     B/M        -d2^2a /M  ]
+        // [   0             0            1          0          ]
+
+        d3powA = Math.pow(d3, alpha);
+        d3pow2A = Math.pow(d3, 2 * alpha);
+        d2powA = Math.pow(d2, alpha);
+        d2pow2A = Math.pow(d2, 2 * alpha);
+        d1powA = Math.pow(d1, alpha);
+        d1pow2A = Math.pow(d1, 2 * alpha);
+
+        A = 2 * d1pow2A + 3 * d1powA * d2powA + d2pow2A;
+        B = 2 * d3pow2A + 3 * d3powA * d2powA + d2pow2A;
+        N = 3 * d1powA * (d1powA + d2powA);
+        if (N > 0) {
+          N = 1 / N;
+        }
+        M = 3 * d3powA * (d3powA + d2powA);
+        if (M > 0) {
+          M = 1 / M;
+        }
+
+        bp1 = { x: (-d2pow2A * p0.x + A * p1.x + d1pow2A * p2.x) * N,
+          y: (-d2pow2A * p0.y + A * p1.y + d1pow2A * p2.y) * N };
+
+        bp2 = { x: (d3pow2A * p1.x + B * p2.x - d2pow2A * p3.x) * M,
+          y: (d3pow2A * p1.y + B * p2.y - d2pow2A * p3.y) * M };
+
+        if (bp1.x == 0 && bp1.y == 0) {
+          bp1 = p1;
+        }
+        if (bp2.x == 0 && bp2.y == 0) {
+          bp2 = p2;
+        }
+        d += 'C' + bp1.x + ',' + bp1.y + ' ' + bp2.x + ',' + bp2.y + ' ' + p2.x + ',' + p2.y + ' ';
+      }
+
+      return d;
+    }
+  };
+
+  /**
+   * this generates the SVG path for a linear drawing between datapoints.
+   * @param data
+   * @returns {string}
+   * @private
+   */
+  Line._linear = function (data) {
+    // linear
+    var d = '';
+    for (var i = 0; i < data.length; i++) {
+      if (i == 0) {
+        d += data[i].x + ',' + data[i].y;
+      } else {
+        d += ' ' + data[i].x + ',' + data[i].y;
+      }
+    }
+    return d;
+  };
+
+  module.exports = Line;
+
+/***/ },
+/* 46 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  var DOMutil = __webpack_require__(2);
+  var Points = __webpack_require__(47);
+
+  function Bargraph(groupId, options) {
+    this.groupId = groupId;
+    this.options = options;
+  }
+
+  Bargraph.prototype.getYRange = function (groupData) {
+    if (this.options.barChart.handleOverlap != 'stack') {
+      var yMin = groupData[0].y;
+      var yMax = groupData[0].y;
+      for (var j = 0; j < groupData.length; j++) {
+        yMin = yMin > groupData[j].y ? groupData[j].y : yMin;
+        yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
+      }
+      return { min: yMin, max: yMax, yAxisOrientation: this.options.yAxisOrientation };
+    } else {
+      var barCombinedData = [];
+      for (var j = 0; j < groupData.length; j++) {
+        barCombinedData.push({
+          x: groupData[j].x,
+          y: groupData[j].y,
+          groupId: this.groupId
+        });
+      }
+      return barCombinedData;
+    }
+  };
+
+  /**
+   * draw a bar graph
+   *
+   * @param groupIds
+   * @param processedGroupData
+   */
+  Bargraph.draw = function (groupIds, processedGroupData, framework) {
+    var combinedData = [];
+    var intersections = {};
+    var coreDistance;
+    var key, drawData;
+    var group;
+    var i, j;
+    var barPoints = 0;
+
+    // combine all barchart data
+    for (i = 0; i < groupIds.length; i++) {
+      group = framework.groups[groupIds[i]];
+      if (group.options.style == 'bar') {
+        if (group.visible == true && (framework.options.groups.visibility[groupIds[i]] === undefined || framework.options.groups.visibility[groupIds[i]] == true)) {
+          for (j = 0; j < processedGroupData[groupIds[i]].length; j++) {
+            combinedData.push({
+              x: processedGroupData[groupIds[i]][j].x,
+              y: processedGroupData[groupIds[i]][j].y,
+              groupId: groupIds[i],
+              label: processedGroupData[groupIds[i]][j].label
+            });
+            barPoints += 1;
+          }
+        }
+      }
+    }
+
+    if (barPoints == 0) {
+      return;
+    }
+
+    // sort by time and by group
+    combinedData.sort(function (a, b) {
+      if (a.x == b.x) {
+        return a.groupId - b.groupId;
+      } else {
+        return a.x - b.x;
+      }
+    });
+
+    // get intersections
+    Bargraph._getDataIntersections(intersections, combinedData);
+
+    // plot barchart
+    for (i = 0; i < combinedData.length; i++) {
+      group = framework.groups[combinedData[i].groupId];
+      var minWidth = 0.1 * group.options.barChart.width;
+
+      key = combinedData[i].x;
+      var heightOffset = 0;
+      if (intersections[key] === undefined) {
+        if (i + 1 < combinedData.length) {
+          coreDistance = Math.abs(combinedData[i + 1].x - key);
+        }
+        if (i > 0) {
+          coreDistance = Math.min(coreDistance, Math.abs(combinedData[i - 1].x - key));
+        }
+        drawData = Bargraph._getSafeDrawData(coreDistance, group, minWidth);
+      } else {
+        var nextKey = i + (intersections[key].amount - intersections[key].resolved);
+        var prevKey = i - (intersections[key].resolved + 1);
+        if (nextKey < combinedData.length) {
+          coreDistance = Math.abs(combinedData[nextKey].x - key);
+        }
+        if (prevKey > 0) {
+          coreDistance = Math.min(coreDistance, Math.abs(combinedData[prevKey].x - key));
+        }
+        drawData = Bargraph._getSafeDrawData(coreDistance, group, minWidth);
+        intersections[key].resolved += 1;
+
+        if (group.options.barChart.handleOverlap == 'stack') {
+          heightOffset = intersections[key].accumulated;
+          intersections[key].accumulated += group.zeroPosition - combinedData[i].y;
+        } else if (group.options.barChart.handleOverlap == 'sideBySide') {
+          drawData.width = drawData.width / intersections[key].amount;
+          drawData.offset += intersections[key].resolved * drawData.width - 0.5 * drawData.width * (intersections[key].amount + 1);
+          if (group.options.barChart.align == 'left') {
+            drawData.offset -= 0.5 * drawData.width;
+          } else if (group.options.barChart.align == 'right') {
+            drawData.offset += 0.5 * drawData.width;
+          }
+        }
+      }
+      DOMutil.drawBar(combinedData[i].x + drawData.offset, combinedData[i].y - heightOffset, drawData.width, group.zeroPosition - combinedData[i].y, group.className + ' vis-bar', framework.svgElements, framework.svg);
+      // draw points
+      if (group.options.drawPoints.enabled == true) {
+        Points.draw([combinedData[i]], group, framework, drawData.offset);
+        //DOMutil.drawPoint(combinedData[i].x + drawData.offset, combinedData[i].y, group, framework.svgElements, framework.svg);
+      }
+    }
+  };
+
+  /**
+   * Fill the intersections object with counters of how many datapoints share the same x coordinates
+   * @param intersections
+   * @param combinedData
+   * @private
+   */
+  Bargraph._getDataIntersections = function (intersections, combinedData) {
+    // get intersections
+    var coreDistance;
+    for (var i = 0; i < combinedData.length; i++) {
+      if (i + 1 < combinedData.length) {
+        coreDistance = Math.abs(combinedData[i + 1].x - combinedData[i].x);
+      }
+      if (i > 0) {
+        coreDistance = Math.min(coreDistance, Math.abs(combinedData[i - 1].x - combinedData[i].x));
+      }
+      if (coreDistance == 0) {
+        if (intersections[combinedData[i].x] === undefined) {
+          intersections[combinedData[i].x] = { amount: 0, resolved: 0, accumulated: 0 };
+        }
+        intersections[combinedData[i].x].amount += 1;
+      }
+    }
+  };
+
+  /**
+   * Get the width and offset for bargraphs based on the coredistance between datapoints
+   *
+   * @param coreDistance
+   * @param group
+   * @param minWidth
+   * @returns {{width: Number, offset: Number}}
+   * @private
+   */
+  Bargraph._getSafeDrawData = function (coreDistance, group, minWidth) {
+    var width, offset;
+    if (coreDistance < group.options.barChart.width && coreDistance > 0) {
+      width = coreDistance < minWidth ? minWidth : coreDistance;
+
+      offset = 0; // recalculate offset with the new width;
+      if (group.options.barChart.align == 'left') {
+        offset -= 0.5 * coreDistance;
+      } else if (group.options.barChart.align == 'right') {
+        offset += 0.5 * coreDistance;
+      }
+    } else {
+      // default settings
+      width = group.options.barChart.width;
+      offset = 0;
+      if (group.options.barChart.align == 'left') {
+        offset -= 0.5 * group.options.barChart.width;
+      } else if (group.options.barChart.align == 'right') {
+        offset += 0.5 * group.options.barChart.width;
+      }
+    }
+
+    return { width: width, offset: offset };
+  };
+
+  Bargraph.getStackedBarYRange = function (barCombinedData, groupRanges, groupIds, groupLabel, orientation) {
+    if (barCombinedData.length > 0) {
+      // sort by time and by group
+      barCombinedData.sort(function (a, b) {
+        if (a.x == b.x) {
+          return a.groupId - b.groupId;
+        } else {
+          return a.x - b.x;
+        }
+      });
+      var intersections = {};
+
+      Bargraph._getDataIntersections(intersections, barCombinedData);
+      groupRanges[groupLabel] = Bargraph._getStackedBarYRange(intersections, barCombinedData);
+      groupRanges[groupLabel].yAxisOrientation = orientation;
+      groupIds.push(groupLabel);
+    }
+  };
+
+  Bargraph._getStackedBarYRange = function (intersections, combinedData) {
+    var key;
+    var yMin = combinedData[0].y;
+    var yMax = combinedData[0].y;
+    for (var i = 0; i < combinedData.length; i++) {
+      key = combinedData[i].x;
+      if (intersections[key] === undefined) {
+        yMin = yMin > combinedData[i].y ? combinedData[i].y : yMin;
+        yMax = yMax < combinedData[i].y ? combinedData[i].y : yMax;
+      } else {
+        intersections[key].accumulated += combinedData[i].y;
+      }
+    }
+    for (var xpos in intersections) {
+      if (intersections.hasOwnProperty(xpos)) {
+        yMin = yMin > intersections[xpos].accumulated ? intersections[xpos].accumulated : yMin;
+        yMax = yMax < intersections[xpos].accumulated ? intersections[xpos].accumulated : yMax;
+      }
+    }
+
+    return { min: yMin, max: yMax };
+  };
+
+  module.exports = Bargraph;
+
+/***/ },
+/* 47 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  var DOMutil = __webpack_require__(2);
+
+  function Points(groupId, options) {
+    this.groupId = groupId;
+    this.options = options;
+  }
+
+  Points.prototype.getYRange = function (groupData) {
+    var yMin = groupData[0].y;
+    var yMax = groupData[0].y;
+    for (var j = 0; j < groupData.length; j++) {
+      yMin = yMin > groupData[j].y ? groupData[j].y : yMin;
+      yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
+    }
+    return { min: yMin, max: yMax, yAxisOrientation: this.options.yAxisOrientation };
+  };
+
+  Points.prototype.draw = function (dataset, group, framework, offset) {
+    Points.draw(dataset, group, framework, offset);
+  };
+
+  /**
+   * draw the data points
+   *
+   * @param {Array} dataset
+   * @param {Object} JSONcontainer
+   * @param {Object} svg            | SVG DOM element
+   * @param {GraphGroup} group
+   * @param {Number} [offset]
+   */
+  Points.draw = function (dataset, group, framework, offset) {
+    if (offset === undefined) {
+      offset = 0;
+    }
+    for (var i = 0; i < dataset.length; i++) {
+      DOMutil.drawPoint(dataset[i].x + offset, dataset[i].y, group, framework.svgElements, framework.svg, dataset[i].label);
+    }
+  };
+
+  module.exports = Points;
+
+/***/ },
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -18151,7 +18497,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // 20:bright red
 
 /***/ },
-/* 46 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -18166,11 +18512,11 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _Node = __webpack_require__(63);
+  var _Node = __webpack_require__(67);
 
   var _Node2 = _interopRequireWildcard(_Node);
 
-  var _Label = __webpack_require__(64);
+  var _Label = __webpack_require__(68);
 
   var _Label2 = _interopRequireWildcard(_Label);
 
@@ -18460,7 +18806,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 47 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -18475,11 +18821,11 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _Edge = __webpack_require__(65);
+  var _Edge = __webpack_require__(69);
 
   var _Edge2 = _interopRequireWildcard(_Edge);
 
-  var _Label = __webpack_require__(64);
+  var _Label = __webpack_require__(68);
 
   var _Label2 = _interopRequireWildcard(_Label);
 
@@ -18842,7 +19188,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 48 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -18857,27 +19203,27 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _BarnesHutSolver = __webpack_require__(66);
+  var _BarnesHutSolver = __webpack_require__(70);
 
   var _BarnesHutSolver2 = _interopRequireWildcard(_BarnesHutSolver);
 
-  var _Repulsion = __webpack_require__(67);
+  var _Repulsion = __webpack_require__(71);
 
   var _Repulsion2 = _interopRequireWildcard(_Repulsion);
 
-  var _HierarchicalRepulsion = __webpack_require__(68);
+  var _HierarchicalRepulsion = __webpack_require__(72);
 
   var _HierarchicalRepulsion2 = _interopRequireWildcard(_HierarchicalRepulsion);
 
-  var _SpringSolver = __webpack_require__(69);
+  var _SpringSolver = __webpack_require__(73);
 
   var _SpringSolver2 = _interopRequireWildcard(_SpringSolver);
 
-  var _HierarchicalSpringSolver = __webpack_require__(70);
+  var _HierarchicalSpringSolver = __webpack_require__(74);
 
   var _HierarchicalSpringSolver2 = _interopRequireWildcard(_HierarchicalSpringSolver);
 
-  var _CentralGravitySolver = __webpack_require__(71);
+  var _CentralGravitySolver = __webpack_require__(75);
 
   var _CentralGravitySolver2 = _interopRequireWildcard(_CentralGravitySolver);
 
@@ -19354,7 +19700,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 49 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -19369,7 +19715,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _Cluster = __webpack_require__(72);
+  var _Cluster = __webpack_require__(76);
 
   var _Cluster2 = _interopRequireWildcard(_Cluster);
 
@@ -20009,7 +20355,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 50 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -20323,339 +20669,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 51 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-  var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(44);
-
-  var util = __webpack_require__(1);
-
-  /**
-   * Create the main frame for the Network.
-   * This function is executed once when a Network object is created. The frame
-   * contains a canvas, and this canvas contains all objects like the axis and
-   * nodes.
-   * @private
-   */
-
-  var Canvas = (function () {
-    function Canvas(body) {
-      var _this = this;
-
-      _classCallCheck(this, Canvas);
-
-      this.body = body;
-      this.pixelRatio = 1;
-
-      this.options = {};
-      this.defaultOptions = {
-        width: '100%',
-        height: '100%'
-      };
-      util.extend(this.options, this.defaultOptions);
-
-      // bind the events
-      this.body.emitter.once('resize', function (obj) {
-        if (obj.width !== 0) {
-          _this.body.view.translation.x = obj.width * 0.5;
-        }
-        if (obj.height !== 0) {
-          _this.body.view.translation.y = obj.height * 0.5;
-        }
-      });
-      this.body.emitter.on('destroy', function () {
-        return _this.hammer.destroy();
-      });
-
-      // automatically adapt to a changing size of the browser.
-      window.onresize = function () {
-        _this.setSize();_this.body.emitter.emit('_redraw');
-      };
-    }
-
-    _createClass(Canvas, [{
-      key: 'setOptions',
-      value: function setOptions(options) {
-        if (options !== undefined) {
-          if (options.width !== undefined) {
-            this.options.width = this._prepareValue(options.width);
-          }
-          if (options.height !== undefined) {
-            this.options.height = this._prepareValue(options.height);
-          }
-        }
-      }
-    }, {
-      key: '_prepareValue',
-      value: function _prepareValue(value) {
-        if (typeof value === 'number') {
-          return value + 'px';
-        } else if (typeof value === 'string') {
-          if (value.indexOf('%') !== -1 || value.indexOf('px') !== -1) {
-            return value;
-          } else if (value.indexOf('%') === -1) {
-            return value + 'px';
-          }
-        }
-        throw new Error('Could not use the value supplie for width or height:' + value);
-      }
-    }, {
-      key: '_create',
-
-      /**
-       * Create the HTML
-       */
-      value: function _create() {
-        // remove all elements from the container element.
-        while (this.body.container.hasChildNodes()) {
-          this.body.container.removeChild(this.body.container.firstChild);
-        }
-
-        this.frame = document.createElement('div');
-        this.frame.className = 'vis network-frame';
-        this.frame.style.position = 'relative';
-        this.frame.style.overflow = 'hidden';
-        this.frame.tabIndex = 900; // tab index is required for keycharm to bind keystrokes to the div instead of the window
-
-        //////////////////////////////////////////////////////////////////
-
-        this.frame.canvas = document.createElement('canvas');
-        this.frame.canvas.style.position = 'relative';
-        this.frame.appendChild(this.frame.canvas);
-
-        if (!this.frame.canvas.getContext) {
-          var noCanvas = document.createElement('DIV');
-          noCanvas.style.color = 'red';
-          noCanvas.style.fontWeight = 'bold';
-          noCanvas.style.padding = '10px';
-          noCanvas.innerHTML = 'Error: your browser does not support HTML canvas';
-          this.frame.canvas.appendChild(noCanvas);
-        } else {
-          var ctx = this.frame.canvas.getContext('2d');
-          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
-
-          this.frame.canvas.getContext('2d').setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
-        }
-
-        // add the frame to the container element
-        this.body.container.appendChild(this.frame);
-
-        this.body.view.scale = 1;
-        this.body.view.translation = { x: 0.5 * this.frame.canvas.clientWidth, y: 0.5 * this.frame.canvas.clientHeight };
-
-        this._bindHammer();
-      }
-    }, {
-      key: '_bindHammer',
-
-      /**
-       * This function binds hammer, it can be repeated over and over due to the uniqueness check.
-       * @private
-       */
-      value: function _bindHammer() {
-        var _this2 = this;
-
-        if (this.hammer !== undefined) {
-          this.hammer.destroy();
-        }
-        this.drag = {};
-        this.pinch = {};
-
-        // init hammer
-        this.hammer = new Hammer(this.frame.canvas);
-        this.hammer.get('pinch').set({ enable: true });
-
-        hammerUtil.onTouch(this.hammer, function (event) {
-          _this2.body.eventListeners.onTouch(event);
-        });
-        this.hammer.on('tap', function (event) {
-          _this2.body.eventListeners.onTap(event);
-        });
-        this.hammer.on('doubletap', function (event) {
-          _this2.body.eventListeners.onDoubleTap(event);
-        });
-        this.hammer.on('press', function (event) {
-          _this2.body.eventListeners.onHold(event);
-        });
-        this.hammer.on('panstart', function (event) {
-          _this2.body.eventListeners.onDragStart(event);
-        });
-        this.hammer.on('panmove', function (event) {
-          _this2.body.eventListeners.onDrag(event);
-        });
-        this.hammer.on('panend', function (event) {
-          _this2.body.eventListeners.onDragEnd(event);
-        });
-        this.hammer.on('pinch', function (event) {
-          _this2.body.eventListeners.onPinch(event);
-        });
-
-        // TODO: neatly cleanup these handlers when re-creating the Canvas, IF these are done with hammer, event.stopPropagation will not work?
-        this.frame.canvas.addEventListener('mousewheel', function (event) {
-          _this2.body.eventListeners.onMouseWheel(event);
-        });
-        this.frame.canvas.addEventListener('DOMMouseScroll', function (event) {
-          _this2.body.eventListeners.onMouseWheel(event);
-        });
-
-        this.frame.canvas.addEventListener('mousemove', function (event) {
-          _this2.body.eventListeners.onMouseMove(event);
-        });
-
-        this.hammerFrame = new Hammer(this.frame);
-        hammerUtil.onRelease(this.hammerFrame, function (event) {
-          _this2.body.eventListeners.onRelease(event);
-        });
-      }
-    }, {
-      key: 'setSize',
-
-      /**
-       * Set a new size for the network
-       * @param {string} width   Width in pixels or percentage (for example '800px'
-       *                         or '50%')
-       * @param {string} height  Height in pixels or percentage  (for example '400px'
-       *                         or '30%')
-       */
-      value: function setSize() {
-        var width = arguments[0] === undefined ? this.options.width : arguments[0];
-        var height = arguments[1] === undefined ? this.options.height : arguments[1];
-
-        width = this._prepareValue(width);
-        height = this._prepareValue(height);
-
-        var emitEvent = false;
-        var oldWidth = this.frame.canvas.width;
-        var oldHeight = this.frame.canvas.height;
-
-        if (width != this.options.width || height != this.options.height || this.frame.style.width != width || this.frame.style.height != height) {
-          this.frame.style.width = width;
-          this.frame.style.height = height;
-
-          this.frame.canvas.style.width = '100%';
-          this.frame.canvas.style.height = '100%';
-
-          this.frame.canvas.width = this.frame.canvas.clientWidth * this.pixelRatio;
-          this.frame.canvas.height = this.frame.canvas.clientHeight * this.pixelRatio;
-
-          this.options.width = width;
-          this.options.height = height;
-
-          emitEvent = true;
-        } else {
-          // this would adapt the width of the canvas to the width from 100% if and only if
-          // there is a change.
-
-          if (this.frame.canvas.width != this.frame.canvas.clientWidth * this.pixelRatio) {
-            this.frame.canvas.width = this.frame.canvas.clientWidth * this.pixelRatio;
-            emitEvent = true;
-          }
-          if (this.frame.canvas.height != this.frame.canvas.clientHeight * this.pixelRatio) {
-            this.frame.canvas.height = this.frame.canvas.clientHeight * this.pixelRatio;
-            emitEvent = true;
-          }
-        }
-
-        if (emitEvent === true) {
-          this.body.emitter.emit('resize', { width: this.frame.canvas.width / this.pixelRatio, height: this.frame.canvas.height / this.pixelRatio, oldWidth: oldWidth / this.pixelRatio, oldHeight: oldHeight / this.pixelRatio });
-        }
-      }
-    }, {
-      key: '_XconvertDOMtoCanvas',
-
-      /**
-       * Convert the X coordinate in DOM-space (coordinate point in browser relative to the container div) to
-       * the X coordinate in canvas-space (the simulation sandbox, which the camera looks upon)
-       * @param {number} x
-       * @returns {number}
-       * @private
-       */
-      value: function _XconvertDOMtoCanvas(x) {
-        return (x - this.body.view.translation.x) / this.body.view.scale;
-      }
-    }, {
-      key: '_XconvertCanvasToDOM',
-
-      /**
-       * Convert the X coordinate in canvas-space (the simulation sandbox, which the camera looks upon) to
-       * the X coordinate in DOM-space (coordinate point in browser relative to the container div)
-       * @param {number} x
-       * @returns {number}
-       * @private
-       */
-      value: function _XconvertCanvasToDOM(x) {
-        return x * this.body.view.scale + this.body.view.translation.x;
-      }
-    }, {
-      key: '_YconvertDOMtoCanvas',
-
-      /**
-       * Convert the Y coordinate in DOM-space (coordinate point in browser relative to the container div) to
-       * the Y coordinate in canvas-space (the simulation sandbox, which the camera looks upon)
-       * @param {number} y
-       * @returns {number}
-       * @private
-       */
-      value: function _YconvertDOMtoCanvas(y) {
-        return (y - this.body.view.translation.y) / this.body.view.scale;
-      }
-    }, {
-      key: '_YconvertCanvasToDOM',
-
-      /**
-       * Convert the Y coordinate in canvas-space (the simulation sandbox, which the camera looks upon) to
-       * the Y coordinate in DOM-space (coordinate point in browser relative to the container div)
-       * @param {number} y
-       * @returns {number}
-       * @private
-       */
-      value: function _YconvertCanvasToDOM(y) {
-        return y * this.body.view.scale + this.body.view.translation.y;
-      }
-    }, {
-      key: 'canvasToDOM',
-
-      /**
-       *
-       * @param {object} pos   = {x: number, y: number}
-       * @returns {{x: number, y: number}}
-       * @constructor
-       */
-      value: function canvasToDOM(pos) {
-        return { x: this._XconvertCanvasToDOM(pos.x), y: this._YconvertCanvasToDOM(pos.y) };
-      }
-    }, {
-      key: 'DOMtoCanvas',
-
-      /**
-       *
-       * @param {object} pos   = {x: number, y: number}
-       * @returns {{x: number, y: number}}
-       * @constructor
-       */
-      value: function DOMtoCanvas(pos) {
-        return { x: this._XconvertDOMtoCanvas(pos.x), y: this._YconvertDOMtoCanvas(pos.y) };
-      }
-    }]);
-
-    return Canvas;
-  })();
-
-  exports['default'] = Canvas;
-  module.exports = exports['default'];
-
-/***/ },
-/* 52 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -21048,7 +21062,1003 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 53 */
+/* 55 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+  var Hammer = __webpack_require__(41);
+  var hammerUtil = __webpack_require__(43);
+
+  var util = __webpack_require__(1);
+
+  /**
+   * Create the main frame for the Network.
+   * This function is executed once when a Network object is created. The frame
+   * contains a canvas, and this canvas contains all objects like the axis and
+   * nodes.
+   * @private
+   */
+
+  var Canvas = (function () {
+    function Canvas(body) {
+      var _this = this;
+
+      _classCallCheck(this, Canvas);
+
+      this.body = body;
+      this.pixelRatio = 1;
+
+      this.options = {};
+      this.defaultOptions = {
+        width: '100%',
+        height: '100%'
+      };
+      util.extend(this.options, this.defaultOptions);
+
+      // bind the events
+      this.body.emitter.once('resize', function (obj) {
+        if (obj.width !== 0) {
+          _this.body.view.translation.x = obj.width * 0.5;
+        }
+        if (obj.height !== 0) {
+          _this.body.view.translation.y = obj.height * 0.5;
+        }
+      });
+      this.body.emitter.on('destroy', function () {
+        return _this.hammer.destroy();
+      });
+
+      // automatically adapt to a changing size of the browser.
+      window.onresize = function () {
+        _this.setSize();_this.body.emitter.emit('_redraw');
+      };
+    }
+
+    _createClass(Canvas, [{
+      key: 'setOptions',
+      value: function setOptions(options) {
+        if (options !== undefined) {
+          if (options.width !== undefined) {
+            this.options.width = this._prepareValue(options.width);
+          }
+          if (options.height !== undefined) {
+            this.options.height = this._prepareValue(options.height);
+          }
+        }
+      }
+    }, {
+      key: '_prepareValue',
+      value: function _prepareValue(value) {
+        if (typeof value === 'number') {
+          return value + 'px';
+        } else if (typeof value === 'string') {
+          if (value.indexOf('%') !== -1 || value.indexOf('px') !== -1) {
+            return value;
+          } else if (value.indexOf('%') === -1) {
+            return value + 'px';
+          }
+        }
+        throw new Error('Could not use the value supplie for width or height:' + value);
+      }
+    }, {
+      key: '_create',
+
+      /**
+       * Create the HTML
+       */
+      value: function _create() {
+        // remove all elements from the container element.
+        while (this.body.container.hasChildNodes()) {
+          this.body.container.removeChild(this.body.container.firstChild);
+        }
+
+        this.frame = document.createElement('div');
+        this.frame.className = 'vis network-frame';
+        this.frame.style.position = 'relative';
+        this.frame.style.overflow = 'hidden';
+        this.frame.tabIndex = 900; // tab index is required for keycharm to bind keystrokes to the div instead of the window
+
+        //////////////////////////////////////////////////////////////////
+
+        this.frame.canvas = document.createElement('canvas');
+        this.frame.canvas.style.position = 'relative';
+        this.frame.appendChild(this.frame.canvas);
+
+        if (!this.frame.canvas.getContext) {
+          var noCanvas = document.createElement('DIV');
+          noCanvas.style.color = 'red';
+          noCanvas.style.fontWeight = 'bold';
+          noCanvas.style.padding = '10px';
+          noCanvas.innerHTML = 'Error: your browser does not support HTML canvas';
+          this.frame.canvas.appendChild(noCanvas);
+        } else {
+          var ctx = this.frame.canvas.getContext('2d');
+          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
+
+          this.frame.canvas.getContext('2d').setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+        }
+
+        // add the frame to the container element
+        this.body.container.appendChild(this.frame);
+
+        this.body.view.scale = 1;
+        this.body.view.translation = { x: 0.5 * this.frame.canvas.clientWidth, y: 0.5 * this.frame.canvas.clientHeight };
+
+        this._bindHammer();
+      }
+    }, {
+      key: '_bindHammer',
+
+      /**
+       * This function binds hammer, it can be repeated over and over due to the uniqueness check.
+       * @private
+       */
+      value: function _bindHammer() {
+        var _this2 = this;
+
+        if (this.hammer !== undefined) {
+          this.hammer.destroy();
+        }
+        this.drag = {};
+        this.pinch = {};
+
+        // init hammer
+        this.hammer = new Hammer(this.frame.canvas);
+        this.hammer.get('pinch').set({ enable: true });
+
+        hammerUtil.onTouch(this.hammer, function (event) {
+          _this2.body.eventListeners.onTouch(event);
+        });
+        this.hammer.on('tap', function (event) {
+          _this2.body.eventListeners.onTap(event);
+        });
+        this.hammer.on('doubletap', function (event) {
+          _this2.body.eventListeners.onDoubleTap(event);
+        });
+        this.hammer.on('press', function (event) {
+          _this2.body.eventListeners.onHold(event);
+        });
+        this.hammer.on('panstart', function (event) {
+          _this2.body.eventListeners.onDragStart(event);
+        });
+        this.hammer.on('panmove', function (event) {
+          _this2.body.eventListeners.onDrag(event);
+        });
+        this.hammer.on('panend', function (event) {
+          _this2.body.eventListeners.onDragEnd(event);
+        });
+        this.hammer.on('pinch', function (event) {
+          _this2.body.eventListeners.onPinch(event);
+        });
+
+        // TODO: neatly cleanup these handlers when re-creating the Canvas, IF these are done with hammer, event.stopPropagation will not work?
+        this.frame.canvas.addEventListener('mousewheel', function (event) {
+          _this2.body.eventListeners.onMouseWheel(event);
+        });
+        this.frame.canvas.addEventListener('DOMMouseScroll', function (event) {
+          _this2.body.eventListeners.onMouseWheel(event);
+        });
+
+        this.frame.canvas.addEventListener('mousemove', function (event) {
+          _this2.body.eventListeners.onMouseMove(event);
+        });
+
+        this.hammerFrame = new Hammer(this.frame);
+        hammerUtil.onRelease(this.hammerFrame, function (event) {
+          _this2.body.eventListeners.onRelease(event);
+        });
+      }
+    }, {
+      key: 'setSize',
+
+      /**
+       * Set a new size for the network
+       * @param {string} width   Width in pixels or percentage (for example '800px'
+       *                         or '50%')
+       * @param {string} height  Height in pixels or percentage  (for example '400px'
+       *                         or '30%')
+       */
+      value: function setSize() {
+        var width = arguments[0] === undefined ? this.options.width : arguments[0];
+        var height = arguments[1] === undefined ? this.options.height : arguments[1];
+
+        width = this._prepareValue(width);
+        height = this._prepareValue(height);
+
+        var emitEvent = false;
+        var oldWidth = this.frame.canvas.width;
+        var oldHeight = this.frame.canvas.height;
+
+        if (width != this.options.width || height != this.options.height || this.frame.style.width != width || this.frame.style.height != height) {
+          this.frame.style.width = width;
+          this.frame.style.height = height;
+
+          this.frame.canvas.style.width = '100%';
+          this.frame.canvas.style.height = '100%';
+
+          this.frame.canvas.width = this.frame.canvas.clientWidth * this.pixelRatio;
+          this.frame.canvas.height = this.frame.canvas.clientHeight * this.pixelRatio;
+
+          this.options.width = width;
+          this.options.height = height;
+
+          emitEvent = true;
+        } else {
+          // this would adapt the width of the canvas to the width from 100% if and only if
+          // there is a change.
+
+          if (this.frame.canvas.width != this.frame.canvas.clientWidth * this.pixelRatio) {
+            this.frame.canvas.width = this.frame.canvas.clientWidth * this.pixelRatio;
+            emitEvent = true;
+          }
+          if (this.frame.canvas.height != this.frame.canvas.clientHeight * this.pixelRatio) {
+            this.frame.canvas.height = this.frame.canvas.clientHeight * this.pixelRatio;
+            emitEvent = true;
+          }
+        }
+
+        if (emitEvent === true) {
+          this.body.emitter.emit('resize', { width: this.frame.canvas.width / this.pixelRatio, height: this.frame.canvas.height / this.pixelRatio, oldWidth: oldWidth / this.pixelRatio, oldHeight: oldHeight / this.pixelRatio });
+        }
+      }
+    }, {
+      key: '_XconvertDOMtoCanvas',
+
+      /**
+       * Convert the X coordinate in DOM-space (coordinate point in browser relative to the container div) to
+       * the X coordinate in canvas-space (the simulation sandbox, which the camera looks upon)
+       * @param {number} x
+       * @returns {number}
+       * @private
+       */
+      value: function _XconvertDOMtoCanvas(x) {
+        return (x - this.body.view.translation.x) / this.body.view.scale;
+      }
+    }, {
+      key: '_XconvertCanvasToDOM',
+
+      /**
+       * Convert the X coordinate in canvas-space (the simulation sandbox, which the camera looks upon) to
+       * the X coordinate in DOM-space (coordinate point in browser relative to the container div)
+       * @param {number} x
+       * @returns {number}
+       * @private
+       */
+      value: function _XconvertCanvasToDOM(x) {
+        return x * this.body.view.scale + this.body.view.translation.x;
+      }
+    }, {
+      key: '_YconvertDOMtoCanvas',
+
+      /**
+       * Convert the Y coordinate in DOM-space (coordinate point in browser relative to the container div) to
+       * the Y coordinate in canvas-space (the simulation sandbox, which the camera looks upon)
+       * @param {number} y
+       * @returns {number}
+       * @private
+       */
+      value: function _YconvertDOMtoCanvas(y) {
+        return (y - this.body.view.translation.y) / this.body.view.scale;
+      }
+    }, {
+      key: '_YconvertCanvasToDOM',
+
+      /**
+       * Convert the Y coordinate in canvas-space (the simulation sandbox, which the camera looks upon) to
+       * the Y coordinate in DOM-space (coordinate point in browser relative to the container div)
+       * @param {number} y
+       * @returns {number}
+       * @private
+       */
+      value: function _YconvertCanvasToDOM(y) {
+        return y * this.body.view.scale + this.body.view.translation.y;
+      }
+    }, {
+      key: 'canvasToDOM',
+
+      /**
+       *
+       * @param {object} pos   = {x: number, y: number}
+       * @returns {{x: number, y: number}}
+       * @constructor
+       */
+      value: function canvasToDOM(pos) {
+        return { x: this._XconvertCanvasToDOM(pos.x), y: this._YconvertCanvasToDOM(pos.y) };
+      }
+    }, {
+      key: 'DOMtoCanvas',
+
+      /**
+       *
+       * @param {object} pos   = {x: number, y: number}
+       * @returns {{x: number, y: number}}
+       * @constructor
+       */
+      value: function DOMtoCanvas(pos) {
+        return { x: this._XconvertDOMtoCanvas(pos.x), y: this._YconvertDOMtoCanvas(pos.y) };
+      }
+    }]);
+
+    return Canvas;
+  })();
+
+  exports['default'] = Canvas;
+  module.exports = exports['default'];
+
+/***/ },
+/* 56 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  var Node = __webpack_require__(67);
+  var util = __webpack_require__(1);
+
+  var SelectionHandler = (function () {
+    function SelectionHandler(body, canvas) {
+      var _this = this;
+
+      _classCallCheck(this, SelectionHandler);
+
+      this.body = body;
+      this.canvas = canvas;
+      this.selectionObj = { nodes: [], edges: [] };
+      this.forceSelectEdges = false;
+
+      this.options = {};
+      this.defaultOptions = {
+        select: true,
+        selectConnectedEdges: true
+      };
+      util.extend(this.options, this.defaultOptions);
+
+      this.body.emitter.on("_dataChanged", function () {
+        _this.updateSelection();
+      });
+    }
+
+    _createClass(SelectionHandler, [{
+      key: "setOptions",
+      value: function setOptions(options) {
+        if (options !== undefined) {
+          util.deepExtend(this.options, options);
+        }
+      }
+    }, {
+      key: "selectOnPoint",
+
+      /**
+       * handles the selection part of the tap;
+       *
+       * @param {Object} pointer
+       * @private
+       */
+      value: function selectOnPoint(pointer) {
+        var selected = false;
+        if (this.options.select === true) {
+          this.unselectAll();
+          var obj = this.getNodeAt(pointer) || this.getEdgeAt(pointer);;
+          if (obj !== undefined) {
+            selected = this.selectObject(obj);
+          }
+          this.body.emitter.emit("_requestRedraw");
+        }
+        return selected;
+      }
+    }, {
+      key: "selectAdditionalOnPoint",
+      value: function selectAdditionalOnPoint(pointer) {
+        var selectionChanged = false;
+        if (this.options.select === true) {
+          var obj = this.getNodeAt(pointer) || this.getEdgeAt(pointer);;
+
+          if (obj !== undefined) {
+            selectionChanged = true;
+            if (obj.isSelected() === true) {
+              this.deselectObject(obj);
+            } else {
+              this.selectObject(obj);
+            }
+
+            this.body.emitter.emit("_requestRedraw");
+          }
+        }
+        return selectionChanged;
+      }
+    }, {
+      key: "_generateClickEvent",
+      value: function _generateClickEvent(eventType, pointer) {
+        var properties = this.getSelection();
+        properties.pointer = {
+          DOM: { x: pointer.x, y: pointer.y },
+          canvas: this.canvas.DOMtoCanvas(pointer)
+        };
+        this.body.emitter.emit(eventType, properties);
+      }
+    }, {
+      key: "selectObject",
+      value: function selectObject(obj) {
+        if (obj !== undefined) {
+          if (obj instanceof Node) {
+            if (this.options.selectConnectedEdges === true || this.forceSelectEdges === true) {
+              this._selectConnectedEdges(obj);
+            }
+          }
+          obj.select();
+          this._addToSelection(obj);
+          return true;
+        }
+        return false;
+      }
+    }, {
+      key: "deselectObject",
+      value: function deselectObject(obj) {
+        if (obj.isSelected() === true) {
+          obj.selected = false;
+          this._removeFromSelection(obj);
+        }
+      }
+    }, {
+      key: "_getAllNodesOverlappingWith",
+
+      /**
+       * retrieve all nodes overlapping with given object
+       * @param {Object} object  An object with parameters left, top, right, bottom
+       * @return {Number[]}   An array with id's of the overlapping nodes
+       * @private
+       */
+      value: function _getAllNodesOverlappingWith(object) {
+        var overlappingNodes = [];
+        var nodes = this.body.nodes;
+        for (var i = 0; i < this.body.nodeIndices.length; i++) {
+          var nodeId = this.body.nodeIndices[i];
+          if (nodes[nodeId].isOverlappingWith(object)) {
+            overlappingNodes.push(nodeId);
+          }
+        }
+        return overlappingNodes;
+      }
+    }, {
+      key: "_pointerToPositionObject",
+
+      /**
+       * Return a position object in canvasspace from a single point in screenspace
+       *
+       * @param pointer
+       * @returns {{left: number, top: number, right: number, bottom: number}}
+       * @private
+       */
+      value: function _pointerToPositionObject(pointer) {
+        var canvasPos = this.canvas.DOMtoCanvas(pointer);
+        return {
+          left: canvasPos.x - 1,
+          top: canvasPos.y + 1,
+          right: canvasPos.x + 1,
+          bottom: canvasPos.y - 1
+        };
+      }
+    }, {
+      key: "getNodeAt",
+
+      /**
+       * Get the top node at the a specific point (like a click)
+       *
+       * @param {{x: Number, y: Number}} pointer
+       * @return {Node | undefined} node
+       * @private
+       */
+      value: function getNodeAt(pointer) {
+        // we first check if this is an navigation controls element
+        var positionObject = this._pointerToPositionObject(pointer);
+        var overlappingNodes = this._getAllNodesOverlappingWith(positionObject);
+
+        // if there are overlapping nodes, select the last one, this is the
+        // one which is drawn on top of the others
+        if (overlappingNodes.length > 0) {
+          return this.body.nodes[overlappingNodes[overlappingNodes.length - 1]];
+        } else {
+          return undefined;
+        }
+      }
+    }, {
+      key: "_getEdgesOverlappingWith",
+
+      /**
+       * retrieve all edges overlapping with given object, selector is around center
+       * @param {Object} object  An object with parameters left, top, right, bottom
+       * @return {Number[]}   An array with id's of the overlapping nodes
+       * @private
+       */
+      value: function _getEdgesOverlappingWith(object, overlappingEdges) {
+        var edges = this.body.edges;
+        for (var i = 0; i < this.body.edgeIndices.length; i++) {
+          var edgeId = this.body.edgeIndices[i];
+          if (edges[edgeId].isOverlappingWith(object)) {
+            overlappingEdges.push(edgeId);
+          }
+        }
+      }
+    }, {
+      key: "_getAllEdgesOverlappingWith",
+
+      /**
+       * retrieve all nodes overlapping with given object
+       * @param {Object} object  An object with parameters left, top, right, bottom
+       * @return {Number[]}   An array with id's of the overlapping nodes
+       * @private
+       */
+      value: function _getAllEdgesOverlappingWith(object) {
+        var overlappingEdges = [];
+        this._getEdgesOverlappingWith(object, overlappingEdges);
+        return overlappingEdges;
+      }
+    }, {
+      key: "getEdgeAt",
+
+      /**
+       * Place holder. To implement change the getNodeAt to a _getObjectAt. Have the _getObjectAt call
+       * getNodeAt and _getEdgesAt, then priortize the selection to user preferences.
+       *
+       * @param pointer
+       * @returns {undefined}
+       * @private
+       */
+      value: function getEdgeAt(pointer) {
+        var positionObject = this._pointerToPositionObject(pointer);
+        var overlappingEdges = this._getAllEdgesOverlappingWith(positionObject);
+
+        if (overlappingEdges.length > 0) {
+          return this.body.edges[overlappingEdges[overlappingEdges.length - 1]];
+        } else {
+          return undefined;
+        }
+      }
+    }, {
+      key: "_addToSelection",
+
+      /**
+       * Add object to the selection array.
+       *
+       * @param obj
+       * @private
+       */
+      value: function _addToSelection(obj) {
+        if (obj instanceof Node) {
+          this.selectionObj.nodes[obj.id] = obj;
+        } else {
+          this.selectionObj.edges[obj.id] = obj;
+        }
+      }
+    }, {
+      key: "_addToHover",
+
+      /**
+       * Add object to the selection array.
+       *
+       * @param obj
+       * @private
+       */
+      value: function _addToHover(obj) {
+        if (obj instanceof Node) {
+          this.hoverObj.nodes[obj.id] = obj;
+        } else {
+          this.hoverObj.edges[obj.id] = obj;
+        }
+      }
+    }, {
+      key: "_removeFromSelection",
+
+      /**
+       * Remove a single option from selection.
+       *
+       * @param {Object} obj
+       * @private
+       */
+      value: function _removeFromSelection(obj) {
+        if (obj instanceof Node) {
+          delete this.selectionObj.nodes[obj.id];
+        } else {
+          delete this.selectionObj.edges[obj.id];
+        }
+      }
+    }, {
+      key: "unselectAll",
+
+      /**
+       * Unselect all. The selectionObj is useful for this.
+       *
+       * @private
+       */
+      value: function unselectAll() {
+        for (var nodeId in this.selectionObj.nodes) {
+          if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+            this.selectionObj.nodes[nodeId].unselect();
+          }
+        }
+        for (var edgeId in this.selectionObj.edges) {
+          if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+            this.selectionObj.edges[edgeId].unselect();
+          }
+        }
+
+        this.selectionObj = { nodes: {}, edges: {} };
+      }
+    }, {
+      key: "_getSelectedNodeCount",
+
+      /**
+       * return the number of selected nodes
+       *
+       * @returns {number}
+       * @private
+       */
+      value: function _getSelectedNodeCount() {
+        var count = 0;
+        for (var nodeId in this.selectionObj.nodes) {
+          if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+            count += 1;
+          }
+        }
+        return count;
+      }
+    }, {
+      key: "_getSelectedNode",
+
+      /**
+       * return the selected node
+       *
+       * @returns {number}
+       * @private
+       */
+      value: function _getSelectedNode() {
+        for (var nodeId in this.selectionObj.nodes) {
+          if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+            return this.selectionObj.nodes[nodeId];
+          }
+        }
+        return undefined;
+      }
+    }, {
+      key: "_getSelectedEdge",
+
+      /**
+       * return the selected edge
+       *
+       * @returns {number}
+       * @private
+       */
+      value: function _getSelectedEdge() {
+        for (var edgeId in this.selectionObj.edges) {
+          if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+            return this.selectionObj.edges[edgeId];
+          }
+        }
+        return undefined;
+      }
+    }, {
+      key: "_getSelectedEdgeCount",
+
+      /**
+       * return the number of selected edges
+       *
+       * @returns {number}
+       * @private
+       */
+      value: function _getSelectedEdgeCount() {
+        var count = 0;
+        for (var edgeId in this.selectionObj.edges) {
+          if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+            count += 1;
+          }
+        }
+        return count;
+      }
+    }, {
+      key: "_getSelectedObjectCount",
+
+      /**
+       * return the number of selected objects.
+       *
+       * @returns {number}
+       * @private
+       */
+      value: function _getSelectedObjectCount() {
+        var count = 0;
+        for (var nodeId in this.selectionObj.nodes) {
+          if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+            count += 1;
+          }
+        }
+        for (var edgeId in this.selectionObj.edges) {
+          if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+            count += 1;
+          }
+        }
+        return count;
+      }
+    }, {
+      key: "_selectionIsEmpty",
+
+      /**
+       * Check if anything is selected
+       *
+       * @returns {boolean}
+       * @private
+       */
+      value: function _selectionIsEmpty() {
+        for (var nodeId in this.selectionObj.nodes) {
+          if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+            return false;
+          }
+        }
+        for (var edgeId in this.selectionObj.edges) {
+          if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+            return false;
+          }
+        }
+        return true;
+      }
+    }, {
+      key: "_clusterInSelection",
+
+      /**
+       * check if one of the selected nodes is a cluster.
+       *
+       * @returns {boolean}
+       * @private
+       */
+      value: function _clusterInSelection() {
+        for (var nodeId in this.selectionObj.nodes) {
+          if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+            if (this.selectionObj.nodes[nodeId].clusterSize > 1) {
+              return true;
+            }
+          }
+        }
+        return false;
+      }
+    }, {
+      key: "_selectConnectedEdges",
+
+      /**
+       * select the edges connected to the node that is being selected
+       *
+       * @param {Node} node
+       * @private
+       */
+      value: function _selectConnectedEdges(node) {
+        for (var i = 0; i < node.edges.length; i++) {
+          var edge = node.edges[i];
+          edge.select();
+          this._addToSelection(edge);
+        }
+      }
+    }, {
+      key: "_hoverConnectedEdges",
+
+      /**
+       * select the edges connected to the node that is being selected
+       *
+       * @param {Node} node
+       * @private
+       */
+      value: function _hoverConnectedEdges(node) {
+        for (var i = 0; i < node.edges.length; i++) {
+          var edge = node.edges[i];
+          edge.hover = true;
+          this._addToHover(edge);
+        }
+      }
+    }, {
+      key: "_unselectConnectedEdges",
+
+      /**
+       * unselect the edges connected to the node that is being selected
+       *
+       * @param {Node} node
+       * @private
+       */
+      value: function _unselectConnectedEdges(node) {
+        for (var i = 0; i < node.edges.length; i++) {
+          var edge = node.edges[i];
+          edge.unselect();
+          this._removeFromSelection(edge);
+        }
+      }
+    }, {
+      key: "blurObject",
+
+      /**
+       * This is called when someone clicks on a node. either select or deselect it.
+       * If there is an existing selection and we don't want to append to it, clear the existing selection
+       *
+       * @param {Node || Edge} object
+       * @private
+       */
+      value: function blurObject(object) {
+        if (object.hover === true) {
+          object.hover = false;
+          this.body.emitter.emit("blurNode", { node: object.id });
+        }
+      }
+    }, {
+      key: "hoverObject",
+
+      /**
+       * This is called when someone clicks on a node. either select or deselect it.
+       * If there is an existing selection and we don't want to append to it, clear the existing selection
+       *
+       * @param {Node || Edge} object
+       * @private
+       */
+      value: function hoverObject(object) {
+        if (object.hover === false) {
+          object.hover = true;
+          this._addToHover(object);
+          if (object instanceof Node) {
+            this.body.emitter.emit("hoverNode", { node: object.id });
+          }
+        }
+        if (object instanceof Node) {
+          this._hoverConnectedEdges(object);
+        }
+      }
+    }, {
+      key: "getSelection",
+
+      /**
+       *
+       * retrieve the currently selected objects
+       * @return {{nodes: Array.<String>, edges: Array.<String>}} selection
+       */
+      value: function getSelection() {
+        var nodeIds = this.getSelectedNodes();
+        var edgeIds = this.getSelectedEdges();
+        return { nodes: nodeIds, edges: edgeIds };
+      }
+    }, {
+      key: "getSelectedNodes",
+
+      /**
+       *
+       * retrieve the currently selected nodes
+       * @return {String[]} selection    An array with the ids of the
+       *                                            selected nodes.
+       */
+      value: function getSelectedNodes() {
+        var idArray = [];
+        if (this.options.select === true) {
+          for (var nodeId in this.selectionObj.nodes) {
+            if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+              idArray.push(nodeId);
+            }
+          }
+        }
+        return idArray;
+      }
+    }, {
+      key: "getSelectedEdges",
+
+      /**
+       *
+       * retrieve the currently selected edges
+       * @return {Array} selection    An array with the ids of the
+       *                                            selected nodes.
+       */
+      value: function getSelectedEdges() {
+        var idArray = [];
+        if (this.options.select === true) {
+          for (var edgeId in this.selectionObj.edges) {
+            if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+              idArray.push(edgeId);
+            }
+          }
+        }
+        return idArray;
+      }
+    }, {
+      key: "selectNodes",
+
+      /**
+       * select zero or more nodes with the option to highlight edges
+       * @param {Number[] | String[]} selection     An array with the ids of the
+       *                                            selected nodes.
+       * @param {boolean} [highlightEdges]
+       */
+      value: function selectNodes(selection, highlightEdges) {
+        var i, iMax, id;
+
+        if (!selection || selection.length === undefined) throw "Selection must be an array with ids";
+
+        // first unselect any selected node
+        this.unselectAll(true);
+
+        for (i = 0, iMax = selection.length; i < iMax; i++) {
+          id = selection[i];
+
+          var node = this.body.nodes[id];
+          if (!node) {
+            throw new RangeError("Node with id \"" + id + "\" not found");
+          }
+          this._selectObject(node, true, true, highlightEdges, true);
+        }
+        this.redraw();
+      }
+    }, {
+      key: "selectEdges",
+
+      /**
+       * select zero or more edges
+       * @param {Number[] | String[]} selection     An array with the ids of the
+       *                                            selected nodes.
+       */
+      value: function selectEdges(selection) {
+        var i, iMax, id;
+
+        if (!selection || selection.length === undefined) throw "Selection must be an array with ids";
+
+        // first unselect any selected node
+        this.unselectAll(true);
+
+        for (i = 0, iMax = selection.length; i < iMax; i++) {
+          id = selection[i];
+
+          var edge = this.body.edges[id];
+          if (!edge) {
+            throw new RangeError("Edge with id \"" + id + "\" not found");
+          }
+          this._selectObject(edge, true, true, false, true);
+        }
+        this.redraw();
+      }
+    }, {
+      key: "updateSelection",
+
+      /**
+       * Validate the selection: remove ids of nodes which no longer exist
+       * @private
+       */
+      value: function updateSelection() {
+        for (var nodeId in this.selectionObj.nodes) {
+          if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+            if (!this.body.nodes.hasOwnProperty(nodeId)) {
+              delete this.selectionObj.nodes[nodeId];
+            }
+          }
+        }
+        for (var edgeId in this.selectionObj.edges) {
+          if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+            if (!this.body.edges.hasOwnProperty(edgeId)) {
+              delete this.selectionObj.edges[edgeId];
+            }
+          }
+        }
+      }
+    }]);
+
+    return SelectionHandler;
+  })();
+
+  exports["default"] = SelectionHandler;
+  module.exports = exports["default"];
+
+/***/ },
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -21063,11 +22073,11 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NavigationHandler = __webpack_require__(73);
+  var _NavigationHandler = __webpack_require__(78);
 
   var _NavigationHandler2 = _interopRequireWildcard(_NavigationHandler);
 
-  var _Popup = __webpack_require__(74);
+  var _Popup = __webpack_require__(79);
 
   var _Popup2 = _interopRequireWildcard(_Popup);
 
@@ -21724,671 +22734,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 54 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  var Node = __webpack_require__(63);
-  var util = __webpack_require__(1);
-
-  var SelectionHandler = (function () {
-    function SelectionHandler(body, canvas) {
-      var _this = this;
-
-      _classCallCheck(this, SelectionHandler);
-
-      this.body = body;
-      this.canvas = canvas;
-      this.selectionObj = { nodes: [], edges: [] };
-      this.forceSelectEdges = false;
-
-      this.options = {};
-      this.defaultOptions = {
-        select: true,
-        selectConnectedEdges: true
-      };
-      util.extend(this.options, this.defaultOptions);
-
-      this.body.emitter.on("_dataChanged", function () {
-        _this.updateSelection();
-      });
-    }
-
-    _createClass(SelectionHandler, [{
-      key: "setOptions",
-      value: function setOptions(options) {
-        if (options !== undefined) {
-          util.deepExtend(this.options, options);
-        }
-      }
-    }, {
-      key: "selectOnPoint",
-
-      /**
-       * handles the selection part of the tap;
-       *
-       * @param {Object} pointer
-       * @private
-       */
-      value: function selectOnPoint(pointer) {
-        var selected = false;
-        if (this.options.select === true) {
-          this.unselectAll();
-          var obj = this.getNodeAt(pointer) || this.getEdgeAt(pointer);;
-          if (obj !== undefined) {
-            selected = this.selectObject(obj);
-          }
-          this.body.emitter.emit("_requestRedraw");
-        }
-        return selected;
-      }
-    }, {
-      key: "selectAdditionalOnPoint",
-      value: function selectAdditionalOnPoint(pointer) {
-        var selectionChanged = false;
-        if (this.options.select === true) {
-          var obj = this.getNodeAt(pointer) || this.getEdgeAt(pointer);;
-
-          if (obj !== undefined) {
-            selectionChanged = true;
-            if (obj.isSelected() === true) {
-              this.deselectObject(obj);
-            } else {
-              this.selectObject(obj);
-            }
-
-            this.body.emitter.emit("_requestRedraw");
-          }
-        }
-        return selectionChanged;
-      }
-    }, {
-      key: "_generateClickEvent",
-      value: function _generateClickEvent(eventType, pointer) {
-        var properties = this.getSelection();
-        properties.pointer = {
-          DOM: { x: pointer.x, y: pointer.y },
-          canvas: this.canvas.DOMtoCanvas(pointer)
-        };
-        this.body.emitter.emit(eventType, properties);
-      }
-    }, {
-      key: "selectObject",
-      value: function selectObject(obj) {
-        if (obj !== undefined) {
-          if (obj instanceof Node) {
-            if (this.options.selectConnectedEdges === true || this.forceSelectEdges === true) {
-              this._selectConnectedEdges(obj);
-            }
-          }
-          obj.select();
-          this._addToSelection(obj);
-          return true;
-        }
-        return false;
-      }
-    }, {
-      key: "deselectObject",
-      value: function deselectObject(obj) {
-        if (obj.isSelected() === true) {
-          obj.selected = false;
-          this._removeFromSelection(obj);
-        }
-      }
-    }, {
-      key: "_getAllNodesOverlappingWith",
-
-      /**
-       * retrieve all nodes overlapping with given object
-       * @param {Object} object  An object with parameters left, top, right, bottom
-       * @return {Number[]}   An array with id's of the overlapping nodes
-       * @private
-       */
-      value: function _getAllNodesOverlappingWith(object) {
-        var overlappingNodes = [];
-        var nodes = this.body.nodes;
-        for (var i = 0; i < this.body.nodeIndices.length; i++) {
-          var nodeId = this.body.nodeIndices[i];
-          if (nodes[nodeId].isOverlappingWith(object)) {
-            overlappingNodes.push(nodeId);
-          }
-        }
-        return overlappingNodes;
-      }
-    }, {
-      key: "_pointerToPositionObject",
-
-      /**
-       * Return a position object in canvasspace from a single point in screenspace
-       *
-       * @param pointer
-       * @returns {{left: number, top: number, right: number, bottom: number}}
-       * @private
-       */
-      value: function _pointerToPositionObject(pointer) {
-        var canvasPos = this.canvas.DOMtoCanvas(pointer);
-        return {
-          left: canvasPos.x - 1,
-          top: canvasPos.y + 1,
-          right: canvasPos.x + 1,
-          bottom: canvasPos.y - 1
-        };
-      }
-    }, {
-      key: "getNodeAt",
-
-      /**
-       * Get the top node at the a specific point (like a click)
-       *
-       * @param {{x: Number, y: Number}} pointer
-       * @return {Node | undefined} node
-       * @private
-       */
-      value: function getNodeAt(pointer) {
-        // we first check if this is an navigation controls element
-        var positionObject = this._pointerToPositionObject(pointer);
-        var overlappingNodes = this._getAllNodesOverlappingWith(positionObject);
-
-        // if there are overlapping nodes, select the last one, this is the
-        // one which is drawn on top of the others
-        if (overlappingNodes.length > 0) {
-          return this.body.nodes[overlappingNodes[overlappingNodes.length - 1]];
-        } else {
-          return undefined;
-        }
-      }
-    }, {
-      key: "_getEdgesOverlappingWith",
-
-      /**
-       * retrieve all edges overlapping with given object, selector is around center
-       * @param {Object} object  An object with parameters left, top, right, bottom
-       * @return {Number[]}   An array with id's of the overlapping nodes
-       * @private
-       */
-      value: function _getEdgesOverlappingWith(object, overlappingEdges) {
-        var edges = this.body.edges;
-        for (var i = 0; i < this.body.edgeIndices.length; i++) {
-          var edgeId = this.body.edgeIndices[i];
-          if (edges[edgeId].isOverlappingWith(object)) {
-            overlappingEdges.push(edgeId);
-          }
-        }
-      }
-    }, {
-      key: "_getAllEdgesOverlappingWith",
-
-      /**
-       * retrieve all nodes overlapping with given object
-       * @param {Object} object  An object with parameters left, top, right, bottom
-       * @return {Number[]}   An array with id's of the overlapping nodes
-       * @private
-       */
-      value: function _getAllEdgesOverlappingWith(object) {
-        var overlappingEdges = [];
-        this._getEdgesOverlappingWith(object, overlappingEdges);
-        return overlappingEdges;
-      }
-    }, {
-      key: "getEdgeAt",
-
-      /**
-       * Place holder. To implement change the getNodeAt to a _getObjectAt. Have the _getObjectAt call
-       * getNodeAt and _getEdgesAt, then priortize the selection to user preferences.
-       *
-       * @param pointer
-       * @returns {undefined}
-       * @private
-       */
-      value: function getEdgeAt(pointer) {
-        var positionObject = this._pointerToPositionObject(pointer);
-        var overlappingEdges = this._getAllEdgesOverlappingWith(positionObject);
-
-        if (overlappingEdges.length > 0) {
-          return this.body.edges[overlappingEdges[overlappingEdges.length - 1]];
-        } else {
-          return undefined;
-        }
-      }
-    }, {
-      key: "_addToSelection",
-
-      /**
-       * Add object to the selection array.
-       *
-       * @param obj
-       * @private
-       */
-      value: function _addToSelection(obj) {
-        if (obj instanceof Node) {
-          this.selectionObj.nodes[obj.id] = obj;
-        } else {
-          this.selectionObj.edges[obj.id] = obj;
-        }
-      }
-    }, {
-      key: "_addToHover",
-
-      /**
-       * Add object to the selection array.
-       *
-       * @param obj
-       * @private
-       */
-      value: function _addToHover(obj) {
-        if (obj instanceof Node) {
-          this.hoverObj.nodes[obj.id] = obj;
-        } else {
-          this.hoverObj.edges[obj.id] = obj;
-        }
-      }
-    }, {
-      key: "_removeFromSelection",
-
-      /**
-       * Remove a single option from selection.
-       *
-       * @param {Object} obj
-       * @private
-       */
-      value: function _removeFromSelection(obj) {
-        if (obj instanceof Node) {
-          delete this.selectionObj.nodes[obj.id];
-        } else {
-          delete this.selectionObj.edges[obj.id];
-        }
-      }
-    }, {
-      key: "unselectAll",
-
-      /**
-       * Unselect all. The selectionObj is useful for this.
-       *
-       * @private
-       */
-      value: function unselectAll() {
-        for (var nodeId in this.selectionObj.nodes) {
-          if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-            this.selectionObj.nodes[nodeId].unselect();
-          }
-        }
-        for (var edgeId in this.selectionObj.edges) {
-          if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
-            this.selectionObj.edges[edgeId].unselect();
-          }
-        }
-
-        this.selectionObj = { nodes: {}, edges: {} };
-      }
-    }, {
-      key: "_getSelectedNodeCount",
-
-      /**
-       * return the number of selected nodes
-       *
-       * @returns {number}
-       * @private
-       */
-      value: function _getSelectedNodeCount() {
-        var count = 0;
-        for (var nodeId in this.selectionObj.nodes) {
-          if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-            count += 1;
-          }
-        }
-        return count;
-      }
-    }, {
-      key: "_getSelectedNode",
-
-      /**
-       * return the selected node
-       *
-       * @returns {number}
-       * @private
-       */
-      value: function _getSelectedNode() {
-        for (var nodeId in this.selectionObj.nodes) {
-          if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-            return this.selectionObj.nodes[nodeId];
-          }
-        }
-        return undefined;
-      }
-    }, {
-      key: "_getSelectedEdge",
-
-      /**
-       * return the selected edge
-       *
-       * @returns {number}
-       * @private
-       */
-      value: function _getSelectedEdge() {
-        for (var edgeId in this.selectionObj.edges) {
-          if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
-            return this.selectionObj.edges[edgeId];
-          }
-        }
-        return undefined;
-      }
-    }, {
-      key: "_getSelectedEdgeCount",
-
-      /**
-       * return the number of selected edges
-       *
-       * @returns {number}
-       * @private
-       */
-      value: function _getSelectedEdgeCount() {
-        var count = 0;
-        for (var edgeId in this.selectionObj.edges) {
-          if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
-            count += 1;
-          }
-        }
-        return count;
-      }
-    }, {
-      key: "_getSelectedObjectCount",
-
-      /**
-       * return the number of selected objects.
-       *
-       * @returns {number}
-       * @private
-       */
-      value: function _getSelectedObjectCount() {
-        var count = 0;
-        for (var nodeId in this.selectionObj.nodes) {
-          if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-            count += 1;
-          }
-        }
-        for (var edgeId in this.selectionObj.edges) {
-          if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
-            count += 1;
-          }
-        }
-        return count;
-      }
-    }, {
-      key: "_selectionIsEmpty",
-
-      /**
-       * Check if anything is selected
-       *
-       * @returns {boolean}
-       * @private
-       */
-      value: function _selectionIsEmpty() {
-        for (var nodeId in this.selectionObj.nodes) {
-          if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-            return false;
-          }
-        }
-        for (var edgeId in this.selectionObj.edges) {
-          if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
-            return false;
-          }
-        }
-        return true;
-      }
-    }, {
-      key: "_clusterInSelection",
-
-      /**
-       * check if one of the selected nodes is a cluster.
-       *
-       * @returns {boolean}
-       * @private
-       */
-      value: function _clusterInSelection() {
-        for (var nodeId in this.selectionObj.nodes) {
-          if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-            if (this.selectionObj.nodes[nodeId].clusterSize > 1) {
-              return true;
-            }
-          }
-        }
-        return false;
-      }
-    }, {
-      key: "_selectConnectedEdges",
-
-      /**
-       * select the edges connected to the node that is being selected
-       *
-       * @param {Node} node
-       * @private
-       */
-      value: function _selectConnectedEdges(node) {
-        for (var i = 0; i < node.edges.length; i++) {
-          var edge = node.edges[i];
-          edge.select();
-          this._addToSelection(edge);
-        }
-      }
-    }, {
-      key: "_hoverConnectedEdges",
-
-      /**
-       * select the edges connected to the node that is being selected
-       *
-       * @param {Node} node
-       * @private
-       */
-      value: function _hoverConnectedEdges(node) {
-        for (var i = 0; i < node.edges.length; i++) {
-          var edge = node.edges[i];
-          edge.hover = true;
-          this._addToHover(edge);
-        }
-      }
-    }, {
-      key: "_unselectConnectedEdges",
-
-      /**
-       * unselect the edges connected to the node that is being selected
-       *
-       * @param {Node} node
-       * @private
-       */
-      value: function _unselectConnectedEdges(node) {
-        for (var i = 0; i < node.edges.length; i++) {
-          var edge = node.edges[i];
-          edge.unselect();
-          this._removeFromSelection(edge);
-        }
-      }
-    }, {
-      key: "blurObject",
-
-      /**
-       * This is called when someone clicks on a node. either select or deselect it.
-       * If there is an existing selection and we don't want to append to it, clear the existing selection
-       *
-       * @param {Node || Edge} object
-       * @private
-       */
-      value: function blurObject(object) {
-        if (object.hover === true) {
-          object.hover = false;
-          this.body.emitter.emit("blurNode", { node: object.id });
-        }
-      }
-    }, {
-      key: "hoverObject",
-
-      /**
-       * This is called when someone clicks on a node. either select or deselect it.
-       * If there is an existing selection and we don't want to append to it, clear the existing selection
-       *
-       * @param {Node || Edge} object
-       * @private
-       */
-      value: function hoverObject(object) {
-        if (object.hover === false) {
-          object.hover = true;
-          this._addToHover(object);
-          if (object instanceof Node) {
-            this.body.emitter.emit("hoverNode", { node: object.id });
-          }
-        }
-        if (object instanceof Node) {
-          this._hoverConnectedEdges(object);
-        }
-      }
-    }, {
-      key: "getSelection",
-
-      /**
-       *
-       * retrieve the currently selected objects
-       * @return {{nodes: Array.<String>, edges: Array.<String>}} selection
-       */
-      value: function getSelection() {
-        var nodeIds = this.getSelectedNodes();
-        var edgeIds = this.getSelectedEdges();
-        return { nodes: nodeIds, edges: edgeIds };
-      }
-    }, {
-      key: "getSelectedNodes",
-
-      /**
-       *
-       * retrieve the currently selected nodes
-       * @return {String[]} selection    An array with the ids of the
-       *                                            selected nodes.
-       */
-      value: function getSelectedNodes() {
-        var idArray = [];
-        if (this.options.select === true) {
-          for (var nodeId in this.selectionObj.nodes) {
-            if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-              idArray.push(nodeId);
-            }
-          }
-        }
-        return idArray;
-      }
-    }, {
-      key: "getSelectedEdges",
-
-      /**
-       *
-       * retrieve the currently selected edges
-       * @return {Array} selection    An array with the ids of the
-       *                                            selected nodes.
-       */
-      value: function getSelectedEdges() {
-        var idArray = [];
-        if (this.options.select === true) {
-          for (var edgeId in this.selectionObj.edges) {
-            if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
-              idArray.push(edgeId);
-            }
-          }
-        }
-        return idArray;
-      }
-    }, {
-      key: "selectNodes",
-
-      /**
-       * select zero or more nodes with the option to highlight edges
-       * @param {Number[] | String[]} selection     An array with the ids of the
-       *                                            selected nodes.
-       * @param {boolean} [highlightEdges]
-       */
-      value: function selectNodes(selection, highlightEdges) {
-        var i, iMax, id;
-
-        if (!selection || selection.length === undefined) throw "Selection must be an array with ids";
-
-        // first unselect any selected node
-        this.unselectAll(true);
-
-        for (i = 0, iMax = selection.length; i < iMax; i++) {
-          id = selection[i];
-
-          var node = this.body.nodes[id];
-          if (!node) {
-            throw new RangeError("Node with id \"" + id + "\" not found");
-          }
-          this._selectObject(node, true, true, highlightEdges, true);
-        }
-        this.redraw();
-      }
-    }, {
-      key: "selectEdges",
-
-      /**
-       * select zero or more edges
-       * @param {Number[] | String[]} selection     An array with the ids of the
-       *                                            selected nodes.
-       */
-      value: function selectEdges(selection) {
-        var i, iMax, id;
-
-        if (!selection || selection.length === undefined) throw "Selection must be an array with ids";
-
-        // first unselect any selected node
-        this.unselectAll(true);
-
-        for (i = 0, iMax = selection.length; i < iMax; i++) {
-          id = selection[i];
-
-          var edge = this.body.edges[id];
-          if (!edge) {
-            throw new RangeError("Edge with id \"" + id + "\" not found");
-          }
-          this._selectObject(edge, true, true, false, true);
-        }
-        this.redraw();
-      }
-    }, {
-      key: "updateSelection",
-
-      /**
-       * Validate the selection: remove ids of nodes which no longer exist
-       * @private
-       */
-      value: function updateSelection() {
-        for (var nodeId in this.selectionObj.nodes) {
-          if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-            if (!this.body.nodes.hasOwnProperty(nodeId)) {
-              delete this.selectionObj.nodes[nodeId];
-            }
-          }
-        }
-        for (var edgeId in this.selectionObj.edges) {
-          if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
-            if (!this.body.edges.hasOwnProperty(edgeId)) {
-              delete this.selectionObj.edges[edgeId];
-            }
-          }
-        }
-      }
-    }]);
-
-    return SelectionHandler;
-  })();
-
-  exports["default"] = SelectionHandler;
-  module.exports = exports["default"];
-
-/***/ },
-/* 55 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -22846,7 +23192,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 56 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -22861,8 +23207,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(44);
-  var locales = __webpack_require__(75);
+  var hammerUtil = __webpack_require__(43);
+  var locales = __webpack_require__(80);
 
   /**
    * clears the toolbar div element of children
@@ -23941,7 +24287,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 57 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -23956,7 +24302,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ColorPicker = __webpack_require__(76);
+  var _ColorPicker = __webpack_require__(77);
 
   var _ColorPicker2 = _interopRequireWildcard(_ColorPicker);
 
@@ -24271,7 +24617,7 @@ return /******/ (function(modules) { // webpackBootstrap
         };
 
         this.optionsContainer = document.createElement('div');
-        this.optionsContainer.className = 'vis-network-configuration optionContainer';
+        this.optionsContainer.className = 'vis-network-configuration vis-option-container';
 
         this.domElements.push(this.optionsContainer);
         this.domElements.push(generateButton);
@@ -24735,7 +25081,7 @@ return /******/ (function(modules) { // webpackBootstrap
   //console.log('string', string, value, path);
 
 /***/ },
-/* 58 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -25009,13 +25355,13 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 59 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var keycharm = __webpack_require__(77);
-  var Emitter = __webpack_require__(42);
+  var keycharm = __webpack_require__(98);
+  var Emitter = __webpack_require__(63);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
 
@@ -25163,7 +25509,399 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Activator;
 
 /***/ },
-/* 60 */
+/* 63 */
+/***/ function(module, exports, __webpack_require__) {
+
+  
+  /**
+   * Expose `Emitter`.
+   */
+
+  module.exports = Emitter;
+
+  /**
+   * Initialize a new `Emitter`.
+   *
+   * @api public
+   */
+
+  function Emitter(obj) {
+    if (obj) return mixin(obj);
+  };
+
+  /**
+   * Mixin the emitter properties.
+   *
+   * @param {Object} obj
+   * @return {Object}
+   * @api private
+   */
+
+  function mixin(obj) {
+    for (var key in Emitter.prototype) {
+      obj[key] = Emitter.prototype[key];
+    }
+    return obj;
+  }
+
+  /**
+   * Listen on the given `event` with `fn`.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.on =
+  Emitter.prototype.addEventListener = function(event, fn){
+    this._callbacks = this._callbacks || {};
+    (this._callbacks[event] = this._callbacks[event] || [])
+      .push(fn);
+    return this;
+  };
+
+  /**
+   * Adds an `event` listener that will be invoked a single
+   * time then automatically removed.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.once = function(event, fn){
+    var self = this;
+    this._callbacks = this._callbacks || {};
+
+    function on() {
+      self.off(event, on);
+      fn.apply(this, arguments);
+    }
+
+    on.fn = fn;
+    this.on(event, on);
+    return this;
+  };
+
+  /**
+   * Remove the given callback for `event` or all
+   * registered callbacks.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.off =
+  Emitter.prototype.removeListener =
+  Emitter.prototype.removeAllListeners =
+  Emitter.prototype.removeEventListener = function(event, fn){
+    this._callbacks = this._callbacks || {};
+
+    // all
+    if (0 == arguments.length) {
+      this._callbacks = {};
+      return this;
+    }
+
+    // specific event
+    var callbacks = this._callbacks[event];
+    if (!callbacks) return this;
+
+    // remove all handlers
+    if (1 == arguments.length) {
+      delete this._callbacks[event];
+      return this;
+    }
+
+    // remove specific handler
+    var cb;
+    for (var i = 0; i < callbacks.length; i++) {
+      cb = callbacks[i];
+      if (cb === fn || cb.fn === fn) {
+        callbacks.splice(i, 1);
+        break;
+      }
+    }
+    return this;
+  };
+
+  /**
+   * Emit `event` with the given args.
+   *
+   * @param {String} event
+   * @param {Mixed} ...
+   * @return {Emitter}
+   */
+
+  Emitter.prototype.emit = function(event){
+    this._callbacks = this._callbacks || {};
+    var args = [].slice.call(arguments, 1)
+      , callbacks = this._callbacks[event];
+
+    if (callbacks) {
+      callbacks = callbacks.slice(0);
+      for (var i = 0, len = callbacks.length; i < len; ++i) {
+        callbacks[i].apply(this, args);
+      }
+    }
+
+    return this;
+  };
+
+  /**
+   * Return array of callbacks for `event`.
+   *
+   * @param {String} event
+   * @return {Array}
+   * @api public
+   */
+
+  Emitter.prototype.listeners = function(event){
+    this._callbacks = this._callbacks || {};
+    return this._callbacks[event] || [];
+  };
+
+  /**
+   * Check if this emitter has `event` handlers.
+   *
+   * @param {String} event
+   * @return {Boolean}
+   * @api public
+   */
+
+  Emitter.prototype.hasListeners = function(event){
+    return !! this.listeners(event).length;
+  };
+
+
+/***/ },
+/* 64 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
+
+  (function (factory) {
+    if (true) {
+      // AMD. Register as an anonymous module.
+      !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+    } else if (typeof exports === 'object') {
+      // Node. Does not work with strict CommonJS, but
+      // only CommonJS-like environments that support module.exports,
+      // like Node.
+      module.exports = factory();
+    } else {
+      // Browser globals (root is window)
+      window.propagating = factory();
+    }
+  }(function () {
+    var _firstTarget = null; // singleton, will contain the target element where the touch event started
+    var _processing = false; // singleton, true when a touch event is being handled
+
+    /**
+     * Extend an Hammer.js instance with event propagation.
+     *
+     * Features:
+     * - Events emitted by hammer will propagate in order from child to parent
+     *   elements.
+     * - Events are extended with a function `event.stopPropagation()` to stop
+     *   propagation to parent elements.
+     * - An option `preventDefault` to stop all default browser behavior.
+     *
+     * Usage:
+     *   var hammer = propagatingHammer(new Hammer(element));
+     *   var hammer = propagatingHammer(new Hammer(element), {preventDefault: true});
+     *
+     * @param {Hammer.Manager} hammer   An hammer instance.
+     * @param {Object} [options]        Available options:
+     *                                  - `preventDefault: boolean` (false by default)
+     * @return {Hammer.Manager} Returns the same hammer instance with extended
+     *                          functionality
+     */
+    return function propagating(hammer, options) {
+      if (options && options.preventDefault === false) {
+        throw new Error('Only supports preventDefault == true');
+      }
+      var _options = options || {
+        preventDefault: false
+      };
+
+      if (hammer.Manager) {
+        // This looks like the Hammer constructor.
+        // Overload the constructors with our own.
+        var Hammer = hammer;
+
+        var PropagatingHammer = function(element, options) {
+          return propagating(new Hammer(element, options), _options);
+        };
+        Hammer.extend(PropagatingHammer, Hammer);
+        PropagatingHammer.Manager = function (element, options) {
+          return propagating(new Hammer.Manager(element, options), _options);
+        };
+
+        return PropagatingHammer;
+      }
+
+      // attach to DOM element
+      var element = hammer.element;
+      element.hammer = hammer;
+
+      // move the original functions that we will wrap
+      hammer._on = hammer.on;
+      hammer._off = hammer.off;
+      hammer._emit = hammer.emit;
+      hammer._destroy = hammer.destroy;
+
+      /** @type {Object.<String, Array.<function>>} */
+      hammer._handlers = {};
+
+      // register an event to catch the start of a gesture and store the
+      // target in a singleton
+      hammer._on('hammer.input', function (event) {
+        if (_options.preventDefault) {
+          event.preventDefault();
+        }
+        if (event.isFirst) {
+          _firstTarget = event.target;
+          _processing = true;
+        }
+        if (event.isFinal) {
+          _processing = false;
+        }
+      });
+
+      /**
+       * Register a handler for one or multiple events
+       * @param {String} events    A space separated string with events
+       * @param {function} handler A callback function, called as handler(event)
+       * @returns {Hammer.Manager} Returns the hammer instance
+       */
+      hammer.on = function (events, handler) {
+        // register the handler
+        split(events).forEach(function (event) {
+          var _handlers = hammer._handlers[event];
+          if (!_handlers) {
+            hammer._handlers[event] = _handlers = [];
+
+            // register the static, propagated handler
+            hammer._on(event, propagatedHandler);
+          }
+          _handlers.push(handler);
+        });
+
+        return hammer;
+      };
+
+      /**
+       * Unregister a handler for one or multiple events
+       * @param {String} events      A space separated string with events
+       * @param {function} [handler] Optional. The registered handler. If not
+       *                             provided, all handlers for given events
+       *                             are removed.
+       * @returns {Hammer.Manager}   Returns the hammer instance
+       */
+      hammer.off = function (events, handler) {
+        // unregister the handler
+        split(events).forEach(function (event) {
+          var _handlers = hammer._handlers[event];
+          if (_handlers) {
+            _handlers = handler ? _handlers.filter(function (h) {
+              return h !== handler;
+            }) : [];
+
+            if (_handlers.length > 0) {
+              hammer._handlers[event] = _handlers;
+            }
+            else {
+              // remove static, propagated handler
+              hammer._off(event, propagatedHandler);
+              delete hammer._handlers[event];
+            }
+          }
+        });
+
+        return hammer;
+      };
+
+      /**
+       * Emit to the event listeners
+       * @param {string} eventType
+       * @param {Event} event
+       */
+      hammer.emit = function(eventType, event) {
+        if (!_processing) {
+          _firstTarget = event.target;
+        }
+        hammer._emit(eventType, event);
+      };
+
+      hammer.destroy = function () {
+        // Detach from DOM element
+        var element = hammer.element;
+        delete element.hammer;
+
+        // clear all handlers
+        hammer._handlers = {};
+
+        // call original hammer destroy
+        hammer._destroy();
+      };
+
+      // split a string with space separated words
+      function split(events) {
+        return events.match(/[^ ]+/g);
+      }
+
+      /**
+       * A static event handler, applying event propagation.
+       * @param {Object} event
+       */
+      function propagatedHandler(event) {
+        // let only a single hammer instance handle this event
+        if (event.type !== 'hammer.input') {
+          if (event.srcEvent._handled && event.srcEvent._handled[event.type]) {
+            return;
+          }
+          else {
+            // it is possible that the same srcEvent is used with multiple hammer events
+            event.srcEvent._handled = {};
+            event.srcEvent._handled[event.type] = true;
+          }
+        }
+
+        // attach a stopPropagation function to the event
+        var stopped = false;
+        event.stopPropagation = function () {
+          stopped = true;
+        };
+
+        // attach firstTarget property to the event
+        event.firstTarget = _firstTarget;
+
+        // propagate over all elements (until stopped)
+        var elem = _firstTarget;
+        while (elem && !stopped) {
+          var _handlers = elem.hammer && elem.hammer._handlers[event.type];
+          if (_handlers) {
+            for (var i = 0; i < _handlers.length && !stopped; i++) {
+              _handlers[i](event);
+            }
+          }
+
+          elem = elem.parentNode;
+        }
+      }
+
+      return hammer;
+    };
+  }));
+
+
+/***/ },
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(module) {//! moment.js
@@ -28249,232 +28987,10 @@ return /******/ (function(modules) { // webpackBootstrap
       return _moment;
 
   }));
-  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(79)(module)))
+  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(101)(module)))
 
 /***/ },
-/* 61 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
-
-  (function (factory) {
-    if (true) {
-      // AMD. Register as an anonymous module.
-      !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-    } else if (typeof exports === 'object') {
-      // Node. Does not work with strict CommonJS, but
-      // only CommonJS-like environments that support module.exports,
-      // like Node.
-      module.exports = factory();
-    } else {
-      // Browser globals (root is window)
-      window.propagating = factory();
-    }
-  }(function () {
-    var _firstTarget = null; // singleton, will contain the target element where the touch event started
-    var _processing = false; // singleton, true when a touch event is being handled
-
-    /**
-     * Extend an Hammer.js instance with event propagation.
-     *
-     * Features:
-     * - Events emitted by hammer will propagate in order from child to parent
-     *   elements.
-     * - Events are extended with a function `event.stopPropagation()` to stop
-     *   propagation to parent elements.
-     * - An option `preventDefault` to stop all default browser behavior.
-     *
-     * Usage:
-     *   var hammer = propagatingHammer(new Hammer(element));
-     *   var hammer = propagatingHammer(new Hammer(element), {preventDefault: true});
-     *
-     * @param {Hammer.Manager} hammer   An hammer instance.
-     * @param {Object} [options]        Available options:
-     *                                  - `preventDefault: boolean` (false by default)
-     * @return {Hammer.Manager} Returns the same hammer instance with extended
-     *                          functionality
-     */
-    return function propagating(hammer, options) {
-      if (options && options.preventDefault === false) {
-        throw new Error('Only supports preventDefault == true');
-      }
-      var _options = options || {
-        preventDefault: false
-      };
-
-      if (hammer.Manager) {
-        // This looks like the Hammer constructor.
-        // Overload the constructors with our own.
-        var Hammer = hammer;
-
-        var PropagatingHammer = function(element, options) {
-          return propagating(new Hammer(element, options), _options);
-        };
-        Hammer.extend(PropagatingHammer, Hammer);
-        PropagatingHammer.Manager = function (element, options) {
-          return propagating(new Hammer.Manager(element, options), _options);
-        };
-
-        return PropagatingHammer;
-      }
-
-      // attach to DOM element
-      var element = hammer.element;
-      element.hammer = hammer;
-
-      // move the original functions that we will wrap
-      hammer._on = hammer.on;
-      hammer._off = hammer.off;
-      hammer._emit = hammer.emit;
-      hammer._destroy = hammer.destroy;
-
-      /** @type {Object.<String, Array.<function>>} */
-      hammer._handlers = {};
-
-      // register an event to catch the start of a gesture and store the
-      // target in a singleton
-      hammer._on('hammer.input', function (event) {
-        if (_options.preventDefault) {
-          event.preventDefault();
-        }
-        if (event.isFirst) {
-          _firstTarget = event.target;
-          _processing = true;
-        }
-        if (event.isFinal) {
-          _processing = false;
-        }
-      });
-
-      /**
-       * Register a handler for one or multiple events
-       * @param {String} events    A space separated string with events
-       * @param {function} handler A callback function, called as handler(event)
-       * @returns {Hammer.Manager} Returns the hammer instance
-       */
-      hammer.on = function (events, handler) {
-        // register the handler
-        split(events).forEach(function (event) {
-          var _handlers = hammer._handlers[event];
-          if (!_handlers) {
-            hammer._handlers[event] = _handlers = [];
-
-            // register the static, propagated handler
-            hammer._on(event, propagatedHandler);
-          }
-          _handlers.push(handler);
-        });
-
-        return hammer;
-      };
-
-      /**
-       * Unregister a handler for one or multiple events
-       * @param {String} events      A space separated string with events
-       * @param {function} [handler] Optional. The registered handler. If not
-       *                             provided, all handlers for given events
-       *                             are removed.
-       * @returns {Hammer.Manager}   Returns the hammer instance
-       */
-      hammer.off = function (events, handler) {
-        // unregister the handler
-        split(events).forEach(function (event) {
-          var _handlers = hammer._handlers[event];
-          if (_handlers) {
-            _handlers = handler ? _handlers.filter(function (h) {
-              return h !== handler;
-            }) : [];
-
-            if (_handlers.length > 0) {
-              hammer._handlers[event] = _handlers;
-            }
-            else {
-              // remove static, propagated handler
-              hammer._off(event, propagatedHandler);
-              delete hammer._handlers[event];
-            }
-          }
-        });
-
-        return hammer;
-      };
-
-      /**
-       * Emit to the event listeners
-       * @param {string} eventType
-       * @param {Event} event
-       */
-      hammer.emit = function(eventType, event) {
-        if (!_processing) {
-          _firstTarget = event.target;
-        }
-        hammer._emit(eventType, event);
-      };
-
-      hammer.destroy = function () {
-        // Detach from DOM element
-        var element = hammer.element;
-        delete element.hammer;
-
-        // clear all handlers
-        hammer._handlers = {};
-
-        // call original hammer destroy
-        hammer._destroy();
-      };
-
-      // split a string with space separated words
-      function split(events) {
-        return events.match(/[^ ]+/g);
-      }
-
-      /**
-       * A static event handler, applying event propagation.
-       * @param {Object} event
-       */
-      function propagatedHandler(event) {
-        // let only a single hammer instance handle this event
-        if (event.type !== 'hammer.input') {
-          if (event.srcEvent._handled && event.srcEvent._handled[event.type]) {
-            return;
-          }
-          else {
-            // it is possible that the same srcEvent is used with multiple hammer events
-            event.srcEvent._handled = {};
-            event.srcEvent._handled[event.type] = true;
-          }
-        }
-
-        // attach a stopPropagation function to the event
-        var stopped = false;
-        event.stopPropagation = function () {
-          stopped = true;
-        };
-
-        // attach firstTarget property to the event
-        event.firstTarget = _firstTarget;
-
-        // propagate over all elements (until stopped)
-        var elem = _firstTarget;
-        while (elem && !stopped) {
-          var _handlers = elem.hammer && elem.hammer._handlers[event.type];
-          if (_handlers) {
-            for (var i = 0; i < _handlers.length && !stopped; i++) {
-              _handlers[i](event);
-            }
-          }
-
-          elem = elem.parentNode;
-        }
-      }
-
-      return hammer;
-    };
-  }));
-
-
-/***/ },
-/* 62 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v2.0.4 - 2014-09-28
@@ -30929,7 +31445,7 @@ return /******/ (function(modules) { // webpackBootstrap
       prefixed: prefixed
   });
 
-  if ("function" == TYPE_FUNCTION && __webpack_require__(80)) {
+  if ("function" == TYPE_FUNCTION && __webpack_require__(100)) {
       !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
           return Hammer;
       }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -30943,7 +31459,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 63 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30958,7 +31474,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _Label = __webpack_require__(64);
+  var _Label = __webpack_require__(68);
 
   var _Label2 = _interopRequireWildcard(_Label);
 
@@ -31409,7 +31925,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 64 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31719,7 +32235,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 65 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31734,7 +32250,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _Label = __webpack_require__(64);
+  var _Label = __webpack_require__(68);
 
   var _Label2 = _interopRequireWildcard(_Label);
 
@@ -32221,7 +32737,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 66 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -32695,7 +33211,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 67 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -32790,7 +33306,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 68 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -32881,7 +33397,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 69 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -32990,7 +33506,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 70 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33111,7 +33627,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 71 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33170,7 +33686,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 72 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33187,7 +33703,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _Node2 = __webpack_require__(63);
+  var _Node2 = __webpack_require__(67);
 
   var _Node3 = _interopRequireWildcard(_Node2);
 
@@ -33215,481 +33731,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 73 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-  var util = __webpack_require__(1);
-  var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(44);
-  var keycharm = __webpack_require__(77);
-
-  var NavigationHandler = (function () {
-    function NavigationHandler(body, canvas) {
-      var _this = this;
-
-      _classCallCheck(this, NavigationHandler);
-
-      this.body = body;
-      this.canvas = canvas;
-
-      this.iconsCreated = false;
-      this.navigationHammers = [];
-      this.boundFunctions = {};
-      this.touchTime = 0;
-      this.activated = false;
-
-      this.body.emitter.on('release', this._stopMovement.bind(this));
-      this.body.emitter.on('activate', function () {
-        _this.activated = true;_this.configureKeyboardBindings();
-      });
-      this.body.emitter.on('deactivate', function () {
-        _this.activated = false;_this.configureKeyboardBindings();
-      });
-      this.body.emitter.on('destroy', function () {
-        if (_this.keycharm !== undefined) {
-          _this.keycharm.destroy();
-        }
-      });
-
-      this.options = {};
-    }
-
-    _createClass(NavigationHandler, [{
-      key: 'setOptions',
-      value: function setOptions(options) {
-        if (options !== undefined) {
-          this.options = options;
-          this.create();
-        }
-      }
-    }, {
-      key: 'create',
-      value: function create() {
-        if (this.options.showNavigationIcons === true) {
-          if (this.iconsCreated === false) {
-            this.loadNavigationElements();
-          }
-        } else if (this.iconsCreated === true) {
-          this.cleanNavigation();
-        }
-
-        this.configureKeyboardBindings();
-      }
-    }, {
-      key: 'cleanNavigation',
-      value: function cleanNavigation() {
-        // clean hammer bindings
-        if (this.navigationHammers.length != 0) {
-          for (var i = 0; i < this.navigationHammers.length; i++) {
-            this.navigationHammers[i].destroy();
-          }
-          this.navigationHammers = [];
-        }
-
-        this._navigationReleaseOverload = function () {};
-
-        // clean up previous navigation items
-        if (this.navigationDOM && this.navigationDOM.wrapper && this.navigationDOM.wrapper.parentNode) {
-          this.navigationDOM.wrapper.parentNode.removeChild(this.navigationDOM.wrapper);
-        }
-
-        this.iconsCreated = false;
-      }
-    }, {
-      key: 'loadNavigationElements',
-
-      /**
-       * Creation of the navigation controls nodes. They are drawn over the rest of the nodes and are not affected by scale and translation
-       * they have a triggerFunction which is called on click. If the position of the navigation controls is dependent
-       * on this.frame.canvas.clientWidth or this.frame.canvas.clientHeight, we flag horizontalAlignLeft and verticalAlignTop false.
-       * This means that the location will be corrected by the _relocateNavigation function on a size change of the canvas.
-       *
-       * @private
-       */
-      value: function loadNavigationElements() {
-        this.cleanNavigation();
-
-        this.navigationDOM = {};
-        var navigationDivs = ['up', 'down', 'left', 'right', 'zoomIn', 'zoomOut', 'zoomExtends'];
-        var navigationDivActions = ['_moveUp', '_moveDown', '_moveLeft', '_moveRight', '_zoomIn', '_zoomOut', '_zoomExtent'];
-
-        this.navigationDOM.wrapper = document.createElement('div');
-        this.canvas.frame.appendChild(this.navigationDOM.wrapper);
-
-        for (var i = 0; i < navigationDivs.length; i++) {
-          this.navigationDOM[navigationDivs[i]] = document.createElement('div');
-          this.navigationDOM[navigationDivs[i]].className = 'network-navigation ' + navigationDivs[i];
-          this.navigationDOM.wrapper.appendChild(this.navigationDOM[navigationDivs[i]]);
-
-          var hammer = new Hammer(this.navigationDOM[navigationDivs[i]]);
-          if (navigationDivActions[i] === '_zoomExtent') {
-            hammerUtil.onTouch(hammer, this._zoomExtent.bind(this));
-          } else {
-            hammerUtil.onTouch(hammer, this.bindToRedraw.bind(this, navigationDivActions[i]));
-          }
-
-          this.navigationHammers.push(hammer);
-        }
-
-        this.iconsCreated = true;
-      }
-    }, {
-      key: 'bindToRedraw',
-      value: function bindToRedraw(action) {
-        if (this.boundFunctions[action] === undefined) {
-          this.boundFunctions[action] = this[action].bind(this);
-          this.body.emitter.on('initRedraw', this.boundFunctions[action]);
-          this.body.emitter.emit('_startRendering');
-        }
-      }
-    }, {
-      key: 'unbindFromRedraw',
-      value: function unbindFromRedraw(action) {
-        if (this.boundFunctions[action] !== undefined) {
-          this.body.emitter.off('initRedraw', this.boundFunctions[action]);
-          this.body.emitter.emit('_stopRendering');
-          delete this.boundFunctions[action];
-        }
-      }
-    }, {
-      key: '_zoomExtent',
-
-      /**
-       * this stops all movement induced by the navigation buttons
-       *
-       * @private
-       */
-      value: function _zoomExtent() {
-        if (new Date().valueOf() - this.touchTime > 700) {
-          // TODO: fix ugly hack to avoid hammer's double fireing of event (because we use release?)
-          this.body.emitter.emit('zoomExtent', { duration: 700 });
-          this.touchTime = new Date().valueOf();
-        }
-      }
-    }, {
-      key: '_stopMovement',
-
-      /**
-       * this stops all movement induced by the navigation buttons
-       *
-       * @private
-       */
-      value: function _stopMovement() {
-        for (var boundAction in this.boundFunctions) {
-          if (this.boundFunctions.hasOwnProperty(boundAction)) {
-            this.body.emitter.off('initRedraw', this.boundFunctions[boundAction]);
-            this.body.emitter.emit('_stopRendering');
-          }
-        }
-        this.boundFunctions = {};
-      }
-    }, {
-      key: '_moveUp',
-      value: function _moveUp() {
-        this.body.view.translation.y += this.options.keyboard.speed.y;
-      }
-    }, {
-      key: '_moveDown',
-      value: function _moveDown() {
-        this.body.view.translation.y -= this.options.keyboard.speed.y;
-      }
-    }, {
-      key: '_moveLeft',
-      value: function _moveLeft() {
-        this.body.view.translation.x += this.options.keyboard.speed.x;
-      }
-    }, {
-      key: '_moveRight',
-      value: function _moveRight() {
-        this.body.view.translation.x -= this.options.keyboard.speed.x;
-      }
-    }, {
-      key: '_zoomIn',
-      value: function _zoomIn() {
-        this.body.view.scale += this.options.keyboard.speed.zoom;
-      }
-    }, {
-      key: '_zoomOut',
-      value: function _zoomOut() {
-        this.body.view.scale -= this.options.keyboard.speed.zoom;
-      }
-    }, {
-      key: 'configureKeyboardBindings',
-
-      /**
-       * bind all keys using keycharm.
-       */
-      value: function configureKeyboardBindings() {
-        if (this.keycharm !== undefined) {
-          this.keycharm.destroy();
-        }
-
-        if (this.options.keyboard.enabled === true) {
-
-          if (this.options.keyboard.bindToWindow === true) {
-            this.keycharm = keycharm({ container: window, preventDefault: false });
-          } else {
-            this.keycharm = keycharm({ container: this.canvas.frame, preventDefault: false });
-          }
-
-          this.keycharm.reset();
-
-          if (this.activated === true) {
-            this.keycharm.bind('up', this.bindToRedraw.bind(this, '_moveUp'), 'keydown');
-            this.keycharm.bind('down', this.bindToRedraw.bind(this, '_moveDown'), 'keydown');
-            this.keycharm.bind('left', this.bindToRedraw.bind(this, '_moveLeft'), 'keydown');
-            this.keycharm.bind('right', this.bindToRedraw.bind(this, '_moveRight'), 'keydown');
-            this.keycharm.bind('=', this.bindToRedraw.bind(this, '_zoomIn'), 'keydown');
-            this.keycharm.bind('num+', this.bindToRedraw.bind(this, '_zoomIn'), 'keydown');
-            this.keycharm.bind('num-', this.bindToRedraw.bind(this, '_zoomOut'), 'keydown');
-            this.keycharm.bind('-', this.bindToRedraw.bind(this, '_zoomOut'), 'keydown');
-            this.keycharm.bind('[', this.bindToRedraw.bind(this, '_zoomOut'), 'keydown');
-            this.keycharm.bind(']', this.bindToRedraw.bind(this, '_zoomIn'), 'keydown');
-            this.keycharm.bind('pageup', this.bindToRedraw.bind(this, '_zoomIn'), 'keydown');
-            this.keycharm.bind('pagedown', this.bindToRedraw.bind(this, '_zoomOut'), 'keydown');
-
-            this.keycharm.bind('up', this.unbindFromRedraw.bind(this, '_moveUp'), 'keyup');
-            this.keycharm.bind('down', this.unbindFromRedraw.bind(this, '_moveDown'), 'keyup');
-            this.keycharm.bind('left', this.unbindFromRedraw.bind(this, '_moveLeft'), 'keyup');
-            this.keycharm.bind('right', this.unbindFromRedraw.bind(this, '_moveRight'), 'keyup');
-            this.keycharm.bind('=', this.unbindFromRedraw.bind(this, '_zoomIn'), 'keyup');
-            this.keycharm.bind('num+', this.unbindFromRedraw.bind(this, '_zoomIn'), 'keyup');
-            this.keycharm.bind('num-', this.unbindFromRedraw.bind(this, '_zoomOut'), 'keyup');
-            this.keycharm.bind('-', this.unbindFromRedraw.bind(this, '_zoomOut'), 'keyup');
-            this.keycharm.bind('[', this.unbindFromRedraw.bind(this, '_zoomOut'), 'keyup');
-            this.keycharm.bind(']', this.unbindFromRedraw.bind(this, '_zoomIn'), 'keyup');
-            this.keycharm.bind('pageup', this.unbindFromRedraw.bind(this, '_zoomIn'), 'keyup');
-            this.keycharm.bind('pagedown', this.unbindFromRedraw.bind(this, '_zoomOut'), 'keyup');
-          }
-        }
-      }
-    }]);
-
-    return NavigationHandler;
-  })();
-
-  exports['default'] = NavigationHandler;
-  module.exports = exports['default'];
-
-/***/ },
-/* 74 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  /**
-   * Popup is a class to create a popup window with some text
-   * @param {Element}  container     The container object.
-   * @param {Number} [x]
-   * @param {Number} [y]
-   * @param {String} [text]
-   * @param {Object} [style]     An object containing borderColor,
-   *                             backgroundColor, etc.
-   */
-
-  var Popup = (function () {
-    function Popup(container, x, y, text, style) {
-      _classCallCheck(this, Popup);
-
-      if (container) {
-        this.container = container;
-      } else {
-        this.container = document.body;
-      }
-
-      // x, y and text are optional, see if a style object was passed in their place
-      if (style === undefined) {
-        if (typeof x === "object") {
-          style = x;
-          x = undefined;
-        } else if (typeof text === "object") {
-          style = text;
-          text = undefined;
-        } else {
-          // for backwards compatibility, in case clients other than Network are creating Popup directly
-          style = {
-            fontColor: "black",
-            fontSize: 14, // px
-            fontFace: "verdana",
-            color: {
-              border: "#666",
-              background: "#FFFFC6"
-            }
-          };
-        }
-      }
-
-      this.x = 0;
-      this.y = 0;
-      this.padding = 5;
-      this.hidden = false;
-
-      if (x !== undefined && y !== undefined) {
-        this.setPosition(x, y);
-      }
-      if (text !== undefined) {
-        this.setText(text);
-      }
-
-      // create the frame
-      this.frame = document.createElement("div");
-      this.frame.className = "network-tooltip";
-      this.frame.style.color = style.fontColor;
-      this.frame.style.backgroundColor = style.color.background;
-      this.frame.style.borderColor = style.color.border;
-      this.frame.style.fontSize = style.fontSize + "px";
-      this.frame.style.fontFamily = style.fontFace;
-      this.container.appendChild(this.frame);
-    }
-
-    _createClass(Popup, [{
-      key: "setPosition",
-
-      /**
-       * @param {number} x   Horizontal position of the popup window
-       * @param {number} y   Vertical position of the popup window
-       */
-      value: function setPosition(x, y) {
-        this.x = parseInt(x);
-        this.y = parseInt(y);
-      }
-    }, {
-      key: "setText",
-
-      /**
-       * Set the content for the popup window. This can be HTML code or text.
-       * @param {string | Element} content
-       */
-      value: function setText(content) {
-        if (content instanceof Element) {
-          this.frame.innerHTML = "";
-          this.frame.appendChild(content);
-        } else {
-          this.frame.innerHTML = content; // string containing text or HTML
-        }
-      }
-    }, {
-      key: "show",
-
-      /**
-       * Show the popup window
-       * @param {boolean} [doShow]    Show or hide the window
-       */
-      value: function show(doShow) {
-        if (doShow === undefined) {
-          doShow = true;
-        }
-
-        if (doShow === true) {
-          var height = this.frame.clientHeight;
-          var width = this.frame.clientWidth;
-          var maxHeight = this.frame.parentNode.clientHeight;
-          var maxWidth = this.frame.parentNode.clientWidth;
-
-          var top = this.y - height;
-          if (top + height + this.padding > maxHeight) {
-            top = maxHeight - height - this.padding;
-          }
-          if (top < this.padding) {
-            top = this.padding;
-          }
-
-          var left = this.x;
-          if (left + width + this.padding > maxWidth) {
-            left = maxWidth - width - this.padding;
-          }
-          if (left < this.padding) {
-            left = this.padding;
-          }
-
-          this.frame.style.left = left + "px";
-          this.frame.style.top = top + "px";
-          this.frame.style.visibility = "visible";
-          this.hidden = false;
-        } else {
-          this.hide();
-        }
-      }
-    }, {
-      key: "hide",
-
-      /**
-       * Hide the popup window
-       */
-      value: function hide() {
-        this.hidden = true;
-        this.frame.style.visibility = "hidden";
-      }
-    }]);
-
-    return Popup;
-  })();
-
-  exports["default"] = Popup;
-  module.exports = exports["default"];
-
-/***/ },
-/* 75 */
-/***/ function(module, exports, __webpack_require__) {
-
-  // English
-  'use strict';
-
-  exports.en = {
-    edit: 'Edit',
-    del: 'Delete selected',
-    back: 'Back',
-    addNode: 'Add Node',
-    addEdge: 'Add Edge',
-    editNode: 'Edit Node',
-    editEdge: 'Edit Edge',
-    addDescription: 'Click in an empty space to place a new node.',
-    edgeDescription: 'Click on a node and drag the edge to another node to connect them.',
-    editEdgeDescription: 'Click on the control points and drag them to a node to connect to it.',
-    createEdgeError: 'Cannot link edges to a cluster.',
-    deleteClusterError: 'Clusters cannot be deleted.',
-    editClusterError: 'Clusters cannot be edited.'
-  };
-  exports.en_EN = exports.en;
-  exports.en_US = exports.en;
-
-  // Dutch
-  exports.nl = {
-    edit: 'Wijzigen',
-    del: 'Selectie verwijderen',
-    back: 'Terug',
-    addNode: 'Node toevoegen',
-    addEdge: 'Link toevoegen',
-    editNode: 'Node wijzigen',
-    editEdge: 'Link wijzigen',
-    addDescription: 'Klik op een leeg gebied om een nieuwe node te maken.',
-    edgeDescription: 'Klik op een node en sleep de link naar een andere node om ze te verbinden.',
-    editEdgeDescription: 'Klik op de verbindingspunten en sleep ze naar een node om daarmee te verbinden.',
-    createEdgeError: 'Kan geen link maken naar een cluster.',
-    deleteClusterError: 'Clusters kunnen niet worden verwijderd.',
-    editClusterError: 'Clusters kunnen niet worden aangepast.'
-  };
-  exports.nl_NL = exports.nl;
-  exports.nl_BE = exports.nl;
-
-/***/ },
-/* 76 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33702,7 +33744,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(44);
+  var hammerUtil = __webpack_require__(43);
   var util = __webpack_require__(1);
 
   var ColorPicker = (function () {
@@ -34019,14 +34061,12 @@ return /******/ (function(modules) { // webpackBootstrap
        * @private
        */
       value: function _create() {
-        var visPrefix = 'vis-network-';
-
         this.frame = document.createElement('div');
-        this.frame.className = visPrefix + 'colorPicker-frame';
+        this.frame.className = 'vis-color-picker';
 
         this.colorPickerDiv = document.createElement('div');
         this.colorPickerSelector = document.createElement('div');
-        this.colorPickerSelector.className = visPrefix + 'colorPicker-selector';
+        this.colorPickerSelector.className = 'vis-selector';
         this.colorPickerDiv.appendChild(this.colorPickerSelector);
 
         this.colorPickerCanvas = document.createElement('canvas');
@@ -34046,30 +34086,30 @@ return /******/ (function(modules) { // webpackBootstrap
           this.colorPickerCanvas.getContext('2d').setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
         }
 
-        this.colorPickerDiv.className = visPrefix + 'colorPicker-color';
+        this.colorPickerDiv.className = 'vis-color';
 
         this.opacityDiv = document.createElement('div');
-        this.opacityDiv.className = visPrefix + 'colorPicker-opacity';
+        this.opacityDiv.className = 'vis-opacity';
 
         this.brightnessDiv = document.createElement('div');
-        this.brightnessDiv.className = visPrefix + 'colorPicker-brightness';
+        this.brightnessDiv.className = 'vis-brightness';
 
         this.arrowDiv = document.createElement('div');
-        this.arrowDiv.className = visPrefix + 'colorPicker-arrowDiv';
+        this.arrowDiv.className = 'vis-arrow';
 
         this.opacityRange = document.createElement('input');
         this.opacityRange.type = 'range';
         this.opacityRange.min = '0';
         this.opacityRange.max = '100';
         this.opacityRange.value = '100';
-        this.opacityRange.className = visPrefix + 'configuration range colorPicker';
+        this.opacityRange.className = 'vis-range';
 
         this.brightnessRange = document.createElement('input');
         this.brightnessRange.type = 'range';
         this.brightnessRange.min = '0';
         this.brightnessRange.max = '100';
         this.brightnessRange.value = '100';
-        this.brightnessRange.className = visPrefix + 'configuration range colorPicker';
+        this.brightnessRange.className = 'vis-range';
 
         this.opacityDiv.appendChild(this.opacityRange);
         this.brightnessDiv.appendChild(this.brightnessRange);
@@ -34089,38 +34129,38 @@ return /******/ (function(modules) { // webpackBootstrap
         };
 
         this.brightnessLabel = document.createElement('div');
-        this.brightnessLabel.className = visPrefix + 'colorPicker-label brightness';
+        this.brightnessLabel.className = 'vis-label vis-brightness';
         this.brightnessLabel.innerHTML = 'brightness:';
 
         this.opacityLabel = document.createElement('div');
-        this.opacityLabel.className = visPrefix + 'colorPicker-label opacity';
+        this.opacityLabel.className = 'vis-label vis-opacity';
         this.opacityLabel.innerHTML = 'opacity:';
 
         this.newColorDiv = document.createElement('div');
-        this.newColorDiv.className = visPrefix + 'colorPicker-newColor';
+        this.newColorDiv.className = 'vis-new-color';
         this.newColorDiv.innerHTML = 'new';
 
         this.initialColorDiv = document.createElement('div');
-        this.initialColorDiv.className = visPrefix + 'colorPicker-initialColor';
+        this.initialColorDiv.className = 'vis-initial-color';
         this.initialColorDiv.innerHTML = 'initial';
 
         this.cancelButton = document.createElement('div');
-        this.cancelButton.className = visPrefix + 'colorPicker-button cancel';
+        this.cancelButton.className = 'vis-button vis-cancel';
         this.cancelButton.innerHTML = 'cancel';
         this.cancelButton.onclick = this._hide.bind(this, false);
 
         this.applyButton = document.createElement('div');
-        this.applyButton.className = visPrefix + 'colorPicker-button apply';
+        this.applyButton.className = 'vis-button vis-apply';
         this.applyButton.innerHTML = 'apply';
         this.applyButton.onclick = this._apply.bind(this);
 
         this.saveButton = document.createElement('div');
-        this.saveButton.className = visPrefix + 'colorPicker-button save';
+        this.saveButton.className = 'vis-button vis-save';
         this.saveButton.innerHTML = 'save';
         this.saveButton.onclick = this._save.bind(this);
 
         this.loadButton = document.createElement('div');
-        this.loadButton.className = visPrefix + 'colorPicker-button load';
+        this.loadButton.className = 'vis-button vis-load';
         this.loadButton.innerHTML = 'load last';
         this.loadButton.onclick = this._loadLast.bind(this);
 
@@ -34270,239 +34310,478 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 77 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
-  /**
-   * Created by Alex on 11/6/2014.
-   */
-
-  // https://github.com/umdjs/umd/blob/master/returnExports.js#L40-L60
-  // if the module has no dependencies, the above pattern can be simplified to
-  (function (root, factory) {
-    if (true) {
-      // AMD. Register as an anonymous module.
-      !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-    } else if (typeof exports === 'object') {
-      // Node. Does not work with strict CommonJS, but
-      // only CommonJS-like environments that support module.exports,
-      // like Node.
-      module.exports = factory();
-    } else {
-      // Browser globals (root is window)
-      root.keycharm = factory();
-    }
-  }(this, function () {
-
-    function keycharm(options) {
-      var preventDefault = options && options.preventDefault || false;
-
-      var container = options && options.container || window;
-      var _exportFunctions = {};
-      var _bound = {keydown:{}, keyup:{}};
-      var _keys = {};
-      var i;
-
-      // a - z
-      for (i = 97; i <= 122; i++) {_keys[String.fromCharCode(i)] = {code:65 + (i - 97), shift: false};}
-      // A - Z
-      for (i = 65; i <= 90; i++) {_keys[String.fromCharCode(i)] = {code:i, shift: true};}
-      // 0 - 9
-      for (i = 0;  i <= 9;   i++) {_keys['' + i] = {code:48 + i, shift: false};}
-      // F1 - F12
-      for (i = 1;  i <= 12;   i++) {_keys['F' + i] = {code:111 + i, shift: false};}
-      // num0 - num9
-      for (i = 0;  i <= 9;   i++) {_keys['num' + i] = {code:96 + i, shift: false};}
-
-      // numpad misc
-      _keys['num*'] = {code:106, shift: false};
-      _keys['num+'] = {code:107, shift: false};
-      _keys['num-'] = {code:109, shift: false};
-      _keys['num/'] = {code:111, shift: false};
-      _keys['num.'] = {code:110, shift: false};
-      // arrows
-      _keys['left']  = {code:37, shift: false};
-      _keys['up']    = {code:38, shift: false};
-      _keys['right'] = {code:39, shift: false};
-      _keys['down']  = {code:40, shift: false};
-      // extra keys
-      _keys['space'] = {code:32, shift: false};
-      _keys['enter'] = {code:13, shift: false};
-      _keys['shift'] = {code:16, shift: undefined};
-      _keys['esc']   = {code:27, shift: false};
-      _keys['backspace'] = {code:8, shift: false};
-      _keys['tab']       = {code:9, shift: false};
-      _keys['ctrl']      = {code:17, shift: false};
-      _keys['alt']       = {code:18, shift: false};
-      _keys['delete']    = {code:46, shift: false};
-      _keys['pageup']    = {code:33, shift: false};
-      _keys['pagedown']  = {code:34, shift: false};
-      // symbols
-      _keys['=']     = {code:187, shift: false};
-      _keys['-']     = {code:189, shift: false};
-      _keys[']']     = {code:221, shift: false};
-      _keys['[']     = {code:219, shift: false};
-
-
-
-      var down = function(event) {handleEvent(event,'keydown');};
-      var up = function(event) {handleEvent(event,'keyup');};
-
-      // handle the actualy bound key with the event
-      var handleEvent = function(event,type) {
-        if (_bound[type][event.keyCode] !== undefined) {
-          var bound = _bound[type][event.keyCode];
-          for (var i = 0; i < bound.length; i++) {
-            if (bound[i].shift === undefined) {
-              bound[i].fn(event);
-            }
-            else if (bound[i].shift == true && event.shiftKey == true) {
-              bound[i].fn(event);
-            }
-            else if (bound[i].shift == false && event.shiftKey == false) {
-              bound[i].fn(event);
-            }
-          }
-
-          if (preventDefault == true) {
-            event.preventDefault();
-          }
-        }
-      };
-
-      // bind a key to a callback
-      _exportFunctions.bind = function(key, callback, type) {
-        if (type === undefined) {
-          type = 'keydown';
-        }
-        if (_keys[key] === undefined) {
-          throw new Error("unsupported key: " + key);
-        }
-        if (_bound[type][_keys[key].code] === undefined) {
-          _bound[type][_keys[key].code] = [];
-        }
-        _bound[type][_keys[key].code].push({fn:callback, shift:_keys[key].shift});
-      };
-
-
-      // bind all keys to a call back (demo purposes)
-      _exportFunctions.bindAll = function(callback, type) {
-        if (type === undefined) {
-          type = 'keydown';
-        }
-        for (var key in _keys) {
-          if (_keys.hasOwnProperty(key)) {
-            _exportFunctions.bind(key,callback,type);
-          }
-        }
-      };
-
-      // get the key label from an event
-      _exportFunctions.getKey = function(event) {
-        for (var key in _keys) {
-          if (_keys.hasOwnProperty(key)) {
-            if (event.shiftKey == true && _keys[key].shift == true && event.keyCode == _keys[key].code) {
-              return key;
-            }
-            else if (event.shiftKey == false && _keys[key].shift == false && event.keyCode == _keys[key].code) {
-              return key;
-            }
-            else if (event.keyCode == _keys[key].code && key == 'shift') {
-              return key;
-            }
-          }
-        }
-        return "unknown key, currently not supported";
-      };
-
-      // unbind either a specific callback from a key or all of them (by leaving callback undefined)
-      _exportFunctions.unbind = function(key, callback, type) {
-        if (type === undefined) {
-          type = 'keydown';
-        }
-        if (_keys[key] === undefined) {
-          throw new Error("unsupported key: " + key);
-        }
-        if (callback !== undefined) {
-          var newBindings = [];
-          var bound = _bound[type][_keys[key].code];
-          if (bound !== undefined) {
-            for (var i = 0; i < bound.length; i++) {
-              if (!(bound[i].fn == callback && bound[i].shift == _keys[key].shift)) {
-                newBindings.push(_bound[type][_keys[key].code][i]);
-              }
-            }
-          }
-          _bound[type][_keys[key].code] = newBindings;
-        }
-        else {
-          _bound[type][_keys[key].code] = [];
-        }
-      };
-
-      // reset all bound variables.
-      _exportFunctions.reset = function() {
-        _bound = {keydown:{}, keyup:{}};
-      };
-
-      // unbind all listeners and reset all variables.
-      _exportFunctions.destroy = function() {
-        _bound = {keydown:{}, keyup:{}};
-        container.removeEventListener('keydown', down, true);
-        container.removeEventListener('keyup', up, true);
-      };
-
-      // create listeners.
-      container.addEventListener('keydown',down,true);
-      container.addEventListener('keyup',up,true);
-
-      // return the public functions.
-      return _exportFunctions;
-    }
-
-    return keycharm;
-  }));
-
-
-
-
-/***/ },
 /* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
-  function webpackContext(req) {
-  	throw new Error("Cannot find module '" + req + "'.");
-  }
-  webpackContext.keys = function() { return []; };
-  webpackContext.resolve = webpackContext;
-  module.exports = webpackContext;
-  webpackContext.id = 78;
+  'use strict';
 
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+  var util = __webpack_require__(1);
+  var Hammer = __webpack_require__(41);
+  var hammerUtil = __webpack_require__(43);
+  var keycharm = __webpack_require__(98);
+
+  var NavigationHandler = (function () {
+    function NavigationHandler(body, canvas) {
+      var _this = this;
+
+      _classCallCheck(this, NavigationHandler);
+
+      this.body = body;
+      this.canvas = canvas;
+
+      this.iconsCreated = false;
+      this.navigationHammers = [];
+      this.boundFunctions = {};
+      this.touchTime = 0;
+      this.activated = false;
+
+      this.body.emitter.on('release', this._stopMovement.bind(this));
+      this.body.emitter.on('activate', function () {
+        _this.activated = true;_this.configureKeyboardBindings();
+      });
+      this.body.emitter.on('deactivate', function () {
+        _this.activated = false;_this.configureKeyboardBindings();
+      });
+      this.body.emitter.on('destroy', function () {
+        if (_this.keycharm !== undefined) {
+          _this.keycharm.destroy();
+        }
+      });
+
+      this.options = {};
+    }
+
+    _createClass(NavigationHandler, [{
+      key: 'setOptions',
+      value: function setOptions(options) {
+        if (options !== undefined) {
+          this.options = options;
+          this.create();
+        }
+      }
+    }, {
+      key: 'create',
+      value: function create() {
+        if (this.options.showNavigationIcons === true) {
+          if (this.iconsCreated === false) {
+            this.loadNavigationElements();
+          }
+        } else if (this.iconsCreated === true) {
+          this.cleanNavigation();
+        }
+
+        this.configureKeyboardBindings();
+      }
+    }, {
+      key: 'cleanNavigation',
+      value: function cleanNavigation() {
+        // clean hammer bindings
+        if (this.navigationHammers.length != 0) {
+          for (var i = 0; i < this.navigationHammers.length; i++) {
+            this.navigationHammers[i].destroy();
+          }
+          this.navigationHammers = [];
+        }
+
+        this._navigationReleaseOverload = function () {};
+
+        // clean up previous navigation items
+        if (this.navigationDOM && this.navigationDOM.wrapper && this.navigationDOM.wrapper.parentNode) {
+          this.navigationDOM.wrapper.parentNode.removeChild(this.navigationDOM.wrapper);
+        }
+
+        this.iconsCreated = false;
+      }
+    }, {
+      key: 'loadNavigationElements',
+
+      /**
+       * Creation of the navigation controls nodes. They are drawn over the rest of the nodes and are not affected by scale and translation
+       * they have a triggerFunction which is called on click. If the position of the navigation controls is dependent
+       * on this.frame.canvas.clientWidth or this.frame.canvas.clientHeight, we flag horizontalAlignLeft and verticalAlignTop false.
+       * This means that the location will be corrected by the _relocateNavigation function on a size change of the canvas.
+       *
+       * @private
+       */
+      value: function loadNavigationElements() {
+        this.cleanNavigation();
+
+        this.navigationDOM = {};
+        var navigationDivs = ['up', 'down', 'left', 'right', 'zoomIn', 'zoomOut', 'zoomExtends'];
+        var navigationDivActions = ['_moveUp', '_moveDown', '_moveLeft', '_moveRight', '_zoomIn', '_zoomOut', '_zoomExtent'];
+
+        this.navigationDOM.wrapper = document.createElement('div');
+        this.canvas.frame.appendChild(this.navigationDOM.wrapper);
+
+        for (var i = 0; i < navigationDivs.length; i++) {
+          this.navigationDOM[navigationDivs[i]] = document.createElement('div');
+          this.navigationDOM[navigationDivs[i]].className = 'network-navigation ' + navigationDivs[i];
+          this.navigationDOM.wrapper.appendChild(this.navigationDOM[navigationDivs[i]]);
+
+          var hammer = new Hammer(this.navigationDOM[navigationDivs[i]]);
+          if (navigationDivActions[i] === '_zoomExtent') {
+            hammerUtil.onTouch(hammer, this._zoomExtent.bind(this));
+          } else {
+            hammerUtil.onTouch(hammer, this.bindToRedraw.bind(this, navigationDivActions[i]));
+          }
+
+          this.navigationHammers.push(hammer);
+        }
+
+        this.iconsCreated = true;
+      }
+    }, {
+      key: 'bindToRedraw',
+      value: function bindToRedraw(action) {
+        if (this.boundFunctions[action] === undefined) {
+          this.boundFunctions[action] = this[action].bind(this);
+          this.body.emitter.on('initRedraw', this.boundFunctions[action]);
+          this.body.emitter.emit('_startRendering');
+        }
+      }
+    }, {
+      key: 'unbindFromRedraw',
+      value: function unbindFromRedraw(action) {
+        if (this.boundFunctions[action] !== undefined) {
+          this.body.emitter.off('initRedraw', this.boundFunctions[action]);
+          this.body.emitter.emit('_stopRendering');
+          delete this.boundFunctions[action];
+        }
+      }
+    }, {
+      key: '_zoomExtent',
+
+      /**
+       * this stops all movement induced by the navigation buttons
+       *
+       * @private
+       */
+      value: function _zoomExtent() {
+        if (new Date().valueOf() - this.touchTime > 700) {
+          // TODO: fix ugly hack to avoid hammer's double fireing of event (because we use release?)
+          this.body.emitter.emit('zoomExtent', { duration: 700 });
+          this.touchTime = new Date().valueOf();
+        }
+      }
+    }, {
+      key: '_stopMovement',
+
+      /**
+       * this stops all movement induced by the navigation buttons
+       *
+       * @private
+       */
+      value: function _stopMovement() {
+        for (var boundAction in this.boundFunctions) {
+          if (this.boundFunctions.hasOwnProperty(boundAction)) {
+            this.body.emitter.off('initRedraw', this.boundFunctions[boundAction]);
+            this.body.emitter.emit('_stopRendering');
+          }
+        }
+        this.boundFunctions = {};
+      }
+    }, {
+      key: '_moveUp',
+      value: function _moveUp() {
+        this.body.view.translation.y += this.options.keyboard.speed.y;
+      }
+    }, {
+      key: '_moveDown',
+      value: function _moveDown() {
+        this.body.view.translation.y -= this.options.keyboard.speed.y;
+      }
+    }, {
+      key: '_moveLeft',
+      value: function _moveLeft() {
+        this.body.view.translation.x += this.options.keyboard.speed.x;
+      }
+    }, {
+      key: '_moveRight',
+      value: function _moveRight() {
+        this.body.view.translation.x -= this.options.keyboard.speed.x;
+      }
+    }, {
+      key: '_zoomIn',
+      value: function _zoomIn() {
+        this.body.view.scale += this.options.keyboard.speed.zoom;
+      }
+    }, {
+      key: '_zoomOut',
+      value: function _zoomOut() {
+        this.body.view.scale -= this.options.keyboard.speed.zoom;
+      }
+    }, {
+      key: 'configureKeyboardBindings',
+
+      /**
+       * bind all keys using keycharm.
+       */
+      value: function configureKeyboardBindings() {
+        if (this.keycharm !== undefined) {
+          this.keycharm.destroy();
+        }
+
+        if (this.options.keyboard.enabled === true) {
+
+          if (this.options.keyboard.bindToWindow === true) {
+            this.keycharm = keycharm({ container: window, preventDefault: false });
+          } else {
+            this.keycharm = keycharm({ container: this.canvas.frame, preventDefault: false });
+          }
+
+          this.keycharm.reset();
+
+          if (this.activated === true) {
+            this.keycharm.bind('up', this.bindToRedraw.bind(this, '_moveUp'), 'keydown');
+            this.keycharm.bind('down', this.bindToRedraw.bind(this, '_moveDown'), 'keydown');
+            this.keycharm.bind('left', this.bindToRedraw.bind(this, '_moveLeft'), 'keydown');
+            this.keycharm.bind('right', this.bindToRedraw.bind(this, '_moveRight'), 'keydown');
+            this.keycharm.bind('=', this.bindToRedraw.bind(this, '_zoomIn'), 'keydown');
+            this.keycharm.bind('num+', this.bindToRedraw.bind(this, '_zoomIn'), 'keydown');
+            this.keycharm.bind('num-', this.bindToRedraw.bind(this, '_zoomOut'), 'keydown');
+            this.keycharm.bind('-', this.bindToRedraw.bind(this, '_zoomOut'), 'keydown');
+            this.keycharm.bind('[', this.bindToRedraw.bind(this, '_zoomOut'), 'keydown');
+            this.keycharm.bind(']', this.bindToRedraw.bind(this, '_zoomIn'), 'keydown');
+            this.keycharm.bind('pageup', this.bindToRedraw.bind(this, '_zoomIn'), 'keydown');
+            this.keycharm.bind('pagedown', this.bindToRedraw.bind(this, '_zoomOut'), 'keydown');
+
+            this.keycharm.bind('up', this.unbindFromRedraw.bind(this, '_moveUp'), 'keyup');
+            this.keycharm.bind('down', this.unbindFromRedraw.bind(this, '_moveDown'), 'keyup');
+            this.keycharm.bind('left', this.unbindFromRedraw.bind(this, '_moveLeft'), 'keyup');
+            this.keycharm.bind('right', this.unbindFromRedraw.bind(this, '_moveRight'), 'keyup');
+            this.keycharm.bind('=', this.unbindFromRedraw.bind(this, '_zoomIn'), 'keyup');
+            this.keycharm.bind('num+', this.unbindFromRedraw.bind(this, '_zoomIn'), 'keyup');
+            this.keycharm.bind('num-', this.unbindFromRedraw.bind(this, '_zoomOut'), 'keyup');
+            this.keycharm.bind('-', this.unbindFromRedraw.bind(this, '_zoomOut'), 'keyup');
+            this.keycharm.bind('[', this.unbindFromRedraw.bind(this, '_zoomOut'), 'keyup');
+            this.keycharm.bind(']', this.unbindFromRedraw.bind(this, '_zoomIn'), 'keyup');
+            this.keycharm.bind('pageup', this.unbindFromRedraw.bind(this, '_zoomIn'), 'keyup');
+            this.keycharm.bind('pagedown', this.unbindFromRedraw.bind(this, '_zoomOut'), 'keyup');
+          }
+        }
+      }
+    }]);
+
+    return NavigationHandler;
+  })();
+
+  exports['default'] = NavigationHandler;
+  module.exports = exports['default'];
 
 /***/ },
 /* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
-  module.exports = function(module) {
-  	if(!module.webpackPolyfill) {
-  		module.deprecate = function() {};
-  		module.paths = [];
-  		// module.parent = undefined by default
-  		module.children = [];
-  		module.webpackPolyfill = 1;
-  	}
-  	return module;
-  }
+  "use strict";
 
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  /**
+   * Popup is a class to create a popup window with some text
+   * @param {Element}  container     The container object.
+   * @param {Number} [x]
+   * @param {Number} [y]
+   * @param {String} [text]
+   * @param {Object} [style]     An object containing borderColor,
+   *                             backgroundColor, etc.
+   */
+
+  var Popup = (function () {
+    function Popup(container, x, y, text, style) {
+      _classCallCheck(this, Popup);
+
+      if (container) {
+        this.container = container;
+      } else {
+        this.container = document.body;
+      }
+
+      // x, y and text are optional, see if a style object was passed in their place
+      if (style === undefined) {
+        if (typeof x === "object") {
+          style = x;
+          x = undefined;
+        } else if (typeof text === "object") {
+          style = text;
+          text = undefined;
+        } else {
+          // for backwards compatibility, in case clients other than Network are creating Popup directly
+          style = {
+            fontColor: "black",
+            fontSize: 14, // px
+            fontFace: "verdana",
+            color: {
+              border: "#666",
+              background: "#FFFFC6"
+            }
+          };
+        }
+      }
+
+      this.x = 0;
+      this.y = 0;
+      this.padding = 5;
+      this.hidden = false;
+
+      if (x !== undefined && y !== undefined) {
+        this.setPosition(x, y);
+      }
+      if (text !== undefined) {
+        this.setText(text);
+      }
+
+      // create the frame
+      this.frame = document.createElement("div");
+      this.frame.className = "vis-network-tooltip";
+      this.frame.style.color = style.fontColor;
+      this.frame.style.backgroundColor = style.color.background;
+      this.frame.style.borderColor = style.color.border;
+      this.frame.style.fontSize = style.fontSize + "px";
+      this.frame.style.fontFamily = style.fontFace;
+      this.container.appendChild(this.frame);
+    }
+
+    _createClass(Popup, [{
+      key: "setPosition",
+
+      /**
+       * @param {number} x   Horizontal position of the popup window
+       * @param {number} y   Vertical position of the popup window
+       */
+      value: function setPosition(x, y) {
+        this.x = parseInt(x);
+        this.y = parseInt(y);
+      }
+    }, {
+      key: "setText",
+
+      /**
+       * Set the content for the popup window. This can be HTML code or text.
+       * @param {string | Element} content
+       */
+      value: function setText(content) {
+        if (content instanceof Element) {
+          this.frame.innerHTML = "";
+          this.frame.appendChild(content);
+        } else {
+          this.frame.innerHTML = content; // string containing text or HTML
+        }
+      }
+    }, {
+      key: "show",
+
+      /**
+       * Show the popup window
+       * @param {boolean} [doShow]    Show or hide the window
+       */
+      value: function show(doShow) {
+        if (doShow === undefined) {
+          doShow = true;
+        }
+
+        if (doShow === true) {
+          var height = this.frame.clientHeight;
+          var width = this.frame.clientWidth;
+          var maxHeight = this.frame.parentNode.clientHeight;
+          var maxWidth = this.frame.parentNode.clientWidth;
+
+          var top = this.y - height;
+          if (top + height + this.padding > maxHeight) {
+            top = maxHeight - height - this.padding;
+          }
+          if (top < this.padding) {
+            top = this.padding;
+          }
+
+          var left = this.x;
+          if (left + width + this.padding > maxWidth) {
+            left = maxWidth - width - this.padding;
+          }
+          if (left < this.padding) {
+            left = this.padding;
+          }
+
+          this.frame.style.left = left + "px";
+          this.frame.style.top = top + "px";
+          this.frame.style.visibility = "visible";
+          this.hidden = false;
+        } else {
+          this.hide();
+        }
+      }
+    }, {
+      key: "hide",
+
+      /**
+       * Hide the popup window
+       */
+      value: function hide() {
+        this.hidden = true;
+        this.frame.style.visibility = "hidden";
+      }
+    }]);
+
+    return Popup;
+  })();
+
+  exports["default"] = Popup;
+  module.exports = exports["default"];
 
 /***/ },
 /* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
-  /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
+  // English
+  'use strict';
 
-  /* WEBPACK VAR INJECTION */}.call(exports, {}))
+  exports.en = {
+    edit: 'Edit',
+    del: 'Delete selected',
+    back: 'Back',
+    addNode: 'Add Node',
+    addEdge: 'Add Edge',
+    editNode: 'Edit Node',
+    editEdge: 'Edit Edge',
+    addDescription: 'Click in an empty space to place a new node.',
+    edgeDescription: 'Click on a node and drag the edge to another node to connect them.',
+    editEdgeDescription: 'Click on the control points and drag them to a node to connect to it.',
+    createEdgeError: 'Cannot link edges to a cluster.',
+    deleteClusterError: 'Clusters cannot be deleted.',
+    editClusterError: 'Clusters cannot be edited.'
+  };
+  exports.en_EN = exports.en;
+  exports.en_US = exports.en;
+
+  // Dutch
+  exports.nl = {
+    edit: 'Wijzigen',
+    del: 'Selectie verwijderen',
+    back: 'Terug',
+    addNode: 'Node toevoegen',
+    addEdge: 'Link toevoegen',
+    editNode: 'Node wijzigen',
+    editEdge: 'Link wijzigen',
+    addDescription: 'Klik op een leeg gebied om een nieuwe node te maken.',
+    edgeDescription: 'Klik op een node en sleep de link naar een andere node om ze te verbinden.',
+    editEdgeDescription: 'Klik op de verbindingspunten en sleep ze naar een node om daarmee te verbinden.',
+    createEdgeError: 'Kan geen link maken naar een cluster.',
+    deleteClusterError: 'Clusters kunnen niet worden verwijderd.',
+    editClusterError: 'Clusters kunnen niet worden aangepast.'
+  };
+  exports.nl_NL = exports.nl;
+  exports.nl_BE = exports.nl;
 
 /***/ },
 /* 81 */
@@ -34524,7 +34803,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(98);
+  var _NodeBase2 = __webpack_require__(103);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -34615,7 +34894,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _CircleImageBase2 = __webpack_require__(99);
+  var _CircleImageBase2 = __webpack_require__(102);
 
   var _CircleImageBase3 = _interopRequireWildcard(_CircleImageBase2);
 
@@ -34697,7 +34976,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _CircleImageBase2 = __webpack_require__(99);
+  var _CircleImageBase2 = __webpack_require__(102);
 
   var _CircleImageBase3 = _interopRequireWildcard(_CircleImageBase2);
 
@@ -34798,7 +35077,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(98);
+  var _NodeBase2 = __webpack_require__(103);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -34889,7 +35168,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(100);
+  var _ShapeBase2 = __webpack_require__(104);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -34947,7 +35226,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(100);
+  var _ShapeBase2 = __webpack_require__(104);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -35005,7 +35284,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(98);
+  var _NodeBase2 = __webpack_require__(103);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -35099,7 +35378,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(98);
+  var _NodeBase2 = __webpack_require__(103);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -35200,7 +35479,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _CircleImageBase2 = __webpack_require__(99);
+  var _CircleImageBase2 = __webpack_require__(102);
 
   var _CircleImageBase3 = _interopRequireWildcard(_CircleImageBase2);
 
@@ -35278,7 +35557,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(100);
+  var _ShapeBase2 = __webpack_require__(104);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -35337,7 +35616,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(100);
+  var _ShapeBase2 = __webpack_require__(104);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -35395,7 +35674,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(98);
+  var _NodeBase2 = __webpack_require__(103);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -35468,7 +35747,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(100);
+  var _ShapeBase2 = __webpack_require__(104);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -35526,7 +35805,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(100);
+  var _ShapeBase2 = __webpack_require__(104);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -35584,7 +35863,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _BezierEdgeBase2 = __webpack_require__(101);
+  var _BezierEdgeBase2 = __webpack_require__(105);
 
   var _BezierEdgeBase3 = _interopRequireWildcard(_BezierEdgeBase2);
 
@@ -35727,7 +36006,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _BezierEdgeBase2 = __webpack_require__(101);
+  var _BezierEdgeBase2 = __webpack_require__(105);
 
   var _BezierEdgeBase3 = _interopRequireWildcard(_BezierEdgeBase2);
 
@@ -35988,7 +36267,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _EdgeBase2 = __webpack_require__(102);
+  var _EdgeBase2 = __webpack_require__(106);
 
   var _EdgeBase3 = _interopRequireWildcard(_EdgeBase2);
 
@@ -36079,50 +36358,239 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
-  "use strict";
+  var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
+  /**
+   * Created by Alex on 11/6/2014.
+   */
 
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+  // https://github.com/umdjs/umd/blob/master/returnExports.js#L40-L60
+  // if the module has no dependencies, the above pattern can be simplified to
+  (function (root, factory) {
+    if (true) {
+      // AMD. Register as an anonymous module.
+      !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+    } else if (typeof exports === 'object') {
+      // Node. Does not work with strict CommonJS, but
+      // only CommonJS-like environments that support module.exports,
+      // like Node.
+      module.exports = factory();
+    } else {
+      // Browser globals (root is window)
+      root.keycharm = factory();
+    }
+  }(this, function () {
 
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+    function keycharm(options) {
+      var preventDefault = options && options.preventDefault || false;
 
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
+      var container = options && options.container || window;
+      var _exportFunctions = {};
+      var _bound = {keydown:{}, keyup:{}};
+      var _keys = {};
+      var i;
 
-  var NodeBase = (function () {
-    function NodeBase(options, body, labelModule) {
-      _classCallCheck(this, NodeBase);
+      // a - z
+      for (i = 97; i <= 122; i++) {_keys[String.fromCharCode(i)] = {code:65 + (i - 97), shift: false};}
+      // A - Z
+      for (i = 65; i <= 90; i++) {_keys[String.fromCharCode(i)] = {code:i, shift: true};}
+      // 0 - 9
+      for (i = 0;  i <= 9;   i++) {_keys['' + i] = {code:48 + i, shift: false};}
+      // F1 - F12
+      for (i = 1;  i <= 12;   i++) {_keys['F' + i] = {code:111 + i, shift: false};}
+      // num0 - num9
+      for (i = 0;  i <= 9;   i++) {_keys['num' + i] = {code:96 + i, shift: false};}
 
-      this.body = body;
-      this.labelModule = labelModule;
-      this.setOptions(options);
-      this.top = undefined;
-      this.left = undefined;
-      this.height = undefined;
-      this.boundingBox = { top: 0, left: 0, right: 0, bottom: 0 };
+      // numpad misc
+      _keys['num*'] = {code:106, shift: false};
+      _keys['num+'] = {code:107, shift: false};
+      _keys['num-'] = {code:109, shift: false};
+      _keys['num/'] = {code:111, shift: false};
+      _keys['num.'] = {code:110, shift: false};
+      // arrows
+      _keys['left']  = {code:37, shift: false};
+      _keys['up']    = {code:38, shift: false};
+      _keys['right'] = {code:39, shift: false};
+      _keys['down']  = {code:40, shift: false};
+      // extra keys
+      _keys['space'] = {code:32, shift: false};
+      _keys['enter'] = {code:13, shift: false};
+      _keys['shift'] = {code:16, shift: undefined};
+      _keys['esc']   = {code:27, shift: false};
+      _keys['backspace'] = {code:8, shift: false};
+      _keys['tab']       = {code:9, shift: false};
+      _keys['ctrl']      = {code:17, shift: false};
+      _keys['alt']       = {code:18, shift: false};
+      _keys['delete']    = {code:46, shift: false};
+      _keys['pageup']    = {code:33, shift: false};
+      _keys['pagedown']  = {code:34, shift: false};
+      // symbols
+      _keys['=']     = {code:187, shift: false};
+      _keys['-']     = {code:189, shift: false};
+      _keys[']']     = {code:221, shift: false};
+      _keys['[']     = {code:219, shift: false};
+
+
+
+      var down = function(event) {handleEvent(event,'keydown');};
+      var up = function(event) {handleEvent(event,'keyup');};
+
+      // handle the actualy bound key with the event
+      var handleEvent = function(event,type) {
+        if (_bound[type][event.keyCode] !== undefined) {
+          var bound = _bound[type][event.keyCode];
+          for (var i = 0; i < bound.length; i++) {
+            if (bound[i].shift === undefined) {
+              bound[i].fn(event);
+            }
+            else if (bound[i].shift == true && event.shiftKey == true) {
+              bound[i].fn(event);
+            }
+            else if (bound[i].shift == false && event.shiftKey == false) {
+              bound[i].fn(event);
+            }
+          }
+
+          if (preventDefault == true) {
+            event.preventDefault();
+          }
+        }
+      };
+
+      // bind a key to a callback
+      _exportFunctions.bind = function(key, callback, type) {
+        if (type === undefined) {
+          type = 'keydown';
+        }
+        if (_keys[key] === undefined) {
+          throw new Error("unsupported key: " + key);
+        }
+        if (_bound[type][_keys[key].code] === undefined) {
+          _bound[type][_keys[key].code] = [];
+        }
+        _bound[type][_keys[key].code].push({fn:callback, shift:_keys[key].shift});
+      };
+
+
+      // bind all keys to a call back (demo purposes)
+      _exportFunctions.bindAll = function(callback, type) {
+        if (type === undefined) {
+          type = 'keydown';
+        }
+        for (var key in _keys) {
+          if (_keys.hasOwnProperty(key)) {
+            _exportFunctions.bind(key,callback,type);
+          }
+        }
+      };
+
+      // get the key label from an event
+      _exportFunctions.getKey = function(event) {
+        for (var key in _keys) {
+          if (_keys.hasOwnProperty(key)) {
+            if (event.shiftKey == true && _keys[key].shift == true && event.keyCode == _keys[key].code) {
+              return key;
+            }
+            else if (event.shiftKey == false && _keys[key].shift == false && event.keyCode == _keys[key].code) {
+              return key;
+            }
+            else if (event.keyCode == _keys[key].code && key == 'shift') {
+              return key;
+            }
+          }
+        }
+        return "unknown key, currently not supported";
+      };
+
+      // unbind either a specific callback from a key or all of them (by leaving callback undefined)
+      _exportFunctions.unbind = function(key, callback, type) {
+        if (type === undefined) {
+          type = 'keydown';
+        }
+        if (_keys[key] === undefined) {
+          throw new Error("unsupported key: " + key);
+        }
+        if (callback !== undefined) {
+          var newBindings = [];
+          var bound = _bound[type][_keys[key].code];
+          if (bound !== undefined) {
+            for (var i = 0; i < bound.length; i++) {
+              if (!(bound[i].fn == callback && bound[i].shift == _keys[key].shift)) {
+                newBindings.push(_bound[type][_keys[key].code][i]);
+              }
+            }
+          }
+          _bound[type][_keys[key].code] = newBindings;
+        }
+        else {
+          _bound[type][_keys[key].code] = [];
+        }
+      };
+
+      // reset all bound variables.
+      _exportFunctions.reset = function() {
+        _bound = {keydown:{}, keyup:{}};
+      };
+
+      // unbind all listeners and reset all variables.
+      _exportFunctions.destroy = function() {
+        _bound = {keydown:{}, keyup:{}};
+        container.removeEventListener('keydown', down, true);
+        container.removeEventListener('keyup', up, true);
+      };
+
+      // create listeners.
+      container.addEventListener('keydown',down,true);
+      container.addEventListener('keyup',up,true);
+
+      // return the public functions.
+      return _exportFunctions;
     }
 
-    _createClass(NodeBase, [{
-      key: "setOptions",
-      value: function setOptions(options) {
-        this.options = options;
-      }
-    }, {
-      key: "_distanceToBorder",
-      value: function _distanceToBorder(angle) {
-        var borderWidth = 1;
-        return Math.min(Math.abs(this.width / 2 / Math.cos(angle)), Math.abs(this.height / 2 / Math.sin(angle))) + borderWidth;
-      }
-    }]);
+    return keycharm;
+  }));
 
-    return NodeBase;
-  })();
 
-  exports["default"] = NodeBase;
-  module.exports = exports["default"];
+
 
 /***/ },
 /* 99 */
+/***/ function(module, exports, __webpack_require__) {
+
+  function webpackContext(req) {
+  	throw new Error("Cannot find module '" + req + "'.");
+  }
+  webpackContext.keys = function() { return []; };
+  webpackContext.resolve = webpackContext;
+  module.exports = webpackContext;
+  webpackContext.id = 99;
+
+
+/***/ },
+/* 100 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
+
+  /* WEBPACK VAR INJECTION */}.call(exports, {}))
+
+/***/ },
+/* 101 */
+/***/ function(module, exports, __webpack_require__) {
+
+  module.exports = function(module) {
+  	if(!module.webpackPolyfill) {
+  		module.deprecate = function() {};
+  		module.paths = [];
+  		// module.parent = undefined by default
+  		module.children = [];
+  		module.webpackPolyfill = 1;
+  	}
+  	return module;
+  }
+
+
+/***/ },
+/* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36141,7 +36609,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(98);
+  var _NodeBase2 = __webpack_require__(103);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -36230,7 +36698,53 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 100 */
+/* 103 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var NodeBase = (function () {
+    function NodeBase(options, body, labelModule) {
+      _classCallCheck(this, NodeBase);
+
+      this.body = body;
+      this.labelModule = labelModule;
+      this.setOptions(options);
+      this.top = undefined;
+      this.left = undefined;
+      this.height = undefined;
+      this.boundingBox = { top: 0, left: 0, right: 0, bottom: 0 };
+    }
+
+    _createClass(NodeBase, [{
+      key: "setOptions",
+      value: function setOptions(options) {
+        this.options = options;
+      }
+    }, {
+      key: "_distanceToBorder",
+      value: function _distanceToBorder(angle) {
+        var borderWidth = 1;
+        return Math.min(Math.abs(this.width / 2 / Math.cos(angle)), Math.abs(this.height / 2 / Math.sin(angle))) + borderWidth;
+      }
+    }]);
+
+    return NodeBase;
+  })();
+
+  exports["default"] = NodeBase;
+  module.exports = exports["default"];
+
+/***/ },
+/* 104 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36249,7 +36763,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(98);
+  var _NodeBase2 = __webpack_require__(103);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -36313,7 +36827,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 101 */
+/* 105 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36332,7 +36846,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _EdgeBase2 = __webpack_require__(102);
+  var _EdgeBase2 = __webpack_require__(106);
 
   var _EdgeBase3 = _interopRequireWildcard(_EdgeBase2);
 
@@ -36460,7 +36974,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 102 */
+/* 106 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36970,522 +37484,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
   exports["default"] = EdgeBase;
   module.exports = exports["default"];
-
-/***/ },
-/* 103 */
-/***/ function(module, exports, __webpack_require__) {
-
-  // English
-  'use strict';
-
-  exports.en = {
-    current: 'current',
-    time: 'time'
-  };
-  exports.en_EN = exports.en;
-  exports.en_US = exports.en;
-
-  // Dutch
-  exports.nl = {
-    custom: 'aangepaste',
-    time: 'tijd'
-  };
-  exports.nl_NL = exports.nl;
-  exports.nl_BE = exports.nl;
-
-/***/ },
-/* 104 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  var DOMutil = __webpack_require__(2);
-  var Points = __webpack_require__(106);
-
-  function Line(groupId, options) {
-    this.groupId = groupId;
-    this.options = options;
-  }
-
-  Line.prototype.getYRange = function (groupData) {
-    var yMin = groupData[0].y;
-    var yMax = groupData[0].y;
-    for (var j = 0; j < groupData.length; j++) {
-      yMin = yMin > groupData[j].y ? groupData[j].y : yMin;
-      yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
-    }
-    return { min: yMin, max: yMax, yAxisOrientation: this.options.yAxisOrientation };
-  };
-
-  /**
-   * draw a line graph
-   *
-   * @param dataset
-   * @param group
-   */
-  Line.prototype.draw = function (dataset, group, framework) {
-    if (dataset != null) {
-      if (dataset.length > 0) {
-        var path, d;
-        var svgHeight = Number(framework.svg.style.height.replace('px', ''));
-        path = DOMutil.getSVGElement('path', framework.svgElements, framework.svg);
-        path.setAttributeNS(null, 'class', group.className);
-        if (group.style !== undefined) {
-          path.setAttributeNS(null, 'style', 'vis-' + group.style);
-        }
-
-        // construct path from dataset
-        if (group.options.catmullRom.enabled == true) {
-          d = Line._catmullRom(dataset, group);
-        } else {
-          d = Line._linear(dataset);
-        }
-
-        // append with points for fill and finalize the path
-        if (group.options.shaded.enabled == true) {
-          var fillPath = DOMutil.getSVGElement('path', framework.svgElements, framework.svg);
-          var dFill;
-          if (group.options.shaded.orientation == 'top') {
-            dFill = 'M' + dataset[0].x + ',' + 0 + ' ' + d + 'L' + dataset[dataset.length - 1].x + ',' + 0;
-          } else {
-            dFill = 'M' + dataset[0].x + ',' + svgHeight + ' ' + d + 'L' + dataset[dataset.length - 1].x + ',' + svgHeight;
-          }
-          fillPath.setAttributeNS(null, 'class', group.className + ' vis-fill');
-          if (group.options.shaded.style !== undefined) {
-            fillPath.setAttributeNS(null, 'style', group.options.shaded.style);
-          }
-          fillPath.setAttributeNS(null, 'd', dFill);
-        }
-        // copy properties to path for drawing.
-        path.setAttributeNS(null, 'd', 'M' + d);
-
-        // draw points
-        if (group.options.drawPoints.enabled == true) {
-          Points.draw(dataset, group, framework);
-        }
-      }
-    }
-  };
-
-  /**
-   * This uses an uniform parametrization of the CatmullRom algorithm:
-   * 'On the Parameterization of Catmull-Rom Curves' by Cem Yuksel et al.
-   * @param data
-   * @returns {string}
-   * @private
-   */
-  Line._catmullRomUniform = function (data) {
-    // catmull rom
-    var p0, p1, p2, p3, bp1, bp2;
-    var d = Math.round(data[0].x) + ',' + Math.round(data[0].y) + ' ';
-    var normalization = 1 / 6;
-    var length = data.length;
-    for (var i = 0; i < length - 1; i++) {
-
-      p0 = i == 0 ? data[0] : data[i - 1];
-      p1 = data[i];
-      p2 = data[i + 1];
-      p3 = i + 2 < length ? data[i + 2] : p2;
-
-      // Catmull-Rom to Cubic Bezier conversion matrix
-      //    0       1       0       0
-      //  -1/6      1      1/6      0
-      //    0      1/6      1     -1/6
-      //    0       0       1       0
-
-      //    bp0 = { x: p1.x,                               y: p1.y };
-      bp1 = { x: (-p0.x + 6 * p1.x + p2.x) * normalization, y: (-p0.y + 6 * p1.y + p2.y) * normalization };
-      bp2 = { x: (p1.x + 6 * p2.x - p3.x) * normalization, y: (p1.y + 6 * p2.y - p3.y) * normalization };
-      //    bp0 = { x: p2.x,                               y: p2.y };
-
-      d += 'C' + bp1.x + ',' + bp1.y + ' ' + bp2.x + ',' + bp2.y + ' ' + p2.x + ',' + p2.y + ' ';
-    }
-
-    return d;
-  };
-
-  /**
-   * This uses either the chordal or centripetal parameterization of the catmull-rom algorithm.
-   * By default, the centripetal parameterization is used because this gives the nicest results.
-   * These parameterizations are relatively heavy because the distance between 4 points have to be calculated.
-   *
-   * One optimization can be used to reuse distances since this is a sliding window approach.
-   * @param data
-   * @param group
-   * @returns {string}
-   * @private
-   */
-  Line._catmullRom = function (data, group) {
-    var alpha = group.options.catmullRom.alpha;
-    if (alpha == 0 || alpha === undefined) {
-      return this._catmullRomUniform(data);
-    } else {
-      var p0, p1, p2, p3, bp1, bp2, d1, d2, d3, A, B, N, M;
-      var d3powA, d2powA, d3pow2A, d2pow2A, d1pow2A, d1powA;
-      var d = Math.round(data[0].x) + ',' + Math.round(data[0].y) + ' ';
-      var length = data.length;
-      for (var i = 0; i < length - 1; i++) {
-
-        p0 = i == 0 ? data[0] : data[i - 1];
-        p1 = data[i];
-        p2 = data[i + 1];
-        p3 = i + 2 < length ? data[i + 2] : p2;
-
-        d1 = Math.sqrt(Math.pow(p0.x - p1.x, 2) + Math.pow(p0.y - p1.y, 2));
-        d2 = Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
-        d3 = Math.sqrt(Math.pow(p2.x - p3.x, 2) + Math.pow(p2.y - p3.y, 2));
-
-        // Catmull-Rom to Cubic Bezier conversion matrix
-
-        // A = 2d1^2a + 3d1^a * d2^a + d3^2a
-        // B = 2d3^2a + 3d3^a * d2^a + d2^2a
-
-        // [   0             1            0          0          ]
-        // [   -d2^2a /N     A/N          d1^2a /N   0          ]
-        // [   0             d3^2a /M     B/M        -d2^2a /M  ]
-        // [   0             0            1          0          ]
-
-        d3powA = Math.pow(d3, alpha);
-        d3pow2A = Math.pow(d3, 2 * alpha);
-        d2powA = Math.pow(d2, alpha);
-        d2pow2A = Math.pow(d2, 2 * alpha);
-        d1powA = Math.pow(d1, alpha);
-        d1pow2A = Math.pow(d1, 2 * alpha);
-
-        A = 2 * d1pow2A + 3 * d1powA * d2powA + d2pow2A;
-        B = 2 * d3pow2A + 3 * d3powA * d2powA + d2pow2A;
-        N = 3 * d1powA * (d1powA + d2powA);
-        if (N > 0) {
-          N = 1 / N;
-        }
-        M = 3 * d3powA * (d3powA + d2powA);
-        if (M > 0) {
-          M = 1 / M;
-        }
-
-        bp1 = { x: (-d2pow2A * p0.x + A * p1.x + d1pow2A * p2.x) * N,
-          y: (-d2pow2A * p0.y + A * p1.y + d1pow2A * p2.y) * N };
-
-        bp2 = { x: (d3pow2A * p1.x + B * p2.x - d2pow2A * p3.x) * M,
-          y: (d3pow2A * p1.y + B * p2.y - d2pow2A * p3.y) * M };
-
-        if (bp1.x == 0 && bp1.y == 0) {
-          bp1 = p1;
-        }
-        if (bp2.x == 0 && bp2.y == 0) {
-          bp2 = p2;
-        }
-        d += 'C' + bp1.x + ',' + bp1.y + ' ' + bp2.x + ',' + bp2.y + ' ' + p2.x + ',' + p2.y + ' ';
-      }
-
-      return d;
-    }
-  };
-
-  /**
-   * this generates the SVG path for a linear drawing between datapoints.
-   * @param data
-   * @returns {string}
-   * @private
-   */
-  Line._linear = function (data) {
-    // linear
-    var d = '';
-    for (var i = 0; i < data.length; i++) {
-      if (i == 0) {
-        d += data[i].x + ',' + data[i].y;
-      } else {
-        d += ' ' + data[i].x + ',' + data[i].y;
-      }
-    }
-    return d;
-  };
-
-  module.exports = Line;
-
-/***/ },
-/* 105 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  var DOMutil = __webpack_require__(2);
-  var Points = __webpack_require__(106);
-
-  function Bargraph(groupId, options) {
-    this.groupId = groupId;
-    this.options = options;
-  }
-
-  Bargraph.prototype.getYRange = function (groupData) {
-    if (this.options.barChart.handleOverlap != 'stack') {
-      var yMin = groupData[0].y;
-      var yMax = groupData[0].y;
-      for (var j = 0; j < groupData.length; j++) {
-        yMin = yMin > groupData[j].y ? groupData[j].y : yMin;
-        yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
-      }
-      return { min: yMin, max: yMax, yAxisOrientation: this.options.yAxisOrientation };
-    } else {
-      var barCombinedData = [];
-      for (var j = 0; j < groupData.length; j++) {
-        barCombinedData.push({
-          x: groupData[j].x,
-          y: groupData[j].y,
-          groupId: this.groupId
-        });
-      }
-      return barCombinedData;
-    }
-  };
-
-  /**
-   * draw a bar graph
-   *
-   * @param groupIds
-   * @param processedGroupData
-   */
-  Bargraph.draw = function (groupIds, processedGroupData, framework) {
-    var combinedData = [];
-    var intersections = {};
-    var coreDistance;
-    var key, drawData;
-    var group;
-    var i, j;
-    var barPoints = 0;
-
-    // combine all barchart data
-    for (i = 0; i < groupIds.length; i++) {
-      group = framework.groups[groupIds[i]];
-      if (group.options.style == 'bar') {
-        if (group.visible == true && (framework.options.groups.visibility[groupIds[i]] === undefined || framework.options.groups.visibility[groupIds[i]] == true)) {
-          for (j = 0; j < processedGroupData[groupIds[i]].length; j++) {
-            combinedData.push({
-              x: processedGroupData[groupIds[i]][j].x,
-              y: processedGroupData[groupIds[i]][j].y,
-              groupId: groupIds[i],
-              label: processedGroupData[groupIds[i]][j].label
-            });
-            barPoints += 1;
-          }
-        }
-      }
-    }
-
-    if (barPoints == 0) {
-      return;
-    }
-
-    // sort by time and by group
-    combinedData.sort(function (a, b) {
-      if (a.x == b.x) {
-        return a.groupId - b.groupId;
-      } else {
-        return a.x - b.x;
-      }
-    });
-
-    // get intersections
-    Bargraph._getDataIntersections(intersections, combinedData);
-
-    // plot barchart
-    for (i = 0; i < combinedData.length; i++) {
-      group = framework.groups[combinedData[i].groupId];
-      var minWidth = 0.1 * group.options.barChart.width;
-
-      key = combinedData[i].x;
-      var heightOffset = 0;
-      if (intersections[key] === undefined) {
-        if (i + 1 < combinedData.length) {
-          coreDistance = Math.abs(combinedData[i + 1].x - key);
-        }
-        if (i > 0) {
-          coreDistance = Math.min(coreDistance, Math.abs(combinedData[i - 1].x - key));
-        }
-        drawData = Bargraph._getSafeDrawData(coreDistance, group, minWidth);
-      } else {
-        var nextKey = i + (intersections[key].amount - intersections[key].resolved);
-        var prevKey = i - (intersections[key].resolved + 1);
-        if (nextKey < combinedData.length) {
-          coreDistance = Math.abs(combinedData[nextKey].x - key);
-        }
-        if (prevKey > 0) {
-          coreDistance = Math.min(coreDistance, Math.abs(combinedData[prevKey].x - key));
-        }
-        drawData = Bargraph._getSafeDrawData(coreDistance, group, minWidth);
-        intersections[key].resolved += 1;
-
-        if (group.options.barChart.handleOverlap == 'stack') {
-          heightOffset = intersections[key].accumulated;
-          intersections[key].accumulated += group.zeroPosition - combinedData[i].y;
-        } else if (group.options.barChart.handleOverlap == 'sideBySide') {
-          drawData.width = drawData.width / intersections[key].amount;
-          drawData.offset += intersections[key].resolved * drawData.width - 0.5 * drawData.width * (intersections[key].amount + 1);
-          if (group.options.barChart.align == 'left') {
-            drawData.offset -= 0.5 * drawData.width;
-          } else if (group.options.barChart.align == 'right') {
-            drawData.offset += 0.5 * drawData.width;
-          }
-        }
-      }
-      DOMutil.drawBar(combinedData[i].x + drawData.offset, combinedData[i].y - heightOffset, drawData.width, group.zeroPosition - combinedData[i].y, group.className + ' vis-bar', framework.svgElements, framework.svg);
-      // draw points
-      if (group.options.drawPoints.enabled == true) {
-        Points.draw([combinedData[i]], group, framework, drawData.offset);
-        //DOMutil.drawPoint(combinedData[i].x + drawData.offset, combinedData[i].y, group, framework.svgElements, framework.svg);
-      }
-    }
-  };
-
-  /**
-   * Fill the intersections object with counters of how many datapoints share the same x coordinates
-   * @param intersections
-   * @param combinedData
-   * @private
-   */
-  Bargraph._getDataIntersections = function (intersections, combinedData) {
-    // get intersections
-    var coreDistance;
-    for (var i = 0; i < combinedData.length; i++) {
-      if (i + 1 < combinedData.length) {
-        coreDistance = Math.abs(combinedData[i + 1].x - combinedData[i].x);
-      }
-      if (i > 0) {
-        coreDistance = Math.min(coreDistance, Math.abs(combinedData[i - 1].x - combinedData[i].x));
-      }
-      if (coreDistance == 0) {
-        if (intersections[combinedData[i].x] === undefined) {
-          intersections[combinedData[i].x] = { amount: 0, resolved: 0, accumulated: 0 };
-        }
-        intersections[combinedData[i].x].amount += 1;
-      }
-    }
-  };
-
-  /**
-   * Get the width and offset for bargraphs based on the coredistance between datapoints
-   *
-   * @param coreDistance
-   * @param group
-   * @param minWidth
-   * @returns {{width: Number, offset: Number}}
-   * @private
-   */
-  Bargraph._getSafeDrawData = function (coreDistance, group, minWidth) {
-    var width, offset;
-    if (coreDistance < group.options.barChart.width && coreDistance > 0) {
-      width = coreDistance < minWidth ? minWidth : coreDistance;
-
-      offset = 0; // recalculate offset with the new width;
-      if (group.options.barChart.align == 'left') {
-        offset -= 0.5 * coreDistance;
-      } else if (group.options.barChart.align == 'right') {
-        offset += 0.5 * coreDistance;
-      }
-    } else {
-      // default settings
-      width = group.options.barChart.width;
-      offset = 0;
-      if (group.options.barChart.align == 'left') {
-        offset -= 0.5 * group.options.barChart.width;
-      } else if (group.options.barChart.align == 'right') {
-        offset += 0.5 * group.options.barChart.width;
-      }
-    }
-
-    return { width: width, offset: offset };
-  };
-
-  Bargraph.getStackedBarYRange = function (barCombinedData, groupRanges, groupIds, groupLabel, orientation) {
-    if (barCombinedData.length > 0) {
-      // sort by time and by group
-      barCombinedData.sort(function (a, b) {
-        if (a.x == b.x) {
-          return a.groupId - b.groupId;
-        } else {
-          return a.x - b.x;
-        }
-      });
-      var intersections = {};
-
-      Bargraph._getDataIntersections(intersections, barCombinedData);
-      groupRanges[groupLabel] = Bargraph._getStackedBarYRange(intersections, barCombinedData);
-      groupRanges[groupLabel].yAxisOrientation = orientation;
-      groupIds.push(groupLabel);
-    }
-  };
-
-  Bargraph._getStackedBarYRange = function (intersections, combinedData) {
-    var key;
-    var yMin = combinedData[0].y;
-    var yMax = combinedData[0].y;
-    for (var i = 0; i < combinedData.length; i++) {
-      key = combinedData[i].x;
-      if (intersections[key] === undefined) {
-        yMin = yMin > combinedData[i].y ? combinedData[i].y : yMin;
-        yMax = yMax < combinedData[i].y ? combinedData[i].y : yMax;
-      } else {
-        intersections[key].accumulated += combinedData[i].y;
-      }
-    }
-    for (var xpos in intersections) {
-      if (intersections.hasOwnProperty(xpos)) {
-        yMin = yMin > intersections[xpos].accumulated ? intersections[xpos].accumulated : yMin;
-        yMax = yMax < intersections[xpos].accumulated ? intersections[xpos].accumulated : yMax;
-      }
-    }
-
-    return { min: yMin, max: yMax };
-  };
-
-  module.exports = Bargraph;
-
-/***/ },
-/* 106 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  var DOMutil = __webpack_require__(2);
-
-  function Points(groupId, options) {
-    this.groupId = groupId;
-    this.options = options;
-  }
-
-  Points.prototype.getYRange = function (groupData) {
-    var yMin = groupData[0].y;
-    var yMax = groupData[0].y;
-    for (var j = 0; j < groupData.length; j++) {
-      yMin = yMin > groupData[j].y ? groupData[j].y : yMin;
-      yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
-    }
-    return { min: yMin, max: yMax, yAxisOrientation: this.options.yAxisOrientation };
-  };
-
-  Points.prototype.draw = function (dataset, group, framework, offset) {
-    Points.draw(dataset, group, framework, offset);
-  };
-
-  /**
-   * draw the data points
-   *
-   * @param {Array} dataset
-   * @param {Object} JSONcontainer
-   * @param {Object} svg            | SVG DOM element
-   * @param {GraphGroup} group
-   * @param {Number} [offset]
-   */
-  Points.draw = function (dataset, group, framework, offset) {
-    if (offset === undefined) {
-      offset = 0;
-    }
-    for (var i = 0; i < dataset.length; i++) {
-      DOMutil.drawPoint(dataset[i].x + offset, dataset[i].y, group, framework.svgElements, framework.svg, dataset[i].label);
-    }
-  };
-
-  module.exports = Points;
 
 /***/ }
 /******/ ])
