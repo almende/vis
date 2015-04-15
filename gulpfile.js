@@ -77,7 +77,10 @@ gulp.task('bundle-js', ['clean'], function (cb) {
   bannerPlugin.banner = createBanner();
 
   compiler.run(function (err, stats) {
-    if (err) gutil.log(err.toString());
+    if (err) {
+      gutil.log(err.toString());
+      gutil.beep(); // TODO: this does not work on my system
+    }
     cb();
   });
 });
