@@ -1,4 +1,4 @@
-div.network-manipulationDiv {
+div.vis-network div.vis-manipulation {
   border-width: 0;
   border-bottom: 1px;
   border-style:solid;
@@ -19,14 +19,16 @@ div.network-manipulationDiv {
   height: 30px;
 }
 
-div.network-manipulation-editMode {
+div.vis-network div.vis-edit-mode {
   position:absolute;
   left: 0;
   top: 15px;
   height: 30px;
 }
 
-div.network-manipulation-closeDiv {
+/* FIXME: shouldn't the vis-close button be a child of the vis-manipulation div? */
+
+div.vis-network div.vis-close {
   position:absolute;
   right: 0;
   top: 0;
@@ -45,13 +47,14 @@ div.network-manipulation-closeDiv {
   user-select: none;
 }
 
-div.network-manipulation-closeDiv:hover {
+div.vis-network div.vis-close:hover {
   opacity: 0.6;
 }
 
-div.network-manipulationUI {
-    position:relative;
-    top:-7px;
+div.vis-network div.vis-manipulation div.vis-button,
+div.vis-network div.vis-edit-mode div.vis-button {
+  position:relative;
+  top:-7px;
   font-family: verdana;
   font-size: 12px;
   -moz-border-radius: 15px;
@@ -72,68 +75,69 @@ div.network-manipulationUI {
   user-select: none;
 }
 
-div.network-manipulationUI:hover {
+div.vis-network div.vis-manipulation div.vis-button:hover {
   box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.20);
 }
 
-div.network-manipulationUI:active {
+div.vis-network div.vis-manipulation div.vis-button:active {
   box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.50);
 }
 
-div.network-manipulationUI.back {
+div.vis-network div.vis-manipulation div.vis-button.vis-back {
   background-image: url("img/network/backIcon.png");
 }
 
-div.network-manipulationUI.none:hover {
+div.vis-network div.vis-manipulation div.vis-button.vis-none:hover {
   box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.0);
   cursor: default;
 }
-div.network-manipulationUI.none:active {
+div.vis-network div.vis-manipulation div.vis-button.vis-none:active {
   box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.0);
 }
-div.network-manipulationUI.none {
+div.vis-network div.vis-manipulation div.vis-button.vis-none {
   padding: 0;
 }
-div.network-manipulationUI.notification{
+div.vis-network div.vis-manipulation div.notification {
   margin: 2px;
   font-weight: bold;
 }
 
-div.network-manipulationUI.add {
+div.vis-network div.vis-manipulation div.vis-button.vis-add {
   background-image: url("img/network/addNodeIcon.png");
 }
 
-div.network-manipulationUI.edit {
+div.vis-network div.vis-manipulation div.vis-button.vis-edit,
+div.vis-network div.vis-edit-mode div.vis-button.vis-edit {
   background-image: url("img/network/editIcon.png");
 }
 
-div.network-manipulationUI.edit.editmode {
+div.vis-network div.vis-edit-mode div.vis-button.vis-edit.vis-edit-mode {
   background-color: #fcfcfc;
-  border-style:solid;
-  border-width:1px;
-  border-color: #cccccc;
+  border: 1px solid #cccccc;
 }
 
-div.network-manipulationUI.connect {
+div.vis-network div.vis-manipulation div.vis-button.vis-connect {
   background-image: url("img/network/connectIcon.png");
 }
 
-div.network-manipulationUI.delete {
+div.vis-network div.vis-manipulation div.vis-button.vis-delete {
   background-image: url("img/network/deleteIcon.png");
 }
 /* top right bottom left */
-div.network-manipulationLabel {
-  margin: 0px 0px 0px 23px;
+div.vis-network div.vis-manipulation div.vis-label,
+div.vis-network div.vis-edit-mode div.vis-label {
+  margin: 0 0 0 23px;
   line-height: 25px;
 }
-div.network-seperatorLine {
+div.vis-network div.vis-manipulation div.vis-separator-line {
   display:inline-block;
   width:1px;
   height:20px;
   background-color: #bdbdbd;
-  margin: 5px 7px 0px 15px;
+  margin: 5px 7px 0 15px;
 }
 
+/* TODO: is this redundant?
 div.network-navigation_wrapper {
   position: absolute;
   left: 0;
@@ -141,3 +145,4 @@ div.network-navigation_wrapper {
   width: 100%;
   height: 100%;
 }
+*/
