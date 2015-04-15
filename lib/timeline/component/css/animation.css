@@ -1,18 +1,18 @@
-.vis.timeline.root {
+.vis-timeline {
   /*
   -webkit-transition: height .4s ease-in-out;
   transition:         height .4s ease-in-out;
   */
 }
 
-.vis.timeline .vispanel {
+.vis-panel {
   /*
   -webkit-transition: height .4s ease-in-out, top .4s ease-in-out;
   transition:         height .4s ease-in-out, top .4s ease-in-out;
   */
 }
 
-.vis.timeline .axis {
+.vis-axis {
   /*
   -webkit-transition: top .4s ease-in-out;
   transition:         top .4s ease-in-out;
@@ -21,12 +21,12 @@
 
 /* TODO: get animation working nicely
 
-.vis.timeline .item {
+.vis-item {
   -webkit-transition: top .4s ease-in-out;
   transition:         top .4s ease-in-out;
 }
 
-.vis.timeline .item.line {
+.vis-item.line {
   -webkit-transition: height .4s ease-in-out, top .4s ease-in-out;
   transition:         height .4s ease-in-out, top .4s ease-in-out;
 }

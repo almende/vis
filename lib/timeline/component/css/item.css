@@ -1,5 +1,5 @@
 
-.vis.timeline .item {
+.vis-item {
   position: absolute;
   color: #1A1A1A;
   border-color: #97B0F8;
@@ -9,7 +9,7 @@
   overflow: hidden;
 }
 
-.vis.timeline .item.selected {
+.vis-item.vis-selected {
   border-color: #FFC200;
   background-color: #FFF785;
 
@@ -17,25 +17,25 @@
   z-index: 2;
 }
 
-.vis.timeline .editable .item.selected {
+.vis-editable .vis-item.vis-selected {
   cursor: move;
 }
 
-.vis.timeline .item.point.selected {
+.vis-item.vis-point.vis-selected {
   background-color: #FFF785;
 }
 
-.vis.timeline .item.box {
+.vis-item.vis-box {
   text-align: center;
   border-style: solid;
   border-radius: 2px;
 }
 
-.vis.timeline .item.point {
+.vis-item.vis-point {
   background: none;
 }
 
-.vis.timeline .item.dot {
+.vis-item.vis-dot {
   position: absolute;
   padding: 0;
   border-width: 4px;
@@ -43,13 +43,13 @@
   border-radius: 4px;
 }
 
-.vis.timeline .item.range {
+.vis-item.vis-range {
   border-style: solid;
   border-radius: 2px;
   box-sizing: border-box;
 }
 
-.vis.timeline .item.background {
+.vis-item.background {
   border: none;
   background-color: rgba(213, 221, 246, 0.4);
   box-sizing: border-box;
@@ -57,20 +57,20 @@
   margin: 0;
 }
 
-.vis.timeline .item.range .content {
+.vis-item.vis-range .vis-item-content {
   position: relative;
   display: inline-block;
   max-width: 100%;
 }
 
-.vis.timeline .item.background .content {
+.vis-item.background .vis-item-content {
   position: absolute;
   display: inline-block;
   max-width: 100%;
   margin: 5px;
 }
 
-.vis.timeline .item.line {
+.vis-item.vis-line {
   padding: 0;
   position: absolute;
   width: 0;
@@ -78,13 +78,13 @@
   border-left-style: solid;
 }
 
-.vis.timeline .item .content {
+.vis-item .vis-item-content {
   white-space: nowrap;
   box-sizing: border-box;
   padding: 5px;
 }
 
-.vis.timeline .item .delete {
+.vis-item .vis-delete {
   background: url('img/timeline/delete.png') no-repeat top center;
   position: absolute;
   width: 24px;
@@ -94,7 +94,7 @@
   cursor: pointer;
 }
 
-.vis.timeline .item.range .drag-left {
+.vis-item.vis-range .vis-drag-left {
   position: absolute;
   width: 24px;
   height: 100%;
@@ -104,7 +104,7 @@
   cursor: w-resize;
 }
 
-.vis.timeline .item.range .drag-right {
+.vis-item.vis-range .vis-drag-right {
   position: absolute;
   width: 24px;
   height: 100%;

@@ -7,14 +7,14 @@
   <link href="../../dist/vis.css" rel="stylesheet" type="text/css" />
 
   <style type="text/css">
-    .vis.timeline.root {
+    .vis-timeline {
       border: 2px solid purple;
       font-family:  purisa, 'comic sans', cursive;
       font-size: 12pt;
       background: #ffecea;
     }
 
-    .vis.timeline .item {
+    .vis-item {
       border-color: #F991A3;
       background-color: pink;
       font-size: 15pt;
@@ -22,37 +22,37 @@
       box-shadow: 5px 5px 20px rgba(128,128,128, 0.5);
     }
 
-    .vis.timeline .item,
-    .vis.timeline .item.line {
+    .vis-item,
+    .vis-item.vis-line {
       border-width: 3px;
     }
 
-    .vis.timeline .item.dot {
+    .vis-item.vis-dot {
       border-width: 10px;
       border-radius: 10px;
     }
 
-    .vis.timeline .item.selected {
+    .vis-item.vis-selected {
       border-color: green;
       background-color: lightgreen;
     }
 
-    .vis.timeline .timeaxis .text {
+    .vis-time-axis .vis-text {
       color: purple;
       padding-top: 10px;
       padding-left: 10px;
     }
 
-    .vis.timeline .timeaxis .text.major {
+    .vis-time-axis .vis-text.vis-major {
       font-weight: bold;
     }
 
-    .vis.timeline .timeaxis .grid.minor {
+    .vis-time-axis .vis-grid.vis-minor {
       border-width: 2px;
       border-color: pink;
     }
 
-    .vis.timeline .timeaxis .grid.major {
+    .vis-time-axis .vis-grid.vis-major {
       border-width: 2px;
       border-color: #F991A3;
     }
