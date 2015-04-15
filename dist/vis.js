@@ -20950,7 +20950,7 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         this.frame = document.createElement('div');
-        this.frame.className = 'vis network-frame';
+        this.frame.className = 'vis-network';
         this.frame.style.position = 'relative';
         this.frame.style.overflow = 'hidden';
         this.frame.tabIndex = 900; // tab index is required for keycharm to bind keystrokes to the div instead of the window
@@ -23814,7 +23814,7 @@ return /******/ (function(modules) { // webpackBootstrap
         // load the manipulator HTML elements. All styling done in css.
         if (this.manipulationDiv === undefined) {
           this.manipulationDiv = document.createElement('div');
-          this.manipulationDiv.className = 'network-manipulationDiv';
+          this.manipulationDiv.className = 'vis-manipulation';
           if (this.editMode === true) {
             this.manipulationDiv.style.display = 'block';
           } else {
@@ -23826,7 +23826,7 @@ return /******/ (function(modules) { // webpackBootstrap
         // container for the edit button.
         if (this.editModeDiv === undefined) {
           this.editModeDiv = document.createElement('div');
-          this.editModeDiv.className = 'network-manipulation-editMode';
+          this.editModeDiv.className = 'vis-edit-mode';
           if (this.editMode === true) {
             this.editModeDiv.style.display = 'none';
           } else {
@@ -23838,7 +23838,7 @@ return /******/ (function(modules) { // webpackBootstrap
         // container for the close div button
         if (this.closeDiv === undefined) {
           this.closeDiv = document.createElement('div');
-          this.closeDiv.className = 'network-manipulation-closeDiv';
+          this.closeDiv.className = 'vis-close';
           this.closeDiv.style.display = this.manipulationDiv.style.display;
           this.canvas.frame.appendChild(this.closeDiv);
         }
@@ -23882,7 +23882,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
         // create the contents for the editMode button
         var locale = this.options.locales[this.options.locale];
-        var button = this._createButton('editMode', 'network-manipulationUI edit editmode', locale.edit);
+        var button = this._createButton('editMode', 'vis-button vis-edit vis-edit-mode', locale.edit);
         this.editModeDiv.appendChild(button);
 
         // bind a hammer listener to the button, calling the function toggleEditMode.
@@ -23974,7 +23974,7 @@ return /******/ (function(modules) { // webpackBootstrap
         var index = arguments[0] === undefined ? 1 : arguments[0];
 
         this.manipulationDOM['seperatorLineDiv' + index] = document.createElement('div');
-        this.manipulationDOM['seperatorLineDiv' + index].className = 'network-seperatorLine';
+        this.manipulationDOM['seperatorLineDiv' + index].className = 'vis-separator-line';
         this.manipulationDiv.appendChild(this.manipulationDOM['seperatorLineDiv' + index]);
       }
     }, {
@@ -23983,49 +23983,49 @@ return /******/ (function(modules) { // webpackBootstrap
       // ----------------------    DOM functions for buttons    --------------------------//
 
       value: function _createAddNodeButton(locale) {
-        var button = this._createButton('addNode', 'network-manipulationUI add', locale.addNode);
+        var button = this._createButton('addNode', 'vis-button vis-add', locale.addNode);
         this.manipulationDiv.appendChild(button);
         this._bindHammerToDiv(button, this.addNodeMode.bind(this));
       }
     }, {
       key: '_createAddEdgeButton',
       value: function _createAddEdgeButton(locale) {
-        var button = this._createButton('addEdge', 'network-manipulationUI connect', locale.addEdge);
+        var button = this._createButton('addEdge', 'vis-button vis-connect', locale.addEdge);
         this.manipulationDiv.appendChild(button);
         this._bindHammerToDiv(button, this.addEdgeMode.bind(this));
       }
     }, {
       key: '_createEditNodeButton',
       value: function _createEditNodeButton(locale) {
-        var button = this._createButton('editNode', 'network-manipulationUI edit', locale.editNode);
+        var button = this._createButton('editNode', 'vis-button vis-edit', locale.editNode);
         this.manipulationDiv.appendChild(button);
         this._bindHammerToDiv(button, this.editNode.bind(this));
       }
     }, {
       key: '_createEditEdgeButton',
       value: function _createEditEdgeButton(locale) {
-        var button = this._createButton('editEdge', 'network-manipulationUI edit', locale.editEdge);
+        var button = this._createButton('editEdge', 'vis-button vis-edit', locale.editEdge);
         this.manipulationDiv.appendChild(button);
         this._bindHammerToDiv(button, this.editEdgeMode.bind(this));
       }
     }, {
       key: '_createDeleteButton',
       value: function _createDeleteButton(locale) {
-        var button = this._createButton('delete', 'network-manipulationUI delete', locale.del);
+        var button = this._createButton('delete', 'vis-button vis-delete', locale.del);
         this.manipulationDiv.appendChild(button);
         this._bindHammerToDiv(button, this.deleteSelected.bind(this));
       }
     }, {
       key: '_createBackButton',
       value: function _createBackButton(locale) {
-        var button = this._createButton('back', 'network-manipulationUI back', locale.back);
+        var button = this._createButton('back', 'vis-button vis-back', locale.back);
         this.manipulationDiv.appendChild(button);
         this._bindHammerToDiv(button, this.showManipulatorToolbar.bind(this));
       }
     }, {
       key: '_createButton',
       value: function _createButton(id, className, label) {
-        var labelClassName = arguments[3] === undefined ? 'network-manipulationLabel' : arguments[3];
+        var labelClassName = arguments[3] === undefined ? 'vis-label' : arguments[3];
 
         this.manipulationDOM[id + 'Div'] = document.createElement('div');
         this.manipulationDOM[id + 'Div'].className = className;
@@ -24038,7 +24038,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_createDescription',
       value: function _createDescription(label) {
-        this.manipulationDiv.appendChild(this._createButton('description', 'network-manipulationUI none', label));
+        this.manipulationDiv.appendChild(this._createButton('description', 'vis-button vis-none', label));
       }
     }, {
       key: '_temporaryBindEvent',
@@ -33878,11 +33878,12 @@ return /******/ (function(modules) { // webpackBootstrap
         var navigationDivActions = ['_moveUp', '_moveDown', '_moveLeft', '_moveRight', '_zoomIn', '_zoomOut', '_zoomExtent'];
 
         this.navigationDOM.wrapper = document.createElement('div');
+        this.navigationDOM.wrapper.className = 'vis-navigation';
         this.canvas.frame.appendChild(this.navigationDOM.wrapper);
 
         for (var i = 0; i < navigationDivs.length; i++) {
           this.navigationDOM[navigationDivs[i]] = document.createElement('div');
-          this.navigationDOM[navigationDivs[i]].className = 'network-navigation ' + navigationDivs[i];
+          this.navigationDOM[navigationDivs[i]].className = 'vis-button vis-' + navigationDivs[i];
           this.navigationDOM.wrapper.appendChild(this.navigationDOM[navigationDivs[i]]);
 
           var hammer = new Hammer(this.navigationDOM[navigationDivs[i]]);
