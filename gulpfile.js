@@ -52,9 +52,9 @@ var webpackConfig = {
     wrappedContextRegExp: /$^/
   },
   plugins: [ bannerPlugin ],
-  cache: true,
-  debug: true,
-  bail: true
+  cache: true
+  //debug: true,
+  //bail: true
 };
 
 var uglifyConfig = {
@@ -79,8 +79,17 @@ gulp.task('bundle-js', ['clean'], function (cb) {
   compiler.run(function (err, stats) {
     if (err) {
       gutil.log(err.toString());
+    }
+
+    // output soft errors
+    stats.compilation.errors.forEach(function (err) {
+      gutil.log(err);
+    });
+
+    if (err || stats.compilation.errors.length > 0) {
       gutil.beep(); // TODO: this does not work on my system
     }
+
     cb();
   });
 });
