@@ -11,14 +11,12 @@
       width: 600px;
       height: 400px;
       border: 1px solid lightgray;
-      display:none;
     }
   </style>
 <body>
 
 <div id="mynetwork"></div>
 
-<input type="button" onclick="document.getElementById('mynetwork').style.display='block'; network.view.zoomExtent({duration:0});" value="showdiv">
 <script type="text/javascript">
   // create an array with nodes
   var nodes = [
@@ -46,9 +44,8 @@
     edges: edges
   };
   var options = {
-//      configure: 'nodes',
+      configure: 'nodes',
 //      physics:{stabilization:true}
-      nodes:{color:'red'}
   }
   var network = new vis.Network(container, data, options);
 //    network.setOptions({nodes:{color:'red'}})
