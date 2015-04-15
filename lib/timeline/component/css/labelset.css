@@ -1,5 +1,5 @@
 
-.vis.timeline .labelset {
+.vis-labelset {
   position: relative;
 
   overflow: hidden;
@@ -7,7 +7,7 @@
   box-sizing: border-box;
 }
 
-.vis.timeline .labelset .vlabel {
+.vis-labelset .vis-label {
   position: relative;
   left: 0;
   top: 0;
@@ -17,19 +17,19 @@
   box-sizing: border-box;
 }
 
-.vis.timeline .labelset .vlabel {
+.vis-labelset .vis-label {
   border-bottom: 1px solid #bfbfbf;
 }
 
-.vis.timeline .labelset .vlabel:last-child {
+.vis-labelset .vis-label:last-child {
   border-bottom: none;
 }
 
-.vis.timeline .labelset .vlabel .inner {
+.vis-labelset .vis-label .vis-inner {
   display: inline-block;
   padding: 5px;
 }
 
-.vis.timeline .labelset .vlabel .inner.hidden {
+.vis-labelset .vis-label .vis-inner.vis-hidden {
   padding: 0;
 }

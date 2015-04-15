@@ -1,4 +1,4 @@
-.vis.timeline .currenttime {
+.vis-current-time {
   background-color: #FF7F6E;
   width: 2px;
   z-index: 1;
