@@ -5,7 +5,7 @@ div.vis-network-configuration {
     font-size:12px;
 }
 
-div.vis-network-configuration.optionContainer{
+div.vis-network-configuration.vis-option-container{
     display:block;
     width:495px;
     background-color: #ffffff;
