@@ -4,10 +4,15 @@ div.vis-network-tooltip {
   padding: 5px;
   white-space: nowrap;
 
+  font-family: verdana;
+  font-size:14px;
+  font-color:#000000;
+  background-color: #f5f4ed;
+
   -moz-border-radius: 3px;
   -webkit-border-radius: 3px;
   border-radius: 3px;
-  border: 1px solid;
+  border: 1px solid #808074;
 
-  box-shadow: 3px 3px 10px rgba(128, 128, 128, 0.5);
+  box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
 }

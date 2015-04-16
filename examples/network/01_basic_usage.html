@@ -9,6 +9,7 @@
   <style type="text/css">
     #mynetwork {
       width: 600px;
+      margin:90px;
       height: 400px;
       border: 1px solid lightgray;
     }
@@ -20,7 +21,7 @@
 <script type="text/javascript">
   // create an array with nodes
   var nodes = [
-    {id: 1, label: 'Node 1', value:3},
+    {id: 1, label: 'Node 1', value:3, title:'hello world'},
     {id: 2, label: 'Node 2', value:1},
     {id: 3, label: 'Node 3', value:5},
     {id: 4, label: 'Node 4', value:3},
@@ -44,6 +45,7 @@
     edges: edges
   };
   var options = {
+    interaction:{navigationButtons:true}
 //    edges:{
 //      shadow:true,
 //      shape:'dot'
