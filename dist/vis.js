@@ -13664,7 +13664,7 @@ return /******/ (function(modules) { // webpackBootstrap
     //}
     //
 
-    var clientY = event.gesture.center.clientY;
+    var clientY = event.center.clientY;
     for (var i = 0; i < this.groupIds.length; i++) {
       var groupId = this.groupIds[i];
       var group = this.groups[groupId];
@@ -17125,6 +17125,11 @@ return /******/ (function(modules) { // webpackBootstrap
       me.emit('touch', event);
     }).bind(this));
 
+    // emulate a release event (emitted after a pan, pinch, tap, or press)
+    hammerUtil.onRelease(this.hammer, (function (event) {
+      me.emit('release', event);
+    }).bind(this));
+
     function onMouseWheel(event) {
       if (me.isActive()) {
         me.emit('mousewheel', event);
@@ -17928,13 +17933,22 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   exports.onTouch = function (hammer, callback) {
     callback.inputHandler = function (event) {
-      if (event.isFirst) {
+      if (event.isFirst && !isTouching) {
         callback(event);
+
+        isTouching = true;
+        setTimeout(function () {
+          isTouching = false;
+        }, 0);
       }
     };
 
     hammer.on('hammer.input', callback.inputHandler);
   };
+
+  // isTouching is true while a touch action is being emitted
+  // this is a hack to prevent `touch` from being fired twice
+  var isTouching = false;
 
   /**
    * Register a release event, taking place after a gesture
@@ -17943,13 +17957,21 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   exports.onRelease = function (hammer, callback) {
     callback.inputHandler = function (event) {
-      if (event.isFinal) {
+      if (event.isFinal && !isReleasing) {
         callback(event);
+
+        isReleasing = true;
+        setTimeout(function () {
+          isReleasing = false;
+        }, 0);
       }
     };
 
     return hammer.on('hammer.input', callback.inputHandler);
   };
+  // isReleasing is true while a release action is being emitted
+  // this is a hack to prevent `release` from being fired twice
+  var isReleasing = false;
 
   /**
    * Unregister a touch event, taking place before a gesture
