@@ -8,6 +8,8 @@ http://visjs.org
 
 - Fixed #761: Timeline and Graph2d throwing an error when locale is not found.
   Gives a warning message instead.
+- Fixed #782: Contents of items created from a template being unnecessary 
+  recreated on click, causing mouse events to get lost.
 
 ### Network
 
