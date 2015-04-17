@@ -89,8 +89,13 @@
     },
     fieldId: '_id'
   });
+
+  var someHtml = document.createElement('div');
+  someHtml.innerHTML = 'Click <a href="javascript: alert(\'you clicked an anchor\');">here <span style="color: green;">or here</span></a><br><button onclick="alert(\'click\')">Click me</button>';
+
+
   items.add([
-    {_id: 0, content: 'item 0', start: now.clone().add(3, 'days').toDate(), title: 'hello title!'},
+    {_id: 0, content: someHtml, start: now.clone().add(3, 'days').toDate(), title: 'hello title!'},
     {_id: '1', content: 'item 1<br>start', start: now.clone().add(4, 'days').toDate()},
     {_id: 2, content: '<a href="javascript: alert(\'you clicked an anchor\');">Click here! (anchor)</a><br><br>' +
         '<div onclick="alert(\'you clicked a div\');   ">Click here! (div)</div>', start: now.clone().add(-2, 'days').toDate() },
