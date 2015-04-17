@@ -38,7 +38,7 @@ div.vis-network-configuration.button.hover{
     color:#ffffff;
 }
 
-div.vis-network-configuration.entree{
+div.vis-network-configuration.item{
     display:block;
     width:495px;
     height:25px;
@@ -47,19 +47,19 @@ div.vis-network-configuration.entree{
 }
 
 
-div.vis-network-configuration.entree.s2{
+div.vis-network-configuration.item.s2{
     left:10px;
     background-color: #f7f8fa;
     padding-left:5px;
     border-radius:3px;
 }
-div.vis-network-configuration.entree.s3{
+div.vis-network-configuration.item.s3{
     left:20px;
     background-color: #e4e9f0;
     padding-left:5px;
     border-radius:3px;
 }
-div.vis-network-configuration.entree.s4{
+div.vis-network-configuration.item.s4{
     left:30px;
     background-color: #cfd8e6;
     padding-left:5px;
