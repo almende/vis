@@ -1,5 +1,5 @@
 
-.vis.timeline .itemset {
+.vis-itemset {
   position: relative;
   padding: 0;
   margin: 0;
@@ -7,15 +7,15 @@
   box-sizing: border-box;
 }
 
-.vis.timeline .itemset .background,
-.vis.timeline .itemset .foreground {
+.vis-itemset .vis-background,
+.vis-itemset .vis-foreground {
   position: absolute;
   width: 100%;
   height: 100%;
   overflow: visible;
 }
 
-.vis.timeline .axis {
+.vis-axis {
   position: absolute;
   width: 100%;
   height: 0;
@@ -23,12 +23,12 @@
   z-index: 1;
 }
 
-.vis.timeline  .foreground .group {
+.vis-foreground .vis-group {
   position: relative;
   box-sizing: border-box;
   border-bottom: 1px solid #bfbfbf;
 }
 
-.vis.timeline  .foreground .group:last-child {
+.vis-foreground .vis-group:last-child {
   border-bottom: none;
 }

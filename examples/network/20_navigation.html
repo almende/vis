@@ -10,6 +10,7 @@
     #mynetwork {
       width: 600px;
       height: 600px;
+      margin:100px;
       border: 1px solid lightgray;
     }
     table.legend_table {
@@ -104,9 +105,7 @@
         edges: edges
       };
       var options = {
-        stabilize: false,
-        navigation: true,
-        keyboard: true
+        interaction:{navigationButtons: true},
       };
       network = new vis.Network(container, data, options);
 

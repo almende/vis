@@ -31,24 +31,24 @@
     "emitter-component": "^1.1.1",
     "hammerjs": "^2.0.4",
     "keycharm": "^0.2.0",
-    "moment": "^2.9.0",
-    "propagating-hammerjs": "^1.2.0"
+    "moment": "^2.10.2",
+    "propagating-hammerjs": "^1.3.0"
   },
   "devDependencies": {
-    "6to5": "^3.5.3",
-    "6to5-loader": "^3.0.0",
-    "6to5ify": "^4.1.0",
-    "clean-css": "latest",
+    "babel": "^5.1.8",
+    "babel-loader": "^5.0.0",
+    "babelify": "^6.0.2",
+    "clean-css": "^3.1.9",
     "gulp": "^3.8.11",
-    "gulp-concat": "^2.4.3",
-    "gulp-minify-css": "^0.4.5",
-    "gulp-rename": "^1.2.0",
-    "gulp-util": "^3.0.3",
-    "merge-stream": "^0.1.5",
-    "mocha": "^2.1.0",
-    "rimraf": "^2.2.8",
-    "uglify-js": "^2.4.16",
-    "webpack": "^1.5.3",
-    "yargs": "^2.3.0"
+    "gulp-concat": "^2.5.2",
+    "gulp-minify-css": "^1.0.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-util": "^3.0.4",
+    "merge-stream": "^0.1.7",
+    "mocha": "^2.2.4",
+    "rimraf": "^2.3.2",
+    "uglify-js": "^2.4.20",
+    "webpack": "^1.8.4",
+    "yargs": "^3.7.1"
   }
 }

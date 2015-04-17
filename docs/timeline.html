@@ -1373,7 +1373,7 @@ To load a locale into the Timeline not supported by default, one can add a new l
 <p>For example, to change the border and background color of all items, include the
   following code inside the head of your html code or in a separate stylesheet.</p>
 <pre class="prettyprint lang-html">&lt;style&gt;
-  .vis.timeline .item {
+  .vis-item {
     border-color: orange;
     background-color: yellow;
   }
@@ -1424,17 +1424,17 @@ To load a locale into the Timeline not supported by default, one can add a new l
 
   <pre class="prettyprint lang-html">&lt;style&gt;
   /* alternating column backgrounds */
-  .vis.timeline .timeaxis .grid.odd {
+  .vis-time-axis .grid.odd {
     background: #f5f5f5;
   }
 
   /* gray background in weekends, white text color */
-  .vis.timeline .timeaxis .grid.saturday,
-  .vis.timeline .timeaxis .grid.sunday {
+  .vis-time-axis .vis-grid.saturday,
+  .vis-time-axis .vis-grid.sunday {
     background: gray;
   }
-  .vis.timeline .timeaxis .text.saturday,
-  .vis.timeline .timeaxis .text.sunday {
+  .vis-time-axis .vis-text.saturday,
+  .vis-time-axis .vis-text.sunday {
     color: white;
   }
 &lt;/style&gt;

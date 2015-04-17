@@ -45,7 +45,7 @@ var webpackConfig = {
   },
   module: {
     loaders: [
-      { test: /\.js$/, exclude: /node_modules/, loader: '6to5-loader'}
+      { test: /\.js$/, exclude: /node_modules/, loader: 'babel-loader'}
     ],
 
     // exclude requires of moment.js language files
@@ -53,6 +53,8 @@ var webpackConfig = {
   },
   plugins: [ bannerPlugin ],
   cache: true
+  //debug: true,
+  //bail: true
 };
 
 var uglifyConfig = {
@@ -75,7 +77,19 @@ gulp.task('bundle-js', ['clean'], function (cb) {
   bannerPlugin.banner = createBanner();
 
   compiler.run(function (err, stats) {
-    if (err) gutil.log(err);
+    if (err) {
+      gutil.log(err.toString());
+    }
+
+    // output soft errors
+    stats.compilation.errors.forEach(function (err) {
+      gutil.log(err);
+    });
+
+    if (err || stats.compilation.errors.length > 0) {
+      gutil.beep(); // TODO: this does not work on my system
+    }
+
     cb();
   });
 });

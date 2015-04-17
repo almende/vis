@@ -8,27 +8,27 @@
             font-family: sans-serif;
         }
 
-        .customStyle1 {
+        .custom-style1 {
             fill: #f2ea00;
             fill-opacity:0;
             stroke-width:2px;
             stroke: #b3ab00;
         }
 
-        .customStyle2 {
+        .custom-style2 {
             fill: #00a0f2;
             fill-opacity:0;
             stroke-width:2px;
             stroke: #050092;
         }
 
-        .customStyle3 {
+        .custom-style3 {
             fill: #00f201;
             fill-opacity:0;
             stroke-width:2px;
             stroke: #029200;
         }
-        path.customStyle3.fill {
+        path.custom-style3.vis-fill {
             fill-opacity:0.5 !important;
             stroke: none;
         }
@@ -88,7 +88,7 @@
     groups.add({
         id: 0,
         content: names[0],
-        className: 'customStyle1',
+        className: 'custom-style1',
         options: {
             drawPoints: {
                 style: 'square' // square, circle
@@ -101,7 +101,7 @@
     groups.add({
         id: 1,
         content: names[1],
-        className: 'customStyle2',
+        className: 'custom-style2',
         options: {
             style:'bar',
             drawPoints: {style: 'circle',
@@ -121,7 +121,7 @@
     groups.add({
         id: 3,
         content: names[3],
-        className: 'customStyle3',
+        className: 'custom-style3',
         options: {
             yAxisOrientation: 'right', // right, left
             drawPoints: {
