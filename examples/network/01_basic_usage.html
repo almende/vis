@@ -29,7 +29,7 @@
 
   // create an array with edges
   var edges = [
-    {from: 1, to: 1},
+    {from: 1, to: 1, id:'e1'},
     {from: 1, to: 3, dashes:{pattern:[10,15,2,5]}},
     {from: 1, to: 2},
     {from: 2, to: 4},
@@ -44,10 +44,7 @@
     edges: edges
   };
   var options = {
-    configure:'edges',
-    edges:{
-      dashes:true,
-    },
+    manipulation:true
 //      physics:{stabilization:true}
   }
   var network = new vis.Network(container, data, options);

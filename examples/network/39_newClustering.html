@@ -80,13 +80,13 @@
   network.clustering.clusterOutliers({clusterNodeProperties: {shape:'database',borderWidth:3}})
 //  network.clusterByConnection(2, clusterOptions);
 
-//  network.clusterByConnection(9, {
-//      joinCondition:function(parentOptions,childOptions) {return true;},
-//      processProperties:function (properties, childNodes, childEdges) {
-//          return properties;
-//      },
-//      clusterNodeProperties: {id:'bla2', label:"bla2", borderWidth:8}
-//  });
+  network.clusterByConnection(9, {
+      joinCondition:function(parentOptions,childOptions) {return true;},
+      processProperties:function (properties, childNodes, childEdges) {
+          return properties;
+      },
+      clusterNodeProperties: {id:'bla2', label:"bla2", borderWidth:8}
+  });
     network.body.emitter.on("select", function(params) {
         console.log("here1234")
         if (params.nodes.length == 1) {
