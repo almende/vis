@@ -56,7 +56,7 @@ This generates the vis.js library in the folder `./dist`.
 
     Verify if it installs the just released version, and verify if it works.
 
-  - Verify within an hour whether vis.js is updated on http://cdnjs.com/
+  - Verify within a day or so whether vis.js is updated on http://cdnjs.com/
 
 
 ## Update website
@@ -66,7 +66,7 @@ This generates the vis.js library in the folder `./dist`.
 - Copy the `examples` folder from the `master` branch to the `github-pages` branch.
 - Create a packaged version of vis.js. Go to the `master` branch and run:
 
-        zip vis.zip dist docs examples README.md HISTORY.md LICENSE* NOTICE -r
+        zip vis.zip dist docs examples README.md HISTORY.md CONTRIBUTING.md LICENSE* NOTICE -r
 
 - Move the created zip file `vis.zip` to the `download` folder in the
   `github-pages` branch. TODO: this should be automated.

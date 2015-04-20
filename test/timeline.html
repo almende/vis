@@ -41,14 +41,15 @@
     }
   </style>
 
-<script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-61231638-1', 'auto');ga('send', 'pageview');</script></head>
+  <script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-61231638-1', 'auto');ga('send', 'pageview');</script></head>
 <body>
 
 <div>
   <label for="orientation">Orientation</label>
   <select id="orientation">
+    <option value="both" selected>both</option>
+    <option value="bottom">bottom</option>
     <option value="top">top</option>
-    <option value="bottom" selected>bottom</option>
   </select>
 </div>
 <script>
@@ -98,7 +99,7 @@
     {_id: 0, content: someHtml, start: now.clone().add(3, 'days').toDate(), title: 'hello title!'},
     {_id: '1', content: 'item 1<br>start', start: now.clone().add(4, 'days').toDate()},
     {_id: 2, content: '<a href="javascript: alert(\'you clicked an anchor\');">Click here! (anchor)</a><br><br>' +
-        '<div onclick="alert(\'you clicked a div\');   ">Click here! (div)</div>', start: now.clone().add(-2, 'days').toDate() },
+    '<div onclick="alert(\'you clicked a div\');   ">Click here! (div)</div>', start: now.clone().add(-2, 'days').toDate() },
     {_id: 3, content: 'item 3', start: now.clone().add(2, 'days').toDate(), style: 'color: red;'},
     {
       _id: 4, content: 'item 4 foo bar foo bar foo bar foo bar foo bar',
@@ -126,6 +127,7 @@
   var options = {
     editable: true,
     //orientation: 'top',
+    orientation: 'both',
     start: now.clone().add(-7, 'days'),
     end: now.clone().add(7, 'days'),
     //maxHeight: 200,
@@ -163,13 +165,21 @@
     console.log('select', selection);
   });
 
-//  timeline.on('touch', function (event) {
-//    console.log('touch', event, Object.keys(event));
-//  });
-//
-//  timeline.on('release', function (event) {
-//    console.log('release', event, Object.keys(event));
-//  });
+  timeline.on('click', function (props) {
+    console.log('click', props);
+  });
+
+  timeline.on('contextmenu', function (props) {
+    console.log('contextmenu', props);
+  });
+
+  //  timeline.on('touch', function (event) {
+  //    console.log('touch', event, Object.keys(event));
+  //  });
+  //
+  //  timeline.on('release', function (event) {
+  //    console.log('release', event, Object.keys(event));
+  //  });
 
   /*
    timeline.on('rangechange', function (range) {

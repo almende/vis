@@ -129,9 +129,10 @@ var data = new vis.DataView(dataset, options)
 
       <tr>
         <td>fields</td>
-        <td>String[&nbsp;]</td>
+        <td>String[&nbsp;] | Object.&lt;String,&nbsp;String&gt;</td>
         <td>
-          An array with field names.
+          An array with field names, or an object with current field name and 
+          new field name that the field is returned as. 
           By default, all properties of the items are emitted.
           When <code>fields</code> is defined, only the properties
           whose name is specified in <code>fields</code> will be included

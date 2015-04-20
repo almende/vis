@@ -97,6 +97,7 @@
 .vis-item.vis-range .vis-drag-left {
   position: absolute;
   width: 24px;
+  max-width: 20%;
   height: 100%;
   top: 0;
   left: -4px;
@@ -107,6 +108,7 @@
 .vis-item.vis-range .vis-drag-right {
   position: absolute;
   width: 24px;
+  max-width: 20%;
   height: 100%;
   top: 0;
   right: -4px;

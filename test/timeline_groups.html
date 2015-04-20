@@ -13,6 +13,19 @@
       box-sizing: border-box;
       width: 100%;
     }
+
+    .vis.timeline .item.red,
+    .vis.timeline .item.red.selected {
+      background-color: red;
+      color: white;
+    }
+
+    .vis.timeline .item.green,
+    .vis.timeline .item.green.selected {
+      background-color: green;
+      color: white;
+    }
+
   </style>
 
   <script src="../dist/vis.js"></script>
@@ -23,8 +36,9 @@
 <div>
   <label for="orientation">Orientation</label>
   <select id="orientation">
-    <option value="top">top</option>
+    <option value="both">both</option>
     <option value="bottom" selected>bottom</option>
+    <option value="top">top</option>
   </select>
 </div>
 <script>
@@ -57,6 +71,7 @@
   var items = new vis.DataSet();
   for (var i = 0; i < itemCount; i++) {
     var start = now.clone().add(Math.random() * 200, 'hours');
+    var end = Math.random() > 0.5 ? start.clone().add(24, 'hours') : undefined;
     var group = Math.floor(Math.random() * groupCount);
     items.add({
       id: i,
@@ -64,8 +79,9 @@
       content: 'item ' + i +
           ' <span style="color:#97B0F8;">(' + names[group] + ')</span>',
       start: start,
+      end: end,
       title: 'Title for item ' + i,
-      type: 'box',
+      //type: 'box',
       className: 'myItem'
     });
   }
@@ -81,6 +97,10 @@
       updateGroup: true
     },
 
+//    orientation: {
+//      item: 'top',
+//      axis: 'both'
+//    },
 
     onAdd: function (item, callback) {
       item.content = prompt('Enter text content for new item:', item.content);
@@ -104,10 +124,14 @@
     },
 
     onMoving: function (item, callback) {
-      var min = moment().minutes(0).seconds(0).milliseconds(0).add(2, 'day').toDate();
+      var min = moment().minutes(0).seconds(0).milliseconds(0).add(-2, 'day').toDate();
       if (item.start < min) {
         item.start = min;
       }
+      //item.className = item.id > 3 ? 'red' : 'green';
+      //item.group = Math.random() > 0.5 ? 2 : 1;
+      //item.hasMoved = true;
+      //item.content = Math.round(Math.random() * 4);
 
       callback(item); // send back item as confirmation (can be changed)
     },
@@ -164,6 +188,18 @@
     console.log('rangechanged', range);
   });
   */
+
+  timeline.on('click', function (props) {
+    console.log('click', props);
+  });
+
+  timeline.on('doubleClick', function (props) {
+    console.log('doubleClick', props);
+  });
+
+  timeline.on('contextmenu', function (props) {
+    console.log('contextmenu', props);
+  });
 
   items.on('add',    console.log.bind(console));
   items.on('update', console.log.bind(console));

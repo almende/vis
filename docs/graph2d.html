@@ -678,7 +678,7 @@ The options colored in green can also be used as options for the groups. All opt
     <td>orientation</td>
     <td>String</td>
     <td>'bottom'</td>
-    <td>Orientation of the timeline: 'top' or 'bottom' (default). If orientation is 'bottom', the time axis is drawn at the bottom, and if 'top', the axis is drawn on top.</td>
+    <td>Orientation of the timeline: 'top', 'bottom' (default), or 'both'. If orientation is 'bottom', the time axis is drawn at the bottom. When 'top', the axis is drawn on top. When 'both', two axes are drawn, both on top and at the bottom.</td>
   </tr>
 
   <tr>
@@ -814,9 +814,48 @@ Graph2d.clear({options: true}); // clear options only
   </tr>
 
   <tr>
+    <td>click</td>
+    <td>Fired when clicked inside the Graph2d.
+    </td>
+    <td>
+      Passes a properties object as returned by the method <a href="#getEventProperties"><code>Graph2d.getEventProperties(event)</code></a>.
+    </td>
+  </tr>
+
+  <tr>
+    <td>contextmenu</td>
+    <td>Fired when right-clicked inside the Graph2d. Note that in order to prevent the context menu from showing up, default behavior of the event must be stopped:
+<pre class="prettyprint lang-js">graph2d.on('contextmenu', function (props) {
+  alert('Right click!');
+  props.event.preventDefault();
+});
+</pre>
+    </td>
+    <td>
+      Passes a properties object as returned by the method <a href="#getEventProperties"><code>Graph2d.getEventProperties(event)</code></a>.
+    </td>
+  </tr>
+
+  <tr>
     <td>destroy()</td>
     <td>none</td>
     <td>Destroy the Graph2d. The Graph2d is removed from memory. all DOM elements and event listeners are cleaned up.
+    </td>
+  </tr>
+
+  <tr>
+    <td>doubleClick</td>
+    <td>Fired when double clicked inside the Graph2d.
+    </td>
+    <td>
+      Passes a properties object as returned by the method <a href="#getEventProperties"><code>Graph2d.getEventProperties(event)</code></a>.
+    </td>
+  </tr>
+
+  <tr>
+    <td>fit()</td>
+    <td>none</td>
+    <td>Adjust the visible window such that it fits all items.
     </td>
   </tr>
 
@@ -831,6 +870,24 @@ Graph2d.clear({options: true}); // clear options only
     <td>getCustomTime()</td>
     <td>Date</td>
     <td>Retrieve the custom time. Only applicable when the option <code>showCustomTime</code> is true.
+    </td>
+  </tr>
+
+  <tr id="getEventProperties">
+    <td>getEventProperties(event)</td>
+    <td>Object</td>
+    <td>
+      Returns an Object with relevant properties from an event:
+      <ul>
+        <li><code>pageX</code> (Number): absolute horizontal position of the click event.</li>
+        <li><code>pageY</code> (Number): absolute vertical position of the click event.</li>
+        <li><code>x</code> (Number): relative horizontal position of the click event.</li>
+        <li><code>y</code> (Number): relative vertical position of the click event.</li>
+        <li><code>time</code> (Date): Date of the clicked event.</li>
+        <li><code>value</code> (Number[]): The data value of the click event. The array contains one value when there is one data axis visible, and two values when there are two visible data axes.</li>
+        <li><code>what</code> (String | null): name of the clicked thing: <code>background</code>, <code>axis</code>, <code>dat-axis</code>, <code>custom-time</code>, or <code>current-time</code>, <code>legend</code>.</li>
+        <li><code>event</code> (Object): the original click event.</li>
+      </ul>
     </td>
   </tr>
 
@@ -854,9 +911,13 @@ Graph2d.clear({options: true}); // clear options only
   </tr>
 
   <tr>
-    <td>fit()</td>
+    <td>hiddenDates</td>
+    <td>Object</td>
     <td>none</td>
-    <td>Adjust the visible window such that it fits all items.
+    <td>This option allows you to hide specific timespans from the time axis. The dates can be supplied as an object:
+      <code>{start: '2014-03-21 00:00:00', end: '2014-03-28 00:00:00', [repeat:'daily']}</code> or as an Array of these objects. The repeat argument is optional.
+      The possible values are (case-sensitive): <code>daily, weekly, monthly, yearly</code>. To hide a weekend, pick any Saturday as start and the following Monday as end
+      and set repeat to weekly.
     </td>
   </tr>
 
