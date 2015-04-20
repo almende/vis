@@ -32,3 +32,12 @@
 .vis-foreground .vis-group:last-child {
   border-bottom: none;
 }
+
+.vis-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+}
