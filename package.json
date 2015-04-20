@@ -32,13 +32,13 @@
     "hammerjs": "^2.0.4",
     "keycharm": "^0.2.0",
     "moment": "^2.10.2",
-    "propagating-hammerjs": "^1.4.0"
+    "propagating-hammerjs": "^1.4.1"
   },
   "devDependencies": {
-    "babel": "^5.1.8",
+    "babel": "^5.1.11",
     "babel-loader": "^5.0.0",
     "babelify": "^6.0.2",
-    "clean-css": "^3.1.9",
+    "clean-css": "^3.2.1",
     "gulp": "^3.8.11",
     "gulp-concat": "^2.5.2",
     "gulp-minify-css": "^1.0.0",
@@ -48,7 +48,7 @@
     "mocha": "^2.2.4",
     "rimraf": "^2.3.2",
     "uglify-js": "^2.4.20",
-    "webpack": "^1.8.4",
-    "yargs": "^3.7.1"
+    "webpack": "^1.8.5",
+    "yargs": "^3.7.2"
   }
 }
