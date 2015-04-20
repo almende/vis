@@ -5,6 +5,12 @@ div.vis-network-configuration {
     font-size:12px;
 }
 
+div.vis-network-configuration-wrapper {
+    display:block;
+    width:700px;
+}
+
+
 div.vis-network-configuration.vis-option-container{
     display:block;
     width:495px;
@@ -40,6 +46,7 @@ div.vis-network-configuration.button.hover{
 
 div.vis-network-configuration.item{
     display:block;
+    float:left;
     width:495px;
     height:25px;
     vertical-align: middle;
