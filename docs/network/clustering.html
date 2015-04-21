@@ -29,22 +29,11 @@
         td.properties {
             width:350px;
         }
-        pre.code {
-            padding:2px 4px;
-            font-size:90%;
-            color:#c7254e;
-            background-color:#f9f2f4;
-            border-radius:4px;
-            border:0px;
+
+        td.name {
+            width:180px;
         }
 
-        td.type {
-            width:150px;
-        }
-
-        tr.hidden{
-            dislpay:none;
-        }
     </style>
 </head>
 <!-- NAVBAR
@@ -67,7 +56,7 @@
                 <div id="navbar" class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
                         <li><a href="../index.html#modules">Modules</a></li>
-                        <li class="active"><a href="./docs/index.html" target="_blank">Documentation <img class="icon" src="../images/external-link-icons/external-link-icon-white.png"></a></li>
+                        <li class="active"><a href="./docs/index.html" target="_blank">Documentation <img class="icon" src="../img/external-link-icons/external-link-icon-white.png"></a></li>
                         <li><a href="../blog.html">Blog</a></li>
                         <li><a href="../index.html#download_install">Download</a></li>
                         <li><a href="../showcase/index.html">Showcase</a></li>
@@ -94,37 +83,85 @@
     <h3>Methods</h3>
     <p>This is a list of all the methods in the public API. Options can be set directly to the module or you can use the setOptions method of the network itself and use the module name as an object name.</p>
     <table class="moduleTable">
-        <tr class="header"><td>name</td><td>returns</td><td>description</td></tr>
-        <tr><td>isCluster()</td>                    <td class="mid">none</td><td></td></td></tr>
-        <tr><td>openCluster()</td>                  <td class="mid">none</td><td></td></tr>
-        <tr><td>clusterByConnection()</td>          <td class="mid">none</td><td></td></tr>
-        <tr><td>clusterByConnectionCount()</td>     <td class="mid">none</td><td></td></tr>
-        <tr><td>clusterByNodeData()</td>            <td class="mid">none</td><td></td></tr>
-        <tr><td>clusterOutliers()</td>              <td class="mid">none</td><td></td></tr>
-    </table>
+        <tr class="header"><td class="name">name</td><td>returns</td><td>description</td></tr>
+        <tr><td>findNode(<br>
+            &nbsp;&nbsp;<code>String nodeId</code><br>)</td>   <td class="mid">Array</td>   <td>Nodes can be in clusters. Clusters can also be in clusters. This function returns and array of nodeIds showing where the node is. Example: <br>
+            cluster 'A' contains cluster 'B',<br>
+            cluster 'B' contains cluster 'C',<br>
+            cluster 'C' contains node 'fred'.<br>
+            <code>network.clustering.findNode('fred')</code> will return <code>['A','B','C','fred']</code>.
+        </td></tr>
+        <tr><td>isCluster(<br>
+            &nbsp;&nbsp;<code>String nodeId</code><br>)</td>   <td class="mid">Boolean</td> <td>Returns true if the node whose ID has been supplied is a cluster.</td></tr>
+        <tr><td>openCluster(<br>&nbsp;&nbsp;
+            <code>String nodeId</code><br>)</td>               <td class="mid">none</td>    <td>Opens the cluster, releases the contained nodes and edges, removing the cluster node and cluster edges.</td></tr>
+        <tr><td>cluster(<br>&nbsp;&nbsp;
+            <code>Object options</code><br>)</td>              <td class="mid">none</td>    <td>The options object is explained in full <a href="#optionsObject">below</a>. The joinCondition function is presented with all nodes.</td></tr>
+        <tr><td>clusterByConnection(<br>
+            &nbsp;&nbsp;<code>String nodeId</code>,<br>
+            &nbsp;&nbsp;<code>[Object options]</code><br>
+            )</td>                                             <td class="mid">none</td>    <td>This method looks at the provided node and makes a cluster of it and all it's connected nodes. The behaviour can be customized by proving the options object. All options of this object are explained <a href="#optionsObject">below</a>. The joinCondition is only presented with the connected nodes.</td></tr>
+        <tr><td>clusterByHubsize(<br>
+            &nbsp;&nbsp;<code>Number hubsize</code>,<br>
+            &nbsp;&nbsp;<code>[Object options]</code><br>)</td><td class="mid">none</td>    <td>This method checks all nodes in the network and those with a equal or higher amount of edges than specified with the <code>hubsize</code> qualify. Cluster by connection is performed on each of them. The options object is described for <code>clusterByConnection</code> and does the same here.</td></tr>
 
-    <h3>Events</h3>
-    <p>This is a list of all the events in the public API. They are collected here from all individual modules.</p>
+        <tr><td>clusterOutliers(<br>
+            &nbsp;&nbsp;<code>[Object options]</code><br>)</td><td class="mid">none</td>    <td>This method will cluster all nodes with 1 edge with their respective connected node.</td></tr>
+    </table>
+    <br>
+    <h4 id="optionsObject">Cluster options object</h4>
+    <p>The options object supplied to the cluster functions can contain these properties:</p>
     <table class="moduleTable">
-        <tr class="header"><td>name</td><td class="properties">properties</td><td>description</td></tr>
-        <tr><td>startStabilizing</td><td class="mid">none</td><td>Fired when stabilization starts. This is also the case when you drag a node and the physics simulation restarts to stabilize again. Stabilization does not neccesarily imply 'without showing'.</td>
-        <tr><td>stabilizationProgress</td><td class="mid">
+        <tr class="header"><td class="name">name</td><td>Type</td><td>description</td></tr>
+        <tr><td>joinCondition(<br>&nbsp;&nbsp;<code>Object nodeOptions</code><br>)</td>     <td class="mid">Function</td>
+            <td><i>Optional for all but the cluster method. </i> The cluster module loops over all nodes that are selected to be in the cluster and calls this function with their data as argument.
+                If this function returns true, this node will be added to the cluster. You have access to all options (including the default)
+                as well as any custom fields you may have added to the node to determine whether or not to include it in the cluster. Example:
 <pre class="code">
-{
-  iterations: Number // iterations so far,
-  total: Number // total iterations in options
-}
-</pre></td><td>Fired when a multiple of the <code>updateInterval</code> number of iterations is reached. This only occurs in the 'hidden' stabilization.</td></tr>
-        <tr><td>stabilizationIterationsDone</td><td class="mid">none</td><td>Fired when the 'hidden' stabilization finishes. This does not necessarily mean the network is stabilized; it could also mean that the amount of iterations defined in the options has been reached.</td>
-        <tr><td>stabilized</td><td class="mid">
-<pre class="code">
-{
-  iterations: Number // iterations it took
-}
-</pre>
-    </td><td>Fired when the network has stabilized or when the <code>stopSimulation()</code> has been called. The amount of iterations it took could be used to tweak the maximum amount of iterations needed to stabilize the network.</td>
+var nodes = [
+  {id: 4, label: 'Node 4'},
+  {id: 5, label: 'Node 5'},
+  {id: 6, label: 'Node 6', cid:1},
+  {id: 7, label: 'Node 7', cid:1}
+]
 
+var options = {
+  joinCondition:function(nodeOptions) {
+    return nodeOptions.cid === 1;
+  }
+}
+
+network.clustering.cluster(options);
+</pre></td></tr>
+        <tr><td>processProperties(<br>&nbsp;&nbsp;<code>Object nodeOptions</code><br>)</td> <td class="mid">Function</td>   <td><i>Optional. </i> Before creating the new cluster node, this (optional) function will be called with the properties supplied by you (<code>clusterNodeProperties</code>), all contained nodes and all contained edges. You can use this to update the
+                                                                                                                                properties of the cluster based on which items it contains. The function should return the properties to create the cluster node. In the example below, we ensure preservation of mass and value when forming the cluster:
+<pre class="code">
+var options = {
+  processProperties: function (clusterOptions, childNodes, childEdges) {
+    var totalMass = 0;
+    var totalValue = 0;
+    for (var i = 0; i < childNodes.length; i++) {
+        totalMass += childNodes[i].mass;
+        totalValue = childNodes[i].value ? totalValue + childNodes[i].value : totalValue;
+    }
+    clusterOptions.mass = totalMass;
+    if (totalValue > 0) {
+      clusterOptions.value = totalValue;
+    }
+    return clusterOptions;
+  },
+}
+</pre></td></tr>
+        <tr><td>clusterNodeProperties</td>    <td class="mid">Object</td>     <td><i>Optional. </i> This is an object containing the options for the cluster node. All options described in the <a href="./nodes.html">nodes module</a> are allowed. This allows you to style your cluster node any way you want. This is also the style object that is provided in the processProperties function for fine tuning. If undefined, default node options will be used.</td></tr>
+        <tr><td>clusterEdgeProperties</td>    <td class="mid">Object</td>     <td><i>Optional. </i> This is an object containing the options for the edges connected to the cluster. All options described in the <a href="./edges.html">edges module</a> are allowed. Using this, you can style the edges connecting to the cluster any way you want. If none are provided, the optoins from the edges that are replaced are used. If undefined, default edge options will be used.</td></tr>
     </table>
+    <p>
+
+    </p>
+
+    <br><br>
+    <h3>Events</h3>
+    <p>The clustering module does not have any events.</p>
 
     <br />
     <br />

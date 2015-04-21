@@ -80,16 +80,18 @@ gulp.task('bundle-js', ['clean'], function (cb) {
     if (err) {
       gutil.log(err.toString());
     }
+    if (stats !== undefined) {
+      if (stats['compilation'] !== undefined) {
+        // output soft errors
+        stats.compilation.errors.forEach(function (err) {
+          gutil.log(err);
+        });
 
-    // output soft errors
-    stats.compilation.errors.forEach(function (err) {
-      gutil.log(err);
-    });
-
-    if (err || stats.compilation.errors.length > 0) {
-      gutil.beep(); // TODO: this does not work on my system
+        if (err || stats.compilation.errors.length > 0) {
+          gutil.beep(); // TODO: this does not work on my system
+        }
+      }
     }
-
     cb();
   });
 });

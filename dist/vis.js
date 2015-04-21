@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.0.0-SNAPSHOT
- * @date    2015-04-20
+ * @date    2015-04-21
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -20244,7 +20244,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _Cluster = __webpack_require__(76);
+  var _Cluster = __webpack_require__(106);
 
   var _Cluster2 = _interopRequireWildcard(_Cluster);
 
@@ -20268,14 +20268,14 @@ return /******/ (function(modules) { // webpackBootstrap
         if (options !== undefined) {}
       }
     }, {
-      key: "clusterByConnectionCount",
+      key: "clusterByHubsize",
 
       /**
       *
       * @param hubsize
       * @param options
       */
-      value: function clusterByConnectionCount(hubsize, options) {
+      value: function clusterByHubsize(hubsize, options) {
         if (hubsize === undefined) {
           hubsize = this._getHubSize();
         } else if (tyepof(hubsize) === "object") {
@@ -20293,19 +20293,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
         for (var i = 0; i < nodesToCluster.length; i++) {
           var node = this.body.nodes[nodesToCluster[i]];
-          this.clusterByConnection(node, options, {}, {}, false);
+          this.clusterByConnection(node, options, false);
         }
         this.body.emitter.emit("_dataChanged");
       }
     }, {
-      key: "clusterByNodeData",
+      key: "cluster",
 
       /**
       * loop over all nodes, check if they adhere to the condition and cluster if needed.
       * @param options
       * @param refreshData
       */
-      value: function clusterByNodeData() {
+      value: function cluster() {
         var options = arguments[0] === undefined ? {} : arguments[0];
         var refreshData = arguments[1] === undefined ? true : arguments[1];
 
@@ -20457,10 +20457,11 @@ return /******/ (function(modules) { // webpackBootstrap
         var clonedOptions = {};
         if (type === undefined || type === "node") {
           util.deepExtend(clonedOptions, this.body.nodes[objId].options, true);
-          util.deepExtend(clonedOptions, this.body.nodes[objId].properties, true);
+          clonedOptions.x = this.body.nodes[objId].x;
+          clonedOptions.y = this.body.nodes[objId].y;
           clonedOptions.amountOfConnections = this.body.nodes[objId].edges.length;
         } else {
-          util.deepExtend(clonedOptions, this.body.edges[objId].properties, true);
+          util.deepExtend(clonedOptions, this.body.edges[objId].options, true);
         }
         return clonedOptions;
       }
@@ -20477,7 +20478,9 @@ return /******/ (function(modules) { // webpackBootstrap
       * @private
       */
       value: function _createClusterEdges(childNodesObj, childEdgesObj, newEdges, options) {
-        var edge, childNodeId, childNode;
+        var edge = undefined,
+            childNodeId = undefined,
+            childNode = undefined;
 
         var childKeys = Object.keys(childNodesObj);
         for (var i = 0; i < childKeys.length; i++) {
@@ -20562,10 +20565,6 @@ return /******/ (function(modules) { // webpackBootstrap
         }
         var clusterId = options.clusterNodeProperties.id;
 
-        // create the new edges that will connect to the cluster
-        var newEdges = [];
-        this._createClusterEdges(childNodesObj, childEdgesObj, newEdges, options);
-
         // construct the clusterNodeProperties
         var clusterNodeProperties = options.clusterNodeProperties;
         if (options.processProperties !== undefined) {
@@ -20597,14 +20596,12 @@ return /******/ (function(modules) { // webpackBootstrap
         if (clusterNodeProperties.x === undefined) {
           pos = this._getClusterPosition(childNodesObj);
           clusterNodeProperties.x = pos.x;
-          clusterNodeProperties.allowedToMoveX = true;
         }
-        if (clusterNodeProperties.x === undefined) {
+        if (clusterNodeProperties.y === undefined) {
           if (pos === undefined) {
             pos = this._getClusterPosition(childNodesObj);
           }
           clusterNodeProperties.y = pos.y;
-          clusterNodeProperties.allowedToMoveY = true;
         }
 
         // force the ID to remain the same
@@ -20615,6 +20612,13 @@ return /******/ (function(modules) { // webpackBootstrap
         clusterNode.isCluster = true;
         clusterNode.containedNodes = childNodesObj;
         clusterNode.containedEdges = childEdgesObj;
+
+        // finally put the cluster node into global
+        this.body.nodes[clusterNodeProperties.id] = clusterNode;
+
+        // create the new edges that will connect to the cluster
+        var newEdges = [];
+        this._createClusterEdges(childNodesObj, childEdgesObj, newEdges, options);
 
         // disable the childEdges
         for (var edgeId in childEdgesObj) {
@@ -20635,9 +20639,6 @@ return /******/ (function(modules) { // webpackBootstrap
             this.body.nodes[nodeId].options.hidden = true;
           }
         }
-
-        // finally put the cluster node into global
-        this.body.nodes[clusterNodeProperties.id] = clusterNode;
 
         // push new edges to global
         for (var i = 0; i < newEdges.length; i++) {
@@ -20684,7 +20685,7 @@ return /******/ (function(modules) { // webpackBootstrap
         var maxX = childNodesObj[childKeys[0]].x;
         var minY = childNodesObj[childKeys[0]].y;
         var maxY = childNodesObj[childKeys[0]].y;
-        var node;
+        var node = undefined;
         for (var i = 0; i < childKeys.lenght; i++) {
           node = childNodesObj[childKeys[0]];
           minX = node.x < minX ? node.x : minX;
@@ -20752,11 +20753,7 @@ return /******/ (function(modules) { // webpackBootstrap
         // remove all temporary edges
         for (var i = 0; i < clusterNode.edges.length; i++) {
           var edgeId = clusterNode.edges[i].id;
-          var viaId = this.body.edges[edgeId].via.id;
-          if (viaId) {
-            this.body.edges[edgeId].via = undefined;
-            delete this.body.nodes[viaId];
-          }
+          this.body.edges[edgeId].edgeType.cleanup();
           // this removes the edge from node.edges, which is why edgeIds is formed
           this.body.edges[edgeId].disconnect();
           delete this.body.edges[edgeId];
@@ -20781,7 +20778,7 @@ return /******/ (function(modules) { // webpackBootstrap
       * @private
       */
       value: function _connectEdge(edge, nodeId, from) {
-        var clusterStack = this._getClusterStack(nodeId);
+        var clusterStack = this.findNode(nodeId);
         if (from === true) {
           edge.from = clusterStack[clusterStack.length - 1];
           edge.fromId = clusterStack[clusterStack.length - 1].id;
@@ -20796,7 +20793,7 @@ return /******/ (function(modules) { // webpackBootstrap
         edge.connect();
       }
     }, {
-      key: "_getClusterStack",
+      key: "findNode",
 
       /**
       * Get the stack clusterId's that a certain node resides in. cluster A -> cluster B -> cluster C -> node
@@ -20804,7 +20801,7 @@ return /******/ (function(modules) { // webpackBootstrap
       * @returns {Array}
       * @private
       */
-      value: function _getClusterStack(nodeId) {
+      value: function findNode(nodeId) {
         var stack = [];
         var max = 100;
         var counter = 0;
@@ -20863,8 +20860,8 @@ return /******/ (function(modules) { // webpackBootstrap
         average = average / hubCounter;
         averageSquared = averageSquared / hubCounter;
 
-        var variance = averageSquared - Math.pow(average, 2);
-        var standardDeviation = Math.sqrt(variance);
+        var letiance = averageSquared - Math.pow(average, 2);
+        var standardDeviation = Math.sqrt(letiance);
 
         var hubThreshold = Math.floor(average + 2 * standardDeviation);
 
@@ -21946,11 +21943,11 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NavigationHandler = __webpack_require__(77);
+  var _NavigationHandler = __webpack_require__(76);
 
   var _NavigationHandler2 = _interopRequireWildcard(_NavigationHandler);
 
-  var _Popup = __webpack_require__(78);
+  var _Popup = __webpack_require__(77);
 
   var _Popup2 = _interopRequireWildcard(_Popup);
 
@@ -23782,7 +23779,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Hammer = __webpack_require__(41);
   var hammerUtil = __webpack_require__(44);
-  var locales = __webpack_require__(79);
+  var locales = __webpack_require__(78);
 
   /**
    * clears the toolbar div element of children
@@ -24873,7 +24870,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ColorPicker = __webpack_require__(80);
+  var _ColorPicker = __webpack_require__(79);
 
   var _ColorPicker2 = _interopRequireWildcard(_ColorPicker);
 
@@ -25943,7 +25940,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var keycharm = __webpack_require__(81);
+  var keycharm = __webpack_require__(80);
   var Emitter = __webpack_require__(42);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
@@ -29177,7 +29174,7 @@ return /******/ (function(modules) { // webpackBootstrap
       return _moment;
 
   }));
-  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(83)(module)))
+  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(82)(module)))
 
 /***/ },
 /* 65 */
@@ -31863,7 +31860,7 @@ return /******/ (function(modules) { // webpackBootstrap
       prefixed: prefixed
   });
 
-  if ("function" == TYPE_FUNCTION && __webpack_require__(84)) {
+  if ("function" == TYPE_FUNCTION && __webpack_require__(83)) {
       !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
           return Hammer;
       }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -31896,59 +31893,59 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _Label2 = _interopRequireWildcard(_Label);
 
-  var _Box = __webpack_require__(85);
+  var _Box = __webpack_require__(84);
 
   var _Box2 = _interopRequireWildcard(_Box);
 
-  var _Circle = __webpack_require__(86);
+  var _Circle = __webpack_require__(85);
 
   var _Circle2 = _interopRequireWildcard(_Circle);
 
-  var _CircularImage = __webpack_require__(87);
+  var _CircularImage = __webpack_require__(86);
 
   var _CircularImage2 = _interopRequireWildcard(_CircularImage);
 
-  var _Database = __webpack_require__(88);
+  var _Database = __webpack_require__(87);
 
   var _Database2 = _interopRequireWildcard(_Database);
 
-  var _Diamond = __webpack_require__(89);
+  var _Diamond = __webpack_require__(88);
 
   var _Diamond2 = _interopRequireWildcard(_Diamond);
 
-  var _Dot = __webpack_require__(90);
+  var _Dot = __webpack_require__(89);
 
   var _Dot2 = _interopRequireWildcard(_Dot);
 
-  var _Ellipse = __webpack_require__(91);
+  var _Ellipse = __webpack_require__(90);
 
   var _Ellipse2 = _interopRequireWildcard(_Ellipse);
 
-  var _Icon = __webpack_require__(92);
+  var _Icon = __webpack_require__(91);
 
   var _Icon2 = _interopRequireWildcard(_Icon);
 
-  var _Image = __webpack_require__(93);
+  var _Image = __webpack_require__(92);
 
   var _Image2 = _interopRequireWildcard(_Image);
 
-  var _Square = __webpack_require__(94);
+  var _Square = __webpack_require__(93);
 
   var _Square2 = _interopRequireWildcard(_Square);
 
-  var _Star = __webpack_require__(95);
+  var _Star = __webpack_require__(94);
 
   var _Star2 = _interopRequireWildcard(_Star);
 
-  var _Text = __webpack_require__(96);
+  var _Text = __webpack_require__(95);
 
   var _Text2 = _interopRequireWildcard(_Text);
 
-  var _Triangle = __webpack_require__(97);
+  var _Triangle = __webpack_require__(96);
 
   var _Triangle2 = _interopRequireWildcard(_Triangle);
 
-  var _TriangleDown = __webpack_require__(98);
+  var _TriangleDown = __webpack_require__(97);
 
   var _TriangleDown2 = _interopRequireWildcard(_TriangleDown);
 
@@ -32314,8 +32311,8 @@ return /******/ (function(modules) { // webpackBootstrap
        * @param newOptions
        */
       value: function parseOptions(parentOptions, newOptions) {
-        var fields = ['borderWidth', 'borderWidthSelected', 'brokenImage', 'customScalingFunction', 'font', 'hidden', 'icon', 'id', 'image', 'label', 'level', 'physics', 'shape', 'size', 'title', 'value', 'x', 'y'];
-        util.selectiveDeepExtend(fields, parentOptions, newOptions);
+        var fields = ['shadow', 'color', 'fixed'];
+        util.selectiveNotDeepExtend(fields, parentOptions, newOptions);
 
         // merge the shadow options into the parent.
         util.mergeOptions(parentOptions, newOptions, 'shadow');
@@ -32678,15 +32675,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _Label2 = _interopRequireWildcard(_Label);
 
-  var _BezierEdgeDynamic = __webpack_require__(99);
+  var _BezierEdgeDynamic = __webpack_require__(98);
 
   var _BezierEdgeDynamic2 = _interopRequireWildcard(_BezierEdgeDynamic);
 
-  var _BezierEdgeStatic = __webpack_require__(100);
+  var _BezierEdgeStatic = __webpack_require__(99);
 
   var _BezierEdgeStatic2 = _interopRequireWildcard(_BezierEdgeStatic);
 
-  var _StraightEdge = __webpack_require__(101);
+  var _StraightEdge = __webpack_require__(100);
 
   var _StraightEdge2 = _interopRequireWildcard(_StraightEdge);
 
@@ -32835,12 +32832,8 @@ return /******/ (function(modules) { // webpackBootstrap
        * @param status
        */
       value: function togglePhysics(status) {
-        if (this.options.smooth.enabled === true && this.options.smooth.dynamic === true) {
-          if (this.via === undefined) {
-            this.via.pptions.physics = status;
-          }
-        }
         this.options.physics = status;
+        this.edgeType.togglePhysics(status);
       }
     }, {
       key: 'connect',
@@ -34124,51 +34117,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
-  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-  var _inherits = function (subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _Node2 = __webpack_require__(67);
-
-  var _Node3 = _interopRequireWildcard(_Node2);
-
-  /**
-   *
-   */
-
-  var Cluster = (function (_Node) {
-    function Cluster(options, body, imagelist, grouplist, globalOptions) {
-      _classCallCheck(this, Cluster);
-
-      _get(Object.getPrototypeOf(Cluster.prototype), 'constructor', this).call(this, options, body, imagelist, grouplist, globalOptions);
-
-      this.isCluster = true;
-      this.containedNodes = {};
-      this.containedEdges = {};
-    }
-
-    _inherits(Cluster, _Node);
-
-    return Cluster;
-  })(_Node3['default']);
-
-  exports['default'] = Cluster;
-  module.exports = exports['default'];
-
-/***/ },
-/* 77 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -34179,7 +34127,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Hammer = __webpack_require__(41);
   var hammerUtil = __webpack_require__(44);
-  var keycharm = __webpack_require__(81);
+  var keycharm = __webpack_require__(80);
 
   var NavigationHandler = (function () {
     function NavigationHandler(body, canvas) {
@@ -34431,7 +34379,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 78 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -34557,7 +34505,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 79 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -34601,7 +34549,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.nl_BE = exports.nl;
 
 /***/ },
-/* 80 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35180,7 +35128,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 81 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
@@ -35378,7 +35326,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 82 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
   function webpackContext(req) {
@@ -35387,11 +35335,11 @@ return /******/ (function(modules) { // webpackBootstrap
   webpackContext.keys = function() { return []; };
   webpackContext.resolve = webpackContext;
   module.exports = webpackContext;
-  webpackContext.id = 82;
+  webpackContext.id = 81;
 
 
 /***/ },
-/* 83 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
   module.exports = function(module) {
@@ -35407,7 +35355,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 84 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
@@ -35415,7 +35363,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
-/* 85 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35434,7 +35382,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(102);
+  var _NodeBase2 = __webpack_require__(101);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -35513,7 +35461,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 86 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35532,7 +35480,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _CircleImageBase2 = __webpack_require__(103);
+  var _CircleImageBase2 = __webpack_require__(102);
 
   var _CircleImageBase3 = _interopRequireWildcard(_CircleImageBase2);
 
@@ -35595,7 +35543,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 87 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35614,7 +35562,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _CircleImageBase2 = __webpack_require__(103);
+  var _CircleImageBase2 = __webpack_require__(102);
 
   var _CircleImageBase3 = _interopRequireWildcard(_CircleImageBase2);
 
@@ -35696,7 +35644,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 88 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35715,7 +35663,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(102);
+  var _NodeBase2 = __webpack_require__(101);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -35794,7 +35742,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 89 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35813,7 +35761,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(104);
+  var _ShapeBase2 = __webpack_require__(103);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -35852,7 +35800,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 90 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35871,7 +35819,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(104);
+  var _ShapeBase2 = __webpack_require__(103);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -35910,7 +35858,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 91 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35929,7 +35877,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(102);
+  var _NodeBase2 = __webpack_require__(101);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -36011,7 +35959,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 92 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36030,7 +35978,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(102);
+  var _NodeBase2 = __webpack_require__(101);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -36119,7 +36067,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 93 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36138,7 +36086,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _CircleImageBase2 = __webpack_require__(103);
+  var _CircleImageBase2 = __webpack_require__(102);
 
   var _CircleImageBase3 = _interopRequireWildcard(_CircleImageBase2);
 
@@ -36197,7 +36145,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 94 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36216,7 +36164,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(104);
+  var _ShapeBase2 = __webpack_require__(103);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -36256,7 +36204,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 95 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36275,7 +36223,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(104);
+  var _ShapeBase2 = __webpack_require__(103);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -36314,7 +36262,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 96 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36333,7 +36281,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(102);
+  var _NodeBase2 = __webpack_require__(101);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -36392,7 +36340,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 97 */
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36411,7 +36359,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(104);
+  var _ShapeBase2 = __webpack_require__(103);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -36450,7 +36398,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 98 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36469,7 +36417,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(104);
+  var _ShapeBase2 = __webpack_require__(103);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -36508,7 +36456,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 99 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36527,7 +36475,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _BezierEdgeBase2 = __webpack_require__(105);
+  var _BezierEdgeBase2 = __webpack_require__(104);
 
   var _BezierEdgeBase3 = _interopRequireWildcard(_BezierEdgeBase2);
 
@@ -36566,6 +36514,11 @@ return /******/ (function(modules) { // webpackBootstrap
           return true;
         }
         return false;
+      }
+    }, {
+      key: 'togglePhysics',
+      value: function togglePhysics(status) {
+        this.via.setOptions({ physics: status });
       }
     }, {
       key: 'setupSupportNode',
@@ -36661,7 +36614,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 100 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36680,7 +36633,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _BezierEdgeBase2 = __webpack_require__(105);
+  var _BezierEdgeBase2 = __webpack_require__(104);
 
   var _BezierEdgeBase3 = _interopRequireWildcard(_BezierEdgeBase2);
 
@@ -36925,7 +36878,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 101 */
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36944,7 +36897,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _EdgeBase2 = __webpack_require__(106);
+  var _EdgeBase2 = __webpack_require__(105);
 
   var _EdgeBase3 = _interopRequireWildcard(_EdgeBase2);
 
@@ -37035,7 +36988,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 102 */
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37101,7 +37054,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 103 */
+/* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37120,7 +37073,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(102);
+  var _NodeBase2 = __webpack_require__(101);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -37222,7 +37175,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 104 */
+/* 103 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37241,7 +37194,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(102);
+  var _NodeBase2 = __webpack_require__(101);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -37312,7 +37265,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 105 */
+/* 104 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37331,7 +37284,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _EdgeBase2 = __webpack_require__(106);
+  var _EdgeBase2 = __webpack_require__(105);
 
   var _EdgeBase3 = _interopRequireWildcard(_EdgeBase2);
 
@@ -37459,7 +37412,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 106 */
+/* 105 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37494,6 +37447,14 @@ return /******/ (function(modules) { // webpackBootstrap
         this.to = this.body.nodes[this.options.to];
         this.id = this.options.id;
       }
+    }, {
+      key: 'togglePhysics',
+
+      /**
+       * overloadable if the shape has to toggle the via node to disabled
+       * @param status
+       */
+      value: function togglePhysics(status) {}
     }, {
       key: 'drawLine',
 
@@ -38034,6 +37995,51 @@ return /******/ (function(modules) { // webpackBootstrap
   })();
 
   exports['default'] = EdgeBase;
+  module.exports = exports['default'];
+
+/***/ },
+/* 106 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
+
+  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+  var _inherits = function (subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _Node2 = __webpack_require__(67);
+
+  var _Node3 = _interopRequireWildcard(_Node2);
+
+  /**
+   *
+   */
+
+  var Cluster = (function (_Node) {
+    function Cluster(options, body, imagelist, grouplist, globalOptions) {
+      _classCallCheck(this, Cluster);
+
+      _get(Object.getPrototypeOf(Cluster.prototype), 'constructor', this).call(this, options, body, imagelist, grouplist, globalOptions);
+
+      this.isCluster = true;
+      this.containedNodes = {};
+      this.containedEdges = {};
+    }
+
+    _inherits(Cluster, _Node);
+
+    return Cluster;
+  })(_Node3['default']);
+
+  exports['default'] = Cluster;
   module.exports = exports['default'];
 
 /***/ }
