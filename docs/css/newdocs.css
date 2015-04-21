@@ -7,7 +7,7 @@ body {
     /*font-family: Lustria, Georgia, Times, "Times New Roman", serif !important;*/
     height:100%;
     font-size:16px;
-    background: url('../../images/crosswordStrong.png') /* Background pattern from subtlepatterns.com */
+    background: url('../img/crosswordStrong.png') /* Background pattern from subtlepatterns.com */
 }
 
 img.icon {
@@ -79,7 +79,85 @@ td.properties {
     width:150px;
 }
 
-
 p {
     max-width:1000px;
+}
+
+
+pre.code {
+    padding:2px 4px;
+    font-size:90%;
+    color:#c7254e;
+    background-color:#f9f2f4;
+    border-radius:4px;
+    border:0px;
+}
+
+td.type {
+    width:150px;
+}
+
+tr.hidden {
+    max-height:0;
+    /*max-height: 0;*/
+    overflow: hidden;
+}
+
+tr.visible {
+    /* Set our transitions up. */
+    -webkit-animation:
+    fadeIn 250ms ease-in;
+}
+
+
+@-webkit-keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+
+span.caret {
+    opacity: 0.5;
+}
+
+span.right-caret {
+    border-bottom: 4px solid transparent;
+    border-top: 4px solid transparent;
+    border-left: 4px solid #000000;
+    display: inline-block;
+    height: 0;
+    opacity: 0.5;
+    vertical-align: top;
+    width: 0;
+    margin-left:5px;
+    margin-top:6px;
+}
+
+tr.toggle {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor:pointer;
+}
+
+
+
+tr.toggle.collapsible {
+    background-color: #f7f7f7;
+    border-left: 3px solid #89b3ff;
+}
+
+td.indent {
+    padding-left:25px !important;
+}
+
+td.name {
+    width:270px;
 }

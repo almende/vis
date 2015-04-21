@@ -29,24 +29,9 @@
         td.properties {
             width:350px;
         }
-        pre.code {
-            padding:2px 4px;
-            font-size:90%;
-            color:#c7254e;
-            background-color:#f9f2f4;
-            border-radius:4px;
-            border:0px;
-        }
-
-        td.type {
-            width:150px;
-        }
-
-        tr.hidden {
-            display:none;
-        }
-
     </style>
+
+    <script type="text/javascript" src="../js/toggleTable.js"></script>
 </head>
 <!-- NAVBAR
 ================================================== -->
@@ -68,7 +53,7 @@
                 <div id="navbar" class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
                         <li><a href="../index.html#modules">Modules</a></li>
-                        <li class="active"><a href="./docs/index.html" target="_blank">Documentation <img class="icon" src="../images/external-link-icons/external-link-icon-white.png"></a></li>
+                        <li class="active"><a href="./docs/index.html" target="_blank">Documentation <img class="icon" src="../img/external-link-icons/external-link-icon-white.png"></a></li>
                         <li><a href="../blog.html">Blog</a></li>
                         <li><a href="../index.html#download_install">Download</a></li>
                         <li><a href="../showcase/index.html">Showcase</a></li>
@@ -90,38 +75,38 @@
 
     <h3>Options</h3>
     <p>This is a list of all the methods in the public API. They are collected here from all individual modules.</p>
-    <table class="moduleTable">
-        <tr class="header"><td>name</td><td class="type">type</td><td>default</td><td>description</td></tr>
-        <tr onclick=""><td><span parent="barnesHut" class="caret"></span> barnesHut</td>                              <td class="mid">Object</td>         <td class="mid"><code>Object</code></td>    <td>BarnesHut is a quadtree based gravity model. This is the fastest, default and recommended solver for non-hierarchical layouts.</td></tr>
-        <tr parent="barnesHut" class="hidden"><td>barnesHut.gravitationalConstant</td>        <td class="mid">Number</td>         <td class="mid"><code>-2000</code></td>     <td>Gravity attracts. We like repulsion. So the value is negative. If you want the repulsion to be stronger, decrease the value (so -10000, -50000).</td></tr>
-        <tr parent="barnesHut" class="hidden"><td>barnesHut.centralGravity</td>               <td class="mid">Number</td>         <td class="mid"><code>0.3</code></td>       <td>There is a central gravity attractor to pull the entire network back to the center.</td></tr>
-        <tr parent="barnesHut" class="hidden"><td>barnesHut.springLength</td>                 <td class="mid">Number</td>         <td class="mid"><code>95</code></td>        <td>The edges are modelled as springs. This springLength here is the the rest length of the spring.</td></tr>
-        <tr parent="barnesHut" class="hidden"><td>barnesHut.springConstant</td>               <td class="mid">Number</td>         <td class="mid"><code>0.04</code></td>      <td>This is how 'sturdy' the springs are. Higher values mean stronger springs.</td></tr>
-        <tr parent="barnesHut" class="hidden"><td>barnesHut.damping</td>                      <td class="mid">Number</td>         <td class="mid"><code>0.09</code></td>      <td>Accepted range: <code>[0 .. 1]</code>. The damping factor is how much of the velocity from the previous physics simulation iteration carries over to the next iteration.</td></tr>
+    <table class="moduleTable" id="physicsTable">
+        <tr class="header"><td class="name">name</td><td class="type">type</td><td>default</td><td>description</td></tr>
+        <tr class='toggle collapsible' onclick="toggleTable('physicsTable','barnesHut', this);"><td><span parent="barnesHut" class="right-caret"></span> barnesHut</td>                              <td class="mid">Object</td>         <td class="mid"><code>Object</code></td>    <td>BarnesHut is a quadtree based gravity model. This is the fastest, default and recommended solver for non-hierarchical layouts.</td></tr>
+        <tr parent="barnesHut" class="hidden"><td class="indent">barnesHut.gravitationalConstant</td>        <td class="mid">Number</td>         <td class="mid"><code>-2000</code></td>     <td>Gravity attracts. We like repulsion. So the value is negative. If you want the repulsion to be stronger, decrease the value (so -10000, -50000).</td></tr>
+        <tr parent="barnesHut" class="hidden"><td class="indent">barnesHut.centralGravity</td>               <td class="mid">Number</td>         <td class="mid"><code>0.3</code></td>       <td>There is a central gravity attractor to pull the entire network back to the center.</td></tr>
+        <tr parent="barnesHut" class="hidden"><td class="indent">barnesHut.springLength</td>                 <td class="mid">Number</td>         <td class="mid"><code>95</code></td>        <td>The edges are modelled as springs. This springLength here is the the rest length of the spring.</td></tr>
+        <tr parent="barnesHut" class="hidden"><td class="indent">barnesHut.springConstant</td>               <td class="mid">Number</td>         <td class="mid"><code>0.04</code></td>      <td>This is how 'sturdy' the springs are. Higher values mean stronger springs.</td></tr>
+        <tr parent="barnesHut" class="hidden"><td class="indent">barnesHut.damping</td>                      <td class="mid">Number</td>         <td class="mid"><code>0.09</code></td>      <td>Accepted range: <code>[0 .. 1]</code>. The damping factor is how much of the velocity from the previous physics simulation iteration carries over to the next iteration.</td></tr>
 
-        <tr><td>repulsion</td>                              <td class="mid">Object</td>         <td class="mid"><code>Object</code></td>    <td>The repulsion model assumes nodes have a simplified repulsion field around them. It's force linearly decreases from 1 (at 0.5*nodeDistance and smaller) to 0 (at 2*nodeDistance).</td></tr>
-        <tr><td>repulsion.nodeDistance</td>                 <td class="mid">Number</td>         <td class="mid"><code>100</code></td>       <td>This is the range of influence for the repulsion.</td></tr>
-        <tr><td>repulsion.centralGravity</td>               <td class="mid">Number</td>         <td class="mid"><code>0.2</code></td>       <td>There is a central gravity attractor to pull the entire network back to the center.</td></tr>
-        <tr><td>repulsion.springLength</td>                 <td class="mid">Number</td>         <td class="mid"><code>200</code></td>       <td>The edges are modelled as springs. This springLength here is the the rest length of the spring.</td></tr>
-        <tr><td>repulsion.springConstant</td>               <td class="mid">Number</td>         <td class="mid"><code>0.05</code></td>      <td>This is how 'sturdy' the springs are. Higher values mean stronger springs.</td></tr>
-        <tr><td>repulsion.damping</td>                      <td class="mid">Number</td>         <td class="mid"><code>0.09</code></td>      <td>Accepted range: <code>[0 .. 1]</code>. The damping factor is how much of the velocity from the previous physics simulation iteration carries over to the next iteration.</td></tr>
+        <tr class='toggle collapsible' onclick="toggleTable('physicsTable','repulsion');"><td><span parent="repulsion" class="right-caret"></span> repulsion</td>                              <td class="mid">Object</td>         <td class="mid"><code>Object</code></td>    <td>The repulsion model assumes nodes have a simplified repulsion field around them. It's force linearly decreases from 1 (at 0.5*nodeDistance and smaller) to 0 (at 2*nodeDistance).</td></tr>
+        <tr parent="repulsion" class="hidden"><td class="indent">repulsion.nodeDistance</td>                 <td class="mid">Number</td>         <td class="mid"><code>100</code></td>       <td>This is the range of influence for the repulsion.</td></tr>
+        <tr parent="repulsion" class="hidden"><td class="indent">repulsion.centralGravity</td>               <td class="mid">Number</td>         <td class="mid"><code>0.2</code></td>       <td>There is a central gravity attractor to pull the entire network back to the center.</td></tr>
+        <tr parent="repulsion" class="hidden"><td class="indent">repulsion.springLength</td>                 <td class="mid">Number</td>         <td class="mid"><code>200</code></td>       <td>The edges are modelled as springs. This springLength here is the the rest length of the spring.</td></tr>
+        <tr parent="repulsion" class="hidden"><td class="indent">repulsion.springConstant</td>               <td class="mid">Number</td>         <td class="mid"><code>0.05</code></td>      <td>This is how 'sturdy' the springs are. Higher values mean stronger springs.</td></tr>
+        <tr parent="repulsion" class="hidden"><td class="indent">repulsion.damping</td>                      <td class="mid">Number</td>         <td class="mid"><code>0.09</code></td>      <td>Accepted range: <code>[0 .. 1]</code>. The damping factor is how much of the velocity from the previous physics simulation iteration carries over to the next iteration.</td></tr>
 
-        <tr><td>hierarchicalRepulsion</td>                  <td class="mid">Object</td>         <td class="mid"><code>Object</code></td>    <td>This model is based on the repulsion solver but the levels are taken into account and the forces are normalized.</td></tr>
-        <tr><td>hierarchicalRepulsion.nodeDistance</td>     <td class="mid">Number</td>         <td class="mid"><code>120</code></td>       <td>This is the range of influence for the repulsion.</td></tr>
-        <tr><td>hierarchicalRepulsion.centralGravity</td>   <td class="mid">Number</td>         <td class="mid"><code>0.0'</code></td>      <td>There is a central gravity attractor to pull the entire network back to the center.</td></tr>
-        <tr><td>hierarchicalRepulsion.springLength</td>     <td class="mid">Number</td>         <td class="mid"><code>100</code></td>       <td>The edges are modelled as springs. This springLength here is the the rest length of the spring.</td></tr>
-        <tr><td>hierarchicalRepulsion.springConstant</td>   <td class="mid">Number</td>         <td class="mid"><code>0.01</code></td>      <td>This is how 'sturdy' the springs are. Higher values mean stronger springs.</td></tr>
-        <tr><td>hierarchicalRepulsion.damping</td>          <td class="mid">Number</td>         <td class="mid"><code>0.09</code></td>      <td>Accepted range: <code>[0 .. 1]</code>. The damping factor is how much of the velocity from the previous physics simulation iteration carries over to the next iteration.</td></tr>
+        <tr class='toggle collapsible' onclick="toggleTable('physicsTable','hierarchicalRepulsion');"><td><span parent="hierarchicalRepulsion" class="right-caret"></span> hierarchicalRepulsion</td>                  <td class="mid">Object</td>         <td class="mid"><code>Object</code></td>    <td>This model is based on the repulsion solver but the levels are taken into account and the forces are normalized.</td></tr>
+        <tr parent="hierarchicalRepulsion" class="hidden"><td class="indent">hierarchicalRepulsion.nodeDistance</td>     <td class="mid">Number</td>         <td class="mid"><code>120</code></td>       <td>This is the range of influence for the repulsion.</td></tr>
+        <tr parent="hierarchicalRepulsion" class="hidden"><td class="indent">hierarchicalRepulsion.centralGravity</td>   <td class="mid">Number</td>         <td class="mid"><code>0.0'</code></td>      <td>There is a central gravity attractor to pull the entire network back to the center.</td></tr>
+        <tr parent="hierarchicalRepulsion" class="hidden"><td class="indent">hierarchicalRepulsion.springLength</td>     <td class="mid">Number</td>         <td class="mid"><code>100</code></td>       <td>The edges are modelled as springs. This springLength here is the the rest length of the spring.</td></tr>
+        <tr parent="hierarchicalRepulsion" class="hidden"><td class="indent">hierarchicalRepulsion.springConstant</td>   <td class="mid">Number</td>         <td class="mid"><code>0.01</code></td>      <td>This is how 'sturdy' the springs are. Higher values mean stronger springs.</td></tr>
+        <tr parent="hierarchicalRepulsion" class="hidden"><td class="indent">hierarchicalRepulsion.damping</td>          <td class="mid">Number</td>         <td class="mid"><code>0.09</code></td>      <td>Accepted range: <code>[0 .. 1]</code>. The damping factor is how much of the velocity from the previous physics simulation iteration carries over to the next iteration.</td></tr>
 
         <tr><td>maxVelocity</td>                            <td class="mid">Number</td>         <td class="mid"><code>50</code></td>        <td>The physics module limits the maximum velocity of the nodes to increase the time to stabilization. This is the maximium value.</td></tr>
         <tr><td>minVelocity</td>                            <td class="mid">Number</td>         <td class="mid"><code>0.1</code></td>       <td>Once the minimum velocity is reached for all nodes, we assume the network has been stabilized and the simulation stops.</td></tr>
         <tr><td>solver</td>                                 <td class="mid">String</td>         <td class="mid"><code>'barnesHut'</code></td><td>You can select your own solver. Possible options: <code>'barnesHut','repulsion','hierarchicalRepulsion'</code>. When setting the hierarchical layout, the hierarchical repulsion solver is automaticaly selected, regardless of what you fill in here.</td></tr>
-        <tr><td>stabilization</td>                          <td class="mid">Object | Boolean</td><td class="mid"><code>Object</code></td>    <td>When true, the network is stabilized on load using default settings. If false, stabilization is disabled. To further customize this, you can supply an object.</td></tr>
-        <tr><td>stabilization.enabled</td>                  <td class="mid">Boolean</td>        <td class="mid"><code>true</code></td>       <td>Toggle the stabilization. This is an optional property. If undefined, it is automatically set to true when any of the properties of this object are defined.</td></tr>
-        <tr><td>stabilization.iterations</td>               <td class="mid">Number</td>         <td class="mid"><code>1000</code></td>       <td>The physics module tries to stabilize the network on load up til a maximum number of iterations defined here. If the network stabilized with less, you are finished before the maximum number.</td></tr>
-        <tr><td>stabilization.updateInterval</td>           <td class="mid">Number</td>         <td class="mid"><code>100</code></td>        <td>When stabilizing, the DOM can freeze. You can chop the stabilization up into pieces to show a loading bar for instance. The interval determines after how many iterations the <code>stabilizationProgress</code> event is triggered.</td></tr>
-        <tr><td>stabilization.onlyDynamicEdges</td>         <td class="mid">Boolean</td>        <td class="mid"><code>false</code></td>      <td>If you have predefined the position of all nodes and only want to stabilize the dynamic smooth edges, set this to true. It freezes all nodes except the invisible dynamic smooth curve support nodes. If you want the visible nodes to move and stabilize, do not use this.</td></tr>
-        <tr><td>stabilization.zoomExtent</td>               <td class="mid">Boolean</td>        <td class="mid"><code>true</code></td>       <td>Toggle whether or not you want the view to zoom to fit all nodes when the stabilization is finished.</td></tr>
+        <tr class='toggle collapsible' onclick="toggleTable('physicsTable','stabilization');"><td><span parent="stabilization" class="right-caret"></span> stabilization</td>                          <td class="mid">Object | Boolean</td><td class="mid"><code>Object</code></td>    <td>When true, the network is stabilized on load using default settings. If false, stabilization is disabled. To further customize this, you can supply an object.</td></tr>
+        <tr parent="stabilization" class="hidden"><td class="indent">stabilization.enabled</td>                  <td class="mid">Boolean</td>        <td class="mid"><code>true</code></td>       <td>Toggle the stabilization. This is an optional property. If undefined, it is automatically set to true when any of the properties of this object are defined.</td></tr>
+        <tr parent="stabilization" class="hidden"><td class="indent">stabilization.iterations</td>               <td class="mid">Number</td>         <td class="mid"><code>1000</code></td>       <td>The physics module tries to stabilize the network on load up til a maximum number of iterations defined here. If the network stabilized with less, you are finished before the maximum number.</td></tr>
+        <tr parent="stabilization" class="hidden"><td class="indent">stabilization.updateInterval</td>           <td class="mid">Number</td>         <td class="mid"><code>100</code></td>        <td>When stabilizing, the DOM can freeze. You can chop the stabilization up into pieces to show a loading bar for instance. The interval determines after how many iterations the <code>stabilizationProgress</code> event is triggered.</td></tr>
+        <tr parent="stabilization" class="hidden"><td class="indent">stabilization.onlyDynamicEdges</td>         <td class="mid">Boolean</td>        <td class="mid"><code>false</code></td>      <td>If you have predefined the position of all nodes and only want to stabilize the dynamic smooth edges, set this to true. It freezes all nodes except the invisible dynamic smooth curve support nodes. If you want the visible nodes to move and stabilize, do not use this.</td></tr>
+        <tr parent="stabilization" class="hidden"><td class="indent">stabilization.zoomExtent</td>               <td class="mid">Boolean</td>        <td class="mid"><code>true</code></td>       <td>Toggle whether or not you want the view to zoom to fit all nodes when the stabilization is finished.</td></tr>
         <tr><td>timestep</td>                               <td class="mid">Number</td>         <td class="mid"><code>0.5</code></td>        <td>The physics simulation is discrete. This means we take a step in time, calculate the forces, move the nodes and take another step. If you increase this number the steps will be too large and the network can get unstable. If you see a lot of jittery movement in the network, you may want to reduce this value a little.</td></tr>
     </table>
 
