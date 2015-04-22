@@ -24,11 +24,7 @@
         smoothScroll.init();
     </script>
 
-    <style>
-        td.method {
-            width:250px;
-        }
-    </style>
+
 </head>
 <!-- NAVBAR
 ================================================== -->
@@ -77,9 +73,21 @@
     <h3>Methods</h3>
     <p>This is a list of all the methods in the public API. Options can be set directly to the module or you can use the setOptions method of the network itself and use the module name as an object name.</p>
     <table class="moduleTable">
-        <tr class="header"><td class="method">name</td><td>returns</td><td>description</td></tr>
+        <tr class="header"><td class="methodName">name</td><td>returns</td><td>description</td></tr>
         <tr><td>getScale()</td>      <td class="mid">Number</td><td>Returns the current scale of the network. 1.0 is comparible to 100%, 0 is zoomed out infinitely.</td></tr>
         <tr><td>getPosition()</td>   <td class="mid">Number</td><td>Returns the current central focus point of the camera.</td></tr>
+        <tr><td>fit(<code>[Object options]</code>)</td><td class="mid">none</td><td>Zooms out so all nodes fit on the canvas. You can supply options to customize this:
+<pre class="code">
+{
+  nodes:[Array of nodeIds],
+  duration: Number,
+  easingFunction: String
+}
+</pre>
+            The nodes can be used to zoom to fit only specific nodes in the view. <br /><br />
+            The other options are explained in the <code>moveTo()</code> description above.
+            All options are optional for zoomExtent.
+        </td></tr>
         <tr><td>moveTo(<code>Object options</code>)</td>      <td class="mid">none</td><td>You can animate or move the camera using the moveTo method. Options are:
 <pre class="code">
 {
@@ -99,18 +107,7 @@
             <code>linear, easeInQuad, easeOutQuad, easeInOutQuad, easeInCubic, easeOutCubic, easeInOutCubic, easeInQuart, easeOutQuart, easeInOutQuart, easeInQuint, easeOutQuint, easeInOutQuint</code>. <br><br>
             <i>You will have to define at least a scale or a position. Otherwise, there is nothing to move to.</i>
         </td></tr>
-        <tr><td>zoomExtent(<code>[Object options]</code>)</td><td class="mid">none</td><td>Zooms out so all nodes fit on the canvas. You can supply options to customize this:
-<pre class="code">
-{
-  nodes:[Array of nodeIds],
-  duration: Number,
-  easingFunction: String
-}
-</pre>
-            The nodes can be used to zoom to fit only specific nodes in the view. <br /><br />
-            The other options are explained in the <code>moveTo()</code> description above.
-            All options are optional for zoomExtent.
-        </td></tr>
+
 
         <tr><td>focusOnNode(<br>
             &nbsp;&nbsp;&nbsp;<code>String nodeId</code>,<br>

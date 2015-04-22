@@ -178,3 +178,7 @@ td.default {
 td.eventProperties {
     width:350px;
 }
+
+td.methodName {
+    width:250px;
+}
