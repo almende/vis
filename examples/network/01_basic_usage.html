@@ -21,7 +21,7 @@
   // create an array with nodes
   var nodes = [
     {id: 1, label: 'Node 1', value:3, title:'hello world'},
-    {id: 2, label: 'Node 2', value:1},
+    {id: 2, label: 'Node 2', value:1, group:'bla'},
     {id: 3, label: 'Node 3', value:5},
     {id: 4, label: 'Node 4', value:3},
     {id: 5, label: 'Node 5', value:2}
@@ -44,7 +44,9 @@
     edges: edges
   };
   var options = {
-    manipulation:true
+    manipulation:true,
+    groups:{'bla':{color:{background:'red'}, borderWidth:5}}
+
 //      physics:{stabilization:true}
   }
   var network = new vis.Network(container, data, options);
