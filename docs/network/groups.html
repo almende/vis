@@ -1,5 +1,19 @@
 <!DOCTYPE html>
-<html lang="en"><head><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-61231638-1', 'auto');ga('send', 'pageview');</script><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html lang="en">
+<head>
+    <script>(function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+        a = s.createElement(o), m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+    ga('create', 'UA-61231638-1', 'auto');
+    ga('send', 'pageview');</script>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -26,9 +40,7 @@
     </script>
 
     <style>
-        td.properties {
-            width:350px;
-        }
+
     </style>
 </head>
 <!-- NAVBAR
@@ -40,7 +52,8 @@
         <nav class="navbar navbar-inverse navbar-static-top" role="navigation">
             <div class="container">
                 <div class="navbar-header">
-                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                            aria-expanded="false" aria-controls="navbar">
                         <span class="sr-only">Toggle navigation</span>
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
@@ -51,7 +64,9 @@
                 <div id="navbar" class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
                         <li><a href="../index.html#modules">Modules</a></li>
-                        <li class="active"><a href="./docs/index.html" target="_blank">Documentation <img class="icon" src="../img/external-link-icons/external-link-icon-white.png"></a></li>
+                        <li class="active"><a href="./docs/index.html" target="_blank">Documentation <img class="icon"
+                                                                                                          src="../img/external-link-icons/external-link-icon-white.png"></a>
+                        </li>
                         <li><a href="../blog.html">Blog</a></li>
                         <li><a href="../index.html#download_install">Download</a></li>
                         <li><a href="../showcase/index.html">Showcase</a></li>
@@ -66,19 +81,45 @@
     </div>
 </div>
 
-<a href="https://github.com/almende/vis" class="hidden-xs hidden-sm hidden-md"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
+<a href="https://github.com/almende/vis" class="hidden-xs hidden-sm hidden-md"><img
+        style="position: absolute; top: 0; right: 0; border: 0;"
+        src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67"
+        alt="Fork me on GitHub"
+        data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
+
 <div class="container full">
     <h1>Network - groups</h1>
+
     <p>Handles the HTML part of the canvas.</p>
 
     <h3>Options</h3>
+
     <p>This is a list of all the methods in the public API. They are collected here from all individual modules.</p>
     <table class="moduleTable">
-        <tr class="header"><td>name</td><td>type</td><td>default</td><td>description</td></tr>
-        <tr><td>useDefaultGroups</td><td  class="mid">Boolean</td><td class="mid"><code>true</code></td><td>If your nodes have groups defined that are not in the Groups module, the module loops over the groups it does have, allocating one for each unknown group. When all are used, it goes back to the first group. By setting this to false, the default groups will not be used in this cycle.</td></tr>
-        <tr><td>group*</td><td class="mid">Object</td><td class="mid"><code></code></td><td>
-            You can add multiple groups containing styling information that applies to a certain subset of groups. All options described in the <a href="./nodes.html">nodes module</a> that make sense can be used here (you're not going to set the same id or x,y position for a group of nodes).
-            Example:
+        <tr class="header">
+            <td class="name">name</td>
+            <td class="type">type</td>
+            <td class="default">default</td>
+            <td class="description">description</td>
+        </tr>
+        <tr>
+            <td>useDefaultGroups</td>
+            <td class="mid">Boolean</td>
+            <td class="mid"><code>true</code></td>
+            <td>If your nodes have groups defined that are not in the Groups module, the module loops over the groups it
+                does have, allocating one for each unknown group. When all are used, it goes back to the first group. By
+                setting this to false, the default groups will not be used in this cycle.
+            </td>
+        </tr>
+        <tr>
+            <td>group*</td>
+            <td class="mid">Object</td>
+            <td class="mid"><code></code></td>
+            <td>
+                You can add multiple groups containing styling information that applies to a certain subset of groups.
+                All options described in the <a href="./nodes.html">nodes module</a> that make sense can be used here
+                (you're not going to set the same id or x,y position for a group of nodes).
+                Example:
 <pre class="code">
 var nodes = [
     {id:1, group:'myGroup', label:"I'm in a custom group called 'myGroup'!"}
@@ -90,23 +131,27 @@ var options = {
   }
 }
 </pre>
-            *) the option is not called group, as shown by the example but can by any custom id, except for 'useDefaultGroups'.
-            <td></tr>
+                *) the option is not called group, as shown by the example but can by any custom id, except for
+                'useDefaultGroups'.
+            </td>
+        </tr>
     </table>
 
     <h3>Methods</h3>
+
     <p>The groups module has no methods.</p>
 
     <h3>Events</h3>
+
     <p>The groups module has no events.</p>
 
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
 </div>
 
 <!-- Bootstrap core JavaScript

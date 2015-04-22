@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en"><head><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-61231638-1', 'auto');ga('send', 'pageview');</script><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" HREF="favicon.ico">
+    <title>vis.js - A dynamic, browser based visualization library.</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../css/bootstrap.css" rel="stylesheet">
+    <link href="../css/newdocs.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+
+    <script src="../js/smooth-scroll.min.js"></script>
+    <script language="JavaScript">
+        smoothScroll.init();
+    </script>
+
+    <script type="text/javascript" src="../js/toggleTable.js"></script>
+</head>
+<!-- NAVBAR
+================================================== -->
+<body>
+
+<div class="navbar-wrapper">
+    <div class="container">
+        <nav class="navbar navbar-inverse navbar-static-top" role="navigation">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand hidden-sm" href="./index.html">vis.js</a>
+                </div>
+                <div id="navbar" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        <li><a href="../index.html#modules">Modules</a></li>
+                        <li class="active"><a href="./docs/index.html" target="_blank">Documentation <img class="icon" src="../img/external-link-icons/external-link-icon-white.png"></a></li>
+                        <li><a href="../blog.html">Blog</a></li>
+                        <li><a href="../index.html#download_install">Download</a></li>
+                        <li><a href="../showcase/index.html">Showcase</a></li>
+                        <li><a href="../index.html#contribute">Contribute</a></li>
+                        <li><a href="../featureRequests.html">Feature requests</a></li>
+                        <li><a href="../index.html#licenses">License</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+    </div>
+</div>
+
+<a href="https://github.com/almende/vis" class="hidden-xs hidden-sm hidden-md"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
+<div class="container full">
+    <h1>Network - manipulation</h1>
+    <p>Acts as the camera that looks on the canvas. Does the animation, zooming and focusing.</p>
+
+    <h3>Options</h3>
+    <p>When enabling the hierarchical layout, it overrules some of the other options. The physics is set to the hierarchical repulsion solver and dynamic smooth edges are converted to static smooth edges.</p>
+    <table class="moduleTable" id="optionTable">
+        <tr class="header"><td class="name">name</td><td class="type">type</td><td class="default">default</td><td class="description">description</td></tr>
+        <tr><td>enabled</td>                    <td class="mid">Boolean</td>    <td class="mid"><code>false</code></td>     <td>Toggle the manipulation system on or off. This property is optional. If you define any of the options below and enabled is undefined, this will be set to true.</td></tr>
+        <tr><td>initiallyActive</td>            <td class="mid">Boolean</td>    <td class="mid"><code>true</code></td>      <td>Toggle whether the toolbar is visible initially or if only the edit button is visible initially.</td></tr>
+        <tr><td>locale</td>                     <td class="mid">String</td>     <td class="mid"><code>'en'</code></td>      <td>Select the locale. By default, the language is English. If you want to use another language, you will need to define your own locale and refer to it here.</td></tr>
+        <tr><td>locales</td>                    <td class="mid">Object</td>     <td class="mid">defaultLocales</td>         <td>Locales object. By default only <code>'en'</code> and <code>'nl'</code> are supported. Take a look at the <a href="#locales" data-scroll="" data-options="{ &quot;easing&quot;: &quot;easeInCubic&quot; }">locales section below</a> for more explaination on how to customize this.</td></tr>
+        <tr><td>functionality</td>              <td class="mid">Object</td>     <td class="mid">Object</td>                 <td>You can use this object to switch certain functionalities on or off. By default they are all on.</td></tr>
+        <tr><td>functionality.addNode</td>      <td class="mid">Boolean</td>    <td class="mid"><code>true</code></td>      <td>Toggle the adding of nodes.</td></tr>
+        <tr><td>functionality.addEdge</td>      <td class="mid">Boolean</td>    <td class="mid"><code>true</code></td>      <td>Toggle the adding of edges.</td></tr>
+        <tr><td>functionality.editNode</td>     <td class="mid">Boolean</td>    <td class="mid"><code>true</code></td>      <td>Toggle the editing of nodes. Even if this is enabled, it will only be shown if a handler function is set for <code>editNode</code>.</td></tr>
+        <tr><td>functionality.editEdge</td>     <td class="mid">Boolean</td>    <td class="mid"><code>true</code></td>      <td>Toggle the editing of edges.</td></tr>
+        <tr><td>functionality.deleteNode</td>   <td class="mid">Boolean</td>    <td class="mid"><code>true</code></td>      <td>Toggle the deletion of nodes.</td></tr>
+        <tr><td>functionality.deleteEdge</td>   <td class="mid">Boolean</td>    <td class="mid"><code>true</code></td>      <td>Toggle the deletion of edges.</td></tr>
+        <tr><td>handlerFunctions</td>           <td class="mid">Object</td>     <td class="mid"><code>Object</code></td>    <td>These functions are inserted before the action is performed. If a node is going to be added through the manipulation system, the addNode function will be called first. With this, you can provide a gui for your users, abort the process or anything else you want to do.</td></tr>
+        <tr><td>handlerFunctions.addNode</td>   <td class="mid">Function</td>   <td class="mid"><code>undefined</code></td> <td>Called when the user clicks the canvas in 'addNode' mode. This function will receive two variables: the properties of the node that can be created and a callback function. If you call the callback function with the properties of the new node, the node will be added. <br><br> Example:
+<pre class="code">
+var options = {
+  handlerFunctions: {
+    addNode: function(nodeData,callback) {
+      nodeData.label = 'hello world';
+      callback(nodeData);
+    }
+  }
+}
+</pre>
+            If you do not want the node created, do not call the callback function or call the callback function <pre>null</pre> or no argument.
+        </td></tr>
+        <tr><td>handlerFunctions.addEdge</td>   <td class="mid">Function</td>   <td class="mid"><code>undefined</code></td> <td>Called when the user drags the new edge from one node to the next in 'addEdge' mode. This function will receive two variables: the properties of the edge that can be created and a callback function. If you call the callback function with the properties of the new edge, the edge will be added. <br><br> Example:
+<pre class="code">
+var options = {
+  handlerFunctions: {
+    addEdge: function(edgeData,callback) {
+      if (edgeData.from === edgeData.to) {
+        var r = confirm("Do you want to connect the node to itself?");
+        if (r === true) {
+          callback(edgeData);
+        }
+      }
+      else {
+        callback(edgeData);
+      }
+    }
+  }
+}
+</pre>
+            This example code will show a popup if you connect a node to itself to ask you if that was what you wanted. If you do not want the edge created, do not call the callback function or call the callback function <pre>null</pre> or no argument.</td></tr>
+        <tr><td>handlerFunctions.editNode</td>  <td class="mid">Function</td>   <td class="mid"><code>undefined</code></td> <td>Called when a node is selected and the 'Edit Node' button on the toolbar is pressed. This function will be called like the <code>addNode</code> function with the node's data and a callback function.</td></tr>
+        <tr><td>handlerFunctions.editEdge</td>  <td class="mid">Function</td>   <td class="mid"><code>undefined</code></td> <td>Called when an edge is selcted and the 'Edit Edge' button on the toolbar is pressed. This function will be called in the same way the <code>addEdge</code> function was called. If the callback is not performed, the edge will remain hanging where it was released. To cancel, call the callback function with <pre>null</pre> as argument or without arguments.</pre></td></tr>
+        <tr><td>handlerFunctions.deleteNode</td><td class="mid">Function</td>   <td class="mid"><code>undefined</code></td> <td>Called when a node is selected and the 'Delete selected' button is pressed.</td></tr>
+        <tr><td>handlerFunctions.deleteEdge</td><td class="mid">Function</td>   <td class="mid"><code>undefined</code></td> <td>Called when an edge is selected and the 'Delete selected' button is pressed.</td></tr>
+        <tr><td>controlNodeStyle</td>           <td class="mid">Object</td>     <td class="mid">Object</td><td>You can supply any styling information you'd like here. All fields described in <a href="./nodes.html">the nodes module</a> are allowed except obviously for id, x, y and fixed. <br><br>Default:
+<pre class="code">
+{
+  shape:'dot',
+  size:6,
+  color: {
+    background: '#ff0000',
+    border: '#3c3c3c',
+    highlight: {
+      background: '#07f968',
+      border: '#3c3c3c'
+    }
+  },
+  borderWidth: 2,
+  borderWidthSelected: 2
+}
+</pre></td></tr>
+    </table>
+
+    <h3>Methods</h3>
+    <p>This is a list of all the methods in the public API. Options can be set directly to the module or you can use the setOptions method of the network itself and use the module name as an object name.</p>
+    <table class="moduleTable">
+        <tr class="header">       <td class="method">name</td><td>returns</td><td>description</td></tr>
+        <tr><td>enableEditMode()</td> <td class="mid">none</td><td>Programatically enable the edit mode. Similar effect to pressing the edit button.</td></tr>
+        <tr><td>disableEditMode()</td><td class="mid">none</td><td>Programatically disable the edit mode. Similar effect to pressing the close icon (small cross in the corner of the toolbar).</td></tr>
+        <tr><td>addNodeMode()</td>    <td class="mid">none</td><td>Go into addNode mode.  Having edit mode or manipulation enabled is not required. To get out of this mode, call <code>disableEditMode()</code>. The callback functions defined in <code>handlerFunctions</code> still apply. To use these methods without having the manipulation GUI, make sure you set <code>enabled</code> to false. </td></tr>
+        <tr><td>editNodeMode()</td>   <td class="mid">none</td><td>Go into editNode mode. The explaination from <code>addNodeMode</code> applies here as well.</td></tr>
+        <tr><td>addEdgeMode()</td>    <td class="mid">none</td><td>Go into addEdge mode.  The explaination from <code>addNodeMode</code> applies here as well.</td></tr>
+        <tr><td>editEdgeMode()</td>   <td class="mid">none</td><td>Go into editEdge mode. The explaination from <code>addNodeMode</code> applies here as well.</td></tr>
+        <tr><td>deleteSelected()</td> <td class="mid">none</td><td>Delete selected. Having edit mode or manipulation enabled is not required.</td></tr>
+    </table>
+
+    <h3>Events</h3>
+    <p>There are no events emitted by the layout module.</p>
+
+    <h3 id="locales">Locales</h3>
+    <p>The locales object has the following format:</p>
+    <pre class="code">
+var locales = {
+  en: {
+    edit: 'Edit',
+    del: 'Delete selected',
+    back: 'Back',
+    addNode: 'Add Node',
+    addEdge: 'Add Edge',
+    editNode: 'Edit Node',
+    editEdge: 'Edit Edge',
+    addDescription: 'Click in an empty space to place a new node.',
+    edgeDescription: 'Click on a node and drag the edge to another node to connect them.',
+    editEdgeDescription: 'Click on the control points and drag them to a node to connect to it.',
+    createEdgeError: 'Cannot link edges to a cluster.',
+    deleteClusterError: 'Clusters cannot be deleted.',
+    editClusterError: 'Clusters cannot be edited.'
+  }
+}</pre>
+    <p>If you want to define your own locale, you can change the key ('en' here) and change all the string. You can then use your new key in the locale option.</p>
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+</div>
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="../js/jquery.min.js"></script>
+<script src="../js/bootstrap.min.js"></script>
+<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+<script src="../js/ie10-viewport-bug-workaround.js"></script>

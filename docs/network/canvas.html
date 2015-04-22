@@ -25,11 +25,6 @@
         smoothScroll.init();
     </script>
 
-    <style>
-        td.properties {
-            width:350px;
-        }
-    </style>
 </head>
 <!-- NAVBAR
 ================================================== -->
@@ -74,7 +69,7 @@
     <h3>Options</h3>
     <p>This is a list of all the methods in the public API. They are collected here from all individual modules.</p>
     <table class="moduleTable">
-        <tr class="header"><td>name</td><td>type</td><td>default</td><td>description</td></tr>
+        <tr class="header"><td class="name">name</td><td class="type">type</td><td class="default">default</td><td class="description">description</td></tr>
         <tr><td>width</td><td  class="mid">String</td><td class="mid"><code>'100%'</code></td><td>the width of the canvas.  Can be in percentages or pixels (ie. <code>'400px'</code>).</td></tr>
         <tr><td>height</td><td class="mid">String</td><td class="mid"><code>'100%'</code></td><td>the height of the canvas. Can be in percentages or pixels (ie. <code>'400px'</code>).</td></tr>
     </table>
@@ -82,7 +77,7 @@
     <h3>Methods</h3>
     <p>This is a list of all the methods in the public API. Options can be set directly to the module or you can use the setOptions method of the network itself and use the module name as an object name.</p>
     <table class="moduleTable">
-        <tr class="header"><td>name</td><td>returns</td><td>description</td></tr>
+        <tr class="header"><td class="methodName">name</td><td>returns</td><td>description</td></tr>
         <tr><td>setSize(String, String)</td><td class="mid">none</td><td>Set the size of the canvas. This is automatically done on a window resize.</td></tr>
         <tr><td>canvasToDOM(Object)</td>    <td class="mid">Object</td><td>This function converts canvas coordinates to coordinates on the DOM. Input and output are in the form of <code>{x:Number,y:Number}</code>. The DOM values are relative to the network container.</td></tr>
         <tr><td>DOMtoCanvas(Object)</td>    <td class="mid">Object</td><td>This function converts DOM coordinates to coordinates on the canvas. Input and output are in the form of <code>{x:Number,y:Number}</code>. The DOM values are relative to the network container.</td></tr>
@@ -91,7 +86,7 @@
     <h3>Events</h3>
     <p>This is a list of all the events in the public API. They are collected here from all individual modules.</p>
     <table class="moduleTable">
-        <tr class="header"><td>name</td><td class="properties">properties</td><td>description</td></tr>
+        <tr class="header"><td class="eventName">name</td><td class="eventProperties">properties</td><td>description</td></tr>
         <tr><td>resize</td><td class="mid">
 <pre class="code">
 {

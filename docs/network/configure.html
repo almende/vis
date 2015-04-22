@@ -26,9 +26,7 @@
     </script>
 
     <style>
-        td.properties {
-            width:350px;
-        }
+
     </style>
 </head>
 <!-- NAVBAR
@@ -74,8 +72,8 @@
     <h3>Options</h3>
     <p>Alternative to supplying an object, you can supply a <code>String</code>, <code>Array</code> or <code>Boolean</code>. These will do the same as the filter option described below.</p>
     <table class="moduleTable">
-        <tr class="header">     <td>name</td><td>type</td><td>default</td><td>description</td></tr>
-        <tr><td>filter</td>     <td class="mid">String | Array | Boolean</td>   <td class="mid"><code>true</code></td><td>When a boolean, true gives you all options, false will not show any. If a string is supplied, any combination of the following is allowed: nodes, edges, layout, interaction, manipulation, physics, selection, renderer. Feel free to come up with a fun seperating character. Finally, when supplied an array of strings, any of the previously mentioned fields are accepted.</td></tr>
+        <tr class="header"><td class="nameSmall">name</td><td class="type">type</td><td class="default">default</td><td class="description">description</td></tr>
+        <tr><td>filter</td>     <td class="mid">String or Array or Boolean</td> <td class="mid"><code>true</code></td><td>When a boolean, true gives you all options, false will not show any. If a string is supplied, any combination of the following is allowed: nodes, edges, layout, interaction, manipulation, physics, selection, renderer. Feel free to come up with a fun seperating character. Finally, when supplied an array of strings, any of the previously mentioned fields are accepted.</td></tr>
         <tr><td>container</td>  <td class="mid">DOM element</td>                <td class="mid"><code>undefined</code></td><td>This allows you to put the configure list in another HTML container than below the network.</td></tr>
     </table>
 

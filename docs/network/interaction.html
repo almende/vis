@@ -25,11 +25,10 @@
     </script>
 
     <style>
-        td.properties {
-            width:350px;
-        }
 
     </style>
+
+    <script type="text/javascript" src="../js/toggleTable.js"></script>
 </head>
 <!-- NAVBAR
 ================================================== -->
@@ -73,20 +72,20 @@
 
     <h3>Options</h3>
     <p>This is a list of all the methods in the public API. They are collected here from all individual modules.</p>
-    <table class="moduleTable">
-        <tr class="header"><td>name</td>    <td>type</td>                           <td>default</td>                            <td>description</td></tr>
+    <table class="moduleTable" id="optionTable">
+        <tr class="header"><td class="name">name</td><td class="type">type</td><td class="default">default</td><td class="description">description</td></tr>
         <tr><td>dragNodes</td>              <td class="mid">Boolean</td>            <td class="mid"><code>true</code></td>      <td>When true, the nodes that are not fixed can be dragged by the user.</td></tr>
         <tr><td>dragView</td>               <td class="mid">Boolean</td>            <td class="mid"><code>true</code></td>      <td>When true, the view can be dragged around by the user.</td></tr>
         <tr><td>zoomView</td>               <td class="mid">Boolean</td>            <td class="mid"><code>true</code></td>      <td>When true, the user can zoom in.</td></tr>
         <tr><td>hoverEnabled</td>           <td class="mid">Boolean</td>            <td class="mid"><code>false</code></td>     <td>When true, the nodes use their hover colors when the mouse moves over them.</td></tr>
         <tr><td>navigationButtons</td>      <td class="mid">Boolean</td>            <td class="mid"><code>false</code></td>     <td>When true, navigation buttons are drawn on the network canvas. These are HTML buttons and can be completely customized using CSS.</td></tr>
         <tr><td>tooltipDelay</td>           <td class="mid">Object</td>             <td class="mid"><code>Object</code></td>    <td>When nodes or edges have a defined <code>'title'</code> field, this can be shown as a pop-up tooltip. The tooltip itself is an HTML element that can be fully styled using CSS. The delay is the amount of time in milliseconds it takes before the tooltip is shown.</td></tr>
-        <tr><td>keyboard</td>               <td class="mid">Object | Boolean</td>   <td class="mid"><code>Object</code></td>    <td>When true, the keyboard shortcuts are enabled with the default settings. For further customization, you can supply an object.</td></tr>
-        <tr><td>keyboard.enabled</td>       <td class="mid">Boolean</td>            <td class="mid"><code>false</code></td>     <td>Toggle the usage of the keyboard shortcuts. If this option is not defined, it is set to true if any of the properties in this object are defined.</td></tr>
-        <tr><td>keyboard.speed.x</td>       <td class="mid">Number</td>             <td class="mid"><code>1</code></td>         <td>The speed at which the view moves in the x direction on pressing a key or pressing a navigation button.</td></tr>
-        <tr><td>keyboard.speed.y</td>       <td class="mid">Number</td>             <td class="mid"><code>1</code></td>         <td>The speed at which the view moves in the y direction on pressing a key or pressing a navigation button.</td></tr>
-        <tr><td>keyboard.speed.zoom</td>    <td class="mid">Number</td>             <td class="mid"><code>0.02</code></td>      <td>The speed at which the view zooms in or out pressing a key or pressing a navigation button.</td></tr>
-        <tr><td>keyboard.bindToWindow</td>  <td class="mid">Boolean</td>            <td class="mid"><code>true</code></td>      <td>When binding the keyboard shortcuts to the window, they will work regardless of which DOM object has the focus. If you have multiple networks on your page, you could set this to false, making sure the keyboard shortcuts only work on the network that has the focus.</td></tr>
+        <tr class='toggle collapsible' onclick="toggleTable('optionTable','keyboard', this);"><td><span parent="keyboard" class="right-caret"></span> keyboard</td>               <td class="mid">Object or Boolean</td>   <td class="mid"><code>Object</code></td>    <td>When true, the keyboard shortcuts are enabled with the default settings. For further customization, you can supply an object.</td></tr>
+        <tr parent="keyboard" class="hidden"><td class="indent">keyboard.enabled</td>       <td class="mid">Boolean</td>            <td class="mid"><code>false</code></td>     <td>Toggle the usage of the keyboard shortcuts. If this option is not defined, it is set to true if any of the properties in this object are defined.</td></tr>
+        <tr parent="keyboard" class="hidden"><td class="indent">keyboard.speed.x</td>       <td class="mid">Number</td>             <td class="mid"><code>1</code></td>         <td>The speed at which the view moves in the x direction on pressing a key or pressing a navigation button.</td></tr>
+        <tr parent="keyboard" class="hidden"><td class="indent">keyboard.speed.y</td>       <td class="mid">Number</td>             <td class="mid"><code>1</code></td>         <td>The speed at which the view moves in the y direction on pressing a key or pressing a navigation button.</td></tr>
+        <tr parent="keyboard" class="hidden"><td class="indent">keyboard.speed.zoom</td>    <td class="mid">Number</td>             <td class="mid"><code>0.02</code></td>      <td>The speed at which the view zooms in or out pressing a key or pressing a navigation button.</td></tr>
+        <tr parent="keyboard" class="hidden"><td class="indent">keyboard.bindToWindow</td>  <td class="mid">Boolean</td>            <td class="mid"><code>true</code></td>      <td>When binding the keyboard shortcuts to the window, they will work regardless of which DOM object has the focus. If you have multiple networks on your page, you could set this to false, making sure the keyboard shortcuts only work on the network that has the focus.</td></tr>
     </table>
 
     <h3>Methods</h3>
@@ -95,7 +94,7 @@
     <h3>Events</h3>
     <p>These events are fired by the interaction module. They are related to user input.</p>
     <table class="moduleTable">
-        <tr class="header"><td>name</td><td class="properties">properties</td><td>description</td></tr>
+        <tr class="header"><td class="eventName">name</td><td class="eventProperties">properties</td><td>description</td></tr>
         <tr><td>click</td>       <td class="mid">
 <pre class="code">
 {
@@ -133,6 +132,8 @@
         <tr><td>dragStart</td>   <td class="mid">same as <code>click</code>.</td><td>Fired when starting a drag.</td></tr>
         <tr><td>dragEnd</td>     <td class="mid">same as <code>click</code>.</td><td>Fired when the drag has finished.</td></tr>
         <tr><td>zoom</td>        <td class="mid"><code>{direction:'+'/'-'}</code></td><td>Fired when the user zooms in or out. The properties tell you which direction the zoom is in.</td></tr>
+        <tr><td>showPopup</td>   <td class="mid"><code>id of item corresponding to popup</code></td><td>Fired when the popup is shown.</td></tr>
+        <tr><td>hidePopup</td>   <td class="mid">none</td>                                          <td>Fired when the popup is hidden.</td></tr>
     </table>
 
     <br />

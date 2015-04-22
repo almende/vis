@@ -93,10 +93,6 @@ pre.code {
     border:0px;
 }
 
-td.type {
-    width:150px;
-}
-
 tr.hidden {
     max-height:0;
     /*max-height: 0;*/
@@ -158,6 +154,27 @@ td.indent {
     padding-left:25px !important;
 }
 
+
+td.indent2 {
+    padding-left:50px !important;
+}
+
 td.name {
-    width:270px;
+    width:230px;
+}
+
+td.nameSmall {
+    width:150px;
+}
+
+td.type {
+    width: 110px;
+}
+
+td.default {
+    width:60px;
+}
+
+td.eventProperties {
+    width:350px;
 }

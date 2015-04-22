@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.0.0-SNAPSHOT
- * @date    2015-04-21
+ * @date    2015-04-22
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -19391,6 +19391,7 @@ return /******/ (function(modules) { // webpackBootstrap
             }
           }
         },
+        selectionWidth: 1,
         selfReferenceSize: 20,
         shadow: {
           enabled: false,
@@ -19406,7 +19407,6 @@ return /******/ (function(modules) { // webpackBootstrap
         },
         title: undefined,
         width: 1,
-        widthSelectionMultiplier: 2,
         value: undefined
       };
 
@@ -20244,7 +20244,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _Cluster = __webpack_require__(106);
+  var _Cluster = __webpack_require__(76);
 
   var _Cluster2 = _interopRequireWildcard(_Cluster);
 
@@ -21943,11 +21943,11 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NavigationHandler = __webpack_require__(76);
+  var _NavigationHandler = __webpack_require__(77);
 
   var _NavigationHandler2 = _interopRequireWildcard(_NavigationHandler);
 
-  var _Popup = __webpack_require__(77);
+  var _Popup = __webpack_require__(78);
 
   var _Popup2 = _interopRequireWildcard(_Popup);
 
@@ -22577,10 +22577,12 @@ return /******/ (function(modules) { // webpackBootstrap
             this.popup.setPosition(pointer.x + 3, pointer.y - 5);
             this.popup.setText(this.popupObj.getTitle());
             this.popup.show();
+            this.body.emitter.emit('showPopup', this.popupObj.id);
           }
         } else {
-          if (this.popup) {
+          if (this.popup !== undefined) {
             this.popup.hide();
+            this.body.emitter.emit('hidePopup');
           }
         }
       }
@@ -22619,6 +22621,7 @@ return /******/ (function(modules) { // webpackBootstrap
         if (stillOnObj === false) {
           this.popupObj = undefined;
           this.popup.hide();
+          this.body.emitter.emit('hidePopup');
         }
       }
     }]);
@@ -23779,7 +23782,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Hammer = __webpack_require__(41);
   var hammerUtil = __webpack_require__(44);
-  var locales = __webpack_require__(78);
+  var locales = __webpack_require__(79);
 
   /**
    * clears the toolbar div element of children
@@ -23812,7 +23815,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.options = {};
       this.defaultOptions = {
         enabled: false,
-        initiallyVisible: false,
+        initiallyActive: false,
         locale: 'en',
         locales: locales,
         functionality: {
@@ -23857,7 +23860,7 @@ return /******/ (function(modules) { // webpackBootstrap
             this.options.enabled = true;
             util.deepExtend(this.options, options);
           }
-          if (this.options.initiallyVisible === true) {
+          if (this.options.initiallyActive === true) {
             this.editMode = true;
           }
           this._setup();
@@ -23872,23 +23875,37 @@ return /******/ (function(modules) { // webpackBootstrap
        * @private
        */
       value: function toggleEditMode() {
-        this.editMode = !this.editMode;
+        if (this.editMode === true) {
+          this.disableEditMode();
+        } else {
+          this.enableEditMode();
+        }
+      }
+    }, {
+      key: 'enableEditMode',
+      value: function enableEditMode() {
+        this.editMode = true;
+
+        this._clean();
         if (this.guiEnabled === true) {
-          var toolbar = this.manipulationDiv;
-          var closeDiv = this.closeDiv;
-          var editModeDiv = this.editModeDiv;
-          if (this.editMode === true) {
-            toolbar.style.display = 'block';
-            closeDiv.style.display = 'block';
-            editModeDiv.style.display = 'none';
-            this._bindHammerToDiv(closeDiv, this.toggleEditMode.bind(this));
-            this.showManipulatorToolbar();
-          } else {
-            toolbar.style.display = 'none';
-            closeDiv.style.display = 'none';
-            editModeDiv.style.display = 'block';
-            this._createEditButton();
-          }
+          this.manipulationDiv.style.display = 'block';
+          this.closeDiv.style.display = 'block';
+          this.editModeDiv.style.display = 'none';
+          this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
+          this.showManipulatorToolbar();
+        }
+      }
+    }, {
+      key: 'disableEditMode',
+      value: function disableEditMode() {
+        this.editMode = false;
+
+        this._clean();
+        if (this.guiEnabled === true) {
+          this.manipulationDiv.style.display = 'none';
+          this.closeDiv.style.display = 'none';
+          this.editModeDiv.style.display = 'block';
+          this._createEditButton();
         }
       }
     }, {
@@ -23906,61 +23923,64 @@ return /******/ (function(modules) { // webpackBootstrap
         // reset global letiables
         this.manipulationDOM = {};
 
-        var selectedNodeCount = this.selectionHandler._getSelectedNodeCount();
-        var selectedEdgeCount = this.selectionHandler._getSelectedEdgeCount();
-        var selectedTotalCount = selectedNodeCount + selectedEdgeCount;
-        var locale = this.options.locales[this.options.locale];
-        var needSeperator = false;
+        // if the gui is enabled, draw all elements.
+        if (this.guiEnabled === true) {
+          var selectedNodeCount = this.selectionHandler._getSelectedNodeCount();
+          var selectedEdgeCount = this.selectionHandler._getSelectedEdgeCount();
+          var selectedTotalCount = selectedNodeCount + selectedEdgeCount;
+          var locale = this.options.locales[this.options.locale];
+          var needSeperator = false;
 
-        if (this.options.functionality.addNode === true) {
-          this._createAddNodeButton(locale);
-          needSeperator = true;
-        }
-        if (this.options.functionality.addEdge === true) {
-          if (needSeperator === true) {
-            this._createSeperator(1);
-          } else {
+          if (this.options.functionality.addNode === true) {
+            this._createAddNodeButton(locale);
             needSeperator = true;
           }
-          this._createAddEdgeButton(locale);
-        }
-
-        if (selectedNodeCount === 1 && typeof this.options.handlerFunctions.editNode === 'function' && this.options.functionality.editNode === true) {
-          if (needSeperator === true) {
-            this._createSeperator(2);
-          } else {
-            needSeperator = true;
-          }
-          this._createEditNodeButton(locale);
-        } else if (selectedEdgeCount === 1 && selectedNodeCount === 0 && this.options.functionality.editEdge === true) {
-          if (needSeperator === true) {
-            this._createSeperator(3);
-          } else {
-            needSeperator = true;
-          }
-          this._createEditEdgeButton(locale);
-        }
-
-        // remove buttons
-        if (selectedTotalCount !== 0) {
-          if (selectedNodeCount === 1 && this.options.functionality.deleteNode === true) {
+          if (this.options.functionality.addEdge === true) {
             if (needSeperator === true) {
-              this._createSeperator(4);
+              this._createSeperator(1);
+            } else {
+              needSeperator = true;
             }
-            this._createDeleteButton(locale);
-          } else if (selectedNodeCount === 0 && this.options.functionality.deleteEdge === true) {
-            if (needSeperator === true) {
-              this._createSeperator(4);
-            }
-            this._createDeleteButton(locale);
+            this._createAddEdgeButton(locale);
           }
+
+          if (selectedNodeCount === 1 && typeof this.options.handlerFunctions.editNode === 'function' && this.options.functionality.editNode === true) {
+            if (needSeperator === true) {
+              this._createSeperator(2);
+            } else {
+              needSeperator = true;
+            }
+            this._createEditNodeButton(locale);
+          } else if (selectedEdgeCount === 1 && selectedNodeCount === 0 && this.options.functionality.editEdge === true) {
+            if (needSeperator === true) {
+              this._createSeperator(3);
+            } else {
+              needSeperator = true;
+            }
+            this._createEditEdgeButton(locale);
+          }
+
+          // remove buttons
+          if (selectedTotalCount !== 0) {
+            if (selectedNodeCount === 1 && this.options.functionality.deleteNode === true) {
+              if (needSeperator === true) {
+                this._createSeperator(4);
+              }
+              this._createDeleteButton(locale);
+            } else if (selectedNodeCount === 0 && this.options.functionality.deleteEdge === true) {
+              if (needSeperator === true) {
+                this._createSeperator(4);
+              }
+              this._createDeleteButton(locale);
+            }
+          }
+
+          // bind the close button
+          this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
+
+          // refresh this bar based on what has been selected
+          this._temporaryBindEvent('select', this.showManipulatorToolbar.bind(this));
         }
-
-        // bind the close button
-        this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
-
-        // refresh this bar based on what has been selected
-        this._temporaryBindEvent('select', this.showManipulatorToolbar.bind(this));
 
         // redraw to show any possible changes
         this.body.emitter.emit('_redraw');
@@ -23974,7 +23994,12 @@ return /******/ (function(modules) { // webpackBootstrap
        * @private
        */
       value: function addNodeMode() {
-        // clear the toolbar
+        // when using the gui, enable edit mode if it wasnt already.
+        if (this.editMode !== true) {
+          this.enableEditMode();
+        }
+
+        // restore the state of any bound functions or events, remove control nodes, restore physics
         this._clean();
 
         if (this.guiEnabled === true) {
@@ -24000,6 +24025,14 @@ return /******/ (function(modules) { // webpackBootstrap
        */
       value: function editNodeMode() {
         var _this = this;
+
+        // when using the gui, enable edit mode if it wasnt already.
+        if (this.editMode !== true) {
+          this.enableEditMode();
+        }
+
+        // restore the state of any bound functions or events, remove control nodes, restore physics
+        this._clean();
 
         if (typeof this.options.handlerFunctions.editNode === 'function') {
           var node = this.selectionHandler._getSelectedNode();
@@ -24032,7 +24065,12 @@ return /******/ (function(modules) { // webpackBootstrap
        * @private
        */
       value: function addEdgeMode() {
-        // _clean the system
+        // when using the gui, enable edit mode if it wasnt already.
+        if (this.editMode !== true) {
+          this.enableEditMode();
+        }
+
+        // restore the state of any bound functions or events, remove control nodes, restore physics
         this._clean();
 
         if (this.guiEnabled === true) {
@@ -24064,7 +24102,12 @@ return /******/ (function(modules) { // webpackBootstrap
        * @private
        */
       value: function editEdgeMode() {
-        // clear the system
+        // when using the gui, enable edit mode if it wasnt already.
+        if (this.editMode !== true) {
+          this.enableEditMode();
+        }
+
+        // restore the state of any bound functions or events, remove control nodes, restore physics
         this._clean();
 
         if (this.guiEnabled === true) {
@@ -24129,6 +24172,14 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function deleteSelected() {
         var _this2 = this;
 
+        // when using the gui, enable edit mode if it wasnt already.
+        if (this.editMode !== true) {
+          this.enableEditMode();
+        }
+
+        // restore the state of any bound functions or events, remove control nodes, restore physics
+        this._clean();
+
         var selectedNodes = this.selectionHandler.getSelectedNodes();
         var selectedEdges = this.selectionHandler.getSelectedEdges();
         var deleteFunction = undefined;
@@ -24153,9 +24204,11 @@ return /******/ (function(modules) { // webpackBootstrap
           var data = { nodes: selectedNodes, edges: selectedEdges };
           if (deleteFunction.length === 2) {
             deleteFunction(data, function (finalizedData) {
-              _this2.body.data.edges.remove(finalizedData.edges);
-              _this2.body.data.nodes.remove(finalizedData.nodes);
-              _this2.body.emitter.emit('startSimulation');
+              if (finalizedData !== null && finalizedData !== undefined) {
+                _this2.body.data.edges.remove(finalizedData.edges);
+                _this2.body.data.nodes.remove(finalizedData.nodes);
+                _this2.body.emitter.emit('startSimulation');
+              }
             });
           } else {
             throw new Error('The function for delete does not support two arguments (data, callback)');
@@ -24718,7 +24771,6 @@ return /******/ (function(modules) { // webpackBootstrap
        * @private
        */
       value: function _finishConnect(event) {
-        console.log('finishd');
         var pointer = this.body.functions.getPointer(event.center);
         var pointerObj = this.selectionHandler._pointerToPositionObject(pointer);
 
@@ -24777,8 +24829,10 @@ return /******/ (function(modules) { // webpackBootstrap
         if (typeof this.options.handlerFunctions.addNode === 'function') {
           if (this.options.handlerFunctions.addNode.length === 2) {
             this.options.handlerFunctions.addNode(defaultData, function (finalizedData) {
-              _this3.body.data.nodes.add(finalizedData);
-              _this3.showManipulatorToolbar();
+              if (finalizedData !== null && finalizedData !== undefined) {
+                _this3.body.data.nodes.add(finalizedData);
+                _this3.showManipulatorToolbar();
+              }
             });
           } else {
             throw new Error('The function for add does not support two arguments (data,callback)');
@@ -24800,14 +24854,15 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _performCreateEdge(sourceNodeId, targetNodeId) {
         var _this4 = this;
 
-        console.log('sou', sourceNodeId, targetNodeId);
         var defaultData = { from: sourceNodeId, to: targetNodeId };
         if (this.options.handlerFunctions.addEdge) {
           if (this.options.handlerFunctions.addEdge.length === 2) {
             this.options.handlerFunctions.addEdge(defaultData, function (finalizedData) {
-              _this4.body.data.edges.add(finalizedData);
-              _this4.selectionHandler.unselectAll();
-              _this4.showManipulatorToolbar();
+              if (finalizedData !== null && finalizedData !== undefined) {
+                _this4.body.data.edges.add(finalizedData);
+                _this4.selectionHandler.unselectAll();
+                _this4.showManipulatorToolbar();
+              }
             });
           } else {
             throw new Error('The function for connect does not support two arguments (data,callback)');
@@ -24833,9 +24888,14 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.options.handlerFunctions.editEdge) {
           if (this.options.handlerFunctions.editEdge.length === 2) {
             this.options.handlerFunctions.editEdge(defaultData, function (finalizedData) {
-              _this5.body.data.edges.update(finalizedData);
-              _this5.selectionHandler.unselectAll();
-              _this5.showManipulatorToolbar();
+              if (finalizedData === null || finalizedData === undefined) {
+                _this5.body.edges[defaultData.id].updateEdgeType();
+                _this5.body.emitter.emit('_redraw');
+              } else {
+                _this5.body.data.edges.update(finalizedData);
+                _this5.selectionHandler.unselectAll();
+                _this5.showManipulatorToolbar();
+              }
             });
           } else {
             throw new Error('The function for edit does not support two arguments (data, callback)');
@@ -24870,7 +24930,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ColorPicker = __webpack_require__(79);
+  var _ColorPicker = __webpack_require__(80);
 
   var _ColorPicker2 = _interopRequireWildcard(_ColorPicker);
 
@@ -24976,7 +25036,7 @@ return /******/ (function(modules) { // webpackBootstrap
             align: ['horizontal', 'top', 'middle', 'bottom']
           },
           hidden: false,
-          hoverWidth: [1.5, 0, 10, 0.1],
+          hoverWidth: [2, 0, 5, 0.1],
           physics: true,
           scaling: {
             min: [1, 0, 100, 1],
@@ -24989,6 +25049,7 @@ return /******/ (function(modules) { // webpackBootstrap
               drawThreshold: [3, 0, 20, 1]
             }
           },
+          selectionWidth: [1.5, 0, 5, 0.1],
           selfReferenceSize: [20, 0, 200, 1],
           shadow: {
             enabled: false,
@@ -25002,8 +25063,7 @@ return /******/ (function(modules) { // webpackBootstrap
             type: ['continuous', 'discrete', 'diagonalCross', 'straightCross', 'horizontal', 'vertical', 'curvedCW', 'curvedCCW'],
             roundness: [0.5, 0, 1, 0.05]
           },
-          width: [1, 0, 30, 1],
-          widthSelectionMultiplier: [2, 0, 5, 0.1]
+          width: [1, 0, 30, 1]
         },
         layout: {
           randomSeed: [0, 0, 500, 1],
@@ -25940,7 +26000,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var keycharm = __webpack_require__(80);
+  var keycharm = __webpack_require__(81);
   var Emitter = __webpack_require__(42);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
@@ -29174,7 +29234,7 @@ return /******/ (function(modules) { // webpackBootstrap
       return _moment;
 
   }));
-  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(82)(module)))
+  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(83)(module)))
 
 /***/ },
 /* 65 */
@@ -31860,7 +31920,7 @@ return /******/ (function(modules) { // webpackBootstrap
       prefixed: prefixed
   });
 
-  if ("function" == TYPE_FUNCTION && __webpack_require__(83)) {
+  if ("function" == TYPE_FUNCTION && __webpack_require__(84)) {
       !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
           return Hammer;
       }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -31893,59 +31953,59 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _Label2 = _interopRequireWildcard(_Label);
 
-  var _Box = __webpack_require__(84);
+  var _Box = __webpack_require__(85);
 
   var _Box2 = _interopRequireWildcard(_Box);
 
-  var _Circle = __webpack_require__(85);
+  var _Circle = __webpack_require__(86);
 
   var _Circle2 = _interopRequireWildcard(_Circle);
 
-  var _CircularImage = __webpack_require__(86);
+  var _CircularImage = __webpack_require__(87);
 
   var _CircularImage2 = _interopRequireWildcard(_CircularImage);
 
-  var _Database = __webpack_require__(87);
+  var _Database = __webpack_require__(88);
 
   var _Database2 = _interopRequireWildcard(_Database);
 
-  var _Diamond = __webpack_require__(88);
+  var _Diamond = __webpack_require__(89);
 
   var _Diamond2 = _interopRequireWildcard(_Diamond);
 
-  var _Dot = __webpack_require__(89);
+  var _Dot = __webpack_require__(90);
 
   var _Dot2 = _interopRequireWildcard(_Dot);
 
-  var _Ellipse = __webpack_require__(90);
+  var _Ellipse = __webpack_require__(91);
 
   var _Ellipse2 = _interopRequireWildcard(_Ellipse);
 
-  var _Icon = __webpack_require__(91);
+  var _Icon = __webpack_require__(92);
 
   var _Icon2 = _interopRequireWildcard(_Icon);
 
-  var _Image = __webpack_require__(92);
+  var _Image = __webpack_require__(93);
 
   var _Image2 = _interopRequireWildcard(_Image);
 
-  var _Square = __webpack_require__(93);
+  var _Square = __webpack_require__(94);
 
   var _Square2 = _interopRequireWildcard(_Square);
 
-  var _Star = __webpack_require__(94);
+  var _Star = __webpack_require__(95);
 
   var _Star2 = _interopRequireWildcard(_Star);
 
-  var _Text = __webpack_require__(95);
+  var _Text = __webpack_require__(96);
 
   var _Text2 = _interopRequireWildcard(_Text);
 
-  var _Triangle = __webpack_require__(96);
+  var _Triangle = __webpack_require__(97);
 
   var _Triangle2 = _interopRequireWildcard(_Triangle);
 
-  var _TriangleDown = __webpack_require__(97);
+  var _TriangleDown = __webpack_require__(98);
 
   var _TriangleDown2 = _interopRequireWildcard(_TriangleDown);
 
@@ -32069,9 +32129,6 @@ return /******/ (function(modules) { // webpackBootstrap
         }
         if (options.size !== undefined) {
           this.baseSize = options.size;
-        }
-        if (options.label === undefined && this.options.label === undefined) {
-          this.options.label = this.id;
         }
 
         // this transforms all shorthands into fully defined options
@@ -32675,15 +32732,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _Label2 = _interopRequireWildcard(_Label);
 
-  var _BezierEdgeDynamic = __webpack_require__(98);
+  var _BezierEdgeDynamic = __webpack_require__(99);
 
   var _BezierEdgeDynamic2 = _interopRequireWildcard(_BezierEdgeDynamic);
 
-  var _BezierEdgeStatic = __webpack_require__(99);
+  var _BezierEdgeStatic = __webpack_require__(100);
 
   var _BezierEdgeStatic2 = _interopRequireWildcard(_BezierEdgeStatic);
 
-  var _StraightEdge = __webpack_require__(100);
+  var _StraightEdge = __webpack_require__(101);
 
   var _StraightEdge2 = _interopRequireWildcard(_StraightEdge);
 
@@ -32775,10 +32832,18 @@ return /******/ (function(modules) { // webpackBootstrap
         this.updateLabelModule();
 
         var dataChanged = this.updateEdgeType();
+
+        // if anything has been updates, reset the selection width and the hover width
+        this._setInteractionWidths();
+
         return dataChanged;
       }
     }, {
       key: 'updateLabelModule',
+
+      /**
+       * update the options in the label module
+       */
       value: function updateLabelModule() {
         this.labelModule.setOptions(this.options);
         if (this.labelModule.baseSize !== undefined) {
@@ -32787,6 +32852,11 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     }, {
       key: 'updateEdgeType',
+
+      /**
+       * update the edge type, set the options
+       * @returns {boolean}
+       */
       value: function updateEdgeType() {
         var dataChanged = false;
         var changeInType = true;
@@ -32932,6 +33002,23 @@ return /******/ (function(modules) { // webpackBootstrap
           this.options.width = this.baseWidth;
           this.options.font.size = this.baseFontSize;
         }
+
+        this._setInteractionWidths();
+      }
+    }, {
+      key: '_setInteractionWidths',
+      value: function _setInteractionWidths() {
+        if (typeof this.options.hoverWidth === 'function') {
+          this.edgeType.hoverWidth = this.options.hoverWidth(this.options.width);
+        } else {
+          this.edgeType.hoverWidth = this.options.hoverWidth + this.options.width;
+        }
+
+        if (typeof this.options.selectionWidth === 'function') {
+          this.edgeType.selectionWidth = this.options.selectionWidth(this.options.width);
+        } else {
+          this.edgeType.selectionWidth = this.options.selectionWidth + this.options.width;
+        }
       }
     }, {
       key: 'draw',
@@ -33075,7 +33162,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }], [{
       key: 'parseOptions',
       value: function parseOptions(parentOptions, newOptions) {
-        var fields = ['id', 'font', 'from', 'hidden', 'hoverWidth', 'label', 'length', 'line', 'opacity', 'physics', 'selfReferenceSize', 'to', 'title', 'value', 'width', 'widthMin', 'widthMax', 'widthSelectionMultiplier'];
+        var fields = ['id', 'font', 'from', 'hidden', 'hoverWidth', 'label', 'length', 'line', 'opacity', 'physics', 'selectionWidth', 'selfReferenceSize', 'to', 'title', 'value', 'width'];
 
         // only deep extend the items in the field array. These do not have shorthand.
         util.selectiveDeepExtend(fields, parentOptions, newOptions);
@@ -34117,6 +34204,51 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
+  var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
+
+  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+  var _inherits = function (subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _Node2 = __webpack_require__(67);
+
+  var _Node3 = _interopRequireWildcard(_Node2);
+
+  /**
+   *
+   */
+
+  var Cluster = (function (_Node) {
+    function Cluster(options, body, imagelist, grouplist, globalOptions) {
+      _classCallCheck(this, Cluster);
+
+      _get(Object.getPrototypeOf(Cluster.prototype), 'constructor', this).call(this, options, body, imagelist, grouplist, globalOptions);
+
+      this.isCluster = true;
+      this.containedNodes = {};
+      this.containedEdges = {};
+    }
+
+    _inherits(Cluster, _Node);
+
+    return Cluster;
+  })(_Node3['default']);
+
+  exports['default'] = Cluster;
+  module.exports = exports['default'];
+
+/***/ },
+/* 77 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -34127,7 +34259,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Hammer = __webpack_require__(41);
   var hammerUtil = __webpack_require__(44);
-  var keycharm = __webpack_require__(80);
+  var keycharm = __webpack_require__(81);
 
   var NavigationHandler = (function () {
     function NavigationHandler(body, canvas) {
@@ -34379,7 +34511,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 77 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -34505,7 +34637,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 78 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -34549,7 +34681,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.nl_BE = exports.nl;
 
 /***/ },
-/* 79 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35128,7 +35260,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 80 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
@@ -35326,7 +35458,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 81 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
   function webpackContext(req) {
@@ -35335,11 +35467,11 @@ return /******/ (function(modules) { // webpackBootstrap
   webpackContext.keys = function() { return []; };
   webpackContext.resolve = webpackContext;
   module.exports = webpackContext;
-  webpackContext.id = 81;
+  webpackContext.id = 82;
 
 
 /***/ },
-/* 82 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
   module.exports = function(module) {
@@ -35355,7 +35487,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 83 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
@@ -35363,7 +35495,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
-/* 84 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35382,7 +35514,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(101);
+  var _NodeBase2 = __webpack_require__(102);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -35461,7 +35593,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 85 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35480,7 +35612,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _CircleImageBase2 = __webpack_require__(102);
+  var _CircleImageBase2 = __webpack_require__(103);
 
   var _CircleImageBase3 = _interopRequireWildcard(_CircleImageBase2);
 
@@ -35543,7 +35675,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 86 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35562,7 +35694,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _CircleImageBase2 = __webpack_require__(102);
+  var _CircleImageBase2 = __webpack_require__(103);
 
   var _CircleImageBase3 = _interopRequireWildcard(_CircleImageBase2);
 
@@ -35644,7 +35776,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 87 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35663,7 +35795,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(101);
+  var _NodeBase2 = __webpack_require__(102);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -35742,7 +35874,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 88 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35761,7 +35893,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(103);
+  var _ShapeBase2 = __webpack_require__(104);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -35800,7 +35932,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 89 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35819,7 +35951,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(103);
+  var _ShapeBase2 = __webpack_require__(104);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -35858,7 +35990,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 90 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35877,7 +36009,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(101);
+  var _NodeBase2 = __webpack_require__(102);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -35959,7 +36091,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 91 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35978,7 +36110,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(101);
+  var _NodeBase2 = __webpack_require__(102);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -36067,7 +36199,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 92 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36086,7 +36218,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _CircleImageBase2 = __webpack_require__(102);
+  var _CircleImageBase2 = __webpack_require__(103);
 
   var _CircleImageBase3 = _interopRequireWildcard(_CircleImageBase2);
 
@@ -36145,7 +36277,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 93 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36164,7 +36296,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(103);
+  var _ShapeBase2 = __webpack_require__(104);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -36204,7 +36336,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 94 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36223,7 +36355,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(103);
+  var _ShapeBase2 = __webpack_require__(104);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -36262,7 +36394,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 95 */
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36281,7 +36413,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(101);
+  var _NodeBase2 = __webpack_require__(102);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -36340,7 +36472,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 96 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36359,7 +36491,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(103);
+  var _ShapeBase2 = __webpack_require__(104);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -36398,7 +36530,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 97 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36417,7 +36549,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(103);
+  var _ShapeBase2 = __webpack_require__(104);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -36456,7 +36588,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 98 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36475,7 +36607,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _BezierEdgeBase2 = __webpack_require__(104);
+  var _BezierEdgeBase2 = __webpack_require__(105);
 
   var _BezierEdgeBase3 = _interopRequireWildcard(_BezierEdgeBase2);
 
@@ -36535,9 +36667,7 @@ return /******/ (function(modules) { // webpackBootstrap
           var nodeId = 'edgeId:' + this.id;
           var node = this.body.functions.createNode({
             id: nodeId,
-            mass: 1,
             shape: 'circle',
-            image: '',
             physics: true,
             hidden: true
           });
@@ -36614,7 +36744,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 99 */
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36633,7 +36763,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _BezierEdgeBase2 = __webpack_require__(104);
+  var _BezierEdgeBase2 = __webpack_require__(105);
 
   var _BezierEdgeBase3 = _interopRequireWildcard(_BezierEdgeBase2);
 
@@ -36878,7 +37008,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 100 */
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36897,7 +37027,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _EdgeBase2 = __webpack_require__(105);
+  var _EdgeBase2 = __webpack_require__(106);
 
   var _EdgeBase3 = _interopRequireWildcard(_EdgeBase2);
 
@@ -36988,7 +37118,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 101 */
+/* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37054,7 +37184,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 102 */
+/* 103 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37073,7 +37203,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(101);
+  var _NodeBase2 = __webpack_require__(102);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -37175,7 +37305,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 103 */
+/* 104 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37194,7 +37324,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(101);
+  var _NodeBase2 = __webpack_require__(102);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -37265,7 +37395,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 104 */
+/* 105 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37284,7 +37414,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _EdgeBase2 = __webpack_require__(105);
+  var _EdgeBase2 = __webpack_require__(106);
 
   var _EdgeBase3 = _interopRequireWildcard(_EdgeBase2);
 
@@ -37412,7 +37542,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 105 */
+/* 106 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37437,6 +37567,8 @@ return /******/ (function(modules) { // webpackBootstrap
       this.setOptions(options);
       this.colorDirty = true;
       this.color = {};
+      this.selectionWidth = 2;
+      this.hoverWidth = 1.5;
     }
 
     _createClass(EdgeBase, [{
@@ -37708,10 +37840,10 @@ return /******/ (function(modules) { // webpackBootstrap
        */
       value: function getLineWidth(selected, hover) {
         if (selected === true) {
-          return Math.max(Math.min(this.options.widthSelectionMultiplier * this.options.width, this.options.scaling.max), 0.3 / this.body.view.scale);
+          return Math.max(this.selectionWidth, 0.3 / this.body.view.scale);
         } else {
           if (hover === true) {
-            return Math.max(Math.min(this.options.hoverWidth, this.options.scaling.max), 0.3 / this.body.view.scale);
+            return Math.max(this.hoverWidth, 0.3 / this.body.view.scale);
           } else {
             return Math.max(this.options.width, 0.3 / this.body.view.scale);
           }
@@ -37995,51 +38127,6 @@ return /******/ (function(modules) { // webpackBootstrap
   })();
 
   exports['default'] = EdgeBase;
-  module.exports = exports['default'];
-
-/***/ },
-/* 106 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
-  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-  var _inherits = function (subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _Node2 = __webpack_require__(67);
-
-  var _Node3 = _interopRequireWildcard(_Node2);
-
-  /**
-   *
-   */
-
-  var Cluster = (function (_Node) {
-    function Cluster(options, body, imagelist, grouplist, globalOptions) {
-      _classCallCheck(this, Cluster);
-
-      _get(Object.getPrototypeOf(Cluster.prototype), 'constructor', this).call(this, options, body, imagelist, grouplist, globalOptions);
-
-      this.isCluster = true;
-      this.containedNodes = {};
-      this.containedEdges = {};
-    }
-
-    _inherits(Cluster, _Node);
-
-    return Cluster;
-  })(_Node3['default']);
-
-  exports['default'] = Cluster;
   module.exports = exports['default'];
 
 /***/ }
