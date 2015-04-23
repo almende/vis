@@ -1,5 +1,8 @@
 <!DOCTYPE html>
-<html lang="en"><head><script>(function(i,s,o,g,r,a,m){i[GoogleAnalyticsObject]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,script,//www.google-analytics.com/analytics.js,ga);ga(create, UA-61231638-1, auto);ga(send, pageview);</script><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html lang="en">
+<head>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -19,6 +22,9 @@
     <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 
+    <link href="../css/prettify.css" type="text/css" rel="stylesheet"/>
+    <script type="text/javascript" src="../js/googleAnalytics.js"></script>
+    <script type="text/javascript" src="../js/prettify/prettify.js"></script>
 
     <script src="../js/smooth-scroll.min.js"></script>
     <script language="JavaScript">
@@ -31,14 +37,15 @@
 </head>
 <!-- NAVBAR
 ================================================== -->
-<body>
+<body onload="prettyPrint();">
 
 <div class="navbar-wrapper">
     <div class="container">
         <nav class="navbar navbar-inverse navbar-static-top" role="navigation">
             <div class="container">
                 <div class="navbar-header">
-                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                            aria-expanded="false" aria-controls="navbar">
                         <span class="sr-only">Toggle navigation</span>
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
@@ -49,7 +56,9 @@
                 <div id="navbar" class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
                         <li><a href="../index.html#modules">Modules</a></li>
-                        <li class="active"><a href="./docs/index.html" target="_blank">Documentation <img class="icon" src="../img/external-link-icons/external-link-icon-white.png"></a></li>
+                        <li class="active"><a href="./docs/index.html" target="_blank">Documentation <img class="icon"
+                                                                                                          src="../img/external-link-icons/external-link-icon-white.png"></a>
+                        </li>
                         <li><a href="../blog.html">Blog</a></li>
                         <li><a href="../index.html#download_install">Download</a></li>
                         <li><a href="../showcase/index.html">Showcase</a></li>
@@ -64,32 +73,77 @@
     </div>
 </div>
 
-<a href="https://github.com/almende/vis" class="hidden-xs hidden-sm hidden-md"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
+<a href="https://github.com/almende/vis" class="hidden-xs hidden-sm hidden-md"><img
+        style="position: absolute; top: 0; right: 0; border: 0;"
+        src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67"
+        alt="Fork me on GitHub"
+        data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
+
 <div class="container full">
     <h1>Network - configure</h1>
+
     <p>Handles the HTML part of the canvas.</p>
 
     <h3>Options</h3>
-    <p>Alternative to supplying an object, you can supply a <code>String</code>, <code>Array</code> or <code>Boolean</code>. These will do the same as the filter option described below.</p>
+    <p>The options for the canvas have to be contained in an object titled 'canvas'.</p>
+<pre class="prettyprint lang-js options">
+var options = {
+  configure:{
+    filter: 'nodes, physics', // or ['nodes','physics'] or true
+    container: document.getElementById("configDiv")
+  }
+}
+
+// alternative:
+var options = {
+  configure: 'nodes, physics', // or ['nodes','physics'] or true
+}
+
+network.setOptions(options);
+</pre>
+
+    <p>As shown above, alternative to supplying an object, you can supply a <code>String</code>, <code>Array</code> or
+        <code>Boolean</code>. These will do the same as the filter option described below.</p>
     <table class="moduleTable">
-        <tr class="header"><td class="nameSmall">name</td><td class="type">type</td><td class="default">default</td><td class="description">description</td></tr>
-        <tr><td>filter</td>     <td class="mid">String or Array or Boolean</td> <td class="mid"><code>true</code></td><td>When a boolean, true gives you all options, false will not show any. If a string is supplied, any combination of the following is allowed: nodes, edges, layout, interaction, manipulation, physics, selection, renderer. Feel free to come up with a fun seperating character. Finally, when supplied an array of strings, any of the previously mentioned fields are accepted.</td></tr>
-        <tr><td>container</td>  <td class="mid">DOM element</td>                <td class="mid"><code>undefined</code></td><td>This allows you to put the configure list in another HTML container than below the network.</td></tr>
+        <tr class="header">
+            <td class="nameSmall">name</td>
+            <td class="type">type</td>
+            <td class="default">default</td>
+            <td class="description">description</td>
+        </tr>
+        <tr>
+            <td>filter</td>
+            <td class="mid">String or Array or Boolean</td>
+            <td class="mid"><code>true</code></td>
+            <td>When a boolean, true gives you all options, false will not show any. If a string is supplied, any
+                combination of the following is allowed: nodes, edges, layout, interaction, manipulation, physics,
+                selection, renderer. Feel free to come up with a fun seperating character. Finally, when supplied an
+                array of strings, any of the previously mentioned fields are accepted.
+            </td>
+        </tr>
+        <tr>
+            <td>container</td>
+            <td class="mid">DOM element</td>
+            <td class="mid"><code>undefined</code></td>
+            <td>This allows you to put the configure list in another HTML container than below the network.</td>
+        </tr>
     </table>
 
     <h3>Methods</h3>
+
     <p>The configure module has no methods.</p>
 
     <h3>Events</h3>
+
     <p>The configure module has no Events.</p>
 
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
 </div>
 
 <!-- Bootstrap core JavaScript

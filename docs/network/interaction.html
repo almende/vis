@@ -108,6 +108,7 @@
 </pre>
         </td><td>Fired when the user clicks the mouse or taps on a touchscreen device.</td></tr>
         <tr><td>doubleClick</td> <td class="mid">same as <code>click</code>.</td><td>Fired when the user double clicks the mouse or double taps on a touchscreen device. Since a double click is in fact 2 clicks, 2 click events are fired, followed by a double click event. If you do not want to use the click events if a double click event is fired, just check the time between click events before processing them.</td></tr>
+        <tr><td>rightClick</td>  <td class="mid">same as <code>click</code>.</td><td>Fired when the user click on the canvas with the right mouse button. The right mouse button does not select by default. You can use <a href="./selection.html">getNodeAt</a> to select the node if you want.</td></tr>
         <tr><td>hold</td>        <td class="mid">same as <code>click</code>.</td><td>Fired when the user clicks and holds the mouse or taps and holds on a touchscreen device. A click event is also fired in this case.</td></tr>
         <tr><td>release</td>     <td class="mid">same as <code>click</code>.</td><td>Fired after drawing on the canvas has been completed. Can be used to draw on top of the network.</td></tr>
         <tr><td>select</td>      <td class="mid">same as <code>click</code>.</td><td>Fired when the selection has changed by user action. This means a node or edge has been selected, added to the selection or deselected. <b>All select events are only triggerd on click and hold</b>.</td></tr>

@@ -182,3 +182,7 @@ td.eventProperties {
 td.methodName {
     width:250px;
 }
+
+pre.options {
+    max-width:500px;
+}

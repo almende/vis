@@ -28,13 +28,13 @@
   ];
 
   // create an array with edges
-  var edges = [
-    {from: 1, to: 1, id:'e1'},
-    {from: 1, to: 3, dashes:{pattern:[10,15,2,5]}},
+  var edges = new vis.DataSet([
+    {from: 1, to: 1},
+    {from: 1, to: 3,id:'e1', dashes:{pattern:[10,15,2,5]}},
     {from: 1, to: 2},
     {from: 2, to: 4},
     {from: 2, to: 5}
-  ];
+  ]);
 
   // create a network
   var container = document.getElementById('mynetwork');
@@ -51,7 +51,7 @@
   }
   var network = new vis.Network(container, data, options);
 //    network.setOptions({nodes:{color:'red'}})
-
+  network.on("rightClick",function(e){console.log(e)})
 </script>
 
 </body>
