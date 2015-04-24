@@ -44,10 +44,9 @@
     edges: edges
   };
   var options = {
-    manipulation: true,
-    groups:{'bla':{color:{background:'red'}, borderWidth:5}}
-
-//      physics:{stabilization:true}
+    manipulation: 'hello',
+    physics:{barnesHut:{gravitationslPull:34}, solver:'banana'},
+    groups:{'bla':{color:{backsground:'red'}, borderWidth:5}}
   }
   var network = new vis.Network(container, data, options);
 //    network.setOptions({nodes:{color:'red'}})

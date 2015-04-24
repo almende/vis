@@ -80,6 +80,7 @@ td.properties {
 }
 
 p {
+    min-width:400px;
     max-width:1000px;
 }
 
