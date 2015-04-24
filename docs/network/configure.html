@@ -24,6 +24,7 @@
 
     <link href="../css/prettify.css" type="text/css" rel="stylesheet"/>
     <script type="text/javascript" src="../js/googleAnalytics.js"></script>
+    <script type="text/javascript" src="../js/toggleTable.js"></script>
     <script type="text/javascript" src="../js/prettify/prettify.js"></script>
 
     <script src="../js/smooth-scroll.min.js"></script>
@@ -85,8 +86,14 @@
     <p>Handles the HTML part of the canvas.</p>
 
     <h3>Options</h3>
-    <p>The options for the canvas have to be contained in an object titled 'canvas'.</p>
-<pre class="prettyprint lang-js options">
+    <p>The options for the canvas have to be contained in an object titled 'configure'.</p>
+    <p>Click on the options shown to show how these options are supposed to be used.</p>
+    <ul class="nav nav-tabs">
+        <li role="presentation" class="active" onclick="hideOptions('fullTab','fullOptions');" id="hiddenTab"><a href="#">options hidden</a></li>
+        <li role="presentation" onclick="toggleTab('fullTab','fullOptions');" id="fullTab"><a href="#">options shown</a></li>
+    </ul>
+    <br>
+<pre class="prettyprint lang-js options hidden" id="fullOptions">
 var options = {
   configure:{
     filter: 'nodes, physics', // or ['nodes','physics'] or true

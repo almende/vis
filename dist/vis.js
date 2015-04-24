@@ -25980,16 +25980,16 @@ return /******/ (function(modules) { // webpackBootstrap
           // __any__ is a wildcard. Any value is accepted and will be further analysed by reference.
           if (Validator.getType(options[option]) === 'object') {
             util.copyAndExtendArray(path, option);
-            Validator.checkFields(option, options, referenceOptions, '__any__', referenceOptions.__any__.__type__, path, true);
+            Validator.checkFields(option, options, referenceOptions, '__any__', referenceOptions.__any__.__type__, path);
           }
         } else {
           // Since all options in the reference are objects, we can check whether they are supposed to be object to look for the __type__ field.
           if (referenceOptions[option].__type__ !== undefined) {
             util.copyAndExtendArray(path, option);
             // if this should be an object, we check if the correct type has been supplied to account for shorthand options.
-            Validator.checkFields(option, options, referenceOptions, option, referenceOptions[option].__type__, path, true);
+            Validator.checkFields(option, options, referenceOptions, option, referenceOptions[option].__type__, path);
           } else {
-            Validator.checkFields(option, options, referenceOptions, option, referenceOptions[option], path, false);
+            Validator.checkFields(option, options, referenceOptions, option, referenceOptions[option], path);
           }
         }
       }
@@ -25998,15 +25998,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
       /**
        *
-       * @param {String} option     | the option property
-       * @param {Object} options    | The supplied options object
-       * @param {Object} referenceOptions    | The reference options containing all options and their allowed formats
-       * @param {String} referenceOption     | Usually this is the same as option, except when handling an __any__ tag.
-       * @param {String} refOptionType       | This is the type object from the reference options
-       * @param path
-       * @param recursive
+       * @param {String}  option     | the option property
+       * @param {Object}  options    | The supplied options object
+       * @param {Object}  referenceOptions    | The reference options containing all options and their allowed formats
+       * @param {String}  referenceOption     | Usually this is the same as option, except when handling an __any__ tag.
+       * @param {String}  refOptionType       | This is the type object from the reference options
+       * @param {Array}   path      | where in the object is the option
        */
-      value: function checkFields(option, options, referenceOptions, referenceOption, refOptionObj, path, recursive) {
+      value: function checkFields(option, options, referenceOptions, referenceOption, refOptionObj, path) {
         var optionType = Validator.getType(options[option]);
         var refOptionType = refOptionObj[optionType];
         if (refOptionType !== undefined) {
@@ -26015,10 +26014,10 @@ return /******/ (function(modules) { // webpackBootstrap
             if (refOptionType.indexOf(options[option]) === -1) {
               console.log('%cInvalid option detected in "' + option + '".' + ' Allowed values are:' + Validator.print(refOptionType) + ' not "' + options[option] + '". ' + Validator.printLocation(path, option), printStyle);
               errorFound = true;
-            } else if (recursive === true && optionType === 'object') {
+            } else if (optionType === 'object') {
               Validator.parse(options[option], referenceOptions[referenceOption], path);
             }
-          } else if (recursive === true && optionType === 'object') {
+          } else if (optionType === 'object') {
             Validator.parse(options[option], referenceOptions[referenceOption], path);
           }
         } else {
@@ -26212,7 +26211,7 @@ return /******/ (function(modules) { // webpackBootstrap
       __type__: { object: object }
     },
     clustering: {},
-    configuration: {
+    configure: {
       filter: { boolean: boolean, string: ['nodes', 'edges', 'layout', 'physics', 'manipulation', 'interaction', 'selection', 'rendering'], array: array },
       container: { dom: dom },
       __type__: { object: object, string: string, array: array, boolean: boolean }

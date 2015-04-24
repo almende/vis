@@ -94,6 +94,10 @@ pre.code {
     border:0px;
 }
 
+pre.top {
+    margin-left:20px;
+}
+
 tr.hidden {
     max-height:0;
     /*max-height: 0;*/
@@ -185,5 +189,9 @@ td.methodName {
 }
 
 pre.options {
-    max-width:500px;
+    max-width:600px;
+}
+
+pre.hidden {
+    display:none;
 }

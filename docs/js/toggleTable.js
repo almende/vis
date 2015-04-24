@@ -53,5 +53,32 @@ function toggleTable(tableId, parent, clickedRow) {
       spans[i].className = wasOpen === true ? 'right-caret' : 'caret';
     }
   }
+}
+
+function toggleTab(showTabId, showPreId, hideTabId, hidePreId) {
+  if (hideTabId !== undefined) {
+    document.getElementById(hideTabId).className = '';
+    document.getElementById(hidePreId).className = document.getElementById(hidePreId).className.replace(' hidden','');
+    document.getElementById(hidePreId).className += ' hidden';
+  }
+
+  document.getElementById('hiddenTab').className = '';
+  document.getElementById(showTabId).className = 'active';
+  document.getElementById(showPreId).className = document.getElementById(showPreId).className.replace(' hidden','');
+}
+
+
+function hideOptions(hideTabId1, hidePreId1, hideTabId2, hidePreId2) {
+  document.getElementById('hiddenTab').className = 'active';
+
+  document.getElementById(hideTabId1).className = '';
+  document.getElementById(hidePreId1).className = document.getElementById(hidePreId1).className.replace(' hidden','');
+  document.getElementById(hidePreId1).className += ' hidden';
+
+  if (hideTabId2 !== undefined) {
+    document.getElementById(hideTabId2).className = '';
+    document.getElementById(hidePreId2).className = document.getElementById(hidePreId2).className.replace(' hidden','');
+    document.getElementById(hidePreId2).className += ' hidden';
+  }
 
 }

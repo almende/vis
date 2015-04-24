@@ -1,19 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script>(function (i, s, o, g, r, a, m) {
-        i['GoogleAnalyticsObject'] = r;
-        i[r] = i[r] || function () {
-                    (i[r].q = i[r].q || []).push(arguments)
-                }, i[r].l = 1 * new Date();
-        a = s.createElement(o), m = s.getElementsByTagName(o)[0];
-        a.async = 1;
-        a.src = g;
-        m.parentNode.insertBefore(a, m)
-    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
-    ga('create', 'UA-61231638-1', 'auto');
-    ga('send', 'pageview');</script>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -25,6 +12,10 @@
     <!-- Bootstrap core CSS -->
     <link href="../css/bootstrap.css" rel="stylesheet">
     <link href="../css/newdocs.css" rel="stylesheet">
+
+    <link href="../css/prettify.css" type="text/css" rel="stylesheet"/>
+    <script type="text/javascript" src="../js/googleAnalytics.js"></script>
+    <script type="text/javascript" src="../js/prettify/prettify.js"></script>
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -47,7 +38,7 @@
 </head>
 <!-- NAVBAR
 ================================================== -->
-<body>
+<body onload="prettyPrint();">
 
 <div class="navbar-wrapper">
     <div class="container">
@@ -96,7 +87,112 @@
 
     <h3>Options</h3>
 
-    <p>This is a list of all the methods in the public API. They are collected here from all individual modules.</p>
+    <p>The options for the canvas have to be contained in an object titled 'edges'. All of these options can be supplied per edge as well. Obviously, 'id' should not be defined globally but per edge. Options defined
+    in the global edges object, are applied to all edges. If an edge has options of its own, those will be used instead of the global options.</p>
+    <p>Click on the full options or shorthand options to show how these options are supposed to be used.</p>
+    <ul class="nav nav-tabs">
+        <li role="presentation" class="active" onclick="hideOptions('fullTab','fullOptions','shortTab','shortOptions');" id="hiddenTab"><a href="#">options hidden</a></li>
+        <li role="presentation" onclick="toggleTab('fullTab','fullOptions','shortTab','shortOptions');" id="fullTab"><a href="#">full options</a></li>
+        <li role="presentation" onclick="toggleTab('shortTab','shortOptions','fullTab','fullOptions');" id="shortTab"><a href="#">shorthand options</a></li>
+    </ul>
+    <br>
+<pre class="prettyprint lang-js options top hidden" id="fullOptions">
+// these are all options in full.
+var options = {
+  edges:{
+    arrows: {
+      to:     {enabled: false, scaleFactor:1},
+      middle: {enabled: false, scaleFactor:1},
+      from:   {enabled: false, scaleFactor:1}
+    },
+    color: {
+      color:'#848484',
+      highlight:'#848484',
+      hover: '#848484',
+      inherit: 'from',
+      opacity:1.0
+    },
+    dashes:{
+      enabled: false,
+      pattern:[5,5]
+    },
+    font: {
+      color: '#343434',
+      size: 14, // px
+      face: 'arial',
+      background: 'none',
+      stroke: 1, // px
+      strokeColor: '#ffffff',
+      align:'horizontal'
+    },
+    hidden: false,
+    hoverWidth: 1.5,
+    label: undefined,
+    length: undefined,
+    physics: true,
+    scaling:{
+      min: 1,
+      max: 15,
+      label: {
+        enabled: true,
+        min: 14,
+        max: 30,
+        maxVisible: 30,
+        drawThreshold: 3
+      },
+      customScalingFunction: function (min,max,total,value) {
+        if (max === min) {
+          return 0.5;
+        }
+        else {
+          var scale = 1 / (max - min);
+          return Math.max(0,(value - min)*scale);
+        }
+      }
+    },
+    selectionWidth: 1,
+    selfReferenceSize:20,
+    shadow:{
+      enabled: false,
+      size:10,
+      x:5,
+      y:5
+    },
+    smooth: {
+      enabled: true,
+      dynamic: true,
+      type: "continuous",
+      roundness: 0.5
+    },
+    title:undefined,
+    width: 1,
+    value: undefined
+  }
+}
+
+network.setOptions(options);
+</pre>
+
+<pre class="prettyprint lang-js options top hidden" id="shortOptions">
+// here all options that have shorthand notations are shown.
+var options = {
+  edges:{
+    arrows: 'to, from',
+    color: 'red',
+    dashes: true,
+    font: '12px arial #ff0000',
+    scaling:{
+      label: true,
+    },
+    shadow: true,
+    smooth: true,
+  }
+}
+
+network.setOptions(options);
+</pre>
+
+    <p>These options can also be set per individual edge.</p>
     <table class="moduleTable" id="optionTable">
         <tr class="header">
             <td class="name">name</td>
@@ -310,6 +406,13 @@ var options: {
                 It receives the <code>Number width</code> of the edge. In this simple example we add 1 to the width. You
                 can taylor the logic in the function as long as it returns a <code>Number</code>.
             </td>
+        </tr>
+
+        <tr>
+            <td>id</td>
+            <td class="mid">String</td>
+            <td class="mid"><code>undefined</code></td>
+            <td>The id of the edge. The id is optional for edges. When not supplied, an UUID will be assigned to the edge.</td>
         </tr>
         <tr>
             <td>label</td>
