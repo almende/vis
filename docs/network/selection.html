@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en"><head><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-61231638-1', 'auto');ga('send', 'pageview');</script><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html lang="en">
+<head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -19,15 +20,18 @@
     <![endif]-->
 
 
+    <link href="../css/prettify.css" type="text/css" rel="stylesheet"/>
+    <script type="text/javascript" src="../js/googleAnalytics.js"></script>
+    <script type="text/javascript" src="../js/prettify/prettify.js"></script>
+
     <script src="../js/smooth-scroll.min.js"></script>
     <script language="JavaScript">
         smoothScroll.init();
     </script>
 
+    <script type="text/javascript" src="../js/toggleTable.js"></script>
 </head>
-<!-- NAVBAR
-================================================== -->
-<body>
+<body onload="prettyPrint();">
 
 <div class="navbar-wrapper">
     <div class="container">
@@ -66,7 +70,24 @@
     <p>Handles the selection of nodes and edges.</p>
 
     <h3>Options</h3>
-    <p>This is a list of all the methods in the public API. They are collected here from all individual modules.</p>
+    <p>The options for the selection have to be contained in an object titled 'selection'.</p>
+    <p>Click on the options shown to show how these options are supposed to be used.</p>
+    <ul class="nav nav-tabs">
+        <li role="presentation" class="active" onclick="hideOptions('fullTab','fullOptions');" id="hiddenTab"><a href="#">options hidden</a></li>
+        <li role="presentation" onclick="toggleTab('fullTab','fullOptions');" id="fullTab"><a href="#">options shown</a></li>
+    </ul>
+    <br>
+<pre class="prettyprint lang-js options hidden" id="fullOptions">
+var options = {
+  selection:{
+    select: true,
+    selectConnectedEdges: false
+  }
+}
+
+network.setOptions(options);
+</pre>
+    <p>All of the individual options are explained here:</p>
     <table class="moduleTable">
         <tr class="header"><td>name</td><td>type</td><td>default</td><td>description</td></tr>
         <tr><td>select</td>                 <td class="mid">Boolean</td><td class="mid"><code>true</code></td><td>When true, the nodes and edges can be selected by the user.</td></tr>

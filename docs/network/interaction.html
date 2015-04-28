@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en"><head><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-61231638-1', 'auto');ga('send', 'pageview');</script><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html lang="en"><head>
+
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -18,21 +19,18 @@
     <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 
+    <link href="../css/prettify.css" type="text/css" rel="stylesheet"/>
+    <script type="text/javascript" src="../js/googleAnalytics.js"></script>
+    <script type="text/javascript" src="../js/prettify/prettify.js"></script>
 
     <script src="../js/smooth-scroll.min.js"></script>
     <script language="JavaScript">
         smoothScroll.init();
     </script>
 
-    <style>
-
-    </style>
-
     <script type="text/javascript" src="../js/toggleTable.js"></script>
 </head>
-<!-- NAVBAR
-================================================== -->
-<body>
+<body onload="prettyPrint();">
 
 <div class="navbar-wrapper">
     <div class="container">
@@ -71,6 +69,46 @@
     <p>Used for all user interaction with the network. Handles mouse and touch events as well as the navigation buttons and the popups.</p>
 
     <h3>Options</h3>
+    <p>The options for the interaction module have to be contained in an object titled 'interaction'.</p>
+    <p>Click on the full options or shorthand options to show how these options are supposed to be used.</p>
+    <ul class="nav nav-tabs">
+        <li role="presentation" class="active" onclick="hideOptions('fullTab','fullOptions','shortTab','shortOptions');" id="hiddenTab"><a href="#">options hidden</a></li>
+        <li role="presentation" onclick="toggleTab('fullTab','fullOptions','shortTab','shortOptions');" id="fullTab"><a href="#">full options</a></li>
+        <li role="presentation" onclick="toggleTab('shortTab','shortOptions','fullTab','fullOptions');" id="shortTab"><a href="#">shorthand options</a></li>
+    </ul>
+    <br>
+<pre class="prettyprint lang-js options top hidden" id="fullOptions">
+// these are all options in full.
+var options = {
+  interaction:{
+    dragNodes:true,
+    dragView: true,
+    zoomView: true,
+    hoverEnabled: false,
+    navigationButtons: false,
+    tooltipDelay: 300,
+    keyboard: {
+      enabled: false,
+      speed: {x: 10, y: 10, zoom: 0.02},
+      bindToWindow: true
+    }
+  }
+}
+
+network.setOptions(options);
+</pre>
+
+<pre class="prettyprint lang-js options top hidden" id="shortOptions">
+// only the options that have shorthand notations are shown.
+var options = {
+  interaction:{
+    keyboard: false
+  }
+}
+
+network.setOptions(options);
+</pre>
+
     <p>This is a list of all the methods in the public API. They are collected here from all individual modules.</p>
     <table class="moduleTable" id="optionTable">
         <tr class="header"><td class="name">name</td><td class="type">type</td><td class="default">default</td><td class="description">description</td></tr>

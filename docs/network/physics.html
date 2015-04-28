@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-61231638-1', 'auto');ga('send', 'pageview');</script><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html lang="en"><head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -20,6 +20,10 @@
     <![endif]-->
 
 
+    <link href="../css/prettify.css" type="text/css" rel="stylesheet"/>
+    <script type="text/javascript" src="../js/googleAnalytics.js"></script>
+    <script type="text/javascript" src="../js/prettify/prettify.js"></script>
+
     <script src="../js/smooth-scroll.min.js"></script>
     <script language="JavaScript">
         smoothScroll.init();
@@ -27,9 +31,7 @@
 
     <script type="text/javascript" src="../js/toggleTable.js"></script>
 </head>
-<!-- NAVBAR
-================================================== -->
-<body>
+<body onload="prettyPrint();">
 
 <div class="navbar-wrapper">
     <div class="container">
@@ -68,7 +70,66 @@
     <p>Handles the HTML part of the canvas.</p>
 
     <h3>Options</h3>
-    <p>This is a list of all the methods in the public API. They are collected here from all individual modules.</p>
+    <p>The options for the physics have to be contained in an object titled 'physics'.</p>
+    <p>Click on the full options or shorthand options to show how these options are supposed to be used.</p>
+    <ul class="nav nav-tabs">
+        <li role="presentation" class="active" onclick="hideOptions('fullTab','fullOptions','shortTab','shortOptions');" id="hiddenTab"><a href="#">options hidden</a></li>
+        <li role="presentation" onclick="toggleTab('fullTab','fullOptions','shortTab','shortOptions');" id="fullTab"><a href="#">full options</a></li>
+        <li role="presentation" onclick="toggleTab('shortTab','shortOptions','fullTab','fullOptions');" id="shortTab"><a href="#">shorthand options</a></li>
+    </ul>
+    <br>
+<pre class="prettyprint lang-js options top hidden" id="fullOptions">
+// these are all options in full.
+var options = {
+  physics:{
+    barnesHut: {
+      gravitationalConstant: -2000,
+      centralGravity: 0.3,
+      springLength: 95,
+      springConstant: 0.04,
+      damping: 0.09
+    },
+    repulsion: {
+      centralGravity: 0.2,
+      springLength: 200,
+      springConstant: 0.05,
+      nodeDistance: 100,
+      damping: 0.09
+    },
+    hierarchicalRepulsion: {
+      centralGravity: 0.0,
+      springLength: 100,
+      springConstant: 0.01,
+      nodeDistance: 120,
+      damping: 0.09
+    },
+    maxVelocity: 50,
+    minVelocity: 0.1,
+    solver: 'barnesHut',
+    stabilization: {
+      enabled: true,
+      iterations: 1000,
+      updateInterval: 100,
+      onlyDynamicEdges: false,
+      fit: true
+    },
+    timestep: 0.5
+  }
+}
+
+network.setOptions(options);
+</pre>
+
+<pre class="prettyprint lang-js options top hidden" id="shortOptions">
+// only the options that have shorthand notations are shown.
+var options = {
+  physics:{
+    stabilization: false
+  }
+}
+network.setOptions(options);
+</pre>
+    <p>All of the individual options are explained here:</p>
     <table class="moduleTable" id="optionTable">
         <tr class="header"><td class="name">name</td><td class="type">type</td><td>default</td><td>description</td></tr>
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','barnesHut', this);"><td><span parent="barnesHut" class="right-caret"></span> barnesHut</td>                              <td class="mid">Object</td>         <td class="mid"><code>Object</code></td>    <td>BarnesHut is a quadtree based gravity model. This is the fastest, default and recommended solver for non-hierarchical layouts.</td></tr>

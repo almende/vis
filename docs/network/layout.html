@@ -17,7 +17,9 @@
     <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
     <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
-
+    <link href="../css/prettify.css" type="text/css" rel="stylesheet"/>
+    <script type="text/javascript" src="../js/googleAnalytics.js"></script>
+    <script type="text/javascript" src="../js/prettify/prettify.js"></script>
 
     <script src="../js/smooth-scroll.min.js"></script>
     <script language="JavaScript">
@@ -26,6 +28,7 @@
 
     <script type="text/javascript" src="../js/toggleTable.js"></script>
 </head>
+<body onload="prettyPrint();">
 <!-- NAVBAR
 ================================================== -->
 <body>
@@ -67,6 +70,41 @@
     <p>Acts as the camera that looks on the canvas. Does the animation, zooming and focusing.</p>
 
     <h3>Options</h3>
+    <p>The options for the layout module have to be contained in an object titled 'layout'.</p>
+    <p>Click on the full options or shorthand options to show how these options are supposed to be used.</p>
+    <ul class="nav nav-tabs">
+        <li role="presentation" class="active" onclick="hideOptions('fullTab','fullOptions','shortTab','shortOptions');" id="hiddenTab"><a href="#">options hidden</a></li>
+        <li role="presentation" onclick="toggleTab('fullTab','fullOptions','shortTab','shortOptions');" id="fullTab"><a href="#">full options</a></li>
+        <li role="presentation" onclick="toggleTab('shortTab','shortOptions','fullTab','fullOptions');" id="shortTab"><a href="#">shorthand options</a></li>
+    </ul>
+    <br>
+<pre class="prettyprint lang-js options top hidden" id="fullOptions">
+// these are all options in full.
+var options = {
+  layout: {
+    randomSeed: undefined,
+    hierarchical: {
+      enabled:false,
+      levelSeparation: 150,
+      direction: 'UD',   // UD, DU, LR, RL
+      sortMethod: 'hubsize' // hubsize, directed
+    }
+  }
+}
+
+network.setOptions(options);
+</pre>
+
+<pre class="prettyprint lang-js options top hidden" id="shortOptions">
+// only the options that have shorthand notations are shown.
+var options = {
+  layout:{
+    hierarchical: true
+  }
+}
+
+network.setOptions(options);
+</pre>
     <p>When enabling the hierarchical layout, it overrules some of the other options. The physics is set to the hierarchical repulsion solver and dynamic smooth edges are converted to static smooth edges.</p>
     <table class="moduleTable" id="optionTable">
         <tr class="header"><td class="name">name</td><td class="type">type</td><td class="default">default</td><td class="description">description</td></tr>

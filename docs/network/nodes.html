@@ -1,19 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script>(function (i, s, o, g, r, a, m) {
-        i['GoogleAnalyticsObject'] = r;
-        i[r] = i[r] || function () {
-                    (i[r].q = i[r].q || []).push(arguments)
-                }, i[r].l = 1 * new Date();
-        a = s.createElement(o), m = s.getElementsByTagName(o)[0];
-        a.async = 1;
-        a.src = g;
-        m.parentNode.insertBefore(a, m)
-    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
-    ga('create', 'UA-61231638-1', 'auto');
-    ga('send', 'pageview');</script>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -33,6 +20,10 @@
     <![endif]-->
 
 
+    <link href="../css/prettify.css" type="text/css" rel="stylesheet"/>
+    <script type="text/javascript" src="../js/googleAnalytics.js"></script>
+    <script type="text/javascript" src="../js/prettify/prettify.js"></script>
+
     <script src="../js/smooth-scroll.min.js"></script>
     <script language="JavaScript">
         smoothScroll.init();
@@ -40,9 +31,7 @@
 
     <script type="text/javascript" src="../js/toggleTable.js"></script>
 </head>
-<!-- NAVBAR
-================================================== -->
-<body>
+<body onload="prettyPrint();">
 
 <div class="navbar-wrapper">
     <div class="container">
@@ -90,8 +79,115 @@
     <p>Handles the creation and deletion of nodes and contains the global node options and styles.</p>
 
     <h3>Options</h3>
+    <p>The options for the nodes have to be contained in an object titled 'nodes'. All of these options can be supplied per node as well. Obviously, 'id' should not be defined globally but per node. Options defined
+        in the global nodes object, are applied to all nodes. If a node has options of its own, those will be used instead of the global options.</p>
+    <p>Click on the full options or shorthand options to show how these options are supposed to be used.</p>
+    <ul class="nav nav-tabs">
+        <li role="presentation" class="active" onclick="hideOptions('fullTab','fullOptions','shortTab','shortOptions');" id="hiddenTab"><a href="#">options hidden</a></li>
+        <li role="presentation" onclick="toggleTab('fullTab','fullOptions','shortTab','shortOptions');" id="fullTab"><a href="#">full options</a></li>
+        <li role="presentation" onclick="toggleTab('shortTab','shortOptions','fullTab','fullOptions');" id="shortTab"><a href="#">shorthand options</a></li>
+    </ul>
+    <br>
+<pre class="prettyprint lang-js options top hidden" id="fullOptions">
+// these are all options in full.
+var options = {
+  nodes:{
+    borderWidth: 1,
+    borderWidthSelected: undefined,
+    brokenImage:undefined,
+    color: {
+      border: '#2B7CE9',
+      background: '#97C2FC',
+      highlight: {
+        border: '#2B7CE9',
+        background: '#D2E5FF'
+      },
+      hover: {
+        border: '#2B7CE9',
+        background: '#D2E5FF'
+      }
+    },
+    fixed: {
+      x:false,
+      y:false
+    },
+    font: {
+      color: '#343434',
+      size: 14, // px
+      face: 'arial',
+      background: 'none',
+      stroke: 0, // px
+      strokeColor: '#ffffff',
+      align: 'horizontal'
+    },
+    group: undefined,
+    hidden: false,
+    icon: {
+      face: 'FontAwesome',
+      code: undefined,
+      size: 50,  //50,
+      color:'#2B7CE9'
+    },
+    image: undefined,
+    label: undefined,
+    level: undefined,
+    mass: 1,
+    physics: true,
+    scaling: {
+      min: 10,
+      max: 30,
+      label: {
+        enabled: false,
+        min: 14,
+        max: 30,
+        maxVisible: 30,
+        drawThreshold: 3
+      },
+      customScalingFunction: function (min,max,total,value) {
+        if (max === min) {
+          return 0.5;
+        }
+        else {
+          let scale = 1 / (max - min);
+          return Math.max(0,(value - min)*scale);
+        }
+      }
+    },
+    shadow:{
+      enabled: false,
+      size:10,
+      x:5,
+      y:5
+    },
+    shape: 'ellipse',
+    size: 25,
+    title: undefined,
+    value: undefined,
+    x: undefined,
+    y: undefined
+  }
+}
 
-    <p>This is a list of all the methods in the public API. They are collected here from all individual modules.</p>
+network.setOptions(options);
+</pre>
+
+<pre class="prettyprint lang-js options top hidden" id="shortOptions">
+// only the options that have shorthand notations are shown.
+var options = {
+  nodes:{
+    color: '#ff0000',
+    fixed: false,
+    font: '12px arial red',
+    scaling: {
+      label: true
+    },
+    shadow: true
+  }
+}
+network.setOptions(options);
+</pre>
+
+    <p>These options can also be set per individual node. All of the individual options are explained here:</p>
     <table class="moduleTable" id="optionTable">
         <tr class="header">
             <td class="name">name</td>

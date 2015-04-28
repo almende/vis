@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-61231638-1', 'auto');ga('send', 'pageview');</script><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html lang="en"><head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -19,6 +19,10 @@
     <![endif]-->
 
 
+    <link href="../css/prettify.css" type="text/css" rel="stylesheet"/>
+    <script type="text/javascript" src="../js/googleAnalytics.js"></script>
+    <script type="text/javascript" src="../js/prettify/prettify.js"></script>
+
     <script src="../js/smooth-scroll.min.js"></script>
     <script language="JavaScript">
         smoothScroll.init();
@@ -26,9 +30,7 @@
 
     <script type="text/javascript" src="../js/toggleTable.js"></script>
 </head>
-<!-- NAVBAR
-================================================== -->
-<body>
+<body onload="prettyPrint();">
 
 <div class="navbar-wrapper">
     <div class="container">
@@ -67,7 +69,55 @@
     <p>Acts as the camera that looks on the canvas. Does the animation, zooming and focusing.</p>
 
     <h3>Options</h3>
-    <p>When enabling the hierarchical layout, it overrules some of the other options. The physics is set to the hierarchical repulsion solver and dynamic smooth edges are converted to static smooth edges.</p>
+    <p>The options for the manipulation module have to be contained in an object titled 'manipulation'.</p>
+    <p>Click on the full options or shorthand options to show how these options are supposed to be used.</p>
+    <ul class="nav nav-tabs">
+        <li role="presentation" class="active" onclick="hideOptions('fullTab','fullOptions','shortTab','shortOptions');" id="hiddenTab"><a href="#">options hidden</a></li>
+        <li role="presentation" onclick="toggleTab('fullTab','fullOptions','shortTab','shortOptions');" id="fullTab"><a href="#">full options</a></li>
+        <li role="presentation" onclick="toggleTab('shortTab','shortOptions','fullTab','fullOptions');" id="shortTab"><a href="#">shorthand options</a></li>
+    </ul>
+    <br>
+<pre class="prettyprint lang-js options top hidden" id="fullOptions">
+// these are all options in full.
+var options = {
+  manupulation: {
+    enabled: false,
+    initiallyActive: false,
+    locale: 'en',
+    locales: locales,
+    functionality:{
+      addNode: true,
+      addEdge: true,
+      editNode: true,
+      editEdge: true,
+      deleteNode: true,
+      deleteEdge: true
+    },
+    handlerFunctions: {
+      addNode: undefined,
+      addEdge: undefined,
+      editNode: undefined,
+      editEdge: undefined,
+      deleteNode: undefined,
+      deleteEdge: undefined
+    },
+    controlNodeStyle:{
+      // all node options are valid.
+    }
+  }
+}
+
+network.setOptions(options);
+</pre>
+
+<pre class="prettyprint lang-js options top hidden" id="shortOptions">
+// only the options that have shorthand notations are shown.
+var options = {
+  manipulation: false
+}
+
+network.setOptions(options);
+</pre>
     <table class="moduleTable" id="optionTable">
         <tr class="header"><td class="name">name</td><td class="type">type</td><td class="default">default</td><td class="description">description</td></tr>
         <tr><td>enabled</td>                    <td class="mid">Boolean</td>    <td class="mid"><code>false</code></td>     <td>Toggle the manipulation system on or off. This property is optional. If you define any of the options below and enabled is undefined, this will be set to true.</td></tr>
