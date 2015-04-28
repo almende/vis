@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.0.0-SNAPSHOT
- * @date    2015-04-24
+ * @date    2015-04-28
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -3212,7 +3212,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(42);
+  var Emitter = __webpack_require__(65);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var util = __webpack_require__(1);
@@ -6377,13 +6377,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(42);
+  var Emitter = __webpack_require__(65);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
-  var Core = __webpack_require__(43);
+  var Core = __webpack_require__(42);
   var TimeAxis = __webpack_require__(35);
   var CurrentTime = __webpack_require__(26);
   var CustomTime = __webpack_require__(27);
@@ -6769,13 +6769,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(42);
+  var Emitter = __webpack_require__(65);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
-  var Core = __webpack_require__(43);
+  var Core = __webpack_require__(42);
   var TimeAxis = __webpack_require__(35);
   var CurrentTime = __webpack_require__(26);
   var CustomTime = __webpack_require__(27);
@@ -7797,7 +7797,7 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(44);
+  var hammerUtil = __webpack_require__(43);
   var moment = __webpack_require__(40);
   var Component = __webpack_require__(25);
   var DateUtil = __webpack_require__(15);
@@ -10539,7 +10539,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(25);
   var moment = __webpack_require__(40);
-  var locales = __webpack_require__(45);
+  var locales = __webpack_require__(44);
 
   /**
    * A current time bar
@@ -10716,7 +10716,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(25);
   var moment = __webpack_require__(40);
-  var locales = __webpack_require__(45);
+  var locales = __webpack_require__(44);
 
   /**
    * A custom time bar
@@ -11535,9 +11535,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(2);
-  var Line = __webpack_require__(46);
-  var Bar = __webpack_require__(47);
-  var Points = __webpack_require__(48);
+  var Line = __webpack_require__(45);
+  var Bar = __webpack_require__(46);
+  var Points = __webpack_require__(47);
 
   /**
    * /**
@@ -14186,7 +14186,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataAxis = __webpack_require__(28);
   var GraphGroup = __webpack_require__(29);
   var Legend = __webpack_require__(33);
-  var BarGraphFunctions = __webpack_require__(47);
+  var BarGraphFunctions = __webpack_require__(46);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -15597,70 +15597,70 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
 
-  var _Groups = __webpack_require__(49);
+  var _Groups = __webpack_require__(48);
 
   var _Groups2 = _interopRequireWildcard(_Groups);
 
-  var _NodesHandler = __webpack_require__(50);
+  var _NodesHandler = __webpack_require__(49);
 
   var _NodesHandler2 = _interopRequireWildcard(_NodesHandler);
 
-  var _EdgesHandler = __webpack_require__(51);
+  var _EdgesHandler = __webpack_require__(50);
 
   var _EdgesHandler2 = _interopRequireWildcard(_EdgesHandler);
 
-  var _PhysicsEngine = __webpack_require__(52);
+  var _PhysicsEngine = __webpack_require__(51);
 
   var _PhysicsEngine2 = _interopRequireWildcard(_PhysicsEngine);
 
-  var _ClusterEngine = __webpack_require__(53);
+  var _ClusterEngine = __webpack_require__(52);
 
   var _ClusterEngine2 = _interopRequireWildcard(_ClusterEngine);
 
-  var _CanvasRenderer = __webpack_require__(54);
+  var _CanvasRenderer = __webpack_require__(53);
 
   var _CanvasRenderer2 = _interopRequireWildcard(_CanvasRenderer);
 
-  var _Canvas = __webpack_require__(55);
+  var _Canvas = __webpack_require__(54);
 
   var _Canvas2 = _interopRequireWildcard(_Canvas);
 
-  var _View = __webpack_require__(56);
+  var _View = __webpack_require__(55);
 
   var _View2 = _interopRequireWildcard(_View);
 
-  var _InteractionHandler = __webpack_require__(57);
+  var _InteractionHandler = __webpack_require__(56);
 
   var _InteractionHandler2 = _interopRequireWildcard(_InteractionHandler);
 
-  var _SelectionHandler = __webpack_require__(58);
+  var _SelectionHandler = __webpack_require__(57);
 
   var _SelectionHandler2 = _interopRequireWildcard(_SelectionHandler);
 
-  var _LayoutEngine = __webpack_require__(59);
+  var _LayoutEngine = __webpack_require__(58);
 
   var _LayoutEngine2 = _interopRequireWildcard(_LayoutEngine);
 
-  var _ManipulationSystem = __webpack_require__(60);
+  var _ManipulationSystem = __webpack_require__(59);
 
   var _ManipulationSystem2 = _interopRequireWildcard(_ManipulationSystem);
 
-  var _ConfigurationSystem = __webpack_require__(61);
+  var _ConfigurationSystem = __webpack_require__(60);
 
   var _ConfigurationSystem2 = _interopRequireWildcard(_ConfigurationSystem);
 
-  var _Validator = __webpack_require__(62);
+  var _Validator = __webpack_require__(61);
 
   var _Validator2 = _interopRequireWildcard(_Validator);
 
-  var _allOptions = __webpack_require__(63);
+  var _allOptions = __webpack_require__(62);
 
   var _allOptions2 = _interopRequireWildcard(_allOptions);
 
   // Load custom shapes into CanvasRenderingContext2D
-  __webpack_require__(64);
+  __webpack_require__(63);
 
-  var Emitter = __webpack_require__(42);
+  var Emitter = __webpack_require__(65);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
@@ -15668,7 +15668,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var dotparser = __webpack_require__(38);
   var gephiParser = __webpack_require__(39);
   var Images = __webpack_require__(37);
-  var Activator = __webpack_require__(65);
+  var Activator = __webpack_require__(64);
 
   /**
    * @constructor Network
@@ -15990,6 +15990,127 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   Network.prototype.isActive = function () {
     return !this.activator || this.activator.active;
+  };
+
+  Network.prototype.setSize = function () {
+    this.canvas.setSize.apply(this.canvas, arguments);
+  };
+  Network.prototype.canvasToDOM = function () {
+    this.canvas.canvasToDOM.apply(this.canvas, arguments);
+  };
+  Network.prototype.DOMtoCanvas = function () {
+    this.canvas.setSize.DOMtoCanvas(this.canvas, arguments);
+  };
+  Network.prototype.findNode = function () {
+    this.clustering.findNode.apply(this.clustering, arguments);
+  };
+  Network.prototype.isCluster = function () {
+    this.clustering.isCluster.apply(this.clustering, arguments);
+  };
+  Network.prototype.openCluster = function () {
+    this.clustering.openCluster.apply(this.clustering, arguments);
+  };
+  Network.prototype.cluster = function () {
+    this.clustering.cluster.apply(this.clustering, arguments);
+  };
+  Network.prototype.clusterByConnection = function () {
+    this.clustering.clusterByConnection.apply(this.clustering, arguments);
+  };
+  Network.prototype.clusterByHubsize = function () {
+    this.clustering.clusterByHubsize.apply(this.clustering, arguments);
+  };
+  Network.prototype.clusterOutliers = function () {
+    this.clustering.clusterOutliers.apply(this.clustering, arguments);
+  };
+  Network.prototype.getSeed = function () {
+    this.layoutEngine.getSeed.apply(this.layoutEngine, arguments);
+  };
+  Network.prototype.enableEditMode = function () {
+    this.manipulation.enableEditMode.apply(this.manipulation, arguments);
+  };
+  Network.prototype.disableEditMode = function () {
+    this.manipulation.disableEditMode.apply(this.manipulation, arguments);
+  };
+  Network.prototype.addNodeMode = function () {
+    this.manipulation.addNodeMode.apply(this.manipulation, arguments);
+  };
+  Network.prototype.editNodeMode = function () {
+    this.manipulation.editNodeMode.apply(this.manipulation, arguments);
+  };
+  Network.prototype.addEdgeMode = function () {
+    this.manipulation.addEdgeMode.apply(this.manipulation, arguments);
+  };
+  Network.prototype.editEdgeMode = function () {
+    this.manipulation.editEdgeMode.apply(this.manipulation, arguments);
+  };
+  Network.prototype.deleteSelected = function () {
+    this.manipulation.deleteSelected.apply(this.manipulation, arguments);
+  };
+  Network.prototype.getPositions = function () {
+    this.nodesHandler.getPositions.apply(this.nodesHandler, arguments);
+  };
+  Network.prototype.storePositions = function () {
+    this.nodesHandler.storePositions.apply(this.nodesHandler, arguments);
+  };
+  Network.prototype.getBoundingBox = function () {
+    this.nodesHandler.getBoundingBox.apply(this.nodesHandler, arguments);
+  };
+  Network.prototype.getConnectedNodes = function () {
+    this.nodesHandler.getConnectedNodes.apply(this.nodesHandler, arguments);
+  };
+  Network.prototype.getEdges = function () {
+    this.nodesHandler.getEdges.apply(this.nodesHandler, arguments);
+  };
+  Network.prototype.startSimulation = function () {
+    this.physics.startSimulation.apply(this.physics, arguments);
+  };
+  Network.prototype.stopSimulation = function () {
+    this.physics.stopSimulation.apply(this.physics, arguments);
+  };
+  Network.prototype.stabilize = function () {
+    this.physics.stabilize.apply(this.physics, arguments);
+  };
+  Network.prototype.getSelection = function () {
+    this.selectionHandler.getSelection.apply(this.selectionHandler, arguments);
+  };
+  Network.prototype.getSelectedNodes = function () {
+    this.selectionHandler.getSelectedNodes.apply(this.selectionHandler, arguments);
+  };
+  Network.prototype.getSelectedEdges = function () {
+    this.selectionHandler.getSelectedEdges.apply(this.selectionHandler, arguments);
+  };
+  Network.prototype.getNodeAt = function () {
+    this.selectionHandler.getNodeAt.apply(this.selectionHandler, arguments);
+  };
+  Network.prototype.getEdgeAt = function () {
+    this.selectionHandler.getEdgeAt.apply(this.selectionHandler, arguments);
+  };
+  Network.prototype.selectNodes = function () {
+    this.selectionHandler.selectNodes.apply(this.selectionHandler, arguments);
+  };
+  Network.prototype.selectEdges = function () {
+    this.selectionHandler.selectEdges.apply(this.selectionHandler, arguments);
+  };
+  Network.prototype.unselectAll = function () {
+    this.selectionHandler.unselectAll.apply(this.selectionHandler, arguments);
+  };
+  Network.prototype.getScale = function () {
+    this.view.getScale.apply(this.view, arguments);
+  };
+  Network.prototype.getPosition = function () {
+    this.view.getPosition.apply(this.view, arguments);
+  };
+  Network.prototype.fit = function () {
+    this.view.fit.apply(this.view, arguments);
+  };
+  Network.prototype.moveTo = function () {
+    this.view.moveTo.apply(this.view, arguments);
+  };
+  Network.prototype.focusOnNode = function () {
+    this.view.focusOnNode.apply(this.view, arguments);
+  };
+  Network.prototype.releaseNode = function () {
+    this.view.releaseNode.apply(this.view, arguments);
   };
 
   module.exports = Network;
@@ -16988,188 +17109,18 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
-  
-  /**
-   * Expose `Emitter`.
-   */
-
-  module.exports = Emitter;
-
-  /**
-   * Initialize a new `Emitter`.
-   *
-   * @api public
-   */
-
-  function Emitter(obj) {
-    if (obj) return mixin(obj);
-  };
-
-  /**
-   * Mixin the emitter properties.
-   *
-   * @param {Object} obj
-   * @return {Object}
-   * @api private
-   */
-
-  function mixin(obj) {
-    for (var key in Emitter.prototype) {
-      obj[key] = Emitter.prototype[key];
-    }
-    return obj;
-  }
-
-  /**
-   * Listen on the given `event` with `fn`.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.on =
-  Emitter.prototype.addEventListener = function(event, fn){
-    this._callbacks = this._callbacks || {};
-    (this._callbacks[event] = this._callbacks[event] || [])
-      .push(fn);
-    return this;
-  };
-
-  /**
-   * Adds an `event` listener that will be invoked a single
-   * time then automatically removed.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.once = function(event, fn){
-    var self = this;
-    this._callbacks = this._callbacks || {};
-
-    function on() {
-      self.off(event, on);
-      fn.apply(this, arguments);
-    }
-
-    on.fn = fn;
-    this.on(event, on);
-    return this;
-  };
-
-  /**
-   * Remove the given callback for `event` or all
-   * registered callbacks.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.off =
-  Emitter.prototype.removeListener =
-  Emitter.prototype.removeAllListeners =
-  Emitter.prototype.removeEventListener = function(event, fn){
-    this._callbacks = this._callbacks || {};
-
-    // all
-    if (0 == arguments.length) {
-      this._callbacks = {};
-      return this;
-    }
-
-    // specific event
-    var callbacks = this._callbacks[event];
-    if (!callbacks) return this;
-
-    // remove all handlers
-    if (1 == arguments.length) {
-      delete this._callbacks[event];
-      return this;
-    }
-
-    // remove specific handler
-    var cb;
-    for (var i = 0; i < callbacks.length; i++) {
-      cb = callbacks[i];
-      if (cb === fn || cb.fn === fn) {
-        callbacks.splice(i, 1);
-        break;
-      }
-    }
-    return this;
-  };
-
-  /**
-   * Emit `event` with the given args.
-   *
-   * @param {String} event
-   * @param {Mixed} ...
-   * @return {Emitter}
-   */
-
-  Emitter.prototype.emit = function(event){
-    this._callbacks = this._callbacks || {};
-    var args = [].slice.call(arguments, 1)
-      , callbacks = this._callbacks[event];
-
-    if (callbacks) {
-      callbacks = callbacks.slice(0);
-      for (var i = 0, len = callbacks.length; i < len; ++i) {
-        callbacks[i].apply(this, args);
-      }
-    }
-
-    return this;
-  };
-
-  /**
-   * Return array of callbacks for `event`.
-   *
-   * @param {String} event
-   * @return {Array}
-   * @api public
-   */
-
-  Emitter.prototype.listeners = function(event){
-    this._callbacks = this._callbacks || {};
-    return this._callbacks[event] || [];
-  };
-
-  /**
-   * Check if this emitter has `event` handlers.
-   *
-   * @param {String} event
-   * @return {Boolean}
-   * @api public
-   */
-
-  Emitter.prototype.hasListeners = function(event){
-    return !! this.listeners(event).length;
-  };
-
-
-/***/ },
-/* 43 */
-/***/ function(module, exports, __webpack_require__) {
-
   'use strict';
 
-  var Emitter = __webpack_require__(42);
+  var Emitter = __webpack_require__(65);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(44);
+  var hammerUtil = __webpack_require__(43);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
   var ItemSet = __webpack_require__(32);
   var TimeAxis = __webpack_require__(35);
-  var Activator = __webpack_require__(65);
+  var Activator = __webpack_require__(64);
   var DateUtil = __webpack_require__(15);
   var CustomTime = __webpack_require__(27);
 
@@ -18172,7 +18123,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Core;
 
 /***/ },
-/* 44 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -18244,7 +18195,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.offRelease = exports.offTouch;
 
 /***/ },
-/* 45 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -18266,13 +18217,13 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.nl_BE = exports.nl;
 
 /***/ },
-/* 46 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var DOMutil = __webpack_require__(2);
-  var Points = __webpack_require__(48);
+  var Points = __webpack_require__(47);
 
   function Line(groupId, options) {
     this.groupId = groupId;
@@ -18476,13 +18427,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Line;
 
 /***/ },
-/* 47 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var DOMutil = __webpack_require__(2);
-  var Points = __webpack_require__(48);
+  var Points = __webpack_require__(47);
 
   function Bargraph(groupId, options) {
     this.groupId = groupId;
@@ -18713,7 +18664,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Bargraph;
 
 /***/ },
-/* 48 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -18760,7 +18711,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Points;
 
 /***/ },
-/* 49 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -18901,7 +18852,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // 20:bright red
 
 /***/ },
-/* 50 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -19360,7 +19311,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 51 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -19769,7 +19720,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 52 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -20329,7 +20280,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 53 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -20981,7 +20932,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 54 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -21295,7 +21246,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 55 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -21308,7 +21259,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(44);
+  var hammerUtil = __webpack_require__(43);
 
   var util = __webpack_require__(1);
 
@@ -21630,7 +21581,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 56 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -22031,7 +21982,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 57 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -22743,7 +22694,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 58 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -23427,7 +23378,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 59 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -23919,7 +23870,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 60 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -23934,7 +23885,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(44);
+  var hammerUtil = __webpack_require__(43);
   var locales = __webpack_require__(81);
 
   /**
@@ -25108,7 +25059,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 61 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -25904,7 +25855,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 62 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -26175,7 +26126,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // item is a function, which is allowed
 
 /***/ },
-/* 63 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -26475,7 +26426,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 64 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -26759,13 +26710,13 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 65 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var keycharm = __webpack_require__(83);
-  var Emitter = __webpack_require__(42);
+  var Emitter = __webpack_require__(65);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
 
@@ -26910,6 +26861,176 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
   module.exports = Activator;
+
+/***/ },
+/* 65 */
+/***/ function(module, exports, __webpack_require__) {
+
+  
+  /**
+   * Expose `Emitter`.
+   */
+
+  module.exports = Emitter;
+
+  /**
+   * Initialize a new `Emitter`.
+   *
+   * @api public
+   */
+
+  function Emitter(obj) {
+    if (obj) return mixin(obj);
+  };
+
+  /**
+   * Mixin the emitter properties.
+   *
+   * @param {Object} obj
+   * @return {Object}
+   * @api private
+   */
+
+  function mixin(obj) {
+    for (var key in Emitter.prototype) {
+      obj[key] = Emitter.prototype[key];
+    }
+    return obj;
+  }
+
+  /**
+   * Listen on the given `event` with `fn`.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.on =
+  Emitter.prototype.addEventListener = function(event, fn){
+    this._callbacks = this._callbacks || {};
+    (this._callbacks[event] = this._callbacks[event] || [])
+      .push(fn);
+    return this;
+  };
+
+  /**
+   * Adds an `event` listener that will be invoked a single
+   * time then automatically removed.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.once = function(event, fn){
+    var self = this;
+    this._callbacks = this._callbacks || {};
+
+    function on() {
+      self.off(event, on);
+      fn.apply(this, arguments);
+    }
+
+    on.fn = fn;
+    this.on(event, on);
+    return this;
+  };
+
+  /**
+   * Remove the given callback for `event` or all
+   * registered callbacks.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.off =
+  Emitter.prototype.removeListener =
+  Emitter.prototype.removeAllListeners =
+  Emitter.prototype.removeEventListener = function(event, fn){
+    this._callbacks = this._callbacks || {};
+
+    // all
+    if (0 == arguments.length) {
+      this._callbacks = {};
+      return this;
+    }
+
+    // specific event
+    var callbacks = this._callbacks[event];
+    if (!callbacks) return this;
+
+    // remove all handlers
+    if (1 == arguments.length) {
+      delete this._callbacks[event];
+      return this;
+    }
+
+    // remove specific handler
+    var cb;
+    for (var i = 0; i < callbacks.length; i++) {
+      cb = callbacks[i];
+      if (cb === fn || cb.fn === fn) {
+        callbacks.splice(i, 1);
+        break;
+      }
+    }
+    return this;
+  };
+
+  /**
+   * Emit `event` with the given args.
+   *
+   * @param {String} event
+   * @param {Mixed} ...
+   * @return {Emitter}
+   */
+
+  Emitter.prototype.emit = function(event){
+    this._callbacks = this._callbacks || {};
+    var args = [].slice.call(arguments, 1)
+      , callbacks = this._callbacks[event];
+
+    if (callbacks) {
+      callbacks = callbacks.slice(0);
+      for (var i = 0, len = callbacks.length; i < len; ++i) {
+        callbacks[i].apply(this, args);
+      }
+    }
+
+    return this;
+  };
+
+  /**
+   * Return array of callbacks for `event`.
+   *
+   * @param {String} event
+   * @return {Array}
+   * @api public
+   */
+
+  Emitter.prototype.listeners = function(event){
+    this._callbacks = this._callbacks || {};
+    return this._callbacks[event] || [];
+  };
+
+  /**
+   * Check if this emitter has `event` handlers.
+   *
+   * @param {String} event
+   * @return {Boolean}
+   * @api public
+   */
+
+  Emitter.prototype.hasListeners = function(event){
+    return !! this.listeners(event).length;
+  };
+
 
 /***/ },
 /* 66 */
@@ -29998,7 +30119,7 @@ return /******/ (function(modules) { // webpackBootstrap
       return _moment;
 
   }));
-  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(85)(module)))
+  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(102)(module)))
 
 /***/ },
 /* 67 */
@@ -32684,7 +32805,7 @@ return /******/ (function(modules) { // webpackBootstrap
       prefixed: prefixed
   });
 
-  if ("function" == TYPE_FUNCTION && __webpack_require__(86)) {
+  if ("function" == TYPE_FUNCTION && __webpack_require__(103)) {
       !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
           return Hammer;
       }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -32717,63 +32838,63 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _Label2 = _interopRequireWildcard(_Label);
 
-  var _Box = __webpack_require__(87);
+  var _Box = __webpack_require__(85);
 
   var _Box2 = _interopRequireWildcard(_Box);
 
-  var _Circle = __webpack_require__(88);
+  var _Circle = __webpack_require__(86);
 
   var _Circle2 = _interopRequireWildcard(_Circle);
 
-  var _CircularImage = __webpack_require__(89);
+  var _CircularImage = __webpack_require__(87);
 
   var _CircularImage2 = _interopRequireWildcard(_CircularImage);
 
-  var _Database = __webpack_require__(90);
+  var _Database = __webpack_require__(88);
 
   var _Database2 = _interopRequireWildcard(_Database);
 
-  var _Diamond = __webpack_require__(91);
+  var _Diamond = __webpack_require__(89);
 
   var _Diamond2 = _interopRequireWildcard(_Diamond);
 
-  var _Dot = __webpack_require__(92);
+  var _Dot = __webpack_require__(90);
 
   var _Dot2 = _interopRequireWildcard(_Dot);
 
-  var _Ellipse = __webpack_require__(93);
+  var _Ellipse = __webpack_require__(91);
 
   var _Ellipse2 = _interopRequireWildcard(_Ellipse);
 
-  var _Icon = __webpack_require__(94);
+  var _Icon = __webpack_require__(92);
 
   var _Icon2 = _interopRequireWildcard(_Icon);
 
-  var _Image = __webpack_require__(95);
+  var _Image = __webpack_require__(93);
 
   var _Image2 = _interopRequireWildcard(_Image);
 
-  var _Square = __webpack_require__(96);
+  var _Square = __webpack_require__(94);
 
   var _Square2 = _interopRequireWildcard(_Square);
 
-  var _Star = __webpack_require__(97);
+  var _Star = __webpack_require__(95);
 
   var _Star2 = _interopRequireWildcard(_Star);
 
-  var _Text = __webpack_require__(98);
+  var _Text = __webpack_require__(96);
 
   var _Text2 = _interopRequireWildcard(_Text);
 
-  var _Triangle = __webpack_require__(99);
+  var _Triangle = __webpack_require__(97);
 
   var _Triangle2 = _interopRequireWildcard(_Triangle);
 
-  var _TriangleDown = __webpack_require__(100);
+  var _TriangleDown = __webpack_require__(98);
 
   var _TriangleDown2 = _interopRequireWildcard(_TriangleDown);
 
-  var _Validator = __webpack_require__(62);
+  var _Validator = __webpack_require__(61);
 
   var _Validator2 = _interopRequireWildcard(_Validator);
 
@@ -33503,15 +33624,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _Label2 = _interopRequireWildcard(_Label);
 
-  var _BezierEdgeDynamic = __webpack_require__(101);
+  var _BezierEdgeDynamic = __webpack_require__(99);
 
   var _BezierEdgeDynamic2 = _interopRequireWildcard(_BezierEdgeDynamic);
 
-  var _BezierEdgeStatic = __webpack_require__(102);
+  var _BezierEdgeStatic = __webpack_require__(100);
 
   var _BezierEdgeStatic2 = _interopRequireWildcard(_BezierEdgeStatic);
 
-  var _StraightEdge = __webpack_require__(103);
+  var _StraightEdge = __webpack_require__(101);
 
   var _StraightEdge2 = _interopRequireWildcard(_StraightEdge);
 
@@ -35032,7 +35153,7 @@ return /******/ (function(modules) { // webpackBootstrap
   });
   var util = __webpack_require__(1);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(44);
+  var hammerUtil = __webpack_require__(43);
   var keycharm = __webpack_require__(83);
 
   var NavigationHandler = (function () {
@@ -35468,7 +35589,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(44);
+  var hammerUtil = __webpack_require__(43);
   var util = __webpack_require__(1);
 
   var ColorPicker = (function () {
@@ -36248,30 +36369,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
-  module.exports = function(module) {
-  	if(!module.webpackPolyfill) {
-  		module.deprecate = function() {};
-  		module.paths = [];
-  		// module.parent = undefined by default
-  		module.children = [];
-  		module.webpackPolyfill = 1;
-  	}
-  	return module;
-  }
-
-
-/***/ },
-/* 86 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
-
-  /* WEBPACK VAR INJECTION */}.call(exports, {}))
-
-/***/ },
-/* 87 */
-/***/ function(module, exports, __webpack_require__) {
-
   'use strict';
 
   var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
@@ -36288,7 +36385,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(104);
+  var _NodeBase2 = __webpack_require__(105);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -36367,7 +36464,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 88 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36386,7 +36483,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _CircleImageBase2 = __webpack_require__(105);
+  var _CircleImageBase2 = __webpack_require__(104);
 
   var _CircleImageBase3 = _interopRequireWildcard(_CircleImageBase2);
 
@@ -36449,7 +36546,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 89 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36468,7 +36565,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _CircleImageBase2 = __webpack_require__(105);
+  var _CircleImageBase2 = __webpack_require__(104);
 
   var _CircleImageBase3 = _interopRequireWildcard(_CircleImageBase2);
 
@@ -36550,7 +36647,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 90 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36569,7 +36666,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(104);
+  var _NodeBase2 = __webpack_require__(105);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -36648,7 +36745,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 91 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36706,7 +36803,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 92 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36764,7 +36861,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 93 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36783,7 +36880,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(104);
+  var _NodeBase2 = __webpack_require__(105);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -36865,7 +36962,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 94 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36884,7 +36981,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(104);
+  var _NodeBase2 = __webpack_require__(105);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -36973,7 +37070,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 95 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36992,7 +37089,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _CircleImageBase2 = __webpack_require__(105);
+  var _CircleImageBase2 = __webpack_require__(104);
 
   var _CircleImageBase3 = _interopRequireWildcard(_CircleImageBase2);
 
@@ -37051,7 +37148,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 96 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37110,7 +37207,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 97 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37168,7 +37265,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 98 */
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37187,7 +37284,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(104);
+  var _NodeBase2 = __webpack_require__(105);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -37246,7 +37343,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 99 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37304,7 +37401,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 100 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37362,7 +37459,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 101 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37518,7 +37615,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 102 */
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37782,7 +37879,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 103 */
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37892,73 +37989,31 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 104 */
+/* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
-  'use strict';
+  module.exports = function(module) {
+  	if(!module.webpackPolyfill) {
+  		module.deprecate = function() {};
+  		module.paths = [];
+  		// module.parent = undefined by default
+  		module.children = [];
+  		module.webpackPolyfill = 1;
+  	}
+  	return module;
+  }
 
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var NodeBase = (function () {
-    function NodeBase(options, body, labelModule) {
-      _classCallCheck(this, NodeBase);
-
-      this.body = body;
-      this.labelModule = labelModule;
-      this.setOptions(options);
-      this.top = undefined;
-      this.left = undefined;
-      this.height = undefined;
-      this.boundingBox = { top: 0, left: 0, right: 0, bottom: 0 };
-    }
-
-    _createClass(NodeBase, [{
-      key: 'setOptions',
-      value: function setOptions(options) {
-        this.options = options;
-      }
-    }, {
-      key: '_distanceToBorder',
-      value: function _distanceToBorder(angle) {
-        var borderWidth = 1;
-        return Math.min(Math.abs(this.width / 2 / Math.cos(angle)), Math.abs(this.height / 2 / Math.sin(angle))) + borderWidth;
-      }
-    }, {
-      key: 'enableShadow',
-      value: function enableShadow(ctx) {
-        if (this.options.shadow.enabled === true) {
-          ctx.shadowColor = 'rgba(0,0,0,0.5)';
-          ctx.shadowBlur = this.options.shadow.size;
-          ctx.shadowOffsetX = this.options.shadow.x;
-          ctx.shadowOffsetY = this.options.shadow.y;
-        }
-      }
-    }, {
-      key: 'disableShadow',
-      value: function disableShadow(ctx) {
-        if (this.options.shadow.enabled === true) {
-          ctx.shadowColor = 'rgba(0,0,0,0)';
-          ctx.shadowBlur = 0;
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 0;
-        }
-      }
-    }]);
-
-    return NodeBase;
-  })();
-
-  exports['default'] = NodeBase;
-  module.exports = exports['default'];
 
 /***/ },
-/* 105 */
+/* 103 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
+
+  /* WEBPACK VAR INJECTION */}.call(exports, {}))
+
+/***/ },
+/* 104 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37977,7 +38032,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(104);
+  var _NodeBase2 = __webpack_require__(105);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -38079,6 +38134,72 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
+/* 105 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var NodeBase = (function () {
+    function NodeBase(options, body, labelModule) {
+      _classCallCheck(this, NodeBase);
+
+      this.body = body;
+      this.labelModule = labelModule;
+      this.setOptions(options);
+      this.top = undefined;
+      this.left = undefined;
+      this.height = undefined;
+      this.boundingBox = { top: 0, left: 0, right: 0, bottom: 0 };
+    }
+
+    _createClass(NodeBase, [{
+      key: 'setOptions',
+      value: function setOptions(options) {
+        this.options = options;
+      }
+    }, {
+      key: '_distanceToBorder',
+      value: function _distanceToBorder(angle) {
+        var borderWidth = 1;
+        return Math.min(Math.abs(this.width / 2 / Math.cos(angle)), Math.abs(this.height / 2 / Math.sin(angle))) + borderWidth;
+      }
+    }, {
+      key: 'enableShadow',
+      value: function enableShadow(ctx) {
+        if (this.options.shadow.enabled === true) {
+          ctx.shadowColor = 'rgba(0,0,0,0.5)';
+          ctx.shadowBlur = this.options.shadow.size;
+          ctx.shadowOffsetX = this.options.shadow.x;
+          ctx.shadowOffsetY = this.options.shadow.y;
+        }
+      }
+    }, {
+      key: 'disableShadow',
+      value: function disableShadow(ctx) {
+        if (this.options.shadow.enabled === true) {
+          ctx.shadowColor = 'rgba(0,0,0,0)';
+          ctx.shadowBlur = 0;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 0;
+        }
+      }
+    }]);
+
+    return NodeBase;
+  })();
+
+  exports['default'] = NodeBase;
+  module.exports = exports['default'];
+
+/***/ },
 /* 106 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -38098,7 +38219,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(104);
+  var _NodeBase2 = __webpack_require__(105);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
