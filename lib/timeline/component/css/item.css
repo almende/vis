@@ -57,25 +57,23 @@
   margin: 0;
 }
 
-.vis-item.vis-range .vis-item-content {
-  position: relative;
-  display: inline-block;
-  overflow: hidden;
-  /*max-width: 100%;*/
-}
-
-.vis-item.vis-range .vis-item-frame {
+.vis-item .vis-item-frame {
   position: relative;
   width: 100%;
   height: 100%;
+  padding: 0;
+  margin: 0;
   overflow: hidden;
+}
+
+.vis-item.vis-range .vis-item-content {
+  position: relative;
+  display: inline-block;
 }
 
 .vis-item.background .vis-item-content {
   position: absolute;
   display: inline-block;
-  max-width: 100%;
-  margin: 5px;
 }
 
 .vis-item.vis-line {
@@ -106,6 +104,7 @@
   position: absolute;
   width: 24px;
   max-width: 20%;
+  min-width: 2px;
   height: 100%;
   top: 0;
   left: -4px;
@@ -117,6 +116,7 @@
   position: absolute;
   width: 24px;
   max-width: 20%;
+  min-width: 2px;
   height: 100%;
   top: 0;
   right: -4px;
