@@ -6,7 +6,7 @@
   border-width: 1px;
   background-color: #D5DDF6;
   display: inline-block;
-  overflow: hidden;
+  /*overflow: hidden;*/
 }
 
 .vis-item.vis-selected {
@@ -60,7 +60,15 @@
 .vis-item.vis-range .vis-item-content {
   position: relative;
   display: inline-block;
-  max-width: 100%;
+  overflow: hidden;
+  /*max-width: 100%;*/
+}
+
+.vis-item.vis-range .vis-item-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 .vis-item.background .vis-item-content {
@@ -81,7 +89,7 @@
 .vis-item .vis-item-content {
   white-space: nowrap;
   box-sizing: border-box;
-  padding: 5px;
+  margin: 5px;
 }
 
 .vis-item .vis-delete {
