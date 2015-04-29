@@ -18777,8 +18777,13 @@ return /******/ (function(modules) { // webpackBootstrap
         intersections[key].resolved += 1;
 
         if (group.options.barChart.handleOverlap === 'stack') {
-          heightOffset = intersections[key].accumulated;
-          intersections[key].accumulated += group.zeroPosition - combinedData[i].y;
+          if (combinedData[i].y < group.zeroPosition) {
+            heightOffset = intersections[key].accumulatedNegative;
+            intersections[key].accumulatedNegative += group.zeroPosition - combinedData[i].y;
+          } else {
+            heightOffset = intersections[key].accumulatedPositive;
+            intersections[key].accumulatedPositive += group.zeroPosition - combinedData[i].y;
+          }
         } else if (group.options.barChart.handleOverlap === 'sideBySide') {
           drawData.width = drawData.width / intersections[key].amount;
           drawData.offset += intersections[key].resolved * drawData.width - 0.5 * drawData.width * (intersections[key].amount + 1);
@@ -18816,7 +18821,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
       if (coreDistance === 0) {
         if (intersections[combinedData[i].x] === undefined) {
-          intersections[combinedData[i].x] = { amount: 0, resolved: 0, accumulated: 0 };
+          intersections[combinedData[i].x] = { amount: 0, resolved: 0, accumulatedPositive: 0, accumulatedNegative: 0 };
         }
         intersections[combinedData[i].x].amount += 1;
       }
@@ -18886,13 +18891,19 @@ return /******/ (function(modules) { // webpackBootstrap
         yMin = yMin > combinedData[i].y ? combinedData[i].y : yMin;
         yMax = yMax < combinedData[i].y ? combinedData[i].y : yMax;
       } else {
-        intersections[key].accumulated += combinedData[i].y;
+        if (combinedData[i].y < 0) {
+          intersections[key].accumulatedNegative += combinedData[i].y;
+        } else {
+          intersections[key].accumulatedPositive += combinedData[i].y;
+        }
       }
     }
     for (var xpos in intersections) {
       if (intersections.hasOwnProperty(xpos)) {
-        yMin = yMin > intersections[xpos].accumulated ? intersections[xpos].accumulated : yMin;
-        yMax = yMax < intersections[xpos].accumulated ? intersections[xpos].accumulated : yMax;
+        yMin = yMin > intersections[xpos].accumulatedNegative ? intersections[xpos].accumulatedNegative : yMin;
+        yMin = yMin > intersections[xpos].accumulatedPositive ? intersections[xpos].accumulatedPositive : yMin;
+        yMax = yMax < intersections[xpos].accumulatedNegative ? intersections[xpos].accumulatedNegative : yMax;
+        yMax = yMax < intersections[xpos].accumulatedPositive ? intersections[xpos].accumulatedPositive : yMax;
       }
     }
 
