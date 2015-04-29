@@ -9609,8 +9609,6 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     Item.call(this, data, conversion, options);
-
-    this.emptyContent = false;
   }
 
   BackgroundItem.prototype = new Item(null, null, null);
@@ -9642,10 +9640,15 @@ return /******/ (function(modules) { // webpackBootstrap
       dom.box = document.createElement('div');
       // className is updated in redraw()
 
+      // frame box (to prevent the item contents from overflowing
+      dom.frame = document.createElement('div');
+      dom.frame.className = 'vis-item-frame';
+      dom.box.appendChild(dom.frame);
+
       // contents box
       dom.content = document.createElement('div');
       dom.content.className = 'vis-item-content';
-      dom.box.appendChild(dom.content);
+      dom.frame.appendChild(dom.content);
 
       // Note: we do NOT attach this item as attribute to the DOM,
       //       such that background items cannot be selected
@@ -10261,10 +10264,15 @@ return /******/ (function(modules) { // webpackBootstrap
       dom.box = document.createElement('div');
       // className is updated in redraw()
 
+      // frame box (to prevent the item contents from overflowing
+      dom.frame = document.createElement('div');
+      dom.frame.className = 'vis-item-frame';
+      dom.box.appendChild(dom.frame);
+
       // contents box
       dom.content = document.createElement('div');
       dom.content.className = 'vis-item-content';
-      dom.box.appendChild(dom.content);
+      dom.frame.appendChild(dom.content);
 
       // attach this item as attribute
       dom.box['timeline-item'] = this;
@@ -10300,7 +10308,7 @@ return /******/ (function(modules) { // webpackBootstrap
       dom.box.className = this.baseClassName + className;
 
       // determine from css whether this box has overflow
-      this.overflow = window.getComputedStyle(dom.content).overflow !== 'hidden';
+      this.overflow = window.getComputedStyle(dom.frame).overflow !== 'hidden';
 
       // recalculate size
       // turn off max-width to be able to calculate the real width
