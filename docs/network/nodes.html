@@ -80,6 +80,9 @@
     <h3>Options</h3>
     <p>The options for the nodes have to be contained in an object titled 'nodes'. All of these options can be supplied per node as well. Obviously, 'id' should not be defined globally but per node. Options defined
         in the global nodes object, are applied to all nodes. If a node has options of its own, those will be used instead of the global options.</p>
+    <p><b><i>When you have given a node an option, you will override the global option for that property. If you then set that option to <code>undefined</code> or <code>null</code>,
+        it will revert back to the default value.</i></b>
+    </p>
     <p>Click on the full options or shorthand options to show how these options are supposed to be used.</p>
     <ul class="nav nav-tabs">
         <li role="presentation" class="active" onclick="hideOptions('fullTab','fullOptions','shortTab','shortOptions');" id="hiddenTab"><a href="#">options hidden</a></li>
