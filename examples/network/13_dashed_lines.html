@@ -23,17 +23,17 @@
       var nodes = [
         {id: 1, label: 'dashed\nline\nexamples'},
         {id: 2, label: 'default'},
-        {id: 3, label: 'dash.length: 20\ndash.gap: 20'},
-        {id: 4, label: 'dash.length: 20\ndash.gap: 5'},
-        {id: 5, label: 'dash.length: 5\ndash.gap: 20'},
-        {id: 6, label: 'dash.length: 20\ndash.gap: 5\ndash.altLength: 5'}
+        {id: 3, label: 'dashes: [20, 20]'},
+        {id: 4, label: 'dashes: [20, 5]'},
+        {id: 5, label: 'dashes: [5, 20]'},
+        {id: 6, label: 'dashes: [20, 5, 5, 5]'}
       ];
       var edges = [
-        {from: 1, to: 2, style: 'dash-line'},
-        {from: 1, to: 3, style: 'dash-line', dash: {length: 20, gap: 20}},
-        {from: 1, to: 4, style: 'dash-line', dash: {length: 20, gap: 5}},
-        {from: 1, to: 5, style: 'dash-line', dash: {length: 5, gap: 20}},
-        {from: 1, to: 6, style: 'dash-line', dash: {length: 20, gap: 5, altLength: 5}}
+        {from: 1, to: 2, dashes: true},
+        {from: 1, to: 3, dashes: [20, 20]},
+        {from: 1, to: 4, dashes: [20, 5]},
+        {from: 1, to: 5, dashes: [5, 20]},
+        {from: 1, to: 6, dashes: [20, 5, 5, 5]}
       ];
 
       // create the network
@@ -46,13 +46,18 @@
         nodes: {
           shape: 'box'
         },
-        physics: {barnesHut:{springLength:150}}, // this is the correct way to set the length of the springs
-        stabilize: false
+        physics: {
+          barnesHut: {
+            springLength: 150
+          },
+          stabilization: false
+        }
       };
       var network = new vis.Network(container, data, options);
     }
   </script>
-<script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-61231638-1', 'auto');ga('send', 'pageview');</script></head>
+  <script src="../googleAnalytics.js"></script>
+</head>
 
 <body onload="draw();">
 <p>
