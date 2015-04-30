@@ -24069,7 +24069,6 @@ return /******/ (function(modules) { // webpackBootstrap
         });
         this.body.emitter.on('_resetHierarchicalLayout', function () {
           _this.setupHierarchicalLayout();
-          _this.body.emitter.emit('fit', { duration: 0 });
         });
       }
     }, {
@@ -24095,7 +24094,6 @@ return /******/ (function(modules) { // webpackBootstrap
               }
             }
 
-            this.body.emitter.emit('_resetHierarchicalLayout');
             // because the hierarchical system needs it's own physics and smooth curve settings, we adapt the other options if needed.
             return this.adaptAllOptions(allOptions);
           } else {

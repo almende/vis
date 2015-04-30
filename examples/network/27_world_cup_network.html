@@ -69,66 +69,66 @@ Hide nodes on drag: <input type="checkbox" id="hideNodesOnDrag">
 <div id="mynetwork"></div>
 
 <script type="text/javascript">
-  var dropdown = document.getElementById("dropdownID");
-  dropdown.onchange = update;
-
-  var roundnessSlider = document.getElementById("roundnessSlider");
-  roundnessSlider.onchange = update;
-
-  var roundnessScreen = document.getElementById("roundnessScreen");
-  var hideEdgesOnDrag = document.getElementById("hideEdgesOnDrag");
-  hideEdgesOnDrag.onchange = update;
-  var hideNodesOnDrag = document.getElementById("hideNodesOnDrag");
-  hideNodesOnDrag.onchange = update;
-  var inheritColor = document.getElementById("inheritColor");
-  inheritColor.onchange = redrawAll;
-
+//  var dropdown = document.getElementById("dropdownID");
+//  dropdown.onchange = update;
+//
+//  var roundnessSlider = document.getElementById("roundnessSlider");
+//  roundnessSlider.onchange = update;
+//
+//  var roundnessScreen = document.getElementById("roundnessScreen");
+//  var hideEdgesOnDrag = document.getElementById("hideEdgesOnDrag");
+//  hideEdgesOnDrag.onchange = update;
+//  var hideNodesOnDrag = document.getElementById("hideNodesOnDrag");
+//  hideNodesOnDrag.onchange = update;
+//  var inheritColor = document.getElementById("inheritColor");
+//  inheritColor.onchange = redrawAll;
+//
   var network;
 
 
   function redrawAll() {
-    network = null;
-
-    var inheritColorVal = inheritColor.value;
+//    network = null;
+//
+//    var inheritColorVal = inheritColor.value;
 
     var container = document.getElementById('mynetwork');
-    var options = {
-      nodes: {
-        shape: 'dot',
-        radiusMin: 10,
-        radiusMax: 30,
-        fontSize: 12,
-        fontFace: "Tahoma"
-      },
-      edges: {
-        width: 0.15,
-        inheritColor: "from"
-      },
-      tooltip: {
-        delay: 200,
-        fontSize: 12,
-        color: {
-          background: "#fff"
-        }
-      },
-      smoothCurves: {dynamic: false, type: "continuous"},
-      stabilize: false,
-      physics: {
-        barnesHut: {
-          gravitationalConstant: 0,
-          centralGravity: 0,
-          springConstant: 0
-        }
-      },
-      hideEdgesOnDrag: true
-    };
+    var options = {}
+//      nodes: {
+//        shape: 'dot',
+//        radiusMin: 10,
+//        radiusMax: 30,
+//        fontSize: 12,
+//        fontFace: "Tahoma"
+//      },
+//      edges: {
+//        width: 0.15,
+//        inheritColor: "from"
+//      },
+//      tooltip: {
+//        delay: 200,
+//        fontSize: 12,
+//        color: {
+//          background: "#fff"
+//        }
+//      },
+//      smoothCurves: {dynamic: false, type: "continuous"},
+//      stabilize: false,
+//      physics: {
+//        barnesHut: {
+//          gravitationalConstant: 0,
+//          centralGravity: 0,
+//          springConstant: 0
+//        }
+//      },
+//      hideEdgesOnDrag: true
+//    };
 
-    if (inheritColorVal == "false") {
-      options['edges']['inheritColor'] = false;
-    }
-    else {
-      options['edges']['inheritColor'] = inheritColorVal;
-    }
+//    if (inheritColorVal == "false") {
+//      options['edges']['inheritColor'] = false;
+//    }
+//    else {
+//      options['edges']['inheritColor'] = inheritColorVal;
+//    }
 
     // Note: data is coming from ./data/WorldCup2014.js
     network = new vis.Network(container, data, options);
