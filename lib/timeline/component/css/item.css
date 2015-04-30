@@ -57,7 +57,7 @@
   margin: 0;
 }
 
-.vis-item .vis-item-frame {
+.vis-item .vis-item-overflow {
   position: relative;
   width: 100%;
   height: 100%;
