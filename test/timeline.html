@@ -44,14 +44,23 @@
   <script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-61231638-1', 'auto');ga('send', 'pageview');</script></head>
 <body>
 
-<div>
+<p>
   <label for="orientation">Orientation</label>
   <select id="orientation">
     <option value="both" selected>both</option>
     <option value="bottom">bottom</option>
     <option value="top">top</option>
   </select>
-</div>
+</p>
+<p>
+  <label for="align">Content alignment</label>
+  <select id="align">
+    <option value="auto" selected>auto</option>
+    <option value="center">center</option>
+    <option value="left">left</option>
+    <option value="right">right</option>
+  </select>
+</p>
 <script>
   var o = document.getElementById('orientation');
   o.onchange = function () {
@@ -59,11 +68,19 @@
       orientation: o.value
     });
   };
+
+  var a = document.getElementById('align');
+  a.onchange = function () {
+    timeline.setOptions({
+      align: a.value
+    });
+  };
+
 </script>
 
-<div>
+<p>
   <label for="currenttime"><input id="currenttime" type="checkbox" checked="true"> Show current time</label>
-</div>
+</p>
 <script>
   var currenttime = document.getElementById('currenttime');
   currenttime.onchange = function () {

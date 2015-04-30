@@ -87,15 +87,15 @@
 .vis-item .vis-item-content {
   white-space: nowrap;
   box-sizing: border-box;
-  margin: 5px;
+  padding: 5px;
 }
 
 .vis-item .vis-delete {
-  background: url('img/timeline/delete.png') no-repeat top center;
+  background: url('img/timeline/delete.png') no-repeat center;
   position: absolute;
   width: 24px;
   height: 24px;
-  top: 0;
+  top: -4px;
   right: -24px;
   cursor: pointer;
 }
