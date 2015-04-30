@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.0.0-SNAPSHOT
- * @date    2015-04-29
+ * @date    2015-04-30
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -166,7 +166,7 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   var moment = __webpack_require__(40);
-  var uuid = __webpack_require__(109);
+  var uuid = __webpack_require__(42);
 
   /**
    * Test whether given object is a number
@@ -3211,7 +3211,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(42);
+  var Emitter = __webpack_require__(43);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var util = __webpack_require__(1);
@@ -6376,13 +6376,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(42);
+  var Emitter = __webpack_require__(43);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
-  var Core = __webpack_require__(43);
+  var Core = __webpack_require__(44);
   var TimeAxis = __webpack_require__(35);
   var CurrentTime = __webpack_require__(26);
   var CustomTime = __webpack_require__(27);
@@ -6768,13 +6768,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(42);
+  var Emitter = __webpack_require__(43);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
-  var Core = __webpack_require__(43);
+  var Core = __webpack_require__(44);
   var TimeAxis = __webpack_require__(35);
   var CurrentTime = __webpack_require__(26);
   var CustomTime = __webpack_require__(27);
@@ -7807,7 +7807,7 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(44);
+  var hammerUtil = __webpack_require__(45);
   var moment = __webpack_require__(40);
   var Component = __webpack_require__(25);
   var DateUtil = __webpack_require__(15);
@@ -10387,7 +10387,7 @@ return /******/ (function(modules) { // webpackBootstrap
     } else {
       this.left = start;
       this.width = boxWidth;
-      contentWidth = Math.min(end - start - 2 * this.options.padding, this.props.content.width);
+      contentWidth = Math.min(end - start, this.props.content.width);
     }
 
     this.dom.box.style.left = this.left + 'px';
@@ -10399,11 +10399,11 @@ return /******/ (function(modules) { // webpackBootstrap
         break;
 
       case 'right':
-        this.dom.content.style.left = Math.max(boxWidth - contentWidth - 2 * this.options.padding, 0) + 'px';
+        this.dom.content.style.left = Math.max(boxWidth - contentWidth, 0) + 'px';
         break;
 
       case 'center':
-        this.dom.content.style.left = Math.max((boxWidth - contentWidth - 2 * this.options.padding) / 2, 0) + 'px';
+        this.dom.content.style.left = Math.max((boxWidth - contentWidth) / 2, 0) + 'px';
         break;
 
       default:
@@ -10417,8 +10417,7 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         } else {
           if (start < 0) {
-            contentLeft = Math.min(-start, end - start - contentWidth - 2 * this.options.padding);
-            // TODO: remove the need for options.padding. it's terrible.
+            contentLeft = -start;
           } else {
             contentLeft = 0;
           }
@@ -10557,7 +10556,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(25);
   var moment = __webpack_require__(40);
-  var locales = __webpack_require__(45);
+  var locales = __webpack_require__(46);
 
   /**
    * A current time bar
@@ -10734,7 +10733,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(25);
   var moment = __webpack_require__(40);
-  var locales = __webpack_require__(45);
+  var locales = __webpack_require__(46);
 
   /**
    * A custom time bar
@@ -11558,9 +11557,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(2);
-  var Line = __webpack_require__(46);
-  var Bar = __webpack_require__(47);
-  var Points = __webpack_require__(48);
+  var Line = __webpack_require__(47);
+  var Bar = __webpack_require__(48);
+  var Points = __webpack_require__(49);
 
   /**
    * /**
@@ -11732,6 +11731,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
   GraphGroup.prototype.getYRange = function (groupData) {
     return this.type.getYRange(groupData);
+  };
+
+  GraphGroup.prototype.getData = function (groupData) {
+    return this.type.getData(groupData);
   };
 
   GraphGroup.prototype.draw = function (dataset, group, framework) {
@@ -12463,8 +12466,7 @@ return /******/ (function(modules) { // webpackBootstrap
           vertical: 10
         },
         axis: 20
-      },
-      padding: 5
+      }
     };
 
     // options is shared by this ItemSet and all its items
@@ -12640,9 +12642,6 @@ return /******/ (function(modules) { // webpackBootstrap
    *                              and vertical direction. Default is 10.
    *                           {Number} margin
    *                              Set margin for both axis and items in pixels.
-   *                           {Number} padding
-   *                              Padding of the contents of an item in pixels.
-   *                              Must correspond with the items css. Default is 5.
    *                           {Boolean} selectable
    *                              If true (default), items can be selected.
    *                           {Boolean} editable
@@ -12673,7 +12672,7 @@ return /******/ (function(modules) { // webpackBootstrap
   ItemSet.prototype.setOptions = function (options) {
     if (options) {
       // copy all options that we know
-      var fields = ['type', 'align', 'order', 'padding', 'stack', 'selectable', 'groupOrder', 'dataAttributes', 'template', 'hide', 'snap'];
+      var fields = ['type', 'align', 'order', 'stack', 'selectable', 'groupOrder', 'dataAttributes', 'template', 'hide', 'snap'];
       util.selectiveExtend(fields, this.options, options);
 
       if ('orientation' in options) {
@@ -14216,7 +14215,8 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataAxis = __webpack_require__(28);
   var GraphGroup = __webpack_require__(29);
   var Legend = __webpack_require__(33);
-  var BarGraphFunctions = __webpack_require__(47);
+  var BarFunctions = __webpack_require__(48);
+  var LineFunctions = __webpack_require__(47);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -14236,6 +14236,7 @@ return /******/ (function(modules) { // webpackBootstrap
       defaultGroup: 'default',
       sort: true,
       sampling: true,
+      stack: false,
       graphHeight: '400px',
       shaded: {
         enabled: false,
@@ -14391,7 +14392,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   LineGraph.prototype.setOptions = function (options) {
     if (options) {
-      var fields = ['sampling', 'defaultGroup', 'height', 'graphHeight', 'yAxisOrientation', 'style', 'barChart', 'dataAxis', 'sort', 'groups'];
+      var fields = ['sampling', 'defaultGroup', 'stack', 'height', 'graphHeight', 'yAxisOrientation', 'style', 'barChart', 'dataAxis', 'sort', 'groups'];
       if (options.graphHeight === undefined && options.height !== undefined && this.body.domProps.centerContainer.height !== undefined) {
         this.updateSVGheight = true;
         this.updateSVGheightOnResize = true;
@@ -14757,7 +14758,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // update the height of the graph on each redraw of the graph.
     if (this.updateSVGheight == true) {
-      console.log(this.options.graphHeight, this.body.domProps.centerContainer.height);
       if (this.options.graphHeight != this.body.domProps.centerContainer.height + 'px') {
         this.options.graphHeight = this.body.domProps.centerContainer.height + 'px';
         this.svg.style.height = this.body.domProps.centerContainer.height + 'px';
@@ -14862,7 +14862,7 @@ return /******/ (function(modules) { // webpackBootstrap
               group.draw(processedGroupData[groupIds[i]], group, this.framework);
             }
           }
-          BarGraphFunctions.draw(groupIds, processedGroupData, this.framework);
+          BarFunctions.draw(groupIds, processedGroupData, this.framework);
         }
       }
     }
@@ -14964,8 +14964,8 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   LineGraph.prototype._getYRanges = function (groupIds, groupsData, groupRanges) {
     var groupData, group, i;
-    var barCombinedDataLeft = [];
-    var barCombinedDataRight = [];
+    var combinedDataLeft = [];
+    var combinedDataRight = [];
     var options;
     if (groupIds.length > 0) {
       for (i = 0; i < groupIds.length; i++) {
@@ -14974,11 +14974,11 @@ return /******/ (function(modules) { // webpackBootstrap
         if (groupData.length > 0) {
           group = this.groups[groupIds[i]];
           // if bar graphs are stacked, their range need to be handled differently and accumulated over all groups.
-          if (options.barChart.handleOverlap == 'stack' && options.style == 'bar') {
+          if (options.stack === true) {
             if (options.yAxisOrientation == 'left') {
-              barCombinedDataLeft = barCombinedDataLeft.concat(group.getYRange(groupData));
+              combinedDataLeft = combinedDataLeft.concat(group.getData(groupData));
             } else {
-              barCombinedDataRight = barCombinedDataRight.concat(group.getYRange(groupData));
+              combinedDataRight = combinedDataRight.concat(group.getData(groupData));
             }
           } else {
             groupRanges[groupIds[i]] = group.getYRange(groupData, groupIds[i]);
@@ -14987,8 +14987,11 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       // if bar graphs are stacked, their range need to be handled differently and accumulated over all groups.
-      BarGraphFunctions.getStackedBarYRange(barCombinedDataLeft, groupRanges, groupIds, '__barchartLeft', 'left');
-      BarGraphFunctions.getStackedBarYRange(barCombinedDataRight, groupRanges, groupIds, '__barchartRight', 'right');
+      BarFunctions.getStackedYRange(combinedDataLeft, groupRanges, groupIds, '__barStackLeft', 'left');
+      BarFunctions.getStackedYRange(combinedDataRight, groupRanges, groupIds, '__barStackRight', 'right');
+      // if line graphs are stacked, their range need to be handled differently and accumulated over all groups.
+      LineFunctions.getStackedYRange(combinedDataLeft, groupRanges, groupIds, '__lineStackLeft', 'left');
+      LineFunctions.getStackedYRange(combinedDataRight, groupRanges, groupIds, '__lineStackRight', 'right');
     }
   };
 
@@ -15079,11 +15082,11 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     // clean the accumulated lists
-    if (groupIds.indexOf('__barchartLeft') != -1) {
-      groupIds.splice(groupIds.indexOf('__barchartLeft'), 1);
-    }
-    if (groupIds.indexOf('__barchartRight') != -1) {
-      groupIds.splice(groupIds.indexOf('__barchartRight'), 1);
+    var tempGroups = ['__barStackLeft', '__barStackRight', '__lineStackLeft', '__lineStackRight'];
+    for (var i = 0; i < tempGroups.length; i++) {
+      if (groupIds.indexOf(tempGroups[i]) != -1) {
+        groupIds.splice(groupIds.indexOf(tempGroups[i]), 1);
+      }
     }
 
     return resized;
@@ -15157,14 +15160,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     for (var i = 0; i < datapoints.length; i++) {
-      var labelValue;
-      //if (datapoints[i].label) {
-      //    labelValue = datapoints[i].label;
-      //}
-      //else {
-      //  labelValue = null;
-      //}
-      labelValue = datapoints[i].label ? datapoints[i].label : null;
+      var labelValue = datapoints[i].label ? datapoints[i].label : null;
       xValue = toScreen(datapoints[i].x) + this.props.width;
       yValue = Math.round(axis.convertValue(datapoints[i].y));
       extractedData.push({ x: xValue, y: yValue, label: labelValue });
@@ -15620,70 +15616,70 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
 
-  var _Groups = __webpack_require__(49);
+  var _Groups = __webpack_require__(50);
 
   var _Groups2 = _interopRequireWildcard(_Groups);
 
-  var _NodesHandler = __webpack_require__(50);
+  var _NodesHandler = __webpack_require__(51);
 
   var _NodesHandler2 = _interopRequireWildcard(_NodesHandler);
 
-  var _EdgesHandler = __webpack_require__(51);
+  var _EdgesHandler = __webpack_require__(52);
 
   var _EdgesHandler2 = _interopRequireWildcard(_EdgesHandler);
 
-  var _PhysicsEngine = __webpack_require__(52);
+  var _PhysicsEngine = __webpack_require__(53);
 
   var _PhysicsEngine2 = _interopRequireWildcard(_PhysicsEngine);
 
-  var _ClusterEngine = __webpack_require__(53);
+  var _ClusterEngine = __webpack_require__(54);
 
   var _ClusterEngine2 = _interopRequireWildcard(_ClusterEngine);
 
-  var _CanvasRenderer = __webpack_require__(54);
+  var _CanvasRenderer = __webpack_require__(55);
 
   var _CanvasRenderer2 = _interopRequireWildcard(_CanvasRenderer);
 
-  var _Canvas = __webpack_require__(55);
+  var _Canvas = __webpack_require__(56);
 
   var _Canvas2 = _interopRequireWildcard(_Canvas);
 
-  var _View = __webpack_require__(56);
+  var _View = __webpack_require__(57);
 
   var _View2 = _interopRequireWildcard(_View);
 
-  var _InteractionHandler = __webpack_require__(57);
+  var _InteractionHandler = __webpack_require__(58);
 
   var _InteractionHandler2 = _interopRequireWildcard(_InteractionHandler);
 
-  var _SelectionHandler = __webpack_require__(58);
+  var _SelectionHandler = __webpack_require__(59);
 
   var _SelectionHandler2 = _interopRequireWildcard(_SelectionHandler);
 
-  var _LayoutEngine = __webpack_require__(59);
+  var _LayoutEngine = __webpack_require__(60);
 
   var _LayoutEngine2 = _interopRequireWildcard(_LayoutEngine);
 
-  var _ManipulationSystem = __webpack_require__(60);
+  var _ManipulationSystem = __webpack_require__(61);
 
   var _ManipulationSystem2 = _interopRequireWildcard(_ManipulationSystem);
 
-  var _ConfigurationSystem = __webpack_require__(61);
+  var _ConfigurationSystem = __webpack_require__(62);
 
   var _ConfigurationSystem2 = _interopRequireWildcard(_ConfigurationSystem);
 
-  var _Validator = __webpack_require__(62);
+  var _Validator = __webpack_require__(63);
 
   var _Validator2 = _interopRequireWildcard(_Validator);
 
-  var _allOptions = __webpack_require__(63);
+  var _allOptions = __webpack_require__(64);
 
   var _allOptions2 = _interopRequireWildcard(_allOptions);
 
   // Load custom shapes into CanvasRenderingContext2D
-  __webpack_require__(64);
+  __webpack_require__(65);
 
-  var Emitter = __webpack_require__(42);
+  var Emitter = __webpack_require__(43);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
@@ -15691,7 +15687,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var dotparser = __webpack_require__(38);
   var gephiParser = __webpack_require__(39);
   var Images = __webpack_require__(37);
-  var Activator = __webpack_require__(65);
+  var Activator = __webpack_require__(66);
 
   /**
    * @constructor Network
@@ -16160,8 +16156,8 @@ return /******/ (function(modules) { // webpackBootstrap
   Network.prototype.moveTo = function () {
     this.view.moveTo.apply(this.view, arguments);
   };
-  Network.prototype.focusOnNode = function () {
-    this.view.focusOnNode.apply(this.view, arguments);
+  Network.prototype.focus = function () {
+    this.view.focus.apply(this.view, arguments);
   };
   Network.prototype.releaseNode = function () {
     this.view.releaseNode.apply(this.view, arguments);
@@ -17137,7 +17133,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // use this instance. Else, load via commonjs.
   'use strict';
 
-  module.exports = typeof window !== 'undefined' && window.moment || __webpack_require__(66);
+  module.exports = typeof window !== 'undefined' && window.moment || __webpack_require__(67);
 
 /***/ },
 /* 41 */
@@ -17148,8 +17144,8 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   if (typeof window !== 'undefined') {
-    var propagating = __webpack_require__(67);
-    var Hammer = window.Hammer || __webpack_require__(68);
+    var propagating = __webpack_require__(68);
+    var Hammer = window.Hammer || __webpack_require__(69);
     module.exports = propagating(Hammer, {
       preventDefault: 'mouse'
     });
@@ -17161,6 +17157,221 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 42 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /* WEBPACK VAR INJECTION */(function(global) {'use strict';
+
+  var _rng;
+
+  var globalVar = window !== undefined ? window : global;
+  if (globalVar.crypto && crypto.getRandomValues) {
+    // WHATWG crypto-based RNG - http://wiki.whatwg.org/wiki/Crypto
+    // Moderately fast, high quality
+    var _rnds8 = new Uint8Array(16);
+    _rng = function whatwgRNG() {
+      crypto.getRandomValues(_rnds8);
+      return _rnds8;
+    };
+  }
+
+  if (!_rng) {
+    // Math.random()-based (RNG)
+    //
+    // If all else fails, use Math.random().  It's fast, but is of unspecified
+    // quality.
+    var _rnds = new Array(16);
+    _rng = function () {
+      for (var i = 0, r; i < 16; i++) {
+        if ((i & 3) === 0) r = Math.random() * 4294967296;
+        _rnds[i] = r >>> ((i & 3) << 3) & 255;
+      }
+
+      return _rnds;
+    };
+  }
+
+  //     uuid.js
+  //
+  //     Copyright (c) 2010-2012 Robert Kieffer
+  //     MIT License - http://opensource.org/licenses/mit-license.php
+
+  // Unique ID creation requires a high quality random # generator.  We feature
+  // detect to determine the best RNG source, normalizing to a function that
+  // returns 128-bits of randomness, since that's what's usually required
+
+  //var _rng = require('./rng');
+
+  // Maps for number <-> hex string conversion
+  var _byteToHex = [];
+  var _hexToByte = {};
+  for (var i = 0; i < 256; i++) {
+    _byteToHex[i] = (i + 256).toString(16).substr(1);
+    _hexToByte[_byteToHex[i]] = i;
+  }
+
+  // **`parse()` - Parse a UUID into it's component bytes**
+  function parse(s, buf, offset) {
+    var i = buf && offset || 0,
+        ii = 0;
+
+    buf = buf || [];
+    s.toLowerCase().replace(/[0-9a-f]{2}/g, function (oct) {
+      if (ii < 16) {
+        // Don't overflow!
+        buf[i + ii++] = _hexToByte[oct];
+      }
+    });
+
+    // Zero out remaining bytes if string was short
+    while (ii < 16) {
+      buf[i + ii++] = 0;
+    }
+
+    return buf;
+  }
+
+  // **`unparse()` - Convert UUID byte array (ala parse()) into a string**
+  function unparse(buf, offset) {
+    var i = offset || 0,
+        bth = _byteToHex;
+    return bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + '-' + bth[buf[i++]] + bth[buf[i++]] + '-' + bth[buf[i++]] + bth[buf[i++]] + '-' + bth[buf[i++]] + bth[buf[i++]] + '-' + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]];
+  }
+
+  // **`v1()` - Generate time-based UUID**
+  //
+  // Inspired by https://github.com/LiosK/UUID.js
+  // and http://docs.python.org/library/uuid.html
+
+  // random #'s we need to init node and clockseq
+  var _seedBytes = _rng();
+
+  // Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
+  var _nodeId = [_seedBytes[0] | 1, _seedBytes[1], _seedBytes[2], _seedBytes[3], _seedBytes[4], _seedBytes[5]];
+
+  // Per 4.2.2, randomize (14 bit) clockseq
+  var _clockseq = (_seedBytes[6] << 8 | _seedBytes[7]) & 16383;
+
+  // Previous uuid creation time
+  var _lastMSecs = 0,
+      _lastNSecs = 0;
+
+  // See https://github.com/broofa/node-uuid for API details
+  function v1(options, buf, offset) {
+    var i = buf && offset || 0;
+    var b = buf || [];
+
+    options = options || {};
+
+    var clockseq = options.clockseq !== undefined ? options.clockseq : _clockseq;
+
+    // UUID timestamps are 100 nano-second units since the Gregorian epoch,
+    // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so
+    // time is handled internally as 'msecs' (integer milliseconds) and 'nsecs'
+    // (100-nanoseconds offset from msecs) since unix epoch, 1970-01-01 00:00.
+    var msecs = options.msecs !== undefined ? options.msecs : new Date().getTime();
+
+    // Per 4.2.1.2, use count of uuid's generated during the current clock
+    // cycle to simulate higher resolution clock
+    var nsecs = options.nsecs !== undefined ? options.nsecs : _lastNSecs + 1;
+
+    // Time since last uuid creation (in msecs)
+    var dt = msecs - _lastMSecs + (nsecs - _lastNSecs) / 10000;
+
+    // Per 4.2.1.2, Bump clockseq on clock regression
+    if (dt < 0 && options.clockseq === undefined) {
+      clockseq = clockseq + 1 & 16383;
+    }
+
+    // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
+    // time interval
+    if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === undefined) {
+      nsecs = 0;
+    }
+
+    // Per 4.2.1.2 Throw error if too many uuids are requested
+    if (nsecs >= 10000) {
+      throw new Error('uuid.v1(): Can\'t create more than 10M uuids/sec');
+    }
+
+    _lastMSecs = msecs;
+    _lastNSecs = nsecs;
+    _clockseq = clockseq;
+
+    // Per 4.1.4 - Convert from unix epoch to Gregorian epoch
+    msecs += 12219292800000;
+
+    // `time_low`
+    var tl = ((msecs & 268435455) * 10000 + nsecs) % 4294967296;
+    b[i++] = tl >>> 24 & 255;
+    b[i++] = tl >>> 16 & 255;
+    b[i++] = tl >>> 8 & 255;
+    b[i++] = tl & 255;
+
+    // `time_mid`
+    var tmh = msecs / 4294967296 * 10000 & 268435455;
+    b[i++] = tmh >>> 8 & 255;
+    b[i++] = tmh & 255;
+
+    // `time_high_and_version`
+    b[i++] = tmh >>> 24 & 15 | 16; // include version
+    b[i++] = tmh >>> 16 & 255;
+
+    // `clock_seq_hi_and_reserved` (Per 4.2.2 - include variant)
+    b[i++] = clockseq >>> 8 | 128;
+
+    // `clock_seq_low`
+    b[i++] = clockseq & 255;
+
+    // `node`
+    var node = options.node || _nodeId;
+    for (var n = 0; n < 6; n++) {
+      b[i + n] = node[n];
+    }
+
+    return buf ? buf : unparse(b);
+  }
+
+  // **`v4()` - Generate random UUID**
+
+  // See https://github.com/broofa/node-uuid for API details
+  function v4(options, buf, offset) {
+    // Deprecated - 'format' argument, as supported in v1.2
+    var i = buf && offset || 0;
+
+    if (typeof options == 'string') {
+      buf = options == 'binary' ? new Array(16) : null;
+      options = null;
+    }
+    options = options || {};
+
+    var rnds = options.random || (options.rng || _rng)();
+
+    // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
+    rnds[6] = rnds[6] & 15 | 64;
+    rnds[8] = rnds[8] & 63 | 128;
+
+    // Copy bytes to buffer, if provided
+    if (buf) {
+      for (var ii = 0; ii < 16; ii++) {
+        buf[i + ii] = rnds[ii];
+      }
+    }
+
+    return buf || unparse(rnds);
+  }
+
+  // Export public API
+  var uuid = v4;
+  uuid.v1 = v1;
+  uuid.v4 = v4;
+  uuid.parse = parse;
+  uuid.unparse = unparse;
+
+  module.exports = uuid;
+  /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+
+/***/ },
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
   
@@ -17330,21 +17541,21 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 43 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(42);
+  var Emitter = __webpack_require__(43);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(44);
+  var hammerUtil = __webpack_require__(45);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
   var ItemSet = __webpack_require__(32);
   var TimeAxis = __webpack_require__(35);
-  var Activator = __webpack_require__(65);
+  var Activator = __webpack_require__(66);
   var DateUtil = __webpack_require__(15);
   var CustomTime = __webpack_require__(27);
 
@@ -18346,7 +18557,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Core;
 
 /***/ },
-/* 44 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -18418,7 +18629,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.offRelease = exports.offTouch;
 
 /***/ },
-/* 45 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -18440,18 +18651,30 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.nl_BE = exports.nl;
 
 /***/ },
-/* 46 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var DOMutil = __webpack_require__(2);
-  var Points = __webpack_require__(48);
+  var Points = __webpack_require__(49);
 
   function Line(groupId, options) {
     this.groupId = groupId;
     this.options = options;
   }
+
+  Line.prototype.getData = function (groupData) {
+    var combinedData = [];
+    for (var j = 0; j < groupData.length; j++) {
+      combinedData.push({
+        x: groupData[j].x,
+        y: groupData[j].y,
+        groupId: this.groupId
+      });
+    }
+    return combinedData;
+  };
 
   Line.prototype.getYRange = function (groupData) {
     var yMin = groupData[0].y;
@@ -18461,6 +18684,79 @@ return /******/ (function(modules) { // webpackBootstrap
       yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
     }
     return { min: yMin, max: yMax, yAxisOrientation: this.options.yAxisOrientation };
+  };
+
+  Line.getStackedYRange = function (combinedData, groupRanges, groupIds, groupLabel, orientation) {
+    if (combinedData.length > 0) {
+      // sort by time and by group
+      combinedData.sort(function (a, b) {
+        if (a.x === b.x) {
+          return a.groupId < b.groupId ? -1 : 1;
+        } else {
+          return a.x - b.x;
+        }
+      });
+      var intersections = {};
+
+      Line._getDataIntersections(intersections, combinedData);
+      groupRanges[groupLabel] = Line._getStackedYRange(intersections, combinedData);
+      groupRanges[groupLabel].yAxisOrientation = orientation;
+      groupIds.push(groupLabel);
+    }
+  };
+
+  Line._getStackedYRange = function (intersections, combinedData) {
+    var key;
+    var yMin = combinedData[0].y;
+    var yMax = combinedData[0].y;
+    for (var i = 0; i < combinedData.length; i++) {
+      key = combinedData[i].x;
+      if (intersections[key] === undefined) {
+        yMin = yMin > combinedData[i].y ? combinedData[i].y : yMin;
+        yMax = yMax < combinedData[i].y ? combinedData[i].y : yMax;
+      } else {
+        if (combinedData[i].y < 0) {
+          intersections[key].accumulatedNegative += combinedData[i].y;
+        } else {
+          intersections[key].accumulatedPositive += combinedData[i].y;
+        }
+      }
+    }
+    for (var xpos in intersections) {
+      if (intersections.hasOwnProperty(xpos)) {
+        yMin = yMin > intersections[xpos].accumulatedNegative ? intersections[xpos].accumulatedNegative : yMin;
+        yMin = yMin > intersections[xpos].accumulatedPositive ? intersections[xpos].accumulatedPositive : yMin;
+        yMax = yMax < intersections[xpos].accumulatedNegative ? intersections[xpos].accumulatedNegative : yMax;
+        yMax = yMax < intersections[xpos].accumulatedPositive ? intersections[xpos].accumulatedPositive : yMax;
+      }
+    }
+
+    return { min: yMin, max: yMax };
+  };
+
+  /**
+   * Fill the intersections object with counters of how many datapoints share the same x coordinates
+   * @param intersections
+   * @param combinedData
+   * @private
+   */
+  Line._getDataIntersections = function (intersections, combinedData) {
+    // get intersections
+    var coreDistance;
+    for (var i = 0; i < combinedData.length; i++) {
+      if (i + 1 < combinedData.length) {
+        coreDistance = Math.abs(combinedData[i + 1].x - combinedData[i].x);
+      }
+      if (i > 0) {
+        coreDistance = Math.min(coreDistance, Math.abs(combinedData[i - 1].x - combinedData[i].x));
+      }
+      if (coreDistance === 0) {
+        if (intersections[combinedData[i].x] === undefined) {
+          intersections[combinedData[i].x] = { amount: 0, resolved: 0, accumulatedPositive: 0, accumulatedNegative: 0 };
+        }
+        intersections[combinedData[i].x].amount += 1;
+      }
+    }
   };
 
   /**
@@ -18650,13 +18946,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Line;
 
 /***/ },
-/* 47 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var DOMutil = __webpack_require__(2);
-  var Points = __webpack_require__(48);
+  var Points = __webpack_require__(49);
 
   function Bargraph(groupId, options) {
     this.groupId = groupId;
@@ -18664,25 +18960,25 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
   Bargraph.prototype.getYRange = function (groupData) {
-    if (this.options.barChart.handleOverlap != 'stack') {
-      var yMin = groupData[0].y;
-      var yMax = groupData[0].y;
-      for (var j = 0; j < groupData.length; j++) {
-        yMin = yMin > groupData[j].y ? groupData[j].y : yMin;
-        yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
-      }
-      return { min: yMin, max: yMax, yAxisOrientation: this.options.yAxisOrientation };
-    } else {
-      var barCombinedData = [];
-      for (var j = 0; j < groupData.length; j++) {
-        barCombinedData.push({
-          x: groupData[j].x,
-          y: groupData[j].y,
-          groupId: this.groupId
-        });
-      }
-      return barCombinedData;
+    var yMin = groupData[0].y;
+    var yMax = groupData[0].y;
+    for (var j = 0; j < groupData.length; j++) {
+      yMin = yMin > groupData[j].y ? groupData[j].y : yMin;
+      yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
     }
+    return { min: yMin, max: yMax, yAxisOrientation: this.options.yAxisOrientation };
+  };
+
+  Bargraph.prototype.getData = function (groupData) {
+    var combinedData = [];
+    for (var j = 0; j < groupData.length; j++) {
+      combinedData.push({
+        x: groupData[j].x,
+        y: groupData[j].y,
+        groupId: this.groupId
+      });
+    }
+    return combinedData;
   };
 
   /**
@@ -18761,7 +19057,7 @@ return /******/ (function(modules) { // webpackBootstrap
         drawData = Bargraph._getSafeDrawData(coreDistance, group, minWidth);
         intersections[key].resolved += 1;
 
-        if (group.options.barChart.handleOverlap === 'stack') {
+        if (group.options.stack === true) {
           if (combinedData[i].y < group.zeroPosition) {
             heightOffset = intersections[key].accumulatedNegative;
             intersections[key].accumulatedNegative += group.zeroPosition - combinedData[i].y;
@@ -18769,7 +19065,7 @@ return /******/ (function(modules) { // webpackBootstrap
             heightOffset = intersections[key].accumulatedPositive;
             intersections[key].accumulatedPositive += group.zeroPosition - combinedData[i].y;
           }
-        } else if (group.options.barChart.handleOverlap === 'sideBySide') {
+        } else if (group.options.barChart.sideBySide === true) {
           drawData.width = drawData.width / intersections[key].amount;
           drawData.offset += intersections[key].resolved * drawData.width - 0.5 * drawData.width * (intersections[key].amount + 1);
           if (group.options.barChart.align === 'left') {
@@ -18847,10 +19143,10 @@ return /******/ (function(modules) { // webpackBootstrap
     return { width: width, offset: offset };
   };
 
-  Bargraph.getStackedBarYRange = function (barCombinedData, groupRanges, groupIds, groupLabel, orientation) {
-    if (barCombinedData.length > 0) {
+  Bargraph.getStackedYRange = function (combinedData, groupRanges, groupIds, groupLabel, orientation) {
+    if (combinedData.length > 0) {
       // sort by time and by group
-      barCombinedData.sort(function (a, b) {
+      combinedData.sort(function (a, b) {
         if (a.x === b.x) {
           return a.groupId < b.groupId ? -1 : 1;
         } else {
@@ -18859,14 +19155,14 @@ return /******/ (function(modules) { // webpackBootstrap
       });
       var intersections = {};
 
-      Bargraph._getDataIntersections(intersections, barCombinedData);
-      groupRanges[groupLabel] = Bargraph._getStackedBarYRange(intersections, barCombinedData);
+      Bargraph._getDataIntersections(intersections, combinedData);
+      groupRanges[groupLabel] = Bargraph._getStackedYRange(intersections, combinedData);
       groupRanges[groupLabel].yAxisOrientation = orientation;
       groupIds.push(groupLabel);
     }
   };
 
-  Bargraph._getStackedBarYRange = function (intersections, combinedData) {
+  Bargraph._getStackedYRange = function (intersections, combinedData) {
     var key;
     var yMin = combinedData[0].y;
     var yMax = combinedData[0].y;
@@ -18898,7 +19194,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Bargraph;
 
 /***/ },
-/* 48 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -18945,7 +19241,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Points;
 
 /***/ },
-/* 49 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -19086,7 +19382,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // 20:bright red
 
 /***/ },
-/* 50 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -19101,11 +19397,11 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _Node = __webpack_require__(69);
+  var _Node = __webpack_require__(70);
 
   var _Node2 = _interopRequireWildcard(_Node);
 
-  var _Label = __webpack_require__(70);
+  var _Label = __webpack_require__(71);
 
   var _Label2 = _interopRequireWildcard(_Label);
 
@@ -19559,7 +19855,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 51 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -19574,11 +19870,11 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _Edge = __webpack_require__(71);
+  var _Edge = __webpack_require__(72);
 
   var _Edge2 = _interopRequireWildcard(_Edge);
 
-  var _Label = __webpack_require__(70);
+  var _Label = __webpack_require__(71);
 
   var _Label2 = _interopRequireWildcard(_Label);
 
@@ -19982,7 +20278,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 52 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -19997,27 +20293,27 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _BarnesHutSolver = __webpack_require__(72);
+  var _BarnesHutSolver = __webpack_require__(73);
 
   var _BarnesHutSolver2 = _interopRequireWildcard(_BarnesHutSolver);
 
-  var _Repulsion = __webpack_require__(73);
+  var _Repulsion = __webpack_require__(74);
 
   var _Repulsion2 = _interopRequireWildcard(_Repulsion);
 
-  var _HierarchicalRepulsion = __webpack_require__(74);
+  var _HierarchicalRepulsion = __webpack_require__(75);
 
   var _HierarchicalRepulsion2 = _interopRequireWildcard(_HierarchicalRepulsion);
 
-  var _SpringSolver = __webpack_require__(75);
+  var _SpringSolver = __webpack_require__(76);
 
   var _SpringSolver2 = _interopRequireWildcard(_SpringSolver);
 
-  var _HierarchicalSpringSolver = __webpack_require__(76);
+  var _HierarchicalSpringSolver = __webpack_require__(77);
 
   var _HierarchicalSpringSolver2 = _interopRequireWildcard(_HierarchicalSpringSolver);
 
-  var _CentralGravitySolver = __webpack_require__(77);
+  var _CentralGravitySolver = __webpack_require__(78);
 
   var _CentralGravitySolver2 = _interopRequireWildcard(_CentralGravitySolver);
 
@@ -20557,7 +20853,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 53 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -20572,7 +20868,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _Cluster = __webpack_require__(78);
+  var _Cluster = __webpack_require__(79);
 
   var _Cluster2 = _interopRequireWildcard(_Cluster);
 
@@ -21209,7 +21505,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 54 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -21538,7 +21834,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 55 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -21551,7 +21847,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(44);
+  var hammerUtil = __webpack_require__(45);
 
   var util = __webpack_require__(1);
 
@@ -21569,11 +21865,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
       this.body = body;
       this.pixelRatio = 1;
+      this.resizeTimer = undefined;
 
       this.options = {};
       this.defaultOptions = {
         width: '100%',
-        height: '100%'
+        height: '100%',
+        autoResize: true
       };
       util.extend(this.options, this.defaultOptions);
 
@@ -21597,16 +21895,14 @@ return /******/ (function(modules) { // webpackBootstrap
         this.body.emitter.on('destroy', function () {
           _this.hammerFrame.destroy();
           _this.hammer.destroy();
+          _this._cleanUp();
         });
-
-        // automatically adapt to a changing size of the browser.
-        window.onresize = function () {
-          _this.setSize();_this.body.emitter.emit('_redraw');
-        };
       }
     }, {
       key: 'setOptions',
       value: function setOptions(options) {
+        var _this2 = this;
+
         if (options !== undefined) {
           if (options.width !== undefined) {
             this.options.width = this._prepareValue(options.width);
@@ -21615,6 +21911,30 @@ return /******/ (function(modules) { // webpackBootstrap
             this.options.height = this._prepareValue(options.height);
           }
         }
+
+        if (this.options.autoResize === true) {
+          // automatically adapt to a changing size of the browser.
+          this._cleanUp();
+          this.resizeTimer = setInterval(function () {
+            _this2.setSize();_this2.body.emitter.emit('_requestRedraw');
+          }, 1000);
+          util.addEventListener(window, 'resize', this._onResize);
+        }
+      }
+    }, {
+      key: '_cleanUp',
+      value: function _cleanUp() {
+        // automatically adapt to a changing size of the browser.
+        if (this.resizeTimer !== undefined) {
+          clearInterval(this.resizeTimer);
+        }
+        util.removeEventListener(window, 'resize', this._onResize);
+      }
+    }, {
+      key: '_onResize',
+      value: function _onResize() {
+        this.setSize();
+        this.body.emitter.emit('_redraw');
       }
     }, {
       key: '_prepareValue',
@@ -21684,7 +22004,7 @@ return /******/ (function(modules) { // webpackBootstrap
        * @private
        */
       value: function _bindHammer() {
-        var _this2 = this;
+        var _this3 = this;
 
         if (this.hammer !== undefined) {
           this.hammer.destroy();
@@ -21697,48 +22017,48 @@ return /******/ (function(modules) { // webpackBootstrap
         this.hammer.get('pinch').set({ enable: true });
 
         hammerUtil.onTouch(this.hammer, function (event) {
-          _this2.body.eventListeners.onTouch(event);
+          _this3.body.eventListeners.onTouch(event);
         });
         this.hammer.on('tap', function (event) {
-          _this2.body.eventListeners.onTap(event);
+          _this3.body.eventListeners.onTap(event);
         });
         this.hammer.on('doubletap', function (event) {
-          _this2.body.eventListeners.onDoubleTap(event);
+          _this3.body.eventListeners.onDoubleTap(event);
         });
         this.hammer.on('press', function (event) {
-          _this2.body.eventListeners.onHold(event);
+          _this3.body.eventListeners.onHold(event);
         });
         this.hammer.on('panstart', function (event) {
-          _this2.body.eventListeners.onDragStart(event);
+          _this3.body.eventListeners.onDragStart(event);
         });
         this.hammer.on('panmove', function (event) {
-          _this2.body.eventListeners.onDrag(event);
+          _this3.body.eventListeners.onDrag(event);
         });
         this.hammer.on('panend', function (event) {
-          _this2.body.eventListeners.onDragEnd(event);
+          _this3.body.eventListeners.onDragEnd(event);
         });
         this.hammer.on('pinch', function (event) {
-          _this2.body.eventListeners.onPinch(event);
+          _this3.body.eventListeners.onPinch(event);
         });
 
         // TODO: neatly cleanup these handlers when re-creating the Canvas, IF these are done with hammer, event.stopPropagation will not work?
         this.frame.canvas.addEventListener('mousewheel', function (event) {
-          _this2.body.eventListeners.onMouseWheel(event);
+          _this3.body.eventListeners.onMouseWheel(event);
         });
         this.frame.canvas.addEventListener('DOMMouseScroll', function (event) {
-          _this2.body.eventListeners.onMouseWheel(event);
+          _this3.body.eventListeners.onMouseWheel(event);
         });
 
         this.frame.canvas.addEventListener('mousemove', function (event) {
-          _this2.body.eventListeners.onMouseMove(event);
+          _this3.body.eventListeners.onMouseMove(event);
         });
         this.frame.canvas.addEventListener('contextmenu', function (event) {
-          _this2.body.eventListeners.onContext(event);
+          _this3.body.eventListeners.onContext(event);
         });
 
         this.hammerFrame = new Hammer(this.frame);
         hammerUtil.onRelease(this.hammerFrame, function (event) {
-          _this2.body.eventListeners.onRelease(event);
+          _this3.body.eventListeners.onRelease(event);
         });
       }
     }, {
@@ -21879,7 +22199,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 56 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -22059,7 +22379,7 @@ return /******/ (function(modules) { // webpackBootstrap
         this.moveTo(animationOptions);
       }
     }, {
-      key: "focusOnNode",
+      key: "focus",
 
       // animation
 
@@ -22069,7 +22389,7 @@ return /******/ (function(modules) { // webpackBootstrap
        * @param {Number} nodeId
        * @param {Number} [options]
        */
-      value: function focusOnNode(nodeId) {
+      value: function focus(nodeId) {
         var options = arguments[1] === undefined ? {} : arguments[1];
 
         if (this.body.nodes[nodeId] !== undefined) {
@@ -22280,7 +22600,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 57 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -22295,11 +22615,11 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NavigationHandler = __webpack_require__(79);
+  var _NavigationHandler = __webpack_require__(80);
 
   var _NavigationHandler2 = _interopRequireWildcard(_NavigationHandler);
 
-  var _Popup = __webpack_require__(80);
+  var _Popup = __webpack_require__(81);
 
   var _Popup2 = _interopRequireWildcard(_Popup);
 
@@ -22430,9 +22750,8 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function onTap(event) {
         var pointer = this.getPointer(event.center);
 
-        this.checkSelectionChanges(pointer);
-
-        this.selectionHandler._generateClickEvent('click', pointer);
+        this.checkSelectionChanges(pointer, event);
+        this.selectionHandler._generateClickEvent('click', event, pointer);
       }
     }, {
       key: 'onDoubleTap',
@@ -22443,7 +22762,7 @@ return /******/ (function(modules) { // webpackBootstrap
        */
       value: function onDoubleTap(event) {
         var pointer = this.getPointer(event.center);
-        this.selectionHandler._generateClickEvent('doubleClick', pointer);
+        this.selectionHandler._generateClickEvent('doubleClick', event, pointer);
       }
     }, {
       key: 'onHold',
@@ -22455,10 +22774,10 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function onHold(event) {
         var pointer = this.getPointer(event.center);
 
-        this.checkSelectionChanges(pointer, true);
+        this.checkSelectionChanges(pointer, event, true);
 
-        this.selectionHandler._generateClickEvent('click', pointer);
-        this.selectionHandler._generateClickEvent('hold', pointer);
+        this.selectionHandler._generateClickEvent('click', event, pointer);
+        this.selectionHandler._generateClickEvent('hold', event, pointer);
       }
     }, {
       key: 'onRelease',
@@ -22471,7 +22790,7 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function onRelease(event) {
         if (new Date().valueOf() - this.touchTime > 10) {
           var pointer = this.getPointer(event.center);
-          this.selectionHandler._generateClickEvent('release', pointer);
+          this.selectionHandler._generateClickEvent('release', event, pointer);
           // to avoid double fireing of this event because we have two hammer instances. (on canvas and on frame)
           this.touchTime = new Date().valueOf();
         }
@@ -22480,7 +22799,7 @@ return /******/ (function(modules) { // webpackBootstrap
       key: 'onContext',
       value: function onContext(event) {
         var pointer = this.getPointer({ x: event.pageX, y: event.pageY });
-        this.selectionHandler._generateClickEvent('rightClick', pointer);
+        this.selectionHandler._generateClickEvent('oncontext', event, pointer);
       }
     }, {
       key: 'checkSelectionChanges',
@@ -22490,8 +22809,8 @@ return /******/ (function(modules) { // webpackBootstrap
        * @param pointer
        * @param add
        */
-      value: function checkSelectionChanges(pointer) {
-        var add = arguments[1] === undefined ? false : arguments[1];
+      value: function checkSelectionChanges(pointer, event) {
+        var add = arguments[2] === undefined ? false : arguments[2];
 
         var previouslySelectedEdgeCount = this.selectionHandler._getSelectedEdgeCount();
         var previouslySelectedNodeCount = this.selectionHandler._getSelectedNodeCount();
@@ -22507,27 +22826,27 @@ return /******/ (function(modules) { // webpackBootstrap
 
         if (selectedNodes - previouslySelectedNodeCount > 0) {
           // node was selected
-          this.selectionHandler._generateClickEvent('selectNode', pointer);
+          this.selectionHandler._generateClickEvent('selectNode', event, pointer);
           selected = true;
         } else if (selectedNodes - previouslySelectedNodeCount < 0) {
           // node was deselected
-          this.selectionHandler._generateClickEvent('deselectNode', pointer, previousSelection);
+          this.selectionHandler._generateClickEvent('deselectNode', event, pointer, previousSelection);
           selected = true;
         }
 
         if (selectedEdges - previouslySelectedEdgeCount > 0) {
           // node was selected
-          this.selectionHandler._generateClickEvent('selectEdge', pointer);
+          this.selectionHandler._generateClickEvent('selectEdge', event, pointer);
           selected = true;
         } else if (selectedEdges - previouslySelectedEdgeCount < 0) {
           // node was deselected
-          this.selectionHandler._generateClickEvent('deselectEdge', pointer, previousSelection);
+          this.selectionHandler._generateClickEvent('deselectEdge', event, pointer, previousSelection);
           selected = true;
         }
 
         if (selected === true) {
           // select or unselect
-          this.selectionHandler._generateClickEvent('select', pointer);
+          this.selectionHandler._generateClickEvent('select', event, pointer);
         }
       }
     }, {
@@ -22553,7 +22872,7 @@ return /******/ (function(modules) { // webpackBootstrap
         this.drag.translation = util.extend({}, this.body.view.translation); // copy the object
         this.drag.nodeId = undefined;
 
-        this.selectionHandler._generateClickEvent('dragStart', this.drag.pointer);
+        this.selectionHandler._generateClickEvent('dragStart', event, this.drag.pointer);
 
         if (node !== undefined && this.options.dragNodes === true) {
           this.drag.nodeId = node.id;
@@ -22605,6 +22924,9 @@ return /******/ (function(modules) { // webpackBootstrap
         this.body.emitter.emit('unlockNode');
 
         var pointer = this.getPointer(event.center);
+
+        this.selectionHandler._generateClickEvent('dragging', event, pointer);
+
         var selection = this.drag.selection;
         if (selection && selection.length && this.options.dragNodes === true) {
           (function () {
@@ -22664,7 +22986,7 @@ return /******/ (function(modules) { // webpackBootstrap
         } else {
           this.body.emitter.emit('_requestRedraw');
         }
-        this.selectionHandler._generateClickEvent('dragEnd', this.getPointer(event.center));
+        this.selectionHandler._generateClickEvent('dragEnd', event, this.getPointer(event.center));
       }
     }, {
       key: 'onPinch',
@@ -23004,7 +23326,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 58 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -23016,7 +23338,7 @@ return /******/ (function(modules) { // webpackBootstrap
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  var Node = __webpack_require__(69);
+  var Node = __webpack_require__(70);
   var util = __webpack_require__(1);
 
   var SelectionHandler = (function () {
@@ -23091,12 +23413,13 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     }, {
       key: "_generateClickEvent",
-      value: function _generateClickEvent(eventType, pointer, oldSelection) {
+      value: function _generateClickEvent(eventType, event, pointer, oldSelection) {
         var properties = this.getSelection();
         properties.pointer = {
           DOM: { x: pointer.x, y: pointer.y },
           canvas: this.canvas.DOMtoCanvas(pointer)
         };
+        properties.event = event;
 
         if (oldSelection !== undefined) {
           properties.previousSelection = oldSelection;
@@ -23688,7 +24011,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 59 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -24185,7 +24508,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 60 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -24200,8 +24523,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(44);
-  var locales = __webpack_require__(81);
+  var hammerUtil = __webpack_require__(45);
+  var locales = __webpack_require__(82);
 
   /**
    * clears the toolbar div element of children
@@ -24240,22 +24563,12 @@ return /******/ (function(modules) { // webpackBootstrap
         initiallyActive: false,
         locale: 'en',
         locales: locales,
-        functionality: {
-          addNode: true,
-          addEdge: true,
-          editNode: true,
-          editEdge: true,
-          deleteNode: true,
-          deleteEdge: true
-        },
-        handlerFunctions: {
-          addNode: undefined,
-          addEdge: undefined,
-          editNode: undefined,
-          editEdge: undefined,
-          deleteNode: undefined,
-          deleteEdge: undefined
-        },
+        addNode: true,
+        addEdge: true,
+        editNode: undefined,
+        editEdge: true,
+        deleteNode: true,
+        deleteEdge: true,
         controlNodeStyle: {
           shape: 'dot',
           size: 6,
@@ -24375,11 +24688,11 @@ return /******/ (function(modules) { // webpackBootstrap
           var locale = this.options.locales[this.options.locale];
           var needSeperator = false;
 
-          if (this.options.functionality.addNode === true) {
+          if (this.options.addNode !== false) {
             this._createAddNodeButton(locale);
             needSeperator = true;
           }
-          if (this.options.functionality.addEdge === true) {
+          if (this.options.addEdge !== false) {
             if (needSeperator === true) {
               this._createSeperator(1);
             } else {
@@ -24388,14 +24701,14 @@ return /******/ (function(modules) { // webpackBootstrap
             this._createAddEdgeButton(locale);
           }
 
-          if (selectedNodeCount === 1 && typeof this.options.handlerFunctions.editNode === 'function' && this.options.functionality.editNode === true) {
+          if (selectedNodeCount === 1 && typeof this.options.editNode === 'function') {
             if (needSeperator === true) {
               this._createSeperator(2);
             } else {
               needSeperator = true;
             }
             this._createEditNodeButton(locale);
-          } else if (selectedEdgeCount === 1 && selectedNodeCount === 0 && this.options.functionality.editEdge === true) {
+          } else if (selectedEdgeCount === 1 && selectedNodeCount === 0 && this.options.editEdge !== false) {
             if (needSeperator === true) {
               this._createSeperator(3);
             } else {
@@ -24406,12 +24719,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
           // remove buttons
           if (selectedTotalCount !== 0) {
-            if (selectedNodeCount === 1 && this.options.functionality.deleteNode === true) {
+            if (selectedNodeCount === 1 && this.options.deleteNode !== false) {
               if (needSeperator === true) {
                 this._createSeperator(4);
               }
               this._createDeleteButton(locale);
-            } else if (selectedNodeCount === 0 && this.options.functionality.deleteEdge === true) {
+            } else if (selectedNodeCount === 0 && this.options.deleteEdge !== false) {
               if (needSeperator === true) {
                 this._createSeperator(4);
               }
@@ -24480,15 +24793,15 @@ return /******/ (function(modules) { // webpackBootstrap
         this._clean();
 
         this.inMode = 'editNode';
-        if (typeof this.options.handlerFunctions.editNode === 'function') {
+        if (typeof this.options.editNode === 'function') {
           var node = this.selectionHandler._getSelectedNode();
           if (node.isCluster !== true) {
             var data = util.deepExtend({}, node.options, true);
             data.x = node.x;
             data.y = node.y;
 
-            if (this.options.handlerFunctions.editNode.length === 2) {
-              this.options.handlerFunctions.editNode(data, function (finalizedData) {
+            if (this.options.editNode.length === 2) {
+              this.options.editNode(data, function (finalizedData) {
                 if (finalizedData !== null && finalizedData !== undefined && _this2.inMode === 'delete') {
                   // if for whatever reason the mode has changes (due to dataset change) disregard the callback) {
                   _this2.body.data.nodes.update(finalizedData);
@@ -24643,12 +24956,12 @@ return /******/ (function(modules) { // webpackBootstrap
             }
           }
 
-          if (typeof this.options.handlerFunctions.deleteNode === 'function') {
-            deleteFunction = this.options.handlerFunctions.deleteNode;
+          if (typeof this.options.deleteNode === 'function') {
+            deleteFunction = this.options.deleteNode;
           }
         } else if (selectedEdges.length > 0) {
-          if (typeof this.options.handlerFunctions.deleteEdge === 'function') {
-            deleteFunction = this.options.handlerFunctions.deleteEdge;
+          if (typeof this.options.deleteEdge === 'function') {
+            deleteFunction = this.options.deleteEdge;
           }
         }
 
@@ -25282,9 +25595,9 @@ return /******/ (function(modules) { // webpackBootstrap
           label: 'new'
         };
 
-        if (typeof this.options.handlerFunctions.addNode === 'function') {
-          if (this.options.handlerFunctions.addNode.length === 2) {
-            this.options.handlerFunctions.addNode(defaultData, function (finalizedData) {
+        if (typeof this.options.addNode === 'function') {
+          if (this.options.addNode.length === 2) {
+            this.options.addNode(defaultData, function (finalizedData) {
               if (finalizedData !== null && finalizedData !== undefined && _this4.inMode === 'addNode') {
                 // if for whatever reason the mode has changes (due to dataset change) disregard the callback
                 _this4.body.data.nodes.add(finalizedData);
@@ -25312,9 +25625,9 @@ return /******/ (function(modules) { // webpackBootstrap
         var _this5 = this;
 
         var defaultData = { from: sourceNodeId, to: targetNodeId };
-        if (this.options.handlerFunctions.addEdge) {
-          if (this.options.handlerFunctions.addEdge.length === 2) {
-            this.options.handlerFunctions.addEdge(defaultData, function (finalizedData) {
+        if (typeof this.options.addEdge === 'function') {
+          if (this.options.addEdge.length === 2) {
+            this.options.addEdge(defaultData, function (finalizedData) {
               if (finalizedData !== null && finalizedData !== undefined && _this5.inMode === 'addEdge') {
                 // if for whatever reason the mode has changes (due to dataset change) disregard the callback
                 _this5.body.data.edges.add(finalizedData);
@@ -25343,9 +25656,9 @@ return /******/ (function(modules) { // webpackBootstrap
         var _this6 = this;
 
         var defaultData = { id: this.edgeBeingEditedId, from: sourceNodeId, to: targetNodeId };
-        if (this.options.handlerFunctions.editEdge) {
-          if (this.options.handlerFunctions.editEdge.length === 2) {
-            this.options.handlerFunctions.editEdge(defaultData, function (finalizedData) {
+        if (typeof this.options.editEdge === 'function') {
+          if (this.options.editEdge.length === 2) {
+            this.options.editEdge(defaultData, function (finalizedData) {
               if (finalizedData === null || finalizedData === undefined || _this6.inMode !== 'editEdge') {
                 // if for whatever reason the mode has changes (due to dataset change) disregard the callback) {
                 _this6.body.edges[defaultData.id].updateEdgeType();
@@ -25374,7 +25687,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 61 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -25389,7 +25702,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ColorPicker = __webpack_require__(82);
+  var _ColorPicker = __webpack_require__(83);
 
   var _ColorPicker2 = _interopRequireWildcard(_ColorPicker);
 
@@ -25549,15 +25862,7 @@ return /******/ (function(modules) { // webpackBootstrap
         manipulation: {
           enabled: false,
           initiallyActive: false,
-          locale: ['en', 'nl'],
-          functionality: {
-            addNode: true,
-            addEdge: true,
-            editNode: true,
-            editEdge: true,
-            deleteNode: true,
-            deleteEdge: true
-          }
+          locale: ['en', 'nl']
         },
         physics: {
           barnesHut: {
@@ -25588,7 +25893,7 @@ return /******/ (function(modules) { // webpackBootstrap
           timestep: [0.5, 0, 1, 0.05]
         },
         selection: {
-          select: true,
+          selectable: true,
           selectConnectedEdges: true
         },
         rendering: {
@@ -25927,7 +26232,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
         var me = this;
         range.onchange = function () {
-          input.value = this.value;me._update(this.value, path);
+          input.value = this.value;me._update(Number(this.value), path);
         };
         range.oninput = function () {
           input.value = this.value;
@@ -26112,7 +26417,7 @@ return /******/ (function(modules) { // webpackBootstrap
         } else if (typeof arr[0] === 'number') {
           this._makeRange(arr, value, path);
           if (arr[0] !== value) {
-            this.changedOptions.push({ path: path, value: value });
+            this.changedOptions.push({ path: path, value: Number(value) });
           }
         }
       }
@@ -26150,6 +26455,7 @@ return /******/ (function(modules) { // webpackBootstrap
             pointer[path[i]] = value;
           }
         }
+        console.log(optionsObj);
         return optionsObj;
       }
     }, {
@@ -26170,7 +26476,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 62 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -26441,7 +26747,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // item is a function, which is allowed
 
 /***/ },
-/* 63 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -26469,6 +26775,7 @@ return /******/ (function(modules) { // webpackBootstrap
     canvas: {
       width: { string: string },
       height: { string: string },
+      autoResize: { boolean: boolean },
       __type__: { object: object }
     },
     rendering: {
@@ -26588,24 +26895,12 @@ return /******/ (function(modules) { // webpackBootstrap
       initiallyActive: { boolean: boolean },
       locale: { string: string },
       locales: { object: object },
-      functionality: {
-        addNode: { boolean: boolean },
-        addEdge: { boolean: boolean },
-        editNode: { boolean: boolean },
-        editEdge: { boolean: boolean },
-        deleteNode: { boolean: boolean },
-        deleteEdge: { boolean: boolean },
-        __type__: { object: object }
-      },
-      handlerFunctions: {
-        addNode: { fn: fn, undef: undef },
-        addEdge: { fn: fn, undef: undef },
-        editNode: { fn: fn, undef: undef },
-        editEdge: { fn: fn, undef: undef },
-        deleteNode: { fn: fn, undef: undef },
-        deleteEdge: { fn: fn, undef: undef },
-        __type__: { object: object }
-      },
+      addNode: { boolean: boolean, fn: fn },
+      addEdge: { boolean: boolean, fn: fn },
+      editNode: { fn: fn },
+      editEdge: { boolean: boolean, fn: fn },
+      deleteNode: { boolean: boolean, fn: fn },
+      deleteEdge: { boolean: boolean, fn: fn },
       controlNodeStyle: ['__ref__', 'nodes'],
       __type__: { object: object, boolean: boolean }
     },
@@ -26726,7 +27021,7 @@ return /******/ (function(modules) { // webpackBootstrap
       __type__: { object: object, boolean: boolean }
     },
     selection: {
-      select: { boolean: boolean },
+      selectable: { boolean: boolean },
       selectConnectedEdges: { boolean: boolean },
       __type__: { object: object }
     },
@@ -26741,7 +27036,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 64 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27025,13 +27320,13 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 65 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var keycharm = __webpack_require__(83);
-  var Emitter = __webpack_require__(42);
+  var keycharm = __webpack_require__(84);
+  var Emitter = __webpack_require__(43);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
 
@@ -27178,7 +27473,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Activator;
 
 /***/ },
-/* 66 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(module) {//! moment.js
@@ -30264,10 +30559,10 @@ return /******/ (function(modules) { // webpackBootstrap
       return _moment;
 
   }));
-  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(85)(module)))
+  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(86)(module)))
 
 /***/ },
-/* 67 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
@@ -30495,7 +30790,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 68 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v2.0.4 - 2014-09-28
@@ -32950,7 +33245,7 @@ return /******/ (function(modules) { // webpackBootstrap
       prefixed: prefixed
   });
 
-  if ("function" == TYPE_FUNCTION && __webpack_require__(86)) {
+  if ("function" == TYPE_FUNCTION && __webpack_require__(87)) {
       !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
           return Hammer;
       }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -32964,7 +33259,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 69 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32979,67 +33274,67 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _Label = __webpack_require__(70);
+  var _Label = __webpack_require__(71);
 
   var _Label2 = _interopRequireWildcard(_Label);
 
-  var _Box = __webpack_require__(87);
+  var _Box = __webpack_require__(88);
 
   var _Box2 = _interopRequireWildcard(_Box);
 
-  var _Circle = __webpack_require__(88);
+  var _Circle = __webpack_require__(89);
 
   var _Circle2 = _interopRequireWildcard(_Circle);
 
-  var _CircularImage = __webpack_require__(89);
+  var _CircularImage = __webpack_require__(90);
 
   var _CircularImage2 = _interopRequireWildcard(_CircularImage);
 
-  var _Database = __webpack_require__(90);
+  var _Database = __webpack_require__(91);
 
   var _Database2 = _interopRequireWildcard(_Database);
 
-  var _Diamond = __webpack_require__(91);
+  var _Diamond = __webpack_require__(92);
 
   var _Diamond2 = _interopRequireWildcard(_Diamond);
 
-  var _Dot = __webpack_require__(92);
+  var _Dot = __webpack_require__(93);
 
   var _Dot2 = _interopRequireWildcard(_Dot);
 
-  var _Ellipse = __webpack_require__(93);
+  var _Ellipse = __webpack_require__(94);
 
   var _Ellipse2 = _interopRequireWildcard(_Ellipse);
 
-  var _Icon = __webpack_require__(94);
+  var _Icon = __webpack_require__(95);
 
   var _Icon2 = _interopRequireWildcard(_Icon);
 
-  var _Image = __webpack_require__(95);
+  var _Image = __webpack_require__(96);
 
   var _Image2 = _interopRequireWildcard(_Image);
 
-  var _Square = __webpack_require__(96);
+  var _Square = __webpack_require__(97);
 
   var _Square2 = _interopRequireWildcard(_Square);
 
-  var _Star = __webpack_require__(97);
+  var _Star = __webpack_require__(98);
 
   var _Star2 = _interopRequireWildcard(_Star);
 
-  var _Text = __webpack_require__(98);
+  var _Text = __webpack_require__(99);
 
   var _Text2 = _interopRequireWildcard(_Text);
 
-  var _Triangle = __webpack_require__(99);
+  var _Triangle = __webpack_require__(100);
 
   var _Triangle2 = _interopRequireWildcard(_Triangle);
 
-  var _TriangleDown = __webpack_require__(100);
+  var _TriangleDown = __webpack_require__(101);
 
   var _TriangleDown2 = _interopRequireWildcard(_TriangleDown);
 
-  var _Validator = __webpack_require__(62);
+  var _Validator = __webpack_require__(63);
 
   var _Validator2 = _interopRequireWildcard(_Validator);
 
@@ -33440,7 +33735,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 70 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33750,7 +34045,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 71 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33765,19 +34060,19 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _Label = __webpack_require__(70);
+  var _Label = __webpack_require__(71);
 
   var _Label2 = _interopRequireWildcard(_Label);
 
-  var _BezierEdgeDynamic = __webpack_require__(101);
+  var _BezierEdgeDynamic = __webpack_require__(102);
 
   var _BezierEdgeDynamic2 = _interopRequireWildcard(_BezierEdgeDynamic);
 
-  var _BezierEdgeStatic = __webpack_require__(102);
+  var _BezierEdgeStatic = __webpack_require__(103);
 
   var _BezierEdgeStatic2 = _interopRequireWildcard(_BezierEdgeStatic);
 
-  var _StraightEdge = __webpack_require__(103);
+  var _StraightEdge = __webpack_require__(104);
 
   var _StraightEdge2 = _interopRequireWildcard(_StraightEdge);
 
@@ -34284,7 +34579,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 72 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34764,7 +35059,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 73 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34859,7 +35154,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 74 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34950,7 +35245,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 75 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -35059,7 +35354,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 76 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -35180,7 +35475,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 77 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -35239,7 +35534,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 78 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35256,7 +35551,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _Node2 = __webpack_require__(69);
+  var _Node2 = __webpack_require__(70);
 
   var _Node3 = _interopRequireWildcard(_Node2);
 
@@ -35284,7 +35579,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 79 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35298,8 +35593,8 @@ return /******/ (function(modules) { // webpackBootstrap
   });
   var util = __webpack_require__(1);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(44);
-  var keycharm = __webpack_require__(83);
+  var hammerUtil = __webpack_require__(45);
+  var keycharm = __webpack_require__(84);
 
   var NavigationHandler = (function () {
     function NavigationHandler(body, canvas) {
@@ -35551,7 +35846,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 80 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35677,7 +35972,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 81 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -35721,7 +36016,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.nl_BE = exports.nl;
 
 /***/ },
-/* 82 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35734,7 +36029,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(44);
+  var hammerUtil = __webpack_require__(45);
   var util = __webpack_require__(1);
 
   var ColorPicker = (function () {
@@ -36300,7 +36595,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 83 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
@@ -36498,7 +36793,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 84 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
   function webpackContext(req) {
@@ -36507,11 +36802,11 @@ return /******/ (function(modules) { // webpackBootstrap
   webpackContext.keys = function() { return []; };
   webpackContext.resolve = webpackContext;
   module.exports = webpackContext;
-  webpackContext.id = 84;
+  webpackContext.id = 85;
 
 
 /***/ },
-/* 85 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   module.exports = function(module) {
@@ -36527,7 +36822,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 86 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
@@ -36535,7 +36830,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
-/* 87 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36554,7 +36849,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(104);
+  var _NodeBase2 = __webpack_require__(105);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -36633,7 +36928,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 88 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36652,7 +36947,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _CircleImageBase2 = __webpack_require__(105);
+  var _CircleImageBase2 = __webpack_require__(106);
 
   var _CircleImageBase3 = _interopRequireWildcard(_CircleImageBase2);
 
@@ -36715,7 +37010,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 89 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36734,7 +37029,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _CircleImageBase2 = __webpack_require__(105);
+  var _CircleImageBase2 = __webpack_require__(106);
 
   var _CircleImageBase3 = _interopRequireWildcard(_CircleImageBase2);
 
@@ -36816,7 +37111,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 90 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36835,7 +37130,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(104);
+  var _NodeBase2 = __webpack_require__(105);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -36914,7 +37209,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 91 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36933,7 +37228,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(106);
+  var _ShapeBase2 = __webpack_require__(107);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -36972,7 +37267,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 92 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36991,7 +37286,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(106);
+  var _ShapeBase2 = __webpack_require__(107);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -37030,7 +37325,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 93 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37049,7 +37344,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(104);
+  var _NodeBase2 = __webpack_require__(105);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -37131,7 +37426,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 94 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37150,7 +37445,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(104);
+  var _NodeBase2 = __webpack_require__(105);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -37239,7 +37534,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 95 */
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37258,7 +37553,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _CircleImageBase2 = __webpack_require__(105);
+  var _CircleImageBase2 = __webpack_require__(106);
 
   var _CircleImageBase3 = _interopRequireWildcard(_CircleImageBase2);
 
@@ -37317,7 +37612,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 96 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37336,7 +37631,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(106);
+  var _ShapeBase2 = __webpack_require__(107);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -37376,7 +37671,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 97 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37395,7 +37690,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(106);
+  var _ShapeBase2 = __webpack_require__(107);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -37434,7 +37729,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 98 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37453,7 +37748,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(104);
+  var _NodeBase2 = __webpack_require__(105);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -37512,7 +37807,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 99 */
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37531,7 +37826,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(106);
+  var _ShapeBase2 = __webpack_require__(107);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -37570,7 +37865,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 100 */
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37589,7 +37884,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(106);
+  var _ShapeBase2 = __webpack_require__(107);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -37628,7 +37923,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 101 */
+/* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37647,7 +37942,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _BezierEdgeBase2 = __webpack_require__(107);
+  var _BezierEdgeBase2 = __webpack_require__(108);
 
   var _BezierEdgeBase3 = _interopRequireWildcard(_BezierEdgeBase2);
 
@@ -37784,7 +38079,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 102 */
+/* 103 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37803,7 +38098,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _BezierEdgeBase2 = __webpack_require__(107);
+  var _BezierEdgeBase2 = __webpack_require__(108);
 
   var _BezierEdgeBase3 = _interopRequireWildcard(_BezierEdgeBase2);
 
@@ -38048,7 +38343,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 103 */
+/* 104 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38067,7 +38362,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _EdgeBase2 = __webpack_require__(108);
+  var _EdgeBase2 = __webpack_require__(109);
 
   var _EdgeBase3 = _interopRequireWildcard(_EdgeBase2);
 
@@ -38158,7 +38453,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 104 */
+/* 105 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38224,7 +38519,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 105 */
+/* 106 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38243,7 +38538,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(104);
+  var _NodeBase2 = __webpack_require__(105);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -38345,7 +38640,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 106 */
+/* 107 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38364,7 +38659,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(104);
+  var _NodeBase2 = __webpack_require__(105);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -38435,7 +38730,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 107 */
+/* 108 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38454,7 +38749,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _EdgeBase2 = __webpack_require__(108);
+  var _EdgeBase2 = __webpack_require__(109);
 
   var _EdgeBase3 = _interopRequireWildcard(_EdgeBase2);
 
@@ -38582,7 +38877,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 108 */
+/* 109 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -39168,221 +39463,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
   exports['default'] = EdgeBase;
   module.exports = exports['default'];
-
-/***/ },
-/* 109 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /* WEBPACK VAR INJECTION */(function(global) {'use strict';
-
-  var _rng;
-
-  var globalVar = window !== undefined ? window : global;
-  if (globalVar.crypto && crypto.getRandomValues) {
-    // WHATWG crypto-based RNG - http://wiki.whatwg.org/wiki/Crypto
-    // Moderately fast, high quality
-    var _rnds8 = new Uint8Array(16);
-    _rng = function whatwgRNG() {
-      crypto.getRandomValues(_rnds8);
-      return _rnds8;
-    };
-  }
-
-  if (!_rng) {
-    // Math.random()-based (RNG)
-    //
-    // If all else fails, use Math.random().  It's fast, but is of unspecified
-    // quality.
-    var _rnds = new Array(16);
-    _rng = function () {
-      for (var i = 0, r; i < 16; i++) {
-        if ((i & 3) === 0) r = Math.random() * 4294967296;
-        _rnds[i] = r >>> ((i & 3) << 3) & 255;
-      }
-
-      return _rnds;
-    };
-  }
-
-  //     uuid.js
-  //
-  //     Copyright (c) 2010-2012 Robert Kieffer
-  //     MIT License - http://opensource.org/licenses/mit-license.php
-
-  // Unique ID creation requires a high quality random # generator.  We feature
-  // detect to determine the best RNG source, normalizing to a function that
-  // returns 128-bits of randomness, since that's what's usually required
-
-  //var _rng = require('./rng');
-
-  // Maps for number <-> hex string conversion
-  var _byteToHex = [];
-  var _hexToByte = {};
-  for (var i = 0; i < 256; i++) {
-    _byteToHex[i] = (i + 256).toString(16).substr(1);
-    _hexToByte[_byteToHex[i]] = i;
-  }
-
-  // **`parse()` - Parse a UUID into it's component bytes**
-  function parse(s, buf, offset) {
-    var i = buf && offset || 0,
-        ii = 0;
-
-    buf = buf || [];
-    s.toLowerCase().replace(/[0-9a-f]{2}/g, function (oct) {
-      if (ii < 16) {
-        // Don't overflow!
-        buf[i + ii++] = _hexToByte[oct];
-      }
-    });
-
-    // Zero out remaining bytes if string was short
-    while (ii < 16) {
-      buf[i + ii++] = 0;
-    }
-
-    return buf;
-  }
-
-  // **`unparse()` - Convert UUID byte array (ala parse()) into a string**
-  function unparse(buf, offset) {
-    var i = offset || 0,
-        bth = _byteToHex;
-    return bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + '-' + bth[buf[i++]] + bth[buf[i++]] + '-' + bth[buf[i++]] + bth[buf[i++]] + '-' + bth[buf[i++]] + bth[buf[i++]] + '-' + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]];
-  }
-
-  // **`v1()` - Generate time-based UUID**
-  //
-  // Inspired by https://github.com/LiosK/UUID.js
-  // and http://docs.python.org/library/uuid.html
-
-  // random #'s we need to init node and clockseq
-  var _seedBytes = _rng();
-
-  // Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
-  var _nodeId = [_seedBytes[0] | 1, _seedBytes[1], _seedBytes[2], _seedBytes[3], _seedBytes[4], _seedBytes[5]];
-
-  // Per 4.2.2, randomize (14 bit) clockseq
-  var _clockseq = (_seedBytes[6] << 8 | _seedBytes[7]) & 16383;
-
-  // Previous uuid creation time
-  var _lastMSecs = 0,
-      _lastNSecs = 0;
-
-  // See https://github.com/broofa/node-uuid for API details
-  function v1(options, buf, offset) {
-    var i = buf && offset || 0;
-    var b = buf || [];
-
-    options = options || {};
-
-    var clockseq = options.clockseq !== undefined ? options.clockseq : _clockseq;
-
-    // UUID timestamps are 100 nano-second units since the Gregorian epoch,
-    // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so
-    // time is handled internally as 'msecs' (integer milliseconds) and 'nsecs'
-    // (100-nanoseconds offset from msecs) since unix epoch, 1970-01-01 00:00.
-    var msecs = options.msecs !== undefined ? options.msecs : new Date().getTime();
-
-    // Per 4.2.1.2, use count of uuid's generated during the current clock
-    // cycle to simulate higher resolution clock
-    var nsecs = options.nsecs !== undefined ? options.nsecs : _lastNSecs + 1;
-
-    // Time since last uuid creation (in msecs)
-    var dt = msecs - _lastMSecs + (nsecs - _lastNSecs) / 10000;
-
-    // Per 4.2.1.2, Bump clockseq on clock regression
-    if (dt < 0 && options.clockseq === undefined) {
-      clockseq = clockseq + 1 & 16383;
-    }
-
-    // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
-    // time interval
-    if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === undefined) {
-      nsecs = 0;
-    }
-
-    // Per 4.2.1.2 Throw error if too many uuids are requested
-    if (nsecs >= 10000) {
-      throw new Error('uuid.v1(): Can\'t create more than 10M uuids/sec');
-    }
-
-    _lastMSecs = msecs;
-    _lastNSecs = nsecs;
-    _clockseq = clockseq;
-
-    // Per 4.1.4 - Convert from unix epoch to Gregorian epoch
-    msecs += 12219292800000;
-
-    // `time_low`
-    var tl = ((msecs & 268435455) * 10000 + nsecs) % 4294967296;
-    b[i++] = tl >>> 24 & 255;
-    b[i++] = tl >>> 16 & 255;
-    b[i++] = tl >>> 8 & 255;
-    b[i++] = tl & 255;
-
-    // `time_mid`
-    var tmh = msecs / 4294967296 * 10000 & 268435455;
-    b[i++] = tmh >>> 8 & 255;
-    b[i++] = tmh & 255;
-
-    // `time_high_and_version`
-    b[i++] = tmh >>> 24 & 15 | 16; // include version
-    b[i++] = tmh >>> 16 & 255;
-
-    // `clock_seq_hi_and_reserved` (Per 4.2.2 - include variant)
-    b[i++] = clockseq >>> 8 | 128;
-
-    // `clock_seq_low`
-    b[i++] = clockseq & 255;
-
-    // `node`
-    var node = options.node || _nodeId;
-    for (var n = 0; n < 6; n++) {
-      b[i + n] = node[n];
-    }
-
-    return buf ? buf : unparse(b);
-  }
-
-  // **`v4()` - Generate random UUID**
-
-  // See https://github.com/broofa/node-uuid for API details
-  function v4(options, buf, offset) {
-    // Deprecated - 'format' argument, as supported in v1.2
-    var i = buf && offset || 0;
-
-    if (typeof options == 'string') {
-      buf = options == 'binary' ? new Array(16) : null;
-      options = null;
-    }
-    options = options || {};
-
-    var rnds = options.random || (options.rng || _rng)();
-
-    // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
-    rnds[6] = rnds[6] & 15 | 64;
-    rnds[8] = rnds[8] & 63 | 128;
-
-    // Copy bytes to buffer, if provided
-    if (buf) {
-      for (var ii = 0; ii < 16; ii++) {
-        buf[i + ii] = rnds[ii];
-      }
-    }
-
-    return buf || unparse(rnds);
-  }
-
-  // Export public API
-  var uuid = v4;
-  uuid.v1 = v1;
-  uuid.v4 = v4;
-  uuid.parse = parse;
-  uuid.unparse = unparse;
-
-  module.exports = uuid;
-  /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ }
 /******/ ])
