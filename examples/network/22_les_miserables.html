@@ -1,7 +1,7 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!doctype html>
 <html>
 <head>
-    <title>Network | Multiline text</title>
+    <title>Network | Les miserables</title>
 
     <style type="text/css">
         #mynetwork {
@@ -18,83 +18,83 @@
         function draw() {
             // create some nodes
             var nodes = [
-                        {id:0,"labelHidden":"Myriel","group":1},
-                        {id:1,"labelHidden":"Napoleon","group":1},
-                        {id:2,"labelHidden":"Mlle.Baptistine","group":1},
-                        {id:3,"labelHidden":"Mme.Magloire","group":1},
-                        {id:4,"labelHidden":"CountessdeLo","group":1},
-                        {id:5,"labelHidden":"Geborand","group":1},
-                        {id:6,"labelHidden":"Champtercier","group":1},
-                        {id:7,"labelHidden":"Cravatte","group":1},
-                        {id:8,"labelHidden":"Count","group":1},
-                        {id:9,"labelHidden":"OldMan","group":1},
-                        {id:10,"labelHidden":"Labarre","group":2},
-                        {id:11,"labelHidden":"Valjean","group":2},
-                        {id:12,"labelHidden":"Marguerite","group":3},
-                        {id:13,"labelHidden":"Mme.deR","group":2},
-                        {id:14,"labelHidden":"Isabeau","group":2},
-                        {id:15,"labelHidden":"Gervais","group":2},
-                        {id:16,"labelHidden":"Tholomyes","group":3},
-                        {id:17,"labelHidden":"Listolier","group":3},
-                        {id:18,"labelHidden":"Fameuil","group":3},
-                        {id:19,"labelHidden":"Blacheville","group":3},
-                        {id:20,"labelHidden":"Favourite","group":3},
-                        {id:21,"labelHidden":"Dahlia","group":3},
-                        {id:22,"labelHidden":"Zephine","group":3},
-                        {id:23,"labelHidden":"Fantine","group":3},
-                        {id:24,"labelHidden":"Mme.Thenardier","group":4},
-                        {id:25,"labelHidden":"Thenardier","group":4},
-                        {id:26,"labelHidden":"Cosette","group":5},
-                        {id:27,"labelHidden":"Javert","group":4},
-                        {id:28,"labelHidden":"Fauchelevent","group":0},
-                        {id:29,"labelHidden":"Bamatabois","group":2},
-                        {id:30,"labelHidden":"Perpetue","group":3},
-                        {id:31,"labelHidden":"Simplice","group":2},
-                        {id:32,"labelHidden":"Scaufflaire","group":2},
-                        {id:33,"labelHidden":"Woman1","group":2},
-                        {id:34,"labelHidden":"Judge","group":2},
-                        {id:35,"labelHidden":"Champmathieu","group":2},
-                        {id:36,"labelHidden":"Brevet","group":2},
-                        {id:37,"labelHidden":"Chenildieu","group":2},
-                        {id:38,"labelHidden":"Cochepaille","group":2},
-                        {id:39,"labelHidden":"Pontmercy","group":4},
-                        {id:40,"labelHidden":"Boulatruelle","group":6},
-                        {id:41,"labelHidden":"Eponine","group":4},
-                        {id:42,"labelHidden":"Anzelma","group":4},
-                        {id:43,"labelHidden":"Woman2","group":5},
-                        {id:44,"labelHidden":"MotherInnocent","group":0},
-                        {id:45,"labelHidden":"Gribier","group":0},
-                        {id:46,"labelHidden":"Jondrette","group":7},
-                        {id:47,"labelHidden":"Mme.Burgon","group":7},
-                        {id:48,"labelHidden":"Gavroche","group":8},
-                        {id:49,"labelHidden":"Gillenormand","group":5},
-                        {id:50,"labelHidden":"Magnon","group":5},
-                        {id:51,"labelHidden":"Mlle.Gillenormand","group":5},
-                        {id:52,"labelHidden":"Mme.Pontmercy","group":5},
-                        {id:53,"labelHidden":"Mlle.Vaubois","group":5},
-                        {id:54,"labelHidden":"Lt.Gillenormand","group":5},
-                        {id:55,"labelHidden":"Marius","group":8},
-                        {id:56,"labelHidden":"BaronessT","group":5},
-                        {id:57,"labelHidden":"Mabeuf","group":8},
-                        {id:58,"labelHidden":"Enjolras","group":8},
-                        {id:59,"labelHidden":"Combeferre","group":8},
-                        {id:60,"labelHidden":"Prouvaire","group":8},
-                        {id:61,"labelHidden":"Feuilly","group":8},
-                        {id:62,"labelHidden":"Courfeyrac","group":8},
-                        {id:63,"labelHidden":"Bahorel","group":8},
-                        {id:64,"labelHidden":"Bossuet","group":8},
-                        {id:65,"labelHidden":"Joly","group":8},
-                        {id:66,"labelHidden":"Grantaire","group":8},
-                        {id:67,"labelHidden":"MotherPlutarch","group":9},
-                        {id:68,"labelHidden":"Gueulemer","group":4},
-                        {id:69,"labelHidden":"Babet","group":4},
-                        {id:70,"labelHidden":"Claquesous","group":4},
-                        {id:71,"labelHidden":"Montparnasse","group":4},
-                        {id:72,"labelHidden":"Toussaint","group":5},
-                        {id:73,"labelHidden":"Child1","group":10},
-                        {id:74,"labelHidden":"Child2","group":10},
-                        {id:75,"labelHidden":"Brujon","group":4},
-                        {id:76,"labelHidden":"Mme.Hucheloup","group":8}
+                        {id:0,"label":"Myriel","group":1},
+                        {id:1,"label":"Napoleon","group":1},
+                        {id:2,"label":"Mlle.Baptistine","group":1},
+                        {id:3,"label":"Mme.Magloire","group":1},
+                        {id:4,"label":"CountessdeLo","group":1},
+                        {id:5,"label":"Geborand","group":1},
+                        {id:6,"label":"Champtercier","group":1},
+                        {id:7,"label":"Cravatte","group":1},
+                        {id:8,"label":"Count","group":1},
+                        {id:9,"label":"OldMan","group":1},
+                        {id:10,"label":"Labarre","group":2},
+                        {id:11,"label":"Valjean","group":2},
+                        {id:12,"label":"Marguerite","group":3},
+                        {id:13,"label":"Mme.deR","group":2},
+                        {id:14,"label":"Isabeau","group":2},
+                        {id:15,"label":"Gervais","group":2},
+                        {id:16,"label":"Tholomyes","group":3},
+                        {id:17,"label":"Listolier","group":3},
+                        {id:18,"label":"Fameuil","group":3},
+                        {id:19,"label":"Blacheville","group":3},
+                        {id:20,"label":"Favourite","group":3},
+                        {id:21,"label":"Dahlia","group":3},
+                        {id:22,"label":"Zephine","group":3},
+                        {id:23,"label":"Fantine","group":3},
+                        {id:24,"label":"Mme.Thenardier","group":4},
+                        {id:25,"label":"Thenardier","group":4},
+                        {id:26,"label":"Cosette","group":5},
+                        {id:27,"label":"Javert","group":4},
+                        {id:28,"label":"Fauchelevent","group":0},
+                        {id:29,"label":"Bamatabois","group":2},
+                        {id:30,"label":"Perpetue","group":3},
+                        {id:31,"label":"Simplice","group":2},
+                        {id:32,"label":"Scaufflaire","group":2},
+                        {id:33,"label":"Woman1","group":2},
+                        {id:34,"label":"Judge","group":2},
+                        {id:35,"label":"Champmathieu","group":2},
+                        {id:36,"label":"Brevet","group":2},
+                        {id:37,"label":"Chenildieu","group":2},
+                        {id:38,"label":"Cochepaille","group":2},
+                        {id:39,"label":"Pontmercy","group":4},
+                        {id:40,"label":"Boulatruelle","group":6},
+                        {id:41,"label":"Eponine","group":4},
+                        {id:42,"label":"Anzelma","group":4},
+                        {id:43,"label":"Woman2","group":5},
+                        {id:44,"label":"MotherInnocent","group":0},
+                        {id:45,"label":"Gribier","group":0},
+                        {id:46,"label":"Jondrette","group":7},
+                        {id:47,"label":"Mme.Burgon","group":7},
+                        {id:48,"label":"Gavroche","group":8},
+                        {id:49,"label":"Gillenormand","group":5},
+                        {id:50,"label":"Magnon","group":5},
+                        {id:51,"label":"Mlle.Gillenormand","group":5},
+                        {id:52,"label":"Mme.Pontmercy","group":5},
+                        {id:53,"label":"Mlle.Vaubois","group":5},
+                        {id:54,"label":"Lt.Gillenormand","group":5},
+                        {id:55,"label":"Marius","group":8},
+                        {id:56,"label":"BaronessT","group":5},
+                        {id:57,"label":"Mabeuf","group":8},
+                        {id:58,"label":"Enjolras","group":8},
+                        {id:59,"label":"Combeferre","group":8},
+                        {id:60,"label":"Prouvaire","group":8},
+                        {id:61,"label":"Feuilly","group":8},
+                        {id:62,"label":"Courfeyrac","group":8},
+                        {id:63,"label":"Bahorel","group":8},
+                        {id:64,"label":"Bossuet","group":8},
+                        {id:65,"label":"Joly","group":8},
+                        {id:66,"label":"Grantaire","group":8},
+                        {id:67,"label":"MotherPlutarch","group":9},
+                        {id:68,"label":"Gueulemer","group":4},
+                        {id:69,"label":"Babet","group":4},
+                        {id:70,"label":"Claquesous","group":4},
+                        {id:71,"label":"Montparnasse","group":4},
+                        {id:72,"label":"Toussaint","group":5},
+                        {id:73,"label":"Child1","group":10},
+                        {id:74,"label":"Child2","group":10},
+                        {id:75,"label":"Brujon","group":4},
+                        {id:76,"label":"Mme.Hucheloup","group":8}
                     ];
 
             // create some edges
@@ -361,14 +361,26 @@
                 nodes: nodes,
                 edges: edges
             };
-            var options = {nodes: {shape:'circle'},stabilize: false};
+            var options = {
+              nodes:   {
+                shape: 'dot',
+                size: 16
+              },
+              physics: {
+                stabilization: false
+              }
+            };
             var network = new vis.Network(container, data, options);
 
         }
     </script>
-<script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-61231638-1', 'auto');ga('send', 'pageview');</script></head>
+  <script src="../googleAnalytics.js"></script>
+</head>
 
 <body onload="draw()">
+<p>
+  Relations between the characters of "Les miserables".
+</p>
 <div id="mynetwork"></div>
 </body>
 </html>

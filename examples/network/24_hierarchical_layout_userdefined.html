@@ -141,7 +141,8 @@
     }
 
   </script>
-<script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-61231638-1', 'auto');ga('send', 'pageview');</script></head>
+  <script src="../googleAnalytics.js"></script>
+</head>
 
 <body onload="draw();">
 <h2>Hierarchical Layout - User-defined</h2>
@@ -149,12 +150,13 @@
     This example shows a user-defined hierarchical layout. If the user defines levels for nodes but does not do so for all nodes, an alert will show up and hierarchical layout will be disabled. Either all or none can be defined.
     If the smooth curves appear to be inverted, the direction of the edge is not in the same direction as the network.
 </div>
-<input type="button" id="btn-UD" value="Up-Down">
-<input type="button" id="btn-DU" value="Down-Up">
-<input type="button" id="btn-LR" value="Left-Right">
-<input type="button" id="btn-RL" value="Right-Left">
-<input type="hidden" id='direction' value="UD">
-<br />
+<p>
+  <input type="button" id="btn-UD" value="Up-Down">
+  <input type="button" id="btn-DU" value="Down-Up">
+  <input type="button" id="btn-LR" value="Left-Right">
+  <input type="button" id="btn-RL" value="Right-Left">
+  <input type="hidden" id='direction' value="UD">
+</p>
 
 <div id="mynetwork"></div>
 
@@ -165,7 +167,7 @@
     btnUD.onclick = function() {
         directionInput.value = "UD";
         draw();
-    }
+    };
     var btnDU = document.getElementById("btn-DU");
     btnDU.onclick = function() {
         directionInput.value = "DU";
