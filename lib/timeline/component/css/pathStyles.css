@@ -68,24 +68,24 @@
     stroke: #8f3938;
 }
 
-.vis-fill {
+.vis-timeline .vis-fill {
     fill-opacity:0.1;
     stroke: none;
 }
 
 
-.vis-bar {
+.vis-timeline .vis-bar {
     fill-opacity:0.5;
     stroke-width:1px;
 }
 
-.vis-point {
+.vis-timeline .vis-point {
     stroke-width:2px;
     fill-opacity:1.0;
 }
 
 
-.vis-legend-background {
+.vis-timeline .vis-legend-background {
     stroke-width:1px;
     fill-opacity:0.9;
     fill: #ffffff;
@@ -93,16 +93,14 @@
 }
 
 
-.vis-outline {
+.vis-timeline .vis-outline {
     stroke-width:1px;
     fill-opacity:1;
     fill: #ffffff;
     stroke: #e5e5e5;
 }
 
-.vis-icon-fill {
+.vis-timeline .vis-icon-fill {
     fill-opacity:0.3;
     stroke: none;
 }
-
-
