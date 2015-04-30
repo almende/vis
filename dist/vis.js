@@ -15672,9 +15672,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _Validator2 = _interopRequireWildcard(_Validator);
 
-  var _allOptions = __webpack_require__(64);
-
-  var _allOptions2 = _interopRequireWildcard(_allOptions);
+  var _allOptions$configureOptions = __webpack_require__(64);
 
   // Load custom shapes into CanvasRenderingContext2D
   __webpack_require__(65);
@@ -15777,10 +15775,11 @@ return /******/ (function(modules) { // webpackBootstrap
     this.nodesHandler = new _NodesHandler2['default'](this.body, this.images, this.groups, this.layoutEngine); // Handle adding, deleting and updating of nodes as well as global options
     this.edgesHandler = new _EdgesHandler2['default'](this.body, this.images, this.groups); // Handle adding, deleting and updating of edges as well as global options
 
-    this.configurationSystem = new _ConfigurationSystem2['default'](this);
-
     // create the DOM elements
     this.canvas._create();
+
+    // setup configuration system
+    this.configurationSystem = new _ConfigurationSystem2['default'](this, this.body.container, _allOptions$configureOptions.configureOptions, this.canvas.pixelRatio);
 
     // apply options
     this.setOptions(options);
@@ -15799,7 +15798,7 @@ return /******/ (function(modules) { // webpackBootstrap
   Network.prototype.setOptions = function (options) {
     if (options !== undefined) {
 
-      var errorFound = _Validator2['default'].validate(options, _allOptions2['default']);
+      var errorFound = _Validator2['default'].validate(options, _allOptions$configureOptions.allOptions);
       if (errorFound === true) {
         options = {};
         console.log('%cErrors have been found in the supplied options object. None of the options will be used.', _Validator.printStyle);
@@ -15821,7 +15820,21 @@ return /******/ (function(modules) { // webpackBootstrap
       this.clustering.setOptions(options.clustering);
       this.manipulation.setOptions(options.manipulation);
 
-      this.configurationSystem.setOptions(options);
+      this.configurationSystem.setOptions(options.configure);
+
+      // if the configuration system is enabled, copy all options and put them into the config system
+      if (this.configurationSystem.options.enabled === true) {
+        var networkOptions = { nodes: {}, edges: {}, layout: {}, interaction: {}, manipulation: {}, physics: {}, selection: {}, rendering: {} };
+        util.deepExtend(networkOptions.nodes, this.nodesHandler.options);
+        util.deepExtend(networkOptions.edges, this.edgesHandler.options);
+        util.deepExtend(networkOptions.layout, this.layoutEngine.options);
+        util.deepExtend(networkOptions.interaction, this.interactionHandler.options);
+        util.deepExtend(networkOptions.manipulation, this.manipulation.options);
+        util.deepExtend(networkOptions.physics, this.physics.options);
+        util.deepExtend(networkOptions.selection, this.selectionHandler.options);
+        util.deepExtend(networkOptions.rendering, this.renderer.options);
+        this.configurationSystem.setModuleOptions(networkOptions);
+      }
 
       // handle network global options
       if (options.clickToUse !== undefined) {
@@ -25702,7 +25715,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ColorPicker = __webpack_require__(83);
+  var _ColorPicker = __webpack_require__(109);
 
   var _ColorPicker2 = _interopRequireWildcard(_ColorPicker);
 
@@ -25717,206 +25730,34 @@ return /******/ (function(modules) { // webpackBootstrap
    *
    * The options are matched with their counterparts in each of the modules and the values used in the configuration are
    *
+   * @param parentModule        | the location where parentModule.setOptions() can be called
+   * @param defaultContainer    | the default container of the module
+   * @param configureOptions    | the fully configured and predefined options set found in allOptions.js
+   * @param pixelRatio          | canvas pixel ratio
    */
 
   var ConfigurationSystem = (function () {
-    function ConfigurationSystem(network) {
+    function ConfigurationSystem(parentModule, defaultContainer, configureOptions) {
+      var pixelRatio = arguments[3] === undefined ? 1 : arguments[3];
+
       _classCallCheck(this, ConfigurationSystem);
 
-      this.network = network;
+      this.parent = parentModule;
       this.changedOptions = [];
+      this.container = defaultContainer;
 
-      this.possibleOptions = {
-        nodes: {
-          borderWidth: [1, 0, 10, 1],
-          borderWidthSelected: [2, 0, 10, 1],
-          color: {
-            border: ['color', '#2B7CE9'],
-            background: ['color', '#97C2FC'],
-            highlight: {
-              border: ['color', '#2B7CE9'],
-              background: ['color', '#D2E5FF']
-            },
-            hover: {
-              border: ['color', '#2B7CE9'],
-              background: ['color', '#D2E5FF']
-            }
-          },
-          fixed: {
-            x: false,
-            y: false
-          },
-          font: {
-            color: ['color', '#343434'],
-            size: [14, 0, 100, 1], // px
-            face: ['arial', 'verdana', 'tahoma'],
-            background: ['color', 'none'],
-            stroke: [0, 0, 50, 1], // px
-            strokeColor: ['color', '#ffffff']
-          },
-          //group: 'string',
-          hidden: false,
-          //icon: {
-          //  face: 'string',  //'FontAwesome',
-          //  code: 'string',  //'\uf007',
-          //  size: [50, 0, 200, 1],  //50,
-          //  color: ['color','#2B7CE9']   //'#aa00ff'
-          //},
-          //image: 'string', // --> URL
-          physics: true,
-          scaling: {
-            min: [10, 0, 200, 1],
-            max: [30, 0, 200, 1],
-            label: {
-              enabled: true,
-              min: [14, 0, 200, 1],
-              max: [30, 0, 200, 1],
-              maxVisible: [30, 0, 200, 1],
-              drawThreshold: [3, 0, 20, 1]
-            }
-          },
-          shadow: {
-            enabled: false,
-            size: [10, 0, 20, 1],
-            x: [5, -30, 30, 1],
-            y: [5, -30, 30, 1]
-          },
-          shape: ['ellipse', 'box', 'circle', 'database', 'diamond', 'dot', 'square', 'star', 'text', 'triangle', 'triangleDown'],
-          size: [25, 0, 200, 1]
-        },
-        edges: {
-          arrows: {
-            to: { enabled: false, scaleFactor: [1, 0, 3, 0.05] }, // boolean / {arrowScaleFactor:1} / {enabled: false, arrowScaleFactor:1}
-            middle: { enabled: false, scaleFactor: [1, 0, 3, 0.05] },
-            from: { enabled: false, scaleFactor: [1, 0, 3, 0.05] }
-          },
-          color: {
-            color: ['color', '#848484'],
-            highlight: ['color', '#848484'],
-            hover: ['color', '#848484'],
-            inherit: ['from', 'to', 'both', true, false],
-            opacity: [1, 0, 1, 0.05]
-          },
-          dashes: false,
-          font: {
-            color: ['color', '#343434'],
-            size: [14, 0, 100, 1], // px
-            face: ['arial', 'verdana', 'tahoma'],
-            background: ['color', 'none'],
-            stroke: [1, 0, 50, 1], // px
-            strokeColor: ['color', '#ffffff'],
-            align: ['horizontal', 'top', 'middle', 'bottom']
-          },
-          hidden: false,
-          hoverWidth: [2, 0, 5, 0.1],
-          physics: true,
-          scaling: {
-            min: [1, 0, 100, 1],
-            max: [15, 0, 100, 1],
-            label: {
-              enabled: true,
-              min: [14, 0, 200, 1],
-              max: [30, 0, 200, 1],
-              maxVisible: [30, 0, 200, 1],
-              drawThreshold: [3, 0, 20, 1]
-            }
-          },
-          selectionWidth: [1.5, 0, 5, 0.1],
-          selfReferenceSize: [20, 0, 200, 1],
-          shadow: {
-            enabled: false,
-            size: [10, 0, 20, 1],
-            x: [5, -30, 30, 1],
-            y: [5, -30, 30, 1]
-          },
-          smooth: {
-            enabled: true,
-            dynamic: true,
-            type: ['continuous', 'discrete', 'diagonalCross', 'straightCross', 'horizontal', 'vertical', 'curvedCW', 'curvedCCW'],
-            roundness: [0.5, 0, 1, 0.05]
-          },
-          width: [1, 0, 30, 1]
-        },
-        layout: {
-          randomSeed: [0, 0, 500, 1],
-          hierarchical: {
-            enabled: false,
-            levelSeparation: [150, 20, 500, 5],
-            direction: ['UD', 'DU', 'LR', 'RL'], // UD, DU, LR, RL
-            sortMethod: ['hubsize', 'directed'] // hubsize, directed
-          }
-        },
-        interaction: {
-          dragNodes: true,
-          dragView: true,
-          zoomView: true,
-          hoverEnabled: false,
-          navigationButtons: false,
-          tooltipDelay: [300, 0, 1000, 25],
-          keyboard: {
-            enabled: false,
-            speed: { x: [10, 0, 40, 1], y: [10, 0, 40, 1], zoom: [0.02, 0, 0.1, 0.005] },
-            bindToWindow: true
-          }
-        },
-        manipulation: {
-          enabled: false,
-          initiallyActive: false,
-          locale: ['en', 'nl']
-        },
-        physics: {
-          barnesHut: {
-            //theta: [0.5, 0.1, 1, 0.05],
-            gravitationalConstant: [-2000, -30000, 0, 50],
-            centralGravity: [0.3, 0, 10, 0.05],
-            springLength: [95, 0, 500, 5],
-            springConstant: [0.04, 0, 5, 0.005],
-            damping: [0.09, 0, 1, 0.01]
-          },
-          repulsion: {
-            centralGravity: [0.2, 0, 10, 0.05],
-            springLength: [200, 0, 500, 5],
-            springConstant: [0.05, 0, 5, 0.005],
-            nodeDistance: [100, 0, 500, 5],
-            damping: [0.09, 0, 1, 0.01]
-          },
-          hierarchicalRepulsion: {
-            centralGravity: [0.2, 0, 10, 0.05],
-            springLength: [100, 0, 500, 5],
-            springConstant: [0.01, 0, 5, 0.005],
-            nodeDistance: [120, 0, 500, 5],
-            damping: [0.09, 0, 1, 0.01]
-          },
-          maxVelocity: [50, 0, 150, 1],
-          minVelocity: [0.1, 0.01, 0.5, 0.01],
-          solver: ['barnesHut', 'repulsion', 'hierarchicalRepulsion'],
-          timestep: [0.5, 0, 1, 0.05]
-        },
-        selection: {
-          selectable: true,
-          selectConnectedEdges: true
-        },
-        rendering: {
-          hideEdgesOnDrag: false,
-          hideNodesOnDrag: false
-        }
+      this.options = {};
+      this.defaultOptions = {
+        enabled: false,
+        filter: true,
+        container: undefined
       };
+      util.extend(this.options, this.defaultOptions);
 
-      this.actualOptions = {
-        nodes: {},
-        edges: {},
-        layout: {},
-        interaction: {},
-        manipulation: {},
-        physics: {},
-        selection: {},
-        rendering: {},
-        configure: false,
-        configureContainer: undefined
-      };
-
+      this.configureOptions = configureOptions;
+      this.moduleOptions = {};
       this.domElements = [];
-      this.colorPicker = new _ColorPicker2['default'](this.network.canvas.pixelRatio);
+      this.colorPicker = new _ColorPicker2['default'](pixelRatio);
       this.wrapper;
     }
 
@@ -25931,41 +25772,39 @@ return /******/ (function(modules) { // webpackBootstrap
        */
       value: function setOptions(options) {
         if (options !== undefined) {
-          util.extend(this.actualOptions, options);
+          var enabled = true;
+          if (typeof options === 'string') {
+            this.options.filter = options;
+          } else if (options instanceof Array) {
+            this.options.filter = options.join();
+          } else if (typeof options === 'object') {
+            if (options.container !== undefined) {
+              this.options.container = options.container;
+            }
+            if (options.filter !== undefined) {
+              this.options.filter = options.filter;
+            }
+            if (options.enabled !== undefined) {
+              enabled = options.enabled;
+            }
+          } else if (typeof options === 'boolean') {
+            this.options.filter = true;
+            enabled = options;
+          }
+          this.options.enabled = enabled;
         }
-
         this._clean();
-
-        if (this.actualOptions.configure !== undefined && this.actualOptions.configure !== false) {
-          util.deepExtend(this.actualOptions.nodes, this.network.nodesHandler.options, true);
-          util.deepExtend(this.actualOptions.edges, this.network.edgesHandler.options, true);
-          util.deepExtend(this.actualOptions.layout, this.network.layoutEngine.options, true);
-          util.deepExtend(this.actualOptions.interaction, this.network.interactionHandler.options, true);
-          util.deepExtend(this.actualOptions.manipulation, this.network.manipulation.options, true);
-          util.deepExtend(this.actualOptions.physics, this.network.physics.options, true);
-          util.deepExtend(this.actualOptions.selection, this.network.selectionHandler.selection, true);
-          util.deepExtend(this.actualOptions.rendering, this.network.renderer.selection, true);
-
-          this.container = this.network.body.container;
-          var config = true;
-          if (typeof this.actualOptions.configure === 'string') {
-            config = this.actualOptions.configure;
-          } else if (this.actualOptions.configure instanceof Array) {
-            config = this.actualOptions.configure.join();
-          } else if (typeof this.actualOptions.configure === 'object') {
-            if (this.actualOptions.configure.container !== undefined) {
-              this.container = this.actualOptions.configure.container;
-            }
-            if (this.actualOptions.configure.filter !== undefined) {
-              config = this.actualOptions.configure.filter;
-            }
-          } else if (typeof this.actualOptions.configure === 'boolean') {
-            config = this.actualOptions.configure;
+      }
+    }, {
+      key: 'setModuleOptions',
+      value: function setModuleOptions(moduleOptions) {
+        this.moduleOptions = moduleOptions;
+        if (this.options.enabled === true) {
+          this._clean();
+          if (this.options.container !== undefined) {
+            this.container = this.options.container;
           }
-
-          if (config !== false) {
-            this._create(config);
-          }
+          this._create(this.options.filter);
         }
       }
     }, {
@@ -25983,10 +25822,10 @@ return /******/ (function(modules) { // webpackBootstrap
         this.changedOptions = [];
 
         var counter = 0;
-        for (var option in this.possibleOptions) {
-          if (this.possibleOptions.hasOwnProperty(option)) {
+        for (var option in this.configureOptions) {
+          if (this.configureOptions.hasOwnProperty(option)) {
             if (config === true || config.indexOf(option) !== -1) {
-              var optionObj = this.possibleOptions[option];
+              var optionObj = this.configureOptions[option];
 
               // linebreak between categories
               if (counter > 0) {
@@ -26067,7 +25906,7 @@ return /******/ (function(modules) { // webpackBootstrap
        * @private
        */
       value: function _getValue(path) {
-        var base = this.actualOptions;
+        var base = this.moduleOptions;
         for (var i = 0; i < path.length; i++) {
           if (base[path[i]] !== undefined) {
             base = base[path[i]];
@@ -26077,24 +25916,6 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         }
         return base;
-      }
-    }, {
-      key: '_addToPath',
-
-      /**
-       * Copy the path and add a step. It needs to copy because the path will keep stacking otherwise.
-       * @param path
-       * @param newValue
-       * @returns {Array}
-       * @private
-       */
-      value: function _addToPath(path, newValue) {
-        var newPath = [];
-        for (var i = 0; i < path.length; i++) {
-          newPath.push(path[i]);
-        }
-        newPath.push(newValue);
-        return newPath;
       }
     }, {
       key: '_makeItem',
@@ -26363,7 +26184,7 @@ return /******/ (function(modules) { // webpackBootstrap
               // collapse the physics options that are not enabled
               var draw = true;
               if (path.indexOf('physics') !== -1) {
-                if (this.actualOptions.physics.solver !== subObj) {
+                if (this.moduleOptions.physics.solver !== subObj) {
                   draw = false;
                 }
               }
@@ -26432,7 +26253,7 @@ return /******/ (function(modules) { // webpackBootstrap
        */
       value: function _update(value, path) {
         var options = this._constructOptions(value, path);
-        this.network.setOptions(options);
+        this.parent.setOptions(options);
       }
     }, {
       key: '_constructOptions',
@@ -26455,7 +26276,6 @@ return /******/ (function(modules) { // webpackBootstrap
             pointer[path[i]] = value;
           }
         }
-        console.log(optionsObj);
         return optionsObj;
       }
     }, {
@@ -26785,9 +26605,10 @@ return /******/ (function(modules) { // webpackBootstrap
     },
     clustering: {},
     configure: {
+      enabled: { boolean: boolean },
       filter: { boolean: boolean, string: ['nodes', 'edges', 'layout', 'physics', 'manipulation', 'interaction', 'selection', 'rendering'], array: array },
       container: { dom: dom },
-      __type__: { object: object, string: string, array: array, boolean: boolean }
+      __type__: { object: object, boolean: boolean, string: ['nodes', 'edges', 'layout', 'physics', 'manipulation', 'interaction', 'selection', 'rendering'], array: array }
     },
     edges: {
       arrows: {
@@ -27032,8 +26853,184 @@ return /******/ (function(modules) { // webpackBootstrap
   allOptions.groups.__any__ = allOptions.nodes;
   allOptions.manipulation.controlNodeStyle = allOptions.nodes;
 
-  exports['default'] = allOptions;
-  module.exports = exports['default'];
+  var configureOptions = {
+    nodes: {
+      borderWidth: [1, 0, 10, 1],
+      borderWidthSelected: [2, 0, 10, 1],
+      color: {
+        border: ['color', '#2B7CE9'],
+        background: ['color', '#97C2FC'],
+        highlight: {
+          border: ['color', '#2B7CE9'],
+          background: ['color', '#D2E5FF']
+        },
+        hover: {
+          border: ['color', '#2B7CE9'],
+          background: ['color', '#D2E5FF']
+        }
+      },
+      fixed: {
+        x: false,
+        y: false
+      },
+      font: {
+        color: ['color', '#343434'],
+        size: [14, 0, 100, 1], // px
+        face: ['arial', 'verdana', 'tahoma'],
+        background: ['color', 'none'],
+        stroke: [0, 0, 50, 1], // px
+        strokeColor: ['color', '#ffffff']
+      },
+      //group: 'string',
+      hidden: false,
+      //icon: {
+      //  face: 'string',  //'FontAwesome',
+      //  code: 'string',  //'\uf007',
+      //  size: [50, 0, 200, 1],  //50,
+      //  color: ['color','#2B7CE9']   //'#aa00ff'
+      //},
+      //image: 'string', // --> URL
+      physics: true,
+      scaling: {
+        min: [10, 0, 200, 1],
+        max: [30, 0, 200, 1],
+        label: {
+          enabled: true,
+          min: [14, 0, 200, 1],
+          max: [30, 0, 200, 1],
+          maxVisible: [30, 0, 200, 1],
+          drawThreshold: [3, 0, 20, 1]
+        }
+      },
+      shadow: {
+        enabled: false,
+        size: [10, 0, 20, 1],
+        x: [5, -30, 30, 1],
+        y: [5, -30, 30, 1]
+      },
+      shape: ['ellipse', 'box', 'circle', 'database', 'diamond', 'dot', 'square', 'star', 'text', 'triangle', 'triangleDown'],
+      size: [25, 0, 200, 1]
+    },
+    edges: {
+      arrows: {
+        to: { enabled: false, scaleFactor: [1, 0, 3, 0.05] }, // boolean / {arrowScaleFactor:1} / {enabled: false, arrowScaleFactor:1}
+        middle: { enabled: false, scaleFactor: [1, 0, 3, 0.05] },
+        from: { enabled: false, scaleFactor: [1, 0, 3, 0.05] }
+      },
+      color: {
+        color: ['color', '#848484'],
+        highlight: ['color', '#848484'],
+        hover: ['color', '#848484'],
+        inherit: ['from', 'to', 'both', true, false],
+        opacity: [1, 0, 1, 0.05]
+      },
+      dashes: false,
+      font: {
+        color: ['color', '#343434'],
+        size: [14, 0, 100, 1], // px
+        face: ['arial', 'verdana', 'tahoma'],
+        background: ['color', 'none'],
+        stroke: [1, 0, 50, 1], // px
+        strokeColor: ['color', '#ffffff'],
+        align: ['horizontal', 'top', 'middle', 'bottom']
+      },
+      hidden: false,
+      hoverWidth: [2, 0, 5, 0.1],
+      physics: true,
+      scaling: {
+        min: [1, 0, 100, 1],
+        max: [15, 0, 100, 1],
+        label: {
+          enabled: true,
+          min: [14, 0, 200, 1],
+          max: [30, 0, 200, 1],
+          maxVisible: [30, 0, 200, 1],
+          drawThreshold: [3, 0, 20, 1]
+        }
+      },
+      selectionWidth: [1.5, 0, 5, 0.1],
+      selfReferenceSize: [20, 0, 200, 1],
+      shadow: {
+        enabled: false,
+        size: [10, 0, 20, 1],
+        x: [5, -30, 30, 1],
+        y: [5, -30, 30, 1]
+      },
+      smooth: {
+        enabled: true,
+        dynamic: true,
+        type: ['continuous', 'discrete', 'diagonalCross', 'straightCross', 'horizontal', 'vertical', 'curvedCW', 'curvedCCW'],
+        roundness: [0.5, 0, 1, 0.05]
+      },
+      width: [1, 0, 30, 1]
+    },
+    layout: {
+      randomSeed: [0, 0, 500, 1],
+      hierarchical: {
+        enabled: false,
+        levelSeparation: [150, 20, 500, 5],
+        direction: ['UD', 'DU', 'LR', 'RL'], // UD, DU, LR, RL
+        sortMethod: ['hubsize', 'directed'] // hubsize, directed
+      }
+    },
+    interaction: {
+      dragNodes: true,
+      dragView: true,
+      zoomView: true,
+      hoverEnabled: false,
+      navigationButtons: false,
+      tooltipDelay: [300, 0, 1000, 25],
+      keyboard: {
+        enabled: false,
+        speed: { x: [10, 0, 40, 1], y: [10, 0, 40, 1], zoom: [0.02, 0, 0.1, 0.005] },
+        bindToWindow: true
+      }
+    },
+    manipulation: {
+      enabled: false,
+      initiallyActive: false,
+      locale: ['en', 'nl']
+    },
+    physics: {
+      barnesHut: {
+        //theta: [0.5, 0.1, 1, 0.05],
+        gravitationalConstant: [-2000, -30000, 0, 50],
+        centralGravity: [0.3, 0, 10, 0.05],
+        springLength: [95, 0, 500, 5],
+        springConstant: [0.04, 0, 5, 0.005],
+        damping: [0.09, 0, 1, 0.01]
+      },
+      repulsion: {
+        centralGravity: [0.2, 0, 10, 0.05],
+        springLength: [200, 0, 500, 5],
+        springConstant: [0.05, 0, 5, 0.005],
+        nodeDistance: [100, 0, 500, 5],
+        damping: [0.09, 0, 1, 0.01]
+      },
+      hierarchicalRepulsion: {
+        centralGravity: [0.2, 0, 10, 0.05],
+        springLength: [100, 0, 500, 5],
+        springConstant: [0.01, 0, 5, 0.005],
+        nodeDistance: [120, 0, 500, 5],
+        damping: [0.09, 0, 1, 0.01]
+      },
+      maxVelocity: [50, 0, 150, 1],
+      minVelocity: [0.1, 0.01, 0.5, 0.01],
+      solver: ['barnesHut', 'repulsion', 'hierarchicalRepulsion'],
+      timestep: [0.5, 0, 1, 0.05]
+    },
+    selection: {
+      selectable: true,
+      selectConnectedEdges: true
+    },
+    rendering: {
+      hideEdgesOnDrag: false,
+      hideNodesOnDrag: false
+    }
+  };
+
+  exports.allOptions = allOptions;
+  exports.configureOptions = configureOptions;
 
 /***/ },
 /* 65 */
@@ -27325,7 +27322,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var keycharm = __webpack_require__(84);
+  var keycharm = __webpack_require__(83);
   var Emitter = __webpack_require__(43);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
@@ -30559,7 +30556,7 @@ return /******/ (function(modules) { // webpackBootstrap
       return _moment;
 
   }));
-  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(86)(module)))
+  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(85)(module)))
 
 /***/ },
 /* 68 */
@@ -33245,7 +33242,7 @@ return /******/ (function(modules) { // webpackBootstrap
       prefixed: prefixed
   });
 
-  if ("function" == TYPE_FUNCTION && __webpack_require__(87)) {
+  if ("function" == TYPE_FUNCTION && __webpack_require__(86)) {
       !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
           return Hammer;
       }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -33278,59 +33275,59 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _Label2 = _interopRequireWildcard(_Label);
 
-  var _Box = __webpack_require__(88);
+  var _Box = __webpack_require__(87);
 
   var _Box2 = _interopRequireWildcard(_Box);
 
-  var _Circle = __webpack_require__(89);
+  var _Circle = __webpack_require__(88);
 
   var _Circle2 = _interopRequireWildcard(_Circle);
 
-  var _CircularImage = __webpack_require__(90);
+  var _CircularImage = __webpack_require__(89);
 
   var _CircularImage2 = _interopRequireWildcard(_CircularImage);
 
-  var _Database = __webpack_require__(91);
+  var _Database = __webpack_require__(90);
 
   var _Database2 = _interopRequireWildcard(_Database);
 
-  var _Diamond = __webpack_require__(92);
+  var _Diamond = __webpack_require__(91);
 
   var _Diamond2 = _interopRequireWildcard(_Diamond);
 
-  var _Dot = __webpack_require__(93);
+  var _Dot = __webpack_require__(92);
 
   var _Dot2 = _interopRequireWildcard(_Dot);
 
-  var _Ellipse = __webpack_require__(94);
+  var _Ellipse = __webpack_require__(93);
 
   var _Ellipse2 = _interopRequireWildcard(_Ellipse);
 
-  var _Icon = __webpack_require__(95);
+  var _Icon = __webpack_require__(94);
 
   var _Icon2 = _interopRequireWildcard(_Icon);
 
-  var _Image = __webpack_require__(96);
+  var _Image = __webpack_require__(95);
 
   var _Image2 = _interopRequireWildcard(_Image);
 
-  var _Square = __webpack_require__(97);
+  var _Square = __webpack_require__(96);
 
   var _Square2 = _interopRequireWildcard(_Square);
 
-  var _Star = __webpack_require__(98);
+  var _Star = __webpack_require__(97);
 
   var _Star2 = _interopRequireWildcard(_Star);
 
-  var _Text = __webpack_require__(99);
+  var _Text = __webpack_require__(98);
 
   var _Text2 = _interopRequireWildcard(_Text);
 
-  var _Triangle = __webpack_require__(100);
+  var _Triangle = __webpack_require__(99);
 
   var _Triangle2 = _interopRequireWildcard(_Triangle);
 
-  var _TriangleDown = __webpack_require__(101);
+  var _TriangleDown = __webpack_require__(100);
 
   var _TriangleDown2 = _interopRequireWildcard(_TriangleDown);
 
@@ -34064,15 +34061,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _Label2 = _interopRequireWildcard(_Label);
 
-  var _BezierEdgeDynamic = __webpack_require__(102);
+  var _BezierEdgeDynamic = __webpack_require__(101);
 
   var _BezierEdgeDynamic2 = _interopRequireWildcard(_BezierEdgeDynamic);
 
-  var _BezierEdgeStatic = __webpack_require__(103);
+  var _BezierEdgeStatic = __webpack_require__(102);
 
   var _BezierEdgeStatic2 = _interopRequireWildcard(_BezierEdgeStatic);
 
-  var _StraightEdge = __webpack_require__(104);
+  var _StraightEdge = __webpack_require__(103);
 
   var _StraightEdge2 = _interopRequireWildcard(_StraightEdge);
 
@@ -35594,7 +35591,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Hammer = __webpack_require__(41);
   var hammerUtil = __webpack_require__(45);
-  var keycharm = __webpack_require__(84);
+  var keycharm = __webpack_require__(83);
 
   var NavigationHandler = (function () {
     function NavigationHandler(body, canvas) {
@@ -36019,585 +36016,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
-  'use strict';
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-  var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(45);
-  var util = __webpack_require__(1);
-
-  var ColorPicker = (function () {
-    function ColorPicker() {
-      var pixelRatio = arguments[0] === undefined ? 1 : arguments[0];
-
-      _classCallCheck(this, ColorPicker);
-
-      this.pixelRatio = pixelRatio;
-      this.generated = false;
-      this.centerCoordinates = { x: 289 / 2, y: 289 / 2 };
-      this.r = 289 * 0.49;
-      this.color = { r: 255, g: 255, b: 255, a: 1 };
-      this.hueCircle = undefined;
-      this.initialColor = { r: 255, g: 255, b: 255, a: 1 };
-      this.previousColor = undefined;
-      this.applied = false;
-
-      // bound by
-      this.updateCallback = function () {};
-
-      // create all DOM elements
-      this._create();
-    }
-
-    _createClass(ColorPicker, [{
-      key: 'insertTo',
-
-      /**
-       * this inserts the colorPicker into a div from the DOM
-       * @param container
-       */
-      value: function insertTo(container) {
-        if (this.hammer !== undefined) {
-          this.hammer.destroy();
-          this.hammer = undefined;
-        }
-        this.container = container;
-        this.container.appendChild(this.frame);
-        this._bindHammer();
-
-        this._setSize();
-      }
-    }, {
-      key: 'setCallback',
-
-      /**
-       * the callback is executed on apply and save. Bind it to the application
-       * @param callback
-       */
-      value: function setCallback(callback) {
-        if (typeof callback === 'function') {
-          this.updateCallback = callback;
-        } else {
-          throw new Error('Function attempted to set as colorPicker callback is not a function.');
-        }
-      }
-    }, {
-      key: '_isColorString',
-      value: function _isColorString(color) {
-        var htmlColors = { black: '#000000', navy: '#000080', darkblue: '#00008B', mediumblue: '#0000CD', blue: '#0000FF', darkgreen: '#006400', green: '#008000', teal: '#008080', darkcyan: '#008B8B', deepskyblue: '#00BFFF', darkturquoise: '#00CED1', mediumspringgreen: '#00FA9A', lime: '#00FF00', springgreen: '#00FF7F', aqua: '#00FFFF', cyan: '#00FFFF', midnightblue: '#191970', dodgerblue: '#1E90FF', lightseagreen: '#20B2AA', forestgreen: '#228B22', seagreen: '#2E8B57', darkslategray: '#2F4F4F', limegreen: '#32CD32', mediumseagreen: '#3CB371', turquoise: '#40E0D0', royalblue: '#4169E1', steelblue: '#4682B4', darkslateblue: '#483D8B', mediumturquoise: '#48D1CC', indigo: '#4B0082', darkolivegreen: '#556B2F', cadetblue: '#5F9EA0', cornflowerblue: '#6495ED', mediumaquamarine: '#66CDAA', dimgray: '#696969', slateblue: '#6A5ACD', olivedrab: '#6B8E23', slategray: '#708090', lightslategray: '#778899', mediumslateblue: '#7B68EE', lawngreen: '#7CFC00', chartreuse: '#7FFF00', aquamarine: '#7FFFD4', maroon: '#800000', purple: '#800080', olive: '#808000', gray: '#808080', skyblue: '#87CEEB', lightskyblue: '#87CEFA', blueviolet: '#8A2BE2', darkred: '#8B0000', darkmagenta: '#8B008B', saddlebrown: '#8B4513', darkseagreen: '#8FBC8F', lightgreen: '#90EE90', mediumpurple: '#9370D8', darkviolet: '#9400D3', palegreen: '#98FB98', darkorchid: '#9932CC', yellowgreen: '#9ACD32', sienna: '#A0522D', brown: '#A52A2A', darkgray: '#A9A9A9', lightblue: '#ADD8E6', greenyellow: '#ADFF2F', paleturquoise: '#AFEEEE', lightsteelblue: '#B0C4DE', powderblue: '#B0E0E6', firebrick: '#B22222', darkgoldenrod: '#B8860B', mediumorchid: '#BA55D3', rosybrown: '#BC8F8F', darkkhaki: '#BDB76B', silver: '#C0C0C0', mediumvioletred: '#C71585', indianred: '#CD5C5C', peru: '#CD853F', chocolate: '#D2691E', tan: '#D2B48C', lightgrey: '#D3D3D3', palevioletred: '#D87093', thistle: '#D8BFD8', orchid: '#DA70D6', goldenrod: '#DAA520', crimson: '#DC143C', gainsboro: '#DCDCDC', plum: '#DDA0DD', burlywood: '#DEB887', lightcyan: '#E0FFFF', lavender: '#E6E6FA', darksalmon: '#E9967A', violet: '#EE82EE', palegoldenrod: '#EEE8AA', lightcoral: '#F08080', khaki: '#F0E68C', aliceblue: '#F0F8FF', honeydew: '#F0FFF0', azure: '#F0FFFF', sandybrown: '#F4A460', wheat: '#F5DEB3', beige: '#F5F5DC', whitesmoke: '#F5F5F5', mintcream: '#F5FFFA', ghostwhite: '#F8F8FF', salmon: '#FA8072', antiquewhite: '#FAEBD7', linen: '#FAF0E6', lightgoldenrodyellow: '#FAFAD2', oldlace: '#FDF5E6', red: '#FF0000', fuchsia: '#FF00FF', magenta: '#FF00FF', deeppink: '#FF1493', orangered: '#FF4500', tomato: '#FF6347', hotpink: '#FF69B4', coral: '#FF7F50', darkorange: '#FF8C00', lightsalmon: '#FFA07A', orange: '#FFA500', lightpink: '#FFB6C1', pink: '#FFC0CB', gold: '#FFD700', peachpuff: '#FFDAB9', navajowhite: '#FFDEAD', moccasin: '#FFE4B5', bisque: '#FFE4C4', mistyrose: '#FFE4E1', blanchedalmond: '#FFEBCD', papayawhip: '#FFEFD5', lavenderblush: '#FFF0F5', seashell: '#FFF5EE', cornsilk: '#FFF8DC', lemonchiffon: '#FFFACD', floralwhite: '#FFFAF0', snow: '#FFFAFA', yellow: '#FFFF00', lightyellow: '#FFFFE0', ivory: '#FFFFF0', white: '#FFFFFF' };
-        if (typeof color === 'string') {
-          return htmlColors[color];
-        }
-      }
-    }, {
-      key: 'setColor',
-
-      /**
-       * Set the color of the colorPicker
-       * Supported formats:
-       * 'red'                   --> HTML color string
-       * '#ffffff'               --> hex string
-       * 'rbg(255,255,255)'      --> rgb string
-       * 'rgba(255,255,255,1.0)' --> rgba string
-       * {r:255,g:255,b:255}     --> rgb object
-       * {r:255,g:255,b:255,a:1.0} --> rgba object
-       * @param color
-       * @param setInitial
-       */
-      value: function setColor(color) {
-        var setInitial = arguments[1] === undefined ? true : arguments[1];
-
-        if (color === 'none') {
-          return;
-        }
-
-        var rgba = undefined;
-
-        // if a html color shorthand is used, convert to hex
-        var htmlColor = this._isColorString(color);
-        if (htmlColor !== undefined) {
-          color = htmlColor;
-        }
-
-        // check format
-        if (util.isString(color) === true) {
-          if (util.isValidRGB(color) === true) {
-            var rgbaArray = color.substr(4).substr(0, color.length - 5).split(',');
-            rgba = { r: rgbaArray[0], g: rgbaArray[1], b: rgbaArray[2], a: 1 };
-          } else if (util.isValidRGBA(color) === true) {
-            var rgbaArray = color.substr(5).substr(0, color.length - 6).split(',');
-            rgba = { r: rgbaArray[0], g: rgbaArray[1], b: rgbaArray[2], a: rgbaArray[3] };
-          } else if (util.isValidHex(color) === true) {
-            var rgbObj = util.hexToRGB(color);
-            rgba = { r: rgbObj.r, g: rgbObj.g, b: rgbObj.b, a: 1 };
-          }
-        } else {
-          if (color instanceof Object) {
-            if (color.r !== undefined && color.g !== undefined && color.b !== undefined) {
-              var alpha = color.a !== undefined ? color.a : '1.0';
-              rgba = { r: color.r, g: color.g, b: color.b, a: alpha };
-            }
-          }
-        }
-
-        // set color
-        if (rgba === undefined) {
-          throw new Error('Unknown color passed to the colorPicker. Supported are strings: rgb, hex, rgba. Object: rgb ({r:r,g:g,b:b,[a:a]}). Supplied: ' + JSON.stringify(color));
-        } else {
-          this._setColor(rgba, setInitial);
-        }
-      }
-    }, {
-      key: 'show',
-
-      /**
-       * this shows the color picker at a location. The hue circle is constructed once and stored.
-       * @param x
-       * @param y
-       */
-      value: function show(x, y) {
-        this.applied = false;
-        this.frame.style.display = 'block';
-        this.frame.style.top = y + 'px';
-        this.frame.style.left = x + 'px';
-        this._generateHueCircle();
-      }
-    }, {
-      key: '_hide',
-
-      // ------------------------------------------ PRIVATE ----------------------------- //
-
-      /**
-       * Hide the picker. Is called by the cancel button.
-       * Optional boolean to store the previous color for easy access later on.
-       * @param storePrevious
-       * @private
-       */
-      value: function _hide() {
-        var storePrevious = arguments[0] === undefined ? true : arguments[0];
-
-        // store the previous color for next time;
-        if (storePrevious === true) {
-          this.previousColor = util.extend({}, this.color);
-        }
-
-        if (this.applied === true) {
-          this.updateCallback(this.initialColor);
-        }
-
-        this.frame.style.display = 'none';
-      }
-    }, {
-      key: '_save',
-
-      /**
-       * bound to the save button. Saves and hides.
-       * @private
-       */
-      value: function _save() {
-        this.updateCallback(this.color);
-        this.applied = false;
-        this._hide();
-      }
-    }, {
-      key: '_apply',
-
-      /**
-       * Bound to apply button. Saves but does not close. Is undone by the cancel button.
-       * @private
-       */
-      value: function _apply() {
-        this.applied = true;
-        this.updateCallback(this.color);
-        this._updatePicker(this.color);
-      }
-    }, {
-      key: '_loadLast',
-
-      /**
-       * load the color from the previous session.
-       * @private
-       */
-      value: function _loadLast() {
-        if (this.previousColor !== undefined) {
-          this.setColor(this.previousColor, false);
-        } else {
-          alert('There is no last color to load...');
-        }
-      }
-    }, {
-      key: '_setColor',
-
-      /**
-       * set the color, place the picker
-       * @param rgba
-       * @param setInitial
-       * @private
-       */
-      value: function _setColor(rgba) {
-        var setInitial = arguments[1] === undefined ? true : arguments[1];
-
-        // store the initial color
-        if (setInitial === true) {
-          this.initialColor = util.extend({}, rgba);
-        }
-
-        this.color = rgba;
-        var hsv = util.RGBToHSV(rgba.r, rgba.g, rgba.b);
-
-        var angleConvert = 2 * Math.PI;
-        var radius = this.r * hsv.s;
-        var x = this.centerCoordinates.x + radius * Math.sin(angleConvert * hsv.h);
-        var y = this.centerCoordinates.y + radius * Math.cos(angleConvert * hsv.h);
-
-        this.colorPickerSelector.style.left = x - 0.5 * this.colorPickerSelector.clientWidth + 'px';
-        this.colorPickerSelector.style.top = y - 0.5 * this.colorPickerSelector.clientHeight + 'px';
-
-        this._updatePicker(rgba);
-      }
-    }, {
-      key: '_setOpacity',
-
-      /**
-       * bound to opacity control
-       * @param value
-       * @private
-       */
-      value: function _setOpacity(value) {
-        this.color.a = value / 100;
-        this._updatePicker(this.color);
-      }
-    }, {
-      key: '_setBrightness',
-
-      /**
-       * bound to brightness control
-       * @param value
-       * @private
-       */
-      value: function _setBrightness(value) {
-        var hsv = util.RGBToHSV(this.color.r, this.color.g, this.color.b);
-        hsv.v = value / 100;
-        var rgba = util.HSVToRGB(hsv.h, hsv.s, hsv.v);
-        rgba.a = this.color.a;
-        this.color = rgba;
-        this._updatePicker();
-      }
-    }, {
-      key: '_updatePicker',
-
-      /**
-       * update the colorpicker. A black circle overlays the hue circle to mimic the brightness decreasing.
-       * @param rgba
-       * @private
-       */
-      value: function _updatePicker() {
-        var rgba = arguments[0] === undefined ? this.color : arguments[0];
-
-        var hsv = util.RGBToHSV(rgba.r, rgba.g, rgba.b);
-        var ctx = this.colorPickerCanvas.getContext('2d');
-        if (this.pixelRation === undefined) {
-          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
-        }
-        ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
-
-        // clear the canvas
-        var w = this.colorPickerCanvas.clientWidth;
-        var h = this.colorPickerCanvas.clientHeight;
-        ctx.clearRect(0, 0, w, h);
-
-        ctx.putImageData(this.hueCircle, 0, 0);
-        ctx.fillStyle = 'rgba(0,0,0,' + (1 - hsv.v) + ')';
-        ctx.circle(this.centerCoordinates.x, this.centerCoordinates.y, this.r);
-        ctx.fill();
-
-        this.brightnessRange.value = 100 * hsv.v;
-        this.opacityRange.value = 100 * rgba.a;
-
-        this.initialColorDiv.style.backgroundColor = 'rgba(' + this.initialColor.r + ',' + this.initialColor.g + ',' + this.initialColor.b + ',' + this.initialColor.a + ')';
-        this.newColorDiv.style.backgroundColor = 'rgba(' + this.color.r + ',' + this.color.g + ',' + this.color.b + ',' + this.color.a + ')';
-      }
-    }, {
-      key: '_setSize',
-
-      /**
-       * used by create to set the size of the canvas.
-       * @private
-       */
-      value: function _setSize() {
-        this.colorPickerCanvas.style.width = '100%';
-        this.colorPickerCanvas.style.height = '100%';
-
-        this.colorPickerCanvas.width = 289 * this.pixelRatio;
-        this.colorPickerCanvas.height = 289 * this.pixelRatio;
-      }
-    }, {
-      key: '_create',
-
-      /**
-       * create all dom elements
-       * TODO: cleanup, lots of similar dom elements
-       * @private
-       */
-      value: function _create() {
-        this.frame = document.createElement('div');
-        this.frame.className = 'vis-color-picker';
-
-        this.colorPickerDiv = document.createElement('div');
-        this.colorPickerSelector = document.createElement('div');
-        this.colorPickerSelector.className = 'vis-selector';
-        this.colorPickerDiv.appendChild(this.colorPickerSelector);
-
-        this.colorPickerCanvas = document.createElement('canvas');
-        this.colorPickerDiv.appendChild(this.colorPickerCanvas);
-
-        if (!this.colorPickerCanvas.getContext) {
-          var noCanvas = document.createElement('DIV');
-          noCanvas.style.color = 'red';
-          noCanvas.style.fontWeight = 'bold';
-          noCanvas.style.padding = '10px';
-          noCanvas.innerHTML = 'Error: your browser does not support HTML canvas';
-          this.colorPickerCanvas.appendChild(noCanvas);
-        } else {
-          var ctx = this.colorPickerCanvas.getContext('2d');
-          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
-
-          this.colorPickerCanvas.getContext('2d').setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
-        }
-
-        this.colorPickerDiv.className = 'vis-color';
-
-        this.opacityDiv = document.createElement('div');
-        this.opacityDiv.className = 'vis-opacity';
-
-        this.brightnessDiv = document.createElement('div');
-        this.brightnessDiv.className = 'vis-brightness';
-
-        this.arrowDiv = document.createElement('div');
-        this.arrowDiv.className = 'vis-arrow';
-
-        this.opacityRange = document.createElement('input');
-        this.opacityRange.type = 'range';
-        this.opacityRange.min = '0';
-        this.opacityRange.max = '100';
-        this.opacityRange.value = '100';
-        this.opacityRange.className = 'vis-range';
-
-        this.brightnessRange = document.createElement('input');
-        this.brightnessRange.type = 'range';
-        this.brightnessRange.min = '0';
-        this.brightnessRange.max = '100';
-        this.brightnessRange.value = '100';
-        this.brightnessRange.className = 'vis-range';
-
-        this.opacityDiv.appendChild(this.opacityRange);
-        this.brightnessDiv.appendChild(this.brightnessRange);
-
-        var me = this;
-        this.opacityRange.onchange = function () {
-          me._setOpacity(this.value);
-        };
-        this.opacityRange.oninput = function () {
-          me._setOpacity(this.value);
-        };
-        this.brightnessRange.onchange = function () {
-          me._setBrightness(this.value);
-        };
-        this.brightnessRange.oninput = function () {
-          me._setBrightness(this.value);
-        };
-
-        this.brightnessLabel = document.createElement('div');
-        this.brightnessLabel.className = 'vis-label vis-brightness';
-        this.brightnessLabel.innerHTML = 'brightness:';
-
-        this.opacityLabel = document.createElement('div');
-        this.opacityLabel.className = 'vis-label vis-opacity';
-        this.opacityLabel.innerHTML = 'opacity:';
-
-        this.newColorDiv = document.createElement('div');
-        this.newColorDiv.className = 'vis-new-color';
-        this.newColorDiv.innerHTML = 'new';
-
-        this.initialColorDiv = document.createElement('div');
-        this.initialColorDiv.className = 'vis-initial-color';
-        this.initialColorDiv.innerHTML = 'initial';
-
-        this.cancelButton = document.createElement('div');
-        this.cancelButton.className = 'vis-button vis-cancel';
-        this.cancelButton.innerHTML = 'cancel';
-        this.cancelButton.onclick = this._hide.bind(this, false);
-
-        this.applyButton = document.createElement('div');
-        this.applyButton.className = 'vis-button vis-apply';
-        this.applyButton.innerHTML = 'apply';
-        this.applyButton.onclick = this._apply.bind(this);
-
-        this.saveButton = document.createElement('div');
-        this.saveButton.className = 'vis-button vis-save';
-        this.saveButton.innerHTML = 'save';
-        this.saveButton.onclick = this._save.bind(this);
-
-        this.loadButton = document.createElement('div');
-        this.loadButton.className = 'vis-button vis-load';
-        this.loadButton.innerHTML = 'load last';
-        this.loadButton.onclick = this._loadLast.bind(this);
-
-        this.frame.appendChild(this.colorPickerDiv);
-        this.frame.appendChild(this.arrowDiv);
-        this.frame.appendChild(this.brightnessLabel);
-        this.frame.appendChild(this.brightnessDiv);
-        this.frame.appendChild(this.opacityLabel);
-        this.frame.appendChild(this.opacityDiv);
-        this.frame.appendChild(this.newColorDiv);
-        this.frame.appendChild(this.initialColorDiv);
-
-        this.frame.appendChild(this.cancelButton);
-        this.frame.appendChild(this.applyButton);
-        this.frame.appendChild(this.saveButton);
-        this.frame.appendChild(this.loadButton);
-      }
-    }, {
-      key: '_bindHammer',
-
-      /**
-       * bind hammer to the color picker
-       * @private
-       */
-      value: function _bindHammer() {
-        var _this = this;
-
-        this.drag = {};
-        this.pinch = {};
-        this.hammer = new Hammer(this.colorPickerCanvas);
-        this.hammer.get('pinch').set({ enable: true });
-
-        hammerUtil.onTouch(this.hammer, function (event) {
-          _this._moveSelector(event);
-        });
-        this.hammer.on('tap', function (event) {
-          _this._moveSelector(event);
-        });
-        this.hammer.on('panstart', function (event) {
-          _this._moveSelector(event);
-        });
-        this.hammer.on('panmove', function (event) {
-          _this._moveSelector(event);
-        });
-        this.hammer.on('panend', function (event) {
-          _this._moveSelector(event);
-        });
-      }
-    }, {
-      key: '_generateHueCircle',
-
-      /**
-       * generate the hue circle. This is relatively heavy (200ms) and is done only once on the first time it is shown.
-       * @private
-       */
-      value: function _generateHueCircle() {
-        if (this.generated === false) {
-          var ctx = this.colorPickerCanvas.getContext('2d');
-          if (this.pixelRation === undefined) {
-            this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
-          }
-          ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
-
-          // clear the canvas
-          var w = this.colorPickerCanvas.clientWidth;
-          var h = this.colorPickerCanvas.clientHeight;
-          ctx.clearRect(0, 0, w, h);
-
-          // draw hue circle
-          var x = undefined,
-              y = undefined,
-              hue = undefined,
-              sat = undefined;
-          this.centerCoordinates = { x: w * 0.5, y: h * 0.5 };
-          this.r = 0.49 * w;
-          var angleConvert = 2 * Math.PI / 360;
-          var hfac = 1 / 360;
-          var sfac = 1 / this.r;
-          var rgb = undefined;
-          for (hue = 0; hue < 360; hue++) {
-            for (sat = 0; sat < this.r; sat++) {
-              x = this.centerCoordinates.x + sat * Math.sin(angleConvert * hue);
-              y = this.centerCoordinates.y + sat * Math.cos(angleConvert * hue);
-              rgb = util.HSVToRGB(hue * hfac, sat * sfac, 1);
-              ctx.fillStyle = 'rgb(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
-              ctx.fillRect(x - 0.5, y - 0.5, 2, 2);
-            }
-          }
-          ctx.strokeStyle = 'rgba(0,0,0,1)';
-          ctx.circle(this.centerCoordinates.x, this.centerCoordinates.y, this.r);
-          ctx.stroke();
-
-          this.hueCircle = ctx.getImageData(0, 0, w, h);
-        }
-        this.generated = true;
-      }
-    }, {
-      key: '_moveSelector',
-
-      /**
-       * move the selector. This is called by hammer functions.
-       *
-       * @param event
-       * @private
-       */
-      value: function _moveSelector(event) {
-        var rect = this.colorPickerDiv.getBoundingClientRect();
-        var left = event.center.x - rect.left;
-        var top = event.center.y - rect.top;
-
-        var centerY = 0.5 * this.colorPickerDiv.clientHeight;
-        var centerX = 0.5 * this.colorPickerDiv.clientWidth;
-
-        var x = left - centerX;
-        var y = top - centerY;
-
-        var angle = Math.atan2(x, y);
-        var radius = 0.98 * Math.min(Math.sqrt(x * x + y * y), centerX);
-
-        var newTop = Math.cos(angle) * radius + centerY;
-        var newLeft = Math.sin(angle) * radius + centerX;
-
-        this.colorPickerSelector.style.top = newTop - 0.5 * this.colorPickerSelector.clientHeight + 'px';
-        this.colorPickerSelector.style.left = newLeft - 0.5 * this.colorPickerSelector.clientWidth + 'px';
-
-        // set color
-        var h = angle / (2 * Math.PI);
-        h = h < 0 ? h + 1 : h;
-        var s = radius / this.r;
-        var hsv = util.RGBToHSV(this.color.r, this.color.g, this.color.b);
-        hsv.h = h;
-        hsv.s = s;
-        var rgba = util.HSVToRGB(hsv.h, hsv.s, hsv.v);
-        rgba.a = this.color.a;
-        this.color = rgba;
-
-        // update previews
-        this.initialColorDiv.style.backgroundColor = 'rgba(' + this.initialColor.r + ',' + this.initialColor.g + ',' + this.initialColor.b + ',' + this.initialColor.a + ')';
-        this.newColorDiv.style.backgroundColor = 'rgba(' + this.color.r + ',' + this.color.g + ',' + this.color.b + ',' + this.color.a + ')';
-      }
-    }]);
-
-    return ColorPicker;
-  })();
-
-  exports['default'] = ColorPicker;
-  module.exports = exports['default'];
-
-/***/ },
-/* 84 */
-/***/ function(module, exports, __webpack_require__) {
-
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
   /**
    * Created by Alex on 11/6/2014.
@@ -36793,7 +36211,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 85 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
   function webpackContext(req) {
@@ -36802,11 +36220,11 @@ return /******/ (function(modules) { // webpackBootstrap
   webpackContext.keys = function() { return []; };
   webpackContext.resolve = webpackContext;
   module.exports = webpackContext;
-  webpackContext.id = 85;
+  webpackContext.id = 84;
 
 
 /***/ },
-/* 86 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
   module.exports = function(module) {
@@ -36822,7 +36240,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 87 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
@@ -36830,7 +36248,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
-/* 88 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36849,7 +36267,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(105);
+  var _NodeBase2 = __webpack_require__(104);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -36928,7 +36346,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 89 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36947,7 +36365,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _CircleImageBase2 = __webpack_require__(106);
+  var _CircleImageBase2 = __webpack_require__(105);
 
   var _CircleImageBase3 = _interopRequireWildcard(_CircleImageBase2);
 
@@ -37010,7 +36428,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 90 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37029,7 +36447,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _CircleImageBase2 = __webpack_require__(106);
+  var _CircleImageBase2 = __webpack_require__(105);
 
   var _CircleImageBase3 = _interopRequireWildcard(_CircleImageBase2);
 
@@ -37111,7 +36529,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 91 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37130,7 +36548,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(105);
+  var _NodeBase2 = __webpack_require__(104);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -37209,7 +36627,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 92 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37228,7 +36646,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(107);
+  var _ShapeBase2 = __webpack_require__(106);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -37267,7 +36685,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 93 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37286,7 +36704,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(107);
+  var _ShapeBase2 = __webpack_require__(106);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -37325,7 +36743,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 94 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37344,7 +36762,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(105);
+  var _NodeBase2 = __webpack_require__(104);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -37426,7 +36844,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 95 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37445,7 +36863,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(105);
+  var _NodeBase2 = __webpack_require__(104);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -37534,7 +36952,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 96 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37553,7 +36971,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _CircleImageBase2 = __webpack_require__(106);
+  var _CircleImageBase2 = __webpack_require__(105);
 
   var _CircleImageBase3 = _interopRequireWildcard(_CircleImageBase2);
 
@@ -37612,7 +37030,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 97 */
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37631,7 +37049,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(107);
+  var _ShapeBase2 = __webpack_require__(106);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -37671,7 +37089,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 98 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37690,7 +37108,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(107);
+  var _ShapeBase2 = __webpack_require__(106);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -37729,7 +37147,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 99 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37748,7 +37166,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(105);
+  var _NodeBase2 = __webpack_require__(104);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -37807,7 +37225,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 100 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37826,7 +37244,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(107);
+  var _ShapeBase2 = __webpack_require__(106);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -37865,7 +37283,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 101 */
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37884,7 +37302,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _ShapeBase2 = __webpack_require__(107);
+  var _ShapeBase2 = __webpack_require__(106);
 
   var _ShapeBase3 = _interopRequireWildcard(_ShapeBase2);
 
@@ -37923,7 +37341,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 102 */
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37942,7 +37360,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _BezierEdgeBase2 = __webpack_require__(108);
+  var _BezierEdgeBase2 = __webpack_require__(107);
 
   var _BezierEdgeBase3 = _interopRequireWildcard(_BezierEdgeBase2);
 
@@ -38079,7 +37497,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 103 */
+/* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38098,7 +37516,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _BezierEdgeBase2 = __webpack_require__(108);
+  var _BezierEdgeBase2 = __webpack_require__(107);
 
   var _BezierEdgeBase3 = _interopRequireWildcard(_BezierEdgeBase2);
 
@@ -38343,7 +37761,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 104 */
+/* 103 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38362,7 +37780,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _EdgeBase2 = __webpack_require__(109);
+  var _EdgeBase2 = __webpack_require__(108);
 
   var _EdgeBase3 = _interopRequireWildcard(_EdgeBase2);
 
@@ -38453,7 +37871,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 105 */
+/* 104 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38519,7 +37937,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 106 */
+/* 105 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38538,7 +37956,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(105);
+  var _NodeBase2 = __webpack_require__(104);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -38640,7 +38058,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 107 */
+/* 106 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38659,7 +38077,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _NodeBase2 = __webpack_require__(105);
+  var _NodeBase2 = __webpack_require__(104);
 
   var _NodeBase3 = _interopRequireWildcard(_NodeBase2);
 
@@ -38730,7 +38148,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 108 */
+/* 107 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38749,7 +38167,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _EdgeBase2 = __webpack_require__(109);
+  var _EdgeBase2 = __webpack_require__(108);
 
   var _EdgeBase3 = _interopRequireWildcard(_EdgeBase2);
 
@@ -38877,7 +38295,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 109 */
+/* 108 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -39462,6 +38880,585 @@ return /******/ (function(modules) { // webpackBootstrap
   })();
 
   exports['default'] = EdgeBase;
+  module.exports = exports['default'];
+
+/***/ },
+/* 109 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+  var Hammer = __webpack_require__(41);
+  var hammerUtil = __webpack_require__(45);
+  var util = __webpack_require__(1);
+
+  var ColorPicker = (function () {
+    function ColorPicker() {
+      var pixelRatio = arguments[0] === undefined ? 1 : arguments[0];
+
+      _classCallCheck(this, ColorPicker);
+
+      this.pixelRatio = pixelRatio;
+      this.generated = false;
+      this.centerCoordinates = { x: 289 / 2, y: 289 / 2 };
+      this.r = 289 * 0.49;
+      this.color = { r: 255, g: 255, b: 255, a: 1 };
+      this.hueCircle = undefined;
+      this.initialColor = { r: 255, g: 255, b: 255, a: 1 };
+      this.previousColor = undefined;
+      this.applied = false;
+
+      // bound by
+      this.updateCallback = function () {};
+
+      // create all DOM elements
+      this._create();
+    }
+
+    _createClass(ColorPicker, [{
+      key: 'insertTo',
+
+      /**
+       * this inserts the colorPicker into a div from the DOM
+       * @param container
+       */
+      value: function insertTo(container) {
+        if (this.hammer !== undefined) {
+          this.hammer.destroy();
+          this.hammer = undefined;
+        }
+        this.container = container;
+        this.container.appendChild(this.frame);
+        this._bindHammer();
+
+        this._setSize();
+      }
+    }, {
+      key: 'setCallback',
+
+      /**
+       * the callback is executed on apply and save. Bind it to the application
+       * @param callback
+       */
+      value: function setCallback(callback) {
+        if (typeof callback === 'function') {
+          this.updateCallback = callback;
+        } else {
+          throw new Error('Function attempted to set as colorPicker callback is not a function.');
+        }
+      }
+    }, {
+      key: '_isColorString',
+      value: function _isColorString(color) {
+        var htmlColors = { black: '#000000', navy: '#000080', darkblue: '#00008B', mediumblue: '#0000CD', blue: '#0000FF', darkgreen: '#006400', green: '#008000', teal: '#008080', darkcyan: '#008B8B', deepskyblue: '#00BFFF', darkturquoise: '#00CED1', mediumspringgreen: '#00FA9A', lime: '#00FF00', springgreen: '#00FF7F', aqua: '#00FFFF', cyan: '#00FFFF', midnightblue: '#191970', dodgerblue: '#1E90FF', lightseagreen: '#20B2AA', forestgreen: '#228B22', seagreen: '#2E8B57', darkslategray: '#2F4F4F', limegreen: '#32CD32', mediumseagreen: '#3CB371', turquoise: '#40E0D0', royalblue: '#4169E1', steelblue: '#4682B4', darkslateblue: '#483D8B', mediumturquoise: '#48D1CC', indigo: '#4B0082', darkolivegreen: '#556B2F', cadetblue: '#5F9EA0', cornflowerblue: '#6495ED', mediumaquamarine: '#66CDAA', dimgray: '#696969', slateblue: '#6A5ACD', olivedrab: '#6B8E23', slategray: '#708090', lightslategray: '#778899', mediumslateblue: '#7B68EE', lawngreen: '#7CFC00', chartreuse: '#7FFF00', aquamarine: '#7FFFD4', maroon: '#800000', purple: '#800080', olive: '#808000', gray: '#808080', skyblue: '#87CEEB', lightskyblue: '#87CEFA', blueviolet: '#8A2BE2', darkred: '#8B0000', darkmagenta: '#8B008B', saddlebrown: '#8B4513', darkseagreen: '#8FBC8F', lightgreen: '#90EE90', mediumpurple: '#9370D8', darkviolet: '#9400D3', palegreen: '#98FB98', darkorchid: '#9932CC', yellowgreen: '#9ACD32', sienna: '#A0522D', brown: '#A52A2A', darkgray: '#A9A9A9', lightblue: '#ADD8E6', greenyellow: '#ADFF2F', paleturquoise: '#AFEEEE', lightsteelblue: '#B0C4DE', powderblue: '#B0E0E6', firebrick: '#B22222', darkgoldenrod: '#B8860B', mediumorchid: '#BA55D3', rosybrown: '#BC8F8F', darkkhaki: '#BDB76B', silver: '#C0C0C0', mediumvioletred: '#C71585', indianred: '#CD5C5C', peru: '#CD853F', chocolate: '#D2691E', tan: '#D2B48C', lightgrey: '#D3D3D3', palevioletred: '#D87093', thistle: '#D8BFD8', orchid: '#DA70D6', goldenrod: '#DAA520', crimson: '#DC143C', gainsboro: '#DCDCDC', plum: '#DDA0DD', burlywood: '#DEB887', lightcyan: '#E0FFFF', lavender: '#E6E6FA', darksalmon: '#E9967A', violet: '#EE82EE', palegoldenrod: '#EEE8AA', lightcoral: '#F08080', khaki: '#F0E68C', aliceblue: '#F0F8FF', honeydew: '#F0FFF0', azure: '#F0FFFF', sandybrown: '#F4A460', wheat: '#F5DEB3', beige: '#F5F5DC', whitesmoke: '#F5F5F5', mintcream: '#F5FFFA', ghostwhite: '#F8F8FF', salmon: '#FA8072', antiquewhite: '#FAEBD7', linen: '#FAF0E6', lightgoldenrodyellow: '#FAFAD2', oldlace: '#FDF5E6', red: '#FF0000', fuchsia: '#FF00FF', magenta: '#FF00FF', deeppink: '#FF1493', orangered: '#FF4500', tomato: '#FF6347', hotpink: '#FF69B4', coral: '#FF7F50', darkorange: '#FF8C00', lightsalmon: '#FFA07A', orange: '#FFA500', lightpink: '#FFB6C1', pink: '#FFC0CB', gold: '#FFD700', peachpuff: '#FFDAB9', navajowhite: '#FFDEAD', moccasin: '#FFE4B5', bisque: '#FFE4C4', mistyrose: '#FFE4E1', blanchedalmond: '#FFEBCD', papayawhip: '#FFEFD5', lavenderblush: '#FFF0F5', seashell: '#FFF5EE', cornsilk: '#FFF8DC', lemonchiffon: '#FFFACD', floralwhite: '#FFFAF0', snow: '#FFFAFA', yellow: '#FFFF00', lightyellow: '#FFFFE0', ivory: '#FFFFF0', white: '#FFFFFF' };
+        if (typeof color === 'string') {
+          return htmlColors[color];
+        }
+      }
+    }, {
+      key: 'setColor',
+
+      /**
+       * Set the color of the colorPicker
+       * Supported formats:
+       * 'red'                   --> HTML color string
+       * '#ffffff'               --> hex string
+       * 'rbg(255,255,255)'      --> rgb string
+       * 'rgba(255,255,255,1.0)' --> rgba string
+       * {r:255,g:255,b:255}     --> rgb object
+       * {r:255,g:255,b:255,a:1.0} --> rgba object
+       * @param color
+       * @param setInitial
+       */
+      value: function setColor(color) {
+        var setInitial = arguments[1] === undefined ? true : arguments[1];
+
+        if (color === 'none') {
+          return;
+        }
+
+        var rgba = undefined;
+
+        // if a html color shorthand is used, convert to hex
+        var htmlColor = this._isColorString(color);
+        if (htmlColor !== undefined) {
+          color = htmlColor;
+        }
+
+        // check format
+        if (util.isString(color) === true) {
+          if (util.isValidRGB(color) === true) {
+            var rgbaArray = color.substr(4).substr(0, color.length - 5).split(',');
+            rgba = { r: rgbaArray[0], g: rgbaArray[1], b: rgbaArray[2], a: 1 };
+          } else if (util.isValidRGBA(color) === true) {
+            var rgbaArray = color.substr(5).substr(0, color.length - 6).split(',');
+            rgba = { r: rgbaArray[0], g: rgbaArray[1], b: rgbaArray[2], a: rgbaArray[3] };
+          } else if (util.isValidHex(color) === true) {
+            var rgbObj = util.hexToRGB(color);
+            rgba = { r: rgbObj.r, g: rgbObj.g, b: rgbObj.b, a: 1 };
+          }
+        } else {
+          if (color instanceof Object) {
+            if (color.r !== undefined && color.g !== undefined && color.b !== undefined) {
+              var alpha = color.a !== undefined ? color.a : '1.0';
+              rgba = { r: color.r, g: color.g, b: color.b, a: alpha };
+            }
+          }
+        }
+
+        // set color
+        if (rgba === undefined) {
+          throw new Error('Unknown color passed to the colorPicker. Supported are strings: rgb, hex, rgba. Object: rgb ({r:r,g:g,b:b,[a:a]}). Supplied: ' + JSON.stringify(color));
+        } else {
+          this._setColor(rgba, setInitial);
+        }
+      }
+    }, {
+      key: 'show',
+
+      /**
+       * this shows the color picker at a location. The hue circle is constructed once and stored.
+       * @param x
+       * @param y
+       */
+      value: function show(x, y) {
+        this.applied = false;
+        this.frame.style.display = 'block';
+        this.frame.style.top = y + 'px';
+        this.frame.style.left = x + 'px';
+        this._generateHueCircle();
+      }
+    }, {
+      key: '_hide',
+
+      // ------------------------------------------ PRIVATE ----------------------------- //
+
+      /**
+       * Hide the picker. Is called by the cancel button.
+       * Optional boolean to store the previous color for easy access later on.
+       * @param storePrevious
+       * @private
+       */
+      value: function _hide() {
+        var storePrevious = arguments[0] === undefined ? true : arguments[0];
+
+        // store the previous color for next time;
+        if (storePrevious === true) {
+          this.previousColor = util.extend({}, this.color);
+        }
+
+        if (this.applied === true) {
+          this.updateCallback(this.initialColor);
+        }
+
+        this.frame.style.display = 'none';
+      }
+    }, {
+      key: '_save',
+
+      /**
+       * bound to the save button. Saves and hides.
+       * @private
+       */
+      value: function _save() {
+        this.updateCallback(this.color);
+        this.applied = false;
+        this._hide();
+      }
+    }, {
+      key: '_apply',
+
+      /**
+       * Bound to apply button. Saves but does not close. Is undone by the cancel button.
+       * @private
+       */
+      value: function _apply() {
+        this.applied = true;
+        this.updateCallback(this.color);
+        this._updatePicker(this.color);
+      }
+    }, {
+      key: '_loadLast',
+
+      /**
+       * load the color from the previous session.
+       * @private
+       */
+      value: function _loadLast() {
+        if (this.previousColor !== undefined) {
+          this.setColor(this.previousColor, false);
+        } else {
+          alert('There is no last color to load...');
+        }
+      }
+    }, {
+      key: '_setColor',
+
+      /**
+       * set the color, place the picker
+       * @param rgba
+       * @param setInitial
+       * @private
+       */
+      value: function _setColor(rgba) {
+        var setInitial = arguments[1] === undefined ? true : arguments[1];
+
+        // store the initial color
+        if (setInitial === true) {
+          this.initialColor = util.extend({}, rgba);
+        }
+
+        this.color = rgba;
+        var hsv = util.RGBToHSV(rgba.r, rgba.g, rgba.b);
+
+        var angleConvert = 2 * Math.PI;
+        var radius = this.r * hsv.s;
+        var x = this.centerCoordinates.x + radius * Math.sin(angleConvert * hsv.h);
+        var y = this.centerCoordinates.y + radius * Math.cos(angleConvert * hsv.h);
+
+        this.colorPickerSelector.style.left = x - 0.5 * this.colorPickerSelector.clientWidth + 'px';
+        this.colorPickerSelector.style.top = y - 0.5 * this.colorPickerSelector.clientHeight + 'px';
+
+        this._updatePicker(rgba);
+      }
+    }, {
+      key: '_setOpacity',
+
+      /**
+       * bound to opacity control
+       * @param value
+       * @private
+       */
+      value: function _setOpacity(value) {
+        this.color.a = value / 100;
+        this._updatePicker(this.color);
+      }
+    }, {
+      key: '_setBrightness',
+
+      /**
+       * bound to brightness control
+       * @param value
+       * @private
+       */
+      value: function _setBrightness(value) {
+        var hsv = util.RGBToHSV(this.color.r, this.color.g, this.color.b);
+        hsv.v = value / 100;
+        var rgba = util.HSVToRGB(hsv.h, hsv.s, hsv.v);
+        rgba.a = this.color.a;
+        this.color = rgba;
+        this._updatePicker();
+      }
+    }, {
+      key: '_updatePicker',
+
+      /**
+       * update the colorpicker. A black circle overlays the hue circle to mimic the brightness decreasing.
+       * @param rgba
+       * @private
+       */
+      value: function _updatePicker() {
+        var rgba = arguments[0] === undefined ? this.color : arguments[0];
+
+        var hsv = util.RGBToHSV(rgba.r, rgba.g, rgba.b);
+        var ctx = this.colorPickerCanvas.getContext('2d');
+        if (this.pixelRation === undefined) {
+          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
+        }
+        ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+
+        // clear the canvas
+        var w = this.colorPickerCanvas.clientWidth;
+        var h = this.colorPickerCanvas.clientHeight;
+        ctx.clearRect(0, 0, w, h);
+
+        ctx.putImageData(this.hueCircle, 0, 0);
+        ctx.fillStyle = 'rgba(0,0,0,' + (1 - hsv.v) + ')';
+        ctx.circle(this.centerCoordinates.x, this.centerCoordinates.y, this.r);
+        ctx.fill();
+
+        this.brightnessRange.value = 100 * hsv.v;
+        this.opacityRange.value = 100 * rgba.a;
+
+        this.initialColorDiv.style.backgroundColor = 'rgba(' + this.initialColor.r + ',' + this.initialColor.g + ',' + this.initialColor.b + ',' + this.initialColor.a + ')';
+        this.newColorDiv.style.backgroundColor = 'rgba(' + this.color.r + ',' + this.color.g + ',' + this.color.b + ',' + this.color.a + ')';
+      }
+    }, {
+      key: '_setSize',
+
+      /**
+       * used by create to set the size of the canvas.
+       * @private
+       */
+      value: function _setSize() {
+        this.colorPickerCanvas.style.width = '100%';
+        this.colorPickerCanvas.style.height = '100%';
+
+        this.colorPickerCanvas.width = 289 * this.pixelRatio;
+        this.colorPickerCanvas.height = 289 * this.pixelRatio;
+      }
+    }, {
+      key: '_create',
+
+      /**
+       * create all dom elements
+       * TODO: cleanup, lots of similar dom elements
+       * @private
+       */
+      value: function _create() {
+        this.frame = document.createElement('div');
+        this.frame.className = 'vis-color-picker';
+
+        this.colorPickerDiv = document.createElement('div');
+        this.colorPickerSelector = document.createElement('div');
+        this.colorPickerSelector.className = 'vis-selector';
+        this.colorPickerDiv.appendChild(this.colorPickerSelector);
+
+        this.colorPickerCanvas = document.createElement('canvas');
+        this.colorPickerDiv.appendChild(this.colorPickerCanvas);
+
+        if (!this.colorPickerCanvas.getContext) {
+          var noCanvas = document.createElement('DIV');
+          noCanvas.style.color = 'red';
+          noCanvas.style.fontWeight = 'bold';
+          noCanvas.style.padding = '10px';
+          noCanvas.innerHTML = 'Error: your browser does not support HTML canvas';
+          this.colorPickerCanvas.appendChild(noCanvas);
+        } else {
+          var ctx = this.colorPickerCanvas.getContext('2d');
+          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
+
+          this.colorPickerCanvas.getContext('2d').setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+        }
+
+        this.colorPickerDiv.className = 'vis-color';
+
+        this.opacityDiv = document.createElement('div');
+        this.opacityDiv.className = 'vis-opacity';
+
+        this.brightnessDiv = document.createElement('div');
+        this.brightnessDiv.className = 'vis-brightness';
+
+        this.arrowDiv = document.createElement('div');
+        this.arrowDiv.className = 'vis-arrow';
+
+        this.opacityRange = document.createElement('input');
+        this.opacityRange.type = 'range';
+        this.opacityRange.min = '0';
+        this.opacityRange.max = '100';
+        this.opacityRange.value = '100';
+        this.opacityRange.className = 'vis-range';
+
+        this.brightnessRange = document.createElement('input');
+        this.brightnessRange.type = 'range';
+        this.brightnessRange.min = '0';
+        this.brightnessRange.max = '100';
+        this.brightnessRange.value = '100';
+        this.brightnessRange.className = 'vis-range';
+
+        this.opacityDiv.appendChild(this.opacityRange);
+        this.brightnessDiv.appendChild(this.brightnessRange);
+
+        var me = this;
+        this.opacityRange.onchange = function () {
+          me._setOpacity(this.value);
+        };
+        this.opacityRange.oninput = function () {
+          me._setOpacity(this.value);
+        };
+        this.brightnessRange.onchange = function () {
+          me._setBrightness(this.value);
+        };
+        this.brightnessRange.oninput = function () {
+          me._setBrightness(this.value);
+        };
+
+        this.brightnessLabel = document.createElement('div');
+        this.brightnessLabel.className = 'vis-label vis-brightness';
+        this.brightnessLabel.innerHTML = 'brightness:';
+
+        this.opacityLabel = document.createElement('div');
+        this.opacityLabel.className = 'vis-label vis-opacity';
+        this.opacityLabel.innerHTML = 'opacity:';
+
+        this.newColorDiv = document.createElement('div');
+        this.newColorDiv.className = 'vis-new-color';
+        this.newColorDiv.innerHTML = 'new';
+
+        this.initialColorDiv = document.createElement('div');
+        this.initialColorDiv.className = 'vis-initial-color';
+        this.initialColorDiv.innerHTML = 'initial';
+
+        this.cancelButton = document.createElement('div');
+        this.cancelButton.className = 'vis-button vis-cancel';
+        this.cancelButton.innerHTML = 'cancel';
+        this.cancelButton.onclick = this._hide.bind(this, false);
+
+        this.applyButton = document.createElement('div');
+        this.applyButton.className = 'vis-button vis-apply';
+        this.applyButton.innerHTML = 'apply';
+        this.applyButton.onclick = this._apply.bind(this);
+
+        this.saveButton = document.createElement('div');
+        this.saveButton.className = 'vis-button vis-save';
+        this.saveButton.innerHTML = 'save';
+        this.saveButton.onclick = this._save.bind(this);
+
+        this.loadButton = document.createElement('div');
+        this.loadButton.className = 'vis-button vis-load';
+        this.loadButton.innerHTML = 'load last';
+        this.loadButton.onclick = this._loadLast.bind(this);
+
+        this.frame.appendChild(this.colorPickerDiv);
+        this.frame.appendChild(this.arrowDiv);
+        this.frame.appendChild(this.brightnessLabel);
+        this.frame.appendChild(this.brightnessDiv);
+        this.frame.appendChild(this.opacityLabel);
+        this.frame.appendChild(this.opacityDiv);
+        this.frame.appendChild(this.newColorDiv);
+        this.frame.appendChild(this.initialColorDiv);
+
+        this.frame.appendChild(this.cancelButton);
+        this.frame.appendChild(this.applyButton);
+        this.frame.appendChild(this.saveButton);
+        this.frame.appendChild(this.loadButton);
+      }
+    }, {
+      key: '_bindHammer',
+
+      /**
+       * bind hammer to the color picker
+       * @private
+       */
+      value: function _bindHammer() {
+        var _this = this;
+
+        this.drag = {};
+        this.pinch = {};
+        this.hammer = new Hammer(this.colorPickerCanvas);
+        this.hammer.get('pinch').set({ enable: true });
+
+        hammerUtil.onTouch(this.hammer, function (event) {
+          _this._moveSelector(event);
+        });
+        this.hammer.on('tap', function (event) {
+          _this._moveSelector(event);
+        });
+        this.hammer.on('panstart', function (event) {
+          _this._moveSelector(event);
+        });
+        this.hammer.on('panmove', function (event) {
+          _this._moveSelector(event);
+        });
+        this.hammer.on('panend', function (event) {
+          _this._moveSelector(event);
+        });
+      }
+    }, {
+      key: '_generateHueCircle',
+
+      /**
+       * generate the hue circle. This is relatively heavy (200ms) and is done only once on the first time it is shown.
+       * @private
+       */
+      value: function _generateHueCircle() {
+        if (this.generated === false) {
+          var ctx = this.colorPickerCanvas.getContext('2d');
+          if (this.pixelRation === undefined) {
+            this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
+          }
+          ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+
+          // clear the canvas
+          var w = this.colorPickerCanvas.clientWidth;
+          var h = this.colorPickerCanvas.clientHeight;
+          ctx.clearRect(0, 0, w, h);
+
+          // draw hue circle
+          var x = undefined,
+              y = undefined,
+              hue = undefined,
+              sat = undefined;
+          this.centerCoordinates = { x: w * 0.5, y: h * 0.5 };
+          this.r = 0.49 * w;
+          var angleConvert = 2 * Math.PI / 360;
+          var hfac = 1 / 360;
+          var sfac = 1 / this.r;
+          var rgb = undefined;
+          for (hue = 0; hue < 360; hue++) {
+            for (sat = 0; sat < this.r; sat++) {
+              x = this.centerCoordinates.x + sat * Math.sin(angleConvert * hue);
+              y = this.centerCoordinates.y + sat * Math.cos(angleConvert * hue);
+              rgb = util.HSVToRGB(hue * hfac, sat * sfac, 1);
+              ctx.fillStyle = 'rgb(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
+              ctx.fillRect(x - 0.5, y - 0.5, 2, 2);
+            }
+          }
+          ctx.strokeStyle = 'rgba(0,0,0,1)';
+          ctx.circle(this.centerCoordinates.x, this.centerCoordinates.y, this.r);
+          ctx.stroke();
+
+          this.hueCircle = ctx.getImageData(0, 0, w, h);
+        }
+        this.generated = true;
+      }
+    }, {
+      key: '_moveSelector',
+
+      /**
+       * move the selector. This is called by hammer functions.
+       *
+       * @param event
+       * @private
+       */
+      value: function _moveSelector(event) {
+        var rect = this.colorPickerDiv.getBoundingClientRect();
+        var left = event.center.x - rect.left;
+        var top = event.center.y - rect.top;
+
+        var centerY = 0.5 * this.colorPickerDiv.clientHeight;
+        var centerX = 0.5 * this.colorPickerDiv.clientWidth;
+
+        var x = left - centerX;
+        var y = top - centerY;
+
+        var angle = Math.atan2(x, y);
+        var radius = 0.98 * Math.min(Math.sqrt(x * x + y * y), centerX);
+
+        var newTop = Math.cos(angle) * radius + centerY;
+        var newLeft = Math.sin(angle) * radius + centerX;
+
+        this.colorPickerSelector.style.top = newTop - 0.5 * this.colorPickerSelector.clientHeight + 'px';
+        this.colorPickerSelector.style.left = newLeft - 0.5 * this.colorPickerSelector.clientWidth + 'px';
+
+        // set color
+        var h = angle / (2 * Math.PI);
+        h = h < 0 ? h + 1 : h;
+        var s = radius / this.r;
+        var hsv = util.RGBToHSV(this.color.r, this.color.g, this.color.b);
+        hsv.h = h;
+        hsv.s = s;
+        var rgba = util.HSVToRGB(hsv.h, hsv.s, hsv.v);
+        rgba.a = this.color.a;
+        this.color = rgba;
+
+        // update previews
+        this.initialColorDiv.style.backgroundColor = 'rgba(' + this.initialColor.r + ',' + this.initialColor.g + ',' + this.initialColor.b + ',' + this.initialColor.a + ')';
+        this.newColorDiv.style.backgroundColor = 'rgba(' + this.color.r + ',' + this.color.g + ',' + this.color.b + ',' + this.color.a + ')';
+      }
+    }]);
+
+    return ColorPicker;
+  })();
+
+  exports['default'] = ColorPicker;
   module.exports = exports['default'];
 
 /***/ }
