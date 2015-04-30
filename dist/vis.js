@@ -21534,7 +21534,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.canvas = canvas;
 
       this.redrawRequested = false;
-      this.renderTimer = false;
+      this.renderTimer = undefined;
       this.requiresTimeout = true;
       this.renderingActive = false;
       this.renderRequests = 0;
@@ -21584,6 +21584,7 @@ return /******/ (function(modules) { // webpackBootstrap
         this.body.emitter.on('_stopRendering', function () {
           _this.renderRequests -= 1;
           _this.renderingActive = _this.renderRequests > 0;
+          _this.renderTimer = undefined;
         });
         this.body.emitter.on('destroy', function () {
           _this.renderRequests = 0;
@@ -21607,7 +21608,7 @@ return /******/ (function(modules) { // webpackBootstrap
       key: '_startRendering',
       value: function _startRendering() {
         if (this.renderingActive === true) {
-          if (!this.renderTimer) {
+          if (this.renderTimer === undefined) {
             if (this.requiresTimeout === true) {
               this.renderTimer = window.setTimeout(this._renderStep.bind(this), this.simulationInterval); // wait this.renderTimeStep milliseconds and perform the animation step function
             } else {
@@ -22904,7 +22905,6 @@ return /******/ (function(modules) { // webpackBootstrap
                 yFixed: object.options.fixed.y
               };
 
-              object.options.fixed = {};
               object.options.fixed.x = true;
               object.options.fixed.y = true;
 
@@ -33719,9 +33719,6 @@ return /******/ (function(modules) { // webpackBootstrap
               parentOptions.fixed.y = newOptions.fixed.y;
             }
           }
-        } else if (allowDeletion === true) {
-          parentOptions.fixed = undefined;
-          delete parentOptions.fixed;
         }
       }
     }]);
@@ -35630,7 +35627,9 @@ return /******/ (function(modules) { // webpackBootstrap
       this.touchTime = 0;
       this.activated = false;
 
-      this.body.emitter.on('release', this._stopMovement.bind(this));
+      this.body.emitter.on('release', function () {
+        _this._stopMovement();
+      });
       this.body.emitter.on('activate', function () {
         _this.activated = true;_this.configureKeyboardBindings();
       });
@@ -35820,9 +35819,9 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.options.keyboard.enabled === true) {
 
           if (this.options.keyboard.bindToWindow === true) {
-            this.keycharm = keycharm({ container: window, preventDefault: false });
+            this.keycharm = keycharm({ container: window, preventDefault: true });
           } else {
-            this.keycharm = keycharm({ container: this.canvas.frame, preventDefault: false });
+            this.keycharm = keycharm({ container: this.canvas.frame, preventDefault: true });
           }
 
           this.keycharm.reset();
