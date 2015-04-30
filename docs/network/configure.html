@@ -87,23 +87,30 @@
 
     <h3>Options</h3>
     <p>The options for the canvas have to be contained in an object titled 'configure'.</p>
-    <p>Click on the options shown to show how these options are supposed to be used.</p>
+    <p>Click on the full options or shorthand options to show how these options are supposed to be used.</p>
     <ul class="nav nav-tabs">
-        <li role="presentation" class="active" onclick="hideOptions('fullTab','fullOptions');" id="hiddenTab"><a href="#">options hidden</a></li>
-        <li role="presentation" onclick="toggleTab('fullTab','fullOptions');" id="fullTab"><a href="#">options shown</a></li>
+        <li role="presentation" class="active" onclick="hideOptions('fullTab','fullOptions','shortTab','shortOptions');" id="hiddenTab"><a href="#">options hidden</a></li>
+        <li role="presentation" onclick="toggleTab('fullTab','fullOptions','shortTab','shortOptions');" id="fullTab"><a href="#">full options</a></li>
+        <li role="presentation" onclick="toggleTab('shortTab','shortOptions','fullTab','fullOptions');" id="shortTab"><a href="#">shorthand options</a></li>
     </ul>
     <br>
-<pre class="prettyprint lang-js options hidden" id="fullOptions">
+<pre class="prettyprint lang-js options top hidden" id="fullOptions">
+// these are all options in full.
 var options = {
-  configure:{
-    filter: 'nodes, physics', // or ['nodes','physics'] or true
-    container: document.getElementById("configDiv")
+  configure: {
+    enabled: true,
+    filter: 'nodes,edges',
+    container: undefined
   }
 }
 
-// alternative:
+network.setOptions(options);
+</pre>
+
+<pre class="prettyprint lang-js options top hidden" id="shortOptions">
+// only the options that have shorthand notations are shown.
 var options = {
-  configure: 'nodes, physics', // or ['nodes','physics'] or true
+  configure: 'nodes,edges'
 }
 
 network.setOptions(options);
@@ -122,7 +129,7 @@ network.setOptions(options);
             <td>enabled</td>
             <td class="mid">Boolean</td>
             <td class="mid"><code>true</code></td>
-            <td>
+            <td>Toggle the configuration interface on or off. This is an optional parameter. If left undefined and any of the other properties of this object are defined, this will be set to true.
             </td>
         </tr>
         <tr>

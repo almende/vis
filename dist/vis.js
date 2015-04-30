@@ -21849,6 +21849,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.body = body;
       this.pixelRatio = 1;
       this.resizeTimer = undefined;
+      this.resizeFunction = this._onResize.bind(this);
 
       this.options = {};
       this.defaultOptions = {
@@ -21901,7 +21902,8 @@ return /******/ (function(modules) { // webpackBootstrap
           this.resizeTimer = setInterval(function () {
             _this2.setSize();_this2.body.emitter.emit('_requestRedraw');
           }, 1000);
-          util.addEventListener(window, 'resize', this._onResize);
+          this.resizeFunction = this._onResize.bind(this);
+          util.addEventListener(window, 'resize', this.resizeFunction);
         }
       }
     }, {
@@ -21911,7 +21913,8 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.resizeTimer !== undefined) {
           clearInterval(this.resizeTimer);
         }
-        util.removeEventListener(window, 'resize', this._onResize);
+        util.removeEventListener(window, 'resize', this.resizeFunction);
+        this.resizeFunction = undefined;
       }
     }, {
       key: '_onResize',
