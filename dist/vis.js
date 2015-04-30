@@ -24655,7 +24655,6 @@ return /******/ (function(modules) { // webpackBootstrap
           this.manipulationDiv.style.display = 'block';
           this.closeDiv.style.display = 'block';
           this.editModeDiv.style.display = 'none';
-          this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
           this.showManipulatorToolbar();
         }
       }
@@ -24689,6 +24688,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
         // if the gui is enabled, draw all elements.
         if (this.guiEnabled === true) {
+          // a _restore will hide these menus
+          this.editMode = true;
+          this.manipulationDiv.style.display = 'block';
+          this.closeDiv.style.display = 'block';
+
           var selectedNodeCount = this.selectionHandler._getSelectedNodeCount();
           var selectedEdgeCount = this.selectionHandler._getSelectedEdgeCount();
           var selectedTotalCount = selectedNodeCount + selectedEdgeCount;
@@ -25576,7 +25580,7 @@ return /******/ (function(modules) { // webpackBootstrap
             alert(this.options.locales[this.options.locale].createEdgeError);
           } else {
             if (this.body.nodes[connectFromId] !== undefined && this.body.nodes[node.id] !== undefined) {
-              this._performCreateEdge(connectFromId, node.id);
+              this._performAddEdge(connectFromId, node.id);
             }
           }
         }
@@ -25621,14 +25625,14 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       }
     }, {
-      key: '_performCreateEdge',
+      key: '_performAddEdge',
 
       /**
        * connect two nodes with a new edge.
        *
        * @private
        */
-      value: function _performCreateEdge(sourceNodeId, targetNodeId) {
+      value: function _performAddEdge(sourceNodeId, targetNodeId) {
         var _this5 = this;
 
         var defaultData = { from: sourceNodeId, to: targetNodeId };
