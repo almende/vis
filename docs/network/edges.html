@@ -115,10 +115,7 @@ var options = {
       inherit: 'from',
       opacity:1.0
     },
-    dashes:{
-      enabled: false,
-      pattern:[5,5]
-    },
+    dashes: false,
     font: {
       color: '#343434',
       size: 14, // px
@@ -182,7 +179,6 @@ var options = {
   edges:{
     arrows: 'to, from',
     color: 'red',
-    dashes: true,
     font: '12px arial #ff0000',
     scaling:{
       label: true,
@@ -301,28 +297,14 @@ network.setOptions(options);
                 impact is not too big.
             </td>
         </tr>
-        <tr class='toggle collapsible' onclick="toggleTable('optionTable','dashes', this);">
-            <td><span parent="dashes" class="right-caret"></span> dashes</td>
-            <td class="mid">Object or Boolean</td>
-            <td class="mid"><code>Object</code></td>
-            <td>When true, the edge will be drawn as a dashed line. You can customize the dashes by supplying an object.
-                <i>When using dashed lines in IE versions older than 11, the line will be drawn straight, not smooth</i>.
-            </td>
-        </tr>
-        <tr parent="dashes" class="hidden">
-            <td class="indent">dashes.enabled</td>
-            <td class="mid">Boolean</td>
+        <tr>
+            <td>dashes</td>
+            <td class="mid">Array or Boolean</td>
             <td class="mid"><code>false</code></td>
-            <td>Toggle the dash drawing style on or off. This option is optional, if undefined and the scaleFactor
-                property is set, enabled will be set to true.
-            </td>
-        </tr>
-        <tr parent="dashes" class="hidden">
-            <td class="indent">dashes.pattern</td>
-            <td class="mid">Array</td>
-            <td class="mid"><code>[5,5]</code></td>
-            <td>Array of numbers repeating gap length, dash length, gap length, dash length, ... etc. The array is
+            <td>When true, the edge will be drawn as a dashed line. You can customize the dashes by supplying an Array.
+                Array formart: Array of numbers, gap length, dash length, gap length, dash length, ... etc. The array is
                 repeated until the distance is filled.
+                <i>When using dashed lines in IE versions older than 11, the line will be drawn straight, not smooth</i>.
             </td>
         </tr>
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','font', this);">
