@@ -13,26 +13,29 @@
       border: 1px solid lightgray;
     }
   </style>
+</head>
 <body>
+
+<p>
+  Create a simple network with some nodes and edges.
+</p>
 
 <div id="mynetwork"></div>
 
 <script type="text/javascript">
   // create an array with nodes
-  var nodesDS = new vis.DataSet();
-
   var nodes = [
-    {id: 1, label: 'Node 1', value:3, title:'hello world', color:'red'},
-    {id: 2, label: 'Node 2', value:1, group:'bla'},
-    {id: 3, label: 'Node 3', value:5},
-    {id: 4, value:3},
-    {id: 5, label: 'Node 5', value:2}
+    {id: 1, label: 'Node 1'},
+    {id: 2, label: 'Node 2'},
+    {id: 3, label: 'Node 3'},
+    {id: 4, label: 'Node 4'},
+    {id: 5, label: 'Node 5'}
   ];
 
   // create an array with edges
   var edges = new vis.DataSet([
     {from: 1, to: 1},
-    {from: 1, to: 3,id:'e1', dashes:{pattern:[10,15,2,5]}},
+    {from: 1, to: 3},
     {from: 1, to: 2},
     {from: 2, to: 4},
     {from: 2, to: 5}
@@ -40,24 +43,14 @@
 
   // create a network
   var container = document.getElementById('mynetwork');
-  nodesDS.add(nodes);
   var data = {
-    nodes: nodesDS,
+    nodes: nodes,
     edges: edges
   };
-  var options = {
-    edges:{color:'red'}
-  }
+  var options = {};
   var network = new vis.Network(container, data, options);
-//    network.setOptions({nodes:{color:'red'}})
-  nodesDS.update({id:1, color:undefined,label:'hi'});
 </script>
-<pre>
-var options = {
-  manipulation: 'hello',
-  physics:{barnesHut:{gravitationslPull:34}, solver:'banana'},
-  groups:{'bla':{color:{backsground:'red'}, borderWidth:5}}
-}
-  </pre>
+
+<script src="../googleAnalytics.js"></script>
 </body>
 </html>

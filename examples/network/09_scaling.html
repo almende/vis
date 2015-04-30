@@ -1,10 +1,10 @@
 <!doctype html>
 <html>
 <head>
-  <title>Network | Scalable images</title>
+  <title>Network | Sizing</title>
 
   <style type="text/css">
-    body {
+    html, body {
       font: 10pt arial;
     }
     #mynetwork {
@@ -18,13 +18,10 @@
   <link href="../../dist/vis.css" rel="stylesheet" type="text/css" />
 
   <script type="text/javascript">
-    var DIR = 'img/soft-scraps-icons/';
-
     var nodes = null;
     var edges = null;
     var network = null;
 
-    // Called when the Visualization API is loaded.
     function draw() {
       // create people.
       // value corresponds with the age of the person
@@ -42,7 +39,7 @@
         {id: 10, value: 18, shape: 'image', label: 'Tod', title: 'Tod (18 years old)', image: DIR + 'User-Preppy-Red-icon.png'}
       ];
 
-      // create connetions between people
+      // create connections between people
       // value corresponds with the amount of contact between two people
       edges = [
         {from: 2, to: 8, value: 3, title: '3 emails per week'},
@@ -58,7 +55,7 @@
         {from: 2, to: 7, value: 4, title: '4 emails per week'}
       ];
 
-      // create a network
+      // Instantiate our network object.
       var container = document.getElementById('mynetwork');
       var data = {
         nodes: nodes,
@@ -66,21 +63,25 @@
       };
       var options = {
         nodes: {
-          widthMin: 20,  // min width in pixels
-          widthMax: 100  // max width in pixels
+          shape: 'dot',
+          scaling: {
+            min: 16, // px
+            max: 64  // px
+          }
         },
         edges: {
-          color: 'lightgray'
+          //color: 'gray'
         }
       };
       network = new vis.Network(container, data, options);
     }
   </script>
-<script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-61231638-1', 'auto');ga('send', 'pageview');</script></head>
-
+  <script src="../googleAnalytics.js"></script>
+</head>
 <body onload="draw()">
+<p>
+  Scale nodes and edges depending on their value. Hover over nodes and edges to get more information.
+</p>
 <div id="mynetwork"></div>
-
-<div id="info"></div>
 </body>
 </html>

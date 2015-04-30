@@ -1,12 +1,9 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!doctype html>
 <html>
 <head>
   <title>Network | Custom style</title>
 
   <style type="text/css">
-    body {
-      font: 10pt arial;
-    }
     #mynetwork {
       width: 600px;
       height: 600px;
@@ -60,15 +57,22 @@
 
       // specify options
       options = {
-        stabilize: false,
+        physics: {
+          stabilization: false,
+          barnesHut: {
+            springLength:200
+          }
+        },
         edges: {
           width: 2,
-          style: 'arrow',
+          arrows: 'to',
           color: 'gray'
         },
         nodes: {
           // default for all nodes
-          fontFace: 'times',
+          font: {
+            face: 'times'
+          },
           shape: 'circle',
           color: {
             border: 'orange',
@@ -79,16 +83,17 @@
             }
           }
         },
-        physics: {barnesHut:{springLength:200}}, // this is the correct way to set the length of the springs
         groups: {
           black: {
             // defaults for nodes in this group
-            radius: 15,
+            size: 15,
             color: 'black',
-            fontColor: 'white',
-            fontSize: 18,
-            fontFace: 'courier',
-            shape: 'rect'
+            font: {
+              color: 'white',
+              size: 18,
+              face: 'courier'
+            },
+            shape: 'box'
           },
           gray: {
             color: {
@@ -99,8 +104,10 @@
                 background: 'lightgray'
               }
             },
-            fontSize: 18,
-            fontFace: 'arial',
+            font: {
+              size: 18,
+              face: 'arial'
+            },
             shape: 'circle'
           },
           white: {
@@ -108,7 +115,9 @@
               border: 'black',
               background: 'white'
             },
-            fontColor: 'red',
+            font: {
+              color: 'red'
+            },
             shape: 'image',
             image: 'img/soft-scraps-icons/User-Coat-Blue-icon.png'
           }
@@ -124,8 +133,12 @@
       network = new vis.Network(container, data, options);
     }
   </script>
-<script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-61231638-1', 'auto');ga('send', 'pageview');</script></head>
+  <script src="../googleAnalytics.js"></script>
+</head>
 
+<p>
+  Custom styles for nodes can be applied globally, per group, of to individual nodes. Same holds for edges.
+</p>
 <body onload="draw()">
 <div id="mynetwork"></div>
 </body>
